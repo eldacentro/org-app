@@ -41,10 +41,10 @@ export const isLoginOpenState = atom(false);
 
 export const appLangState = atom(localStorageGetItem('ui_lang'));
 
-export const appFontState = atomWithStorage('font', 'Inter');
+export const appFontState = atomWithStorage('font', 'Figtree');
 
 export const appThemeState = atom((get) => {
-  const font = get(appFontState) ?? 'Inter';
+  const font = get(appFontState) ?? 'Figtree';
   const appLang = get(appLangState);
 
   const direction = (LANGUAGE_LIST.find(

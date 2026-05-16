@@ -21,9 +21,9 @@
   "tr_infoBoardAnnouncementsDesc": "Eğer kapatılırsa, yeni duyurular için bildirim almayacaksınız, ancak ihtiyarlar tüm cemaatin hakkında bir şey hakkında bilgilendirmek istiyorsa almaya devam edeceksiniz",
   "tr_partnerSearch": "Hizmet arkadaşı arayan müjdeci",
   "tr_partnerSearchDesc": "Bir müjdeci hizmet arkadaşı olma isteği gönderdiğinde anında bildirim alın",
-  "tr_organizedSettings": "'Organized' Ayarları",
+  "tr_organizedSettings": "Uygulama Ayarları",
   "tr_autoSync": "Otomatik senkronizasyon",
-  "tr_autoSyncDesc": "Verileri otomatik olarak 'Organized' ve cihazlarım arasında senkronize et",
+  "tr_autoSyncDesc": "Verileri otomatik olarak '' ve cihazlarım arasında senkronize et",
   "tr_syncInterval": "Senkronizasyon aralığı",
   "tr_customLinkInMobilePanel": "Mobil gezinme panelindeki özel bağlantı",
   "tr_customLinkInMobilePanelDesc": "Ana sayfadan hızlı erişim için ‘Bilgi panosu’ düğmesini başka bir özellik ile değiştirin",
@@ -78,7 +78,7 @@
   "tr_timeAwayDesc": "Henüz izin günü girmediniz. İzin günlerinizi güncel tutun ki, kardeşler gelecek ibadetleri planlarken dikkate alabilsinler.",
   "tr_terminatedDesc": "Oturum sonlandırıldı",
   "tr_deleteAccount": "Delete my account",
-  "tr_deleteAccountDesc": "Are you sure to delete your account from Organized?",
-  "tr_deleteAccountWithCongregationDesc": "Are you sure to delete your account from Organized? This will also delete your congregation since you are its only one user. Enter below the congregation master key to confirm the deletion.",
+  "tr_deleteAccountDesc": "Are you sure to delete your account from ?",
+  "tr_deleteAccountWithCongregationDesc": "Are you sure to delete your account from ? This will also delete your congregation since you are its only one user. Enter below the congregation master key to confirm the deletion.",
   "tr_deleteAccountAssignAdminFirst": "Before deleting your account, make sure to assign another app administrator to support the users within your congregation."
 }

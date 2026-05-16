@@ -13,7 +13,7 @@ const useTermsUse = () => {
   const handleTermsUse = () => {
     const lang = localStorage.getItem('ui_lang') ?? 'eng';
 
-    const font = localStorage.getItem('app_font') ?? 'Inter';
+    const font = localStorage.getItem('app_font') ?? 'Figtree';
 
     localStorage.setItem('userConsent', 'accept');
     localStorage.setItem('ui_lang', lang);

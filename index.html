@@ -1,512 +1,440 @@
 <!doctype html>
 <html lang="en" class="notranslate" translate="no" data-theme="blue-light">
-  <head>
-    <meta name="google" content="notranslate" />
-    <meta name="robots" content="notranslate" />
-    <meta name="googlebot" content="notranslate" />
-    <meta charset="utf-8" />
-    <link rel="icon" href="favicon.svg" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="inter.css" />
-    <link rel="stylesheet" href="notosans.css" />
-    <link rel="stylesheet" href="notosanssc.css" />
-    <link rel="stylesheet" href="notosansjp.css" />
-    <link rel="stylesheet" href="notosanshebrew.css" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <meta name="theme-color" content="#f8f9ffff" />
-    <title>Organized: App for Jehovah's Witnesses</title>
-    <meta
-      name="description"
-      content="A modern all-in-one app for Jehovah's Witnesses to simplify congregation management. Create meeting schedules, view your assignments, create and submit reports, and way more. Save time on routine tasks and focus on other important things!"
-    />
-    <meta
-      property="og:title"
-      content="Organized: The modern all-in-one app for Jehovah's Witnesses congregations"
-    />
-    <meta
-      property="og:description"
-      content="User-friendly, secure, and cross-platform. Organized makes managing Jehovah’s Witnesses congregation life easy and efficient! Create schedules, view assignments, and submit reports — quick and simple. This app is a great help for everyone in the congregation. Try it now and see the difference!"
-    />
-    <meta
-      property="og:image"
-      content="img/open-graph/organized-app-og-image.jpg"
-    />
-    <meta property="og:url" content="https://organized-app.com" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Organized" />
-    <link rel="apple-touch-icon" href="img/icon/icon-maskable-1024x1024.png" />
-    <link rel="apple-touch-icon" href="img/icon/icon-maskable-512x512.png" />
-    <link rel="apple-touch-icon" href="img/icon/icon-maskable-192x192.png" />
-    <link rel="apple-touch-icon" href="img/icon/icon-maskable-180x180.png" />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_15_Pro__iPhone_15__iPhone_14_Pro_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_11__iPhone_XR_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/12.9__iPad_Pro_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/11__iPad_Pro__10.5__iPad_Pro_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/10.9__iPad_Air_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/10.5__iPad_Air_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/10.2__iPad_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-      href="img/splashscreen/8.3__iPad_Mini_landscape.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_11_Pro_Max__iPhone_XS_Max_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_11__iPhone_XR_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/4__iPhone_SE__iPod_touch_5th_generation_and_later_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/12.9__iPad_Pro_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/11__iPad_Pro__10.5__iPad_Pro_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/10.9__iPad_Air_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/10.5__iPad_Air_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/10.2__iPad_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png"
-    />
-    <link
-      rel="apple-touch-startup-image"
-      media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-      href="img/splashscreen/8.3__iPad_Mini_portrait.png"
-    />
 
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <meta name="google" content="notranslate" />
+  <meta name="robots" content="notranslate" />
+  <meta name="googlebot" content="notranslate" />
+  <meta charset="utf-8" />
+  <link rel="icon" href="favicon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="inter.css" />
+  <link rel="stylesheet" href="notosans.css" />
+  <link rel="stylesheet" href="notosanssc.css" />
+  <link rel="stylesheet" href="notosansjp.css" />
+  <link rel="stylesheet" href="notosanshebrew.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#f8f9ffff" />
+  <title>Elda Centro: App for Jehovah's Witnesses</title>
+  <meta name="description"
+    content="A modern all-in-one app for Jehovah's Witnesses to simplify congregation management. Create meeting schedules, view your assignments, create and submit reports, and way more. Save time on routine tasks and focus on other important things!" />
+  <meta property="og:title" content="Elda Centro: The modern all-in-one app for Jehovah's Witnesses congregations" />
+  <meta property="og:description"
+    content="User-friendly, secure, and cross-platform. Elda Centro makes managing Jehovah’s Witnesses congregation life easy and efficient! Create schedules, view assignments, and submit reports — quick and simple. This app is a great help for everyone in the congregation. Try it now and see the difference!" />
+  <meta property="og:image" content="img/open-graph/organized-app-og-image.jpg" />
+  <meta property="og:url" content="https://organized-app.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Elda Centro" />
+  <link rel="apple-touch-icon" href="img/icon/icon-maskable-1024x1024.png" />
+  <link rel="apple-touch-icon" href="img/icon/icon-maskable-512x512.png" />
+  <link rel="apple-touch-icon" href="img/icon/icon-maskable-192x192.png" />
+  <link rel="apple-touch-icon" href="img/icon/icon-maskable-180x180.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_15_Pro__iPhone_15__iPhone_14_Pro_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_11__iPhone_XR_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/12.9__iPad_Pro_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/11__iPad_Pro__10.5__iPad_Pro_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/10.9__iPad_Air_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/10.5__iPad_Air_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/10.2__iPad_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="img/splashscreen/8.3__iPad_Mini_landscape.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_11_Pro_Max__iPhone_XS_Max_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_11__iPhone_XR_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/4__iPhone_SE__iPod_touch_5th_generation_and_later_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/12.9__iPad_Pro_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/11__iPad_Pro__10.5__iPad_Pro_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/10.9__iPad_Air_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/10.5__iPad_Air_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/10.2__iPad_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="img/splashscreen/8.3__iPad_Mini_portrait.png" />
+
+  <style>
+    .loader-waiting-js {
+      width: 216px;
+      margin: auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    body {
+      font-family: 'Figtree', Inter, NotoSans, sans-serif;
+    }
+  </style>
+
+  <noscript>
     <style>
-      .loader-waiting-js {
-        width: 216px;
-        margin: auto;
+      :root {
+        --radius-l: 8px;
+        --accent-100: rgba(248, 249, 255, 1);
+        --accent-200: rgba(213, 223, 253, 1);
+        --accent-main: rgba(80, 101, 208, 1);
+        --always-white: rgba(254, 254, 254, 1);
+        --black: rgba(34, 34, 34, 1);
+        --grey-400: rgba(80, 80, 80, 1);
+      }
+
+      noscript {
+        color: rgba(0, 0, 0, 0.87);
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: 0.00938em;
+        line-height: 1.5;
+      }
+
+      noscript nav {
+        background-color: var(--accent-100);
+        border-bottom: 1px solid var(--accent-200);
+        height: 56px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        z-index: 100;
+      }
+
+      noscript nav #nav-container {
+        max-width: 1440px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 8px 16px;
+
+        @media (min-width: 480px) {
+          padding: 8px 32px;
+        }
+      }
+
+      noscript nav #nav-container #nav-brand-container {
+        display: flex;
+        align-items: center;
+
+        gap: 8px;
+
+        @media (min-width: 480px) {
+          gap: 16px;
+        }
+      }
+
+      noscript nav #nav-container #nav-brand-container h3 {
+        font-size: 18px;
+        text-decoration: none;
+        font-weight: 570;
+        font-style: normal;
+        font-stretch: normal;
+        letter-spacing: 0.18px;
+        line-height: 24px;
+        text-indent: 0px;
+        text-transform: none;
+        margin: 0px;
+        color: var(--black);
+      }
+
+      noscript nav #nav-container #nav-brand-container #svg-icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      noscript #container {
         position: absolute;
         top: 50%;
         left: 50%;
+        margin-left: auto;
+        margin-right: auto;
         transform: translate(-50%, -50%);
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 600px;
         display: flex;
         align-items: center;
         flex-direction: column;
-        gap: 30px;
+        gap: 48px;
+        padding: 16px;
+
+        @media (min-width: 480px) {
+          align-items: flex-start;
+          padding: 32px;
+        }
+
+        @media (min-width: 768px) {
+          flex-direction: row;
+          max-width: 800px;
+        }
       }
 
-      body {
-        font-family: Inter, NotoSans, sans-serif;
+      noscript #container #illustration {
+        width: 160px;
+        height: 160px;
+      }
+
+      noscript #container #message-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      noscript #container #message-container h1 {
+        margin: 0px;
+        color: var(--black);
+        text-decoration: none;
+        font-style: normal;
+        font-stretch: normal;
+        text-indent: 0px;
+        text-transform: none;
+
+        font-size: 20px;
+        font-weight: 550;
+        letter-spacing: 0px;
+        line-height: 24px;
+
+        @media (min-width: 768px) {
+          font-size: 24px;
+          font-weight: 600;
+          letter-spacing: 0.24px;
+          line-height: 28px;
+        }
+      }
+
+      noscript #container #message-container p {
+        color: var(--grey-400);
+
+        font-size: 15px;
+        text-decoration: none;
+        font-weight: 400;
+        font-style: normal;
+        font-stretch: normal;
+        letter-spacing: -0.15px;
+        line-height: 20px;
+        text-indent: 0px;
+        text-transform: none;
+
+        @media (min-width: 768px) {
+          font-size: 16px;
+          letter-spacing: 0px;
+        }
+      }
+
+      noscript #container #action-container {
+        display: flex;
+        align-items: flex-start;
+        align-self: stretch;
+        justify-content: space-between;
+        gap: 8px;
+        flex-direction: column-reverse;
+      }
+
+      noscript .variant-main {
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-align-items: center;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        -ms-flex-pack: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+        position: relative;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        outline: 0;
+        margin: 0;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        vertical-align: middle;
+        -webkit-text-decoration: none;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+        line-height: 1.75;
+        letter-spacing: 0.02857em;
+        text-transform: uppercase;
+        min-width: 64px;
+        -webkit-transition:
+          background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        transition:
+          background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        min-height: 44px;
+        font-feature-settings: 'cv05';
+        padding: 8px 16px;
+        background-color: var(--accent-main);
+        border: none;
+        color: var(--always-white);
+        box-shadow: none;
+        border-radius: var(--radius-l);
+        width: 100%;
+        gap: 8px;
+
+        @media (min-width: 480px) {
+          width: fit-content;
+        }
+      }
+
+      .loader-waiting-js {
+        display: none;
       }
     </style>
+  </noscript>
+</head>
 
-    <noscript>
-      <style>
-        :root {
-          --radius-l: 8px;
-          --accent-100: rgba(248, 249, 255, 1);
-          --accent-200: rgba(213, 223, 253, 1);
-          --accent-main: rgba(80, 101, 208, 1);
-          --always-white: rgba(254, 254, 254, 1);
-          --black: rgba(34, 34, 34, 1);
-          --grey-400: rgba(80, 80, 80, 1);
-        }
-
-        noscript {
-          color: rgba(0, 0, 0, 0.87);
-          font-size: 1rem;
-          font-weight: 400;
-          letter-spacing: 0.00938em;
-          line-height: 1.5;
-        }
-
-        noscript nav {
-          background-color: var(--accent-100);
-          border-bottom: 1px solid var(--accent-200);
-          height: 56px;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          overflow: hidden;
-          z-index: 100;
-        }
-
-        noscript nav #nav-container {
-          max-width: 1440px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          padding: 8px 16px;
-
-          @media (min-width: 480px) {
-            padding: 8px 32px;
-          }
-        }
-
-        noscript nav #nav-container #nav-brand-container {
-          display: flex;
-          align-items: center;
-
-          gap: 8px;
-
-          @media (min-width: 480px) {
-            gap: 16px;
-          }
-        }
-
-        noscript nav #nav-container #nav-brand-container h3 {
-          font-size: 18px;
-          text-decoration: none;
-          font-weight: 570;
-          font-style: normal;
-          font-stretch: normal;
-          letter-spacing: 0.18px;
-          line-height: 24px;
-          text-indent: 0px;
-          text-transform: none;
-          margin: 0px;
-          color: var(--black);
-        }
-
-        noscript nav #nav-container #nav-brand-container #svg-icon {
-          width: 40px;
-          height: 40px;
-        }
-
-        noscript #container {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          margin-left: auto;
-          margin-right: auto;
-          transform: translate(-50%, -50%);
-          box-sizing: border-box;
-          width: 100%;
-          max-width: 600px;
-          display: flex;
-          align-items: center;
-          flex-direction: column;
-          gap: 48px;
-          padding: 16px;
-
-          @media (min-width: 480px) {
-            align-items: flex-start;
-            padding: 32px;
-          }
-
-          @media (min-width: 768px) {
-            flex-direction: row;
-            max-width: 800px;
-          }
-        }
-
-        noscript #container #illustration {
-          width: 160px;
-          height: 160px;
-        }
-
-        noscript #container #message-container {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        noscript #container #message-container h1 {
-          margin: 0px;
-          color: var(--black);
-          text-decoration: none;
-          font-style: normal;
-          font-stretch: normal;
-          text-indent: 0px;
-          text-transform: none;
-
-          font-size: 20px;
-          font-weight: 550;
-          letter-spacing: 0px;
-          line-height: 24px;
-
-          @media (min-width: 768px) {
-            font-size: 24px;
-            font-weight: 600;
-            letter-spacing: 0.24px;
-            line-height: 28px;
-          }
-        }
-
-        noscript #container #message-container p {
-          color: var(--grey-400);
-
-          font-size: 15px;
-          text-decoration: none;
-          font-weight: 400;
-          font-style: normal;
-          font-stretch: normal;
-          letter-spacing: -0.15px;
-          line-height: 20px;
-          text-indent: 0px;
-          text-transform: none;
-
-          @media (min-width: 768px) {
-            font-size: 16px;
-            letter-spacing: 0px;
-          }
-        }
-
-        noscript #container #action-container {
-          display: flex;
-          align-items: flex-start;
-          align-self: stretch;
-          justify-content: space-between;
-          gap: 8px;
-          flex-direction: column-reverse;
-        }
-
-        noscript .variant-main {
-          display: -webkit-inline-box;
-          display: -webkit-inline-flex;
-          display: -ms-inline-flexbox;
-          display: inline-flex;
-          -webkit-align-items: center;
-          -webkit-box-align: center;
-          -ms-flex-align: center;
-          align-items: center;
-          -webkit-box-pack: center;
-          -ms-flex-pack: center;
-          -webkit-justify-content: center;
-          justify-content: center;
-          position: relative;
-          box-sizing: border-box;
-          -webkit-tap-highlight-color: transparent;
-          outline: 0;
-          margin: 0;
-          cursor: pointer;
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-          vertical-align: middle;
-          -webkit-text-decoration: none;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.875rem;
-          line-height: 1.75;
-          letter-spacing: 0.02857em;
-          text-transform: uppercase;
-          min-width: 64px;
-          -webkit-transition:
-            background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-          transition:
-            background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
-            color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-          min-height: 44px;
-          font-feature-settings: 'cv05';
-          padding: 8px 16px;
-          background-color: var(--accent-main);
-          border: none;
-          color: var(--always-white);
-          box-shadow: none;
-          border-radius: var(--radius-l);
-          width: 100%;
-          gap: 8px;
-
-          @media (min-width: 480px) {
-            width: fit-content;
-          }
-        }
-
-        .loader-waiting-js {
-          display: none;
-        }
-      </style>
-    </noscript>
-  </head>
-  <body>
-    <noscript>
-      <nav>
-        <div id="nav-container">
-          <div id="nav-brand-container">
-            <img
-              id="svg-icon"
-              src="/img/icon/logo.svg"
-              alt="logo of organized app"
-            />
-            <h3>Organized</h3>
-          </div>
-        </div>
-      </nav>
-      <div id="container">
-        <img
-          id="illustration"
-          src="/noscript/illustration_enable_js.svg"
-          alt="illustration to enable javascript"
-        />
-        <div id="message-container">
-          <h1 class="h1">JavaScript is disabled</h1>
-          <p class="body-regular">
-            Organized is a web app that requires JavaScript to work properly.
-            Please enable JavaScript in your browser settings to ensure you can
-            use all of its features.
-          </p>
-          <div id="action-container">
-            <a variant="main" class="button-caps variant-main" href="/">
-              <img
-                id="refresh-icon"
-                src="/noscript/refresh_icon.svg"
-                alt="refresh icon"
-              />
-              refresh the page
-            </a>
-          </div>
+<body>
+  <noscript>
+    <nav>
+      <div id="nav-container">
+        <div id="nav-brand-container">
+          <img id="svg-icon" src="/img/icon/logo.svg" alt="logo of organized app" />
+          <h3>Elda Centro</h3>
         </div>
       </div>
-    </noscript>
-    <div id="root">
-      <div class="loader-waiting-js">
-        <img
-          alt=""
-          src="./img/splashscreen/loader.gif"
-          style="height: 80px; width: 80px"
-        />
+    </nav>
+    <div id="container">
+      <img id="illustration" src="/noscript/illustration_enable_js.svg" alt="illustration to enable javascript" />
+      <div id="message-container">
+        <h1 class="h1">JavaScript is disabled</h1>
+        <p class="body-regular">
+          Elda Centro is a web app that requires JavaScript to work properly.
+          Please enable JavaScript in your browser settings to ensure you can
+          use all of its features.
+        </p>
+        <div id="action-container">
+          <a variant="main" class="button-caps variant-main" href="/">
+            <img id="refresh-icon" src="/noscript/refresh_icon.svg" alt="refresh icon" />
+            refresh the page
+          </a>
+        </div>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  </noscript>
+  <div id="root">
+    <div class="loader-waiting-js" style="display:flex; justify-content:center; align-items:center; height:100vh;">
+      <img alt="Elda Centro" src="./img/icon/isotipo.svg"
+        style="height: 80px; width: 80px; animation: pulse 1.5s ease-in-out infinite;" />
+      <style>
+        @keyframes pulse {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+
+          50% {
+            opacity: 0.6;
+            transform: scale(0.92);
+          }
+
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      </style>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

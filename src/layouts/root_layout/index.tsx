@@ -26,7 +26,6 @@ import NavBar from '@layouts/navbar';
 import Support from '@features/support';
 import UnsupportedBrowser from '@features/app_start/shared/unsupported_browser';
 import WaitingLoader from '@components/waiting_loader';
-import WhatsNew from '@features/whats_new';
 
 const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   const { isSupported } = useGlobal();
@@ -43,7 +42,6 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
     isImportJWOrg,
     isImportEPUB,
     isDashboard,
-    isDemoNoticeOpen,
     initialSetupOpen,
   } = useRootLayout();
 
@@ -98,13 +96,8 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                   }
                 >
                   {isTest && <DemoNotice />}
-
-                  {!initialSetupOpen &&
-                    (!isTest || (isTest && !isDemoNoticeOpen)) && <WhatsNew />}
-
-                  {!isTest && initialSetupOpen && <InitialSetup />}
-
-                  {isPublisher && <AppReminders />}
+{!isTest && initialSetupOpen && <InitialSetup />}
+{isPublisher && <AppReminders />}
 
                   <Box sx={{ marginBottom: '32px' }}>
                     <MyAssignments />

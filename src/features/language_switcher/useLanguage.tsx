@@ -98,7 +98,7 @@ const useLanguage = () => {
 
     const font =
       LANGUAGE_LIST.find((lang) => lang.threeLettersCode === ui_lang)?.font ||
-      'Inter';
+      'Figtree';
 
     localStorage.setItem('ui_lang', ui_lang);
 

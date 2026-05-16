@@ -1,11 +1,11 @@
 html {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Figtree', sans-serif;
   font-feature-settings: 'cv05';
 }
 
 @supports (font-variation-settings: normal) {
   html {
-    font-family: 'Inter var', sans-serif;
+    font-family: 'Figtree', sans-serif;
   }
 }
 

@@ -78,7 +78,7 @@
   "tr_prayer": "Oración",
   "tr_partDuration": "({{ time }} min.)",
   "tr_memorialWeek": "Conmemoración",
-  "tr_exportMidweekMeetinDesc": "Elige los programas y formularios que te gustaría exportar y selecciona tu plantilla preferida. Organized guarda tu elección de plantilla para la próxima vez para facilitar la exportación.",
+  "tr_exportMidweekMeetinDesc": "Elige los programas y formularios que te gustaría exportar y selecciona tu plantilla preferida. Elda Centro guarda tu elección de plantilla para la próxima vez para facilitar la exportación.",
   "tr_specialTalkWeek": "Discurso especial",
   "tr_wtStudyConductor": "Conductor del estudio",
   "tr_closingPrayer": "Oración de conclusión",
@@ -109,5 +109,5 @@
   "tr_averageAttendanceWeekly": "Promedio de asistencia semanal",
   "tr_averageAttendanceMonthly": "Promedio de asistencia mensual",
   "tr_S88Title": "REGISTRO DE ASISTENCIA A LAS REUNIONES DE CONGREGACIÓN",
-  "tr_findScheduleByScanningQRCode": "Encuentra la versión más actualizada de este programa escaneando el código QR o directamente en tu aplicación Organized."
+  "tr_findScheduleByScanningQRCode": "Encuentra la versión más actualizada de este programa escaneando el código QR o directamente en tu aplicación Elda Centro."
 }

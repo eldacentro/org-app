@@ -16,9 +16,15 @@ import logger from '@services/logger/index';
 import useInternetChecker from '@hooks/useInternetChecker';
 
 // creating theme
-const lightTheme = createTheme({ palette: { mode: 'light' } });
+const lightTheme = createTheme({
+  palette: { mode: 'light' },
+  typography: { fontFamily: "'Figtree', sans-serif" },
+});
 
-const darkTheme = createTheme({ palette: { mode: 'dark' } });
+const darkTheme = createTheme({
+  palette: { mode: 'dark' },
+  typography: { fontFamily: "'Figtree', sans-serif" },
+});
 
 const useGlobal = () => {
   const { isNavigatorOnline } = useInternetChecker();

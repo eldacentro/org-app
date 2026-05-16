@@ -11,30 +11,27 @@ import {
 } from '@mui/material';
 import {
   IconAccount,
-  IconDonate,
-  IconHelp,
   IconInfo,
   IconLogin,
   IconLogo,
-  IconMail,
   IconArrowLink,
   IconLogout,
   IconArrowBack,
   IconSettings,
 } from '@icons/index';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
-import { APP_ENVIRONMENT, isTest } from '@constants/index';
+
 import { NavBarType } from './index.types';
 import useNavbar from './useNavbar';
 import AccountHeaderIcon from '@components/account_header_icon';
 import AppNotification from '@features/app_notification';
 import Button from '@components/button';
-import DemoBanner from '@features/demo/banner';
 import LanguageSwitcher from '@features/language_switcher';
 import ThemeSwitcher from '@features/theme_switcher';
 import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
+import { isTest } from '@constants/index';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -67,10 +64,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleCloseMore,
     handleOpenMoreMenu,
     openMore,
-    handleOpenContact,
     handleOpenAbout,
-    handleOpenSupport,
-    handleOpenDoc,
     tabletUp,
     tabletDown,
     isCongAccountConnected,
@@ -140,11 +134,8 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     }}
                   >
                     <Typography className="h3" color="var(--black)">
-                      Organized
+                      Elda Centro
                     </Typography>
-                    {APP_ENVIRONMENT && (
-                      <DemoBanner environment={APP_ENVIRONMENT} />
-                    )}
                   </Box>
                 </Box>
                 <Box
@@ -269,74 +260,6 @@ const NavBar = ({ isSupported }: NavBarType) => {
                             <ListItemText>
                               <Typography className="body-regular">
                                 {t('tr_myProfile')}
-                              </Typography>
-                            </ListItemText>
-                          </MenuItem>
-                        )}
-
-                        <MenuItem
-                          disableRipple
-                          sx={menuStyle}
-                          onClick={handleOpenSupport}
-                        >
-                          <ListItemIcon
-                            sx={{
-                              '&.MuiListItemIcon-root': {
-                                width: '24px',
-                                minWidth: '24px !important',
-                              },
-                            }}
-                          >
-                            <IconDonate color="var(--black)" />
-                          </ListItemIcon>
-                          <ListItemText>
-                            <Typography className="body-regular">
-                              {t('tr_supportApp')}
-                            </Typography>
-                          </ListItemText>
-                        </MenuItem>
-
-                        <MenuItem
-                          disableRipple
-                          sx={menuStyle}
-                          onClick={handleOpenDoc}
-                        >
-                          <ListItemIcon
-                            sx={{
-                              '&.MuiListItemIcon-root': {
-                                width: '24px',
-                                minWidth: '24px !important',
-                              },
-                            }}
-                          >
-                            <IconHelp color="var(--black)" />
-                          </ListItemIcon>
-                          <ListItemText>
-                            <Typography className="body-regular">
-                              {t('tr_howToUseApp')}
-                            </Typography>
-                          </ListItemText>
-                        </MenuItem>
-
-                        {accountType === 'vip' && isCongAccountConnected && (
-                          <MenuItem
-                            disableRipple
-                            sx={menuStyle}
-                            onClick={handleOpenContact}
-                          >
-                            <ListItemIcon
-                              sx={{
-                                '&.MuiListItemIcon-root': {
-                                  width: '24px',
-                                  minWidth: '24px !important',
-                                },
-                              }}
-                            >
-                              <IconMail color="var(--black)" />
-                            </ListItemIcon>
-                            <ListItemText>
-                              <Typography className="body-regular">
-                                {t('tr_shareFeeback')}
                               </Typography>
                             </ListItemText>
                           </MenuItem>

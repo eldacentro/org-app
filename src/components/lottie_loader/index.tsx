@@ -1,15 +1,23 @@
-import Lottie from 'react-lottie-player';
-import animationData from '@assets/lotties/loader.json';
-
 const LottieLoader = ({ size = 72 }: { size?: number }) => {
   return (
-    <Lottie
-      loop
-      animationData={animationData}
-      speed={1.3}
-      play
-      style={{ width: size, height: size }}
-    />
+    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <img
+        src="/img/icon/isotipo.svg"
+        alt="Elda Centro"
+        style={{
+          width: size,
+          height: size,
+          animation: 'eldaPulse 1.5s ease-in-out infinite',
+        }}
+      />
+      <style>{`
+        @keyframes eldaPulse {
+          0% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(0.88); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
   );
 };
 
