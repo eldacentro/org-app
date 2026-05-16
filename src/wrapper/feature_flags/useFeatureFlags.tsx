@@ -47,19 +47,25 @@ const useFeatureFlags = () => {
 
   useEffect(() => {
     const loadApi = async () => {
-      let tmpHost;
+      let tmpHost = import.meta.env.VITE_APP_API_URL;
 
-      if (import.meta.env.VITE_BACKEND_API) {
-        tmpHost = import.meta.env.VITE_BACKEND_API;
-      } else {
-        if (
-          import.meta.env.DEV ||
-          window.location.host.indexOf('localhost') !== -1
-        ) {
-          tmpHost = 'http://localhost:8000/';
+      if (!tmpHost) {
+        if (import.meta.env.VITE_BACKEND_API) {
+          tmpHost = import.meta.env.VITE_BACKEND_API;
         } else {
-          tmpHost = 'https://api.organized-app.com/';
+          if (
+            import.meta.env.DEV ||
+            window.location.host.indexOf('localhost') !== -1
+          ) {
+            tmpHost = 'http://localhost:8000/';
+          } else {
+            tmpHost = 'https://api.organized-app.com/';
+          }
         }
+      }
+
+      if (!tmpHost.endsWith('/')) {
+        tmpHost += '/';
       }
 
       setApiHost(tmpHost);
