@@ -1,4 +1,17 @@
 {
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        }
+      ]
+    }
+  ]
+}
+{
   "git": {
     "deploymentEnabled": {
       "l10n_main": false,
