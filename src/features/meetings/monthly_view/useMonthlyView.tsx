@@ -41,9 +41,10 @@ const useMonthlyView = () => {
       let weeks = [];
       sourcesFormatted.forEach((srcYear) => {
         if (srcYear.value == year) {
-          weeks = srcYear.months.find(
-            (formattedMonth) => formattedMonth.value == month
-          ).weeks;
+          const foundMonth = srcYear.months.find(
+  (formattedMonth) => formattedMonth.value == month
+);
+weeks = foundMonth ? foundMonth.weeks : [];
         }
       });
       return weeks;
