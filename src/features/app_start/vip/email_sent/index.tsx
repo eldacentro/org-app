@@ -16,7 +16,6 @@ const EmailSent = () => {
     message,
     title,
     variant,
-    handleLinkClick,
     code,
     handleCodeChange,
     hasError,
