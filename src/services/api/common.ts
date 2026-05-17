@@ -1,3 +1,4 @@
+import { User } from 'firebase/auth';
 import { store } from '@states/index';
 import {
   apiHostState,
@@ -6,9 +7,8 @@ import {
   userIDState,
 } from '@states/app';
 import { congIDState, congRoleState, JWLangState } from '@states/settings';
-import { User } from 'firebase/auth';
-import { store } from '@states/index';
-// ... (rest of imports)
+import { currentAuthUser } from '@services/firebase/auth';
+
 export const apiDefault = async (user?: User) => {
   const apiHost = store.get(apiHostState);
   const appVersion = import.meta.env.PACKAGE_VERSION;
@@ -24,7 +24,6 @@ export const apiDefault = async (user?: User) => {
   const idToken = await authUser?.getIdToken();
 
   return {
-
     apiHost,
     appVersion,
     userUID,
