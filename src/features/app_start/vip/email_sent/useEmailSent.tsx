@@ -114,20 +114,6 @@ const useEmailSent = () => {
     title,
     variant,
     handleLinkClick,
-    devLink,
-    handleCodeChange,
-    code,
-    hasError,
-    devOTP,
-    handleReturnChooser,
-  };
-};
-
-export default useEmailSent;
-    message,
-    title,
-    variant,
-    handleLinkClick,
     handleCodeChange,
     code,
     hasError,
