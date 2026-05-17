@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import {
-  devAuthLinkState,
-  devAuthOTPState,
   isEmailLinkAuthenticateState,
   isEmailSentState,
   isUnauthorizedRoleState,
@@ -32,9 +30,6 @@ const useEmailSent = () => {
   const setIsUnauthorizedRole = useSetAtom(isUnauthorizedRoleState);
   const setIsUserSignIn = useSetAtom(isUserSignInState);
 
-  const devLink = useAtomValue(devAuthLinkState);
-  const devOTP = useAtomValue(devAuthOTPState);
-
   const [code, setCode] = useState('');
   const [hasError, setHasError] = useState(false);
 
@@ -44,10 +39,8 @@ const useEmailSent = () => {
   };
 
   const handleLinkClick = () => {
-    if (devLink.length > 0) {
-      setIsEmailSent(false);
-      setIsEmailLink(true);
-    }
+    setIsEmailSent(false);
+    setIsEmailLink(true);
   };
 
   const handleUnauthorizedUser = () => {
@@ -126,6 +119,18 @@ const useEmailSent = () => {
     code,
     hasError,
     devOTP,
+    handleReturnChooser,
+  };
+};
+
+export default useEmailSent;
+    message,
+    title,
+    variant,
+    handleLinkClick,
+    handleCodeChange,
+    code,
+    hasError,
     handleReturnChooser,
   };
 };

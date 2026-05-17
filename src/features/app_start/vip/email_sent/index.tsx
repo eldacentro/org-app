@@ -16,12 +16,10 @@ const EmailSent = () => {
     message,
     title,
     variant,
-    devLink,
     handleLinkClick,
     code,
     handleCodeChange,
     hasError,
-    devOTP,
     handleReturnChooser,
   } = useEmailSent();
 
@@ -43,13 +41,6 @@ const EmailSent = () => {
         }}
       >
         <Stack spacing="24px">
-          {devLink.length > 0 && (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: '20px',
-                marginLeft: '15px !important',
-              }}
             >
               <Badge badgeContent={'dev'} color="error" />
               <Box>
@@ -74,13 +65,6 @@ const EmailSent = () => {
             {t('tr_loginEmailCode')}
           </Typography>
 
-          {devOTP.length > 0 && (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: '20px',
-                marginLeft: '15px !important',
-              }}
             >
               <Badge badgeContent={'dev'} color="error" />
               <Box>
