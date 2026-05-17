@@ -17,17 +17,13 @@
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin-allow-popups"
         },
-	{
-  	  "key": "Cross-Origin-Opener-Policy",
-  	  "value": "same-origin-allow-popups"
-	},
-	{
-  	  "key": "Cross-Origin-Embedder-Policy", 
-  	  "value": "unsafe-none"
-	}
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "unsafe-none"
+        },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' https://elda-centro-app.firebaseapp.com https://apis.google.com blob:; img-src 'self' data: https://*.googleusercontent.com https://s.yimg.com https://raw.githubusercontent.com blob:; script-src 'self' 'unsafe-eval' https://apis.google.com; connect-src 'self' data: https://elda-centro-api.onrender.com https://*.google.com https://oauth2.googleapis.com https://app.jw-cdn.org https://www.jw.org https://identitytoolkit.googleapis.com https://apis.google.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://firebase.googleapis.com https://source-materials.organized-app.com https://elda-centro-app.firebaseapp.com https://*.firebaseapp.com https://securetoken.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://elda-centro-app.firebaseapp.com https://accounts.google.com https://elda-centro-app.firebaseapp.com https://*.google.com https://accounts.google.com; base-uri 'self'; form-action 'self'; object-src 'none'"
+          "value": "default-src 'self' https://elda-centro-app.firebaseapp.com https://apis.google.com blob:; img-src 'self' data: https://*.googleusercontent.com https://s.yimg.com https://raw.githubusercontent.com blob:; script-src 'self' 'unsafe-eval' https://apis.google.com; connect-src 'self' data: https://elda-centro-api.onrender.com https://*.google.com https://oauth2.googleapis.com https://app.jw-cdn.org https://www.jw.org https://identitytoolkit.googleapis.com https://apis.google.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://firebase.googleapis.com https://source-materials.organized-app.com https://elda-centro-app.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://elda-centro-app.firebaseapp.com https://accounts.google.com; base-uri 'self'; form-action 'self'; object-src 'none'"
         },
         {
           "key": "X-Content-Type-Options",
