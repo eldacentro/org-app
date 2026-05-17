@@ -1,4 +1,4 @@
-import { Badge, Box, Link, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { IconError } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useEmailSent from './useEmailSent';
@@ -41,37 +41,11 @@ const EmailSent = () => {
         }}
       >
         <Stack spacing="24px">
-            >
-              <Badge badgeContent={'dev'} color="error" />
-              <Box>
-                <Typography>
-                  Click{' '}
-                  <Link
-                    href={devLink}
-                    underline="none"
-                    onClick={handleLinkClick}
-                  >
-                    here
-                  </Link>{' '}
-                  to continue
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
           <Divider color="var(--accent-200)" />
 
           <Typography color="var(--grey-400)">
             {t('tr_loginEmailCode')}
           </Typography>
-
-            >
-              <Badge badgeContent={'dev'} color="error" />
-              <Box>
-                <Typography>Use this OTP code: {devOTP}</Typography>
-              </Box>
-            </Box>
-          )}
 
           <OTPInput
             value={code}
