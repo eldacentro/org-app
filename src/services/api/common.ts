@@ -21,7 +21,7 @@ export const apiDefault = async (user?: User) => {
 
   const authUser = user || currentAuthUser();
   const userUID = authUser?.uid;
-  const idToken = await authUser?.getIdToken();
+  const idToken = authUser ? await authUser.getIdToken() : undefined;
 
   return {
     apiHost,

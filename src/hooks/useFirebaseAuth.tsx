@@ -18,9 +18,16 @@ const useFirebaseAuth = () => {
 
   useEffect(() => {
     const handleRedirect = async () => {
-      const result = await getRedirectResultResult();
-      if (result) {
-        await handlePostLogin(result.user);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (!isIOS) return;
+
+      try {
+        const result = await getRedirectResultResult();
+        if (result?.user) {
+          await handlePostLogin(result.user);
+        }
+      } catch (e) {
+        console.error('Redirect result error:', e);
       }
     };
 

@@ -253,13 +253,13 @@ const useAuth = () => {
       if (nextStep.unauthorized) {
         handleUnauthorizedUser();
       }
-
-      setIsAuthProcessing(false);
     } catch (error) {
       console.error(error);
       await handleAuthorizationError(
         error.code || error.message || 'error_app_generic-desc'
       );
+    } finally {
+      setIsAuthProcessing(false);
     }
   }, [
     setIsAuthProcessing,
