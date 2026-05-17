@@ -1,3 +1,4 @@
+import { User } from 'firebase/auth';
 import {
   APFormOutgoing,
   CongregationUpdatesResponseType,
@@ -61,8 +62,8 @@ export const apiUpdatePasswordlessInfo = async () => {
   return { status: res.status, data };
 };
 
-export const apiSendAuthorization = async () => {
-  const { apiHost, appVersion: appversion, idToken } = await apiDefault();
+export const apiSendAuthorization = async (user?: User) => {
+  const { apiHost, appVersion: appversion, idToken } = await apiDefault(user);
 
   const res = await fetch(`${apiHost}api/v3/user-login`, {
     method: 'GET',

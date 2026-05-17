@@ -6,9 +6,10 @@ import {
   userIDState,
 } from '@states/app';
 import { congIDState, congRoleState, JWLangState } from '@states/settings';
-import { currentAuthUser } from '@services/firebase/auth';
-
-export const apiDefault = async () => {
+import { User } from 'firebase/auth';
+import { store } from '@states/index';
+// ... (rest of imports)
+export const apiDefault = async (user?: User) => {
   const apiHost = store.get(apiHostState);
   const appVersion = import.meta.env.PACKAGE_VERSION;
   const appLang = store.get(appLangState);
@@ -18,10 +19,12 @@ export const apiDefault = async () => {
   const userID = store.get(userIDState);
   const roles = store.get(congRoleState);
 
-  const userUID = currentAuthUser()?.uid;
-  const idToken = await currentAuthUser()?.getIdToken();
+  const authUser = user || currentAuthUser();
+  const userUID = authUser?.uid;
+  const idToken = await authUser?.getIdToken();
 
   return {
+
     apiHost,
     appVersion,
     userUID,

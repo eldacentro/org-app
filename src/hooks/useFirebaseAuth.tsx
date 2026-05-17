@@ -20,7 +20,7 @@ const useFirebaseAuth = () => {
     const handleRedirect = async () => {
       const result = await getRedirectResultResult();
       if (result) {
-        await handlePostLogin();
+        await handlePostLogin(result.user);
       }
     };
 

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { User } from 'firebase/auth';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { UserLoginResponseType } from '@definition/api';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
@@ -226,11 +227,11 @@ const useAuth = () => {
     ]
   );
 
-  const handlePostLogin = useCallback(async () => {
+  const handlePostLogin = useCallback(async (user?: User) => {
     try {
       setIsAuthProcessing(true);
 
-      const { status, data } = await apiSendAuthorization();
+      const { status, data } = await apiSendAuthorization(user);
 
       if (status !== 200) {
         await handleAuthorizationError(data.message);
