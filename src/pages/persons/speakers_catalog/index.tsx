@@ -6,6 +6,7 @@ import {
   IconImportJson,
   IconExport,
   IconDownload,
+  IconDelete,
 } from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
@@ -42,6 +43,32 @@ const SpeakersCatalog = () => {
     fileInputRef.current?.click();
   };
 
+  const handlePurgeCatalog = async () => {
+    const confirm = window.confirm(
+      '¿Estás seguro de que quieres eliminar COMPLETAMENTE todo el catálogo de oradores y congregaciones? Esta acción es física y no se puede deshacer.'
+    );
+
+    if (confirm) {
+      try {
+        await appDb.visiting_speakers.clear();
+        await appDb.speakers_congregations.clear();
+
+        const metadata = await appDb.metadata.get(1);
+        if (metadata) {
+          metadata.metadata.visiting_speakers.send_local = true;
+          metadata.metadata.speakers_congregations.send_local = true;
+          await appDb.metadata.put(metadata);
+        }
+
+        alert('Catálogo vaciado con éxito.');
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+        alert('Error al vaciar el catálogo.');
+      }
+    }
+  };
+
   const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -67,6 +94,7 @@ const SpeakersCatalog = () => {
 
           const speakers = results.data as CSVRow[];
           const currentCongs = await appDb.speakers_congregations.toArray();
+          const currentSpeakers = await appDb.visiting_speakers.toArray();
           const now = new Date().toISOString();
 
           for (const item of speakers) {
@@ -74,6 +102,10 @@ const SpeakersCatalog = () => {
             const congNumber = item['Congregation Number']?.trim();
             if (!congName) continue;
 
+            const firstName = item['First Name']?.trim() || '';
+            const lastName = item['Last Name']?.trim() || '';
+
+            // 1. Encontrar o crear congregación
             let cong = currentCongs.find(
               (c) => c.cong_data.cong_name.value === congName
             );
@@ -98,6 +130,19 @@ const SpeakersCatalog = () => {
               currentCongs.push(cong);
             }
 
+            // 2. Encontrar o crear orador (coincidencia por nombre + apellido + congre)
+            let speaker = currentSpeakers.find(
+              (s) =>
+                s.speaker_data.person_firstname.value === firstName &&
+                s.speaker_data.person_lastname.value === lastName &&
+                s.speaker_data.cong_id === cong!.id
+            );
+
+            if (!speaker) {
+              speaker = structuredClone(vistingSpeakerSchema);
+              speaker.person_uid = crypto.randomUUID();
+            }
+
             const talksStr = item['Talks'] || '';
             const talks = talksStr
               .split(/[,;]/)
@@ -110,24 +155,20 @@ const SpeakersCatalog = () => {
               }))
               .filter((t) => !isNaN(t.talk_number));
 
-            const speaker = structuredClone(vistingSpeakerSchema);
-            speaker.person_uid = crypto.randomUUID();
-            speaker.speaker_data.cong_id = cong.id;
+            speaker._deleted = { value: false, updatedAt: now };
+            speaker.speaker_data.cong_id = cong!.id;
             speaker.speaker_data.person_firstname = {
-              value: item['First Name'] || '',
+              value: firstName,
               updatedAt: now,
             };
             speaker.speaker_data.person_lastname = {
-              value: item['Last Name'] || '',
+              value: lastName,
               updatedAt: now,
             };
             speaker.speaker_data.person_display_name = {
               value:
                 item['Display Name'] ||
-                generateDisplayName(
-                  item['Last Name'] || '',
-                  item['First Name'] || ''
-                ),
+                generateDisplayName(lastName, firstName),
               updatedAt: now,
             };
             speaker.speaker_data.elder = {
@@ -194,6 +235,15 @@ const SpeakersCatalog = () => {
                   ref={fileInputRef}
                   onChange={handleImportCSV}
                 />
+
+                <Tooltip title="VACIAR TODO EL CATÁLOGO (Físicamente)">
+                  <IconButton
+                    onClick={handlePurgeCatalog}
+                    sx={{ color: 'var(--red-main)' }}
+                  >
+                    <IconDelete width={22} height={22} />
+                  </IconButton>
+                </Tooltip>
 
                 <Tooltip title="Descargar plantilla CSV">
                   <IconButton
