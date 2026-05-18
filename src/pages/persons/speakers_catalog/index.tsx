@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { IconAddCongregation, IconImportJson } from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
@@ -110,11 +110,24 @@ const SpeakersCatalog = () => {
                   onChange={handleImportJSON}
                 />
                 <label htmlFor="import-json-input">
-                  <NavBarButton
+                  <Button
                     component="span"
-                    text="Importar JSON"
-                    icon={<IconImportJson color="var(--always-white)" />}
-                  />
+                    variant="contained"
+                    startIcon={<IconImportJson color="var(--always-white)" />}
+                    sx={{
+                      backgroundColor: 'var(--main-black)',
+                      color: 'var(--always-white)',
+                      textTransform: 'none',
+                      borderRadius: 'var(--radius-l)',
+                      padding: '8px 16px',
+                      height: '40px',
+                      '&:hover': {
+                        backgroundColor: 'var(--main-black-hover)',
+                      },
+                    }}
+                  >
+                    Importar JSON
+                  </Button>
                 </label>
                 <NavBarButton
                   text={t('tr_btnAdd')}
