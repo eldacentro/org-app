@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { IconAddCongregation, IconImport } from '@components/icons';
+import { IconAddCongregation, IconImportJson } from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
   useAppTranslation,
@@ -113,7 +113,7 @@ const SpeakersCatalog = () => {
                   <NavBarButton
                     component="span"
                     text="Importar JSON"
-                    icon={<IconImport color="var(--always-white)" />}
+                    icon={<IconImportJson color="var(--always-white)" />}
                   />
                 </label>
                 <NavBarButton
