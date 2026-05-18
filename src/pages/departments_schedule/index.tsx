@@ -17,7 +17,7 @@ const DepartmentsSchedule = () => {
       }}
     >
       <PageTitle
-        title={t('tr_departmentsSchedule', 'Programación Departamentos')}
+        title={t('tr_departmentsSchedule', 'Programa de departamentos')}
       />
 
       <Box

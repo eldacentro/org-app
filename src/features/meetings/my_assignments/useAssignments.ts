@@ -11,7 +11,7 @@ import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { addWeeks, formatDate } from '@utils/date';
+import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
@@ -42,6 +42,9 @@ const useMyAssignments = () => {
 
   const personAssignments = useMemo(() => {
     const now = new Date();
+    const currentWeekMonday = getWeekDate(now);
+    const today = formatDate(currentWeekMonday, 'yyyy/MM/dd');
+
     const maxDate = addWeeks(now, displayRange);
 
     const remapAssignmentsDate = assignmentsHistory.map((record) =>
@@ -54,7 +57,7 @@ const useMyAssignments = () => {
       for (const week of deptSchedules) {
         const weekDate = week.weekOf;
         if (
-          weekDate >= formatDate(now, 'yyyy/MM/dd') &&
+          weekDate >= today &&
           weekDate <= formatDate(maxDate, 'yyyy/MM/dd')
         ) {
           // Check each department and role

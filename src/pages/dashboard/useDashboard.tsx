@@ -10,7 +10,7 @@ import {
 import { isMyAssignmentOpenState } from '@states/app';
 import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { formatDate } from '@utils/date';
+import { formatDate, getWeekDate } from '@utils/date';
 import { isTest } from '@constants/index';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
@@ -38,7 +38,8 @@ const useDashboard = () => {
 
   const countFutureAssignments = useMemo(() => {
     const now = new Date();
-    const today = formatDate(now, 'yyyy/MM/dd');
+    const currentWeekMonday = getWeekDate(now);
+    const today = formatDate(currentWeekMonday, 'yyyy/MM/dd');
 
     const remapAssignmentsDate = assignmentsHistory.map((record) =>
       resolveAssignmentDate(record, shortDateFormat)
