@@ -14,6 +14,9 @@ import {
   useBreakpoints,
   useCurrentUser,
 } from '@hooks/index';
+import { useAtomValue } from 'jotai';
+import { congNameState, congNumberState } from '@states/settings';
+import { personsActiveState } from '@states/persons';
 import useSpeakersCatalog from './useSpeakersCatalog';
 import MyCongregation from '@features/persons/speakers_catalog/my_congregation';
 import OtherCongregations from '@features/persons/speakers_catalog/other_congregations';
@@ -32,6 +35,10 @@ const SpeakersCatalog = () => {
   const { desktopUp, tablet688Up } = useBreakpoints();
 
   const { isPublicTalkCoordinator } = useCurrentUser();
+
+  const homeCongName = useAtomValue(congNameState);
+  const homeCongNumber = useAtomValue(congNumberState);
+  const persons = useAtomValue(personsActiveState);
 
   const { handleIsAddingOpen } = useSpeakersCatalog();
 
@@ -104,30 +111,50 @@ const SpeakersCatalog = () => {
 
             const firstName = item['First Name']?.trim() || '';
             const lastName = item['Last Name']?.trim() || '';
+            const isLocal = item['Local']?.toLowerCase() === 'yes';
 
             // 1. Encontrar o crear congregación
-            let cong = currentCongs.find(
-              (c) => c.cong_data.cong_name.value === congName
-            );
+            let congId = '';
 
-            if (cong && cong._deleted.value) {
-              cong._deleted.value = false;
-              cong._deleted.updatedAt = now;
-              await appDb.speakers_congregations.put(cong);
-            } else if (!cong) {
-              cong = structuredClone(speakersCongregationSchema);
-              cong.id = crypto.randomUUID();
-              cong.cong_data.cong_name = {
-                value: congName,
-                updatedAt: now,
-              };
-              cong.cong_data.cong_number = {
-                value: congNumber || '',
-                updatedAt: now,
-              };
-              cong.cong_data.request_status = 'approved';
-              await appDb.speakers_congregations.add(cong);
-              currentCongs.push(cong);
+            // Comprobar si es la congregación local (por nombre o número)
+            if (
+              congName === homeCongName ||
+              (congNumber && congNumber === homeCongNumber)
+            ) {
+              // Para la congregación local, el ID en visiting_speakers debe ser el de la congre local si existe en speakers_congregations, o vacío
+              const localCong = currentCongs.find(
+                (c) =>
+                  c.cong_data.cong_name.value === homeCongName ||
+                  c.cong_data.cong_number.value === homeCongNumber
+              );
+              congId = localCong?.id || '';
+            } else {
+              let cong = currentCongs.find(
+                (c) =>
+                  c.cong_data.cong_name.value === congName ||
+                  (congNumber && c.cong_data.cong_number.value === congNumber)
+              );
+
+              if (cong && cong._deleted.value) {
+                cong._deleted.value = false;
+                cong._deleted.updatedAt = now;
+                await appDb.speakers_congregations.put(cong);
+              } else if (!cong) {
+                cong = structuredClone(speakersCongregationSchema);
+                cong.id = crypto.randomUUID();
+                cong.cong_data.cong_name = {
+                  value: congName,
+                  updatedAt: now,
+                };
+                cong.cong_data.cong_number = {
+                  value: congNumber || '',
+                  updatedAt: now,
+                };
+                cong.cong_data.request_status = 'approved';
+                await appDb.speakers_congregations.add(cong);
+                currentCongs.push(cong);
+              }
+              congId = cong!.id;
             }
 
             // 2. Encontrar o crear orador (coincidencia por nombre + apellido + congre)
@@ -135,12 +162,27 @@ const SpeakersCatalog = () => {
               (s) =>
                 s.speaker_data.person_firstname.value === firstName &&
                 s.speaker_data.person_lastname.value === lastName &&
-                s.speaker_data.cong_id === cong!.id
+                s.speaker_data.cong_id === congId
             );
 
             if (!speaker) {
               speaker = structuredClone(vistingSpeakerSchema);
-              speaker.person_uid = crypto.randomUUID();
+              // Si es local, INTENTAR vincularlo a una persona real por nombre
+              if (isLocal) {
+                const existingPerson = persons.find(
+                  (p) =>
+                    p.person_data.person_firstname.value === firstName &&
+                    p.person_data.person_lastname.value === lastName
+                );
+                // Si encontramos la persona, usamos su UID para que aparezca el nombre en la UI
+                if (existingPerson) {
+                  speaker.person_uid = existingPerson.person_uid;
+                } else {
+                  speaker.person_uid = crypto.randomUUID();
+                }
+              } else {
+                speaker.person_uid = crypto.randomUUID();
+              }
             }
 
             const talksStr = item['Talks'] || '';
@@ -156,7 +198,7 @@ const SpeakersCatalog = () => {
               .filter((t) => !isNaN(t.talk_number));
 
             speaker._deleted = { value: false, updatedAt: now };
-            speaker.speaker_data.cong_id = cong!.id;
+            speaker.speaker_data.cong_id = congId;
             speaker.speaker_data.person_firstname = {
               value: firstName,
               updatedAt: now,
@@ -189,7 +231,7 @@ const SpeakersCatalog = () => {
             };
             speaker.speaker_data.talks = talks;
             speaker.speaker_data.local = {
-              value: item['Local']?.toLowerCase() === 'yes',
+              value: isLocal,
               updatedAt: now,
             };
 
