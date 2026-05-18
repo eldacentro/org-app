@@ -1,7 +1,6 @@
 import { Box, Collapse } from '@mui/material';
 import useMyCongregation from './useMyCongregation';
 import OutgoingSpeakersHeader from './header';
-import VisibilityToggle from './visibility_toggle';
 import ScrollableTabs from '@components/scrollable_tabs';
 
 const MyCongregation = () => {
@@ -42,8 +41,6 @@ const MyCongregation = () => {
             gap: '16px',
           }}
         >
-          <VisibilityToggle />
-
           <ScrollableTabs
             indicatorMode
             tabs={tabs}
