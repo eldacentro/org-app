@@ -61,6 +61,7 @@ const SpeakersCatalog = () => {
             'Ministerial Servant'?: string;
             Email?: string;
             Phone?: string;
+            Local?: string;
             Talks?: string;
           }
 
@@ -77,7 +78,11 @@ const SpeakersCatalog = () => {
               (c) => c.cong_data.cong_name.value === congName
             );
 
-            if (!cong) {
+            if (cong && cong._deleted.value) {
+              cong._deleted.value = false;
+              cong._deleted.updatedAt = now;
+              await appDb.speakers_congregations.put(cong);
+            } else if (!cong) {
               cong = structuredClone(speakersCongregationSchema);
               cong.id = crypto.randomUUID();
               cong.cong_data.cong_name = {
@@ -142,7 +147,10 @@ const SpeakersCatalog = () => {
               updatedAt: now,
             };
             speaker.speaker_data.talks = talks;
-            speaker.speaker_data.local = { value: false, updatedAt: now };
+            speaker.speaker_data.local = {
+              value: item['Local']?.toLowerCase() === 'yes',
+              updatedAt: now,
+            };
 
             await appDb.visiting_speakers.put(speaker);
           }

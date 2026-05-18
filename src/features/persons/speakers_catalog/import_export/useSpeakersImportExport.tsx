@@ -24,6 +24,7 @@ const useSpeakersImportExport = () => {
         'Ministerial Servant': speaker.speaker_data.ministerial_servant.value ? 'Yes' : 'No',
         'Email': speaker.speaker_data.person_email.value,
         'Phone': speaker.speaker_data.person_phone.value,
+        'Local': speaker.speaker_data.local.value ? 'Yes' : 'No',
         'Talks': speaker.speaker_data.talks.map((t) => t.talk_number).join(';'),
       };
     });
@@ -50,6 +51,7 @@ const useSpeakersImportExport = () => {
         'Ministerial Servant': 'No',
         'Email': 'john.doe@example.com',
         'Phone': '+123456789',
+        'Local': 'No',
         'Talks': '1;22;53',
       },
     ];
