@@ -120,9 +120,15 @@ export const computeYearsDiff = (date: string) => {
 };
 
 export const generateDateFromTime = (time: string) => {
-  const timeParts = time.split(':');
   const date = new Date();
-  date.setHours(+timeParts[0], +timeParts[1]);
+
+  if (!time || !time.includes(':')) {
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  const timeParts = time.split(':');
+  date.setHours(+timeParts[0], +timeParts[1], 0, 0);
 
   return date;
 };
