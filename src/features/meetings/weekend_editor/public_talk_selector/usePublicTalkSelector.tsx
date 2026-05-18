@@ -61,22 +61,20 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
           )
         );
 
-        if (talkType !== 'visitingSpeaker') {
-          data.push({ ...talk, speakers: cnSpeakers.length });
-        }
-
-        if (talkType === 'visitingSpeaker') {
-          const visitingSpeaker = speakers.find(
+        if (talkType === 'localSpeaker' || talkType === 'visitingSpeaker') {
+          const currentSpeaker = speakers.find(
             (item) =>
               item._deleted.value === false && item.person_uid === speaker
           );
-          const talkFound = visitingSpeaker?.speaker_data.talks.find(
+          const talkFound = currentSpeaker?.speaker_data.talks.find(
             (item) => item.talk_number === talk.talk_number
           );
 
-          if (speaker.length === 0 || !visitingSpeaker || talkFound) {
+          if (speaker.length === 0 || !currentSpeaker || talkFound) {
             data.push({ ...talk, speakers: cnSpeakers.length });
           }
+        } else {
+          data.push({ ...talk, speakers: cnSpeakers.length });
         }
       }
     }

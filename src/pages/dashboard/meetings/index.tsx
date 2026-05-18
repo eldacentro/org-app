@@ -61,6 +61,16 @@ const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
           />
         </ListItem>
       )}
+
+      {isMidweekEditor && (
+        <ListItem disablePadding>
+          <DashboardMenu
+            icon={<IconCalendarWeek color="var(--black)" />}
+            primaryText={t('tr_departmentsSchedule', 'Programación Departamentos')}
+            path="/departments-schedule"
+          />
+        </ListItem>
+      )}
     </DashboardCard>
   );
 };

@@ -3,21 +3,25 @@ import { BROTHER_ASSIGNMENT, STUDENT_ASSIGNMENT } from '@constants/index';
 import { AssignmentCode } from '@definition/assignment';
 import { PersonSelectorType } from './index.types';
 
-const usePersonSelector = ({
-  type,
-  visitingSpeaker,
-  jwStreamRecording,
-  circuitOverseer,
-  assignment,
-}: PersonSelectorType) => {
+const usePersonSelector = (props: PersonSelectorType) => {
+  const {
+    type,
+    visitingSpeaker,
+    jwStreamRecording,
+    circuitOverseer,
+    assignment,
+    dept,
+  } = props;
+
   const isBrother = useMemo(() => {
     return (
-      !visitingSpeaker &&
-      !jwStreamRecording &&
-      (BROTHER_ASSIGNMENT.includes(type) ||
-        type === AssignmentCode.MM_Discussion)
+      dept ||
+      (!visitingSpeaker &&
+        !jwStreamRecording &&
+        (BROTHER_ASSIGNMENT.includes(type) ||
+          type === AssignmentCode.MM_Discussion))
     );
-  }, [visitingSpeaker, jwStreamRecording, type]);
+  }, [visitingSpeaker, jwStreamRecording, type, dept]);
 
   const isStudent = useMemo(() => {
     return (

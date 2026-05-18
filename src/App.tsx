@@ -66,6 +66,9 @@ const ApplicationDetails = lazy(
   () => import('@pages/persons/application_details')
 );
 const UpcomingEvents = lazy(() => import('@pages/activities/upcoming_events'));
+const DepartmentsSchedule = lazy(
+  () => import('@pages/departments_schedule')
+);
 
 const queryClient = new QueryClient();
 
@@ -232,6 +235,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               element: <RouteProtected allowed={isMidweekEditor} />,
               children: [
                 { path: '/midweek-meeting', element: <MidweekMeeting /> },
+                {
+                  path: '/departments-schedule',
+                  element: <DepartmentsSchedule />,
+                },
               ],
             },
 

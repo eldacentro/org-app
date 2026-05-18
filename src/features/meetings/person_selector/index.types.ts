@@ -1,6 +1,6 @@
 import { JSXElementConstructor, ReactElement, ReactNode } from 'react';
 import { AssignmentCode, AssignmentFieldType } from '@definition/assignment';
-import { PersonType } from '@definition/person';
+import { DepartmentType, PersonType } from '@definition/person';
 import { SxProps } from '@mui/material';
 
 export type PersonSelectorType = {
@@ -21,6 +21,9 @@ export type PersonSelectorType = {
   endIcon?: ReactElement<unknown, string | JSXElementConstructor<unknown>>;
   selectorBoxSx?: SxProps;
   onEditClick?: () => void;
+  onSelect?: (person: PersonType) => void;
+  personValue?: PersonType;
+  dept?: DepartmentType;
 };
 
 export type PersonOptionsType = PersonType & {

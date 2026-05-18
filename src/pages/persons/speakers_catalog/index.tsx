@@ -116,14 +116,22 @@ const SpeakersCatalog = () => {
             // 1. Encontrar o crear congregación
             let congId = '';
 
-            if (
+            // Comprobar si es la congregación local (por nombre o número)
+            // Tratamos el número 11 y el 9357 como equivalentes para la local
+            const isHomeCong =
               congName === homeCongName ||
-              (congNumber && (congNumber === homeCongNumber || congNumber === '11'))
-            ) {
+              (congNumber &&
+                (congNumber === homeCongNumber ||
+                  congNumber === '11' ||
+                  congNumber === '9357'));
+
+            if (isHomeCong) {
               const localCong = currentCongs.find(
                 (c) =>
                   c.cong_data.cong_name.value === homeCongName ||
-                  c.cong_data.cong_number.value === homeCongNumber
+                  c.cong_data.cong_number.value === homeCongNumber ||
+                  c.cong_data.cong_number.value === '11' ||
+                  c.cong_data.cong_number.value === '9357'
               );
               congId = localCong?.id || '';
             } else {
@@ -155,30 +163,32 @@ const SpeakersCatalog = () => {
               congId = cong!.id;
             }
 
-            // 2. Encontrar o crear orador (coincidencia por nombre + apellido + congre)
+            // 2. Si es local, buscar primero en la tabla de personas
+            let existingPersonUid = '';
+            if (isLocal) {
+              const findPerson = persons.find(
+                (p) =>
+                  p.person_data.person_firstname.value === firstName &&
+                  p.person_data.person_lastname.value === lastName
+              );
+              if (findPerson) {
+                existingPersonUid = findPerson.person_uid;
+              }
+            }
+
+            // 3. Encontrar o crear registro de orador
+            // Buscamos por nombre o por el UID de la persona si ya la tenemos
             let speaker = currentSpeakers.find(
               (s) =>
-                s.speaker_data.person_firstname.value === firstName &&
-                s.speaker_data.person_lastname.value === lastName &&
-                s.speaker_data.cong_id === congId
+                (s.speaker_data.person_firstname.value === firstName &&
+                  s.speaker_data.person_lastname.value === lastName &&
+                  s.speaker_data.cong_id === congId) ||
+                (existingPersonUid !== '' && s.person_uid === existingPersonUid)
             );
 
             if (!speaker) {
               speaker = structuredClone(vistingSpeakerSchema);
-              if (isLocal) {
-                const existingPerson = persons.find(
-                  (p) =>
-                    p.person_data.person_firstname.value === firstName &&
-                    p.person_data.person_lastname.value === lastName
-                );
-                if (existingPerson) {
-                  speaker.person_uid = existingPerson.person_uid;
-                } else {
-                  speaker.person_uid = crypto.randomUUID();
-                }
-              } else {
-                speaker.person_uid = crypto.randomUUID();
-              }
+              speaker.person_uid = existingPersonUid || crypto.randomUUID();
             }
 
             const talksStr = item['Talks'] || '';

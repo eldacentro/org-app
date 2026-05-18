@@ -45,7 +45,8 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { formatDate } from '@utils/date';
 import { languageGroupsState } from '@states/field_service_groups';
 
-const useBrotherSelector = ({ type, week, assignment }: PersonSelectorType) => {
+const useBrotherSelector = (props: PersonSelectorType) => {
+  const { type, week, assignment } = props;
   const location = useLocation();
 
   const { t } = useAppTranslation();
@@ -154,6 +155,10 @@ const useBrotherSelector = ({ type, week, assignment }: PersonSelectorType) => {
 
   const options = useMemo(() => {
     const filteredPersons = personsList.filter((record) => {
+      if (props.dept) {
+        return record.person_data.departments?.value?.includes(props.dept);
+      }
+
       const activeAssignments =
         record.person_data.assignments.find((a) => {
           if (
@@ -307,6 +312,16 @@ const useBrotherSelector = ({ type, week, assignment }: PersonSelectorType) => {
   ]);
 
   const value = useMemo(() => {
+    if (props.personValue) {
+      return (
+        options.find(
+          (record) => record.person_uid === props.personValue.person_uid
+        ) || null
+      );
+    }
+
+    if (props.dept) return null;
+
     if (week.length === 0) return null;
 
     let linkedAssigment: AssignmentFieldType;
@@ -395,6 +410,7 @@ const useBrotherSelector = ({ type, week, assignment }: PersonSelectorType) => {
     defaultAuxCounselorEnabled,
     openingPrayerLinked,
     closingPrayerLinked,
+    props.personValue,
   ]);
 
   const personHistory = useMemo(() => {
@@ -533,6 +549,11 @@ const useBrotherSelector = ({ type, week, assignment }: PersonSelectorType) => {
 
   const handleSaveAssignment = async (value: PersonOptionsType) => {
     try {
+      if (props.onSelect) {
+        props.onSelect(value);
+        return;
+      }
+
       await schedulesSaveAssignment(schedule, assignment, value);
 
       if (assignment === 'WM_Speaker_Part1') {

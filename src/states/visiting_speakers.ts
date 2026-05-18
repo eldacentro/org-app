@@ -52,31 +52,50 @@ export const outgoingSpeakersState = atom((get) => {
         speaker_data: {
           ...speaker.speaker_data,
           person_display_name: {
-            value: findPerson?.person_data.person_display_name.value || '',
+            value:
+              findPerson?.person_data.person_display_name.value ||
+              speaker.speaker_data.person_display_name.value ||
+              '',
             updatedAt: '',
           },
           person_firstname: {
-            value: findPerson?.person_data.person_firstname.value || '',
+            value:
+              findPerson?.person_data.person_firstname.value ||
+              speaker.speaker_data.person_firstname.value ||
+              '',
             updatedAt: '',
           },
           person_lastname: {
-            value: findPerson?.person_data.person_lastname.value || '',
+            value:
+              findPerson?.person_data.person_lastname.value ||
+              speaker.speaker_data.person_lastname.value ||
+              '',
             updatedAt: '',
           },
           elder: {
-            value: findPerson ? personIsElder(findPerson) : false,
+            value: findPerson
+              ? personIsElder(findPerson)
+              : speaker.speaker_data.elder.value,
             updatedAt: '',
           },
           ministerial_servant: {
-            value: findPerson ? personIsMS(findPerson) : false,
+            value: findPerson
+              ? personIsMS(findPerson)
+              : speaker.speaker_data.ministerial_servant.value,
             updatedAt: '',
           },
           person_email: {
-            value: findPerson?.person_data.email.value || '',
+            value:
+              findPerson?.person_data.email.value ||
+              speaker.speaker_data.person_email.value ||
+              '',
             updatedAt: '',
           },
           person_phone: {
-            value: findPerson?.person_data.phone.value || '',
+            value:
+              findPerson?.person_data.phone.value ||
+              speaker.speaker_data.person_phone.value ||
+              '',
             updatedAt: '',
           },
         },
@@ -103,31 +122,50 @@ export const localSpeakersState = atom((get) => {
         speaker_data: {
           ...speaker.speaker_data,
           person_display_name: {
-            value: findPerson?.person_data.person_display_name.value || '',
+            value:
+              findPerson?.person_data.person_display_name.value ||
+              speaker.speaker_data.person_display_name.value ||
+              '',
             updatedAt: '',
           },
           person_firstname: {
-            value: findPerson?.person_data.person_firstname.value || '',
+            value:
+              findPerson?.person_data.person_firstname.value ||
+              speaker.speaker_data.person_firstname.value ||
+              '',
             updatedAt: '',
           },
           person_lastname: {
-            value: findPerson?.person_data.person_lastname.value || '',
+            value:
+              findPerson?.person_data.person_lastname.value ||
+              speaker.speaker_data.person_lastname.value ||
+              '',
             updatedAt: '',
           },
           elder: {
-            value: findPerson ? personIsElder(findPerson) : false,
+            value: findPerson
+              ? personIsElder(findPerson)
+              : speaker.speaker_data.elder.value,
             updatedAt: '',
           },
           ministerial_servant: {
-            value: findPerson ? personIsMS(findPerson) : false,
+            value: findPerson
+              ? personIsMS(findPerson)
+              : speaker.speaker_data.ministerial_servant.value,
             updatedAt: '',
           },
           person_email: {
-            value: findPerson?.person_data.email.value || '',
+            value:
+              findPerson?.person_data.email.value ||
+              speaker.speaker_data.person_email.value ||
+              '',
             updatedAt: '',
           },
           person_phone: {
-            value: findPerson?.person_data.phone.value || '',
+            value:
+              findPerson?.person_data.phone.value ||
+              speaker.speaker_data.person_phone.value ||
+              '',
             updatedAt: '',
           },
         },
