@@ -116,12 +116,10 @@ const SpeakersCatalog = () => {
             // 1. Encontrar o crear congregación
             let congId = '';
 
-            // Comprobar si es la congregación local (por nombre o número)
             if (
               congName === homeCongName ||
-              (congNumber && congNumber === homeCongNumber)
+              (congNumber && (congNumber === homeCongNumber || congNumber === '11'))
             ) {
-              // Para la congregación local, el ID en visiting_speakers debe ser el de la congre local si existe en speakers_congregations, o vacío
               const localCong = currentCongs.find(
                 (c) =>
                   c.cong_data.cong_name.value === homeCongName ||
@@ -167,14 +165,12 @@ const SpeakersCatalog = () => {
 
             if (!speaker) {
               speaker = structuredClone(vistingSpeakerSchema);
-              // Si es local, INTENTAR vincularlo a una persona real por nombre
               if (isLocal) {
                 const existingPerson = persons.find(
                   (p) =>
                     p.person_data.person_firstname.value === firstName &&
                     p.person_data.person_lastname.value === lastName
                 );
-                // Si encontramos la persona, usamos su UID para que aparezca el nombre en la UI
                 if (existingPerson) {
                   speaker.person_uid = existingPerson.person_uid;
                 } else {
