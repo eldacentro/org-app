@@ -204,6 +204,7 @@ export const personSchema: PersonType = {
     archived: { value: false, updatedAt: '' },
     disqualified: { value: false, updatedAt: '' },
     email: { value: '', updatedAt: '' },
+    departments: { value: [], updatedAt: '' },
     address: { value: '', updatedAt: '' },
     phone: { value: '', updatedAt: '' },
     first_report: { value: null, updatedAt: '' },

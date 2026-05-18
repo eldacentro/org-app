@@ -3,28 +3,57 @@ import Papa from 'papaparse';
 import { useAtomValue } from 'jotai';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
 import { speakersCongregationsState } from '@states/speakers_congregations';
+import { congNameState, congNumberState } from '@states/settings';
+import { personsActiveState } from '@states/persons';
 
 const useSpeakersImportExport = () => {
   const speakers = useAtomValue(visitingSpeakersActiveState);
   const congregations = useAtomValue(speakersCongregationsState);
+  const homeCongName = useAtomValue(congNameState);
+  const homeCongNumber = useAtomValue(congNumberState);
+  const persons = useAtomValue(personsActiveState);
 
   const exportCSV = useCallback(() => {
     const exportData = speakers.map((speaker) => {
+      const isLocal = speaker.speaker_data.local.value;
+      const findPerson = isLocal
+        ? persons.find((p) => p.person_uid === speaker.person_uid)
+        : null;
+
       const cong = congregations.find(
         (c) => c.id === speaker.speaker_data.cong_id
       );
 
+      const congName = isLocal
+        ? homeCongName
+        : cong?.cong_data.cong_name.value || '';
+      const congNumber = isLocal
+        ? homeCongNumber
+        : cong?.cong_data.cong_number.value || '';
+
       return {
-        'Congregation Name': cong?.cong_data.cong_name.value || '',
-        'Congregation Number': cong?.cong_data.cong_number.value || '',
-        'First Name': speaker.speaker_data.person_firstname.value,
-        'Last Name': speaker.speaker_data.person_lastname.value,
-        'Display Name': speaker.speaker_data.person_display_name.value,
+        'Congregation Name': congName,
+        'Congregation Number': congNumber,
+        'First Name':
+          findPerson?.person_data.person_firstname.value ||
+          speaker.speaker_data.person_firstname.value,
+        'Last Name':
+          findPerson?.person_data.person_lastname.value ||
+          speaker.speaker_data.person_lastname.value,
+        'Display Name':
+          findPerson?.person_data.person_display_name.value ||
+          speaker.speaker_data.person_display_name.value,
         'Elder': speaker.speaker_data.elder.value ? 'Yes' : 'No',
-        'Ministerial Servant': speaker.speaker_data.ministerial_servant.value ? 'Yes' : 'No',
-        'Email': speaker.speaker_data.person_email.value,
-        'Phone': speaker.speaker_data.person_phone.value,
-        'Local': speaker.speaker_data.local.value ? 'Yes' : 'No',
+        'Ministerial Servant': speaker.speaker_data.ministerial_servant.value
+          ? 'Yes'
+          : 'No',
+        'Email':
+          findPerson?.person_data.email.value ||
+          speaker.speaker_data.person_email.value,
+        'Phone':
+          findPerson?.person_data.phone.value ||
+          speaker.speaker_data.person_phone.value,
+        'Local': isLocal ? 'Yes' : 'No',
         'Talks': speaker.speaker_data.talks.map((t) => t.talk_number).join(';'),
       };
     });

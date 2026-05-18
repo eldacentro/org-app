@@ -55,6 +55,14 @@ type EnrollmentHistoryType = {
   end_date: string;
 };
 
+export const ALL_DEPARTMENT_TYPES = [
+  'acomodadores',
+  'microfonos',
+  'multimedia',
+  'plataforma',
+] as const;
+export type DepartmentType = (typeof ALL_DEPARTMENT_TYPES)[number];
+
 type EmergencyContactsType = {
   id: string;
   _deleted: boolean;
@@ -78,6 +86,7 @@ export type PersonType = {
     archived: { value: boolean; updatedAt: string };
     disqualified: { value: boolean; updatedAt: string };
     email: { value: string; updatedAt: string };
+    departments?: { value: DepartmentType[]; updatedAt: string };
     address: { value: string; updatedAt: string };
     phone: { value: string; updatedAt: string };
     first_report?: { value: string | null; updatedAt: string };

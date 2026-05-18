@@ -17,6 +17,7 @@ import PersonEmergencyContacts from '@features/persons/emergency_contacts';
 import PersonAssignmentsHistory from '@features/persons/assignments_history';
 import PersonAssignments from '@features/persons/assignments';
 import FamilyMembers from '@features/persons/family_members';
+import PersonDepartments from '@features/persons/departments';
 
 const PersonDetails = () => {
   const { t } = useAppTranslation();
@@ -79,6 +80,8 @@ const PersonDetails = () => {
               <PersonEnrollments />
             </Box>
           )}
+
+          {male && <PersonDepartments />}
         </Box>
 
         <Box
