@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import Papa from 'papaparse';
 import { useAtomValue } from 'jotai';
-import appDb from '@db/appDb';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 
