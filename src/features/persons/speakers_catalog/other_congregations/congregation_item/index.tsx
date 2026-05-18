@@ -48,7 +48,6 @@ const IncomingCongregation = ({
       <IncomingCongregationHeader
         cong_name={congregation.cong_data.cong_name.value}
         cong_number={congregation.cong_data.cong_number.value}
-        cong_synced={congregation.cong_data.cong_id.length > 0}
         editMode={isEditMode}
         expanded={isExpanded}
         onEditModeChange={handleToggleEdit}

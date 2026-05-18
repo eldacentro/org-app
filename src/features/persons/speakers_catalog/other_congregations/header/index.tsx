@@ -1,8 +1,6 @@
 import { Box, IconButton } from '@mui/material';
 import {
   IconCheck,
-  IconCloud,
-  IconCloudOff,
   IconDelete,
   IconEdit,
   IconExpand,
@@ -19,7 +17,6 @@ const IncomingCongregationHeader = ({
   onEditModeChange,
   cong_name,
   cong_number,
-  cong_synced,
   onDelete,
 }: IncomingCongregationHeaderType) => {
   const { laptopDown } = useBreakpoints();
@@ -52,9 +49,6 @@ const IncomingCongregationHeader = ({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {cong_synced && <IconCloud />}
-          {!cong_synced && <IconCloudOff color="var(--grey-300)" />}
-
           <Typography className="h4" color="var(--grey-400)">
             {cong_name}
           </Typography>
