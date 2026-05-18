@@ -9,9 +9,11 @@ import {
 } from '@states/settings';
 import { isMyAssignmentOpenState } from '@states/app';
 import { assignmentsHistoryState } from '@states/schedules';
+import { deptScheduleState } from '@states/departments_schedule';
 import { formatDate } from '@utils/date';
 import { isTest } from '@constants/index';
 import { resolveAssignmentDate } from '@utils/assignments';
+import { DeptWeekType } from '@definition/departments_schedule';
 
 const useDashboard = () => {
   const setIsMyAssignmentOpen = useSetAtom(isMyAssignmentOpenState);
@@ -20,6 +22,7 @@ const useDashboard = () => {
   const isCongNew = useAtomValue(congNewState);
   const userUID = useAtomValue(userLocalUIDState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
+  const deptSchedules = useAtomValue(deptScheduleState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
   const settings = useAtomValue(settingsState);
 
@@ -35,19 +38,39 @@ const useDashboard = () => {
 
   const countFutureAssignments = useMemo(() => {
     const now = new Date();
+    const today = formatDate(now, 'yyyy/MM/dd');
 
     const remapAssignmentsDate = assignmentsHistory.map((record) =>
       resolveAssignmentDate(record, shortDateFormat)
     );
 
-    const personAssignments = remapAssignmentsDate.filter(
-      (record) =>
-        record.assignment.person === userUID &&
-        record.weekOf >= formatDate(now, 'yyyy/MM/dd')
-    );
+    const meetingAssignmentsCount = remapAssignmentsDate.filter(
+      (record) => record.assignment.person === userUID && record.weekOf >= today
+    ).length;
 
-    return personAssignments.length;
-  }, [assignmentsHistory, shortDateFormat, userUID]);
+    let deptAssignmentsCount = 0;
+
+    for (const week of deptSchedules) {
+      if (week.weekOf >= today) {
+        const depts: (keyof Omit<DeptWeekType, 'weekOf'>)[] = [
+          'acomodadores',
+          'microfonos',
+          'multimedia',
+          'plataforma',
+        ];
+
+        for (const dept of depts) {
+          for (const data of Object.values(week[dept])) {
+            if (data.value === userUID) {
+              deptAssignmentsCount++;
+            }
+          }
+        }
+      }
+    }
+
+    return meetingAssignmentsCount + deptAssignmentsCount;
+  }, [assignmentsHistory, deptSchedules, shortDateFormat, userUID]);
 
   const handleCloseNewCongNotice = async () => {
     setNewCongSnack(false);

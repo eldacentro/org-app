@@ -73,11 +73,19 @@ const useDeptWeekSelector = () => {
     return index !== -1 ? index : 0;
   }, [selectedWeek, weeksList]);
 
+  const handleTabChange = (newValue: number) => {
+    const newMonth = weeksList[newValue];
+    if (newMonth && newMonth.weeks.length > 0) {
+      setSelectedWeek(newMonth.weeks[0].weekOf);
+    }
+  };
+
   return {
     weeksList,
     selectedWeek,
     setSelectedWeek,
     activeTab,
+    handleTabChange,
   };
 };
 

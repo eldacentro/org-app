@@ -19,7 +19,7 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     const html = parser.parseFromString(htmlString, 'text/html');
     const privacyLink = Array.from(html.querySelectorAll('a')).at(1);
 
-    return privacyLink.textContent;
+    return privacyLink?.textContent || '';
   }, [t]);
 
   const handleForceReload = () => {

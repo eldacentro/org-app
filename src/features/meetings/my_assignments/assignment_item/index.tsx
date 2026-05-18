@@ -18,7 +18,17 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     ADD_CALENDAR_SHOW,
     history,
     badges,
+    isDept,
   } = useAssignmentItem(props);
+
+  const getDeptColor = () => {
+    const key = history.assignment.key;
+    if (key.includes('acomodadores')) return 'var(--accent-main)';
+    if (key.includes('microfonos')) return 'var(--orange-dark)';
+    if (key.includes('multimedia')) return 'var(--blue-dark)';
+    if (key.includes('plataforma')) return 'var(--grey-400)';
+    return 'var(--accent-main)';
+  };
 
   return (
     <Stack direction="row" spacing={2} alignItems="center">
@@ -28,12 +38,14 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           width: '56px',
           borderRadius: 'var(--radius-m)',
           padding: '8px 4px',
-          backgroundColor: isMidweek
-            ? 'var(--midweek-meeting)'
-            : 'var(--weekend-meeting)',
+          backgroundColor: isDept
+            ? getDeptColor()
+            : isMidweek
+              ? 'var(--midweek-meeting)'
+              : 'var(--weekend-meeting)',
         }}
       >
-        <Typography className="h2" color="var(--always-white)">
+        <Typography className="h2" sx={{ color: 'var(--black)' }}>
           {assignmentDate}
         </Typography>
       </Box>

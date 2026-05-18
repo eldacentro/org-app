@@ -10,9 +10,11 @@ import {
 import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState } from '@states/schedules';
+import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { resolveAssignmentDate } from '@utils/assignments';
+import { DeptWeekType } from '@definition/departments_schedule';
 
 const useMyAssignments = () => {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const useMyAssignments = () => {
   const userUID = useAtomValue(userLocalUIDState);
   const delegateMembers = useAtomValue(userMembersDelegateState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
+  const deptSchedules = useAtomValue(deptScheduleState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
 
   const storageValue = localStorageGetItem(LOCAL_STORAGE_KEY);
@@ -45,13 +48,61 @@ const useMyAssignments = () => {
       resolveAssignmentDate(record, shortDateFormat)
     );
 
+    const getDeptAssignments = (uid: string): AssignmentHistoryType[] => {
+      const results: AssignmentHistoryType[] = [];
+
+      for (const week of deptSchedules) {
+        const weekDate = week.weekOf;
+        if (
+          weekDate >= formatDate(now, 'yyyy/MM/dd') &&
+          weekDate <= formatDate(maxDate, 'yyyy/MM/dd')
+        ) {
+          // Check each department and role
+          const depts: (keyof Omit<DeptWeekType, 'weekOf'>)[] = [
+            'acomodadores',
+            'microfonos',
+            'multimedia',
+            'plataforma',
+          ];
+
+          for (const dept of depts) {
+            for (const [role, data] of Object.entries(week[dept])) {
+              if (data.value === uid) {
+                results.push({
+                  id: crypto.randomUUID(),
+                  weekOf: weekDate,
+                  weekOfFormatted: formatDate(
+                    new Date(weekDate),
+                    shortDateFormat
+                  ),
+                  assignment: {
+                    code: 0, // Using 0 as a generic code for custom assignments
+                    person: uid,
+                    key: `DEPT_${dept}_${role}`,
+                    dataView: 'main',
+                    title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
+                  },
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return results;
+    };
+
     const filterAssignments = (uid: string) => {
-      return remapAssignmentsDate.filter(
+      const meetingAssignments = remapAssignmentsDate.filter(
         (record) =>
           record.assignment.person === uid &&
           record.weekOf >= formatDate(now, 'yyyy/MM/dd') &&
           record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
       );
+
+      const deptAssignments = getDeptAssignments(uid);
+
+      return [...meetingAssignments, ...deptAssignments];
     };
 
     const ownAssignments = filterAssignments(userUID);
@@ -96,6 +147,7 @@ const useMyAssignments = () => {
     };
   }, [
     assignmentsHistory,
+    deptSchedules,
     displayRange,
     userUID,
     delegateMembers,

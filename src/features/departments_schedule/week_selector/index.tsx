@@ -7,7 +7,7 @@ import useDeptWeekSelector from './useDeptWeekSelector';
 const DeptWeekSelector = () => {
   const { t } = useAppTranslation();
   const { desktopUp } = useBreakpoints();
-  const { weeksList, selectedWeek, setSelectedWeek, activeTab } =
+  const { weeksList, selectedWeek, setSelectedWeek, activeTab, handleTabChange } =
     useDeptWeekSelector();
 
   const activeMonthWeeks = weeksList[activeTab]?.weeks || [];
@@ -31,7 +31,7 @@ const DeptWeekSelector = () => {
       <Typography className="h2">{t('tr_weeks', 'Semanas')}</Typography>
 
       {weeksList.length > 0 && (
-        <ScrollableTabs tabs={weeksList} value={activeTab} />
+        <ScrollableTabs tabs={weeksList} value={activeTab} onChange={handleTabChange} />
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

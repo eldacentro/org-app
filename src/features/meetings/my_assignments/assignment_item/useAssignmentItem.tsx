@@ -42,6 +42,10 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
     return history.assignment.key.startsWith('MM_');
   }, [history.assignment]);
 
+  const isDept = useMemo(() => {
+    return history.assignment.key.startsWith('DEPT_');
+  }, [history.assignment]);
+
   const assignmentDate = useMemo(() => {
     try {
       return formatDate(new Date(history.weekOf), 'd');
@@ -104,6 +108,7 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
   return {
     assignmentDate,
     isMidweek,
+    isDept,
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,

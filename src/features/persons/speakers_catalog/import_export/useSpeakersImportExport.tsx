@@ -3,14 +3,13 @@ import Papa from 'papaparse';
 import { useAtomValue } from 'jotai';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
 import { speakersCongregationsState } from '@states/speakers_congregations';
-import { congNameState, congNumberState } from '@states/settings';
+import { congNameState } from '@states/settings';
 import { personsActiveState } from '@states/persons';
 
 const useSpeakersImportExport = () => {
   const speakers = useAtomValue(visitingSpeakersActiveState);
   const congregations = useAtomValue(speakersCongregationsState);
   const homeCongName = useAtomValue(congNameState);
-  const homeCongNumber = useAtomValue(congNumberState);
   const persons = useAtomValue(personsActiveState);
 
   const exportCSV = useCallback(() => {
@@ -66,7 +65,7 @@ const useSpeakersImportExport = () => {
     link.setAttribute('download', `speakers_export_${new Date().toISOString().split('T')[0]}.csv`);
     link.click();
     URL.revokeObjectURL(url);
-  }, [speakers, congregations]);
+  }, [speakers, congregations, homeCongName, persons]);
 
   const downloadTemplate = useCallback(() => {
     const template = [
