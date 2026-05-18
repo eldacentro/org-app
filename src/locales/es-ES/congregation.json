@@ -265,7 +265,7 @@
   "tr_addManually": "Añadir manualmente",
   "tr_searchCongregation": "Buscar congregación",
   "tr_addOrganizedCongregationDesc": "¿No encuentras la congregación que buscas? Asegúrate de que hayan hecho su congregación visible para otros en Elda Centro. Una vez que lo hagan, puedes solicitar acceso a su lista de oradores salientes a través de la aplicación.",
-  "tr_addManualCongregationDesc": "Añade manualmente una congregación que aún no esté en Elda Centro. Una vez que se unan a la aplicación, puedes sincronizar su lista de oradores salientes.",
+  "tr_addManualCongregationDesc": "Añade una nueva congregación a la base de datos. Después, podrás agregar nuevos oradores en esa congregación.",
   "tr_auxiliaryPioneersContinuous": "Precursores auxiliares (sirviendo continuamente)",
   "tr_highestAuxPioNumber": "Mayor número de precursores auxiliares",
   "tr_bibleStudies": "Cursos bíblicos",

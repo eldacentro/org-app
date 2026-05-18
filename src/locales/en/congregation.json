@@ -265,7 +265,7 @@
   "tr_addManually": "Add manually",
   "tr_searchCongregation": "Search congregation",
   "tr_addOrganizedCongregationDesc": "Can’t find the congregation you’re looking for? Make sure they’ve made their congregation discoverable for others in Elda Centro. Once they do this, you can request access to their outgoing speakers list through the app.",
-  "tr_addManualCongregationDesc": "Manually add a congregation that isn’t on Elda Centro yet. Once they join the app, you can sync their outgoing speakers list.",
+  "tr_addManualCongregationDesc": "Add a new congregation to the database. Afterwards, you will be able to add new speakers to that congregation.",
   "tr_auxiliaryPioneersContinuous": "Auxiliary pioneers (serving continuously)",
   "tr_highestAuxPioNumber": "Highest number of auxiliary pioneers",
   "tr_bibleStudies": "Bible studies",

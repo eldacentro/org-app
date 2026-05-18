@@ -5,9 +5,7 @@ import useCongregationAdd from './useCongregationAdd';
 import Button from '@components/button';
 import CongregationDetails from './details';
 import CongregationOfflineAdd from './offline';
-import CongregationOnlineAdd from './online';
 import Dialog from '@components/dialog';
-import Tabs from '@components/tabs';
 import Typography from '@components/typography';
 
 const CongregationAdd = ({ onClose, open }: CongregationAddType) => {
@@ -16,7 +14,6 @@ const CongregationAdd = ({ onClose, open }: CongregationAddType) => {
   const {
     handleSelectCongregation,
     congregation,
-    handleResetCongregation,
     isFindCongregation,
     handleMoveNext,
     handleMovePrevious,
@@ -32,7 +29,6 @@ const CongregationAdd = ({ onClose, open }: CongregationAddType) => {
     handleTalkCoordinatorNameChange,
     handleTalkCoordinatorPhoneChange,
     handleIncomingCongregationAdd,
-    congAccountConnected,
   } = useCongregationAdd(onClose);
 
   return (
@@ -41,40 +37,9 @@ const CongregationAdd = ({ onClose, open }: CongregationAddType) => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Typography className="h2">{t('tr_addCongregation')}</Typography>
 
-          <Box sx={{ width: '100%', marginBottom: '-24px', marginTop: '-8px' }}>
-            <Tabs
-              onChange={() => handleResetCongregation()}
-              tabs={
-                congAccountConnected
-                  ? [
-                      {
-                        label: t('tr_congregationInOrganized'),
-                        Component: (
-                          <CongregationOnlineAdd
-                            onCongregationChange={handleSelectCongregation}
-                          />
-                        ),
-                      },
-                      {
-                        label: t('tr_addManually'),
-                        Component: (
-                          <CongregationOfflineAdd
-                            onCongregationChange={handleSelectCongregation}
-                          />
-                        ),
-                      },
-                    ]
-                  : [
-                      {
-                        label: t('tr_addManually'),
-                        Component: (
-                          <CongregationOfflineAdd
-                            onCongregationChange={handleSelectCongregation}
-                          />
-                        ),
-                      },
-                    ]
-              }
+          <Box sx={{ width: '100%', marginTop: '8px' }}>
+            <CongregationOfflineAdd
+              onCongregationChange={handleSelectCongregation}
             />
           </Box>
 
