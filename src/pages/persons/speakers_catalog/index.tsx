@@ -1,6 +1,12 @@
 import { useRef } from 'react';
-import { Box } from '@mui/material';
-import { IconAddCongregation, IconImportJson } from '@components/icons';
+import Papa from 'papaparse';
+import { Box, IconButton, Tooltip } from '@mui/material';
+import {
+  IconAddCongregation,
+  IconImportJson,
+  IconExport,
+  IconDownload,
+} from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
   useAppTranslation,
@@ -12,8 +18,12 @@ import MyCongregation from '@features/persons/speakers_catalog/my_congregation';
 import OtherCongregations from '@features/persons/speakers_catalog/other_congregations';
 import NavBarButton from '@components/nav_bar_button';
 import appDb from '@db/appDb';
-import { vistingSpeakerSchema, speakersCongregationSchema } from '@services/dexie/schema';
+import {
+  vistingSpeakerSchema,
+  speakersCongregationSchema,
+} from '@services/dexie/schema';
 import { generateDisplayName } from '@utils/common';
+import useSpeakersImportExport from '@features/persons/speakers_catalog/import_export/useSpeakersImportExport';
 
 const SpeakersCatalog = () => {
   const { t } = useAppTranslation();
@@ -24,75 +34,121 @@ const SpeakersCatalog = () => {
 
   const { handleIsAddingOpen } = useSpeakersCatalog();
 
+  const { exportCSV, downloadTemplate } = useSpeakersImportExport();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleTriggerImport = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Archivo seleccionado, iniciando procesamiento...');
+  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const jsonData = JSON.parse(event.target?.result as string);
-        const speakers = jsonData.speakers;
-        const currentCongs = await appDb.speakers_congregations.toArray();
-        const now = new Date().toISOString();
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      complete: async (results) => {
+        try {
+          const speakers = results.data;
+          const currentCongs = await appDb.speakers_congregations.toArray();
+          const now = new Date().toISOString();
 
-        console.log('Iniciando importación...');
+          for (const item of speakers as any[]) {
+            const congName = item['Congregation Name']?.trim();
+            const congNumber = item['Congregation Number']?.trim();
+            if (!congName) continue;
 
-        for (const item of speakers) {
-          let cong = currentCongs.find(c => c.cong_data.cong_name.value === item.congregation.congregation_name);
-          
-          if (!cong) {
-            cong = structuredClone(speakersCongregationSchema);
-            cong.id = crypto.randomUUID();
-            cong.cong_data.cong_name = { value: item.congregation.congregation_name, updatedAt: now };
-            cong.cong_data.cong_number = { value: item.congregation.congregation_number, updatedAt: now };
-            cong.cong_data.request_status = 'approved';
-            await appDb.speakers_congregations.add(cong);
-            currentCongs.push(cong);
+            let cong = currentCongs.find(
+              (c) => c.cong_data.cong_name.value === congName
+            );
+
+            if (!cong) {
+              cong = structuredClone(speakersCongregationSchema);
+              cong.id = crypto.randomUUID();
+              cong.cong_data.cong_name = {
+                value: congName,
+                updatedAt: now,
+              };
+              cong.cong_data.cong_number = {
+                value: congNumber || '',
+                updatedAt: now,
+              };
+              cong.cong_data.request_status = 'approved';
+              await appDb.speakers_congregations.add(cong);
+              currentCongs.push(cong);
+            }
+
+            const talksStr = item['Talks'] || '';
+            const talks = talksStr
+              .split(/[,;]/)
+              .filter((t) => t.trim().length > 0)
+              .map((t) => ({
+                _deleted: false,
+                talk_number: parseInt(t.trim(), 10),
+                talk_songs: [],
+                updatedAt: now,
+              }))
+              .filter((t) => !isNaN(t.talk_number));
+
+            const speaker = structuredClone(vistingSpeakerSchema);
+            speaker.person_uid = crypto.randomUUID();
+            speaker.speaker_data.cong_id = cong.id;
+            speaker.speaker_data.person_firstname = {
+              value: item['First Name'] || '',
+              updatedAt: now,
+            };
+            speaker.speaker_data.person_lastname = {
+              value: item['Last Name'] || '',
+              updatedAt: now,
+            };
+            speaker.speaker_data.person_display_name = {
+              value:
+                item['Display Name'] ||
+                generateDisplayName(
+                  item['Last Name'] || '',
+                  item['First Name'] || ''
+                ),
+              updatedAt: now,
+            };
+            speaker.speaker_data.elder = {
+              value: item['Elder']?.toLowerCase() === 'yes',
+              updatedAt: now,
+            };
+            speaker.speaker_data.ministerial_servant = {
+              value: item['Ministerial Servant']?.toLowerCase() === 'yes',
+              updatedAt: now,
+            };
+            speaker.speaker_data.person_email = {
+              value: item['Email'] || '',
+              updatedAt: now,
+            };
+            speaker.speaker_data.person_phone = {
+              value: item['Phone'] || '',
+              updatedAt: now,
+            };
+            speaker.speaker_data.talks = talks;
+            speaker.speaker_data.local = { value: false, updatedAt: now };
+
+            await appDb.visiting_speakers.put(speaker);
           }
 
-          const talks = item.talks.map(t => ({
-            _deleted: false,
-            talk_number: t.talk_number,
-            talk_songs: [],
-            updatedAt: now
-          }));
+          const metadata = await appDb.metadata.get(1);
+          if (metadata) {
+            metadata.metadata.visiting_speakers.send_local = true;
+            metadata.metadata.speakers_congregations.send_local = true;
+            await appDb.metadata.put(metadata);
+          }
 
-          const speaker = structuredClone(vistingSpeakerSchema);
-          speaker.person_uid = crypto.randomUUID();
-          speaker.speaker_data.cong_id = cong.id;
-          speaker.speaker_data.person_firstname = { value: item.person_firstname, updatedAt: now };
-          speaker.speaker_data.person_lastname = { value: item.person_lastname, updatedAt: now };
-          speaker.speaker_data.person_display_name = { value: item.person_display_name || generateDisplayName(item.person_lastname, item.person_firstname), updatedAt: now };
-          speaker.speaker_data.elder = { value: item.elder, updatedAt: now };
-          speaker.speaker_data.ministerial_servant = { value: item.ministerial_servant, updatedAt: now };
-          speaker.speaker_data.talks = talks;
-          speaker.speaker_data.local = { value: false, updatedAt: now };
-
-          await appDb.visiting_speakers.put(speaker);
+          alert('Importación completada con éxito.');
+          window.location.reload();
+        } catch (error) {
+          console.error(error);
+          alert('Error al procesar el archivo CSV.');
         }
-
-        const metadata = await appDb.metadata.get(1);
-        if (metadata) {
-          metadata.metadata.visiting_speakers.send_local = true;
-          metadata.metadata.speakers_congregations.send_local = true;
-          await appDb.metadata.put(metadata);
-        }
-
-        alert('Importación completada. Refresca la página.');
-      } catch (error) {
-        console.error(error);
-        alert('Error al importar el JSON');
-      }
-    };
-    reader.readAsText(file);
+      },
+    });
   };
 
   return (
@@ -109,19 +165,36 @@ const SpeakersCatalog = () => {
         buttons={
           <>
             {isPublicTalkCoordinator && (
-              <Box sx={{ display: 'flex', gap: '8px' }}>
+              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input
                   type="file"
-                  accept=".json"
+                  accept=".csv"
                   style={{ display: 'none' }}
                   ref={fileInputRef}
-                  onChange={handleImportJSON}
+                  onChange={handleImportCSV}
                 />
+
+                <Tooltip title="Descargar plantilla CSV">
+                  <IconButton
+                    onClick={downloadTemplate}
+                    sx={{ color: 'var(--grey-400)' }}
+                  >
+                    <IconDownload width={20} height={20} />
+                  </IconButton>
+                </Tooltip>
+
                 <NavBarButton
-                  text="Importar JSON"
+                  text="Exportar CSV"
+                  icon={<IconExport color="var(--always-white)" />}
+                  onClick={exportCSV}
+                />
+
+                <NavBarButton
+                  text="Importar CSV"
                   icon={<IconImportJson color="var(--always-white)" />}
                   onClick={handleTriggerImport}
                 />
+
                 <NavBarButton
                   text={t('tr_btnAdd')}
                   main
