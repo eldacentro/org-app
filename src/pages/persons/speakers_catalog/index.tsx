@@ -1,4 +1,5 @@
-import { Box, Button } from '@mui/material';
+import { lazy, useRef, useState } from 'react';
+import { Box } from '@mui/material';
 import { IconAddCongregation, IconImportJson } from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
@@ -23,7 +24,14 @@ const SpeakersCatalog = () => {
 
   const { handleIsAddingOpen } = useSpeakersCatalog();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTriggerImport = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Archivo seleccionado, iniciando procesamiento...');
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -106,29 +114,14 @@ const SpeakersCatalog = () => {
                   type="file"
                   accept=".json"
                   style={{ display: 'none' }}
-                  id="import-json-input"
+                  ref={fileInputRef}
                   onChange={handleImportJSON}
                 />
-                <label htmlFor="import-json-input">
-                  <Button
-                    component="span"
-                    variant="contained"
-                    startIcon={<IconImportJson color="var(--always-white)" />}
-                    sx={{
-                      backgroundColor: 'var(--main-black)',
-                      color: 'var(--always-white)',
-                      textTransform: 'none',
-                      borderRadius: 'var(--radius-l)',
-                      padding: '8px 16px',
-                      height: '40px',
-                      '&:hover': {
-                        backgroundColor: 'var(--main-black-hover)',
-                      },
-                    }}
-                  >
-                    Importar JSON
-                  </Button>
-                </label>
+                <NavBarButton
+                  text="Importar JSON"
+                  icon={<IconImportJson color="var(--always-white)" />}
+                  onClick={handleTriggerImport}
+                />
                 <NavBarButton
                   text={t('tr_btnAdd')}
                   main
