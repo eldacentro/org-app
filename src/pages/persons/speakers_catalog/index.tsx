@@ -51,11 +51,24 @@ const SpeakersCatalog = () => {
       skipEmptyLines: 'greedy',
       complete: async (results) => {
         try {
-          const speakers = results.data;
+          interface CSVRow {
+            'Congregation Name': string;
+            'Congregation Number'?: string;
+            'First Name': string;
+            'Last Name': string;
+            'Display Name'?: string;
+            Elder?: string;
+            'Ministerial Servant'?: string;
+            Email?: string;
+            Phone?: string;
+            Talks?: string;
+          }
+
+          const speakers = results.data as CSVRow[];
           const currentCongs = await appDb.speakers_congregations.toArray();
           const now = new Date().toISOString();
 
-          for (const item of speakers as any[]) {
+          for (const item of speakers) {
             const congName = item['Congregation Name']?.trim();
             const congNumber = item['Congregation Number']?.trim();
             if (!congName) continue;
