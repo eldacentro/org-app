@@ -28,9 +28,7 @@ const useSpeakersImportExport = () => {
         ? homeCongName
         : cong?.cong_data.cong_name.value || '';
       const congNumber = isLocal
-        ? homeCongNumber === '11'
-          ? '9357'
-          : homeCongNumber
+        ? '9357'
         : cong?.cong_data.cong_number.value || '';
 
       return {
