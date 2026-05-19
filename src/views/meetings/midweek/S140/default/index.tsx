@@ -92,7 +92,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                           <S140Time time={meetingData.timing.pgm_start} />
                           <S140SourceSimple
                             source={meetingData.song_first}
-                            bulletColor={'#2a6b77'}
+                            bulletColor={'#306CB4'}
                             lang={lang}
                           />
                           <S140PartMiniLabel
@@ -111,7 +111,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                           <S140SourceExtended
                             source={t('tr_openingComments', { lng: lang })}
                             time={`1 ${minLabel}`}
-                            bulletColor={'#2a6b77'}
+                            bulletColor={'#306CB4'}
                             lang={lang}
                           />
                           <S140PartMiniLabel part="" />
@@ -128,7 +128,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                             <>
                               <S140MeetingPartHeading
                                 meetingPart={'tr_treasuresPart'}
-                                backgroundColor={'#2a6b77'}
+                                backgroundColor={'#306CB4'}
                                 classroomHeading={true}
                                 meetingData={meetingData}
                                 class_count={class_count}
@@ -145,7 +145,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                                     <S140SourceExtended
                                       source={meetingData.tgw_talk_src}
                                       time={meetingData.tgw_talk_time}
-                                      bulletColor={'#2a6b77'}
+                                      bulletColor={'#306CB4'}
                                       lang={lang}
                                     />
                                     <S140PartMiniLabel part="" />
@@ -162,7 +162,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                                     <S140SourceExtended
                                       source={meetingData.tgw_gems_src}
                                       time={meetingData.tgw_gems_time}
-                                      bulletColor={'#2a6b77'}
+                                      bulletColor={'#306CB4'}
                                       lang={lang}
                                     />
                                     <S140PartMiniLabel part="" />
@@ -185,7 +185,7 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                                     <S140SourceComplex
                                       source={meetingData.tgw_bible_reading_src}
                                       time={`4 ${minLabel}`}
-                                      bulletColor={'#2a6b77'}
+                                      bulletColor={'#306CB4'}
                                       partLabel={`${t('tr_student', { lng: lang })}:`}
                                       lang={lang}
                                     />

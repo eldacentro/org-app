@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginRight: '5px',
   },
   bulletPoint: {
-    fontFamily: 'Inter',
+    fontFamily: 'Figtree',
     fontWeight: 'bold',
     width: '8px',
     fontSize: '12px',

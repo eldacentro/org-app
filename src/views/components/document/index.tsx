@@ -8,7 +8,7 @@ registerFonts();
 const Document = ({ title, children, lang }: PDFDocumentType) => {
   const font =
     LANGUAGE_LIST.find((record) => record.threeLettersCode === lang)?.font ??
-    'Inter';
+    'Figtree';
 
   const direction = (LANGUAGE_LIST.find(
     (record) => record.threeLettersCode === lang

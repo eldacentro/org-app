@@ -148,7 +148,7 @@ const TemplateS140AppNormal = ({
                         <View style={stylesSmart.rowContainer}>
                           <S140PartTime
                             time={meetingData.timing.tgw_talk}
-                            color="#2A6B77"
+                            color="#306CB4"
                             backgroundColor="rgba(60, 127, 139, 0.08)"
                             lang={lang}
                           />
@@ -156,7 +156,7 @@ const TemplateS140AppNormal = ({
                           <S140Source
                             source={meetingData.tgw_talk_src}
                             duration={meetingData.tgw_talk_time}
-                            color="#2A6B77"
+                            color="#306CB4"
                             lang={lang}
                           />
 
@@ -175,7 +175,7 @@ const TemplateS140AppNormal = ({
                         >
                           <S140PartTime
                             time={meetingData.timing.tgw_gems}
-                            color="#2A6B77"
+                            color="#306CB4"
                             backgroundColor="rgba(60, 127, 139, 0.08)"
                             lang={lang}
                           />
@@ -183,7 +183,7 @@ const TemplateS140AppNormal = ({
                           <S140Source
                             source={meetingData.tgw_gems_src}
                             duration={meetingData.tgw_gems_time}
-                            color="#2A6B77"
+                            color="#306CB4"
                             lang={lang}
                           />
 
@@ -200,7 +200,7 @@ const TemplateS140AppNormal = ({
                       <View style={stylesSmart.rowContainer}>
                         <S140PartTime
                           time={meetingData.timing.tgw_bible_reading}
-                          color="#2A6B77"
+                          color="#306CB4"
                           backgroundColor="rgba(60, 127, 139, 0.08)"
                           lang={lang}
                         />
@@ -208,7 +208,7 @@ const TemplateS140AppNormal = ({
                         <S140Source
                           source={meetingData.tgw_bible_reading_src}
                           duration={`4 ${minLabel}`}
-                          color="#2A6B77"
+                          color="#306CB4"
                           lang={lang}
                         />
 

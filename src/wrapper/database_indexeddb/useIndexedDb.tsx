@@ -23,6 +23,7 @@ import { delegatedFieldServiceReportsDbState } from '@states/delegated_field_ser
 import { upcomingEventsDbState } from '@states/upcoming_events';
 import { publicTalksState } from '@states/public_talks';
 import { songsState } from '@states/songs';
+import { deptScheduleState } from '@states/departments_schedule';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -65,6 +66,9 @@ const useIndexedDb = () => {
   const dbUpcomingEvents = useLiveQuery(() => appDb.upcoming_events.toArray());
   const dbPublicTalks = useLiveQuery(() => appDb.public_talks.toArray());
   const dbSongs = useLiveQuery(() => appDb.songs.toArray());
+  const dbDeptSchedules = useLiveQuery(() =>
+    appDb.departments_schedule.toArray()
+  );
 
   const setSettings = useSetAtom(settingsState);
   const setPersons = useSetAtom(personsState);
@@ -88,6 +92,7 @@ const useIndexedDb = () => {
   const setUpcomingEvents = useSetAtom(upcomingEventsDbState);
   const setPublicTalks = useSetAtom(publicTalksState);
   const setSongs = useSetAtom(songsState);
+  const setDeptSchedules = useSetAtom(deptScheduleState);
 
   const loadSettings = useCallback(() => {
     if (dbSettings && dbSettings[0]) {
@@ -209,6 +214,12 @@ const useIndexedDb = () => {
     }
   }, [dbSongs, setSongs]);
 
+  const loadDeptSchedules = useCallback(() => {
+    if (dbDeptSchedules) {
+      setDeptSchedules(dbDeptSchedules);
+    }
+  }, [dbDeptSchedules, setDeptSchedules]);
+
   return {
     loadSettings,
     loadPersons,
@@ -230,6 +241,7 @@ const useIndexedDb = () => {
     loadUpcomingEvents,
     loadPublicTalks,
     loadSongs,
+    loadDeptSchedules,
   };
 };
 
