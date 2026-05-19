@@ -68,16 +68,21 @@ const useDeptExport = () => {
     const monthName = meses[monthIndex];
     const fileName = `Departamentos_${monthName}_${year}.pdf`;
 
-    const doc = (
-      <DeptSchedulePDF
-        data={data}
-        monthName={`${monthName} ${year}`}
-        cong_name={congName}
-      />
-    );
-
     try {
+      console.log('Generating PDF for month:', monthName, year);
+      console.log('PDF Data:', data);
+      
+      const doc = (
+        <DeptSchedulePDF
+          data={data}
+          monthName={`${monthName} ${year}`}
+          cong_name={congName}
+        />
+      );
+
+      console.log('PDF Document created, rendering...');
       const blob = await pdf(doc).toBlob();
+      console.log('PDF Blob generated successfully:', blob.size, 'bytes');
       saveAs(blob, fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);

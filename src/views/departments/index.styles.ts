@@ -2,14 +2,20 @@ import { StyleSheet } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   body: {
-    padding: 30,
+    padding: 20,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
   },
   headerContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     borderBottom: '1 solid #306CB4',
     paddingBottom: 10,
+  },
+  logoTitleContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   title: {
     fontSize: 18,
@@ -22,16 +28,16 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   weekContainer: {
-    marginBottom: 15,
-    padding: 10,
+    marginBottom: 8,
+    padding: 8,
     border: '1 solid #e0e0e0',
     borderRadius: 8,
   },
   weekTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 700,
     color: '#333333',
-    marginBottom: 8,
+    marginBottom: 4,
     backgroundColor: '#f5f5f5',
     padding: 4,
     borderRadius: 4,

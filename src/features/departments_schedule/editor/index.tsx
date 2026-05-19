@@ -1,13 +1,22 @@
 import { Box, Grid } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
-import { Typography } from '@components/index';
+import { Button, Dialog, Typography } from '@components/index';
+import { IconClose } from '@components/icons';
 import PersonSelector from '@features/meetings/person_selector';
 import { personsStateFind } from '@services/states/persons';
 import useDepartmentEditor from './useDepartmentEditor';
 
 const DepartmentEditor = () => {
   const { t } = useAppTranslation();
-  const { selectedWeek, schedule, handleSaveAssignment } = useDepartmentEditor();
+  const {
+    selectedWeek,
+    schedule,
+    handleSaveAssignment,
+    clearAll,
+    handleOpenClearAll,
+    handleCloseClearAll,
+    handleClearAll,
+  } = useDepartmentEditor();
 
   if (selectedWeek.length === 0) return null;
 
@@ -21,6 +30,31 @@ const DepartmentEditor = () => {
         width: '100%',
       }}
     >
+      <Dialog onClose={handleCloseClearAll} open={clearAll} sx={{ padding: '24px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Typography className="h2">{t('tr_clearAllAssignments')}</Typography>
+          <Typography color="var(--grey-400)">
+            {t('tr_clearAllAssignmentsDesc')}
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
+          }}
+        >
+          <Button variant="main" color="red" onClick={handleClearAll}>
+            {t('tr_clear')}
+          </Button>
+          <Button variant="secondary" onClick={handleCloseClearAll}>
+            {t('tr_cancel')}
+          </Button>
+        </Box>
+      </Dialog>
+
       <Grid container spacing={2}>
         {/* Acomodadores */}
         <Grid size={{ xs: 12, md: 6 }}>
@@ -174,6 +208,17 @@ const DepartmentEditor = () => {
           </Box>
         </Grid>
       </Grid>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="secondary"
+          color="red"
+          startIcon={<IconClose />}
+          onClick={handleOpenClearAll}
+        >
+          {t('tr_clearAll')}
+        </Button>
+      </Box>
     </Box>
   );
 };

@@ -1,4 +1,6 @@
-import { Document, Page, Text, View } from '@react-pdf/renderer';
+import { Page, Text, View } from '@react-pdf/renderer';
+import { Document } from '@views/components';
+import { IconLogo } from '@views/components/icons';
 import registerFonts from '@views/registerFonts';
 import styles from './index.styles';
 
@@ -18,30 +20,47 @@ type DeptSchedulePDFProps = {
   cong_name: string;
 };
 
-const DeptSchedulePDF = ({ data, monthName, cong_name }: DeptSchedulePDFProps) => {
+const DeptSchedulePDF = ({
+  data,
+  monthName,
+  cong_name,
+}: DeptSchedulePDFProps) => {
   return (
     <Document title={`Programa Departamentos - ${monthName}`}>
       <Page size="A4" style={styles.body}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Programa de Departamentos</Text>
-          <Text style={styles.subtitle}>{`${cong_name} - ${monthName}`}</Text>
+          <View style={styles.logoTitleContainer}>
+            <IconLogo />
+            <View>
+              <Text style={styles.title}>Programa de Departamentos</Text>
+              <Text style={styles.subtitle}>{`${cong_name} - ${monthName}`}</Text>
+            </View>
+          </View>
         </View>
 
         {data.map((week) => (
-          <View key={week.weekOfFormatted} style={styles.weekContainer} wrap={false}>
+          <View
+            key={week.weekOfFormatted}
+            style={styles.weekContainer}
+            wrap={false}
+          >
             <Text style={styles.weekTitle}>{week.weekOfFormatted}</Text>
-            
+
             <View style={styles.grid}>
               {/* Acomodadores */}
               <View style={styles.deptBox}>
                 <Text style={styles.deptTitle}>Acomodadores</Text>
                 <View style={styles.roleRow}>
                   <Text style={styles.roleLabel}>Exterior:</Text>
-                  <Text style={styles.personName}>{week.acomodadores.exterior}</Text>
+                  <Text style={styles.personName}>
+                    {week.acomodadores.exterior}
+                  </Text>
                 </View>
                 <View style={styles.roleRow}>
                   <Text style={styles.roleLabel}>Interior:</Text>
-                  <Text style={styles.personName}>{week.acomodadores.interior}</Text>
+                  <Text style={styles.personName}>
+                    {week.acomodadores.interior}
+                  </Text>
                 </View>
               </View>
 
@@ -76,7 +95,9 @@ const DeptSchedulePDF = ({ data, monthName, cong_name }: DeptSchedulePDFProps) =
                 <Text style={styles.deptTitle}>Plataforma</Text>
                 <View style={styles.roleRow}>
                   <Text style={styles.roleLabel}>Encargado:</Text>
-                  <Text style={styles.personName}>{week.plataforma.encargado}</Text>
+                  <Text style={styles.personName}>
+                    {week.plataforma.encargado}
+                  </Text>
                 </View>
               </View>
             </View>

@@ -3,6 +3,7 @@ export { default as IconDate } from './IconDate';
 export { default as IconWavingHand } from './IconWavingHand';
 export { default as IconLocalLibrary } from './IconLocalLibrary';
 export { default as IconWine } from './IconWine';
+export { default as IconLogo } from './IconLogo';
 export { default as IconStadium } from './IconStadium';
 export { default as IconDistance } from './IconDistance';
 export { default as IconAirplaneTicket } from './IconAirplaneTicket';

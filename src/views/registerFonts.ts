@@ -20,10 +20,12 @@ import NotoSansJPFontRegular from '/assets/fonts/NotoSansJP-Regular.ttf';
 import NotoSansHebrewBold from '/assets/fonts/NotoSansHebrew-SemiBold.ttf';
 import NotoSansHebrewRegular from '/assets/fonts/NotoSansHebrew-Regular.ttf';
 
-import FigtreeBold from '/assets/fonts/Figtree-Bold.ttf';
-import FigtreeSemiBold from '/assets/fonts/Figtree-SemiBold.ttf';
-import FigtreeMedium from '/assets/fonts/Figtree-Medium.ttf';
 import FigtreeRegular from '/assets/fonts/Figtree-Regular.ttf';
+import FigtreeItalic from '/assets/fonts/Figtree-Italic.ttf';
+import FigtreeMedium from '/assets/fonts/Figtree-Medium.ttf';
+import FigtreeSemiBold from '/assets/fonts/Figtree-SemiBold.ttf';
+import FigtreeBold from '/assets/fonts/Figtree-Bold.ttf';
+import FigtreeExtraBold from '/assets/fonts/Figtree-ExtraBold.ttf';
 
 Font.register({
   family: 'Inter',
@@ -74,9 +76,11 @@ Font.register({
   family: 'Figtree',
   fonts: [
     { src: FigtreeRegular, fontWeight: 400 },
+    { src: FigtreeItalic, fontWeight: 400, fontStyle: 'italic' },
     { src: FigtreeMedium, fontWeight: 500 },
     { src: FigtreeSemiBold, fontWeight: 600 },
     { src: FigtreeBold, fontWeight: 700 },
+    { src: FigtreeExtraBold, fontWeight: 800 },
   ],
 });
 
