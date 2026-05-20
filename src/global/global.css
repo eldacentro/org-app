@@ -146,11 +146,11 @@
 [data-theme='blue-dark'] {
   --accent-dark-overlay-base: 63, 65, 70;
   --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.92);
-  --accent-dark-base: 61, 107, 173;
+  --accent-dark-base: 120, 165, 235;
   --accent-dark: rgba(var(--accent-dark-base), 1);
-  --accent-click-base: 32, 58, 103;
+  --accent-click-base: 65, 110, 185;
   --accent-click: rgba(var(--accent-click-base), 1);
-  --accent-main-base: 44, 78, 138;
+  --accent-main-base: 91, 141, 217;
   --accent-main: rgba(var(--accent-main-base), 1);
   --accent-400-base: 157, 165, 190;
   --accent-400: rgba(var(--accent-400-base), 1);
