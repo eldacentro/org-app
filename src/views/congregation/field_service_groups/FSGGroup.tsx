@@ -1,5 +1,4 @@
 import { View, Text } from '@react-pdf/renderer';
-import { getCSSPropertyValue } from '@utils/common';
 import { FSGGroupProps } from './index.types';
 import FSGGroupMember from './FSGGroupMember';
 import styles from './index.styles';
@@ -7,27 +6,15 @@ import styles from './index.styles';
 const FSGGroup = ({ group }: FSGGroupProps) => {
   const groupMembersCount =
     group.publishers.length +
-    (group.overseer && 1) +
-    (group.overseerAssistant && 1);
+    (group.overseer ? 1 : 0) +
+    (group.overseerAssistant ? 1 : 0);
 
   return (
-    <View style={styles.groupContainer}>
-      <View
-        style={{
-          ...styles.groupTitleContainer,
-          backgroundColor: getCSSPropertyValue(`--group-${group.group_number}`),
-        }}
-      >
+    <View style={styles.groupContainer} wrap={false}>
+      <View style={styles.groupTitleContainer}>
         <Text style={styles.groupTitle}>{group.group_name}</Text>
         <View style={styles.membersCountContainer}>
-          <Text
-            style={{
-              ...styles.membersCount,
-              color: getCSSPropertyValue(`--group-${group.group_number}`),
-            }}
-          >
-            {groupMembersCount}
-          </Text>
+          <Text style={styles.membersCount}>{groupMembersCount}</Text>
         </View>
       </View>
 
@@ -36,24 +23,18 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
           <>
             <View style={styles.groupOverseers}>
               {group.overseer && (
-                <Text
-                  style={{
-                    ...styles.groupOverseerText,
-                    color: getCSSPropertyValue(`--group-${group.group_number}`),
-                  }}
-                >
-                  {group.overseer}
-                </Text>
+                <View>
+                  <Text style={styles.groupOverseerLabel}>Superintendente:</Text>
+                  <Text style={styles.groupOverseerName}>{group.overseer}</Text>
+                </View>
               )}
               {group.overseerAssistant && (
-                <Text
-                  style={{
-                    ...styles.groupOverseerAssistantText,
-                    color: getCSSPropertyValue(`--group-${group.group_number}`),
-                  }}
-                >
-                  {group.overseerAssistant}
-                </Text>
+                <View>
+                  <Text style={styles.groupOverseerLabel}>Auxiliar:</Text>
+                  <Text style={styles.groupOverseerName}>
+                    {group.overseerAssistant}
+                  </Text>
+                </View>
               )}
             </View>
             <View style={styles.dashedDivider} />

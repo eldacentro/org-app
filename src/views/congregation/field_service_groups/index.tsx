@@ -1,35 +1,39 @@
-import { View } from '@react-pdf/renderer';
-import { Document, Page, PageContent, PageHeader } from '@views/components';
-import { IconGroups } from '@views/components/icons';
+import { Text, View } from '@react-pdf/renderer';
+import { Document, Page } from '@views/components';
+import { IconLogo } from '@views/components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { TemplateFieldServiceGroupsProps } from './index.types';
 import styles from './index.styles';
 import FSGGroup from './FSGGroup';
 
 const TemplateFieldServiceGroups = ({
-  congregation,
   groups,
   lang,
 }: TemplateFieldServiceGroupsProps) => {
   const { t } = useAppTranslation();
 
+  const title = lang.startsWith('es')
+    ? 'Grupos de predicación'
+    : t('tr_fieldServiceGroups', { lng: lang });
+
   return (
-    <Document title={t('tr_fieldServiceGroups')} lang={lang}>
-      <Page>
-        <PageContent gap={10}>
-          <PageHeader
-            congregationName={congregation}
-            variant="secondary"
-            icon={<IconGroups size={18} />}
-            title={t('tr_fieldServiceGroups')}
-            fixed
-          />
-          <View style={styles.groupsContainer}>
-            {groups.map((group) => (
-              <FSGGroup key={group.group_name} group={group} />
-            ))}
+    <Document title={title} lang={lang}>
+      <Page style={styles.page}>
+        <View style={styles.header} fixed>
+          <View style={styles.headerTitleContainer}>
+            <IconLogo />
+            <View>
+              <Text style={styles.headerTittle}>{title}</Text>
+              <Text style={styles.headerCongregation}>{`Elda - Centro`}</Text>
+            </View>
           </View>
-        </PageContent>
+        </View>
+
+        <View style={styles.groupsContainer}>
+          {groups.map((group) => (
+            <FSGGroup key={group.group_name} group={group} />
+          ))}
+        </View>
       </Page>
     </Document>
   );
