@@ -35,26 +35,57 @@ const TemplateS140AppNormal = ({
 
   const minLabel = t('tr_minLabel', { lng: lang });
 
+  const formatTitle = (title: string) => {
+    const meses = [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ];
+    const parts = title.split('|');
+    const datePart = parts[0].trim();
+    const rest = parts.slice(1).join('|');
+    const dateWords = datePart.split(' ');
+    if (dateWords.length === 2) {
+      const mesNombre = dateWords[0].toLowerCase();
+      const dia = dateWords[1];
+      const mesIndex = meses.indexOf(mesNombre);
+      if (mesIndex !== -1) {
+        return `${dia} de ${meses[mesIndex]}${rest ? ' |' + rest : ''}`;
+      }
+    }
+    return title;
+  };
+
   return (
     <Document title={t('tr_midweekMeetingPrint')} lang={lang}>
       <Page size="A4" style={stylesSmart.page}>
         <S140Header cong_name={cong_name} lang={lang} />
 
-        {data.map((meetingData) => (
-          <View
-            key={`week-${meetingData.weekOf}`}
-            style={stylesSmart.weekContainer}
-            wrap={false}
-          >
-            <S140WeekHeader
-              title={meetingData.schedule_title}
-              secondary={
-                meetingData.week_type === Week.CO_VISIT &&
-                meetingData.week_type_name
-              }
-              lang={lang}
-            />
-
+        {data.map((meetingData) => {
+          return (
+            <View
+              key={`week-${meetingData.weekOf}`}
+              style={stylesSmart.weekContainer}
+              wrap={false}
+            >
+              <S140WeekHeader
+                title={formatTitle(meetingData.schedule_title)}
+                secondary={
+                  meetingData.week_type === Week.CO_VISIT &&
+                  meetingData.week_type_name
+                }
+                lang={lang}
+              />
+...
             {meetingData.no_meeting && (
               <View style={stylesSmart.rowContainer}>
                 <Text style={stylesSmart.weekInfoLabel}>
@@ -421,7 +452,8 @@ const TemplateS140AppNormal = ({
               </>
             )}
           </View>
-        ))}
+        );
+      })}
       </Page>
     </Document>
   );
