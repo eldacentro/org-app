@@ -31,6 +31,7 @@ const useDeptExport = () => {
       const weekLabel = `${formatDateShortMonth(monday)} - ${formatDateShortMonth(sunday)}`;
 
       return {
+        weekOf,
         weekOfFormatted: weekLabel,
         acomodadores: {
           exterior: personGetFullname(week?.acomodadores.exterior.value || ''),

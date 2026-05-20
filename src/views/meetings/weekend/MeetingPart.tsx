@@ -59,9 +59,7 @@ const MeetingPart = ({ meetingData, lang }: MeetingPartType) => {
           {/* WT Study conductor */}
           {meetingData.wtstudy_conductor_name && (
             <View style={styles.meetingPartContainer}>
-              <Text style={styles.meetingPartLabel}>
-                {t('tr_wtStudyConductor', { lng: lang })}:
-              </Text>
+              <Text style={styles.meetingPartLabel}>Conductor:</Text>
               <Text style={styles.meetingPartName}>
                 {meetingData.wtstudy_conductor_name}
               </Text>
@@ -88,9 +86,7 @@ const MeetingPart = ({ meetingData, lang }: MeetingPartType) => {
             meetingData.show_songs &&
             Boolean(meetingData.closing_song) && (
               <View style={styles.meetingPartContainer}>
-                <Text style={styles.meetingPartLabel}>
-                  {t('tr_closingSong', { lng: lang })}:
-                </Text>
+                <Text style={styles.meetingPartLabel}>Canción final:</Text>{' '}
                 <View style={styles.songContainer}>
                   <IconSong />
                   <Text style={styles.meetingPartSong}>
@@ -103,9 +99,7 @@ const MeetingPart = ({ meetingData, lang }: MeetingPartType) => {
           {/* Closing prayer */}
           {meetingData.concluding_prayer_name && (
             <View style={styles.meetingPartContainer}>
-              <Text style={styles.meetingPartLabel}>
-                {t('tr_closingPrayer', { lng: lang })}:
-              </Text>
+              <Text style={styles.meetingPartLabel}>Oración final:</Text>
               <Text style={styles.meetingPartName}>
                 {meetingData.concluding_prayer_name}
               </Text>

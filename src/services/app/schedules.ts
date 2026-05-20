@@ -2832,6 +2832,7 @@ export const schedulesWeekendData = (
     meeting: 'weekend',
   });
 
+  result.date_raw = date;
   result.date_formatted = formatDateShortMonthWithYear(date);
 
   const week_type =

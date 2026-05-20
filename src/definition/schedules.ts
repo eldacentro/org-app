@@ -278,6 +278,7 @@ export type WeekendMeetingTimingsType = {
 
 export type WeekendMeetingDataType = {
   show_songs: boolean;
+  date_raw: string;
   date_formatted: string;
   weekOf: string;
   no_meeting: boolean;

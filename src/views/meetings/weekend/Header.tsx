@@ -1,23 +1,23 @@
 import { useAppTranslation } from '@hooks/index';
 import { Text, View } from '@react-pdf/renderer';
 import { HeaderType } from './index.types';
-import IconWatchtower from '@views/components/icons/IconWatchtower';
+import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
 
-const Header = ({ cong_name, lang }: HeaderType) => {
+const Header = ({ lang }: HeaderType) => {
   const { t } = useAppTranslation();
 
   return (
     <View fixed style={styles.header}>
       <View style={styles.headerTitleContainer}>
-        <IconWatchtower />
-        <Text style={styles.headerTittle}>
-          {t('tr_weekendMeetingPrint', { lng: lang })}
-        </Text>
+        <IconLogo />
+        <View>
+          <Text style={styles.headerTittle}>
+            {t('tr_weekendMeetingPrint', { lng: lang })}
+          </Text>
+          <Text style={styles.headerCongregation}>{`Elda - Centro`}</Text>
+        </View>
       </View>
-      <Text style={styles.headerCongregation}>
-        {`${cong_name.toUpperCase()}`}
-      </Text>
     </View>
   );
 };

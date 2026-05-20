@@ -10,7 +10,6 @@ const useMidweek = () => {
   const [openAutofill, setOpenAutofill] = useState(false);
   const [openExport, setOpenExport] = useState(false);
   const [openPublish, setOpenPublish] = useState(false);
-  const [openWeekView, setOpenWeekView] = useState(true);
   const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
 
   const handleOpenQuickSettings = () => setQuickSettingsOpen(true);
@@ -31,10 +30,6 @@ const useMidweek = () => {
 
   const handleClosePublish = () => setOpenPublish(false);
 
-  const handleOpenWeekView = () => setOpenWeekView(true);
-
-  const handleCloseWeekView = () => setOpenWeekView(false);
-
   return {
     hasWeeks,
     handleCloseAutofill,
@@ -50,9 +45,6 @@ const useMidweek = () => {
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,
-    openWeekView,
-    handleOpenWeekView,
-    handleCloseWeekView,
   };
 };
 

@@ -1,16 +1,20 @@
+import { useState } from 'react';
 import { Box } from '@mui/material';
-import { IconPrint } from '@components/icons';
+import { IconPrint, IconSparkles } from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import DeptWeekSelector from '@features/departments_schedule/week_selector';
 import DepartmentEditor from '@features/departments_schedule/editor';
 import useDeptExport from '@features/departments_schedule/useDeptExport';
 import NavBarButton from '@components/nav_bar_button';
+import DeptAutofillDialog from '@features/departments_schedule/autofill';
 
 const DepartmentsSchedule = () => {
   const { t } = useAppTranslation();
   const { desktopUp } = useBreakpoints();
   const { handleExportPDF } = useDeptExport();
+
+  const [isAutofillOpen, setIsAutofillOpen] = useState(false);
 
   return (
     <Box
@@ -20,14 +24,28 @@ const DepartmentsSchedule = () => {
         flexDirection: 'column',
       }}
     >
+      {isAutofillOpen && (
+        <DeptAutofillDialog
+          open={isAutofillOpen}
+          onClose={() => setIsAutofillOpen(false)}
+        />
+      )}
+
       <PageTitle
         title={t('tr_departmentsSchedule', 'Programa de departamentos')}
         buttons={
-          <NavBarButton
-            text={t('tr_export', 'Exportar')}
-            onClick={handleExportPDF}
-            icon={<IconPrint />}
-          />
+          <>
+            <NavBarButton
+              text={t('tr_autofill', 'Autocompletar')}
+              onClick={() => setIsAutofillOpen(true)}
+              icon={<IconSparkles />}
+            />
+            <NavBarButton
+              text={t('tr_export', 'Exportar')}
+              onClick={handleExportPDF}
+              icon={<IconPrint />}
+            />
+          </>
         }
       />
 

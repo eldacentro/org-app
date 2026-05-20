@@ -20,10 +20,9 @@ const WeekendMeetingTemplate = ({
     <Document title={t('tr_weekendMeetingPrint', { lng: lang })} lang={lang}>
       <Page size="A4" style={styles.page}>
         <Header cong_name={cong_name} lang={lang} />
-        {data.map((meetingData, index) => (
+        {data.map((meetingData) => (
           <WeekData
             key={meetingData.weekOf}
-            isLast={index === data.length - 1}
             meetingData={meetingData}
             lang={lang}
           />

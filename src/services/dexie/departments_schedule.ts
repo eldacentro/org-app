@@ -10,6 +10,10 @@ export const dbDeptScheduleSave = async (data: DeptWeekType) => {
   await appDb.departments_schedule.put(data);
 };
 
+export const dbDeptScheduleBulkSave = async (data: DeptWeekType[]) => {
+  await appDb.departments_schedule.bulkPut(data);
+};
+
 export const dbDeptScheduleGetAll = async () => {
   const schedules = await appDb.departments_schedule.toArray();
   return schedules;

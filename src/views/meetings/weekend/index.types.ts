@@ -36,7 +36,6 @@ export type HeaderType = {
 };
 
 export type WeekDataType = {
-  isLast: boolean;
   meetingData: WeekendMeetingDataType;
   lang: string;
 };

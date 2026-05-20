@@ -1,4 +1,7 @@
 import { StyleSheet } from '@react-pdf/renderer';
+import registerFonts from '@views/registerFonts';
+
+registerFonts();
 
 const styles = StyleSheet.create({
   body: {
@@ -18,39 +21,39 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 700,
     color: '#306CB4',
-    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666666',
   },
   weekContainer: {
-    marginBottom: 8,
-    padding: 8,
+    marginBottom: 10,
     border: '1 solid #e0e0e0',
-    borderRadius: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  weekTitleContainer: {
+    backgroundColor: '#306CB4',
+    padding: 6,
   },
   weekTitle: {
     fontSize: 12,
     fontWeight: 700,
-    color: '#333333',
-    marginBottom: 4,
-    backgroundColor: '#f5f5f5',
-    padding: 4,
-    borderRadius: 4,
+    color: '#ffffff',
   },
   grid: {
+    padding: 10,
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    columnGap: 10,
+    rowGap: 4,
   },
   deptBox: {
     width: '48%',
-    marginBottom: 5,
   },
   deptTitle: {
     fontSize: 10,
@@ -68,13 +71,13 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   roleLabel: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#666666',
   },
   personName: {
-    fontSize: 9,
-    fontWeight: 500,
-    color: '#000000',
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#333333',
   },
 });
 
