@@ -40,7 +40,7 @@ const DeptSchedulePDF = ({ data, monthName }: DeptSchedulePDFProps) => {
           <View style={styles.logoTitleContainer}>
             <IconLogo />
             <View>
-              <Text style={styles.title}>Programa de Departamentos</Text>
+              <Text style={styles.title}>Programa de departamentos</Text>
               <Text style={styles.subtitle}>{`Elda - Centro`}</Text>
             </View>
           </View>

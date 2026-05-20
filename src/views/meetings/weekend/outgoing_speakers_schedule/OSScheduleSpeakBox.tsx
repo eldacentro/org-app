@@ -1,69 +1,62 @@
-import { View } from '@react-pdf/renderer';
+import { View, Text } from '@react-pdf/renderer';
 import { OSScheduleSpeakBoxProps } from './index.types';
-import OSScheduleDateBox from './OSScheduleDateBox';
-import OSScheduleTalkBox from './OSScheduleTalkBox';
-import OSScheduleBrotherBox from './OSScheduleBrotherBox';
-import { Fragment } from 'react/jsx-runtime';
+import { useAppTranslation } from '@hooks/index';
+import IconSong from '@views/components/icons/IconSong';
+import styles from './index.styles';
 
-const OSScheduleSpeakBox = ({ data, last }: OSScheduleSpeakBoxProps) => {
+const OSScheduleSpeakBox = ({ data }: OSScheduleSpeakBoxProps) => {
+  const { t } = useAppTranslation();
+
   return (
-    <View
-      style={{
-        borderBottom: last ? 'none' : `1px solid #D7E3DA`,
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px',
-        paddingRight: '10px',
-      }}
-    >
-      <OSScheduleDateBox formattedDate={data[0].date.formatted} last={last} />
+    <View style={styles.weekContainer} wrap={false}>
+      <View style={styles.weekTitleContainer}>
+        <Text style={styles.weekTitle}>{data[0].date.formatted}</Text>
+      </View>
 
-      <View
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-        }}
-      >
+      <View style={styles.grid}>
         {data.map((speak, index) => (
-          <Fragment
+          <View
             key={`${index}_${speak.speaker}_${speak.date.date.getTime()}`}
+            style={
+              index === data.length - 1
+                ? styles.speakerRowLast
+                : styles.speakerRow
+            }
           >
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                paddingVertical: '12px',
-                gap: '10px',
-              }}
-            >
-              <OSScheduleBrotherBox
-                speaker={{
-                  speaker: speak.speaker,
-                  congregation: speak.congregation_name,
-                }}
-              />
+            <View style={styles.infoColumn}>
+              <Text style={styles.label}>{t('tr_speaker')}:</Text>
+              <Text style={styles.value}>{speak.speaker}</Text>
+              <Text style={[styles.label, { marginTop: 4 }]}>
+                {t('tr_congregation')}:
+              </Text>
+              <Text style={styles.value}>
+                {speak.congregation_name.replace(/-/g, '\u00AD')}
+              </Text>
+            </View>
+
+            <View style={[styles.infoColumn, { flex: 1.5 }]}>
+              <Text style={styles.label}>{t('tr_publicTalk')}:</Text>
+              <Text style={styles.value}>
+                {`${speak.public_talk.number}. ${speak.public_talk.title}`}
+              </Text>
 
               <View
                 style={{
-                  width: '1px',
-                  height: '100%',
-                  backgroundColor: '#D7E3DA',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginTop: 4,
                 }}
-              />
-
-              <OSScheduleTalkBox
-                talkAndSong={{
-                  song: speak.opening_song,
-                  talk: speak.public_talk,
-                }}
-              />
+              >
+                <IconSong size={10} color="#306CB4" />
+                <Text style={styles.label}>{t('tr_openingSong')}:</Text>
+              </View>
+              <Text style={styles.value}>
+                {`${speak.opening_song.title} (№${speak.opening_song.number})`}
+              </Text>
             </View>
-
-            {index !== data.length - 1 && (
-              <View style={{ height: '1px', backgroundColor: '#EEF6EB' }} />
-            )}
-          </Fragment>
+          </View>
         ))}
       </View>
     </View>

@@ -1,9 +1,9 @@
-import { Document, Page, PageContent, PageHeader } from '@views/components';
+import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { TemplateOutgoingSpeakersProps } from './index.types';
 import useAppTranslation from '@hooks/useAppTranslation';
-import { getCSSPropertyValue } from '@utils/common';
-import IconOutgoinпSpeakers from '@views/components/icons/IconOutgoingSpeakers';
+import { IconLogo } from '@views/components/icons';
 import OSScheduleContainer from './OSScheduleContainer';
+import styles from './index.styles';
 
 const TemplateOutgoingSpeakersSchedule = ({
   congregation,
@@ -12,23 +12,22 @@ const TemplateOutgoingSpeakersSchedule = ({
 }: TemplateOutgoingSpeakersProps) => {
   const { t } = useAppTranslation();
 
-  console.log(data);
-
   return (
     <Document title={t('tr_outgoingSpeakersSchedule')} lang={lang}>
-      <Page>
-        <PageContent gap={0}>
-          <PageHeader
-            fixed
-            variant={'main'}
-            title={t('tr_outgoingSpeakersSchedule')}
-            backgroundColor={getCSSPropertyValue('--pdf-green-main')}
-            congregationName={congregation}
-            icon={<IconOutgoinпSpeakers size={18} />}
-          />
+      <Page size="A4" style={styles.body}>
+        <View style={styles.headerContainer}>
+          <View style={styles.logoTitleContainer}>
+            <IconLogo />
+            <View>
+              <Text style={styles.title}>
+                {t('tr_outgoingSpeakersSchedule')}
+              </Text>
+              <Text style={styles.subtitle}>{congregation}</Text>
+            </View>
+          </View>
+        </View>
 
-          <OSScheduleContainer data={data} />
-        </PageContent>
+        <OSScheduleContainer data={data} />
       </Page>
     </Document>
   );
