@@ -1,34 +1,6 @@
-import {
-  de,
-  enUS,
-  es,
-  et,
-  fi,
-  fr,
-  hu,
-  hy,
-  it,
-  ja,
-  mn,
-  nl,
-  pl,
-  pt,
-  ptBR,
-  ro,
-  ru,
-  sl,
-  sv,
-  tr,
-  uk,
-  vi,
-  zhCN,
-  hi,
-  bg,
-  he,
-} from 'date-fns/locale';
+import { de, enUS, es, fr, it, ptBR } from 'date-fns/locale';
 import { AppRoleType, LanguageItem } from '@definition/app';
 import { AssignmentCode } from '@definition/assignment';
-import { FullnameOption } from '@definition/settings';
 import { Week } from '@definition/week_type';
 
 export const LANGUAGE_LIST: LanguageItem[] = [
