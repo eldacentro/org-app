@@ -1,5 +1,6 @@
 import appDb from '@db/appDb';
 import { DeptWeekType } from '@definition/departments_schedule';
+import worker from '@services/worker/backupWorker';
 
 const dbUpdateSchedulesMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
