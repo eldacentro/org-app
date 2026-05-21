@@ -4,6 +4,8 @@ export type TemplateFieldServiceGroupsProps = {
   groups: FieldServiceGroupExportType[];
   congregation: string;
   lang: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
 };
 
 export type FSGGroupProps = {

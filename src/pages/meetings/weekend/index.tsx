@@ -1,16 +1,16 @@
 import { Box } from '@mui/material';
-import { IconGenerate, IconPrint, IconPublish } from '@components/icons';
+import { IconPrint, IconGenerate, IconPublish } from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useWeekend from './useWeekend';
-import OutgoingTalks from '@features/meetings/outgoing_talks';
-import PageTitle from '@components/page_title';
-import QuickSettingsWeekendMeeting from '@features/meetings/weekend_editor/quick_settings';
-import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
-import SchedulePublish from '@features/meetings/schedule_publish';
 import WeekendEditor from '@features/meetings/weekend_editor';
 import WeekendExport from '@features/meetings/weekend_export';
+import PageTitle from '@components/page_title';
+import QuickSettingsWeekendMeeting from '@features/meetings/weekend_editor/quick_settings';
+import SchedulePublish from '@features/meetings/schedule_publish';
+import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekSelector from '@features/meetings/week_selector';
 import NavBarButton from '@components/nav_bar_button';
+import LastModifiedInfo from '@components/last_modified_info';
 
 const WeekendMeeting = () => {
   const { t } = useAppTranslation();
@@ -32,6 +32,8 @@ const WeekendMeeting = () => {
     handleCloseQuickSettings,
     handleOpenQuickSettings,
     quickSettingsOpen,
+    updatedAt,
+    lastModifiedBy,
   } = useWeekend();
 
   return (
@@ -54,19 +56,19 @@ const WeekendMeeting = () => {
         <WeekendExport open={openExport} onClose={handleCloseExport} />
       )}
 
-      {openAutofill && (
-        <ScheduleAutofillDialog
-          meeting="weekend"
-          open={openAutofill}
-          onClose={handleCloseAutofill}
-        />
-      )}
-
       {isConnected && openPublish && (
         <SchedulePublish
           type="weekend"
           open={openPublish}
           onClose={handleClosePublish}
+        />
+      )}
+
+      {openAutofill && (
+        <ScheduleAutofillDialog
+          meeting="weekend"
+          open={openAutofill}
+          onClose={handleCloseAutofill}
         />
       )}
 
@@ -78,13 +80,13 @@ const WeekendMeeting = () => {
             <>
               <NavBarButton
                 text={t('tr_export')}
-                icon={<IconPrint />}
                 onClick={handleOpenExport}
+                icon={<IconPrint />}
               ></NavBarButton>
               <NavBarButton
                 text={t('tr_autofill')}
-                icon={<IconGenerate />}
                 onClick={handleOpenAutofill}
+                icon={<IconGenerate />}
               ></NavBarButton>
               {isConnected && (
                 <NavBarButton
@@ -99,6 +101,8 @@ const WeekendMeeting = () => {
         }
       />
 
+      <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
+
       <Box
         sx={{
           display: 'flex',
@@ -108,18 +112,7 @@ const WeekendMeeting = () => {
         }}
       >
         <WeekSelector />
-
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
-          <WeekendEditor />
-          <OutgoingTalks />
-        </Box>
+        <WeekendEditor />
       </Box>
     </Box>
   );

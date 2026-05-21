@@ -1,6 +1,7 @@
 import { AssignmentCode } from '@definition/assignment';
 import { getTranslation } from '@services/i18n/translation';
 import { getListLanguages } from '@services/app';
+import { LANGUAGE_LIST } from '@constants/index';
 import appDb from '@db/appDb';
 
 export const dbAssignmentUpdate = async () => {
@@ -41,6 +42,12 @@ export const dbAssignmentUpdate = async () => {
 
   for (const lang of languages) {
     const langCode = lang.code.toUpperCase();
+
+    const isSource = LANGUAGE_LIST.find(
+      (l) => l.threeLettersCode === lang.locale
+    )?.source;
+
+    if (!isSource && bReadObj[langCode]) continue;
 
     bReadObj[langCode] = getTranslation({
       key: 'tr_bibleReading',

@@ -5,6 +5,8 @@ export type DepartmentAssignment = {
 
 export type DeptWeekType = {
   weekOf: string; // mismo formato que SchedWeekType "2024/05/20"
+  updatedAt?: string;
+  lastModifiedBy?: string;
   acomodadores: {
     exterior: DepartmentAssignment;
     interior: DepartmentAssignment;

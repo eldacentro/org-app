@@ -10,6 +10,7 @@ export type FieldServiceGroupType = {
   group_data: {
     _deleted: boolean;
     updatedAt: string;
+    lastModifiedBy?: string;
     name: string;
     sort_index: number;
     members: FieldServiceGroupMemberType[];

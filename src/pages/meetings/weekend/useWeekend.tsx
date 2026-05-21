@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { sourcesFormattedState } from '@states/sources';
+import { schedulesState, selectedWeekState } from '@states/schedules';
 import { congAccountConnectedState } from '@states/app';
 
 const useWeekend = () => {
+  const selectedWeek = useAtomValue(selectedWeekState);
+  const schedules = useAtomValue(schedulesState);
+  const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
   const sources = useAtomValue(sourcesFormattedState);
   const isConnected = useAtomValue(congAccountConnectedState);
 
@@ -45,6 +49,8 @@ const useWeekend = () => {
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,
+    updatedAt: currentSched?.updatedAt,
+    lastModifiedBy: currentSched?.lastModifiedBy,
   };
 };
 

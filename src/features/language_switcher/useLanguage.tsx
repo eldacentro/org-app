@@ -80,7 +80,12 @@ const useLanguage = () => {
       settings.cong_settings.source_material.language
     );
 
-    if (isAppLoad) {
+    const isAdmin =
+      settings.user_settings.cong_role.includes('admin') ||
+      settings.user_settings.cong_role.includes('coordinator') ||
+      settings.user_settings.cong_role.includes('secretary');
+
+    if (isAdmin) {
       const findSource = sourceLanguage.find(
         (record) => record.type === dataView
       );

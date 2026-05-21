@@ -36,13 +36,6 @@ const useButtonBase = ({ provider }: OAuthButtonBaseProps) => {
 
       await setAuthPersistence();
 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-      if (isIOS) {
-        await userSignInRedirect(provider);
-        return;
-      }
-
       const result = await userSignInPopup(provider);
 
       if (!result) return;

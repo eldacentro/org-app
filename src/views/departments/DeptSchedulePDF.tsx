@@ -10,11 +10,14 @@ export type DeptPDFData = {
   microfonos: { micro1: string; micro2: string };
   multimedia: { video: string; audio: string };
   plataforma: { encargado: string };
+  updatedAt?: string;
+  lastModifiedBy?: string;
 };
 
 type DeptSchedulePDFProps = {
   data: DeptPDFData[];
   monthName: string;
+  cong_name: string;
 };
 
 const meses = [
@@ -32,16 +35,29 @@ const meses = [
   'diciembre',
 ];
 
-const DeptSchedulePDF = ({ data, monthName }: DeptSchedulePDFProps) => {
+const DeptSchedulePDF = ({ data, monthName, cong_name }: DeptSchedulePDFProps) => {
+  const lastUpdate = data.reduce((acc, curr) => {
+    if (
+      !acc ||
+      (curr.updatedAt && new Date(curr.updatedAt) > new Date(acc.updatedAt))
+    ) {
+      return {
+        updatedAt: curr.updatedAt,
+        lastModifiedBy: curr.lastModifiedBy,
+      };
+    }
+    return acc;
+  }, null);
+
   return (
-    <Document title={`Programa Departamentos - ${monthName}`}>
+    <Document title={`Programa Departamentos - ${monthName}`} lang="es-ES">
       <Page size="A4" style={styles.body}>
         <View style={styles.headerContainer}>
           <View style={styles.logoTitleContainer}>
             <IconLogo />
             <View>
               <Text style={styles.title}>Programa de departamentos</Text>
-              <Text style={styles.subtitle}>{`Elda - Centro`}</Text>
+              <Text style={styles.subtitle}>{cong_name || `Elda - Centro`}</Text>
             </View>
           </View>
         </View>
@@ -125,6 +141,24 @@ const DeptSchedulePDF = ({ data, monthName }: DeptSchedulePDFProps) => {
             </View>
           );
         })}
+
+        {lastUpdate?.updatedAt && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 20,
+              left: 20,
+              right: 20,
+              textAlign: 'center',
+            }}
+          >
+            <Text style={{ fontSize: '8px', color: '#666' }}>
+              {lastUpdate.lastModifiedBy
+                ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
+                : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
+            </Text>
+          </View>
+        )}
       </Page>
     </Document>
   );

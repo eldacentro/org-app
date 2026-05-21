@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
 import { IconPrint, IconSparkles, IconSave } from '@components/icons';
-import worker from '@services/worker/backupWorker';
+import { useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import DeptWeekSelector from '@features/departments_schedule/week_selector';
@@ -9,8 +9,15 @@ import DepartmentEditor from '@features/departments_schedule/editor';
 import useDeptExport from '@features/departments_schedule/useDeptExport';
 import NavBarButton from '@components/nav_bar_button';
 import DeptAutofillDialog from '@features/departments_schedule/autofill';
+import worker from '@services/worker/backupWorker';
+import { displaySnackNotification } from '@services/states/app';
+import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
+import LastModifiedInfo from '@components/last_modified_info';
 
 const DepartmentsSchedule = () => {
+  const selectedWeek = useAtomValue(selectedDeptWeekState);
+  const schedules = useAtomValue(deptScheduleState);
+  const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
   const { t } = useAppTranslation();
   const { desktopUp } = useBreakpoints();
   const { handleExportPDF } = useDeptExport();
@@ -19,8 +26,13 @@ const DepartmentsSchedule = () => {
 
   const handleForceSync = () => {
     worker.postMessage('startWorker');
-  };
 
+    displaySnackNotification({
+      header: t('tr_done', 'Hecho'),
+      message: t('tr_syncInProgress', 'Sincronización en curso...'),
+      severity: 'success',
+    });
+  };
   return (
     <Box
       sx={{
@@ -58,6 +70,8 @@ const DepartmentsSchedule = () => {
           </>
         }
       />
+
+      <LastModifiedInfo updatedAt={currentSched?.updatedAt} lastModifiedBy={currentSched?.lastModifiedBy} />
 
       <Box
         sx={{

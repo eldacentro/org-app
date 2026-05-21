@@ -45,6 +45,8 @@ const useDeptExport = () => {
           video: personGetFullname(week?.multimedia.video.value || ''),
           audio: personGetFullname(week?.multimedia.audio.value || ''),
         },
+        updatedAt: week?.updatedAt,
+        lastModifiedBy: week?.lastModifiedBy,
         plataforma: {
           encargado: personGetFullname(week?.plataforma.encargado.value || ''),
         },

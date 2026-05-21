@@ -10,6 +10,7 @@ import SchedulePublish from '@features/meetings/schedule_publish';
 import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekSelector from '@features/meetings/week_selector';
 import NavBarButton from '@components/nav_bar_button';
+import LastModifiedInfo from '@components/last_modified_info';
 
 const MidweekMeeting = () => {
   const { t } = useAppTranslation();
@@ -31,6 +32,8 @@ const MidweekMeeting = () => {
     openAutofill,
     handleCloseAutofill,
     handleOpenAutofill,
+    updatedAt,
+    lastModifiedBy,
   } = useMidweek();
 
   return (
@@ -97,6 +100,8 @@ const MidweekMeeting = () => {
           )
         }
       />
+
+      <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
 
       <Box
         sx={{

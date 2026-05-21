@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { sourcesFormattedState } from '@states/sources';
 import { congAccountConnectedState } from '@states/app';
+import { schedulesState, selectedWeekState } from '@states/schedules';
 
 const useMidweek = () => {
   const sources = useAtomValue(sourcesFormattedState);
   const isConnected = useAtomValue(congAccountConnectedState);
+  const selectedWeek = useAtomValue(selectedWeekState);
+  const schedules = useAtomValue(schedulesState);
+
+  const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
 
   const [openAutofill, setOpenAutofill] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -45,6 +50,8 @@ const useMidweek = () => {
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,
+    updatedAt: currentSched?.updatedAt,
+    lastModifiedBy: currentSched?.lastModifiedBy,
   };
 };
 

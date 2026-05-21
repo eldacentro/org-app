@@ -35,6 +35,19 @@ const TemplateS140AppNormal = ({
 
   const minLabel = t('tr_minLabel', { lng: lang });
 
+  const lastUpdate = data.reduce((acc, curr) => {
+    if (
+      !acc ||
+      (curr.updatedAt && new Date(curr.updatedAt) > new Date(acc.updatedAt))
+    ) {
+      return {
+        updatedAt: curr.updatedAt,
+        lastModifiedBy: curr.lastModifiedBy,
+      };
+    }
+    return acc;
+  }, null);
+
   const formatTitle = (title: string) => {
     const meses = [
       'enero',
@@ -85,7 +98,7 @@ const TemplateS140AppNormal = ({
                 }
                 lang={lang}
               />
-...
+
             {meetingData.no_meeting && (
               <View style={stylesSmart.rowContainer}>
                 <Text style={stylesSmart.weekInfoLabel}>
@@ -454,6 +467,24 @@ const TemplateS140AppNormal = ({
           </View>
         );
       })}
+
+        {lastUpdate?.updatedAt && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 20,
+              left: 30,
+              right: 30,
+              textAlign: 'center',
+            }}
+          >
+            <Text style={{ fontSize: '8px', color: '#666' }}>
+              {lastUpdate.lastModifiedBy
+                ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
+                : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
+            </Text>
+          </View>
+        )}
       </Page>
     </Document>
   );

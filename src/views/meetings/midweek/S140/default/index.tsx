@@ -1,4 +1,4 @@
-import { Page, View } from '@react-pdf/renderer';
+import { Page, View, Text } from '@react-pdf/renderer';
 import { Document } from '@views/components';
 import { useAppTranslation } from '@hooks/index';
 import { S140Type } from '../shared/index.types';
@@ -24,6 +24,19 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
   const { t } = useAppTranslation();
 
   const minLabel = t('tr_minLabel', { lng: lang });
+
+  const lastUpdate = data.reduce((acc, curr) => {
+    if (
+      !acc ||
+      (curr.updatedAt && new Date(curr.updatedAt) > new Date(acc.updatedAt))
+    ) {
+      return {
+        updatedAt: curr.updatedAt,
+        lastModifiedBy: curr.lastModifiedBy,
+      };
+    }
+    return acc;
+  }, null);
 
   return (
     <>
@@ -373,6 +386,24 @@ const ScheduleS140 = ({ data, class_count, cong_name, lang }: S140Type) => {
                 )}
               </View>
             ))}
+
+            {lastUpdate?.updatedAt && (
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  left: 30,
+                  right: 30,
+                  textAlign: 'center',
+                }}
+              >
+                <Text style={{ fontSize: '8px', color: '#666' }}>
+                  {lastUpdate.lastModifiedBy
+                    ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
+                    : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
+                </Text>
+              </View>
+            )}
           </Page>
         </Document>
       )}

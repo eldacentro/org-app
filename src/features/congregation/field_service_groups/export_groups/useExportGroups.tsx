@@ -112,11 +112,27 @@ const useExportGroups = () => {
         }
       );
 
+      const lastUpdate = groups_list.reduce((acc, curr) => {
+        if (
+          !acc ||
+          (curr.group_data.updatedAt &&
+            new Date(curr.group_data.updatedAt) > new Date(acc.updatedAt))
+        ) {
+          return {
+            updatedAt: curr.group_data.updatedAt,
+            lastModifiedBy: curr.group_data.lastModifiedBy,
+          };
+        }
+        return acc;
+      }, null);
+
       const blob = await pdf(
         <TemplateFieldServiceGroups
           groups={formatted_groups}
           congregation={congName}
           lang={locale}
+          updatedAt={lastUpdate?.updatedAt}
+          lastModifiedBy={lastUpdate?.lastModifiedBy}
         />
       ).toBlob();
 

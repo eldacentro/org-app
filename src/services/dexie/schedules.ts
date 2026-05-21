@@ -1,6 +1,8 @@
 import appDb from '@db/appDb';
 import { UpdateSpec } from 'dexie';
 import { SchedWeekType } from '@definition/schedules';
+import { store } from '@states/index';
+import { fullnameState } from '@states/settings';
 import { scheduleSchema } from './schema';
 
 const dbUpdateSchedulesMetadata = async () => {
@@ -25,6 +27,11 @@ export const dbSchedUpdate = async (
   weekOf: string,
   changes: UpdateSpec<SchedWeekType>
 ) => {
+  const fullname = store.get(fullnameState);
+
+  changes.updatedAt = new Date().toISOString();
+  changes.lastModifiedBy = fullname;
+
   await appDb.sched.update(weekOf, changes);
   await dbUpdateSchedulesMetadata();
 };
@@ -42,7 +49,13 @@ export const dbSchedCheck = async (weekOf: string) => {
 };
 
 export const dbSchedBulkUpdate = async (weeks: SchedWeekType[]) => {
+  const fullname = store.get(fullnameState);
+  const updatedAt = new Date().toISOString();
+
   const data = weeks.map((sched) => {
+    sched.updatedAt = updatedAt;
+    sched.lastModifiedBy = fullname;
+
     return { key: sched.weekOf, changes: sched };
   });
 

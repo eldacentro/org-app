@@ -25,6 +25,7 @@ import {
   meetingExactDateState,
   congNameState,
   weekendSchedulesSongsWeekend,
+  fullnameState,
 } from '@states/settings';
 import { sourcesState } from '@states/sources';
 import {
@@ -2392,6 +2393,8 @@ export const schedulesMidweekData = (
 
   // get other data
   result.weekOf = schedule.weekOf;
+  result.updatedAt = schedule.updatedAt;
+  result.lastModifiedBy = schedule.lastModifiedBy;
 
   const meetingDate = schedulesGetMeetingDate({
     week: schedule.weekOf,
@@ -2826,6 +2829,8 @@ export const schedulesWeekendData = (
 
   result.show_songs = showSongs;
   result.weekOf = schedule.weekOf;
+  result.updatedAt = schedule.updatedAt;
+  result.lastModifiedBy = schedule.lastModifiedBy;
 
   const { date } = schedulesGetMeetingDate({
     week: schedule.weekOf,

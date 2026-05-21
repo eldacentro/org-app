@@ -1,6 +1,7 @@
 import { getI18n } from 'react-i18next';
 import { getListLanguages } from '@services/app';
 import { PublicTalkType } from '@definition/public_talks';
+import { LANGUAGE_LIST } from '@constants/index';
 import appDb from '@db/appDb';
 
 export const dbPublicTalkUpdate = async () => {
@@ -19,13 +20,19 @@ export const dbPublicTalkUpdate = async () => {
 
     if (!translations) continue;
 
+    const isSource = LANGUAGE_LIST.find(
+      (l) => l.threeLettersCode === lang.locale
+    )?.source;
+
     for (const [key, value] of Object.entries(translations)) {
       const number = +key.split('_')[2];
 
       const findTalk = result.find((record) => record.talk_number === number);
 
       if (findTalk) {
-        findTalk.talk_title[langCode] = value;
+        if (isSource || !findTalk.talk_title[langCode]) {
+          findTalk.talk_title[langCode] = value;
+        }
       }
 
       if (!findTalk) {

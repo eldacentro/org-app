@@ -1,15 +1,30 @@
 import { Box } from '@mui/material';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { useAtomValue } from 'jotai';
+import { useAppTranslation } from '@hooks/index';
 import useFieldServiceGroups from './useFieldServiceGroups';
 import CreateGroup from '@features/congregation/field_service_groups/create_group';
 import FieldServiceGroupsContainer from '@features/congregation/field_service_groups';
 import GroupsReorder from '@features/congregation/field_service_groups/groups_reorder';
 import PageTitle from '@components/page_title';
 import QuickSettingsFieldServiceGroups from '@features/congregation/field_service_groups/quick_settings';
+import { fieldGroupsState } from '@states/field_service_groups';
+import LastModifiedInfo from '@components/last_modified_info';
 
 const FieldServiceGroups = () => {
+  const groups = useAtomValue(fieldGroupsState);
+
+  const lastUpdate = groups.reduce((acc, curr) => {
+    const currDate = curr.group_data.updatedAt;
+    if (!acc || new Date(currDate) > new Date(acc.updatedAt)) {
+      return {
+        updatedAt: currDate,
+        lastModifiedBy: curr.group_data.lastModifiedBy,
+      };
+    }
+    return acc;
+  }, null as { updatedAt: string; lastModifiedBy: string });
+
   const { t } = useAppTranslation();
-  const { tablet688Up } = useBreakpoints();
 
   const {
     buttons,
@@ -18,8 +33,8 @@ const FieldServiceGroups = () => {
     handleCloseReorder,
     reorderOpen,
     handleOpenQuickSettings,
-    quickSettingsOpen,
     handleCloseQuickSettings,
+    quickSettingsOpen,
     isServiceCommittee,
   } = useFieldServiceGroups();
 
@@ -29,7 +44,6 @@ const FieldServiceGroups = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
       }}
     >
       {quickSettingsOpen && (
@@ -51,6 +65,11 @@ const FieldServiceGroups = () => {
         title={t('tr_fieldServiceGroups')}
         buttons={buttons}
         quickSettings={isServiceCommittee ? handleOpenQuickSettings : undefined}
+      />
+
+      <LastModifiedInfo
+        updatedAt={lastUpdate?.updatedAt}
+        lastModifiedBy={lastUpdate?.lastModifiedBy}
       />
 
       <FieldServiceGroupsContainer />

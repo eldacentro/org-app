@@ -1,6 +1,7 @@
 import { getTranslation } from '@services/i18n/translation';
 import { getListLanguages } from '@services/app';
 import { Week } from '@definition/week_type';
+import { LANGUAGE_LIST } from '@constants/index';
 import appDb from '@db/appDb';
 
 export const dbWeekTypeUpdate = async () => {
@@ -33,7 +34,13 @@ export const dbWeekTypeUpdate = async () => {
   for (const lang of languages) {
     const locale = lang.locale;
 
+    const isSource = LANGUAGE_LIST.find(
+      (l) => l.threeLettersCode === lang.locale
+    )?.source;
+
     for (const [objKey, translationKey] of Object.entries(translationMap)) {
+      if (!isSource && resultObjects[objKey][lang.code]) continue;
+
       resultObjects[objKey][lang.code] = getTranslation({
         key: translationKey,
         language: locale,

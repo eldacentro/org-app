@@ -1930,7 +1930,6 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
         // include schedules data
         if (scheduleEditor) {
-          console.log('send_local flag:', metadata.metadata.schedules.send_local);
           if (metadata.metadata.schedules.send_local) {
             const backupSched = sched.map((record) => {
               const schedule = structuredClone(record);
@@ -1958,7 +1957,6 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
               return dept;
             });
 
-            console.log('adding departments_schedule to backup:', backupDeptSchedule.length);
             obj.departments_schedule = backupDeptSchedule;
           }
 

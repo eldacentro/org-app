@@ -4,6 +4,7 @@ Individual property are evaluated using recoil selector
 */
 
 import { atom } from 'jotai';
+import { appLangState } from './app';
 import { settingSchema } from '@services/dexie/schema';
 import { buildPersonFullname } from '@utils/common';
 import { currentServiceYear } from '@utils/date';
@@ -202,11 +203,23 @@ export const JWLangState = atom((get) => {
   const settings = get(settingsState);
   const sourceLanguages = get(sourceLanguagesState);
   const dataView = get(userDataViewState);
+  const appLang = get(appLangState);
 
-  if (!settings.cong_settings.source_material) return 'E';
+  if (!settings.cong_settings.source_material) {
+    return (
+      LANGUAGE_LIST.find((record) => record.threeLettersCode === appLang)
+        ?.code ?? 'E'
+    );
+  }
+
+  const sourceLang = sourceLanguages.find((record) => record.type === dataView)
+    ?.value;
+
+  if (sourceLang) return sourceLang;
 
   return (
-    sourceLanguages.find((record) => record.type === dataView)?.value ?? 'E'
+    LANGUAGE_LIST.find((record) => record.threeLettersCode === appLang)?.code ??
+    'E'
   );
 });
 

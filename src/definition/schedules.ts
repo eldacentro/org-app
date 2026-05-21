@@ -76,6 +76,8 @@ export type OutgoingTalkExportScheduleType = OutgoingTalkScheduleType & {
 
 export type SchedWeekType = {
   weekOf: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
   midweek_meeting: {
     chairman: {
       main_hall: AssignmentCongregation[];
@@ -161,6 +163,8 @@ export type S89DataType = {
 
 export type MidweekMeetingDataType = {
   weekOf: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
   week_type: Week;
   week_type_name: string;
   schedule_title: string;
@@ -278,6 +282,8 @@ export type WeekendMeetingTimingsType = {
 
 export type WeekendMeetingDataType = {
   show_songs: boolean;
+  updatedAt?: string;
+  lastModifiedBy?: string;
   date_raw: string;
   date_formatted: string;
   weekOf: string;

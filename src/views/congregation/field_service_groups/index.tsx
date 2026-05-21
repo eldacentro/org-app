@@ -9,6 +9,8 @@ import FSGGroup from './FSGGroup';
 const TemplateFieldServiceGroups = ({
   groups,
   lang,
+  updatedAt,
+  lastModifiedBy,
 }: TemplateFieldServiceGroupsProps) => {
   const { t } = useAppTranslation();
 
@@ -34,6 +36,13 @@ const TemplateFieldServiceGroups = ({
             <FSGGroup key={group.group_name} group={group} />
           ))}
         </View>
+        {updatedAt && (
+          <View style={{ position: 'absolute', bottom: 20, left: 30, right: 30, textAlign: 'center' }}>
+            <Text style={{ fontSize: '8px', color: '#666' }}>
+              {lastModifiedBy ? `Última actualización: ${new Date(updatedAt).toLocaleString()} (${lastModifiedBy})` : `Última actualización: ${new Date(updatedAt).toLocaleString()}`}
+            </Text>
+          </View>
+        )}
       </Page>
     </Document>
   );
