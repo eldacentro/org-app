@@ -23,6 +23,7 @@ export const dbDeptScheduleGet = async (weekOf: string) => {
 export const dbDeptScheduleSave = async (data: DeptWeekType) => {
   await appDb.departments_schedule.put(data);
   await dbUpdateSchedulesMetadata();
+  worker.postMessage('startWorker');
 };
 
 export const dbDeptScheduleBulkSave = async (data: DeptWeekType[]) => {
