@@ -25,7 +25,6 @@ import {
   meetingExactDateState,
   congNameState,
   weekendSchedulesSongsWeekend,
-  fullnameState,
 } from '@states/settings';
 import { sourcesState } from '@states/sources';
 import {

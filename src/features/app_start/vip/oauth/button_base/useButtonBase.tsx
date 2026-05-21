@@ -6,7 +6,6 @@ import {
 import {
   setAuthPersistence,
   userSignInPopup,
-  userSignInRedirect,
 } from '@services/firebase/auth';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
