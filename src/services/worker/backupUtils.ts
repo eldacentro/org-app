@@ -299,6 +299,7 @@ export const dbGetMetadata = async () => {
   if (isPersonMinimal) {
     delete result.sources;
     delete result.schedules;
+    delete result.departments_schedule;
   }
 
   if (!isAttendanceTracker && !isLanguageGroupOverseer) {
