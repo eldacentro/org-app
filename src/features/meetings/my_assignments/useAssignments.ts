@@ -55,6 +55,7 @@ const useMyAssignments = () => {
       const results: AssignmentHistoryType[] = [];
 
       for (const week of deptSchedules) {
+        if (!week) continue;
         const weekDate = week.weekOf;
         if (
           weekDate >= today &&

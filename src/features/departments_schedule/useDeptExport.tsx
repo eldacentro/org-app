@@ -23,7 +23,7 @@ const useDeptExport = () => {
     const allMonthWeeks = weeksInMonth(monthKey);
 
     const data: DeptPDFData[] = allMonthWeeks.map((weekOf) => {
-      const week = deptSchedules.find((s) => s.weekOf === weekOf);
+      const week = deptSchedules.find((s) => s?.weekOf === weekOf);
       const monday = new Date(weekOf);
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);

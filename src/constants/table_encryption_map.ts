@@ -235,4 +235,10 @@ export const TABLE_ENCRYPTION_MAP = {
     updatedAt: 'shared',
     event_data: 'shared',
   },
+  departments_schedule: {
+    acomodadores: 'shared',
+    microfonos: 'shared',
+    multimedia: 'shared',
+    plataforma: 'shared',
+  },
 };

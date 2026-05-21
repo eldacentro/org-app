@@ -12,7 +12,7 @@ const useDepartmentEditor = () => {
   const [clearAll, setClearAll] = useState(false);
 
   const schedule = useMemo(() => {
-    return schedules.find((record) => record.weekOf === selectedWeek);
+    return schedules.find((record) => record?.weekOf === selectedWeek);
   }, [schedules, selectedWeek]);
 
   const handleSaveAssignment = async (
@@ -21,7 +21,7 @@ const useDepartmentEditor = () => {
     person: PersonType
   ) => {
     const newSchedules = structuredClone(schedules);
-    let currentSched = newSchedules.find((s) => s.weekOf === selectedWeek);
+    let currentSched = newSchedules.find((s) => s?.weekOf === selectedWeek);
 
     if (!currentSched) {
       currentSched = {
@@ -57,7 +57,7 @@ const useDepartmentEditor = () => {
 
   const handleClearAll = async () => {
     const newSchedules = structuredClone(schedules);
-    const currentSched = newSchedules.find((s) => s.weekOf === selectedWeek);
+    const currentSched = newSchedules.find((s) => s?.weekOf === selectedWeek);
 
     if (currentSched) {
       const updatedAt = new Date().toISOString();
