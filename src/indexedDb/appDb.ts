@@ -56,7 +56,10 @@ import {
 } from './tables/upcoming_events';
 import { publicTalkSchema, PublicTalkTable } from './tables/public_talk';
 import { songSchema, SongTable } from './tables/songs';
-import { departmentsScheduleSchema } from './tables/departments_schedule';
+import {
+  DeptScheduleTable,
+  departmentsScheduleSchema,
+} from './tables/departments_schedule';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -78,8 +81,8 @@ type DexieTables = PersonsTable &
   MetadataTable &
   DelegatedFieldServiceReportsTable &
   PublicTalkTable &
-  SongTable;
-
+  SongTable &
+  DeptScheduleTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;

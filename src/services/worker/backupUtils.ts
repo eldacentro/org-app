@@ -15,6 +15,7 @@ import {
   OutgoingTalkScheduleType,
   SchedWeekType,
 } from '@definition/schedules';
+import { DeptWeekType } from '@definition/departments_schedule';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -333,6 +334,7 @@ const dbGetTableData = async () => {
   const branch_field_service_reports =
     await appDb.branch_field_service_reports.toArray();
   const sched = await appDb.sched.toArray();
+  const departments_schedule = await appDb.departments_schedule.toArray();
   const sources = await appDb.sources.toArray();
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
@@ -388,6 +390,7 @@ const dbGetTableData = async () => {
     branch_cong_analysis,
     branch_field_service_reports,
     sched,
+    departments_schedule,
     sources,
     meeting_attendance,
     metadata,
@@ -1337,6 +1340,65 @@ const dbRestoreSources = async (
   }
 };
 
+const dbRestoreDepartmentsSchedule = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.departments_schedule) return;
+
+    const remoteData = (backupData.departments_schedule as DeptWeekType[]).map((data) => {
+      decryptObject({
+        data,
+        table: 'departments_schedule',
+        accessCode,
+      });
+
+      return data;
+    });
+
+    const localData = await appDb.departments_schedule.toArray();
+
+    const validRemoteData = remoteData.filter((record) =>
+      isMondayDate(record.weekOf)
+    );
+
+    const dataToUpdate: DeptWeekType[] = [];
+
+    for (const remoteItem of validRemoteData) {
+      const localItem = localData.find(
+        (record) => record.weekOf === remoteItem.weekOf
+      );
+
+      if (!localItem) {
+        dataToUpdate.push(remoteItem);
+      }
+
+      if (localItem) {
+        const newItem = structuredClone(localItem);
+        syncFromRemote(newItem, remoteItem);
+
+        dataToUpdate.push(newItem);
+      }
+    }
+
+    const invalidLocalData = localData.filter(
+      (record) => !isMondayDate(record.weekOf)
+    );
+
+    if (invalidLocalData.length > 0) {
+      const weeks = invalidLocalData.map((record) => record.weekOf);
+      await appDb.departments_schedule.bulkDelete(weeks);
+    }
+
+    if (dataToUpdate.length > 0) {
+      await appDb.departments_schedule.bulkPut(dataToUpdate);
+    }
+  } catch (error) {
+    throw new Error(`departments_schedule: ${error.message}`);
+  }
+};
+
 const dbRestoreSchedules = async (
   backupData: BackupDataType,
   accessCode: string
@@ -1553,6 +1615,8 @@ const dbRestoreFromBackup = async (
 
     await dbRestoreSchedules(backupData, accessCode);
 
+    await dbRestoreDepartmentsSchedule(backupData, accessCode);
+
     await dbRestoreUserStudies(backupData, accessCode);
 
     await dbRestoreUpcomingEvents(backupData, accessCode);
@@ -1625,6 +1689,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       branch_cong_analysis,
       branch_field_service_reports,
       sched,
+      departments_schedule,
       sources,
       meeting_attendance,
       metadata,
@@ -1878,6 +1943,20 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.sched = backupSched;
+
+            const backupDeptSchedule = departments_schedule.map((record) => {
+              const dept = structuredClone(record);
+
+              encryptObject({
+                data: dept,
+                table: 'departments_schedule',
+                accessCode,
+              });
+
+              return dept;
+            });
+
+            obj.departments_schedule = backupDeptSchedule;
           }
 
           if (metadata.metadata.sources.send_local) {
