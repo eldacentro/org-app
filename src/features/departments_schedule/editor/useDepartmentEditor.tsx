@@ -4,6 +4,7 @@ import { deptScheduleState, selectedDeptWeekState } from '@states/departments_sc
 import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { PersonType } from '@definition/person';
+import worker from '@services/worker/backupWorker';
 
 const useDepartmentEditor = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
@@ -50,6 +51,7 @@ const useDepartmentEditor = () => {
 
     setSchedules(newSchedules);
     await dbDeptScheduleSave(currentSched);
+    worker.postMessage('startWorker');
   };
 
   const handleOpenClearAll = () => setClearAll(true);
@@ -79,6 +81,7 @@ const useDepartmentEditor = () => {
 
       setSchedules(newSchedules);
       await dbDeptScheduleSave(currentSched);
+      worker.postMessage('startWorker');
     }
     setClearAll(false);
   };
