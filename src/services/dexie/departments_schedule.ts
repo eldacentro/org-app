@@ -1,6 +1,5 @@
 import appDb from '@db/appDb';
 import { DeptWeekType } from '@definition/departments_schedule';
-import worker from '@services/worker/backupWorker';
 
 const dbUpdateSchedulesMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -23,7 +22,6 @@ export const dbDeptScheduleGet = async (weekOf: string) => {
 export const dbDeptScheduleSave = async (data: DeptWeekType) => {
   await appDb.departments_schedule.put(data);
   await dbUpdateSchedulesMetadata();
-  worker.postMessage('startWorker');
 };
 
 export const dbDeptScheduleBulkSave = async (data: DeptWeekType[]) => {

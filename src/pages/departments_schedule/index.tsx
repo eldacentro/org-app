@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
-import { IconPrint, IconSparkles } from '@components/icons';
+import { IconPrint, IconSparkles, IconSave } from '@components/icons';
+import worker from '@services/worker/backupWorker';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import DeptWeekSelector from '@features/departments_schedule/week_selector';
@@ -15,6 +16,10 @@ const DepartmentsSchedule = () => {
   const { handleExportPDF } = useDeptExport();
 
   const [isAutofillOpen, setIsAutofillOpen] = useState(false);
+
+  const handleForceSync = () => {
+    worker.postMessage('startWorker');
+  };
 
   return (
     <Box
@@ -35,6 +40,11 @@ const DepartmentsSchedule = () => {
         title={t('tr_departmentsSchedule', 'Programa de departamentos')}
         buttons={
           <>
+            <NavBarButton
+              text={t('tr_save', 'Guardar')}
+              onClick={handleForceSync}
+              icon={<IconSave />}
+            />
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}
               onClick={() => setIsAutofillOpen(true)}
