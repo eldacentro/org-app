@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, ChangeEvent } from 'react';
 import Papa from 'papaparse';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import {
@@ -77,7 +77,7 @@ const SpeakersCatalog = () => {
     }
   };
 
-  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportCSV = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -97,6 +97,13 @@ const SpeakersCatalog = () => {
             Email?: string;
             Phone?: string;
             Local?: string;
+            Outgoing?: string;
+            'Congregation Address'?: string;
+            'Weekend Meeting Day'?: string;
+            'Weekend Meeting Time'?: string;
+            'PTCoordinator Name'?: string;
+            'PTCoordinator Phone'?: string;
+            'PTCoordinator Email'?: string;
             Talks?: string;
           }
 
@@ -170,6 +177,67 @@ const SpeakersCatalog = () => {
                 currentCongs.push(cong);
               }
               congId = cong!.id;
+            }
+
+            // 1b. Actualizar datos extendidos de la congregación si están presentes
+            const congObj = currentCongs.find((c) => c.id === congId);
+            if (congObj) {
+              let isCongModified = false;
+
+              if (item['Congregation Address'] !== undefined) {
+                congObj.cong_data.cong_location.address = {
+                  value: item['Congregation Address']?.trim() || '',
+                  updatedAt: now,
+                };
+                isCongModified = true;
+              }
+
+              if (item['Weekend Meeting Day'] !== undefined) {
+                const dayVal = parseInt(item['Weekend Meeting Day']?.trim() || '', 10);
+                if (!isNaN(dayVal)) {
+                  congObj.cong_data.weekend_meeting.weekday = {
+                    value: dayVal,
+                    updatedAt: now,
+                  };
+                  isCongModified = true;
+                }
+              }
+
+              if (item['Weekend Meeting Time'] !== undefined) {
+                congObj.cong_data.weekend_meeting.time = {
+                  value: item['Weekend Meeting Time']?.trim() || '',
+                  updatedAt: now,
+                };
+                isCongModified = true;
+              }
+
+              if (item['PTCoordinator Name'] !== undefined) {
+                congObj.cong_data.public_talk_coordinator.name = {
+                  value: item['PTCoordinator Name']?.trim() || '',
+                  updatedAt: now,
+                };
+                isCongModified = true;
+              }
+
+              if (item['PTCoordinator Phone'] !== undefined) {
+                congObj.cong_data.public_talk_coordinator.phone = {
+                  value: item['PTCoordinator Phone']?.trim() || '',
+                  updatedAt: now,
+                };
+                isCongModified = true;
+              }
+
+              if (item['PTCoordinator Email'] !== undefined) {
+                congObj.cong_data.public_talk_coordinator.email = {
+                  value: item['PTCoordinator Email']?.trim() || '',
+                  updatedAt: now,
+                };
+                isCongModified = true;
+              }
+
+              if (isCongModified) {
+                await appDb.speakers_congregations.put(congObj);
+              }
             }
 
             // 2. Si es local, buscar primero en la tabla de personas
@@ -292,8 +360,13 @@ const SpeakersCatalog = () => {
             };
             speaker.speaker_data.talks = talks;
             let speakerLocal = isLocal;
-            if (isHomeCong && talks.length > 0) {
-              speakerLocal = false;
+            if (item['Outgoing'] !== undefined && item['Outgoing'] !== '') {
+              const isOutgoing = item['Outgoing']?.toLowerCase() === 'yes';
+              speakerLocal = isLocal ? !isOutgoing : false;
+            } else {
+              if (isHomeCong && talks.length > 0) {
+                speakerLocal = false;
+              }
             }
 
             speaker.speaker_data.local = {
