@@ -297,6 +297,7 @@ export { default as IconVisitors } from './IconVisitors';
 export { default as IconVoiceSelection } from './IconVoiceSelection';
 export { default as IconWallet } from './IconWallet';
 export { default as IconWatchtowerStudy } from './IconWatchtowerStudy';
+export { default as IconWhatsApp } from './IconWhatsApp';
 export { default as IconWavingHand } from './IconWavingHand';
 export { default as IconWeek } from './IconWeek';
 export { default as IconWine } from './IconWine';
