@@ -1,6 +1,7 @@
 import appDb from '@db/appDb';
 import { UpdateSpec } from 'dexie';
 import { SchedWeekType } from '@definition/schedules';
+type SchedChanges = UpdateSpec<SchedWeekType> & Record<string, unknown>;
 import { store } from '@states/index';
 import { fullnameState } from '@states/settings';
 import { scheduleSchema } from './schema';
@@ -25,7 +26,7 @@ export const dbSchedGet = async (weekOf: string) => {
 
 export const dbSchedUpdate = async (
   weekOf: string,
-  changes: UpdateSpec<SchedWeekType>
+  changes: SchedChanges
 ) => {
   const fullname = store.get(fullnameState);
 

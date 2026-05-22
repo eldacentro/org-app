@@ -75,7 +75,8 @@ export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
     return lastDate;
   };
 
-  const rolesToFill: { dept: keyof Omit<DeptWeekType, 'weekOf'>; role: string }[] = [
+  type DeptKey = keyof Omit<DeptWeekType, 'weekOf' | 'updatedAt' | 'lastModifiedBy'>;
+  const rolesToFill: { dept: DeptKey; role: string }[] = [
     { dept: 'plataforma', role: 'encargado' }, // Fill platform first as it's more restricted
     { dept: 'multimedia', role: 'video' },
     { dept: 'multimedia', role: 'audio' },

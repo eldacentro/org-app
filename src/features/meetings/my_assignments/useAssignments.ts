@@ -62,7 +62,8 @@ const useMyAssignments = () => {
           weekDate <= formatDate(maxDate, 'yyyy/MM/dd')
         ) {
           // Check each department and role
-          const depts: (keyof Omit<DeptWeekType, 'weekOf'>)[] = [
+          type DeptKey = keyof Omit<DeptWeekType, 'weekOf' | 'updatedAt' | 'lastModifiedBy'>;
+          const depts: DeptKey[] = [
             'acomodadores',
             'microfonos',
             'multimedia',
@@ -80,9 +81,9 @@ const useMyAssignments = () => {
                     shortDateFormat
                   ),
                   assignment: {
-                    code: 0, // Using 0 as a generic code for custom assignments
+                    code: 0 as AssignmentHistoryType['assignment']['code'],
                     person: uid,
-                    key: `DEPT_${dept}_${role}`,
+                    key: `DEPT_${dept}_${role}` as AssignmentHistoryType['assignment']['key'],
                     dataView: 'main',
                     title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
                   },

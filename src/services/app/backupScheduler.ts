@@ -21,7 +21,7 @@ export const generateBackupPayload = async (): Promise<any> => {
   const sources = await appDb.sources.toArray();
   const visitingSpeakers = await appDb.visiting_speakers.toArray();
   const assignments = await appDb.assignment.toArray();
-  const weekTypes = await appDb.weekType.toArray();
+  const weekTypes = await appDb.week_type.toArray();
   const speakersCongregations = await appDb.speakers_congregations.toArray();
   const userFieldReports = await appDb.user_field_service_reports.toArray();
   const userBibleStudies = await appDb.user_bible_studies.toArray();

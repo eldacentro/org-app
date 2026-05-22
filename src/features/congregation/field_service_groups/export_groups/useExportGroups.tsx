@@ -112,7 +112,8 @@ const useExportGroups = () => {
         }
       );
 
-      const lastUpdate = groups_list.reduce((acc, curr) => {
+      type LastUpdate = { updatedAt: string; lastModifiedBy?: string } | null;
+      const lastUpdate = groups_list.reduce<LastUpdate>((acc, curr) => {
         if (
           !acc ||
           (curr.group_data.updatedAt &&
