@@ -6,33 +6,11 @@ import {
 } from '@services/states/app';
 import { getTranslation } from '@services/i18n/translation';
 import { dbAppSettingsSaveProfilePic } from '@services/dexie/settings';
-import { getRedirectResultResult } from '@services/firebase/auth';
-import useAuth from '@features/app_start/vip/hooks/useAuth';
 import worker from '@services/worker/backupWorker';
 
 const useFirebaseAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
-
-  const { handlePostLogin } = useAuth();
-
-  useEffect(() => {
-    const handleRedirect = async () => {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (!isIOS) return;
-
-      try {
-        const result = await getRedirectResultResult();
-        if (result?.user) {
-          await handlePostLogin(result.user);
-        }
-      } catch (e) {
-        console.error('Redirect result error:', e);
-      }
-    };
-
-    handleRedirect();
-  }, [handlePostLogin]);
 
   useEffect(() => {
     const auth = getAuth();

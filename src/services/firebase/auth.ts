@@ -8,8 +8,6 @@ import {
   setPersistence,
   signInWithCustomToken,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signOut,
 } from 'firebase/auth';
 
@@ -44,17 +42,6 @@ export const userSignInPopup = async (provider: AuthProvider) => {
   const result = await signInWithPopup(auth, provider);
 
   return result?.user;
-};
-
-export const userSignInRedirect = async (provider: AuthProvider) => {
-  const auth = getAuth();
-  await signInWithRedirect(auth, provider);
-};
-
-export const getRedirectResultResult = async () => {
-  const auth = getAuth();
-  const result = await getRedirectResult(auth);
-  return result;
 };
 
 export const authProvider = {

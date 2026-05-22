@@ -26,6 +26,7 @@ import {
   vistingSpeakerSchema,
   speakersCongregationSchema,
 } from '@services/dexie/schema';
+import { dbSpeakersCongregationsCreateLocal } from '@services/dexie/speakers_congregations';
 import { generateDisplayName } from '@utils/common';
 import useSpeakersImportExport from '@features/persons/speakers_catalog/import_export/useSpeakersImportExport';
 
@@ -103,6 +104,21 @@ const SpeakersCatalog = () => {
           const currentCongs = await appDb.speakers_congregations.toArray();
           const currentSpeakers = await appDb.visiting_speakers.toArray();
           const now = new Date().toISOString();
+
+          // Asegurar que la congregación local existe en speakers_congregations
+          const localCong = currentCongs.find(
+            (c) =>
+              c.cong_data.cong_name.value === homeCongName ||
+              c.cong_data.cong_number.value === homeCongNumber ||
+              c.cong_data.cong_number.value === '11' ||
+              c.cong_data.cong_number.value === '9357'
+          );
+
+          if (!localCong) {
+            await dbSpeakersCongregationsCreateLocal();
+            const updatedCongs = await appDb.speakers_congregations.toArray();
+            currentCongs.splice(0, currentCongs.length, ...updatedCongs);
+          }
 
           for (const item of speakers) {
             const congName = item['Congregation Name']?.trim();
@@ -186,9 +202,11 @@ const SpeakersCatalog = () => {
                 (existingPersonUid !== '' && s.person_uid === existingPersonUid)
             );
 
+            let isNewSpeaker = false;
             if (!speaker) {
               speaker = structuredClone(vistingSpeakerSchema);
               speaker.person_uid = existingPersonUid || crypto.randomUUID();
+              isNewSpeaker = true;
             }
 
             const talksStr = item['Talks'] || '';
@@ -242,6 +260,10 @@ const SpeakersCatalog = () => {
             };
 
             await appDb.visiting_speakers.put(speaker);
+
+            if (isNewSpeaker) {
+              currentSpeakers.push(speaker);
+            }
           }
 
           const metadata = await appDb.metadata.get(1);
