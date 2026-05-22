@@ -1,0 +1,252 @@
+import { useState, useEffect } from 'react';
+import { Box, Stack, Switch, FormControlLabel, CircularProgress } from '@mui/material';
+import {
+  googleDriveIsConnected,
+  googleDriveConnect,
+  googleDriveDisconnect,
+  googleDriveUploadBackup,
+} from '@services/app/googleDriveBackup';
+import { generateBackupPayload } from '@services/app/backupScheduler';
+import { displaySnackNotification } from '@services/states/app';
+import { IconBackupOrganized } from '@components/icons';
+import Button from '@components/button';
+import Typography from '@components/typography';
+
+const GoogleDriveTab = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isAutoEnabled, setIsAutoEnabled] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    setIsConnected(googleDriveIsConnected());
+    setIsAutoEnabled(localStorage.getItem('google_drive_backup_auto_enabled') === 'true');
+  }, []);
+
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      const success = await googleDriveConnect();
+      if (success) {
+        setIsConnected(true);
+        setIsAutoEnabled(true);
+        displaySnackNotification({
+          severity: 'success',
+          header: 'Google Drive Conectado',
+          message: 'La vinculación de la cuenta se realizó con éxito.',
+        });
+      } else {
+        displaySnackNotification({
+          severity: 'error',
+          header: 'Error de conexión',
+          message: 'No se pudo autorizar el acceso a Google Drive.',
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = () => {
+    googleDriveDisconnect();
+    setIsConnected(false);
+    setIsAutoEnabled(false);
+    displaySnackNotification({
+      severity: 'success',
+      header: 'Google Drive Desconectado',
+      message: 'Se ha desvinculado la cuenta correctamente.',
+    });
+  };
+
+  const handleToggleAutoBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    localStorage.setItem('google_drive_backup_auto_enabled', checked ? 'true' : 'false');
+    setIsAutoEnabled(checked);
+    displaySnackNotification({
+      severity: 'success',
+      header: checked ? 'Autoguardado activado' : 'Autoguardado desactivado',
+      message: checked
+        ? 'Las copias se subirán automáticamente a Drive.'
+        : 'Se han pausado las subidas automáticas.',
+    });
+  };
+
+  const handleManualUpload = async () => {
+    if (isUploading) return;
+    setIsUploading(true);
+    try {
+      const payload = await generateBackupPayload();
+      const success = await googleDriveUploadBackup(payload);
+      if (success) {
+        displaySnackNotification({
+          severity: 'success',
+          header: 'Subida exitosa',
+          message: 'La copia de seguridad ha sido guardada en Elda Centro App Backups.',
+        });
+      } else {
+        displaySnackNotification({
+          severity: 'error',
+          header: 'Error al subir',
+          message: 'No se pudo completar la subida de datos a Google Drive.',
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error al subir',
+        message: 'No se pudo generar la copia de seguridad para subir.',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <Stack spacing="24px" sx={{ mt: 1 }}>
+      <Typography className="body-regular" color="var(--grey-400)">
+        Resguarda copias de seguridad versión diaria cifrada directamente en tu Google Drive personal de forma automática.
+      </Typography>
+
+      {/* Connection Status Box */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: 3,
+          border: '1px solid var(--accent-200)',
+          borderRadius: 'var(--radius-m)',
+          bgcolor: isConnected ? 'var(--accent-100)' : 'var(--accent-50)',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              bgcolor: isConnected ? 'rgba(76, 175, 80, 0.1)' : 'rgba(158, 158, 158, 0.1)',
+            }}
+          >
+            <IconBackupOrganized color={isConnected ? 'green' : 'var(--grey-400)'} />
+          </Box>
+          <Stack>
+            <Typography className="h3">
+              Google Drive: {isConnected ? 'Conectado' : 'Desconectado'}
+            </Typography>
+            <Typography className="label-small-regular" color="var(--grey-400)">
+              {isConnected
+                ? 'Carpeta activa: Elda Centro App Backups'
+                : 'Ninguna cuenta de Google Drive vinculada actualmente'}
+            </Typography>
+          </Stack>
+        </Box>
+
+        <Box>
+          {isConnected ? (
+            <Button variant="secondary" onClick={handleDisconnect}>
+              Desconectar
+            </Button>
+          ) : (
+            <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
+              {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Vincular Cuenta'}
+            </Button>
+          )}
+        </Box>
+      </Box>
+
+      {/* Additional Controls if Connected */}
+      {isConnected ? (
+        <Stack spacing="16px">
+          {/* Auto Backup Toggle */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              border: '1px solid var(--accent-200)',
+              borderRadius: 'var(--radius-m)',
+              bgcolor: 'var(--accent-50)',
+            }}
+          >
+            <Stack>
+              <Typography className="h4">Copia Automática Diaria</Typography>
+              <Typography className="label-small-regular" color="var(--grey-400)">
+                Sube silenciosamente una copia diaria cuando abres la aplicación.
+              </Typography>
+            </Stack>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isAutoEnabled}
+                  onChange={handleToggleAutoBackup}
+                  color="primary"
+                />
+              }
+              label=""
+              sx={{ mr: 0 }}
+            />
+          </Box>
+
+          {/* Instant Cloud Upload Action */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              border: '1px solid var(--accent-200)',
+              borderRadius: 'var(--radius-m)',
+              bgcolor: 'var(--accent-50)',
+            }}
+          >
+            <Stack>
+              <Typography className="h4">Subir Copia a la Nube Ahora</Typography>
+              <Typography className="label-small-regular" color="var(--grey-400)">
+                Sincroniza y guarda el estado actual inmediatamente en tu Google Drive.
+              </Typography>
+            </Stack>
+            <Button
+              variant="small"
+              onClick={handleManualUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? 'Subiendo...' : 'Subir a Drive'}
+            </Button>
+          </Box>
+        </Stack>
+      ) : (
+        <Box
+          sx={{
+            p: 3,
+            bgcolor: 'var(--accent-50)',
+            borderRadius: 'var(--radius-m)',
+            border: '1px solid var(--accent-200)',
+          }}
+        >
+          <Typography className="h4" color="var(--accent-dark)" sx={{ mb: 1 }}>
+            ¿Por qué conectar Google Drive?
+          </Typography>
+          <Typography className="body-regular" color="var(--grey-400)" sx={{ mb: 2 }}>
+            1. **Copias en la Nube Automatizadas:** Cada día que uses la aplicación, se guardará una copia histórica rotativa de tus datos.
+          </Typography>
+          <Typography className="body-regular" color="var(--grey-400)" sx={{ mb: 2 }}>
+            2. **Alcance de Privacidad Seguro (`drive.file`):** La aplicación solo tiene permiso para ver y modificar los archivos creados por ella misma. Tus fotos, documentos o carpetas privadas de Drive están totalmente fuera del alcance de la aplicación.
+          </Typography>
+          <Typography className="body-regular" color="var(--grey-400)">
+            3. **Carpeta Identificable:** Todos los archivos se guardan organizados de manera centralizada en una carpeta exclusiva llamada **`Elda Centro App Backups`**.
+          </Typography>
+        </Box>
+      )}
+    </Stack>
+  );
+};
+
+export default GoogleDriveTab;

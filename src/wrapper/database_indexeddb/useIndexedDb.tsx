@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { useSetAtom } from 'jotai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
+import { schedulesBuildHistoryList } from '@services/app/schedules';
+import { setAssignmentsHistory } from '@services/states/schedules';
 
 import { settingsState } from '@states/settings';
 import { personsState } from '@states/persons';
@@ -220,6 +222,11 @@ const useIndexedDb = () => {
     }
   }, [dbDeptSchedules, setDeptSchedules]);
 
+  const loadAssignmentsHistory = useCallback(() => {
+    const history = schedulesBuildHistoryList();
+    setAssignmentsHistory(history);
+  }, []);
+
   return {
     loadSettings,
     loadPersons,
@@ -242,6 +249,7 @@ const useIndexedDb = () => {
     loadPublicTalks,
     loadSongs,
     loadDeptSchedules,
+    loadAssignmentsHistory,
   };
 };
 

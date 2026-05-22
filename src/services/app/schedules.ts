@@ -835,7 +835,7 @@ export const schedulesGetHistoryDetails = ({
   schedule_id,
 }: {
   schedule: SchedWeekType;
-  source: SourceWeekType;
+  source: SourceWeekType | undefined;
   assigned: AssignmentCongregation;
   assignment: AssignmentFieldType;
   lang: string;
@@ -898,7 +898,7 @@ export const schedulesGetHistoryDetails = ({
   if (assignment === 'MM_TGWTalk') {
     history.assignment.code = AssignmentCode.MM_TGWTalk;
     history.assignment.title = getTranslation({ key: 'tr_tgw10TalkHistory' });
-    history.assignment.src = source.midweek_meeting.tgw_talk.src[lang];
+    history.assignment.src = source?.midweek_meeting.tgw_talk.src[lang];
   }
 
   if (assignment === 'MM_TGWGems') {
@@ -909,17 +909,17 @@ export const schedulesGetHistoryDetails = ({
   if (assignment.startsWith('MM_TGWBibleReading')) {
     history.assignment.code = AssignmentCode.MM_BibleReading;
     history.assignment.title = getTranslation({ key: 'tr_bibleReading' });
-    history.assignment.src = source.midweek_meeting.tgw_bible_reading.src[lang];
+    history.assignment.src = source?.midweek_meeting.tgw_bible_reading.src[lang];
   }
 
   if (assignment.includes('AYFPart')) {
     const partNum = assignment.match(/\d+\.?\d*/g).at(0);
     const code: AssignmentCode =
-      source.midweek_meeting[`ayf_part${partNum}`].type[lang];
+      source?.midweek_meeting[`ayf_part${partNum}`]?.type?.[lang];
 
     if (code) {
       const src: string =
-        source.midweek_meeting[`ayf_part${partNum}`].src[lang];
+        source?.midweek_meeting[`ayf_part${partNum}`]?.src?.[lang] ?? '';
 
       const title =
         assignments.find((record) => record.code === code)
@@ -940,7 +940,7 @@ export const schedulesGetHistoryDetails = ({
 
         if (code === AssignmentCode.MM_Discussion) {
           const titleOverride =
-            source.midweek_meeting[`ayf_part${partNum}`].title[lang];
+            source?.midweek_meeting[`ayf_part${partNum}`]?.title?.[lang];
           history.assignment.title = titleOverride;
         } else {
           history.assignment.title = title;
@@ -980,33 +980,37 @@ export const schedulesGetHistoryDetails = ({
     const partNum = assignment.match(/\d+\.?\d*/g).at(0);
     const lcPartLabel = `lc_part${partNum}`;
 
-    const lcPart: LivingAsChristiansType = source.midweek_meeting[lcPartLabel];
+    if (source) {
+      const lcPart: LivingAsChristiansType = source.midweek_meeting[lcPartLabel];
 
-    const type = lcPartLabel as SourceAssignmentType;
+      const type = lcPartLabel as SourceAssignmentType;
 
-    const { src, desc } = sourcesLCGet(lcPart, dataView, lang);
-    const time = sourcesPartTiming(source, type, dataView, lang);
+      const { src, desc } = sourcesLCGet(lcPart, dataView, lang);
+      const time = sourcesPartTiming(source, type, dataView, lang);
 
-    history.assignment.src = `${src} ${getTranslation({ key: 'tr_partDuration', params: { time } })}`;
-    history.assignment.desc = desc;
+      history.assignment.src = `${src} ${getTranslation({ key: 'tr_partDuration', params: { time } })}`;
+      history.assignment.desc = desc;
+    }
   }
 
   if (assignment === 'MM_LCPart3') {
-    const lcPart = source.midweek_meeting.lc_part3;
+    if (source) {
+      const lcPart = source.midweek_meeting.lc_part3;
 
-    const src =
-      lcPart.title.find((record) => record.type === assigned.type)?.value || '';
-    const desc =
-      lcPart.desc.find((record) => record.type === assigned.type)?.value || '';
+      const src =
+        lcPart.title.find((record) => record.type === assigned.type)?.value || '';
+      const desc =
+        lcPart.desc.find((record) => record.type === assigned.type)?.value || '';
 
-    const time = sourcesPartTiming(source, 'lc_part3', dataView, lang);
+      const time = sourcesPartTiming(source, 'lc_part3', dataView, lang);
 
-    history.assignment.src = `${src} ${getTranslation({ key: 'tr_partDuration', params: { time } })}`;
-    history.assignment.desc = desc;
+      history.assignment.src = `${src} ${getTranslation({ key: 'tr_partDuration', params: { time } })}`;
+      history.assignment.desc = desc;
+    }
   }
 
   if (assignment.startsWith('MM_LCCBS')) {
-    history.assignment.src = source.midweek_meeting.lc_cbs.src[lang];
+    history.assignment.src = source?.midweek_meeting.lc_cbs.src[lang];
   }
 
   if (assignment === 'MM_LCCBSConductor') {
@@ -1038,7 +1042,7 @@ export const schedulesGetHistoryDetails = ({
     history.assignment.code = AssignmentCode.WM_Speaker;
     history.assignment.title = getTranslation({ key: 'tr_publicTalk' });
 
-    const publicTalk = source.weekend_meeting.public_talk.find(
+    const publicTalk = source?.weekend_meeting.public_talk.find(
       (record) => record.type === dataView
     )?.value;
 
@@ -1055,7 +1059,7 @@ export const schedulesGetHistoryDetails = ({
       key: 'tr_watchtowerStudyConductor',
     });
 
-    const src = source.weekend_meeting.w_study[lang];
+    const src = source?.weekend_meeting.w_study[lang];
     history.assignment.src = src;
   }
 
@@ -1065,7 +1069,7 @@ export const schedulesGetHistoryDetails = ({
       key: 'tr_watchtowerStudyReader',
     });
 
-    const src = source.weekend_meeting.w_study[lang];
+    const src = source?.weekend_meeting.w_study[lang];
     history.assignment.src = src;
   }
 
@@ -1113,8 +1117,6 @@ export const schedulesBuildHistoryList = () => {
 
   for (const schedule of schedules) {
     const source = sources.find((record) => record.weekOf === schedule.weekOf);
-
-    if (!source) continue;
 
     for (const [key, value] of Object.entries(ASSIGNMENT_PATH)) {
       const record = schedulesGetData(schedule, value);
