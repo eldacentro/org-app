@@ -10,6 +10,7 @@ const useUserAdditionalRights = () => {
   const [isWeekend, setIsWeekend] = useState(false);
   const [isPublicTalk, setIsPublicTalk] = useState(false);
   const [isAttendance, setIsAttendance] = useState(false);
+  const [isDepartments, setIsDepartments] = useState(false);
 
   const handleToggleMidweek = async (value: boolean) => {
     try {
@@ -131,6 +132,36 @@ const useUserAdditionalRights = () => {
     }
   };
 
+  const handleToggleDepartments = async (value: boolean) => {
+    try {
+      setIsDepartments(value);
+
+      const newUser = structuredClone(currentUser);
+
+      newUser.profile.cong_role = newUser.profile.cong_role || [];
+
+      if (value) {
+        newUser.profile.cong_role.push('departments_schedule');
+      }
+
+      if (!value) {
+        newUser.profile.cong_role = newUser.profile.cong_role.filter(
+          (role) => role !== 'departments_schedule'
+        );
+      }
+
+      await handleSaveDetails(newUser);
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(error.message),
+        severity: 'error',
+      });
+    }
+  };
+
   useEffect(() => {
     const isMidweek =
       currentUser.profile.cong_role?.includes('midweek_schedule') ?? false;
@@ -147,6 +178,10 @@ const useUserAdditionalRights = () => {
     const isAttendance =
       currentUser.profile.cong_role?.includes('attendance_tracking') ?? false;
     setIsAttendance(isAttendance);
+
+    const isDepartments =
+      currentUser.profile.cong_role?.includes('departments_schedule') ?? false;
+    setIsDepartments(isDepartments);
   }, [currentUser]);
 
   return {
@@ -158,6 +193,8 @@ const useUserAdditionalRights = () => {
     handleTogglePublicTalk,
     isAttendance,
     handleToggleAttendance,
+    isDepartments,
+    handleToggleDepartments,
   };
 };
 

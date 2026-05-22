@@ -62,6 +62,7 @@ export type AppRoleType =
   | 'weekend_schedule'
   | 'public_talk_schedule'
   | 'attendance_tracking'
+  | 'departments_schedule'
   | 'publisher'
   | 'view_schedules'
   | 'elder'

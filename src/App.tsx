@@ -93,6 +93,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
     isAppointed,
     isMidweekEditor,
     isWeekendEditor,
+    isDepartmentsEditor,
     isGroupOverseer,
     isSecretary,
     isPublicTalkCoordinator,
@@ -238,6 +239,17 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               element: <RouteProtected allowed={isMidweekEditor} />,
               children: [
                 { path: '/midweek-meeting', element: <MidweekMeeting /> },
+              ],
+            },
+
+            // departments schedule routes
+            {
+              element: (
+                <RouteProtected
+                  allowed={isMidweekEditor || isDepartmentsEditor}
+                />
+              ),
+              children: [
                 {
                   path: '/departments-schedule',
                   element: <DepartmentsSchedule />,
