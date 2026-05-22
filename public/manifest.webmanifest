@@ -14,13 +14,13 @@
   "lang": "en",
   "icons": [
     {
-      "src": "/img/icon/icon-maskable-512x512.png",
+      "src": "/img/icon/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/icon/icon-maskable-192x192.png",
+      "src": "/img/icon/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
@@ -62,81 +62,32 @@
   ],
   "screenshots": [
     {
-      "src": "/img/screenshot/one_app_for_everyone_desktop.jpg",
-      "sizes": "2919x2000",
+      "src": "/img/screenshot/dashboard_desktop.png",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "one_app_for_everyone_desktop"
+      "label": "Panel de control en Escritorio"
     },
     {
-      "src": "/img/screenshot/collaborate_with_ease_desktop.jpg",
-      "sizes": "2919x2000",
+      "src": "/img/screenshot/schedule_desktop.png",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "collaborate_with_ease_desktop"
+      "label": "Programas semanales en Escritorio"
     },
     {
-      "src": "/img/screenshot/instant_reports_desktop.jpg",
-      "sizes": "2919x2000",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "instant_reports_desktop"
-    },
-    {
-      "src": "/img/screenshot/light_and_dark_themes_desktop.jpg",
-      "sizes": "2919x2000",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "light_and_dark_themes_desktop"
-    },
-    {
-      "src": "/img/screenshot/truly_multi_platform_desktop.jpg",
-      "sizes": "2919x2000",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "truly_multi_platform_desktop"
-    },
-    {
-      "src": "/img/screenshot/way_less_stress_desktop.jpg",
-      "sizes": "2919x2000",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "way_less_stress_desktop"
-    },
-    {
-      "src": "/img/screenshot/one_app_for_everyone_mobile.jpg",
-      "sizes": "1125x2000",
+      "src": "/img/screenshot/dashboard_mobile.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "one_app_for_everyone_mobile"
+      "label": "Panel de control en Móvil"
     },
     {
-      "src": "/img/screenshot/collaborate_with_ease_mobile.jpg",
-      "sizes": "1125x2000",
+      "src": "/img/screenshot/schedule_mobile.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "collaborate_with_ease_mobile"
-    },
-    {
-      "src": "/img/screenshot/instant_reports_mobile.jpg",
-      "sizes": "1125x2000",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "instant_reports_mobile"
-    },
-    {
-      "src": "/img/screenshot/light_and_dark_themes_mobile.jpg",
-      "sizes": "1125x2000",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "light_and_dark_themes_mobile"
-    },
-    {
-      "src": "/img/screenshot/truly_multi_platform_mobile.jpg",
-      "sizes": "1125x2000",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "truly_multi_platform_mobile"
+      "label": "Programas semanales en Móvil"
     }
   ],
   "url_handlers": [
