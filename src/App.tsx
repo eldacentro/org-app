@@ -163,7 +163,9 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
             // appointed routes
             {
-              element: <RouteProtected allowed={isAppointed} />,
+              element: (
+                <RouteProtected allowed={isAppointed || isWeekendEditor} />
+              ),
               children: [
                 { path: '/public-talks-list', element: <PublicTalksList /> },
               ],
