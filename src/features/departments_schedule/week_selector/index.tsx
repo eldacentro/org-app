@@ -1,5 +1,6 @@
-import { Box } from '@mui/material';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { Box, Collapse } from '@mui/material';
+import { IconCollapse } from '@components/icons';
+import { useAppTranslation } from '@hooks/index';
 import { Typography } from '@components/index';
 import ScrollableTabs from '@components/scrollable_tabs';
 import useDeptWeekSelector from './useDeptWeekSelector';
@@ -7,8 +8,13 @@ import DeptMonthsContainer from './DeptMonthsContainer';
 
 const DeptWeekSelector = () => {
   const { t } = useAppTranslation();
-  const { desktopUp } = useBreakpoints();
-  const { yearsList, activeTab } = useDeptWeekSelector();
+  const {
+    yearsList,
+    activeTab,
+    expanded,
+    handleToggleExpand,
+    desktopUp,
+  } = useDeptWeekSelector();
 
   const tabs = yearsList.map((year) => ({
     label: year.label,
@@ -31,9 +37,30 @@ const DeptWeekSelector = () => {
         top: desktopUp ? 57 : 'unset',
       }}
     >
-      <Typography className="h2">{t('tr_weeks', 'Semanas')}</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: desktopUp ? 'default' : 'pointer',
+        }}
+        onClick={desktopUp ? null : handleToggleExpand}
+      >
+        <Typography className="h2">{t('tr_weeks', 'Semanas')}</Typography>
+        {!desktopUp && (
+          <IconCollapse
+            color="var(--black)"
+            sx={{
+              transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
+              transition: 'transform 0.3s',
+            }}
+          />
+        )}
+      </Box>
 
-      {tabs.length > 0 && <ScrollableTabs tabs={tabs} value={activeTab} />}
+      <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
+        {tabs.length > 0 && <ScrollableTabs tabs={tabs} value={activeTab} />}
+      </Collapse>
     </Box>
   );
 };

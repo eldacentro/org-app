@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
+import { useBreakpoints } from '@hooks/index';
 import DeptMonthItem from './DeptMonthItem';
 
 const DeptMonthsContainer = ({
@@ -12,6 +13,7 @@ const DeptMonthsContainer = ({
   }[];
 }) => {
   const [currentExpanded, setCurrentExpanded] = useState('');
+  const { tablet688Up } = useBreakpoints();
 
   return (
     <Box
@@ -32,6 +34,7 @@ const DeptMonthsContainer = ({
           weeks={month.weeks}
           currentExpanded={currentExpanded}
           onChangeCurrentExpanded={(val) => setCurrentExpanded(val)}
+          onWeekSelect={!tablet688Up ? () => {} : undefined}
         />
       ))}
     </Box>

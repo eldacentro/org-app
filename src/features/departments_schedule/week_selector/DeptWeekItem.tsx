@@ -3,7 +3,15 @@ import { useAtom } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
 import Typography from '@components/typography';
 
-const DeptWeekItem = ({ weekOf, label }: { weekOf: string; label: string }) => {
+const DeptWeekItem = ({
+  weekOf,
+  label,
+  onWeekSelect,
+}: {
+  weekOf: string;
+  label: string;
+  onWeekSelect?: () => void;
+}) => {
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
   const isSelected = selectedWeek === weekOf;
 
@@ -27,7 +35,10 @@ const DeptWeekItem = ({ weekOf, label }: { weekOf: string; label: string }) => {
           },
         },
       }}
-      onClick={() => setSelectedWeek(weekOf)}
+      onClick={() => {
+        setSelectedWeek(weekOf);
+        onWeekSelect?.();
+      }}
     >
       <Typography className={isSelected ? 'body-semibold' : 'body-regular'}>
         {label}

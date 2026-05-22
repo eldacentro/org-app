@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAtom } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
+import { useBreakpoints } from '@hooks/index';
 import {
   formatDate,
   getWeekDate,
@@ -10,7 +11,14 @@ import {
 import { generateMonthNames } from '@services/i18n/translation';
 
 const useDeptWeekSelector = () => {
+  const { desktopUp } = useBreakpoints();
+
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
+  const [expanded, setExpanded] = useState(true);
+
+  const handleToggleExpand = () => {
+    setExpanded((prev) => !prev);
+  };
 
   const yearsList = useMemo(() => {
     const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
@@ -73,6 +81,12 @@ const useDeptWeekSelector = () => {
     }
   }, [selectedWeek, setSelectedWeek, yearsList]);
 
+  useEffect(() => {
+    if (!desktopUp && selectedWeek.length > 0) {
+      setExpanded(false);
+    }
+  }, [selectedWeek, desktopUp]);
+
   const activeTab = useMemo(() => {
     if (selectedWeek === '') return 0;
     const [year] = selectedWeek.split('/');
@@ -85,6 +99,9 @@ const useDeptWeekSelector = () => {
     selectedWeek,
     setSelectedWeek,
     activeTab,
+    expanded,
+    handleToggleExpand,
+    desktopUp,
   };
 };
 

@@ -9,12 +9,14 @@ const DeptMonthItem = ({
   weeks,
   currentExpanded,
   onChangeCurrentExpanded,
+  onWeekSelect,
 }: {
   monthLabel: string;
   monthValue: string;
   weeks: { weekOf: string; label: string }[];
   currentExpanded: string;
   onChangeCurrentExpanded: (value: string) => void;
+  onWeekSelect?: () => void;
 }) => {
   const expanded = currentExpanded === monthValue;
 
@@ -49,6 +51,9 @@ const DeptMonthItem = ({
             key={week.weekOf}
             weekOf={week.weekOf}
             label={week.label}
+            onWeekSelect={
+              onWeekSelect ? () => onChangeCurrentExpanded('') : undefined
+            }
           />
         ))}
       </Collapse>
