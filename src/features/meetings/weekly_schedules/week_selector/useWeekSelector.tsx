@@ -18,30 +18,31 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
 
   const [currentTab, setCurrentTab] = useState<number | boolean>(false);
 
-  const filteredSources = useMemo(() => {
+  const weeksList = useMemo(() => {
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
 
-    return sources.filter(
+    let list = sources.filter(
       (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
-  }, [sources]);
+
+    if (scheduleType === 'midweek' || scheduleType === 'departments') {
+      list = list.filter(
+        (record) => record.midweek_meeting?.week_date_locale[lang]?.length > 0
+      );
+    }
+
+    return list;
+  }, [sources, scheduleType, lang]);
 
   const defaultValue = useMemo(() => {
     const now = getWeekDate();
     const weekOf = formatDate(now, 'yyyy/MM/dd');
 
-    return filteredSources.findIndex((record) => record.weekOf === weekOf);
-  }, [filteredSources]);
+    const index = weeksList.findIndex((record) => record.weekOf === weekOf);
+    return index !== -1 ? index : 0;
+  }, [weeksList]);
 
   const weeksTab = useMemo(() => {
-    let weeksList = structuredClone(filteredSources);
-
-    if (scheduleType === 'midweek' || scheduleType === 'departments') {
-      weeksList = weeksList.filter(
-        (record) => record.midweek_meeting?.week_date_locale[lang]?.length > 0
-      );
-    }
-
     return weeksList.map((source, index) => {
       const meetingDate = schedulesGetMeetingDate({
         week: source.weekOf,
@@ -55,7 +56,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
         Component: <></>,
       };
     });
-  }, [defaultValue, scheduleType, lang, filteredSources]);
+  }, [defaultValue, scheduleType, weeksList]);
 
   const handleWeekChange = (value: number) => {
     setCurrentTab(value);

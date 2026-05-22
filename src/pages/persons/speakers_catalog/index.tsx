@@ -109,9 +109,7 @@ const SpeakersCatalog = () => {
           const localCong = currentCongs.find(
             (c) =>
               c.cong_data.cong_name.value === homeCongName ||
-              c.cong_data.cong_number.value === homeCongNumber ||
-              c.cong_data.cong_number.value === '11' ||
-              c.cong_data.cong_number.value === '9357'
+              c.cong_data.cong_number.value === homeCongNumber
           );
 
           if (!localCong) {
@@ -133,21 +131,15 @@ const SpeakersCatalog = () => {
             let congId = '';
 
             // Comprobar si es la congregación local (por nombre o número)
-            // Tratamos el número 11 y el 9357 como equivalentes para la local
             const isHomeCong =
               congName === homeCongName ||
-              (congNumber &&
-                (congNumber === homeCongNumber ||
-                  congNumber === '11' ||
-                  congNumber === '9357'));
+              (congNumber && congNumber === homeCongNumber);
 
             if (isHomeCong) {
               const localCong = currentCongs.find(
                 (c) =>
                   c.cong_data.cong_name.value === homeCongName ||
-                  c.cong_data.cong_number.value === homeCongNumber ||
-                  c.cong_data.cong_number.value === '11' ||
-                  c.cong_data.cong_number.value === '9357'
+                  c.cong_data.cong_number.value === homeCongNumber
               );
               congId = localCong?.id || '';
             } else {
