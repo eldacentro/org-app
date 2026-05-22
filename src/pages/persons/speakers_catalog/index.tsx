@@ -103,6 +103,7 @@ const SpeakersCatalog = () => {
           const speakers = results.data as CSVRow[];
           const currentCongs = await appDb.speakers_congregations.toArray();
           const currentSpeakers = await appDb.visiting_speakers.toArray();
+          const allSchedules = await appDb.sched.toArray();
           const now = new Date().toISOString();
 
           // Asegurar que la congregación local existe en speakers_congregations
@@ -197,7 +198,51 @@ const SpeakersCatalog = () => {
             let isNewSpeaker = false;
             if (!speaker) {
               speaker = structuredClone(vistingSpeakerSchema);
-              speaker.person_uid = existingPersonUid || crypto.randomUUID();
+
+              let resolvedUid = existingPersonUid;
+
+              if (!resolvedUid) {
+                const normalize = (str: string) =>
+                  str
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]/g, '')
+                    .trim();
+
+                const fn = normalize(firstName);
+                const ln = normalize(lastName);
+                const disp = item['Display Name'] ? normalize(item['Display Name']) : '';
+                const genDisp = normalize(generateDisplayName(lastName, firstName));
+
+                for (const sched of allSchedules) {
+                  if (!sched.weekend_meeting) continue;
+
+                  const speakerParts = [
+                    ...(sched.weekend_meeting.speaker?.part_1 || []),
+                    ...(sched.weekend_meeting.speaker?.part_2 || []),
+                    ...(sched.weekend_meeting.speaker?.substitute || [])
+                  ];
+
+                  const match = speakerParts.find((sp) => {
+                    if (!sp.value || !sp.name) return false;
+                    const spName = normalize(sp.name);
+                    return (
+                      spName === fn + ln ||
+                      spName === ln + fn ||
+                      (disp && spName === disp) ||
+                      spName === genDisp
+                    );
+                  });
+
+                  if (match) {
+                    resolvedUid = match.value;
+                    break;
+                  }
+                }
+              }
+
+              speaker.person_uid = resolvedUid || crypto.randomUUID();
               isNewSpeaker = true;
             }
 
@@ -246,8 +291,13 @@ const SpeakersCatalog = () => {
               updatedAt: now,
             };
             speaker.speaker_data.talks = talks;
+            let speakerLocal = isLocal;
+            if (isHomeCong && talks.length > 0) {
+              speakerLocal = false;
+            }
+
             speaker.speaker_data.local = {
-              value: isLocal,
+              value: speakerLocal,
               updatedAt: now,
             };
 
