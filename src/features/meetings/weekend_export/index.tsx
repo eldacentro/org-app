@@ -7,7 +7,6 @@ import Button from '@components/button';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import WeekRangeSelector from '../week_range_selector';
-import Checkbox from '@components/checkbox';
 
 const WeekendExport = ({ open, onClose }: WeekendExportType) => {
   const { t } = useAppTranslation();
@@ -17,10 +16,6 @@ const WeekendExport = ({ open, onClose }: WeekendExportType) => {
     handleSetStartWeek,
     isProcessing,
     handleExportSchedules,
-    toggleExportOutgoingSpeakersSchedule,
-    toggleExportWeekendMeetingSchedule,
-    exportOutgoingSpeakersScheduleIsChecked,
-    exportWeekendMeetingScheduleIsChecked,
   } = useWeekendExport(onClose);
 
   return (
@@ -48,25 +43,6 @@ const WeekendExport = ({ open, onClose }: WeekendExportType) => {
           meeting="weekend"
           onStartChange={handleSetStartWeek}
           onEndChange={handleSetEndWeek}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-        }}
-      >
-        <Checkbox
-          checked={exportWeekendMeetingScheduleIsChecked}
-          onChange={toggleExportWeekendMeetingSchedule}
-          label={t('tr_weekendMeetingPrint')}
-        />
-        <Checkbox
-          checked={exportOutgoingSpeakersScheduleIsChecked}
-          onChange={toggleExportOutgoingSpeakersSchedule}
-          label={t('tr_outgoingSpeakersSchedule')}
         />
       </Box>
 

@@ -7,18 +7,14 @@ import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
 import {
-  OutgoingSpeakersScheduleType,
   SchedWeekType,
   WeekendMeetingDataType,
 } from '@definition/schedules';
 import {
-  groupOutgoingSpeakersByDate,
-  scheduleOutgoingSpeakers,
   schedulesWeekendData,
 } from '@services/app/schedules';
 import { JWLangLocaleState, userDataViewState } from '@states/settings';
 import {
-  TemplateOutgoingSpeakersSchedule,
   TemplateWeekendMeeting,
 } from '@views/index';
 import { headerForScheduleState } from '@states/field_service_groups';
@@ -30,15 +26,6 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
   const dataView = useAtomValue(userDataViewState);
   const congName = useAtomValue(headerForScheduleState);
   const sourceLang = useAtomValue(JWLangLocaleState);
-
-  const [
-    exportWeekendMeetingScheduleIsChecked,
-    setWeekendMeetingScheduleIsChecked,
-  ] = useState(true);
-  const [
-    exportOutgoingSpeakersScheduleIsChecked,
-    setOutgoingSpeakersScheduleIsChecked,
-  ] = useState(true);
 
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');
@@ -72,31 +59,6 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
     saveAs(blob, filename);
   };
 
-  const exportOutgoingSpeakersSchedule = async (weeksList: SchedWeekType[]) => {
-    const allItems: OutgoingSpeakersScheduleType = [];
-
-    for (const schedule of weeksList) {
-      const data = scheduleOutgoingSpeakers(schedule);
-      allItems.push(...data);
-    }
-
-    const groupedSchedules = groupOutgoingSpeakersByDate(allItems);
-
-    const firstWeek = weeksList[0].weekOf.replaceAll('/', '');
-    const lastWeek = weeksList.at(-1).weekOf.replaceAll('/', '');
-
-    const blob = await pdf(
-      <TemplateOutgoingSpeakersSchedule
-        data={groupedSchedules}
-        congregation={congName}
-        lang={sourceLang}
-      />
-    ).toBlob();
-
-    const filename = `OS_${firstWeek}-${lastWeek}.pdf`;
-    saveAs(blob, filename);
-  };
-
   const handleExportSchedules = async () => {
     if (startWeek.length === 0 || endWeek.length === 0) return;
 
@@ -123,13 +85,7 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
         return isValid;
       });
 
-      if (exportWeekendMeetingScheduleIsChecked) {
-        await exportWeekendMeetingSchedule(weeksList);
-      }
-
-      if (exportOutgoingSpeakersScheduleIsChecked) {
-        await exportOutgoingSpeakersSchedule(weeksList);
-      }
+      await exportWeekendMeetingSchedule(weeksList);
 
       setIsProcessing(false);
       onClose?.();
@@ -147,22 +103,13 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
     }
   };
 
-  const toggleExportWeekendMeetingSchedule = () =>
-    setWeekendMeetingScheduleIsChecked((prev) => !prev);
-
-  const toggleExportOutgoingSpeakersSchedule = () =>
-    setOutgoingSpeakersScheduleIsChecked((prev) => !prev);
-
   return {
     isProcessing,
     handleSetStartWeek,
     handleSetEndWeek,
     handleExportSchedules,
-    toggleExportWeekendMeetingSchedule,
-    toggleExportOutgoingSpeakersSchedule,
-    exportOutgoingSpeakersScheduleIsChecked,
-    exportWeekendMeetingScheduleIsChecked,
   };
 };
 
 export default useWeekendExport;
+
