@@ -14,6 +14,7 @@ import {
   dbFieldServiceGroupBulkSave,
   dbFieldServiceGroupSave,
 } from '@services/dexie/field_service_groups';
+import worker from '@services/worker/backupWorker';
 
 const useCreateGroup = ({ onClose }: CreateGroupProps) => {
   const { t } = useAppTranslation();
@@ -52,6 +53,8 @@ const useCreateGroup = ({ onClose }: CreateGroupProps) => {
       });
 
       await dbFieldServiceGroupBulkSave(langGroups);
+
+      worker.postMessage('startWorker');
 
       displaySnackNotification({
         header: t('tr_done'),

@@ -113,10 +113,17 @@ const SpeakersCatalog = () => {
           const allSchedules = await appDb.sched.toArray();
           const now = new Date().toISOString();
 
+          const normalize = (str: string) =>
+            str
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .trim();
+
           // Asegurar que la congregación local existe en speakers_congregations
           const localCong = currentCongs.find(
             (c) =>
-              c.cong_data.cong_name.value === homeCongName ||
+              normalize(c.cong_data.cong_name.value) === normalize(homeCongName) ||
               c.cong_data.cong_number.value === homeCongNumber
           );
 
@@ -140,22 +147,24 @@ const SpeakersCatalog = () => {
 
             // Comprobar si es la congregación local (por nombre o número)
             const isHomeCong =
-              congName === homeCongName ||
+              normalize(congName) === normalize(homeCongName) ||
               (congNumber && congNumber === homeCongNumber);
 
             if (isHomeCong) {
               const localCong = currentCongs.find(
                 (c) =>
-                  c.cong_data.cong_name.value === homeCongName ||
+                  normalize(c.cong_data.cong_name.value) ===
+                    normalize(homeCongName) ||
                   c.cong_data.cong_number.value === homeCongNumber
               );
               congId = localCong?.id || '';
             } else {
               let cong = currentCongs.find(
                 (c) =>
-                  c.cong_data.cong_name.value === congName ||
+                  normalize(c.cong_data.cong_name.value) === normalize(congName) ||
                   (congNumber && c.cong_data.cong_number.value === congNumber)
               );
+
 
               if (cong && cong._deleted.value) {
                 cong._deleted.value = false;
@@ -245,8 +254,10 @@ const SpeakersCatalog = () => {
             if (isLocal) {
               const findPerson = persons.find(
                 (p) =>
-                  p.person_data.person_firstname.value === firstName &&
-                  p.person_data.person_lastname.value === lastName
+                  normalize(p.person_data.person_firstname.value) ===
+                    normalize(firstName) &&
+                  normalize(p.person_data.person_lastname.value) ===
+                    normalize(lastName)
               );
               if (findPerson) {
                 existingPersonUid = findPerson.person_uid;
@@ -257,8 +268,10 @@ const SpeakersCatalog = () => {
             // Buscamos por nombre o por el UID de la persona si ya la tenemos
             let speaker = currentSpeakers.find(
               (s) =>
-                (s.speaker_data.person_firstname.value === firstName &&
-                  s.speaker_data.person_lastname.value === lastName &&
+                (normalize(s.speaker_data.person_firstname.value) ===
+                  normalize(firstName) &&
+                  normalize(s.speaker_data.person_lastname.value) ===
+                    normalize(lastName) &&
                   s.speaker_data.cong_id === congId) ||
                 (existingPersonUid !== '' && s.person_uid === existingPersonUid)
             );

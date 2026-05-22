@@ -5,6 +5,7 @@ import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { dbFieldServiceGroupBulkSave } from '@services/dexie/field_service_groups';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import worker from '@services/worker/backupWorker';
 import { GroupType, GroupsReorderProps } from './index.types';
 
 const useGroupsReorder = ({ onClose }: GroupsReorderProps) => {
@@ -48,6 +49,8 @@ const useGroupsReorder = ({ onClose }: GroupsReorderProps) => {
   const handleSaveChanges = async () => {
     try {
       await dbFieldServiceGroupBulkSave(groups_sorted);
+
+      worker.postMessage('startWorker');
 
       onClose?.();
     } catch (error) {

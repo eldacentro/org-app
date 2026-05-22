@@ -10,6 +10,7 @@ import { personAssignmentsRemove } from '@services/app/persons';
 import { getMessageByCode } from '@services/i18n/translation';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
+import worker from '@services/worker/backupWorker';
 
 const useButtonActions = () => {
   const { id } = useParams();
@@ -108,6 +109,8 @@ const useButtonActions = () => {
 
       await handleSaveGroup();
 
+      worker.postMessage('startWorker');
+
       if (isNewPerson) {
         displaySnackNotification({
           header: t('tr_personAdded'),
@@ -151,6 +154,8 @@ const useButtonActions = () => {
 
       await dbPersonsSave(newPerson);
 
+      worker.postMessage('startWorker');
+
       setIsDisqualify(false);
     } catch (error) {
       setIsDisqualify(false);
@@ -172,6 +177,9 @@ const useButtonActions = () => {
         updatedAt: new Date().toISOString(),
       };
       await dbPersonsSave(newPerson);
+
+      worker.postMessage('startWorker');
+
       setIsQualify(false);
     } catch (error) {
       setIsQualify(false);

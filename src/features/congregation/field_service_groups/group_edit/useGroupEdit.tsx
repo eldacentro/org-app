@@ -4,6 +4,7 @@ import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import worker from '@services/worker/backupWorker';
 
 const useGroupEdit = ({ group, onClose }: GroupEditProps) => {
   const [tmpGroup, setTmpGroup] = useState(group);
@@ -29,6 +30,8 @@ const useGroupEdit = ({ group, onClose }: GroupEditProps) => {
   const handleSaveChanges = async () => {
     try {
       await dbFieldServiceGroupSave(tmpGroup);
+
+      worker.postMessage('startWorker');
 
       onClose?.();
     } catch (error) {

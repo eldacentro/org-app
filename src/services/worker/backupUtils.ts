@@ -30,6 +30,10 @@ import { MeetingAttendanceType } from '@definition/meeting_attendance';
 import { MetadataRecordType } from '@definition/metadata';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import { UpcomingEventType } from '@definition/upcoming_events';
+import {
+  dbDeduplicateCongregations,
+  dbDeduplicateSpeakers,
+} from '@services/dexie/visiting_speakers';
 import { formatDate } from '@utils/date';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 
@@ -1601,6 +1605,10 @@ const dbRestoreFromBackup = async (
     await dbRestoreSpeakersCongregations(backupData, accessCode, masterKey);
 
     await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
+
+    await dbDeduplicateSpeakers();
+
+    await dbDeduplicateCongregations();
 
     await dbRestoreFieldGroups(backupData, accessCode);
 

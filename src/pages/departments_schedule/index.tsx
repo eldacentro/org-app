@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
-import { IconPrint, IconSparkles, IconSave } from '@components/icons';
+import { IconPrint, IconGenerate, IconPublish } from '@components/icons';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
@@ -53,19 +53,20 @@ const DepartmentsSchedule = () => {
         buttons={
           <>
             <NavBarButton
-              text={t('tr_save', 'Guardar')}
-              onClick={handleForceSync}
-              icon={<IconSave />}
+              text={t('tr_export', 'Exportar')}
+              onClick={handleExportPDF}
+              icon={<IconPrint />}
             />
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}
               onClick={() => setIsAutofillOpen(true)}
-              icon={<IconSparkles />}
+              icon={<IconGenerate />}
             />
             <NavBarButton
-              text={t('tr_export', 'Exportar')}
-              onClick={handleExportPDF}
-              icon={<IconPrint />}
+              text={t('tr_publish', 'Publicar')}
+              main
+              onClick={handleForceSync}
+              icon={<IconPublish />}
             />
           </>
         }

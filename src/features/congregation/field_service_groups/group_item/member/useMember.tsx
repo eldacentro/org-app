@@ -11,6 +11,7 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { GroupMemberProps } from './index.types';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
 import usePerson from '@features/persons/hooks/usePerson';
+import worker from '@services/worker/backupWorker';
 
 const useMember = ({ member, index, group_id }: GroupMemberProps) => {
   const { t } = useAppTranslation();
@@ -164,6 +165,8 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
       group.group_data.updatedAt = new Date().toISOString();
 
       await dbFieldServiceGroupSave(group);
+
+      worker.postMessage('startWorker');
     } catch (error) {
       console.error(error);
 
@@ -217,6 +220,8 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
       group.group_data.updatedAt = new Date().toISOString();
 
       await dbFieldServiceGroupSave(group);
+
+      worker.postMessage('startWorker');
     } catch (error) {
       console.error(error);
 
@@ -258,6 +263,8 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
       group.group_data.updatedAt = new Date().toISOString();
 
       await dbFieldServiceGroupSave(group);
+
+      worker.postMessage('startWorker');
 
       setRemoveOpen(false);
     } catch (error) {

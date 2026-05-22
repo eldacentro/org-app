@@ -9,6 +9,7 @@ import { AssignmentCode } from '@definition/assignment';
 import { getRandomArrayItem } from '@utils/common';
 import { LANGUAGE_LIST } from '@constants/index';
 import appDb from '@db/appDb';
+import worker from '@services/worker/backupWorker';
 
 export const dbAppSettingsGet = async () => {
   const current = await appDb.app_settings.get(1);
@@ -54,6 +55,7 @@ export const dbAppSettingsUpdate = async (
 
   if (updateMetadata) {
     await appDb.metadata.put(metadata);
+    worker.postMessage('startWorker');
   }
 };
 

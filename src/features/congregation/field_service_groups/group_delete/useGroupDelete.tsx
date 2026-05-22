@@ -8,6 +8,7 @@ import {
 import { dbFieldServiceGroupBulkSave } from '@services/dexie/field_service_groups';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import worker from '@services/worker/backupWorker';
 
 const useGroupDelete = ({ group_id, onClose }: GroupDeleteProps) => {
   const groups = useAtomValue(fieldGroupsState);
@@ -36,6 +37,8 @@ const useGroupDelete = ({ group_id, onClose }: GroupDeleteProps) => {
       groupsSave.push(groupDelete);
 
       await dbFieldServiceGroupBulkSave(groupsSave);
+
+      worker.postMessage('startWorker');
 
       onClose?.();
     } catch (error) {
