@@ -1,9 +1,8 @@
-import { Box, Link } from '@mui/material';
-import { IconTest, IconCongregationAccess, IconEmailLogin } from '@icons/index';
+import { Box } from '@mui/material';
+import { IconCongregationAccess, IconEmailLogin } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useAccountChooser from './useAccountChooser';
 import AccountType from './account_type';
-import Button from '@components/button';
 import Markup from '@components/text_markup';
 import Typography from '@components/typography';
 
@@ -61,33 +60,6 @@ const AccountChooser = () => {
             subtitle={t('tr_loginWithCodeDesc')}
             onClick={handleChoosePocket}
           />
-        </Box>
-
-        <Box sx={{ marginTop: { mobile: '16px', laptop: '32px' } }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Link
-              href="https://test.organized-app.com"
-              target="_blank"
-              rel="noopener"
-              underline="none"
-              sx={{
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'none',
-                },
-              }}
-            >
-              <Button
-                variant="secondary"
-                startIcon={<IconTest />}
-                sx={{
-                  justifyContent: 'center',
-                }}
-              >
-                {t('tr_tryOrganized')}
-              </Button>
-            </Link>
-          </Box>
         </Box>
       </Box>
 
