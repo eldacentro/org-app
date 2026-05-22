@@ -7,6 +7,7 @@ import { settingsState, userDataViewState } from '@states/settings';
 import MidweekContainer from '@features/meetings/weekly_schedules/midweek_container';
 import OutgoingTalks from '@features/meetings/weekly_schedules/outgoing_talks';
 import WeekendContainer from '@features/meetings/weekly_schedules/weekend_container';
+import DepartmentsContainer from '@features/meetings/weekly_schedules/departments_container';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -16,14 +17,6 @@ const useWeeklySchedules = () => {
   const scheduleType = useMemo(() => {
     return localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType;
   }, []);
-
-  const value = useMemo(() => {
-    if (!scheduleType) return 0;
-
-    if (scheduleType === 'midweek') return 0;
-    if (scheduleType === 'weekend') return 1;
-    if (scheduleType === 'outgoing') return 2;
-  }, [scheduleType]);
 
   const { isAppointed } = useCurrentUser();
 
@@ -39,6 +32,16 @@ const useWeeklySchedules = () => {
 
     return weekend.outgoing_talks_schedule_public.value;
   }, [isAppointed, settings, dataView]);
+
+  const value = useMemo(() => {
+    if (!scheduleType) return 0;
+
+    if (scheduleType === 'midweek') return 0;
+    if (scheduleType === 'weekend') return 1;
+    if (scheduleType === 'outgoing') return outgoingVisible ? 2 : 0;
+    if (scheduleType === 'departments') return outgoingVisible ? 3 : 2;
+    return 0;
+  }, [scheduleType, outgoingVisible]);
 
   const tabs = useMemo(() => {
     const result = [
@@ -59,6 +62,11 @@ const useWeeklySchedules = () => {
       });
     }
 
+    result.push({
+      label: t('tr_departmentsSchedule', 'Departamentos'),
+      Component: <DepartmentsContainer />,
+    });
+
     return result;
   }, [outgoingVisible, t]);
 
@@ -67,7 +75,10 @@ const useWeeklySchedules = () => {
 
     if (value === 0) type = 'midweek';
     if (value === 1) type = 'weekend';
-    if (value === 2) type = 'outgoing';
+    if (value === 2) {
+      type = outgoingVisible ? 'outgoing' : 'departments';
+    }
+    if (value === 3) type = 'departments';
 
     localStorage.setItem(LOCALSTORAGE_KEY, type ?? 'midweek');
   };

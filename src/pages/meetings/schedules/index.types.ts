@@ -1,1 +1,2 @@
-export type WeeklySchedulesType = 'midweek' | 'weekend' | 'outgoing';
+export type WeeklySchedulesType = 'midweek' | 'weekend' | 'outgoing' | 'departments';
+

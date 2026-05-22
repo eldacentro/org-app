@@ -36,7 +36,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
   const weeksTab = useMemo(() => {
     let weeksList = structuredClone(filteredSources);
 
-    if (scheduleType === 'midweek') {
+    if (scheduleType === 'midweek' || scheduleType === 'departments') {
       weeksList = weeksList.filter(
         (record) => record.midweek_meeting?.week_date_locale[lang]?.length > 0
       );
@@ -45,7 +45,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
     return weeksList.map((source, index) => {
       const meetingDate = schedulesGetMeetingDate({
         week: source.weekOf,
-        meeting: scheduleType,
+        meeting: scheduleType === 'departments' ? 'midweek' : scheduleType,
         short: true,
       });
 
