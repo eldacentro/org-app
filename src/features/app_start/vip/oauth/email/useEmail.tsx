@@ -27,6 +27,8 @@ const useOAuthEmail = () => {
   const [userTmpEmail, setUserTmpEmail] = useState('');
 
   const oauth = useMemo(() => {
+    if (!userTmpEmail || typeof userTmpEmail !== 'string') return;
+
     if (userTmpEmail.includes('@gmail')) {
       return 'Google';
     }
@@ -56,33 +58,44 @@ const useOAuthEmail = () => {
       return;
     }
 
-    const { status, data } = await apiRequestPasswordlesssLink(userTmpEmail);
+    try {
+      const { status, data } = await apiRequestPasswordlesssLink(userTmpEmail);
 
-    if (status !== 200) {
+      if (status !== 200) {
+        displayOnboardingFeedback({
+          title: t('error_app_generic-title'),
+          message: getMessageByCode(data?.message || 'error_api_internal-error'),
+        });
+        showMessage();
+
+        setIsProcessing(false);
+        return;
+      }
+
+      localStorage.setItem('emailForSignIn', userTmpEmail);
+
+      if (data?.link) {
+        setDevLink(data.link);
+      }
+
+      if (data?.otp) {
+        setDevOTP(data.otp);
+      }
+
+      setIsProcessing(false);
+      setIsUserSignIn(false);
+      setIsEmailSent(true);
+    } catch (err) {
+      console.error('Passwordless login request failed:', err);
+
       displayOnboardingFeedback({
         title: t('error_app_generic-title'),
-        message: getMessageByCode(data.message),
+        message: t('error_api_internal-error'),
       });
       showMessage();
 
       setIsProcessing(false);
-
-      return;
     }
-
-    localStorage.setItem('emailForSignIn', userTmpEmail);
-
-    if (data.link) {
-      setDevLink(data.link);
-    }
-
-    if (data.otp) {
-      setDevOTP(data.otp);
-    }
-
-    setIsProcessing(false);
-    setIsUserSignIn(false);
-    setIsEmailSent(true);
   };
 
   return {

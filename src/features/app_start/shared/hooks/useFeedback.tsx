@@ -10,16 +10,17 @@ const useFeedback = () => {
   const message = useAtomValue(onboardingMessageState);
   const variant = useAtomValue(onboardingVariantState);
 
-  const onboardingError =
-    document.querySelector<HTMLElement>('#onboarding-error');
-
   const hideMessage = () => {
+    const onboardingError =
+      document.querySelector<HTMLElement>('#onboarding-error');
     if (onboardingError) {
       onboardingError.style.animation = 'fade-out 0.15s forwards';
     }
   };
 
   const showMessage = () => {
+    const onboardingError =
+      document.querySelector<HTMLElement>('#onboarding-error');
     if (onboardingError) {
       onboardingError.style.opacity = '0';
       onboardingError.style.display = 'block';
