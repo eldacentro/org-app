@@ -14,6 +14,7 @@ import {
   InputAdornment,
   MenuItem,
   Select,
+  IconButton,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
@@ -28,8 +29,10 @@ import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import {
   IconPrint,
   IconPublish,
-  IconVisitingSpeaker,
+  IconOutgoindSpeaker,
   IconSearch,
+  IconSortDown,
+  IconSortUp,
 } from '@components/icons';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
@@ -100,6 +103,7 @@ const OutgoingSpeakersPage = () => {
   // Available Years list from schedules
   const availableYears = useMemo(() => {
     const years = new Set<number>();
+    years.add(new Date().getFullYear()); // Always include the current year by default
     for (const schedule of schedules) {
       if (!schedule.weekOf || typeof schedule.weekOf !== 'string') continue;
       const normalised = schedule.weekOf.replace(/\//g, '-');
@@ -108,42 +112,26 @@ const OutgoingSpeakersPage = () => {
         years.add(date.getFullYear());
       }
     }
-    if (years.size === 0) {
-      years.add(new Date().getFullYear());
-    }
     return Array.from(years).sort((a, b) => b - a); // Sort descending
   }, [schedules]);
 
-  // Year state
+  // Year state - always default to current year automatically on load
   const [selectedYear, setSelectedYear] = useState<number>(() => {
-    if (selectedWeek) {
-      const normalised = selectedWeek.replace(/\//g, '-');
-      const date = new Date(normalised + 'T12:00:00');
-      if (!isNaN(date.getTime())) {
-        return date.getFullYear();
-      }
-    }
     return new Date().getFullYear();
   });
 
-  // Sync selected year if selectedWeek changes
-  useEffect(() => {
-    if (selectedWeek) {
-      const normalised = selectedWeek.replace(/\//g, '-');
-      const date = new Date(normalised + 'T12:00:00');
-      if (!isNaN(date.getTime())) {
-        setSelectedYear(date.getFullYear());
-      }
-    }
-  }, [selectedWeek]);
+  // Month sort order state (newest first by default)
+  const [monthSortOrder, setMonthSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Group schedules by month for the sidebar
   const groupedWeeks = useMemo(() => {
     const groups: Array<{ month: string; monthLabel: string; weeks: string[] }> = [];
 
-    const sorted = [...schedules].sort((a, b) =>
-      b.weekOf.localeCompare(a.weekOf)
-    );
+    const sorted = [...schedules].sort((a, b) => {
+      return monthSortOrder === 'desc'
+        ? b.weekOf.localeCompare(a.weekOf)
+        : a.weekOf.localeCompare(b.weekOf);
+    });
 
     const mesesEs = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -173,8 +161,15 @@ const OutgoingSpeakersPage = () => {
       }
     }
 
+    // Sort the month groups themselves based on the chosen sort order
+    groups.sort((a, b) => {
+      return monthSortOrder === 'desc'
+        ? b.month.localeCompare(a.month)
+        : a.month.localeCompare(b.month);
+    });
+
     return groups;
-  }, [schedules, selectedYear]);
+  }, [schedules, selectedYear, monthSortOrder]);
 
   // Determine which month to expand initially
   const defaultExpandedMonth = useMemo(() => {
@@ -472,7 +467,7 @@ const OutgoingSpeakersPage = () => {
           }}
         >
           <Tab label="Oradores" />
-          <Tab label="Semanas" />
+          <Tab label="Programa" />
         </Tabs>
       </Box>
 
@@ -527,7 +522,7 @@ const OutgoingSpeakersPage = () => {
           {filteredSpeakers.length === 0 ? (
             <Card sx={{ border: '1px solid var(--accent-300)', borderRadius: 'var(--radius-xl)', p: 3, textAlign: 'center' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <IconVisitingSpeaker width={48} height={48} color="var(--grey-400)" />
+                <IconOutgoindSpeaker width={48} height={48} color="var(--grey-400)" />
               </Box>
               <Typography className="h2" color="var(--grey-400)">
                 No hay oradores que coincidan con la búsqueda
@@ -587,29 +582,6 @@ const OutgoingSpeakersPage = () => {
                               {isMS && <MiniChip label="Siervo Ministerial" />}
                               {!isElder && !isMS && <MiniChip label="Orador" />}
                             </Box>
-                          </Box>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button
-                              variant="secondary"
-                              sx={{ height: '36px', minHeight: '36px', px: 2, borderRadius: 'var(--radius-l)', fontSize: '13px' }}
-                              onClick={() => navigate('/speakers-catalog')}
-                            >
-                              Editar perfil
-                            </Button>
-                            <Button
-                              variant="main"
-                              sx={{ height: '36px', minHeight: '36px', px: 2, borderRadius: 'var(--radius-l)', fontSize: '13px' }}
-                              onClick={() => {
-                                // Find if speaker has assignments, or default to the most recent/current week
-                                const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
-                                if (targetWeek) {
-                                  setSelectedWeek(targetWeek);
-                                }
-                                setActiveTab(1);
-                              }}
-                            >
-                              Programar
-                            </Button>
                           </Box>
                         </Box>
 
@@ -714,6 +686,57 @@ const OutgoingSpeakersPage = () => {
                             )}
                           </Collapse>
                         </Box>
+                        {/* Action buttons footer */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            gap: '12px',
+                            mt: 'auto',
+                            pt: 2,
+                            borderTop: '1px solid var(--accent-200)',
+                            width: '100%',
+                          }}
+                        >
+                          <Button
+                            variant="secondary"
+                            sx={{
+                              flex: 1,
+                              height: '38px',
+                              minHeight: '38px',
+                              borderRadius: 'var(--radius-l)',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                            }}
+                            onClick={() => navigate('/speakers-catalog')}
+                          >
+                            Editar perfil
+                          </Button>
+                          <Button
+                            variant="main"
+                            sx={{
+                              flex: 1,
+                              height: '38px',
+                              minHeight: '38px',
+                              borderRadius: 'var(--radius-l)',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                            }}
+                            onClick={() => {
+                              const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
+                              if (targetWeek) {
+                                setSelectedWeek(targetWeek);
+                                const normalised = targetWeek.replace(/\//g, '-');
+                                const date = new Date(normalised + 'T12:00:00');
+                                if (!isNaN(date.getTime())) {
+                                  setSelectedYear(date.getFullYear());
+                                }
+                              }
+                              setActiveTab(1);
+                            }}
+                          >
+                            Programar
+                          </Button>
+                        </Box>
                       </CardContent>
                     </Card>
                   </Box>
@@ -751,9 +774,21 @@ const OutgoingSpeakersPage = () => {
               overflowY: 'auto',
             }}
           >
-            <Typography className="h2" sx={{ mb: 1, fontWeight: '600' }}>
-              Semanas
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography className="h2" sx={{ fontWeight: '600' }}>
+                Programa
+              </Typography>
+              <IconButton
+                onClick={() => setMonthSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                sx={{
+                  color: 'var(--accent-main)',
+                  padding: '4px',
+                  '&:hover': { backgroundColor: 'var(--accent-100)' },
+                }}
+              >
+                {monthSortOrder === 'desc' ? <IconSortDown /> : <IconSortUp />}
+              </IconButton>
+            </Box>
 
             {/* Selector de año */}
             <Select

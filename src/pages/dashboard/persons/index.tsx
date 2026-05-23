@@ -4,6 +4,7 @@ import {
   IconApplications,
   IconParticipants,
   IconVisitingSpeaker,
+  IconOutgoindSpeaker,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import usePersons from './usePersons';
@@ -64,7 +65,7 @@ const PersonsCard = () => {
       {showWeekend && (isWeekendEditor || isPublicTalkCoordinator) && (
         <ListItem disablePadding>
           <DashboardMenu
-            icon={<IconVisitingSpeaker color="var(--black)" />}
+            icon={<IconOutgoindSpeaker color="var(--black)" />}
             primaryText="Oradores salientes"
             path="/outgoing-speakers"
           />
