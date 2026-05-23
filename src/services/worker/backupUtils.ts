@@ -416,13 +416,17 @@ const dbInsertOutgoingTalks = async (
 
     // remove deleted schedules
     for (const schedule of syncedSchedules) {
-      const isValid = talks.find((record) => record.weekOf === schedule.weekOf);
+      const originalCount = schedule.weekend_meeting.outgoing_talks.length;
 
-      if (!isValid) {
-        schedule.weekend_meeting.outgoing_talks =
-          schedule.weekend_meeting.outgoing_talks.filter(
-            (record) => !record.synced
-          );
+      schedule.weekend_meeting.outgoing_talks =
+        schedule.weekend_meeting.outgoing_talks.filter((localTalk) => {
+          if (!localTalk.synced) return true; // keep local manual talks
+
+          // keep synced talk only if it is still present in the incoming talks from the server
+          return talks.some((remoteTalk) => remoteTalk.id === localTalk.id);
+        });
+
+      if (schedule.weekend_meeting.outgoing_talks.length !== originalCount) {
         schedulesToUpdate.push(schedule);
       }
     }
@@ -451,12 +455,17 @@ const dbInsertOutgoingTalks = async (
         }
 
         if (localSched) {
-          schedule.weekend_meeting.outgoing_talks =
-            schedule.weekend_meeting.outgoing_talks.filter(
-              (record) => record.id !== talk.id
-            );
+          const remoteUpdated = addSched.updatedAt || '';
+          const localUpdated = localSched.updatedAt || '';
 
-          schedule.weekend_meeting.outgoing_talks.push(addSched);
+          if (remoteUpdated > localUpdated) {
+            schedule.weekend_meeting.outgoing_talks =
+              schedule.weekend_meeting.outgoing_talks.filter(
+                (record) => record.id !== talk.id
+              );
+
+            schedule.weekend_meeting.outgoing_talks.push(addSched);
+          }
         }
 
         schedulesToUpdate.push(schedule);

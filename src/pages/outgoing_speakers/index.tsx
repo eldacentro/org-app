@@ -869,7 +869,6 @@ const OutgoingSpeakersPage = () => {
                     tabs={availableYears.map((year) => ({ label: year.toString() }))}
                     value={availableYears.indexOf(selectedYear)}
                     onChange={(index) => setSelectedYear(availableYears[index])}
-                    indicatorMode={true}
                     sx={{ mb: 1 }}
                   />
                 )}
