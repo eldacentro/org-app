@@ -11,7 +11,8 @@ const useAppTheme = () => {
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      setTheme(document.documentElement.getAttribute('data-theme'));
+      const val = document.documentElement.getAttribute('data-theme');
+      setTheme(val || 'blue-light');
     });
 
     observer.observe(document.documentElement, {
@@ -22,7 +23,10 @@ const useAppTheme = () => {
     return () => observer.disconnect();
   }, []);
 
-  const themeColor = useMemo(() => theme.split('-')[0], [theme]);
+  const themeColor = useMemo(() => {
+    if (!theme) return 'blue';
+    return theme.split('-')[0] || 'blue';
+  }, [theme]);
 
   const darkValue = isDark ? 'dark' : 'light';
 

@@ -83,28 +83,97 @@ const rtlCache = createCache({
   stylisPlugins: [rtlPlugin],
 });
 
+const PublisherRoute = () => {
+  const { isPublisher } = useCurrentUser();
+  return <RouteProtected allowed={isPublisher} />;
+};
+
+const ConnectedRoute = () => {
+  const isConnected = useAtomValue(congAccountConnectedState);
+  return <RouteProtected allowed={isConnected} />;
+};
+
+const PublisherAppointedServiceRoute = () => {
+  const { isPublisher, isAppointed, isServiceCommittee } = useCurrentUser();
+  return (
+    <RouteProtected
+      allowed={isPublisher || isAppointed || isServiceCommittee}
+    />
+  );
+};
+
+const AppointedWeekendRoute = () => {
+  const { isAppointed, isWeekendEditor } = useCurrentUser();
+  return <RouteProtected allowed={isAppointed || isWeekendEditor} />;
+};
+
+const AppointedPublicTalkRoute = () => {
+  const { isAppointed, isPublicTalkCoordinator } = useCurrentUser();
+  return <RouteProtected allowed={isAppointed || isPublicTalkCoordinator} />;
+};
+
+const ElderRoute = () => {
+  const { isElder } = useCurrentUser();
+  return <RouteProtected allowed={isElder} />;
+};
+
+const PersonEditorRoute = () => {
+  const { isPersonEditor } = useCurrentUser();
+  return <RouteProtected allowed={isPersonEditor} />;
+};
+
+const AttendanceEditorRoute = () => {
+  const { isAttendanceEditor } = useCurrentUser();
+  return <RouteProtected allowed={isAttendanceEditor} />;
+};
+
+const MidweekEditorRoute = () => {
+  const { isMidweekEditor } = useCurrentUser();
+  return <RouteProtected allowed={isMidweekEditor} />;
+};
+
+const MidweekDepartmentsRoute = () => {
+  const { isMidweekEditor, isDepartmentsEditor } = useCurrentUser();
+  return <RouteProtected allowed={isMidweekEditor || isDepartmentsEditor} />;
+};
+
+const WeekendPublicTalkRoute = () => {
+  const { isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
+  return (
+    <RouteProtected allowed={isWeekendEditor || isPublicTalkCoordinator} />
+  );
+};
+
+const GroupLanguageSecretaryRoute = () => {
+  const { isGroupOverseer, isLanguageGroupOverseer, isSecretary } =
+    useCurrentUser();
+  return (
+    <RouteProtected
+      allowed={isGroupOverseer || isLanguageGroupOverseer || isSecretary}
+    />
+  );
+};
+
+const LanguageGroupRoute = () => {
+  const { isLanguageGroupOverseer } = useCurrentUser();
+  return <RouteProtected allowed={isLanguageGroupOverseer} />;
+};
+
+const AdminRoute = () => {
+  const { isAdmin } = useCurrentUser();
+  return <RouteProtected allowed={isAdmin} />;
+};
+
+const NotGroupRoute = () => {
+  const { isGroup } = useCurrentUser();
+  return <RouteProtected allowed={!isGroup} />;
+};
+
 const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
-  const {
-    isAdmin,
-    isPublisher,
-    isElder,
-    isPersonEditor,
-    isAttendanceEditor,
-    isAppointed,
-    isMidweekEditor,
-    isWeekendEditor,
-    isDepartmentsEditor,
-    isGroupOverseer,
-    isSecretary,
-    isPublicTalkCoordinator,
-    isServiceCommittee,
-    isGroup,
-    isLanguageGroupOverseer,
-  } = useCurrentUser();
+  const { isAdmin } = useCurrentUser();
 
   const [adapterLocale, setAdapterLocale] = useAtom(appLocaleState);
 
-  const isConnected = useAtomValue(congAccountConnectedState);
   const theme = useAtomValue(appThemeState);
   const appLang = useAtomValue(appLangState);
   const firstDayOfTheWeekOption = useAtomValue(firstDayWeekState);
@@ -130,14 +199,14 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // publisher routes
               {
-                element: <RouteProtected allowed={isPublisher} />,
+                element: <PublisherRoute />,
                 children: [
                   { path: '/ministry-report', element: <MinistryReport /> },
                   { path: '/service-year', element: <ServiceYear /> },
 
                   // only if connected
                   {
-                    element: <RouteProtected allowed={isConnected} />,
+                    element: <ConnectedRoute />,
                     children: [
                       {
                         path: '/auxiliary-pioneer-application',
@@ -150,11 +219,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // publisher, service committee, appointed routes
               {
-                element: (
-                  <RouteProtected
-                    allowed={isPublisher || isAppointed || isServiceCommittee}
-                  />
-                ),
+                element: <PublisherAppointedServiceRoute />,
                 children: [
                   {
                     path: '/field-service-groups',
@@ -165,9 +230,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // appointed routes
               {
-                element: (
-                  <RouteProtected allowed={isAppointed || isWeekendEditor} />
-                ),
+                element: <AppointedWeekendRoute />,
                 children: [
                   { path: '/public-talks-list', element: <PublicTalksList /> },
                 ],
@@ -175,11 +238,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // public talk coordinator routes
               {
-                element: (
-                  <RouteProtected
-                    allowed={isAppointed || isPublicTalkCoordinator}
-                  />
-                ),
+                element: <AppointedPublicTalkRoute />,
                 children: [
                   { path: '/speakers-catalog', element: <SpeakersCatalog /> },
                 ],
@@ -187,7 +246,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // elder routes
               {
-                element: <RouteProtected allowed={isElder} />,
+                element: <ElderRoute />,
                 children: [
                   { path: '/persons', element: <PersonsAll /> },
                   { path: '/persons/:id', element: <PersonDetails /> },
@@ -203,7 +262,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
                   // only if connected
                   {
-                    element: <RouteProtected allowed={isConnected} />,
+                    element: <ConnectedRoute />,
                     children: [
                       {
                         path: '/pioneer-applications',
@@ -220,13 +279,13 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // person editor routes
               {
-                element: <RouteProtected allowed={isPersonEditor} />,
+                element: <PersonEditorRoute />,
                 children: [{ path: '/persons/new', element: <PersonDetails /> }],
               },
 
               // attendance editor routes
               {
-                element: <RouteProtected allowed={isAttendanceEditor} />,
+                element: <AttendanceEditorRoute />,
                 children: [
                   {
                     path: '/reports/meeting-attendance',
@@ -237,7 +296,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // midweek editor routes
               {
-                element: <RouteProtected allowed={isMidweekEditor} />,
+                element: <MidweekEditorRoute />,
                 children: [
                   { path: '/midweek-meeting', element: <MidweekMeeting /> },
                 ],
@@ -245,11 +304,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // departments schedule routes
               {
-                element: (
-                  <RouteProtected
-                    allowed={isMidweekEditor || isDepartmentsEditor}
-                  />
-                ),
+                element: <MidweekDepartmentsRoute />,
                 children: [
                   {
                     path: '/departments-schedule',
@@ -260,11 +315,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // weekend editor routes
               {
-                element: (
-                  <RouteProtected
-                    allowed={isWeekendEditor || isPublicTalkCoordinator}
-                  />
-                ),
+                element: <WeekendPublicTalkRoute />,
                 children: [
                   { path: '/weekend-meeting', element: <WeekendMeeting /> },
                 ],
@@ -272,13 +323,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // secretary routes and group overseer
               {
-                element: (
-                  <RouteProtected
-                    allowed={
-                      isGroupOverseer || isLanguageGroupOverseer || isSecretary
-                    }
-                  />
-                ),
+                element: <GroupLanguageSecretaryRoute />,
                 children: [
                   {
                     path: '/reports/field-service',
@@ -289,7 +334,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // language group admin route
               {
-                element: <RouteProtected allowed={isLanguageGroupOverseer} />,
+                element: <LanguageGroupRoute />,
                 children: [
                   {
                     path: '/group-settings',
@@ -300,10 +345,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
               // congregation admin routes (admin - secretary - coordinator)
               {
-                element: <RouteProtected allowed={isAdmin} />,
+                element: <AdminRoute />,
                 children: [
                   {
-                    element: <RouteProtected allowed={!isGroup} />,
+                    element: <NotGroupRoute />,
                     children: [
                       {
                         path: '/reports/branch-office',
@@ -314,7 +359,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
                   // only if connected
                   {
-                    element: <RouteProtected allowed={isConnected} />,
+                    element: <ConnectedRoute />,
                     children: [
                       { path: '/manage-access', element: <UsersAll /> },
                       {
@@ -333,25 +378,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
         ],
       },
     ]);
-  }, [
-    isAdmin,
-    isPublisher,
-    isElder,
-    isPersonEditor,
-    isAttendanceEditor,
-    isAppointed,
-    isMidweekEditor,
-    isWeekendEditor,
-    isDepartmentsEditor,
-    isGroupOverseer,
-    isLanguageGroupOverseer,
-    isSecretary,
-    isPublicTalkCoordinator,
-    isServiceCommittee,
-    isGroup,
-    isConnected,
-    updatePwa,
-  ]);
+  }, [updatePwa]);
 
   useEffect(() => {
     const locale = determineAppLocale(appLang);
