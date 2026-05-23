@@ -12,8 +12,7 @@ import LanguageGroupSelector from '@features/language_group_selector';
 import Markup from '@components/text_markup';
 import MinistryCard from './ministry';
 import MeetingsCard from './meetings';
-import MeetingsMaterialsCard from './meeting_materials';
-import PersonsCard from './persons';
+import ConfiguracionCard from './configuracion';
 import PublicTalksCard from './public_talks';
 import ReportsCard from './reports';
 import Snackbar from '@components/snackbar';
@@ -27,9 +26,7 @@ const Dashboard = () => {
   const { tablet688Up } = useBreakpoints();
 
   const {
-    isMeetingEditor,
     isPublisher,
-    isPersonViewer,
     isElder,
     isAttendanceEditor,
     isGroupOverseer,
@@ -94,9 +91,7 @@ const Dashboard = () => {
 
         <ActivitiesCard />
 
-        {isPersonViewer && <PersonsCard />}
-
-        {isMeetingEditor && <MeetingsMaterialsCard />}
+        <CongregationCard />
 
         {showWeekend && (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
           <PublicTalksCard />
@@ -104,7 +99,7 @@ const Dashboard = () => {
 
         {(isElder || isAttendanceEditor || isGroupOverseer) && <ReportsCard />}
 
-        <CongregationCard />
+        <ConfiguracionCard />
       </Box>
 
       {newCongSnack && (

@@ -1,33 +1,38 @@
 import { ListItem } from '@mui/material';
 import {
   IconGroups,
-  IconManageAccess,
-  IconSettings,
-  IconSynced,
+  IconParticipants,
+  IconApplications,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
-import useCongregation from './useCongregation';
+import usePersons from '../persons/usePersons';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
 
 const CongregationCard = () => {
   const { t } = useAppTranslation();
 
-  const { isPublisher, isAdmin, isElder, isGroup, isLanguageGroupOverseer } =
+  const { isPublisher, isAdmin, isGroup, isPersonViewer } =
     useCurrentUser();
 
-  const {
-    secondaryText,
-    handleManualSync,
-    isConnected,
-    isUserAdmin,
-    requests_count,
-  } = useCongregation();
+  const { show_AP, AP_count } = usePersons();
 
   return (
     <DashboardCard
       header={isGroup ? t('tr_languageGroupShort') : t('tr_congregation')}
     >
+      {/* 1. Personas */}
+      {isPersonViewer && (
+        <ListItem disablePadding>
+          <DashboardMenu
+            icon={<IconParticipants color="var(--black)" />}
+            primaryText={t('tr_persons', 'Personas')}
+            path="/persons"
+          />
+        </ListItem>
+      )}
+
+      {/* 2. Grupos de predicación */}
       {(isAdmin || isPublisher) && (
         <ListItem disablePadding>
           <DashboardMenu
@@ -38,49 +43,14 @@ const CongregationCard = () => {
         </ListItem>
       )}
 
-      {isConnected && isUserAdmin && (
+      {/* 3. Solicitudes de precursor */}
+      {show_AP && (
         <ListItem disablePadding>
           <DashboardMenu
-            icon={<IconManageAccess color="var(--black)" />}
-            primaryText={t('tr_manageAccess')}
-            badgeText={requests_count}
-            path="/manage-access"
-          />
-        </ListItem>
-      )}
-
-      {!isGroup && (isAdmin || isElder) && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            path="/congregation-settings"
-            icon={<IconSettings color="var(--black)" />}
-            primaryText={t('tr_congregationSettings')}
-          />
-        </ListItem>
-      )}
-
-      {isGroup && isLanguageGroupOverseer && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            path="/group-settings"
-            icon={<IconSettings color="var(--black)" />}
-            primaryText={t('tr_groupSettings')}
-          />
-        </ListItem>
-      )}
-
-      {isConnected && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            icon={
-              <IconSynced
-                color="var(--black)"
-                className="organized-sync-icon"
-              />
-            }
-            primaryText={t('tr_syncAppData')}
-            secondaryText={secondaryText}
-            onClick={handleManualSync}
+            icon={<IconApplications color="var(--black)" />}
+            primaryText={t('tr_pioneerApplications')}
+            badgeText={AP_count}
+            path="/pioneer-applications"
           />
         </ListItem>
       )}
