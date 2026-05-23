@@ -33,7 +33,6 @@ import {
   IconSearch,
   IconSortDown,
   IconSortUp,
-  IconArrowBack,
 } from '@components/icons';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
@@ -56,6 +55,7 @@ import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
 import { useNavigate } from 'react-router';
 import OutgoingTalksEditor from '@features/meetings/outgoing_talks';
+import ScrollableTabs from '@components/scrollable_tabs';
 
 const OutgoingSpeakersPage = () => {
   const { t } = useAppTranslation();
@@ -77,6 +77,13 @@ const OutgoingSpeakersPage = () => {
   const [sortBy, setSortBy] = useState<'alphabetical' | 'last_assignment'>('alphabetical');
   const [talksExpanded, setTalksExpanded] = useState<Record<string, boolean>>({});
   const [historyExpanded, setHistoryExpanded] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    if (!desktopUp && selectedWeek) {
+      setExpanded(false);
+    }
+  }, [selectedWeek, desktopUp]);
 
   // States for PDF Export Dialog
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -758,197 +765,249 @@ const OutgoingSpeakersPage = () => {
           }}
         >
           {/* Left Sidebar (Week Selector) */}
-          <Box
-            sx={{
-              width: desktopUp ? '300px' : '100%',
-              flexShrink: 0,
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--accent-300)',
-              backgroundColor: 'var(--white)',
-              padding: '16px',
-              display: !desktopUp && selectedWeek ? 'none' : 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              position: desktopUp ? 'sticky' : 'unset',
-              top: desktopUp ? 130 : 'unset',
-              maxHeight: desktopUp ? 'calc(100vh - 160px)' : 'unset',
-              overflowY: 'auto',
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-              <Typography className="h2" sx={{ fontWeight: '600' }}>
-                Programa
-              </Typography>
-              <IconButton
-                onClick={() => setMonthSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-                sx={{
-                  color: 'var(--accent-main)',
-                  padding: '4px',
-                  '&:hover': { backgroundColor: 'var(--accent-100)' },
-                }}
-              >
-                {monthSortOrder === 'desc' ? <IconSortDown /> : <IconSortUp />}
-              </IconButton>
-            </Box>
-
-            {/* Selector de año */}
-            <Select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              size="small"
+          {!desktopUp && selectedWeek && !expanded ? (
+            <Box
+              onClick={() => setExpanded(true)}
               sx={{
-                mb: 1.5,
+                width: '100%',
                 borderRadius: 'var(--radius-l)',
-                borderColor: 'var(--accent-300)',
-                backgroundColor: 'var(--white)',
-                '& .MuiSelect-select': {
-                  py: 1,
-                  px: 1.5,
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: 'var(--accent-main)',
+                border: '1px solid var(--accent-300)',
+                backgroundColor: 'var(--accent-100)',
+                padding: '10px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'var(--accent-150)',
                 },
               }}
             >
-              {availableYears.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-
-            {/* Month-grouped collapsible list */}
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              {groupedWeeks.map((group) => {
-                const isMonthExpanded = expandedMonth === group.month;
-                return (
-                  <Box
-                    key={group.month}
+              <Typography
+                className="body-small-semibold"
+                sx={{ color: 'var(--accent-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                {t('tr_week')}: <span style={{ fontWeight: '700' }}>{selectedWeekLabel}</span>
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Typography
+                  className="label-small-medium"
+                  sx={{
+                    color: 'var(--accent-main)',
+                    fontWeight: '600',
+                  }}
+                >
+                  {t('tr_change', 'Cambiar')}
+                </Typography>
+                <KeyboardArrowDown
+                  sx={{
+                    color: 'var(--accent-main)',
+                    transform: 'rotate(0deg)',
+                    fontSize: '18px',
+                  }}
+                />
+              </Box>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                width: desktopUp ? '300px' : '100%',
+                flexShrink: 0,
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--accent-300)',
+                backgroundColor: 'var(--white)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                position: desktopUp ? 'sticky' : 'unset',
+                top: desktopUp ? 130 : 'unset',
+                maxHeight: desktopUp ? 'calc(100vh - 160px)' : 'unset',
+                overflowY: 'auto',
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography className="h2" sx={{ fontWeight: '600' }}>
+                  Programa
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <IconButton
+                    onClick={() => setMonthSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
                     sx={{
-                      borderBottom: '1px solid var(--accent-200)',
-                      '&:last-child': { borderBottom: 'none' },
+                      color: 'var(--accent-main)',
+                      padding: '4px',
+                      '&:hover': { backgroundColor: 'var(--accent-100)' },
                     }}
                   >
-                    {/* Month header */}
-                    <Box
-                      onClick={() => handleToggleMonth(group.month)}
+                    {monthSortOrder === 'desc' ? <IconSortDown /> : <IconSortUp />}
+                  </IconButton>
+                  {!desktopUp && selectedWeek && (
+                    <IconButton
+                      onClick={() => setExpanded(false)}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        cursor: 'pointer',
-                        py: 1,
-                        px: 1,
-                        borderRadius: 'var(--radius-m)',
-                        '&:hover': { backgroundColor: 'var(--accent-50)' },
+                        color: 'var(--grey-600)',
+                        padding: '4px',
                       }}
                     >
-                      <Typography
+                      <KeyboardArrowDown style={{ transform: 'rotate(180deg)' }} />
+                    </IconButton>
+                  )}
+                </Box>
+              </Box>
+
+              <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
+                {/* Selector de año como ScrollableTabs */}
+                {availableYears.length > 0 && (
+                  <ScrollableTabs
+                    tabs={availableYears.map((year) => ({ label: year.toString() }))}
+                    value={availableYears.indexOf(selectedYear)}
+                    onChange={(index) => setSelectedYear(availableYears[index])}
+                    indicatorMode={true}
+                    sx={{ mb: 1 }}
+                  />
+                )}
+
+                {/* Month-grouped collapsible list */}
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  {groupedWeeks.map((group) => {
+                    const isMonthExpanded = expandedMonth === group.month;
+                    return (
+                      <Box
+                        key={group.month}
                         sx={{
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          color: 'var(--grey-600)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
+                          borderBottom: '1px solid var(--accent-200)',
+                          '&:last-child': { borderBottom: 'none' },
                         }}
                       >
-                        {group.monthLabel}
-                      </Typography>
-                      <KeyboardArrowDown
-                        sx={{
-                          fontSize: '18px',
-                          color: 'var(--grey-400)',
-                          transform: isMonthExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s',
-                        }}
-                      />
-                    </Box>
+                        {/* Month header */}
+                        <Box
+                          onClick={() => handleToggleMonth(group.month)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer',
+                            py: 1,
+                            px: 1,
+                            borderRadius: 'var(--radius-m)',
+                            '&:hover': { backgroundColor: 'var(--accent-50)' },
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              color: 'var(--grey-600)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                            }}
+                          >
+                            {group.monthLabel}
+                          </Typography>
+                          <KeyboardArrowDown
+                            sx={{
+                              fontSize: '18px',
+                              color: 'var(--grey-400)',
+                              transform: isMonthExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s',
+                            }}
+                          />
+                        </Box>
 
-                    {/* Week items inside month */}
-                    <Collapse in={isMonthExpanded} timeout="auto" unmountOnExit>
-                      <List disablePadding sx={{ pb: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {group.weeks.map((weekOf) => {
-                          const schedule = schedules.find((s) => s.weekOf === weekOf);
-                          const assignmentsCount =
-                            schedule?.weekend_meeting?.outgoing_talks?.filter((t) => !t._deleted).length || 0;
-                          const isSelected = selectedWeek === weekOf;
+                        {/* Week items inside month */}
+                        <Collapse in={isMonthExpanded} timeout="auto" unmountOnExit>
+                          <List disablePadding sx={{ pb: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {group.weeks.map((weekOf) => {
+                              const schedule = schedules.find((s) => s.weekOf === weekOf);
+                              const assignmentsCount =
+                                schedule?.weekend_meeting?.outgoing_talks?.filter((t) => !t._deleted).length || 0;
+                              const isSelected = selectedWeek === weekOf;
 
-                          // Format date: e.g. "19 may." — normalise YYYY/MM/DD → YYYY-MM-DD
-                          const normalisedWeek = weekOf.replace(/\//g, '-');
-                          const d = new Date(normalisedWeek + 'T12:00:00');
-                          const mesesCortos = [
-                            'ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.',
-                            'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.',
-                          ];
-                          const weekLabel = isNaN(d.getTime())
-                            ? weekOf
-                            : `${d.getDate()} ${mesesCortos[d.getMonth()]}`;
+                              // Format date: e.g. "19 may." — normalise YYYY/MM/DD → YYYY-MM-DD
+                              const normalisedWeek = weekOf.replace(/\//g, '-');
+                              const d = new Date(normalisedWeek + 'T12:00:00');
+                              const mesesCortos = [
+                                'ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.',
+                                'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.',
+                              ];
+                              const weekLabel = isNaN(d.getTime())
+                                ? weekOf
+                                : `${d.getDate()} ${mesesCortos[d.getMonth()]}`;
 
-                          return (
-                            <ListItem
-                              key={weekOf}
-                              disablePadding
-                              onClick={() => {
-                                setSelectedWeek(weekOf);
-                                setExpandedMonth(group.month);
-                              }}
-                              sx={{
-                                borderRadius: 'var(--radius-l)',
-                                backgroundColor: isSelected ? 'var(--accent-100)' : 'transparent',
-                                border: isSelected
-                                  ? '1px solid var(--accent-300)'
-                                  : '1px solid transparent',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s',
-                                '&:hover': {
-                                  backgroundColor: isSelected
-                                    ? 'var(--accent-100)'
-                                    : 'var(--accent-50)',
-                                },
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  width: '100%',
-                                  px: 2,
-                                  py: 1,
-                                }}
-                              >
-                                <Typography
+                              return (
+                                <ListItem
+                                  key={weekOf}
+                                  disablePadding
+                                  onClick={() => {
+                                    setSelectedWeek(weekOf);
+                                    setExpandedMonth(group.month);
+                                  }}
                                   sx={{
-                                    fontSize: '14px',
-                                    fontWeight: isSelected ? '600' : '400',
-                                    color: isSelected
-                                      ? 'var(--accent-main)'
-                                      : 'var(--black)',
+                                    borderRadius: 'var(--radius-l)',
+                                    backgroundColor: isSelected ? 'var(--accent-100)' : 'transparent',
+                                    border: isSelected
+                                      ? '1px solid var(--accent-300)'
+                                      : '1px solid transparent',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s',
+                                    '&:hover': {
+                                      backgroundColor: isSelected
+                                        ? 'var(--accent-100)'
+                                        : 'var(--accent-50)',
+                                    },
                                   }}
                                 >
-                                  {weekLabel}
-                                </Typography>
-                                {assignmentsCount > 0 && (
-                                  <MiniChip
-                                    label={`${assignmentsCount}`}
-                                  />
-                                )}
-                              </Box>
-                            </ListItem>
-                          );
-                        })}
-                      </List>
-                    </Collapse>
-                  </Box>
-                );
-              })}
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      width: '100%',
+                                      px: 2,
+                                      py: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        fontSize: '14px',
+                                        fontWeight: isSelected ? '600' : '400',
+                                        color: isSelected
+                                          ? 'var(--accent-main)'
+                                          : 'var(--black)',
+                                      }}
+                                    >
+                                      {weekLabel}
+                                    </Typography>
+                                    {assignmentsCount > 0 && (
+                                      <MiniChip
+                                        label={`${assignmentsCount}`}
+                                      />
+                                    )}
+                                  </Box>
+                                </ListItem>
+                              );
+                            })}
+                          </List>
+                        </Collapse>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Collapse>
             </Box>
-          </Box>
+          )}
 
           {/* Right Main Editor Container */}
           <Box
             sx={{
-              display: !desktopUp && !selectedWeek ? 'none' : 'block',
+              display: 'block',
               flexGrow: 1,
               width: '100%',
               borderRadius: 'var(--radius-xl)',
@@ -982,28 +1041,6 @@ const OutgoingSpeakersPage = () => {
                   >
                     {selectedWeekLabel}
                   </Typography>
-
-                  {!desktopUp && (
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      startIcon={<IconArrowBack color="var(--accent-main)" />}
-                      onClick={() => setSelectedWeek('')}
-                      sx={{
-                        height: '30px',
-                        minHeight: '30px',
-                        borderRadius: 'var(--radius-m)',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        color: 'var(--accent-main)',
-                        borderColor: 'var(--accent-300)',
-                        backgroundColor: 'var(--white)',
-                        '&:hover': { backgroundColor: 'var(--accent-50)' },
-                      }}
-                    >
-                      Volver
-                    </Button>
-                  )}
                 </Box>
                 <Divider sx={{ my: 0.5, borderColor: 'var(--accent-200)' }} />
                 <OutgoingTalksEditor />
