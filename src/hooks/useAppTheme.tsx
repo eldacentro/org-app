@@ -6,7 +6,7 @@ const useAppTheme = () => {
   const isDark = useAtomValue(isDarkThemeState);
 
   const [theme, setTheme] = useState(() => {
-    return document.documentElement.getAttribute('data-theme');
+    return document.documentElement.getAttribute('data-theme') || 'blue-light';
   });
 
   useEffect(() => {
