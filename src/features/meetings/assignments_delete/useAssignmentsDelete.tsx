@@ -49,9 +49,12 @@ const useAssignmentsDelete = (
     try {
       setIsProcessing(true);
 
-      const weeksList = schedules.filter(
-        (record) => record.weekOf >= startWeek && record.weekOf <= endWeek
-      );
+      const normStart = startWeek.replace(/\//g, '-');
+      const normEnd = endWeek.replace(/\//g, '-');
+      const weeksList = schedules.filter((record) => {
+        const normWeek = record.weekOf.replace(/\//g, '-');
+        return normWeek >= normStart && normWeek <= normEnd;
+      });
 
       await handleDeleteMeetingAssignments(weeksList);
 

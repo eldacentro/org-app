@@ -66,8 +66,11 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
       setIsProcessing(true);
 
       const weeksList = schedules.filter((schedule) => {
+        const normStart = startWeek.replace(/\//g, '-');
+        const normEnd = endWeek.replace(/\//g, '-');
+        const normWeek = schedule.weekOf.replace(/\//g, '-');
         const isValid =
-          schedule.weekOf >= startWeek && schedule.weekOf <= endWeek;
+          normWeek >= normStart && normWeek <= normEnd;
 
         if (!isValid) return false;
 
