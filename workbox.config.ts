@@ -10,6 +10,7 @@ export default generateSW({
   maximumFileSizeToCacheInBytes: 12582912,
   sourcemap: false,
   clientsClaim: true,
+  skipWaiting: true,
 }).then(({ count, size, warnings, filePaths }) => {
   if (warnings.length > 0) {
     console.warn(
