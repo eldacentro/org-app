@@ -29,7 +29,63 @@ const WeekSelector = () => {
     meeting,
     sortDown,
     handleToggleSort,
+    selectedWeek,
+    selectedWeekDateLocale,
   } = useWeekSelector();
+
+  if (!desktopUp && selectedWeek && selectedWeek.length > 0 && !expanded) {
+    return (
+      <Box
+        onClick={handleToggleExpand}
+        sx={{
+          width: '100%',
+          borderRadius: 'var(--radius-l)',
+          border: '1px solid var(--accent-300)',
+          backgroundColor: 'var(--accent-100)',
+          padding: '10px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            backgroundColor: 'var(--accent-150)',
+          },
+        }}
+      >
+        <Typography
+          className="body-small-semibold"
+          sx={{ color: 'var(--accent-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}
+        >
+          {t('tr_week')}: <span style={{ fontWeight: '700' }}>{selectedWeekDateLocale}</span>
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          <Typography
+            className="label-small-medium"
+            sx={{
+              color: 'var(--accent-main)',
+              fontWeight: '600',
+            }}
+          >
+            {t('tr_change', 'Cambiar')}
+          </Typography>
+          <IconCollapse
+            color="var(--accent-main)"
+            sx={{
+              transform: 'rotate(180deg)',
+              fontSize: '16px',
+            }}
+          />
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box

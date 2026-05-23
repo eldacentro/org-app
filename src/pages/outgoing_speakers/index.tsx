@@ -33,6 +33,7 @@ import {
   IconSearch,
   IconSortDown,
   IconSortUp,
+  IconArrowBack,
 } from '@components/icons';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
@@ -765,7 +766,7 @@ const OutgoingSpeakersPage = () => {
               border: '1px solid var(--accent-300)',
               backgroundColor: 'var(--white)',
               padding: '16px',
-              display: 'flex',
+              display: !desktopUp && selectedWeek ? 'none' : 'flex',
               flexDirection: 'column',
               gap: '12px',
               position: desktopUp ? 'sticky' : 'unset',
@@ -947,6 +948,7 @@ const OutgoingSpeakersPage = () => {
           {/* Right Main Editor Container */}
           <Box
             sx={{
+              display: !desktopUp && !selectedWeek ? 'none' : 'block',
               flexGrow: 1,
               width: '100%',
               borderRadius: 'var(--radius-xl)',
@@ -962,6 +964,7 @@ const OutgoingSpeakersPage = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'space-between',
                     gap: 1,
                     px: 2,
                     py: 1.5,
@@ -979,6 +982,28 @@ const OutgoingSpeakersPage = () => {
                   >
                     {selectedWeekLabel}
                   </Typography>
+
+                  {!desktopUp && (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      startIcon={<IconArrowBack color="var(--accent-main)" />}
+                      onClick={() => setSelectedWeek('')}
+                      sx={{
+                        height: '30px',
+                        minHeight: '30px',
+                        borderRadius: 'var(--radius-m)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: 'var(--accent-main)',
+                        borderColor: 'var(--accent-300)',
+                        backgroundColor: 'var(--white)',
+                        '&:hover': { backgroundColor: 'var(--accent-50)' },
+                      }}
+                    >
+                      Volver
+                    </Button>
+                  )}
                 </Box>
                 <Divider sx={{ my: 0.5, borderColor: 'var(--accent-200)' }} />
                 <OutgoingTalksEditor />

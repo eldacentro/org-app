@@ -209,6 +209,12 @@ const useWeekSelector = () => {
     };
   }, [resetSelectedWeek]);
 
+  const selectedWeekDateLocale = useMemo(() => {
+    if (!selectedWeek || selectedWeek.length === 0) return '';
+    const meetingDate = schedulesGetMeetingDate({ week: selectedWeek, meeting });
+    return meetingDate.locale;
+  }, [selectedWeek, meeting]);
+
   return {
     tabs,
     hasWeeks,
@@ -221,6 +227,8 @@ const useWeekSelector = () => {
     meeting,
     sortDown,
     handleToggleSort,
+    selectedWeek,
+    selectedWeekDateLocale,
   };
 };
 
