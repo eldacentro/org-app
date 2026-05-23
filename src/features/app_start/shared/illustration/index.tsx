@@ -1,10 +1,6 @@
-import 'swiper/css';
-import 'swiper/css/pagination';
-
+import { useEffect } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { IconEllipse } from '@icons/index';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
 import { SlideItem } from './index.styles';
 import useIllustration from './useIllustration';
 import Typography from '@components/typography';
@@ -15,9 +11,16 @@ const StartupIllustration = () => {
     setCurrentImage,
     dotSize,
     handleSlide,
-    swiperRef,
     slides,
   } = useIllustration();
+
+  // Autoplay slide rotation every 10 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % slides.length);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [slides.length, setCurrentImage]);
 
   return (
     <Box
@@ -34,24 +37,32 @@ const StartupIllustration = () => {
         gap: '32px',
       }}
     >
-      <Box sx={{ flex: '1 0 0' }}>
-        <Swiper
-          ref={swiperRef}
-          slidesPerView="auto"
-          spaceBetween={0}
-          centeredSlides={true}
-          autoplay={{
-            delay: 10000,
-            disableOnInteraction: false,
+      <Box
+        sx={{
+          flex: '1 0 0',
+          overflow: 'hidden',
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            width: `${slides.length * 100}%`,
+            height: '100%',
+            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: `translateX(-${(currentImage * 100) / slides.length}%)`,
           }}
-          loop={true}
-          modules={[Autoplay, Pagination]}
-          className="mySwiper"
-          style={{ height: '100%' }}
-          onRealIndexChange={(swiper) => setCurrentImage(swiper.realIndex)}
         >
           {slides.map((slide) => (
-            <SwiperSlide key={slide.title}>
+            <Box
+              key={slide.title}
+              sx={{
+                width: `${100 / slides.length}%`,
+                height: '100%',
+                flexShrink: 0,
+              }}
+            >
               <SlideItem>
                 <Box>
                   <Typography
@@ -70,9 +81,9 @@ const StartupIllustration = () => {
                 </Box>
                 {slide.component}
               </SlideItem>
-            </SwiperSlide>
+            </Box>
           ))}
-        </Swiper>
+        </Box>
       </Box>
 
       <Box

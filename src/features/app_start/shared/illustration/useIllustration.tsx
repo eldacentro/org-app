@@ -1,6 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
-import { SwiperRef } from 'swiper/react';
 import { useAppTranslation } from '@hooks/index';
 
 import IllustrationMinistryAssignments from '@components/illustrations/IllustrationMinistryAssignments';
@@ -14,7 +13,6 @@ const useIllustration = () => {
   const { t } = useAppTranslation();
 
   const theme = useTheme();
-  const swiperRef = useRef<SwiperRef>();
 
   const laptopUp = useMediaQuery(theme.breakpoints.up('laptop'), {
     noSsr: true,
@@ -83,10 +81,8 @@ const useIllustration = () => {
     ];
   }, [t]);
 
-  const handleSlide = (n) => {
-    if (swiperRef.current) {
-      swiperRef.current.swiper.slideToLoop(n);
-    }
+  const handleSlide = (n: number) => {
+    setCurrentImage(n);
   };
 
   return {
@@ -94,7 +90,6 @@ const useIllustration = () => {
     dotSize,
     setCurrentImage,
     handleSlide,
-    swiperRef,
     slides,
   };
 };
