@@ -14,10 +14,12 @@ import MinistryCard from './ministry';
 import MeetingsCard from './meetings';
 import MeetingsMaterialsCard from './meeting_materials';
 import PersonsCard from './persons';
+import PublicTalksCard from './public_talks';
 import ReportsCard from './reports';
 import Snackbar from '@components/snackbar';
 import Typography from '@components/typography';
 import PageTitle from '@components/page_title';
+import useSharedHook from './useSharedHook';
 
 const Dashboard = () => {
   const { t } = useAppTranslation();
@@ -31,7 +33,11 @@ const Dashboard = () => {
     isElder,
     isAttendanceEditor,
     isGroupOverseer,
+    isWeekendEditor,
+    isPublicTalkCoordinator,
   } = useCurrentUser();
+
+  const { showWeekend } = useSharedHook();
 
   const {
     firstName,
@@ -91,6 +97,10 @@ const Dashboard = () => {
         {isPersonViewer && <PersonsCard />}
 
         {isMeetingEditor && <MeetingsMaterialsCard />}
+
+        {showWeekend && (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
+          <PublicTalksCard />
+        )}
 
         {(isElder || isAttendanceEditor || isGroupOverseer) && <ReportsCard />}
 

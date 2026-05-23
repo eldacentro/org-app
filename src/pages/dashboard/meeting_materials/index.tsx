@@ -1,5 +1,5 @@
 import { ListItem } from '@mui/material';
-import { IconImportFile, IconJwOrg, IconPodium } from '@icons/index';
+import { IconImportFile, IconJwOrg } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useMeetingMaterials from './useMeetingMaterials';
 import useSharedHook from '../useSharedHook';
@@ -9,7 +9,7 @@ import DashboardMenu from '@features/dashboard/menu';
 const MeetingsMaterialsCard = () => {
   const { t } = useAppTranslation();
 
-  const { showMeetingCard, showWeekend } = useSharedHook();
+  const { showMeetingCard } = useSharedHook();
 
   const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile } =
     useMeetingMaterials();
@@ -18,15 +18,6 @@ const MeetingsMaterialsCard = () => {
 
   return (
     <DashboardCard header={t('tr_meetingMaterials')}>
-      {showWeekend && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            icon={<IconPodium color="var(--black)" />}
-            primaryText={t('tr_publicTalksList')}
-            path="/public-talks-list"
-          />
-        </ListItem>
-      )}
 
       {isNavigatorOnline && (
         <ListItem disablePadding>

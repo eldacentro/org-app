@@ -3,12 +3,9 @@ import {
   IconAddPerson,
   IconApplications,
   IconParticipants,
-  IconVisitingSpeaker,
-  IconOutgoindSpeaker,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import usePersons from './usePersons';
-import useSharedHook from '../useSharedHook';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
 
@@ -17,9 +14,7 @@ const PersonsCard = () => {
 
   const { handleAddNewPerson, show_AP, AP_count } = usePersons();
 
-  const { isPersonEditor, isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
-
-  const { showWeekend } = useSharedHook();
+  const { isPersonEditor } = useCurrentUser();
 
   return (
     <DashboardCard header={t('tr_persons')}>
@@ -48,26 +43,6 @@ const PersonsCard = () => {
             primaryText={t('tr_pioneerApplications')}
             badgeText={AP_count}
             path="/pioneer-applications"
-          />
-        </ListItem>
-      )}
-
-      {showWeekend && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            icon={<IconVisitingSpeaker color="var(--black)" />}
-            primaryText={t('tr_speakersCatalog')}
-            path="/speakers-catalog"
-          />
-        </ListItem>
-      )}
-
-      {showWeekend && (isWeekendEditor || isPublicTalkCoordinator) && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            icon={<IconOutgoindSpeaker color="var(--black)" />}
-            primaryText="Oradores salientes"
-            path="/outgoing-speakers"
           />
         </ListItem>
       )}
