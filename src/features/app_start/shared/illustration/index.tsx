@@ -35,6 +35,7 @@ const StartupIllustration = () => {
         flexDirection: 'column',
         justifyContent: 'space-between',
         gap: '32px',
+        minHeight: { mobile: '340px', laptop: 'auto' },
       }}
     >
       <Box
@@ -43,6 +44,8 @@ const StartupIllustration = () => {
           overflow: 'hidden',
           width: '100%',
           position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Box
@@ -61,6 +64,8 @@ const StartupIllustration = () => {
                 width: `${100 / slides.length}%`,
                 height: '100%',
                 flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
               <SlideItem>
