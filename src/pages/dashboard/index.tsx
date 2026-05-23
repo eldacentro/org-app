@@ -6,7 +6,6 @@ import {
   useCurrentUser,
 } from '@hooks/index';
 import useDashboard from './useDashboard';
-import ActivitiesCard from './activities';
 import CongregationCard from './congregation';
 import LanguageGroupSelector from '@features/language_group_selector';
 import Markup from '@components/text_markup';
@@ -85,11 +84,9 @@ const Dashboard = () => {
           gridGap: '24px',
         }}
       >
-        {isPublisher && <MinistryCard />}
-
         <MeetingsCard assignmentCount={countFutureAssignments} />
 
-        <ActivitiesCard />
+        {isPublisher && <MinistryCard />}
 
         <CongregationCard />
 

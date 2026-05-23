@@ -3,6 +3,7 @@ import {
   IconGroups,
   IconParticipants,
   IconApplications,
+  IconNextEvents,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import usePersons from '../persons/usePersons';
@@ -54,6 +55,15 @@ const CongregationCard = () => {
           />
         </ListItem>
       )}
+
+      {/* 4. Próximos eventos */}
+      <ListItem disablePadding>
+        <DashboardMenu
+          icon={<IconNextEvents color="var(--black)" />}
+          primaryText={t('tr_upcomingEvents')}
+          path="/activities/upcoming-events"
+        />
+      </ListItem>
     </DashboardCard>
   );
 };
