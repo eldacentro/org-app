@@ -1588,17 +1588,20 @@ const dbInsertMetadata = async (metadata: Record<string, string>) => {
   await appDb.metadata.put(toSave);
 };
 
-const getObjectLatestUpdate = (obj: any) => {
+const getObjectLatestUpdate = (obj: unknown) => {
   let latest = '';
 
-  const traverse = (current: any) => {
-    for (const key in current) {
-      if (key === 'updatedAt' && typeof current[key] === 'string') {
-        if (current[key] > latest) {
-          latest = current[key];
+  const traverse = (current: unknown) => {
+    if (!current || typeof current !== 'object') return;
+    const record = current as Record<string, unknown>;
+    for (const key in record) {
+      const val = record[key];
+      if (key === 'updatedAt' && typeof val === 'string') {
+        if (val > latest) {
+          latest = val;
         }
-      } else if (current[key] !== null && typeof current[key] === 'object') {
-        traverse(current[key]);
+      } else if (val !== null && typeof val === 'object') {
+        traverse(val);
       }
     }
   };
