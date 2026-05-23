@@ -10,7 +10,7 @@ const OSScheduleSpeakBox = ({ data }: OSScheduleSpeakBoxProps) => {
   return (
     <View style={styles.weekContainer} wrap={false}>
       <View style={styles.weekTitleContainer}>
-        <Text style={styles.weekTitle}>{data[0].date.formatted}</Text>
+        <Text style={styles.weekTitle}>{data[0].weekOfFormatted}</Text>
       </View>
 
       <View style={styles.grid}>

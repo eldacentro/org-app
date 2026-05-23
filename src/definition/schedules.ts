@@ -320,6 +320,8 @@ export type OutgoingSpeakersScheduleItem = {
   speaker: string;
   congregation_name: string;
   date: { date: Date; formatted: string };
+  weekOf: string;
+  weekOfFormatted: string;
 };
 
 export type OutgoingSpeakersScheduleType = OutgoingSpeakersScheduleItem[];

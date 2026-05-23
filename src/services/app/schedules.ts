@@ -3086,18 +3086,15 @@ export const groupOutgoingSpeakersByDate = (
   const groups: Record<string, OutgoingSpeakersScheduleType> = {};
 
   speakers.forEach((item) => {
-    const d = item.date.date;
-    const key = (d && !isNaN(d.getTime()))
-      ? d.toISOString().slice(0, 10)
-      : 'invalid-date';
+    const key = item.weekOf || 'invalid-date';
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
   });
 
   return Object.values(groups).sort((a, b) => {
-    const timeA = a[0]?.date?.date?.getTime() || 0;
-    const timeB = b[0]?.date?.date?.getTime() || 0;
-    return timeA - timeB;
+    const keyA = a[0]?.weekOf || '';
+    const keyB = b[0]?.weekOf || '';
+    return keyA.localeCompare(keyB);
   });
 };
 
@@ -3177,6 +3174,12 @@ export const scheduleOutgoingSpeakers = (
       },
     });
 
+    const weekOfFormatted = schedulesGetMeetingDate({
+      week: schedule.weekOf,
+      meeting: 'weekOf',
+      key: 'tr_longDateWithYearLocale',
+    }).locale;
+
     result.push({
       opening_song: {
         title: openingSong?.song_title ?? '',
@@ -3189,6 +3192,8 @@ export const scheduleOutgoingSpeakers = (
       speaker: speakerName ?? '',
       congregation_name: record.congregation.name ?? '',
       date: { date: recordDate, formatted: formattedDate },
+      weekOf: schedule.weekOf,
+      weekOfFormatted,
     });
   }
 
