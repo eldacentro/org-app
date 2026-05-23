@@ -91,11 +91,32 @@ const OutgoingSpeakersPage = () => {
   const [endWeek, setEndWeek] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Default selected week setup
+  // Default selected week setup (defaults to the current week, with fallback to latest)
   useEffect(() => {
     if (!selectedWeek && schedules.length > 0) {
-      const sortedSchedules = [...schedules].sort((a, b) => b.weekOf.localeCompare(a.weekOf));
-      setSelectedWeek(sortedSchedules[0]?.weekOf || '');
+      const today = new Date();
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(today.setDate(diff));
+
+      const yyyy = monday.getFullYear();
+      const mm = String(monday.getMonth() + 1).padStart(2, '0');
+      const dd = String(monday.getDate()).padStart(2, '0');
+
+      const currentWeekSlash = `${yyyy}/${mm}/${dd}`;
+      const currentWeekDash = `${yyyy}-${mm}-${dd}`;
+
+      // Check if we have a schedule for the current week
+      const exactMatch = schedules.find(
+        (record) => record.weekOf === currentWeekSlash || record.weekOf === currentWeekDash
+      );
+
+      if (exactMatch) {
+        setSelectedWeek(exactMatch.weekOf);
+      } else {
+        const sortedSchedules = [...schedules].sort((a, b) => b.weekOf.localeCompare(a.weekOf));
+        setSelectedWeek(sortedSchedules[0]?.weekOf || '');
+      }
     }
   }, [selectedWeek, schedules, setSelectedWeek]);
 
