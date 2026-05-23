@@ -30,10 +30,6 @@ import { MeetingAttendanceType } from '@definition/meeting_attendance';
 import { MetadataRecordType } from '@definition/metadata';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import { UpcomingEventType } from '@definition/upcoming_events';
-import {
-  dbDeduplicateCongregations,
-  dbDeduplicateSpeakers,
-} from '@services/dexie/visiting_speakers';
 import { formatDate } from '@utils/date';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 
@@ -1590,6 +1586,138 @@ const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const toSave = { id: oldMetadata?.id || 1, metadata: result };
 
   await appDb.metadata.put(toSave);
+};
+
+const getObjectLatestUpdate = (obj: any) => {
+  let latest = '';
+
+  const traverse = (current: any) => {
+    for (const key in current) {
+      if (key === 'updatedAt' && typeof current[key] === 'string') {
+        if (current[key] > latest) {
+          latest = current[key];
+        }
+      } else if (current[key] !== null && typeof current[key] === 'object') {
+        traverse(current[key]);
+      }
+    }
+  };
+
+  traverse(obj);
+  return latest;
+};
+
+const dbDeduplicateSpeakers = async () => {
+  const speakers = await appDb.visiting_speakers.toArray();
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+
+  const groups = new Map<string, VisitingSpeakerType[]>();
+
+  for (const speaker of speakers) {
+    if (speaker._deleted.value) continue;
+
+    const firstName = normalize(speaker.speaker_data.person_firstname.value);
+    const lastName = normalize(speaker.speaker_data.person_lastname.value);
+    const congId = speaker.speaker_data.cong_id;
+    const key = `${firstName}|${lastName}|${congId}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key)!.push(speaker);
+  }
+
+  const speakersToUpdate: VisitingSpeakerType[] = [];
+
+  for (const group of groups.values()) {
+    if (group.length > 1) {
+      group.sort((a, b) => {
+        const dateA = getObjectLatestUpdate(a);
+        const dateB = getObjectLatestUpdate(b);
+        return dateB.localeCompare(dateA);
+      });
+
+      for (let i = 1; i < group.length; i++) {
+        const speaker = group[i];
+        speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
+        speakersToUpdate.push(speaker);
+      }
+    }
+  }
+
+  if (speakersToUpdate.length > 0) {
+    await appDb.visiting_speakers.bulkPut(speakersToUpdate);
+
+    const metadata = await appDb.metadata.get(1);
+    if (metadata) {
+      metadata.metadata.visiting_speakers = {
+        ...metadata.metadata.visiting_speakers,
+        send_local: true,
+      };
+      await appDb.metadata.put(metadata);
+    }
+  }
+};
+
+const dbDeduplicateCongregations = async () => {
+  const congregations = await appDb.speakers_congregations.toArray();
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+
+  const groups = new Map<string, SpeakersCongregationsType[]>();
+
+  for (const cong of congregations) {
+    if (cong._deleted.value) continue;
+
+    const name = normalize(cong.cong_data.cong_name.value);
+    const number = normalize(cong.cong_data.cong_number.value);
+    const key = `${name}|${number}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key)!.push(cong);
+  }
+
+  const congsToUpdate: SpeakersCongregationsType[] = [];
+
+  for (const group of groups.values()) {
+    if (group.length > 1) {
+      group.sort((a, b) => {
+        const dateA = getObjectLatestUpdate(a);
+        const dateB = getObjectLatestUpdate(b);
+        return dateB.localeCompare(dateA);
+      });
+
+      for (let i = 1; i < group.length; i++) {
+        const cong = group[i];
+        cong._deleted = { value: true, updatedAt: new Date().toISOString() };
+        congsToUpdate.push(cong);
+      }
+    }
+  }
+
+  if (congsToUpdate.length > 0) {
+    await appDb.speakers_congregations.bulkPut(congsToUpdate);
+
+    const metadata = await appDb.metadata.get(1);
+    if (metadata) {
+      metadata.metadata.speakers_congregations = {
+        ...metadata.metadata.speakers_congregations,
+        send_local: true,
+      };
+      await appDb.metadata.put(metadata);
+    }
+  }
 };
 
 const dbRestoreFromBackup = async (

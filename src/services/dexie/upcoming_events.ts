@@ -1,6 +1,11 @@
 import appDb from '@db/appDb';
 import { UpcomingEventType } from '@definition/upcoming_events';
-import worker from '@services/worker/backupWorker';
+
+const triggerSync = () => {
+  import('@services/worker/backupWorker').then(
+    ({ default: worker }) => worker.postMessage('startWorker')
+  );
+};
 
 const dbUpdateUpcomingEventMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -13,7 +18,7 @@ const dbUpdateUpcomingEventMetadata = async () => {
   };
 
   await appDb.metadata.put(metadata);
-  worker.postMessage('startWorker');
+  triggerSync();
 };
 
 export const dbUpcomingEventGetAll = async () => {

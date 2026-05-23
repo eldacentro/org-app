@@ -1,6 +1,11 @@
 import { MeetingAttendanceType } from '@definition/meeting_attendance';
 import appDb from '@db/appDb';
-import worker from '@services/worker/backupWorker';
+
+const triggerSync = () => {
+  import('@services/worker/backupWorker').then(
+    ({ default: worker }) => worker.postMessage('startWorker')
+  );
+};
 
 const dbUpdateMeetingAttendanceMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -13,7 +18,7 @@ const dbUpdateMeetingAttendanceMetadata = async () => {
   };
 
   await appDb.metadata.put(metadata);
-  worker.postMessage('startWorker');
+  triggerSync();
 };
 
 export const dbMeetingAttendanceSave = async (

@@ -236,6 +236,7 @@ const useCurrentUser = () => {
 
     if (isGroup && user_in_group) return true;
 
+    return false;
   }, [isAdmin, userRole, user_in_group, isGroup, isLanguageGroupOverseer]);
 
   const isDepartmentsEditor = useMemo(() => {
