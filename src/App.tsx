@@ -46,6 +46,7 @@ const AuxiliaryPioneerApplication = lazy(
   () => import('@pages/ministry/auxiliary_pioneer')
 );
 const SpeakersCatalog = lazy(() => import('@pages/persons/speakers_catalog'));
+const OutgoingSpeakers = lazy(() => import('@pages/outgoing_speakers'));
 const WeekendMeeting = lazy(() => import('@pages/meetings/weekend'));
 const FieldServiceGroups = lazy(
   () => import('@pages/congregation/field_service_groups')
@@ -241,6 +242,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <AppointedPublicTalkRoute />,
                 children: [
                   { path: '/speakers-catalog', element: <SpeakersCatalog /> },
+                  { path: '/outgoing-speakers', element: <OutgoingSpeakers /> },
                 ],
               },
 

@@ -49,7 +49,7 @@ const OSScheduleSpeakBox = ({ data }: OSScheduleSpeakBoxProps) => {
                   marginTop: 4,
                 }}
               >
-                <IconSong size={10} color="#306CB4" />
+                <IconSong color="#306CB4" />
                 <Text style={styles.label}>{t('tr_openingSong')}:</Text>
               </View>
               <Text style={styles.value}>

@@ -5,9 +5,12 @@ import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { PersonType } from '@definition/person';
 import worker from '@services/worker/backupWorker';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
+import { userDataViewState } from '@states/settings';
 
 const useDepartmentEditor = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
+  const dataView = useAtomValue(userDataViewState);
   const [schedules, setSchedules] = useAtom(deptScheduleState);
 
   const [clearAll, setClearAll] = useState(false);
@@ -86,6 +89,19 @@ const useDepartmentEditor = () => {
     setClearAll(false);
   };
 
+  const weekName = useMemo(() => {
+    if (!selectedWeek) return '';
+
+    const meetingDate = schedulesGetMeetingDate({
+      week: selectedWeek,
+      meeting: 'midweek',
+      forPrint: true,
+      dataView,
+    });
+
+    return meetingDate.locale;
+  }, [selectedWeek, dataView]);
+
   return {
     selectedWeek,
     schedule,
@@ -94,6 +110,7 @@ const useDepartmentEditor = () => {
     handleOpenClearAll,
     handleCloseClearAll,
     handleClearAll,
+    weekName,
   };
 };
 

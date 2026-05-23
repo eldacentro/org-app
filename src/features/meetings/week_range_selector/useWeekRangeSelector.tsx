@@ -49,6 +49,10 @@ const useWeekRangeSelector = (
           toAdd = weekendDay;
         }
 
+        if (meeting === 'weekOf') {
+          toAdd = 0;
+        }
+
         const meetingDate = formatDate(
           addDays(source.weekOf, toAdd),
           'yyyy/MM/dd'

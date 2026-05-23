@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { ScheduleItemType } from './index.types';
 import {
@@ -13,6 +13,8 @@ import {
   removeSecondsFromTime,
 } from '@utils/date';
 import { CongregationResponseType, CountryResponseType } from '@definition/api';
+import { speakersCongregationsActiveState } from '@states/speakers_congregations';
+import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 
 const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
   const timer = useRef<NodeJS.Timeout>(undefined);
@@ -24,6 +26,7 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
   const schedules = useAtomValue(schedulesState);
   const congConnected = useAtomValue(congAccountConnectedState);
   const countries = useAtomValue(countriesState);
+  const speakersCongregations = useAtomValue(speakersCongregationsActiveState);
 
   const use24hFormat = true;
 
@@ -34,6 +37,7 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
   const [meetingTime, setMeetingTime] = useState<Date>(null);
   const [clearAll, setClearAll] = useState(false);
   const [isDelete, setIsDelete] = useState(false);
+  const [isManualInput, setIsManualInput] = useState(false);
 
   const congregationFullname = `${schedule.congregation.name}${schedule.congregation.number.length > 0 ? ` (${schedule.congregation.number})` : ''}`;
 
@@ -192,6 +196,55 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
     });
   };
 
+  // Catalog congregations sorted alphabetically
+  const catalogCongregations = useMemo(() => {
+    return [...speakersCongregations].sort((a, b) =>
+      a.cong_data.cong_name.value.localeCompare(b.cong_data.cong_name.value)
+    );
+  }, [speakersCongregations]);
+
+  // Pre-select from catalog if current congregation matches
+  const selectedCatalogCong = useMemo(() => {
+    if (!congName) return null;
+    return (
+      catalogCongregations.find(
+        (c) => c.cong_data.cong_name.value === congName
+      ) ?? null
+    );
+  }, [catalogCongregations, congName]);
+
+  const handleSelectFromCatalog = async (cong: SpeakersCongregationsType | null) => {
+    if (!cong) return;
+
+    const name = cong.cong_data.cong_name.value;
+    const address = cong.cong_data.cong_location.address.value;
+    const weekday = cong.cong_data.weekend_meeting.weekday.value;
+    const time = cong.cong_data.weekend_meeting.time.value;
+
+    setCongName(name);
+    setCongAddress(address);
+    setMeetingDay(weekday);
+    setMeetingTime(time ? generateDateFromTime(time) : null);
+
+    const outgoingTalks = structuredClone(
+      weekSchedule.weekend_meeting.outgoing_talks
+    );
+    const outgoingSchedule = outgoingTalks.find(
+      (record) => record.id === schedule.id
+    );
+
+    outgoingSchedule.updatedAt = new Date().toISOString();
+    outgoingSchedule.congregation.name = name;
+    outgoingSchedule.congregation.address = address;
+    outgoingSchedule.congregation.weekday = weekday;
+    outgoingSchedule.congregation.time = time ?? '';
+    outgoingSchedule.congregation.number = cong.cong_data.cong_number.value ?? '';
+
+    await dbSchedUpdate(week, {
+      'weekend_meeting.outgoing_talks': outgoingTalks,
+    });
+  };
+
   useEffect(() => {
     if (weekSchedule) {
       const outgoingSchedule = weekSchedule.weekend_meeting.outgoing_talks.find(
@@ -217,8 +270,18 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
       );
 
       setCountry(findCountry ?? null);
+
+      // Determine whether it matches a catalog congregation
+      // If catalog is empty OR congregation not in catalog → manual mode
+      const noCatalog = speakersCongregations.length === 0;
+      const existingName = outgoingSchedule?.congregation.name || '';
+      const inCatalog = !noCatalog && speakersCongregations.some(
+        (c) => c.cong_data.cong_name.value === existingName
+      );
+      // Show manual mode if: catalog empty, OR has a name that's not in catalog
+      setIsManualInput(noCatalog || (existingName.length > 0 && !inCatalog));
     }
-  }, [weekSchedule, schedule, countries]);
+  }, [weekSchedule, schedule, countries, speakersCongregations]);
 
   return {
     congName,
@@ -248,6 +311,12 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
     handleCongSearchOverride,
     songSelectorOpen,
     handleCloseSongSelector,
+    // Catalog
+    catalogCongregations,
+    selectedCatalogCong,
+    isManualInput,
+    setIsManualInput,
+    handleSelectFromCatalog,
   };
 };
 

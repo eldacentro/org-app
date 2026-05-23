@@ -16,6 +16,7 @@ const DepartmentEditor = () => {
     handleOpenClearAll,
     handleCloseClearAll,
     handleClearAll,
+    weekName,
   } = useDepartmentEditor();
 
   if (selectedWeek.length === 0) return null;
@@ -30,6 +31,8 @@ const DepartmentEditor = () => {
         width: '100%',
       }}
     >
+      <Typography className="h2-caps">{weekName}</Typography>
+
       <Dialog onClose={handleCloseClearAll} open={clearAll} sx={{ padding: '24px' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Typography className="h2">{t('tr_clearAllAssignments')}</Typography>

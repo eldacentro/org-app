@@ -1,7 +1,7 @@
 export type WeekRangeSelectorType = {
   onStartChange?: (value: string) => void;
   onEndChange?: (value: string) => void;
-  meeting: 'midweek' | 'weekend';
+  meeting: 'midweek' | 'weekend' | 'weekOf';
 };
 
 export type WeekOptionsType = {

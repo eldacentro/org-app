@@ -7,11 +7,11 @@ import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
 } from '@states/settings';
+import { FullnameOption } from '@definition/settings';
 import {
   outgoingSongSelectorOpenState,
   schedulesState,
 } from '@states/schedules';
-import { personGetDisplayName } from '@utils/common';
 import { schedulesSaveAssignment } from '@services/app/schedules';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { displaySnackNotification } from '@services/states/app';
@@ -36,43 +36,57 @@ const useOutgoingSpeaker = ({
   }, [schedules, week]);
 
   const options = useMemo(() => {
-    const filteredPersons: PersonOptionsType[] = [];
+    const result: PersonOptionsType[] = [];
 
     for (const speaker of outgoingSpeakers) {
-      if (talk) {
-        const activeTalks = speaker.speaker_data.talks.filter(
-          (record) => record._deleted === false && record.talk_number === talk
+      // If a talk filter is set, only include speakers who have that talk prepared
+      if (talk !== undefined && talk !== null) {
+        const hasTalk = speaker.speaker_data.talks.some(
+          (record) =>
+            record._deleted === false &&
+            Number(record.talk_number) === Number(talk)
         );
-
-        if (activeTalks.length === 0) {
-          continue;
-        }
+        if (!hasTalk) continue;
       }
 
+      // Try to find a matching person in the congregation persons list
+      // (for speakers who are also registered as persons)
       const person = persons.find(
         (record) => record.person_uid === speaker.person_uid
       );
 
-      if (!person) {
-        continue;
-      }
+      // Build name from person record if available, otherwise from speaker_data
+      const firstname = person?.person_data.person_firstname.value
+        ?? speaker.speaker_data.person_firstname.value
+        ?? '';
+      const lastname = person?.person_data.person_lastname.value
+        ?? speaker.speaker_data.person_lastname.value
+        ?? '';
 
-      filteredPersons.push(person);
+      const person_name = displayNameEnabled
+        ? speaker.speaker_data.person_display_name.value ||
+          `${firstname} ${lastname}`.trim()
+        : fullnameOption === FullnameOption.FIRST_BEFORE_LAST
+          ? `${firstname} ${lastname}`.trim()
+          : `${lastname} ${firstname}`.trim();
+
+      result.push({
+        person_uid: speaker.person_uid,
+        person_name: person_name || speaker.person_uid,
+        // Spread person record if found, otherwise provide minimal shape
+        ...(person ?? {
+          person_uid: speaker.person_uid,
+          person_data: {
+            person_firstname: speaker.speaker_data.person_firstname,
+            person_lastname: speaker.speaker_data.person_lastname,
+            person_display_name: speaker.speaker_data.person_display_name,
+          },
+        }),
+      } as PersonOptionsType);
     }
 
-    const newPersons = filteredPersons.map((record) => {
-      return {
-        ...record,
-        person_name: personGetDisplayName(
-          record,
-          displayNameEnabled,
-          fullnameOption
-        ),
-      };
-    });
-
-    return newPersons.sort((a, b) =>
-      a.person_name.localeCompare(b.person_name)
+    return result.sort((a, b) =>
+      (a.person_name ?? '').localeCompare(b.person_name ?? '')
     );
   }, [persons, displayNameEnabled, fullnameOption, talk, outgoingSpeakers]);
 

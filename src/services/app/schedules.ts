@@ -94,7 +94,8 @@ import { buildPersonFullname, personGetDisplayName } from '@utils/common';
 import { sourcesFind } from '@services/states/sources';
 import { weekTypeLocaleState } from '@states/weekType';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
-import { incomingSpeakersState } from '@states/visiting_speakers';
+import { incomingSpeakersState, outgoingSpeakersState } from '@states/visiting_speakers';
+import { FullnameOption } from '@definition/settings';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 import { publicTalksState } from '@states/public_talks';
 import { PublicTalkType } from '@definition/public_talks';
@@ -3085,14 +3086,19 @@ export const groupOutgoingSpeakersByDate = (
   const groups: Record<string, OutgoingSpeakersScheduleType> = {};
 
   speakers.forEach((item) => {
-    const key = item.date.date.toISOString().slice(0, 10);
+    const d = item.date.date;
+    const key = (d && !isNaN(d.getTime()))
+      ? d.toISOString().slice(0, 10)
+      : 'invalid-date';
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
   });
 
-  return Object.values(groups).sort(
-    (a, b) => a[0].date.date.getTime() - b[0].date.date.getTime()
-  );
+  return Object.values(groups).sort((a, b) => {
+    const timeA = a[0]?.date?.date?.getTime() || 0;
+    const timeB = b[0]?.date?.date?.getTime() || 0;
+    return timeA - timeB;
+  });
 };
 
 export const scheduleOutgoingSpeakers = (
@@ -3104,6 +3110,7 @@ export const scheduleOutgoingSpeakers = (
   const persons = store.get(personsByViewState);
   const songs = store.get(songsLocaleState);
   const lang = store.get(JWLangState);
+  const outgoingSpeakers = store.get(outgoingSpeakersState);
 
   const months = generateMonthShortNames();
 
@@ -3112,7 +3119,8 @@ export const scheduleOutgoingSpeakers = (
       (record) => !record._deleted
     ) || [];
 
-  const weekDate = new Date(schedule.weekOf);
+  const normalisedWeek = schedule.weekOf.replace(/\//g, '-');
+  const weekDate = new Date(normalisedWeek + 'T12:00:00');
 
   const result: OutgoingSpeakersScheduleType = [];
 
@@ -3121,11 +3129,29 @@ export const scheduleOutgoingSpeakers = (
       (person) => person.person_uid === record.value
     );
 
-    const speakerName = personGetDisplayName(
-      speaker,
-      displayNameEnabled,
-      fullnameOption
+    const visitingSpeaker = outgoingSpeakers.find(
+      (s) => s.person_uid === record.value
     );
+
+    let speakerName = '';
+    if (speaker) {
+      speakerName = personGetDisplayName(
+        speaker,
+        displayNameEnabled,
+        fullnameOption
+      );
+    } else if (visitingSpeaker) {
+      const firstname = visitingSpeaker.speaker_data.person_firstname.value ?? '';
+      const lastname = visitingSpeaker.speaker_data.person_lastname.value ?? '';
+
+      speakerName = displayNameEnabled
+        ? visitingSpeaker.speaker_data.person_display_name.value || `${firstname} ${lastname}`.trim()
+        : fullnameOption === FullnameOption.FIRST_BEFORE_LAST
+          ? `${firstname} ${lastname}`.trim()
+          : `${lastname} ${firstname}`.trim();
+    } else {
+      speakerName = record.value || '';
+    }
 
     const openingSong = songs.find(
       (song) => song.song_number === +record.opening_song
@@ -3135,11 +3161,12 @@ export const scheduleOutgoingSpeakers = (
       (talk) => talk.talk_number === +record.public_talk
     );
 
+    const weekdayVal = Number(record.congregation.weekday);
     const weekDay = weekDate.getDay() === 0 ? 7 : weekDate.getDay();
-    const dayDiff = record.congregation.weekday - weekDay;
+    const dayDiff = isNaN(weekdayVal) ? 0 : weekdayVal - weekDay;
 
     const recordDate = new Date(weekDate);
-    recordDate.setDate(weekDate.getDate() + dayDiff);
+    recordDate.setDate(weekDate.getDate() + (isNaN(dayDiff) ? 0 : dayDiff));
 
     const formattedDate = getTranslation({
       key: 'tr_longDateWithYearLocale',
@@ -3207,7 +3234,7 @@ export const schedulesGetMeetingDate = ({
   dataView,
 }: {
   week: string;
-  meeting: 'midweek' | 'weekend';
+  meeting: 'midweek' | 'weekend' | 'weekOf';
   forPrint?: boolean;
   key?: string;
   short?: boolean;
@@ -3236,8 +3263,7 @@ export const schedulesGetMeetingDate = ({
     locale = source.midweek_meeting.week_date_locale[lang] ?? '';
   }
 
-  const weekTypes = schedule[`${meeting}_meeting`]
-    ?.week_type as WeekTypeCongregation[];
+  const weekTypes = (meeting === 'weekOf' ? null : schedule[`${meeting}_meeting`]?.week_type) as WeekTypeCongregation[];
 
   const weekType =
     weekTypes?.find((record) => record.type === dataView)?.value ?? Week.NORMAL;
@@ -3279,6 +3305,10 @@ export const schedulesGetMeetingDate = ({
           (record) => record.type === 'main'
         )?.weekday.value ?? 6;
     }
+  }
+
+  if (meeting === 'weekOf') {
+    meetingDay = 0;
   }
 
   const meetingDate = addDays(week, meetingDay);

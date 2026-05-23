@@ -16,7 +16,7 @@ const PersonsCard = () => {
 
   const { handleAddNewPerson, show_AP, AP_count } = usePersons();
 
-  const { isPersonEditor } = useCurrentUser();
+  const { isPersonEditor, isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
 
   const { showWeekend } = useSharedHook();
 
@@ -57,6 +57,16 @@ const PersonsCard = () => {
             icon={<IconVisitingSpeaker color="var(--black)" />}
             primaryText={t('tr_speakersCatalog')}
             path="/speakers-catalog"
+          />
+        </ListItem>
+      )}
+
+      {showWeekend && (isWeekendEditor || isPublicTalkCoordinator) && (
+        <ListItem disablePadding>
+          <DashboardMenu
+            icon={<IconVisitingSpeaker color="var(--black)" />}
+            primaryText="Oradores salientes"
+            path="/outgoing-speakers"
           />
         </ListItem>
       )}

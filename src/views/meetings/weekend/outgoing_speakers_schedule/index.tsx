@@ -7,13 +7,12 @@ import styles from './index.styles';
 
 const TemplateOutgoingSpeakersSchedule = ({
   congregation,
-  lang,
   data,
 }: TemplateOutgoingSpeakersProps) => {
   const { t } = useAppTranslation();
 
   return (
-    <Document title={t('tr_outgoingSpeakersSchedule')} lang={lang}>
+    <Document title={t('tr_outgoingSpeakersSchedule')}>
       <Page size="A4" style={styles.body}>
         <View style={styles.headerContainer}>
           <View style={styles.logoTitleContainer}>
