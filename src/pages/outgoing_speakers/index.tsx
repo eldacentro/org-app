@@ -129,39 +129,98 @@ const OutgoingSpeakersPage = () => {
     setHistoryExpanded((prev) => ({ ...prev, [uid]: !prev[uid] }));
   };
 
-  // Available Years list from schedules (only displaying 2026, 2027 and onwards)
-  const availableYears = useMemo(() => {
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const nextYear = useMemo(() => currentYear + 1, [currentYear]);
+
+  // Track if we are showing historical/prior years in the selector
+  const [showHistorical, setShowHistorical] = useState(false);
+
+  // Extract all unique years present in the schedules database
+  const yearsWithSchedules = useMemo(() => {
     const years = new Set<number>();
-    const currentYear = new Date().getFullYear();
-
-    // Always include at least 2026 and 2027
-    if (currentYear >= 2026) {
-      years.add(currentYear);
-      years.add(currentYear + 1);
-    } else {
-      years.add(2026);
-      years.add(2027);
-    }
-
     for (const schedule of schedules) {
       if (!schedule.weekOf || typeof schedule.weekOf !== 'string') continue;
       const normalised = schedule.weekOf.replace(/\//g, '-');
       const date = new Date(normalised + 'T12:00:00');
       if (!isNaN(date.getTime())) {
-        const y = date.getFullYear();
-        if (y >= 2026) {
-          years.add(y);
-        }
+        years.add(date.getFullYear());
       }
     }
     return Array.from(years).sort((a, b) => b - a); // Sort descending
   }, [schedules]);
 
-  // Year state - always default to current year automatically on load (minimum 2026)
-  const [selectedYear, setSelectedYear] = useState<number>(() => {
-    const current = new Date().getFullYear();
-    return current >= 2026 ? current : 2026;
-  });
+  // Determine prior/historical years (any year in IndexedDB strictly less than the current year)
+  const priorYears = useMemo(() => {
+    return yearsWithSchedules.filter((y) => y < currentYear);
+  }, [yearsWithSchedules, currentYear]);
+
+  // Build the selector tabs dynamically
+  const yearTabs = useMemo(() => {
+    if (!showHistorical) {
+      const tabs = [
+        { label: currentYear.toString() },
+        { label: nextYear.toString() },
+      ];
+      if (priorYears.length > 0) {
+        tabs.push({ label: 'Anteriores' });
+      }
+      return tabs;
+    } else {
+      const tabs = [{ label: '« Actuales' }];
+      for (const y of priorYears) {
+        tabs.push({ label: y.toString() });
+      }
+      return tabs;
+    }
+  }, [showHistorical, currentYear, nextYear, priorYears]);
+
+  // Year state - always default to current year automatically on load
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+
+  // Match the active tab index with the selectedYear
+  const selectedTabIndex = useMemo(() => {
+    const labels = yearTabs.map((t) => t.label);
+    const index = labels.indexOf(selectedYear.toString());
+    return index !== -1 ? index : 0;
+  }, [yearTabs, selectedYear]);
+
+  // Handle tab click changes cleanly
+  const handleTabChange = (index: number) => {
+    const selectedTab = yearTabs[index];
+    if (!selectedTab) return;
+
+    if (selectedTab.label === 'Anteriores') {
+      setShowHistorical(true);
+      if (priorYears.length > 0) {
+        setSelectedYear(priorYears[0]);
+      }
+    } else if (selectedTab.label === '« Actuales') {
+      setShowHistorical(false);
+      setSelectedYear(currentYear);
+    } else {
+      const yearVal = parseInt(selectedTab.label, 10);
+      if (!isNaN(yearVal)) {
+        setSelectedYear(yearVal);
+      }
+    }
+  };
+
+  // Sync selected year/historical toggle when selecting a week externally
+  useEffect(() => {
+    if (selectedWeek) {
+      const normalised = selectedWeek.replace(/\//g, '-');
+      const date = new Date(normalised + 'T12:00:00');
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        setSelectedYear(year);
+        if (year < currentYear) {
+          setShowHistorical(true);
+        } else {
+          setShowHistorical(false);
+        }
+      }
+    }
+  }, [selectedWeek, currentYear]);
 
   // Month sort order state (newest first by default)
   const [monthSortOrder, setMonthSortOrder] = useState<'desc' | 'asc'>('desc');
@@ -898,12 +957,12 @@ const OutgoingSpeakersPage = () => {
               </Box>
 
               <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
-                {/* Selector de año como ScrollableTabs */}
-                {availableYears.length > 0 && (
+                {/* Selector de año como ScrollableTabs con soporte para Anteriores/Actuales */}
+                {yearTabs.length > 0 && (
                   <ScrollableTabs
-                    tabs={availableYears.map((year) => ({ label: year.toString() }))}
-                    value={availableYears.indexOf(selectedYear)}
-                    onChange={(index) => setSelectedYear(availableYears[index])}
+                    tabs={yearTabs}
+                    value={selectedTabIndex}
+                    onChange={handleTabChange}
                     sx={{ mb: 1 }}
                   />
                 )}
