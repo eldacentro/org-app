@@ -353,6 +353,10 @@ export const settingSchema: SettingsType = {
     backup_automatic: {
       enabled: { value: true, updatedAt: '' },
       interval: { value: 5, updatedAt: '' },
+      google_drive_access_token: { value: '', updatedAt: '' },
+      google_drive_token_expiry: { value: '', updatedAt: '' },
+      google_drive_email: { value: '', updatedAt: '' },
+      google_drive_auto_enabled: { value: false, updatedAt: '' },
     },
     hour_credits_enabled: { value: false, updatedAt: '' },
     firstname: { value: '', updatedAt: '' },

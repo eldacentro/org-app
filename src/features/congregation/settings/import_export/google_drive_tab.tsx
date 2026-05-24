@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { Box, Stack, Switch, FormControlLabel, CircularProgress } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import { settingsState } from '@states/settings';
+import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import {
-  googleDriveIsConnected,
   googleDriveConnect,
   googleDriveDisconnect,
   googleDriveUploadBackup,
@@ -13,23 +15,23 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 
 const GoogleDriveTab = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isAutoEnabled, setIsAutoEnabled] = useState(false);
+  const settings = useAtomValue(settingsState);
+  const backupAutomatic = settings.user_settings.backup_automatic;
+
+  const googleDriveEmail = backupAutomatic.google_drive_email?.value || '';
+  const isConnected = googleDriveEmail !== '';
+  const tokenExpiry = backupAutomatic.google_drive_token_expiry?.value || '0';
+  const isTokenExpired = isConnected && (Date.now() >= parseInt(tokenExpiry, 10));
+  const isAutoEnabled = backupAutomatic.google_drive_auto_enabled?.value || false;
+
   const [isUploading, setIsUploading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-
-  useEffect(() => {
-    setIsConnected(googleDriveIsConnected());
-    setIsAutoEnabled(localStorage.getItem('google_drive_backup_auto_enabled') === 'true');
-  }, []);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
       const success = await googleDriveConnect();
       if (success) {
-        setIsConnected(true);
-        setIsAutoEnabled(true);
         displaySnackNotification({
           severity: 'success',
           header: 'Google Drive Conectado',
@@ -49,10 +51,8 @@ const GoogleDriveTab = () => {
     }
   };
 
-  const handleDisconnect = () => {
-    googleDriveDisconnect();
-    setIsConnected(false);
-    setIsAutoEnabled(false);
+  const handleDisconnect = async () => {
+    await googleDriveDisconnect();
     displaySnackNotification({
       severity: 'success',
       header: 'Google Drive Desconectado',
@@ -60,10 +60,14 @@ const GoogleDriveTab = () => {
     });
   };
 
-  const handleToggleAutoBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleToggleAutoBackup = async (e: ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
-    localStorage.setItem('google_drive_backup_auto_enabled', checked ? 'true' : 'false');
-    setIsAutoEnabled(checked);
+    await dbAppSettingsUpdate({
+      'user_settings.backup_automatic.google_drive_auto_enabled': {
+        value: checked,
+        updatedAt: new Date().toISOString(),
+      },
+    });
     displaySnackNotification({
       severity: 'success',
       header: checked ? 'Autoguardado activado' : 'Autoguardado desactivado',
@@ -89,7 +93,7 @@ const GoogleDriveTab = () => {
         displaySnackNotification({
           severity: 'error',
           header: 'Error al subir',
-          message: 'No se pudo completar la subida de datos a Google Drive.',
+          message: 'No se pudo completar la subida de datos a Google Drive. Asegúrese de que su sesión de Drive no haya expirado.',
         });
       }
     } catch (err) {
@@ -119,7 +123,7 @@ const GoogleDriveTab = () => {
           p: 3,
           border: '1px solid var(--accent-200)',
           borderRadius: 'var(--radius-m)',
-          bgcolor: isConnected ? 'var(--accent-100)' : 'var(--accent-50)',
+          bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.03)' : 'var(--accent-100)') : 'var(--accent-50)',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -131,18 +135,18 @@ const GoogleDriveTab = () => {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              bgcolor: isConnected ? 'rgba(76, 175, 80, 0.1)' : 'rgba(158, 158, 158, 0.1)',
+              bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.1)' : 'rgba(76, 175, 80, 0.1)') : 'rgba(158, 158, 158, 0.1)',
             }}
           >
-            <IconBackupOrganized color={isConnected ? 'green' : 'var(--grey-400)'} />
+            <IconBackupOrganized color={isConnected ? (isTokenExpired ? 'orange' : 'green') : 'var(--grey-400)'} />
           </Box>
           <Stack>
             <Typography className="h3">
-              Google Drive: {isConnected ? 'Conectado' : 'Desconectado'}
+              Google Drive: {isConnected ? (isTokenExpired ? 'Sesión Expirada' : 'Conectado') : 'Desconectado'}
             </Typography>
             <Typography className="label-small-regular" color="var(--grey-400)">
               {isConnected
-                ? 'Carpeta activa: Elda Centro App Backups'
+                ? `Cuenta vinculada: ${googleDriveEmail}`
                 : 'Ninguna cuenta de Google Drive vinculada actualmente'}
             </Typography>
           </Stack>
@@ -150,9 +154,16 @@ const GoogleDriveTab = () => {
 
         <Box>
           {isConnected ? (
-            <Button variant="secondary" onClick={handleDisconnect}>
-              Desconectar
-            </Button>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {isTokenExpired && (
+                <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
+                  {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Reautorizar'}
+                </Button>
+              )}
+              <Button variant="secondary" onClick={handleDisconnect}>
+                Desconectar
+              </Button>
+            </Stack>
           ) : (
             <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
               {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Vincular Cuenta'}
@@ -160,6 +171,27 @@ const GoogleDriveTab = () => {
           )}
         </Box>
       </Box>
+
+      {/* Warning Notice if session is expired */}
+      {isConnected && isTokenExpired && (
+        <Box
+          sx={{
+            p: 2.5,
+            border: '1px dashed #ff9800',
+            borderRadius: 'var(--radius-m)',
+            bgcolor: 'rgba(255, 152, 0, 0.04)',
+          }}
+        >
+          <Typography className="h4" color="#ff9800" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            ⚠️ Sesión de Google Drive expirada
+          </Typography>
+          <Typography className="body-regular" color="var(--grey-400)">
+            Por políticas de seguridad de Google, la sesión local de acceso a archivos caduca después de 1 hora.
+            Las copias de seguridad automáticas en Drive están pausadas en este dispositivo.
+            Toca el botón <strong>Reautorizar</strong> a la derecha para reactivarlas.
+          </Typography>
+        </Box>
+      )}
 
       {/* Additional Controls if Connected */}
       {isConnected ? (

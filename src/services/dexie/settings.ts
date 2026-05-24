@@ -349,3 +349,42 @@ export const dbAppSettingsUpdateCongNumber = async () => {
     'cong_settings.cong_number': cong_number,
   });
 };
+
+export const dbAppSettingsInitializeGoogleDriveBackup = async () => {
+  const settings = await appDb.app_settings.get(1);
+  if (!settings) return;
+
+  let updated = false;
+  const backupAuto = settings.user_settings.backup_automatic;
+
+  if (!backupAuto.google_drive_access_token) {
+    const localToken = localStorage.getItem('google_drive_backup_access_token') || '';
+    backupAuto.google_drive_access_token = { value: localToken, updatedAt: new Date().toISOString() };
+    updated = true;
+  }
+  if (!backupAuto.google_drive_token_expiry) {
+    const localExpiry = localStorage.getItem('google_drive_backup_token_expiry') || '';
+    backupAuto.google_drive_token_expiry = { value: localExpiry, updatedAt: new Date().toISOString() };
+    updated = true;
+  }
+  if (!backupAuto.google_drive_email) {
+    const localToken = localStorage.getItem('google_drive_backup_access_token');
+    const localEmail = localToken ? 'Cuenta de Google' : '';
+    backupAuto.google_drive_email = { value: localEmail, updatedAt: new Date().toISOString() };
+    updated = true;
+  }
+  if (!backupAuto.google_drive_auto_enabled) {
+    const localAuto = localStorage.getItem('google_drive_backup_auto_enabled') === 'true';
+    backupAuto.google_drive_auto_enabled = { value: localAuto, updatedAt: new Date().toISOString() };
+    updated = true;
+  }
+
+  if (updated) {
+    await appDb.app_settings.put(settings);
+
+    // Clean up old localStorage items if they were migrated
+    localStorage.removeItem('google_drive_backup_access_token');
+    localStorage.removeItem('google_drive_backup_token_expiry');
+    localStorage.removeItem('google_drive_backup_auto_enabled');
+  }
+};

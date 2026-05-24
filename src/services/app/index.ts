@@ -38,6 +38,7 @@ import {
   dbAppSettingsUpdateCongNumber,
   dbAppSettingsUpdateWithoutNotice,
   dbConvertAutoAssignPrayers,
+  dbAppSettingsInitializeGoogleDriveBackup,
 } from '@services/dexie/settings';
 import { dbRemoveDuplicateReports } from '@services/dexie/cong_field_service_reports';
 import { LanguageItem } from '@definition/app';
@@ -94,6 +95,7 @@ export const runUpdater = async () => {
   await dbUserSaveTimerToStorage();
   await dbUpcomingEventsCleanup();
   await dbAppSettingsUpdateCongNumber();
+  await dbAppSettingsInitializeGoogleDriveBackup();
   await dbSpeakersCongregationsSetName();
 };
 

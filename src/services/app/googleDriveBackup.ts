@@ -1,14 +1,11 @@
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { dbAppSettingsUpdate } from '@services/dexie/settings';
+import appDb from '@db/appDb';
 
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'google_drive_backup_access_token',
-  TOKEN_EXPIRY: 'google_drive_backup_token_expiry',
-  AUTO_BACKUP_ENABLED: 'google_drive_backup_auto_enabled',
-};
-
-export const googleDriveIsConnected = (): boolean => {
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-  const expiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+export const googleDriveIsConnected = (backupAutomatic: any): boolean => {
+  if (!backupAutomatic) return false;
+  const token = backupAutomatic.google_drive_access_token?.value;
+  const expiry = backupAutomatic.google_drive_token_expiry?.value;
   if (!token || !expiry) return false;
   return Date.now() < parseInt(expiry, 10);
 };
@@ -23,13 +20,28 @@ export const googleDriveConnect = async (): Promise<boolean> => {
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const accessToken = credential?.accessToken;
+    const email = result.user?.email || '';
 
     if (accessToken) {
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-      // Access tokens expire in 1 hour (3600 seconds)
       const expiry = Date.now() + 3600 * 1000;
-      localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiry.toString());
-      localStorage.setItem(STORAGE_KEYS.AUTO_BACKUP_ENABLED, 'true');
+      await dbAppSettingsUpdate({
+        'user_settings.backup_automatic.google_drive_access_token': {
+          value: accessToken,
+          updatedAt: new Date().toISOString(),
+        },
+        'user_settings.backup_automatic.google_drive_token_expiry': {
+          value: expiry.toString(),
+          updatedAt: new Date().toISOString(),
+        },
+        'user_settings.backup_automatic.google_drive_email': {
+          value: email,
+          updatedAt: new Date().toISOString(),
+        },
+        'user_settings.backup_automatic.google_drive_auto_enabled': {
+          value: true,
+          updatedAt: new Date().toISOString(),
+        },
+      });
       return true;
     }
     return false;
@@ -39,10 +51,25 @@ export const googleDriveConnect = async (): Promise<boolean> => {
   }
 };
 
-export const googleDriveDisconnect = () => {
-  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
-  localStorage.setItem(STORAGE_KEYS.AUTO_BACKUP_ENABLED, 'false');
+export const googleDriveDisconnect = async (): Promise<void> => {
+  await dbAppSettingsUpdate({
+    'user_settings.backup_automatic.google_drive_access_token': {
+      value: '',
+      updatedAt: new Date().toISOString(),
+    },
+    'user_settings.backup_automatic.google_drive_token_expiry': {
+      value: '',
+      updatedAt: new Date().toISOString(),
+    },
+    'user_settings.backup_automatic.google_drive_email': {
+      value: '',
+      updatedAt: new Date().toISOString(),
+    },
+    'user_settings.backup_automatic.google_drive_auto_enabled': {
+      value: false,
+      updatedAt: new Date().toISOString(),
+    },
+  });
 };
 
 const getOrCreateFolder = async (accessToken: string): Promise<string | null> => {
@@ -97,11 +124,15 @@ const getOrCreateFolder = async (accessToken: string): Promise<string | null> =>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const googleDriveUploadBackup = async (backupData: any): Promise<boolean> => {
-  const isAutoEnabled = localStorage.getItem(STORAGE_KEYS.AUTO_BACKUP_ENABLED) === 'true';
+  const settings = await appDb.app_settings.get(1);
+  if (!settings) return false;
+
+  const backupAutomatic = settings.user_settings.backup_automatic;
+  const isAutoEnabled = backupAutomatic.google_drive_auto_enabled?.value === true;
   if (!isAutoEnabled) return false;
 
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-  const expiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+  const token = backupAutomatic.google_drive_access_token?.value;
+  const expiry = backupAutomatic.google_drive_token_expiry?.value;
 
   if (!token || !expiry || Date.now() >= parseInt(expiry, 10)) {
     console.warn('Google Drive token expired or not connected. Skipping upload.');

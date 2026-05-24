@@ -205,6 +205,10 @@ export type SettingsType = {
     backup_automatic: {
       enabled: { value: boolean; updatedAt: string };
       interval: { value: number; updatedAt: string };
+      google_drive_access_token?: { value: string; updatedAt: string };
+      google_drive_token_expiry?: { value: string; updatedAt: string };
+      google_drive_email?: { value: string; updatedAt: string };
+      google_drive_auto_enabled?: { value: boolean; updatedAt: string };
     };
     theme_follow_os_enabled: { value: boolean; updatedAt: string };
     hour_credits_enabled: { value: boolean; updatedAt: string };
