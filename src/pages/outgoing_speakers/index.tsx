@@ -129,24 +129,38 @@ const OutgoingSpeakersPage = () => {
     setHistoryExpanded((prev) => ({ ...prev, [uid]: !prev[uid] }));
   };
 
-  // Available Years list from schedules
+  // Available Years list from schedules (only displaying 2026, 2027 and onwards)
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    years.add(new Date().getFullYear()); // Always include the current year by default
+    const currentYear = new Date().getFullYear();
+
+    // Always include at least 2026 and 2027
+    if (currentYear >= 2026) {
+      years.add(currentYear);
+      years.add(currentYear + 1);
+    } else {
+      years.add(2026);
+      years.add(2027);
+    }
+
     for (const schedule of schedules) {
       if (!schedule.weekOf || typeof schedule.weekOf !== 'string') continue;
       const normalised = schedule.weekOf.replace(/\//g, '-');
       const date = new Date(normalised + 'T12:00:00');
       if (!isNaN(date.getTime())) {
-        years.add(date.getFullYear());
+        const y = date.getFullYear();
+        if (y >= 2026) {
+          years.add(y);
+        }
       }
     }
     return Array.from(years).sort((a, b) => b - a); // Sort descending
   }, [schedules]);
 
-  // Year state - always default to current year automatically on load
+  // Year state - always default to current year automatically on load (minimum 2026)
   const [selectedYear, setSelectedYear] = useState<number>(() => {
-    return new Date().getFullYear();
+    const current = new Date().getFullYear();
+    return current >= 2026 ? current : 2026;
   });
 
   // Month sort order state (newest first by default)
