@@ -684,8 +684,8 @@ const OutgoingSpeakersPage = () => {
           ) : (
             <Box
               sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                 gap: '24px',
               }}
             >
@@ -704,195 +704,186 @@ const OutgoingSpeakersPage = () => {
                 const showHistory = !!historyExpanded[speaker.person_uid];
 
                 return (
-                  <Box
+                  <Card
                     key={`${speaker.person_uid}-${idx}`}
                     sx={{
-                      flexBasis: { xs: '100%', md: 'calc(50% - 12px)' },
-                      flexGrow: 1,
-                      minWidth: 0,
+                      border: '1px solid var(--accent-300)',
+                      borderRadius: 'var(--radius-xl)',
+                      backgroundColor: 'var(--white)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
                     }}
                   >
-                    <Card
-                      sx={{
-                        border: '1px solid var(--accent-300)',
-                        borderRadius: 'var(--radius-xl)',
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'var(--white)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {/* Header: Name and badges */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
-                          <Box>
-                            <Typography className="h2" sx={{ fontWeight: '600' }}>
-                              {displayName}
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: '8px', mt: 0.5, flexWrap: 'wrap' }}>
-                              {isElder && <MiniChip label="Anciano" />}
-                              {isMS && <MiniChip label="Siervo Ministerial" />}
-                              {!isElder && !isMS && <MiniChip label="Orador" />}
-                            </Box>
-                          </Box>
-                        </Box>
-
-                        <Divider sx={{ my: 1, borderColor: 'var(--accent-200)' }} />
-
-                        {/* Collapsible Prepared Talks */}
+                    <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {/* Header: Name and badges */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
                         <Box>
-                          <Box
-                            onClick={() => toggleTalks(speaker.person_uid)}
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              py: 0.5,
-                              px: 1,
-                              borderRadius: 'var(--radius-m)',
-                              '&:hover': { backgroundColor: 'var(--accent-100)' },
-                            }}
-                          >
-                            <Typography className="h3" sx={{ fontWeight: '600' }}>
-                              Discursos preparados ({preparedTalks.length})
-                            </Typography>
-                            {showTalks ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                          <Typography className="h2" sx={{ fontWeight: '600' }}>
+                            {displayName}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: '8px', mt: 0.5, flexWrap: 'wrap' }}>
+                            {isElder && <MiniChip label="Anciano" />}
+                            {isMS && <MiniChip label="Siervo Ministerial" />}
+                            {!isElder && !isMS && <MiniChip label="Orador" />}
                           </Box>
-                          <Collapse in={showTalks} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
-                            {preparedTalks.length === 0 ? (
-                              <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
-                                Ningún discurso configurado en el catálogo.
-                              </Typography>
-                            ) : (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {preparedTalks.map((t) => {
-                                  const pTalk = publicTalks.find((pt) => pt.talk_number === t.talk_number);
-                                  const title = pTalk?.talk_title?.[lang] ?? '';
-                                  return (
-                                    <Tooltip title={title} key={t.talk_number} arrow>
-                                      <Box sx={{ display: 'inline-block' }}>
-                                        <MiniChip label={`${t.talk_number}`} edit={false} />
-                                      </Box>
-                                    </Tooltip>
-                                  );
-                                })}
-                              </Box>
-                            )}
-                          </Collapse>
                         </Box>
+                      </Box>
 
-                        {/* Collapsible Assignments History */}
-                        <Box sx={{ mt: 0.5 }}>
-                          <Box
-                            onClick={() => toggleHistory(speaker.person_uid)}
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              py: 0.5,
-                              px: 1,
-                              borderRadius: 'var(--radius-m)',
-                              '&:hover': { backgroundColor: 'var(--accent-100)' },
-                            }}
-                          >
-                            <Typography className="h3" sx={{ fontWeight: '600' }}>
-                              Historial de salidas ({history.length})
-                            </Typography>
-                            {showHistory ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                          </Box>
-                          <Collapse in={showHistory} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
-                            {history.length === 0 ? (
-                              <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
-                                Sin salidas programadas.
-                              </Typography>
-                            ) : (
-                              <List disablePadding sx={{ maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
-                                {history.map((assignment, index) => (
-                                  <ListItem
-                                    key={`${assignment.weekOf}-${index}`}
-                                    disableGutters
-                                    sx={{
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'flex-start',
-                                      py: 1,
-                                      borderBottom: index < history.length - 1 ? '1px solid var(--accent-100)' : 'none',
-                                    }}
-                                  >
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                                      <Typography className="h4" sx={{ fontWeight: '500' }}>
-                                        {assignment.congregationName}
-                                      </Typography>
-                                      <Typography color="var(--grey-400)" sx={{ fontSize: '12px' }}>
-                                        {assignment.formattedDate}
-                                      </Typography>
-                                    </Box>
-                                    <Typography color="var(--grey-500)" sx={{ fontSize: '13px', mt: 0.5 }}>
-                                      Tema {assignment.talkNumber}: {assignment.talkTitle || 'Cántico ' + assignment.songNumber}
-                                    </Typography>
-                                  </ListItem>
-                                ))}
-                              </List>
-                            )}
-                          </Collapse>
-                        </Box>
-                        {/* Action buttons footer */}
+                      <Divider sx={{ my: 1, borderColor: 'var(--accent-200)' }} />
+
+                      {/* Collapsible Prepared Talks */}
+                      <Box>
                         <Box
+                          onClick={() => toggleTalks(speaker.person_uid)}
                           sx={{
                             display: 'flex',
-                            gap: '12px',
-                            mt: 'auto',
-                            pt: 2,
-                            borderTop: '1px solid var(--accent-200)',
-                            width: '100%',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            py: 0.5,
+                            px: 1,
+                            borderRadius: 'var(--radius-m)',
+                            '&:hover': { backgroundColor: 'var(--accent-100)' },
                           }}
                         >
-                          <Button
-                            variant="secondary"
-                            sx={{
-                              flex: 1,
-                              height: '38px',
-                              minHeight: '38px',
-                              borderRadius: 'var(--radius-l)',
-                              fontSize: '13px',
-                              fontWeight: '600',
-                            }}
-                            onClick={() => navigate('/speakers-catalog')}
-                          >
-                            Editar perfil
-                          </Button>
-                          <Button
-                            variant="main"
-                            sx={{
-                              flex: 1,
-                              height: '38px',
-                              minHeight: '38px',
-                              borderRadius: 'var(--radius-l)',
-                              fontSize: '13px',
-                              fontWeight: '600',
-                            }}
-                            onClick={() => {
-                              const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
-                              if (targetWeek) {
-                                setSelectedWeek(targetWeek);
-                                const normalised = targetWeek.replace(/\//g, '-');
-                                const date = new Date(normalised + 'T12:00:00');
-                                if (!isNaN(date.getTime())) {
-                                  setSelectedYear(date.getFullYear());
-                                }
-                              }
-                              setActiveTab(1);
-                            }}
-                          >
-                            Programar
-                          </Button>
+                          <Typography className="h3" sx={{ fontWeight: '600' }}>
+                            Discursos preparados ({preparedTalks.length})
+                          </Typography>
+                          {showTalks ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
                         </Box>
-                      </CardContent>
-                    </Card>
-                  </Box>
+                        <Collapse in={showTalks} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
+                          {preparedTalks.length === 0 ? (
+                            <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
+                              Ningún discurso configurado en el catálogo.
+                            </Typography>
+                          ) : (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {preparedTalks.map((t) => {
+                                const pTalk = publicTalks.find((pt) => pt.talk_number === t.talk_number);
+                                const title = pTalk?.talk_title?.[lang] ?? '';
+                                return (
+                                  <Tooltip title={title} key={t.talk_number} arrow>
+                                    <Box sx={{ display: 'inline-block' }}>
+                                      <MiniChip label={`${t.talk_number}`} edit={false} />
+                                    </Box>
+                                  </Tooltip>
+                                );
+                              })}
+                            </Box>
+                          )}
+                        </Collapse>
+                      </Box>
+
+                      {/* Collapsible Assignments History */}
+                      <Box sx={{ mt: 0.5 }}>
+                        <Box
+                          onClick={() => toggleHistory(speaker.person_uid)}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            py: 0.5,
+                            px: 1,
+                            borderRadius: 'var(--radius-m)',
+                            '&:hover': { backgroundColor: 'var(--accent-100)' },
+                          }}
+                        >
+                          <Typography className="h3" sx={{ fontWeight: '600' }}>
+                            Historial de salidas ({history.length})
+                          </Typography>
+                          {showHistory ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                        </Box>
+                        <Collapse in={showHistory} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
+                          {history.length === 0 ? (
+                            <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
+                              Sin salidas programadas.
+                            </Typography>
+                          ) : (
+                            <List disablePadding sx={{ maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
+                              {history.map((assignment, index) => (
+                                <ListItem
+                                  key={`${assignment.weekOf}-${index}`}
+                                  disableGutters
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    py: 1,
+                                    borderBottom: index < history.length - 1 ? '1px solid var(--accent-100)' : 'none',
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                    <Typography className="h4" sx={{ fontWeight: '500' }}>
+                                      {assignment.congregationName}
+                                    </Typography>
+                                    <Typography color="var(--grey-400)" sx={{ fontSize: '12px' }}>
+                                      {assignment.formattedDate}
+                                    </Typography>
+                                  </Box>
+                                  <Typography color="var(--grey-500)" sx={{ fontSize: '13px', mt: 0.5 }}>
+                                    Tema {assignment.talkNumber}: {assignment.talkTitle || 'Cántico ' + assignment.songNumber}
+                                  </Typography>
+                                </ListItem>
+                              ))}
+                            </List>
+                          )}
+                        </Collapse>
+                      </Box>
+                      {/* Action buttons footer */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: '12px',
+                          mt: 'auto',
+                          pt: 2,
+                          borderTop: '1px solid var(--accent-200)',
+                          width: '100%',
+                        }}
+                      >
+                        <Button
+                          variant="secondary"
+                          sx={{
+                            flex: 1,
+                            height: '38px',
+                            minHeight: '38px',
+                            borderRadius: 'var(--radius-l)',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                          }}
+                          onClick={() => navigate('/speakers-catalog')}
+                        >
+                          Editar perfil
+                        </Button>
+                        <Button
+                          variant="main"
+                          sx={{
+                            flex: 1,
+                            height: '38px',
+                            minHeight: '38px',
+                            borderRadius: 'var(--radius-l)',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                          }}
+                          onClick={() => {
+                            const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
+                            if (targetWeek) {
+                              setSelectedWeek(targetWeek);
+                              const normalised = targetWeek.replace(/\//g, '-');
+                              const date = new Date(normalised + 'T12:00:00');
+                              if (!isNaN(date.getTime())) {
+                                setSelectedYear(date.getFullYear());
+                              }
+                            }
+                            setActiveTab(1);
+                          }}
+                        >
+                          Programar
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </Box>
