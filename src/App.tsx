@@ -71,6 +71,9 @@ const UpcomingEvents = lazy(() => import('@pages/activities/upcoming_events'));
 const DepartmentsSchedule = lazy(
   () => import('@pages/departments_schedule')
 );
+const PredicacionSalidas = lazy(
+  () => import('@pages/predicacion_salidas')
+);
 
 const queryClient = new QueryClient();
 
@@ -204,6 +207,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 children: [
                   { path: '/ministry-report', element: <MinistryReport /> },
                   { path: '/service-year', element: <ServiceYear /> },
+                  { path: '/predicacion-salidas', element: <PredicacionSalidas /> },
 
                   // only if connected
                   {

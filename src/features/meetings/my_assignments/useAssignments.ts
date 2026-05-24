@@ -13,6 +13,7 @@ import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
+import { serviceOutingsListState } from '@states/service_outings';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
 
@@ -27,6 +28,7 @@ const useMyAssignments = () => {
   const delegateMembers = useAtomValue(userMembersDelegateState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
+  const serviceOutings = useAtomValue(serviceOutingsListState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
 
   const storageValue = localStorageGetItem(LOCAL_STORAGE_KEY);
@@ -97,6 +99,42 @@ const useMyAssignments = () => {
       return results;
     };
 
+    const getServiceOutingsAssignments = (uid: string): AssignmentHistoryType[] => {
+      const results: AssignmentHistoryType[] = [];
+
+      for (const week of serviceOutings) {
+        if (!week || !week.outings) continue;
+        const weekDate = week.weekOf;
+
+        for (const outing of week.outings) {
+          if (
+            outing.person === uid &&
+            !outing.cancelled &&
+            outing.date >= today &&
+            outing.date <= formatDate(maxDate, 'yyyy/MM/dd')
+          ) {
+            results.push({
+              id: outing.id,
+              weekOf: weekDate,
+              weekOfFormatted: formatDate(
+                new Date(outing.date),
+                shortDateFormat
+              ),
+              assignment: {
+                code: 0 as AssignmentHistoryType['assignment']['code'],
+                person: uid,
+                key: `OUTING_${outing.id}` as AssignmentHistoryType['assignment']['key'],
+                dataView: 'main',
+                title: `Salida de predicación (${outing.time} @ ${outing.location || 'Salón del Reino'})`,
+              },
+            });
+          }
+        }
+      }
+
+      return results;
+    };
+
     const filterAssignments = (uid: string) => {
       const meetingAssignments = remapAssignmentsDate.filter(
         (record) =>
@@ -106,8 +144,9 @@ const useMyAssignments = () => {
       );
 
       const deptAssignments = getDeptAssignments(uid);
+      const outingAssignments = getServiceOutingsAssignments(uid);
 
-      return [...meetingAssignments, ...deptAssignments];
+      return [...meetingAssignments, ...deptAssignments, ...outingAssignments];
     };
 
     const ownAssignments = filterAssignments(userUID);
@@ -153,6 +192,7 @@ const useMyAssignments = () => {
   }, [
     assignmentsHistory,
     deptSchedules,
+    serviceOutings,
     displayRange,
     userUID,
     delegateMembers,

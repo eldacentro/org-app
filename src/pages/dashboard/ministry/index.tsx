@@ -3,6 +3,7 @@ import {
   IconMinistryReport,
   IconPioneerForm,
   IconStatsYear,
+  IconGroups,
 } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useMinistry from './useMinistry';
@@ -38,6 +39,13 @@ const MinistryCard = () => {
           primaryText={t('tr_serviceYear')}
           badgeText={isPioneer && hours_balance}
           path="/service-year"
+        />
+      </ListItem>
+      <ListItem disablePadding>
+        <DashboardMenu
+          icon={<IconGroups color="var(--black)" />}
+          primaryText={t('tr_serviceOutings', 'Salidas de predicación')}
+          path="/predicacion-salidas"
         />
       </ListItem>
 

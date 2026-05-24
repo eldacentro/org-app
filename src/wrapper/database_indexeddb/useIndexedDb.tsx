@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { useSetAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
+import { WritableAtom } from 'jotai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { schedulesBuildHistoryList } from '@services/app/schedules';
@@ -26,6 +27,8 @@ import { upcomingEventsDbState } from '@states/upcoming_events';
 import { publicTalksState } from '@states/public_talks';
 import { songsState } from '@states/songs';
 import { deptScheduleState } from '@states/departments_schedule';
+import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/service_outings';
+import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -71,6 +74,9 @@ const useIndexedDb = () => {
   const dbDeptSchedules = useLiveQuery(() =>
     appDb.departments_schedule.toArray()
   );
+  const dbServiceOutings = useLiveQuery(() =>
+    appDb.service_outings.toArray()
+  );
 
   const setSettings = useSetAtom(settingsState);
   const setPersons = useSetAtom(personsState);
@@ -95,6 +101,12 @@ const useIndexedDb = () => {
   const setPublicTalks = useSetAtom(publicTalksState);
   const setSongs = useSetAtom(songsState);
   const setDeptSchedules = useSetAtom(deptScheduleState);
+  const [, setServiceOutingsList] = useAtom(
+    serviceOutingsListState as WritableAtom<ServiceOutingWeekType[], [ServiceOutingWeekType[]], void>
+  );
+  const [, setServiceOutingsSettings] = useAtom(
+    serviceOutingsSettingsState as WritableAtom<ServiceOutingSettingsType | null, [ServiceOutingSettingsType | null], void>
+  );
 
   const loadSettings = useCallback(() => {
     if (dbSettings && dbSettings[0]) {
@@ -222,6 +234,18 @@ const useIndexedDb = () => {
     }
   }, [dbDeptSchedules, setDeptSchedules]);
 
+  const loadServiceOutings = useCallback(() => {
+    if (dbServiceOutings) {
+      const settings = dbServiceOutings.find((item) => item.weekOf === 'settings');
+      const list = dbServiceOutings.filter((item) => item.weekOf !== 'settings');
+
+      setServiceOutingsList(list);
+      if (settings) {
+        setServiceOutingsSettings(settings as ServiceOutingSettingsType);
+      }
+    }
+  }, [dbServiceOutings, setServiceOutingsList, setServiceOutingsSettings]);
+
   const loadAssignmentsHistory = useCallback(() => {
     const history = schedulesBuildHistoryList();
     setAssignmentsHistory(history);
@@ -249,6 +273,7 @@ const useIndexedDb = () => {
     loadPublicTalks,
     loadSongs,
     loadDeptSchedules,
+    loadServiceOutings,
     loadAssignmentsHistory,
   };
 };

@@ -10,6 +10,7 @@ import {
 import { isMyAssignmentOpenState } from '@states/app';
 import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
+import { serviceOutingsListState } from '@states/service_outings';
 import { formatDate, getWeekDate } from '@utils/date';
 import { isTest } from '@constants/index';
 import { resolveAssignmentDate } from '@utils/assignments';
@@ -23,6 +24,7 @@ const useDashboard = () => {
   const userUID = useAtomValue(userLocalUIDState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
+  const serviceOutings = useAtomValue(serviceOutingsListState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
   const settings = useAtomValue(settingsState);
 
@@ -70,8 +72,20 @@ const useDashboard = () => {
       }
     }
 
-    return meetingAssignmentsCount + deptAssignmentsCount;
-  }, [assignmentsHistory, deptSchedules, shortDateFormat, userUID]);
+    let outingAssignmentsCount = 0;
+
+    for (const week of serviceOutings) {
+      if (week.weekOf >= today && week.outings) {
+        for (const outing of week.outings) {
+          if (outing.person === userUID && !outing.cancelled) {
+            outingAssignmentsCount++;
+          }
+        }
+      }
+    }
+
+    return meetingAssignmentsCount + deptAssignmentsCount + outingAssignmentsCount;
+  }, [assignmentsHistory, deptSchedules, serviceOutings, shortDateFormat, userUID]);
 
   const handleCloseNewCongNotice = async () => {
     setNewCongSnack(false);

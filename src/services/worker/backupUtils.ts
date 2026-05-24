@@ -16,6 +16,7 @@ import {
   SchedWeekType,
 } from '@definition/schedules';
 import { DeptWeekType } from '@definition/departments_schedule';
+import { ServiceOutingWeekType } from '@definition/service_outings';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -336,6 +337,7 @@ const dbGetTableData = async () => {
     await appDb.branch_field_service_reports.toArray();
   const sched = await appDb.sched.toArray();
   const departments_schedule = await appDb.departments_schedule.toArray();
+  const service_outings = await appDb.service_outings.toArray();
   const sources = await appDb.sources.toArray();
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
@@ -392,6 +394,7 @@ const dbGetTableData = async () => {
     branch_field_service_reports,
     sched,
     departments_schedule,
+    service_outings,
     sources,
     meeting_attendance,
     metadata,
@@ -1409,6 +1412,52 @@ const dbRestoreDepartmentsSchedule = async (
   }
 };
 
+const dbRestoreServiceOutings = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.service_outings) return;
+
+    const remoteData = (backupData.service_outings as ServiceOutingWeekType[]).map((data) => {
+      decryptObject({
+        data,
+        table: 'service_outings',
+        accessCode,
+      });
+
+      return data;
+    });
+
+    const localData = await appDb.service_outings.toArray();
+
+    const dataToUpdate: ServiceOutingWeekType[] = [];
+
+    for (const remoteItem of remoteData) {
+      const localItem = localData.find(
+        (record) => record.weekOf === remoteItem.weekOf
+      );
+
+      if (!localItem) {
+        dataToUpdate.push(remoteItem);
+      }
+
+      if (localItem) {
+        const newItem = structuredClone(localItem);
+        syncFromRemote(newItem, remoteItem);
+
+        dataToUpdate.push(newItem);
+      }
+    }
+
+    if (dataToUpdate.length > 0) {
+      await appDb.service_outings.bulkPut(dataToUpdate);
+    }
+  } catch (error) {
+    throw new Error(`service_outings: ${error.message}`);
+  }
+};
+
 const dbRestoreSchedules = async (
   backupData: BackupDataType,
   accessCode: string
@@ -1766,6 +1815,8 @@ const dbRestoreFromBackup = async (
 
     await dbRestoreDepartmentsSchedule(backupData, accessCode);
 
+    await dbRestoreServiceOutings(backupData, accessCode);
+
     await dbRestoreUserStudies(backupData, accessCode);
 
     await dbRestoreUpcomingEvents(backupData, accessCode);
@@ -1839,6 +1890,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       branch_field_service_reports,
       sched,
       departments_schedule,
+      service_outings,
       sources,
       meeting_attendance,
       metadata,
@@ -2139,6 +2191,26 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           });
 
           obj.meeting_attendance = backupAttendance;
+        }
+
+        // include service outings data
+        if (
+          serviceCommitteeRole &&
+          metadata.metadata.service_outings?.send_local
+        ) {
+          const backupServiceOutings = service_outings.map((record) => {
+            const outing = structuredClone(record);
+
+            encryptObject({
+              data: outing,
+              table: 'service_outings',
+              accessCode,
+            });
+
+            return outing;
+          });
+
+          obj.service_outings = backupServiceOutings;
         }
 
         // for admin role

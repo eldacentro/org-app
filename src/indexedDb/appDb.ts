@@ -60,6 +60,10 @@ import {
   DeptScheduleTable,
   departmentsScheduleSchema,
 } from './tables/departments_schedule';
+import {
+  ServiceOutingTable,
+  serviceOutingsSchema,
+} from './tables/service_outings';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -82,7 +86,8 @@ type DexieTables = PersonsTable &
   DelegatedFieldServiceReportsTable &
   PublicTalkTable &
   SongTable &
-  DeptScheduleTable;
+  DeptScheduleTable &
+  ServiceOutingTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -195,6 +200,18 @@ appDb.version(13).stores({
   ...songSchema,
   ...upcomingEventsSchema,
   ...departmentsScheduleSchema,
+});
+
+appDb.version(14).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
 });
 
 appDb.on('populate', function () {

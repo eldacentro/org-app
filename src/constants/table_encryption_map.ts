@@ -243,4 +243,10 @@ export const TABLE_ENCRYPTION_MAP = {
     multimedia: 'shared',
     plataforma: 'shared',
   },
+  service_outings: {
+    outings: 'shared',
+    defaultHours: 'shared',
+    locations: 'shared',
+    availability: 'shared',
+  },
 };
