@@ -70,10 +70,8 @@ const formatToDbDate = (date: Date): string => {
 
 // Helper para formatear fecha legible
 const formatLegibleDate = (date: Date): string => {
-  const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric' };
-  const formatter = new Intl.DateTimeFormat('es-ES', options);
-  const formatted = formatter.format(date);
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  return `${weekdays[date.getDay()]} ${date.getDate()}`;
 };
 
 const PredicacionSalidas = () => {
