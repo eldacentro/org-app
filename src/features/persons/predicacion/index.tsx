@@ -12,7 +12,7 @@ const PersonPredicacion = () => {
 
   const male = person.person_data.male.value;
 
-  const handleToggleSalidas = (_: any, checked: boolean) => {
+  const handleToggleSalidas = (_: unknown, checked: boolean) => {
     const newPerson = structuredClone(person);
     newPerson.person_data.predicacion_salidas = {
       value: checked,
@@ -21,7 +21,7 @@ const PersonPredicacion = () => {
     setPersonCurrentDetails(newPerson);
   };
 
-  const handleToggleExhibidores = (_: any, checked: boolean) => {
+  const handleToggleExhibidores = (_: unknown, checked: boolean) => {
     const newPerson = structuredClone(person);
     newPerson.person_data.predicacion_exhibidores = {
       value: checked,
