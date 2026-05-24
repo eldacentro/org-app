@@ -41,7 +41,11 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
 
   const congregationFullname = `${schedule.congregation.name}${schedule.congregation.number.length > 0 ? ` (${schedule.congregation.number})` : ''}`;
 
-  const weekSchedule = schedules.find((record) => record.weekOf === week);
+  const weekSchedule = useMemo(() => {
+    if (!week) return undefined;
+    const normWeek = week.replace(/\//g, '-');
+    return schedules.find((record) => record.weekOf.replace(/\//g, '-') === normWeek);
+  }, [schedules, week]);
 
   const handleCloseSongSelector = () => setSongSelectorOpen(false);
 

@@ -48,6 +48,7 @@ import {
   scheduleOutgoingSpeakers,
   groupOutgoingSpeakersByDate,
 } from '@services/app/schedules';
+import { dbSchedCheck } from '@services/dexie/schedules';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import TemplateOutgoingSpeakersSchedule from '@views/meetings/weekend/outgoing_speakers_schedule';
@@ -226,40 +227,90 @@ const OutgoingSpeakersPage = () => {
   const [monthSortOrder, setMonthSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Group schedules by month for the sidebar
+  // Helper: generate all Mondays of a given year
+  const allMondaysOfYear = useMemo(() => {
+    const mondays: string[] = [];
+    // Start from Jan 1 of selectedYear, find the first Monday
+    const jan1 = new Date(selectedYear, 0, 1);
+    const dayOfWeek = jan1.getDay(); // 0=Sun, 1=Mon, ...
+    const firstMonday = new Date(jan1);
+    if (dayOfWeek === 0) {
+      firstMonday.setDate(jan1.getDate() + 1);
+    } else if (dayOfWeek === 1) {
+      // already Monday
+    } else {
+      firstMonday.setDate(jan1.getDate() + (8 - dayOfWeek));
+    }
+
+    const current = new Date(firstMonday);
+    while (current.getFullYear() === selectedYear) {
+      const yyyy = current.getFullYear();
+      const mm = String(current.getMonth() + 1).padStart(2, '0');
+      const dd = String(current.getDate()).padStart(2, '0');
+      mondays.push(`${yyyy}/${mm}/${dd}`);
+      current.setDate(current.getDate() + 7);
+    }
+
+    return mondays;
+  }, [selectedYear]);
+
   const groupedWeeks = useMemo(() => {
     const groups: Array<{ month: string; monthLabel: string; weeks: string[] }> = [];
-
-    const sorted = [...schedules].sort((a, b) => {
-      return monthSortOrder === 'desc'
-        ? b.weekOf.localeCompare(a.weekOf)
-        : a.weekOf.localeCompare(b.weekOf);
-    });
 
     const mesesEs = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
     ];
 
-    for (const schedule of sorted) {
+    // Build a Set of existing schedule weekOf keys (normalised to YYYY/MM/DD)
+    const existingWeeks = new Set<string>();
+    for (const schedule of schedules) {
       if (!schedule.weekOf || typeof schedule.weekOf !== 'string') continue;
+      // Normalise both formats to slash format for consistent comparison
+      existingWeeks.add(schedule.weekOf.replace(/-/g, '/'));
+    }
 
-      // weekOf is stored as "YYYY/MM/DD" or "YYYY-MM-DD" — normalise to YYYY-MM-DD
+    // Use all Mondays of the year so every month is represented
+    const allWeeks = [...allMondaysOfYear];
+
+    // Also include any schedule weeks for this year that may not be Mondays
+    // (edge cases from imported data)
+    for (const schedule of schedules) {
+      if (!schedule.weekOf || typeof schedule.weekOf !== 'string') continue;
       const normalised = schedule.weekOf.replace(/\//g, '-');
+      const date = new Date(normalised + 'T12:00:00');
+      if (isNaN(date.getTime())) continue;
+      if (date.getFullYear() !== selectedYear) continue;
+      const slashFormat = schedule.weekOf.replace(/-/g, '/');
+      if (!allWeeks.includes(slashFormat)) {
+        allWeeks.push(slashFormat);
+      }
+    }
+
+    // Sort all weeks
+    allWeeks.sort((a, b) => {
+      return monthSortOrder === 'desc'
+        ? b.localeCompare(a)
+        : a.localeCompare(b);
+    });
+
+    for (const weekOf of allWeeks) {
+      const normalised = weekOf.replace(/\//g, '-');
       const date = new Date(normalised + 'T12:00:00');
       if (isNaN(date.getTime())) continue;
 
       const year = date.getFullYear();
-      if (year !== selectedYear) continue;
-
       const monthIndex = date.getMonth();
       const monthKey = `${year}/${String(monthIndex + 1).padStart(2, '0')}`;
       const monthLabel = `${mesesEs[monthIndex]}`;
 
       const existing = groups.find((g) => g.month === monthKey);
       if (existing) {
-        existing.weeks.push(schedule.weekOf);
+        if (!existing.weeks.includes(weekOf)) {
+          existing.weeks.push(weekOf);
+        }
       } else {
-        groups.push({ month: monthKey, monthLabel, weeks: [schedule.weekOf] });
+        groups.push({ month: monthKey, monthLabel, weeks: [weekOf] });
       }
     }
 
@@ -271,7 +322,7 @@ const OutgoingSpeakersPage = () => {
     });
 
     return groups;
-  }, [schedules, selectedYear, monthSortOrder]);
+  }, [schedules, selectedYear, monthSortOrder, allMondaysOfYear]);
 
   // Determine which month to expand initially
   const defaultExpandedMonth = useMemo(() => {
@@ -1018,10 +1069,11 @@ const OutgoingSpeakersPage = () => {
                         <Collapse in={isMonthExpanded} timeout="auto" unmountOnExit>
                           <List disablePadding sx={{ pb: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {group.weeks.map((weekOf) => {
-                              const schedule = schedules.find((s) => s.weekOf === weekOf);
+                              const normWeekOf = weekOf.replace(/\//g, '-');
+                              const schedule = schedules.find((s) => s.weekOf.replace(/\//g, '-') === normWeekOf);
                               const assignmentsCount =
                                 schedule?.weekend_meeting?.outgoing_talks?.filter((t) => !t._deleted).length || 0;
-                              const isSelected = selectedWeek === weekOf;
+                              const isSelected = selectedWeek?.replace(/\//g, '-') === normWeekOf;
 
                               // Format date: e.g. "19 may." — normalise YYYY/MM/DD → YYYY-MM-DD
                               const normalisedWeek = weekOf.replace(/\//g, '-');
@@ -1038,7 +1090,10 @@ const OutgoingSpeakersPage = () => {
                                 <ListItem
                                   key={weekOf}
                                   disablePadding
-                                  onClick={() => {
+                                  onClick={async () => {
+                                    // Ensure a schedule record exists for this week
+                                    // (it may be a generated Monday without imported source data)
+                                    await dbSchedCheck(weekOf);
                                     setSelectedWeek(weekOf);
                                     setExpandedMonth(group.month);
                                   }}

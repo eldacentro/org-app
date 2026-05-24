@@ -11,11 +11,13 @@ const useOutgoingTalks = () => {
   const dataView = useAtomValue(userDataViewState);
 
   const schedule = useMemo(() => {
-    return schedules.find((record) => record.weekOf === selectedWeek);
+    if (!selectedWeek) return undefined;
+    const normSelected = selectedWeek.replace(/\//g, '-');
+    return schedules.find((record) => record.weekOf.replace(/\//g, '-') === normSelected);
   }, [schedules, selectedWeek]);
 
   const outgoingTalkSchedules =
-    schedule?.weekend_meeting.outgoing_talks.filter(
+    schedule?.weekend_meeting?.outgoing_talks?.filter(
       (record) => record._deleted === false
     ) || [];
 
@@ -40,11 +42,11 @@ const useOutgoingTalks = () => {
     };
 
     const outgoingSchedules = structuredClone(
-      schedule.weekend_meeting.outgoing_talks
+      schedule?.weekend_meeting?.outgoing_talks || []
     );
     outgoingSchedules.push(scheduleNew);
 
-    await dbSchedUpdate(selectedWeek, {
+    await dbSchedUpdate(schedule?.weekOf || selectedWeek, {
       'weekend_meeting.outgoing_talks': outgoingSchedules,
     });
   };

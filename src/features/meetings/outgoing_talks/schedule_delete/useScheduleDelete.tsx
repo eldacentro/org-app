@@ -18,7 +18,11 @@ const useScheduleDelete = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const schedule = schedules.find((record) => record.weekOf === week);
+  const schedule = (() => {
+    if (!week) return undefined;
+    const normWeek = week.replace(/\//g, '-');
+    return schedules.find((record) => record.weekOf.replace(/\//g, '-') === normWeek);
+  })();
 
   const handleDeleteSchedule = async () => {
     try {
