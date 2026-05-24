@@ -579,7 +579,7 @@ const PredicacionSalidas = () => {
                         const outing = weekRecord?.outings?.find(
                           (o) => o.date === dateKey && o.time === slot.time
                         );
-                        const assignedBrother = enabledBrothers.find(
+                        const assignedBrother = persons.find(
                           (b) => b.person_uid === outing?.person
                         );
                         const brotherName = assignedBrother
