@@ -272,3 +272,34 @@ export const dbPersonsCleanUp = async () => {
     await appDb.persons.bulkPut(recordsToUpdate);
   }
 };
+
+export const dbPersonsInitializePredicacionFields = async () => {
+  const records = await appDb.persons.toArray();
+  if (records.length === 0) return;
+
+  const recordsToUpdate = records.reduce((acc: PersonType[], current) => {
+    let updated = false;
+    const person = structuredClone(current);
+
+    if (person.person_data.predicacion_salidas === undefined) {
+      person.person_data.predicacion_salidas = { value: false, updatedAt: '' };
+      updated = true;
+    }
+
+    if (person.person_data.predicacion_exhibidores === undefined) {
+      person.person_data.predicacion_exhibidores = { value: false, updatedAt: '' };
+      updated = true;
+    }
+
+    if (updated) {
+      acc.push(person);
+    }
+
+    return acc;
+  }, []);
+
+  if (recordsToUpdate.length > 0) {
+    await appDb.persons.bulkPut(recordsToUpdate);
+    console.log(`Initialized predicación fields for ${recordsToUpdate.length} persons.`);
+  }
+};

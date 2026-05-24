@@ -45,6 +45,7 @@ import { LanguageItem } from '@definition/app';
 import {
   dbPersonsCleanUp,
   dbPersonsUpdateAssignments,
+  dbPersonsInitializePredicacionFields,
 } from '@services/dexie/persons';
 import {
   dbUserFieldServiceReportsRemoveEmpty,
@@ -84,6 +85,7 @@ export const runUpdater = async () => {
   await dbAssignmentUpdate();
   await dbPersonsUpdateAssignments();
   await dbPersonsCleanUp();
+  await dbPersonsInitializePredicacionFields();
   await dbSchedAuxClassUpdate();
   await dbRemoveDuplicateReports();
   await dbMetadataDefault();

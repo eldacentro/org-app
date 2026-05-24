@@ -235,6 +235,8 @@ export const personSchema: PersonType = {
     privileges: [],
     enrollments: [],
     emergency_contacts: [],
+    predicacion_salidas: { value: false, updatedAt: '' },
+    predicacion_exhibidores: { value: false, updatedAt: '' },
   },
 };
 

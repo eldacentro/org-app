@@ -109,6 +109,8 @@ export type PersonType = {
     enrollments: EnrollmentHistoryType[];
     emergency_contacts: EmergencyContactsType[];
     categories?: { value: string[]; updatedAt: string };
+    predicacion_salidas?: { value: boolean; updatedAt: string };
+    predicacion_exhibidores?: { value: boolean; updatedAt: string };
     family_members: {
       head: boolean;
       members: string[];

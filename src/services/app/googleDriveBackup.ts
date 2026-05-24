@@ -2,7 +2,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import appDb from '@db/appDb';
 
-export const googleDriveIsConnected = (backupAutomatic: any): boolean => {
+export const googleDriveIsConnected = (
+  backupAutomatic: {
+    google_drive_access_token?: { value: string; updatedAt: string };
+    google_drive_token_expiry?: { value: string; updatedAt: string };
+  } | undefined
+): boolean => {
   if (!backupAutomatic) return false;
   const token = backupAutomatic.google_drive_access_token?.value;
   const expiry = backupAutomatic.google_drive_token_expiry?.value;
