@@ -3,4 +3,4 @@ export type WeekSelectorProps = {
   onChange?: (value: number) => void;
 };
 
-export type WeeklySchedulesType = 'midweek' | 'weekend' | 'departments';
+export type WeeklySchedulesType = 'midweek' | 'weekend' | 'outgoing' | 'departments';

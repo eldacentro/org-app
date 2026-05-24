@@ -15,7 +15,7 @@ import {
 import { AssignmentCongregation } from '@definition/schedules';
 import { personsState } from '@states/persons';
 import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
-import { incomingSpeakersState } from '@states/visiting_speakers';
+import { incomingSpeakersState, visitingSpeakersState } from '@states/visiting_speakers';
 
 const usePersonComponent = ({
   week,
@@ -31,6 +31,7 @@ const usePersonComponent = ({
   const coDisplayName = useAtomValue(CODisplayNameState);
   const coFullname = useAtomValue(COFullnameState);
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
+  const visitingSpeakers = useAtomValue(visitingSpeakersState);
   const settings = useAtomValue(settingsState);
 
   const mmAuxCounselorDefaultEnabled = useMemo(() => {
@@ -229,6 +230,10 @@ const usePersonComponent = ({
         (record) => record.person_uid === talkSchedule?.value
       );
 
+      const speaker = visitingSpeakers.find(
+        (record) => record.person_uid === talkSchedule?.value
+      );
+
       if (person) {
         result.name = personGetDisplayName(
           person,
@@ -237,6 +242,15 @@ const usePersonComponent = ({
         );
 
         result.female = person.person_data.female.value;
+        result.active = talkSchedule.value === userUID;
+      } else if (speaker) {
+        result.name = speakerGetDisplayName(
+          speaker,
+          displayNameEnabled,
+          fullnameOption
+        );
+
+        result.female = false;
         result.active = talkSchedule.value === userUID;
       }
     }
@@ -255,6 +269,7 @@ const usePersonComponent = ({
     coFullname,
     wsConductor,
     incomingSpeakers,
+    visitingSpeakers,
     mmAuxCounselorDefaultEnabled,
     mmAuxCounselorDefault,
     schedule_id,

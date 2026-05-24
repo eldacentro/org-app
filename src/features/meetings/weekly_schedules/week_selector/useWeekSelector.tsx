@@ -31,6 +31,12 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
       );
     }
 
+    if (scheduleType === 'weekend' || scheduleType === 'outgoing') {
+      list = list.filter(
+        (record) => record.weekend_meeting?.w_study[lang]?.length > 0
+      );
+    }
+
     return list;
   }, [sources, scheduleType, lang]);
 
@@ -46,7 +52,12 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
     return weeksList.map((source, index) => {
       const meetingDate = schedulesGetMeetingDate({
         week: source.weekOf,
-        meeting: scheduleType === 'departments' ? 'midweek' : scheduleType,
+        meeting:
+          scheduleType === 'departments'
+            ? 'midweek'
+            : scheduleType === 'outgoing'
+              ? 'weekend'
+              : scheduleType,
         short: true,
       });
 

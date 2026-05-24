@@ -1,55 +1,100 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
+import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { schedulesState } from '@states/schedules';
-import { addDays, formatDate, getWeekDate } from '@utils/date';
+import { addDays, addMonths, formatDate, getWeekDate } from '@utils/date';
+import { JWLangState, userDataViewState } from '@states/settings';
+import { monthShortNamesState } from '@states/app';
+import { sourcesState } from '@states/sources';
 import { OutgoingTalkSchedule, OutgoingTalkSchedules } from './index.types';
 
 const useOutgoingTalks = () => {
+  const currentWeekVisible = useIntersectionObserver({
+    root: '.schedules-view-week-selector .MuiTabs-scroller',
+    selector: '.schedules-current-week',
+  });
+
+  const { t } = useAppTranslation();
+
   const schedules = useAtomValue(schedulesState);
+  const sources = useAtomValue(sourcesState);
+  const dataView = useAtomValue(userDataViewState);
+  const monthShortNames = useAtomValue(monthShortNamesState);
+  const lang = useAtomValue(JWLangState);
 
-  const talkSchedules = useMemo(() => {
-    const outgoingSchedules: OutgoingTalkSchedule[] = [];
+  const [value, setValue] = useState<number | boolean>(false);
 
-    const now = getWeekDate();
-    const recentWeeks = schedules.filter(
-      (schedule) =>
-        schedule.weekend_meeting &&
-        schedule.weekOf >= formatDate(now, 'yyyy/MM/dd')
-    );
+  const noSchedule = useMemo(() => {
+    if (schedules.length === 0) return true;
 
-    for (const schedule of recentWeeks) {
-      const talkSchedules =
-        schedule.weekend_meeting?.outgoing_talks.filter(
-          (record) => record.value.length > 0 && !record._deleted
-        ) ?? [];
+    let noMeeting = true;
 
-      for (const talkSchedule of talkSchedules) {
-        const weekday = talkSchedule.congregation.weekday ?? 6;
-
-        outgoingSchedules.push({
-          id: talkSchedule.id,
-          weekOf: schedule.weekOf,
-          date: formatDate(addDays(schedule.weekOf, weekday), 'yyyy/MM/dd'),
-          speaker: talkSchedule.value,
-          talk: talkSchedule.public_talk,
-          congregation: talkSchedule.congregation.name,
-        });
+    for (const schedule of schedules) {
+      if (schedule.weekend_meeting) {
+        noMeeting = false;
+        break;
       }
     }
 
+    return noMeeting;
+  }, [schedules]);
+
+  const filteredSources = useMemo(() => {
+    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+
+    return sources.filter(
+      (record) =>
+        record.weekOf >= minDate &&
+        record.weekend_meeting?.w_study[lang]?.length > 0
+    );
+  }, [sources, lang]);
+
+  const week = useMemo(() => {
+    if (typeof value === 'boolean') return null;
+
+    return filteredSources.at(value)?.weekOf || null;
+  }, [value, filteredSources]);
+
+  const schedule = useMemo(() => {
+    return schedules.find((record) => record.weekOf === week);
+  }, [schedules, week]);
+
+  const talkSchedules = useMemo(() => {
+    if (!week || !schedule) return [];
+
+    const outgoingSchedules: OutgoingTalkSchedule[] = [];
+
+    const talkSchedules =
+      schedule.weekend_meeting?.outgoing_talks.filter(
+        (record) => record.value.length > 0 && !record._deleted
+      ) ?? [];
+
+    for (const talkSchedule of talkSchedules) {
+      const weekday = talkSchedule.congregation.weekday ?? 6;
+
+      outgoingSchedules.push({
+        id: talkSchedule.id,
+        weekOf: schedule.weekOf,
+        date: formatDate(addDays(schedule.weekOf, weekday), 'yyyy/MM/dd'),
+        speaker: talkSchedule.value,
+        talk: talkSchedule.public_talk,
+        congregation: talkSchedule.congregation.name,
+      });
+    }
+
     const result = outgoingSchedules.reduce(
-      (acc: OutgoingTalkSchedules[], schedule) => {
-        const dataExist = acc.find((record) => record.date === schedule.date);
+      (acc: OutgoingTalkSchedules[], item) => {
+        const dataExist = acc.find((record) => record.date === item.date);
 
         if (!dataExist) {
           acc.push({
-            date: schedule.date,
-            schedules: [schedule],
+            date: item.date,
+            schedules: [item],
           });
         }
 
         if (dataExist) {
-          dataExist.schedules.push(schedule);
+          dataExist.schedules.push(item);
         }
 
         return acc;
@@ -58,13 +103,67 @@ const useOutgoingTalks = () => {
     );
 
     return result.sort((a, b) => a.date.localeCompare(b.date));
-  }, [schedules]);
+  }, [schedule, week]);
 
-  const noSchedule = useMemo(() => {
-    return talkSchedules.length === 0;
-  }, [talkSchedules]);
+  const scheduleLastUpdated = useMemo(() => {
+    if (!schedule || noSchedule) return;
 
-  return { talkSchedules, noSchedule };
+    const dates: string[] = [];
+    const talkSchedules =
+      schedule.weekend_meeting?.outgoing_talks.filter(
+        (record) => !record._deleted
+      ) ?? [];
+
+    for (const talkSchedule of talkSchedules) {
+      if (talkSchedule.updatedAt.length > 0) {
+        dates.push(talkSchedule.updatedAt);
+      }
+    }
+
+    const recentDate = dates.sort((a, b) => b.localeCompare(a)).at(0);
+    if (!recentDate) return;
+
+    const d = new Date(recentDate);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const date = d.getDate();
+    const monthName = monthShortNames[month];
+
+    const dateFormatted = t('tr_longDateWithYearLocale', {
+      year,
+      month: monthName,
+      date,
+    });
+
+    return dateFormatted;
+  }, [schedule, monthShortNames, t, noSchedule]);
+
+  const handleGoCurrent = () => {
+    const now = getWeekDate();
+    const weekOf = formatDate(now, 'yyyy/MM/dd');
+
+    const index = filteredSources.findIndex(
+      (record) => record.weekOf === weekOf
+    );
+
+    setValue(index);
+  };
+
+  const handleValueChange = (value: number) => {
+    setValue(value);
+  };
+
+  return {
+    value,
+    handleGoCurrent,
+    handleValueChange,
+    week,
+    currentWeekVisible,
+    scheduleLastUpdated,
+    noSchedule,
+    dataView,
+    talkSchedules,
+  };
 };
 
 export default useOutgoingTalks;
