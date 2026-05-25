@@ -644,8 +644,9 @@ const PredicacionSalidas = () => {
                 {`Programa de Salidas — ${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
               </Typography>
 
-              {/* Agrupar slots por fecha del día */}
+              {/* Agrupar slots por semanas y días */}
               {(() => {
+                // 1. Agrupar slots por día primero
                 const dayMap = new Map<string, typeof outingsSlotsInMonth>();
                 for (const slot of outingsSlotsInMonth) {
                   const key = formatToDbDate(slot.date);
@@ -653,149 +654,205 @@ const PredicacionSalidas = () => {
                   dayMap.get(key)!.push(slot);
                 }
 
+                // 2. Agrupar los días resultantes por su semana de inicio (Lunes)
+                const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof outingsSlotsInMonth }>>();
+                for (const [dateKey, daySlots] of dayMap.entries()) {
+                  const dayDate = daySlots[0].date;
+                  const weekOf = getWeekOfDate(dayDate); // "YYYY/MM/DD"
+                  if (!weekMap.has(weekOf)) weekMap.set(weekOf, []);
+                  weekMap.get(weekOf)!.push({ dateKey, daySlots });
+                }
+
+                // 3. Ordenar las semanas cronológicamente
+                const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
                 const slotLabel = (slotType: string): string => {
                   if (slotType.endsWith('_morning')) return 'Mañana';
                   if (slotType.endsWith('_afternoon')) return 'Tarde';
                   return '';
                 };
 
-                return Array.from(dayMap.entries()).map(([dateKey, daySlots]) => {
-                  const dayDate = daySlots[0].date;
-                  const dayLabel = formatLegibleDate(dayDate);
+                const getWeekLabel = (weekOfStr: string): string => {
+                  const [year, month, day] = weekOfStr.split('/').map(Number);
+                  const monday = new Date(year, month - 1, day);
+                  const sunday = new Date(monday);
+                  sunday.setDate(sunday.getDate() + 6);
 
+                  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                  
+                  const monDayNum = monday.getDate();
+                  const monMonth = months[monday.getMonth()];
+                  
+                  const sunDayNum = sunday.getDate();
+                  const sunMonth = months[sunday.getMonth()];
+
+                  if (monday.getMonth() === sunday.getMonth()) {
+                    return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
+                  } else {
+                    return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
+                  }
+                };
+
+                return sortedWeeks.map(([weekOf, days]) => {
+                  const weekLabel = getWeekLabel(weekOf);
                   return (
-                    <Card
-                      key={dateKey}
-                      sx={{
-                        mb: '12px',
-                        border: '1px solid var(--accent-300)',
-                        borderRadius: 'var(--radius-l)',
-                        boxShadow: 'none',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {/* Encabezado del día */}
-                      <Box
-                        sx={{
-                          px: '16px',
-                          py: '10px',
-                          backgroundColor: 'var(--accent-100)',
-                          borderBottom: '1px solid var(--accent-300)',
+                    <Box key={weekOf} sx={{ mb: '32px' }}>
+                      {/* Título de la semana */}
+                      <Typography
+                        className="h3"
+                        style={{
+                          fontWeight: '700',
+                          color: 'var(--accent-main)',
+                          marginBottom: '12px',
+                          textTransform: 'capitalize',
+                          borderLeft: '4px solid var(--accent-main)',
+                          paddingLeft: '12px',
                         }}
                       >
-                        <Typography
-                          className="h3"
-                          style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'capitalize' }}
-                        >
-                          {dayLabel}
-                        </Typography>
+                        {weekLabel}
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {days.map(({ dateKey, daySlots }) => {
+                          const dayDate = daySlots[0].date;
+                          const dayLabel = formatLegibleDate(dayDate);
+
+                          return (
+                            <Card
+                              key={dateKey}
+                              sx={{
+                                border: '1px solid var(--accent-300)',
+                                borderRadius: 'var(--radius-l)',
+                                boxShadow: 'none',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {/* Encabezado del día */}
+                              <Box
+                                sx={{
+                                  px: '16px',
+                                  py: '10px',
+                                  backgroundColor: 'var(--accent-100)',
+                                  borderBottom: '1px solid var(--accent-300)',
+                                }}
+                              >
+                                <Typography
+                                  className="h3"
+                                  style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'capitalize' }}
+                                >
+                                  {dayLabel}
+                                </Typography>
+                              </Box>
+
+                              {/* Filas de slots */}
+                              {daySlots.map((slot, idx) => {
+                                const weekOfRecord = getWeekOfDate(slot.date);
+                                const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                const outing = weekRecord?.outings?.find(
+                                  (o) => o.date === dateKey && o.time === slot.time
+                                );
+                                const assignedBrother = persons.find(
+                                  (b) => b.person_uid === outing?.person
+                                );
+                                const brotherName = assignedBrother
+                                  ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                                  : '';
+                                const isAssignedToMe = outing?.person === currentPerson?.person_uid;
+                                const isCancelled = outing?.cancelled ?? false;
+                                const label = slotLabel(slot.slotType);
+
+                                return (
+                                  <Box
+                                    key={slot.slotId}
+                                    onClick={() => handleOpenEdit(slot)}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '16px',
+                                      px: '16px',
+                                      py: '14px',
+                                      borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                      backgroundColor: isCancelled
+                                        ? '#fce8e6'
+                                        : isAssignedToMe
+                                        ? 'var(--accent-50, #f0f7ff)'
+                                        : 'var(--white)',
+                                      cursor: isServiceCommittee ? 'pointer' : 'default',
+                                      transition: 'background-color 0.15s',
+                                      '&:hover': isServiceCommittee
+                                        ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
+                                        : {},
+                                    }}
+                                  >
+                                    {/* Hora + etiqueta de turno */}
+                                    <Box sx={{ minWidth: '80px' }}>
+                                      <Typography
+                                        style={{
+                                          fontWeight: '700',
+                                          fontSize: '15px',
+                                          color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                                        }}
+                                      >
+                                        {slot.time}
+                                      </Typography>
+                                      {label && (
+                                        <Typography
+                                          style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                                        >
+                                          {label}
+                                        </Typography>
+                                      )}
+                                    </Box>
+
+                                    <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+
+                                    {/* Hermano asignado */}
+                                    <Box sx={{ flex: 1 }}>
+                                      {isCancelled ? (
+                                        <Chip
+                                          icon={<IconCancelFilled color="var(--error-main)" />}
+                                          label="Cancelada"
+                                          size="small"
+                                          sx={{
+                                            backgroundColor: 'var(--error-150)',
+                                            color: 'var(--error-dark)',
+                                            fontWeight: '600',
+                                          }}
+                                        />
+                                      ) : (
+                                        <Typography
+                                          style={{
+                                            fontWeight: '600',
+                                            fontSize: '15px',
+                                            color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                          }}
+                                        >
+                                          {brotherName || 'Sin asignar'}
+                                        </Typography>
+                                      )}
+                                    </Box>
+
+                                    {/* Lugar */}
+                                    <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                                      <Typography
+                                        style={{
+                                          fontSize: '13px',
+                                          color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                                        }}
+                                      >
+                                        {isCancelled
+                                          ? '—'
+                                          : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                );
+                              })}
+                            </Card>
+                          );
+                        })}
                       </Box>
-
-                      {/* Filas de slots */}
-                      {daySlots.map((slot, idx) => {
-                        const weekOf = getWeekOfDate(slot.date);
-                        const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
-                        const outing = weekRecord?.outings?.find(
-                          (o) => o.date === dateKey && o.time === slot.time
-                        );
-                        const assignedBrother = persons.find(
-                          (b) => b.person_uid === outing?.person
-                        );
-                        const brotherName = assignedBrother
-                          ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                          : '';
-                        const isAssignedToMe = outing?.person === currentPerson?.person_uid;
-                        const isCancelled = outing?.cancelled ?? false;
-                        const label = slotLabel(slot.slotType);
-
-                        return (
-                          <Box
-                            key={slot.slotId}
-                            onClick={() => handleOpenEdit(slot)}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '16px',
-                              px: '16px',
-                              py: '14px',
-                              borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
-                              backgroundColor: isCancelled
-                                ? '#fce8e6'
-                                : isAssignedToMe
-                                ? 'var(--accent-50, #f0f7ff)'
-                                : 'var(--white)',
-                              cursor: isServiceCommittee ? 'pointer' : 'default',
-                              transition: 'background-color 0.15s',
-                              '&:hover': isServiceCommittee
-                                ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
-                                : {},
-                            }}
-                          >
-                            {/* Hora + etiqueta de turno */}
-                            <Box sx={{ minWidth: '80px' }}>
-                              <Typography
-                                style={{
-                                  fontWeight: '700',
-                                  fontSize: '15px',
-                                  color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
-                                }}
-                              >
-                                {slot.time}
-                              </Typography>
-                              {label && (
-                                <Typography
-                                  style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
-                                >
-                                  {label}
-                                </Typography>
-                              )}
-                            </Box>
-
-                            <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
-
-                            {/* Hermano asignado */}
-                            <Box sx={{ flex: 1 }}>
-                              {isCancelled ? (
-                                <Chip
-                                  icon={<IconCancelFilled color="var(--error-main)" />}
-                                  label="Cancelada"
-                                  size="small"
-                                  sx={{
-                                    backgroundColor: 'var(--error-150)',
-                                    color: 'var(--error-dark)',
-                                    fontWeight: '600',
-                                  }}
-                                />
-                              ) : (
-                                <Typography
-                                  style={{
-                                    fontWeight: '600',
-                                    fontSize: '15px',
-                                    color: brotherName ? 'var(--black)' : 'var(--error-main)',
-                                  }}
-                                >
-                                  {brotherName || 'Sin asignar'}
-                                </Typography>
-                              )}
-                            </Box>
-
-                            {/* Lugar */}
-                            <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
-                              <Typography
-                                style={{
-                                  fontSize: '13px',
-                                  color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
-                                }}
-                              >
-                                {isCancelled
-                                  ? '—'
-                                  : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        );
-                      })}
-                    </Card>
+                    </Box>
                   );
                 });
               })()}
