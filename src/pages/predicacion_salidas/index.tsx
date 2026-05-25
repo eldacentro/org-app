@@ -641,7 +641,7 @@ const PredicacionSalidas = () => {
           {activeTab === 'planner' ? (
             <Box>
               <Typography className="h2" style={{ marginBottom: '16px', color: 'var(--accent-main)' }}>
-                {`Programa de Salidas — ${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
+                {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
               </Typography>
 
               {/* Agrupar slots por semanas y días */}
@@ -704,7 +704,7 @@ const PredicacionSalidas = () => {
                           fontWeight: '700',
                           color: 'var(--accent-main)',
                           marginBottom: '12px',
-                          textTransform: 'capitalize',
+                          textTransform: 'none',
                           borderLeft: '4px solid var(--accent-main)',
                           paddingLeft: '12px',
                         }}
@@ -738,7 +738,7 @@ const PredicacionSalidas = () => {
                               >
                                 <Typography
                                   className="h3"
-                                  style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'capitalize' }}
+                                  style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
                                 >
                                   {dayLabel}
                                 </Typography>
@@ -872,7 +872,7 @@ const PredicacionSalidas = () => {
               }}
             >
               <Typography className="h2" style={{ marginBottom: '16px', color: 'var(--accent-main)' }}>
-                Configuración de Salidas de Predicación
+                Configuración de salidas de predicación
               </Typography>
 
               <Tabs
