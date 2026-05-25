@@ -33,4 +33,5 @@ export type ServiceOutingSettingsType = {
   availability: {
     [person_uid: string]: string[]; // array de slots en los que está disponible (ej: ["tue_morning", "sat"])
   };
+  disabledSlots?: string[];
 };
