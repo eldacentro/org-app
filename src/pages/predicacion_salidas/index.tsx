@@ -33,9 +33,13 @@ import {
   IconDelete,
   IconGroups,
   IconCancelFilled,
+  IconCalendar,
 } from '@components/icons';
 import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { personsState } from '@states/persons';
+import TimePicker from '@components/time_picker';
+import { generateDateFromTime } from '@utils/date';
+import { hour24FormatState } from '@states/settings';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
@@ -82,6 +86,7 @@ const PredicacionSalidas = () => {
 
   // Estados reactivos de Jotai
   const persons = useAtomValue(personsState);
+  const hour24 = useAtomValue(hour24FormatState);
   const [outingsWeeks, setOutingsWeeks] = useAtom(serviceOutingsListState);
   // useAtom with nullable atom — destructure read and write separately
   const [settings, setSettings] = useAtom(serviceOutingsSettingsState) as [
@@ -428,7 +433,7 @@ const PredicacionSalidas = () => {
               <NavBarButton
                 text={activeTab === 'planner' ? 'Configuración' : 'Programa'}
                 onClick={() => setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')}
-                icon={<IconSettings />}
+                icon={activeTab === 'planner' ? <IconSettings /> : <IconCalendar />}
               />
             )}
             <NavBarButton
@@ -899,14 +904,14 @@ const PredicacionSalidas = () => {
                 }}
               >
                 <Tab label="Ubicaciones" />
-                <Tab label="Horarios por Defecto" />
+                <Tab label="Horarios" />
                 <Tab label="Disponibilidad de Hermanos" />
               </Tabs>
 
               {/* Sub-tab 0: Ubicaciones */}
               {settingsSubTab === 0 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Catálogo de Lugares de Salidas</Typography>
+                  <Typography className="h3">Lugares de salidas</Typography>
                   <Box sx={{ display: 'flex', gap: '12px', maxWidth: '500px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' } }}>
                     <TextField
                       label="Nueva ubicación"
@@ -973,7 +978,7 @@ const PredicacionSalidas = () => {
               {/* Sub-tab 1: Horarios Recurrentes */}
               {settingsSubTab === 1 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Configurar Horas de Salida Semanales</Typography>
+                  <Typography className="h3">Horarios semanales</Typography>
 
                   <Grid container spacing={2} sx={{ maxWidth: '600px' }}>
                     {[
@@ -1015,16 +1020,16 @@ const PredicacionSalidas = () => {
                             </Box>
                             
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', width: desktopUp ? 'auto' : '100%', justifyContent: 'space-between' }}>
-                              <TextField
-                                type="time"
+                              <TimePicker
                                 label="Hora de salida"
-                                value={hoursConfig[item.key] || ''}
-                                onChange={(e) =>
-                                  setHoursConfig({ ...hoursConfig, [item.key]: e.target.value })
-                                }
-                                size="small"
-                                disabled={isDisabled}
-                                InputLabelProps={{ shrink: true }}
+                                ampm={!hour24}
+                                value={hoursConfig[item.key] ? generateDateFromTime(hoursConfig[item.key]) : null}
+                                onChange={(newDate) => {
+                                  const hrs = String(newDate.getHours()).padStart(2, '0');
+                                  const mins = String(newDate.getMinutes()).padStart(2, '0');
+                                  setHoursConfig({ ...hoursConfig, [item.key]: `${hrs}:${mins}` });
+                                }}
+                                readOnly={isDisabled}
                                 sx={{ width: '150px' }}
                               />
                               
@@ -1194,61 +1199,28 @@ const PredicacionSalidas = () => {
         </DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mt: '8px' }}>
-          {/* Campo Cancelación con botones premium */}
-          <Box sx={{ display: 'flex', gap: '8px', mt: '4px' }}>
+          {/* Botón de cancelación de bajo perfil */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: '4px' }}>
             <Button
-              variant={!editCancelled ? 'contained' : 'outlined'}
-              onClick={() => setEditCancelled(false)}
-              fullWidth
+              variant="outlined"
+              onClick={() => setEditCancelled(!editCancelled)}
               sx={{
                 borderRadius: 'var(--radius-m)',
-                fontWeight: '700',
-                boxShadow: 'none',
+                fontWeight: '600',
                 textTransform: 'none',
-                py: '8px',
-                ...(!editCancelled ? {
-                  backgroundColor: 'var(--accent-main)',
-                  color: 'var(--always-white)',
-                  '&:hover': {
-                    backgroundColor: 'var(--accent-dark)',
-                  }
-                } : {
-                  borderColor: 'var(--accent-200)',
-                  color: 'var(--black)',
-                  '&:hover': {
-                    backgroundColor: 'var(--accent-100)',
-                  }
-                })
+                fontSize: '13px',
+                py: '6px',
+                px: '16px',
+                boxShadow: 'none',
+                borderColor: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
+                color: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
+                '&:hover': {
+                  backgroundColor: editCancelled ? 'var(--accent-150)' : 'var(--error-150)',
+                  borderColor: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
+                }
               }}
             >
-              🟢 Salida Activa
-            </Button>
-            <Button
-              variant={editCancelled ? 'contained' : 'outlined'}
-              onClick={() => setEditCancelled(true)}
-              fullWidth
-              sx={{
-                borderRadius: 'var(--radius-m)',
-                fontWeight: '700',
-                boxShadow: 'none',
-                textTransform: 'none',
-                py: '8px',
-                ...(editCancelled ? {
-                  backgroundColor: 'var(--error-main, #d32f2f)',
-                  color: 'var(--always-white)',
-                  '&:hover': {
-                    backgroundColor: 'var(--error-dark, #c62828)',
-                  }
-                } : {
-                  borderColor: 'var(--accent-200)',
-                  color: 'var(--black)',
-                  '&:hover': {
-                    backgroundColor: 'var(--accent-100)',
-                  }
-                })
-              }}
-            >
-              🔴 Cancelada
+              {editCancelled ? 'Activar' : 'Cancelar'}
             </Button>
           </Box>
 
@@ -1257,7 +1229,7 @@ const PredicacionSalidas = () => {
               {/* Asignar Hermano */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Typography style={{ fontWeight: '600', fontSize: '14px', color: 'var(--accent-dark)' }}>
-                  Asignar Conductor
+                  Asignar conductor
                 </Typography>
                 <Select
                   value={editPerson}
@@ -1299,7 +1271,7 @@ const PredicacionSalidas = () => {
               {/* Asignar Ubicación */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Typography style={{ fontWeight: '600', fontSize: '14px', color: 'var(--accent-dark)' }}>
-                  Lugar de Reunión
+                  Lugar de reunión
                 </Typography>
                 <Select
                   value={editLocation}
