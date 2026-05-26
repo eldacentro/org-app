@@ -19,15 +19,20 @@ export const dbServiceOutingsGetSettings = async (): Promise<ServiceOutingSettin
   if (settings) {
     if (!settings.defaultHours) {
       settings.defaultHours = {
+        monday_morning: '10:00',
+        monday_afternoon: '17:00',
         tuesday_morning: '10:00',
         tuesday_afternoon: '17:00',
         wednesday_morning: '10:00',
         wednesday_afternoon: '17:00',
         thursday_morning: '10:00',
         thursday_afternoon: '17:00',
-        friday: '17:30',
-        saturday: '09:45',
-        sunday: '10:30',
+        friday_morning: '10:00',
+        friday_afternoon: '17:30',
+        saturday_morning: '09:45',
+        saturday_afternoon: '17:00',
+        sunday_morning: '10:30',
+        sunday_afternoon: '17:00',
       };
     }
     if (!settings.locations) {
@@ -44,15 +49,20 @@ export const dbServiceOutingsGetSettings = async (): Promise<ServiceOutingSettin
     weekOf: 'settings',
     updatedAt: new Date().toISOString(),
     defaultHours: {
+      monday_morning: '10:00',
+      monday_afternoon: '17:00',
       tuesday_morning: '10:00',
       tuesday_afternoon: '17:00',
       wednesday_morning: '10:00',
       wednesday_afternoon: '17:00',
       thursday_morning: '10:00',
       thursday_afternoon: '17:00',
-      friday: '17:30',
-      saturday: '09:45',
-      sunday: '10:30',
+      friday_morning: '10:00',
+      friday_afternoon: '17:30',
+      saturday_morning: '09:45',
+      saturday_afternoon: '17:00',
+      sunday_morning: '10:30',
+      sunday_afternoon: '17:00',
     },
     locations: ['Salón del Reino'],
     availability: {},

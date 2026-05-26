@@ -172,15 +172,20 @@ const PredicacionSalidas = () => {
     if (!settings) return [];
 
     const defaultHours = settings.defaultHours || {
+      monday_morning: '10:00',
+      monday_afternoon: '17:00',
       tuesday_morning: '10:00',
       tuesday_afternoon: '17:00',
       wednesday_morning: '10:00',
       wednesday_afternoon: '17:00',
       thursday_morning: '10:00',
       thursday_afternoon: '17:00',
-      friday: '17:30',
-      saturday: '09:45',
-      sunday: '10:30',
+      friday_morning: '10:00',
+      friday_afternoon: '17:30',
+      saturday_morning: '09:45',
+      saturday_afternoon: '17:00',
+      sunday_morning: '10:30',
+      sunday_afternoon: '17:00',
     };
 
     const slots = [];
@@ -190,11 +195,21 @@ const PredicacionSalidas = () => {
     while (date.getMonth() === selectedMonth) {
       const dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
 
-      // Martes (2), Miércoles (3), Jueves (4)
-      if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) {
-        const dayLabel = dayOfWeek === 2 ? 'tuesday' : dayOfWeek === 3 ? 'wednesday' : 'thursday';
+      // Determinar el prefijo del día en inglés
+      let dayLabel = '';
+      if (dayOfWeek === 1) dayLabel = 'monday';
+      else if (dayOfWeek === 2) dayLabel = 'tuesday';
+      else if (dayOfWeek === 3) dayLabel = 'wednesday';
+      else if (dayOfWeek === 4) dayLabel = 'thursday';
+      else if (dayOfWeek === 5) dayLabel = 'friday';
+      else if (dayOfWeek === 6) dayLabel = 'saturday';
+      else if (dayOfWeek === 0) dayLabel = 'sunday';
+
+      if (dayLabel) {
+        // Turno Mañana
         const morningType = `${dayLabel}_morning`;
-        if (!disabledSlots.includes(morningType)) {
+        // Para compatibilidad hacia atrás, si disabledSlots incluye el nombre del día legacy (ej: 'friday'), lo consideramos deshabilitado
+        if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayLabel)) {
           slots.push({
             date: new Date(date),
             slotType: morningType,
@@ -202,46 +217,15 @@ const PredicacionSalidas = () => {
             slotId: `${formatToDbDate(date)}_morning`,
           });
         }
+
+        // Turno Tarde
         const afternoonType = `${dayLabel}_afternoon`;
-        if (!disabledSlots.includes(afternoonType)) {
+        if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
           slots.push({
             date: new Date(date),
             slotType: afternoonType,
             time: defaultHours[afternoonType as keyof typeof defaultHours] || '17:00',
             slotId: `${formatToDbDate(date)}_afternoon`,
-          });
-        }
-      }
-      // Viernes (5)
-      else if (dayOfWeek === 5) {
-        if (!disabledSlots.includes('friday')) {
-          slots.push({
-            date: new Date(date),
-            slotType: 'friday',
-            time: defaultHours.friday || '17:30',
-            slotId: `${formatToDbDate(date)}_fri`,
-          });
-        }
-      }
-      // Sábado (6)
-      else if (dayOfWeek === 6) {
-        if (!disabledSlots.includes('saturday')) {
-          slots.push({
-            date: new Date(date),
-            slotType: 'saturday',
-            time: defaultHours.saturday || '09:45',
-            slotId: `${formatToDbDate(date)}_sat`,
-          });
-        }
-      }
-      // Domingo (0)
-      else if (dayOfWeek === 0) {
-        if (!disabledSlots.includes('sunday')) {
-          slots.push({
-            date: new Date(date),
-            slotType: 'sunday',
-            time: defaultHours.sunday || '10:30',
-            slotId: `${formatToDbDate(date)}_sun`,
           });
         }
       }
@@ -937,34 +921,64 @@ const PredicacionSalidas = () => {
                 /* Vista Mensual de Cuadrícula */
                 <Box>
                   {(() => {
-                    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
-                    const firstDayOfWeek = firstDayOfMonth.getDay();
-                    // offset to align Monday as 0
-                    const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+                    const weekdaysInfo = [
+                      { dayOfWeek: 1, label: 'lun.', englishLabel: 'monday' },
+                      { dayOfWeek: 2, label: 'mar.', englishLabel: 'tuesday' },
+                      { dayOfWeek: 3, label: 'mié.', englishLabel: 'wednesday' },
+                      { dayOfWeek: 4, label: 'jue.', englishLabel: 'thursday' },
+                      { dayOfWeek: 5, label: 'vie.', englishLabel: 'friday' },
+                      { dayOfWeek: 6, label: 'sáb.', englishLabel: 'saturday' },
+                      { dayOfWeek: 0, label: 'dom.', englishLabel: 'sunday' },
+                    ];
+
+                    const activeDays = new Set<number>();
+                    for (const slot of outingsSlotsInMonth) {
+                      activeDays.add(slot.date.getDay());
+                    }
+                    const weekdaysToShow = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
+                    const weekdaysToShowFinal = weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
+
                     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
                     
-                    const cells: Array<{ type: 'empty'; id: string } | { type: 'day'; dayNum: number; date: Date }> = [];
-                    
-                    // Empty start padding
-                    for (let i = 0; i < offset; i++) {
-                      cells.push({ type: 'empty', id: `empty-start-${i}` });
-                    }
-                    
-                    // Day cells
+                    const weekKeys = new Set<string>();
                     for (let d = 1; d <= daysInMonth; d++) {
-                      cells.push({
-                        type: 'day',
-                        dayNum: d,
-                        date: new Date(selectedYear, selectedMonth, d)
-                      });
+                      const date = new Date(selectedYear, selectedMonth, d);
+                      weekKeys.add(getWeekOfDate(date));
                     }
-                    
-                    // Empty end padding
-                    const totalSoFar = cells.length;
-                    const remaining = totalSoFar % 7;
-                    const paddingEnd = remaining === 0 ? 0 : 7 - remaining;
-                    for (let i = 0; i < paddingEnd; i++) {
-                      cells.push({ type: 'empty', id: `empty-end-${i}` });
+                    const sortedWeekKeys = Array.from(weekKeys).sort();
+
+                    const cells: Array<{ type: 'empty'; id: string } | { type: 'day'; dayNum: number; date: Date }> = [];
+
+                    for (const weekKey of sortedWeekKeys) {
+                      const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
+                      const mondayDate = new Date(wYear, wMonth - 1, wDay);
+                      
+                      for (const dayInfo of weekdaysToShowFinal) {
+                        let diffDays = 0;
+                        if (dayInfo.dayOfWeek === 1) diffDays = 0;
+                        else if (dayInfo.dayOfWeek === 2) diffDays = 1;
+                        else if (dayInfo.dayOfWeek === 3) diffDays = 2;
+                        else if (dayInfo.dayOfWeek === 4) diffDays = 3;
+                        else if (dayInfo.dayOfWeek === 5) diffDays = 4;
+                        else if (dayInfo.dayOfWeek === 6) diffDays = 5;
+                        else if (dayInfo.dayOfWeek === 0) diffDays = 6;
+                        
+                        const cellDate = new Date(mondayDate);
+                        cellDate.setDate(mondayDate.getDate() + diffDays);
+                        
+                        if (cellDate.getMonth() === selectedMonth && cellDate.getFullYear() === selectedYear) {
+                          cells.push({
+                            type: 'day',
+                            dayNum: cellDate.getDate(),
+                            date: cellDate,
+                          });
+                        } else {
+                          cells.push({
+                            type: 'empty',
+                            id: `empty-${weekKey}-${dayInfo.dayOfWeek}`,
+                          });
+                        }
+                      }
                     }
 
                     // Group slots by day
@@ -996,9 +1010,9 @@ const PredicacionSalidas = () => {
                         width: '100%',
                         boxSizing: 'border-box'
                       }}>
-                        <Grid container spacing={1} columns={7} sx={{ width: '100%', margin: 0 }}>
-                          {['lun.', 'mar.', 'mié.', 'jue.', 'vie.', 'sáb.', 'dom.'].map((day) => (
-                            <Grid size={{ mobile: 1 }} key={day} sx={{ p: 0.5 }}>
+                        <Grid container spacing={1} columns={weekdaysToShowFinal.length} sx={{ width: '100%', margin: 0 }}>
+                          {weekdaysToShowFinal.map((dayInfo) => (
+                            <Grid size={{ mobile: 1 }} key={dayInfo.label} sx={{ p: 0.5 }}>
                               <Box sx={{
                                 textAlign: 'center',
                                 py: '6px',
@@ -1006,7 +1020,7 @@ const PredicacionSalidas = () => {
                                 mb: '4px'
                               }}>
                                 <Typography style={{ fontWeight: '700', fontSize: '12px', color: 'var(--accent-main)', textTransform: 'none' }}>
-                                  {day}
+                                  {dayInfo.label}
                                 </Typography>
                               </Box>
                             </Grid>
@@ -1498,113 +1512,139 @@ const PredicacionSalidas = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <Typography className="h3">Horarios semanales</Typography>
 
-                  <Grid container spacing={2} sx={{ maxWidth: '600px' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
                     {[
-                      { key: 'tuesday_morning', label: 'Martes Mañana' },
-                      { key: 'tuesday_afternoon', label: 'Martes Tarde' },
-                      { key: 'wednesday_morning', label: 'Miércoles Mañana' },
-                      { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
-                      { key: 'thursday_morning', label: 'Jueves Mañana' },
-                      { key: 'thursday_afternoon', label: 'Jueves Tarde' },
-                      { key: 'friday', label: 'Viernes' },
-                      { key: 'saturday', label: 'Sábado' },
-                      { key: 'sunday', label: 'Domingo' },
-                    ].map((item) => {
-                      const isDisabled = settings?.disabledSlots?.includes(item.key) ?? false;
+                      { dayLabel: 'Lunes', morningKey: 'monday_morning', afternoonKey: 'monday_afternoon' },
+                      { dayLabel: 'Martes', morningKey: 'tuesday_morning', afternoonKey: 'tuesday_afternoon' },
+                      { dayLabel: 'Miércoles', morningKey: 'wednesday_morning', afternoonKey: 'wednesday_afternoon' },
+                      { dayLabel: 'Jueves', morningKey: 'thursday_morning', afternoonKey: 'thursday_afternoon' },
+                      { dayLabel: 'Viernes', morningKey: 'friday_morning', afternoonKey: 'friday_afternoon' },
+                      { dayLabel: 'Sábado', morningKey: 'saturday_morning', afternoonKey: 'saturday_afternoon' },
+                      { dayLabel: 'Domingo', morningKey: 'sunday_morning', afternoonKey: 'sunday_afternoon' },
+                    ].map((dayGroup) => {
                       return (
-                        <Grid size={{ mobile: 12 }} key={item.key}>
-                          <Card
-                            sx={{
-                              padding: '16px',
-                              display: 'flex',
-                              flexDirection: desktopUp ? 'row' : 'column',
-                              alignItems: desktopUp ? 'center' : 'flex-start',
-                              justifyContent: 'space-between',
-                              gap: '16px',
-                              border: '1px solid var(--accent-300)',
-                              borderRadius: 'var(--radius-m)',
-                              boxShadow: 'none',
-                              backgroundColor: isDisabled ? 'var(--grey-100)' : 'var(--white)',
-                              width: '100%',
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography style={{ fontWeight: '600', color: isDisabled ? 'var(--grey-500)' : 'var(--accent-dark)' }}>
-                                {item.label}
-                              </Typography>
-                              <Typography style={{ fontSize: '12px', color: 'var(--grey-600)' }}>
-                                {isDisabled ? 'Desactivado permanente' : 'Salida activa semanal'}
-                              </Typography>
-                            </Box>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', width: desktopUp ? 'auto' : '100%', justifyContent: 'space-between' }}>
-                              <TimePicker
-                                label="Hora de salida"
-                                ampm={!hour24}
-                                value={hoursConfig[item.key] ? generateDateFromTime(hoursConfig[item.key]) : null}
-                                onChange={(newDate) => {
-                                  const hrs = String(newDate.getHours()).padStart(2, '0');
-                                  const mins = String(newDate.getMinutes()).padStart(2, '0');
-                                  setHoursConfig({ ...hoursConfig, [item.key]: `${hrs}:${mins}` });
-                                }}
-                                readOnly={isDisabled}
-                                sx={{ width: '150px' }}
-                              />
-                              
-                              <FormControlLabel
-                                control={
-                                  <Switch
-                                    checked={!isDisabled}
-                                    onChange={(e) => {
-                                      const checked = e.target.checked;
-                                      let currentDisabled = [...(settings?.disabledSlots ?? [])];
-                                      if (checked) {
-                                        currentDisabled = currentDisabled.filter((k) => k !== item.key);
-                                      } else {
-                                        if (!currentDisabled.includes(item.key)) {
-                                          currentDisabled.push(item.key);
-                                        }
+                        <Card
+                          key={dayGroup.dayLabel}
+                          sx={{
+                            border: '1px solid var(--accent-300)',
+                            borderRadius: 'var(--radius-l)',
+                            boxShadow: 'none',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {/* Day Header */}
+                          <Box sx={{ px: '16px', py: '10px', backgroundColor: 'var(--accent-100)', borderBottom: '1px solid var(--accent-300)' }}>
+                            <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
+                              {dayGroup.dayLabel}
+                            </Typography>
+                          </Box>
+
+                          {/* Slots Rows */}
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            {[
+                              { key: dayGroup.morningKey, label: 'Mañana' },
+                              { key: dayGroup.afternoonKey, label: 'Tarde' }
+                            ].map((slotItem, slotIdx) => {
+                              const isDisabled = settings?.disabledSlots?.includes(slotItem.key) ?? false;
+                              return (
+                                <Box
+                                  key={slotItem.key}
+                                  sx={{
+                                    p: '16px',
+                                    display: 'flex',
+                                    flexDirection: desktopUp ? 'row' : 'column',
+                                    alignItems: desktopUp ? 'center' : 'flex-start',
+                                    justifyContent: 'space-between',
+                                    gap: '16px',
+                                    borderTop: slotIdx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                    backgroundColor: isDisabled ? 'var(--grey-100)' : 'var(--white)',
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    <Typography style={{ fontWeight: '600', color: isDisabled ? 'var(--grey-500)' : 'var(--accent-dark)', fontSize: '14px' }}>
+                                      {slotItem.label}
+                                    </Typography>
+                                    <Typography style={{ fontSize: '12px', color: 'var(--grey-600)' }}>
+                                      {isDisabled ? 'Desactivado permanente' : 'Salida activa semanal'}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', width: desktopUp ? 'auto' : '100%', justifyContent: 'space-between' }}>
+                                    <TimePicker
+                                      label="Hora de salida"
+                                      ampm={!hour24}
+                                      value={hoursConfig[slotItem.key] ? generateDateFromTime(hoursConfig[slotItem.key]) : null}
+                                      onChange={(newDate) => {
+                                        const hrs = String(newDate.getHours()).padStart(2, '0');
+                                        const mins = String(newDate.getMinutes()).padStart(2, '0');
+                                        setHoursConfig({ ...hoursConfig, [slotItem.key]: `${hrs}:${mins}` });
+                                      }}
+                                      readOnly={isDisabled}
+                                      sx={{ width: '150px' }}
+                                    />
+
+                                    <FormControlLabel
+                                      control={
+                                        <Switch
+                                          checked={!isDisabled}
+                                          onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            let currentDisabled = [...(settings?.disabledSlots ?? [])];
+                                            if (checked) {
+                                              currentDisabled = currentDisabled.filter((k) => k !== slotItem.key);
+                                            } else {
+                                              if (!currentDisabled.includes(slotItem.key)) {
+                                                currentDisabled.push(slotItem.key);
+                                              }
+                                            }
+                                            if (settings) {
+                                              const updatedSettings = {
+                                                ...settings,
+                                                disabledSlots: currentDisabled,
+                                              };
+                                              setSettings(updatedSettings);
+                                            }
+                                          }}
+                                          sx={{
+                                            '& .MuiSwitch-switchBase.Mui-checked': {
+                                              color: 'var(--accent-main)',
+                                            },
+                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                              backgroundColor: 'var(--accent-main)',
+                                            },
+                                          }}
+                                        />
                                       }
-                                      if (settings) {
-                                        const updatedSettings = {
-                                          ...settings,
-                                          disabledSlots: currentDisabled,
-                                        };
-                                        setSettings(updatedSettings);
-                                      }
-                                    }}
-                                    sx={{
-                                      '& .MuiSwitch-switchBase.Mui-checked': {
-                                        color: 'var(--accent-main)',
-                                      },
-                                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                        backgroundColor: 'var(--accent-main)',
-                                      },
-                                    }}
-                                  />
-                                }
-                                label={!isDisabled ? 'Habilitado' : 'Deshabilitado'}
-                                labelPlacement="start"
-                              />
-                            </Box>
-                          </Card>
-                        </Grid>
+                                      label={!isDisabled ? 'Habilitado' : 'Deshabilitado'}
+                                      labelPlacement="start"
+                                    />
+                                  </Box>
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        </Card>
                       );
                     })}
-                  </Grid>
+                  </Box>
 
-                  <Box>
+                  <Box sx={{ mt: '8px' }}>
                     <Button
                       variant="contained"
                       onClick={handleSaveHoursConfig}
                       sx={{
                         backgroundColor: 'var(--accent-main)',
+                        borderRadius: 'var(--radius-m)',
+                        fontWeight: '700',
+                        textTransform: 'none',
+                        boxShadow: 'none',
                         '&:hover': {
                           backgroundColor: 'var(--accent-dark)',
+                          boxShadow: 'none',
                         },
                       }}
                     >
-                      Guardar Configuración de Horas
+                      Guardar configuración de horas
                     </Button>
                   </Box>
                 </Box>
@@ -1613,35 +1653,39 @@ const PredicacionSalidas = () => {
               {/* Sub-tab 2: Disponibilidad de Hermanos */}
               {settingsSubTab === 2 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Disponibilidad Preferente por Hermano</Typography>
+                  <Typography className="h3">Disponibilidad preferente por hermano</Typography>
                   <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
                     Marca los slots semanales en los que cada hermano suele estar disponible. Estos hermanos aparecerán arriba como recomendados al planificar.
                   </Typography>
 
-                  <Box sx={{ overflowX: 'auto' }}>
+                  <Box sx={{ overflowX: 'auto', border: '1px solid var(--accent-300)', borderRadius: 'var(--radius-l)', overflow: 'hidden' }}>
                     <table
                       style={{
                         width: '100%',
                         borderCollapse: 'collapse',
-                        minWidth: '800px',
-                        border: '1px solid var(--accent-300)',
+                        minWidth: '1000px',
                       }}
                     >
                       <thead>
                         <tr style={{ backgroundColor: 'var(--accent-100)', borderBottom: '2px solid var(--accent-300)' }}>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Hermano</th>
+                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: '700', color: 'var(--accent-dark)' }}>Hermano</th>
                           {[
+                            { key: 'monday_morning', label: 'Lun Mañ' },
+                            { key: 'monday_afternoon', label: 'Lun Tar' },
                             { key: 'tuesday_morning', label: 'Mar Mañ' },
                             { key: 'tuesday_afternoon', label: 'Mar Tar' },
                             { key: 'wednesday_morning', label: 'Mié Mañ' },
                             { key: 'wednesday_afternoon', label: 'Mié Tar' },
                             { key: 'thursday_morning', label: 'Jue Mañ' },
                             { key: 'thursday_afternoon', label: 'Jue Tar' },
-                            { key: 'friday', label: 'Vie' },
-                            { key: 'saturday', label: 'Sáb' },
-                            { key: 'sunday', label: 'Dom' },
+                            { key: 'friday_morning', label: 'Vie Mañ' },
+                            { key: 'friday_afternoon', label: 'Vie Tar' },
+                            { key: 'saturday_morning', label: 'Sáb Mañ' },
+                            { key: 'saturday_afternoon', label: 'Sáb Tar' },
+                            { key: 'sunday_morning', label: 'Dom Mañ' },
+                            { key: 'sunday_afternoon', label: 'Dom Tar' },
                           ].map((hdr) => (
-                            <th key={hdr.key} style={{ padding: '12px', textAlign: 'center', fontWeight: '600', fontSize: '13px' }}>
+                            <th key={hdr.key} style={{ padding: '12px', textAlign: 'center', fontWeight: '700', fontSize: '12px', color: 'var(--accent-dark)' }}>
                               {hdr.label}
                             </th>
                           ))}
@@ -1652,19 +1696,24 @@ const PredicacionSalidas = () => {
                           const allowedSlots = settings?.availability?.[bro.person_uid] || [];
                           return (
                             <tr key={bro.person_uid} style={{ borderBottom: '1px solid var(--accent-200)' }}>
-                              <td style={{ padding: '12px', fontWeight: '500' }}>
+                              <td style={{ padding: '12px', fontWeight: '600', color: 'var(--accent-dark)' }}>
                                 {`${bro.person_data.person_firstname.value} ${bro.person_data.person_lastname.value}`}
                               </td>
                               {[
+                                'monday_morning',
+                                'monday_afternoon',
                                 'tuesday_morning',
                                 'tuesday_afternoon',
                                 'wednesday_morning',
                                 'wednesday_afternoon',
                                 'thursday_morning',
                                 'thursday_afternoon',
-                                'friday',
-                                'saturday',
-                                'sunday',
+                                'friday_morning',
+                                'friday_afternoon',
+                                'saturday_morning',
+                                'saturday_afternoon',
+                                'sunday_morning',
+                                'sunday_afternoon',
                               ].map((slot) => {
                                 const isChecked = allowedSlots.includes(slot);
                                 return (
