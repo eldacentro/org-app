@@ -12,6 +12,8 @@ export type ServiceOutingWeekType = {
   updatedAt?: string;
   lastModifiedBy?: string;
   outings?: ServiceOutingType[];
+  isCircuitOverseerWeek?: boolean;
+  weekOverrideHours?: Record<string, string>;
 };
 
 export type ServiceOutingSettingsType = {
@@ -24,4 +26,9 @@ export type ServiceOutingSettingsType = {
     [person_uid: string]: string[]; // array de slots en los que está disponible (ej: ["tue_morning", "sat"])
   };
   disabledSlots?: string[];
+  sharedSlots?: {
+    id: string;
+    slotKey: string;
+    congregation: string;
+  }[];
 };

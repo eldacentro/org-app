@@ -162,6 +162,19 @@ const PredicacionSalidas = () => {
   const [newLocation, setNewLocation] = useState<string>('');
   const [hoursConfig, setHoursConfig] = useState<{ [key: string]: string }>({});
 
+  // Estados para salidas compartidas
+  const [sharedSlotKey, setSharedSlotKey] = useState<string>('monday_morning');
+  const [sharedCongregation, setSharedCongregation] = useState<string>('');
+
+  // Estados para diálogo de ajustes de semana
+  const [weekSettingsDialog, setWeekSettingsDialog] = useState<{
+    open: boolean;
+    weekOf: string;
+  }>({ open: false, weekOf: '' });
+  const [showAdjustHours, setShowAdjustHours] = useState<boolean>(false);
+  const [weekHoursConfig, setWeekHoursConfig] = useState<Record<string, string>>({});
+  const [tempCOWeek, setTempCOWeek] = useState<boolean>(false);
+
   // Cargar configuración por defecto en Jotai si está vacía
   useMemo(() => {
     if (!settings) {
@@ -217,6 +230,10 @@ const PredicacionSalidas = () => {
       else if (dayOfWeek === 0) dayLabel = 'sunday';
 
       if (dayLabel) {
+        const weekOfRecord = getWeekOfDate(date);
+        const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+        const overrideHours = weekRecord?.weekOverrideHours || {};
+
         // Turno Mañana
         const morningType = `${dayLabel}_morning`;
         // Para compatibilidad hacia atrás, si disabledSlots incluye el nombre del día legacy (ej: 'friday'), lo consideramos deshabilitado
@@ -224,7 +241,7 @@ const PredicacionSalidas = () => {
           slots.push({
             date: new Date(date),
             slotType: morningType,
-            time: defaultHours[morningType as keyof typeof defaultHours] || '10:00',
+            time: overrideHours[morningType] || defaultHours[morningType as keyof typeof defaultHours] || '10:00',
             slotId: `${formatToDbDate(date)}_morning`,
           });
         }
@@ -235,7 +252,7 @@ const PredicacionSalidas = () => {
           slots.push({
             date: new Date(date),
             slotType: afternoonType,
-            time: defaultHours[afternoonType as keyof typeof defaultHours] || '17:00',
+            time: overrideHours[afternoonType] || defaultHours[afternoonType as keyof typeof defaultHours] || '17:00',
             slotId: `${formatToDbDate(date)}_afternoon`,
           });
         }
@@ -244,7 +261,13 @@ const PredicacionSalidas = () => {
       date.setDate(date.getDate() + 1);
     }
     return slots;
-  }, [selectedYear, selectedMonth, settings]);
+  }, [selectedYear, selectedMonth, settings, outingsWeeks]);
+
+  const triggerSync = () => {
+    import('@services/worker/backupWorker').then(
+      ({ default: worker }) => worker.postMessage('startWorker')
+    );
+  };
 
   // Forzar sincronización remota de datos
   const handleForceSync = () => {
@@ -307,18 +330,23 @@ const PredicacionSalidas = () => {
       (o) => !(o.date === dbDate && o.time === editDialog.time)
     );
 
-    // Agregar nueva salida
-    weekRecord.outings.push({
-      id: editDialog.outingId,
-      date: dbDate,
-      time: editDialog.time,
-      person: editPerson,
-      location: editLocation,
-      cancelled: editCancelled,
-    });
+    // Agregar nueva salida solo si no es un slot completamente vacío y activo (evitando registros vacíos redundantes)
+    const isUnassignedAndActive = editPerson === '' && !editCancelled;
+
+    if (!isUnassignedAndActive) {
+      weekRecord.outings.push({
+        id: editDialog.outingId,
+        date: dbDate,
+        time: editDialog.time,
+        person: editPerson,
+        location: editLocation,
+        cancelled: editCancelled,
+      });
+    }
 
     // Guardar localmente en Dexie y reactivar Jotai
     await dbServiceOutingsSaveWeek(weekRecord);
+    triggerSync();
     setOutingsWeeks((prev) => {
       const filtered = prev.filter((w) => w.weekOf !== weekOf);
       return [...filtered, weekRecord!];
@@ -351,6 +379,7 @@ const PredicacionSalidas = () => {
     };
 
     await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
     setSettings(updatedSettings);
     setNewLocation('');
   };
@@ -364,6 +393,7 @@ const PredicacionSalidas = () => {
     };
 
     await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
     setSettings(updatedSettings);
   };
 
@@ -380,6 +410,7 @@ const PredicacionSalidas = () => {
     };
 
     await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
     setSettings(updatedSettings);
 
     displaySnackNotification({
@@ -412,7 +443,113 @@ const PredicacionSalidas = () => {
     };
 
     await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
     setSettings(updatedSettings);
+  };
+
+  // Añadir una salida compartida
+  const handleAddSharedSlot = async () => {
+    if (!settings || !sharedCongregation.trim()) return;
+
+    const currentShared = settings.sharedSlots || [];
+    if (currentShared.some((s) => s.slotKey === sharedSlotKey)) {
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Este turno ya tiene una congregación compartida configurada.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    const updatedSettings = {
+      ...settings,
+      sharedSlots: [
+        ...currentShared,
+        {
+          id: sharedSlotKey,
+          slotKey: sharedSlotKey,
+          congregation: sharedCongregation.trim(),
+        },
+      ],
+    };
+
+    await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
+    setSettings(updatedSettings);
+    setSharedCongregation('');
+    displaySnackNotification({
+      header: t('tr_done', 'Hecho'),
+      message: 'Salida compartida registrada con éxito.',
+      severity: 'success',
+    });
+  };
+
+  // Eliminar una salida compartida
+  const handleDeleteSharedSlot = async (slotKey: string) => {
+    if (!settings) return;
+
+    const currentShared = settings.sharedSlots || [];
+    const updatedSettings = {
+      ...settings,
+      sharedSlots: currentShared.filter((s) => s.slotKey !== slotKey),
+    };
+
+    await dbServiceOutingsSaveSettings(updatedSettings);
+    triggerSync();
+    setSettings(updatedSettings);
+    displaySnackNotification({
+      header: t('tr_done', 'Hecho'),
+      message: 'Salida compartida eliminada.',
+      severity: 'success',
+    });
+  };
+
+  // Abrir diálogo de ajustes de semana
+  const handleOpenWeekSettings = (weekOf: string) => {
+    const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+    setWeekSettingsDialog({
+      open: true,
+      weekOf,
+    });
+    setTempCOWeek(!!weekRecord?.isCircuitOverseerWeek);
+    setShowAdjustHours(!!weekRecord?.weekOverrideHours);
+    setWeekHoursConfig(weekRecord?.weekOverrideHours || {});
+  };
+
+  // Guardar ajustes de semana
+  const handleSaveWeekSettings = async () => {
+    const { weekOf } = weekSettingsDialog;
+    let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+
+    if (!weekRecord) {
+      weekRecord = {
+        weekOf,
+        outings: [],
+      };
+    } else {
+      weekRecord = structuredClone(weekRecord);
+    }
+
+    weekRecord.isCircuitOverseerWeek = tempCOWeek;
+    if (showAdjustHours) {
+      weekRecord.weekOverrideHours = weekHoursConfig;
+    } else {
+      delete weekRecord.weekOverrideHours;
+    }
+
+    await dbServiceOutingsSaveWeek(weekRecord);
+    triggerSync();
+    setOutingsWeeks((prev) => {
+      const filtered = prev.filter((w) => w.weekOf !== weekOf);
+      return [...filtered, weekRecord!];
+    });
+
+    setWeekSettingsDialog({ open: false, weekOf: '' });
+    displaySnackNotification({
+      header: t('tr_done', 'Hecho'),
+      message: 'Ajustes semanales actualizados correctamente.',
+      severity: 'success',
+    });
   };
 
   // Función para exportar el programa de salidas a PDF
@@ -442,6 +579,9 @@ const PredicacionSalidas = () => {
       // Función para abreviar nombres en celdas pequeñas
       const getAbbreviatedName = (fullName: string) => {
         if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
+        if (fullName === 'Superintendente de circuito' || settings?.sharedSlots?.some((s) => s.congregation === fullName)) {
+          return fullName;
+        }
         const parts = fullName.trim().split(/\s+/);
         if (parts.length === 1) return parts[0];
         const firstName = parts[0];
@@ -525,23 +665,33 @@ const PredicacionSalidas = () => {
             // Comprobar Turno Mañana
             const morningType = `${dayInfo.englishLabel}_morning`;
             if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayInfo.englishLabel)) {
-              const timeVal = defaultHours[morningType] || '10:00';
               const weekOfRecord = getWeekOfDate(cellDate);
               const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const overrideHours = weekRecord?.weekOverrideHours || {};
+              const timeVal = overrideHours[morningType] || defaultHours[morningType] || '10:00';
               const outing = weekRecord?.outings?.find(
                 (o) => o.date === dateKey && o.time === timeVal
               );
               const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
-              const brotherName = assignedBrother
-                ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                : 'Sin asignar';
+              let brotherName = 'Sin asignar';
+              let isAssigned = !!assignedBrother;
+
+              if (outing?.person?.startsWith('SHARED_CONG:')) {
+                brotherName = outing.person.replace('SHARED_CONG:', '');
+                isAssigned = true;
+              } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                brotherName = 'Superintendente de circuito';
+                isAssigned = true;
+              } else if (assignedBrother) {
+                brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
+              }
 
               dayOutings.push({
                 id: `${dateKey}_morning`,
                 time: timeVal,
                 location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
                 brotherName: getAbbreviatedName(brotherName),
-                isAssigned: !!assignedBrother,
+                isAssigned,
                 isCancelled: outing?.cancelled ?? false,
               });
             }
@@ -549,23 +699,33 @@ const PredicacionSalidas = () => {
             // Comprobar Turno Tarde
             const afternoonType = `${dayInfo.englishLabel}_afternoon`;
             if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayInfo.englishLabel)) {
-              const timeVal = defaultHours[afternoonType] || '17:00';
               const weekOfRecord = getWeekOfDate(cellDate);
               const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const overrideHours = weekRecord?.weekOverrideHours || {};
+              const actualTimeVal = overrideHours[afternoonType] || defaultHours[afternoonType] || '17:00';
               const outing = weekRecord?.outings?.find(
-                (o) => o.date === dateKey && o.time === timeVal
+                (o) => o.date === dateKey && o.time === actualTimeVal
               );
               const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
-              const brotherName = assignedBrother
-                ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                : 'Sin asignar';
+              let brotherName = 'Sin asignar';
+              let isAssigned = !!assignedBrother;
+
+              if (outing?.person?.startsWith('SHARED_CONG:')) {
+                brotherName = outing.person.replace('SHARED_CONG:', '');
+                isAssigned = true;
+              } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                brotherName = 'Superintendente de circuito';
+                isAssigned = true;
+              } else if (assignedBrother) {
+                brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
+              }
 
               dayOutings.push({
                 id: `${dateKey}_afternoon`,
-                time: timeVal,
+                time: actualTimeVal,
                 location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
                 brotherName: getAbbreviatedName(brotherName),
-                isAssigned: !!assignedBrother,
+                isAssigned,
                 isCancelled: outing?.cancelled ?? false,
               });
             }
@@ -1002,19 +1162,46 @@ const PredicacionSalidas = () => {
                     return (
                       <Box key={weekOf} sx={{ mb: '32px' }}>
                         {/* Título de la semana */}
-                        <Typography
-                          className="h3"
-                          style={{
-                            fontWeight: '700',
-                            color: 'var(--accent-main)',
-                            marginBottom: '12px',
-                            textTransform: 'none',
-                            borderLeft: '4px solid var(--accent-main)',
-                            paddingLeft: '12px',
-                          }}
-                        >
-                          {weekLabel}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                          <Typography
+                            className="h3"
+                            style={{
+                              fontWeight: '700',
+                              color: 'var(--accent-main)',
+                              textTransform: 'none',
+                              borderLeft: '4px solid var(--accent-main)',
+                              paddingLeft: '12px',
+                              margin: 0,
+                            }}
+                          >
+                            {weekLabel}
+                          </Typography>
+                          {(() => {
+                            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+                            return weekRecord?.isCircuitOverseerWeek && (
+                              <Chip
+                                label="Semana del superintendente"
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'var(--accent-main)',
+                                  color: 'var(--always-white)',
+                                  fontWeight: '700',
+                                  fontSize: '11px',
+                                  height: '20px',
+                                }}
+                              />
+                            );
+                          })()}
+                          {isServiceCommittee && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenWeekSettings(weekOf)}
+                              sx={{ color: 'var(--grey-500)', '&:hover': { color: 'var(--accent-main)' } }}
+                            >
+                              <IconSettings />
+                            </IconButton>
+                          )}
+                        </Box>
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           {days.map(({ dateKey, daySlots }) => {
@@ -1058,9 +1245,14 @@ const PredicacionSalidas = () => {
                                   const assignedBrother = persons.find(
                                     (b) => b.person_uid === outing?.person
                                   );
-                                  const brotherName = assignedBrother
-                                    ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                                    : '';
+                                  let brotherName = '';
+                                  if (outing?.person?.startsWith('SHARED_CONG:')) {
+                                    brotherName = outing.person.replace('SHARED_CONG:', '');
+                                  } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                                    brotherName = 'Superintendente de circuito';
+                                  } else if (assignedBrother) {
+                                    brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
+                                  }
                                   const isAssignedToMe = outing?.person === currentPerson?.person_uid;
                                   const isCancelled = outing?.cancelled ?? false;
                                   const label = slotLabel(slot.slotType);
@@ -1235,7 +1427,10 @@ const PredicacionSalidas = () => {
                     }
 
                     const getAbbreviatedName = (fullName: string) => {
-                      if (!fullName) return 'Sin asignar';
+                      if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
+                      if (fullName === 'Superintendente de circuito' || settings?.sharedSlots?.some((s) => s.congregation === fullName)) {
+                        return fullName;
+                      }
                       const parts = fullName.trim().split(/\s+/);
                       if (parts.length === 1) return parts[0];
                       const firstName = parts[0];
@@ -1317,7 +1512,6 @@ const PredicacionSalidas = () => {
                                     }}>
                                       {cell.dayNum}
                                     </Typography>
-                                    
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1 }}>
                                       {daySlots.length === 0 ? (
                                         <Typography style={{ fontSize: '11px', color: 'var(--grey-400)', fontStyle: 'italic', marginTop: '4px' }}>
@@ -1330,12 +1524,15 @@ const PredicacionSalidas = () => {
                                           const outing = weekRecord?.outings?.find(
                                             (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
                                           );
-                                          const assignedBrother = persons.find(
-                                            (b) => b.person_uid === outing?.person
-                                          );
-                                          const brotherName = assignedBrother
-                                            ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                                            : '';
+                                          const assignedBrother = outing ? persons.find((b) => b.person_uid === outing.person) : null;
+                                          let brotherName = '';
+                                          if (outing?.person?.startsWith('SHARED_CONG:')) {
+                                            brotherName = outing.person.replace('SHARED_CONG:', '');
+                                          } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                                            brotherName = 'Superintendente de circuito';
+                                          } else if (assignedBrother) {
+                                            brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
+                                          }
                                           const isAssignedToMe = outing?.person === currentPerson?.person_uid;
                                           const isCancelled = outing?.cancelled ?? false;
                                           
@@ -1530,12 +1727,15 @@ const PredicacionSalidas = () => {
                                   const outing = weekRecord?.outings?.find(
                                     (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
                                   );
-                                  const assignedBrother = persons.find(
-                                    (b) => b.person_uid === outing?.person
-                                  );
-                                  const brotherName = assignedBrother
-                                    ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                                    : '';
+                                  const assignedBrother = outing ? persons.find((b) => b.person_uid === outing.person) : null;
+                                  let brotherName = '';
+                                  if (outing?.person?.startsWith('SHARED_CONG:')) {
+                                    brotherName = outing.person.replace('SHARED_CONG:', '');
+                                  } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                                    brotherName = 'Superintendente de circuito';
+                                  } else if (assignedBrother) {
+                                    brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
+                                  }
                                   const isAssignedToMe = outing?.person === currentPerson?.person_uid;
                                   const isCancelled = outing?.cancelled ?? false;
                                   const label = slotLabel(slot.slotType);
@@ -1681,6 +1881,7 @@ const PredicacionSalidas = () => {
                 <Tab label="Ubicaciones" />
                 <Tab label="Horarios" />
                 <Tab label="Disponibilidad de hermanos" />
+                <Tab label="Salidas compartidas" />
               </Tabs>
 
               {/* Sub-tab 0: Ubicaciones */}
@@ -1985,6 +2186,145 @@ const PredicacionSalidas = () => {
                   </Box>
                 </Box>
               )}
+
+              {/* Sub-tab 3: Salidas compartidas */}
+              {settingsSubTab === 3 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <Typography className="h3">Salidas compartidas con otras congregaciones</Typography>
+                  <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
+                    Registra los turnos de salidas semanales que se llevan a cabo de forma conjunta con congregaciones vecinas. Al planificar, podrás asignar la congregación directamente en lugar de un hermano.
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: '16px', maxWidth: '600px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' }, alignItems: 'flex-end' }}>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <Typography style={{ fontWeight: '600', fontSize: '13px', color: 'var(--accent-main)' }}>
+                        Turno de la semana
+                      </Typography>
+                      <Select
+                        value={sharedSlotKey}
+                        onChange={(e) => setSharedSlotKey(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{ borderRadius: 'var(--radius-m)' }}
+                      >
+                        {[
+                          { key: 'monday_morning', label: 'Lunes Mañana' },
+                          { key: 'monday_afternoon', label: 'Lunes Tarde' },
+                          { key: 'tuesday_morning', label: 'Martes Mañana' },
+                          { key: 'tuesday_afternoon', label: 'Martes Tarde' },
+                          { key: 'wednesday_morning', label: 'Miércoles Mañana' },
+                          { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
+                          { key: 'thursday_morning', label: 'Jueves Mañana' },
+                          { key: 'thursday_afternoon', label: 'Jueves Tarde' },
+                          { key: 'friday_morning', label: 'Viernes Mañana' },
+                          { key: 'friday_afternoon', label: 'Viernes Tarde' },
+                          { key: 'saturday_morning', label: 'Sábado Mañana' },
+                          { key: 'saturday_afternoon', label: 'Sábado Tarde' },
+                          { key: 'sunday_morning', label: 'Domingo Mañana' },
+                          { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+                        ].map((s) => (
+                          <MenuItem key={s.key} value={s.key}>
+                            {s.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <Typography style={{ fontWeight: '600', fontSize: '13px', color: 'var(--accent-main)' }}>
+                        Congregación vecina
+                      </Typography>
+                      <TextField
+                        label="Nombre de la congregación"
+                        value={sharedCongregation}
+                        onChange={(e) => setSharedCongregation(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 'var(--radius-m)',
+                          }
+                        }}
+                      />
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      onClick={handleAddSharedSlot}
+                      startIcon={<IconAdd color="var(--always-white)" />}
+                      sx={{
+                        backgroundColor: 'var(--accent-main)',
+                        color: 'var(--always-white)',
+                        borderRadius: 'var(--radius-m)',
+                        boxShadow: 'none',
+                        textTransform: 'none',
+                        fontWeight: '700',
+                        py: '8px',
+                        px: '20px',
+                        height: '40px',
+                        '&:hover': {
+                          backgroundColor: 'var(--accent-dark)',
+                          boxShadow: 'none',
+                        },
+                      }}
+                    >
+                      Añadir
+                    </Button>
+                  </Box>
+
+                  <List sx={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {settings?.sharedSlots?.map((slot) => {
+                      const slotLabels: Record<string, string> = {
+                        monday_morning: 'Lunes Mañana',
+                        monday_afternoon: 'Lunes Tarde',
+                        tuesday_morning: 'Martes Mañana',
+                        tuesday_afternoon: 'Martes Tarde',
+                        wednesday_morning: 'Miércoles Mañana',
+                        wednesday_afternoon: 'Miércoles Tarde',
+                        thursday_morning: 'Jueves Mañana',
+                        thursday_afternoon: 'Jueves Tarde',
+                        friday_morning: 'Viernes Mañana',
+                        friday_afternoon: 'Viernes Tarde',
+                        saturday_morning: 'Sábado Mañana',
+                        saturday_afternoon: 'Sábado Tarde',
+                        sunday_morning: 'Domingo Mañana',
+                        sunday_afternoon: 'Domingo Tarde',
+                      };
+                      return (
+                        <Card
+                          key={slot.slotKey}
+                          sx={{
+                            padding: '12px 16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            border: '1px solid var(--accent-300)',
+                            borderRadius: 'var(--radius-m)',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          <Box>
+                            <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '14px' }}>
+                              {slotLabels[slot.slotKey]}
+                            </Typography>
+                            <Typography style={{ fontSize: '13px', color: 'var(--grey-600)', margin: 0 }}>
+                              Compartido con: <strong>{slot.congregation}</strong>
+                            </Typography>
+                          </Box>
+                          <IconButton onClick={() => handleDeleteSharedSlot(slot.slotKey)} sx={{ color: 'var(--error-main)' }} size="small">
+                            <IconDelete color="var(--error-main)" />
+                          </IconButton>
+                        </Card>
+                      );
+                    })}
+                    {(!settings?.sharedSlots || settings.sharedSlots.length === 0) && (
+                      <Typography style={{ color: 'var(--grey-500)', fontSize: '14px', fontStyle: 'italic', padding: '16px' }}>
+                        No hay ninguna salida compartida configurada.
+                      </Typography>
+                    )}
+                  </List>
+                </Box>
+              )}
             </Box>
           )}
         </Box>
@@ -2051,6 +2391,30 @@ const PredicacionSalidas = () => {
                   <MenuItem value="">
                     <em>Ninguno / Sin asignar</em>
                   </MenuItem>
+
+                  {(() => {
+                    const weekOf = editDialog.date ? getWeekOfDate(editDialog.date) : '';
+                    const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+                    const isCOWeek = weekRecord?.isCircuitOverseerWeek ?? false;
+                    const sharedSlot = settings?.sharedSlots?.find((s) => s.slotKey === editDialog.timeKey);
+                    
+                    const list = [];
+                    if (sharedSlot) {
+                      list.push(
+                        <MenuItem key="shared-cong" value={`SHARED_CONG:${sharedSlot.congregation}`}>
+                          <strong>Compartido: {sharedSlot.congregation}</strong>
+                        </MenuItem>
+                      );
+                    }
+                    if (isCOWeek) {
+                      list.push(
+                        <MenuItem key="circuit-overseer" value="CIRCUIT_OVERSEER">
+                          <strong>Superintendente de circuito</strong>
+                        </MenuItem>
+                      );
+                    }
+                    return list;
+                  })()}
 
                   {/* Grupo Recomendados */}
                   {sortedBrothersForSlot.recommended.length > 0 && (
@@ -2211,6 +2575,174 @@ const PredicacionSalidas = () => {
             }}
           >
             Exportar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
+      <Dialog
+        open={weekSettingsDialog.open}
+        onClose={() => setWeekSettingsDialog({ ...weekSettingsDialog, open: false })}
+        fullWidth
+        maxWidth={false}
+        sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            padding: '12px',
+          },
+        }}
+      >
+        <DialogTitle style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '18px' }}>
+          Ajustes de la semana
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+          <Typography style={{ color: 'var(--grey-600)', fontSize: '14px', marginBottom: '8px' }}>
+            Personaliza el comportamiento y los horarios de la semana del <strong>{weekSettingsDialog.weekOf}</strong>.
+          </Typography>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={tempCOWeek}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setTempCOWeek(checked);
+                  if (!checked) {
+                    setShowAdjustHours(false);
+                  }
+                }}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: 'var(--accent-main)',
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: 'var(--accent-main)',
+                  },
+                }}
+              />
+            }
+            label="Semana del superintendente de circuito"
+            labelPlacement="start"
+            sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', margin: 0 }}
+          />
+
+          {tempCOWeek && !showAdjustHours && (
+            <Box sx={{ mt: '12px', p: '16px', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-100)', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--accent-300)' }}>
+              <Typography style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--accent-dark)', margin: 0 }}>
+                ¿Deseas ajustar el horario de las salidas de esta semana?
+              </Typography>
+              <Box sx={{ display: 'flex', gap: '8px' }}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    setShowAdjustHours(true);
+                    const defaultHours = settings?.defaultHours || {
+                      monday_morning: '10:00',
+                      monday_afternoon: '17:00',
+                      tuesday_morning: '10:00',
+                      tuesday_afternoon: '17:00',
+                      wednesday_morning: '10:00',
+                      wednesday_afternoon: '17:00',
+                      thursday_morning: '10:00',
+                      thursday_afternoon: '17:00',
+                      friday_morning: '10:00',
+                      friday_afternoon: '17:30',
+                      saturday_morning: '09:45',
+                      saturday_afternoon: '17:00',
+                      sunday_morning: '10:30',
+                      sunday_afternoon: '17:00',
+                    };
+                    setWeekHoursConfig(defaultHours);
+                  }}
+                  sx={{ backgroundColor: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-m)', boxShadow: 'none' }}
+                >
+                  Sí
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => {
+                    setShowAdjustHours(false);
+                  }}
+                  sx={{ borderColor: 'var(--accent-main)', color: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-m)' }}
+                >
+                  No
+                </Button>
+              </Box>
+            </Box>
+          )}
+
+          {showAdjustHours && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '16px', maxHeight: '250px', overflowY: 'auto', pr: '8px', borderTop: '1px solid var(--accent-300)', pt: '16px' }}>
+              <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)', margin: 0 }}>
+                Horarios específicos de esta semana
+              </Typography>
+              {[
+                { key: 'monday_morning', label: 'Lunes Mañana' },
+                { key: 'monday_afternoon', label: 'Lunes Tarde' },
+                { key: 'tuesday_morning', label: 'Martes Mañana' },
+                { key: 'tuesday_afternoon', label: 'Martes Tarde' },
+                { key: 'wednesday_morning', label: 'Miércoles Mañana' },
+                { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
+                { key: 'thursday_morning', label: 'Jueves Mañana' },
+                { key: 'thursday_afternoon', label: 'Jueves Tarde' },
+                { key: 'friday_morning', label: 'Viernes Mañana' },
+                { key: 'friday_afternoon', label: 'Viernes Tarde' },
+                { key: 'saturday_morning', label: 'Sábado Mañana' },
+                { key: 'saturday_afternoon', label: 'Sábado Tarde' },
+                { key: 'sunday_morning', label: 'Domingo Mañana' },
+                { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+              ].map((slot) => {
+                const isSlotDisabled = settings?.disabledSlots?.includes(slot.key);
+                if (isSlotDisabled) return null;
+
+                const currentVal = weekHoursConfig[slot.key] || settings?.defaultHours?.[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
+                return (
+                  <Box key={slot.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                    <Typography style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--black)' }}>
+                      {slot.label}
+                    </Typography>
+                    <TimePicker
+                      ampm={!hour24}
+                      value={generateDateFromTime(currentVal)}
+                      onChange={(newDate) => {
+                        const hrs = String(newDate.getHours()).padStart(2, '0');
+                        const mins = String(newDate.getMinutes()).padStart(2, '0');
+                        setWeekHoursConfig({ ...weekHoursConfig, [slot.key]: `${hrs}:${mins}` });
+                      }}
+                      sx={{ width: '130px' }}
+                    />
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          <Button
+            onClick={() => setWeekSettingsDialog({ ...weekSettingsDialog, open: false })}
+            sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSaveWeekSettings}
+            variant="contained"
+            sx={{
+              backgroundColor: 'var(--accent-main)',
+              fontWeight: '600',
+              textTransform: 'none',
+              borderRadius: 'var(--radius-m)',
+              '&:hover': {
+                backgroundColor: 'var(--accent-dark)',
+              },
+            }}
+          >
+            Guardar
           </Button>
         </DialogActions>
       </Dialog>

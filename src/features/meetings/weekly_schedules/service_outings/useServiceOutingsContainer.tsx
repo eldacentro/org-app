@@ -1,16 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
-import { schedulesState } from '@states/schedules';
+import { serviceOutingsListState } from '@states/service_outings';
 import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
-import { userDataViewState } from '@states/settings';
-import { ASSIGNMENT_PATH } from '@constants/index';
-import { schedulesGetData } from '@services/app/schedules';
-import { AssignmentCongregation } from '@definition/schedules';
 import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
 
-const useMidweekContainer = () => {
+const useServiceOutingsContainer = () => {
   const currentWeekVisible = useIntersectionObserver({
     root: '.schedules-view-week-selector .MuiTabs-scroller',
     selector: '.schedules-current-week',
@@ -18,27 +14,15 @@ const useMidweekContainer = () => {
 
   const { t } = useAppTranslation();
 
-  const schedules = useAtomValue(schedulesState);
+  const serviceOutings = useAtomValue(serviceOutingsListState);
   const sources = useAtomValue(sourcesState);
-  const dataView = useAtomValue(userDataViewState);
-  const monthNames = useAtomValue(monthShortNamesState);
+  const monthShortNames = useAtomValue(monthShortNamesState);
 
   const [value, setValue] = useState<number | boolean>(false);
 
   const noSchedule = useMemo(() => {
-    if (schedules.length === 0) return true;
-
-    let noMeeting = true;
-
-    for (const schedule of schedules) {
-      if (schedule.midweek_meeting) {
-        noMeeting = false;
-        break;
-      }
-    }
-
-    return noMeeting;
-  }, [schedules]);
+    return serviceOutings.length === 0;
+  }, [serviceOutings]);
 
   const filteredSources = useMemo(() => {
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
@@ -56,40 +40,18 @@ const useMidweekContainer = () => {
     return filteredSources.at(value)?.weekOf || null;
   }, [value, filteredSources]);
 
-  const schedule = useMemo(() => {
-    return schedules.find((record) => record.weekOf === week);
-  }, [schedules, week]);
+  const weekRecord = useMemo(() => {
+    return serviceOutings.find((record) => record.weekOf === week);
+  }, [serviceOutings, week]);
 
   const scheduleLastUpdated = useMemo(() => {
-    if (!schedule || noSchedule) return;
+    if (!weekRecord || noSchedule || !weekRecord.updatedAt) return;
 
-    const assignments = Object.entries(ASSIGNMENT_PATH);
-    const midweekAssignments = assignments.filter(
-      (record) =>
-        record[0].includes('MM_') && record[0] !== 'MM_CircuitOverseer'
-    );
-
-    const dates: string[] = [];
-    for (const [, path] of midweekAssignments) {
-      const assigned = schedulesGetData(
-        schedule,
-        path,
-        dataView
-      ) as AssignmentCongregation;
-
-      if (assigned?.updatedAt.length > 0) {
-        dates.push(assigned.updatedAt);
-      }
-    }
-
-    const recentDate = dates.sort((a, b) => b.localeCompare(a)).at(0);
-    if (!recentDate) return;
-
-    const d = new Date(recentDate);
+    const d = new Date(weekRecord.updatedAt);
     const year = d.getFullYear();
     const month = d.getMonth();
     const date = d.getDate();
-    const monthName = monthNames[month];
+    const monthName = monthShortNames[month];
 
     const dateFormatted = t('tr_longDateWithYearLocale', {
       year,
@@ -98,7 +60,7 @@ const useMidweekContainer = () => {
     });
 
     return dateFormatted;
-  }, [schedule, dataView, monthNames, t, noSchedule]);
+  }, [weekRecord, monthShortNames, t, noSchedule]);
 
   const handleGoCurrent = () => {
     const now = getWeekDate();
@@ -123,8 +85,8 @@ const useMidweekContainer = () => {
     currentWeekVisible,
     scheduleLastUpdated,
     noSchedule,
-    dataView,
+    weekRecord,
   };
 };
 
-export default useMidweekContainer;
+export default useServiceOutingsContainer;

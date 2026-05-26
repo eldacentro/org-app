@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { schedulesState } from '@states/schedules';
-import { addMonths, formatDate, getWeekDate } from '@utils/date';
-import { JWLangState, userDataViewState } from '@states/settings';
+import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { userDataViewState } from '@states/settings';
 import { ASSIGNMENT_PATH } from '@constants/index';
 import { schedulesGetData } from '@services/app/schedules';
 import { AssignmentCongregation } from '@definition/schedules';
@@ -22,7 +22,6 @@ const useWeekendContainer = () => {
   const sources = useAtomValue(sourcesState);
   const dataView = useAtomValue(userDataViewState);
   const monthShortNames = useAtomValue(monthShortNamesState);
-  const lang = useAtomValue(JWLangState);
 
   const [value, setValue] = useState<number | boolean>(false);
 
@@ -46,10 +45,10 @@ const useWeekendContainer = () => {
 
     return sources.filter(
       (record) =>
-        record.weekOf >= minDate &&
-        record.weekend_meeting?.w_study[lang]?.length > 0
+        isMondayDate(record.weekOf) &&
+        record.weekOf >= minDate
     );
-  }, [sources, lang]);
+  }, [sources]);
 
   const week = useMemo(() => {
     if (typeof value === 'boolean') return null;

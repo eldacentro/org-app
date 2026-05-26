@@ -1,44 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
-import { WeeklySchedulesType, WeekSelectorProps } from './index.types';
+import { WeekSelectorProps } from './index.types';
 import { sourcesState } from '@states/sources';
-import { localStorageGetItem } from '@utils/common';
-import { JWLangState } from '@states/settings';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
-const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
-
 const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
-  const scheduleType = (localStorageGetItem(LOCALSTORAGE_KEY) ||
-    'midweek') as WeeklySchedulesType;
-
   const sources = useAtomValue(sourcesState);
-  const lang = useAtomValue(JWLangState);
 
   const [currentTab, setCurrentTab] = useState<number | boolean>(false);
 
   const weeksList = useMemo(() => {
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
 
-    let list = sources.filter(
+    return sources.filter(
       (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
-
-    if (scheduleType === 'midweek' || scheduleType === 'departments') {
-      list = list.filter(
-        (record) => record.midweek_meeting?.week_date_locale[lang]?.length > 0
-      );
-    }
-
-    if (scheduleType === 'weekend' || scheduleType === 'outgoing') {
-      list = list.filter(
-        (record) => record.weekend_meeting?.w_study[lang]?.length > 0
-      );
-    }
-
-    return list;
-  }, [sources, scheduleType, lang]);
+  }, [sources]);
 
   const defaultValue = useMemo(() => {
     const now = getWeekDate();
@@ -52,12 +30,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
     return weeksList.map((source, index) => {
       const meetingDate = schedulesGetMeetingDate({
         week: source.weekOf,
-        meeting:
-          scheduleType === 'departments'
-            ? 'midweek'
-            : scheduleType === 'outgoing'
-              ? 'weekend'
-              : scheduleType,
+        meeting: 'weekOf',
         short: true,
       });
 
@@ -67,7 +40,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
         Component: <></>,
       };
     });
-  }, [defaultValue, scheduleType, weeksList]);
+  }, [defaultValue, weeksList]);
 
   const handleWeekChange = (value: number) => {
     setCurrentTab(value);
@@ -78,9 +51,7 @@ const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
     if (value === false) {
       setCurrentTab(defaultValue);
       onChange?.(defaultValue);
-    }
-
-    if (value) {
+    } else if (typeof value === 'number') {
       setCurrentTab(value);
     }
   }, [value, defaultValue, onChange]);

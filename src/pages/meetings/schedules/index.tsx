@@ -19,7 +19,7 @@ const WeeklySchedules = () => {
         paddingBottom: !tablet688Up ? '60px' : '0px',
       }}
     >
-      <PageTitle title={t('tr_meetingSchedules')} />
+      <PageTitle title={t('tr_viewAssignmentsSchedule', 'Programas semanales')} />
 
       <Box
         sx={{

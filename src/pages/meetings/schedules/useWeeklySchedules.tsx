@@ -8,6 +8,7 @@ import MidweekContainer from '@features/meetings/weekly_schedules/midweek_contai
 import OutgoingTalks from '@features/meetings/weekly_schedules/outgoing_talks';
 import WeekendContainer from '@features/meetings/weekly_schedules/weekend_container';
 import DepartmentsContainer from '@features/meetings/weekly_schedules/departments_container';
+import ServiceOutingsContainer from '@features/meetings/weekly_schedules/service_outings';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -33,23 +34,15 @@ const useWeeklySchedules = () => {
     return weekend.outgoing_talks_schedule_public.value;
   }, [isAppointed, settings, dataView]);
 
-  const value = useMemo(() => {
-    if (!scheduleType) return 0;
-
-    if (scheduleType === 'midweek') return 0;
-    if (scheduleType === 'weekend') return 1;
-    if (scheduleType === 'outgoing') return outgoingVisible ? 2 : 0;
-    if (scheduleType === 'departments') return outgoingVisible ? 3 : 2;
-    return 0;
-  }, [scheduleType, outgoingVisible]);
-
   const tabs = useMemo(() => {
     const result = [
       {
+        id: 'midweek',
         label: t('tr_midweekMeeting'),
         Component: <MidweekContainer />,
       },
       {
+        id: 'weekend',
         label: t('tr_weekendMeeting'),
         Component: <WeekendContainer />,
       },
@@ -57,28 +50,36 @@ const useWeeklySchedules = () => {
 
     if (outgoingVisible) {
       result.push({
+        id: 'outgoing',
         label: t('tr_outgoingTalks'),
         Component: <OutgoingTalks />,
       });
     }
 
     result.push({
+      id: 'departments',
       label: t('tr_departmentsSchedule', 'Departamentos'),
       Component: <DepartmentsContainer />,
+    });
+
+    result.push({
+      id: 'service_outings',
+      label: t('tr_fieldServiceOutings', 'Salidas de predicación'),
+      Component: <ServiceOutingsContainer />,
     });
 
     return result;
   }, [outgoingVisible, t]);
 
-  const handleScheduleChange = (value: number) => {
-    let type: WeeklySchedulesType;
+  const value = useMemo(() => {
+    if (!scheduleType) return 0;
 
-    if (value === 0) type = 'midweek';
-    if (value === 1) type = 'weekend';
-    if (value === 2) {
-      type = outgoingVisible ? 'outgoing' : 'departments';
-    }
-    if (value === 3) type = 'departments';
+    const index = tabs.findIndex((tab) => tab.id === scheduleType);
+    return index === -1 ? 0 : index;
+  }, [scheduleType, tabs]);
+
+  const handleScheduleChange = (index: number) => {
+    const type = tabs[index]?.id as WeeklySchedulesType;
 
     localStorage.setItem(LOCALSTORAGE_KEY, type ?? 'midweek');
   };
