@@ -38,7 +38,6 @@ import {
   IconSparkles,
   IconGenerate,
   IconLocation,
-  IconCheckCircle,
   IconInfo,
 } from '@components/icons';
 import { outingsStartAutofill } from '@services/app/outingsAutofill';
@@ -1994,11 +1993,9 @@ const PredicacionSalidas = () => {
                   '& .MuiTab-root': {
                     fontWeight: '700',
                     fontSize: '13.5px',
-                    textTransform: 'none',
                     minHeight: '48px',
                     color: 'var(--grey-600)',
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    gap: '8px',
                     px: '20px',
                     '&.Mui-selected': {
                       color: 'var(--accent-main)',
@@ -2011,16 +2008,23 @@ const PredicacionSalidas = () => {
                   },
                 }}
               >
-                <Tab label="Ubicaciones" icon={<IconLocation width={18} height={18} />} iconPosition="start" />
-                <Tab label="Horarios" icon={<IconCalendar width={18} height={18} />} iconPosition="start" />
-                <Tab label="Disponibilidad de hermanos" icon={<IconCheckCircle width={18} height={18} />} iconPosition="start" />
-                <Tab label="Salidas compartidas" icon={<IconGroups width={18} height={18} />} iconPosition="start" />
+                <Tab label="UBICACIONES" />
+                <Tab label="HORARIOS" />
+                <Tab label="DISPONIBILIDAD DE HERMANOS" />
+                <Tab label="SALIDAS COMPARTIDAS" />
               </Tabs>
 
               {/* Sub-tab 0: Ubicaciones */}
               {settingsSubTab === 0 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Lugares de salidas</Typography>
+                  <Box>
+                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
+                      Lugares de salidas
+                    </Typography>
+                    <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
+                      Configura los lugares habituales de reunión para las salidas de predicación de la congregación.
+                    </Typography>
+                  </Box>
                   <Box sx={{ display: 'flex', gap: '12px', maxWidth: '500px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' } }}>
                     <TextField
                       label="Nueva ubicación"
@@ -2117,7 +2121,14 @@ const PredicacionSalidas = () => {
               {/* Sub-tab 1: Horarios Recurrentes */}
               {settingsSubTab === 1 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Horarios semanales</Typography>
+                  <Box>
+                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
+                      Horarios semanales
+                    </Typography>
+                    <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
+                      Define las horas de reunión y el estado activo/inactivo para cada día y horario de la semana.
+                    </Typography>
+                  </Box>
 
                   <Box
                     sx={{
@@ -2173,8 +2184,8 @@ const PredicacionSalidas = () => {
                           {/* Slots Rows */}
                           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                             {[
-                              { key: dayGroup.morningKey, label: 'Mañana (AM)' },
-                              { key: dayGroup.afternoonKey, label: 'Tarde (PM)' }
+                              { key: dayGroup.morningKey, label: 'Mañana' },
+                              { key: dayGroup.afternoonKey, label: 'Tarde' }
                             ].map((slotItem, slotIdx) => {
                               const isDisabled = settings?.disabledSlots?.includes(slotItem.key) ?? false;
                               return (

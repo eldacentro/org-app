@@ -41,8 +41,6 @@ import {
   IconInfo,
   IconCancelFilled,
   IconLocation,
-  IconCheckCircle,
-  IconAssignment,
 } from '@components/icons';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
@@ -1835,7 +1833,6 @@ const Exhibitors = () => {
                   '& .MuiTab-root': {
                     fontWeight: '700',
                     color: 'var(--grey-600)',
-                    textTransform: 'none',
                     fontSize: '13.5px',
                     minHeight: '48px',
                     py: '8px',
@@ -1846,11 +1843,11 @@ const Exhibitors = () => {
                   },
                 }}
               >
-                <Tab label="Ubicaciones" icon={<IconLocation width={18} height={18} />} iconPosition="start" sx={{ gap: '6px' }} />
-                <Tab label="Turnos" icon={<IconCalendar width={18} height={18} />} iconPosition="start" sx={{ gap: '6px' }} />
-                <Tab label="Responsables" icon={<IconGroups width={18} height={18} />} iconPosition="start" sx={{ gap: '6px' }} />
-                <Tab label="Asignaciones fijas" icon={<IconAssignment width={18} height={18} />} iconPosition="start" sx={{ gap: '6px' }} />
-                <Tab label="Disponibilidad" icon={<IconCheckCircle width={18} height={18} />} iconPosition="start" sx={{ gap: '6px' }} />
+                <Tab label="UBICACIONES" />
+                <Tab label="TURNOS" />
+                <Tab label="RESPONSABLES" />
+                <Tab label="ASIGNACIONES FIJAS" />
+                <Tab label="DISPONIBILIDAD" />
               </Tabs>
 
               {/* SUB-PESTAÑA 0: UBICACIONES (GLOBAL) */}
@@ -1860,7 +1857,7 @@ const Exhibitors = () => {
                     <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
                       Ubicaciones de exhibidores
                     </Typography>
-                    <Typography style={{ fontSize: '13px', color: 'var(--grey-500)', marginTop: '4px' }}>
+                    <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
                       Gestiona los puntos geográficos de predicación pública de la congregación. Luego podrás habilitar cuáles de estas ubicaciones aplican a cada turno global.
                     </Typography>
                   </Box>
@@ -1977,10 +1974,15 @@ const Exhibitors = () => {
               {/* SUB-PESTAÑA 1: TURNOS */}
               {configSubTab === 1 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
-                      Configuración de turnos de exhibidores
-                    </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                    <Box>
+                      <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
+                        Configuración de turnos de exhibidores
+                      </Typography>
+                      <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
+                        Define los turnos de exhibidores de la congregación con sus días, horarios, y ubicaciones asociadas.
+                      </Typography>
+                    </Box>
                     <Button
                       variant="contained"
                       onClick={() => handleOpenTurnConfig()}
