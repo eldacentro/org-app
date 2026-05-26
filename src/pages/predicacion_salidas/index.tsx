@@ -34,12 +34,16 @@ import {
   IconGroups,
   IconCancelFilled,
   IconCalendar,
+  IconExport,
 } from '@components/icons';
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
+import OutingsSchedulePDF from '@views/field_service_outings';
 import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { personsState } from '@states/persons';
 import TimePicker from '@components/time_picker';
 import { generateDateFromTime } from '@utils/date';
-import { hour24FormatState } from '@states/settings';
+import { hour24FormatState, congNameState } from '@states/settings';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
@@ -87,6 +91,7 @@ const PredicacionSalidas = () => {
   // Estados reactivos de Jotai
   const persons = useAtomValue(personsState);
   const hour24 = useAtomValue(hour24FormatState);
+  const congName = useAtomValue(congNameState);
   const [outingsWeeks, setOutingsWeeks] = useAtom(serviceOutingsListState);
   // useAtom with nullable atom — destructure read and write separately
   const [settings, setSettings] = useAtom(serviceOutingsSettingsState) as [
@@ -119,6 +124,11 @@ const PredicacionSalidas = () => {
   useMemo(() => {
     setSelectedDayNum(initialSelectedDay);
   }, [initialSelectedDay]);
+
+  // Diálogo de Exportación de PDF
+  const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState<boolean>(false);
+  const [pdfExportMonth, setPdfExportMonth] = useState<number>(selectedMonth);
+  const [pdfExportYear, setPdfExportYear] = useState<number>(selectedYear);
 
   // Control de Vista Activa ("planner" o "settings")
   const [activeTab, setActiveTab] = useState<'planner' | 'settings'>('planner');
@@ -404,6 +414,201 @@ const PredicacionSalidas = () => {
     setSettings(updatedSettings);
   };
 
+  // Función para exportar el programa de salidas a PDF
+  const handleExportPDF = async () => {
+    if (!settings) return;
+
+    try {
+      const defaultHours = settings.defaultHours || {
+        monday_morning: '10:00',
+        monday_afternoon: '17:00',
+        tuesday_morning: '10:00',
+        tuesday_afternoon: '17:00',
+        wednesday_morning: '10:00',
+        wednesday_afternoon: '17:00',
+        thursday_morning: '10:00',
+        thursday_afternoon: '17:00',
+        friday_morning: '10:00',
+        friday_afternoon: '17:30',
+        saturday_morning: '09:45',
+        saturday_afternoon: '17:00',
+        sunday_morning: '10:30',
+        sunday_afternoon: '17:00',
+      };
+
+      const slots = [];
+      const disabledSlots = settings.disabledSlots || [];
+      // Recorrer todos los días del mes seleccionado para exportar
+      const date = new Date(pdfExportYear, pdfExportMonth, 1);
+      while (date.getMonth() === pdfExportMonth) {
+        const dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
+
+        // Determinar el prefijo del día en inglés
+        let dayLabel = '';
+        if (dayOfWeek === 1) dayLabel = 'monday';
+        else if (dayOfWeek === 2) dayLabel = 'tuesday';
+        else if (dayOfWeek === 3) dayLabel = 'wednesday';
+        else if (dayOfWeek === 4) dayLabel = 'thursday';
+        else if (dayOfWeek === 5) dayLabel = 'friday';
+        else if (dayOfWeek === 6) dayLabel = 'saturday';
+        else if (dayOfWeek === 0) dayLabel = 'sunday';
+
+        if (dayLabel) {
+          // Turno Mañana
+          const morningType = `${dayLabel}_morning`;
+          if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayLabel)) {
+            slots.push({
+              date: new Date(date),
+              slotType: morningType,
+              time: defaultHours[morningType] || '10:00',
+              slotId: `${formatToDbDate(date)}_morning`,
+            });
+          }
+
+          // Turno Tarde
+          const afternoonType = `${dayLabel}_afternoon`;
+          if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
+            slots.push({
+              date: new Date(date),
+              slotType: afternoonType,
+              time: defaultHours[afternoonType] || '17:00',
+              slotId: `${formatToDbDate(date)}_afternoon`,
+            });
+          }
+        }
+
+        date.setDate(date.getDate() + 1);
+      }
+
+      // Agrupar slots por día primero
+      const dayMap = new Map<string, typeof slots>();
+      for (const slot of slots) {
+        const key = formatToDbDate(slot.date);
+        if (!dayMap.has(key)) dayMap.set(key, []);
+        dayMap.get(key)!.push(slot);
+      }
+
+      // Agrupar los días resultantes por su semana de inicio (Lunes)
+      const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof slots }>>();
+      for (const [dateKey, daySlots] of dayMap.entries()) {
+        const dayDate = daySlots[0].date;
+        const weekOf = getWeekOfDate(dayDate);
+        if (!weekMap.has(weekOf)) weekMap.set(weekOf, []);
+        weekMap.get(weekOf)!.push({ dateKey, daySlots });
+      }
+
+      const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+      const getWeekLabel = (weekOfStr: string): string => {
+        const [year, month, day] = weekOfStr.split('/').map(Number);
+        const monday = new Date(year, month - 1, day);
+        const sunday = new Date(monday);
+        sunday.setDate(sunday.getDate() + 6);
+
+        const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        
+        const monDayNum = monday.getDate();
+        const monMonth = months[monday.getMonth()];
+        
+        const sunDayNum = sunday.getDate();
+        const sunMonth = months[sunday.getMonth()];
+
+        if (monday.getMonth() === sunday.getMonth()) {
+          return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
+        } else {
+          return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
+        }
+      };
+
+      // Formatear datos para el PDF
+      const weeksPDFData = sortedWeeks.map(([weekOf, days]) => {
+        const weekLabel = getWeekLabel(weekOf);
+        
+        const outingsPDFItems = days.flatMap(({ dateKey, daySlots }) => {
+          return daySlots.map((slot) => {
+            const weekOfRecord = getWeekOfDate(slot.date);
+            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+            const outing = weekRecord?.outings?.find(
+              (o) => o.date === dateKey && o.time === slot.time
+            );
+            const assignedBrother = persons.find(
+              (b) => b.person_uid === outing?.person
+            );
+            const brotherName = assignedBrother
+              ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+              : 'Sin asignar';
+            
+            const isCancelled = outing?.cancelled ?? false;
+            
+            return {
+              id: slot.slotId,
+              date: dateKey,
+              dayLabel: formatLegibleDate(slot.date),
+              time: slot.time,
+              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+              brotherName: isCancelled ? 'Suspendida' : brotherName,
+              isAssigned: !!assignedBrother,
+              isCancelled,
+            };
+          });
+        });
+
+        return {
+          weekOf,
+          weekLabel,
+          outings: outingsPDFItems,
+        };
+      });
+
+      // Calcular última fecha de modificación
+      let lastUpdatedAt: string | undefined;
+      let lastModifiedBy: string | undefined;
+
+      for (const week of outingsWeeks) {
+        if (week.updatedAt) {
+          if (!lastUpdatedAt || new Date(week.updatedAt) > new Date(lastUpdatedAt)) {
+            lastUpdatedAt = week.updatedAt;
+            lastModifiedBy = week.lastModifiedBy;
+          }
+        }
+      }
+
+      const spanishMonths = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      const monthLabel = `${spanishMonths[pdfExportMonth]} ${pdfExportYear}`;
+      const fileName = `Salidas_${spanishMonths[pdfExportMonth]}_${pdfExportYear}.pdf`;
+
+      const doc = (
+        <OutingsSchedulePDF
+          monthName={monthLabel}
+          cong_name={congName}
+          weeks={weeksPDFData}
+          updatedAt={lastUpdatedAt}
+          lastModifiedBy={lastModifiedBy}
+        />
+      );
+
+      const blob = await pdf(doc).toBlob();
+      saveAs(blob, fileName);
+
+      setPdfExportDialogOpen(false);
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message: 'PDF generado y descargado con éxito.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'No se pudo generar el archivo PDF.',
+        severity: 'error',
+      });
+    }
+  };
+
   // Dividir hermanos en recomendados y otros según la disponibilidad configurada
   const sortedBrothersForSlot = useMemo(() => {
     if (!editDialog.open || !settings) return { recommended: [], others: [] };
@@ -433,11 +638,24 @@ const PredicacionSalidas = () => {
         buttons={
           <>
             {isServiceCommittee && (
-              <NavBarButton
-                text={activeTab === 'planner' ? 'Configuración' : 'Programa'}
-                onClick={() => setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')}
-                icon={activeTab === 'planner' ? <IconSettings /> : <IconCalendar />}
-              />
+              <>
+                <NavBarButton
+                  text={activeTab === 'planner' ? 'Configuración' : 'Programa'}
+                  onClick={() => setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')}
+                  icon={activeTab === 'planner' ? <IconSettings /> : <IconCalendar />}
+                />
+                {activeTab === 'planner' && (
+                  <NavBarButton
+                    text="Exportar PDF"
+                    onClick={() => {
+                      setPdfExportMonth(selectedMonth);
+                      setPdfExportYear(selectedYear);
+                      setPdfExportDialogOpen(true);
+                    }}
+                    icon={<IconExport />}
+                  />
+                )}
+              </>
             )}
             <NavBarButton
               text={t('tr_publish', 'Publicar')}
@@ -1877,6 +2095,97 @@ const PredicacionSalidas = () => {
             }}
           >
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIÁLOGO DE EXPORTACIÓN DE PDF */}
+      <Dialog
+        open={pdfExportDialogOpen}
+        onClose={() => setPdfExportDialogOpen(false)}
+        fullWidth
+        maxWidth={false}
+        sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            padding: '12px',
+          },
+        }}
+      >
+        <DialogTitle style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '18px' }}>
+          Exportar programa a PDF
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mt: '8px' }}>
+          <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
+            Selecciona el mes y año que deseas exportar en formato A4 horizontal.
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: '16px', width: '100%' }}>
+            {/* Selector de Mes */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Typography style={{ fontWeight: '600', fontSize: '12px', color: 'var(--grey-600)' }}>
+                Mes
+              </Typography>
+              <Select
+                value={pdfExportMonth}
+                onChange={(e) => setPdfExportMonth(Number(e.target.value))}
+                fullWidth
+                size="small"
+                sx={{ borderRadius: 'var(--radius-m)' }}
+              >
+                {MONTH_NAMES.map((name, idx) => (
+                  <MenuItem key={name} value={idx}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+
+            {/* Selector de Año */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Typography style={{ fontWeight: '600', fontSize: '12px', color: 'var(--grey-600)' }}>
+                Año
+              </Typography>
+              <Select
+                value={pdfExportYear}
+                onChange={(e) => setPdfExportYear(Number(e.target.value))}
+                fullWidth
+                size="small"
+                sx={{ borderRadius: 'var(--radius-m)' }}
+              >
+                {years.map((y) => (
+                  <MenuItem key={y} value={y}>
+                    {y}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          <Button
+            onClick={() => setPdfExportDialogOpen(false)}
+            sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleExportPDF}
+            variant="contained"
+            sx={{
+              backgroundColor: 'var(--accent-main)',
+              fontWeight: '600',
+              textTransform: 'none',
+              borderRadius: 'var(--radius-m)',
+              '&:hover': {
+                backgroundColor: 'var(--accent-dark)',
+              },
+            }}
+          >
+            Exportar
           </Button>
         </DialogActions>
       </Dialog>
