@@ -5,14 +5,18 @@ registerFonts();
 
 const styles = StyleSheet.create({
   body: {
-    padding: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
   },
   headerContainer: {
-    marginBottom: 16,
+    marginBottom: 10,
     borderBottom: '1.5 solid #306CB4',
-    paddingBottom: 12,
+    paddingBottom: 8,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -25,103 +29,165 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 800,
     color: '#306CB4',
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666666',
-    marginTop: 2,
+    marginTop: 1,
   },
   monthTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 700,
     color: '#306CB4',
     textAlign: 'right',
   },
-  gridContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  weekCard: {
-    width: '48.5%',
-    border: '1 solid #e2e8f0',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 12,
-    backgroundColor: '#ffffff',
-  },
-  weekHeader: {
-    backgroundColor: '#306CB4',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  weekTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: '#ffffff',
-  },
-  outingsList: {
-    padding: 10,
+  
+  // Estructura del Calendario
+  calendarContainer: {
+    flexGrow: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: 6,
+    borderLeft: '1 solid #cbd5e1',
+    borderTop: '1 solid #cbd5e1',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  outingRow: {
+  weekdaysHeader: {
+    height: 20,
     display: 'flex',
     flexDirection: 'row',
+    backgroundColor: '#306CB4',
+    borderBottom: '1 solid #306CB4',
+  },
+  weekdayCell: {
+    flex: 1,
+    textAlign: 'center',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 4,
-    borderBottom: '0.5 solid #f1f5f9',
+    borderRight: '1 solid #306CB4',
   },
-  dayCol: {
-    width: '22%',
-    fontSize: 10,
-    fontWeight: 700,
-    color: '#1e293b',
-  },
-  timeCol: {
-    width: '12%',
-    fontSize: 10,
-    fontWeight: 700,
-    color: '#306CB4',
-  },
-  locationCol: {
-    width: '31%',
+  weekdayText: {
+    color: '#ffffff',
     fontSize: 9,
+    fontWeight: 700,
+  },
+  
+  weekRow: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  
+  // Celda del Día
+  cell: {
+    flex: 1,
+    borderRight: '1 solid #cbd5e1',
+    borderBottom: '1 solid #cbd5e1',
+    padding: 4,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+  },
+  emptyCell: {
+    flex: 1,
+    borderRight: '1 solid #cbd5e1',
+    borderBottom: '1 solid #cbd5e1',
+    backgroundColor: '#f8fafc',
+  },
+  dayNumber: {
+    fontSize: 9,
+    fontWeight: 800,
     color: '#64748b',
-    paddingRight: 4,
+    marginBottom: 3,
   },
-  brotherCol: {
-    width: '35%',
-    fontSize: 10,
-    fontWeight: 700,
-    color: '#334155',
-    textAlign: 'right',
+  
+  // Salidas individuales dentro de las celdas
+  outingsWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+    flexGrow: 1,
+    justifyContent: 'flex-start',
   },
-  unassignedText: {
-    color: '#d32f2f',
-    fontWeight: 700,
+  outingBadge: {
+    padding: 3,
+    borderRadius: 4,
+    borderLeftWidth: 2,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1,
   },
-  cancelledText: {
+  assignedBadge: {
+    backgroundColor: '#f0f7ff',
+    borderLeftColor: '#306CB4',
+  },
+  unassignedBadge: {
+    backgroundColor: '#fffbeb',
+    borderLeftColor: '#d97706',
+  },
+  cancelledBadge: {
+    backgroundColor: '#fef2f2',
+    borderLeftColor: '#ef4444',
+  },
+  
+  // Textos de las salidas
+  timeText: {
+    fontSize: 7.5,
+    fontWeight: 800,
+  },
+  assignedTimeText: {
+    color: '#1e3a8a',
+  },
+  unassignedTimeText: {
+    color: '#b45309',
+  },
+  cancelledTimeText: {
+    color: '#991b1b',
     textDecoration: 'line-through',
-    color: '#94a3b8',
   },
+  
+  infoText: {
+    fontSize: 7,
+    fontWeight: 500,
+  },
+  assignedInfoText: {
+    color: '#1e40af',
+  },
+  unassignedInfoText: {
+    color: '#d97706',
+  },
+  cancelledInfoText: {
+    color: '#ef4444',
+    textDecoration: 'line-through',
+  },
+  
+  brotherText: {
+    fontSize: 7.5,
+    fontWeight: 700,
+  },
+  assignedBrotherText: {
+    color: '#1e3a8a',
+  },
+  unassignedBrotherText: {
+    color: '#b55d02',
+  },
+  cancelledBrotherText: {
+    color: '#991b1b',
+    textDecoration: 'line-through',
+  },
+  
+  // Pie de Página
   footer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 24,
-    right: 24,
+    marginTop: 8,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 4,
     borderTop: '0.5 solid #e2e8f0',
-    paddingTop: 8,
   },
   footerText: {
     fontSize: 8,

@@ -39,6 +39,7 @@ import {
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import OutingsSchedulePDF from '@views/field_service_outings';
+import { CalendarCellPDF, OutingPDFItem } from '@views/field_service_outings/index.types';
 import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { personsState } from '@states/persons';
 import TimePicker from '@components/time_picker';
@@ -436,14 +437,38 @@ const PredicacionSalidas = () => {
         sunday_afternoon: '17:00',
       };
 
-      const slots = [];
       const disabledSlots = settings.disabledSlots || [];
-      // Recorrer todos los días del mes seleccionado para exportar
-      const date = new Date(pdfExportYear, pdfExportMonth, 1);
-      while (date.getMonth() === pdfExportMonth) {
-        const dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
 
-        // Determinar el prefijo del día en inglés
+      // Función para abreviar nombres en celdas pequeñas
+      const getAbbreviatedName = (fullName: string) => {
+        if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0];
+        const firstName = parts[0];
+        const lastName = parts[parts.length - 1];
+        return `${firstName.charAt(0)}. ${lastName}`;
+      };
+
+      // 1. Calcular límites del mes
+      const firstDayOfMonth = new Date(pdfExportYear, pdfExportMonth, 1);
+      const firstDayOfWeek = firstDayOfMonth.getDay();
+      // Desfase para que lunes sea 0 (0: Lun, ..., 6: Dom)
+      const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+      const daysInMonth = new Date(pdfExportYear, pdfExportMonth + 1, 0).getDate();
+
+      const cells: CalendarCellPDF[] = [];
+
+      // Relleno inicial vacío
+      for (let i = 0; i < offset; i++) {
+        cells.push({ type: 'empty', id: `empty-start-${i}` });
+      }
+
+      // Celdas del mes
+      for (let d = 1; d <= daysInMonth; d++) {
+        const currentDate = new Date(pdfExportYear, pdfExportMonth, d);
+        const dayOfWeek = currentDate.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
+
+        // Determinar prefijo del día en inglés
         let dayLabel = '';
         if (dayOfWeek === 1) dayLabel = 'monday';
         else if (dayOfWeek === 2) dayLabel = 'tuesday';
@@ -453,112 +478,74 @@ const PredicacionSalidas = () => {
         else if (dayOfWeek === 6) dayLabel = 'saturday';
         else if (dayOfWeek === 0) dayLabel = 'sunday';
 
+        const dayOutings: OutingPDFItem[] = [];
+
         if (dayLabel) {
-          // Turno Mañana
+          const dateKey = formatToDbDate(currentDate);
+
+          // Comprobar Turno Mañana
           const morningType = `${dayLabel}_morning`;
           if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayLabel)) {
-            slots.push({
-              date: new Date(date),
-              slotType: morningType,
-              time: defaultHours[morningType] || '10:00',
-              slotId: `${formatToDbDate(date)}_morning`,
-            });
-          }
-
-          // Turno Tarde
-          const afternoonType = `${dayLabel}_afternoon`;
-          if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
-            slots.push({
-              date: new Date(date),
-              slotType: afternoonType,
-              time: defaultHours[afternoonType] || '17:00',
-              slotId: `${formatToDbDate(date)}_afternoon`,
-            });
-          }
-        }
-
-        date.setDate(date.getDate() + 1);
-      }
-
-      // Agrupar slots por día primero
-      const dayMap = new Map<string, typeof slots>();
-      for (const slot of slots) {
-        const key = formatToDbDate(slot.date);
-        if (!dayMap.has(key)) dayMap.set(key, []);
-        dayMap.get(key)!.push(slot);
-      }
-
-      // Agrupar los días resultantes por su semana de inicio (Lunes)
-      const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof slots }>>();
-      for (const [dateKey, daySlots] of dayMap.entries()) {
-        const dayDate = daySlots[0].date;
-        const weekOf = getWeekOfDate(dayDate);
-        if (!weekMap.has(weekOf)) weekMap.set(weekOf, []);
-        weekMap.get(weekOf)!.push({ dateKey, daySlots });
-      }
-
-      const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-      const getWeekLabel = (weekOfStr: string): string => {
-        const [year, month, day] = weekOfStr.split('/').map(Number);
-        const monday = new Date(year, month - 1, day);
-        const sunday = new Date(monday);
-        sunday.setDate(sunday.getDate() + 6);
-
-        const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-        
-        const monDayNum = monday.getDate();
-        const monMonth = months[monday.getMonth()];
-        
-        const sunDayNum = sunday.getDate();
-        const sunMonth = months[sunday.getMonth()];
-
-        if (monday.getMonth() === sunday.getMonth()) {
-          return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
-        } else {
-          return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
-        }
-      };
-
-      // Formatear datos para el PDF
-      const weeksPDFData = sortedWeeks.map(([weekOf, days]) => {
-        const weekLabel = getWeekLabel(weekOf);
-        
-        const outingsPDFItems = days.flatMap(({ dateKey, daySlots }) => {
-          return daySlots.map((slot) => {
-            const weekOfRecord = getWeekOfDate(slot.date);
+            const timeVal = defaultHours[morningType] || '10:00';
+            const weekOfRecord = getWeekOfDate(currentDate);
             const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
             const outing = weekRecord?.outings?.find(
-              (o) => o.date === dateKey && o.time === slot.time
+              (o) => o.date === dateKey && o.time === timeVal
             );
-            const assignedBrother = persons.find(
-              (b) => b.person_uid === outing?.person
-            );
+            const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
             const brotherName = assignedBrother
               ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
               : 'Sin asignar';
-            
-            const isCancelled = outing?.cancelled ?? false;
-            
-            return {
-              id: slot.slotId,
-              date: dateKey,
-              dayLabel: formatLegibleDate(slot.date),
-              time: slot.time,
-              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
-              brotherName: isCancelled ? 'Suspendida' : brotherName,
-              isAssigned: !!assignedBrother,
-              isCancelled,
-            };
-          });
-        });
 
-        return {
-          weekOf,
-          weekLabel,
-          outings: outingsPDFItems,
-        };
-      });
+            dayOutings.push({
+              id: `${dateKey}_morning`,
+              time: timeVal,
+              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+              brotherName: getAbbreviatedName(brotherName),
+              isAssigned: !!assignedBrother,
+              isCancelled: outing?.cancelled ?? false,
+            });
+          }
+
+          // Comprobar Turno Tarde
+          const afternoonType = `${dayLabel}_afternoon`;
+          if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
+            const timeVal = defaultHours[afternoonType] || '17:00';
+            const weekOfRecord = getWeekOfDate(currentDate);
+            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+            const outing = weekRecord?.outings?.find(
+              (o) => o.date === dateKey && o.time === timeVal
+            );
+            const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
+            const brotherName = assignedBrother
+              ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+              : 'Sin asignar';
+
+            dayOutings.push({
+              id: `${dateKey}_afternoon`,
+              time: timeVal,
+              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+              brotherName: getAbbreviatedName(brotherName),
+              isAssigned: !!assignedBrother,
+              isCancelled: outing?.cancelled ?? false,
+            });
+          }
+        }
+
+        cells.push({
+          type: 'day',
+          dayNum: d,
+          outings: dayOutings,
+        });
+      }
+
+      // Relleno final vacío
+      const totalSoFar = cells.length;
+      const remaining = totalSoFar % 7;
+      const paddingEnd = remaining === 0 ? 0 : 7 - remaining;
+      for (let i = 0; i < paddingEnd; i++) {
+        cells.push({ type: 'empty', id: `empty-end-${i}` });
+      }
 
       // Calcular última fecha de modificación
       let lastUpdatedAt: string | undefined;
@@ -584,7 +571,7 @@ const PredicacionSalidas = () => {
         <OutingsSchedulePDF
           monthName={monthLabel}
           cong_name={congName}
-          weeks={weeksPDFData}
+          cells={cells}
           updatedAt={lastUpdatedAt}
           lastModifiedBy={lastModifiedBy}
         />

@@ -4,11 +4,17 @@ import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
 import { OutingsPDFProps } from './index.types';
 
-const OutingsSchedulePDF = ({ monthName, cong_name, weeks, updatedAt, lastModifiedBy }: OutingsPDFProps) => {
+const OutingsSchedulePDF = ({ monthName, cong_name, cells, updatedAt, lastModifiedBy }: OutingsPDFProps) => {
+  // Fragmentar las celdas en semanas (filas de 7 días)
+  const rows = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    rows.push(cells.slice(i, i + 7));
+  }
+
   return (
     <Document title={`Salidas de predicación - ${monthName}`} lang="es-ES">
       <Page size="A4" orientation="landscape" style={styles.body}>
-        {/* Header */}
+        {/* Encabezado */}
         <View style={styles.headerContainer}>
           <View style={styles.logoTitleContainer}>
             <IconLogo />
@@ -20,63 +26,83 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weeks, updatedAt, lastModifi
           <Text style={styles.monthTitle}>{monthName}</Text>
         </View>
 
-        {/* Weeks Grid */}
-        <View style={styles.gridContainer}>
-          {weeks.map((week) => (
-            <View key={week.weekOf} style={styles.weekCard} wrap={false}>
-              {/* Week Header */}
-              <View style={styles.weekHeader}>
-                <Text style={styles.weekTitle}>{week.weekLabel}</Text>
+        {/* Cuadrícula de Calendario */}
+        <View style={styles.calendarContainer}>
+          {/* Encabezados de los Días de la Semana */}
+          <View style={styles.weekdaysHeader}>
+            {['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'].map((day) => (
+              <View key={day} style={styles.weekdayCell}>
+                <Text style={styles.weekdayText}>{day}</Text>
               </View>
+            ))}
+          </View>
 
-              {/* Outings List */}
-              <View style={styles.outingsList}>
-                {week.outings.length === 0 ? (
-                  <Text style={{ fontSize: 10, color: '#94a3b8', fontStyle: 'italic', padding: 4 }}>
-                    Sin salidas programadas
-                  </Text>
-                ) : (
-                  week.outings.map((outing) => {
-                    const isCancelled = outing.isCancelled;
-                    const isAssigned = outing.isAssigned;
+          {/* Filas de Semanas */}
+          {rows.map((row, rowIdx) => (
+            <View key={rowIdx} style={styles.weekRow}>
+              {row.map((cell, cellIdx) => {
+                if (cell.type === 'empty') {
+                  return <View key={`empty-${rowIdx}-${cellIdx}`} style={styles.emptyCell} />;
+                }
 
-                    return (
-                      <View key={outing.id} style={styles.outingRow}>
-                        {/* Day/Date Col */}
-                        <Text style={[styles.dayCol, isCancelled && styles.cancelledText]}>
-                          {outing.dayLabel}
-                        </Text>
+                return (
+                  <View key={`day-${cell.dayNum}`} style={styles.cell}>
+                    {/* Número del Día */}
+                    <Text style={styles.dayNumber}>{cell.dayNum}</Text>
 
-                        {/* Time Col */}
-                        <Text style={[styles.timeCol, isCancelled && styles.cancelledText]}>
-                          {outing.time}
-                        </Text>
+                    {/* Listado de Salidas para este día */}
+                    <View style={styles.outingsWrapper}>
+                      {cell.outings.map((outing) => {
+                        const isCancelled = outing.isCancelled;
+                        const isAssigned = outing.isAssigned;
 
-                        {/* Location Col */}
-                        <Text style={[styles.locationCol, isCancelled && styles.cancelledText]}>
-                          {isCancelled ? '—' : outing.location}
-                        </Text>
+                        let badgeStyle = styles.assignedBadge;
+                        let timeStyle = styles.assignedTimeText;
+                        let infoStyle = styles.assignedInfoText;
+                        let brotherStyle = styles.assignedBrotherText;
 
-                        {/* Brother Col */}
-                        <Text
-                          style={[
-                            styles.brotherCol,
-                            !isAssigned && !isCancelled && styles.unassignedText,
-                            isCancelled && styles.cancelledText,
-                          ]}
-                        >
-                          {isCancelled ? 'Suspendida' : outing.brotherName}
-                        </Text>
-                      </View>
-                    );
-                  })
-                )}
-              </View>
+                        if (isCancelled) {
+                          badgeStyle = styles.cancelledBadge;
+                          timeStyle = styles.cancelledTimeText;
+                          infoStyle = styles.cancelledInfoText;
+                          brotherStyle = styles.cancelledBrotherText;
+                        } else if (!isAssigned) {
+                          badgeStyle = styles.unassignedBadge;
+                          timeStyle = styles.unassignedTimeText;
+                          infoStyle = styles.unassignedInfoText;
+                          brotherStyle = styles.unassignedBrotherText;
+                        }
+
+                        return (
+                          <View key={outing.id} style={[styles.outingBadge, badgeStyle]}>
+                            {/* Hora */}
+                            <Text style={[styles.timeText, timeStyle]}>
+                              {outing.time}
+                            </Text>
+                            
+                            {/* Nombre del Hermano */}
+                            <Text style={[styles.brotherText, brotherStyle]}>
+                              {isCancelled ? 'Suspendida' : outing.brotherName}
+                            </Text>
+
+                            {/* Lugar de Reunión */}
+                            {!isCancelled && (
+                              <Text style={[styles.infoText, infoStyle]}>
+                                {outing.location}
+                              </Text>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           ))}
         </View>
 
-        {/* Footer */}
+        {/* Pie de Página */}
         {updatedAt && (
           <View style={styles.footer}>
             <Text style={styles.footerText}>
