@@ -34,8 +34,11 @@ import {
   IconGroups,
   IconCancelFilled,
   IconCalendar,
-  IconExport,
+  IconPrint,
+  IconSparkles,
+  IconGenerate,
 } from '@components/icons';
+import { outingsStartAutofill } from '@services/app/outingsAutofill';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import OutingsSchedulePDF from '@views/field_service_outings';
@@ -552,6 +555,113 @@ const PredicacionSalidas = () => {
     });
   };
 
+  // Autocompletar asignaciones de la semana actual
+  const handleAutofillWeek = async () => {
+    const { weekOf } = weekSettingsDialog;
+    if (!weekOf) return;
+
+    try {
+      const count = await outingsStartAutofill(weekOf);
+      
+      if (count > 0) {
+        triggerSync();
+        displaySnackNotification({
+          header: t('tr_done', 'Hecho'),
+          message: `Asignaciones autocompletadas con éxito. Se asignaron ${count} salidas.`,
+          severity: 'success',
+        });
+      } else {
+        displaySnackNotification({
+          header: 'Info',
+          message: 'No se encontraron turnos vacíos que requieran autocompletado para esta semana.',
+          severity: 'success',
+        });
+      }
+      
+      // Cerrar el diálogo para que el usuario vea los cambios inmediatamente
+      setWeekSettingsDialog({ open: false, weekOf: '' });
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al autocompletar las salidas de la semana.',
+        severity: 'error',
+      });
+    }
+  };
+
+  // Autocompletar todas las semanas del mes seleccionado
+  const handleAutofillMonth = async () => {
+    if (!settings) return;
+
+    try {
+      // 1. Determinar qué semanas naturales (Monday dates) tienen días en este mes
+      const weekKeys = new Set<string>();
+      const start = new Date(selectedYear, selectedMonth, 1);
+      const end = new Date(selectedYear, selectedMonth + 1, 0);
+      
+      const date = new Date(start);
+      // Para encontrar los días de la semana configurables
+      const weekdaysInfo = [
+        { dayOfWeek: 1, englishLabel: 'monday' },
+        { dayOfWeek: 2, englishLabel: 'tuesday' },
+        { dayOfWeek: 3, englishLabel: 'wednesday' },
+        { dayOfWeek: 4, englishLabel: 'thursday' },
+        { dayOfWeek: 5, englishLabel: 'friday' },
+        { dayOfWeek: 6, englishLabel: 'saturday' },
+        { dayOfWeek: 0, englishLabel: 'sunday' },
+      ];
+      const disabledSlots = settings.disabledSlots || [];
+
+      while (date <= end) {
+        const dayOfWeek = date.getDay();
+        const dayInfo = weekdaysInfo.find((w) => w.dayOfWeek === dayOfWeek);
+        if (dayInfo) {
+          const morningType = `${dayInfo.englishLabel}_morning`;
+          const afternoonType = `${dayInfo.englishLabel}_afternoon`;
+          const hasMorning = !disabledSlots.includes(morningType) && !disabledSlots.includes(dayInfo.englishLabel);
+          const hasAfternoon = !disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayInfo.englishLabel);
+          
+          if (hasMorning || hasAfternoon) {
+            weekKeys.add(getWeekOfDate(date));
+          }
+        }
+        date.setDate(date.getDate() + 1);
+      }
+
+      const sortedWeeks = Array.from(weekKeys).sort();
+      let totalCount = 0;
+
+      // 2. Ejecutar el autocompletado semana a semana para todo el mes
+      for (const weekOf of sortedWeeks) {
+        const count = await outingsStartAutofill(weekOf);
+        totalCount += count;
+      }
+
+      if (totalCount > 0) {
+        triggerSync();
+        displaySnackNotification({
+          header: t('tr_done', 'Hecho'),
+          message: `Asignaciones autocompletadas con éxito. Se asignaron ${totalCount} salidas en todo el mes.`,
+          severity: 'success',
+        });
+      } else {
+        displaySnackNotification({
+          header: 'Info',
+          message: 'No se encontraron turnos vacíos que requieran autocompletado en este mes.',
+          severity: 'success',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al autocompletar las salidas del mes.',
+        severity: 'error',
+      });
+    }
+  };
+
   // Función para exportar el programa de salidas a PDF
   const handleExportPDF = async () => {
     if (!settings) return;
@@ -830,15 +940,22 @@ const PredicacionSalidas = () => {
                   icon={activeTab === 'planner' ? <IconSettings /> : <IconCalendar />}
                 />
                 {activeTab === 'planner' && (
-                  <NavBarButton
-                    text="Exportar PDF"
-                    onClick={() => {
-                      setPdfExportMonth(selectedMonth);
-                      setPdfExportYear(selectedYear);
-                      setPdfExportDialogOpen(true);
-                    }}
-                    icon={<IconExport />}
-                  />
+                  <>
+                    <NavBarButton
+                      text={t('tr_autofill', 'Autocompletar')}
+                      onClick={handleAutofillMonth}
+                      icon={<IconGenerate />}
+                    />
+                    <NavBarButton
+                      text={t('tr_export', 'Exportar')}
+                      onClick={() => {
+                        setPdfExportMonth(selectedMonth);
+                        setPdfExportYear(selectedYear);
+                        setPdfExportDialogOpen(true);
+                      }}
+                      icon={<IconPrint />}
+                    />
+                  </>
                 )}
               </>
             )}
@@ -2723,6 +2840,27 @@ const PredicacionSalidas = () => {
         </DialogContent>
 
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          <Button
+            onClick={handleAutofillWeek}
+            variant="outlined"
+            startIcon={<IconSparkles />}
+            sx={{
+              borderColor: 'var(--accent-main)',
+              color: 'var(--accent-main)',
+              fontWeight: '700',
+              textTransform: 'none',
+              borderRadius: 'var(--radius-m)',
+              '&:hover': {
+                backgroundColor: 'var(--accent-150)',
+                borderColor: 'var(--accent-main)',
+              },
+            }}
+          >
+            Autocompletar
+          </Button>
+
+          <Box sx={{ flexGrow: 1 }} />
+
           <Button
             onClick={() => setWeekSettingsDialog({ ...weekSettingsDialog, open: false })}
             sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}
