@@ -449,26 +449,21 @@ const PredicacionSalidas = () => {
         return `${firstName.charAt(0)}. ${lastName}`;
       };
 
-      // 1. Calcular límites del mes
-      const firstDayOfMonth = new Date(pdfExportYear, pdfExportMonth, 1);
-      const firstDayOfWeek = firstDayOfMonth.getDay();
-      // Desfase para que lunes sea 0 (0: Lun, ..., 6: Dom)
-      const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-      const daysInMonth = new Date(pdfExportYear, pdfExportMonth + 1, 0).getDate();
+      // 1. Determinar qué días de la semana tienen salidas configuradas en este mes
+      const weekdaysInfo = [
+        { dayOfWeek: 1, label: 'lunes', englishLabel: 'monday' },
+        { dayOfWeek: 2, label: 'martes', englishLabel: 'tuesday' },
+        { dayOfWeek: 3, label: 'miércoles', englishLabel: 'wednesday' },
+        { dayOfWeek: 4, label: 'jueves', englishLabel: 'thursday' },
+        { dayOfWeek: 5, label: 'viernes', englishLabel: 'friday' },
+        { dayOfWeek: 6, label: 'sábado', englishLabel: 'saturday' },
+        { dayOfWeek: 0, label: 'domingo', englishLabel: 'sunday' },
+      ];
 
-      const cells: CalendarCellPDF[] = [];
-
-      // Relleno inicial vacío
-      for (let i = 0; i < offset; i++) {
-        cells.push({ type: 'empty', id: `empty-start-${i}` });
-      }
-
-      // Celdas del mes
-      for (let d = 1; d <= daysInMonth; d++) {
-        const currentDate = new Date(pdfExportYear, pdfExportMonth, d);
-        const dayOfWeek = currentDate.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
-
-        // Determinar prefijo del día en inglés
+      const activeDays = new Set<number>();
+      const tempDate = new Date(pdfExportYear, pdfExportMonth, 1);
+      while (tempDate.getMonth() === pdfExportMonth) {
+        const dayOfWeek = tempDate.getDay();
         let dayLabel = '';
         if (dayOfWeek === 1) dayLabel = 'monday';
         else if (dayOfWeek === 2) dayLabel = 'tuesday';
@@ -478,73 +473,115 @@ const PredicacionSalidas = () => {
         else if (dayOfWeek === 6) dayLabel = 'saturday';
         else if (dayOfWeek === 0) dayLabel = 'sunday';
 
-        const dayOutings: OutingPDFItem[] = [];
-
         if (dayLabel) {
-          const dateKey = formatToDbDate(currentDate);
-
-          // Comprobar Turno Mañana
           const morningType = `${dayLabel}_morning`;
           if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayLabel)) {
-            const timeVal = defaultHours[morningType] || '10:00';
-            const weekOfRecord = getWeekOfDate(currentDate);
-            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-            const outing = weekRecord?.outings?.find(
-              (o) => o.date === dateKey && o.time === timeVal
-            );
-            const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
-            const brotherName = assignedBrother
-              ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-              : 'Sin asignar';
-
-            dayOutings.push({
-              id: `${dateKey}_morning`,
-              time: timeVal,
-              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
-              brotherName: getAbbreviatedName(brotherName),
-              isAssigned: !!assignedBrother,
-              isCancelled: outing?.cancelled ?? false,
-            });
+            activeDays.add(dayOfWeek);
           }
-
-          // Comprobar Turno Tarde
           const afternoonType = `${dayLabel}_afternoon`;
           if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
-            const timeVal = defaultHours[afternoonType] || '17:00';
-            const weekOfRecord = getWeekOfDate(currentDate);
-            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-            const outing = weekRecord?.outings?.find(
-              (o) => o.date === dateKey && o.time === timeVal
-            );
-            const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
-            const brotherName = assignedBrother
-              ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-              : 'Sin asignar';
+            activeDays.add(dayOfWeek);
+          }
+        }
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
 
-            dayOutings.push({
-              id: `${dateKey}_afternoon`,
-              time: timeVal,
-              location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
-              brotherName: getAbbreviatedName(brotherName),
-              isAssigned: !!assignedBrother,
-              isCancelled: outing?.cancelled ?? false,
+      const weekdaysToShow = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
+      const weekdaysToShowFinal = weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
+
+      // 2. Calcular límites del mes y semanas naturales ( Monday of week )
+      const daysInMonth = new Date(pdfExportYear, pdfExportMonth + 1, 0).getDate();
+      const weekKeys = new Set<string>();
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(pdfExportYear, pdfExportMonth, d);
+        weekKeys.add(getWeekOfDate(date));
+      }
+      const sortedWeekKeys = Array.from(weekKeys).sort();
+
+      const cells: CalendarCellPDF[] = [];
+
+      // Construir la cuadrícula fila por fila (semana por semana)
+      for (const weekKey of sortedWeekKeys) {
+        const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
+        const mondayDate = new Date(wYear, wMonth - 1, wDay);
+        
+        for (const dayInfo of weekdaysToShowFinal) {
+          let diffDays = 0;
+          if (dayInfo.dayOfWeek === 1) diffDays = 0;
+          else if (dayInfo.dayOfWeek === 2) diffDays = 1;
+          else if (dayInfo.dayOfWeek === 3) diffDays = 2;
+          else if (dayInfo.dayOfWeek === 4) diffDays = 3;
+          else if (dayInfo.dayOfWeek === 5) diffDays = 4;
+          else if (dayInfo.dayOfWeek === 6) diffDays = 5;
+          else if (dayInfo.dayOfWeek === 0) diffDays = 6;
+          
+          const cellDate = new Date(mondayDate);
+          cellDate.setDate(mondayDate.getDate() + diffDays);
+          
+          if (cellDate.getMonth() === pdfExportMonth && cellDate.getFullYear() === pdfExportYear) {
+            const dateKey = formatToDbDate(cellDate);
+            const dayOutings: OutingPDFItem[] = [];
+
+            // Comprobar Turno Mañana
+            const morningType = `${dayInfo.englishLabel}_morning`;
+            if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayInfo.englishLabel)) {
+              const timeVal = defaultHours[morningType] || '10:00';
+              const weekOfRecord = getWeekOfDate(cellDate);
+              const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const outing = weekRecord?.outings?.find(
+                (o) => o.date === dateKey && o.time === timeVal
+              );
+              const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
+              const brotherName = assignedBrother
+                ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                : 'Sin asignar';
+
+              dayOutings.push({
+                id: `${dateKey}_morning`,
+                time: timeVal,
+                location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+                brotherName: getAbbreviatedName(brotherName),
+                isAssigned: !!assignedBrother,
+                isCancelled: outing?.cancelled ?? false,
+              });
+            }
+
+            // Comprobar Turno Tarde
+            const afternoonType = `${dayInfo.englishLabel}_afternoon`;
+            if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayInfo.englishLabel)) {
+              const timeVal = defaultHours[afternoonType] || '17:00';
+              const weekOfRecord = getWeekOfDate(cellDate);
+              const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const outing = weekRecord?.outings?.find(
+                (o) => o.date === dateKey && o.time === timeVal
+              );
+              const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
+              const brotherName = assignedBrother
+                ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                : 'Sin asignar';
+
+              dayOutings.push({
+                id: `${dateKey}_afternoon`,
+                time: timeVal,
+                location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+                brotherName: getAbbreviatedName(brotherName),
+                isAssigned: !!assignedBrother,
+                isCancelled: outing?.cancelled ?? false,
+              });
+            }
+
+            cells.push({
+              type: 'day',
+              dayNum: cellDate.getDate(),
+              outings: dayOutings,
+            });
+          } else {
+            cells.push({
+              type: 'empty',
+              id: `empty-${weekKey}-${dayInfo.dayOfWeek}`,
             });
           }
         }
-
-        cells.push({
-          type: 'day',
-          dayNum: d,
-          outings: dayOutings,
-        });
-      }
-
-      // Relleno final vacío
-      const totalSoFar = cells.length;
-      const remaining = totalSoFar % 7;
-      const paddingEnd = remaining === 0 ? 0 : 7 - remaining;
-      for (let i = 0; i < paddingEnd; i++) {
-        cells.push({ type: 'empty', id: `empty-end-${i}` });
       }
 
       // Calcular última fecha de modificación
@@ -571,6 +608,7 @@ const PredicacionSalidas = () => {
         <OutingsSchedulePDF
           monthName={monthLabel}
           cong_name={congName}
+          weekdays={weekdaysToShowFinal.map((d) => d.label)}
           cells={cells}
           updatedAt={lastUpdatedAt}
           lastModifiedBy={lastModifiedBy}

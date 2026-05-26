@@ -14,6 +14,7 @@ export type CalendarCellPDF =
 export type OutingsPDFProps = {
   monthName: string;
   cong_name: string;
+  weekdays: string[]; // Cabeceras de días de la semana activos (Ej: ["martes", "miércoles", ...])
   cells: CalendarCellPDF[];
   updatedAt?: string;
   lastModifiedBy?: string;

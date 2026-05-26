@@ -4,11 +4,12 @@ import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
 import { OutingsPDFProps } from './index.types';
 
-const OutingsSchedulePDF = ({ monthName, cong_name, cells, updatedAt, lastModifiedBy }: OutingsPDFProps) => {
-  // Fragmentar las celdas en semanas (filas de 7 días)
+const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt, lastModifiedBy }: OutingsPDFProps) => {
+  // Fragmentar las celdas en semanas (filas de N días activos)
+  const numCols = weekdays.length;
   const rows = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    rows.push(cells.slice(i, i + 7));
+  for (let i = 0; i < cells.length; i += numCols) {
+    rows.push(cells.slice(i, i + numCols));
   }
 
   return (
@@ -30,7 +31,7 @@ const OutingsSchedulePDF = ({ monthName, cong_name, cells, updatedAt, lastModifi
         <View style={styles.calendarContainer}>
           {/* Encabezados de los Días de la Semana */}
           <View style={styles.weekdaysHeader}>
-            {['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'].map((day) => (
+            {weekdays.map((day) => (
               <View key={day} style={styles.weekdayCell}>
                 <Text style={styles.weekdayText}>{day}</Text>
               </View>
@@ -110,7 +111,7 @@ const OutingsSchedulePDF = ({ monthName, cong_name, cells, updatedAt, lastModifi
                 ? `Última actualización: ${new Date(updatedAt).toLocaleString()} (${lastModifiedBy})`
                 : `Última actualización: ${new Date(updatedAt).toLocaleString()}`}
             </Text>
-            <Text style={styles.footerText}>Organized</Text>
+            <Text style={styles.footerText}>eldacentro.com</Text>
           </View>
         )}
       </Page>
