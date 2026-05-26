@@ -101,6 +101,25 @@ const PredicacionSalidas = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-indexed
   const [monthsExpanded, setMonthsExpanded] = useState<boolean>(false);
 
+  // Control de Vista del Planificador ("lista" o "mensual")
+  const [plannerViewMode, setPlannerViewMode] = useState<'lista' | 'mensual'>('lista');
+
+  // Día seleccionado en la cuadrícula mensual móvil (inicializado reactivamente)
+  const initialSelectedDay = useMemo(() => {
+    const today = new Date();
+    if (today.getFullYear() === selectedYear && today.getMonth() === selectedMonth) {
+      return today.getDate();
+    }
+    return 1;
+  }, [selectedYear, selectedMonth]);
+
+  const [selectedDayNum, setSelectedDayNum] = useState<number | null>(null);
+
+  // Sincronizar selectedDayNum cuando cambie el mes seleccionado
+  useMemo(() => {
+    setSelectedDayNum(initialSelectedDay);
+  }, [initialSelectedDay]);
+
   // Control de Vista Activa ("planner" o "settings")
   const [activeTab, setActiveTab] = useState<'planner' | 'settings'>('planner');
 
@@ -561,7 +580,7 @@ const PredicacionSalidas = () => {
                 }}
               >
                 <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
-                  {`📅 ${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
+                  {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
                 <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700' }}>
                   {monthsExpanded ? 'Cerrar selector ✕' : 'Cambiar Mes ▾'}
@@ -645,86 +664,562 @@ const PredicacionSalidas = () => {
         <Box sx={{ flexGrow: 1, width: '100%' }}>
           {activeTab === 'planner' ? (
             <Box>
-              <Typography className="h2" style={{ marginBottom: '16px', color: 'var(--accent-main)' }}>
-                {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexDirection: { mobile: 'column', tablet: 'row' }, gap: '16px', width: '100%' }}>
+                <Typography className="h2" style={{ color: 'var(--accent-main)', margin: 0 }}>
+                  {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
+                </Typography>
+                
+                {/* Selector de modo de vista */}
+                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--accent-300)' }}>
+                  <Button
+                    onClick={() => setPlannerViewMode('lista')}
+                    size="small"
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: '700',
+                      borderRadius: 'var(--radius-s)',
+                      py: '4px',
+                      px: '16px',
+                      fontSize: '13px',
+                      boxShadow: 'none',
+                      ...(plannerViewMode === 'lista' ? {
+                        backgroundColor: 'var(--accent-main)',
+                        color: 'var(--always-white)',
+                        '&:hover': { backgroundColor: 'var(--accent-dark)' }
+                      } : {
+                        color: 'var(--grey-600)',
+                        '&:hover': { backgroundColor: 'var(--accent-200)' }
+                      })
+                    }}
+                  >
+                    Lista
+                  </Button>
+                  <Button
+                    onClick={() => setPlannerViewMode('mensual')}
+                    size="small"
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: '700',
+                      borderRadius: 'var(--radius-s)',
+                      py: '4px',
+                      px: '16px',
+                      fontSize: '13px',
+                      boxShadow: 'none',
+                      ...(plannerViewMode === 'mensual' ? {
+                        backgroundColor: 'var(--accent-main)',
+                        color: 'var(--always-white)',
+                        '&:hover': { backgroundColor: 'var(--accent-dark)' }
+                      } : {
+                        color: 'var(--grey-600)',
+                        '&:hover': { backgroundColor: 'var(--accent-200)' }
+                      })
+                    }}
+                  >
+                    Cuadrícula
+                  </Button>
+                </Box>
+              </Box>
 
-              {/* Agrupar slots por semanas y días */}
-              {(() => {
-                // 1. Agrupar slots por día primero
-                const dayMap = new Map<string, typeof outingsSlotsInMonth>();
-                for (const slot of outingsSlotsInMonth) {
-                  const key = formatToDbDate(slot.date);
-                  if (!dayMap.has(key)) dayMap.set(key, []);
-                  dayMap.get(key)!.push(slot);
-                }
-
-                // 2. Agrupar los días resultantes por su semana de inicio (Lunes)
-                const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof outingsSlotsInMonth }>>();
-                for (const [dateKey, daySlots] of dayMap.entries()) {
-                  const dayDate = daySlots[0].date;
-                  const weekOf = getWeekOfDate(dayDate); // "YYYY/MM/DD"
-                  if (!weekMap.has(weekOf)) weekMap.set(weekOf, []);
-                  weekMap.get(weekOf)!.push({ dateKey, daySlots });
-                }
-
-                // 3. Ordenar las semanas cronológicamente
-                const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-                const slotLabel = (slotType: string): string => {
-                  if (slotType.endsWith('_morning')) return 'Mañana';
-                  if (slotType.endsWith('_afternoon')) return 'Tarde';
-                  return '';
-                };
-
-                const getWeekLabel = (weekOfStr: string): string => {
-                  const [year, month, day] = weekOfStr.split('/').map(Number);
-                  const monday = new Date(year, month - 1, day);
-                  const sunday = new Date(monday);
-                  sunday.setDate(sunday.getDate() + 6);
-
-                  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                  
-                  const monDayNum = monday.getDate();
-                  const monMonth = months[monday.getMonth()];
-                  
-                  const sunDayNum = sunday.getDate();
-                  const sunMonth = months[sunday.getMonth()];
-
-                  if (monday.getMonth() === sunday.getMonth()) {
-                    return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
-                  } else {
-                    return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
+              {plannerViewMode === 'lista' ? (
+                /* Agrupar slots por semanas y días */
+                (() => {
+                  // 1. Agrupar slots por día primero
+                  const dayMap = new Map<string, typeof outingsSlotsInMonth>();
+                  for (const slot of outingsSlotsInMonth) {
+                    const key = formatToDbDate(slot.date);
+                    if (!dayMap.has(key)) dayMap.set(key, []);
+                    dayMap.get(key)!.push(slot);
                   }
-                };
 
-                return sortedWeeks.map(([weekOf, days]) => {
-                  const weekLabel = getWeekLabel(weekOf);
-                  return (
-                    <Box key={weekOf} sx={{ mb: '32px' }}>
-                      {/* Título de la semana */}
-                      <Typography
-                        className="h3"
-                        style={{
-                          fontWeight: '700',
-                          color: 'var(--accent-main)',
-                          marginBottom: '12px',
-                          textTransform: 'none',
-                          borderLeft: '4px solid var(--accent-main)',
-                          paddingLeft: '12px',
-                        }}
-                      >
-                        {weekLabel}
-                      </Typography>
+                  // 2. Agrupar los días resultantes por su semana de inicio (Lunes)
+                  const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof outingsSlotsInMonth }>>();
+                  for (const [dateKey, daySlots] of dayMap.entries()) {
+                    const dayDate = daySlots[0].date;
+                    const weekOf = getWeekOfDate(dayDate); // "YYYY/MM/DD"
+                    if (!weekMap.has(weekOf)) weekMap.set(weekOf, []);
+                    weekMap.get(weekOf)!.push({ dateKey, daySlots });
+                  }
 
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {days.map(({ dateKey, daySlots }) => {
-                          const dayDate = daySlots[0].date;
-                          const dayLabel = formatLegibleDate(dayDate);
+                  // 3. Ordenar las semanas cronológicamente
+                  const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
-                          return (
+                  const slotLabel = (slotType: string): string => {
+                    if (slotType.endsWith('_morning')) return 'Mañana';
+                    if (slotType.endsWith('_afternoon')) return 'Tarde';
+                    return '';
+                  };
+
+                  const getWeekLabel = (weekOfStr: string): string => {
+                    const [year, month, day] = weekOfStr.split('/').map(Number);
+                    const monday = new Date(year, month - 1, day);
+                    const sunday = new Date(monday);
+                    sunday.setDate(sunday.getDate() + 6);
+
+                    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                    
+                    const monDayNum = monday.getDate();
+                    const monMonth = months[monday.getMonth()];
+                    
+                    const sunDayNum = sunday.getDate();
+                    const sunMonth = months[sunday.getMonth()];
+
+                    if (monday.getMonth() === sunday.getMonth()) {
+                      return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
+                    } else {
+                      return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
+                    }
+                  };
+
+                  return sortedWeeks.map(([weekOf, days]) => {
+                    const weekLabel = getWeekLabel(weekOf);
+                    return (
+                      <Box key={weekOf} sx={{ mb: '32px' }}>
+                        {/* Título de la semana */}
+                        <Typography
+                          className="h3"
+                          style={{
+                            fontWeight: '700',
+                            color: 'var(--accent-main)',
+                            marginBottom: '12px',
+                            textTransform: 'none',
+                            borderLeft: '4px solid var(--accent-main)',
+                            paddingLeft: '12px',
+                          }}
+                        >
+                          {weekLabel}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {days.map(({ dateKey, daySlots }) => {
+                            const dayDate = daySlots[0].date;
+                            const dayLabel = formatLegibleDate(dayDate);
+
+                            return (
+                              <Card
+                                key={dateKey}
+                                sx={{
+                                  border: '1px solid var(--accent-300)',
+                                  borderRadius: 'var(--radius-l)',
+                                  boxShadow: 'none',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {/* Encabezado del día */}
+                                <Box
+                                  sx={{
+                                    px: '16px',
+                                    py: '10px',
+                                    backgroundColor: 'var(--accent-100)',
+                                    borderBottom: '1px solid var(--accent-300)',
+                                  }}
+                                >
+                                  <Typography
+                                    className="h3"
+                                    style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
+                                  >
+                                    {dayLabel}
+                                  </Typography>
+                                </Box>
+
+                                {/* Filas de slots */}
+                                {daySlots.map((slot, idx) => {
+                                  const weekOfRecord = getWeekOfDate(slot.date);
+                                  const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                  const outing = weekRecord?.outings?.find(
+                                    (o) => o.date === dateKey && o.time === slot.time
+                                  );
+                                  const assignedBrother = persons.find(
+                                    (b) => b.person_uid === outing?.person
+                                  );
+                                  const brotherName = assignedBrother
+                                    ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                                    : '';
+                                  const isAssignedToMe = outing?.person === currentPerson?.person_uid;
+                                  const isCancelled = outing?.cancelled ?? false;
+                                  const label = slotLabel(slot.slotType);
+
+                                  return (
+                                    <Box
+                                      key={slot.slotId}
+                                      onClick={() => handleOpenEdit(slot)}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        px: '16px',
+                                        py: '14px',
+                                        borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                        backgroundColor: isCancelled
+                                          ? '#fce8e6'
+                                          : isAssignedToMe
+                                          ? 'var(--accent-50, #f0f7ff)'
+                                          : 'var(--white)',
+                                        cursor: isServiceCommittee ? 'pointer' : 'default',
+                                        transition: 'background-color 0.15s',
+                                        '&:hover': isServiceCommittee
+                                          ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
+                                          : {},
+                                      }}
+                                    >
+                                      {/* Hora + etiqueta de turno */}
+                                      <Box sx={{ minWidth: '80px' }}>
+                                        <Typography
+                                          style={{
+                                            fontWeight: '700',
+                                            fontSize: '15px',
+                                            color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                                          }}
+                                        >
+                                          {slot.time}
+                                        </Typography>
+                                        {label && (
+                                          <Typography
+                                            style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                                          >
+                                            {label}
+                                          </Typography>
+                                        )}
+                                      </Box>
+
+                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+
+                                      {/* Hermano asignado */}
+                                      <Box sx={{ flex: 1 }}>
+                                        {isCancelled ? (
+                                          <Chip
+                                            icon={<IconCancelFilled color="var(--error-main)" />}
+                                            label="Suspendida"
+                                            size="small"
+                                            sx={{
+                                              backgroundColor: 'var(--error-150)',
+                                              color: 'var(--error-dark)',
+                                              fontWeight: '600',
+                                            }}
+                                          />
+                                        ) : (
+                                          <Typography
+                                            style={{
+                                              fontWeight: '600',
+                                              fontSize: '15px',
+                                              color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                            }}
+                                          >
+                                            {brotherName || 'Sin asignar'}
+                                          </Typography>
+                                        )}
+                                      </Box>
+
+                                      {/* Lugar */}
+                                      <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                                        <Typography
+                                          style={{
+                                            fontSize: '13px',
+                                            color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                                          }}
+                                        >
+                                          {isCancelled
+                                            ? '—'
+                                            : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  );
+                                })}
+                              </Card>
+                            );
+                          })}
+                        </Box>
+                      </Box>
+                    );
+                  });
+                })()
+              ) : (
+                /* Vista Mensual de Cuadrícula */
+                <Box>
+                  {(() => {
+                    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
+                    const firstDayOfWeek = firstDayOfMonth.getDay();
+                    // offset to align Monday as 0
+                    const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+                    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+                    
+                    const cells: Array<{ type: 'empty'; id: string } | { type: 'day'; dayNum: number; date: Date }> = [];
+                    
+                    // Empty start padding
+                    for (let i = 0; i < offset; i++) {
+                      cells.push({ type: 'empty', id: `empty-start-${i}` });
+                    }
+                    
+                    // Day cells
+                    for (let d = 1; d <= daysInMonth; d++) {
+                      cells.push({
+                        type: 'day',
+                        dayNum: d,
+                        date: new Date(selectedYear, selectedMonth, d)
+                      });
+                    }
+                    
+                    // Empty end padding
+                    const totalSoFar = cells.length;
+                    const remaining = totalSoFar % 7;
+                    const paddingEnd = remaining === 0 ? 0 : 7 - remaining;
+                    for (let i = 0; i < paddingEnd; i++) {
+                      cells.push({ type: 'empty', id: `empty-end-${i}` });
+                    }
+
+                    // Group slots by day
+                    const daySlotsMap = new Map<number, typeof outingsSlotsInMonth>();
+                    for (const slot of outingsSlotsInMonth) {
+                      const day = slot.date.getDate();
+                      if (!daySlotsMap.has(day)) {
+                        daySlotsMap.set(day, []);
+                      }
+                      daySlotsMap.get(day)!.push(slot);
+                    }
+
+                    const getAbbreviatedName = (fullName: string) => {
+                      if (!fullName) return 'Sin asignar';
+                      const parts = fullName.trim().split(/\s+/);
+                      if (parts.length === 1) return parts[0];
+                      const firstName = parts[0];
+                      const lastName = parts[parts.length - 1];
+                      return `${firstName.charAt(0)}. ${lastName}`;
+                    };
+
+                    return (
+                      <Box sx={{
+                        borderRadius: 'var(--radius-xl)',
+                        border: '1px solid var(--accent-300)',
+                        backgroundColor: 'var(--white)',
+                        p: { mobile: '12px', tablet: '20px' },
+                        boxShadow: 'none',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}>
+                        <Grid container spacing={1} columns={7} sx={{ width: '100%', margin: 0 }}>
+                          {['lun.', 'mar.', 'mié.', 'jue.', 'vie.', 'sáb.', 'dom.'].map((day) => (
+                            <Grid size={{ mobile: 1 }} key={day} sx={{ p: 0.5 }}>
+                              <Box sx={{
+                                textAlign: 'center',
+                                py: '6px',
+                                borderBottom: '2px solid var(--accent-300)',
+                                mb: '4px'
+                              }}>
+                                <Typography style={{ fontWeight: '700', fontSize: '12px', color: 'var(--accent-main)', textTransform: 'none' }}>
+                                  {day}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          ))}
+                          
+                          {cells.map((cell) => {
+                            if (cell.type === 'empty') {
+                              return (
+                                <Grid size={{ mobile: 1 }} key={cell.id} sx={{ p: 0.5 }}>
+                                  <Box sx={{
+                                    aspectRatio: desktopUp ? 'auto' : '1',
+                                    minHeight: desktopUp ? '110px' : 'auto',
+                                    backgroundColor: 'var(--accent-50, #f8fafd)',
+                                    border: '1px solid var(--accent-200)',
+                                    borderRadius: 'var(--radius-m)',
+                                    opacity: 0.3
+                                  }} />
+                                </Grid>
+                              );
+                            }
+
+                            const daySlots = daySlotsMap.get(cell.dayNum) || [];
+                            const isSelected = selectedDayNum === cell.dayNum;
+
+                            if (desktopUp) {
+                              // Desktop Calendar Cell
+                              return (
+                                <Grid size={{ mobile: 1 }} key={cell.dayNum} sx={{ p: 0.5 }}>
+                                  <Box sx={{
+                                    minHeight: '130px',
+                                    backgroundColor: 'var(--white)',
+                                    border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--accent-200)',
+                                    borderRadius: 'var(--radius-l)',
+                                    p: '10px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px',
+                                    height: '100%',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                      borderColor: 'var(--accent-300)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                                    }
+                                  }}>
+                                    <Typography style={{
+                                      fontWeight: '800',
+                                      fontSize: '14px',
+                                      color: isSelected ? 'var(--accent-main)' : 'var(--grey-600)',
+                                      margin: 0
+                                    }}>
+                                      {cell.dayNum}
+                                    </Typography>
+                                    
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1 }}>
+                                      {daySlots.length === 0 ? (
+                                        <Typography style={{ fontSize: '11px', color: 'var(--grey-400)', fontStyle: 'italic', marginTop: '4px' }}>
+                                          Sin salidas
+                                        </Typography>
+                                      ) : (
+                                        daySlots.map((slot) => {
+                                          const weekOfRecord = getWeekOfDate(slot.date);
+                                          const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                          const outing = weekRecord?.outings?.find(
+                                            (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                          );
+                                          const assignedBrother = persons.find(
+                                            (b) => b.person_uid === outing?.person
+                                          );
+                                          const brotherName = assignedBrother
+                                            ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                                            : '';
+                                          const isAssignedToMe = outing?.person === currentPerson?.person_uid;
+                                          const isCancelled = outing?.cancelled ?? false;
+                                          
+                                          const text = isCancelled ? 'Suspendida' : getAbbreviatedName(brotherName);
+                                          
+                                           let bgColor = '#e8f0fe';
+                                           let textColor = 'var(--accent-dark)';
+                                           let hoverBgColor = '#d2e3fc';
+                                           
+                                           if (isCancelled) {
+                                             bgColor = '#fce8e6';
+                                             textColor = 'var(--error-dark)';
+                                             hoverBgColor = '#fad2cf';
+                                           } else if (!brotherName) {
+                                             bgColor = '#fef7e0';
+                                             textColor = '#855000';
+                                             hoverBgColor = '#feebb3';
+                                           } else if (isAssignedToMe) {
+                                             bgColor = 'var(--accent-main)';
+                                             textColor = 'var(--always-white)';
+                                             hoverBgColor = 'var(--accent-dark)';
+                                           }
+
+                                           return (
+                                             <Box
+                                               key={slot.slotId}
+                                               onClick={() => handleOpenEdit(slot)}
+                                               sx={{
+                                                 backgroundColor: bgColor,
+                                                 color: textColor,
+                                                 border: 'none',
+                                                 borderRadius: 'var(--radius-m)',
+                                                 p: '6px 8px',
+                                                 cursor: isServiceCommittee ? 'pointer' : 'default',
+                                                 display: 'flex',
+                                                 justifyContent: 'space-between',
+                                                 alignItems: 'center',
+                                                 gap: '6px',
+                                                 transition: 'all 0.2s ease-in-out',
+                                                 boxShadow: '0 1px 3px rgba(0,0,0,0.01)',
+                                                 '&:hover': isServiceCommittee ? {
+                                                   transform: 'translateY(-1px)',
+                                                   boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                                                   backgroundColor: hoverBgColor,
+                                                 } : {}
+                                               }}
+                                             >
+                                               <span style={{ fontWeight: '800', fontSize: '11.5px', whiteSpace: 'nowrap', opacity: 0.9 }}>
+                                                 {slot.time}
+                                               </span>
+                                               <span style={{
+                                                 overflow: 'hidden',
+                                                 textOverflow: 'ellipsis',
+                                                 whiteSpace: 'nowrap',
+                                                 maxWidth: 'calc(100% - 42px)',
+                                                 fontSize: '12px',
+                                                 fontWeight: '700',
+                                                 textAlign: 'right'
+                                               }} title={brotherName || 'Sin asignar'}>
+                                                 {text}
+                                               </span>
+                                             </Box>
+                                           );
+                                        })
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </Grid>
+                              );
+                            } else {
+                              // Mobile Calendar Cell
+                              const dots = daySlots.map((slot) => {
+                                const weekOfRecord = getWeekOfDate(slot.date);
+                                const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                const outing = weekRecord?.outings?.find(
+                                  (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                );
+                                const isCancelled = outing?.cancelled ?? false;
+                                const brotherName = outing?.person ? 'assigned' : '';
+                                if (isCancelled) return 'red';
+                                if (brotherName) return 'green';
+                                return 'yellow';
+                              });
+
+                              return (
+                                <Grid size={{ mobile: 1 }} key={cell.dayNum} sx={{ p: 0.5 }}>
+                                  <Box
+                                    onClick={() => setSelectedDayNum(cell.dayNum)}
+                                    sx={{
+                                      aspectRatio: '1',
+                                      backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--white)',
+                                      border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--accent-300)',
+                                      borderRadius: 'var(--radius-m)',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
+                                      '&:hover': {
+                                        borderColor: 'var(--accent-main)',
+                                      }
+                                    }}
+                                  >
+                                    <Typography style={{
+                                      fontWeight: '700',
+                                      fontSize: '14px',
+                                      color: isSelected ? 'var(--accent-dark)' : 'var(--grey-700)'
+                                    }}>
+                                      {cell.dayNum}
+                                    </Typography>
+                                    
+                                    <Box sx={{ display: 'flex', gap: '3px', mt: '4px', flexWrap: 'wrap', justifyContent: 'center', px: '2px' }}>
+                                      {dots.map((dotColor, idx) => (
+                                        <Box
+                                          key={idx}
+                                          sx={{
+                                            width: '5px',
+                                            height: '5px',
+                                            borderRadius: '50%',
+                                            backgroundColor:
+                                              dotColor === 'green'
+                                                ? '#2e7d32'
+                                                : dotColor === 'yellow'
+                                                ? '#ed6c02'
+                                                : '#d32f2f',
+                                          }}
+                                        />
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                </Grid>
+                              );
+                            }
+                          })}
+                        </Grid>
+                        
+                        {/* Mobile Details Panel */}
+                        {!desktopUp && selectedDayNum !== null && (
+                          <Box sx={{ mt: '24px' }}>
                             <Card
-                              key={dateKey}
                               sx={{
                                 border: '1px solid var(--accent-300)',
                                 borderRadius: 'var(--radius-l)',
@@ -732,7 +1227,6 @@ const PredicacionSalidas = () => {
                                 overflow: 'hidden',
                               }}
                             >
-                              {/* Encabezado del día */}
                               <Box
                                 sx={{
                                   px: '16px',
@@ -745,122 +1239,143 @@ const PredicacionSalidas = () => {
                                   className="h3"
                                   style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
                                 >
-                                  {dayLabel}
+                                  {(() => {
+                                    const date = new Date(selectedYear, selectedMonth, selectedDayNum);
+                                    return formatLegibleDate(date);
+                                  })()}
                                 </Typography>
                               </Box>
 
-                              {/* Filas de slots */}
-                              {daySlots.map((slot, idx) => {
-                                const weekOfRecord = getWeekOfDate(slot.date);
-                                const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-                                const outing = weekRecord?.outings?.find(
-                                  (o) => o.date === dateKey && o.time === slot.time
+                              {(() => {
+                                const selectedDaySlots = outingsSlotsInMonth.filter(
+                                  (slot) => slot.date.getDate() === selectedDayNum
                                 );
-                                const assignedBrother = persons.find(
-                                  (b) => b.person_uid === outing?.person
-                                );
-                                const brotherName = assignedBrother
-                                  ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
-                                  : '';
-                                const isAssignedToMe = outing?.person === currentPerson?.person_uid;
-                                const isCancelled = outing?.cancelled ?? false;
-                                const label = slotLabel(slot.slotType);
 
-                                return (
-                                  <Box
-                                    key={slot.slotId}
-                                    onClick={() => handleOpenEdit(slot)}
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '16px',
-                                      px: '16px',
-                                      py: '14px',
-                                      borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
-                                      backgroundColor: isCancelled
-                                        ? '#fce8e6'
-                                        : isAssignedToMe
-                                        ? 'var(--accent-50, #f0f7ff)'
-                                        : 'var(--white)',
-                                      cursor: isServiceCommittee ? 'pointer' : 'default',
-                                      transition: 'background-color 0.15s',
-                                      '&:hover': isServiceCommittee
-                                        ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
-                                        : {},
-                                    }}
-                                  >
-                                    {/* Hora + etiqueta de turno */}
-                                    <Box sx={{ minWidth: '80px' }}>
-                                      <Typography
-                                        style={{
-                                          fontWeight: '700',
-                                          fontSize: '15px',
-                                          color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
-                                        }}
-                                      >
-                                        {slot.time}
+                                if (selectedDaySlots.length === 0) {
+                                  return (
+                                    <Box sx={{ p: '24px', textAlign: 'center' }}>
+                                      <Typography style={{ color: 'var(--grey-500)', fontSize: '14px', fontStyle: 'italic' }}>
+                                        No hay salidas programadas para este día.
                                       </Typography>
-                                      {label && (
-                                        <Typography
-                                          style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
-                                        >
-                                          {label}
-                                        </Typography>
-                                      )}
                                     </Box>
+                                  );
+                                }
 
-                                    <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+                                const slotLabel = (slotType: string): string => {
+                                  if (slotType.endsWith('_morning')) return 'Mañana';
+                                  if (slotType.endsWith('_afternoon')) return 'Tarde';
+                                  return '';
+                                };
 
-                                    {/* Hermano asignado */}
-                                    <Box sx={{ flex: 1 }}>
-                                      {isCancelled ? (
-                                        <Chip
-                                          icon={<IconCancelFilled color="var(--error-main)" />}
-                                          label="Cancelada"
-                                          size="small"
-                                          sx={{
-                                            backgroundColor: 'var(--error-150)',
-                                            color: 'var(--error-dark)',
-                                            fontWeight: '600',
-                                          }}
-                                        />
-                                      ) : (
+                                return selectedDaySlots.map((slot, idx) => {
+                                  const weekOfRecord = getWeekOfDate(slot.date);
+                                  const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                  const outing = weekRecord?.outings?.find(
+                                    (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                  );
+                                  const assignedBrother = persons.find(
+                                    (b) => b.person_uid === outing?.person
+                                  );
+                                  const brotherName = assignedBrother
+                                    ? `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`
+                                    : '';
+                                  const isAssignedToMe = outing?.person === currentPerson?.person_uid;
+                                  const isCancelled = outing?.cancelled ?? false;
+                                  const label = slotLabel(slot.slotType);
+
+                                  return (
+                                    <Box
+                                      key={slot.slotId}
+                                      onClick={() => handleOpenEdit(slot)}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        px: '16px',
+                                        py: '14px',
+                                        borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                        backgroundColor: isCancelled
+                                          ? '#fce8e6'
+                                          : isAssignedToMe
+                                          ? 'var(--accent-50, #f0f7ff)'
+                                          : 'var(--white)',
+                                        cursor: isServiceCommittee ? 'pointer' : 'default',
+                                        transition: 'background-color 0.15s',
+                                        '&:hover': isServiceCommittee
+                                          ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
+                                          : {},
+                                      }}
+                                    >
+                                      <Box sx={{ minWidth: '80px' }}>
                                         <Typography
                                           style={{
-                                            fontWeight: '600',
+                                            fontWeight: '700',
                                             fontSize: '15px',
-                                            color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                            color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
                                           }}
                                         >
-                                          {brotherName || 'Sin asignar'}
+                                          {slot.time}
                                         </Typography>
-                                      )}
-                                    </Box>
+                                        {label && (
+                                          <Typography
+                                            style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                                          >
+                                            {label}
+                                          </Typography>
+                                        )}
+                                      </Box>
 
-                                    {/* Lugar */}
-                                    <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
-                                      <Typography
-                                        style={{
-                                          fontSize: '13px',
-                                          color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
-                                        }}
-                                      >
-                                        {isCancelled
-                                          ? '—'
-                                          : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
-                                      </Typography>
+                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+
+                                      <Box sx={{ flex: 1 }}>
+                                        {isCancelled ? (
+                                          <Chip
+                                            icon={<IconCancelFilled color="var(--error-main)" />}
+                                            label="Suspendida"
+                                            size="small"
+                                            sx={{
+                                              backgroundColor: 'var(--error-150)',
+                                              color: 'var(--error-dark)',
+                                              fontWeight: '600',
+                                            }}
+                                          />
+                                        ) : (
+                                          <Typography
+                                            style={{
+                                              fontWeight: '600',
+                                              fontSize: '15px',
+                                              color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                            }}
+                                          >
+                                            {brotherName || 'Sin asignar'}
+                                          </Typography>
+                                        )}
+                                      </Box>
+
+                                      <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                                        <Typography
+                                          style={{
+                                            fontSize: '13px',
+                                            color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                                          }}
+                                        >
+                                          {isCancelled
+                                            ? '—'
+                                            : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
+                                        </Typography>
+                                      </Box>
                                     </Box>
-                                  </Box>
-                                );
-                              })}
+                                  );
+                                });
+                              })()}
                             </Card>
-                          );
-                        })}
+                          </Box>
+                        )}
                       </Box>
-                    </Box>
-                  );
-                });
-              })()}
+                    );
+                  })()}
+                </Box>
+              )}
             </Box>
           ) : (
             /* VISTA DE CONFIGURACIÓN GLOBAL */
@@ -891,6 +1406,9 @@ const PredicacionSalidas = () => {
                   marginBottom: '24px',
                   width: '100%',
                   maxWidth: '100%',
+                  '& .MuiTabs-scroller': {
+                    overflowX: 'auto !important',
+                  },
                   '& .MuiTabs-indicator': {
                     backgroundColor: 'var(--accent-main)',
                   },
@@ -905,7 +1423,7 @@ const PredicacionSalidas = () => {
               >
                 <Tab label="Ubicaciones" />
                 <Tab label="Horarios" />
-                <Tab label="Disponibilidad de Hermanos" />
+                <Tab label="Disponibilidad de hermanos" />
               </Tabs>
 
               {/* Sub-tab 0: Ubicaciones */}
@@ -1220,7 +1738,7 @@ const PredicacionSalidas = () => {
                 }
               }}
             >
-              {editCancelled ? 'Activar' : 'Cancelar'}
+              {editCancelled ? 'Reactivar salida' : 'Suspender salida'}
             </Button>
           </Box>
 
