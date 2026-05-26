@@ -3038,22 +3038,6 @@ export const schedulesWeekendData = (
     });
   }
 
-  if (WEEKEND_FULL.includes(week_type)) {
-    const closingPrayer = schedulesWeekGetAssigned({
-      schedule,
-      dataView,
-      assignment: 'WM_ClosingPrayer',
-    });
-
-    if (closingPrayer?.length > 0) {
-      result.concluding_prayer_name = closingPrayer;
-    }
-
-    if (!closingPrayer) {
-      result.concluding_prayer_name = result.speaker_1_name;
-    }
-  }
-
   if (week_type === Week.CO_VISIT) {
     result.co_name = schedulesWeekGetAssigned({
       schedule,
@@ -3064,7 +3048,67 @@ export const schedulesWeekendData = (
     if (result.co_name?.length === 0) {
       result.co_name = store.get(COScheduleNameState);
     }
+  }
 
+  if (WEEKEND_FULL.includes(week_type)) {
+    const speakerUID = schedulesWeekGetAssigned({
+      schedule,
+      dataView,
+      assignment: 'WM_Speaker_Part1',
+      identifier: true,
+    });
+
+    const closingPrayerUID = schedulesWeekGetAssigned({
+      schedule,
+      dataView,
+      assignment: 'WM_ClosingPrayer',
+      identifier: true,
+    });
+
+    let closingPrayerName = schedulesWeekGetAssigned({
+      schedule,
+      dataView,
+      assignment: 'WM_ClosingPrayer',
+    });
+
+    const talkType = schedule.weekend_meeting.public_talk_type.find(
+      (record) => record.type === dataView
+    )?.value;
+
+    if (
+      closingPrayerUID?.length > 0 &&
+      talkType === 'visitingSpeaker' &&
+      closingPrayerUID === speakerUID
+    ) {
+      closingPrayerName = result.speaker_1_name;
+    }
+
+    if (closingPrayerUID?.length > 0) {
+      result.concluding_prayer_name = closingPrayerName;
+
+      const isSpeaker =
+        closingPrayerUID === speakerUID && talkType === 'visitingSpeaker';
+
+      if (isSpeaker) {
+        result.concluding_prayer_name = `${closingPrayerName} ${getTranslation({ key: 'tr_orWatchtowerStudyReader', language: lang })}`;
+      }
+    }
+
+    if (!closingPrayerUID) {
+      if (result.speaker_1_name && talkType === 'visitingSpeaker') {
+        result.concluding_prayer_name = `${result.speaker_1_name} ${getTranslation({ key: 'tr_orWatchtowerStudyReader', language: lang })}`;
+      }
+
+      if (
+        (result.speaker_1_name && talkType !== 'visitingSpeaker') ||
+        (!result.speaker_1_name && result.co_name)
+      ) {
+        result.concluding_prayer_name = result.speaker_1_name || result.co_name;
+      }
+    }
+  }
+
+  if (week_type === Week.CO_VISIT) {
     result.public_talk_title = source.weekend_meeting.co_talk_title.public.src;
     result.service_talk_title =
       source.weekend_meeting.co_talk_title.service.src;

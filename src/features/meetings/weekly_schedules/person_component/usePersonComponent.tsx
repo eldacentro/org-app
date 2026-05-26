@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
+import { useAppTranslation } from '@hooks/index';
 import { PersonComponentProps, PersonDataType } from './index.types';
 import { schedulesState } from '@states/schedules';
 import { ASSIGNMENT_PATH } from '@constants/index';
@@ -23,6 +24,7 @@ const usePersonComponent = ({
   schedule_id,
   dataView,
 }: PersonComponentProps) => {
+  const { t } = useAppTranslation();
   const schedules = useAtomValue(schedulesState);
   const persons = useAtomValue(personsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
@@ -106,7 +108,8 @@ const usePersonComponent = ({
       );
 
       if (
-        assignment === 'WM_Speaker_Part1' &&
+        (assignment === 'WM_Speaker_Part1' ||
+          assignment === 'WM_ClosingPrayer') &&
         talkType?.value === 'visitingSpeaker'
       ) {
         const speaker = incomingSpeakers.find(
@@ -114,15 +117,13 @@ const usePersonComponent = ({
         );
 
         if (speaker) {
-          return {
-            name: speakerGetDisplayName(
-              speaker,
-              displayNameEnabled,
-              fullnameOption
-            ),
-            female: false,
-            active: false,
-          };
+          result.name = speakerGetDisplayName(
+            speaker,
+            displayNameEnabled,
+            fullnameOption
+          );
+          result.female = false;
+          result.active = false;
         }
       }
 
@@ -178,44 +179,84 @@ const usePersonComponent = ({
         }
       }
 
-      if (assignment === 'WM_ClosingPrayer' && !result?.name) {
-        const path = ASSIGNMENT_PATH['WM_Speaker_Part1'];
-        const assigned = schedulesGetData(
+      if (assignment === 'WM_ClosingPrayer') {
+        const speakerPath = ASSIGNMENT_PATH['WM_Speaker_Part1'];
+        const speakerAssigned = schedulesGetData(
           schedule,
-          path,
+          speakerPath,
           dataView
         ) as AssignmentCongregation;
 
-        if (talkType?.value !== 'visitingSpeaker') {
-          const person = persons.find(
-            (record) => record.person_uid === assigned?.value
-          );
+        const coPath = ASSIGNMENT_PATH['WM_CircuitOverseer'];
+        const coAssigned = schedulesGetData(
+          schedule,
+          coPath,
+          dataView
+        ) as AssignmentCongregation;
 
-          if (person) {
-            result.name = personGetDisplayName(
-              person,
-              displayNameEnabled,
-              fullnameOption
-            );
+        const isSpeaker =
+          assigned?.value?.length > 0 &&
+          assigned?.value === speakerAssigned?.value;
 
-            result.female = false;
-            result.active = assigned?.value === userUID;
-          }
+        if (isSpeaker && result.name && talkType?.value === 'visitingSpeaker') {
+          result.name = `${result.name} ${t('tr_orWatchtowerStudyReader')}`;
         }
 
-        if (talkType?.value === 'visitingSpeaker') {
-          const speaker = incomingSpeakers.find(
-            (record) => record.person_uid === assigned?.value
-          );
-
-          if (speaker) {
-            result.name = speakerGetDisplayName(
-              speaker,
-              displayNameEnabled,
-              fullnameOption
+        if (!result?.name) {
+          if (talkType?.value !== 'visitingSpeaker') {
+            const person = persons.find(
+              (record) => record.person_uid === speakerAssigned?.value
             );
-            result.female = false;
-            result.active = false;
+
+            if (person) {
+              result.name = personGetDisplayName(
+                person,
+                displayNameEnabled,
+                fullnameOption
+              );
+
+              result.female = false;
+              result.active = speakerAssigned?.value === userUID;
+            }
+
+            if (!person) {
+              const coPerson = persons.find(
+                (record) => record.person_uid === coAssigned?.value
+              );
+
+              if (coPerson) {
+                result.name = personGetDisplayName(
+                  coPerson,
+                  displayNameEnabled,
+                  fullnameOption
+                );
+
+                result.female = false;
+                result.active = coAssigned?.value === userUID;
+              }
+
+              if (!coPerson && coAssigned?.value === '') {
+                result.name = displayNameEnabled ? coDisplayName : coFullname;
+                result.female = false;
+                result.active = false;
+              }
+            }
+          }
+
+          if (talkType?.value === 'visitingSpeaker') {
+            const speaker = incomingSpeakers.find(
+              (record) => record.person_uid === speakerAssigned?.value
+            );
+
+            if (speaker) {
+              result.name = `${speakerGetDisplayName(
+                speaker,
+                displayNameEnabled,
+                fullnameOption
+              )} ${t('tr_orWatchtowerStudyReader')}`;
+              result.female = false;
+              result.active = false;
+            }
           }
         }
       }
@@ -273,6 +314,7 @@ const usePersonComponent = ({
     mmAuxCounselorDefaultEnabled,
     mmAuxCounselorDefault,
     schedule_id,
+    t,
   ]);
 
   return { personData };

@@ -29,6 +29,8 @@ import { songsState } from '@states/songs';
 import { deptScheduleState } from '@states/departments_schedule';
 import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/service_outings';
 import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
+import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
+import { ExhibitorWeekType, ExhibitorSettingsType } from '@definition/exhibitors';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -77,6 +79,9 @@ const useIndexedDb = () => {
   const dbServiceOutings = useLiveQuery(() =>
     appDb.service_outings.toArray()
   );
+  const dbExhibitors = useLiveQuery(() =>
+    appDb.exhibitors.toArray()
+  );
 
   const setSettings = useSetAtom(settingsState);
   const setPersons = useSetAtom(personsState);
@@ -106,6 +111,12 @@ const useIndexedDb = () => {
   );
   const [, setServiceOutingsSettings] = useAtom(
     serviceOutingsSettingsState as WritableAtom<ServiceOutingSettingsType | null, [ServiceOutingSettingsType | null], void>
+  );
+  const [, setExhibitorsList] = useAtom(
+    exhibitorsListState as WritableAtom<ExhibitorWeekType[], [ExhibitorWeekType[]], void>
+  );
+  const [, setExhibitorsSettings] = useAtom(
+    exhibitorsSettingsState as WritableAtom<ExhibitorSettingsType | null, [ExhibitorSettingsType | null], void>
   );
 
   const loadSettings = useCallback(() => {
@@ -246,6 +257,18 @@ const useIndexedDb = () => {
     }
   }, [dbServiceOutings, setServiceOutingsList, setServiceOutingsSettings]);
 
+  const loadExhibitors = useCallback(() => {
+    if (dbExhibitors) {
+      const settings = dbExhibitors.find((item) => item.weekOf === 'settings');
+      const list = dbExhibitors.filter((item) => item.weekOf !== 'settings');
+
+      setExhibitorsList(list as ExhibitorWeekType[]);
+      if (settings) {
+        setExhibitorsSettings(settings as ExhibitorSettingsType);
+      }
+    }
+  }, [dbExhibitors, setExhibitorsList, setExhibitorsSettings]);
+
   const loadAssignmentsHistory = useCallback(() => {
     const history = schedulesBuildHistoryList();
     setAssignmentsHistory(history);
@@ -274,6 +297,7 @@ const useIndexedDb = () => {
     loadSongs,
     loadDeptSchedules,
     loadServiceOutings,
+    loadExhibitors,
     loadAssignmentsHistory,
   };
 };

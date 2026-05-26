@@ -11,6 +11,7 @@ import { isMyAssignmentOpenState } from '@states/app';
 import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { serviceOutingsListState } from '@states/service_outings';
+import { exhibitorsListState } from '@states/exhibitors';
 import { formatDate, getWeekDate } from '@utils/date';
 import { isTest } from '@constants/index';
 import { resolveAssignmentDate } from '@utils/assignments';
@@ -25,6 +26,7 @@ const useDashboard = () => {
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
   const serviceOutings = useAtomValue(serviceOutingsListState);
+  const exhibitors = useAtomValue(exhibitorsListState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
   const settings = useAtomValue(settingsState);
 
@@ -84,8 +86,20 @@ const useDashboard = () => {
       }
     }
 
-    return meetingAssignmentsCount + deptAssignmentsCount + outingAssignmentsCount;
-  }, [assignmentsHistory, deptSchedules, serviceOutings, shortDateFormat, userUID]);
+    let exhibitorAssignmentsCount = 0;
+
+    for (const week of exhibitors) {
+      if (week.weekOf >= today && week.turns) {
+        for (const turn of week.turns) {
+          if (!turn.cancelled && turn.assignments?.some((a) => a.person === userUID)) {
+            exhibitorAssignmentsCount++;
+          }
+        }
+      }
+    }
+
+    return meetingAssignmentsCount + deptAssignmentsCount + outingAssignmentsCount + exhibitorAssignmentsCount;
+  }, [assignmentsHistory, deptSchedules, serviceOutings, exhibitors, shortDateFormat, userUID]);
 
   const handleCloseNewCongNotice = async () => {
     setNewCongSnack(false);

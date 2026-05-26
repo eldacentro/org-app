@@ -5,31 +5,37 @@ export const dbMetadataDefault = async () => {
   try {
     const metadata = await appDb.metadata.get(1);
 
+    const defaultMetadata = {
+      cong_settings: { version: '', send_local: true },
+      user_settings: { version: '', send_local: true },
+      persons: { version: '', send_local: true },
+      sources: { version: '', send_local: true },
+      schedules: { version: '', send_local: true },
+      field_service_groups: { version: '', send_local: true },
+      visiting_speakers: { version: '', send_local: true },
+      cong_field_service_reports: { version: '', send_local: true },
+      branch_field_service_reports: { version: '', send_local: true },
+      branch_cong_analysis: { version: '', send_local: true },
+      speakers_congregations: { version: '', send_local: true },
+      public_sources: { version: '', send_local: true },
+      public_schedules: { version: '', send_local: true },
+      meeting_attendance: { version: '', send_local: true },
+      user_bible_studies: { version: '', send_local: true },
+      user_field_service_reports: { version: '', send_local: true },
+      upcoming_events: { version: '', send_local: true },
+      delegated_field_service_reports: { version: '', send_local: true },
+      service_outings: { version: '', send_local: true },
+      exhibitors: { version: '', send_local: true },
+    };
+
     if (!metadata) {
       await appDb.metadata.put({
         id: 1,
-        metadata: {
-          cong_settings: { version: '', send_local: true },
-          user_settings: { version: '', send_local: true },
-          persons: { version: '', send_local: true },
-          sources: { version: '', send_local: true },
-          schedules: { version: '', send_local: true },
-          field_service_groups: { version: '', send_local: true },
-          visiting_speakers: { version: '', send_local: true },
-          cong_field_service_reports: { version: '', send_local: true },
-          branch_field_service_reports: { version: '', send_local: true },
-          branch_cong_analysis: { version: '', send_local: true },
-          speakers_congregations: { version: '', send_local: true },
-          public_sources: { version: '', send_local: true },
-          public_schedules: { version: '', send_local: true },
-          meeting_attendance: { version: '', send_local: true },
-          user_bible_studies: { version: '', send_local: true },
-          user_field_service_reports: { version: '', send_local: true },
-          upcoming_events: { version: '', send_local: true },
-          delegated_field_service_reports: { version: '', send_local: true },
-          service_outings: { version: '', send_local: true },
-        },
+        metadata: defaultMetadata,
       });
+    } else {
+      const updatedMetadata = { ...defaultMetadata, ...metadata.metadata };
+      await appDb.metadata.update(1, { metadata: updatedMetadata });
     }
   } catch (error) {
     console.error(error);
@@ -75,6 +81,7 @@ export const dbMetadataReset = async () => {
         delegated_field_service_reports: { version: '', send_local: true },
         upcoming_events: { version: '', send_local: true },
         service_outings: { version: '', send_local: true },
+        exhibitors: { version: '', send_local: true },
       },
     });
   } catch (error) {

@@ -14,6 +14,7 @@ import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
+import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
 
@@ -29,6 +30,8 @@ const useMyAssignments = () => {
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
   const serviceOutings = useAtomValue(serviceOutingsListState);
+  const exhibitors = useAtomValue(exhibitorsListState);
+  const exhibitorsSettings = useAtomValue(exhibitorsSettingsState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
 
   const storageValue = localStorageGetItem(LOCAL_STORAGE_KEY);
@@ -135,6 +138,47 @@ const useMyAssignments = () => {
       return results;
     };
 
+    const getExhibitorsAssignments = (uid: string): AssignmentHistoryType[] => {
+      const results: AssignmentHistoryType[] = [];
+
+      for (const week of exhibitors) {
+        if (!week || !week.turns) continue;
+        const weekDate = week.weekOf;
+
+        for (const turn of week.turns) {
+          if (
+            !turn.cancelled &&
+            turn.date >= today &&
+            turn.date <= formatDate(maxDate, 'yyyy/MM/dd')
+          ) {
+            const myAss = turn.assignments?.find((a) => a.person === uid);
+            if (myAss) {
+              const roleText = myAss.isResponsible ? 'Responsable' : 'Ayudante';
+              const turnConfig = exhibitorsSettings?.turns?.find((t) => t.id === turn.turnId);
+              const timeRange = turnConfig ? `${turnConfig.startTime}-${turnConfig.endTime}` : '';
+              results.push({
+                id: `${turn.turnId}_${turn.date}`,
+                weekOf: weekDate,
+                weekOfFormatted: formatDate(
+                  new Date(turn.date),
+                  shortDateFormat
+                ),
+                assignment: {
+                  code: 0 as AssignmentHistoryType['assignment']['code'],
+                  person: uid,
+                  key: `EXHIBITOR_${turn.turnId}_${turn.date}` as AssignmentHistoryType['assignment']['key'],
+                  dataView: 'main',
+                  title: `Exhibidores: ${roleText} (${timeRange} @ ${turn.location})`,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      return results;
+    };
+
     const filterAssignments = (uid: string) => {
       const meetingAssignments = remapAssignmentsDate.filter(
         (record) =>
@@ -145,8 +189,9 @@ const useMyAssignments = () => {
 
       const deptAssignments = getDeptAssignments(uid);
       const outingAssignments = getServiceOutingsAssignments(uid);
+      const exhibitorAssignments = getExhibitorsAssignments(uid);
 
-      return [...meetingAssignments, ...deptAssignments, ...outingAssignments];
+      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments];
     };
 
     const ownAssignments = filterAssignments(userUID);
@@ -193,6 +238,8 @@ const useMyAssignments = () => {
     assignmentsHistory,
     deptSchedules,
     serviceOutings,
+    exhibitors,
+    exhibitorsSettings,
     displayRange,
     userUID,
     delegateMembers,

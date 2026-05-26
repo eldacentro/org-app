@@ -82,7 +82,7 @@ const usePersonSelect = ({
   const handleSelectPerson = (value: UsersOption) => setSelectedPerson(value);
 
   const handleCreateUser = async () => {
-    if (userType === 'publisher' && selectedPerson === null) return;
+    if (selectedPerson === null) return;
 
     try {
       setIsProcessing(true);
@@ -93,21 +93,37 @@ const usePersonSelect = ({
 
       const cong_role = refreshReadOnlyRoles(person);
 
-      let code: string;
+      // If we found a user via email, bind them directly regardless of type
+      if (userId.length > 0) {
+        const users = await apiCreateUser({
+          cong_person_uid: person?.person_uid || '',
+          cong_role,
+          user_firstname: person?.person_data.person_firstname.value || '',
+          user_lastname: person?.person_data.person_lastname.value || '',
+          user_id: userId,
+        });
 
-      const { message, status } = await apiGetCongregationAccessCode();
-
-      if (status !== 200) {
-        throw new Error(message);
+        setUsers(users);
+        onClose();
+        return;
       }
 
-      const remoteAccessCode = decryptData(
-        message,
-        congLocalAccessCode,
-        'access_code'
-      );
-
+      // Traditional pocket code generation (fallback)
       if (userType === 'publisher') {
+        let code: string;
+
+        const { message, status } = await apiGetCongregationAccessCode();
+
+        if (status !== 200) {
+          throw new Error(message);
+        }
+
+        const remoteAccessCode = decryptData(
+          message,
+          congLocalAccessCode,
+          'access_code'
+        );
+
         code = `${countryCode}${congPrefix}-`;
         code += generatePocketCode();
         code += `-${congLocalAccessCode}`;
@@ -121,25 +137,6 @@ const usePersonSelect = ({
         });
 
         setUsers(users);
-      }
-
-      if (userType === 'baptized') {
-        const users = await apiCreateUser({
-          cong_person_uid: person?.person_uid || '',
-          cong_role,
-          user_firstname: person?.person_data.person_firstname.value || '',
-          user_lastname: person?.person_data.person_lastname.value || '',
-          user_id: userId,
-        });
-
-        setUsers(users);
-      }
-
-      if (userType === 'baptized') {
-        onClose();
-      }
-
-      if (userType === 'publisher') {
         onSetUser(selectedPerson.person_name, code);
         onSetStep();
       }
@@ -207,18 +204,23 @@ const usePersonSelect = ({
   const handleRunAction = async () => {
     if (isProcessing) return;
 
-    if (userType === 'publisher' || (userType === 'baptized' && searchStatus)) {
+    if (userId.length > 0) {
       await handleCreateUser();
       return;
     }
 
-    if (userType === 'baptized' && userId.length === 0) {
+    if (userType === 'publisher' && selectedPerson) {
+      await handleCreateUser();
+      return;
+    }
+
+    if (email.length > 0) {
       await handleSearchUser();
     }
   };
 
   const handleSecondaryAction = () => {
-    if (userType === 'baptized' && userId.length > 0) {
+    if (userId.length > 0) {
       setSearchStatus(null);
       setUserId('');
       return;

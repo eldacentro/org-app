@@ -10,6 +10,7 @@ import {
   isEmailLinkAuthenticateState,
   isEmailSentState,
   isEncryptionCodeOpenState,
+  isSetupState,
   isUnauthorizedRoleState,
   isUserAccountCreatedState,
   isUserMfaVerifyState,
@@ -26,6 +27,7 @@ import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 
 const useAuth = () => {
+  const setIsSetup = useSetAtom(isSetupState);
   const setIsUserSignIn = useSetAtom(isUserSignInState);
   const setVerifyMFA = useSetAtom(isUserMfaVerifyState);
   const setTokenDev = useSetAtom(tokenDevState);
@@ -90,6 +92,12 @@ const useAuth = () => {
         return nextStep;
       }
 
+      // If user is pocket, skip encryption and enter directly
+      if (user_settings.role === 'pocket') {
+        nextStep.encryption = false;
+        return nextStep;
+      }
+
       const remoteMasterKey = cong_settings.cong_master_key;
       const remoteAccessCode = cong_settings.cong_access_code;
       const masterKeyNeeded = user_settings.cong_role.some((role) =>
@@ -121,7 +129,7 @@ const useAuth = () => {
     ) => {
       if (app_settings) {
         await dbAppSettingsUpdate({
-          'user_settings.account_type': 'vip',
+          'user_settings.account_type': app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip',
           'user_settings.lastname': app_settings.user_settings.lastname,
           'user_settings.firstname': app_settings.user_settings.firstname,
         });
@@ -145,7 +153,72 @@ const useAuth = () => {
         setIsUserAccountCreated(true);
       }
 
-      if (nextStep.encryption) {
+      if (nextStep.encryption === false) {
+        // Pocket user entering directly
+        const midweekMeeting = structuredClone(
+          settings.cong_settings.midweek_meeting
+        );
+
+        for (const midweekRemote of app_settings.cong_settings.midweek_meeting) {
+          const midweekLocal = midweekMeeting.find(
+            (record) => record.type === midweekRemote.type
+          );
+
+          if (midweekLocal) {
+            midweekLocal.time = midweekRemote.time;
+            midweekLocal.weekday = midweekRemote.weekday;
+          } else {
+            midweekMeeting.push({
+              ...settingSchema.cong_settings.midweek_meeting.at(0),
+              time: midweekRemote.time,
+              type: midweekRemote.type,
+              weekday: midweekRemote.weekday,
+            });
+          }
+        }
+
+        const weekendMeeting = structuredClone(
+          settings.cong_settings.weekend_meeting
+        );
+
+        for (const weekendRemote of app_settings.cong_settings.weekend_meeting) {
+          const weekendLocal = weekendMeeting.find(
+            (record) => record.type === weekendRemote.type
+          );
+
+          if (weekendLocal) {
+            weekendLocal.time = weekendRemote.time;
+            weekendLocal.weekday = weekendRemote.weekday;
+          } else {
+            weekendMeeting.push({
+              ...settingSchema.cong_settings.weekend_meeting.at(0),
+              time: weekendRemote.time,
+              type: weekendRemote.type,
+              weekday: weekendRemote.weekday,
+            });
+          }
+        }
+
+        await dbAppSettingsUpdate({
+          'cong_settings.country_code': app_settings.cong_settings.country_code,
+          'cong_settings.cong_id': app_settings.cong_settings.id,
+          'cong_settings.cong_name': app_settings.cong_settings.cong_name,
+          'user_settings.cong_role': app_settings.user_settings.cong_role,
+          'cong_settings.cong_location': app_settings.cong_settings.cong_location,
+          'cong_settings.cong_circuit': app_settings.cong_settings.cong_circuit,
+          'cong_settings.midweek_meeting': midweekMeeting,
+          'cong_settings.weekend_meeting': weekendMeeting,
+          'cong_settings.cong_new': false,
+        });
+
+        setIsEmailSent(false);
+        setIsEmailAuth(false);
+        setIsUserSignIn(false);
+        setIsCongCreate(false);
+        setIsSetup(false); // This will trigger the app load
+      }
+
+      if (nextStep.encryption === true) {
         const midweekMeeting = structuredClone(
           settings.cong_settings.midweek_meeting
         );

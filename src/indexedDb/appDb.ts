@@ -64,6 +64,10 @@ import {
   ServiceOutingTable,
   serviceOutingsSchema,
 } from './tables/service_outings';
+import {
+  ExhibitorTable,
+  exhibitorsSchema,
+} from './tables/exhibitors';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -87,7 +91,8 @@ type DexieTables = PersonsTable &
   PublicTalkTable &
   SongTable &
   DeptScheduleTable &
-  ServiceOutingTable;
+  ServiceOutingTable &
+  ExhibitorTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -212,6 +217,19 @@ appDb.version(14).stores({
   ...upcomingEventsSchema,
   ...departmentsScheduleSchema,
   ...serviceOutingsSchema,
+});
+
+appDb.version(15).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
 });
 
 appDb.on('populate', function () {

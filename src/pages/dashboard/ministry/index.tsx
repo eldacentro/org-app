@@ -3,7 +3,8 @@ import {
   IconMinistryReport,
   IconPioneerForm,
   IconStatsYear,
-  IconGroups,
+  IconAutoStories,
+  IconRecordVoiceOver,
 } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useMinistry from './useMinistry';
@@ -43,9 +44,16 @@ const MinistryCard = () => {
       </ListItem>
       <ListItem disablePadding>
         <DashboardMenu
-          icon={<IconGroups color="var(--black)" />}
+          icon={<IconRecordVoiceOver color="var(--black)" />}
           primaryText={t('tr_serviceOutings', 'Salidas de predicación')}
           path="/predicacion-salidas"
+        />
+      </ListItem>
+      <ListItem disablePadding>
+        <DashboardMenu
+          icon={<IconAutoStories color="var(--black)" />}
+          primaryText="Exhibidores"
+          path="/exhibitors"
         />
       </ListItem>
 

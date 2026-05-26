@@ -74,6 +74,9 @@ const DepartmentsSchedule = lazy(
 const PredicacionSalidas = lazy(
   () => import('@pages/predicacion_salidas')
 );
+const Exhibitors = lazy(
+  () => import('@pages/exhibitors')
+);
 
 const queryClient = new QueryClient();
 
@@ -208,6 +211,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                   { path: '/ministry-report', element: <MinistryReport /> },
                   { path: '/service-year', element: <ServiceYear /> },
                   { path: '/predicacion-salidas', element: <PredicacionSalidas /> },
+                  { path: '/exhibitors', element: <Exhibitors /> },
 
                   // only if connected
                   {

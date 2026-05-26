@@ -17,6 +17,7 @@ import {
 } from '@definition/schedules';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
+import { ExhibitorWeekType } from '@definition/exhibitors';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -274,7 +275,8 @@ export const dbGetMetadata = async () => {
         role === 'public_talk_schedule'
     );
 
-  const isPersonViewer = isScheduleEditor || isElder;
+  const isServiceCommittee = isAdmin || userRole.includes('service_overseer');
+  const isPersonViewer = isScheduleEditor || isElder || isServiceCommittee;
   const isPersonMinimal = !isPersonViewer;
 
   const isAttendanceTracker =
@@ -301,6 +303,10 @@ export const dbGetMetadata = async () => {
     delete result.sources;
     delete result.schedules;
     delete result.departments_schedule;
+  }
+
+  if (!isPersonViewer) {
+    delete result.persons;
   }
 
   if (!isAttendanceTracker && !isLanguageGroupOverseer) {
@@ -338,6 +344,7 @@ const dbGetTableData = async () => {
   const sched = await appDb.sched.toArray();
   const departments_schedule = await appDb.departments_schedule.toArray();
   const service_outings = await appDb.service_outings.toArray();
+  const exhibitors = await appDb.exhibitors.toArray();
   const sources = await appDb.sources.toArray();
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
@@ -395,6 +402,7 @@ const dbGetTableData = async () => {
     sched,
     departments_schedule,
     service_outings,
+    exhibitors,
     sources,
     meeting_attendance,
     metadata,
@@ -1458,6 +1466,52 @@ const dbRestoreServiceOutings = async (
   }
 };
 
+const dbRestoreExhibitors = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.exhibitors) return;
+
+    const remoteData = (backupData.exhibitors as ExhibitorWeekType[]).map((data) => {
+      decryptObject({
+        data,
+        table: 'exhibitors',
+        accessCode,
+      });
+
+      return data;
+    });
+
+    const localData = await appDb.exhibitors.toArray();
+
+    const dataToUpdate: ExhibitorWeekType[] = [];
+
+    for (const remoteItem of remoteData) {
+      const localItem = localData.find(
+        (record) => record.weekOf === remoteItem.weekOf
+      );
+
+      if (!localItem) {
+        dataToUpdate.push(remoteItem);
+      }
+
+      if (localItem) {
+        const newItem = structuredClone(localItem);
+        syncFromRemote(newItem, remoteItem);
+
+        dataToUpdate.push(newItem as ExhibitorWeekType);
+      }
+    }
+
+    if (dataToUpdate.length > 0) {
+      await appDb.exhibitors.bulkPut(dataToUpdate);
+    }
+  } catch (error) {
+    throw new Error(`exhibitors: ${error.message}`);
+  }
+};
+
 const dbRestoreSchedules = async (
   backupData: BackupDataType,
   accessCode: string
@@ -1816,6 +1870,7 @@ const dbRestoreFromBackup = async (
     await dbRestoreDepartmentsSchedule(backupData, accessCode);
 
     await dbRestoreServiceOutings(backupData, accessCode);
+    await dbRestoreExhibitors(backupData, accessCode);
 
     await dbRestoreUserStudies(backupData, accessCode);
 
@@ -1891,6 +1946,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       sched,
       departments_schedule,
       service_outings,
+      exhibitors,
       sources,
       meeting_attendance,
       metadata,
@@ -2211,6 +2267,26 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           });
 
           obj.service_outings = backupServiceOutings;
+        }
+
+        // include exhibitors data
+        if (
+          serviceCommitteeRole &&
+          metadata.metadata.exhibitors?.send_local
+        ) {
+          const backupExhibitors = exhibitors.map((record) => {
+            const exhibitor = structuredClone(record);
+
+            encryptObject({
+              data: exhibitor,
+              table: 'exhibitors',
+              accessCode,
+            });
+
+            return exhibitor;
+          });
+
+          obj.exhibitors = backupExhibitors;
         }
 
         // for admin role

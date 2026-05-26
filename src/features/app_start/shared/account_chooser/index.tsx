@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { IconCongregationAccess, IconEmailLogin } from '@icons/index';
+import { IconGoogle } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useAccountChooser from './useAccountChooser';
 import AccountType from './account_type';
@@ -9,7 +9,7 @@ import Typography from '@components/typography';
 const AccountChooser = () => {
   const { t } = useAppTranslation();
 
-  const { handleChoosePocket, handleChooseVIP } = useAccountChooser();
+  const { handleChooseGoogle } = useAccountChooser();
 
   return (
     <Box
@@ -38,27 +38,13 @@ const AccountChooser = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <AccountType
             startIcon={
-              <IconEmailLogin
+              <IconGoogle
                 width={32}
                 height={32}
-                color="var(--accent-400)"
               />
             }
-            text={t('tr_loginWithEmail')}
-            subtitle={t('tr_loginWithEmailDesc')}
-            onClick={handleChooseVIP}
-          />
-          <AccountType
-            startIcon={
-              <IconCongregationAccess
-                width={32}
-                height={32}
-                color="var(--accent-400)"
-              />
-            }
-            text={t('tr_loginWithCode')}
-            subtitle={t('tr_loginWithCodeDesc')}
-            onClick={handleChoosePocket}
+            text={t('tr_oauthGoogle')}
+            onClick={handleChooseGoogle}
           />
         </Box>
       </Box>

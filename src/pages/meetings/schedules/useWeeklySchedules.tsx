@@ -9,6 +9,7 @@ import OutgoingTalks from '@features/meetings/weekly_schedules/outgoing_talks';
 import WeekendContainer from '@features/meetings/weekly_schedules/weekend_container';
 import DepartmentsContainer from '@features/meetings/weekly_schedules/departments_container';
 import ServiceOutingsContainer from '@features/meetings/weekly_schedules/service_outings';
+import ExhibitorsWeeklyContainer from '@features/meetings/weekly_schedules/exhibitors';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -66,6 +67,12 @@ const useWeeklySchedules = () => {
       id: 'service_outings',
       label: t('tr_fieldServiceOutings', 'Salidas de predicación'),
       Component: <ServiceOutingsContainer />,
+    });
+
+    result.push({
+      id: 'exhibitors',
+      label: 'Exhibidores',
+      Component: <ExhibitorsWeeklyContainer />,
     });
 
     return result;

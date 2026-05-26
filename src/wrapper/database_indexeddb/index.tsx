@@ -29,6 +29,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
     loadSongs,
     loadDeptSchedules,
     loadServiceOutings,
+    loadExhibitors,
     loadAssignmentsHistory,
   } = useIndexedDb();
 
@@ -56,6 +57,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
       loadUpcomingEvents();
       loadDeptSchedules();
       loadServiceOutings();
+      loadExhibitors();
       loadAssignmentsHistory();
     };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import {
@@ -7,7 +7,7 @@ import {
   setIsNewCongregation,
 } from '@services/states/app';
 import { settingsState } from '@states/settings';
-import { apiCreateCongregation } from '@services/api/congregation';
+import { apiCreateCongregation, apiFetchCountries, apiFetchCongregations } from '@services/api/congregation';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { getMessageByCode } from '@services/i18n/translation';
 import {
@@ -21,6 +21,7 @@ import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 
 const useCongregationDetails = () => {
   const { t } = useAppTranslation();
+  const hasAutoSubmitted = useRef(false);
 
   const { hideMessage, message, showMessage, title, variant } = useFeedback();
 
@@ -174,6 +175,40 @@ const useCongregationDetails = () => {
       showMessage();
     }
   };
+
+  useEffect(() => {
+    const autoSelect = async () => {
+      if (hasAutoSubmitted.current) return;
+
+      try {
+        const countries = await apiFetchCountries();
+        const spain = countries.find(c => c.countryCode === 'ES');
+        
+        if (spain) {
+          setCountry(spain);
+          const congs = await apiFetchCongregations(spain.countryGuid, 'Elda Centro');
+          const eldaCentro = congs.find(c => c.congName.includes('Elda Centro'));
+          
+          if (eldaCentro) {
+            setCongregation(eldaCentro);
+            setIsElderApproved(true);
+            // We'll let the second useEffect handle the submission once state is updated
+          }
+        }
+      } catch (error) {
+        console.error('Auto-selection failed:', error);
+      }
+    };
+
+    autoSelect();
+  }, []);
+
+  useEffect(() => {
+    if (country && congregation && isElderApproved && userTmpFirstName && !isProcessing && !hasAutoSubmitted.current) {
+      hasAutoSubmitted.current = true;
+      handleCongregationAction();
+    }
+  }, [country, congregation, isElderApproved, userTmpFirstName, isProcessing]);
 
   return {
     country,

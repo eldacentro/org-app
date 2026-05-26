@@ -249,4 +249,10 @@ export const TABLE_ENCRYPTION_MAP = {
     locations: 'shared',
     availability: 'shared',
   },
+  exhibitors: {
+    turns: 'shared',
+    responsibles: 'shared',
+    fixedAssignments: 'shared',
+    availability: 'shared',
+  },
 };

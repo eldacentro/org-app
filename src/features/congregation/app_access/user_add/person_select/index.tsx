@@ -64,14 +64,14 @@ const PersonSelect = (props: PersonSelectType) => {
       )}
 
       <Typography color={'var(--grey-400)'}>
-        {userType === 'baptized'
-          ? searchStatus
-            ? t('tr_userFoundSuccess')
-            : t('tr_addNewOrganizedUserDesc')
-          : t('tr_addNewPublisherDesc')}
+        {searchStatus
+          ? t('tr_userFoundSuccess')
+          : userType === 'baptized'
+            ? t('tr_addNewOrganizedUserDesc')
+            : t('tr_addNewPublisherDesc')}
       </Typography>
 
-      {userType === 'baptized' && !searchStatus && (
+      {!searchStatus && (
         <TextField
           label={t('tr_userEmailAddress')}
           type="email"
@@ -95,9 +95,9 @@ const PersonSelect = (props: PersonSelectType) => {
       )}
 
       <Autocomplete
-        disabled={userType === 'baptized' && !searchStatus}
+        disabled={!searchStatus && userType === 'baptized'}
         label={t('tr_selectPerson')}
-        hidden={userType === 'baptized' && !searchStatus}
+        hidden={!searchStatus && userType === 'baptized'}
         options={persons}
         getOptionLabel={(option: UsersOption) => option.person_name}
         isOptionEqualToValue={(option, value) =>

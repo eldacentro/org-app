@@ -172,7 +172,7 @@ export const scheduleSchema: SchedWeekType = {
   weekend_meeting: {
     chairman: [{ type: 'main', value: '', name: '', updatedAt: '' }],
     opening_prayer: [{ type: 'main', value: '', name: '', updatedAt: '' }],
-    public_talk_type: [{ type: 'main', value: 'localSpeaker', updatedAt: '' }],
+    public_talk_type: [{ type: 'main', value: 'visitingSpeaker', updatedAt: '' }],
     speaker: {
       part_1: [{ type: 'main', value: '', name: '', updatedAt: '' }],
       part_2: [{ type: 'main', value: '', name: '', updatedAt: '' }],

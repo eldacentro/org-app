@@ -14,7 +14,7 @@
   "tr_email": "Correo electrónico",
   "tr_accountCreated": "Tu cuenta ha sido registrada. Notifica al administrador de la congregación para que te asigne los permisos necesarios. Luego actualiza la página para iniciar sesión.",
   "tr_createCongregationAccount": "Crear congregación",
-  "tr_unauthorizedRole": "<p>¡Tu cuenta está lista! Para acceder, pide al administrador de la congregación que te asigne los permisos necesarios y actualiza la página en 5 minutos.</p><p>Si necesitas ayuda, contacta al administrador en <a href='mailto:soporte@eldacentro.com'>soporte@eldacentro.com</a>.</p>",
+  "tr_unauthorizedRole": "<p>Tu acceso está pendiente de aprobación. Contacta con el administrador.</p><p>Si necesitas ayuda, puedes escribir a <a href='mailto:soporte@eldacentro.com'>soporte@eldacentro.com</a>.</p>",
   "tr_oauthAccept": "He leído y acepto las condiciones de uso de esta aplicación",
   "tr_signInDesc": "Usa tu correo electrónico para recibir un enlace de inicio de sesión único o inicia sesión con uno de los proveedores listados. Si aún no tienes una cuenta, se creará automáticamente.",
   "tr_emailAuth": "Autenticación por correo electrónico",
