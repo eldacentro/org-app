@@ -33,7 +33,7 @@ const PersonDetails = () => {
     <Box sx={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
       <PageTitle
         title={isNewPerson ? t('tr_addNewPerson') : t('tr_editPerson')}
-        buttons={laptopUp ? <PersonButtonActions /> : null}
+        buttons={<PersonButtonActions />}
       />
 
       <Box
@@ -105,13 +105,7 @@ const PersonDetails = () => {
         </Box>
       </Box>
 
-      {isPersonEditor && !laptopUp && (
-        <Box
-          sx={{ display: 'flex', flexDirection: 'column-reverse', gap: '8px' }}
-        >
-          <PersonButtonActions />
-        </Box>
-      )}
+
     </Box>
   );
 };
