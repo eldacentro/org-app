@@ -1,5 +1,5 @@
 import { ListItem } from '@mui/material';
-import { useAppTranslation } from '@hooks/index';
+import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import useMinistry from './useMinistry';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
@@ -12,6 +12,7 @@ import IconRecordVoiceOver from '@icons/IconRecordVoiceOver';
 
 const MinistryCard = () => {
   const { t } = useAppTranslation();
+  const { isServiceCommittee } = useCurrentUser();
 
   const { isPioneer, enable_AP_application, hours, hours_balance } =
     useMinistry();
@@ -40,20 +41,24 @@ const MinistryCard = () => {
           path="/service-year"
         />
       </ListItem>
-      <ListItem disablePadding>
-        <DashboardMenu
-          icon={<IconRecordVoiceOver color="var(--black)" />}
-          primaryText={t('tr_serviceOutings', 'Salidas de predicación')}
-          path="/predicacion-salidas"
-        />
-      </ListItem>
-      <ListItem disablePadding>
-        <DashboardMenu
-          icon={<IconAutoStories color="var(--black)" />}
-          primaryText="Exhibidores"
-          path="/exhibitors"
-        />
-      </ListItem>
+      {isServiceCommittee && (
+        <>
+          <ListItem disablePadding>
+            <DashboardMenu
+              icon={<IconRecordVoiceOver color="var(--black)" />}
+              primaryText={t('tr_serviceOutings', 'Salidas de predicación')}
+              path="/predicacion-salidas"
+            />
+          </ListItem>
+          <ListItem disablePadding>
+            <DashboardMenu
+              icon={<IconAutoStories color="var(--black)" />}
+              primaryText="Exhibidores"
+              path="/exhibitors"
+            />
+          </ListItem>
+        </>
+      )}
 
       {enable_AP_application && (
         <ListItem disablePadding>

@@ -176,6 +176,11 @@ const NotGroupRoute = () => {
   return <RouteProtected allowed={!isGroup} />;
 };
 
+const ServiceCommitteeRoute = () => {
+  const { isServiceCommittee } = useCurrentUser();
+  return <RouteProtected allowed={isServiceCommittee} />;
+};
+
 const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   const { isAdmin } = useCurrentUser();
 
@@ -210,8 +215,6 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 children: [
                   { path: '/ministry-report', element: <MinistryReport /> },
                   { path: '/service-year', element: <ServiceYear /> },
-                  { path: '/predicacion-salidas', element: <PredicacionSalidas /> },
-                  { path: '/exhibitors', element: <Exhibitors /> },
 
                   // only if connected
                   {
@@ -223,6 +226,15 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                       },
                     ],
                   },
+                ],
+              },
+
+              // service committee routes
+              {
+                element: <ServiceCommitteeRoute />,
+                children: [
+                  { path: '/predicacion-salidas', element: <PredicacionSalidas /> },
+                  { path: '/exhibitors', element: <Exhibitors /> },
                 ],
               },
 
