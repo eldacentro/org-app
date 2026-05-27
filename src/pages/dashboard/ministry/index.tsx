@@ -1,16 +1,14 @@
 import { ListItem } from '@mui/material';
-import {
-  IconMinistryReport,
-  IconPioneerForm,
-  IconStatsYear,
-  IconAutoStories,
-  IconRecordVoiceOver,
-} from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import useMinistry from './useMinistry';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
 import MinistryTimer from '@features/ministry/report/ministry_timer';
+import IconMinistryReport from '@icons/IconMinistryReport';
+import IconPioneerForm from '@icons/IconPioneerForm';
+import IconStatsYear from '@icons/IconStatsYear';
+import IconAutoStories from '@icons/IconAutoStories';
+import IconRecordVoiceOver from '@icons/IconRecordVoiceOver';
 
 const MinistryCard = () => {
   const { t } = useAppTranslation();
@@ -71,3 +69,4 @@ const MinistryCard = () => {
 };
 
 export default MinistryCard;
+

@@ -1393,13 +1393,15 @@ const dbRestoreDepartmentsSchedule = async (
 
       if (!localItem) {
         dataToUpdate.push(remoteItem);
-      }
+      } else {
+        const remoteUpdated = remoteItem.updatedAt || '';
+        const localUpdated = localItem.updatedAt || '';
 
-      if (localItem) {
-        const newItem = structuredClone(localItem);
-        syncFromRemote(newItem, remoteItem);
-
-        dataToUpdate.push(newItem);
+        if (remoteUpdated > localUpdated) {
+          const newItem = structuredClone(localItem);
+          syncFromRemote(newItem, remoteItem);
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1438,24 +1440,38 @@ const dbRestoreServiceOutings = async (
     });
 
     const localData = await appDb.service_outings.toArray();
+    const validRemoteData = remoteData.filter((record) =>
+      isMondayDate(record.weekOf)
+    );
 
     const dataToUpdate: ServiceOutingWeekType[] = [];
 
-    for (const remoteItem of remoteData) {
+    for (const remoteItem of validRemoteData) {
       const localItem = localData.find(
         (record) => record.weekOf === remoteItem.weekOf
       );
 
       if (!localItem) {
         dataToUpdate.push(remoteItem);
-      }
+      } else {
+        const remoteUpdated = remoteItem.updatedAt || '';
+        const localUpdated = localItem.updatedAt || '';
 
-      if (localItem) {
-        const newItem = structuredClone(localItem);
-        syncFromRemote(newItem, remoteItem);
-
-        dataToUpdate.push(newItem);
+        if (remoteUpdated > localUpdated) {
+          const newItem = structuredClone(localItem);
+          syncFromRemote(newItem, remoteItem);
+          dataToUpdate.push(newItem);
+        }
       }
+    }
+
+    const invalidLocalData = localData.filter(
+      (record) => !isMondayDate(record.weekOf)
+    );
+
+    if (invalidLocalData.length > 0) {
+      const weeks = invalidLocalData.map((record) => record.weekOf);
+      await appDb.service_outings.bulkDelete(weeks);
     }
 
     if (dataToUpdate.length > 0) {
@@ -1484,24 +1500,38 @@ const dbRestoreExhibitors = async (
     });
 
     const localData = await appDb.exhibitors.toArray();
+    const validRemoteData = remoteData.filter((record) =>
+      isMondayDate(record.weekOf)
+    );
 
     const dataToUpdate: ExhibitorWeekType[] = [];
 
-    for (const remoteItem of remoteData) {
+    for (const remoteItem of validRemoteData) {
       const localItem = localData.find(
         (record) => record.weekOf === remoteItem.weekOf
       );
 
       if (!localItem) {
         dataToUpdate.push(remoteItem);
-      }
+      } else {
+        const remoteUpdated = remoteItem.updatedAt || '';
+        const localUpdated = localItem.updatedAt || '';
 
-      if (localItem) {
-        const newItem = structuredClone(localItem);
-        syncFromRemote(newItem, remoteItem);
-
-        dataToUpdate.push(newItem as ExhibitorWeekType);
+        if (remoteUpdated > localUpdated) {
+          const newItem = structuredClone(localItem);
+          syncFromRemote(newItem, remoteItem);
+          dataToUpdate.push(newItem as ExhibitorWeekType);
+        }
       }
+    }
+
+    const invalidLocalData = localData.filter(
+      (record) => !isMondayDate(record.weekOf)
+    );
+
+    if (invalidLocalData.length > 0) {
+      const weeks = invalidLocalData.map((record) => record.weekOf);
+      await appDb.exhibitors.bulkDelete(weeks);
     }
 
     if (dataToUpdate.length > 0) {

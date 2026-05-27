@@ -186,12 +186,17 @@ const Exhibitors = () => {
 
 
 
-  // Filtrar hermanos con tick "Exhibidores" habilitado en el perfil
+  // Filtrar hermanos con tick "Exhibidores" habilitado en el perfil (ordenados alfabéticamente)
   const enabledExhibitorBrothers = useMemo(() => {
-    return persons.filter(
+    const list = persons.filter(
       (p) => p.person_data.predicacion_exhibidores?.value === true
     );
-  }, [persons]);
+    return list.sort((a, b) => {
+      const nameA = personGetDisplayName(a, displayNameEnabled, fullnameOption);
+      const nameB = personGetDisplayName(b, displayNameEnabled, fullnameOption);
+      return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+    });
+  }, [persons, displayNameEnabled, fullnameOption]);
 
   // Turnos configurados activos en el mes
   const generatedSlotsInMonth = useMemo(() => {
@@ -541,14 +546,13 @@ const Exhibitors = () => {
   }, [editDialog, settings]);
 
   // Manejar cambio de asignado en el diálogo
-  const handleAssignmentChange = (idx: number, field: 'person' | 'isResponsible', value: string | boolean) => {
+  const handleAssignmentChange = (idx: number, personUid: string) => {
     const updated = [...editDialog.assignments];
     updated[idx] = {
-      ...updated[idx],
-      [field]: value,
+      person: personUid,
+      isResponsible: idx === 0,
     };
 
-    // Si es responsable, asegurar que sea varón y habilitado (sólo aviso visual, el selector se encarga del filtro)
     setEditDialog({
       ...editDialog,
       assignments: updated,
@@ -818,8 +822,7 @@ const Exhibitors = () => {
     turnId: string,
     day: string,
     idx: number,
-    personUid: string,
-    isResponsible: boolean
+    personUid: string
   ) => {
     if (!settings) return;
     try {
@@ -838,7 +841,7 @@ const Exhibitors = () => {
         // Eliminar slot en la posición
         turnAssignments.splice(idx, 1);
       } else {
-        const record = { turnId, day, personUid, isResponsible };
+        const record = { turnId, day, personUid, isResponsible: idx === 0 };
         if (idx < turnAssignments.length) {
           turnAssignments[idx] = record;
         } else {
@@ -1435,14 +1438,7 @@ const Exhibitors = () => {
                           daySlotsMap.get(day)!.push(slot);
                         }
 
-                        const getAbbreviatedName = (fullName: string) => {
-                          if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
-                          const parts = fullName.trim().split(/\s+/);
-                          if (parts.length === 1) return parts[0];
-                          const firstName = parts[0];
-                          const lastName = parts[parts.length - 1];
-                          return `${firstName.charAt(0)}. ${lastName}`;
-                        };
+
 
                         const formatLegibleDate = (date: Date): string => {
                           const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -1531,11 +1527,7 @@ const Exhibitors = () => {
                                           ) : (
                                             daySlots.map((slot) => {
                                               const isCancelled = slot.cancelled;
-                                              const assignedNames = slot.assignments
-                                                .map((ass) => getBrotherDisplayName(ass.person))
-                                                .filter(Boolean)
-                                                .map(getAbbreviatedName)
-                                                .join(', ');
+                                              const hasAssignments = slot.assignments.some((ass) => ass.person !== '');
 
                                               let bgColor = '#e8f0fe';
                                               let textColor = 'var(--accent-dark)';
@@ -1545,7 +1537,7 @@ const Exhibitors = () => {
                                                 bgColor = '#fce8e6';
                                                 textColor = 'var(--error-dark)';
                                                 hoverBgColor = '#fad2cf';
-                                              } else if (!assignedNames) {
+                                              } else if (!hasAssignments) {
                                                 bgColor = '#fef7e0';
                                                 textColor = '#855000';
                                                 hoverBgColor = '#feebb3';
@@ -1575,24 +1567,45 @@ const Exhibitors = () => {
                                                   }}
                                                 >
                                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                                                    <span style={{ fontWeight: '800', fontSize: '11px', whiteSpace: 'nowrap', opacity: 0.9 }}>
+                                                    <span style={{ fontWeight: '800', fontSize: '12px', whiteSpace: 'nowrap', opacity: 0.9 }}>
                                                       {slot.startTime}
                                                     </span>
-                                                    <span style={{ fontSize: '10px', opacity: 0.8, fontStyle: 'italic', maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    <span style={{ fontSize: '11px', opacity: 0.8, fontStyle: 'italic', maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                       {slot.location}
                                                     </span>
                                                   </Box>
-                                                  <span style={{
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                    width: '100%',
-                                                    fontSize: '11.5px',
-                                                    fontWeight: '700',
-                                                    textAlign: 'left'
-                                                  }} title={assignedNames || 'Sin asignar'}>
-                                                    {isCancelled ? 'Suspendido' : (assignedNames || 'Sin asignar')}
-                                                  </span>
+                                                  
+                                                  {isCancelled ? (
+                                                    <span style={{ fontSize: '12px', fontWeight: '700', textAlign: 'left', color: 'var(--error-dark)' }}>
+                                                      Suspendido
+                                                    </span>
+                                                  ) : !hasAssignments ? (
+                                                    <span style={{ fontSize: '12px', fontWeight: '700', textAlign: 'left', color: '#855000' }}>
+                                                      Sin asignar
+                                                    </span>
+                                                  ) : (
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', mt: '3px', width: '100%' }}>
+                                                      {slot.assignments
+                                                        .map((ass) => getBrotherDisplayName(ass.person))
+                                                        .filter(Boolean)
+                                                        .map((fullName, assIdx) => (
+                                                          <span
+                                                            key={assIdx}
+                                                            style={{
+                                                              fontSize: '12px',
+                                                              fontWeight: '700',
+                                                              textAlign: 'left',
+                                                              lineHeight: '1.25',
+                                                              wordBreak: 'break-word',
+                                                              display: 'block',
+                                                              width: '100%'
+                                                            }}
+                                                          >
+                                                            {fullName}
+                                                          </span>
+                                                        ))}
+                                                    </Box>
+                                                  )}
                                                 </Box>
                                               );
                                             })
@@ -1878,7 +1891,7 @@ const Exhibitors = () => {
                     <Button
                       variant="contained"
                       onClick={handleAddExhibitorLocation}
-                      startIcon={<IconAdd />}
+                      startIcon={<IconAdd color="var(--always-white)" />}
                       sx={{
                         backgroundColor: 'var(--accent-main)',
                         color: 'var(--always-white)',
@@ -1983,14 +1996,15 @@ const Exhibitors = () => {
                         Define los turnos de exhibidores de la congregación con sus días, horarios, y ubicaciones asociadas.
                       </Typography>
                     </Box>
-                    <Button
+                     <Button
                       variant="contained"
                       onClick={() => handleOpenTurnConfig()}
-                      startIcon={<IconAdd />}
+                      startIcon={<IconAdd color="var(--always-white)" />}
                       sx={{
                         textTransform: 'none',
                         fontWeight: '700',
                         backgroundColor: 'var(--accent-main)',
+                        color: 'var(--always-white)',
                         borderRadius: 'var(--radius-m)',
                         boxShadow: 'none',
                         '&:hover': {
@@ -1999,7 +2013,7 @@ const Exhibitors = () => {
                         }
                       }}
                     >
-                      Añadir Turno
+                      Añadir turno
                     </Button>
                   </Box>
 
@@ -2172,7 +2186,7 @@ const Exhibitors = () => {
                     </Typography>
                   </Box>
 
-                  {enabledExhibitorBrothers.length === 0 ? (
+                  {enabledExhibitorBrothers.filter((bro) => bro.person_data.male?.value === true).length === 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
@@ -2188,7 +2202,7 @@ const Exhibitors = () => {
                     >
                       <IconInfo color="var(--accent-main)" />
                       <Typography style={{ fontSize: '13.5px', color: 'var(--accent-dark)', fontWeight: '600' }}>
-                        No hay hermanos habilitados con el tick &quot;Exhibidores&quot; en sus perfiles personales.
+                        No hay hermanos varones habilitados con el tick &quot;Exhibidores&quot; en sus perfiles personales.
                       </Typography>
                     </Box>
                   ) : (
@@ -2200,7 +2214,7 @@ const Exhibitors = () => {
                         width: '100%',
                       }}
                     >
-                      {enabledExhibitorBrothers.map((bro) => {
+                      {enabledExhibitorBrothers.filter((bro) => bro.person_data.male?.value === true).map((bro) => {
                         const isResponsible = settings?.responsibles?.includes(bro.person_uid) || false;
                         const name = personGetDisplayName(bro, displayNameEnabled, fullnameOption);
                         const initial = name.trim().charAt(0).toUpperCase();
@@ -2363,16 +2377,21 @@ const Exhibitors = () => {
                                       {[0, 1, 2].map((idx) => {
                                         const assignment = turnAssignments[idx];
                                         const currentVal = assignment?.personUid || '';
-                                        const isResp = assignment?.isResponsible || false;
+                                        const labelText = idx === 0 ? 'Posición 1 (Responsable de turno)' : `Posición ${idx + 1}`;
+
+                                        // Filter candidates: Posición 1 is only for configured responsibles
+                                        const candidates = idx === 0
+                                          ? enabledExhibitorBrothers.filter((bro) => settings?.responsibles?.includes(bro.person_uid))
+                                          : enabledExhibitorBrothers;
 
                                         return (
                                           <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '8px', p: '12px', border: '1px solid var(--accent-150)', borderRadius: 'var(--radius-m)', backgroundColor: 'var(--accent-50)' }}>
                                             <Typography style={{ fontWeight: '800', fontSize: '11px', color: 'var(--accent-main)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                              Posición {idx + 1}
+                                              {labelText}
                                             </Typography>
                                             <Select
                                               value={currentVal}
-                                              onChange={(e) => handleFixedAssignmentChange(turn.id, day, idx, e.target.value, isResp)}
+                                              onChange={(e) => handleFixedAssignmentChange(turn.id, day, idx, e.target.value)}
                                               size="small"
                                               displayEmpty
                                               fullWidth
@@ -2384,7 +2403,7 @@ const Exhibitors = () => {
                                               <MenuItem value="">
                                                 <em>Vacío / sin asignar</em>
                                               </MenuItem>
-                                              {enabledExhibitorBrothers.map((bro) => {
+                                              {candidates.map((bro) => {
                                                 const name = personGetDisplayName(bro, displayNameEnabled, fullnameOption);
                                                 return (
                                                   <MenuItem key={bro.person_uid} value={bro.person_uid}>
@@ -2393,20 +2412,6 @@ const Exhibitors = () => {
                                                 );
                                               })}
                                             </Select>
-
-                                            {currentVal !== '' && (
-                                              <FormControlLabel
-                                                control={
-                                                  <Switch
-                                                    checked={isResp}
-                                                    onChange={(e) => handleFixedAssignmentChange(turn.id, day, idx, currentVal, e.target.checked)}
-                                                    size="small"
-                                                  />
-                                                }
-                                                label="¿Es responsable?"
-                                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '11px', fontWeight: '700', color: 'var(--grey-600)' }, mt: '4px' }}
-                                              />
-                                            )}
                                           </Box>
                                         );
                                       })}
@@ -2636,7 +2641,12 @@ const Exhibitors = () => {
               {/* Asignación de 3 Hermanos */}
               {[0, 1, 2].map((idx) => {
                 const currentVal = editDialog.assignments[idx]?.person || '';
-                const isResp = editDialog.assignments[idx]?.isResponsible || false;
+                const labelText = idx === 0 ? 'Posición 1 (Responsable de turno)' : `Posición ${idx + 1}`;
+
+                // Filter candidates: Posición 1 is only for configured responsibles
+                const candidates = idx === 0
+                  ? enabledExhibitorBrothers.filter((bro) => settings?.responsibles?.includes(bro.person_uid))
+                  : enabledExhibitorBrothers;
 
                 // Filtrar hermanos recomendados (los que tienen este turno en su disponibilidad de preferencia para este día)
                 const recommended = [];
@@ -2648,7 +2658,7 @@ const Exhibitors = () => {
                 const dayOfWeek = dateObj.getDay();
                 const dayLabel = weekdaysOrder[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
 
-                for (const bro of enabledExhibitorBrothers) {
+                for (const bro of candidates) {
                   const pref = settings?.availability?.[bro.person_uid] || [];
                   const matchesSpecific = pref.includes(`${editDialog.turnId}_${dayLabel}`);
                   const matchesFallback = pref.includes(editDialog.turnId);
@@ -2663,12 +2673,12 @@ const Exhibitors = () => {
                 return (
                   <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '6px', borderBottom: '1px solid var(--accent-150)', pb: '12px' }}>
                     <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--grey-600)' }}>
-                      Publicador {idx + 1}
+                      {labelText}
                     </Typography>
 
                     <Select
                       value={currentVal}
-                      onChange={(e) => handleAssignmentChange(idx, 'person', e.target.value)}
+                      onChange={(e) => handleAssignmentChange(idx, e.target.value)}
                       size="small"
                       displayEmpty
                       fullWidth
@@ -2703,19 +2713,6 @@ const Exhibitors = () => {
                         );
                       })}
                     </Select>
-
-                    {currentVal !== '' && (
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={isResp}
-                            onChange={(e) => handleAssignmentChange(idx, 'isResponsible', e.target.checked)}
-                          />
-                        }
-                        label="¿Es responsable del turno?"
-                        sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px', fontWeight: '600' } }}
-                      />
-                    )}
                   </Box>
                 );
               })}
@@ -2769,11 +2766,11 @@ const Exhibitors = () => {
         PaperProps={{ style: { borderRadius: 'var(--radius-l)' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--accent-200)', pb: '12px' }}>
-          {turnConfigDialog.id ? 'Editar Turno Global' : 'Crear Turno Global'}
+          {turnConfigDialog.id ? 'Editar turno global' : 'Crear turno global'}
         </DialogTitle>
         <DialogContent sx={{ mt: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Días de la semana */}
-          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Días Aplicables</Typography>
+          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Días aplicables</Typography>
           <FormGroup sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
             {weekdaysOrder.map((day) => {
               const idx = weekdaysOrder.indexOf(day);
@@ -2804,7 +2801,7 @@ const Exhibitors = () => {
           {/* Horarios */}
           <Box sx={{ display: 'flex', gap: '16px' }}>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora Inicio</Typography>
+              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora de inicio</Typography>
               <TextField
                 type="time"
                 value={turnConfigDialog.startTime}
@@ -2814,7 +2811,7 @@ const Exhibitors = () => {
               />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora Fin</Typography>
+              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora de finalización</Typography>
               <TextField
                 type="time"
                 value={turnConfigDialog.endTime}
@@ -2826,7 +2823,7 @@ const Exhibitors = () => {
           </Box>
 
           {/* Ubicaciones del Turno (Checkboxes de Ubicaciones Globales) */}
-          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Ubicaciones Habilitadas para el Turno</Typography>
+          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Ubicaciones habilitadas para el turno</Typography>
           {(!settings?.locations || settings.locations.length === 0) ? (
             <Alert severity="warning" sx={{ borderRadius: 'var(--radius-m)', fontWeight: '600', mb: '8px' }}>
               No hay ubicaciones configuradas globales. Añade una rápidamente con el formulario inferior.
@@ -2893,7 +2890,7 @@ const Exhibitors = () => {
               variant="outlined"
               onClick={handleQuickAddLocation}
               size="small"
-              startIcon={<IconAdd />}
+              startIcon={<IconAdd color="var(--accent-main)" />}
               sx={{
                 borderRadius: 'var(--radius-m)',
                 textTransform: 'none',
@@ -2943,12 +2940,13 @@ const Exhibitors = () => {
             variant="contained"
             sx={{
               backgroundColor: 'var(--accent-main)',
+              color: 'var(--always-white)',
               fontWeight: '700',
               textTransform: 'none',
               borderRadius: 'var(--radius-m)',
             }}
           >
-            Guardar Turno
+            Guardar turno
           </Button>
         </DialogActions>
       </Dialog>
