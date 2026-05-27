@@ -85,6 +85,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
     loadSongs,
     loadDeptSchedules,
     loadServiceOutings,
+    loadExhibitors,
     loadAssignmentsHistory,
   ]);
 
