@@ -1,6 +1,12 @@
 import appDb from '@db/appDb';
 import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
 
+const triggerSync = () => {
+  import('@services/worker/backupWorker').then(
+    ({ default: worker }) => worker.postMessage('startWorker')
+  );
+};
+
 const dbUpdateServiceOutingsMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
 
@@ -12,6 +18,7 @@ const dbUpdateServiceOutingsMetadata = async () => {
   };
 
   await appDb.metadata.put(metadata);
+  triggerSync();
 };
 
 export const dbServiceOutingsGetSettings = async (): Promise<ServiceOutingSettingsType> => {
