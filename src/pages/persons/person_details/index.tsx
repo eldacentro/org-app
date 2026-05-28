@@ -23,9 +23,9 @@ import PersonDepartments from '@features/persons/departments';
 const PersonDetails = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, laptopUp } = useBreakpoints();
+  const { desktopUp } = useBreakpoints();
 
-  const { isPersonEditor, isAdmin } = useCurrentUser();
+  const { isAdmin } = useCurrentUser();
 
   const { isNewPerson, isBaptized, male, isConnected } = usePersonDetails();
 
