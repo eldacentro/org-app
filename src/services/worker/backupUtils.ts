@@ -1441,7 +1441,7 @@ const dbRestoreServiceOutings = async (
 
     const localData = await appDb.service_outings.toArray();
     const validRemoteData = remoteData.filter((record) =>
-      isMondayDate(record.weekOf)
+      isMondayDate(record.weekOf) || record.weekOf === 'settings'
     );
 
     const dataToUpdate: ServiceOutingWeekType[] = [];
@@ -1466,7 +1466,7 @@ const dbRestoreServiceOutings = async (
     }
 
     const invalidLocalData = localData.filter(
-      (record) => !isMondayDate(record.weekOf)
+      (record) => !isMondayDate(record.weekOf) && record.weekOf !== 'settings'
     );
 
     if (invalidLocalData.length > 0) {
@@ -1501,7 +1501,7 @@ const dbRestoreExhibitors = async (
 
     const localData = await appDb.exhibitors.toArray();
     const validRemoteData = remoteData.filter((record) =>
-      isMondayDate(record.weekOf)
+      isMondayDate(record.weekOf) || record.weekOf === 'settings'
     );
 
     const dataToUpdate: ExhibitorWeekType[] = [];
@@ -1526,7 +1526,7 @@ const dbRestoreExhibitors = async (
     }
 
     const invalidLocalData = localData.filter(
-      (record) => !isMondayDate(record.weekOf)
+      (record) => !isMondayDate(record.weekOf) && record.weekOf !== 'settings'
     );
 
     if (invalidLocalData.length > 0) {
