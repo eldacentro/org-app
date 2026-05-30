@@ -4,7 +4,7 @@ This file holds the source of the truth from the table "speakers_congregations".
 
 import { atom } from 'jotai';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
-import { congNameState } from './settings';
+import { congNameState, congNumberState } from './settings';
 
 export const speakersCongregationsState = atom<SpeakersCongregationsType[]>([]);
 
@@ -17,12 +17,31 @@ export const speakersCongregationsActiveState = atom((get) => {
 export const incomingCongSpeakersState = atom((get) => {
   const congregations = get(speakersCongregationsActiveState);
   const congName = get(congNameState);
-  const congId = congregations.find(
-    (record) => record.cong_data.cong_name.value === congName
-  )?.id;
+  const congNumber = get(congNumberState);
+
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+
+  const normalizedHomeName = normalize(congName);
+
+  const localCong = congregations.find((record) => {
+    const recordName = normalize(record.cong_data.cong_name.value);
+    const recordNumber = String(record.cong_data.cong_number.value || '').trim();
+    return (
+      (recordName !== '' && recordName === normalizedHomeName) ||
+      (recordNumber !== '' && recordNumber === congNumber)
+    );
+  });
+
+  const localCongId = localCong?.id;
 
   const incomingCongregations = congregations.filter(
-    (record) => record.id !== congId
+    (record) => record.id !== localCongId
   );
 
   return incomingCongregations.sort((a, b) =>

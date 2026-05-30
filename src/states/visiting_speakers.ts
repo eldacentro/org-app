@@ -23,10 +23,28 @@ export const myCongSpeakersState = atom((get) => {
 
   const congregations = get(speakersCongregationsActiveState);
   const congName = get(congNameState);
+  const congNumber = get(congNumberState);
 
-  const congId = congregations.find(
-    (record) => record.cong_data.cong_name.value === congName
-  )?.id;
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+
+  const normalizedHomeName = normalize(congName);
+
+  const localCong = congregations.find((record) => {
+    const recordName = normalize(record.cong_data.cong_name.value);
+    const recordNumber = String(record.cong_data.cong_number.value || '').trim();
+    return (
+      (recordName !== '' && recordName === normalizedHomeName) ||
+      (recordNumber !== '' && recordNumber === congNumber)
+    );
+  });
+
+  const congId = localCong?.id;
 
   const outgoingSpeakers = speakers.filter(
     (record) => record.speaker_data.cong_id === congId
