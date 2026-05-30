@@ -5,7 +5,6 @@ import { setPersonCurrentDetails } from '@services/states/persons';
 import { useCurrentUser } from '@hooks/index';
 import Checkbox from '@components/checkbox';
 import Typography from '@components/typography';
-import { dbPersonsSave } from '@services/dexie/persons';
 
 const PersonPredicacion = () => {
   const { isPersonEditor } = useCurrentUser();
@@ -13,30 +12,22 @@ const PersonPredicacion = () => {
 
   const male = person.person_data.male.value;
 
-  const handleToggleSalidas = async (_: unknown, checked: boolean) => {
+  const handleToggleSalidas = (_: unknown, checked: boolean) => {
     const newPerson = structuredClone(person);
     newPerson.person_data.predicacion_salidas = {
       value: checked,
       updatedAt: new Date().toISOString(),
     };
     setPersonCurrentDetails(newPerson);
-    await dbPersonsSave(newPerson);
-    import('@services/worker/backupWorker').then(
-      ({ default: worker }) => worker.postMessage('startWorker')
-    );
   };
 
-  const handleToggleExhibidores = async (_: unknown, checked: boolean) => {
+  const handleToggleExhibidores = (_: unknown, checked: boolean) => {
     const newPerson = structuredClone(person);
     newPerson.person_data.predicacion_exhibidores = {
       value: checked,
       updatedAt: new Date().toISOString(),
     };
     setPersonCurrentDetails(newPerson);
-    await dbPersonsSave(newPerson);
-    import('@services/worker/backupWorker').then(
-      ({ default: worker }) => worker.postMessage('startWorker')
-    );
   };
 
   return (
