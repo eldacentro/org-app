@@ -45,6 +45,17 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
     initialSetupOpen,
   } = useRootLayout();
 
+  if (isSupported && isAppLoad) {
+    return (
+      <WebWorkerWrapper>
+        <AppModalWrapper>
+          <AppUpdater updatePwa={updatePwa} />
+          {isTest ? <DemoStartup /> : <Startup />}
+        </AppModalWrapper>
+      </WebWorkerWrapper>
+    );
+  }
+
   return (
     <WebWorkerWrapper>
       <AppModalWrapper>
@@ -81,30 +92,24 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               {isOpenAbout && <About updatePwa={updatePwa} />}
               {isOpenSupport && <Support />}
 
-              {isAppLoad && !isTest && <Startup />}
+              <Suspense
+                fallback={
+                  isDashboard ? (
+                    <DashboardSkeletonLoader />
+                  ) : (
+                    <WaitingLoader type="lottie" />
+                  )
+                }
+              >
+                {isTest && <DemoNotice />}
+                {!isTest && initialSetupOpen && <InitialSetup />}
+                {isPublisher && <AppReminders />}
 
-              {isAppLoad && isTest && <DemoStartup />}
-
-              {!isAppLoad && (
-                <Suspense
-                  fallback={
-                    isDashboard ? (
-                      <DashboardSkeletonLoader />
-                    ) : (
-                      <WaitingLoader type="lottie" />
-                    )
-                  }
-                >
-                  {isTest && <DemoNotice />}
-{!isTest && initialSetupOpen && <InitialSetup />}
-{isPublisher && <AppReminders />}
-
-                  <Box sx={{ marginBottom: '32px' }}>
-                    <MyAssignments />
-                    <Outlet />
-                  </Box>
-                </Suspense>
-              )}
+                <Box sx={{ marginBottom: '32px' }}>
+                  <MyAssignments />
+                  <Outlet />
+                </Box>
+              </Suspense>
             </>
           )}
         </Container>

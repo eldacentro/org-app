@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { IconLogo } from '@components/icons';
-import Typography from '@components/typography';
 import AccountChooser from '@features/app_start/shared/account_chooser';
 import PocketStartup from '@features/app_start/pocket/startup';
 import VipStartup from '@features/app_start/vip/startup';
@@ -34,11 +33,14 @@ const Startup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minHeight: '75vh',
-                  width: '100%',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  minHeight: '100vh',
+                  width: '100vw',
+                  zIndex: 1300,
                   padding: { mobile: '16px', tablet: '24px' },
                   background: 'radial-gradient(circle at 50% 50%, var(--accent-150) 0%, var(--accent-100) 100%)',
-                  borderRadius: 'var(--radius-xxl)',
                 }}
               >
                 <Box
@@ -55,12 +57,9 @@ const Startup = () => {
                     gap: '24px',
                   }}
                 >
-                  {/* Branded Logo Header */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  {/* Branded Logo Icon Only */}
+                  <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
                     <IconLogo width={80} height={80} sx={{ color: 'var(--accent-main)' }} />
-                    <Typography className="h2" color="var(--accent-main)" sx={{ fontWeight: 800, letterSpacing: '0.5px' }}>
-                      Elda Centro
-                    </Typography>
                   </Box>
 
                   {isAccountChoose && <AccountChooser />}

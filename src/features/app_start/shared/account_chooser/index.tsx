@@ -1,14 +1,9 @@
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { IconGoogle } from '@icons/index';
-import { useAppTranslation } from '@hooks/index';
 import useAccountChooser from './useAccountChooser';
-import AccountType from './account_type';
-import Markup from '@components/text_markup';
 import Typography from '@components/typography';
 
 const AccountChooser = () => {
-  const { t } = useAppTranslation();
-
   const { handleChooseGoogle } = useAccountChooser();
 
   return (
@@ -16,44 +11,66 @@ const AccountChooser = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        alignItems: 'stretch',
+        textAlign: 'center',
         gap: '24px',
       }}
     >
-      <Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <Typography
           className="h1"
           color="var(--black)"
-          sx={{ marginBottom: '16px' }}
+          sx={{ fontWeight: 800, fontSize: '28px', lineHeight: 1.2 }}
         >
-          {t('tr_welcomeApp')}
+          Bienvenido a Elda Centro
         </Typography>
         <Typography
           className="body-regular"
-          color="var(--grey-400)"
-          sx={{ marginBottom: '32px' }}
+          sx={{ fontSize: '15px', color: 'var(--grey-350)', margin: '0 auto', maxWidth: '380px' }}
         >
-          {t('tr_selectAccount')}
+          Inicia sesión con tu cuenta para acceder a los programas, asignaciones y predicación.
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <AccountType
-            startIcon={
-              <IconGoogle
-                width={32}
-                height={32}
-              />
-            }
-            text={t('tr_oauthGoogle')}
-            onClick={handleChooseGoogle}
-          />
-        </Box>
       </Box>
 
-      <Markup
-        content={t('tr_oauthAccept')}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+        <Button
+          variant="outlined"
+          onClick={handleChooseGoogle}
+          startIcon={<IconGoogle width={24} height={24} />}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            padding: '14px 24px',
+            borderRadius: 'var(--radius-l)',
+            border: '1px solid var(--accent-300)',
+            background: 'var(--white)',
+            textTransform: 'none',
+            fontFamily: "'Figtree', sans-serif",
+            fontWeight: 600,
+            fontSize: '16px',
+            color: 'var(--black)',
+            boxShadow: 'var(--btn-shadow)',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              border: '1px solid var(--accent-main)',
+              background: 'var(--accent-100)',
+              transform: 'translateY(-1px)',
+              boxShadow: 'var(--hover-shadow)',
+            },
+          }}
+        >
+          Continuar con Google
+        </Button>
+      </Box>
+
+      <Typography
         className="body-small-regular"
-        color="var(--grey-400)"
-      />
+        sx={{ fontSize: '12px', marginTop: '8px', color: 'var(--grey-300)' }}
+      >
+        ¿No tienes acceso? Habla con un anciano
+      </Typography>
     </Box>
   );
 };
