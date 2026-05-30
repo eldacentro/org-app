@@ -303,6 +303,9 @@ const useContainer = () => {
               : false;
             if (isDeleted) return false;
 
+            const requestId = record.cong_data.request_id || '';
+            if (requestId === '') return false;
+
             const recordCircuit = record.cong_data.cong_circuit
               ? typeof record.cong_data.cong_circuit === 'object'
                 ? (record.cong_data.cong_circuit as { value: string }).value
