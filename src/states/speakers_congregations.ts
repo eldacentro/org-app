@@ -19,19 +19,30 @@ export const incomingCongSpeakersState = atom((get) => {
   const congName = get(congNameState);
   const congNumber = get(congNumberState);
 
-  const normalize = (str: string) =>
-    str
+  const normalize = (str: unknown) => {
+    if (!str || typeof str !== 'string') return '';
+    return str
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]/g, '')
       .trim();
+  };
 
   const normalizedHomeName = normalize(congName);
 
   const localCong = congregations.find((record) => {
-    const recordName = normalize(record.cong_data.cong_name.value);
-    const recordNumber = String(record.cong_data.cong_number.value || '').trim();
+    if (!record.cong_data) return false;
+    const nameVal = typeof record.cong_data.cong_name === 'object'
+      ? record.cong_data.cong_name?.value
+      : record.cong_data.cong_name;
+    const numVal = typeof record.cong_data.cong_number === 'object'
+      ? record.cong_data.cong_number?.value
+      : record.cong_data.cong_number;
+
+    const recordName = normalize(nameVal);
+    const recordNumber = String(numVal || '').trim();
+    
     return (
       (recordName !== '' && recordName === normalizedHomeName) ||
       (recordNumber !== '' && recordNumber === congNumber)
@@ -44,9 +55,13 @@ export const incomingCongSpeakersState = atom((get) => {
     (record) => record.id !== localCongId
   );
 
-  return incomingCongregations.sort((a, b) =>
-    a.cong_data.cong_name.value.localeCompare(b.cong_data.cong_name.value)
-  );
+  return incomingCongregations.sort((a, b) => {
+    const aNameVal = typeof a.cong_data?.cong_name === 'object' ? a.cong_data.cong_name?.value : a.cong_data?.cong_name;
+    const bNameVal = typeof b.cong_data?.cong_name === 'object' ? b.cong_data.cong_name?.value : b.cong_data?.cong_name;
+    const aName = String(aNameVal || '');
+    const bName = String(bNameVal || '');
+    return aName.localeCompare(bName);
+  });
 });
 
 export const isAddingCongregationState = atom(false);
