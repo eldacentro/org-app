@@ -22,10 +22,6 @@ const useAccountChooser = () => {
       setIsAuthProcessing(true);
       hideMessage();
 
-      // Set account type to vip as it's the unified flow now
-      await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
-      setIsUserAccountCreated(false);
-
       await setAuthPersistence();
 
       const result = await userSignInPopup(authProvider.Google);
@@ -34,6 +30,10 @@ const useAccountChooser = () => {
         setIsAuthProcessing(false);
         return;
       }
+
+      // Set account type to vip as it's the unified flow now (after successful login)
+      await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+      setIsUserAccountCreated(false);
 
       await handlePostLogin();
       setIsAccountChoose(false);
