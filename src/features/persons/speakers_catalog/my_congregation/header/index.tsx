@@ -3,7 +3,6 @@ import {
   IconCheck,
   IconEdit,
   IconExpand,
-  IconSharedWith,
 } from '@components/icons';
 import {
   useAppTranslation,
@@ -13,7 +12,6 @@ import {
 import { OutgoingSpeakersHeaderType } from './index.types';
 import useHeader from './useHeader';
 import Typography from '@components/typography';
-import OutgoingSpeakersAccess from '../congregations_access';
 import Tooltip from '@components/tooltip';
 
 const OutgoingSpeakersHeader = ({
@@ -30,10 +28,6 @@ const OutgoingSpeakersHeader = ({
     congName,
     congNumber,
     circuitNumber,
-    handleCloseAccess,
-    handleOpenAccess,
-    openAccess,
-    congAccountConnected,
     headerTitle,
     isGroup,
   } = useHeader();
@@ -50,10 +44,6 @@ const OutgoingSpeakersHeader = ({
         gap: '16px',
       }}
     >
-      {congAccountConnected && openAccess && (
-        <OutgoingSpeakersAccess open={openAccess} onClose={handleCloseAccess} />
-      )}
-
       <Box
         sx={{
           display: 'flex',
@@ -74,21 +64,12 @@ const OutgoingSpeakersHeader = ({
           {tablet600Down && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {isPublicTalkCoordinator && (
-                <>
-                  <Tooltip title={t('tr_edit')} delaySpeed="slow">
-                    <IconButton onClick={onEditModeChange}>
-                      {!editMode && <IconEdit color="var(--accent-main)" />}
-                      {editMode && <IconCheck color="var(--accent-main)" />}
-                    </IconButton>
-                  </Tooltip>
-                  {congAccountConnected && (
-                    <Tooltip title={t('tr_whoHasAccess')} delaySpeed="slow">
-                      <IconButton onClick={handleOpenAccess}>
-                        <IconSharedWith color="var(--accent-main)" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </>
+                <Tooltip title={t('tr_edit')} delaySpeed="slow">
+                  <IconButton onClick={onEditModeChange}>
+                    {!editMode && <IconEdit color="var(--accent-main)" />}
+                    {editMode && <IconCheck color="var(--accent-main)" />}
+                  </IconButton>
+                </Tooltip>
               )}
 
               <IconButton onClick={onExpandChange}>
@@ -150,21 +131,12 @@ const OutgoingSpeakersHeader = ({
       {!tablet600Down && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isPublicTalkCoordinator && (
-            <>
-              <Tooltip title={t('tr_edit')} delaySpeed="slow">
-                <IconButton onClick={onEditModeChange}>
-                  {!editMode && <IconEdit color="var(--accent-main)" />}
-                  {editMode && <IconCheck color="var(--accent-main)" />}
-                </IconButton>
-              </Tooltip>
-              {congAccountConnected && (
-                <Tooltip title={t('tr_whoHasAccess')} delaySpeed="slow">
-                  <IconButton onClick={handleOpenAccess}>
-                    <IconSharedWith color="var(--accent-main)" />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </>
+            <Tooltip title={t('tr_edit')} delaySpeed="slow">
+              <IconButton onClick={onEditModeChange}>
+                {!editMode && <IconEdit color="var(--accent-main)" />}
+                {editMode && <IconCheck color="var(--accent-main)" />}
+              </IconButton>
+            </Tooltip>
           )}
 
           <IconButton onClick={onExpandChange}>

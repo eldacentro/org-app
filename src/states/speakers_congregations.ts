@@ -11,7 +11,14 @@ export const speakersCongregationsState = atom<SpeakersCongregationsType[]>([]);
 export const speakersCongregationsActiveState = atom((get) => {
   const congregations = get(speakersCongregationsState);
 
-  return congregations.filter((record) => record._deleted.value === false);
+  return congregations.filter((record) => {
+    const isDeleted = record._deleted
+      ? typeof record._deleted === 'object'
+        ? (record._deleted as { value: boolean }).value === true
+        : record._deleted === true
+      : false;
+    return !isDeleted;
+  });
 });
 
 export const incomingCongSpeakersState = atom((get) => {
