@@ -7,8 +7,7 @@ import MinistryTimer from '@features/ministry/report/ministry_timer';
 import IconMinistryReport from '@icons/IconMinistryReport';
 import IconPioneerForm from '@icons/IconPioneerForm';
 import IconStatsYear from '@icons/IconStatsYear';
-import IconAutoStories from '@icons/IconAutoStories';
-import IconRecordVoiceOver from '@icons/IconRecordVoiceOver';
+import { IconInTerritory, IconCart } from '@icons/index';
 
 const MinistryCard = () => {
   const { t } = useAppTranslation();
@@ -45,14 +44,14 @@ const MinistryCard = () => {
         <>
           <ListItem disablePadding>
             <DashboardMenu
-              icon={<IconRecordVoiceOver color="var(--black)" />}
+              icon={<IconInTerritory color="var(--black)" />}
               primaryText={t('tr_serviceOutings', 'Salidas de predicación')}
               path="/predicacion-salidas"
             />
           </ListItem>
           <ListItem disablePadding>
             <DashboardMenu
-              icon={<IconAutoStories color="var(--black)" />}
+              icon={<IconCart color="var(--black)" />}
               primaryText="Exhibidores"
               path="/exhibitors"
             />

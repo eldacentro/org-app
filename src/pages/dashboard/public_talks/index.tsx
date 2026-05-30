@@ -1,5 +1,5 @@
 import { ListItem } from '@mui/material';
-import { IconPodium, IconVisitingSpeaker, IconOutgoindSpeaker } from '@icons/index';
+import { IconPodium, IconVisitingSpeaker } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import useSharedHook from '../useSharedHook';
 import DashboardCard from '@features/dashboard/card';
@@ -35,7 +35,7 @@ const PublicTalksCard = () => {
       {(isWeekendEditor || isPublicTalkCoordinator) && (
         <ListItem disablePadding>
           <DashboardMenu
-            icon={<IconOutgoindSpeaker color="var(--black)" />}
+            icon={<IconVisitingSpeaker color="var(--black)" />}
             primaryText="Oradores salientes"
             path="/outgoing-speakers"
           />

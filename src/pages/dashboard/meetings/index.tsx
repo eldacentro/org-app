@@ -4,7 +4,7 @@ import {
   IconCalendarWeek,
   IconDiamond,
   IconTalk,
-  IconMicrophone,
+  IconDuties,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { MeetingsCardProps } from './index.types';
@@ -66,7 +66,7 @@ const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
       {isMidweekEditor && (
         <ListItem disablePadding>
           <DashboardMenu
-            icon={<IconMicrophone color="var(--black)" />}
+            icon={<IconDuties color="var(--black)" />}
             primaryText={t('tr_departments', 'Departamentos')}
             path="/departments-schedule"
           />

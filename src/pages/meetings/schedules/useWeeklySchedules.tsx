@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { localStorageGetItem } from '@utils/common';
 import { WeeklySchedulesType } from './index.types';
@@ -14,9 +14,9 @@ const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 const useWeeklySchedules = () => {
   const { t } = useAppTranslation();
 
-  const scheduleType = useMemo(() => {
-    return localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType;
-  }, []);
+  const [scheduleType, setScheduleType] = useState<WeeklySchedulesType>(() => {
+    return (localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType) || 'midweek';
+  });
 
   const { isElder, isAdmin } = useCurrentUser();
 
@@ -75,9 +75,10 @@ const useWeeklySchedules = () => {
   }, [scheduleType, tabs]);
 
   const handleScheduleChange = (index: number) => {
-    const type = tabs[index]?.id as WeeklySchedulesType;
+    const type = (tabs[index]?.id as WeeklySchedulesType) ?? 'midweek';
 
-    localStorage.setItem(LOCALSTORAGE_KEY, type ?? 'midweek');
+    localStorage.setItem(LOCALSTORAGE_KEY, type);
+    setScheduleType(type);
   };
 
   return { value, handleScheduleChange, tabs };
