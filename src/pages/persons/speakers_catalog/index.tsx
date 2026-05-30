@@ -1,12 +1,13 @@
-import { useRef, ChangeEvent } from 'react';
+import { useRef, ChangeEvent, useState, MouseEvent } from 'react';
 import Papa from 'papaparse';
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, Menu, MenuItem, Typography } from '@mui/material';
 import {
   IconAddCongregation,
   IconImportJson,
   IconExport,
   IconDownload,
   IconDelete,
+  IconSettings,
 } from '@components/icons';
 import { PageTitle } from '@components/index';
 import {
@@ -47,8 +48,39 @@ const SpeakersCatalog = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+
+  const handleOpenMenu = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
   const handleTriggerImport = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleImportClick = () => {
+    handleCloseMenu();
+    handleTriggerImport();
+  };
+
+  const handleExportClick = () => {
+    handleCloseMenu();
+    exportCSV();
+  };
+
+  const handleDownloadTemplateClick = () => {
+    handleCloseMenu();
+    downloadTemplate();
+  };
+
+  const handlePurgeClick = () => {
+    handleCloseMenu();
+    handlePurgeCatalog();
   };
 
   const handlePurgeCatalog = async () => {
@@ -434,35 +466,68 @@ const SpeakersCatalog = () => {
                   onChange={handleImportCSV}
                 />
 
-                <Tooltip title="VACIAR TODO EL CATÁLOGO (Físicamente)">
-                  <IconButton
-                    onClick={handlePurgeCatalog}
-                    sx={{ color: 'var(--red-main)' }}
-                  >
-                    <IconDelete width={22} height={22} />
-                  </IconButton>
-                </Tooltip>
-
-                <Tooltip title="Descargar plantilla CSV">
-                  <IconButton
-                    onClick={downloadTemplate}
-                    sx={{ color: 'var(--grey-400)' }}
-                  >
-                    <IconDownload width={20} height={20} />
-                  </IconButton>
-                </Tooltip>
-
                 <NavBarButton
-                  text="Exportar CSV"
-                  icon={<IconExport color="var(--always-white)" />}
-                  onClick={exportCSV}
+                  text="Importar / Exportar"
+                  icon={<IconSettings color="var(--always-white)" />}
+                  onClick={handleOpenMenu}
                 />
 
-                <NavBarButton
-                  text="Importar CSV"
-                  icon={<IconImportJson color="var(--always-white)" />}
-                  onClick={handleTriggerImport}
-                />
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={handleCloseMenu}
+                  sx={{
+                    marginTop: '8px',
+                    '& li': {
+                      borderBottom: '1px solid var(--accent-200)',
+                    },
+                    '& li:last-child': {
+                      borderBottom: 'none',
+                    },
+                  }}
+                  slotProps={{
+                    paper: {
+                      className: 'small-card-shadow',
+                      style: {
+                        borderRadius: 'var(--radius-l)',
+                        border: '1px solid var(--accent-200)',
+                        backgroundColor: 'var(--white)',
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem
+                    onClick={handleImportClick}
+                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <IconImportJson color="var(--black)" />
+                    <Typography>Importar CSV</Typography>
+                  </MenuItem>
+
+                  <MenuItem
+                    onClick={handleExportClick}
+                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <IconExport color="var(--black)" />
+                    <Typography>Exportar CSV</Typography>
+                  </MenuItem>
+
+                  <MenuItem
+                    onClick={handleDownloadTemplateClick}
+                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <IconDownload color="var(--black)" />
+                    <Typography>Descargar plantilla CSV</Typography>
+                  </MenuItem>
+
+                  <MenuItem
+                    onClick={handlePurgeClick}
+                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <IconDelete color="var(--red-main)" />
+                    <Typography color="var(--red-main)">Vaciar todo el catálogo</Typography>
+                  </MenuItem>
+                </Menu>
 
                 <NavBarButton
                   text={t('tr_btnAdd')}

@@ -4,11 +4,13 @@ import {
   incomingCongSpeakersState,
   isAddingCongregationState,
 } from '@states/speakers_congregations';
+import { circuitNumberState } from '@states/settings';
 
 const useOtherCongregations = () => {
   const [isAdding, setIsAdding] = useAtom(isAddingCongregationState);
 
   const incomingCongs = useAtomValue(incomingCongSpeakersState);
+  const circuitNumber = useAtomValue(circuitNumberState);
 
   const [currentExpanded, setCurrenExpanded] = useState('');
 
@@ -16,8 +18,17 @@ const useOtherCongregations = () => {
 
   const handleSetExpanded = (value: string) => setCurrenExpanded(value);
 
+  const circuitCongs = incomingCongs.filter(
+    (c) => c.cong_data.cong_circuit.value === circuitNumber
+  );
+
+  const otherCongs = incomingCongs.filter(
+    (c) => c.cong_data.cong_circuit.value !== circuitNumber
+  );
+
   return {
-    incomingCongs,
+    circuitCongs,
+    otherCongs,
     isAdding,
     handleIsAddingClose,
     currentExpanded,

@@ -4,13 +4,13 @@ import useOtherCongregations from './useOtherCongregations';
 import CongregationAdd from './congregation_add';
 import IncomingCongregation from './congregation_item';
 import Typography from '@components/typography';
-import NoCongregations from './no_congregations';
 
 const OtherCongregations = () => {
   const { t } = useAppTranslation();
 
   const {
-    incomingCongs,
+    circuitCongs,
+    otherCongs,
     isAdding,
     handleIsAddingClose,
     currentExpanded,
@@ -24,26 +24,66 @@ const OtherCongregations = () => {
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '24px',
       }}
     >
       {isAdding && (
         <CongregationAdd open={isAdding} onClose={handleIsAddingClose} />
       )}
 
-      <Typography className="h2">{t('tr_otherCongregations')}</Typography>
+      {/* Tu Circuito Section */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Typography className="h2">Tu circuito</Typography>
 
-      {incomingCongs.length === 0 && <NoCongregations />}
+        {circuitCongs.length === 0 && (
+          <Typography
+            sx={{
+              color: 'var(--grey-400)',
+              fontStyle: 'italic',
+              paddingLeft: '8px',
+            }}
+          >
+            No hay congregaciones en tu circuito.
+          </Typography>
+        )}
 
-      {incomingCongs.length > 0 &&
-        incomingCongs.map((congregation) => (
-          <IncomingCongregation
-            key={congregation.id}
-            congregation={congregation}
-            currentExpanded={currentExpanded}
-            onChangeCurrentExpanded={handleSetExpanded}
-          />
-        ))}
+        {circuitCongs.length > 0 &&
+          circuitCongs.map((congregation) => (
+            <IncomingCongregation
+              key={congregation.id}
+              congregation={congregation}
+              currentExpanded={currentExpanded}
+              onChangeCurrentExpanded={handleSetExpanded}
+            />
+          ))}
+      </Box>
+
+      {/* Otras Congregaciones Section */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Typography className="h2">{t('tr_otherCongregations')}</Typography>
+
+        {otherCongs.length === 0 && (
+          <Typography
+            sx={{
+              color: 'var(--grey-400)',
+              fontStyle: 'italic',
+              paddingLeft: '8px',
+            }}
+          >
+            No hay otras congregaciones fuera de tu circuito.
+          </Typography>
+        )}
+
+        {otherCongs.length > 0 &&
+          otherCongs.map((congregation) => (
+            <IncomingCongregation
+              key={congregation.id}
+              congregation={congregation}
+              currentExpanded={currentExpanded}
+              onChangeCurrentExpanded={handleSetExpanded}
+            />
+          ))}
+      </Box>
     </Box>
   );
 };
