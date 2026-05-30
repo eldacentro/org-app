@@ -131,6 +131,7 @@ export type AssignmentHistoryType = {
   id: string;
   weekOf: string;
   weekOfFormatted?: string;
+  actualDate?: string;
   assignment: {
     key?: AssignmentFieldType;
     code: AssignmentCode;

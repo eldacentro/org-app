@@ -123,12 +123,14 @@ const useMyAssignments = () => {
                 new Date(outing.date),
                 shortDateFormat
               ),
+              actualDate: outing.date,
               assignment: {
                 code: 0 as AssignmentHistoryType['assignment']['code'],
                 person: uid,
                 key: `OUTING_${outing.id}` as AssignmentHistoryType['assignment']['key'],
                 dataView: 'main',
-                title: `Salida de predicación (${outing.time} @ ${outing.location || 'Salón del Reino'})`,
+                title: 'Salida de predicación',
+                desc: `🕒 ${outing.time}  •  📍 ${outing.location || 'Salón del Reino'}`,
               },
             });
           }
@@ -153,9 +155,11 @@ const useMyAssignments = () => {
           ) {
             const myAss = turn.assignments?.find((a) => a.person === uid);
             if (myAss) {
-              const roleText = myAss.isResponsible ? 'Responsable' : 'Ayudante';
+              const roleTitle = myAss.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
               const turnConfig = exhibitorsSettings?.turns?.find((t) => t.id === turn.turnId);
               const timeRange = turnConfig ? `${turnConfig.startTime}-${turnConfig.endTime}` : '';
+              const descText = `🕒 ${timeRange}  •  📍 ${turn.location}`;
+
               results.push({
                 id: `${turn.turnId}_${turn.date}`,
                 weekOf: weekDate,
@@ -163,12 +167,14 @@ const useMyAssignments = () => {
                   new Date(turn.date),
                   shortDateFormat
                 ),
+                actualDate: turn.date,
                 assignment: {
                   code: 0 as AssignmentHistoryType['assignment']['code'],
                   person: uid,
                   key: `EXHIBITOR_${turn.turnId}_${turn.date}` as AssignmentHistoryType['assignment']['key'],
                   dataView: 'main',
-                  title: `Exhibidores: ${roleText} (${timeRange} @ ${turn.location})`,
+                  title: roleTitle,
+                  desc: descText,
                 },
               });
             }

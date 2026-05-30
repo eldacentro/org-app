@@ -32,7 +32,8 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
 
   const assignmentDate = useMemo(() => {
     try {
-      return formatDate(new Date(history.weekOf), 'd');
+      const dateToUse = history.actualDate || history.weekOf;
+      return formatDate(new Date(dateToUse), 'd');
     } catch {
       return formatDate(new Date(), 'd');
     }
