@@ -23,7 +23,7 @@ import {
   dbVisitingSpeakersUpdateRemote,
   decryptVisitingSpeakers,
 } from '@services/dexie/visiting_speakers';
-import { accountTypeState } from '@states/settings';
+import { accountTypeState, circuitNumberState } from '@states/settings';
 import { decryptData, decryptObject } from '@services/encryption';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -67,6 +67,7 @@ const useContainer = () => {
   );
 
   const accountType = useAtomValue(accountTypeState);
+  const circuitNumber = useAtomValue(circuitNumberState);
   const userID = useAtomValue(userIDState);
   const FEATURE_FLAGS = useAtomValue(featureFlagsState);
   const isAppSyncing = useAtomValue(isAppDataSyncingState);
@@ -294,15 +295,29 @@ const useContainer = () => {
             data.result.remote_congregations
           );
 
-          const deleted = congregationRemotes.filter(
-            (record) =>
-              !record._deleted.value &&
-              record.cong_data.request_status !== 'pending' &&
-              !incoming.some((c) => c.cong_id === record.cong_data.cong_id)
-          );
+          const deleted = congregationRemotes.filter((record) => {
+            const isDeleted = record._deleted
+              ? typeof record._deleted === 'object'
+                ? (record._deleted as { value: boolean }).value === true
+                : record._deleted === true
+              : false;
+            if (isDeleted) return false;
+
+            const recordCircuit = record.cong_data.cong_circuit
+              ? typeof record.cong_data.cong_circuit === 'object'
+                ? (record.cong_data.cong_circuit as { value: string }).value
+                : record.cong_data.cong_circuit
+              : '';
+
+            if (recordCircuit === circuitNumber) return false;
+
+            if (record.cong_data.request_status === 'pending') return false;
+
+            return !incoming.some((c) => c.cong_id === record.cong_data.cong_id);
+          });
 
           for (const cong of deleted) {
-            await dbVisitingSpeakersClearRemote(cong.cong_data.cong_id);
+            await dbVisitingSpeakersClearRemote(cong.id);
 
             await dbSpeakersCongregationsUpdate(
               {
@@ -321,7 +336,7 @@ const useContainer = () => {
         severity: 'error',
       });
     }
-  }, [congregationRemotes, data]);
+  }, [congregationRemotes, data, circuitNumber]);
 
   const handleApplications = useCallback(async () => {
     try {
