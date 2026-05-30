@@ -844,6 +844,7 @@ const dbRestoreSpeakersCongregations = async (
     const congsToUpdate: SpeakersCongregationsType[] = [];
 
     for (const remoteCongregation of remoteCongregations) {
+      if (!remoteCongregation || !remoteCongregation.id) continue;
       const localCongregation = congregations.find(
         (record) => record.id === remoteCongregation.id
       );
@@ -894,6 +895,7 @@ const dbRestoreVisitingSpeakers = async (
     const speakersToUpdate: VisitingSpeakerType[] = [];
 
     for await (const remoteSpeaker of remoteSpeakers) {
+      if (!remoteSpeaker || !remoteSpeaker.person_uid) continue;
       const localSpeaker = speakers.find(
         (record) => record.person_uid === remoteSpeaker.person_uid
       );
@@ -1764,11 +1766,21 @@ const dbDeduplicateSpeakers = async () => {
   const groups = new Map<string, VisitingSpeakerType[]>();
 
   for (const speaker of speakers) {
+    if (!speaker._deleted || typeof speaker._deleted !== 'object' || speaker._deleted.value === undefined) {
+      continue;
+    }
     if (speaker._deleted.value) continue;
 
-    const firstName = normalize(speaker.speaker_data.person_firstname.value);
-    const lastName = normalize(speaker.speaker_data.person_lastname.value);
-    const congId = speaker.speaker_data.cong_id;
+    if (!speaker.speaker_data || typeof speaker.speaker_data !== 'object') {
+      continue;
+    }
+
+    const firstNameVal = speaker.speaker_data.person_firstname?.value || '';
+    const lastNameVal = speaker.speaker_data.person_lastname?.value || '';
+    const congId = speaker.speaker_data.cong_id || '';
+
+    const firstName = normalize(firstNameVal);
+    const lastName = normalize(lastNameVal);
     const key = `${firstName}|${lastName}|${congId}`;
 
     if (!groups.has(key)) {
@@ -1821,10 +1833,20 @@ const dbDeduplicateCongregations = async () => {
   const groups = new Map<string, SpeakersCongregationsType[]>();
 
   for (const cong of congregations) {
+    if (!cong._deleted || typeof cong._deleted !== 'object' || cong._deleted.value === undefined) {
+      continue;
+    }
     if (cong._deleted.value) continue;
 
-    const name = normalize(cong.cong_data.cong_name.value);
-    const number = normalize(cong.cong_data.cong_number.value);
+    if (!cong.cong_data || typeof cong.cong_data !== 'object') {
+      continue;
+    }
+
+    const nameVal = cong.cong_data.cong_name?.value || '';
+    const numberVal = cong.cong_data.cong_number?.value || '';
+
+    const name = normalize(nameVal);
+    const number = normalize(numberVal);
     const key = `${name}|${number}`;
 
     if (!groups.has(key)) {
