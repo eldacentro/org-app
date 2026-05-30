@@ -1,7 +1,6 @@
 import { JSX, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import { AssignmentCode } from '@definition/assignment';
 import { personsState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
 import {
@@ -10,7 +9,6 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { formatDate } from '@utils/date';
-import { BROTHER_ASSIGNMENT } from '@constants/index';
 import { AssignmentItemProps } from './index.types';
 import Badge from '@components/badge';
 
@@ -23,20 +21,6 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
   const dataView = useAtomValue(userDataViewState);
-
-  const class_name = useMemo(() => {
-    if (!history.assignment) return '';
-
-    const key = history.assignment.key;
-
-    if (key.endsWith('_A')) {
-      return t('tr_hallA');
-    }
-
-    if (key.endsWith('_B')) {
-      return t('tr_hallB');
-    }
-  }, [history.assignment, t]);
 
   const isMidweek = useMemo(() => {
     return history.assignment.key.startsWith('MM_');
@@ -57,22 +41,6 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
   const badges = useMemo(() => {
     const result: JSX.Element[] = [];
 
-    if (
-      history.assignment.dataView === 'main' &&
-      !BROTHER_ASSIGNMENT.includes(history.assignment.code) &&
-      history.assignment.code !== AssignmentCode.MM_Discussion
-    ) {
-      result.push(
-        <Badge
-          key="hallWithName"
-          text={t('tr_hallWithName', { name: class_name })}
-          color="accent"
-          size="medium"
-          centerContent
-        />
-      );
-    }
-
     if (history.assignment.dataView !== dataView) {
       result.push(
         <Badge
@@ -90,7 +58,7 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
     }
 
     return result;
-  }, [class_name, t, history.assignment, dataView]);
+  }, [t, dataView, history.assignment]);
 
   const personGetName = (value: string) => {
     const person = persons.find((record) => record.person_uid === value);

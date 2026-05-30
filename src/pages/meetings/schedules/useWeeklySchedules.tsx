@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { localStorageGetItem } from '@utils/common';
 import { WeeklySchedulesType } from './index.types';
-import { settingsState, userDataViewState } from '@states/settings';
 import MidweekContainer from '@features/meetings/weekly_schedules/midweek_container';
 import OutgoingTalks from '@features/meetings/weekly_schedules/outgoing_talks';
 import WeekendContainer from '@features/meetings/weekly_schedules/weekend_container';
@@ -20,20 +18,11 @@ const useWeeklySchedules = () => {
     return localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType;
   }, []);
 
-  const { isAppointed } = useCurrentUser();
-
-  const settings = useAtomValue(settingsState);
-  const dataView = useAtomValue(userDataViewState);
+  const { isElder, isAdmin } = useCurrentUser();
 
   const outgoingVisible = useMemo(() => {
-    if (isAppointed) return true;
-
-    const weekend = settings.cong_settings.weekend_meeting.find(
-      (record) => record.type === dataView
-    );
-
-    return weekend.outgoing_talks_schedule_public.value;
-  }, [isAppointed, settings, dataView]);
+    return isElder || isAdmin;
+  }, [isElder, isAdmin]);
 
   const tabs = useMemo(() => {
     const result = [

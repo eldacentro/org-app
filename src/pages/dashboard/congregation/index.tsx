@@ -13,7 +13,7 @@ import DashboardMenu from '@features/dashboard/menu';
 const CongregationCard = () => {
   const { t } = useAppTranslation();
 
-  const { isPublisher, isAdmin, isGroup, isPersonViewer } =
+  const { isPublisher, isAdmin, isGroup, isPersonViewer, isElder } =
     useCurrentUser();
 
   const { show_AP, AP_count } = usePersons();
@@ -45,7 +45,7 @@ const CongregationCard = () => {
       )}
 
       {/* 3. Solicitudes de precursor */}
-      {show_AP && (
+      {isElder && show_AP && (
         <ListItem disablePadding>
           <DashboardMenu
             icon={<IconApplications color="var(--black)" />}
