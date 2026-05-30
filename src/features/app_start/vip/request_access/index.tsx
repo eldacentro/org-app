@@ -3,8 +3,6 @@ import { IconAccount } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useRequestAccess from './useRequestAccess';
 import Button from '@components/button';
-import CongregationSelector from '@components/congregation_selector';
-import CountrySelector from '@components/country_selector';
 import IconLoading from '@components/icon_loading';
 import TextField from '@components/textfield';
 
@@ -16,10 +14,6 @@ const RequestAccess = () => {
     lastname,
     setFirstname,
     setLastname,
-    setCountry,
-    congregation,
-    country,
-    setCongregation,
     handleRequestAccess,
     isProcessing,
   } = useRequestAccess();
@@ -47,17 +41,8 @@ const RequestAccess = () => {
         />
       </Box>
 
-      <CountrySelector value={country} handleCountryChange={setCountry} />
-
-      {country !== null && (
-        <CongregationSelector
-          country_guid={country.countryGuid}
-          setCongregation={setCongregation}
-        />
-      )}
-
       <Button
-        disabled={!congregation}
+        disabled={firstname.trim() === '' || lastname.trim() === '' || isProcessing}
         onClick={handleRequestAccess}
         startIcon={
           isProcessing && (

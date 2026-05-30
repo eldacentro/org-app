@@ -17,9 +17,21 @@ const useRequestAccess = () => {
   const [requestSent, setRequestSent] = useState(false);
   const [firstname, setFirstname] = useState(firstnameInitial);
   const [lastname, setLastname] = useState(lastnameInitial);
-  const [country, setCountry] = useState<CountryResponseType>(null);
-  const [congregation, setCongregation] =
-    useState<CongregationResponseType>(null);
+  const [country, setCountry] = useState<CountryResponseType>({
+    countryCode: 'ES',
+    countryName: 'España',
+    countryGuid: '',
+  });
+  const [congregation, setCongregation] = useState<CongregationResponseType>({
+    congGuid: '',
+    congName: 'Elda - Centro',
+    language: '',
+    address: '',
+    circuit: '',
+    location: { lat: 0, lng: 0 },
+    midweekMeetingTime: { weekday: 0, time: '' },
+    weekendMeetingTime: { weekday: 0, time: '' },
+  });
 
   const handleRequestAccess = async () => {
     if (requestSent || isProcessing) return;

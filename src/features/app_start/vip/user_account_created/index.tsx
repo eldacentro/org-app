@@ -1,16 +1,8 @@
 import { Box, Stack } from '@mui/material';
-import { useAppTranslation } from '@hooks/index';
-import useUserAccountCreated from './useUserAccountCreated';
-import Button from '@components/button';
 import PageHeader from '@features/app_start/shared/page_header';
 import RequestAccess from '../request_access';
-import Typography from '@components/typography';
 
 const UserAccountCreated = () => {
-  const { t } = useAppTranslation();
-
-  const { handleCreateCongregation } = useUserAccountCreated();
-
   return (
     <Box
       sx={{
@@ -24,28 +16,12 @@ const UserAccountCreated = () => {
     >
       <Stack spacing="32px">
         <PageHeader
-          title={t('tr_registrationSuccess')}
-          description={t('tr_accountCreatedJoin')}
+          title="Completa tu perfil"
+          description="Por favor, introduce tu nombre y apellidos para solicitar acceso a la congregación Elda - Centro."
         />
 
         <RequestAccess />
       </Stack>
-
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          width: '100%',
-        }}
-      >
-        <Typography className="body-regular">
-          {t('tr_congregationCreateLabel')}
-        </Typography>
-        <Button variant="secondary" onClick={handleCreateCongregation}>
-          {t('tr_createCongregation')}
-        </Button>
-      </Box>
     </Box>
   );
 };
