@@ -428,6 +428,11 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
     }
   }, [isAdmin]);
 
+  useEffect(() => {
+    // Clear chunk reload occurred flag since app loaded successfully
+    window.sessionStorage.removeItem('chunk-reload-occurred');
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider

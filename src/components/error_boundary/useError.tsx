@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRouteError } from 'react-router';
 import { useAppTranslation } from '@hooks/index';
 import { userSignOut } from '@services/firebase/auth';
@@ -18,6 +19,26 @@ const useError = ({ updatePwa }: ErrorBoundaryProps) => {
   const error: { message?: string; data?: string } = useRouteError();
 
   const { t } = useAppTranslation();
+
+  useEffect(() => {
+    if (error) {
+      const errMsg = error.message || '';
+      const errData = error.data || '';
+      const isChunkError =
+        errMsg.includes('dynamically imported module') ||
+        errData.includes('dynamically imported module') ||
+        errMsg.includes('Importing a module script failed') ||
+        errData.includes('Importing a module script failed');
+
+      if (isChunkError) {
+        const hasReloaded = window.sessionStorage.getItem('chunk-reload-occurred');
+        if (!hasReloaded) {
+          window.sessionStorage.setItem('chunk-reload-occurred', 'true');
+          window.location.reload();
+        }
+      }
+    }
+  }, [error]);
 
   const handleReload = () => {
     try {
