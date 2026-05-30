@@ -20,13 +20,7 @@ import {
   setIsSetup,
   setUserMfaVerify,
 } from '@services/states/app';
-import {
-  congNameState,
-  congAccessCodeState,
-  congRoleState,
-  congMasterKeyState,
-  congIDState,
-} from '@states/settings';
+import { dbAppSettingsGet } from '@services/dexie/settings';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
 import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { apiValidateMe } from '@services/api/user';
@@ -36,7 +30,7 @@ import useFirebaseAuth from '@hooks/useFirebaseAuth';
 const useStartup = () => {
   const [searchParams] = useSearchParams();
 
-  const { isAuthenticated } = useFirebaseAuth();
+  const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const [isUserSignIn, setIsUserSignIn] = useAtom(isUserSignInState);
 
@@ -48,18 +42,13 @@ const useStartup = () => {
   const isUserMfaVerify = useAtomValue(isUserMfaVerifyState);
   const isUserAccountCreated = useAtomValue(isUserAccountCreatedState);
   const isOfflineOverride = useAtomValue(offlineOverrideState);
-  const congName = useAtomValue(congNameState);
-  const congRole = useAtomValue(congRoleState);
   const isEncryptionCodeOpen = useAtomValue(isEncryptionCodeOpenState);
-  const congAccessCode = useAtomValue(congAccessCodeState);
   const isCongCreate = useAtomValue(isCongAccountCreateState);
-  const congMasterKey = useAtomValue(congMasterKeyState);
-  const congID = useAtomValue(congIDState);
   const cookiesConsent = useAtomValue(cookiesConsentState);
   const isEmailSent = useAtomValue(isEmailSentState);
 
   const [isStart, setIsStart] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isEmailLink = searchParams.get('code') !== null;
 
@@ -79,15 +68,23 @@ const useStartup = () => {
         return;
       }
 
-      if (congName.length === 0) {
+      // Fetch the most up-to-date settings directly from Dexie to avoid Jotai asynchronous update race conditions
+      const settings = await dbAppSettingsGet();
+      const currentCongName = settings?.cong_settings?.cong_name || '';
+      const currentCongRole = settings?.user_settings?.cong_role || [];
+      const currentCongMasterKey = settings?.cong_settings?.cong_master_key || '';
+      const currentCongAccessCode = settings?.cong_settings?.cong_access_code || '';
+      const currentCongID = settings?.cong_settings?.cong_id || '';
+
+      if (currentCongName.length === 0) {
         setIsLoading(false);
         setIsStart(false);
         showSignin();
         return;
       }
 
-      const approvedRole = congRole.some((role) => APP_ROLES.includes(role));
-      const masterKeyNeeded = congRole.some((role) => VIP_ROLES.includes(role));
+      const approvedRole = currentCongRole.some((role) => APP_ROLES.includes(role));
+      const masterKeyNeeded = currentCongRole.some((role) => VIP_ROLES.includes(role));
 
       if (!approvedRole) {
         setIsLoading(false);
@@ -98,9 +95,9 @@ const useStartup = () => {
 
       const allowOpen =
         (masterKeyNeeded &&
-          congMasterKey.length > 0 &&
-          congAccessCode.length > 0) ||
-        (!masterKeyNeeded && congAccessCode.length > 0);
+          currentCongMasterKey.length > 0 &&
+          currentCongAccessCode.length > 0) ||
+        (!masterKeyNeeded && currentCongAccessCode.length > 0);
 
       if (allowOpen) {
         setIsSetup(false);
@@ -135,7 +132,7 @@ const useStartup = () => {
         return;
       }
 
-      if (congID.length > 0 && result.cong_id !== congID) {
+      if (currentCongID.length > 0 && result.cong_id !== currentCongID) {
         await handleDeleteDatabase();
         return;
       }
@@ -169,8 +166,8 @@ const useStartup = () => {
       }
 
       if (
-        (masterKeyNeeded && congMasterKey.length === 0) ||
-        congAccessCode.length === 0
+        (masterKeyNeeded && currentCongMasterKey.length === 0) ||
+        currentCongAccessCode.length === 0
       ) {
         setIsStart(false);
         setIsEncryptionCodeOpen(true);
@@ -186,12 +183,7 @@ const useStartup = () => {
   }, [
     isOfflineOverride,
     isUserAccountCreated,
-    congName,
-    congRole,
     showSignin,
-    congAccessCode,
-    congMasterKey,
-    congID,
     setCongCreate,
     setCurrentStep,
     isAuthenticated,
@@ -212,12 +204,17 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     if (!cookiesConsent) {
       setIsUserSignIn(true);
+      setIsLoading(false);
     }
 
-    if (cookiesConsent && isStart) runStartupCheck();
-  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck]);
+    if (cookiesConsent && isStart) {
+      runStartupCheck();
+    }
+  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading]);
 
   return {
     isUserSignIn,

@@ -11,11 +11,12 @@ import worker from '@services/worker/backupWorker';
 const useFirebaseAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const auth = getAuth();
 
-    onAuthStateChanged(auth, async (user: User) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User) => {
       try {
         setUser(user);
 
@@ -35,6 +36,7 @@ const useFirebaseAuth = () => {
             });
 
             setIsAuthenticated(false);
+            setLoading(false);
             return;
           }
 
@@ -49,11 +51,15 @@ const useFirebaseAuth = () => {
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     });
+
+    return () => unsubscribe();
   }, []);
 
-  return { isAuthenticated, user };
+  return { isAuthenticated, user, loading };
 };
 
 export default useFirebaseAuth;
