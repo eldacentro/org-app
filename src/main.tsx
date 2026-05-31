@@ -52,7 +52,7 @@ document
   .querySelector("meta[name='theme-color']")
   .setAttribute('content', themeColor);
 
-console.info(`Organized: version ${import.meta.env.PACKAGE_VERSION}`);
+console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
 
 const container = document.getElementById('root');
 

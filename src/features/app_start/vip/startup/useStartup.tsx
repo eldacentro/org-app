@@ -12,6 +12,7 @@ import {
   isUserMfaVerifyState,
   isUserSignInState,
   offlineOverrideState,
+  userIDState,
 } from '@states/app';
 import {
   setIsAppLoad,
@@ -37,6 +38,8 @@ const useStartup = () => {
   const setCookiesConsent = useSetAtom(cookiesConsentState);
   const setCongCreate = useSetAtom(isCongAccountCreateState);
   const setCurrentStep = useSetAtom(congregationCreateStepState);
+  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
+  const setUserID = useSetAtom(userIDState);
 
   const isEmailLinkAuth = useAtomValue(isEmailLinkAuthenticateState);
   const isUserMfaVerify = useAtomValue(isUserMfaVerifyState);
@@ -128,8 +131,20 @@ const useStartup = () => {
 
       // congregation not found -> user not authorized and delete local data
       if (status === 404) {
-        await handleDeleteDatabase();
-        return;
+        if (currentCongID.length === 0) {
+          // If the validate-me endpoint returned a user ID, set it!
+          if (result && result.id) {
+            setUserID(result.id);
+          }
+          // New user signed in but has no congregation yet -> show Request Access screen
+          setIsUserAccountCreated(true);
+          setIsLoading(false);
+          setIsUserSignIn(false);
+          return;
+        } else {
+          await handleDeleteDatabase();
+          return;
+        }
       }
 
       if (currentCongID.length > 0 && result.cong_id !== currentCongID) {
@@ -188,6 +203,8 @@ const useStartup = () => {
     setCurrentStep,
     isAuthenticated,
     setIsUserSignIn,
+    setIsUserAccountCreated,
+    setUserID,
   ]);
 
   useEffect(() => {

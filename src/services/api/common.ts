@@ -11,7 +11,7 @@ import { currentAuthUser } from '@services/firebase/auth';
 
 export const apiDefault = async (user?: User) => {
   const apiHost = store.get(apiHostState);
-  const appVersion = import.meta.env.PACKAGE_VERSION;
+  const appVersion = '3.37.1';
   const appLang = store.get(appLangState);
   const congID = store.get(congIDState);
   const isOnline = store.get(isOnlineState);
