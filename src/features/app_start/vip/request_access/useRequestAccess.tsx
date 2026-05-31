@@ -41,10 +41,12 @@ const useRequestAccess = () => {
         // Find Spain (ESP / ES / Spain / España)
         const spain = countriesData.find(
           (c) =>
-            c.countryCode.toUpperCase() === 'ESP' ||
-            c.countryCode.toUpperCase() === 'ES' ||
-            c.countryName.toLowerCase() === 'españa' ||
-            c.countryName.toLowerCase() === 'spain'
+            (c?.countryCode &&
+              (c.countryCode.toUpperCase() === 'ESP' ||
+                c.countryCode.toUpperCase() === 'ES')) ||
+            (c?.countryName &&
+              (c.countryName.toLowerCase() === 'españa' ||
+                c.countryName.toLowerCase() === 'spain'))
         );
         if (!spain) {
           setLoadError("No se pudo encontrar España en la lista de países.");
@@ -66,7 +68,7 @@ const useRequestAccess = () => {
 
         // Find the correct congregation matching "Elda Centro" or "Elda - Centro"
         const eldaCong = congsData.find(
-          (c) => c.congName.toLowerCase().includes('elda')
+          (c) => c?.congName && c.congName.toLowerCase().includes('elda')
         );
         if (!eldaCong) {
           setLoadError("No se pudo encontrar la congregación Elda - Centro.");
