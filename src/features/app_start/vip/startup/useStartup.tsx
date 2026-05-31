@@ -33,6 +33,7 @@ const useStartup = () => {
   const [searchParams] = useSearchParams();
 
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
+  const { handlePostLogin } = useAuth();
 
   const [isUserSignIn, setIsUserSignIn] = useAtom(isUserSignInState);
 
@@ -81,6 +82,10 @@ const useStartup = () => {
       const currentCongID = settings?.cong_settings?.cong_id || '';
 
       if (currentCongName.length === 0) {
+        if (isAuthenticated) {
+          await handlePostLogin();
+          return;
+        }
         setIsLoading(false);
         setIsStart(false);
         showSignin();
@@ -206,6 +211,7 @@ const useStartup = () => {
     setIsUserSignIn,
     setIsUserAccountCreated,
     setUserID,
+    handlePostLogin,
   ]);
 
   useEffect(() => {
@@ -222,39 +228,38 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
-    if (isAuthLoading) return;
+    const initStartup = async () => {
+      if (isAuthLoading) return;
 
-    if (!cookiesConsent) {
-      setIsUserSignIn(true);
-      setIsLoading(false);
-    }
+      if (!cookiesConsent) {
+        setIsUserSignIn(true);
+        setIsLoading(false);
+        return;
+      }
 
-    if (cookiesConsent && isStart) {
-      runStartupCheck();
-    }
-  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading]);
-
-  const { handlePostLogin } = useAuth();
-
-  useEffect(() => {
-    const checkRedirect = async () => {
-      try {
-        const { getAuth, getRedirectResult } = await import('firebase/auth');
-        const auth = getAuth();
-        const result = await getRedirectResult(auth);
-        
-        if (result?.user) {
-          await handlePostLogin(result.user);
+      if (isStart) {
+        try {
+          const { getAuth, getRedirectResult } = await import('firebase/auth');
+          const auth = getAuth();
+          const result = await getRedirectResult(auth);
+          
+          if (result?.user) {
+            const { dbAppSettingsUpdate } = await import('@services/dexie/settings');
+            await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+            setIsUserAccountCreated(false);
+            await handlePostLogin(result.user);
+            return;
+          }
+        } catch (error) {
+          console.error('Redirect error during startup:', error);
         }
-      } catch (error) {
-        console.error('Redirect error:', error);
+
+        await runStartupCheck();
       }
     };
-    
-    if (isAuthenticated && isStart) {
-      checkRedirect();
-    }
-  }, [isAuthenticated, isStart, handlePostLogin]);
+
+    initStartup();
+  }, [isAuthLoading, cookiesConsent, isStart, runStartupCheck, handlePostLogin]);
 
   return {
     isUserSignIn,
