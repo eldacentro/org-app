@@ -38,9 +38,13 @@ const useRequestAccess = () => {
           return;
         }
 
-        // Find Spain (ES)
+        // Find Spain (ESP / ES / Spain / España)
         const spain = countriesData.find(
-          (c) => c.countryCode === 'ES' || c.countryName.toLowerCase() === 'españa'
+          (c) =>
+            c.countryCode.toUpperCase() === 'ESP' ||
+            c.countryCode.toUpperCase() === 'ES' ||
+            c.countryName.toLowerCase() === 'españa' ||
+            c.countryName.toLowerCase() === 'spain'
         );
         if (!spain) {
           setLoadError("No se pudo encontrar España en la lista de países.");
