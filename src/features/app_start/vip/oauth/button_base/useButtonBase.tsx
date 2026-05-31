@@ -33,7 +33,7 @@ const useButtonBase = ({ provider }: OAuthButtonBaseProps) => {
 
       hideMessage();
 
-      await setAuthPersistence();
+      setAuthPersistence();
 
       const result = await userSignInPopup(provider);
 

@@ -228,38 +228,17 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
-    const initStartup = async () => {
-      if (isAuthLoading) return;
+    if (isAuthLoading) return;
 
-      if (!cookiesConsent) {
-        setIsUserSignIn(true);
-        setIsLoading(false);
-        return;
-      }
+    if (!cookiesConsent) {
+      setIsUserSignIn(true);
+      setIsLoading(false);
+    }
 
-      if (isStart) {
-        try {
-          const { getAuth, getRedirectResult } = await import('firebase/auth');
-          const auth = getAuth();
-          const result = await getRedirectResult(auth);
-          
-          if (result?.user) {
-            const { dbAppSettingsUpdate } = await import('@services/dexie/settings');
-            await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
-            setIsUserAccountCreated(false);
-            await handlePostLogin(result.user);
-            return;
-          }
-        } catch (error) {
-          console.error('Redirect error during startup:', error);
-        }
-
-        await runStartupCheck();
-      }
-    };
-
-    initStartup();
-  }, [isAuthLoading, cookiesConsent, isStart, runStartupCheck, handlePostLogin]);
+    if (cookiesConsent && isStart) {
+      runStartupCheck();
+    }
+  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading]);
 
   return {
     isUserSignIn,

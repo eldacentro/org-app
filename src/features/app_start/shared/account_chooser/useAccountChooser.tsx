@@ -22,7 +22,7 @@ const useAccountChooser = () => {
       setIsAuthProcessing(true);
       hideMessage();
 
-      await setAuthPersistence();
+      setAuthPersistence();
 
       const result = await userSignInPopup(authProvider.Google);
 
