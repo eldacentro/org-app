@@ -42,7 +42,7 @@ const RequestAccess = () => {
       </Box>
 
       <Button
-        disabled={firstname.trim() === '' || lastname.trim() === '' || isProcessing}
+        disabled={isProcessing}
         onClick={handleRequestAccess}
         startIcon={
           isProcessing && (

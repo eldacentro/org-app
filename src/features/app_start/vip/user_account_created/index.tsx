@@ -1,8 +1,11 @@
 import { Box, Stack } from '@mui/material';
+import { useAppTranslation } from '@hooks/index';
 import PageHeader from '@features/app_start/shared/page_header';
 import RequestAccess from '../request_access';
 
 const UserAccountCreated = () => {
+  const { t } = useAppTranslation();
+
   return (
     <Box
       sx={{
@@ -16,8 +19,8 @@ const UserAccountCreated = () => {
     >
       <Stack spacing="32px">
         <PageHeader
-          title="Completa tu perfil"
-          description="Por favor, introduce tu nombre y apellidos para solicitar acceso a la congregación Elda - Centro."
+          title={t('tr_registrationSuccess')}
+          description={t('tr_accountCreatedJoin')}
         />
 
         <RequestAccess />

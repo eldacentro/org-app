@@ -36,6 +36,15 @@ const useRequestAccess = () => {
   const handleRequestAccess = async () => {
     if (requestSent || isProcessing) return;
 
+    if (firstname.trim() === '' || lastname.trim() === '') {
+      displaySnackNotification({
+        header: t('tr_errorTitle'),
+        message: t('tr_fillRequiredField'),
+        severity: 'error',
+      });
+      return;
+    }
+
     try {
       setIsProcessing(true);
 
