@@ -27,13 +27,11 @@ import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { apiValidateMe } from '@services/api/user';
 import { userSignOut } from '@services/firebase/auth';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
-import useAuth from '../hooks/useAuth';
 
 const useStartup = () => {
   const [searchParams] = useSearchParams();
 
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
-  const { handlePostLogin } = useAuth();
 
   const [isUserSignIn, setIsUserSignIn] = useAtom(isUserSignInState);
 
@@ -82,10 +80,6 @@ const useStartup = () => {
       const currentCongID = settings?.cong_settings?.cong_id || '';
 
       if (currentCongName.length === 0) {
-        if (isAuthenticated) {
-          await handlePostLogin();
-          return;
-        }
         setIsLoading(false);
         setIsStart(false);
         showSignin();
@@ -211,7 +205,6 @@ const useStartup = () => {
     setIsUserSignIn,
     setIsUserAccountCreated,
     setUserID,
-    handlePostLogin,
   ]);
 
   useEffect(() => {
