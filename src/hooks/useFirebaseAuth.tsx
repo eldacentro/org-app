@@ -46,6 +46,18 @@ const useFirebaseAuth = () => {
           const photoURL = user.providerData[0]?.photoURL;
           dbAppSettingsSaveProfilePic(photoURL, provider);
           setIsAuthenticated(true);
+          
+          import('firebase/auth').then(async ({ getRedirectResult }) => {
+            try {
+              const redirectResult = await getRedirectResult(auth);
+              if (redirectResult?.user) {
+                const { dbAppSettingsUpdate } = await import('@services/dexie/settings');
+                await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+              }
+            } catch (e) {
+              console.error('Redirect result error:', e);
+            }
+          });
         } else {
           setIsAuthenticated(false);
         }

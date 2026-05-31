@@ -27,6 +27,7 @@ import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { apiValidateMe } from '@services/api/user';
 import { userSignOut } from '@services/firebase/auth';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
+import useAuth from '../hooks/useAuth';
 
 const useStartup = () => {
   const [searchParams] = useSearchParams();
@@ -232,6 +233,28 @@ const useStartup = () => {
       runStartupCheck();
     }
   }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading]);
+
+  const { handlePostLogin } = useAuth();
+
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const { getAuth, getRedirectResult } = await import('firebase/auth');
+        const auth = getAuth();
+        const result = await getRedirectResult(auth);
+        
+        if (result?.user) {
+          await handlePostLogin(result.user);
+        }
+      } catch (error) {
+        console.error('Redirect error:', error);
+      }
+    };
+    
+    if (isAuthenticated && isStart) {
+      checkRedirect();
+    }
+  }, [isAuthenticated, isStart, handlePostLogin]);
 
   return {
     isUserSignIn,

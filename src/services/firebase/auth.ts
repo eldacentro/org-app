@@ -39,9 +39,18 @@ export const userSignInCustomToken = async (code: string) => {
 
 export const userSignInPopup = async (provider: AuthProvider) => {
   const auth = getAuth();
-  const result = await signInWithPopup(auth, provider);
-
-  return result?.user;
+  
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    const { signInWithRedirect } = await import('firebase/auth');
+    await signInWithRedirect(auth, provider);
+    // Return a dummy object to satisfy the expected return value; the real flow will continue after redirect
+    return null;
+  } else {
+    const result = await signInWithPopup(auth, provider);
+    return result?.user;
+  }
 };
 
 export const authProvider = {
