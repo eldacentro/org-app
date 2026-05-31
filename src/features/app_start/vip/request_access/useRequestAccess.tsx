@@ -16,6 +16,8 @@ const useRequestAccess = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [firstname, setFirstname] = useState(firstnameInitial);
   const [lastname, setLastname] = useState(lastnameInitial);
   const [country, setCountry] = useState<CountryResponseType>(null);
@@ -26,16 +28,24 @@ const useRequestAccess = () => {
 
     const autoSelectCongregation = async () => {
       try {
+        setLoadError(null);
+
         // 1. Fetch countries from the API
         const { data: countriesData, status: countriesStatus } = await apiFetchCountries();
         if (!active) return;
-        if (countriesStatus !== 200 || !Array.isArray(countriesData)) return;
+        if (countriesStatus !== 200 || !Array.isArray(countriesData)) {
+          setLoadError(t('error_app_generic-title'));
+          return;
+        }
 
         // Find Spain (ES)
         const spain = countriesData.find(
           (c) => c.countryCode === 'ES' || c.countryName.toLowerCase() === 'españa'
         );
-        if (!spain) return;
+        if (!spain) {
+          setLoadError("No se pudo encontrar España en la lista de países.");
+          return;
+        }
 
         setCountry(spain);
 
@@ -45,17 +55,24 @@ const useRequestAccess = () => {
           'Elda'
         );
         if (!active) return;
-        if (congsStatus !== 200 || !Array.isArray(congsData)) return;
+        if (congsStatus !== 200 || !Array.isArray(congsData)) {
+          setLoadError("No se pudo cargar la lista de congregaciones.");
+          return;
+        }
 
         // Find the correct congregation matching "Elda Centro" or "Elda - Centro"
         const eldaCong = congsData.find(
           (c) => c.congName.toLowerCase().includes('elda')
         );
-        if (!eldaCong) return;
+        if (!eldaCong) {
+          setLoadError("No se pudo encontrar la congregación Elda - Centro.");
+          return;
+        }
 
         setCongregation(eldaCong);
       } catch (err) {
         console.error('Failed to auto-select congregation:', err);
+        setLoadError((err as Error).message || "Error al conectar con el servidor.");
       }
     };
 
@@ -64,7 +81,7 @@ const useRequestAccess = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [t]);
 
   const handleRequestAccess = async () => {
     if (requestSent || isProcessing) return;
@@ -89,6 +106,7 @@ const useRequestAccess = () => {
 
     try {
       setIsProcessing(true);
+      setSubmitError(null);
 
       await apiUserJoinCongregation({
         cong_name: congregation.congName,
@@ -108,11 +126,13 @@ const useRequestAccess = () => {
     } catch (error) {
       setIsProcessing(false);
 
+      const errorMessage = getMessageByCode((error as Error).message) || (error as Error).message;
+      setSubmitError(errorMessage);
       console.error(error);
 
       displaySnackNotification({
         header: t('error_app_generic-title'),
-        message: getMessageByCode(error.message),
+        message: errorMessage,
         severity: 'error',
       });
     }
@@ -128,6 +148,9 @@ const useRequestAccess = () => {
     congregation,
     setCongregation,
     isProcessing,
+    requestSent,
+    loadError,
+    submitError,
     handleRequestAccess,
   };
 };
