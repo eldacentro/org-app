@@ -128,10 +128,8 @@ const Dashboard = () => {
       }
     }
     // Fallback to default calculation if schedule or date not found
-    const midweekDay = midweekMeetingWeekday === 7 ? 0 : midweekMeetingWeekday;
-    const midweekDiff = midweekDay === 0 ? 6 : midweekDay - 1;
     const d = new Date(monday);
-    d.setDate(monday.getDate() + midweekDiff);
+    d.setDate(monday.getDate() + midweekMeetingWeekday);
     return d;
   }, [weekOf, monday, midweekMeetingWeekday]);
 
@@ -144,10 +142,8 @@ const Dashboard = () => {
       }
     }
     // Fallback to default calculation if schedule or date not found
-    const weekendDay = weekendMeetingWeekday === 7 ? 0 : weekendMeetingWeekday;
-    const weekendDiff = weekendDay === 0 ? 6 : weekendDay - 1;
     const d = new Date(monday);
-    d.setDate(monday.getDate() + weekendDiff);
+    d.setDate(monday.getDate() + weekendMeetingWeekday);
     return d;
   }, [weekOf, monday, weekendMeetingWeekday]);
 
@@ -243,7 +239,7 @@ const Dashboard = () => {
           const target = new Date();
           target.setHours(hrs, mins, 0, 0);
 
-          const jsWeekday = weekday === 7 ? 0 : weekday;
+          const jsWeekday = (weekday + 1) % 7;
           const currentDay = now.getDay();
 
           let daysDiff = jsWeekday - currentDay;
