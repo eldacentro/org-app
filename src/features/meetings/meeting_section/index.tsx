@@ -20,7 +20,7 @@ const MeetingSection = ({
         flexDirection: 'column',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--radius-xl)',
         boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
         overflow: 'hidden',
         transition: 'box-shadow 0.3s ease',

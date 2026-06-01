@@ -1,4 +1,4 @@
-import { Box, Grid } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { useAtomValue } from 'jotai';
 import { IconFemale, IconMale, IconGroups, IconRecordVoiceOver, IconPlay, IconPodium } from '@components/icons';
@@ -20,6 +20,7 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
     : '';
 
   const active = person?.person_uid === userUID;
+  const accentColor = 'var(--brand)';
 
   return (
     <Box
@@ -27,16 +28,22 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '12px',
+        gap: '16px',
         width: '100%',
-        minHeight: '40px',
-        padding: '4px 0px',
+        minHeight: '44px',
+        padding: '6px 0px',
       }}
     >
       <Typography
         className="body-small-semibold"
-        color="var(--grey-400)"
-        sx={{ flexShrink: 0, minWidth: '90px', fontSize: '13px' }}
+        color="var(--grey-500)"
+        sx={{ 
+          flexShrink: 0, 
+          minWidth: '95px', 
+          fontSize: '13.5px',
+          fontWeight: 600,
+          letterSpacing: '0.2px'
+        }}
       >
         {label}
       </Typography>
@@ -45,31 +52,33 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
         <Box
           sx={{
             display: 'flex',
-            gap: '8px',
+            gap: '10px',
             alignItems: 'center',
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--radius-xl)',
             border: active 
               ? '1.5px solid var(--brand)' 
               : '1px solid var(--line)',
+            borderLeft: `4px solid ${accentColor}`,
             backgroundColor: active 
               ? 'var(--brand-tint)' 
               : 'var(--card)',
-            padding: '6px 12px',
+            padding: '8px 16px',
             flex: 1,
-            maxWidth: '240px',
             overflow: 'hidden',
-            boxShadow: active ? 'var(--shadow-sm)' : 'none',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: active ? 'var(--hover-shadow)' : 'none',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            cursor: 'default',
             '&:hover': {
-              borderColor: 'var(--brand)',
-              boxShadow: 'var(--shadow-sm)',
+              transform: 'translateY(-1.5px)',
+              borderColor: active ? 'var(--brand)' : accentColor,
+              boxShadow: 'var(--small-card-shadow)',
             },
           }}
         >
           {person?.person_data?.female?.value ? (
-            <IconFemale width={16} height={16} color="var(--brand)" />
+            <IconFemale width={16} height={16} color={accentColor} />
           ) : (
-            <IconMale width={16} height={16} color="var(--brand)" />
+            <IconMale width={16} height={16} color={accentColor} />
           )}
           <Typography 
             className="body-small-semibold"
@@ -78,8 +87,9 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
               overflow: 'hidden', 
               textOverflow: 'ellipsis',
               fontWeight: 700,
-              fontSize: '13px',
+              fontSize: '13.5px',
               color: active ? 'var(--brand-deep)' : 'var(--ink)',
+              letterSpacing: '0.1px'
             }}
           >
             {displayName}
@@ -91,15 +101,29 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--radius-xl)',
             border: '1px dashed var(--line)',
-            backgroundColor: 'transparent',
-            padding: '6px 12px',
+            borderLeft: `4px dashed var(--grey-300)`,
+            backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
+            padding: '8px 16px',
             flex: 1,
-            maxWidth: '240px',
+            minHeight: '38px',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              borderColor: 'var(--grey-350)',
+              backgroundColor: 'rgba(var(--grey-100-base), 0.06)',
+            }
           }}
         >
-          <Typography className="body-small-regular" color="var(--grey-350)" sx={{ fontSize: '13px' }}>
+          <Typography 
+            className="body-small-medium" 
+            color="var(--grey-350)" 
+            sx={{ 
+              fontSize: '13px', 
+              fontWeight: 500,
+              letterSpacing: '0.5px' 
+            }}
+          >
             —
           </Typography>
         </Box>
@@ -112,80 +136,73 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
   const { t } = useAppTranslation();
 
   return (
-    <Grid container spacing={2.5} sx={{ mt: 1 }}>
+    <Stack spacing="20px" sx={{ mt: 1 }}>
       {/* Acomodadores */}
-      <Grid item xs={12} md={6}>
-        <MeetingSection
-          part={t('tr_attendants', 'Acomodadores')}
-          color="var(--brand)"
-          icon={<IconGroups color="var(--always-white)" />}
-          alwaysExpanded
-        >
-          <DeptPersonComponent
-            label="Exterior"
-            person={personsStateFind(schedule?.acomodadores?.exterior?.value)}
-          />
-          <DeptPersonComponent
-            label="Interior"
-            person={personsStateFind(schedule?.acomodadores?.interior?.value)}
-          />
-        </MeetingSection>
-      </Grid>
+      <MeetingSection
+        part={t('tr_attendants', 'Acomodadores')}
+        color="var(--brand)"
+        icon={<IconGroups color="var(--always-white)" />}
+        alwaysExpanded
+      >
+        <DeptPersonComponent
+          label="Exterior"
+          person={personsStateFind(schedule?.acomodadores?.exterior?.value)}
+        />
+        <DeptPersonComponent
+          label="Interior"
+          person={personsStateFind(schedule?.acomodadores?.interior?.value)}
+        />
+      </MeetingSection>
 
       {/* Micrófonos */}
-      <Grid item xs={12} md={6}>
-        <MeetingSection
-          part={t('tr_microphones', 'Micrófonos')}
-          color="var(--brand)"
-          icon={<IconRecordVoiceOver color="var(--always-white)" />}
-          alwaysExpanded
-        >
-          <DeptPersonComponent
-            label="Micro 1"
-            person={personsStateFind(schedule?.microfonos?.micro1?.value)}
-          />
-          <DeptPersonComponent
-            label="Micro 2"
-            person={personsStateFind(schedule?.microfonos?.micro2?.value)}
-          />
-        </MeetingSection>
-      </Grid>
+      <MeetingSection
+        part={t('tr_microphones', 'Micrófonos')}
+        color="var(--brand)"
+        icon={<IconRecordVoiceOver color="var(--always-white)" />}
+        alwaysExpanded
+      >
+        <DeptPersonComponent
+          label="Micro 1"
+          person={personsStateFind(schedule?.microfonos?.micro1?.value)}
+        />
+        <DeptPersonComponent
+          label="Micro 2"
+          person={personsStateFind(schedule?.microfonos?.micro2?.value)}
+        />
+      </MeetingSection>
 
       {/* Multimedia */}
-      <Grid item xs={12} md={6}>
-        <MeetingSection
-          part={t('tr_multimedia', 'Multimedia')}
-          color="var(--brand)"
-          icon={<IconPlay color="var(--always-white)" />}
-          alwaysExpanded
-        >
-          <DeptPersonComponent
-            label="Vídeo"
-            person={personsStateFind(schedule?.multimedia?.video?.value)}
-          />
-          <DeptPersonComponent
-            label="Audio"
-            person={personsStateFind(schedule?.multimedia?.audio?.value)}
-          />
-        </MeetingSection>
-      </Grid>
+      <MeetingSection
+        part={t('tr_multimedia', 'Multimedia')}
+        color="var(--brand)"
+        icon={<IconPlay color="var(--always-white)" />}
+        alwaysExpanded
+      >
+        <DeptPersonComponent
+          label="Vídeo"
+          person={personsStateFind(schedule?.multimedia?.video?.value)}
+        />
+        <DeptPersonComponent
+          label="Audio"
+          person={personsStateFind(schedule?.multimedia?.audio?.value)}
+        />
+      </MeetingSection>
 
       {/* Plataforma */}
-      <Grid item xs={12} md={6}>
-        <MeetingSection
-          part={t('tr_platform', 'Plataforma')}
-          color="var(--brand)"
-          icon={<IconPodium color="var(--always-white)" />}
-          alwaysExpanded
-        >
-          <DeptPersonComponent
-            label="Encargado"
-            person={personsStateFind(schedule?.plataforma?.encargado?.value)}
-          />
-        </MeetingSection>
-      </Grid>
-    </Grid>
+      <MeetingSection
+        part={t('tr_platform', 'Plataforma')}
+        color="var(--brand)"
+        icon={<IconPodium color="var(--always-white)" />}
+        alwaysExpanded
+      >
+        <DeptPersonComponent
+          label="Encargado"
+          person={personsStateFind(schedule?.plataforma?.encargado?.value)}
+        />
+      </MeetingSection>
+    </Stack>
   );
 };
 
 export default DepartmentsMeeting;
+

@@ -65,6 +65,7 @@ const PublicTalk = (props: PublicTalkProps) => {
                 week={props.week}
                 assignment="WM_Speaker_Part1"
                 dataView={props.dataView}
+                color="var(--weekend-meeting)"
               />
 
               {showSecondSpeaker && (
@@ -73,6 +74,7 @@ const PublicTalk = (props: PublicTalkProps) => {
                   week={props.week}
                   assignment="WM_Speaker_Part2"
                   dataView={props.dataView}
+                  color="var(--weekend-meeting)"
                 />
               )}
             </Stack>
@@ -84,6 +86,7 @@ const PublicTalk = (props: PublicTalkProps) => {
               week={props.week}
               assignment="WM_CircuitOverseer"
               dataView={props.dataView}
+              color="var(--weekend-meeting)"
             />
           )}
         </SecondaryFieldContainer>

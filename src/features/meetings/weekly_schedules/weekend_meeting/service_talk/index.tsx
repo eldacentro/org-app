@@ -62,6 +62,7 @@ const ServiceTalk = (props: ServiceTalkProps) => {
               label={`${t('tr_brother')}:`}
               week={props.week}
               assignment="WM_CircuitOverseer"
+              color="var(--weekend-meeting)"
             />
           </SecondaryFieldContainer>
         </DoubleFieldContainer>
@@ -88,6 +89,7 @@ const ServiceTalk = (props: ServiceTalkProps) => {
               label={`${t('tr_prayer')}:`}
               week={props.week}
               assignment="WM_CircuitOverseer"
+              color="var(--weekend-meeting)"
             />
           </SecondaryFieldContainer>
         </DoubleFieldContainer>

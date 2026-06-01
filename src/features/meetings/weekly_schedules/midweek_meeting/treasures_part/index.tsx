@@ -58,6 +58,7 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                   week={props.week}
                   assignment="MM_TGWTalk"
                   dataView={props.dataView}
+                  color="var(--treasures-from-gods-word)"
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>
@@ -86,6 +87,7 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                   week={props.week}
                   assignment="MM_TGWGems"
                   dataView={props.dataView}
+                  color="var(--treasures-from-gods-word)"
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>
@@ -130,6 +132,7 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                     week={props.week}
                     assignment="MM_TGWBibleReading_A"
                     dataView={props.dataView}
+                    color="var(--treasures-from-gods-word)"
                   />
                 </Stack>
                 {showAuxClass && (
@@ -145,6 +148,7 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                       week={props.week}
                       assignment="MM_TGWBibleReading_B"
                       dataView={props.dataView}
+                      color="var(--treasures-from-gods-word)"
                     />
                   </Stack>
                 )}

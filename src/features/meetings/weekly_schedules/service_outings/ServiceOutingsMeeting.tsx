@@ -232,16 +232,20 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
             key={date}
             sx={{
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-l)',
-              boxShadow: 'none',
+              borderRadius: 'var(--radius-xl)',
+              boxShadow: 'var(--small-card-shadow)',
               overflow: 'hidden',
+              transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+              '&:hover': {
+                boxShadow: 'var(--hover-shadow)',
+              },
             }}
           >
             {/* Encabezado del día */}
             <Box
               sx={{
-                px: '16px',
-                py: '10px',
+                px: '20px',
+                py: '12px',
                 backgroundColor: 'var(--accent-main)',
                 borderBottom: 'none',
               }}
@@ -249,9 +253,10 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
               <Typography
                 className="h2-caps"
                 sx={{ 
-                  fontWeight: '700', 
+                  fontWeight: '800', 
                   color: 'var(--always-white)', 
-                  letterSpacing: '0.5px' 
+                  letterSpacing: '0.6px',
+                  fontSize: '14px'
                 }}
               >
                 {dayLabel}
@@ -265,38 +270,48 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                 const isAssignedToMe = slot.person === userUID;
                 const isCancelled = slot.cancelled;
                 const turnLabel = getSlotLabel(slot.slotType);
+                const accentColor = 'var(--accent-main)';
 
                 return (
                   <Box
                     key={slot.id}
                     sx={{
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      px: '16px',
-                      py: '14px',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      alignItems: { xs: 'stretch', md: 'center' },
+                      gap: '20px',
+                      px: '20px',
+                      py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
                         ? '#fce8e6'
                         : isAssignedToMe
                         ? 'var(--accent-50, #f0f7ff)'
                         : 'var(--card)',
+                      transition: 'background-color 0.2s ease',
                     }}
                   >
                     {/* Hora + Turno */}
-                    <Box sx={{ minWidth: '80px' }}>
+                    <Box sx={{ minWidth: '90px', flexShrink: 0 }}>
                       <Typography
                         style={{
-                          fontWeight: '700',
+                          fontWeight: '800',
                           fontSize: '15px',
-                          color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                          color: isCancelled ? 'var(--grey-500)' : accentColor,
+                          letterSpacing: '0.2px'
                         }}
                       >
                         {slot.time}
                       </Typography>
                       {turnLabel && (
                         <Typography
-                          style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                          style={{ 
+                            fontSize: '12px', 
+                            color: 'var(--grey-500)', 
+                            fontWeight: '600',
+                            letterSpacing: '0.1px',
+                            marginTop: '2px'
+                          }}
                         >
                           {turnLabel}
                         </Typography>
@@ -309,64 +324,114 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                         width: '1px',
                         alignSelf: 'stretch',
                         backgroundColor: 'var(--line)',
+                        display: { xs: 'none', md: 'block' },
                       }}
                     />
 
                     {/* Hermano asignado */}
-                    <Box sx={{ flex: 1 }}>
+                    <Box sx={{ flex: 1, display: 'flex', width: { xs: '100%', md: 'auto' } }}>
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
-                          label="Suspendida"
+                          label="Suspendia"
                           size="small"
                           sx={{
                             backgroundColor: 'var(--error-150)',
                             color: 'var(--error-dark)',
-                            fontWeight: '600',
+                            fontWeight: '700',
                           }}
                         />
                       ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            gap: '6px',
-                            alignItems: 'center',
-                            borderRadius: 'var(--radius-s)',
-                            border: isAssignedToMe 
-                              ? '1px solid var(--accent-main)' 
-                              : brotherName ? '1px solid transparent' : '1px dashed var(--grey-300)',
-                            backgroundColor: isAssignedToMe 
-                              ? 'var(--accent-150)' 
-                              : brotherName ? 'var(--grey-50)' : 'transparent',
-                            padding: '4px 8px',
-                            maxWidth: '220px',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <Typography
-                            className="body-small-regular"
-                            sx={{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              fontWeight: isAssignedToMe ? 600 : 500,
-                              color: isAssignedToMe 
-                                ? 'var(--accent-dark)' 
-                                : brotherName ? 'var(--black)' : 'var(--grey-400)',
-                            }}
-                          >
-                            {brotherName || 'Sin asignar'}
-                          </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px', width: '100%' }}>
+                          {brotherName ? (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                borderRadius: 'var(--radius-xl)',
+                                border: isAssignedToMe 
+                                  ? '1.5px solid var(--accent-main)' 
+                                  : '1px solid var(--line)',
+                                borderLeft: `4px solid ${accentColor}`,
+                                backgroundColor: isAssignedToMe 
+                                  ? 'var(--accent-150)' 
+                                  : 'var(--card)',
+                                padding: '6px 12px',
+                                boxShadow: isAssignedToMe ? 'var(--hover-shadow)' : 'none',
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                cursor: 'default',
+                                '&:hover': {
+                                  transform: 'translateY(-1.5px)',
+                                  borderColor: isAssignedToMe ? 'var(--accent-main)' : accentColor,
+                                  boxShadow: 'var(--small-card-shadow)',
+                                },
+                              }}
+                            >
+                              <Typography
+                                className="body-small-semibold"
+                                sx={{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  fontWeight: 700,
+                                  fontSize: '13.5px',
+                                  color: isAssignedToMe ? 'var(--accent-dark)' : 'var(--ink)',
+                                  letterSpacing: '0.1px'
+                                }}
+                              >
+                                {brotherName}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                borderRadius: 'var(--radius-xl)',
+                                border: '1px dashed var(--line)',
+                                borderLeft: '4px dashed var(--grey-300)',
+                                backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
+                                padding: '6px 12px',
+                              }}
+                            >
+                              <Typography 
+                                className="body-small-medium" 
+                                color="var(--grey-350)" 
+                                sx={{ 
+                                  fontSize: '13px',
+                                  fontWeight: 500,
+                                  letterSpacing: '0.2px'
+                                }}
+                              >
+                                Sin asignar
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
                       )}
                     </Box>
 
                     {/* Lugar */}
-                    <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                    <Box 
+                      sx={{ 
+                        textAlign: { xs: 'left', md: 'right' }, 
+                        width: { xs: '100%', md: 'auto' },
+                        minWidth: { xs: '0px', md: '180px' },
+                        maxWidth: { xs: '100%', md: '260px' },
+                        flexShrink: { xs: 1, md: 0 },
+                        alignSelf: { xs: 'flex-start', md: 'center' }
+                      }}
+                    >
                       <Typography
-                        style={{
-                          fontSize: '13px',
+                        sx={{
+                          fontSize: '13.5px',
+                          fontWeight: 600,
                           color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'normal',
+                          mt: { xs: '4px', md: '0px' },
+                          lineHeight: '1.4'
                         }}
                       >
                         {isCancelled ? '—' : slot.location}

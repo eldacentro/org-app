@@ -88,12 +88,14 @@ const LivingPart = (props: LivingPartProps) => {
                   week={props.week}
                   assignment="MM_LCCBSConductor"
                   dataView={props.dataView}
+                  color="var(--living-as-christians)"
                 />
                 <PersonComponent
                   label={`${t('tr_reader')}:`}
                   week={props.week}
                   assignment="MM_LCCBSReader"
                   dataView={props.dataView}
+                  color="var(--living-as-christians)"
                 />
               </Stack>
             </SecondaryFieldContainer>
@@ -122,6 +124,7 @@ const LivingPart = (props: LivingPartProps) => {
                 week={props.week}
                 assignment="MM_CircuitOverseer"
                 dataView={props.dataView}
+                color="var(--living-as-christians)"
               />
             </SecondaryFieldContainer>
           </DoubleFieldContainer>
@@ -154,6 +157,7 @@ const LivingPart = (props: LivingPartProps) => {
                     ? 'MM_ClosingPrayer'
                     : closingPrayerLinked
                 }
+                color="var(--living-as-christians)"
               />
             </SecondaryFieldContainer>
           </DoubleFieldContainer>

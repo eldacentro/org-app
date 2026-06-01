@@ -54,6 +54,7 @@ const PartRow = (props: PartRowProps) => {
                 week={props.week}
                 assignment={studentField.main_hall.student}
                 dataView={props.dataView}
+                color="var(--apply-yourself-to-the-field-ministry)"
               />
 
               {showAssistant && (
@@ -62,6 +63,7 @@ const PartRow = (props: PartRowProps) => {
                   week={props.week}
                   assignment={studentField.main_hall.assistant}
                   dataView={props.dataView}
+                  color="var(--apply-yourself-to-the-field-ministry)"
                 />
               )}
             </Stack>
@@ -84,6 +86,7 @@ const PartRow = (props: PartRowProps) => {
                   week={props.week}
                   assignment={studentField.aux_class.student}
                   dataView={props.dataView}
+                  color="var(--apply-yourself-to-the-field-ministry)"
                 />
 
                 {showAssistant && (
@@ -92,6 +95,7 @@ const PartRow = (props: PartRowProps) => {
                     week={props.week}
                     assignment={studentField.aux_class.assistant}
                     dataView={props.dataView}
+                    color="var(--apply-yourself-to-the-field-ministry)"
                   />
                 )}
               </Stack>

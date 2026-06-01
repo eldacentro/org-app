@@ -37,6 +37,7 @@ const PartRow = (props: PartRowProps) => {
           week={props.week}
           assignment={lcField}
           dataView={props.dataView}
+          color="var(--living-as-christians)"
         />
       </SecondaryFieldContainer>
     </DoubleFieldContainer>

@@ -52,6 +52,7 @@ const ScheduleItem = (props: ScheduleItemProps) => {
           label={`${t('tr_speaker')}:`}
           week={props.schedule.weekOf}
           schedule_id={props.schedule.id}
+          color="var(--weekend-meeting)"
         />
       </SecondaryFieldContainer>
     </DoubleFieldContainer>

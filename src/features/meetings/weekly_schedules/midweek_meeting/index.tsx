@@ -123,6 +123,7 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
               week={week}
               assignment="MM_Chairman_A"
               dataView={props.dataView}
+              color="var(--midweek-meeting)"
             />
           </SecondaryFieldContainer>
         )}
@@ -147,6 +148,7 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
                 label={`${t('tr_auxClass')}:`}
                 assignment="MM_Chairman_B"
                 dataView={props.dataView}
+                color="var(--midweek-meeting)"
               />
 
               <AuxClassGroup week={week} />
@@ -186,6 +188,7 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
                       ? 'MM_OpeningPrayer'
                       : openingPrayerLinked
                   }
+                  color="var(--midweek-meeting)"
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>

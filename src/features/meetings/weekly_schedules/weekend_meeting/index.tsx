@@ -118,6 +118,7 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
                 week={week}
                 assignment="WM_Chairman"
                 dataView={props.dataView}
+                color="var(--weekend-meeting)"
               />
             )}
           </SecondaryFieldContainer>
@@ -154,6 +155,7 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
                       week={week}
                       assignment="WM_OpeningPrayer"
                       dataView={props.dataView}
+                      color="var(--weekend-meeting)"
                     />
                   )}
                 </SecondaryFieldContainer>

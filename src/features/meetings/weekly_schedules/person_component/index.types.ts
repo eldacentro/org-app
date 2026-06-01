@@ -6,6 +6,7 @@ export type PersonComponentProps = {
   assignment?: AssignmentFieldType;
   schedule_id?: string;
   dataView?: string;
+  color?: string;
 };
 
 export type PersonDataType = {
@@ -13,3 +14,4 @@ export type PersonDataType = {
   female?: boolean;
   active?: boolean;
 };
+

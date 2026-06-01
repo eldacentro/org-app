@@ -89,6 +89,7 @@ const WatchtowerStudy = (props: WatchtowerStudyProps) => {
                 week={props.week}
                 assignment="WM_WTStudy_Conductor"
                 dataView={props.dataView}
+                color="var(--watchtower-study)"
               />
 
               {showWSReader && (
@@ -97,6 +98,7 @@ const WatchtowerStudy = (props: WatchtowerStudyProps) => {
                   week={props.week}
                   assignment="WM_WTStudy_Reader"
                   dataView={props.dataView}
+                  color="var(--watchtower-study)"
                 />
               )}
             </Stack>
@@ -127,6 +129,7 @@ const WatchtowerStudy = (props: WatchtowerStudyProps) => {
                 week={props.week}
                 assignment="WM_ClosingPrayer"
                 dataView={props.dataView}
+                color="var(--watchtower-study)"
               />
             </SecondaryFieldContainer>
           </DoubleFieldContainer>
