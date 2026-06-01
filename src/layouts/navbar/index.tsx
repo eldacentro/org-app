@@ -211,11 +211,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
                             'aria-labelledby': 'basic-button',
                           },
                           paper: {
-                            className: 'small-card-shadow',
+                            className: 'small-card-shadow profile-menu-glass',
                             style: {
                               borderRadius: 'var(--radius-l)',
-                              border: '1px solid var(--accent-200)',
-                              backgroundColor: 'var(--white)',
                               minWidth: '294px',
                             },
                           },

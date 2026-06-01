@@ -312,6 +312,35 @@ body iframe {
 .screen > .MuiToolbar-root {
   min-height: calc(62px + env(safe-area-inset-top)) !important;
 }
+
+/* Light theme Glassmorphic Profile Dropdown Menu */
+[data-theme='blue-light'] .profile-menu-glass {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
+  border: 1px solid rgba(59, 114, 196, 0.08) !important;
+  box-shadow: 0 10px 40px -10px rgba(59, 114, 196, 0.16) !important;
+}
+
+/* Dark theme Glassmorphic Profile Dropdown Menu */
+[data-theme='blue-dark'] .profile-menu-glass {
+  background: rgba(21, 21, 25, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Make inner MenuItem dividers translucent rather than solid grey */
+.profile-menu-glass li {
+  border-bottom: 1px solid rgba(59, 114, 196, 0.08) !important;
+}
+[data-theme='blue-dark'] .profile-menu-glass li {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.profile-menu-glass li:last-child {
+  border-bottom: none !important;
+}
 .logo-container {
   flex: 0 0 auto;
   display: grid;
