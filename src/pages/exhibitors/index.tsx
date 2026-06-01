@@ -1414,7 +1414,9 @@ const Exhibitors = () => {
 
                         const activeDays = new Set<number>();
                         for (const slot of generatedSlotsInMonth) {
-                          activeDays.add(new Date(slot.date).getDay());
+                          const [sYear, sMonth, sDay] = slot.date.split('/').map(Number);
+                          const sDate = new Date(sYear, sMonth - 1, sDay);
+                          activeDays.add(sDate.getDay());
                         }
                         const weekdaysToShow = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
                         const weekdaysToShowFinal = weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
@@ -1465,7 +1467,7 @@ const Exhibitors = () => {
                         // Group slots by day
                         const daySlotsMap = new Map<number, typeof generatedSlotsInMonth>();
                         for (const slot of generatedSlotsInMonth) {
-                          const day = new Date(slot.date).getDate();
+                          const day = parseInt(slot.date.split('/')[2], 10);
                           if (!daySlotsMap.has(day)) {
                             daySlotsMap.set(day, []);
                           }
@@ -1746,7 +1748,7 @@ const Exhibitors = () => {
 
                                   {(() => {
                                     const selectedDaySlots = generatedSlotsInMonth.filter(
-                                      (slot) => new Date(slot.date).getDate() === selectedDayNum
+                                      (slot) => parseInt(slot.date.split('/')[2], 10) === selectedDayNum
                                     ).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
                                     if (selectedDaySlots.length === 0) {
