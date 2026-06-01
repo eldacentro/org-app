@@ -5,18 +5,20 @@ import { WeekSelectorProps } from './index.types';
 import { sourcesState } from '@states/sources';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
-const useWeekSelector = ({ onChange, value }: WeekSelectorProps) => {
+const useWeekSelector = ({ onChange, value, customWeeksList }: WeekSelectorProps) => {
   const sources = useAtomValue(sourcesState);
 
   const [currentTab, setCurrentTab] = useState<number | boolean>(false);
 
   const weeksList = useMemo(() => {
+    if (customWeeksList) return customWeeksList;
+
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
 
     return sources.filter(
       (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
-  }, [sources]);
+  }, [sources, customWeeksList]);
 
   const defaultValue = useMemo(() => {
     const now = getWeekDate();

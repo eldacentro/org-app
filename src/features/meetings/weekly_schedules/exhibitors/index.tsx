@@ -13,6 +13,7 @@ const ExhibitorsWeeklyContainer = () => {
     scheduleLastUpdated,
     noSchedule,
     weekRecord,
+    filteredSources,
   } = useExhibitorsContainer();
 
   return (
@@ -23,6 +24,7 @@ const ExhibitorsWeeklyContainer = () => {
         currentWeekVisible={currentWeekVisible}
         onGoCurrent={handleGoCurrent}
         scheduleLastUpdated={scheduleLastUpdated}
+        customWeeksList={filteredSources}
       />
 
       {week === null ? (

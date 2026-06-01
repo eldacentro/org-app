@@ -231,7 +231,12 @@ const Exhibitors = () => {
           const fixed = settings.fixedAssignments?.filter((f) => 
             f.turnId === turn.id && (!f.day || f.day === dayLabel)
           ) || [];
-          finalAssignments = fixed.map((f) => ({
+          const sortedFixed = [...fixed].sort((a, b) => {
+            const posA = a.position !== undefined ? a.position : 0;
+            const posB = b.position !== undefined ? b.position : 0;
+            return posA - posB;
+          });
+          finalAssignments = sortedFixed.map((f) => ({
             person: f.personUid,
             isResponsible: f.isResponsible,
           }));
@@ -306,7 +311,12 @@ const Exhibitors = () => {
           const fixed = settings.fixedAssignments?.filter((f) => 
             f.turnId === slot.turnId && (!f.day || f.day === slot.dayLabel)
           ) || [];
-          const assignments = fixed.map((f) => ({
+          const sortedFixed = [...fixed].sort((a, b) => {
+            const posA = a.position !== undefined ? a.position : 0;
+            const posB = b.position !== undefined ? b.position : 0;
+            return posA - posB;
+          });
+          const assignments = sortedFixed.map((f) => ({
             person: f.personUid,
             isResponsible: f.isResponsible,
           }));
@@ -829,27 +839,37 @@ const Exhibitors = () => {
       const localSettings = structuredClone(settings);
       if (!localSettings.fixedAssignments) localSettings.fixedAssignments = [];
 
-      // Filtrar asignación fija en esta posición del turno y día
+      // 1. Filtrar asignaciones de otros turnos y días
       const otherAssignments = localSettings.fixedAssignments.filter(
         (f) => !(f.turnId === turnId && f.day === day)
       );
+
+      // 2. Obtener asignaciones actuales de este turno y día
       const turnAssignments = localSettings.fixedAssignments.filter(
         (f) => f.turnId === turnId && f.day === day
       );
 
-      if (personUid === '') {
-        // Eliminar slot en la posición
-        turnAssignments.splice(idx, 1);
-      } else {
-        const record = { turnId, day, personUid, isResponsible: idx === 0 };
-        if (idx < turnAssignments.length) {
-          turnAssignments[idx] = record;
-        } else {
-          turnAssignments.push(record);
-        }
+      // 3. Normalizar asignaciones para garantizar que tengan la propiedad position
+      const normalizedAssignments = turnAssignments.map((f, i) => ({
+        ...f,
+        position: f.position !== undefined ? f.position : i,
+      }));
+
+      // 4. Filtrar la asignación en la posición exacta `idx` que vamos a cambiar/eliminar
+      const updatedAssignments = normalizedAssignments.filter((f) => f.position !== idx);
+
+      // 5. Si la persona no está vacía, añadir el nuevo registro con su posición explícita
+      if (personUid !== '') {
+        updatedAssignments.push({
+          turnId,
+          day,
+          personUid,
+          isResponsible: idx === 0,
+          position: idx,
+        });
       }
 
-      localSettings.fixedAssignments = [...otherAssignments, ...turnAssignments];
+      localSettings.fixedAssignments = [...otherAssignments, ...updatedAssignments];
 
       await dbExhibitorsSaveSettings(localSettings);
       setSettings(localSettings);
@@ -1185,6 +1205,11 @@ const Exhibitors = () => {
                         dayMap.get(key)!.push(slot);
                       }
 
+                      // Sort turns for each day chronologically by start time
+                      for (const key of dayMap.keys()) {
+                        dayMap.get(key)!.sort((a, b) => a.startTime.localeCompare(b.startTime));
+                      }
+
                       const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof generatedSlotsInMonth }>>();
                       for (const [dateKey, daySlots] of dayMap.entries()) {
                         const weekOf = daySlots[0].weekOf;
@@ -1447,7 +1472,10 @@ const Exhibitors = () => {
                           daySlotsMap.get(day)!.push(slot);
                         }
 
-
+                        // Sort slots chronologically by start time for each day
+                        for (const day of daySlotsMap.keys()) {
+                          daySlotsMap.get(day)!.sort((a, b) => a.startTime.localeCompare(b.startTime));
+                        }
 
                         const formatLegibleDate = (date: Date): string => {
                           const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -1719,7 +1747,7 @@ const Exhibitors = () => {
                                   {(() => {
                                     const selectedDaySlots = generatedSlotsInMonth.filter(
                                       (slot) => new Date(slot.date).getDate() === selectedDayNum
-                                    );
+                                    ).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
                                     if (selectedDaySlots.length === 0) {
                                       return (
@@ -2405,7 +2433,9 @@ const Exhibitors = () => {
 
                                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr 1fr' }, gap: '20px' }}>
                                       {[0, 1, 2].map((idx) => {
-                                        const assignment = turnAssignments[idx];
+                                        const assignment = turnAssignments.find((f, i) =>
+                                          f.position !== undefined ? f.position === idx : i === idx
+                                        );
                                         const currentVal = assignment?.personUid || '';
                                         const labelText = idx === 0 ? 'Posición 1 (Responsable de turno)' : `Posición ${idx + 1}`;
 

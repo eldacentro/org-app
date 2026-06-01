@@ -64,10 +64,16 @@ export const getLastWeekPreviousMonth = (date: Date = new Date()) => {
 };
 
 export const isMondayDate = (date: string) => {
-  const inputDate = new Date(date);
-  const dayOfWeek = inputDate.getDay();
-
-  return dayOfWeek === 1;
+  if (!date) return false;
+  const separator = date.includes('/') ? '/' : '-';
+  const parts = date.split(separator);
+  if (parts.length < 3) return false;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return false;
+  const inputDate = new Date(year, month - 1, day);
+  return inputDate.getDay() === 1;
 };
 
 export const getWeekDate = (date: Date = new Date()) => {

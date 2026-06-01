@@ -27,12 +27,22 @@ const useExhibitorsContainer = () => {
   const filteredSources = useMemo(() => {
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
 
-    return sources.filter(
-      (record) =>
-        isMondayDate(record.weekOf) &&
-        record.weekOf >= minDate
-    );
-  }, [sources]);
+    const weekOfs = new Set<string>();
+    for (const record of sources) {
+      if (isMondayDate(record.weekOf) && record.weekOf >= minDate) {
+        weekOfs.add(record.weekOf);
+      }
+    }
+    for (const record of exhibitors) {
+      if (isMondayDate(record.weekOf) && record.weekOf >= minDate) {
+        weekOfs.add(record.weekOf);
+      }
+    }
+
+    return Array.from(weekOfs)
+      .sort()
+      .map((weekOf) => ({ weekOf }));
+  }, [sources, exhibitors]);
 
   const week = useMemo(() => {
     if (typeof value === 'boolean') return null;
@@ -86,6 +96,7 @@ const useExhibitorsContainer = () => {
     scheduleLastUpdated,
     noSchedule,
     weekRecord,
+    filteredSources,
   };
 };
 
