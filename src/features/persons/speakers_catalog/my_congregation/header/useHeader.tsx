@@ -9,6 +9,7 @@ import {
 } from '@states/settings';
 import { congAccountConnectedState } from '@states/app';
 import { languageGroupsState } from '@states/field_service_groups';
+import { myCongSpeakersState } from '@states/visiting_speakers';
 
 const useHeader = () => {
   const { t } = useAppTranslation();
@@ -21,18 +22,19 @@ const useHeader = () => {
   const circuitNumber = useAtomValue(circuitNumberState);
   const dataView = useAtomValue(userDataViewState);
   const groups = useAtomValue(languageGroupsState);
+  const myCongSpeakers = useAtomValue(myCongSpeakersState);
 
   const [openAccess, setOpenAccess] = useState(false);
 
   const headerTitle = useMemo(() => {
     if (dataView === 'main') {
-      return t('tr_yourCongregation');
+      return `${t('tr_yourCongregation')} (${myCongSpeakers.length})`;
     }
 
     const group = groups.find((record) => record.group_id === dataView);
 
     return group?.group_data.name ?? '';
-  }, [dataView, t, groups]);
+  }, [dataView, t, groups, myCongSpeakers]);
 
   const handleOpenAccess = () => setOpenAccess(true);
 

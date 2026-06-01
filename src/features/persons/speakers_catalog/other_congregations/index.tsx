@@ -11,6 +11,8 @@ const OtherCongregations = () => {
   const {
     circuitCongs,
     otherCongs,
+    circuitSpeakersCount,
+    otherSpeakersCount,
     isAdding,
     handleIsAddingClose,
     currentExpanded,
@@ -33,7 +35,7 @@ const OtherCongregations = () => {
 
       {/* Tu Circuito Section */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography className="h2">Tu circuito</Typography>
+        <Typography className="h2">{`Tu circuito (${circuitSpeakersCount})`}</Typography>
 
         {circuitCongs.length === 0 && (
           <Typography
@@ -60,7 +62,7 @@ const OtherCongregations = () => {
 
       {/* Otras Congregaciones Section */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography className="h2">{t('tr_otherCongregations')}</Typography>
+        <Typography className="h2">{`${t('tr_otherCongregations')} (${otherSpeakersCount})`}</Typography>
 
         {otherCongs.length === 0 && (
           <Typography
