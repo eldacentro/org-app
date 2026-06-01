@@ -180,9 +180,14 @@ const syncFromRemote = <T extends object>(local: T, remote: T): T => {
             local[key].push(remoteValue);
           } else {
             if ('updatedAt' in localValue) {
-              if (remoteValue.updatedAt > localValue.updatedAt) {
+              if (
+                !localValue.updatedAt ||
+                remoteValue.updatedAt > localValue.updatedAt
+              ) {
                 Object.assign(localValue, remoteValue);
               }
+            } else if ('updatedAt' in remoteValue) {
+              Object.assign(localValue, remoteValue);
             }
 
             if (!('updatedAt' in localValue)) {
@@ -206,7 +211,10 @@ const syncFromRemote = <T extends object>(local: T, remote: T): T => {
   for (const key of objectKeys) {
     if (local[key]) {
       if ('updatedAt' in remote[key]) {
-        if (remote[key].updatedAt > local[key].updatedAt) {
+        if (
+          !local[key].updatedAt ||
+          remote[key].updatedAt > local[key].updatedAt
+        ) {
           local[key] = remote[key];
         }
       } else {

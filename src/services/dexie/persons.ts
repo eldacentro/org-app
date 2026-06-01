@@ -281,13 +281,25 @@ export const dbPersonsInitializePredicacionFields = async () => {
     let updated = false;
     const person = structuredClone(current);
 
-    if (person.person_data.predicacion_salidas === undefined) {
-      person.person_data.predicacion_salidas = { value: false, updatedAt: '' };
+    if (
+      person.person_data.predicacion_salidas === undefined ||
+      person.person_data.predicacion_salidas.updatedAt === undefined
+    ) {
+      person.person_data.predicacion_salidas = {
+        value: person.person_data.predicacion_salidas?.value || false,
+        updatedAt: '',
+      };
       updated = true;
     }
 
-    if (person.person_data.predicacion_exhibidores === undefined) {
-      person.person_data.predicacion_exhibidores = { value: false, updatedAt: '' };
+    if (
+      person.person_data.predicacion_exhibidores === undefined ||
+      person.person_data.predicacion_exhibidores.updatedAt === undefined
+    ) {
+      person.person_data.predicacion_exhibidores = {
+        value: person.person_data.predicacion_exhibidores?.value || false,
+        updatedAt: '',
+      };
       updated = true;
     }
 
