@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, cloneElement } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
@@ -32,6 +32,10 @@ import { getWeekDate, formatDate } from '@utils/date';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 import { schedulesState } from '@states/schedules';
 import { Week } from '@definition/week_type';
+import { upcomingEventsActiveState } from '@states/upcoming_events';
+import { upcomingEventData } from '@services/app/upcoming_events';
+import { decorationsForEvent } from '@features/activities/upcoming_events/decorations_for_event';
+import { UpcomingEventCategory, UpcomingEventDuration } from '@definition/upcoming_events';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -39,6 +43,7 @@ const Dashboard = () => {
   const appLang = useAtomValue(appLangState);
   const schedules = useAtomValue(schedulesState);
   const dataView = useAtomValue(userDataViewState);
+  const upcomingEvents = useAtomValue(upcomingEventsActiveState);
 
   // App settings atoms
   const midweekMeetingWeekday = useAtomValue(midweekMeetingWeekdayState);
@@ -193,6 +198,147 @@ const Dashboard = () => {
     navigate('/weekly-schedules');
   };
 
+  const locale = useMemo(() => {
+    const langItem = LANGUAGE_LIST.find(
+      (lang) => lang.code === appLang || lang.threeLettersCode === appLang
+    );
+    return langItem ? langItem.locale : 'es-ES';
+  }, [appLang]);
+
+  // Delimit the week (Monday to Sunday)
+  const startOfWeek = useMemo(() => {
+    const d = new Date(monday);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [monday]);
+
+  const endOfWeek = useMemo(() => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + 6);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  }, [monday]);
+
+  // Filter events belonging to this week
+  const thisWeekEvents = useMemo(() => {
+    return upcomingEvents
+      .filter((record) => {
+        // filter by type / dataView
+        if (dataView === 'main') {
+          if (record.event_data.type !== 'main') return false;
+        } else {
+          if (record.event_data.type !== 'main' && record.event_data.type !== dataView) return false;
+        }
+
+        // filter by week overlap
+        const eventStart = new Date(record.event_data.start);
+        const eventEnd = new Date(record.event_data.end);
+        return eventStart <= endOfWeek && eventEnd >= startOfWeek;
+      })
+      .map((record) => {
+        // Parse event details
+        const details = upcomingEventData(record);
+        const eventDateObj = new Date(record.event_data.start);
+        const eventDayNum = eventDateObj.getDate();
+        const eventMonthStr = eventDateObj
+          .toLocaleDateString(locale, { month: 'short' })
+          .slice(0, 3)
+          .toLowerCase();
+
+        const eventDecoration =
+          record.event_data.category !== undefined &&
+          record.event_data.category !== null &&
+          record.event_data.category < decorationsForEvent.length
+            ? decorationsForEvent[record.event_data.category]
+            : decorationsForEvent[decorationsForEvent.length - 1];
+
+        const eventTitle =
+          record.event_data.category !== UpcomingEventCategory.Custom
+            ? t(eventDecoration.translationKey)
+            : record.event_data.custom;
+
+        const isMultiDay = record.event_data.duration === UpcomingEventDuration.MultipleDays;
+
+        return {
+          id: record.event_uid,
+          type: 'event' as const,
+          date: eventDateObj,
+          dayNum: eventDayNum,
+          monthStr: eventMonthStr,
+          title: eventTitle,
+          description: record.event_data.description,
+          time: isMultiDay ? '' : details.time,
+          decoration: eventDecoration,
+        };
+      });
+  }, [upcomingEvents, dataView, startOfWeek, endOfWeek, locale, t]);
+
+  const agendaItems = useMemo(() => {
+    const items = [];
+
+    if (showMidweekRow) {
+      items.push({
+        id: 'midweek',
+        type: 'midweek' as const,
+        date: midweekMeetingDate,
+        dayNum: midweekDayNum,
+        monthStr: midweekMonthStr,
+        title: t('tr_midweekMeeting', 'Reunión de entre semana'),
+        description: midweekDescription,
+        time: midweekMeetingTime,
+        onClick: handleMidweekClick,
+      });
+    }
+
+    if (showWeekendRow) {
+      items.push({
+        id: 'weekend',
+        type: 'weekend' as const,
+        date: weekendMeetingDate,
+        dayNum: weekendDayNum,
+        monthStr: weekendMonthStr,
+        title: t('tr_weekendMeeting', 'Reunión de fin de semana'),
+        description: weekendDescription,
+        time: weekendMeetingTime,
+        onClick: handleWeekendClick,
+      });
+    }
+
+    for (const ev of thisWeekEvents) {
+      items.push({
+        id: ev.id,
+        type: 'event' as const,
+        date: ev.date,
+        dayNum: ev.dayNum,
+        monthStr: ev.monthStr,
+        title: ev.title,
+        description: ev.description,
+        time: ev.time,
+        decoration: ev.decoration,
+        onClick: () => navigate('/activities/upcoming-events'),
+      });
+    }
+
+    // Sort ascending by date
+    return items.sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [
+    showMidweekRow,
+    midweekMeetingDate,
+    midweekDayNum,
+    midweekMonthStr,
+    midweekDescription,
+    midweekMeetingTime,
+    showWeekendRow,
+    weekendMeetingDate,
+    weekendDayNum,
+    weekendMonthStr,
+    weekendDescription,
+    weekendMeetingTime,
+    thisWeekEvents,
+    t,
+    navigate,
+  ]);
+
   // Live countdown to next meeting
   const [countdownText, setCountdownText] = useState(t('tr_loading', 'cargando…'));
 
@@ -344,7 +490,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {!showMidweekRow && !showWeekendRow ? (
+            {agendaItems.length === 0 ? (
               <Box
                 sx={{
                   display: 'flex',
@@ -400,33 +546,51 @@ const Dashboard = () => {
               </Box>
             ) : (
               <>
-                {showMidweekRow && (
-                  <div className="meeting-row active-press" onClick={handleMidweekClick}>
-                    <div className="day-badge mid">
-                      <span className="d">{midweekDayNum}</span>
-                      <span className="m">{midweekMonthStr}</span>
-                    </div>
-                    <div className="meeting-info">
-                      <div className="nm">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
-                      {midweekDescription && <div className="sub">{midweekDescription}</div>}
-                    </div>
-                    <div className="meeting-time">{midweekMeetingTime}</div>
-                  </div>
-                )}
+                {agendaItems.map((item) => {
+                  const isMidweek = item.type === 'midweek';
+                  const isWeekend = item.type === 'weekend';
+                  const isEvent = item.type === 'event';
+                  
+                  let badgeClass = 'day-badge';
+                  if (isMidweek) badgeClass += ' mid';
+                  if (isWeekend) badgeClass += ' wknd';
+                  if (isEvent) badgeClass += ' ev';
 
-                {showWeekendRow && (
-                  <div className="meeting-row active-press" onClick={handleWeekendClick}>
-                    <div className="day-badge wknd">
-                      <span className="d">{weekendDayNum}</span>
-                      <span className="m">{weekendMonthStr}</span>
+                  return (
+                    <div
+                      key={item.id}
+                      className="meeting-row active-press"
+                      onClick={item.onClick}
+                    >
+                      <div className={badgeClass}>
+                        <span className="d">{item.dayNum}</span>
+                        <span className="m">{item.monthStr}</span>
+                      </div>
+                      <div className="meeting-info">
+                        <div
+                          className="nm"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          {isEvent && item.decoration && cloneElement(item.decoration.icon, {
+                            color: 'var(--ink)',
+                            style: { width: '16px', height: '16px', flexShrink: 0 }
+                          })}
+                          <span>{item.title}</span>
+                        </div>
+                        {item.description && (
+                          <div className="sub">{item.description}</div>
+                        )}
+                      </div>
+                      {item.time && (
+                        <div className="meeting-time">{item.time}</div>
+                      )}
                     </div>
-                    <div className="meeting-info">
-                      <div className="nm">{t('tr_weekendMeeting', 'Reunión de fin de semana')}</div>
-                      {weekendDescription && <div className="sub">{weekendDescription}</div>}
-                    </div>
-                    <div className="meeting-time">{weekendMeetingTime}</div>
-                  </div>
-                )}
+                  );
+                })}
               </>
             )}
 

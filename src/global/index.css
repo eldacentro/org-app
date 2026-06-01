@@ -675,6 +675,14 @@ body iframe {
   background: #3e3220;
   color: #fdf0dd;
 }
+.day-badge.ev {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+[data-theme$='dark'] .day-badge.ev {
+  background: #2e1049;
+  color: #e9d5ff;
+}
 .meeting-row .meeting-info {
   flex: 1;
   min-width: 0;
