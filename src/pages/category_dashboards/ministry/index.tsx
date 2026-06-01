@@ -60,7 +60,7 @@ const MinistryDashboard = () => {
         )}
 
         {/* Salidas de predicación */}
-        {(isServiceCommittee || isPublisher) && (
+        {(isServiceCommittee) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
             <div className="ti">
               <IconInTerritory color="var(--brand)" width={22} height={22} />

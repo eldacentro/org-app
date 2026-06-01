@@ -20,19 +20,25 @@ import {
   midweekMeetingTimeState,
   weekendMeetingWeekdayState,
   weekendMeetingTimeState,
+  userDataViewState,
 } from '@states/settings';
 import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
 import Snackbar from '@components/snackbar';
-import { LANGUAGE_LIST } from '@constants/index';
+import { LANGUAGE_LIST, WEEK_TYPE_NO_MEETING } from '@constants/index';
 import PageTitle from '@components/page_title';
-import { getWeekDate } from '@utils/date';
+import { getWeekDate, formatDate } from '@utils/date';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
+import { schedulesState } from '@states/schedules';
+import { Week } from '@definition/week_type';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useAppTranslation();
   const appLang = useAtomValue(appLangState);
+  const schedules = useAtomValue(schedulesState);
+  const dataView = useAtomValue(userDataViewState);
 
   // App settings atoms
   const midweekMeetingWeekday = useAtomValue(midweekMeetingWeekdayState);
@@ -136,21 +142,70 @@ const Dashboard = () => {
     return getWeekDate(new Date());
   }, []);
 
+  const weekOf = useMemo(() => {
+    return formatDate(monday, 'yyyy/MM/dd');
+  }, [monday]);
+
+  const currentWeekSchedule = useMemo(() => {
+    return schedules.find((record) => record.weekOf === weekOf);
+  }, [schedules, weekOf]);
+
+  const midweekWeekType = useMemo(() => {
+    if (!currentWeekSchedule) return Week.NORMAL;
+    return currentWeekSchedule.midweek_meeting.week_type.find(
+      (record) => record.type === dataView
+    )?.value ?? Week.NORMAL;
+  }, [currentWeekSchedule, dataView]);
+
+  const weekendWeekType = useMemo(() => {
+    if (!currentWeekSchedule) return Week.NORMAL;
+    return currentWeekSchedule.weekend_meeting.week_type.find(
+      (record) => record.type === dataView
+    )?.value ?? Week.NORMAL;
+  }, [currentWeekSchedule, dataView]);
+
+  const isMidweekSuspended = useMemo(() => {
+    return WEEK_TYPE_NO_MEETING.includes(midweekWeekType);
+  }, [midweekWeekType]);
+
+  const isWeekendSuspended = useMemo(() => {
+    return WEEK_TYPE_NO_MEETING.includes(weekendWeekType);
+  }, [weekendWeekType]);
+
+  const showMidweekRow = showMidweek && !isMidweekSuspended;
+  const showWeekendRow = showWeekend && !isWeekendSuspended;
+
   const midweekMeetingDate = useMemo(() => {
+    const info = schedulesGetMeetingDate({ week: weekOf, meeting: 'midweek' });
+    if (info && info.date) {
+      const parts = info.date.split('/');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+    }
+    // Fallback to default calculation if schedule or date not found
     const midweekDay = midweekMeetingWeekday === 7 ? 0 : midweekMeetingWeekday;
     const midweekDiff = midweekDay === 0 ? 6 : midweekDay - 1;
     const d = new Date(monday);
     d.setDate(monday.getDate() + midweekDiff);
     return d;
-  }, [monday, midweekMeetingWeekday]);
+  }, [weekOf, monday, midweekMeetingWeekday]);
 
   const weekendMeetingDate = useMemo(() => {
+    const info = schedulesGetMeetingDate({ week: weekOf, meeting: 'weekend' });
+    if (info && info.date) {
+      const parts = info.date.split('/');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+    }
+    // Fallback to default calculation if schedule or date not found
     const weekendDay = weekendMeetingWeekday === 7 ? 0 : weekendMeetingWeekday;
     const weekendDiff = weekendDay === 0 ? 6 : weekendDay - 1;
     const d = new Date(monday);
     d.setDate(monday.getDate() + weekendDiff);
     return d;
-  }, [monday, weekendMeetingWeekday]);
+  }, [weekOf, monday, weekendMeetingWeekday]);
 
   const midweekDayNum = midweekMeetingDate.getDate();
   const midweekMonthStr = useMemo(() => {
@@ -170,8 +225,32 @@ const Dashboard = () => {
     return weekendMeetingDate.toLocaleDateString(locale, { month: 'short' }).slice(0, 3).toLowerCase();
   }, [weekendMeetingDate, appLang]);
 
+  const midweekDescription = useMemo(() => {
+    if (midweekWeekType === Week.CO_VISIT) {
+      return t('tr_coVisit', 'Visita del superintendente de circuito');
+    }
+    return '';
+  }, [midweekWeekType, t]);
+
+  const weekendDescription = useMemo(() => {
+    if (weekendWeekType === Week.CO_VISIT) {
+      return t('tr_coVisit', 'Visita del superintendente de circuito');
+    }
+    return '';
+  }, [weekendWeekType, t]);
+
   const handleTileClick = (path: string) => {
     navigate(path);
+  };
+
+  const handleMidweekClick = () => {
+    localStorage.setItem('organized_weekly_schedules', 'midweek');
+    navigate('/weekly-schedules');
+  };
+
+  const handleWeekendClick = () => {
+    localStorage.setItem('organized_weekly_schedules', 'weekend');
+    navigate('/weekly-schedules');
   };
 
   return (
@@ -224,32 +303,90 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {showMidweek && (
-              <div className="meeting-row active-press" onClick={() => handleTileClick('/weekly-schedules')}>
-                <div className="day-badge mid">
-                  <span className="d">{midweekDayNum}</span>
-                  <span className="m">{midweekMonthStr}</span>
-                </div>
-                <div className="meeting-info">
-                  <div className="nm">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
-                  <div className="sub">Tesoros · Seamos maestros · Vida cristiana</div>
-                </div>
-                <div className="meeting-time">{midweekMeetingTime}</div>
-              </div>
-            )}
+            {!showMidweekRow && !showWeekendRow ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: 'rgba(59, 114, 196, 0.03)',
+                  borderRadius: '16px',
+                  margin: '12px',
+                  border: '1px dashed rgba(59, 114, 196, 0.15)',
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    opacity: 0.6,
+                    color: 'var(--brand)',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <path d="M8 2v4M16 2v4M3 10h18" />
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="m14 14-4 4M10 14l4 4" />
+                </svg>
+                <Box
+                  sx={{
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
+                </Box>
+                <Box
+                  sx={{
+                    fontSize: '13px',
+                    color: 'var(--slate-500)',
+                    maxWidth: '300px',
+                  }}
+                >
+                  {t('tr_noMeetingsScheduledDesc', 'Esta semana no hay reuniones debido a eventos especiales o asambleas.')}
+                </Box>
+              </Box>
+            ) : (
+              <>
+                {showMidweekRow && (
+                  <div className="meeting-row active-press" onClick={handleMidweekClick}>
+                    <div className="day-badge mid">
+                      <span className="d">{midweekDayNum}</span>
+                      <span className="m">{midweekMonthStr}</span>
+                    </div>
+                    <div className="meeting-info">
+                      <div className="nm">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
+                      {midweekDescription && <div className="sub">{midweekDescription}</div>}
+                    </div>
+                    <div className="meeting-time">{midweekMeetingTime}</div>
+                  </div>
+                )}
 
-            {showWeekend && (
-              <div className="meeting-row active-press" onClick={() => handleTileClick('/weekly-schedules')}>
-                <div className="day-badge wknd">
-                  <span className="d">{weekendDayNum}</span>
-                  <span className="m">{weekendMonthStr}</span>
-                </div>
-                <div className="meeting-info">
-                  <div className="nm">{t('tr_weekendMeeting', 'Reunión de fin de semana')}</div>
-                  <div className="sub">Discurso público · Estudio de La Atalaya</div>
-                </div>
-                <div className="meeting-time">{weekendMeetingTime}</div>
-              </div>
+                {showWeekendRow && (
+                  <div className="meeting-row active-press" onClick={handleWeekendClick}>
+                    <div className="day-badge wknd">
+                      <span className="d">{weekendDayNum}</span>
+                      <span className="m">{weekendMonthStr}</span>
+                    </div>
+                    <div className="meeting-info">
+                      <div className="nm">{t('tr_weekendMeeting', 'Reunión de fin de semana')}</div>
+                      {weekendDescription && <div className="sub">{weekendDescription}</div>}
+                    </div>
+                    <div className="meeting-time">{weekendMeetingTime}</div>
+                  </div>
+                )}
+              </>
             )}
 
             <button className="week-cta-btn active-press" onClick={() => handleTileClick('/weekly-schedules')}>

@@ -16,7 +16,7 @@ import DashboardMenu from '@features/dashboard/menu';
 const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
   const { t } = useAppTranslation();
 
-  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator } =
+  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator, isDepartmentsEditor } =
     useCurrentUser();
 
   const { showMeetingCard, showMidweek, showWeekend } = useSharedHook();
@@ -66,7 +66,7 @@ const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
         </ListItem>
       )}
 
-      {isMidweekEditor && (
+      {(isMidweekEditor || isDepartmentsEditor) && (
         <ListItem disablePadding>
           <DashboardMenu
             icon={<IconDuties color="var(--black)" />}

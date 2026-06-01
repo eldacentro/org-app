@@ -16,7 +16,7 @@ const MeetingsDashboard = () => {
   const navigate = useNavigate();
   const setIsMyAssignmentOpen = useSetAtom(isMyAssignmentOpenState);
   
-  const { isMidweekEditor, isWeekendEditor } = useCurrentUser();
+  const { isMidweekEditor, isWeekendEditor, isDepartmentsEditor } = useCurrentUser();
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -87,18 +87,20 @@ const MeetingsDashboard = () => {
         )}
 
         {/* Departamentos */}
-        <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
-          <div className="ti">
-            <IconDuties color="var(--brand)" width={22} height={22} />
+        {(isMidweekEditor || isDepartmentsEditor) && (
+          <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
+            <div className="ti">
+              <IconDuties color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Departamentos</div>
+              <div className="tile-meta">Acomodadores, audio, etc.</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
           </div>
-          <div className="tile-body">
-            <div className="tile-name">Departamentos</div>
-            <div className="tile-meta">Acomodadores, audio, etc.</div>
-          </div>
-          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 6l6 6-6 6" />
-          </svg>
-        </div>
+        )}
 
       </div>
     </Box>

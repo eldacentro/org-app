@@ -629,6 +629,7 @@ body iframe {
 .tile-item .ti svg {
   width: 24px;
   height: 24px;
+  stroke: none !important;
 }
 .tile-item .tile-name {
   font-weight: 700;
@@ -661,10 +662,8 @@ body iframe {
 
 /* Tile color themes */
 .c-blue .ti { background: var(--brand-tint); }
-.c-blue .ti svg { stroke: var(--brand); }
 
 .c-slate .ti { background: #eef0f4; }
-.c-slate .ti svg { stroke: #5a6678; }
 [data-theme$='dark'] .c-slate .ti { background: #22252a; }
 
 .tile-item.full-width {
