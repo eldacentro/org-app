@@ -75,7 +75,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         <Typography
           sx={{
             fontSize: isDept ? '7.5px' : '8px',
-            fontWeight: '800 !important', // ExtraBold — max available in Figtree
+            fontWeight: '800 !important', // ExtraBold
             letterSpacing: '0.8px',
             textTransform: 'uppercase',
             color: isPreaching
@@ -88,13 +88,13 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         >
           {isDept ? 'SEM.' : assignmentDayName}
         </Typography>
-        {/* Day number */}
+        {/* Day number — Figtree Black (900) is now self-hosted */}
         <Typography
           sx={{
             color: isPreaching
               ? 'var(--preaching-color) !important'
               : 'var(--brand) !important',
-            fontWeight: '800 !important', // Black — 800 is the real max in Figtree
+            fontWeight: '900 !important', // True Black via Figtree-Black.ttf
             fontSize: isDept ? '15px !important' : '22px !important',
             lineHeight: 1,
             letterSpacing: '-0.5px',
