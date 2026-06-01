@@ -6,13 +6,22 @@ import {
   IconGroups,
   IconPublisherRecordCard,
   IconReportToBranch,
+  IconPublishersReports,
 } from '@icons/index';
 
 const ReportsDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
   
-  const { isElder, isAttendanceEditor, isGroupOverseer, isSecretary, isAdmin } = useCurrentUser();
+  const {
+    isElder,
+    isAttendanceEditor,
+    isGroupOverseer,
+    isSecretary,
+    isAdmin,
+    isLanguageGroupOverseer,
+    isGroup,
+  } = useCurrentUser();
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -58,8 +67,24 @@ const ReportsDashboard = () => {
           </div>
         )}
 
+        {/* Informes de predicación */}
+        {(isSecretary || isGroupOverseer || isLanguageGroupOverseer) && (
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/field-service')}>
+            <div className="ti">
+              <IconPublishersReports color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">{t('tr_fieldServiceReports', 'Informes de predicación')}</div>
+              <div className="tile-meta">Recopilar e ingresar actividad</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
         {/* Informes a la sucursal */}
-        {(isAdmin || isSecretary) && (
+        {(isAdmin || isSecretary) && !isGroup && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
             <div className="ti">
               <IconReportToBranch color="var(--brand)" width={22} height={22} />

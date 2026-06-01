@@ -6,13 +6,31 @@ import {
   IconAccount,
   IconSettings,
   IconManageAccess,
+  IconJwOrg,
+  IconImportFile,
+  IconSynced,
 } from '@icons/index';
+import useCongregation from '@pages/dashboard/congregation/useCongregation';
+import useMeetingMaterials from '@pages/dashboard/meeting_materials/useMeetingMaterials';
 
 const SettingsDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
   
-  const { isAdmin, isElder } = useCurrentUser();
+  const {
+    isAdmin,
+    isElder,
+    isMeetingEditor,
+  } = useCurrentUser();
+
+  const {
+    secondaryText,
+    handleManualSync,
+    isConnected,
+  } = useCongregation();
+
+  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile } =
+    useMeetingMaterials();
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -65,6 +83,54 @@ const SettingsDashboard = () => {
             <div className="tile-body">
               <div className="tile-name">{t('tr_manageAccess', 'Cuentas de usuario')}</div>
               <div className="tile-meta">Administrar accesos</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
+        {/* Importar desde jw.org */}
+        {isMeetingEditor && isNavigatorOnline && (
+          <div className="tile-item c-blue active-press full-width" onClick={handleOpenJWImport}>
+            <div className="ti">
+              <IconJwOrg color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">{t('tr_sourceImportJw', 'Importar desde jw.org')}</div>
+              <div className="tile-meta">Importar de forma automática</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
+        {/* Importar desde archivo .epub */}
+        {isMeetingEditor && (
+          <div className="tile-item c-blue active-press full-width" onClick={handleOpenEPUBFile}>
+            <div className="ti">
+              <IconImportFile color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">{t('tr_sourceImportEPUB', 'Importar desde archivo .epub')}</div>
+              <div className="tile-meta">Cargar archivo de publicación</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
+        {/* Sincronizar datos */}
+        {isConnected && (
+          <div className="tile-item c-blue active-press full-width" onClick={handleManualSync}>
+            <div className="ti">
+              <IconSynced color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">{t('tr_syncAppData', 'Sincronizar datos')}</div>
+              <div className="tile-meta">{secondaryText || 'Sincronizar información'}</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
