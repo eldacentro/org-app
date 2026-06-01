@@ -115,7 +115,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
           left: 0,
           width: '100%',
           overflow: 'hidden',
-          zIndex: (theme) => theme.zIndex.appBar,
+          zIndex: (theme) => theme.zIndex.drawer - 1,
         }}
       >
         <Toolbar sx={{ padding: 0, minHeight: '62px', alignItems: 'center', backgroundColor: 'transparent !important', backgroundImage: 'none !important' }}>
