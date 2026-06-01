@@ -101,6 +101,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
       <AppBar
         position="fixed"
         elevation={0}
+        className={scrolled ? "appbar-scrolled" : "appbar-top"}
         sx={{
           backgroundColor: scrolled ? 'rgba(var(--accent-100-base), 0.65) !important' : 'transparent !important',
           backgroundImage: 'none !important',
@@ -134,7 +135,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
           >
             {!navBarOptions.title && !navBarOptions.buttons ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 0, width: '100%' }}>
+                <div className="topbar" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                   <div className="logo-container" onClick={handleGoDashboard} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                     <IconLogo width={40} height={40} color="var(--brand)" />
                   </div>

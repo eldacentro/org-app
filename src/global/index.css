@@ -253,8 +253,64 @@ body iframe {
   display: flex;
   align-items: center;
   gap: 11px;
-  margin-bottom: 22px;
+  margin-bottom: 0 !important;
   animation: rise .6s .02s both cubic-bezier(.22,1,.36,1);
+}
+
+/* Global AppBar overrides for iOS safe-area top and bottom rounded corners */
+.MuiAppBar-root {
+  /* Pull to the top and handle safe-area padding */
+  padding-top: env(safe-area-inset-top) !important;
+  
+  /* Overwrite overflow: hidden so nothing gets clipped or hidden */
+  overflow: visible !important;
+  
+  /* Smooth transitions */
+  transition: background-color 0.25s ease, backdrop-filter 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, border-radius 0.25s ease !important;
+}
+
+/* 1. STATE: At the very top (scrolled is false)
+   It remains completely transparent to seamlessly match the screen background */
+.appbar-top {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* 2. STATE: Scrolled (scrolled is true)
+   It transitions beautifully into the slim, bottom-rounded glassmorphic panel! */
+/* Light mode Glassmorphic AppBar */
+[data-theme='blue-light'] .appbar-scrolled {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
+  border-bottom: 1px solid rgba(59, 114, 196, 0.08) !important;
+  box-shadow: 0 8px 32px -8px rgba(59, 114, 196, 0.06) !important;
+  border-radius: 0 0 16px 16px !important;
+}
+
+/* Dark mode Glassmorphic AppBar */
+[data-theme='blue-dark'] .appbar-scrolled {
+  background: rgba(21, 21, 25, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 0 0 16px 16px !important;
+}
+
+/* Screen Top Gradients for Light Theme */
+[data-theme='blue-light'] .screen {
+  background: linear-gradient(to bottom, #ffffff 0px, #ffffff 60px, #F0F4FA 180px) !important;
+}
+
+/* Dynamic height adjustment for the Root Layout placeholder Toolbar
+   to match the Safe Area height on iOS and prevent content from sitting too high */
+.screen > .MuiToolbar-root {
+  min-height: calc(62px + env(safe-area-inset-top)) !important;
 }
 .logo-container {
   flex: 0 0 auto;
