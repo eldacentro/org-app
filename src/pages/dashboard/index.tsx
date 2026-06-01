@@ -81,62 +81,6 @@ const Dashboard = () => {
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
   }, [appLang]);
 
-  // Live countdown to next meeting
-  const [countdownText, setCountdownText] = useState(t('tr_loading', 'cargando…'));
-
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-
-      const getNextOccurrence = (weekday: number, timeStr: string) => {
-        const [hrs, mins] = timeStr.split(':').map(Number);
-        const target = new Date();
-        target.setHours(hrs, mins, 0, 0);
-
-        const jsWeekday = weekday === 7 ? 0 : weekday;
-        const currentDay = now.getDay();
-
-        let daysDiff = jsWeekday - currentDay;
-        if (daysDiff < 0 || (daysDiff === 0 && now.getTime() >= target.getTime())) {
-          daysDiff += 7;
-        }
-
-        const res = new Date(now);
-        res.setDate(now.getDate() + daysDiff);
-        res.setHours(hrs, mins, 0, 0);
-        return res;
-      };
-
-      const nextMidweek = getNextOccurrence(midweekMeetingWeekday, midweekMeetingTime);
-      const nextWeekend = getNextOccurrence(weekendMeetingWeekday, weekendMeetingTime);
-
-      const targetMeeting = nextMidweek.getTime() < nextWeekend.getTime() ? nextMidweek : nextWeekend;
-
-      const diffMs = targetMeeting.getTime() - now.getTime();
-      if (diffMs <= 0) {
-        setCountdownText(t('tr_inProgress', 'En curso'));
-        return;
-      }
-
-      const diffSecs = Math.floor(diffMs / 1000);
-      const d = Math.floor(diffSecs / 86400);
-      const h = Math.floor((diffSecs % 86400) / 3600);
-      const m = Math.floor((diffSecs % 3600) / 60);
-
-      if (d > 0) {
-        setCountdownText(t('tr_countdownDays', `Faltan ${d} d ${h} h`, { days: d, hours: h }));
-      } else if (h > 0) {
-        setCountdownText(t('tr_countdownHours', `Faltan ${h} h ${m} min`, { hours: h, minutes: m }));
-      } else {
-        setCountdownText(t('tr_countdownMinutes', `Faltan ${m} min`, { minutes: m }));
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 60000);
-    return () => clearInterval(interval);
-  }, [midweekMeetingWeekday, midweekMeetingTime, weekendMeetingWeekday, weekendMeetingTime, t]);
-
   // Dynamic day/month values for the meeting bubbles of "this week"
   const monday = useMemo(() => {
     return getWeekDate(new Date());
@@ -252,6 +196,107 @@ const Dashboard = () => {
     localStorage.setItem('organized_weekly_schedules', 'weekend');
     navigate('/weekly-schedules');
   };
+
+  // Live countdown to next meeting
+  const [countdownText, setCountdownText] = useState(t('tr_loading', 'cargando…'));
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+
+      if (!showMidweekRow && !showWeekendRow) {
+        setCountdownText(t('tr_noMeetingsThisWeek', 'Sin reuniones esta semana'));
+        return;
+      }
+
+      // Determine candidates that are in the future
+      const candidates: Date[] = [];
+
+      if (showMidweekRow) {
+        const [midHrs, midMins] = midweekMeetingTime.split(':').map(Number);
+        const midTarget = new Date(midweekMeetingDate);
+        midTarget.setHours(midHrs, midMins, 0, 0);
+        if (midTarget.getTime() > now.getTime()) {
+          candidates.push(midTarget);
+        }
+      }
+
+      if (showWeekendRow) {
+        const [wkndHrs, wkndMins] = weekendMeetingTime.split(':').map(Number);
+        const wkndTarget = new Date(weekendMeetingDate);
+        wkndTarget.setHours(wkndHrs, wkndMins, 0, 0);
+        if (wkndTarget.getTime() > now.getTime()) {
+          candidates.push(wkndTarget);
+        }
+      }
+
+      let targetMeeting: Date | null = null;
+
+      if (candidates.length > 0) {
+        // Sort candidates ascending and pick the earliest future one
+        candidates.sort((a, b) => a.getTime() - b.getTime());
+        targetMeeting = candidates[0];
+      } else {
+        // Fallback to the standard next-occurrence calculation if both this week's meetings are in the past
+        const getNextOccurrence = (weekday: number, timeStr: string) => {
+          const [hrs, mins] = timeStr.split(':').map(Number);
+          const target = new Date();
+          target.setHours(hrs, mins, 0, 0);
+
+          const jsWeekday = weekday === 7 ? 0 : weekday;
+          const currentDay = now.getDay();
+
+          let daysDiff = jsWeekday - currentDay;
+          if (daysDiff < 0 || (daysDiff === 0 && now.getTime() >= target.getTime())) {
+            daysDiff += 7;
+          }
+
+          const res = new Date(now);
+          res.setDate(now.getDate() + daysDiff);
+          res.setHours(hrs, mins, 0, 0);
+          return res;
+        };
+
+        const nextMidweek = getNextOccurrence(midweekMeetingWeekday, midweekMeetingTime);
+        const nextWeekend = getNextOccurrence(weekendMeetingWeekday, weekendMeetingTime);
+
+        targetMeeting = nextMidweek.getTime() < nextWeekend.getTime() ? nextMidweek : nextWeekend;
+      }
+
+      const diffMs = targetMeeting.getTime() - now.getTime();
+      if (diffMs <= 0) {
+        setCountdownText(t('tr_inProgress', 'En curso'));
+        return;
+      }
+
+      const diffSecs = Math.floor(diffMs / 1000);
+      const d = Math.floor(diffSecs / 86400);
+      const h = Math.floor((diffSecs % 86400) / 3600);
+      const m = Math.floor((diffSecs % 3600) / 60);
+
+      if (d > 0) {
+        setCountdownText(t('tr_countdownDays', `Faltan ${d} d ${h} h`, { days: d, hours: h }));
+      } else if (h > 0) {
+        setCountdownText(t('tr_countdownHours', `Faltan ${h} h ${m} min`, { hours: h, minutes: m }));
+      } else {
+        setCountdownText(t('tr_countdownMinutes', `Faltan ${m} min`, { minutes: m }));
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    return () => clearInterval(interval);
+  }, [
+    midweekMeetingWeekday,
+    midweekMeetingTime,
+    weekendMeetingWeekday,
+    weekendMeetingTime,
+    midweekMeetingDate,
+    weekendMeetingDate,
+    showMidweekRow,
+    showWeekendRow,
+    t
+  ]);
 
   return (
     <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto', paddingTop: '16px' }}>
