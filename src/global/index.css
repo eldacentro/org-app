@@ -794,3 +794,35 @@ body iframe {
   border-bottom: none !important;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03) !important;
 }
+
+/* Light theme Glassmorphic Group Cards */
+[data-theme='blue-light'] .group-card-glass {
+  background: rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(18px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.9) !important;
+  box-shadow: 0 4px 24px -6px rgba(59, 114, 196, 0.06), 0 2px 8px -2px rgba(59, 114, 196, 0.04) !important;
+}
+
+/* Dark theme Glassmorphic Group Cards */
+[data-theme='blue-dark'] .group-card-glass {
+  background: rgba(21, 21, 25, 0.62) !important;
+  backdrop-filter: blur(18px) saturate(1.9) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.9) !important;
+  box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Hover Lift and dynamic shadow upgrades */
+.group-card-hover-effect {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease !important;
+}
+.group-card-hover-effect:hover {
+  transform: translateY(-4px) !important;
+}
+[data-theme='blue-light'] .group-card-hover-effect:hover {
+  box-shadow: 0 12px 36px -8px rgba(59, 114, 196, 0.14), 0 4px 12px -4px rgba(59, 114, 196, 0.08) !important;
+  border-color: rgba(59, 114, 196, 0.72) !important;
+}
+[data-theme='blue-dark'] .group-card-hover-effect:hover {
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.55), 0 4px 12px -4px rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}

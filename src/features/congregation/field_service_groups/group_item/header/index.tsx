@@ -32,12 +32,13 @@ const GroupHeader = (props: GroupHeaderProps) => {
   return (
     <Box
       sx={{
-        padding: '8px 16px',
-        borderRadius: '6px',
+        padding: '12px 16px',
+        borderRadius: '11px 11px 0px 0px',
         backgroundColor: bg_color,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottom: `1px solid rgba(var(--group-${props.index}-base), 0.16)`,
       }}
     >
       {dlgOpen && (

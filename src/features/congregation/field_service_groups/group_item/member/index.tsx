@@ -4,6 +4,7 @@ import {
   IconOverseer,
   IconMore,
   IconRemovePerson,
+  IconPerson,
 } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { GroupMemberProps } from './index.types';
@@ -17,7 +18,6 @@ const GroupMember = (props: GroupMemberProps) => {
   const { t } = useAppTranslation();
 
   const {
-    member_icon,
     member_name,
     member_desc,
     icon_hover_color,
@@ -45,10 +45,12 @@ const GroupMember = (props: GroupMemberProps) => {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '8px',
-        padding: '4px 8px',
-        borderRadius: 'var(--radius-s)',
+        padding: '6px 12px',
+        borderRadius: 'var(--radius-m)',
+        transition: 'background-color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
         '&:hover': {
           backgroundColor: item_hover_color,
+          transform: 'translateX(6px)',
         },
       }}
     >
@@ -63,16 +65,40 @@ const GroupMember = (props: GroupMemberProps) => {
         />
       )}
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {member_icon}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: props.member.isOverseer || props.member.isAssistant ? `rgba(var(--group-${props.index}-base), 0.12)` : 'var(--accent-100)',
+            color: props.member.isOverseer || props.member.isAssistant ? `var(--group-${props.index})` : 'var(--grey-350)',
+            boxShadow: props.member.isOverseer || props.member.isAssistant ? `0 2px 6px rgba(var(--group-${props.index}-base), 0.15)` : 'none',
+            flexShrink: 0,
+            transition: 'transform 0.2s ease',
+            '&:hover': {
+              transform: 'scale(1.08)',
+            }
+          }}
+        >
+          {props.member.isOverseer && <IconOverseer color="currentColor" width={18} height={18} />}
+          {props.member.isAssistant && <IconAssistant color="currentColor" width={18} height={18} />}
+          {!props.member.isOverseer && !props.member.isAssistant && <IconPerson color="currentColor" width={18} height={18} />}
+        </Box>
 
         <Stack>
-          <Typography>{member_name}</Typography>
+          <Typography className="body-medium-semibold" color="var(--black)">
+            {member_name}
+          </Typography>
 
           {member_desc && (
             <Typography
               className="label-small-medium"
-              color={'var(--grey-400)'}
+              color={'var(--grey-350)'}
+              sx={{ opacity: 0.85 }}
             >
               {member_desc}
             </Typography>

@@ -3,10 +3,10 @@ import { styled } from '@mui/system';
 import { Box, BoxProps } from '@mui/material';
 
 export const GroupContainer: FC<BoxProps> = styled(Box)({
-  padding: '8px',
-  gap: '8px',
+  padding: '0px',
   display: 'flex',
   flexDirection: 'column',
   backgroundColor: 'var(--card)',
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--radius-xl)',
+  overflow: 'hidden',
 });

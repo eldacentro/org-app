@@ -10,14 +10,14 @@ const GroupItem = (props: GroupItemProps) => {
   const { border_color, divider_color, members } = useGroupItem(props);
 
   return (
-    <GroupContainer sx={{ border: border_color }}>
+    <GroupContainer className="group-card-glass group-card-hover-effect" sx={{ border: border_color }}>
       <GroupHeader
         group={props.group}
         index={props.index}
         editable={props.editable}
       />
 
-      <Stack spacing="4px" divider={<Divider color={divider_color} />}>
+      <Stack spacing="4px" divider={<Divider color={divider_color} />} sx={{ padding: '16px 12px 12px 12px' }}>
         {members.map((member) => (
           <GroupMember
             key={member.person_uid}
