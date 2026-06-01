@@ -257,8 +257,8 @@ body iframe {
   animation: rise .6s .02s both cubic-bezier(.22,1,.36,1);
 }
 .topbar .logo-container svg {
-  width: 40px !important;
-  height: 40px !important;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 /* Global AppBar overrides for iOS safe-area top and bottom rounded corners */
