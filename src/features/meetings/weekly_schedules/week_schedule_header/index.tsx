@@ -3,7 +3,6 @@ import { IconDate } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { WeekScheduleHeaderProps } from './index.types';
 import useWeekScheduleHeader from './useWeekScheduleHeader';
-import Badge from '@components/badge';
 import Typography from '@components/typography';
 
 const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
@@ -92,13 +91,58 @@ const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
       )}
 
       {props.lastUpdated && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-          <Badge
-            text={t('tr_lastUpdated', { date: props.lastUpdated })}
-            color="grey"
-            size="small"
-            filled={false}
-          />
+        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '2px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(var(--accent-main-base), 0.08)',
+              border: '1px solid rgba(var(--accent-main-base), 0.15)',
+              borderRadius: 'var(--radius-max)',
+              padding: '5px 12px',
+              boxShadow: '0 2px 8px rgba(var(--accent-main-base), 0.04)',
+              transition: 'transform 0.2s ease',
+              '&:hover': {
+                transform: 'scale(1.02)',
+              }
+            }}
+          >
+            {/* Pulse indicator indicating fresh status */}
+            <Box
+              sx={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--accent-main)',
+                boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0.4)',
+                animation: 'pulse-sync 2.2s infinite',
+                '@keyframes pulse-sync': {
+                  '0%': {
+                    boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0.5)',
+                  },
+                  '70%': {
+                    boxShadow: '0 0 0 5px rgba(var(--accent-main-base), 0)',
+                  },
+                  '100%': {
+                    boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0)',
+                  }
+                }
+              }}
+            />
+            
+            <Typography
+              className="label-small-medium"
+              sx={{
+                color: 'var(--accent-dark)',
+                fontWeight: 600,
+                fontSize: '12px',
+                letterSpacing: '0.01em',
+              }}
+            >
+              {t('tr_lastUpdated', { date: props.lastUpdated })}
+            </Typography>
+          </Box>
         </Box>
       )}
     </Box>
