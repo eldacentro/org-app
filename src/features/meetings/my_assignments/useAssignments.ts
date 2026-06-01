@@ -40,6 +40,7 @@ const useMyAssignments = () => {
     : DisplayRange.MONTHS_12;
 
   const [displayRange, setDisplayRange] = useState(intialValue);
+  const [filterType, setFilterType] = useState<'all' | 'meetings' | 'preaching'>('all');
 
   const isSetup = useMemo(() => {
     return userUID.length === 0;
@@ -186,16 +187,19 @@ const useMyAssignments = () => {
     };
 
     const filterAssignments = (uid: string) => {
-      const meetingAssignments = remapAssignmentsDate.filter(
-        (record) =>
-          record.assignment.person === uid &&
-          record.weekOf >= formatDate(now, 'yyyy/MM/dd') &&
-          record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
-      );
+      const meetingAssignments =
+        filterType === 'preaching'
+          ? []
+          : remapAssignmentsDate.filter(
+              (record) =>
+                record.assignment.person === uid &&
+                record.weekOf >= formatDate(now, 'yyyy/MM/dd') &&
+                record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
+            );
 
-      const deptAssignments = getDeptAssignments(uid);
-      const outingAssignments = getServiceOutingsAssignments(uid);
-      const exhibitorAssignments = getExhibitorsAssignments(uid);
+      const deptAssignments = filterType === 'preaching' ? [] : getDeptAssignments(uid);
+      const outingAssignments = filterType === 'meetings' ? [] : getServiceOutingsAssignments(uid);
+      const exhibitorAssignments = filterType === 'meetings' ? [] : getExhibitorsAssignments(uid);
 
       return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments];
     };
@@ -250,6 +254,7 @@ const useMyAssignments = () => {
     userUID,
     delegateMembers,
     shortDateFormat,
+    filterType,
   ]);
 
   const handleClose = () => setOpen(false);
@@ -273,6 +278,8 @@ const useMyAssignments = () => {
     displayRange,
     handleRangeChange,
     personAssignments,
+    filterType,
+    setFilterType,
   };
 };
 

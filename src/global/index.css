@@ -919,3 +919,28 @@ body iframe {
   -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
   box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.25) !important;
 }
+
+/* ─── Preaching Colors and Overrides ─────────────────────────────── */
+:root {
+  --preaching-color: var(--green-main, #10b981) !important;
+  --preaching-tint: rgba(16, 185, 129, 0.09) !important;
+  --preaching-border: rgba(16, 185, 129, 0.18) !important;
+}
+
+[data-theme$='-dark'] {
+  --preaching-color: #34d399 !important;
+  --preaching-tint: rgba(52, 211, 153, 0.12) !important;
+  --preaching-border: rgba(52, 211, 153, 0.25) !important;
+}
+
+[data-theme^='green'] {
+  --preaching-color: var(--orange-main, #dd8c2c) !important;
+  --preaching-tint: rgba(221, 140, 44, 0.09) !important;
+  --preaching-border: rgba(221, 140, 44, 0.18) !important;
+}
+
+[data-theme^='green-dark'] {
+  --preaching-color: #fbbf24 !important;
+  --preaching-tint: rgba(251, 191, 36, 0.12) !important;
+  --preaching-border: rgba(251, 191, 36, 0.25) !important;
+}

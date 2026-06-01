@@ -1,6 +1,6 @@
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
-import { IconInfo } from '@components/icons';
+import { IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { DisplayRange } from './indextypes';
 import useMyAssignments from './useAssignments';
@@ -27,33 +27,74 @@ const MyAssignments = () => {
     displayRange,
     handleRangeChange,
     personAssignments: { ownAssignments, delegateAssignments },
+    filterType,
+    setFilterType,
   } = useMyAssignments();
 
   const hasDelegatedAssignments = delegateAssignments.total > 0;
 
+  // Correct scrollable height so the list never gets clipped inside the Drawer
+  const scrollAreaHeight = tabletDown
+    ? 'calc(100dvh - 185px)'
+    : laptopDown
+    ? 'calc(100dvh - 210px)'
+    : 'calc(100dvh - 210px)';
+
   const actionComponent = (
     <Box
       sx={{
-        width: tabletDown || !hasDelegatedAssignments ? '100%' : '240px',
+        display: 'flex',
+        gap: '10px',
+        flexDirection: tabletDown ? 'column' : 'row',
+        width: '100%',
+        mt: tabletDown ? '4px' : '0px',
       }}
     >
-      <Select
-        label={t('tr_display')}
-        value={displayRange}
-        onChange={(e) => {
-          handleRangeChange(+e.target.value);
-        }}
-      >
-        <MenuItem value={DisplayRange.MONTHS_3}>
-          <Typography>{t('tr_next3MonthsLabel')}</Typography>
-        </MenuItem>
-        <MenuItem value={DisplayRange.MONTHS_6}>
-          <Typography>{t('tr_next6MonthsLabel')}</Typography>
-        </MenuItem>
-        <MenuItem value={DisplayRange.MONTHS_12}>
-          <Typography>{t('tr_next12MonthsLabel')}</Typography>
-        </MenuItem>
-      </Select>
+      {/* Range selector */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Select
+          label={t('tr_display')}
+          value={displayRange}
+          onChange={(e) => {
+            handleRangeChange(+e.target.value);
+          }}
+        >
+          <MenuItem value={DisplayRange.MONTHS_3}>
+            <Typography>{t('tr_next3MonthsLabel')}</Typography>
+          </MenuItem>
+          <MenuItem value={DisplayRange.MONTHS_6}>
+            <Typography>{t('tr_next6MonthsLabel')}</Typography>
+          </MenuItem>
+          <MenuItem value={DisplayRange.MONTHS_12}>
+            <Typography>{t('tr_next12MonthsLabel')}</Typography>
+          </MenuItem>
+        </Select>
+      </Box>
+
+      {/* Category filter */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Select
+          label="Categoría"
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching')}
+        >
+          <MenuItem value="all">
+            <Typography>Todas</Typography>
+          </MenuItem>
+          <MenuItem value="meetings">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <IconTreasuresPart color="var(--brand)" width={16} height={16} />
+              <Typography>Reuniones</Typography>
+            </Box>
+          </MenuItem>
+          <MenuItem value="preaching">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <IconCart color="var(--preaching-color)" width={16} height={16} />
+              <Typography>Predicación</Typography>
+            </Box>
+          </MenuItem>
+        </Select>
+      </Box>
     </Box>
   );
 
@@ -65,12 +106,16 @@ const MyAssignments = () => {
   ) => (
     <Box
       sx={{
-        height: tabletDown ? '70dvh' : laptopDown ? '80dvh' : '77dvh',
-        overflowY: 'scroll',
+        height: scrollAreaHeight,
+        overflowY: 'auto',
         '&::-webkit-scrollbar': {
           width: '4px',
         },
-        paddingBottom: laptopDown ? '20px' : '10px',
+        '&::-webkit-scrollbar-thumb': {
+          borderRadius: '8px',
+          background: 'var(--line-2)',
+        },
+        pr: '2px',
       }}
     >
       {assignments.length === 0 ? (
@@ -92,7 +137,7 @@ const MyAssignments = () => {
           </Stack>
         </Box>
       ) : (
-        <Stack spacing={2.3}>
+        <Stack spacing={2.3} sx={{ pb: '24px' }}>
           {assignments.map((month) => (
             <MonthContainer key={month.month} monthData={month} />
           ))}

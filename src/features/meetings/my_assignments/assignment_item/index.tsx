@@ -19,6 +19,10 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     badges,
   } = useAssignmentItem(props);
 
+  const isPreaching =
+    history.assignment.key.startsWith('OUTING_') ||
+    history.assignment.key.startsWith('EXHIBITOR_');
+
   return (
     <Stack
       direction="row"
@@ -55,12 +59,26 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'var(--brand-tint)',
-          border: '1px solid rgba(59, 114, 196, 0.12)',
+          backgroundColor: isPreaching ? 'var(--preaching-tint)' : 'var(--brand-tint)',
+          border: isPreaching
+            ? '1px solid var(--preaching-border)'
+            : '1px solid rgba(59, 114, 196, 0.12)',
           flexShrink: 0,
+          transition: 'background-color 0.2s ease, border-color 0.2s ease',
         }}
       >
-        <Typography className="h2" sx={{ color: 'var(--brand) !important', fontWeight: 900, fontSize: '20px !important', lineHeight: 1 }}>
+        <Typography
+          className="h2"
+          sx={{
+            color: isPreaching
+              ? 'var(--preaching-color) !important'
+              : 'var(--brand) !important',
+            fontWeight: 900,
+            fontSize: '20px !important',
+            lineHeight: 1,
+            transition: 'color 0.2s ease',
+          }}
+        >
           {assignmentDate}
         </Typography>
       </Box>
