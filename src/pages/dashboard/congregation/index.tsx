@@ -4,6 +4,7 @@ import {
   IconParticipants,
   IconApplications,
   IconNextEvents,
+  IconJwHome,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import usePersons from '../persons/usePersons';
@@ -21,6 +22,7 @@ const CongregationCard = () => {
   return (
     <DashboardCard
       header={isGroup ? t('tr_languageGroupShort') : t('tr_congregation')}
+      icon={<IconJwHome />}
     >
       {/* 1. Personas */}
       {isPersonViewer && (

@@ -46,7 +46,7 @@ const Security = () => {
 
       <Typography className="h2">{t('tr_security')}</Typography>
 
-      <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
         {accountType === 'vip' && (
           <SettingWithBorderContainer>
             <SwitcherContainer>

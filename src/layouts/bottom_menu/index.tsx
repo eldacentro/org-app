@@ -24,7 +24,8 @@ const BottomMenu = (props: BottomMenuProps) => {
         aria-label={t('tr_bottomActionsMenu')}
         sx={{
           position: 'fixed',
-          backgroundColor: 'var(--accent-150)',
+          backgroundColor: 'rgba(var(--accent-150-base), 0.75)',
+          backdropFilter: 'blur(18px) saturate(1.4)',
           border: '1px solid var(--accent-200)',
           borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
@@ -34,7 +35,7 @@ const BottomMenu = (props: BottomMenuProps) => {
           left: '50%',
           transform: 'translate(-50%)',
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          boxShadow: 'var(--message-glow)',
+          boxShadow: 'var(--shadow-md)',
           padding: '6px',
           display: 'flex',
           flexDirection: 'row',

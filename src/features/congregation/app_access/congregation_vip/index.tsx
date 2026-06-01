@@ -21,7 +21,7 @@ const CongregationVIP = ({ isLoading }: CongregationVIPType) => {
         <>
           <JoinRequests />
           <CongregationAdmin />
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
           <CongregationBaptized />
         </>
       )}

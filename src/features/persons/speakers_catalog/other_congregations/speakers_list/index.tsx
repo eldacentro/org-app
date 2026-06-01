@@ -58,7 +58,7 @@ const SpeakersList = ({
                 padding: '8px',
                 display: 'flex',
                 alignItems: 'center',
-                borderBottom: '1px solid var(--accent-200)',
+                borderBottom: '1px solid var(--line)',
               }}
             >
               <Typography
@@ -82,7 +82,7 @@ const SpeakersList = ({
               display: 'flex',
               flexDirection: 'column',
               '& > .MuiBox-root': {
-                borderBottom: '1px solid var(--accent-200)',
+                borderBottom: '1px solid var(--line)',
                 padding: '4px 0',
               },
               '& > .MuiBox-root:last-child': {
@@ -104,7 +104,7 @@ const SpeakersList = ({
             flexDirection: 'column',
             gap: '24px',
             '& > .MuiBox-root': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
               paddingBottom: '16px',
             },
             '& > .MuiBox-root:last-child': {

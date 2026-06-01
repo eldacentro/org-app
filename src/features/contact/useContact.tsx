@@ -25,7 +25,7 @@ const useContact = () => {
       displaySnackNotification({
         header: 'Feedback submitted',
         message: 'Thank you for submitting your ideas!',
-        icon: <IconCheckCircle color="var(--white)" />,
+        icon: <IconCheckCircle color="var(--card)" />,
         severity: 'success',
       });
 
@@ -37,7 +37,7 @@ const useContact = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: getMessageByCode(error.message),
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

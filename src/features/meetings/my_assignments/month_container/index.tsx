@@ -11,16 +11,17 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
     <Stack spacing={1}>
       <Box
         sx={{
-          padding: '8px 16px',
+          padding: '8px 12px',
           alignSelf: 'stretch',
-          borderRadius: 'var(--radius-m)',
-          background: 'var(--accent-200)',
+          borderRadius: 'var(--r-sm)',
+          background: 'var(--brand-tint)',
+          borderLeft: '4px solid var(--brand)',
         }}
       >
         <Typography
           className="h2"
-          color="var(--accent-dark)"
-          sx={{ textAlign: 'left' }}
+          color="var(--brand-deep)"
+          sx={{ textAlign: 'left', fontWeight: 800, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}
         >
           {monthLocale}
         </Typography>

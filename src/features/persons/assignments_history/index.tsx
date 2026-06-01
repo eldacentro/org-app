@@ -14,13 +14,13 @@ const PersonAssignmentsHistory = () => {
   return (
     <Box
       sx={{
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         display: 'flex',
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
       }}
     >
       <Box

@@ -25,7 +25,7 @@ const LanguageGroupSelector = () => {
         sx={{
           width: tablet688Up ? '250px' : '100%',
           '&.MuiInputBase-root': {
-            backgroundColor: 'var(--white)',
+            backgroundColor: 'var(--card)',
             borderRadius: 'var(--radius-max)',
             '& > .MuiSelect-select': {
               color: 'var(--accent-dark)',
@@ -40,7 +40,7 @@ const LanguageGroupSelector = () => {
             className: 'big-card-shadow',
             sx: {
               borderRadius: 'var(--radius-max) !important',
-              borderColor: 'var(--accent-200) !important',
+              borderColor: 'var(--line) !important',
             },
           },
           root: {},

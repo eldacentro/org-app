@@ -65,7 +65,7 @@ const Support = () => {
 
       <Divider
         sx={{
-          borderColor: 'var(--accent-200)',
+          borderColor: 'var(--line)',
           borderWidth: '1px',
           width: '100%',
         }}

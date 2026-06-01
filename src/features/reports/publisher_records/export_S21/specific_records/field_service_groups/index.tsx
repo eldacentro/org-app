@@ -42,7 +42,7 @@ const FieldServiceGroups = (props: FieldServiceGroupsProps) => {
           variant="main"
           disabled={isProcessing}
           onClick={handleExport}
-          endIcon={isProcessing && <IconLoading color="var(--white)" />}
+          endIcon={isProcessing && <IconLoading color="var(--card)" />}
         >
           {btnLabel}
         </Button>

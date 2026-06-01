@@ -29,7 +29,7 @@ const PageHeader = ({
               margin: 0,
               marginLeft: '-8px',
               '&:hover': {
-                backgroundColor: 'var(--accent-200)',
+                backgroundColor: 'var(--line)',
                 '& svg': {
                   transform:
                     theme.direction === 'rtl'

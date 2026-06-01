@@ -8,6 +8,9 @@ const PageTitle = (props: NavBarOptionsType) => {
 
   useLayoutEffect(() => {
     setNavBarOptions(props);
+    return () => {
+      setNavBarOptions({});
+    };
   }, [props, setNavBarOptions]);
 
   return null;

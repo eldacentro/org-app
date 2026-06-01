@@ -5,7 +5,7 @@ export const GroupHeader = styled(Typography)({
   position: 'sticky',
   top: '-8px',
   padding: '8px 10px',
-  backgroundColor: 'var(--white)',
+  backgroundColor: 'var(--card)',
   color: 'var(--accent-dark)',
 }) as unknown as typeof Typography;
 

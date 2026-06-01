@@ -71,6 +71,48 @@ export const appThemeState = atom((get) => {
           },
         },
       },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 'var(--r-md)',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid var(--line)',
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: '17px',
+            textTransform: 'none',
+            fontWeight: 700,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: 'var(--r-md)',
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 'var(--r-lg)',
+            boxShadow: 'var(--shadow-md)',
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 'var(--r-sm)',
+          },
+        },
+      },
     },
     breakpoints: {
       keys: [

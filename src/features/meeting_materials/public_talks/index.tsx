@@ -40,13 +40,13 @@ const PublicTalks = ({ view }: PublicTalksType) => {
   return (
     <Box
       sx={{
-        border: '1px solid var(--accent-300)',
-        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
-        backgroundColor: 'var(--white)',
+        backgroundColor: 'var(--card)',
         height: getTableHeight(),
       }}
     >

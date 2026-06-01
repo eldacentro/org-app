@@ -81,14 +81,15 @@ const PersonsAll = () => {
         {desktopUp && (
           <Box
             sx={{
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
               flex: 1,
-              borderRadius: 'var(--radius-xl)',
-              padding: '16px',
+              borderRadius: 'var(--r-lg)',
+              padding: '20px',
               display: 'flex',
               gap: '16px',
               flexDirection: 'column',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <Box sx={{ display: 'flex', gap: '16px' }}>
@@ -119,14 +120,15 @@ const PersonsAll = () => {
               >
                 <Box
                   sx={{
-                    backgroundColor: 'var(--white)',
-                    border: '1px solid var(--accent-300)',
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--line)',
                     flex: 1,
-                    borderRadius: 'var(--radius-xl)',
-                    padding: '16px',
+                    borderRadius: 'var(--r-lg)',
+                    padding: '20px',
                     display: 'flex',
                     gap: '16px',
                     flexDirection: 'column',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
                 >
                   <Box sx={{ display: 'flex', gap: '16px' }}>
@@ -158,11 +160,12 @@ const PersonsAll = () => {
               >
                 <Box
                   sx={{
-                    backgroundColor: 'var(--white)',
-                    border: '1px solid var(--accent-300)',
-                    borderRadius: 'var(--radius-xl)',
-                    padding: '16px',
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--line)',
+                    borderRadius: 'var(--r-lg)',
+                    padding: '20px',
                     width: '100%',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
                 >
                   <PersonsFilter />
@@ -175,11 +178,12 @@ const PersonsAll = () => {
         {desktopUp && isPanelOpen && (
           <Box
             sx={{
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
-              borderRadius: 'var(--radius-xl)',
-              padding: '16px',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-lg)',
+              padding: '20px',
               width: '520px',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <PersonsFilter />

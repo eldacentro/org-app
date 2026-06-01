@@ -22,7 +22,7 @@ const VisibilityToggle = () => {
   return (
     <Box
       sx={{
-        borderBottom: '1px solid var(--accent-200)',
+        borderBottom: '1px solid var(--line)',
         paddingBottom: '16px',
       }}
     >

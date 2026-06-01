@@ -125,7 +125,7 @@ const WeekendEditor = () => {
           </DoubleFieldContainer>
 
           {showPartsForGroup && weekType !== Week.WATCHTOWER_STUDY && (
-            <Divider color="var(--accent-200)" />
+            <Divider color="var(--line)" />
           )}
 
           {showEventEditor && (
@@ -401,7 +401,7 @@ const WeekendEditor = () => {
 
               {showPartsForGroup && WEEKEND_FULL.includes(weekType) && (
                 <>
-                  <Divider color="var(--accent-200)" />
+                  <Divider color="var(--line)" />
                   <DoubleFieldContainer
                     sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
                   >

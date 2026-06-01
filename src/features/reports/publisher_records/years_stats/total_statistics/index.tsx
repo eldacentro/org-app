@@ -57,7 +57,7 @@ const TotalStatistics = (props: TotalStatisticsProps) => {
     <Stack spacing="8px">
       <SectionTitle>{t('tr_totalStats')}</SectionTitle>
 
-      <Stack padding="4px 8px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack padding="4px 8px" divider={<Divider color="var(--line)" />}>
         {statistics.map((stats) => (
           <Accordion
             key={stats.id}
@@ -75,8 +75,8 @@ const TotalStatistics = (props: TotalStatisticsProps) => {
             detailsProps={{ sx: { padding: 'unset' } }}
             onChange={handleExpandedChange}
           >
-            <Divider color="var(--accent-200)" />
-            <Stack divider={<Divider color="var(--accent-200)" />}>
+            <Divider color="var(--line)" />
+            <Stack divider={<Divider color="var(--line)" />}>
               {stats.reports.map((report) => (
                 <StatsRow
                   key={report.label}

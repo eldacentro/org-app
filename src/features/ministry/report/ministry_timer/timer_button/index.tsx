@@ -30,7 +30,7 @@ const TimerButton = ({
         '&:hover': {
           background: isGroup
             ? 'rgba(var(--red-main-base), 0.2)'
-            : 'var(--accent-200)',
+            : 'var(--line)',
           '@media (hover: none)': {
             background: isGroup ? 'var(--red-secondary)' : 'var(--accent-150)',
           },
@@ -43,7 +43,7 @@ const TimerButton = ({
         '&:active': {
           background: isGroup
             ? 'rgba(var(--red-main-base), 0.4)'
-            : 'var(--accent-300)',
+            : 'var(--line)',
         },
       }}
       onClick={onClick}

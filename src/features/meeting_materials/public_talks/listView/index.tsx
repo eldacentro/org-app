@@ -15,12 +15,12 @@ const TalksListView = ({ isExpandAll, talks }: TalksListViewType) => {
         size="small"
         sx={{
           '& .MuiTableHead-root .MuiTableCell-root': {
-            backgroundColor: 'var(--white)',
+            backgroundColor: 'var(--card)',
           },
           '& .MuiTableCell-root': {
             padding: '8px',
             boxSizing: 'content-box',
-            borderColor: 'var(--accent-200)',
+            borderColor: 'var(--line)',
           },
         }}
       >

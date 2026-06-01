@@ -68,12 +68,13 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
       <Stack
         className="pop-up-shadow"
         sx={{
-          backgroundColor: 'var(--accent-100)',
+          backgroundColor: 'var(--paper)',
           height: '100%',
           width: laptopUp ? '600px' : '100%',
           margin: laptopUp ? '10px' : 'unset',
-          borderRadius: laptopUp ? 'var(--radius-xxl)' : 'unset',
-          padding: '12px',
+          borderRadius: laptopUp ? 'var(--r-lg)' : 'unset',
+          border: laptopUp ? '1px solid var(--line)' : 'unset',
+          padding: '20px 16px',
           overflow: 'hidden',
           '&::-webkit-scrollbar': { width: '8px' },
         }}
@@ -83,14 +84,14 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           direction={'row'}
           justifyContent={'space-between'}
           alignItems={'center'}
-          mb={'12px'}
-          ml={'12px'}
+          mb={'20px'}
+          ml={'4px'}
         >
-          <Typography className="h1">{title}</Typography>
+          <Typography className="h1" sx={{ fontSize: '24px', fontWeight: 800, color: 'var(--ink)' }}>{title}</Typography>
           <Stack direction={'row'} spacing={0.5}>
             {headActions}
-            <ButtonIcon onClick={handleClose}>
-              <IconClose color="var(--black)" />
+            <ButtonIcon onClick={handleClose} sx={{ border: '1px solid var(--line)', borderRadius: 'var(--r-sm)' }}>
+              <IconClose color="var(--ink)" />
             </ButtonIcon>
           </Stack>
         </Stack>

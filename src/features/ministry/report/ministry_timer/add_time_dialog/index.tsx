@@ -26,7 +26,7 @@ const AddTimeDialog = (props: AddTimeDialogProps) => {
       <Box
         sx={{
           width: '100%',
-          border: '1px solid var(--accent-300)',
+          border: '1px solid var(--line)',
           borderRadius: 'var(--radius-l)',
           padding: '16px',
           display: 'flex',

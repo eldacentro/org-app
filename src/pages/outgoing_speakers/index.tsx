@@ -600,7 +600,7 @@ const OutgoingSpeakersPage = () => {
         }
       />
 
-      <Box sx={{ borderBottom: 1, borderColor: 'var(--accent-200)', mt: 1 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'var(--line)', mt: 1 }}>
         <Tabs
           value={activeTab}
           onChange={(e, val) => setActiveTab(val)}
@@ -644,9 +644,9 @@ const OutgoingSpeakersPage = () => {
                 flexGrow: 1,
                 minWidth: '280px',
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 'var(--radius-l)',
-                  backgroundColor: 'var(--white)',
-                  border: '1px solid var(--accent-300)',
+                  borderRadius: 'var(--r-lg)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--line)',
                 },
               }}
             />
@@ -661,9 +661,9 @@ const OutgoingSpeakersPage = () => {
                 size="small"
                 sx={{
                   width: '180px',
-                  borderRadius: 'var(--radius-l)',
-                  backgroundColor: 'var(--white)',
-                  border: '1px solid var(--accent-300)',
+                  borderRadius: 'var(--r-lg)',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--line)',
                 }}
               >
                 <MenuItem value="alphabetical">Alfabético</MenuItem>
@@ -673,7 +673,7 @@ const OutgoingSpeakersPage = () => {
           </Box>
 
           {filteredSpeakers.length === 0 ? (
-            <Card sx={{ border: '1px solid var(--accent-300)', borderRadius: 'var(--radius-xl)', p: 3, textAlign: 'center' }}>
+            <Card sx={{ border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', p: 3, textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <IconOutgoindSpeaker width={48} height={48} color="var(--grey-400)" />
               </Box>
@@ -704,18 +704,20 @@ const OutgoingSpeakersPage = () => {
                 const showHistory = !!historyExpanded[speaker.person_uid];
 
                 return (
-                  <Card
+                  <Box
                     key={`${speaker.person_uid}-${idx}`}
                     sx={{
-                      border: '1px solid var(--accent-300)',
-                      borderRadius: 'var(--radius-xl)',
-                      backgroundColor: 'var(--white)',
                       display: 'flex',
                       flexDirection: 'column',
-                      height: '100%',
+                      gap: '16px',
+                      borderRadius: 'var(--r-lg)',
+                      backgroundColor: 'var(--card)',
+                      padding: '20px',
+                      border: '1px solid var(--line)',
+                      boxShadow: 'var(--shadow-sm)',
                     }}
                   >
-                    <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <CardContent sx={{ p: 0, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {/* Header: Name and badges */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
                         <Box>
@@ -730,7 +732,7 @@ const OutgoingSpeakersPage = () => {
                         </Box>
                       </Box>
 
-                      <Divider sx={{ my: 1, borderColor: 'var(--accent-200)' }} />
+                      <Divider sx={{ my: 1, borderColor: 'var(--line)' }} />
 
                       {/* Collapsible Prepared Talks */}
                       <Box>
@@ -838,7 +840,7 @@ const OutgoingSpeakersPage = () => {
                           gap: '12px',
                           mt: 'auto',
                           pt: 2,
-                          borderTop: '1px solid var(--accent-200)',
+                          borderTop: '1px solid var(--line)',
                           width: '100%',
                         }}
                       >
@@ -883,7 +885,7 @@ const OutgoingSpeakersPage = () => {
                         </Button>
                       </Box>
                     </CardContent>
-                  </Card>
+                  </Box>
                 );
               })}
             </Box>
@@ -906,9 +908,9 @@ const OutgoingSpeakersPage = () => {
               onClick={() => setExpanded(true)}
               sx={{
                 width: '100%',
-                borderRadius: 'var(--radius-l)',
-                border: '1px solid var(--accent-300)',
-                backgroundColor: 'var(--accent-100)',
+                borderRadius: 'var(--r-lg)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
                 padding: '10px 16px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -956,9 +958,9 @@ const OutgoingSpeakersPage = () => {
               sx={{
                 width: desktopUp ? '300px' : '100%',
                 flexShrink: 0,
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--accent-300)',
-                backgroundColor: 'var(--white)',
+                borderRadius: 'var(--r-lg)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
                 padding: '16px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1017,7 +1019,7 @@ const OutgoingSpeakersPage = () => {
                       <Box
                         key={group.month}
                         sx={{
-                          borderBottom: '1px solid var(--accent-200)',
+                          borderBottom: '1px solid var(--line)',
                           '&:last-child': { borderBottom: 'none' },
                         }}
                       >
@@ -1092,7 +1094,7 @@ const OutgoingSpeakersPage = () => {
                                     borderRadius: 'var(--radius-l)',
                                     backgroundColor: isSelected ? 'var(--accent-100)' : 'transparent',
                                     border: isSelected
-                                      ? '1px solid var(--accent-300)'
+                                      ? '1px solid var(--line)'
                                       : '1px solid transparent',
                                     cursor: 'pointer',
                                     transition: 'all 0.15s',
@@ -1146,13 +1148,15 @@ const OutgoingSpeakersPage = () => {
           {/* Right Main Editor Container */}
           <Box
             sx={{
-              display: 'block',
+              borderRadius: 'var(--r-lg)',
+              padding: '20px',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              boxShadow: 'var(--shadow-sm)',
+              height: 'calc(100vh - 120px)',
+              overflowY: 'auto',
               flexGrow: 1,
               width: '100%',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--accent-300)',
-              backgroundColor: 'var(--white)',
-              padding: '24px',
             }}
           >
             {selectedWeek ? (
@@ -1168,7 +1172,7 @@ const OutgoingSpeakersPage = () => {
                     py: 1.5,
                     borderRadius: 'var(--radius-l)',
                     backgroundColor: 'var(--accent-100)',
-                    border: '1px solid var(--accent-200)',
+                    border: '1px solid var(--line)',
                   }}
                 >
                   <Typography
@@ -1181,7 +1185,7 @@ const OutgoingSpeakersPage = () => {
                     {selectedWeekLabel}
                   </Typography>
                 </Box>
-                <Divider sx={{ my: 0.5, borderColor: 'var(--accent-200)' }} />
+                <Divider sx={{ my: 0.5, borderColor: 'var(--line)' }} />
                 <OutgoingTalksEditor />
               </Box>
             ) : (

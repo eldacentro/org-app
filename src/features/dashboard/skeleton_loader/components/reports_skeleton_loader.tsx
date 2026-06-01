@@ -21,21 +21,21 @@ const ReportCardSkeletonLoader = () => {
         </SkeletonLoaderCardBlueArea>
       </SkeletonLoaderCardTitle>
       <SkeletonLoaderCardItems>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={121} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={128} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
@@ -50,7 +50,7 @@ const ReportCardSkeletonLoader = () => {
             }}
           />
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />

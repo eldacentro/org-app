@@ -32,12 +32,12 @@ const UsersContainer = ({
       sx={{
         width: '100%',
         padding: '16px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         gap: gap,
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

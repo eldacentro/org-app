@@ -11,10 +11,10 @@ const HoursStats = ({ year }: HoursStatsProps) => {
   const { isFR, hours } = useHoursStats(year);
 
   return (
-    <Stack spacing="8px" divider={<Divider color="var(--accent-200)" />}>
+    <Stack spacing="8px" divider={<Divider color="var(--line)" />}>
       <Stack
         spacing="8px"
-        divider={<Divider dashed color="var(--accent-200)" />}
+        divider={<Divider dashed color="var(--line)" />}
       >
         <LabelRow
           name={t('tr_totalHours')}

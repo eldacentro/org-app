@@ -26,9 +26,9 @@ const DeptWeekSelector = () => {
       sx={{
         width: desktopUp ? '360px' : '100%',
         flexShrink: 0,
-        borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--accent-300)',
-        backgroundColor: 'var(--white)',
+        borderRadius: 'var(--r-lg)',
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--card)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',

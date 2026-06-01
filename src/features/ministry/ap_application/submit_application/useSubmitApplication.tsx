@@ -91,7 +91,7 @@ const useSubmitApplication = () => {
         header: t('tr_applicationSubmitted'),
         message: t('tr_applicationSubmittedDesc'),
         severity: 'success',
-        icon: <IconCheckCircle color="var(--white)" />,
+        icon: <IconCheckCircle color="var(--card)" />,
       });
     } catch (error) {
       setIsProcessing(false);
@@ -102,7 +102,7 @@ const useSubmitApplication = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

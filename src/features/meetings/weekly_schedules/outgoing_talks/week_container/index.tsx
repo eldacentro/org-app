@@ -24,7 +24,7 @@ const WeekContainer = ({ talkSchedules }: WeekContainerProps) => {
         {dateFormatted}
       </Typography>
 
-      <Stack spacing="8px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="8px" divider={<Divider color="var(--line)" />}>
         {talkSchedules.schedules.map((item) => (
           <ScheduleItem key={item.id} schedule={item} />
         ))}

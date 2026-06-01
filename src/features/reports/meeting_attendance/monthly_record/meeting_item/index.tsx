@@ -47,12 +47,12 @@ const MeetingItem = (props: MeetingItemProps) => {
 
       {groups.length > 0 && (
         <>
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
 
           <Stack
             spacing="18px"
             marginTop="8px !important"
-            divider={<Divider color="var(--accent-200)" />}
+            divider={<Divider color="var(--line)" />}
           >
             {groups.map((group) => (
               <Stack key={group.id} spacing="16px">

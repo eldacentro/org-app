@@ -24,13 +24,13 @@ const FormS4 = ({ month, person_uid, publisher }: FormS4Props) => {
         publisher={publisher}
       />
 
-      <Divider color="var(--accent-200)" />
+      <Divider color="var(--line)" />
 
-      <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
         {isHourEnabled && (
           <Stack
             spacing="16px"
-            divider={<Divider color="var(--accent-200)" dashed />}
+            divider={<Divider color="var(--line)" dashed />}
           >
             <HoursFields
               month={month}
@@ -55,7 +55,7 @@ const FormS4 = ({ month, person_uid, publisher }: FormS4Props) => {
         />
       </Stack>
 
-      <Divider color="var(--accent-200)" />
+      <Divider color="var(--line)" />
 
       <Comments month={month} person_uid={person_uid} publisher={publisher} />
 

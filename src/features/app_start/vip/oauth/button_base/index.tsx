@@ -34,7 +34,7 @@ const OAuthButtonBase = (props: OAuthButtonBaseProps) => {
           outline: 'var(--accent-main) auto 1px',
         },
         '&:active': {
-          background: 'var(--accent-200)',
+          background: 'var(--line)',
         },
       }}
       onClick={handleOAuthAction}

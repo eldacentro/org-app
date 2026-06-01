@@ -70,9 +70,9 @@ const ScheduleItem = (props: ScheduleItemType) => {
     <Box
       sx={{
         width: '100%',
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
-        borderRadius: 'var(--radius-xl)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -222,7 +222,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 p: 1.5,
                 borderRadius: 'var(--radius-l)',
                 backgroundColor: 'var(--accent-50)',
-                border: '1px solid var(--accent-200)',
+                border: '1px solid var(--line)',
               }}
             >
               {selectedCatalogCong.cong_data.cong_location.address.value && (

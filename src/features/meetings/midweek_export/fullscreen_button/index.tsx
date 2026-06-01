@@ -25,7 +25,7 @@ const FullscreenButton = ({ show }: { show: boolean }) => {
         position: 'absolute',
         right: '10px',
         bottom: '15px',
-        backgroundColor: 'var(--accent-200)',
+        backgroundColor: 'var(--line)',
         padding: '8px',
         display: show ? 'flex' : 'none',
         alignItems: 'center',

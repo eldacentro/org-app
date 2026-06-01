@@ -65,7 +65,7 @@ const ProfileSettings = () => {
           )}
         />
 
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
 
         <Box
           sx={{

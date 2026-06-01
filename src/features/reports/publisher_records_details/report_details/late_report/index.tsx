@@ -25,7 +25,7 @@ const LateReport = () => {
       {branch_submitted && (
         <Box
           sx={{
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--r-lg)',
             padding: '16px',
             backgroundColor: 'var(--orange-secondary)',
             display: 'flex',

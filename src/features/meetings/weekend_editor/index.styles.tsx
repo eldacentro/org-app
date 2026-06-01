@@ -2,9 +2,9 @@ import { styled } from '@mui/system';
 import { Box } from '@mui/material';
 
 export const EditorContainer = styled(Box)({
-  borderRadius: 'var(--radius-xl)',
+  borderRadius: 'var(--r-lg)',
   padding: '16px',
-  backgroundColor: 'var(--white)',
-  border: '1px solid var(--accent-300)',
+  backgroundColor: 'var(--card)',
+  border: '1px solid var(--line)',
   flexGrow: 1,
 }) as unknown as typeof Box;

@@ -63,7 +63,7 @@ const MFAEnable = ({ open, onClose }: MFAEnableType) => {
       </Box>
       {!isLoading && (
         <>
-          <Box sx={{ borderBottom: '1px solid var(--accent-200)' }}>
+          <Box sx={{ borderBottom: '1px solid var(--line)' }}>
             <Tabs
               tabs={[
                 {

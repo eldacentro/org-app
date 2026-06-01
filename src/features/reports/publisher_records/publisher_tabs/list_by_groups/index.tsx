@@ -11,7 +11,7 @@ const ListByGroups = (props: ListByGroupsProps) => {
 
   return (
     <Stack
-      divider={<Divider color="var(--accent-200)" />}
+      divider={<Divider color="var(--line)" />}
       margin="0px 0px -24px 0px"
     >
       {groups.map((group) => (

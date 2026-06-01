@@ -16,14 +16,14 @@ const EmptyAssignment = () => {
         sx={{
           height: '44px',
           borderRadius: 'var(--radius-l)',
-          border: '1px dashed var(--accent-300)',
+          border: '1px dashed var(--line)',
           padding: '0px 14px',
           display: 'flex',
           alignItems: 'center',
           cursor: 'default',
         }}
       >
-        <Typography className="body-regular" color="var(--accent-300)">
+        <Typography className="body-regular" color="var(--line)">
           {t('tr_none')}
         </Typography>
       </Box>

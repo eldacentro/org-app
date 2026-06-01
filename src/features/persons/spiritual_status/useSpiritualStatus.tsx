@@ -67,7 +67,7 @@ const useSpiritualStatus = () => {
         header: t('error_app_persons_spiritual-status-change'),
         message: t('error_app_persons_spiritual-status-baptized-midweek'),
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
       return;
     }
@@ -78,7 +78,7 @@ const useSpiritualStatus = () => {
         header: t('error_app_persons_spiritual-status-change'),
         message: t('error_app_persons_spiritual-status-unbaptized-midweek'),
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
       return;
     }
@@ -135,7 +135,7 @@ const useSpiritualStatus = () => {
         header: t('error_app_persons_spiritual-status-change'),
         message: t('error_app_persons_spiritual-status-baptized-unbaptized'),
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
       return;
     }

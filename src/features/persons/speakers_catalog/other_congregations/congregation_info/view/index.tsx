@@ -23,7 +23,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
     >
       <Box
         sx={{
-          borderBottom: '1px solid var(--accent-200)',
+          borderBottom: '1px solid var(--line)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
@@ -127,7 +127,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
 
       <Box
         sx={{
-          borderBottom: '1px solid var(--accent-200)',
+          borderBottom: '1px solid var(--line)',
           display: 'flex',
           gap: '8px',
           paddingBottom: '8px',

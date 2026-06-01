@@ -2,9 +2,9 @@ import { Box, Skeleton, styled } from '@mui/material';
 
 export const SkeletonLoaderCardContainer = styled(Box)({
   width: '100%',
-  borderRadius: 'var(--radius-xl)',
-  border: '1px solid var(--accent-200)',
-  backgroundColor: 'var(--white)',
+  borderRadius: 'var(--r-lg)',
+  border: '1px solid var(--line)',
+  backgroundColor: 'var(--card)',
 });
 
 export const SkeletonLoaderCardTitle = styled(Box)({
@@ -12,7 +12,7 @@ export const SkeletonLoaderCardTitle = styled(Box)({
 });
 
 export const SkeletonLoaderCardBlueArea = styled(Box)({
-  background: 'var(--accent-200)',
+  background: 'var(--line)',
   borderRadius: 'var(--radius-m)',
   display: 'flex',
   justifyContent: 'center',
@@ -21,7 +21,7 @@ export const SkeletonLoaderCardBlueArea = styled(Box)({
 
 export const SkeletonLoaderCardBlueAreaRect = styled(Skeleton)({
   borderRadius: 'var(--radius-m)',
-  background: 'var(--accent-300)',
+  background: 'var(--line)',
   width: '128px',
   height: '24px',
 });
@@ -42,17 +42,17 @@ export const SkeletonLoaderCardItem = styled(Box)({
   alignItems: 'center',
   flexDirection: 'row',
   gap: '16px',
-  backgroundColor: 'var(--white)',
+  backgroundColor: 'var(--card)',
 });
 
 export const SkeletonLoaderCardCircle = styled(Skeleton)({
-  background: 'var(--accent-200)',
+  background: 'var(--line)',
   width: '20px',
   height: '20px',
 });
 
 export const SkeletonLoaderCardText = styled(Skeleton)({
-  background: 'var(--accent-200)',
+  background: 'var(--line)',
   borderRadius: 'var(--radius-max)',
   height: '20px',
 });

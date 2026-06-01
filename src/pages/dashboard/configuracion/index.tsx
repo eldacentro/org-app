@@ -43,7 +43,10 @@ const ConfiguracionCard = () => {
   if (!showCard) return null;
 
   return (
-    <DashboardCard header={t('tr_settings', 'Configuración')}>
+    <DashboardCard 
+      header={t('tr_settings', 'Configuración')}
+      icon={<IconSettings />}
+    >
       {/* 1. Ajustes de congregación / grupo */}
       {showSettings && (
         <ListItem disablePadding>

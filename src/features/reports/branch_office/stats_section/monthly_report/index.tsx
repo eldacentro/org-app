@@ -36,7 +36,7 @@ const MonthlyReport = (props: MonthlyReportProps) => {
         )}
 
         {generated && (
-          <Stack spacing="4px" divider={<Divider color="var(--accent-200)" />}>
+          <Stack spacing="4px" divider={<Divider color="var(--line)" />}>
             {month_overview.map((report) => (
               <StatsRow
                 key={report.label}
@@ -70,7 +70,7 @@ const MonthlyReport = (props: MonthlyReportProps) => {
                 {section.section}
               </Typography>
 
-              <Stack divider={<Divider color="var(--accent-200)" />}>
+              <Stack divider={<Divider color="var(--line)" />}>
                 {section.reports.map((report) => (
                   <StatsRow
                     key={report.label}

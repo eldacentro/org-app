@@ -127,14 +127,14 @@ const usePersonCard = (person: PersonType) => {
         header: t('tr_personDeleted'),
         message: t('tr_personDeletedDesc'),
         severity: 'success',
-        icon: <IconCheckCircle color="var(--white)" />,
+        icon: <IconCheckCircle color="var(--card)" />,
       });
     } catch (error) {
       displaySnackNotification({
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

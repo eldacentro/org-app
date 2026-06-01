@@ -180,7 +180,7 @@ const LocalBackupsTab = () => {
           sx={{
             p: 4,
             textAlign: 'center',
-            border: '1px dashed var(--accent-300)',
+            border: '1px dashed var(--line)',
             borderRadius: 'var(--radius-m)',
             bgcolor: 'var(--accent-50)',
           }}
@@ -232,7 +232,7 @@ const LocalBackupsTab = () => {
                   alignItems: 'center',
                   px: 2,
                   py: 1,
-                  border: '1px solid var(--accent-200)',
+                  border: '1px solid var(--line)',
                   borderRadius: 'var(--radius-m)',
                   bgcolor: 'var(--accent-50)',
                   transition: 'background-color 0.2s',
@@ -258,7 +258,7 @@ const LocalBackupsTab = () => {
                           snapshot.type === 'monthly'
                             ? 'var(--accent-250)'
                             : snapshot.type === 'weekly'
-                            ? 'var(--accent-200)'
+                            ? 'var(--line)'
                             : 'var(--accent-150)',
                       }}
                     >

@@ -9,12 +9,14 @@ const DashboardCard = ({
   fixedHeight = true,
   color,
   sx,
+  icon,
 }: {
   header: string | ReactNode;
   children?: ReactNode;
   fixedHeight?: boolean;
   color?: string;
   sx?: SxProps<Theme>;
+  icon?: ReactNode;
 }) => {
   const { isGroup } = useCurrentUser();
 
@@ -29,40 +31,34 @@ const DashboardCard = ({
         minWidth: '300px',
         width: '100%',
         flexDirection: 'column',
-        alignItems: 'center',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         border: color
           ? `1px solid ${color}`
-          : `1px solid ${isGroup ? 'var(--red-secondary)' : 'var(--accent-200)'}`,
-        background: 'var(--white)',
-        padding: '8px',
-        '& li': {
-          borderBottom: color
-            ? `1px solid ${color}`
-            : `1px solid ${isGroup ? 'var(--red-secondary)' : 'var(--accent-200)'}`,
-          padding: '4px 0px',
-        },
-        '& li:last-child': {
-          borderBottom: 'none',
-          padding: '4px 0px 0px 0px',
+          : `1px solid ${isGroup ? 'var(--red-secondary)' : 'var(--line)'}`,
+        background: 'var(--card)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+        overflow: 'hidden',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          transform: 'translateY(-2px)',
         },
         ...sx,
       }}
-      className="big-card-shadow"
     >
       {typeof header === 'string' ? (
         <Box
           sx={{
-            padding: '16px 0',
-            alignSelf: 'stretch',
-            borderRadius: 'var(--radius-m)',
-            background: isGroup ? 'var(--red-secondary)' : 'var(--accent-200)',
+            padding: '16px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: color || (isGroup ? 'var(--red-main)' : 'var(--accent-main)'),
           }}
         >
           <Typography
-            className="h2"
-            color={isGroup ? 'var(--red-dark)' : 'var(--accent-dark)'}
-            sx={{ textAlign: 'center' }}
+            className="h2-caps"
+            color="var(--always-white)"
           >
             {header}
           </Typography>
@@ -70,8 +66,10 @@ const DashboardCard = ({
       ) : (
         header
       )}
-      <Box sx={{ marginTop: '8px', width: '100%', overflow: 'auto' }}>
-        <List sx={{ paddingTop: 0, paddingBottom: 0 }}>{children}</List>
+      <Box sx={{ width: '100%', overflow: 'auto', padding: '12px', flex: 1 }}>
+        <List sx={{ paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {children}
+        </List>
       </Box>
     </Box>
   );

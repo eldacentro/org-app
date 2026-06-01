@@ -96,7 +96,7 @@ const ImageViewer = ({
                 backgroundColor:
                   current === index
                     ? 'var(--accent-main)'
-                    : 'var(--accent-200)',
+                    : 'var(--line)',
               }}
             />
           ))}

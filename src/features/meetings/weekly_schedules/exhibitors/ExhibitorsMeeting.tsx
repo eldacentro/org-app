@@ -88,9 +88,9 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
           alignItems: 'center',
           gap: '16px',
           padding: '24px',
-          backgroundColor: 'var(--white)',
-          border: '1px solid var(--accent-300)',
-          borderRadius: 'var(--radius-xl)',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-lg)',
           marginTop: '16px',
           justifyContent: 'center',
         }}
@@ -112,7 +112,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
           <Card
             key={date}
             sx={{
-              border: '1px solid var(--accent-300)',
+              border: '1px solid var(--line)',
               borderRadius: 'var(--radius-l)',
               boxShadow: 'none',
               overflow: 'hidden',
@@ -123,20 +123,24 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
               sx={{
                 px: '16px',
                 py: '10px',
-                backgroundColor: 'var(--accent-100)',
-                borderBottom: '1px solid var(--accent-300)',
+                backgroundColor: 'var(--accent-main)',
+                borderBottom: 'none',
               }}
             >
               <Typography
-                className="h3"
-                style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
+                className="h2-caps"
+                sx={{ 
+                  fontWeight: '700', 
+                  color: 'var(--always-white)', 
+                  letterSpacing: '0.5px' 
+                }}
               >
                 {dayLabel}
               </Typography>
             </Box>
 
             {/* Lista de turnos */}
-            <Stack sx={{ backgroundColor: 'var(--white)' }}>
+            <Stack sx={{ backgroundColor: 'var(--card)' }}>
               {turns.map((turn, idx) => {
                 const turnConfig = settings?.turns?.find((t) => t.id === turn.turnId);
                 const timeRange = turnConfig ? `${turnConfig.startTime} - ${turnConfig.endTime}` : 'Turno';
@@ -153,12 +157,12 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                       gap: '16px',
                       px: '16px',
                       py: '14px',
-                      borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                      borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
                         ? '#fce8e6'
                         : isAssignedToMe
                         ? 'var(--accent-50, #f0f7ff)'
-                        : 'var(--white)',
+                        : 'var(--card)',
                     }}
                   >
                     {/* Hora */}
@@ -180,7 +184,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                       sx={{
                         width: '1px',
                         alignSelf: 'stretch',
-                        backgroundColor: 'var(--accent-200)',
+                        backgroundColor: 'var(--line)',
                         display: { xs: 'none', sm: 'block' },
                       }}
                     />
@@ -200,18 +204,37 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                           }}
                         />
                       ) : (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                           {turn.assignments?.map((ass, aIdx) => {
                             const name = getBrotherDisplayName(ass.person);
                             if (!name) return null;
                             const isMe = ass.person === userUID;
                             return (
-                              <Box key={aIdx} sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Box 
+                                key={aIdx} 
+                                sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '6px',
+                                  borderRadius: 'var(--radius-s)',
+                                  border: isMe 
+                                    ? '1px solid var(--accent-main)' 
+                                    : '1px solid transparent',
+                                  backgroundColor: isMe 
+                                    ? 'var(--accent-150)' 
+                                    : 'var(--grey-50)',
+                                  padding: '4px 8px',
+                                  maxWidth: '220px',
+                                }}
+                              >
                                 <Typography
-                                  style={{
-                                    fontWeight: ass.isResponsible ? '700' : '500',
-                                    fontSize: '14.5px',
-                                    color: isMe ? 'var(--accent-main)' : 'var(--black)',
+                                  className="body-small-regular"
+                                  sx={{
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    fontWeight: isMe ? 600 : 500,
+                                    color: isMe ? 'var(--accent-dark)' : 'var(--black)',
                                   }}
                                 >
                                   {name}
@@ -222,11 +245,12 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                                     size="small"
                                     sx={{
                                       height: '18px',
-                                      fontSize: '9.5px',
+                                      fontSize: '9px',
                                       fontWeight: '700',
-                                      backgroundColor: 'var(--accent-150)',
-                                      color: 'var(--accent-dark)',
+                                      backgroundColor: 'var(--accent-main)',
+                                      color: 'var(--always-white)',
                                       px: '2px',
+                                      ml: '2px'
                                     }}
                                   />
                                 )}
@@ -234,9 +258,20 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                             );
                           })}
                           {(!turn.assignments || turn.assignments.length === 0) && (
-                            <Typography style={{ fontSize: '14px', color: 'var(--error-main)', fontWeight: '600' }}>
-                              Sin asignar
-                            </Typography>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                borderRadius: 'var(--radius-s)',
+                                border: '1px dashed var(--grey-300)',
+                                backgroundColor: 'transparent',
+                                padding: '4px 8px',
+                              }}
+                            >
+                              <Typography className="body-small-regular" color="var(--grey-400)">
+                                Sin asignar
+                              </Typography>
+                            </Box>
                           )}
                         </Box>
                       )}

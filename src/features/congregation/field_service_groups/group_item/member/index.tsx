@@ -99,7 +99,7 @@ const GroupMember = (props: GroupMemberProps) => {
             sx={{
               marginTop: '8px',
               '& li': {
-                borderBottom: '1px solid var(--accent-200)',
+                borderBottom: '1px solid var(--line)',
               },
               '& li:last-child': {
                 borderBottom: 'none',
@@ -110,8 +110,8 @@ const GroupMember = (props: GroupMemberProps) => {
                 className: 'small-card-shadow',
                 style: {
                   borderRadius: 'var(--radius-l)',
-                  border: '1px solid var(--accent-200)',
-                  backgroundColor: 'var(--white)',
+                  border: '1px solid var(--line)',
+                  backgroundColor: 'var(--card)',
                 },
               },
             }}

@@ -80,33 +80,33 @@
 
 /* colors for blue-light theme */
 [data-theme='blue-light'] {
-  --accent-dark-overlay-base: 7, 10, 22;
---accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.48);
---accent-dark-base: 36, 81, 136;
---accent-dark: rgba(var(--accent-dark-base), 1);
---accent-click-base: 61, 125, 203;
---accent-click: rgba(var(--accent-click-base), 1);
---accent-main-base: 48, 108, 180;
---accent-main: rgba(var(--accent-main-base), 1);
---accent-400-base: 42, 95, 159;
---accent-400: rgba(var(--accent-400-base), 1);
---accent-350-base: 117, 162, 218;
---accent-350: rgba(var(--accent-350-base), 1);
---accent-300-base: 144, 181, 226;
---accent-300: rgba(var(--accent-300-base), 1);
---accent-200-base: 200, 218, 240;
---accent-200: rgba(var(--accent-200-base), 1);
---accent-150-base: 210, 228, 248;
---accent-150: rgba(var(--accent-150-base), 1);
---accent-100-base: 245, 249, 254;
+  --accent-dark-overlay-base: 13, 27, 42;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.48);
+  --accent-dark-base: 31, 64, 122;
+  --accent-dark: rgba(var(--accent-dark-base), 1);
+  --accent-click-base: 44, 92, 168;
+  --accent-click: rgba(var(--accent-click-base), 1);
+  --accent-main-base: 59, 114, 196;
+  --accent-main: rgba(var(--accent-main-base), 1);
+  --accent-400-base: 102, 139, 204;
+  --accent-400: rgba(var(--accent-400-base), 1);
+  --accent-350-base: 144, 172, 219;
+  --accent-350: rgba(var(--accent-350-base), 1);
+  --accent-300-base: 176, 196, 229;
+  --accent-300: rgba(var(--accent-300-base), 1);
+  --accent-200-base: 208, 220, 238;
+  --accent-200: rgba(var(--accent-200-base), 1);
+  --accent-150-base: 224, 232, 245;
+  --accent-150: rgba(var(--accent-150-base), 1);
+  --accent-100-base: 240, 244, 250;
   --accent-100: rgba(var(--accent-100-base), 1);
-  --black-base: 34, 34, 34;
+  --black-base: 13, 27, 42;
   --black: rgba(var(--black-base), 1);
-  --white-base: 254, 254, 254;
+  --white-base: 255, 255, 255;
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 80, 80, 80;
+  --grey-400-base: 90, 106, 130;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 117, 117, 117;
+  --grey-350-base: 138, 155, 179;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -939,4 +939,4 @@
   .hover-shadow {
     box-shadow: 0px 2px 8px 0px #0e1227a3;
   }
-}
+}@keyframes wave { 0% { transform: rotate( 0.0deg) } 10% { transform: rotate(14.0deg) } 20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate( 0.0deg) } 100% { transform: rotate( 0.0deg) } }

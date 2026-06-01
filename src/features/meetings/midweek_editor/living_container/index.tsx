@@ -26,7 +26,7 @@ const LivingContainer = (props: LivingContainerProps) => {
 
   return (
     <>
-      <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
         {countArray.map((part) => (
           <LivingPart
             key={part}
@@ -40,7 +40,7 @@ const LivingContainer = (props: LivingContainerProps) => {
       {/* lc_part3 */}
       {hasCustomPart && (
         <>
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
 
           <Typography color="var(--grey-350)">
             {t('tr_customMeetingPartDesc')}
@@ -80,7 +80,7 @@ const LivingContainer = (props: LivingContainerProps) => {
 
       {isEdit && customPartEnabled && (
         <>
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
 
           <Button
             variant="small"

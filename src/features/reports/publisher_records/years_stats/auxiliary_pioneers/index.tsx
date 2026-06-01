@@ -15,7 +15,7 @@ const AuxiliaryPioneers = (props: AuxiliaryPioneersProps) => {
     <Stack spacing="8px">
       <SectionTitle>{t('tr_APs')}</SectionTitle>
 
-      <Stack divider={<Divider color="var(--accent-200)" />}>
+      <Stack divider={<Divider color="var(--line)" />}>
         {reports.map((report) => (
           <StatsRow
             key={report.label}

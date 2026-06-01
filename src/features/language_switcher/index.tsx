@@ -58,7 +58,7 @@ const LanguageSwitcher = ({ menuStyle }: { menuStyle: SxProps }) => {
           padding: '8px 0',
           marginTop: '7px',
           '& li': {
-            borderBottom: '1px solid var(--accent-200)',
+            borderBottom: '1px solid var(--line)',
           },
           '& li:last-child': {
             borderBottom: 'none',
@@ -72,8 +72,8 @@ const LanguageSwitcher = ({ menuStyle }: { menuStyle: SxProps }) => {
             className: 'small-card-shadow',
             style: {
               borderRadius: 'var(--radius-l)',
-              border: '1px solid var(--accent-200)',
-              backgroundColor: 'var(--white)',
+              border: '1px solid var(--line)',
+              backgroundColor: 'var(--card)',
             },
           },
         }}
@@ -89,7 +89,7 @@ const LanguageSwitcher = ({ menuStyle }: { menuStyle: SxProps }) => {
                   className="label-small-medium"
                   color="var(--accent-dark)"
                   sx={{
-                    backgroundColor: 'var(--accent-200)',
+                    backgroundColor: 'var(--line)',
                     padding: '2px 3px',
                     borderRadius: 'var(--radius-s)',
                   }}

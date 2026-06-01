@@ -20,17 +20,47 @@ const AssignmentItem = (props: AssignmentItemProps) => {
   } = useAssignmentItem(props);
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center">
+    <Stack
+      direction="row"
+      spacing={2}
+      alignItems="center"
+      sx={(theme) => ({
+        padding: '12px 14px',
+        borderRadius: 'var(--r-md)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        '&:hover': {
+          transform: 'translateY(-1px)',
+          boxShadow: 'var(--shadow-md)',
+        },
+        [theme.breakpoints.up('tablet')]: {
+          ':hover': {
+            button: {
+              backgroundColor: 'var(--line)',
+              opacity: 1,
+              pointerEvents: 'all',
+            },
+          },
+        },
+      })}
+    >
       <Box
-        style={{
+        sx={{
           textAlign: 'center',
-          width: '56px',
-          borderRadius: 'var(--radius-m)',
-          padding: '8px 4px',
-          backgroundColor: 'var(--accent-main)',
+          width: '46px',
+          height: '46px',
+          borderRadius: 'var(--r-sm)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'var(--brand-tint)',
+          border: '1px solid rgba(59, 114, 196, 0.12)',
+          flexShrink: 0,
         }}
       >
-        <Typography className="h2" sx={{ color: 'var(--always-white)' }}>
+        <Typography className="h2" sx={{ color: 'var(--brand) !important', fontWeight: 900, fontSize: '20px !important', lineHeight: 1 }}>
           {assignmentDate}
         </Typography>
       </Box>
@@ -39,23 +69,14 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         alignItems="center"
         justifyContent="space-between"
         direction="row"
-        width="calc(100% - 72px)"
+        width="calc(100% - 58px)"
         spacing={1}
-        sx={(theme) => ({
-          [theme.breakpoints.up('tablet')]: {
-            ':hover': {
-              button: {
-                backgroundColor: 'var(--accent-200)',
-                opacity: 1,
-                pointerEvents: 'all',
-              },
-            },
-          },
-        })}
       >
-        <Stack justifyContent="center">
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography className="h3">{history.assignment.title}</Typography>
+        <Stack justifyContent="center" spacing="2px">
+          <Stack direction="row" spacing={1.2} alignItems="center" flexWrap="wrap">
+            <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700, fontSize: '15px' }}>
+              {history.assignment.title}
+            </Typography>
 
             {badges.map((badge) => badge)}
           </Stack>
@@ -65,7 +86,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               size="small"
               filled
               color="orange"
-              sx={{ width: 'fit-content', height: 'auto' }}
+              sx={{ width: 'fit-content', height: 'auto', marginTop: '2px' }}
               text={t('tr_deliveredBy', {
                 name: personGetName(history.assignment.person),
               })}
@@ -76,6 +97,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             <Typography
               className={'body-small-semibold'}
               color={'var(--grey-400)'}
+              sx={{ fontSize: '13px', marginTop: '2px' }}
             >
               {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
             </Typography>
@@ -85,6 +107,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             <Typography
               className={'body-small-semibold'}
               color={'var(--grey-400)'}
+              sx={{ fontSize: '13px' }}
             >
               {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
             </Typography>
@@ -100,13 +123,14 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               color={
                 history.assignment.ayf ? 'var(--grey-350)' : 'var(--grey-400)'
               }
+              sx={{ fontSize: '13px', marginTop: '1px' }}
             >
               {history.assignment.src}
             </Typography>
           )}
 
           {history.assignment.desc && (
-            <Typography className="body-small-regular" color="var(--grey-400)">
+            <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
               {history.assignment.desc}
             </Typography>
           )}
@@ -115,7 +139,9 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         {ADD_CALENDAR_SHOW && (
           <IconButton
             sx={(theme) => ({
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--r-sm)',
+              border: '1px solid var(--line)',
+              padding: '6px',
               [theme.breakpoints.up('tablet')]: {
                 opacity: 0,
                 pointerEvents: 'none',
@@ -123,7 +149,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               },
             })}
           >
-            <IconAddMonth color="var(--accent-main)" />
+            <IconAddMonth color="var(--brand)" />
           </IconButton>
         )}
       </Stack>

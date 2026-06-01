@@ -25,7 +25,7 @@ const ReportSection = ({
 
   return (
     <Card sx={{ flex: 1 }}>
-      <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
         <ReportSelector value={report} onChange={onReportChange} />
 
         <Box

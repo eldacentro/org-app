@@ -15,7 +15,7 @@ const Publishers = (props: PublishersProps) => {
     <Stack spacing="8px">
       <SectionTitle>{t('tr_otherPublishers')}</SectionTitle>
 
-      <Stack divider={<Divider color="var(--accent-200)" />}>
+      <Stack divider={<Divider color="var(--line)" />}>
         {reports.map((report) => (
           <StatsRow
             key={report.label}

@@ -122,7 +122,7 @@ const useOutgoingSpeaker = ({
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

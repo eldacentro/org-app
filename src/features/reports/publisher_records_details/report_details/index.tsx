@@ -35,11 +35,11 @@ const ReportDetails = (props: ReportDetailsProps) => {
       <Stack spacing="8px" width="100%">
         <LateReport />
 
-        <Stack spacing="24px" divider={<Divider color="var(--accent-200)" />}>
+        <Stack spacing="24px" divider={<Divider color="var(--line)" />}>
           {hoursEnabled && (
             <Stack
               spacing="24px"
-              divider={<Divider dashed color="var(--accent-200)" />}
+              divider={<Divider dashed color="var(--line)" />}
             >
               <HoursField />
 

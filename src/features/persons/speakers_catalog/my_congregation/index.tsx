@@ -16,10 +16,10 @@ const MyCongregation = () => {
     <Box
       sx={{
         flexGrow: 1,
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         padding: '16px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         width: '100%',
       }}
     >
@@ -33,7 +33,7 @@ const MyCongregation = () => {
       <Collapse in={isExpanded} unmountOnExit>
         <Box
           sx={{
-            borderTop: '1px solid var(--accent-200)',
+            borderTop: '1px solid var(--line)',
             marginTop: '16px',
             paddingTop: '16px',
             display: 'flex',

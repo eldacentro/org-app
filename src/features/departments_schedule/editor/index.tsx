@@ -64,9 +64,9 @@ const DepartmentEditor = () => {
           <Box
             sx={{
               p: 2,
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
-              borderRadius: 'var(--radius-xl)',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-lg)',
             }}
           >
             <Typography className="h3" sx={{ mb: 2 }}>
@@ -106,9 +106,9 @@ const DepartmentEditor = () => {
           <Box
             sx={{
               p: 2,
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
-              borderRadius: 'var(--radius-xl)',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-lg)',
             }}
           >
             <Typography className="h3" sx={{ mb: 2 }}>
@@ -148,9 +148,9 @@ const DepartmentEditor = () => {
           <Box
             sx={{
               p: 2,
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
-              borderRadius: 'var(--radius-xl)',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-lg)',
             }}
           >
             <Typography className="h3" sx={{ mb: 2 }}>
@@ -186,9 +186,9 @@ const DepartmentEditor = () => {
           <Box
             sx={{
               p: 2,
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--accent-300)',
-              borderRadius: 'var(--radius-xl)',
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-lg)',
             }}
           >
             <Typography className="h3" sx={{ mb: 2 }}>

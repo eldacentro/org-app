@@ -2,11 +2,11 @@ import { styled } from '@mui/system';
 import { Box } from '@mui/material';
 
 export const UserCard = styled(Box)({
-  border: '1px solid var(--accent-300)',
+  border: '1px solid var(--line)',
   borderRadius: 'var(--radius-l)',
   display: 'flex',
   gap: '16px',
-  backgroundColor: 'var(--white)',
+  backgroundColor: 'var(--card)',
   cursor: 'pointer',
   padding: '24px',
   justifyContent: 'space-between',

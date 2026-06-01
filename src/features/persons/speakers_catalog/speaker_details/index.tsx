@@ -22,7 +22,7 @@ const SpeakerDetails = ({ open, onClose, speaker }: SpeakerDetailsType) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid var(--accent-200)',
+          borderBottom: '1px solid var(--line)',
           paddingBottom: '8px',
           width: '100%',
         }}
@@ -62,7 +62,7 @@ const SpeakerDetails = ({ open, onClose, speaker }: SpeakerDetailsType) => {
 
       <Box
         sx={{
-          borderBottom: '1px solid var(--accent-200)',
+          borderBottom: '1px solid var(--line)',
           paddingBottom: '16px',
           width: '100%',
         }}

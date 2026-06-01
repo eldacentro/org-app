@@ -44,7 +44,7 @@ const MinistryCardSkeletonLoader = () => {
             variant="rectangular"
             sx={{
               borderRadius: 'var(--radius-m)',
-              background: 'var(--accent-200)',
+              background: 'var(--line)',
               width: '64px',
               height: '20px',
             }}
@@ -59,7 +59,7 @@ const MinistryCardSkeletonLoader = () => {
             }}
           />
         </Box>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
@@ -74,14 +74,14 @@ const MinistryCardSkeletonLoader = () => {
             }}
           />
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={145} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />

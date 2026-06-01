@@ -17,8 +17,8 @@ const BibleStudy = () => {
     <Box
       sx={{
         padding: '24px',
-        backgroundColor: 'var(--white)',
-        borderRadius: 'var(--radius-xl)',
+        backgroundColor: 'var(--card)',
+        borderRadius: 'var(--r-lg)',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',

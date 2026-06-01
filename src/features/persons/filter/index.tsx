@@ -117,7 +117,7 @@ const PersonsFilter = () => {
             sx={{
               borderRadius: 'var(--radius-s)',
               padding: '4px 8px',
-              backgroundColor: 'var(--accent-200)',
+              backgroundColor: 'var(--line)',
             }}
           >
             <Typography className="label-small-medium">

@@ -988,9 +988,9 @@ const PredicacionSalidas = () => {
               sx={{
                 width: '280px',
                 flexShrink: 0,
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--accent-300)',
-                backgroundColor: 'var(--white)',
+                borderRadius: 'var(--r-lg)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
                 padding: '16px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1010,7 +1010,7 @@ const PredicacionSalidas = () => {
                   fullWidth
                   sx={{
                     borderRadius: 'var(--radius-m)',
-                    borderColor: 'var(--accent-300)',
+                    borderColor: 'var(--line)',
                   }}
                 >
                   {years.map((yr) => (
@@ -1021,7 +1021,7 @@ const PredicacionSalidas = () => {
                 </Select>
               </Box>
 
-              <Box sx={{ borderTop: '1px solid var(--accent-300)', my: '4px' }} />
+              <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
 
               <Typography className="h3" style={{ color: 'var(--accent-main)' }}>
                 Meses
@@ -1041,7 +1041,7 @@ const PredicacionSalidas = () => {
                         '&.Mui-selected': {
                           backgroundColor: 'var(--accent-150)',
                           '&:hover': {
-                            backgroundColor: 'var(--accent-200)',
+                            backgroundColor: 'var(--line)',
                           },
                         },
                         '&:hover': {
@@ -1067,7 +1067,7 @@ const PredicacionSalidas = () => {
             <Card
               sx={{
                 width: '100%',
-                border: '1px solid var(--accent-300)',
+                border: '1px solid var(--line)',
                 borderRadius: 'var(--radius-l)',
                 boxShadow: 'none',
                 overflow: 'hidden',
@@ -1094,7 +1094,7 @@ const PredicacionSalidas = () => {
               </ListItemButton>
 
               {monthsExpanded && (
-                <Box sx={{ p: '16px', borderTop: '1px solid var(--accent-300)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <Box sx={{ p: '16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)' }}>
                       Seleccionar Año
@@ -1145,7 +1145,7 @@ const PredicacionSalidas = () => {
                                     backgroundColor: 'var(--accent-dark)',
                                   }
                                 } : {
-                                  borderColor: 'var(--accent-200)',
+                                  borderColor: 'var(--line)',
                                   color: 'var(--black)',
                                   '&:hover': {
                                     backgroundColor: 'var(--accent-100)',
@@ -1176,7 +1176,7 @@ const PredicacionSalidas = () => {
                 </Typography>
                 
                 {/* Selector de modo de vista */}
-                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--accent-300)' }}>
+                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--line)' }}>
                   <Button
                     onClick={() => setPlannerViewMode('lista')}
                     size="small"
@@ -1194,7 +1194,7 @@ const PredicacionSalidas = () => {
                         '&:hover': { backgroundColor: 'var(--accent-dark)' }
                       } : {
                         color: 'var(--grey-600)',
-                        '&:hover': { backgroundColor: 'var(--accent-200)' }
+                        '&:hover': { backgroundColor: 'var(--line)' }
                       })
                     }}
                   >
@@ -1217,7 +1217,7 @@ const PredicacionSalidas = () => {
                         '&:hover': { backgroundColor: 'var(--accent-dark)' }
                       } : {
                         color: 'var(--grey-600)',
-                        '&:hover': { backgroundColor: 'var(--accent-200)' }
+                        '&:hover': { backgroundColor: 'var(--line)' }
                       })
                     }}
                   >
@@ -1331,7 +1331,7 @@ const PredicacionSalidas = () => {
                               <Card
                                 key={dateKey}
                                 sx={{
-                                  border: '1px solid var(--accent-300)',
+                                  border: '1px solid var(--line)',
                                   borderRadius: 'var(--radius-l)',
                                   boxShadow: 'none',
                                   overflow: 'hidden',
@@ -1343,7 +1343,7 @@ const PredicacionSalidas = () => {
                                     px: '16px',
                                     py: '10px',
                                     backgroundColor: 'var(--accent-100)',
-                                    borderBottom: '1px solid var(--accent-300)',
+                                    borderBottom: '1px solid var(--line)',
                                   }}
                                 >
                                   <Typography
@@ -1386,12 +1386,12 @@ const PredicacionSalidas = () => {
                                         gap: '16px',
                                         px: '16px',
                                         py: '14px',
-                                        borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                        borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                                         backgroundColor: isCancelled
                                           ? '#fce8e6'
                                           : isAssignedToMe
                                           ? 'var(--accent-50, #f0f7ff)'
-                                          : 'var(--white)',
+                                          : 'var(--card)',
                                         cursor: isServiceCommittee ? 'pointer' : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
@@ -1419,7 +1419,7 @@ const PredicacionSalidas = () => {
                                         )}
                                       </Box>
 
-                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--line)' }} />
 
                                       {/* Hermano asignado */}
                                       <Box sx={{ flex: 1 }}>
@@ -1559,9 +1559,9 @@ const PredicacionSalidas = () => {
 
                     return (
                       <Box sx={{
-                        borderRadius: 'var(--radius-xl)',
-                        border: '1px solid var(--accent-300)',
-                        backgroundColor: 'var(--white)',
+                        borderRadius: 'var(--r-lg)',
+                        border: '1px solid var(--line)',
+                        backgroundColor: 'var(--card)',
                         p: { mobile: '12px', tablet: '20px' },
                         boxShadow: 'none',
                         width: '100%',
@@ -1573,7 +1573,7 @@ const PredicacionSalidas = () => {
                               <Box sx={{
                                 textAlign: 'center',
                                 py: '6px',
-                                borderBottom: '2px solid var(--accent-300)',
+                                borderBottom: '2px solid var(--line)',
                                 mb: '4px'
                               }}>
                                 <Typography style={{ fontWeight: '700', fontSize: '12px', color: 'var(--accent-main)', textTransform: 'none' }}>
@@ -1591,7 +1591,7 @@ const PredicacionSalidas = () => {
                                     aspectRatio: desktopUp ? 'auto' : '1',
                                     minHeight: desktopUp ? '110px' : 'auto',
                                     backgroundColor: 'var(--accent-50, #f8fafd)',
-                                    border: '1px solid var(--accent-200)',
+                                    border: '1px solid var(--line)',
                                     borderRadius: 'var(--radius-m)',
                                     opacity: 0.3
                                   }} />
@@ -1608,8 +1608,8 @@ const PredicacionSalidas = () => {
                                 <Grid size={{ mobile: 1 }} key={cell.dayNum} sx={{ p: 0.5 }}>
                                   <Box sx={{
                                     minHeight: '130px',
-                                    backgroundColor: 'var(--white)',
-                                    border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--accent-200)',
+                                    backgroundColor: 'var(--card)',
+                                    border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
                                     borderRadius: 'var(--radius-l)',
                                     p: '10px',
                                     display: 'flex',
@@ -1619,7 +1619,7 @@ const PredicacionSalidas = () => {
                                     transition: 'all 0.2s ease',
                                     boxShadow: 'none',
                                     '&:hover': {
-                                      borderColor: 'var(--accent-300)',
+                                      borderColor: 'var(--line)',
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
                                     }
                                   }}>
@@ -1742,8 +1742,8 @@ const PredicacionSalidas = () => {
                                     onClick={() => setSelectedDayNum(cell.dayNum)}
                                     sx={{
                                       aspectRatio: '1',
-                                      backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--white)',
-                                      border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--accent-300)',
+                                      backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--card)',
+                                      border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
                                       borderRadius: 'var(--radius-m)',
                                       display: 'flex',
                                       flexDirection: 'column',
@@ -1794,7 +1794,7 @@ const PredicacionSalidas = () => {
                           <Box sx={{ mt: '24px' }}>
                             <Card
                               sx={{
-                                border: '1px solid var(--accent-300)',
+                                border: '1px solid var(--line)',
                                 borderRadius: 'var(--radius-l)',
                                 boxShadow: 'none',
                                 overflow: 'hidden',
@@ -1805,7 +1805,7 @@ const PredicacionSalidas = () => {
                                   px: '16px',
                                   py: '10px',
                                   backgroundColor: 'var(--accent-100)',
-                                  borderBottom: '1px solid var(--accent-300)',
+                                  borderBottom: '1px solid var(--line)',
                                 }}
                               >
                                 <Typography
@@ -1869,12 +1869,12 @@ const PredicacionSalidas = () => {
                                         gap: '16px',
                                         px: '16px',
                                         py: '14px',
-                                        borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                                        borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                                         backgroundColor: isCancelled
                                           ? '#fce8e6'
                                           : isAssignedToMe
                                           ? 'var(--accent-50, #f0f7ff)'
-                                          : 'var(--white)',
+                                          : 'var(--card)',
                                         cursor: isServiceCommittee ? 'pointer' : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
@@ -1901,7 +1901,7 @@ const PredicacionSalidas = () => {
                                         )}
                                       </Box>
 
-                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--accent-200)' }} />
+                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--line)' }} />
 
                                       <Box sx={{ flex: 1 }}>
                                         {isCancelled ? (
@@ -1957,9 +1957,9 @@ const PredicacionSalidas = () => {
             /* VISTA DE CONFIGURACIÓN GLOBAL */
             <Box
               sx={{
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--accent-300)',
-                backgroundColor: 'var(--white)',
+                borderRadius: 'var(--r-lg)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
                 padding: { mobile: '16px', tablet: '24px' },
                 width: '100%',
                 maxWidth: '100%',
@@ -1978,7 +1978,7 @@ const PredicacionSalidas = () => {
                 scrollButtons="auto"
                 allowScrollButtonsMobile
                 sx={{
-                  borderBottom: '1px solid var(--accent-200)',
+                  borderBottom: '1px solid var(--line)',
                   marginBottom: '28px',
                   width: '100%',
                   maxWidth: '100%',
@@ -2078,10 +2078,10 @@ const PredicacionSalidas = () => {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          border: '1px solid var(--accent-200)',
+                          border: '1px solid var(--line)',
                           borderRadius: 'var(--radius-l)',
                           boxShadow: 'none',
-                          backgroundColor: 'var(--white)',
+                          backgroundColor: 'var(--card)',
                           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                           '&:hover': {
                             borderColor: 'var(--accent-main)',
@@ -2151,11 +2151,11 @@ const PredicacionSalidas = () => {
                         <Card
                           key={dayGroup.dayLabel}
                           sx={{
-                            border: '1px solid var(--accent-200)',
+                            border: '1px solid var(--line)',
                             borderRadius: 'var(--radius-l)',
                             boxShadow: 'none',
                             overflow: 'hidden',
-                            backgroundColor: 'var(--white)',
+                            backgroundColor: 'var(--card)',
                             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                             '&:hover': {
                               borderColor: 'var(--accent-main)',
@@ -2169,7 +2169,7 @@ const PredicacionSalidas = () => {
                               px: '16px',
                               py: '12px',
                               backgroundColor: 'var(--accent-100)',
-                              borderBottom: '1px solid var(--accent-200)',
+                              borderBottom: '1px solid var(--line)',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '8px',
@@ -2196,8 +2196,8 @@ const PredicacionSalidas = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '12px',
-                                    borderTop: slotIdx > 0 ? '1px solid var(--accent-200)' : 'none',
-                                    backgroundColor: isDisabled ? 'var(--grey-50)' : 'var(--white)',
+                                    borderTop: slotIdx > 0 ? '1px solid var(--line)' : 'none',
+                                    backgroundColor: isDisabled ? 'var(--grey-50)' : 'var(--card)',
                                     transition: 'background-color 0.2s',
                                   }}
                                 >
@@ -2327,8 +2327,8 @@ const PredicacionSalidas = () => {
                         gap: '12px',
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
-                        border: '1px dashed var(--accent-300)',
-                        borderRadius: 'var(--radius-xl)',
+                        border: '1px dashed var(--line)',
+                        borderRadius: 'var(--r-lg)',
                         justifyContent: 'center',
                         py: '40px',
                       }}
@@ -2376,10 +2376,10 @@ const PredicacionSalidas = () => {
                               alignItems: { mobile: 'flex-start', tablet: 'center' },
                               justifyContent: 'space-between',
                               gap: '16px',
-                              border: '1px solid var(--accent-200)',
+                              border: '1px solid var(--line)',
                               borderRadius: 'var(--radius-l)',
                               boxShadow: 'none',
-                              backgroundColor: 'var(--white)',
+                              backgroundColor: 'var(--card)',
                               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
@@ -2395,7 +2395,7 @@ const PredicacionSalidas = () => {
                                   height: '32px',
                                   borderRadius: '50%',
                                   backgroundColor: 'var(--accent-150)',
-                                  border: '1px solid var(--accent-300)',
+                                  border: '1px solid var(--line)',
                                   display: 'flex',
                                   justifyContent: 'center',
                                   alignItems: 'center',
@@ -2436,7 +2436,7 @@ const PredicacionSalidas = () => {
                                         border: `1px solid ${isChecked ? 'var(--accent-main)' : 'var(--grey-300)'}`,
                                         '&:hover': {
                                           backgroundColor: isChecked ? 'var(--accent-dark)' : 'var(--accent-100)',
-                                          borderColor: isChecked ? 'var(--accent-dark)' : 'var(--accent-300)',
+                                          borderColor: isChecked ? 'var(--accent-dark)' : 'var(--line)',
                                           transform: 'scale(1.04)',
                                         },
                                       }}
@@ -2571,10 +2571,10 @@ const PredicacionSalidas = () => {
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            border: '1px solid var(--accent-200)',
+                            border: '1px solid var(--line)',
                             borderRadius: 'var(--radius-l)',
                             boxShadow: 'none',
-                            backgroundColor: 'var(--white)',
+                            backgroundColor: 'var(--card)',
                             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                             '&:hover': {
                               borderColor: 'var(--accent-main)',
@@ -2590,7 +2590,7 @@ const PredicacionSalidas = () => {
                                 height: '32px',
                                 borderRadius: '50%',
                                 backgroundColor: 'var(--accent-150)',
-                                border: '1px solid var(--accent-300)',
+                                border: '1px solid var(--line)',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
@@ -2633,8 +2633,8 @@ const PredicacionSalidas = () => {
                         gap: '12px',
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
-                        border: '1px dashed var(--accent-300)',
-                        borderRadius: 'var(--radius-xl)',
+                        border: '1px dashed var(--line)',
+                        borderRadius: 'var(--r-lg)',
                         justifyContent: 'center',
                         py: '30px',
                         width: '100%',
@@ -2662,7 +2662,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--r-lg)',
             padding: '8px',
           },
         }}
@@ -2741,7 +2741,7 @@ const PredicacionSalidas = () => {
 
                   {/* Grupo Recomendados */}
                   {sortedBrothersForSlot.recommended.length > 0 && (
-                    <ListSubheader key="header-recommended" sx={{ color: 'var(--accent-main)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--white)' }}>
+                    <ListSubheader key="header-recommended" sx={{ color: 'var(--accent-main)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--card)' }}>
                       RECOMENDADOS (DISPONIBLES HOY)
                     </ListSubheader>
                   )}
@@ -2753,7 +2753,7 @@ const PredicacionSalidas = () => {
 
                   {/* Grupo Otros */}
                   {sortedBrothersForSlot.others.length > 0 && (
-                    <ListSubheader key="header-others" sx={{ color: 'var(--grey-600)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--white)' }}>
+                    <ListSubheader key="header-others" sx={{ color: 'var(--grey-600)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--card)' }}>
                       OTROS HERMANOS
                     </ListSubheader>
                   )}
@@ -2820,7 +2820,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--r-lg)',
             padding: '12px',
           },
         }}
@@ -2911,7 +2911,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--r-lg)',
             padding: '12px',
           },
         }}
@@ -2952,7 +2952,7 @@ const PredicacionSalidas = () => {
           />
 
           {tempCOWeek && !showAdjustHours && (
-            <Box sx={{ mt: '12px', p: '16px', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-100)', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--accent-300)' }}>
+            <Box sx={{ mt: '12px', p: '16px', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-100)', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--line)' }}>
               <Typography style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--accent-dark)', margin: 0 }}>
                 ¿Deseas ajustar el horario de las salidas de esta semana?
               </Typography>
@@ -2999,7 +2999,7 @@ const PredicacionSalidas = () => {
           )}
 
           {showAdjustHours && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '16px', maxHeight: '250px', overflowY: 'auto', pr: '8px', borderTop: '1px solid var(--accent-300)', pt: '16px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '16px', maxHeight: '250px', overflowY: 'auto', pr: '8px', borderTop: '1px solid var(--line)', pt: '16px' }}>
               <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)', margin: 0 }}>
                 Horarios específicos de esta semana
               </Typography>

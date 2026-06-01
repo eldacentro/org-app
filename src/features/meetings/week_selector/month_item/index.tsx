@@ -38,7 +38,7 @@ const MonthItem = (props: MonthItemType) => {
                 justifyContent: 'center',
               }}
             >
-              <IconCheck color="var(--white)" height={14.4} width={14.4} />
+              <IconCheck color="var(--card)" height={14.4} width={14.4} />
             </Box>
           )}
 

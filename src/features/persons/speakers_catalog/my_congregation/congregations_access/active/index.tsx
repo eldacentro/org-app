@@ -21,7 +21,7 @@ const OutgoingSpeakersListActive = ({
           display: 'flex',
           flexDirection: 'column',
           '& > .MuiBox-root': {
-            borderBottom: '1px solid var(--accent-200)',
+            borderBottom: '1px solid var(--line)',
             padding: '10px 0',
           },
           '& > .MuiBox-root:last-child': {

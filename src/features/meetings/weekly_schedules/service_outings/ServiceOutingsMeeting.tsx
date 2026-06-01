@@ -178,9 +178,9 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
           alignItems: 'center',
           gap: '16px',
           padding: '24px',
-          backgroundColor: 'var(--white)',
-          border: '1px solid var(--accent-300)',
-          borderRadius: 'var(--radius-xl)',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-lg)',
           marginTop: '16px',
           justifyContent: 'center',
         }}
@@ -198,7 +198,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       {weekRecord?.isCircuitOverseerWeek && (
         <Card
           sx={{
-            border: '1px solid var(--accent-300)',
+            border: '1px solid var(--line)',
             borderRadius: 'var(--radius-l)',
             backgroundColor: 'var(--accent-100)',
             px: '16px',
@@ -231,7 +231,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
           <Card
             key={date}
             sx={{
-              border: '1px solid var(--accent-300)',
+              border: '1px solid var(--line)',
               borderRadius: 'var(--radius-l)',
               boxShadow: 'none',
               overflow: 'hidden',
@@ -242,20 +242,24 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
               sx={{
                 px: '16px',
                 py: '10px',
-                backgroundColor: 'var(--accent-100)',
-                borderBottom: '1px solid var(--accent-300)',
+                backgroundColor: 'var(--accent-main)',
+                borderBottom: 'none',
               }}
             >
               <Typography
-                className="h3"
-                style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
+                className="h2-caps"
+                sx={{ 
+                  fontWeight: '700', 
+                  color: 'var(--always-white)', 
+                  letterSpacing: '0.5px' 
+                }}
               >
                 {dayLabel}
               </Typography>
             </Box>
 
             {/* Filas de salidas */}
-            <Stack sx={{ backgroundColor: 'var(--white)' }}>
+            <Stack sx={{ backgroundColor: 'var(--card)' }}>
               {outings.map((slot, idx) => {
                 const brotherName = getBrotherDisplayName(slot.person);
                 const isAssignedToMe = slot.person === userUID;
@@ -271,12 +275,12 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       gap: '16px',
                       px: '16px',
                       py: '14px',
-                      borderTop: idx > 0 ? '1px solid var(--accent-200)' : 'none',
+                      borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
                         ? '#fce8e6'
                         : isAssignedToMe
                         ? 'var(--accent-50, #f0f7ff)'
-                        : 'var(--white)',
+                        : 'var(--card)',
                     }}
                   >
                     {/* Hora + Turno */}
@@ -304,7 +308,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       sx={{
                         width: '1px',
                         alignSelf: 'stretch',
-                        backgroundColor: 'var(--accent-200)',
+                        backgroundColor: 'var(--line)',
                       }}
                     />
 
@@ -322,15 +326,38 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                           }}
                         />
                       ) : (
-                        <Typography
-                          style={{
-                            fontWeight: '600',
-                            fontSize: '15px',
-                            color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            gap: '6px',
+                            alignItems: 'center',
+                            borderRadius: 'var(--radius-s)',
+                            border: isAssignedToMe 
+                              ? '1px solid var(--accent-main)' 
+                              : brotherName ? '1px solid transparent' : '1px dashed var(--grey-300)',
+                            backgroundColor: isAssignedToMe 
+                              ? 'var(--accent-150)' 
+                              : brotherName ? 'var(--grey-50)' : 'transparent',
+                            padding: '4px 8px',
+                            maxWidth: '220px',
+                            overflow: 'hidden',
                           }}
                         >
-                          {brotherName || 'Sin asignar'}
-                        </Typography>
+                          <Typography
+                            className="body-small-regular"
+                            sx={{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              fontWeight: isAssignedToMe ? 600 : 500,
+                              color: isAssignedToMe 
+                                ? 'var(--accent-dark)' 
+                                : brotherName ? 'var(--black)' : 'var(--grey-400)',
+                            }}
+                          >
+                            {brotherName || 'Sin asignar'}
+                          </Typography>
+                        </Box>
                       )}
                     </Box>
 

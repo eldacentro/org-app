@@ -15,9 +15,9 @@ const DemoStartup = () => {
         sx={{
           maxWidth: '560px',
           margin: 'auto',
-          backgroundColor: 'var(--white)',
-          border: '1px solid var(--accent-300)',
-          borderRadius: 'var(--radius-xl)',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-lg)',
           padding: '24px',
           display: 'flex',
           gap: '24px',

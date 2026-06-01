@@ -51,7 +51,7 @@ const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
           sx={{
             padding: '8px 0',
             '& li': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
             },
             '& li:last-child': {
               borderBottom: 'none',
@@ -64,8 +64,8 @@ const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
             paper: {
               style: {
                 borderRadius: 'var(--radius-l)',
-                border: '1px solid var(--accent-200)',
-                backgroundColor: 'var(--white)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
                 width: props.anchorEl.current.clientWidth,
               },
             },

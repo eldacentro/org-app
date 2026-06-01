@@ -42,13 +42,13 @@ const PersonBasicInfo = () => {
   return (
     <Box
       sx={{
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         display: 'flex',
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         flex: 1,
         width: '100%',
       }}
@@ -103,7 +103,7 @@ const PersonBasicInfo = () => {
           <Box
             sx={{
               padding: '4px 8px',
-              backgroundColor: 'var(--accent-200)',
+              backgroundColor: 'var(--line)',
               borderRadius: '2px',
               display: 'flex',
               alignItems: 'center',
@@ -181,7 +181,7 @@ const PersonBasicInfo = () => {
         />
       </RadioGroup>
 
-      <Divider sx={{ borderColor: 'var(--accent-200)' }} />
+      <Divider sx={{ borderColor: 'var(--line)' }} />
 
       <Box
         sx={{
@@ -229,7 +229,7 @@ const PersonBasicInfo = () => {
         </Tooltip>
       </Box>
 
-      <Divider sx={{ borderColor: 'var(--accent-200)' }} />
+      <Divider sx={{ borderColor: 'var(--line)' }} />
 
       <Box
         sx={{

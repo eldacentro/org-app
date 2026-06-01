@@ -125,7 +125,7 @@ const MonthItem = (props: MonthItemProps) => {
           {showReadOnlyIcon && (
             <Tooltip title={t('tr_reportReadOnly')}>
               <Box sx={{ display: 'flex' }}>
-                <IconEdit color="var(--accent-200)" />
+                <IconEdit color="var(--line)" />
               </Box>
             </Tooltip>
           )}

@@ -17,7 +17,10 @@ const MinistryCard = () => {
     useMinistry();
 
   return (
-    <DashboardCard header={t('tr_ministry')}>
+    <DashboardCard 
+      header={t('tr_ministry')}
+      icon={<IconMinistryReport />}
+    >
       {isPioneer && (
         <ListItem disablePadding>
           <MinistryTimer />

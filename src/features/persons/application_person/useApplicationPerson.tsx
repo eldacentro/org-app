@@ -161,7 +161,7 @@ const useApplicationPerson = () => {
       header: t('tr_newAPAdded'),
       message: t('tr_pubApprovedAsAP'),
       severity: 'success',
-      icon: <IconCheckCircle color="var(--white)" />,
+      icon: <IconCheckCircle color="var(--card)" />,
     });
   };
 
@@ -236,7 +236,7 @@ const useApplicationPerson = () => {
           header: t('tr_applicationRejected'),
           message: t('tr_applicationRejectedDesc'),
           severity: 'success',
-          icon: <IconCheckCircle color="var(--white)" />,
+          icon: <IconCheckCircle color="var(--card)" />,
         });
 
         navigate('/pioneer-applications');
@@ -256,7 +256,7 @@ const useApplicationPerson = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: getMessageByCode(error.message),
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

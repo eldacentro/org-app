@@ -25,13 +25,13 @@ const FieldServiceGroupsContainer = () => {
         <Box
           sx={{
             width: desktopUp ? '50%' : '100%',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--r-lg)',
             padding: '16px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: 'var(--white)',
-            border: '1px solid var(--accent-300)',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
           }}
         >
           <Typography color="var(--grey-350)">

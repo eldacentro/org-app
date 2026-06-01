@@ -32,7 +32,7 @@ const SchedulePublish = (props: SchedulePublishProps) => {
         direction="row"
         spacing="24px"
         divider={
-          <Divider orientation="vertical" color="var(--accent-200)" flexItem />
+          <Divider orientation="vertical" color="var(--line)" flexItem />
         }
         sx={{ width: '100%', overflow: 'auto' }}
       >

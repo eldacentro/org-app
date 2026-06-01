@@ -42,7 +42,7 @@ const ActivePublishers = (props: ActivePublishersProps) => {
           variant="main"
           onClick={handleExport}
           disabled={isProcessing}
-          endIcon={isProcessing && <IconLoading color="var(--white)" />}
+          endIcon={isProcessing && <IconLoading color="var(--card)" />}
         >
           {btnLabel}
         </Button>

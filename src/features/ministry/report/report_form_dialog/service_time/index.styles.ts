@@ -4,8 +4,8 @@ export const FieldContainer = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   gap: '16px',
-  borderRadius: 'var(--radius-xl)',
-  border: '1px solid var(--accent-300)',
+  borderRadius: 'var(--r-lg)',
+  border: '1px solid var(--line)',
   padding: '16px',
   flexDirection: 'column',
 }) as unknown as typeof Box;

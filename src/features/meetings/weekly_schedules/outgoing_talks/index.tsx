@@ -64,8 +64,8 @@ const OutgoingTalks = () => {
               color="var(--grey-400)"
               sx={{
                 padding: '32px 16px',
-                backgroundColor: 'var(--white)',
-                border: '1px dashed var(--accent-200)',
+                backgroundColor: 'var(--card)',
+                border: '1px dashed var(--line)',
                 borderRadius: 'var(--radius-l)',
               }}
             >

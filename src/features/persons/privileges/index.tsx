@@ -26,7 +26,7 @@ const PersonPrivileges = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
-        borderBottom: '1px solid var(--accent-200)',
+        borderBottom: '1px solid var(--line)',
         paddingBottom: '16px',
       }}
     >

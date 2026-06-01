@@ -20,7 +20,7 @@ const SelectPublishers = (props: SelectPublishersProps) => {
       </MenuItem>
       <Box
         sx={{
-          borderBottom: '1px solid var(--accent-200)',
+          borderBottom: '1px solid var(--line)',
           padding: '16px 16px 8px 16px',
         }}
       >

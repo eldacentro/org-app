@@ -37,7 +37,7 @@ const useDuration = ({ time }: DurationProps) => {
       }
 
       if (!isGroup) {
-        return 'var(--accent-300)';
+        return 'var(--line)';
       }
     }
 

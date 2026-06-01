@@ -47,7 +47,7 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
             flexDirection: tabletUp ? 'row' : 'column',
           }}
         >
-          <Typography className="h2">{weekDateLocale}</Typography>
+          <Typography className="h2-caps">{weekDateLocale}</Typography>
 
           {weekType === Week.CO_VISIT && (
             <Badge

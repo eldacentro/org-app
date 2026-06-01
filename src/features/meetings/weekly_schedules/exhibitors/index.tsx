@@ -36,9 +36,9 @@ const ExhibitorsWeeklyContainer = () => {
             alignItems: 'center',
             gap: '16px',
             padding: '24px',
-            backgroundColor: 'var(--white)',
-            border: '1px solid var(--accent-300)',
-            borderRadius: 'var(--radius-xl)',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--r-lg)',
             marginTop: '16px',
             justifyContent: 'center',
           }}

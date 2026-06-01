@@ -43,13 +43,13 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
   return (
     <Box
       sx={{
-        border: '1px solid var(--accent-300)',
-        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
-        backgroundColor: 'var(--white)',
+        backgroundColor: 'var(--card)',
       }}
     >
       <Box
@@ -147,7 +147,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
           />
         </Box>
 
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
 
         <Typography className="h4">{t('tr_dateAndTime')}</Typography>
 
@@ -217,7 +217,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             </>
           )}
         </Box>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
       </Box>
 
       <Box

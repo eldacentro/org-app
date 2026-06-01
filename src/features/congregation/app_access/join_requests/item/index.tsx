@@ -25,11 +25,11 @@ const JoinRequest = (props: JoinRequestProps) => {
     <Stack
       justifyContent="space-between"
       sx={{
-        backgroundColor: type === 'page' ? 'var(--white)' : 'var(--accent-150)',
+        backgroundColor: type === 'page' ? 'var(--card)' : 'var(--accent-150)',
         border:
           type === 'page'
-            ? '1px dashed var(--accent-300)'
-            : '1px solid var(--accent-300)',
+            ? '1px dashed var(--line)'
+            : '1px solid var(--line)',
         padding: '8px 15px',
         borderRadius: 'var(--radius-l)',
         flexDirection: { mobile: 'column', tablet: 'row' },

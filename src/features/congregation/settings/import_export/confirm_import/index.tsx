@@ -48,7 +48,7 @@ const ConfirmImport = (props: ConfirmImportProps) => {
         padding="16px"
         borderRadius="var(--radius-m)"
         bgcolor="var(--accent-150)"
-        divider={<Divider color="var(--accent-200)" />}
+        divider={<Divider color="var(--line)" />}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <IconImportJson color="var(--accent-dark)" />

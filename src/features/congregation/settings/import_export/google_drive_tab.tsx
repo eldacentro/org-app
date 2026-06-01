@@ -121,7 +121,7 @@ const GoogleDriveTab = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           p: 3,
-          border: '1px solid var(--accent-200)',
+          border: '1px solid var(--line)',
           borderRadius: 'var(--radius-m)',
           bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.03)' : 'var(--accent-100)') : 'var(--accent-50)',
         }}
@@ -203,7 +203,7 @@ const GoogleDriveTab = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               p: 2,
-              border: '1px solid var(--accent-200)',
+              border: '1px solid var(--line)',
               borderRadius: 'var(--radius-m)',
               bgcolor: 'var(--accent-50)',
             }}
@@ -234,7 +234,7 @@ const GoogleDriveTab = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               p: 2,
-              border: '1px solid var(--accent-200)',
+              border: '1px solid var(--line)',
               borderRadius: 'var(--radius-m)',
               bgcolor: 'var(--accent-50)',
             }}
@@ -260,7 +260,7 @@ const GoogleDriveTab = () => {
             p: 3,
             bgcolor: 'var(--accent-50)',
             borderRadius: 'var(--radius-m)',
-            border: '1px solid var(--accent-200)',
+            border: '1px solid var(--line)',
           }}
         >
           <Typography className="h4" color="var(--accent-dark)" sx={{ mb: 1 }}>

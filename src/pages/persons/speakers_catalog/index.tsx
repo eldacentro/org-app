@@ -34,7 +34,7 @@ import useSpeakersImportExport from '@features/persons/speakers_catalog/import_e
 const SpeakersCatalog = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { tablet688Up } = useBreakpoints();
 
   const { isPublicTalkCoordinator } = useCurrentUser();
 
@@ -479,7 +479,7 @@ const SpeakersCatalog = () => {
                   sx={{
                     marginTop: '8px',
                     '& li': {
-                      borderBottom: '1px solid var(--accent-200)',
+                      borderBottom: '1px solid var(--line)',
                     },
                     '& li:last-child': {
                       borderBottom: 'none',
@@ -490,8 +490,6 @@ const SpeakersCatalog = () => {
                       className: 'small-card-shadow',
                       style: {
                         borderRadius: 'var(--radius-l)',
-                        border: '1px solid var(--accent-200)',
-                        backgroundColor: 'var(--white)',
                       },
                     },
                   }}
@@ -546,9 +544,13 @@ const SpeakersCatalog = () => {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          flexDirection: desktopUp ? 'row' : 'column',
+          flexDirection: 'column',
           gap: '16px',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--r-lg)',
+          padding: '20px',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          boxShadow: 'var(--shadow-sm)',
         }}
       >
         <MyCongregation />

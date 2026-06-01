@@ -96,10 +96,10 @@ const MidweekEditor = () => {
   return (
     <Box
       sx={{
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         padding: '16px',
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         flexGrow: 1,
       }}
     >
@@ -211,7 +211,7 @@ const MidweekEditor = () => {
             </DoubleFieldContainer>
           )}
 
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
 
           {!hasSource && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -289,7 +289,7 @@ const MidweekEditor = () => {
 
                   {MIDWEEK_FULL.includes(weekType) && (
                     <>
-                      <Divider color="var(--accent-200)" />
+                      <Divider color="var(--line)" />
                       <DoubleFieldContainer
                         sx={{
                           flexDirection: laptopUp ? 'row' : 'column',
@@ -351,7 +351,7 @@ const MidweekEditor = () => {
                             type="tgw_talk"
                           />
 
-                          <Divider color="var(--accent-200)" />
+                          <Divider color="var(--line)" />
 
                           {/* tgw_gems */}
                           <BrotherAssignment
@@ -362,7 +362,7 @@ const MidweekEditor = () => {
                           />
 
                           {weekType !== Week.TREASURES_PART && (
-                            <Divider color="var(--accent-200)" />
+                            <Divider color="var(--line)" />
                           )}
                         </>
                       )}
@@ -483,7 +483,7 @@ const MidweekEditor = () => {
                               />
                             </DoubleFieldContainer>
 
-                            <Divider color="var(--accent-200)" />
+                            <Divider color="var(--line)" />
                           </>
                         )}
 
@@ -494,7 +494,7 @@ const MidweekEditor = () => {
 
                         {showCBSForGroup && (
                           <>
-                            <Divider color="var(--accent-200)" />
+                            <Divider color="var(--line)" />
 
                             {/* lc_cbs */}
                             {weekType !== Week.CO_VISIT && (
@@ -570,7 +570,7 @@ const MidweekEditor = () => {
                             )}
 
                             {MIDWEEK_FULL.includes(weekType) && (
-                              <Divider color="var(--accent-200)" />
+                              <Divider color="var(--line)" />
                             )}
                           </>
                         )}

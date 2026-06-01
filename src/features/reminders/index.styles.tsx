@@ -2,7 +2,7 @@ import { Box, List, styled } from '@mui/material';
 
 export const StyledRemindersCard = styled(Box)({
   padding: '16px',
-  borderRadius: 'var(--radius-xl)',
+  borderRadius: 'var(--r-lg)',
   background: 'var(--orange-main)',
   gap: '8px',
   color: 'var(--always-white)',

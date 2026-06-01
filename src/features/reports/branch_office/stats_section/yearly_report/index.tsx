@@ -60,7 +60,7 @@ const YearlyReport = (props: YearlyReportProps) => {
                 {section.section}
               </Typography>
 
-              <Stack divider={<Divider color="var(--accent-200)" />}>
+              <Stack divider={<Divider color="var(--line)" />}>
                 {section.reports.map((report) => (
                   <StatsRow
                     key={report.label}

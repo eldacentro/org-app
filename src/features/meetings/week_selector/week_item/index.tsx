@@ -16,7 +16,7 @@ const WeekItem = ({ week }: WeekItemType) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderTop: '1px solid var(--accent-200)',
+        borderTop: '1px solid var(--line)',
         backgroundColor: isSelected ? 'var(--accent-150)' : 'unset',
         '.MuiTypography-root': {
           color: isSelected ? 'var(--accent-dark)' : 'var(--black)',

@@ -29,7 +29,7 @@ const YearContainer = ({ data, onChange }: YearContainerProps) => {
       </Box>
 
       <Stack
-        divider={<Divider color="var(--accent-200)" />}
+        divider={<Divider color="var(--line)" />}
         spacing="4px"
         width="100%"
         padding="0px 4px 0px 16px"

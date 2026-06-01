@@ -71,7 +71,7 @@ const PublicTalkSelector = ({
                 },
               },
               '&[aria-selected="true"]': {
-                backgroundColor: 'var(--accent-200) !important',
+                backgroundColor: 'var(--line) !important',
                 '& p:nth-of-type(1)': {
                   color:
                     showSpeakerCount && option.speakers === 0

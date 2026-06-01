@@ -13,7 +13,7 @@ const BibleStudiesStats = ({ year }: BibleStudiesStatsProps) => {
   return (
     <Stack
       spacing="8px"
-      divider={<Divider dashed color="var(--accent-200)" />}
+      divider={<Divider dashed color="var(--line)" />}
       padding="8px 0"
     >
       <LabelRow

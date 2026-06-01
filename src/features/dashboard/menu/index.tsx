@@ -35,6 +35,9 @@ const DashboardMenu = (props: DashboardMenuProps) => {
           '& p': {
             color: hoverTextColor,
           },
+          '& .menu-icon-box': {
+            background: isGroup ? 'var(--red-200)' : 'var(--line)',
+          },
           '& svg, & svg g, & svg g path': {
             fill: hoverTextColor,
           },
@@ -44,6 +47,9 @@ const DashboardMenu = (props: DashboardMenuProps) => {
         },
         '&:active': {
           background: activeBgColor,
+          '& .menu-icon-box': {
+            background: isGroup ? 'var(--red-300)' : 'var(--line)',
+          },
           '& .menu-secondary': {
             background: activeMenuSecondaryBg,
           },
@@ -58,7 +64,27 @@ const DashboardMenu = (props: DashboardMenuProps) => {
           gap: '16px',
         }}
       >
-        <ListItemIcon sx={{ minWidth: 0 }}>{props.icon}</ListItemIcon>
+        <ListItemIcon
+          className="menu-icon-box"
+          sx={{
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '44px',
+            height: '44px',
+            borderRadius: 'var(--radius-m)',
+            background: isGroup ? 'var(--red-100)' : 'var(--accent-100)',
+            marginRight: '12px',
+            transition: 'background 0.2s ease',
+            '& svg, & svg g, & svg g path': {
+              fill: isGroup ? 'var(--red-main)' : 'var(--accent-main)',
+              transition: 'fill 0.2s ease',
+            },
+          }}
+        >
+          {props.icon}
+        </ListItemIcon>
         <ListItemText
           sx={{ marginTop: 0, marginBottom: 0 }}
           disableTypography

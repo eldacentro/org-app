@@ -7,6 +7,6 @@ export const GroupContainer: FC<BoxProps> = styled(Box)({
   gap: '8px',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: 'var(--white)',
-  borderRadius: 'var(--radius-xl)',
+  backgroundColor: 'var(--card)',
+  borderRadius: 'var(--r-lg)',
 });

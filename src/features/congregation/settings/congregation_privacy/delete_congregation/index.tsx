@@ -60,7 +60,7 @@ const DeleteCongregation = () => {
               variant="main"
               color="red"
               disabled={masterKey.length < 16}
-              endIcon={isProcessing && <IconLoading color="var(--white)" />}
+              endIcon={isProcessing && <IconLoading color="var(--card)" />}
               onClick={handleDelete}
             >
               {t('tr_delete')}

@@ -62,7 +62,7 @@ const SpeakersCatalog = (props: SpeakersCatalogType) => {
       <TableContainer>
         <Table stickyHeader size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: 'var(--white)' }}>
+            <TableRow sx={{ backgroundColor: 'var(--card)' }}>
               <TableCell>
                 <Typography
                   className={'body-small-regular'}

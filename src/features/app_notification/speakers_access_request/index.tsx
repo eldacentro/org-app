@@ -21,7 +21,7 @@ const SpeakerAccessRequest = ({ request }: SpeakerAccessRequestType) => {
       alignItems={tabletDown ? 'flex-start' : 'center'}
       sx={{
         backgroundColor: 'var(--accent-150)',
-        border: '1px solid var(--accent-300)',
+        border: '1px solid var(--line)',
         padding: '8px',
         borderRadius: 'var(--radius-l)',
         flexDirection: { mobile: 'column', tablet: 'row' },

@@ -16,7 +16,7 @@ const MemberItem = (props: MemberItemProps) => {
         gap: '8px',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid var(--accent-200)',
+        borderBottom: '1px solid var(--line)',
       }}
     >
       <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

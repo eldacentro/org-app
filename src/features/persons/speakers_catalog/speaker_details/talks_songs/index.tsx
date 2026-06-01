@@ -34,7 +34,7 @@ const SpeakerTalksSongs = ({ speaker, onClose }: SpeakerTalksSongsType) => {
           flexDirection: 'column',
           gap: '16px',
           '& > .MuiBox-root': {
-            borderBottom: '1px solid var(--accent-200)',
+            borderBottom: '1px solid var(--line)',
             paddingBottom: '16px',
           },
           '& > .MuiBox-root:last-child': {

@@ -26,7 +26,10 @@ const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
   if (!showMeetingCard) return null;
 
   return (
-    <DashboardCard header={t('tr_meetings')}>
+    <DashboardCard 
+      header={t('tr_meetings')}
+      icon={<IconCalendarWeek />}
+    >
       <ListItem disablePadding>
         <DashboardMenu
           icon={<IconAssignment color="var(--black)" />}

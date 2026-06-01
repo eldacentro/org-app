@@ -15,7 +15,7 @@ const SelectorStats = () => {
 
   return (
     <Card>
-      <Stack spacing="24px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="24px" divider={<Divider color="var(--line)" />}>
         <Stack spacing="24px">
           <ServiceYearMonthSelector
             year={year}
@@ -27,7 +27,7 @@ const SelectorStats = () => {
           {month_locked && (
             <Box
               sx={{
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--r-lg)',
                 padding: '16px',
                 backgroundColor: 'var(--orange-secondary)',
                 display: 'flex',

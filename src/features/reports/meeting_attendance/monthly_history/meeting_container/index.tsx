@@ -19,7 +19,7 @@ const MeetingContainer = ({ meeting, month }: MeetingContainerProps) => {
           : t('tr_weekendMeeting')}
       </Typography>
 
-      <Stack divider={<Divider color="var(--accent-200)" />}>
+      <Stack divider={<Divider color="var(--line)" />}>
         {labels.map((record) => (
           <DetailsRow
             key={record}

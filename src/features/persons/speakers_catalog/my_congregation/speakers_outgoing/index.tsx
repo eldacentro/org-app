@@ -30,7 +30,7 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
             display: 'flex',
             flexDirection: 'column',
             '& > .MuiBox-root': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
               padding: '4px 0',
             },
             '& > .MuiBox-root:last-child': {
@@ -51,7 +51,7 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
             flexDirection: 'column',
             gap: '24px',
             '& > .MuiBox-root': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
               paddingBottom: '10px',
             },
             '& > .MuiBox-root:last-child': {

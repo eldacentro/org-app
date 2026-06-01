@@ -69,50 +69,56 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
         <JWAutoImport />
 
-        <Toolbar sx={{ padding: 0 }}>
-          {/* temporary workaround while page components are being built */}
-          <IconClose sx={{ opacity: 0 }} />
-        </Toolbar>
+        <Box sx={{ position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
+          <Box className="glow" />
 
-        <Container
-          maxWidth={false}
-          sx={{
-            maxWidth: '1440px',
-            width: '100%',
-            paddingLeft: { mobile: '16px', tablet: '24px', desktop: '32px' },
-            paddingRight: { mobile: '16px', tablet: '24px', desktop: '32px' },
-            marginTop: '24px',
-          }}
-        >
-          {!isSupported && <UnsupportedBrowser />}
+          <Toolbar sx={{ padding: 0, backgroundColor: 'transparent !important', backgroundImage: 'none !important', boxShadow: 'none !important', minHeight: '62px' }}>
+            {/* temporary workaround while page components are being built */}
+            <IconClose sx={{ opacity: 0 }} />
+          </Toolbar>
 
-          {isSupported && (
-            <>
-              {isOpenContact && <Contact />}
-              {isOpenAbout && <About updatePwa={updatePwa} />}
-              {isOpenSupport && <Support />}
+          <Container
+            maxWidth={false}
+            sx={{
+              maxWidth: '1440px',
+              width: '100%',
+              paddingLeft: { mobile: '16px', tablet: '24px', desktop: '32px' },
+              paddingRight: { mobile: '16px', tablet: '24px', desktop: '32px' },
+              marginTop: '0px',
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+            {!isSupported && <UnsupportedBrowser />}
 
-              <Suspense
-                fallback={
-                  isDashboard ? (
-                    <DashboardSkeletonLoader />
-                  ) : (
-                    <WaitingLoader type="lottie" />
-                  )
-                }
-              >
-                {isTest && <DemoNotice />}
-                {!isTest && initialSetupOpen && <InitialSetup />}
-                {isPublisher && <AppReminders />}
+            {isSupported && (
+              <>
+                {isOpenContact && <Contact />}
+                {isOpenAbout && <About updatePwa={updatePwa} />}
+                {isOpenSupport && <Support />}
 
-                <Box sx={{ marginBottom: '32px' }}>
-                  <MyAssignments />
-                  <Outlet />
-                </Box>
-              </Suspense>
-            </>
-          )}
-        </Container>
+                <Suspense
+                  fallback={
+                    isDashboard ? (
+                      <DashboardSkeletonLoader />
+                    ) : (
+                      <WaitingLoader type="lottie" />
+                    )
+                  }
+                >
+                  {isTest && <DemoNotice />}
+                  {!isTest && initialSetupOpen && <InitialSetup />}
+                  {isPublisher && <AppReminders />}
+
+                  <Box sx={{ marginBottom: '32px' }}>
+                    <MyAssignments />
+                    <Outlet />
+                  </Box>
+                </Suspense>
+              </>
+            )}
+          </Container>
+        </Box>
 
         <ScrollRestoration />
       </AppModalWrapper>

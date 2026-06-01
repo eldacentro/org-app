@@ -116,7 +116,7 @@ const useButtonActions = () => {
           header: t('tr_personAdded'),
           message: t('tr_personAddedDesc'),
           severity: 'success',
-          icon: <IconCheckCircle color="var(--white)" />,
+          icon: <IconCheckCircle color="var(--card)" />,
         });
 
         navigate(-1);
@@ -128,7 +128,7 @@ const useButtonActions = () => {
           header: t('tr_personSaved'),
           message: t('tr_personSavedDesc'),
           severity: 'success',
-          icon: <IconCheckCircle color="var(--white)" />,
+          icon: <IconCheckCircle color="var(--card)" />,
         });
       }
     } catch (error) {
@@ -136,7 +136,7 @@ const useButtonActions = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };
@@ -164,7 +164,7 @@ const useButtonActions = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };
@@ -187,7 +187,7 @@ const useButtonActions = () => {
         header: getMessageByCode('error_app_generic-title'),
         message: error.message,
         severity: 'error',
-        icon: <IconError color="var(--white)" />,
+        icon: <IconError color="var(--card)" />,
       });
     }
   };

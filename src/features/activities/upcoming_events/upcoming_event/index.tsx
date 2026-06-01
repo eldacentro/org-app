@@ -52,9 +52,9 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
   return (
     <Box
       sx={{
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
-        borderRadius: 'var(--radius-xl)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
         padding: tabletUp ? '24px' : '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -136,7 +136,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
         <AddToCalendar event={props.data} />
       </Box>
 
-      <Divider color="var(--accent-200)" />
+      <Divider color="var(--line)" />
 
       {props.data.event_data.duration === UpcomingEventDuration.SingleDay && (
         <UpcomingEventDate
@@ -175,7 +175,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             />
 
             {eventDateIndex + 1 !== eventFormatted.dates.length && (
-              <Divider color="var(--accent-200)" />
+              <Divider color="var(--line)" />
             )}
           </Fragment>
         ))}

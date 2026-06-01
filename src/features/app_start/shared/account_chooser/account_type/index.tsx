@@ -32,7 +32,7 @@ const AccountType = ({
           outline: 'var(--accent-main) auto 1px',
         },
         borderRadius: 'var(--radius-l)',
-        border: '1px solid var(--accent-300)',
+        border: '1px solid var(--line)',
         textAlign: 'left',
         '&:hover': {
           border: '1px solid var(--accent-main)',
@@ -41,7 +41,7 @@ const AccountType = ({
             color: 'var(--accent-main)',
           },
           '@media (hover: none)': {
-            border: '1px solid var(--accent-300)',
+            border: '1px solid var(--line)',
             background: 'unset',
             '& p': {
               color: 'var(--accent-400)',

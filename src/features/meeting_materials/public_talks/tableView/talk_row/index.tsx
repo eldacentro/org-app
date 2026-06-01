@@ -28,7 +28,7 @@ const TalkRow = ({ talk }: TalkRowType) => {
       <TableCell>
         <Box
           sx={{
-            borderRight: '1px solid var(--accent-200)',
+            borderRight: '1px solid var(--line)',
             minHeight: '48px',
             display: 'flex',
             alignItems: 'center',

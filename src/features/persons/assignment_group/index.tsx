@@ -90,7 +90,7 @@ const AssignmentGroup = ({
               sx={
                 assignment.borderTop
                   ? {
-                      borderTop: '1px solid var(--accent-200)',
+                      borderTop: '1px solid var(--line)',
                       marginTop: '4px',
                       paddingTop: '8px',
                     }
@@ -112,7 +112,7 @@ const AssignmentGroup = ({
                     marginTop: '-4px',
                     marginBottom: '8px',
                     paddingLeft: '8px',
-                    borderLeft: '2px solid var(--accent-300)',
+                    borderLeft: '2px solid var(--line)',
                   }}
                 />
               )}

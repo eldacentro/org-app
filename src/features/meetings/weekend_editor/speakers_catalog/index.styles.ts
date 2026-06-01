@@ -18,17 +18,17 @@ export const Table = styled(MUITable)({
   },
   '& .MuiTableCell-root:first-of-type': {
     width: '30px',
-    backgroundColor: 'var(--white)',
+    backgroundColor: 'var(--card)',
     alignContent: 'stretch',
   },
   '& .MuiTableCell-root:nth-of-type(2)': {
     minWidth: '120px',
-    backgroundColor: 'var(--white)',
+    backgroundColor: 'var(--card)',
     alignContent: 'stretch',
   },
   '& .MuiTableCell-root:nth-of-type(3)': {
     minWidth: '160px',
-    backgroundColor: 'var(--white)',
+    backgroundColor: 'var(--card)',
     alignContent: 'stretch',
   },
 }) as unknown as typeof MUITable;
@@ -46,17 +46,17 @@ export const TableHead = styled(MUITableHead)({
   },
   '& .MuiTableCell-root:first-of-type': {
     width: '30px',
-    backgroundColor: 'var(--white)',
+    backgroundColor: 'var(--card)',
   },
   '& .MuiTableCell-root:nth-of-type(2)': {
     minWidth: '120px',
-    backgroundColor: 'var(--white)',
+    backgroundColor: 'var(--card)',
   },
 }) as unknown as typeof MUITableHead;
 
 export const TableBody = styled(MUITableBody)({
   '& .MuiTableRow-root > .MuiTableCell-root': {
-    borderBottom: '1px solid var(--accent-200)',
+    borderBottom: '1px solid var(--line)',
   },
   '& .MuiTableRow-root:last-child > .MuiTableCell-root': {
     borderBottom: 'none',

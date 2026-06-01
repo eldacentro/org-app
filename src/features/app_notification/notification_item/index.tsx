@@ -128,7 +128,7 @@ const NotificationItem = ({
         </Stack>
       </Stack>
 
-      <Divider sx={{ backgroundColor: 'var(--accent-200)' }} />
+      <Divider sx={{ backgroundColor: 'var(--line)' }} />
     </Box>
   );
 };

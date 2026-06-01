@@ -16,8 +16,8 @@ const WeekHoverBox = (props: WeekHoverBoxType) => {
           sx: {
             padding: '16px',
             borderRadius: 'var(--radius-m)',
-            backgroundColor: 'var(--white)',
-            border: '1px solid var(--accent-200)',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',

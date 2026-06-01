@@ -24,7 +24,7 @@ const AssignmentsHistory = ({
           size="small"
           sx={{
             '& .MuiTableHead-root .MuiTableCell-root': {
-              backgroundColor: 'var(--white)',
+              backgroundColor: 'var(--card)',
             },
             '& .MuiTableCell-root': {
               padding: '8px',

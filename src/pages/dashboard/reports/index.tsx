@@ -25,7 +25,10 @@ const ReportsCard = () => {
   } = useCurrentUser();
 
   return (
-    <DashboardCard header={t('tr_reports')}>
+    <DashboardCard 
+      header={t('tr_reports')}
+      icon={<IconPublishersReports />}
+    >
       {showMeetingCard && isAttendanceEditor && (
         <ListItem disablePadding>
           <DashboardMenu

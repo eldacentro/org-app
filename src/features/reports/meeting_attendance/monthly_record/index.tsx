@@ -15,7 +15,7 @@ const MonthlyRecord = () => {
 
   return (
     <CardContainer sx={{ flex: 1 }}>
-      <Stack spacing="24px" divider={<Divider color="var(--accent-200)" />}>
+      <Stack spacing="24px" divider={<Divider color="var(--line)" />}>
         <Stack spacing="24px">
           <Stack spacing="8px">
             <Typography className="h2">{t('tr_recordAttendance')}</Typography>

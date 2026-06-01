@@ -75,9 +75,9 @@ const MonthlyView = () => {
           gap: '12px',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid var(--accent-300)',
-          borderRadius: 'var(--radius-xl)',
-          backgroundColor: 'var(--white)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-lg)',
+          backgroundColor: 'var(--card)',
         }}
       >
         {/* --------------------------- MonhlyView Header -------------------------- */}

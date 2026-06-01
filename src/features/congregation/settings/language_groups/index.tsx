@@ -37,9 +37,9 @@ const LanguageGroups = () => {
 
       {enabled && languageGroups.length > 0 && (
         <>
-          {fullAccess && <Divider color="var(--accent-200)" />}
+          {fullAccess && <Divider color="var(--line)" />}
 
-          <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+          <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
             {languageGroups.map((group) => (
               <LanguageGroup key={group.group_id} group={group} />
             ))}

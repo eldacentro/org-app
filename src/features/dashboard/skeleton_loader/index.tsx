@@ -21,7 +21,7 @@ const DashboardSkeletonLoader = () => {
         <Skeleton
           variant="rectangular"
           sx={{
-            background: 'var(--accent-200)',
+            background: 'var(--line)',
             borderRadius: '30px',
             width: '160px',
             height: '20px',
@@ -30,7 +30,7 @@ const DashboardSkeletonLoader = () => {
         <Skeleton
           variant="rectangular"
           sx={{
-            background: 'var(--accent-200)',
+            background: 'var(--line)',
             borderRadius: '22.5px',
             height: '16px',
           }}

@@ -6,10 +6,11 @@ import Typography from '@components/typography';
 import Divider from '@components/divider';
 
 export const CardSection = styled(Box)({
-  backgroundColor: 'var(--white)',
-  padding: '15px',
-  border: '1px solid var(--accent-300)',
-  borderRadius: 'var(--radius-l)',
+  backgroundColor: 'var(--card)',
+  padding: '20px',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--r-lg)',
+  boxShadow: 'var(--shadow-sm)',
   display: 'flex',
   flexDirection: 'column',
   gap: '24px',
@@ -84,7 +85,7 @@ export const CardSectionContent: FC<StackProps & PropsWithChildren> = ({
   return (
     <Stack
       spacing="16px"
-      divider={<Divider color="var(--accent-200)" />}
+      divider={<Divider color="var(--line)" />}
       {...props}
     >
       {children}

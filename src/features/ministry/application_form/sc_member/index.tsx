@@ -32,7 +32,7 @@ const CommitteeMember = (props: CommitteeMemberProps) => {
           justifyContent: 'space-between',
           borderRadius: 'var(--radius-l)',
           padding: '8px 8px 8px 16px',
-          border: '1px solid var(--accent-300)',
+          border: '1px solid var(--line)',
           gap: '8px',
           flexDirection: { '@': isEdit && 'column', '@500': 'row' },
           '&:hover': {

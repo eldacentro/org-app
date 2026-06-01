@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   AppBar,
   Box,
@@ -18,6 +19,7 @@ import {
   IconLogout,
   IconArrowBack,
   IconSettings,
+  IconHome,
 } from '@icons/index';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
 
@@ -83,24 +85,40 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
-          backgroundColor: 'var(--accent-100)',
-          borderBottom: '1px solid var(--accent-200)',
+          backgroundColor: scrolled ? 'rgba(var(--accent-100-base), 0.65) !important' : 'transparent !important',
+          backgroundImage: 'none !important',
+          boxShadow: 'none !important',
+          backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
+          WebkitBackdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
+          borderBottom: scrolled ? '1px solid var(--line) !important' : '1px solid transparent !important',
+          transition: 'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
           minHeight: '62px',
           position: 'fixed',
           top: 0,
           left: 0,
           width: '100%',
           overflow: 'hidden',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          boxShadow: 'none',
+          zIndex: (theme) => theme.zIndex.appBar,
         }}
       >
-        <Toolbar sx={{ padding: 0, minHeight: '62px', alignItems: 'center' }}>
+        <Toolbar sx={{ padding: 0, minHeight: '62px', alignItems: 'center', backgroundColor: 'transparent !important', backgroundImage: 'none !important' }}>
           <Container
             maxWidth={false}
             sx={{
@@ -116,69 +134,59 @@ const NavBar = ({ isSupported }: NavBarType) => {
           >
             {!navBarOptions.title && !navBarOptions.buttons ? (
               <>
-                <Box
-                  sx={{
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: { mobile: '8px', tablet: '16px' },
-                  }}
-                  onClick={handleGoDashboard}
-                >
-                  <IconLogo width={40} height={40} />
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 0, width: '100%' }}>
+                  <div className="logo-container" onClick={handleGoDashboard} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    <IconLogo width={40} height={40} color="var(--brand)" />
+                  </div>
+                  <div style={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '12px' }} onClick={handleGoDashboard}>
+                    <div className="cong-name" style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 900, fontSize: '24px', letterSpacing: '-0.5px', color: 'var(--ink)' }}>
+                      {congName ? congName.replace(/-/g, ' ') : 'Elda Centro'}
+                    </div>
+                  </div>
+                  
                   <Box
                     sx={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: '2px',
+                      alignItems: 'center',
+                      gap: { mobile: '4px', tablet: '8px' },
                     }}
                   >
-                    <Typography className="h3" color="var(--black)">
-                      Elda Centro
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: { mobile: '4px', tablet: '8px' },
-                  }}
-                >
-                  {isSupported && <AppNotification />}
+                    {isSupported && <AppNotification />}
 
-                  <ThemeSwitcher />
+                    <ThemeSwitcher />
 
-                  {tabletUp && (isAppLoad || isTest) && (
-                    <LanguageSwitcher
-                      menuStyle={{
-                        ...baseMenuStyle,
-                        '&:hover': {
-                          backgroundColor: 'var(--accent-200)',
-                          borderRadius: 'var(--radius-l)',
-                        },
-                        '&:focus-visible': {
-                          outline: 'var(--accent-main) auto 1px',
-                        },
-                      }}
-                    />
-                  )}
-
-                  {isSupported && (
-                    <>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginLeft: !tabletUp ? '4px' : '0px',
-                        }}
-                      >
-                        <AccountHeaderIcon
-                          handleOpenMore={handleOpenMoreMenu}
-                          isMoreOpen={openMore}
+                    {tabletUp && (isAppLoad || isTest) && (
+                      <Box sx={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--line)', padding: '2px 4px', boxShadow: 'var(--shadow-sm)' }}>
+                        <LanguageSwitcher
+                          menuStyle={{
+                            ...baseMenuStyle,
+                            '&:hover': {
+                              backgroundColor: 'var(--accent-200)',
+                              borderRadius: 'var(--radius-l)',
+                            },
+                            '&:focus-visible': {
+                              outline: 'var(--accent-main) auto 1px',
+                            },
+                          }}
                         />
                       </Box>
+                    )}
+
+                    {isSupported && (
+                      <>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginLeft: !tabletUp ? '4px' : '0px',
+                          }}
+                        >
+                          <AccountHeaderIcon
+                            handleOpenMore={handleOpenMoreMenu}
+                            isMoreOpen={openMore}
+                          />
+                        </Box>
 
                       <Menu
                         disableAutoFocus={true}
@@ -361,9 +369,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     </>
                   )}
                 </Box>
-              </>
-            ) : (
-              <>
+              </div>
+            </>
+          ) : (
+            <>
                 <Box
                   sx={{
                     display: 'flex',
@@ -374,27 +383,39 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     justifyContent: !tablet688Up ? 'space-between' : 'start',
                   }}
                 >
-                  <IconButton
-                    aria-label={t('tr_back')}
-                    onClick={handleBack}
-                    sx={{
-                      marginLeft: '-10px',
-                      '&:hover': {
-                        backgroundColor: 'var(--accent-200)',
-                        '& svg': {
-                          transform:
-                            theme.direction === 'rtl'
-                              ? 'translateX(4px) scaleX(-1)'
-                              : 'translateX(-4px)',
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton
+                      aria-label={t('tr_back')}
+                      onClick={handleBack}
+                      sx={{
+                        marginLeft: '-10px',
+                        '&:hover': {
+                          backgroundColor: 'var(--accent-200)',
+                          '& svg': {
+                            transform:
+                              theme.direction === 'rtl'
+                                ? 'translateX(4px) scaleX(-1)'
+                                : 'translateX(-4px)',
+                          },
                         },
-                      },
-                      '& svg': {
-                        transition: 'transform 0.2s ease-in-out',
-                      },
-                    }}
-                  >
-                    <IconArrowBack color="var(--black)" />
-                  </IconButton>
+                        '& svg': {
+                          transition: 'transform 0.2s ease-in-out',
+                        },
+                      }}
+                    >
+                      <IconArrowBack color="var(--black)" />
+                    </IconButton>
+                    <IconButton
+                      aria-label={t('tr_dashboard')}
+                      onClick={handleGoDashboard}
+                      sx={{
+                        marginLeft: '-8px',
+                        '&:hover': { backgroundColor: 'var(--accent-200)' },
+                      }}
+                    >
+                      <IconHome color="var(--black)" />
+                    </IconButton>
+                  </Box>
                   <Box
                     sx={{
                       display: 'flex',

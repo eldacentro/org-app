@@ -14,15 +14,28 @@ const MeetingSection = ({
   alwaysExpanded,
 }: MeetingSectionType & PropsWithChildren) => {
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--radius-l)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+        overflow: 'hidden',
+        transition: 'box-shadow 0.3s ease',
+        '&:hover': {
+          boxShadow: onToggle ? '0 4px 16px rgba(0,0,0,0.06)' : '0 2px 10px rgba(0,0,0,0.03)',
+        },
+      }}
+    >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           backgroundColor: color,
-          borderRadius: 'var(--radius-s)',
-          padding: '4px 8px',
-          cursor: 'pointer',
+          padding: '10px 16px',
+          cursor: onToggle ? 'pointer' : 'default',
         }}
         onClick={onToggle}
       >
@@ -30,16 +43,18 @@ const MeetingSection = ({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
+            gap: '12px',
             flex: 1,
           }}
         >
           {icon}
           <Typography
             className="h2-caps"
-            color="var(--always-white)"
-            align="center"
+            sx={{
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+              color: 'var(--always-white)',
+            }}
           >
             {part}
           </Typography>
@@ -55,11 +70,11 @@ const MeetingSection = ({
         )}
       </Box>
       <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
           {children}
         </Box>
       </Collapse>
-    </>
+    </Box>
   );
 };
 

@@ -38,14 +38,14 @@ const TalksTableView = (props: TalksTableViewType) => {
             position: 'sticky',
             top: 0,
             left: 0,
-            backgroundColor: 'var(--white)',
+            backgroundColor: 'var(--card)',
           },
           '& .MuiTableCell-root:nth-of-type(2)': {
             position: 'sticky',
             top: 0,
             left: 41,
             minWidth: '120px',
-            backgroundColor: 'var(--white)',
+            backgroundColor: 'var(--card)',
           },
         }}
       >
@@ -53,11 +53,11 @@ const TalksTableView = (props: TalksTableViewType) => {
           sx={{
             zIndex: 60,
             '& .MuiTableRow-root > .MuiTableCell-root': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
             },
           }}
         >
-          <TableRow sx={{ backgroundColor: 'var(--white)' }}>
+          <TableRow sx={{ backgroundColor: 'var(--card)' }}>
             <TableCell>
               <Typography
                 className={'body-small-regular'}
@@ -81,7 +81,7 @@ const TalksTableView = (props: TalksTableViewType) => {
                 sx={{
                   minWidth: '120px',
                   padding: '8px 0 !important',
-                  backgroundColor: 'var(--white)',
+                  backgroundColor: 'var(--card)',
                 }}
               >
                 <Typography
@@ -105,7 +105,7 @@ const TalksTableView = (props: TalksTableViewType) => {
         <TableBody
           sx={{
             '& .MuiTableRow-root > .MuiTableCell-root': {
-              borderBottom: '1px solid var(--accent-200)',
+              borderBottom: '1px solid var(--line)',
             },
             '& .MuiTableRow-root:last-child > .MuiTableCell-root': {
               borderBottom: 'none',

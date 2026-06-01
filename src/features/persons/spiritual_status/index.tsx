@@ -25,12 +25,12 @@ const PersonSpiritualStatus = () => {
   return (
     <Box
       sx={{
-        backgroundColor: 'var(--white)',
-        border: '1px solid var(--accent-300)',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         display: 'flex',
         padding: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--r-lg)',
         flex: 1,
         width: '100%',
       }}
@@ -56,7 +56,7 @@ const PersonSpiritualStatus = () => {
       <Box
         sx={{
           '& > .MuiBox-root': {
-            borderTop: '1px solid var(--accent-200)',
+            borderTop: '1px solid var(--line)',
             padding: '16px 0',
           },
           '& > .MuiBox-root:first-of-type': {

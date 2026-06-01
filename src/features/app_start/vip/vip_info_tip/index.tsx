@@ -18,7 +18,7 @@ const VipInfoTip = (props: VipInfoTipProps) => {
             borderRadius: '12px',
             width: '100%',
             maxWidth: '800px',
-            border: '1px solid var(--accent-300)',
+            border: '1px solid var(--line)',
             gap: '8px',
             padding: '16px',
             backgroundColor: 'var(--accent-100)',

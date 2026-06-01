@@ -21,7 +21,7 @@ const QuickSettingsMidweekMeeting = ({
       <Stack
         spacing="16px"
         width="100%"
-        divider={<Divider color="var(--accent-200)" />}
+        divider={<Divider color="var(--line)" />}
       >
         <Stack spacing="16px">
           <DayTime />

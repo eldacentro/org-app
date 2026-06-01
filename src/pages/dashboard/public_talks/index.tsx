@@ -15,7 +15,10 @@ const PublicTalksCard = () => {
   if (!showWeekend) return null;
 
   return (
-    <DashboardCard header={t('tr_publicTalks', 'Discursos')}>
+    <DashboardCard 
+      header={t('tr_publicTalks', 'Discursos')}
+      icon={<IconPodium />}
+    >
       <ListItem disablePadding>
         <DashboardMenu
           icon={<IconPodium color="var(--black)" />}

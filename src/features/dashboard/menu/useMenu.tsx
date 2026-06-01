@@ -39,7 +39,7 @@ const useMenu = ({
       return 'rgba(var(--red-main-base), 0.4)';
     }
 
-    return 'var(--accent-200)';
+    return 'var(--line)';
   }, [isGroup]);
 
   const activeBgColor = useMemo(() => {
@@ -49,7 +49,7 @@ const useMenu = ({
       return 'rgba(var(--red-main-base), 0.4)';
     }
 
-    return 'var(--accent-200)';
+    return 'var(--line)';
   }, [activeColor, isGroup]);
 
   const activeMenuSecondaryBg = useMemo(() => {
@@ -57,7 +57,7 @@ const useMenu = ({
       return 'rgba(var(--red-main-base), 0.5)';
     }
 
-    return 'var(--accent-300)';
+    return 'var(--line)';
   }, [isGroup]);
 
   const handleClick = () => {

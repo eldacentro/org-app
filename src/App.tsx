@@ -26,6 +26,13 @@ import { triggerAutoBackup } from '@services/app/backupScheduler';
 
 // lazy loading
 const Dashboard = lazy(() => import('@pages/dashboard'));
+const MeetingsDashboard = lazy(() => import('@pages/category_dashboards/meetings'));
+const MinistryDashboard = lazy(() => import('@pages/category_dashboards/ministry'));
+const CongregationDashboard = lazy(() => import('@pages/category_dashboards/congregation'));
+const TalksDashboard = lazy(() => import('@pages/category_dashboards/talks'));
+const ReportsDashboard = lazy(() => import('@pages/category_dashboards/reports'));
+const SettingsDashboard = lazy(() => import('@pages/category_dashboards/settings'));
+
 const MyProfile = lazy(() => import('@pages/my_profile'));
 const PersonsAll = lazy(() => import('@pages/persons/all_persons'));
 const PersonDetails = lazy(() => import('@pages/persons/person_details'));
@@ -202,6 +209,13 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
             children: [
               // public routes
               { index: true, element: <Dashboard /> },
+              { path: '/dashboard/meetings', element: <MeetingsDashboard /> },
+              { path: '/dashboard/ministry', element: <MinistryDashboard /> },
+              { path: '/dashboard/congregation', element: <CongregationDashboard /> },
+              { path: '/dashboard/talks', element: <TalksDashboard /> },
+              { path: '/dashboard/reports', element: <ReportsDashboard /> },
+              { path: '/dashboard/settings', element: <SettingsDashboard /> },
+              
               { path: '/user-profile', element: <MyProfile /> },
               { path: '/weekly-schedules', element: <WeeklySchedules /> },
               {

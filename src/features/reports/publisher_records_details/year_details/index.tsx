@@ -17,7 +17,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
   return (
     <Stack spacing="16px" marginBottom="-24px">
       {months.length > 0 && (
-        <Stack spacing="8px" divider={<Divider color="var(--accent-200)" />}>
+        <Stack spacing="8px" divider={<Divider color="var(--line)" />}>
           {months.map((record) => (
             <MonthItem
               key={record.value}
@@ -50,7 +50,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
               className="body-small-semibold"
               color="var(--accent-dark)"
               sx={{
-                backgroundColor: 'var(--accent-200)',
+                backgroundColor: 'var(--line)',
                 borderRadius: 'var(--radius-s)',
                 padding: '4px 8px',
               }}
@@ -63,7 +63,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
                 className="body-small-semibold"
                 color="var(--accent-dark)"
                 sx={{
-                  backgroundColor: 'var(--accent-200)',
+                  backgroundColor: 'var(--line)',
                   borderRadius: 'var(--radius-s)',
                   padding: '4px 8px',
                 }}

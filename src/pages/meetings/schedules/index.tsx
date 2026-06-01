@@ -58,7 +58,7 @@ const WeeklySchedules = () => {
     <Box
       sx={{
         display: 'flex',
-        gap: '16px',
+        gap: '22px',
         flexDirection: 'column',
         paddingBottom: !tablet688Up ? '60px' : '0px',
       }}
@@ -67,39 +67,35 @@ const WeeklySchedules = () => {
 
       {/* Selector desplegable con efecto WOW */}
       <Box
+        className="active-press"
         onClick={handleOpenMenu}
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '14px 20px',
-          borderRadius: 'var(--radius-xl)',
-          border: '1.5px solid var(--accent-300)',
-          backgroundColor: 'var(--white)',
+          padding: '16px 20px',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--line)',
+          backgroundColor: 'var(--card)',
           cursor: 'pointer',
           userSelect: 'none',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'transform 0.14s, box-shadow 0.2s',
           '&:hover': {
-            borderColor: 'var(--accent-main)',
-            boxShadow: '0 4px 16px color-mix(in srgb, var(--accent-main) 12%, transparent)',
-            transform: 'translateY(-1px)',
-          },
-          '&:active': {
-            transform: 'translateY(0)',
+            boxShadow: 'var(--shadow-md)',
           },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {getProgramIcon(tabs[value]?.id, 'var(--accent-main)')}
-          <Typography className="h3" sx={{ fontWeight: 600, color: 'var(--black)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {getProgramIcon(tabs[value]?.id, 'var(--ink)')}
+          <Typography className="h3" sx={{ fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', fontSize: '18px' }}>
             {tabs[value]?.label}
           </Typography>
         </Box>
         <IconArrowDown
-          color="var(--grey-400)"
+          color="var(--ink-3)"
           style={{
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             transform: openMenu ? 'rotate(180deg)' : 'none',
           }}
         />
@@ -112,28 +108,29 @@ const WeeklySchedules = () => {
         sx={{
           marginTop: '6px',
           '& .MuiPaper-root': {
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--accent-200)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            backgroundColor: 'var(--white)',
+            borderRadius: 'var(--r-md)',
+            border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-md)',
+            backgroundColor: 'var(--card)',
             minWidth: '280px',
           },
           '& li': {
-            padding: '12px 16px',
-            margin: '4px 8px',
-            borderRadius: 'var(--radius-l)',
-            transition: 'all 0.2s ease',
+            padding: '14px 18px',
+            margin: '6px 8px',
+            borderRadius: 'var(--r-sm)',
+            transition: 'all 0.15s ease',
             borderBottom: 'none',
+            color: 'var(--ink-2)',
             '&:hover': {
-              backgroundColor: 'var(--accent-150)',
-              color: 'var(--accent-dark)',
+              backgroundColor: 'rgba(var(--black-base), 0.04)',
+              color: 'var(--ink)',
             },
             '&.Mui-selected': {
-              backgroundColor: 'var(--accent-200)',
-              color: 'var(--accent-dark)',
-              fontWeight: 600,
+              backgroundColor: 'var(--brand-tint)',
+              color: 'var(--brand-deep)',
+              fontWeight: 700,
               '&:hover': {
-                backgroundColor: 'var(--accent-200)',
+                backgroundColor: 'var(--brand-tint)',
               },
             },
           },

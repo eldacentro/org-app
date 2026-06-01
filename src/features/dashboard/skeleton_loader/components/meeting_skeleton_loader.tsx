@@ -36,28 +36,28 @@ const MeetingCardSkeletonLoader = () => {
             }}
           />
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={149} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={151} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />
             <SkeletonLoaderCardText variant="rectangular" width={171} />
           </SkeletonLoaderCardGroup>
         </SkeletonLoaderCardItem>
-        <Divider color="var(--accent-200)" />
+        <Divider color="var(--line)" />
         <SkeletonLoaderCardItem>
           <SkeletonLoaderCardGroup>
             <SkeletonLoaderCardCircle variant="circular" />

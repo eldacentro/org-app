@@ -63,7 +63,7 @@ const UserMainRoles = () => {
         onChange={(e) => handleToggleServiceOverseer(e.target.checked)}
       />
 
-      <Divider color="var(--accent-200)" />
+      <Divider color="var(--line)" />
     </>
   );
 };

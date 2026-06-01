@@ -40,7 +40,7 @@ const EmailSent = () => {
         }}
       >
         <Stack spacing="24px">
-          <Divider color="var(--accent-200)" />
+          <Divider color="var(--line)" />
 
           <Typography color="var(--grey-400)">
             {t('tr_loginEmailCode')}

@@ -34,9 +34,9 @@ const RequestAccess = () => {
           textAlign: 'center',
           gap: '16px',
           padding: '24px',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--r-lg)',
           background: 'var(--accent-100)',
-          border: '1px solid var(--accent-300)',
+          border: '1px solid var(--line)',
         }}
       >
         <Box

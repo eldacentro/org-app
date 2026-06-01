@@ -72,8 +72,8 @@ const DailyHistory = () => {
 
       {dailyReports.length > 0 && (
         <Stack spacing="8px">
-          <Divider color="var(--accent-200)" />
-          <Stack spacing="8px" divider={<Divider color="var(--accent-200)" />}>
+          <Divider color="var(--line)" />
+          <Stack spacing="8px" divider={<Divider color="var(--line)" />}>
             {dailyReports.map((report) => (
               <DailyRecord key={report.report_date} report={report} />
             ))}

@@ -10,7 +10,7 @@ const MinistryContainer = (props: MinistryContainerProps) => {
   const { countArray } = useMinistryContainer(props);
 
   return (
-    <Stack spacing="16px" divider={<Divider color="var(--accent-200)" />}>
+    <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
       {countArray.map((part) => (
         <MinistryPart
           key={part}
