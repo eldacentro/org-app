@@ -230,7 +230,7 @@ export const getAppLang = () => {
     }
 
     if (!browserLang) {
-      appLang = 'eng';
+      appLang = 'spa';
     }
 
     localStorage?.setItem('ui_lang', appLang);
