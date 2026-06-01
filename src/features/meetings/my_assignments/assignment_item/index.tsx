@@ -74,14 +74,14 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         {/* Day label: weekday abbreviation OR 'SEM' for dept assignments */}
         <Typography
           sx={{
-            fontSize: isDept ? '7px' : '7.5px',
-            fontWeight: 800, // ExtraBold
-            letterSpacing: '0.7px',
+            fontSize: isDept ? '7.5px' : '8px',
+            fontWeight: '800 !important', // ExtraBold — max available in Figtree
+            letterSpacing: '0.8px',
             textTransform: 'uppercase',
             color: isPreaching
               ? 'var(--preaching-color)'
               : 'var(--brand)',
-            opacity: isDept ? 0.65 : 0.72,
+            opacity: isDept ? 0.65 : 0.75,
             lineHeight: 1,
             transition: 'color 0.2s ease',
           }}
@@ -94,11 +94,11 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             color: isPreaching
               ? 'var(--preaching-color) !important'
               : 'var(--brand) !important',
-            fontWeight: 900, // Black
-            fontSize: isDept ? '15px !important' : '21px !important',
+            fontWeight: '800 !important', // Black — 800 is the real max in Figtree
+            fontSize: isDept ? '15px !important' : '22px !important',
             lineHeight: 1,
-            letterSpacing: isDept ? '-0.5px' : '0',
-            transition: 'color 0.2s ease, font-size 0.15s ease',
+            letterSpacing: '-0.5px',
+            transition: 'color 0.2s ease',
           }}
         >
           {assignmentDate}
