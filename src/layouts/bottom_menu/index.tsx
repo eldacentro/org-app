@@ -21,6 +21,7 @@ const BottomMenu = (props: BottomMenuProps) => {
       />
       <Box
         component={'nav'}
+        className="tabbar"
         aria-label={t('tr_bottomActionsMenu')}
         sx={{
           position: 'fixed',
