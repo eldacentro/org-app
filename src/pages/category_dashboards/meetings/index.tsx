@@ -9,6 +9,7 @@ import {
   IconClock,
   IconPodium,
   IconDuties,
+  IconTreasuresPart,
 } from '@icons/index';
 
 const MeetingsDashboard = () => {
@@ -66,7 +67,7 @@ const MeetingsDashboard = () => {
         {(isMidweekEditor) && (
           <div className="tile-item c-blue active-press" onClick={() => handleTileClick('/midweek-meeting')}>
             <div className="ti">
-              <IconClock color="var(--brand)" width={22} height={22} />
+              <IconTreasuresPart color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
@@ -88,7 +89,7 @@ const MeetingsDashboard = () => {
 
         {/* Departamentos */}
         {(isMidweekEditor || isDepartmentsEditor) && (
-          <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
             <div className="ti">
               <IconDuties color="var(--brand)" width={22} height={22} />
             </div>

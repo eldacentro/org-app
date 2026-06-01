@@ -60,7 +60,7 @@ const About = (props: AboutProps) => {
             gap: '16px',
           }}
         >
-          <IconLogo width={40} height={40} />
+          <IconLogo width={40} height={40} color="var(--brand)" />
           <Box>
             <Typography className="h3">Elda Centro</Typography>
             <Typography className="body-regular" color="var(--grey-350)">

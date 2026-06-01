@@ -42,7 +42,7 @@ const SettingsDashboard = () => {
 
         {/* Ajustes de congregación */}
         {(isAdmin || isElder) && (
-          <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
             <div className="ti">
               <IconSettings color="var(--brand)" width={22} height={22} />
             </div>

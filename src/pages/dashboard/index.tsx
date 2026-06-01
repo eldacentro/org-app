@@ -4,12 +4,12 @@ import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
 import {
   IconCheckCircle,
-  IconClock,
   IconInTerritory,
   IconCongregation,
   IconPodium,
   IconStats,
   IconSettings,
+  IconTreasuresPart,
 } from '@icons/index';
 import {
   useAppTranslation,
@@ -453,7 +453,7 @@ const Dashboard = () => {
         {/* 1. REUNIONES (Always visible) */}
         <div className="tile-item c-blue active-press" style={{ animationDelay: '0.26s' }} onClick={() => handleTileClick('/dashboard/meetings')}>
           <div className="ti">
-            <IconClock color="var(--brand)" width={22} height={22} />
+            <IconTreasuresPart color="var(--brand)" width={22} height={22} />
           </div>
           <div>
             <div className="tile-name">{t('tr_meetings', 'Reuniones')}</div>
@@ -500,7 +500,7 @@ const Dashboard = () => {
 
         {/* 5. INFORMES (Full width, visible for elders, secretaries, attendance/group overseers) */}
         {(isElder || isAttendanceEditor || isGroupOverseer || isSecretary) && (
-          <div className="tile-item c-slate full-width active-press" style={{ animationDelay: '0.42s' }} onClick={() => handleTileClick('/dashboard/reports')}>
+          <div className="tile-item c-blue full-width active-press" style={{ animationDelay: '0.42s' }} onClick={() => handleTileClick('/dashboard/reports')}>
             <div className="ti">
               <IconStats color="var(--brand)" width={22} height={22} />
             </div>
@@ -515,7 +515,7 @@ const Dashboard = () => {
         )}
 
         {/* 6. CONFIGURACIÓN (Full width, always visible) */}
-        <div className="tile-item c-slate full-width active-press" style={{ animationDelay: '0.46s' }} onClick={() => handleTileClick('/dashboard/settings')}>
+        <div className="tile-item c-blue full-width active-press" style={{ animationDelay: '0.46s' }} onClick={() => handleTileClick('/dashboard/settings')}>
           <div className="ti">
             <IconSettings color="var(--brand)" width={22} height={22} />
           </div>

@@ -2,9 +2,9 @@ import { ListItem } from '@mui/material';
 import {
   IconAssignment,
   IconCalendarWeek,
-  IconDiamond,
   IconTalk,
   IconDuties,
+  IconTreasuresPart,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { MeetingsCardProps } from './index.types';
@@ -49,7 +49,7 @@ const MeetingsCard = ({ assignmentCount }: MeetingsCardProps) => {
       {showMidweek && isMidweekEditor && (
         <ListItem disablePadding>
           <DashboardMenu
-            icon={<IconDiamond color="var(--black)" />}
+            icon={<IconTreasuresPart color="var(--black)" />}
             primaryText={t('tr_midweekMeeting')}
             path="/midweek-meeting"
           />

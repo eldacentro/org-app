@@ -44,7 +44,7 @@ const TalksDashboard = () => {
 
         {/* Catálogo de oradores */}
         {(isAppointed || isPublicTalkCoordinator) && (
-          <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/speakers-catalog')}>
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/speakers-catalog')}>
             <div className="ti">
               <IconTalker color="var(--brand)" width={22} height={22} />
             </div>

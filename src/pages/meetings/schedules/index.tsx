@@ -11,6 +11,7 @@ import {
   IconInTerritory,
   IconCart,
   IconArrowDown,
+  IconTreasuresPart,
 } from '@components/icons';
 
 const WeeklySchedules = () => {
@@ -38,7 +39,7 @@ const WeeklySchedules = () => {
   const getProgramIcon = (id: string, color = 'var(--accent-main)') => {
     switch (id) {
       case 'midweek':
-        return <IconClock color={color} width={22} height={22} />;
+        return <IconTreasuresPart color={color} width={22} height={22} />;
       case 'weekend':
         return <IconPodium color={color} width={22} height={22} />;
       case 'outgoing':

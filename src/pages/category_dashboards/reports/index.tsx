@@ -60,7 +60,7 @@ const ReportsDashboard = () => {
 
         {/* Informes a la sucursal */}
         {(isAdmin || isSecretary) && (
-          <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
             <div className="ti">
               <IconReportToBranch color="var(--brand)" width={22} height={22} />
             </div>
