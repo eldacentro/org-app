@@ -1342,13 +1342,22 @@ const PredicacionSalidas = () => {
                                   sx={{
                                     px: '16px',
                                     py: '10px',
-                                    backgroundColor: 'var(--accent-100)',
-                                    borderBottom: '1px solid var(--line)',
+                                    background: 'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                                    borderBottom: '1px solid var(--accent-dark)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
                                   }}
                                 >
                                   <Typography
-                                    className="h3"
-                                    style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
+                                    className="label-small-semibold"
+                                    style={{
+                                      fontWeight: '700',
+                                      color: 'var(--always-white)',
+                                      textTransform: 'capitalize',
+                                      letterSpacing: '0.02em',
+                                      opacity: 0.92,
+                                    }}
                                   >
                                     {dayLabel}
                                   </Typography>
@@ -1957,19 +1966,36 @@ const PredicacionSalidas = () => {
             /* VISTA DE CONFIGURACIÓN GLOBAL */
             <Box
               sx={{
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--radius-l)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
-                padding: { mobile: '16px', tablet: '24px' },
+                overflow: 'hidden',
+                boxShadow: 'var(--shadow-sm)',
                 width: '100%',
                 maxWidth: '100%',
                 boxSizing: 'border-box',
-                overflow: 'hidden',
               }}
             >
-              <Typography className="h2" style={{ marginBottom: '16px', color: 'var(--accent-main)' }}>
-                Configuración de salidas de predicación
-              </Typography>
+              {/* Config header */}
+              <Box
+                sx={{
+                  px: { mobile: '20px', tablet: '28px' },
+                  py: { mobile: '16px', tablet: '20px' },
+                  background: 'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                }}
+              >
+                <IconSettings width={22} height={22} color="var(--always-white)" />
+                <Typography
+                  className="h3"
+                  style={{ color: 'var(--always-white)', margin: 0, fontWeight: 800, letterSpacing: '-0.3px' }}
+                >
+                  Configuración de salidas de predicación
+                </Typography>
+              </Box>
+              <Box sx={{ padding: { mobile: '20px', tablet: '28px' } }}>
 
               <Tabs
                 value={settingsSubTab}
@@ -2648,6 +2674,7 @@ const PredicacionSalidas = () => {
                   )}
                 </Box>
               )}
+             </Box>
             </Box>
           )}
         </Box>

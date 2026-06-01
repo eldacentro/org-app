@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
@@ -45,6 +45,7 @@ const useWebWorker = () => {
   const jwLang = useAtomValue(JWLangState);
 
   const [lastBackup, setLastBackup] = useState('');
+  const prevPathRef = useRef('');
 
   const backupEnabled = isOnline && isConnected && backupAuto;
   const interval = backupInterval * 60 * 1000;
@@ -98,10 +99,38 @@ const useWebWorker = () => {
     }
   }, [isMeetingEditor, sourceLang, setIsAppDataSyncing]);
 
+  // Trigger a one-time sync when first entering the persons section so receiving
+  // devices always get fresh data before browsing or editing profiles.
+  useEffect(() => {
+    const prevPath = prevPathRef.current;
+    prevPathRef.current = location.pathname;
+
+    const enteringPersons =
+      location.pathname.includes('/persons') &&
+      !prevPath.includes('/persons');
+
+    if (!enteringPersons || !backupEnabled || !user) return;
+
+    const triggerSync = async () => {
+      const idToken = await user.getIdToken(true);
+      if (idToken?.length > 0) {
+        worker.postMessage({ field: 'idToken', value: idToken });
+      }
+      worker.postMessage('startWorker');
+    };
+
+    triggerSync();
+  }, [location.pathname, backupEnabled, user]);
+
   useEffect(() => {
     const runBackupTimer = setInterval(async () => {
-      if (location.pathname.includes('/persons')) {
-        logger.info('app', 'synchronization paused - persons page open');
+      // Only pause the periodic timer on person DETAIL pages (when a person is
+      // open for editing) to avoid overwriting unsaved changes. The persons LIST
+      // page (/persons exactly) is allowed to sync so other devices receive
+      // updates while browsing.
+      const onPersonDetail = /\/persons\/.+/.test(location.pathname);
+      if (onPersonDetail) {
+        logger.info('app', 'synchronization paused - person detail open');
         return;
       }
 
