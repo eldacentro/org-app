@@ -74,10 +74,12 @@ const useCongregation = () => {
 
   useEffect(() => {
     if (isConnected) {
-      const svgIcon = document.querySelector('.organized-sync-icon');
-      const g = svgIcon.querySelector('g');
-      const checkMark = g.querySelector('path');
-      checkMark.style.animation = 'fade-out 0s ease-in-out forwards';
+      const svgIcon = document.querySelector<SVGElement>('.organized-sync-icon');
+      if (svgIcon) {
+        const g = svgIcon.querySelector('g');
+        const checkMark = g.querySelector('path');
+        checkMark.style.animation = 'fade-out 0s ease-in-out forwards';
+      }
     }
   }, [isConnected]);
 
