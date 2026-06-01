@@ -870,3 +870,52 @@ body iframe {
   box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45), 0 2px 8px -3px rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
+
+/* ─── Mobile Action Pills ────────────────────────────────────────── */
+
+/* Secondary pill (Exportar, Autocompletar, etc.) */
+[data-theme='blue-light'] .nav-action-pill {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(59, 114, 196, 0.16) !important;
+  box-shadow: 0 2px 8px -3px rgba(59, 114, 196, 0.10) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+[data-theme='blue-dark'] .nav-action-pill {
+  background: rgba(40, 40, 58, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.30) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Main / primary pill (Publicar, etc.) */
+[data-theme='blue-light'] .nav-action-pill-main {
+  background: var(--accent-main) !important;
+  box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.45) !important;
+  border: 1px solid rgba(59, 114, 196, 0.20) !important;
+}
+
+[data-theme='blue-dark'] .nav-action-pill-main {
+  background: var(--accent-main) !important;
+  box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+/* ─── Desktop Navbar Actions Container ───────────────────────────── */
+[data-theme='blue-light'] .navbar-actions-container {
+  background: rgba(255, 255, 255, 0.60) !important;
+  border: 1px solid rgba(59, 114, 196, 0.12) !important;
+  backdrop-filter: blur(12px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
+  box-shadow: 0 2px 10px -4px rgba(59, 114, 196, 0.08) !important;
+}
+
+[data-theme='blue-dark'] .navbar-actions-container {
+  background: rgba(28, 28, 40, 0.60) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(12px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.25) !important;
+}

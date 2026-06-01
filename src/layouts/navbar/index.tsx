@@ -467,12 +467,13 @@ const NavBar = ({ isSupported }: NavBarType) => {
                 </Box>
                 {!!tablet688Up && navBarOptions.buttons && (
                   <Box
+                    className="navbar-actions-container"
                     sx={{
                       display: 'flex',
-                      gap: '8px',
+                      gap: '6px',
                       padding: '4px',
                       flexDirection: 'row',
-                      backgroundColor: 'var(--accent-150)',
+                      alignItems: 'center',
                       borderRadius: 'var(--radius-xl)',
                     }}
                   >

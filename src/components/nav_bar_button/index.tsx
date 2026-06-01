@@ -9,9 +9,9 @@ import { Box } from '@mui/material';
  * Renders a navigation bar button that adapts its appearance
  * based on screen size and props.
  *
- * - On desktop screens, or when `textImportant` is true,
- *   it renders a full-sized button with text.
- * - On smaller screens, it renders a compact icon-only button.
+ * - On desktop screens (≥ 688px), or when `textImportant` is true,
+ *   it renders a full-sized button with text via the Button component.
+ * - On smaller screens, it renders a premium pill with icon + label.
  */
 const NavBarButton = (props: NavBarButtonProps) => {
   const { tablet688Up } = useBreakpoints();
@@ -19,64 +19,90 @@ const NavBarButton = (props: NavBarButtonProps) => {
   const main = props.main || false;
   const textImportant = props.textImportant || false;
   const disabled = props.disabled || false;
-  const iconColor = props.color
-    ? `var(--${props.color}-dark)`
-    : 'var(--accent-main)';
 
-  return tablet688Up || textImportant || main ? (
-    <Button
-      variant={main ? 'main' : 'secondary'}
-      color={props.color}
-      ariaLabel={props.text}
+  // ── Desktop / textImportant path ─────────────────────────────────
+  if (tablet688Up || textImportant) {
+    return (
+      <Button
+        variant={main ? 'main' : 'secondary'}
+        color={props.color}
+        ariaLabel={props.text}
+        onClick={props.onClick}
+        startIcon={props.icon}
+        disabled={disabled}
+      >
+        <Box
+          component="span"
+          sx={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '100%',
+          }}
+        >
+          {props.text}
+        </Box>
+      </Button>
+    );
+  }
+
+  // ── Mobile pill path ─────────────────────────────────────────────
+  if (disabled) return null;
+
+  const iconColor = main
+    ? 'var(--always-white)'
+    : props.color
+      ? `var(--${props.color}-main)`
+      : 'var(--accent-main)';
+
+  return (
+    <Box
+      role="button"
+      aria-label={props.text}
+      className={main ? 'nav-action-pill-main' : 'nav-action-pill'}
       onClick={props.onClick}
-      startIcon={props.icon}
-      disabled={disabled}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        px: '12px',
+        height: '36px',
+        borderRadius: 'var(--radius-l)',
+        cursor: 'pointer',
+        flexShrink: 0,
+        userSelect: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        transition: 'transform 0.12s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s ease',
+        '&:active': {
+          transform: 'scale(0.93)',
+          opacity: 0.85,
+        },
+        '& svg': {
+          width: '18px',
+          height: '18px',
+          flexShrink: 0,
+        },
+        '& svg, & svg g, & svg g path': {
+          fill: iconColor,
+        },
+      }}
     >
+      {props.icon}
       <Box
         component="span"
+        className="body-small-semibold"
         sx={{
+          color: iconColor,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          maxWidth: '100%',
+          maxWidth: '120px',
+          lineHeight: 1,
         }}
       >
         {props.text}
       </Box>
-    </Button>
-  ) : (
-    !disabled && (
-      <Box
-        role="button"
-        aria-label={props.text}
-        sx={{
-          padding: '10px',
-          borderRadius: 'var(--radius-l)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          '&:hover': {
-            backgroundColor: 'var(--accent-200)',
-          },
-          '.MuiTouchRipple-ripple .MuiTouchRipple-child': {
-            borderRadius: 'var(--radius-l)',
-            backgroundColor: 'var(--accent-200)',
-          },
-          '&:focus-visible': {
-            outline: `${iconColor} auto 1px`,
-          },
-          '& .MuiSvgIcon-root': {
-            fill: iconColor,
-            '& g, & g path': {
-              fill: `${iconColor} !important`,
-            },
-          },
-        }}
-        onClick={props.onClick}
-      >
-        {props.icon}
-      </Box>
-    )
+    </Box>
   );
 };
 
