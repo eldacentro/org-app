@@ -157,9 +157,9 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                     key={turn.turnId}
                     sx={{
                       display: 'flex',
-                      flexDirection: { xs: 'column', md: 'row' },
-                      alignItems: { xs: 'stretch', md: 'center' },
-                      gap: { xs: '12px', md: '20px' },
+                      flexDirection: { mobile: 'column', laptop: 'row' },
+                      alignItems: { mobile: 'stretch', laptop: 'center' },
+                      gap: { mobile: '12px', laptop: '20px' },
                       px: '20px',
                       py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
@@ -172,7 +172,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                     }}
                   >
                     {/* Hora */}
-                    <Box sx={{ minWidth: { xs: '0px', md: '110px' }, flexShrink: 0 }}>
+                    <Box sx={{ minWidth: { mobile: '0px', laptop: '110px' }, flexShrink: 0 }}>
                       <Typography
                         sx={{
                           fontWeight: '800',
@@ -192,7 +192,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                         width: '1px',
                         alignSelf: 'stretch',
                         backgroundColor: 'var(--line)',
-                        display: { xs: 'none', md: 'block' },
+                        display: { mobile: 'none', laptop: 'block' },
                       }}
                     />
 
@@ -203,7 +203,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                         display: 'flex', 
                         flexDirection: 'column', 
                         gap: '4px', 
-                        width: { xs: '100%', md: 'auto' }, 
+                        width: { mobile: '100%', laptop: 'auto' }, 
                         minWidth: 0,
                       }}
                     >
@@ -318,12 +318,12 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                     {/* Lugar */}
                     <Box 
                       sx={{ 
-                        textAlign: { xs: 'left', md: 'right' }, 
-                        width: { xs: '100%', md: 'auto' },
-                        minWidth: { xs: '0px', md: '180px' },
-                        maxWidth: { xs: '100%', md: '260px' },
-                        flexShrink: { xs: 1, md: 0 },
-                        alignSelf: { xs: 'flex-start', md: 'center' },
+                        textAlign: { mobile: 'left', laptop: 'right' }, 
+                        width: { mobile: '100%', laptop: 'auto' },
+                        minWidth: { mobile: '0px', laptop: '180px' },
+                        maxWidth: { mobile: '100%', laptop: '260px' },
+                        flexShrink: { mobile: 1, laptop: 0 },
+                        alignSelf: { mobile: 'flex-start', laptop: 'center' },
                       }}
                     >
                       <Typography
@@ -333,7 +333,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                           color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
                           wordBreak: 'break-word',
                           whiteSpace: 'normal',
-                          mt: { xs: '4px', md: '0px' },
+                          mt: { mobile: '4px', laptop: '0px' },
                           lineHeight: '1.4'
                         }}
                       >

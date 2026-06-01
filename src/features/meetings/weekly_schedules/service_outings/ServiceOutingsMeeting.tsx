@@ -277,9 +277,9 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                     key={slot.id}
                     sx={{
                       display: 'flex',
-                      flexDirection: { xs: 'column', md: 'row' },
-                      alignItems: { xs: 'stretch', md: 'center' },
-                      gap: '20px',
+                      flexDirection: { mobile: 'column', laptop: 'row' },
+                      alignItems: { mobile: 'stretch', laptop: 'center' },
+                      gap: { mobile: '12px', laptop: '20px' },
                       px: '20px',
                       py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
@@ -292,7 +292,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                     }}
                   >
                     {/* Hora + Turno */}
-                    <Box sx={{ minWidth: '90px', flexShrink: 0 }}>
+                    <Box sx={{ minWidth: { mobile: '0px', laptop: '90px' }, flexShrink: 0 }}>
                       <Typography
                         style={{
                           fontWeight: '800',
@@ -324,12 +324,12 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                         width: '1px',
                         alignSelf: 'stretch',
                         backgroundColor: 'var(--line)',
-                        display: { xs: 'none', md: 'block' },
+                        display: { mobile: 'none', laptop: 'block' },
                       }}
                     />
 
                     {/* Hermano asignado */}
-                    <Box sx={{ flex: 1, display: 'flex', width: { xs: '100%', md: 'auto' } }}>
+                    <Box sx={{ flex: 1, display: 'flex', width: { mobile: '100%', laptop: 'auto' } }}>
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
@@ -415,12 +415,12 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                     {/* Lugar */}
                     <Box 
                       sx={{ 
-                        textAlign: { xs: 'left', md: 'right' }, 
-                        width: { xs: '100%', md: 'auto' },
-                        minWidth: { xs: '0px', md: '180px' },
-                        maxWidth: { xs: '100%', md: '260px' },
-                        flexShrink: { xs: 1, md: 0 },
-                        alignSelf: { xs: 'flex-start', md: 'center' }
+                        textAlign: { mobile: 'left', laptop: 'right' }, 
+                        width: { mobile: '100%', laptop: 'auto' },
+                        minWidth: { mobile: '0px', laptop: '180px' },
+                        maxWidth: { mobile: '100%', laptop: '260px' },
+                        flexShrink: { mobile: 1, laptop: 0 },
+                        alignSelf: { mobile: 'flex-start', laptop: 'center' }
                       }}
                     >
                       <Typography
@@ -430,7 +430,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                           color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
                           wordBreak: 'break-word',
                           whiteSpace: 'normal',
-                          mt: { xs: '4px', md: '0px' },
+                          mt: { mobile: '4px', laptop: '0px' },
                           lineHeight: '1.4'
                         }}
                       >
