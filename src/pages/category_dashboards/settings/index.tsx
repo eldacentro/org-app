@@ -2,7 +2,11 @@ import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import { User, Settings2, UserCheck } from 'lucide-react';
+import {
+  IconAccount,
+  IconSettings,
+  IconManageAccess,
+} from '@icons/index';
 
 const SettingsDashboard = () => {
   const { t } = useAppTranslation();
@@ -25,7 +29,7 @@ const SettingsDashboard = () => {
         {/* Mi cuenta */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/user-profile')}>
           <div className="ti">
-            <User size={20} />
+            <IconAccount color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_myProfile', 'Mi cuenta')}</div>
@@ -40,7 +44,7 @@ const SettingsDashboard = () => {
         {(isAdmin || isElder) && (
           <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
             <div className="ti">
-              <Settings2 size={20} />
+              <IconSettings color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_congregationSettings', 'Ajustes de congregación')}</div>
@@ -56,7 +60,7 @@ const SettingsDashboard = () => {
         {(isAdmin) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/manage-access')}>
             <div className="ti">
-              <UserCheck size={20} />
+              <IconManageAccess color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_manageAccess', 'Cuentas de usuario')}</div>

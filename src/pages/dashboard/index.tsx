@@ -2,8 +2,15 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
-import { IconCheckCircle } from '@icons/index';
-import { Calendar, Timer, Users, Presentation, BarChart2, Settings2 } from 'lucide-react';
+import {
+  IconCheckCircle,
+  IconClock,
+  IconInTerritory,
+  IconCongregation,
+  IconPodium,
+  IconStats,
+  IconSettings,
+} from '@icons/index';
 import {
   useAppTranslation,
   useCurrentUser,
@@ -264,7 +271,7 @@ const Dashboard = () => {
         {/* 1. REUNIONES (Always visible) */}
         <div className="tile-item c-blue active-press" style={{ animationDelay: '0.26s' }} onClick={() => handleTileClick('/dashboard/meetings')}>
           <div className="ti">
-            <Calendar size={20} />
+            <IconClock color="var(--brand)" width={22} height={22} />
           </div>
           <div>
             <div className="tile-name">{t('tr_meetings', 'Reuniones')}</div>
@@ -276,7 +283,7 @@ const Dashboard = () => {
         {isPublisher && (
           <div className="tile-item c-blue active-press" style={{ animationDelay: '0.3s' }} onClick={() => handleTileClick('/dashboard/ministry')}>
             <div className="ti">
-              <Timer size={20} />
+              <IconInTerritory color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_ministry', 'Predicación')}</div>
@@ -288,7 +295,7 @@ const Dashboard = () => {
         {/* 3. CONGREGACIÓN (Always visible) */}
         <div className="tile-item c-blue active-press" style={{ animationDelay: '0.34s' }} onClick={() => handleTileClick('/dashboard/congregation')}>
           <div className="ti">
-            <Users size={20} />
+            <IconCongregation color="var(--brand)" width={22} height={22} />
           </div>
           <div>
             <div className="tile-name">{t('tr_congregation', 'Congregación')}</div>
@@ -300,7 +307,7 @@ const Dashboard = () => {
         {showWeekend && (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
           <div className="tile-item c-blue active-press" style={{ animationDelay: '0.38s' }} onClick={() => handleTileClick('/dashboard/talks')}>
             <div className="ti">
-              <Presentation size={20} />
+              <IconPodium color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_publicTalks', 'Discursos')}</div>
@@ -313,7 +320,7 @@ const Dashboard = () => {
         {(isElder || isAttendanceEditor || isGroupOverseer || isSecretary) && (
           <div className="tile-item c-slate full-width active-press" style={{ animationDelay: '0.42s' }} onClick={() => handleTileClick('/dashboard/reports')}>
             <div className="ti">
-              <BarChart2 size={20} />
+              <IconStats color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_reports', 'Informes')}</div>
@@ -328,7 +335,7 @@ const Dashboard = () => {
         {/* 6. CONFIGURACIÓN (Full width, always visible) */}
         <div className="tile-item c-slate full-width active-press" style={{ animationDelay: '0.46s' }} onClick={() => handleTileClick('/dashboard/settings')}>
           <div className="ti">
-            <Settings2 size={20} />
+            <IconSettings color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_settings', 'Configuración')}</div>

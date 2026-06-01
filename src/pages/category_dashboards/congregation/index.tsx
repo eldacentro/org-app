@@ -2,7 +2,12 @@ import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import { Users, UsersRound, FileCheck, CalendarDays } from 'lucide-react';
+import {
+  IconPerson,
+  IconGroups,
+  IconPioneerForm,
+  IconNextEvents,
+} from '@icons/index';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
@@ -26,7 +31,7 @@ const CongregationDashboard = () => {
         {(isPersonViewer || isElder) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/persons')}>
             <div className="ti">
-              <Users size={20} />
+              <IconPerson color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_persons', 'Personas')}</div>
@@ -41,7 +46,7 @@ const CongregationDashboard = () => {
         {/* Grupos de predicación */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/field-service-groups')}>
           <div className="ti">
-            <UsersRound size={20} />
+            <IconGroups color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_fieldServiceGroups', 'Grupos de predicación')}</div>
@@ -56,7 +61,7 @@ const CongregationDashboard = () => {
         {(isElder) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/pioneer-applications')}>
             <div className="ti">
-              <FileCheck size={20} />
+              <IconPioneerForm color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_pioneerApplications', 'Solicitudes de precursor')}</div>
@@ -71,7 +76,7 @@ const CongregationDashboard = () => {
         {/* Próximos eventos */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/activities/upcoming-events')}>
           <div className="ti">
-            <CalendarDays size={20} />
+            <IconNextEvents color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">Próximos eventos</div>

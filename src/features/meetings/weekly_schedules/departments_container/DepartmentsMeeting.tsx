@@ -27,16 +27,16 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '8px',
+        gap: '12px',
         width: '100%',
-        minHeight: '36px',
-        padding: '2px 0px',
+        minHeight: '40px',
+        padding: '4px 0px',
       }}
     >
       <Typography
-        className="body-small-regular"
-        color="var(--grey-350)"
-        sx={{ flexShrink: 0, minWidth: '80px' }}
+        className="body-small-semibold"
+        color="var(--grey-400)"
+        sx={{ flexShrink: 0, minWidth: '90px', fontSize: '13px' }}
       >
         {label}
       </Typography>
@@ -45,35 +45,41 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
         <Box
           sx={{
             display: 'flex',
-            gap: '6px',
+            gap: '8px',
             alignItems: 'center',
-            borderRadius: 'var(--radius-s)',
+            borderRadius: 'var(--r-sm)',
             border: active 
-              ? '1px solid var(--accent-main)' 
-              : '1px solid transparent',
+              ? '1.5px solid var(--brand)' 
+              : '1px solid var(--line)',
             backgroundColor: active 
-              ? 'var(--accent-150)' 
-              : 'var(--grey-50)',
-            padding: '4px 8px',
+              ? 'var(--brand-tint)' 
+              : 'var(--card)',
+            padding: '6px 12px',
             flex: 1,
-            maxWidth: '220px',
+            maxWidth: '240px',
             overflow: 'hidden',
-            transition: 'all 0.2s ease-in-out',
+            boxShadow: active ? 'var(--shadow-sm)' : 'none',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              borderColor: 'var(--brand)',
+              boxShadow: 'var(--shadow-sm)',
+            },
           }}
         >
           {person?.person_data?.female?.value ? (
-            <IconFemale width={16} height={16} color="var(--grey-400)" />
+            <IconFemale width={16} height={16} color="var(--brand)" />
           ) : (
-            <IconMale width={16} height={16} color="var(--grey-400)" />
+            <IconMale width={16} height={16} color="var(--brand)" />
           )}
           <Typography 
-            className="body-small-regular"
+            className="body-small-semibold"
             sx={{ 
               whiteSpace: 'nowrap', 
               overflow: 'hidden', 
               textOverflow: 'ellipsis',
-              fontWeight: active ? 600 : 500,
-              color: active ? 'var(--accent-dark)' : 'var(--black)',
+              fontWeight: 700,
+              fontSize: '13px',
+              color: active ? 'var(--brand-deep)' : 'var(--ink)',
             }}
           >
             {displayName}
@@ -85,15 +91,15 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 'var(--radius-s)',
-            border: '1px dashed var(--grey-300)',
+            borderRadius: 'var(--r-sm)',
+            border: '1px dashed var(--line)',
             backgroundColor: 'transparent',
-            padding: '4px 8px',
+            padding: '6px 12px',
             flex: 1,
-            maxWidth: '220px',
+            maxWidth: '240px',
           }}
         >
-          <Typography className="body-small-regular" color="var(--grey-350)">
+          <Typography className="body-small-regular" color="var(--grey-350)" sx={{ fontSize: '13px' }}>
             —
           </Typography>
         </Box>
@@ -106,12 +112,12 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
   const { t } = useAppTranslation();
 
   return (
-    <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Grid container spacing={2.5} sx={{ mt: 1 }}>
       {/* Acomodadores */}
       <Grid item xs={12} md={6}>
         <MeetingSection
           part={t('tr_attendants', 'Acomodadores')}
-          color="var(--accent-main)"
+          color="var(--brand)"
           icon={<IconGroups color="var(--always-white)" />}
           alwaysExpanded
         >
@@ -130,7 +136,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
       <Grid item xs={12} md={6}>
         <MeetingSection
           part={t('tr_microphones', 'Micrófonos')}
-          color="var(--accent-main)"
+          color="var(--brand)"
           icon={<IconRecordVoiceOver color="var(--always-white)" />}
           alwaysExpanded
         >
@@ -149,7 +155,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
       <Grid item xs={12} md={6}>
         <MeetingSection
           part={t('tr_multimedia', 'Multimedia')}
-          color="var(--accent-main)"
+          color="var(--brand)"
           icon={<IconPlay color="var(--always-white)" />}
           alwaysExpanded
         >
@@ -168,7 +174,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
       <Grid item xs={12} md={6}>
         <MeetingSection
           part={t('tr_platform', 'Plataforma')}
-          color="var(--accent-main)"
+          color="var(--brand)"
           icon={<IconPodium color="var(--always-white)" />}
           alwaysExpanded
         >

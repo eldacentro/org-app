@@ -113,26 +113,31 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
             key={date}
             sx={{
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-l)',
-              boxShadow: 'none',
+              borderRadius: 'var(--r-md)',
+              boxShadow: 'var(--shadow-sm)',
               overflow: 'hidden',
+              transition: 'box-shadow 0.2s ease',
+              '&:hover': {
+                boxShadow: 'var(--shadow-md)',
+              },
             }}
           >
             {/* Encabezado del día */}
             <Box
               sx={{
-                px: '16px',
-                py: '10px',
-                backgroundColor: 'var(--accent-main)',
+                px: '18px',
+                py: '12px',
+                backgroundColor: 'var(--brand)',
                 borderBottom: 'none',
               }}
             >
               <Typography
                 className="h2-caps"
                 sx={{ 
-                  fontWeight: '700', 
+                  fontWeight: '800', 
                   color: 'var(--always-white)', 
-                  letterSpacing: '0.5px' 
+                  letterSpacing: '0.5px',
+                  fontSize: '14px'
                 }}
               >
                 {dayLabel}
@@ -155,23 +160,24 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                       flexDirection: { xs: 'column', sm: 'row' },
                       alignItems: { xs: 'flex-start', sm: 'center' },
                       gap: '16px',
-                      px: '16px',
-                      py: '14px',
+                      px: '18px',
+                      py: '16px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
                         ? '#fce8e6'
                         : isAssignedToMe
-                        ? 'var(--accent-50, #f0f7ff)'
+                        ? 'var(--brand-tint)'
                         : 'var(--card)',
+                      transition: 'background-color 0.2s ease',
                     }}
                   >
                     {/* Hora */}
                     <Box sx={{ minWidth: '110px' }}>
                       <Typography
-                        style={{
-                          fontWeight: '700',
+                        sx={{
+                          fontWeight: '800',
                           fontSize: '15px',
-                          color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                          color: isCancelled ? 'var(--grey-500)' : 'var(--brand)',
                           textDecoration: isCancelled ? 'line-through' : 'none',
                         }}
                       >
@@ -190,7 +196,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                     />
 
                     {/* Hermanos asignados */}
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', width: { xs: '100%', sm: 'auto' } }}>
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
@@ -199,7 +205,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                           sx={{
                             backgroundColor: 'var(--error-150)',
                             color: 'var(--error-dark)',
-                            fontWeight: '600',
+                            fontWeight: '700',
                             alignSelf: 'flex-start',
                           }}
                         />
@@ -216,25 +222,32 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                                   display: 'flex', 
                                   alignItems: 'center', 
                                   gap: '6px',
-                                  borderRadius: 'var(--radius-s)',
+                                  borderRadius: 'var(--r-sm)',
                                   border: isMe 
-                                    ? '1px solid var(--accent-main)' 
-                                    : '1px solid transparent',
+                                    ? '1.5px solid var(--brand)' 
+                                    : '1px solid var(--line)',
                                   backgroundColor: isMe 
-                                    ? 'var(--accent-150)' 
-                                    : 'var(--grey-50)',
-                                  padding: '4px 8px',
-                                  maxWidth: '220px',
+                                    ? 'var(--brand-tint)' 
+                                    : 'var(--card)',
+                                  padding: '5px 10px',
+                                  maxWidth: '240px',
+                                  boxShadow: isMe ? 'var(--shadow-sm)' : 'none',
+                                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                  '&:hover': {
+                                    borderColor: 'var(--brand)',
+                                    boxShadow: 'var(--shadow-sm)',
+                                  },
                                 }}
                               >
                                 <Typography
-                                  className="body-small-regular"
+                                  className="body-small-semibold"
                                   sx={{
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
-                                    fontWeight: isMe ? 600 : 500,
-                                    color: isMe ? 'var(--accent-dark)' : 'var(--black)',
+                                    fontWeight: 700,
+                                    fontSize: '13px',
+                                    color: isMe ? 'var(--brand-deep)' : 'var(--ink)',
                                   }}
                                 >
                                   {name}
@@ -246,11 +259,12 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                                     sx={{
                                       height: '18px',
                                       fontSize: '9px',
-                                      fontWeight: '700',
-                                      backgroundColor: 'var(--accent-main)',
+                                      fontWeight: '800',
+                                      backgroundColor: 'var(--brand)',
                                       color: 'var(--always-white)',
                                       px: '2px',
-                                      ml: '2px'
+                                      ml: '2px',
+                                      borderRadius: '4px'
                                     }}
                                   />
                                 )}
@@ -262,13 +276,13 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                borderRadius: 'var(--radius-s)',
-                                border: '1px dashed var(--grey-300)',
+                                borderRadius: 'var(--r-sm)',
+                                border: '1px dashed var(--line)',
                                 backgroundColor: 'transparent',
-                                padding: '4px 8px',
+                                padding: '5px 10px',
                               }}
                             >
-                              <Typography className="body-small-regular" color="var(--grey-400)">
+                              <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '13px' }}>
                                 Sin asignar
                               </Typography>
                             </Box>
@@ -278,11 +292,15 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
                     </Box>
 
                     {/* Lugar */}
-                    <Box sx={{ textAlign: { xs: 'left', sm: 'right' }, minWidth: '150px' }}>
+                    <Box sx={{ textAlign: { xs: 'left', sm: 'right' }, minWidth: { xs: '100%', sm: '180px' }, flexShrink: 1 }}>
                       <Typography
-                        style={{
+                        sx={{
                           fontSize: '13px',
+                          fontWeight: 600,
                           color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'normal',
+                          mt: { xs: '4px', sm: '0px' }
                         }}
                       >
                         {isCancelled ? '—' : turn.location}

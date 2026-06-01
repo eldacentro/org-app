@@ -2,7 +2,11 @@ import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import { Users, FileText, BarChart2 } from 'lucide-react';
+import {
+  IconGroups,
+  IconPublisherRecordCard,
+  IconReportToBranch,
+} from '@icons/index';
 
 const ReportsDashboard = () => {
   const { t } = useAppTranslation();
@@ -26,7 +30,7 @@ const ReportsDashboard = () => {
         {(isAttendanceEditor || isElder || isSecretary || isGroupOverseer) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/meeting-attendance')}>
             <div className="ti">
-              <Users size={20} />
+              <IconGroups color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_meetingAttendanceRecord', 'Registro de asistencia')}</div>
@@ -42,7 +46,7 @@ const ReportsDashboard = () => {
         {(isElder || isSecretary) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/publisher-records')}>
             <div className="ti">
-              <FileText size={20} />
+              <IconPublisherRecordCard color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_publishersRecords', 'Registros de publicadores')}</div>
@@ -58,7 +62,7 @@ const ReportsDashboard = () => {
         {(isAdmin || isSecretary) && (
           <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
             <div className="ti">
-              <BarChart2 size={20} />
+              <IconReportToBranch color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_branchOfficeReport', 'Informes a la sucursal')}</div>

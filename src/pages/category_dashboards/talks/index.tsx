@@ -2,7 +2,11 @@ import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import { Presentation, UserCheck, UserMinus } from 'lucide-react';
+import {
+  IconTalk,
+  IconTalker,
+  IconOutgoindSpeaker,
+} from '@icons/index';
 
 const TalksDashboard = () => {
   const { t } = useAppTranslation();
@@ -26,7 +30,7 @@ const TalksDashboard = () => {
         {(isElder || isWeekendEditor || isPublicTalkCoordinator) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/public-talks-list')}>
             <div className="ti">
-              <Presentation size={20} />
+              <IconTalk color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_publicTalksList', 'Lista de discursos públicos')}</div>
@@ -42,7 +46,7 @@ const TalksDashboard = () => {
         {(isAppointed || isPublicTalkCoordinator) && (
           <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/speakers-catalog')}>
             <div className="ti">
-              <UserCheck size={20} />
+              <IconTalker color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Catálogo de oradores</div>
@@ -58,7 +62,7 @@ const TalksDashboard = () => {
         {(isAppointed || isPublicTalkCoordinator) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/outgoing-speakers')}>
             <div className="ti">
-              <UserMinus size={20} />
+              <IconOutgoindSpeaker color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_outgoingTalks', 'Oradores salientes')}</div>

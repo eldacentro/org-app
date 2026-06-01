@@ -2,7 +2,12 @@ import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import { FileText, TrendingUp, MapPin, ShoppingCart } from 'lucide-react';
+import {
+  IconMinistryReport,
+  IconStatsYear,
+  IconInTerritory,
+  IconCart,
+} from '@icons/index';
 
 const MinistryDashboard = () => {
   const { t } = useAppTranslation();
@@ -26,7 +31,7 @@ const MinistryDashboard = () => {
         {(isPublisher) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/ministry-report')}>
             <div className="ti">
-              <FileText size={20} />
+              <IconMinistryReport color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_report', 'Informe')}</div>
@@ -42,7 +47,7 @@ const MinistryDashboard = () => {
         {(isPublisher) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/service-year')}>
             <div className="ti">
-              <TrendingUp size={20} />
+              <IconStatsYear color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_serviceYear', 'Año de servicio')}</div>
@@ -58,7 +63,7 @@ const MinistryDashboard = () => {
         {(isServiceCommittee || isPublisher) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
             <div className="ti">
-              <MapPin size={20} />
+              <IconInTerritory color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Salidas de predicación</div>
@@ -74,7 +79,7 @@ const MinistryDashboard = () => {
         {(isServiceCommittee) && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/exhibitors')}>
             <div className="ti">
-              <ShoppingCart size={20} />
+              <IconCart color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Exhibidores</div>

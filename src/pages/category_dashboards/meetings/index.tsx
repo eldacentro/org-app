@@ -4,7 +4,12 @@ import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { useSetAtom } from 'jotai';
 import { isMyAssignmentOpenState } from '@states/app';
 import PageTitle from '@components/page_title';
-import { ClipboardCheck, Calendar, BookOpen, Users, Building2 } from 'lucide-react';
+import {
+  IconAssigned,
+  IconClock,
+  IconPodium,
+  IconDuties,
+} from '@icons/index';
 
 const MeetingsDashboard = () => {
   const { t } = useAppTranslation();
@@ -32,7 +37,7 @@ const MeetingsDashboard = () => {
         {/* Mis Asignaciones */}
         <div className="tile-item c-blue active-press full-width" onClick={handleOpenMyAssignments}>
           <div className="ti">
-            <ClipboardCheck size={20} />
+            <IconAssigned color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_viewMyAssignments', 'Mis asignaciones')}</div>
@@ -46,7 +51,7 @@ const MeetingsDashboard = () => {
         {/* Programas Semanales */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/weekly-schedules')}>
           <div className="ti">
-            <Calendar size={20} />
+            <IconClock color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_viewAssignmentsSchedule', 'Programas semanales')}</div>
@@ -61,7 +66,7 @@ const MeetingsDashboard = () => {
         {(isMidweekEditor) && (
           <div className="tile-item c-blue active-press" onClick={() => handleTileClick('/midweek-meeting')}>
             <div className="ti">
-              <BookOpen size={20} />
+              <IconClock color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
@@ -73,7 +78,7 @@ const MeetingsDashboard = () => {
         {(isWeekendEditor) && (
           <div className="tile-item c-blue active-press" onClick={() => handleTileClick('/weekend-meeting')}>
             <div className="ti">
-              <Users size={20} />
+              <IconPodium color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_weekendMeeting', 'Reunión de fin de semana')}</div>
@@ -84,7 +89,7 @@ const MeetingsDashboard = () => {
         {/* Departamentos */}
         <div className="tile-item c-slate active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
           <div className="ti">
-            <Building2 size={20} />
+            <IconDuties color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">Departamentos</div>
