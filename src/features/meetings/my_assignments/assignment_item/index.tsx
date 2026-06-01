@@ -13,6 +13,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
   const {
     assignmentDate,
     assignmentDayName,
+    isDept,
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
@@ -61,7 +62,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '1px',
+          gap: '2px',
           backgroundColor: isPreaching ? 'var(--preaching-tint)' : 'var(--brand-tint)',
           border: isPreaching
             ? '1px solid var(--preaching-border)'
@@ -70,34 +71,34 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
         }}
       >
-        {/* 3-letter weekday abbreviation */}
+        {/* Day label: weekday abbreviation OR 'SEM' for dept assignments */}
         <Typography
           sx={{
-            fontSize: '8.5px',
-            fontWeight: 700,
-            letterSpacing: '0.6px',
+            fontSize: isDept ? '7px' : '7.5px',
+            fontWeight: 800, // ExtraBold
+            letterSpacing: '0.7px',
             textTransform: 'uppercase',
             color: isPreaching
               ? 'var(--preaching-color)'
               : 'var(--brand)',
-            opacity: 0.75,
+            opacity: isDept ? 0.65 : 0.72,
             lineHeight: 1,
             transition: 'color 0.2s ease',
           }}
         >
-          {assignmentDayName}
+          {isDept ? 'SEM.' : assignmentDayName}
         </Typography>
         {/* Day number */}
         <Typography
-          className="h2"
           sx={{
             color: isPreaching
               ? 'var(--preaching-color) !important'
               : 'var(--brand) !important',
-            fontWeight: 900,
-            fontSize: '18px !important',
+            fontWeight: 900, // Black
+            fontSize: isDept ? '15px !important' : '21px !important',
             lineHeight: 1,
-            transition: 'color 0.2s ease',
+            letterSpacing: isDept ? '-0.5px' : '0',
+            transition: 'color 0.2s ease, font-size 0.15s ease',
           }}
         >
           {assignmentDate}
