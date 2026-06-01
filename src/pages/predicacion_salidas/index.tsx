@@ -1966,7 +1966,7 @@ const PredicacionSalidas = () => {
             /* VISTA DE CONFIGURACIÓN GLOBAL */
             <Box
               sx={{
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 overflow: 'hidden',
@@ -2071,7 +2071,7 @@ const PredicacionSalidas = () => {
                       sx={{
                         backgroundColor: 'var(--accent-main)',
                         color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         boxShadow: 'none',
                         textTransform: 'none',
                         fontWeight: '700',
@@ -2547,7 +2547,7 @@ const PredicacionSalidas = () => {
                       sx={{
                         backgroundColor: 'var(--accent-main)',
                         color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         boxShadow: 'none',
                         textTransform: 'none',
                         fontWeight: '700',

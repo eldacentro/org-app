@@ -1857,7 +1857,7 @@ const Exhibitors = () => {
             // PANTALLA DE CONFIGURACIÓN GLOBAL
             <Box
               sx={{
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 overflow: 'hidden',
@@ -1955,7 +1955,7 @@ const Exhibitors = () => {
                       sx={{
                         backgroundColor: 'var(--accent-main)',
                         color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         boxShadow: 'none',
                         textTransform: 'none',
                         fontWeight: '700',
@@ -2675,7 +2675,7 @@ const Exhibitors = () => {
         onClose={() => setEditDialog({ ...editDialog, open: false })}
         maxWidth="tablet"
         fullWidth
-        PaperProps={{ style: { borderRadius: 'var(--radius-l)' } }}
+        PaperProps={{ style: { borderRadius: 'var(--r-lg)' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
           Asignar Turno de Exhibidor
@@ -2826,7 +2826,7 @@ const Exhibitors = () => {
         maxWidth={false}
         fullWidth
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{ style: { borderRadius: 'var(--radius-l)' } }}
+        PaperProps={{ style: { borderRadius: 'var(--r-lg)' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
           {turnConfigDialog.id ? 'Editar turno global' : 'Crear turno global'}
@@ -2871,6 +2871,11 @@ const Exhibitors = () => {
                 onChange={(e) => setTurnConfigDialog({ ...turnConfigDialog, startTime: e.target.value })}
                 size="small"
                 fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 'var(--radius-m)',
+                  }
+                }}
               />
             </Box>
             <Box sx={{ flex: 1 }}>
@@ -2881,6 +2886,11 @@ const Exhibitors = () => {
                 onChange={(e) => setTurnConfigDialog({ ...turnConfigDialog, endTime: e.target.value })}
                 size="small"
                 fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 'var(--radius-m)',
+                  }
+                }}
               />
             </Box>
           </Box>
