@@ -79,26 +79,54 @@ export const loadApp = () => {
 };
 
 export const runUpdater = async () => {
-  await dbSongUpdate();
-  await dbPublicTalkUpdate();
-  await dbWeekTypeUpdate();
-  await dbAssignmentUpdate();
-  await dbPersonsUpdateAssignments();
-  await dbPersonsCleanUp();
-  await dbPersonsInitializePredicacionFields();
-  await dbSchedAuxClassUpdate();
-  await dbRemoveDuplicateReports();
-  await dbMetadataDefault();
-  await dbAppSettingsCreatePublishersSort();
-  await dbConvertAutoAssignPrayers();
-  await dbSchedUpdateOutgoingTalksFields();
-  await dbUserFieldServiceReportsRemoveEmpty();
-  await dbSourcesUpdateEventsName();
-  await dbUserSaveTimerToStorage();
-  await dbUpcomingEventsCleanup();
-  await dbAppSettingsUpdateCongNumber();
-  await dbAppSettingsInitializeGoogleDriveBackup();
-  await dbSpeakersCongregationsSetName();
+  const currentLang = localStorage.getItem('ui_lang') || 'eng';
+  const currentVersion = '3.37.1';
+
+  const lastLang = localStorage.getItem('last_run_updater_lang') || '';
+  const lastVersion = localStorage.getItem('last_run_updater_version') || '';
+
+  const needsStaticUpdate = currentLang !== lastLang || currentVersion !== lastVersion;
+
+  if (needsStaticUpdate) {
+    await Promise.all([
+      dbSongUpdate(),
+      dbPublicTalkUpdate(),
+      dbWeekTypeUpdate(),
+      dbAssignmentUpdate(),
+    ]);
+
+    localStorage.setItem('last_run_updater_lang', currentLang);
+    localStorage.setItem('last_run_updater_version', currentVersion);
+  }
+
+  // Run all other database cleanup, migration and setup tasks in parallel groups
+  await Promise.all([
+    // Persons sequential pipeline
+    (async () => {
+      await dbPersonsUpdateAssignments();
+      await dbPersonsCleanUp();
+      await dbPersonsInitializePredicacionFields();
+    })(),
+
+    // Schedules sequential pipeline
+    (async () => {
+      await dbSchedAuxClassUpdate();
+      await dbSchedUpdateOutgoingTalksFields();
+    })(),
+
+    // Other independent tasks
+    dbRemoveDuplicateReports(),
+    dbMetadataDefault(),
+    dbAppSettingsCreatePublishersSort(),
+    dbConvertAutoAssignPrayers(),
+    dbUserFieldServiceReportsRemoveEmpty(),
+    dbSourcesUpdateEventsName(),
+    dbUserSaveTimerToStorage(),
+    dbUpcomingEventsCleanup(),
+    dbAppSettingsUpdateCongNumber(),
+    dbAppSettingsInitializeGoogleDriveBackup(),
+    dbSpeakersCongregationsSetName(),
+  ]);
 };
 
 export const userLogoutSuccess = async () => {
