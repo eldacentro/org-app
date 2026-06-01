@@ -15,20 +15,44 @@ const NotificationContainer = ({
 
   const { notifications } = useContainer();
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
     <Drawer
       anchor="right"
       onClose={onClose}
       open={open}
       title={t('tr_notifications')}
+      headActions={
+        unreadCount > 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '22px',
+              height: '22px',
+              borderRadius: '999px',
+              backgroundColor: 'var(--accent-main)',
+              px: '6px',
+              mr: '4px',
+            }}
+          >
+            <Typography
+              className="label-small-medium"
+              sx={{ color: 'white', fontSize: '11px', fontWeight: 700 }}
+            >
+              {unreadCount}
+            </Typography>
+          </Box>
+        ) : undefined
+      }
     >
       <Box
         sx={{
           height: '100%',
           overflow: 'auto',
-          '&::-webkit-scrollbar': {
-            width: '4px',
-          },
+          '&::-webkit-scrollbar': { width: '4px' },
         }}
       >
         {notifications.length === 0 && (
@@ -36,15 +60,37 @@ const NotificationContainer = ({
             sx={{
               height: '100%',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '24px',
+              gap: '20px',
+              pb: '40px',
             }}
           >
-            <NoNotificationImg viewBox="0 0 128 128" />
-            <Stack spacing="8px">
-              <Typography className="h2">{t('tr_noNotifications')}</Typography>
-              <Typography color="var(--grey-400)">
+            <Box
+              sx={{
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
+                background: 'var(--accent-200)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.7,
+              }}
+            >
+              <NoNotificationImg
+                viewBox="0 0 128 128"
+                style={{ width: '64px', height: '64px' }}
+              />
+            </Box>
+            <Stack spacing="6px" alignItems="center" textAlign="center">
+              <Typography className="h2" sx={{ fontWeight: 700 }}>
+                {t('tr_noNotifications')}
+              </Typography>
+              <Typography
+                sx={{ color: 'var(--grey-400)', maxWidth: '220px', lineHeight: 1.5 }}
+              >
                 {t('tr_noNotificationsDesc')}
               </Typography>
             </Stack>
@@ -52,7 +98,7 @@ const NotificationContainer = ({
         )}
 
         {notifications.length > 0 && (
-          <Stack spacing={2.3}>
+          <Stack spacing={0} className="notif-list">
             {notifications.map((notification) => (
               <NotificationItem
                 key={notification.id}

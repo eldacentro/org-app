@@ -66,31 +66,53 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
     >
       <Toolbar sx={{ padding: 0 }} />
       <Stack
-        className="pop-up-shadow"
+        className="drawer-glass-panel"
         sx={{
-          backgroundColor: 'var(--paper)',
           height: '100%',
           width: laptopUp ? '600px' : '100%',
           margin: laptopUp ? '10px' : 'unset',
           borderRadius: laptopUp ? 'var(--r-lg)' : 'unset',
-          border: laptopUp ? '1px solid var(--line)' : 'unset',
+          border: laptopUp
+            ? '1px solid rgba(255,255,255,0.18)'
+            : 'unset',
           padding: '20px 16px',
           overflow: 'hidden',
           '&::-webkit-scrollbar': { width: '8px' },
         }}
         role="presentation"
       >
+        {/* Header */}
         <Stack
-          direction={'row'}
-          justifyContent={'space-between'}
-          alignItems={'center'}
-          mb={'20px'}
-          ml={'4px'}
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{
+            mb: '16px',
+            ml: '4px',
+            pb: '14px',
+            borderBottom: '1px solid rgba(127,127,160,0.12)',
+          }}
         >
-          <Typography className="h1" sx={{ fontSize: '24px', fontWeight: 800, color: 'var(--ink)' }}>{title}</Typography>
-          <Stack direction={'row'} spacing={0.5}>
+          <Typography
+            className="h1"
+            sx={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)' }}
+          >
+            {title}
+          </Typography>
+          <Stack direction="row" spacing={0.5} alignItems="center">
             {headActions}
-            <ButtonIcon onClick={handleClose} sx={{ border: '1px solid var(--line)', borderRadius: 'var(--r-sm)' }}>
+            <ButtonIcon
+              onClick={handleClose}
+              sx={{
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--r-sm)',
+                transition: 'background 0.15s ease, transform 0.15s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(127,127,160,0.10)',
+                  transform: 'rotate(90deg)',
+                },
+              }}
+            >
               <IconClose color="var(--ink)" />
             </ButtonIcon>
           </Stack>
@@ -103,3 +125,4 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
 };
 
 export default Drawer;
+
