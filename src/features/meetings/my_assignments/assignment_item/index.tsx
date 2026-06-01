@@ -12,6 +12,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
 
   const {
     assignmentDate,
+    assignmentDayName,
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
@@ -54,11 +55,13 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         sx={{
           textAlign: 'center',
           width: '46px',
-          height: '46px',
+          height: '56px',
           borderRadius: 'var(--r-sm)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: '1px',
           backgroundColor: isPreaching ? 'var(--preaching-tint)' : 'var(--brand-tint)',
           border: isPreaching
             ? '1px solid var(--preaching-border)'
@@ -67,6 +70,24 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
         }}
       >
+        {/* 3-letter weekday abbreviation */}
+        <Typography
+          sx={{
+            fontSize: '8.5px',
+            fontWeight: 700,
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase',
+            color: isPreaching
+              ? 'var(--preaching-color)'
+              : 'var(--brand)',
+            opacity: 0.75,
+            lineHeight: 1,
+            transition: 'color 0.2s ease',
+          }}
+        >
+          {assignmentDayName}
+        </Typography>
+        {/* Day number */}
         <Typography
           className="h2"
           sx={{
@@ -74,7 +95,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               ? 'var(--preaching-color) !important'
               : 'var(--brand) !important',
             fontWeight: 900,
-            fontSize: '20px !important',
+            fontSize: '18px !important',
             lineHeight: 1,
             transition: 'color 0.2s ease',
           }}

@@ -39,6 +39,21 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
     }
   }, [history]);
 
+  const assignmentDayName = useMemo(() => {
+    const DAY_ABBREV = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+    try {
+      const dateToUse = history.actualDate || history.weekOf;
+      const parts = dateToUse.split('/');
+      if (parts.length >= 3) {
+        const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        return DAY_ABBREV[d.getDay()];
+      }
+      return DAY_ABBREV[new Date(dateToUse).getDay()];
+    } catch {
+      return '';
+    }
+  }, [history]);
+
   const badges = useMemo(() => {
     const result: JSX.Element[] = [];
 
@@ -76,6 +91,7 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
 
   return {
     assignmentDate,
+    assignmentDayName,
     isMidweek,
     isDept,
     personGetName,
