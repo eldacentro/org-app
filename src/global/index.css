@@ -287,7 +287,7 @@ body iframe {
 /* 2. STATE: Scrolled (scrolled is true)
    It transitions beautifully into the slim, bottom-rounded glassmorphic panel! */
 /* Light mode Glassmorphic AppBar */
-[data-theme='blue-light'] .appbar-scrolled {
+[data-theme$='-light'] .appbar-scrolled {
   background: rgba(255, 255, 255, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
@@ -297,7 +297,7 @@ body iframe {
 }
 
 /* Dark mode Glassmorphic AppBar */
-[data-theme='blue-dark'] .appbar-scrolled {
+[data-theme$='-dark'] .appbar-scrolled {
   background: rgba(21, 21, 25, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
@@ -307,7 +307,7 @@ body iframe {
 }
 
 /* Screen Top Gradients for Light Theme */
-[data-theme='blue-light'] .screen {
+[data-theme$='-light'] .screen {
   background: linear-gradient(to bottom, #ffffff 0px, #ffffff 60px, #F0F4FA 180px) !important;
 }
 
@@ -318,7 +318,7 @@ body iframe {
 }
 
 /* Light theme Glassmorphic Profile Dropdown Menu */
-[data-theme='blue-light'] .profile-menu-glass {
+[data-theme$='-light'] .profile-menu-glass {
   background: rgba(255, 255, 255, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
@@ -327,7 +327,7 @@ body iframe {
 }
 
 /* Dark theme Glassmorphic Profile Dropdown Menu */
-[data-theme='blue-dark'] .profile-menu-glass {
+[data-theme$='-dark'] .profile-menu-glass {
   background: rgba(21, 21, 25, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
@@ -339,7 +339,7 @@ body iframe {
 .profile-menu-glass li {
   border-bottom: 1px solid rgba(59, 114, 196, 0.08) !important;
 }
-[data-theme='blue-dark'] .profile-menu-glass li {
+[data-theme$='-dark'] .profile-menu-glass li {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 .profile-menu-glass li:last-child {
@@ -796,7 +796,7 @@ body iframe {
 }
 
 /* Light theme Glassmorphic Group Cards */
-[data-theme='blue-light'] .group-card-glass {
+[data-theme$='-light'] .group-card-glass {
   background: rgba(255, 255, 255, 0.62) !important;
   backdrop-filter: blur(18px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(18px) saturate(1.9) !important;
@@ -804,7 +804,7 @@ body iframe {
 }
 
 /* Dark theme Glassmorphic Group Cards */
-[data-theme='blue-dark'] .group-card-glass {
+[data-theme$='-dark'] .group-card-glass {
   background: rgba(21, 21, 25, 0.62) !important;
   backdrop-filter: blur(18px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(18px) saturate(1.9) !important;
@@ -818,24 +818,24 @@ body iframe {
 .group-card-hover-effect:hover {
   transform: translateY(-4px) !important;
 }
-[data-theme='blue-light'] .group-card-hover-effect:hover {
+[data-theme$='-light'] .group-card-hover-effect:hover {
   box-shadow: 0 12px 36px -8px rgba(59, 114, 196, 0.14), 0 4px 12px -4px rgba(59, 114, 196, 0.08) !important;
   border-color: rgba(59, 114, 196, 0.72) !important;
 }
-[data-theme='blue-dark'] .group-card-hover-effect:hover {
+[data-theme$='-dark'] .group-card-hover-effect:hover {
   box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.55), 0 4px 12px -4px rgba(0, 0, 0, 0.35) !important;
   border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* ─── Glassmorphic Drawer Panel ─────────────────────────────────── */
-[data-theme='blue-light'] .drawer-glass-panel {
+[data-theme$='-light'] .drawer-glass-panel {
   background: rgba(248, 250, 255, 0.88) !important;
   backdrop-filter: blur(24px) saturate(1.8) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
   box-shadow: -8px 0 40px rgba(59, 114, 196, 0.08), 0 0 0 1px rgba(59, 114, 196, 0.08) !important;
 }
 
-[data-theme='blue-dark'] .drawer-glass-panel {
+[data-theme$='-dark'] .drawer-glass-panel {
   background: rgba(18, 18, 28, 0.88) !important;
   backdrop-filter: blur(24px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.9) !important;
@@ -843,7 +843,7 @@ body iframe {
 }
 
 /* ─── Notification Cards ─────────────────────────────────────────── */
-[data-theme='blue-light'] .notif-card {
+[data-theme$='-light'] .notif-card {
   background: rgba(255, 255, 255, 0.72) !important;
   border: 1px solid rgba(59, 114, 196, 0.10) !important;
   box-shadow: 0 2px 12px -4px rgba(59, 114, 196, 0.06) !important;
@@ -851,13 +851,13 @@ body iframe {
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-[data-theme='blue-light'] .notif-card:hover {
+[data-theme$='-light'] .notif-card:hover {
   background: rgba(255, 255, 255, 0.90) !important;
   box-shadow: 0 6px 20px -6px rgba(59, 114, 196, 0.12), 0 2px 8px -3px rgba(59, 114, 196, 0.07) !important;
   border-color: rgba(59, 114, 196, 0.22) !important;
 }
 
-[data-theme='blue-dark'] .notif-card {
+[data-theme$='-dark'] .notif-card {
   background: rgba(30, 30, 42, 0.72) !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.3) !important;
@@ -865,7 +865,7 @@ body iframe {
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-[data-theme='blue-dark'] .notif-card:hover {
+[data-theme$='-dark'] .notif-card:hover {
   background: rgba(40, 40, 58, 0.85) !important;
   box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45), 0 2px 8px -3px rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
@@ -874,7 +874,7 @@ body iframe {
 /* ─── Mobile Action Pills ────────────────────────────────────────── */
 
 /* Secondary pill (Exportar, Autocompletar, etc.) */
-[data-theme='blue-light'] .nav-action-pill {
+[data-theme$='-light'] .nav-action-pill {
   background: rgba(255, 255, 255, 0.72) !important;
   border: 1px solid rgba(59, 114, 196, 0.16) !important;
   box-shadow: 0 2px 8px -3px rgba(59, 114, 196, 0.10) !important;
@@ -882,7 +882,7 @@ body iframe {
   -webkit-backdrop-filter: blur(10px) !important;
 }
 
-[data-theme='blue-dark'] .nav-action-pill {
+[data-theme$='-dark'] .nav-action-pill {
   background: rgba(40, 40, 58, 0.75) !important;
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
   box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.30) !important;
@@ -891,20 +891,20 @@ body iframe {
 }
 
 /* Main / primary pill (Publicar, etc.) */
-[data-theme='blue-light'] .nav-action-pill-main {
+[data-theme$='-light'] .nav-action-pill-main {
   background: var(--accent-main) !important;
   box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.45) !important;
   border: 1px solid rgba(59, 114, 196, 0.20) !important;
 }
 
-[data-theme='blue-dark'] .nav-action-pill-main {
+[data-theme$='-dark'] .nav-action-pill-main {
   background: var(--accent-main) !important;
   box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.55) !important;
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
 }
 
 /* ─── Desktop Navbar Actions Container ───────────────────────────── */
-[data-theme='blue-light'] .navbar-actions-container {
+[data-theme$='-light'] .navbar-actions-container {
   background: rgba(255, 255, 255, 0.60) !important;
   border: 1px solid rgba(59, 114, 196, 0.12) !important;
   backdrop-filter: blur(12px) saturate(1.4) !important;
@@ -912,7 +912,7 @@ body iframe {
   box-shadow: 0 2px 10px -4px rgba(59, 114, 196, 0.08) !important;
 }
 
-[data-theme='blue-dark'] .navbar-actions-container {
+[data-theme$='-dark'] .navbar-actions-container {
   background: rgba(28, 28, 40, 0.60) !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   backdrop-filter: blur(12px) saturate(1.4) !important;
