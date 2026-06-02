@@ -18,7 +18,6 @@ const RequestAccess = () => {
     handleRequestAccess,
     isProcessing,
     requestSent,
-    loadError,
     submitError,
     country,
     congregation,
@@ -69,24 +68,6 @@ const RequestAccess = () => {
 
   return (
     <Stack spacing="24px" sx={{ containerType: 'inline-size' }}>
-      {loadError && (
-        <Box
-          sx={{
-            padding: '16px',
-            borderRadius: 'var(--radius-l)',
-            background: 'var(--red-100)',
-            border: '1px solid var(--red-300)',
-          }}
-        >
-          <Typography className="body-regular" sx={{ color: 'var(--red-900)', fontWeight: 600 }}>
-            Error al conectar con Elda Centro:
-          </Typography>
-          <Typography className="body-small-regular" sx={{ color: 'var(--red-800)', marginTop: '4px' }}>
-            {loadError}
-          </Typography>
-        </Box>
-      )}
-
       {submitError && (
         <Box
           sx={{
