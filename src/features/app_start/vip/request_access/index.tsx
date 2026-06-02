@@ -19,12 +19,9 @@ const RequestAccess = () => {
     isProcessing,
     requestSent,
     loadError,
-    setLoadError,
     submitError,
     country,
-    setCountry,
     congregation,
-    setCongregation,
   } = useRequestAccess();
 
   if (requestSent) {
