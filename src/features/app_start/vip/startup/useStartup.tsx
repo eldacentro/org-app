@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
@@ -55,6 +55,11 @@ const useStartup = () => {
   const [isStart, setIsStart] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ref guard: prevents concurrent runStartupCheck calls caused by settings
+  // changing mid-execution (Dexie updates → handlePostLogin useCallback changes
+  // → runStartupCheck changes → useEffect re-fires while isStart is still true).
+  const startupRunningRef = useRef(false);
+
   const isEmailLink = searchParams.get('code') !== null;
 
   const showSignin = useCallback(() => {
@@ -63,6 +68,9 @@ const useStartup = () => {
   }, [setIsUserSignIn, isEmailLink]);
 
   const runStartupCheck = useCallback(async () => {
+    if (startupRunningRef.current) return;
+    startupRunningRef.current = true;
+
     try {
       setIsLoading(true);
 
@@ -207,6 +215,8 @@ const useStartup = () => {
       showSignin();
       setIsLoading(false);
       console.error(error);
+    } finally {
+      startupRunningRef.current = false;
     }
   }, [
     isOfflineOverride,
@@ -238,14 +248,20 @@ const useStartup = () => {
     if (isAuthLoading) return;
 
     if (!cookiesConsent) {
-      setIsUserSignIn(true);
+      // If the user is already authenticated (e.g. returned from mobile redirect),
+      // don't send them to the sign-in screen — just let TermsUse dialog handle
+      // consent and call runStartupCheck once they accept.
+      if (!isAuthenticated) {
+        setIsUserSignIn(true);
+      }
       setIsLoading(false);
+      return;
     }
 
-    if (cookiesConsent && isStart) {
+    if (isStart) {
       runStartupCheck();
     }
-  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading]);
+  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated]);
 
   return {
     isUserSignIn,
