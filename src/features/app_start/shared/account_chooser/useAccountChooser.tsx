@@ -6,7 +6,7 @@ import {
   userSignInPopup,
   userSignInRedirect,
 } from '@services/firebase/auth';
-import { isAuthProcessingState } from '@states/app';
+import { isAccountChooseState, isAuthProcessingState } from '@states/app';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -23,6 +23,7 @@ const useAccountChooser = () => {
   const { showMessage, hideMessage } = useFeedback();
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
+  const setIsAccountChoose = useSetAtom(isAccountChooseState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
 
   // When Firebase confirms the user is authenticated, mark account_type as 'vip'.
@@ -36,6 +37,7 @@ const useAccountChooser = () => {
         console.log('[markAccount] isAuthenticated=true → setting account_type=vip');
         setIsAuthProcessing(true);
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+        setIsAccountChoose(false);
         console.log('[markAccount] account_type set → VipStartup should mount');
       } catch (error) {
         console.error(error);
