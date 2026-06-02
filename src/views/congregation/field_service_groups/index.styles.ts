@@ -5,52 +5,73 @@ registerFonts();
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 30,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
   },
-  header: {
-    marginBottom: 10,
-    borderBottom: '1 solid #306CB4',
-    paddingBottom: 10,
+
+  // ─── Single content wrapper (prevents space-between splitting) ───────────────
+  contentWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  // ─── Header ──────────────────────────────────────────────────────────────────
+  topBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 6,
   },
-  headerTitleContainer: {
+  topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  headerTittle: {
-    color: '#306CB4',
+  topBarBrandName: {
+    fontSize: 16,
     fontWeight: 700,
-    fontSize: 18,
+    color: '#1a1a2e',
   },
-  headerCongregation: {
-    color: '#666666',
-    fontSize: 11,
+  topBarDate: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: '#888888',
   },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: '#1a1a2e',
+    marginBottom: 12,
+  },
+  headerDivider: {
+    borderBottom: '1 solid #d0d7e8',
+    marginBottom: 14,
+  },
+
+  // ─── Groups grid ─────────────────────────────────────────────────────────────
   groupsContainer: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 10,
-    rowGap: 8,
+    columnGap: 8,
+    rowGap: 10,
   },
   groupContainer: {
-    width: '48.5%',
-    border: '1 solid #e0e0e0',
+    width: '32%',
+    border: '1 solid #dde3f0',
     borderRadius: 12,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
   },
-  groupTitleContainer: {
+
+  // ─── Card header ─────────────────────────────────────────────────────────────
+  groupHeader: {
     backgroundColor: '#306CB4',
-    padding: '4px 6px',
+    padding: '7 10',
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -58,51 +79,103 @@ const styles = StyleSheet.create({
   },
   groupTitle: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: 700,
   },
-  membersCountContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  membersCountBadge: {
+    backgroundColor: '#5b9bd5',
     borderRadius: 4,
-    padding: '1px 4px',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   membersCount: {
     color: '#ffffff',
-    fontSize: 8,
+    fontSize: 12,
     fontWeight: 700,
   },
-  groupListContainer: {
-    padding: 6,
+
+  // ─── Card body ───────────────────────────────────────────────────────────────
+  groupBody: {
+    padding: '8 10',
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
   },
-  groupOverseers: {
+  overseerBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+  },
+  overseerRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 5,
+  },
+  overseerLabel: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#306CB4',
+    width: 30,
+    paddingTop: 1,
+  },
+  overseerName: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#1a1a2e',
+    flex: 1,
+  },
+  divider: {
+    borderBottom: '0.5 solid #e8ecf5',
+    marginVertical: 2,
+  },
+
+  // ─── Member list ─────────────────────────────────────────────────────────────
+  memberList: {
     display: 'flex',
     flexDirection: 'column',
     gap: 2,
   },
-  groupOverseerLabel: {
-    fontSize: 8,
-    color: '#666666',
-  },
-  groupOverseerName: {
-    fontSize: 9,
-    fontWeight: 700,
-    color: '#333333',
-  },
-  dashedDivider: {
-    borderBottom: '0.5 solid #eeeeee',
-    marginVertical: 2,
-  },
-  groupMemberList: {
+  memberRow: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  memberBullet: {
+    fontSize: 13,
+    color: '#306CB4',
+    lineHeight: 1,
   },
   groupMember: {
+    fontSize: 13,
+    color: '#2c2c2c',
+    flex: 1,
+  },
+
+  // ─── Footer ──────────────────────────────────────────────────────────────────
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 30,
+    right: 30,
+    borderTop: '0.5 solid #e0e0e0',
+    paddingTop: 7,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  footerLeft: {
     fontSize: 8,
-    color: '#333333',
+    color: '#aaaaaa',
+  },
+  footerRight: {
+    fontSize: 8,
+    color: '#aaaaaa',
   },
 });
 

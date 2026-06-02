@@ -11,37 +11,39 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
 
   return (
     <View style={styles.groupContainer} wrap={false}>
-      <View style={styles.groupTitleContainer}>
+      {/* Card header */}
+      <View style={styles.groupHeader}>
         <Text style={styles.groupTitle}>{group.group_name}</Text>
-        <View style={styles.membersCountContainer}>
+        <View style={styles.membersCountBadge}>
           <Text style={styles.membersCount}>{groupMembersCount}</Text>
         </View>
       </View>
 
-      <View style={styles.groupListContainer}>
+      {/* Card body */}
+      <View style={styles.groupBody}>
+        {/* Overseers block */}
         {(group.overseer || group.overseerAssistant) && (
           <>
-            <View style={styles.groupOverseers}>
+            <View style={styles.overseerBlock}>
               {group.overseer && (
-                <View>
-                  <Text style={styles.groupOverseerLabel}>Superintendente:</Text>
-                  <Text style={styles.groupOverseerName}>{group.overseer}</Text>
+                <View style={styles.overseerRow}>
+                  <Text style={styles.overseerLabel}>SUP.</Text>
+                  <Text style={styles.overseerName}>{group.overseer}</Text>
                 </View>
               )}
               {group.overseerAssistant && (
-                <View>
-                  <Text style={styles.groupOverseerLabel}>Auxiliar:</Text>
-                  <Text style={styles.groupOverseerName}>
-                    {group.overseerAssistant}
-                  </Text>
+                <View style={styles.overseerRow}>
+                  <Text style={styles.overseerLabel}>AUX.</Text>
+                  <Text style={styles.overseerName}>{group.overseerAssistant}</Text>
                 </View>
               )}
             </View>
-            <View style={styles.dashedDivider} />
+            <View style={styles.divider} />
           </>
         )}
 
-        <View style={styles.groupMemberList}>
+        {/* Member list */}
+        <View style={styles.memberList}>
           {group.publishers.map((publisher) => (
             <FSGGroupMember key={publisher} member={publisher} />
           ))}
