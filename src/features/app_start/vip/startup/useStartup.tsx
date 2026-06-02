@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
+  apiHostState,
   congregationCreateStepState,
   cookiesConsentState,
   isCongAccountCreateState,
@@ -32,7 +33,7 @@ import useAuth from '../hooks/useAuth';
 const useStartup = () => {
   const [searchParams] = useSearchParams();
 
-  const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
+  const { isAuthenticated, loading: isAuthLoading, user } = useFirebaseAuth();
   const { handlePostLogin } = useAuth();
 
   const [isUserSignIn, setIsUserSignIn] = useAtom(isUserSignInState);
@@ -51,6 +52,7 @@ const useStartup = () => {
   const isCongCreate = useAtomValue(isCongAccountCreateState);
   const cookiesConsent = useAtomValue(cookiesConsentState);
   const isEmailSent = useAtomValue(isEmailSentState);
+  const apiHost = useAtomValue(apiHostState);
 
   const [isStart, setIsStart] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,7 +94,7 @@ const useStartup = () => {
       if (currentCongName.length === 0) {
         if (isAuthenticated) {
           console.log('[startup] cong_name empty + authenticated → calling handlePostLogin');
-          const success = await handlePostLogin();
+          const success = await handlePostLogin(user);
           console.log('[startup] handlePostLogin result:', success);
           setIsLoading(false);
           setIsStart(false);
@@ -228,6 +230,7 @@ const useStartup = () => {
     setIsUserAccountCreated,
     handlePostLogin,
     setUserID,
+    user,
   ]);
 
   useEffect(() => {
@@ -244,8 +247,8 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
-    console.log('[vipStartup effect] isAuthLoading:', isAuthLoading, 'cookiesConsent:', cookiesConsent, 'isStart:', isStart, 'isAuthenticated:', isAuthenticated);
-    if (isAuthLoading) return;
+    console.log('[vipStartup effect] isAuthLoading:', isAuthLoading, 'cookiesConsent:', cookiesConsent, 'isStart:', isStart, 'isAuthenticated:', isAuthenticated, 'apiHost:', apiHost);
+    if (isAuthLoading || apiHost === '') return;
 
     if (!cookiesConsent) {
       if (!isAuthenticated) {
@@ -259,7 +262,7 @@ const useStartup = () => {
       console.log('[vipStartup effect] calling runStartupCheck');
       runStartupCheck();
     }
-  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated]);
+  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated, apiHost]);
 
   return {
     isUserSignIn,
