@@ -15,15 +15,16 @@ const useRequestAccess = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [firstname, setFirstname] = useState(firstnameInitial);
   const [lastname, setLastname] = useState(lastnameInitial);
-  const country: CountryResponseType = {
+  const [country, setCountry] = useState<CountryResponseType>({
     countryCode: 'ES',
     countryName: 'España',
     countryGuid: 'ES',
-  };
-  const congregation: CongregationResponseType = {
+  });
+  const [congregation, setCongregation] = useState<CongregationResponseType>({
     congName: 'Elda - Centro',
     congGuid: '',
     language: '',
@@ -32,7 +33,7 @@ const useRequestAccess = () => {
     location: { lat: 0, lng: 0 },
     midweekMeetingTime: { weekday: 0, time: '' },
     weekendMeetingTime: { weekday: 0, time: '' },
-  };
+  });
 
   const handleRequestAccess = async () => {
     if (requestSent || isProcessing) return;
@@ -94,10 +95,14 @@ const useRequestAccess = () => {
     setFirstname,
     lastname,
     setLastname,
+    setCountry,
     country,
     congregation,
+    setCongregation,
     isProcessing,
     requestSent,
+    loadError,
+    setLoadError,
     submitError,
     handleRequestAccess,
   };
