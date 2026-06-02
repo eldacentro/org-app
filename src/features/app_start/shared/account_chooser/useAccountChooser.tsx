@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
 import {
   authProvider,
-  currentAuthUser,
-  getAuthRedirectResult,
   setAuthPersistence,
   userSignInPopup,
   userSignInRedirect,
@@ -12,6 +10,7 @@ import { isAccountChooseState, isAuthProcessingState, isUserAccountCreatedState 
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import useFirebaseAuth from '@hooks/useFirebaseAuth';
 import useAuth from '../../vip/hooks/useAuth';
 import useFeedback from '../hooks/useFeedback';
 import useAppTranslation from '@hooks/useAppTranslation';
@@ -24,28 +23,26 @@ const useAccountChooser = () => {
   const { t } = useAppTranslation();
   const { showMessage, hideMessage } = useFeedback();
   const { handlePostLogin } = useAuth();
+  const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const setIsAccountChoose = useSetAtom(isAccountChooseState);
   const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
 
-  // On mobile, signInWithRedirect redirects the page away and back.
-  // getRedirectResult() may return null if Firebase already consumed the result
-  // internally during SDK init (onAuthStateChanged fires before this effect runs).
-  // Fall back to currentUser so the post-login flow still completes.
+  // Reacts to Firebase auth state. Covers two cases:
+  // 1. Mobile redirect: page reloads, Firebase restores session → isAuthenticated becomes true
+  // 2. Desktop popup: user completes Google sign-in → isAuthenticated becomes true
+  // In both cases we run the same post-login flow.
   useEffect(() => {
-    const checkRedirectResult = async () => {
+    if (isAuthLoading || !isAuthenticated) return;
+
+    const processLogin = async () => {
       try {
-        const redirectUser = await getAuthRedirectResult();
-        const firebaseUser = redirectUser ?? currentAuthUser();
-
-        if (!firebaseUser) return;
-
         setIsAuthProcessing(true);
         hideMessage();
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
         setIsUserAccountCreated(false);
-        await handlePostLogin(firebaseUser);
+        await handlePostLogin();
         setIsAccountChoose(false);
       } catch (error) {
         console.error(error);
@@ -61,36 +58,25 @@ const useAccountChooser = () => {
       }
     };
 
-    checkRedirectResult();
+    processLogin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   const handleChooseGoogle = async () => {
     try {
-      setIsAuthProcessing(true);
       hideMessage();
       setAuthPersistence();
 
       if (isMobile) {
-        // Page navigates away — setIsAuthProcessing state is lost, no need to set it.
-        // Result is handled in the useEffect on return.
-        setIsAuthProcessing(false);
+        // Page navigates away to Google. On return, the useEffect above handles post-login.
         await userSignInRedirect(authProvider.Google);
         return;
       }
 
-      const result = await userSignInPopup(authProvider.Google);
-
-      if (!result) {
-        setIsAuthProcessing(false);
-        return;
-      }
-
-      await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
-      setIsUserAccountCreated(false);
-      await handlePostLogin();
-      setIsAccountChoose(false);
-      setIsAuthProcessing(false);
+      // Desktop: show spinner while popup is open.
+      // After popup closes, isAuthenticated becomes true → useEffect handles post-login.
+      setIsAuthProcessing(true);
+      await userSignInPopup(authProvider.Google);
     } catch (error) {
       console.error(error);
       displayOnboardingFeedback({
@@ -99,7 +85,6 @@ const useAccountChooser = () => {
           error.code || error.message || t('error_app_generic-desc')
         ),
       });
-
       showMessage();
       setIsAuthProcessing(false);
     }
