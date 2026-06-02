@@ -21,10 +21,22 @@ self.setting = {
   FEATURE_FLAGS: {},
 };
 
-// Prevent concurrent backup runs. Multiple Dexie writes during login/startup
-// fire startWorker in quick succession; only the first should actually run.
+// Debounce + concurrency guard for backup runs.
+//
+// Problem: every Dexie write fires startWorker immediately. Rapid edits (e.g.
+// filling a form on the Exhibitors page) would launch a new full GET→merge→POST
+// cycle for each keystroke, causing 409 conflicts and BACKUP_FAILED toasts.
+//
+// Solution: debounce startWorker calls by 3 s. If a backup is already running
+// when new changes arrive, coalesce them into a single pending run that starts
+// after the current one finishes (also debounced by 1 s to avoid back-to-back
+// cycles that would collide on the server uploadId guard).
+const DEBOUNCE_MS = 3000;
+const PENDING_DEBOUNCE_MS = 1000;
+
 let isBackupRunning = false;
 let pendingBackup = false;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 self.onmessage = function (event) {
   if (event.data.field) {
@@ -38,13 +50,13 @@ self.onmessage = function (event) {
       pendingBackup = true;
       return;
     }
-    runBackup();
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runBackup, DEBOUNCE_MS);
   }
 };
 
 const runBackup = async () => {
   isBackupRunning = true;
-  pendingBackup = false;
   let backup = '';
 
   try {
@@ -179,9 +191,9 @@ const runBackup = async () => {
     self.postMessage({ error: 'BACKUP_FAILED', details: error.message });
   } finally {
     isBackupRunning = false;
-    // If a backup was queued while this one ran, start it now.
     if (pendingBackup) {
-      runBackup();
+      pendingBackup = false;
+      debounceTimer = setTimeout(runBackup, PENDING_DEBOUNCE_MS);
     }
   }
 };
