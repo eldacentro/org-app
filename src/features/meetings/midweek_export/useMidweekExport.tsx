@@ -31,6 +31,7 @@ import {
   midweekMeetingClassCountState,
   midweekMeetingWeekdayState,
   userDataViewState,
+  pdfExportEnabledState,
 } from '@states/settings';
 import {
   TemplateS140,
@@ -49,6 +50,7 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const [S89Template, setS89Template] = useAtom(S89TemplateState);
   const [S140Template, setS140Template] = useAtom(S140TemplateState);
 
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const schedules = useAtomValue(schedulesState);
   const dataView = useAtomValue(userDataViewState);
   const lang = useAtomValue(JWLangState);
@@ -227,11 +229,14 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
         return isValid;
       });
 
-      if (exportS89) {
+      const shouldExportS89 = pdfExportEnabled ? exportS89 : true;
+      const shouldExportS140 = pdfExportEnabled ? exportS140 : false;
+
+      if (shouldExportS89) {
         await handleExportS89(weeksList);
       }
 
-      if (exportS140) {
+      if (shouldExportS140) {
         await handleExportS140(weeksList);
       }
 

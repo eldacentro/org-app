@@ -11,11 +11,8 @@ import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekSelector from '@features/meetings/week_selector';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
-import { useAtomValue } from 'jotai';
-import { pdfExportEnabledState } from '@states/settings';
 
 const MidweekMeeting = () => {
-  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const { t } = useAppTranslation();
 
   const { desktopUp, tablet688Up } = useBreakpoints();
@@ -81,13 +78,11 @@ const MidweekMeeting = () => {
         buttons={
           hasWeeks && (
             <>
-              {pdfExportEnabled && (
-                <NavBarButton
-                  text={t('tr_export')}
-                  onClick={handleOpenExport}
-                  icon={<IconPrint />}
-                ></NavBarButton>
-              )}
+              <NavBarButton
+                text={t('tr_export')}
+                onClick={handleOpenExport}
+                icon={<IconPrint />}
+              ></NavBarButton>
               <NavBarButton
                 text={t('tr_autofill')}
                 onClick={handleOpenAutofill}
