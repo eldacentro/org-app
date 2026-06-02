@@ -11,8 +11,11 @@ import Typography from '@components/typography';
 import S89TemplateSelector from './S89TemplateSelector';
 import S140TemplateSelector from './S140TemplateSelector';
 import WeekRangeSelector from '../week_range_selector';
+import { useAtomValue } from 'jotai';
+import { pdfExportEnabledState } from '@states/settings';
 
 const MidweekExport = ({ open, onClose }: MidweekExportType) => {
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const { t } = useAppTranslation();
 
   const {
@@ -108,14 +111,15 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
           padding: '24px',
         }}
       >
-        <Button
-          variant="main"
-          endIcon={isProcessing && <IconLoading />}
-          onClick={handleExportSchedule}
-          disabled={true}
-        >
-          {t('tr_export')}
-        </Button>
+        {pdfExportEnabled && (
+          <Button
+            variant="main"
+            endIcon={isProcessing && <IconLoading />}
+            onClick={handleExportSchedule}
+          >
+            {t('tr_export')}
+          </Button>
+        )}
         <Button variant="secondary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>

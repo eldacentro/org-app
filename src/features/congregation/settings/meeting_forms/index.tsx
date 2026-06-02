@@ -18,6 +18,7 @@ import Select from '@components/select';
 import SourceLanguage from './source_language';
 import SwitchWithLabel from '@components/switch_with_label';
 import SongsWeekend from './songs_weekend';
+import PdfExport from './pdf_export';
 import Typography from '@components/typography';
 import FirstDayOfTheWeek from '../first_day_week';
 
@@ -86,6 +87,8 @@ const MeetingForms = () => {
           <SongsWeekend />
 
           <DisplayName />
+
+          <PdfExport />
         </Stack>
 
         <Stack spacing="16px" marginTop="24px !important">

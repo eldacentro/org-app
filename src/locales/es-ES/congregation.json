@@ -524,5 +524,7 @@
   "tr_maximumAmountOfGroupsIs10": "La cantidad máxima de grupos de predicación es 10",
   "tr_personAwayNotice": "Esta persona está de ausencia: {{ date }}",
   "tr_weekendTemplateShowSongs": "Mostrar canciones en los programas de reuniones de fin de semana",
+  "tr_pdfExportEnabled": "Habilitar la exportación de programas e informes a PDF",
+  "tr_pdfExportEnabledDesc": "Mostrar los botones para exportar o imprimir en PDF en las secciones de reuniones, departamentos, exhibidores, salidas y próximos eventos.",
   "tr_personalDetails": "Datos personales"
 }

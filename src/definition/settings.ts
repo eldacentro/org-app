@@ -180,6 +180,7 @@ export type SettingsType = {
       value: PublishersSortOption;
     };
     aux_class_fsg: { value: boolean; updatedAt: string };
+    pdf_export_enabled: { value: boolean; updatedAt: string };
     first_day_week: {
       type: string;
       _deleted: boolean;

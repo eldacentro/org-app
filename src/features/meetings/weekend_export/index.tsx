@@ -7,8 +7,11 @@ import Button from '@components/button';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import WeekRangeSelector from '../week_range_selector';
+import { useAtomValue } from 'jotai';
+import { pdfExportEnabledState } from '@states/settings';
 
 const WeekendExport = ({ open, onClose }: WeekendExportType) => {
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const { t } = useAppTranslation();
 
   const {
@@ -54,14 +57,15 @@ const WeekendExport = ({ open, onClose }: WeekendExportType) => {
           width: '100%',
         }}
       >
-        <Button
-          variant="main"
-          disabled={true}
-          endIcon={isProcessing && <IconLoading />}
-          onClick={handleExportSchedules}
-        >
-          {t('tr_export')}
-        </Button>
+        {pdfExportEnabled && (
+          <Button
+            variant="main"
+            endIcon={isProcessing && <IconLoading />}
+            onClick={handleExportSchedules}
+          >
+            {t('tr_export')}
+          </Button>
+        )}
         <Button variant="secondary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>

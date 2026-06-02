@@ -59,7 +59,7 @@ import {
 } from '@services/dexie/exhibitors';
 import { displaySnackNotification } from '@services/states/app';
 import worker from '@services/worker/backupWorker';
-import { congNameState, displayNameMeetingsEnableState, fullnameOptionState } from '@states/settings';
+import { congNameState, displayNameMeetingsEnableState, fullnameOptionState, pdfExportEnabledState } from '@states/settings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
 
@@ -87,6 +87,7 @@ const Exhibitors = () => {
 
   // Estados de base de datos
   const persons = useAtomValue(personsState);
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const congName = useAtomValue(congNameState);
   const [exhibitorsList, setExhibitorsList] = useAtom(exhibitorsListState);
   const [settings, setSettings] = useAtom(exhibitorsSettingsState) as [
@@ -899,12 +900,13 @@ const Exhibitors = () => {
                       onClick={handleAutofillMonth}
                       icon={<IconGenerate />}
                     />
-                    <NavBarButton
-                      text={t('tr_export', 'Exportar')}
-                      onClick={handleExportPDF}
-                      icon={<IconPrint />}
-                      disabled={true}
-                    />
+                    {pdfExportEnabled && (
+                      <NavBarButton
+                        text={t('tr_export', 'Exportar')}
+                        onClick={handleExportPDF}
+                        icon={<IconPrint />}
+                      />
+                    )}
                   </>
                 )}
               </>

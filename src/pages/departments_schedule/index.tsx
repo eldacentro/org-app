@@ -12,9 +12,11 @@ import DeptAutofillDialog from '@features/departments_schedule/autofill';
 import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
 import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
+import { pdfExportEnabledState } from '@states/settings';
 import LastModifiedInfo from '@components/last_modified_info';
 
 const DepartmentsSchedule = () => {
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const schedules = useAtomValue(deptScheduleState);
   const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
@@ -52,12 +54,13 @@ const DepartmentsSchedule = () => {
         title={t('tr_departmentsSchedule', 'Programa de departamentos')}
         buttons={
           <>
-            <NavBarButton
-              text={t('tr_export', 'Exportar')}
-              onClick={handleExportPDF}
-              icon={<IconPrint />}
-              disabled={true}
-            />
+            {pdfExportEnabled && (
+              <NavBarButton
+                text={t('tr_export', 'Exportar')}
+                onClick={handleExportPDF}
+                icon={<IconPrint />}
+              />
+            )}
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}
               onClick={() => setIsAutofillOpen(true)}

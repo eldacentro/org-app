@@ -515,6 +515,12 @@ export const weekendSchedulesSongsWeekend = atom((get) => {
   );
 });
 
+export const pdfExportEnabledState = atom((get) => {
+  const settings = get(settingsState);
+
+  return settings.cong_settings.pdf_export_enabled?.value ?? false;
+});
+
 // USER SETTINGS
 
 export const userDataViewState = atom((get) => {

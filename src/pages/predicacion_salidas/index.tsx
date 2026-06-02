@@ -49,7 +49,7 @@ import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { personsState } from '@states/persons';
 import TimePicker from '@components/time_picker';
 import { generateDateFromTime } from '@utils/date';
-import { hour24FormatState, congNameState } from '@states/settings';
+import { hour24FormatState, congNameState, pdfExportEnabledState } from '@states/settings';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
@@ -96,6 +96,7 @@ const PredicacionSalidas = () => {
 
   // Estados reactivos de Jotai
   const persons = useAtomValue(personsState);
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const hour24 = useAtomValue(hour24FormatState);
   const congName = useAtomValue(congNameState);
   const [outingsWeeks, setOutingsWeeks] = useAtom(serviceOutingsListState);
@@ -948,16 +949,17 @@ const PredicacionSalidas = () => {
                       onClick={handleAutofillMonth}
                       icon={<IconGenerate />}
                     />
-                    <NavBarButton
-                      text={t('tr_export', 'Exportar')}
-                      onClick={() => {
-                        setPdfExportMonth(selectedMonth);
-                        setPdfExportYear(selectedYear);
-                        setPdfExportDialogOpen(true);
-                      }}
-                      icon={<IconPrint />}
-                      disabled={true}
-                    />
+                    {pdfExportEnabled && (
+                      <NavBarButton
+                        text={t('tr_export', 'Exportar')}
+                        onClick={() => {
+                          setPdfExportMonth(selectedMonth);
+                          setPdfExportYear(selectedYear);
+                          setPdfExportDialogOpen(true);
+                        }}
+                        icon={<IconPrint />}
+                      />
+                    )}
                   </>
                 )}
               </>
