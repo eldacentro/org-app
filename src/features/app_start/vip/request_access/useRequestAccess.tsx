@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { CongregationResponseType, CountryResponseType } from '@definition/api';
@@ -6,7 +6,6 @@ import { firstnameState, lastnameState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { apiUserJoinCongregation } from '@services/api/user';
-import { apiFetchCountries, apiFetchCongregations } from '@services/api/congregation';
 
 const useRequestAccess = () => {
   const { t } = useAppTranslation();
@@ -20,74 +19,21 @@ const useRequestAccess = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [firstname, setFirstname] = useState(firstnameInitial);
   const [lastname, setLastname] = useState(lastnameInitial);
-  const [country, setCountry] = useState<CountryResponseType>(null);
-  const [congregation, setCongregation] = useState<CongregationResponseType>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    const autoSelectCongregation = async () => {
-      try {
-        setLoadError(null);
-
-        // 1. Fetch countries from the API
-        const { data: countriesData, status: countriesStatus } = await apiFetchCountries();
-        if (!active) return;
-        if (countriesStatus !== 200 || !Array.isArray(countriesData)) {
-          setLoadError(t('error_app_generic-title'));
-          return;
-        }
-
-        // Find Spain (ESP / ES / Spain / España)
-        const spain = countriesData.find(
-          (c) =>
-            (c?.countryCode &&
-              (c.countryCode.toUpperCase() === 'ESP' ||
-                c.countryCode.toUpperCase() === 'ES')) ||
-            (c?.countryName &&
-              (c.countryName.toLowerCase() === 'españa' ||
-                c.countryName.toLowerCase() === 'spain'))
-        );
-        if (!spain) {
-          setLoadError("No se pudo encontrar España en la lista de países.");
-          return;
-        }
-
-        setCountry(spain);
-
-        // 2. Fetch congregations for Spain matching "Elda"
-        const { data: congsData, status: congsStatus } = await apiFetchCongregations(
-          spain.countryGuid,
-          'Elda'
-        );
-        if (!active) return;
-        if (congsStatus !== 200 || !Array.isArray(congsData)) {
-          setLoadError("No se pudo cargar la lista de congregaciones.");
-          return;
-        }
-
-        // Find the correct congregation matching "Elda Centro" or "Elda - Centro"
-        const eldaCong = congsData.find(
-          (c) => c?.congName && c.congName.toLowerCase().includes('elda')
-        );
-        if (!eldaCong) {
-          setLoadError("No se pudo encontrar la congregación Elda - Centro.");
-          return;
-        }
-
-        setCongregation(eldaCong);
-      } catch (err) {
-        console.error('Failed to auto-select congregation:', err);
-        setLoadError((err as Error).message || "Error al conectar con el servidor.");
-      }
-    };
-
-    autoSelectCongregation();
-
-    return () => {
-      active = false;
-    };
-  }, [t]);
+  const [country, setCountry] = useState<CountryResponseType>({
+    countryCode: 'ES',
+    countryName: 'España',
+    countryGuid: 'ES',
+  });
+  const [congregation, setCongregation] = useState<CongregationResponseType>({
+    congName: 'Elda - Centro',
+    congGuid: '',
+    language: '',
+    address: '',
+    circuit: '',
+    location: { lat: 0, lng: 0 },
+    midweekMeetingTime: { weekday: 0, time: '' },
+    weekendMeetingTime: { weekday: 0, time: '' },
+  });
 
   const handleRequestAccess = async () => {
     if (requestSent || isProcessing) return;
