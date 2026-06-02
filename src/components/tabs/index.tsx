@@ -13,14 +13,18 @@ export const CustomTabPanel = (props: TabsPanelProps) => {
 
   return (
     <Box
-      sx={{ height: '100%' }}
+      sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       role="tabpanel"
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ padding: '24px 0' }}>{children}</Box>}
+      {value === index && (
+        <Box sx={{ padding: '24px 0', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {children}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -71,10 +75,11 @@ const Tabs = ({
   }, [value]);
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Box
         sx={{
           display: 'flex',
+          flexShrink: 0,
           justifyContent: 'space-between',
           alignItems: tabletDown ? 'stretch' : 'center',
           flexDirection: tabletDown ? 'column' : 'row',

@@ -1,5 +1,6 @@
 import { FC, ReactNode } from 'react';
 import {
+  Box,
   Drawer as MUIDrawer,
   DrawerProps,
   Stack,
@@ -118,7 +119,9 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           </Stack>
         </Stack>
 
-        {children}
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {children}
+        </Box>
       </Stack>
     </MUIDrawer>
   );

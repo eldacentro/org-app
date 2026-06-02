@@ -17,7 +17,7 @@ import Typography from '@components/typography';
 const MyAssignments = () => {
   const { t } = useAppTranslation();
 
-  const { tabletDown, laptopDown } = useBreakpoints();
+  const { tabletDown } = useBreakpoints();
 
   const {
     handleClose,
@@ -32,13 +32,6 @@ const MyAssignments = () => {
   } = useMyAssignments();
 
   const hasDelegatedAssignments = delegateAssignments.total > 0;
-
-  // Correct scrollable height so the list never gets clipped inside the Drawer
-  const scrollAreaHeight = tabletDown
-    ? 'calc(100dvh - 185px)'
-    : laptopDown
-    ? 'calc(100dvh - 210px)'
-    : 'calc(100dvh - 210px)';
 
   const actionComponent = (
     <Box
@@ -106,7 +99,8 @@ const MyAssignments = () => {
   ) => (
     <Box
       sx={{
-        height: scrollAreaHeight,
+        flex: 1,
+        minHeight: 0,
         overflowY: 'auto',
         '&::-webkit-scrollbar': {
           width: '4px',
@@ -189,6 +183,8 @@ const MyAssignments = () => {
         <Box
           sx={{
             display: 'flex',
+            flex: 1,
+            minHeight: 0,
             gap: '16px',
             flexWrap: 'wrap',
             justifyContent: 'space-between',
