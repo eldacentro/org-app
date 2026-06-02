@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
 import {
   authProvider,
+  currentAuthUser,
   getAuthRedirectResult,
   setAuthPersistence,
   userSignInPopup,
@@ -29,18 +30,22 @@ const useAccountChooser = () => {
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
 
   // On mobile, signInWithRedirect redirects the page away and back.
-  // Check for a pending redirect result on mount and complete the login flow.
+  // getRedirectResult() may return null if Firebase already consumed the result
+  // internally during SDK init (onAuthStateChanged fires before this effect runs).
+  // Fall back to currentUser so the post-login flow still completes.
   useEffect(() => {
     const checkRedirectResult = async () => {
       try {
-        const user = await getAuthRedirectResult();
-        if (!user) return;
+        const redirectUser = await getAuthRedirectResult();
+        const firebaseUser = redirectUser ?? currentAuthUser();
+
+        if (!firebaseUser) return;
 
         setIsAuthProcessing(true);
         hideMessage();
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
         setIsUserAccountCreated(false);
-        await handlePostLogin(user);
+        await handlePostLogin(firebaseUser);
         setIsAccountChoose(false);
       } catch (error) {
         console.error(error);
