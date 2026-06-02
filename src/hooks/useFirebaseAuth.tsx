@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { User, getAuth, onAuthStateChanged } from 'firebase/auth';
+import { User, getAuth, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import {
   displaySnackNotification,
   setCurrentProvider,
@@ -15,48 +15,63 @@ const useFirebaseAuth = () => {
 
   useEffect(() => {
     const auth = getAuth();
+    let unsubscribe: () => void;
 
-    const unsubscribe = onAuthStateChanged(auth, async (user: User) => {
+    const initAuth = async () => {
       try {
-        setUser(user);
+        // Await any pending redirect operations (crucial for mobile login)
+        // This blocks the 'loading' state from becoming false prematurely
+        await getRedirectResult(auth);
+      } catch (error) {
+        console.error('Firebase redirect error:', error);
+      }
 
-        if (user) {
-          worker.postMessage({
-            field: 'idToken',
-            value: await user.getIdToken(),
-          });
+      unsubscribe = onAuthStateChanged(auth, async (currentUser: User | null) => {
+        try {
+          setUser(currentUser || undefined);
 
-          if (user.providerData.length > 1) {
-            displaySnackNotification({
-              header: getTranslation({ key: 'tr_errorTitle' }),
-              message: getTranslation({
-                key: 'oauthAccountExistsWithDifferentCredential',
-              }),
-              severity: 'error',
+          if (currentUser) {
+            worker.postMessage({
+              field: 'idToken',
+              value: await currentUser.getIdToken(),
             });
 
+            if (currentUser.providerData.length > 1) {
+              displaySnackNotification({
+                header: getTranslation({ key: 'tr_errorTitle' }),
+                message: getTranslation({
+                  key: 'oauthAccountExistsWithDifferentCredential',
+                }),
+                severity: 'error',
+              });
+
+              setIsAuthenticated(false);
+              setLoading(false);
+              return;
+            }
+
+            const provider = currentUser.providerData[0]?.providerId || 'none';
+            setCurrentProvider(provider);
+
+            const photoURL = currentUser.providerData[0]?.photoURL;
+            dbAppSettingsSaveProfilePic(photoURL, provider);
+            setIsAuthenticated(true);
+          } else {
             setIsAuthenticated(false);
-            setLoading(false);
-            return;
           }
-
-          const provider = user.providerData[0]?.providerId || 'none';
-          setCurrentProvider(provider);
-
-          const photoURL = user.providerData[0]?.photoURL;
-          dbAppSettingsSaveProfilePic(photoURL, provider);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    });
+      });
+    };
 
-    return () => unsubscribe();
+    initAuth();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   return { isAuthenticated, user, loading };
