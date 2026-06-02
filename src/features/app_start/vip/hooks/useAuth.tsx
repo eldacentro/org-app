@@ -304,9 +304,12 @@ const useAuth = () => {
     try {
       setIsAuthProcessing(true);
 
+      console.log('[handlePostLogin] calling apiSendAuthorization...');
       const { status, data } = await apiSendAuthorization(user);
+      console.log('[handlePostLogin] status:', status, 'data:', JSON.stringify(data)?.slice(0, 200));
 
       if (status !== 200) {
+        console.error('[handlePostLogin] non-200 response:', status, data?.message);
         await handleAuthorizationError(data.message);
         return false;
       }

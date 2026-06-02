@@ -33,8 +33,10 @@ const useAccountChooser = () => {
 
     const markAccount = async () => {
       try {
+        console.log('[markAccount] isAuthenticated=true → setting account_type=vip');
         setIsAuthProcessing(true);
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+        console.log('[markAccount] account_type set → VipStartup should mount');
       } catch (error) {
         console.error(error);
         displayOnboardingFeedback({

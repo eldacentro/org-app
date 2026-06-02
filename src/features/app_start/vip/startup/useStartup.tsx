@@ -91,10 +91,9 @@ const useStartup = () => {
 
       if (currentCongName.length === 0) {
         if (isAuthenticated) {
-          // User is authenticated but has no local congregation data.
-          // This happens after first login (popup or mobile redirect).
-          // Run the full post-login flow here instead of showing the sign-in screen again.
+          console.log('[startup] cong_name empty + authenticated → calling handlePostLogin');
           const success = await handlePostLogin();
+          console.log('[startup] handlePostLogin result:', success);
           setIsLoading(false);
           setIsStart(false);
           if (!success) showSignin();
@@ -245,12 +244,10 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
+    console.log('[vipStartup effect] isAuthLoading:', isAuthLoading, 'cookiesConsent:', cookiesConsent, 'isStart:', isStart, 'isAuthenticated:', isAuthenticated);
     if (isAuthLoading) return;
 
     if (!cookiesConsent) {
-      // If the user is already authenticated (e.g. returned from mobile redirect),
-      // don't send them to the sign-in screen — just let TermsUse dialog handle
-      // consent and call runStartupCheck once they accept.
       if (!isAuthenticated) {
         setIsUserSignIn(true);
       }
@@ -259,6 +256,7 @@ const useStartup = () => {
     }
 
     if (isStart) {
+      console.log('[vipStartup effect] calling runStartupCheck');
       runStartupCheck();
     }
   }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated]);
