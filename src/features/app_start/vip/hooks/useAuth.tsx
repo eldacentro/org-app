@@ -23,8 +23,8 @@ import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { NextStepType } from './index.types';
 import { settingSchema } from '@services/dexie/schema';
 import { apiSendAuthorization } from '@services/api/user';
-import { displayOnboardingFeedback } from '@services/states/app';
-import { getMessageByCode } from '@services/i18n/translation';
+import { displaySnackNotification } from '@services/states/app';
+import { getMessageByCode, getTranslation } from '@services/i18n/translation';
 
 const useAuth = () => {
   const setIsSetup = useSetAtom(isSetupState);
@@ -44,9 +44,10 @@ const useAuth = () => {
   const settings = useAtomValue(settingsState);
 
   const handleAuthorizationError = useCallback(async (message: string) => {
-    displayOnboardingFeedback({
-      title: getMessageByCode('error_app_generic-title'),
+    displaySnackNotification({
+      header: getTranslation({ key: 'tr_errorTitle' }),
       message: getMessageByCode(message),
+      severity: 'error',
     });
 
     setIsAuthProcessing(false);

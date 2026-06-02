@@ -4,7 +4,6 @@ import {
   authProvider,
   setAuthPersistence,
   userSignInPopup,
-  userSignInRedirect,
 } from '@services/firebase/auth';
 import { isAccountChooseState, isAuthProcessingState } from '@states/app';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
@@ -13,10 +12,6 @@ import { getMessageByCode } from '@services/i18n/translation';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
 import useFeedback from '../hooks/useFeedback';
 import useAppTranslation from '@hooks/useAppTranslation';
-
-const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-  navigator.userAgent
-);
 
 const useAccountChooser = () => {
   const { t } = useAppTranslation();
@@ -60,17 +55,8 @@ const useAccountChooser = () => {
   const handleChooseGoogle = async () => {
     try {
       hideMessage();
-      setAuthPersistence();
+      await setAuthPersistence();
 
-      if (isMobile) {
-        // Page navigates away to Google. On return, Firebase restores session →
-        // isAuthenticated becomes true → useEffect marks account_type → VipStartup loads.
-        await userSignInRedirect(authProvider.Google);
-        return;
-      }
-
-      // Desktop: show spinner while popup is open.
-      // After popup, isAuthenticated becomes true → useEffect handles the rest.
       setIsAuthProcessing(true);
       await userSignInPopup(authProvider.Google);
     } catch (error) {
