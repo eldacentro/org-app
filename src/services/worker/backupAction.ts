@@ -21,6 +21,11 @@ self.setting = {
   FEATURE_FLAGS: {},
 };
 
+// Prevent concurrent backup runs. Multiple Dexie writes during login/startup
+// fire startWorker in quick succession; only the first should actually run.
+let isBackupRunning = false;
+let pendingBackup = false;
+
 self.onmessage = function (event) {
   if (event.data.field) {
     if (Object.keys(self.setting).includes(event.data.field)) {
@@ -29,11 +34,17 @@ self.onmessage = function (event) {
   }
 
   if (event.data === 'startWorker') {
+    if (isBackupRunning) {
+      pendingBackup = true;
+      return;
+    }
     runBackup();
   }
 };
 
 const runBackup = async () => {
+  isBackupRunning = true;
+  pendingBackup = false;
   let backup = '';
 
   try {
@@ -166,5 +177,11 @@ const runBackup = async () => {
     console.error(error);
     backup = 'failed';
     self.postMessage({ error: 'BACKUP_FAILED', details: error.message });
+  } finally {
+    isBackupRunning = false;
+    // If a backup was queued while this one ran, start it now.
+    if (pendingBackup) {
+      runBackup();
+    }
   }
 };
