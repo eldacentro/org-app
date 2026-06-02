@@ -300,7 +300,7 @@ const useAuth = () => {
     ]
   );
 
-  const handlePostLogin = useCallback(async (user?: User) => {
+  const handlePostLogin = useCallback(async (user?: User): Promise<boolean> => {
     try {
       setIsAuthProcessing(true);
 
@@ -308,7 +308,7 @@ const useAuth = () => {
 
       if (status !== 200) {
         await handleAuthorizationError(data.message);
-        return;
+        return false;
       }
 
       const nextStep: NextStepType = determineNextStep(
@@ -326,11 +326,14 @@ const useAuth = () => {
       if (nextStep.unauthorized) {
         handleUnauthorizedUser();
       }
+
+      return true;
     } catch (error) {
       console.error(error);
       await handleAuthorizationError(
         error.code || error.message || 'error_app_generic-desc'
       );
+      return false;
     } finally {
       setIsAuthProcessing(false);
     }
