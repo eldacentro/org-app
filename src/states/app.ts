@@ -29,6 +29,8 @@ export const offlineOverrideState = atom(false);
 
 export const isAppLoadState = atom(true);
 
+export const isDbReadyState = atom(false);
+
 export const isSetupState = atom(true);
 
 export const apiHostState = atom('');

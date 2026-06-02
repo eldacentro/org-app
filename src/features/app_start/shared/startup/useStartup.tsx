@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import {
   isAccountChooseState,
+  isDbReadyState,
   isSetupState,
   isUnauthorizedRoleState,
 } from '@states/app';
@@ -13,29 +14,21 @@ const useStartup = () => {
   const isSetup = useAtomValue(isSetupState);
   const accountType = useAtomValue(accountTypeState);
   const isAccountChoose = useAtomValue(isAccountChooseState);
+  const isDbReady = useAtomValue(isDbReadyState);
 
   const [isAuth, setIsAuth] = useState(true);
 
   useEffect(() => {
-    const checkAccount = async () => {
-      if (accountType !== '') {
-        setIsAccountChoose(false);
-        setIsAuth(false);
-        return;
-      }
+    if (!isDbReady) return;
 
+    if (accountType !== '') {
+      setIsAccountChoose(false);
+    } else {
       setIsAccountChoose(true);
-      setIsAuth(false);
-    };
+    }
 
-    const timeout = setTimeout(() => {
-      checkAccount();
-    }, 3000);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [accountType]);
+    setIsAuth(false);
+  }, [accountType, isDbReady]);
 
   return { isUnauthorizedRole, isSetup, isAuth, isAccountChoose, accountType };
 };

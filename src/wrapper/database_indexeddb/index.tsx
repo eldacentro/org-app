@@ -3,10 +3,15 @@ This file will be the entry to get the live update from IndexedDb using dexie ho
 */
 
 import { PropsWithChildren, useEffect } from 'react';
+import { useSetAtom } from 'jotai';
+import { isDbReadyState } from '@states/app';
 import useIndexedDb from './useIndexedDb';
 
 const DatabaseWrapper = ({ children }: PropsWithChildren) => {
+  const setIsDbReady = useSetAtom(isDbReadyState);
+
   const {
+    isSettingsReady,
     loadSettings,
     loadAssignment,
     loadPersons,
@@ -88,6 +93,12 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
     loadExhibitors,
     loadAssignmentsHistory,
   ]);
+
+  useEffect(() => {
+    if (isSettingsReady) {
+      setIsDbReady(true);
+    }
+  }, [isSettingsReady, setIsDbReady]);
 
   return children;
 };

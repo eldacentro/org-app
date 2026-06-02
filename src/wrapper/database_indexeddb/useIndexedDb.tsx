@@ -275,6 +275,7 @@ const useIndexedDb = () => {
   }, []);
 
   return {
+    isSettingsReady: dbSettings !== undefined,
     loadSettings,
     loadPersons,
     loadWeekType,
