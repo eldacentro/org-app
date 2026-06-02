@@ -19,7 +19,7 @@ const ExportUpcomingEvents = () => {
         )
       }
       onClick={handleExport}
-      disabled={isProcessing}
+      disabled={true}
     ></NavBarButton>
   );
 };

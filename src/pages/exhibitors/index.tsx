@@ -903,6 +903,7 @@ const Exhibitors = () => {
                       text={t('tr_export', 'Exportar')}
                       onClick={handleExportPDF}
                       icon={<IconPrint />}
+                      disabled={true}
                     />
                   </>
                 )}

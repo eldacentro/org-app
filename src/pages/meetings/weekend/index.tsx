@@ -82,6 +82,7 @@ const WeekendMeeting = () => {
                 text={t('tr_export')}
                 onClick={handleOpenExport}
                 icon={<IconPrint />}
+                disabled={true}
               ></NavBarButton>
               <NavBarButton
                 text={t('tr_autofill')}

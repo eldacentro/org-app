@@ -56,6 +56,7 @@ const DepartmentsSchedule = () => {
               text={t('tr_export', 'Exportar')}
               onClick={handleExportPDF}
               icon={<IconPrint />}
+              disabled={true}
             />
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}

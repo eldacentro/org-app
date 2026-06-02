@@ -956,6 +956,7 @@ const PredicacionSalidas = () => {
                         setPdfExportDialogOpen(true);
                       }}
                       icon={<IconPrint />}
+                      disabled={true}
                     />
                   </>
                 )}

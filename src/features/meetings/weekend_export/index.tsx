@@ -56,7 +56,7 @@ const WeekendExport = ({ open, onClose }: WeekendExportType) => {
       >
         <Button
           variant="main"
-          disabled={isProcessing}
+          disabled={true}
           endIcon={isProcessing && <IconLoading />}
           onClick={handleExportSchedules}
         >
