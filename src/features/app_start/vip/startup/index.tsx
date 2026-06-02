@@ -1,9 +1,9 @@
 import useStartup from './useStartup';
+import AccountChooser from '@features/app_start/shared/account_chooser';
 import CongregationCreate from '../congregation_create';
 import CongregationEncryption from '../congregation_encryption';
 import EmailLinkAuthentication from '../email_link_authentication';
 import EmailSent from '../email_sent';
-import Signin from '../signin';
 import TermsUse from '../terms_use';
 import UserAccountCreated from '../user_account_created';
 import VerifyMFA from '../verify_mfa';
@@ -30,7 +30,7 @@ const VipStartup = () => {
 
       {!isLoading && (
         <>
-          {isUserSignIn && <Signin />}
+          {isUserSignIn && <AccountChooser />}
 
           {!isUserSignIn && (
             <>

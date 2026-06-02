@@ -72,8 +72,11 @@ const useAccountChooser = () => {
       setAuthPersistence();
 
       if (isMobile) {
+        // Page navigates away — setIsAuthProcessing state is lost, no need to set it.
+        // Result is handled in the useEffect on return.
+        setIsAuthProcessing(false);
         await userSignInRedirect(authProvider.Google);
-        return; // page navigates away; result handled in the useEffect above on return
+        return;
       }
 
       const result = await userSignInPopup(authProvider.Google);
