@@ -126,8 +126,9 @@ const TemplateS88 = ({ attendance, lang }: TemplateS88Props) => {
             </View>
           </View>
 
-          <View style={{ position: 'absolute', bottom: '48px' }}>
-            <Text style={{ fontSize: '7px' }}>
+          <View style={styles.footer} fixed>
+            <Text style={styles.footerLeft}>eldacentro.com</Text>
+            <Text style={styles.footerRight}>
               S-88-{attendance.lang}
               {'    '}12/18
             </Text>

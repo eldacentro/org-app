@@ -2,19 +2,25 @@ import { StyleSheet } from '@react-pdf/renderer';
 
 export const styles = StyleSheet.create({
   body: {
-    padding: '30px 15px',
-    fontSize: '10px',
+    paddingTop: 30,
+    paddingBottom: 45,
+    paddingHorizontal: 20,
+    fontFamily: 'Figtree',
+    fontSize: 10,
+    backgroundColor: '#ffffff',
   },
   title: {
     fontWeight: 'bold',
     textAlign: 'center',
-    fontSize: '15px',
-    marginBottom: '20px',
+    fontSize: 15,
+    marginBottom: 20,
+    color: '#1a1a2e',
   },
   subtitle: {
     fontWeight: 'bold',
     textAlign: 'center',
-    fontSize: '12px',
+    fontSize: 12,
+    color: '#1a1a2e',
   },
   section: {
     fontWeight: 'bold',
@@ -90,5 +96,25 @@ export const styles = StyleSheet.create({
   },
   columnAverageNumber: {
     width: '68px',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    borderTop: '0.5 solid #e0e0e0',
+    paddingTop: 7,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  footerLeft: {
+    fontSize: 8,
+    color: '#aaaaaa',
+  },
+  footerRight: {
+    fontSize: 8,
+    color: '#aaaaaa',
   },
 });

@@ -5,33 +5,47 @@ registerFonts();
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    paddingTop: 24,
+    paddingBottom: 38,
+    paddingHorizontal: 30,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
   },
-  header: {
-    marginBottom: 10,
-    borderBottom: '1 solid #306CB4',
-    paddingBottom: 10,
+  contentWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  headerContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  topBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 6,
   },
-  headerTitleContainer: {
+  topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  headerTittle: {
-    color: '#306CB4',
+  topBarBrandName: {
+    fontSize: 16,
     fontWeight: 700,
-    fontSize: 20,
+    color: '#1a1a2e',
   },
-  headerCongregation: {
-    color: '#666666',
-    fontSize: 13,
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: 700,
+    color: '#1a1a2e',
+    marginBottom: 8,
+  },
+  headerDivider: {
+    borderBottom: '1 solid #d0d7e8',
+    marginBottom: 14,
   },
   weekContainer: {
     marginBottom: 10,
@@ -174,6 +188,26 @@ const styles = StyleSheet.create({
     fontWeight: 400,
     fontSize: 10,
     color: '#666666',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 30,
+    right: 30,
+    borderTop: '0.5 solid #e0e0e0',
+    paddingTop: 7,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  footerLeft: {
+    fontSize: 8,
+    color: '#aaaaaa',
+  },
+  footerRight: {
+    fontSize: 8,
+    color: '#aaaaaa',
   },
 });
 

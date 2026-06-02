@@ -29,35 +29,37 @@ const WeekendMeetingTemplate = ({
     return acc;
   }, null);
 
+  const footerDate = lastUpdate?.updatedAt
+    ? (() => {
+        const d = new Date(lastUpdate.updatedAt);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        return `${dd}/${mm}/${d.getFullYear()}`;
+      })()
+    : '';
+
   return (
     <Document title={t('tr_weekendMeetingPrint', { lng: lang })} lang={lang}>
       <Page size="A4" style={styles.page}>
-        <Header cong_name={cong_name} lang={lang} />
-        {data.map((meetingData) => (
-          <WeekData
-            key={meetingData.weekOf}
-            meetingData={meetingData}
-            lang={lang}
-          />
-        ))}
+        <View style={styles.contentWrapper}>
+          <Header cong_name={cong_name} lang={lang} />
+          {data.map((meetingData) => (
+            <WeekData
+              key={meetingData.weekOf}
+              meetingData={meetingData}
+              lang={lang}
+            />
+          ))}
+        </View>
 
-        {lastUpdate?.updatedAt && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 20,
-              left: 30,
-              right: 30,
-              textAlign: 'center',
-            }}
-          >
-            <Text style={{ fontSize: '8px', color: '#666' }}>
-              {lastUpdate.lastModifiedBy
-                ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
-                : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
+        <View style={styles.footer} fixed>
+          <Text style={styles.footerLeft}>eldacentro.com</Text>
+          {footerDate ? (
+            <Text style={styles.footerRight}>
+              Última actualización · {footerDate}
             </Text>
-          </View>
-        )}
+          ) : null}
+        </View>
       </Page>
     </Document>
   );

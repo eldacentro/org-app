@@ -5,45 +5,54 @@ registerFonts();
 
 const styles = StyleSheet.create({
   body: {
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 38,
+    paddingHorizontal: 30,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
   },
-  headerContainer: {
-    marginBottom: 10,
-    borderBottom: '1.5 solid #306CB4',
-    paddingBottom: 8,
+  contentWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
+  },
+  topBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  logoTitleContainer: {
+  topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 800,
-    color: '#306CB4',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 1,
-  },
-  monthTitle: {
-    fontSize: 15,
+  topBarBrandName: {
+    fontSize: 16,
     fontWeight: 700,
-    color: '#306CB4',
-    textAlign: 'right',
+    color: '#1a1a2e',
   },
+  topBarDate: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: '#888888',
+  },
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: 700,
+    color: '#1a1a2e',
+    marginBottom: 8,
+  },
+  headerDivider: {
+    borderBottom: '1 solid #d0d7e8',
+    marginBottom: 12,
+  },
+
   
   // Estructura del Calendario
   calendarContainer: {
@@ -186,17 +195,24 @@ const styles = StyleSheet.create({
   
   // Pie de Página
   footer: {
-    marginTop: 8,
+    position: 'absolute',
+    bottom: 20,
+    left: 30,
+    right: 30,
+    borderTop: '0.5 solid #e0e0e0',
+    paddingTop: 7,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 4,
-    borderTop: '0.5 solid #e2e8f0',
   },
-  footerText: {
+  footerLeft: {
     fontSize: 8,
-    color: '#94a3b8',
+    color: '#aaaaaa',
+  },
+  footerRight: {
+    fontSize: 8,
+    color: '#aaaaaa',
   },
 });
 
