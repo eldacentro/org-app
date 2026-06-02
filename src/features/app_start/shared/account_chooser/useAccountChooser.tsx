@@ -60,6 +60,17 @@ const useAccountChooser = () => {
   const handleChooseGoogle = async () => {
     try {
       hideMessage();
+
+      // Already signed in: this screen is being shown as the post-login
+      // fallback, not as a fresh login. Re-running signInWithRedirect here would
+      // reload the page and re-enter the same flow — the infinite loop. Instead
+      // re-mark the account so VipStartup re-runs its startup check.
+      if (isAuthenticated) {
+        await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+        setIsAccountChoose(false);
+        return;
+      }
+
       await setAuthPersistence();
 
       if (isMobile) {
