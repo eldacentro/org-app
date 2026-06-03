@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -10,7 +10,6 @@ import {
   Toolbar,
   useTheme,
   useScrollTrigger,
-  Slide,
 } from '@mui/material';
 import {
   IconAccount,
@@ -36,6 +35,12 @@ import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
 import { isTest } from '@constants/index';
+
+const NAVBAR_HEIGHT = 62;
+
+// Duración de la transición que suaviza las ráfagas de eventos de scroll de iOS.
+// Más alto = más suave pero con algo más de "arrastre"; más bajo = más pegado al dedo.
+const FOLLOW_EASE = 'transform 0.15s ease-out';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -87,43 +92,55 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // --- iOS-Style Premium Scroll Logic ---
-  const [navVisible, setNavVisible] = useState(true);
+  // --- iOS-Style Fluid Scroll Logic ---
+  // El wrapper (navRef) es lo único que se mueve con transform; el AppBar de
+  // dentro lleva el cristal (backdrop-filter). Separar transform y backdrop-filter
+  // en capas distintas evita el artefacto de "superposición" de WebKit.
+  const navRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
-  const scrollDelta = useRef(0);
+  const currentOffset = useRef(0);
 
   useEffect(() => {
+    // Desktop/tablet: barra siempre visible, sin seguimiento de scroll.
+    if (tabletUp) {
+      if (navRef.current) navRef.current.style.transform = 'translateY(0)';
+      return;
+    }
+
+    // Punto de partida sincronizado con el scroll actual.
+    lastScrollY.current = window.scrollY;
+    currentOffset.current = 0;
+
+    let rafId = 0;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const delta = currentScrollY - lastScrollY.current;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const delta = scrollY - lastScrollY.current;
+        lastScrollY.current = scrollY;
 
-      if (currentScrollY <= 10) {
-        setNavVisible(true);
-        scrollDelta.current = 0;
-      } else {
-        // Accumulate scroll direction delta
-        if (
-          (delta > 0 && scrollDelta.current < 0) ||
-          (delta < 0 && scrollDelta.current > 0)
-        ) {
-          scrollDelta.current = 0;
+        // Proporcional y direccional: bajar oculta, subir muestra (0..HEIGHT).
+        currentOffset.current = Math.min(
+          NAVBAR_HEIGHT,
+          Math.max(0, currentOffset.current + delta)
+        );
+
+        // Escribimos en el wrapper. La transición CSS (FOLLOW_EASE) interpola
+        // entre las ráfagas de eventos que iOS entrega durante el scroll inercial,
+        // así el movimiento es suave en vez de a trompicones.
+        if (navRef.current) {
+          navRef.current.style.transform = `translateY(${-currentOffset.current}px)`;
         }
-        scrollDelta.current += delta;
-
-        // Thresholds: Down 60px to hide, Up 20px to show
-        if (scrollDelta.current > 60) {
-          setNavVisible(false);
-        } else if (scrollDelta.current < -20) {
-          setNavVisible(true);
-        }
-      }
-
-      lastScrollY.current = currentScrollY;
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [tabletUp]);
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
@@ -131,19 +148,22 @@ const NavBar = ({ isSupported }: NavBarType) => {
     threshold: 10,
   });
 
-  // Only hide on scroll for mobile; keep it visible on tablet and desktop
-  const isVisible = tabletUp || navVisible;
-
   return (
     <>
-      <Slide
-        appear={false}
-        direction="down"
-        in={isVisible}
-        timeout={{ enter: 400, exit: 250 }}
+      <Box
+        ref={navRef}
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          zIndex: (theme) => theme.zIndex.drawer - 1,
+          transition: FOLLOW_EASE,
+          willChange: 'transform',
+        }}
       >
         <AppBar
-          position="fixed"
+          position="static"
           elevation={0}
           className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
           sx={{
@@ -160,13 +180,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
               ? '1px solid var(--line) !important'
               : '1px solid transparent !important',
             transition:
-              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1) !important',
+              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
             minHeight: '62px',
-            top: 0,
-            left: 0,
             width: '100%',
             overflow: 'hidden',
-            zIndex: (theme) => theme.zIndex.drawer - 1,
           }}
         >
           <Toolbar
@@ -543,7 +560,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
           </Container>
         </Toolbar>
       </AppBar>
-    </Slide>
+    </Box>
     {navBarOptions.buttons && !tablet688Up && (
       <BottomMenu buttons={navBarOptions.buttons} />
     )}
