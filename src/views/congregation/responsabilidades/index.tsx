@@ -124,49 +124,68 @@ const styles = StyleSheet.create({
     rowGap: 8,
   },
   deptCard: {
-    width: '32%',
+    width: '48.5%',
     border: '0.5 solid #dde3f0',
     borderRadius: 10,
     overflow: 'hidden',
   },
+  deptCardWide: {
+    width: '100%',
+  },
   deptHeader: {
     backgroundColor: '#306CB4',
     paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   deptHeaderText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 700,
     color: '#ffffff',
   },
   deptBody: {
-    padding: '6 8',
+    padding: '7 10',
     display: 'flex',
     flexDirection: 'column',
-    gap: 3,
+    gap: 6,
   },
-  deptRow: {
+  // Contenedor Resp./Aux.: apilado en tarjetas normales, en paralelo en las anchas
+  deptInfoCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5,
+  },
+  deptInfoRow: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 4,
+    gap: 20,
   },
-  deptLabel: {
-    fontSize: 8,
-    fontWeight: 700,
-    color: '#306CB4',
-    width: 52,
+  deptPerson: {
+    display: 'flex',
+    flexDirection: 'column',
   },
-  deptValue: {
-    fontSize: 11,
-    color: '#1a1a2e',
+  deptPersonWide: {
     flex: 1,
   },
-  deptMembersLabel: {
-    fontSize: 8,
+  deptLabel: {
+    fontSize: 7.5,
     fontWeight: 700,
     color: '#306CB4',
-    marginTop: 3,
-    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 1,
+  },
+  deptValue: {
+    fontSize: 10.5,
+    color: '#1a1a2e',
+  },
+  deptMembersLabel: {
+    fontSize: 7.5,
+    fontWeight: 700,
+    color: '#306CB4',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginTop: 2,
+    marginBottom: 3,
   },
   deptMembersWrap: {
     display: 'flex',
@@ -313,46 +332,53 @@ const TemplateResponsabilidades = ({
             <View style={styles.deptGrid}>
               {data.departamentos.map((dep) => {
                 const isExtended = dep.type === 'extended';
+                const hasMembers =
+                  isExtended &&
+                  (dep as DepartamentoExtended).members.length > 0;
+                // Las tarjetas con integrantes ocupan la fila completa para que
+                // los nombres respiren; las demás van en cuadrícula de 2.
+                const isWide = hasMembers;
+                const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
+
                 return (
                   <View
                     key={dep.id}
-                    style={[
-                      styles.deptCard,
-                      isExtended ? { width: '100%' } : {},
-                    ]}
+                    style={[styles.deptCard, isWide ? styles.deptCardWide : {}]}
                   >
                     <View style={styles.deptHeader}>
                       <Text style={styles.deptHeaderText}>{dep.name}</Text>
                     </View>
                     <View style={styles.deptBody}>
                       <View
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                          gap: 10,
-                        }}
+                        style={isWide ? styles.deptInfoRow : styles.deptInfoCol}
                       >
-                        <View style={styles.deptRow}>
-                          <Text style={styles.deptLabel}>Resp.</Text>
+                        <View
+                          style={[
+                            styles.deptPerson,
+                            isWide ? styles.deptPersonWide : {},
+                          ]}
+                        >
+                          <Text style={styles.deptLabel}>Responsable</Text>
                           <Text style={styles.deptValue}>
-                            {resolve(dep.responsable)}
+                            {resolve(dep.responsable) || '—'}
                           </Text>
                         </View>
-                        {dep.auxiliar ? (
-                          <View style={styles.deptRow}>
-                            <Text style={styles.deptLabel}>Aux.</Text>
-                            <Text style={styles.deptValue}>
-                              {resolve(dep.auxiliar)}
-                            </Text>
+                        {auxiliar ? (
+                          <View
+                            style={[
+                              styles.deptPerson,
+                              isWide ? styles.deptPersonWide : {},
+                            ]}
+                          >
+                            <Text style={styles.deptLabel}>Auxiliar</Text>
+                            <Text style={styles.deptValue}>{auxiliar}</Text>
                           </View>
                         ) : null}
                       </View>
 
-                      {isExtended &&
-                      (dep as DepartamentoExtended).members.length > 0 ? (
-                        <>
-                          <Text style={styles.deptMembersLabel}>Miembros</Text>
+                      {hasMembers ? (
+                        <View>
+                          <Text style={styles.deptMembersLabel}>Integrantes</Text>
                           <View style={styles.deptMembersWrap}>
                             {(dep as DepartamentoExtended).members.map(
                               (uid, i) => (
@@ -364,7 +390,7 @@ const TemplateResponsabilidades = ({
                               )
                             )}
                           </View>
-                        </>
+                        </View>
                       ) : null}
                     </View>
                   </View>
