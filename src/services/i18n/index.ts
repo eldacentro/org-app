@@ -111,6 +111,15 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'spa',
   supportedLngs: [...supportedLangs],
   interpolation: { escapeValue: false },
+  react: {
+    // Re-renderiza los componentes cuando i18n cambia de idioma O cuando se
+    // AÑADEN/cargan bundles de recursos (addResourceBundle). Sin 'added', si los
+    // recursos del idioma se añaden tarde (vía refreshLocalesResources tras la
+    // sincronización), los componentes se quedan mostrando la clave cruda
+    // ("tr_greeting", títulos, descripciones...) hasta el siguiente render.
+    bindI18n: 'languageChanged loaded',
+    bindI18nStore: 'added removed',
+  },
 });
 
 // Las traducciones se cargan en línea (síncronas), así que ya están listas
