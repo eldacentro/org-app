@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',

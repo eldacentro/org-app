@@ -12,7 +12,7 @@ const MONTHS_ES = [
 
 // Real logo, same paths as IconLogo but rendered at a larger size
 const LogoLarge = () => (
-  <Svg viewBox="0 0 2881 2572" fill="none" style={{ width: 32, height: 29 }}>
+  <Svg viewBox="0 0 2881 2572" fill="none" style={{ width: 28, height: 25 }}>
     <G transform="matrix(1,0,0,1,-809.952083,-964.060833)">
       <G transform="matrix(4.166667,0,0,4.166667,0,0)">
         <G>
@@ -83,11 +83,11 @@ const TemplateFieldServiceGroups = ({
             ) : null}
           </View>
 
-          {/* ── Page title ────────────────────── */}
-          <Text style={styles.pageTitle}>{title}</Text>
-
           {/* ── Dividing line ─────────────────── */}
           <View style={styles.headerDivider} />
+
+          {/* ── Page title ────────────────────── */}
+          <Text style={styles.pageTitle}>{title}</Text>
 
           {/* ── Groups grid ───────────────────── */}
           <View style={styles.groupsContainer}>
