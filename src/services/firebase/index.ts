@@ -6,6 +6,7 @@ const firebaseConfig = {
   authDomain: import.meta.env.VITE_FIREBASE_AUTHDOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
   appId: import.meta.env.VITE_FIREBASE_APPID,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGINGSENDERID,
 };
 
 // Initialize Firebase

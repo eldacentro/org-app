@@ -1,6 +1,20 @@
 /* eslint-disable no-undef */
 
-// Create for future FCM use
+/**
+ * Dedicated Firebase Cloud Messaging service worker.
+ *
+ * Independent from the Workbox-generated `service-worker.js` (different scope,
+ * never collide). Its job: receive background push, show the notification, and
+ * route taps back into the app.
+ *
+ * The public Firebase web config is passed in via query string by
+ * `src/services/firebase/messaging.ts`, so this static file works across
+ * environments without hardcoded values.
+ *
+ * Phase 0 note: payloads are generic here. Specific, batched assignment
+ * notifications ("Se te asignaron N cosas") arrive in a later phase — and,
+ * because schedules are E2E encrypted, that composition happens client-side.
+ */
 
 try {
   importScripts(
@@ -10,6 +24,8 @@ try {
     'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js'
   );
 
+  // Rewrap incoming push events: move the `notification` key into `data` so the
+  // browser does not auto-display a second notification on top of ours (dedupe).
   class CustomPushEvent extends Event {
     constructor(data) {
       super('push');
@@ -23,14 +39,12 @@ try {
     // Skip if event is our own custom event
     if (e.custom) return;
 
-    // Kep old event data to override
+    // Keep old event data to override
     const oldData = e.data;
 
-    // Create a new event to dispatch, pull values from notification key and put it in data key,
-    // and then remove notification key
+    // Pull values from the notification key into data, then drop notification
     const newEvent = new CustomPushEvent({
       data: {
-        ehheh: oldData.json(),
         json() {
           const newData = oldData.json();
           newData.data = {
@@ -51,29 +65,59 @@ try {
     dispatchEvent(newEvent);
   });
 
-  // "Default" Firebase configuration (prevents errors)
-  const defaultConfig = {
-    apiKey: true,
-    projectId: true,
-    messagingSenderId: true,
-    appId: true,
+  // Real public web config, forwarded from the app via query string.
+  const params = new URL(self.location).searchParams;
+  const firebaseConfig = {
+    apiKey: params.get('apiKey'),
+    authDomain: params.get('authDomain'),
+    projectId: params.get('projectId'),
+    appId: params.get('appId'),
+    messagingSenderId: params.get('messagingSenderId'),
   };
 
-  // Initialize Firebase app
-  firebase.initializeApp(defaultConfig);
-  const messaging = firebase.messaging();
+  if (firebaseConfig.projectId && firebaseConfig.messagingSenderId) {
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-  //Listens for background notifications
-  messaging.onBackgroundMessage((payload) => {
-    //customise notification
-    const notificationTitle = payload.data.title;
-    const notificationOptions = {
-      body: payload.data.body,
-      icon:
-        payload.data.image || 'https://app.eldacentro.com/img/icon/logo.svg',
-    };
+    // Listens for background notifications
+    messaging.onBackgroundMessage((payload) => {
+      const data = payload.data || {};
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+      const notificationTitle = data.title || 'Elda Centro';
+      const notificationOptions = {
+        body: data.body || '',
+        icon: data.image || '/img/icon/icon-192x192.png',
+        badge: '/img/icon/icon-monochrome-192x192.png',
+        // `tag` lets later batched notifications collapse onto one another
+        tag: data.tag || undefined,
+        data: { url: data.url || '/', ...data },
+      };
+
+      self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+  }
+
+  // Focus an existing window (or open one) and route to the target URL on tap.
+  self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl =
+      (event.notification.data && event.notification.data.url) || '/';
+
+    event.waitUntil(
+      self.clients
+        .matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          for (const client of clientList) {
+            if ('focus' in client) {
+              client.focus();
+              if ('navigate' in client) client.navigate(targetUrl);
+              return;
+            }
+          }
+          if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+        })
+    );
   });
 } catch (error) {
   console.error(error);

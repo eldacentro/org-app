@@ -481,3 +481,54 @@ export const apiHandleVerifyEmailOTP = async (userOTP: string) => {
 
   return { status: res.status, data };
 };
+
+// register/refresh the FCM push token for the current device/session
+export const apiRegisterPushToken = async (token: string) => {
+  const {
+    apiHost,
+    appVersion: appversion,
+    userID,
+    idToken,
+  } = await apiDefault();
+
+  const res = await fetch(`${apiHost}api/v3/users/${userID}/push-token`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+      appclient: 'organized',
+      appversion,
+    },
+    body: JSON.stringify({ token }),
+  });
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};
+
+// remove the FCM push token for the current device/session
+export const apiDeletePushToken = async () => {
+  const {
+    apiHost,
+    appVersion: appversion,
+    userID,
+    idToken,
+  } = await apiDefault();
+
+  const res = await fetch(`${apiHost}api/v3/users/${userID}/push-token`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+      appclient: 'organized',
+      appversion,
+    },
+  });
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};

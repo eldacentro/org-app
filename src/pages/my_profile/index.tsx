@@ -6,6 +6,7 @@ import useMyProfile from './useMyProfile';
 import AppSettings from '@features/my_profile/app_settings';
 import LogoutConfirm from '@features/my_profile/logout_confirm';
 import MinistryPreferences from '@features/my_profile/ministry_preferences';
+import Notifications from '@features/my_profile/notifications';
 import Security from '@features/my_profile/security';
 import UserProfileDetails from '@features/my_profile/user_profile_details';
 import UserSessions from '@features/my_profile/sessions';
@@ -88,6 +89,8 @@ const MyProfile = () => {
           }}
         >
           <AppSettings />
+
+          {isConnected && <Notifications />}
 
           {isConnected && <Security />}
 
