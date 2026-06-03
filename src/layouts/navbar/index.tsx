@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -85,15 +86,61 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // --- iOS-Style Fluid Scroll Logic ---
-  // El movimiento de ocultar/mostrar la barra NO se hace con JS, sino con una
-  // scroll-driven animation de CSS (clase .navbar-hide-on-scroll en index.css).
-  // El navegador la ata a la posición de scroll en el hilo del compositor, así
-  // que va en lockstep perfecto con el dedo, sin lag (a diferencia de cualquier
-  // listener de 'scroll' en JS, que en iOS llega a ráfagas y se siente "efecto").
-  //
-  // El wrapper se mueve con transform; el AppBar de dentro lleva el cristal
-  // (backdrop-filter). Separar ambas capas evita el artefacto de WebKit.
+  // --- iOS-Style hide/show por dirección (snap suave) ---
+  // El JS SOLO decide si la barra se esconde o se muestra según la dirección
+  // del scroll; el movimiento lo hace una transición CSS (no se mueve frame a
+  // frame desde JS, así que no hay lag con los eventos a ráfagas de iOS).
+  // Bajar -> se esconde; subir cualquier cantidad -> reaparece; arriba del todo
+  // -> siempre visible. El wrapper se mueve con transform y el AppBar de dentro
+  // lleva el cristal: capas separadas para evitar el artefacto de WebKit.
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+
+    // Desktop/tablet: siempre visible, sin escuchar el scroll.
+    if (tabletUp) {
+      el.style.transform = 'translateY(0)';
+      return;
+    }
+
+    const SHOW_AT_TOP = 10; // px: tan arriba que siempre se ve
+    const HIDE_AFTER = 80; // px: no esconder hasta haber bajado algo
+    const DEADZONE = 6; // px: ignora micro-temblores del dedo
+
+    let lastY = window.scrollY;
+    let hidden = false;
+    let ticking = false;
+
+    const setHidden = (next: boolean) => {
+      if (next === hidden) return;
+      hidden = next;
+      el.style.transform = next ? 'translateY(-100%)' : 'translateY(0)';
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const dy = y - lastY;
+
+        if (y <= SHOW_AT_TOP) {
+          setHidden(false);
+        } else if (Math.abs(dy) > DEADZONE) {
+          if (dy > 0 && y > HIDE_AFTER) setHidden(true); // bajando -> esconder
+          else if (dy < 0) setHidden(false); // subiendo -> mostrar
+        }
+
+        lastY = y;
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [tabletUp]);
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
@@ -104,7 +151,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
   return (
     <>
       <Box
-        className={tabletUp ? undefined : 'navbar-hide-on-scroll'}
+        ref={navRef}
         sx={{
           position: 'fixed',
           top: 0,
@@ -112,6 +159,8 @@ const NavBar = ({ isSupported }: NavBarType) => {
           width: '100%',
           zIndex: (theme) => theme.zIndex.drawer - 1,
           willChange: 'transform',
+          // El movimiento (snap) lo hace esta transición, no el JS.
+          transition: 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         <AppBar
