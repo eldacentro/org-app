@@ -87,43 +87,50 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // --- iOS-Style Premium Scroll Logic ---
-  const [navVisible, setNavVisible] = useState(true);
+  // --- iOS-Style Pro Fluid Scroll Logic ---
+  const [translateY, setTranslateY] = useState(0);
   const lastScrollY = useRef(0);
-  const scrollDelta = useRef(0);
+  const currentTranslateY = useRef(0);
+  const NAVBAR_HEIGHT = 62;
 
   useEffect(() => {
+    if (tabletUp) {
+      setTranslateY(0);
+      return;
+    }
+
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const delta = currentScrollY - lastScrollY.current;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const delta = scrollY - lastScrollY.current;
 
-      if (currentScrollY <= 10) {
-        setNavVisible(true);
-        scrollDelta.current = 0;
-      } else {
-        // Accumulate scroll direction delta
-        if (
-          (delta > 0 && scrollDelta.current < 0) ||
-          (delta < 0 && scrollDelta.current > 0)
-        ) {
-          scrollDelta.current = 0;
-        }
-        scrollDelta.current += delta;
+          // Prevent weird behavior at page ends (overscroll)
+          if (scrollY < 0) {
+            currentTranslateY.current = 0;
+          } else {
+            // Update translation based on delta
+            // scroll down (delta > 0) -> move up (increase translate)
+            // scroll up (delta < 0) -> move down (decrease translate)
+            currentTranslateY.current = Math.max(
+              0,
+              Math.min(NAVBAR_HEIGHT, currentTranslateY.current + delta)
+            );
+          }
 
-        // Thresholds: Down 60px to hide, Up 20px to show
-        if (scrollDelta.current > 60) {
-          setNavVisible(false);
-        } else if (scrollDelta.current < -20) {
-          setNavVisible(true);
-        }
+          setTranslateY(currentTranslateY.current);
+          lastScrollY.current = scrollY;
+          ticking = false;
+        });
+        ticking = true;
       }
-
-      lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [tabletUp]);
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
@@ -131,53 +138,47 @@ const NavBar = ({ isSupported }: NavBarType) => {
     threshold: 10,
   });
 
-  // Only hide on scroll for mobile; keep it visible on tablet and desktop
-  const isVisible = tabletUp || navVisible;
-
   return (
     <>
-      <Slide
-        appear={false}
-        direction="down"
-        in={isVisible}
-        timeout={{ enter: 400, exit: 250 }}
+      <AppBar
+        position="fixed"
+        elevation={0}
+        className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
+        sx={{
+          backgroundColor: scrolled
+            ? 'rgba(var(--accent-100-base), 0.65) !important'
+            : 'transparent !important',
+          backgroundImage: 'none !important',
+          boxShadow: 'none !important',
+          backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
+          WebkitBackdropFilter: scrolled
+            ? 'blur(24px) !important'
+            : 'none !important',
+          borderBottom: scrolled
+            ? '1px solid var(--line) !important'
+            : '1px solid transparent !important',
+          minHeight: `${NAVBAR_HEIGHT}px`,
+          top: 0,
+          left: 0,
+          width: '100%',
+          overflow: 'hidden',
+          zIndex: (theme) => theme.zIndex.drawer - 1,
+          // Fluid Pro Animation
+          transform: `translateY(${-translateY}px)`,
+          transition: scrolled
+            ? 'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease'
+            : 'none',
+        }}
       >
-        <AppBar
-          position="fixed"
-          elevation={0}
-          className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
+        <Toolbar
           sx={{
-            backgroundColor: scrolled
-              ? 'rgba(var(--accent-100-base), 0.65) !important'
-              : 'transparent !important',
+            padding: 0,
+            minHeight: `${NAVBAR_HEIGHT}px`,
+            alignItems: 'center',
+            backgroundColor: 'transparent !important',
             backgroundImage: 'none !important',
-            boxShadow: 'none !important',
-            backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
-            WebkitBackdropFilter: scrolled
-              ? 'blur(24px) !important'
-              : 'none !important',
-            borderBottom: scrolled
-              ? '1px solid var(--line) !important'
-              : '1px solid transparent !important',
-            transition:
-              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1) !important',
-            minHeight: '62px',
-            top: 0,
-            left: 0,
-            width: '100%',
-            overflow: 'hidden',
-            zIndex: (theme) => theme.zIndex.drawer - 1,
           }}
         >
-          <Toolbar
-            sx={{
-              padding: 0,
-              minHeight: '62px',
-              alignItems: 'center',
-              backgroundColor: 'transparent !important',
-              backgroundImage: 'none !important',
-            }}
-          >
           <Container
             maxWidth={false}
             sx={{
@@ -193,16 +194,45 @@ const NavBar = ({ isSupported }: NavBarType) => {
           >
             {!navBarOptions.title && !navBarOptions.buttons ? (
               <>
-                <div className="topbar" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <div className="logo-container" onClick={handleGoDashboard} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <div
+                  className="topbar"
+                  style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                >
+                  <div
+                    className="logo-container"
+                    onClick={handleGoDashboard}
+                    style={{
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
                     <IconLogo width={40} height={40} color="var(--brand)" />
                   </div>
-                  <div style={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '12px' }} onClick={handleGoDashboard}>
-                    <div className="cong-name" style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 900, fontSize: '24px', letterSpacing: '-0.5px', color: 'var(--ink)' }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginLeft: '12px',
+                    }}
+                    onClick={handleGoDashboard}
+                  >
+                    <div
+                      className="cong-name"
+                      style={{
+                        fontFamily: 'Figtree, sans-serif',
+                        fontWeight: 900,
+                        fontSize: '24px',
+                        letterSpacing: '-0.5px',
+                        color: 'var(--ink)',
+                      }}
+                    >
                       {congName ? congName.replace(/-/g, ' ') : 'Elda Centro'}
                     </div>
                   </div>
-                  
+
                   <Box
                     sx={{
                       display: 'flex',
@@ -215,7 +245,15 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     <ThemeSwitcher />
 
                     {tabletUp && (isAppLoad || isTest) && (
-                      <Box sx={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--line)', padding: '2px 4px', boxShadow: 'var(--shadow-sm)' }}>
+                      <Box
+                        sx={{
+                          background: 'var(--card)',
+                          borderRadius: '12px',
+                          border: '1px solid var(--line)',
+                          padding: '2px 4px',
+                          boxShadow: 'var(--shadow-sm)',
+                        }}
+                      >
                         <LanguageSwitcher
                           menuStyle={{
                             ...baseMenuStyle,
@@ -247,139 +285,70 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           />
                         </Box>
 
-                      <Menu
-                        disableAutoFocus={true}
-                        id="menu-language"
-                        disableScrollLock={true}
-                        anchorEl={anchorEl}
-                        open={openMore}
-                        onClose={handleCloseMore}
-                        sx={{
-                          padding: '8px 0',
-                          marginTop: '7px',
-                          '& li': {
-                            borderBottom: '1px solid var(--accent-200)',
-                          },
-                          '& li:last-child': {
-                            borderBottom: 'none',
-                          },
-                        }}
-                        slotProps={{
-                          list: {
-                            'aria-labelledby': 'basic-button',
-                          },
-                          paper: {
-                            className: 'small-card-shadow profile-menu-glass',
-                            style: {
-                              borderRadius: 'var(--radius-l)',
-                              minWidth: '294px',
-                            },
-                          },
-                        }}
-                      >
-                        <MenuItem
-                          disableRipple
+                        <Menu
+                          disableAutoFocus={true}
+                          id="menu-language"
+                          disableScrollLock={true}
+                          anchorEl={anchorEl}
+                          open={openMore}
+                          onClose={handleCloseMore}
                           sx={{
-                            cursor: 'default',
-                            pointerEvents: 'none',
-                            flexDirection: 'column',
-                            alignItems: 'flex-start',
-                            gap: 0,
+                            padding: '8px 0',
+                            marginTop: '7px',
+                            '& li': {
+                              borderBottom: '1px solid var(--accent-200)',
+                            },
+                            '& li:last-child': {
+                              borderBottom: 'none',
+                            },
+                          }}
+                          slotProps={{
+                            list: {
+                              'aria-labelledby': 'basic-button',
+                            },
+                            paper: {
+                              className: 'small-card-shadow profile-menu-glass',
+                              style: {
+                                borderRadius: 'var(--radius-l)',
+                                minWidth: '294px',
+                              },
+                            },
                           }}
                         >
-                          {fullname && (
-                            <Typography className="body-small-semibold">
-                              {fullname}
-                            </Typography>
-                          )}
-                          {congName && (
-                            <Typography
-                              className="label-small-regular"
-                              color="var(--grey-350)"
-                            >
-                              {congName}
-                            </Typography>
-                          )}
-                        </MenuItem>
-
-                        {(tabletDown || (!isAppLoad && !isTest)) && (
-                          <LanguageSwitcher menuStyle={menuStyle} />
-                        )}
-
-                        {!isAppLoad && (
                           <MenuItem
                             disableRipple
-                            sx={menuStyle}
-                            onClick={handleOpenMyProfile}
+                            sx={{
+                              cursor: 'default',
+                              pointerEvents: 'none',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              gap: 0,
+                            }}
                           >
-                            <ListItemIcon
-                              sx={{
-                                '&.MuiListItemIcon-root': {
-                                  width: '24px',
-                                  minWidth: '24px !important',
-                                },
-                              }}
-                            >
-                              <IconAccount color="var(--black)" />
-                            </ListItemIcon>
-                            <ListItemText>
-                              <Typography className="body-regular">
-                                {t('tr_myProfile')}
+                            {fullname && (
+                              <Typography className="body-small-semibold">
+                                {fullname}
                               </Typography>
-                            </ListItemText>
+                            )}
+                            {congName && (
+                              <Typography
+                                className="label-small-regular"
+                                color="var(--grey-350)"
+                              >
+                                {congName}
+                              </Typography>
+                            )}
                           </MenuItem>
-                        )}
 
-                        <MenuItem
-                          disableRipple
-                          sx={menuStyle}
-                          onClick={handleOpenAbout}
-                        >
-                          <ListItemIcon
-                            sx={{
-                              '&.MuiListItemIcon-root': {
-                                width: '24px',
-                                minWidth: '24px !important',
-                              },
-                            }}
-                          >
-                            <IconInfo color="var(--black)" />
-                          </ListItemIcon>
-                          <ListItemText>
-                            <Typography className="body-regular">
-                              {t('tr_about')}
-                            </Typography>
-                          </ListItemText>
-                        </MenuItem>
+                          {(tabletDown || (!isAppLoad && !isTest)) && (
+                            <LanguageSwitcher menuStyle={menuStyle} />
+                          )}
 
-                        {isTest && (
-                          <MenuItem
-                            disableRipple
-                            sx={{
-                              ...menuStyle,
-                              height: 'auto',
-                              paddingTop: '5px',
-                            }}
-                            onClick={handleOpenRealApp}
-                          >
-                            <Button
-                              variant="tertiary"
-                              startIcon={<IconArrowLink />}
-                              sx={{ width: '100%' }}
-                            >
-                              {t('tr_openRealApp')}
-                            </Button>
-                          </MenuItem>
-                        )}
-
-                        {!isTest &&
-                          !isAppLoad &&
-                          !isCongAccountConnected &&
-                          accountType === 'vip' && (
+                          {!isAppLoad && (
                             <MenuItem
                               disableRipple
                               sx={menuStyle}
-                              onClick={handleReconnectAccount}
+                              onClick={handleOpenMyProfile}
                             >
                               <ListItemIcon
                                 sx={{
@@ -389,21 +358,20 @@ const NavBar = ({ isSupported }: NavBarType) => {
                                   },
                                 }}
                               >
-                                <IconLogin color="var(--black)" />
+                                <IconAccount color="var(--black)" />
                               </ListItemIcon>
                               <ListItemText>
                                 <Typography className="body-regular">
-                                  {t('tr_reconnectAccount')}
+                                  {t('tr_myProfile')}
                                 </Typography>
                               </ListItemText>
                             </MenuItem>
                           )}
 
-                        {isAuthenticated && (
                           <MenuItem
                             disableRipple
                             sx={menuStyle}
-                            onClick={handleDisonnectAccount}
+                            onClick={handleOpenAbout}
                           >
                             <ListItemIcon
                               sx={{
@@ -413,23 +381,93 @@ const NavBar = ({ isSupported }: NavBarType) => {
                                 },
                               }}
                             >
-                              <IconLogout color="var(--black)" />
+                              <IconInfo color="var(--black)" />
                             </ListItemIcon>
                             <ListItemText>
                               <Typography className="body-regular">
-                                {t('tr_disconnectAccount')}
+                                {t('tr_about')}
                               </Typography>
                             </ListItemText>
                           </MenuItem>
-                        )}
-                      </Menu>
-                    </>
-                  )}
-                </Box>
-              </div>
-            </>
-          ) : (
-            <>
+
+                          {isTest && (
+                            <MenuItem
+                              disableRipple
+                              sx={{
+                                ...menuStyle,
+                                height: 'auto',
+                                paddingTop: '5px',
+                              }}
+                              onClick={handleOpenRealApp}
+                            >
+                              <Button
+                                variant="tertiary"
+                                startIcon={<IconArrowLink />}
+                                sx={{ width: '100%' }}
+                              >
+                                {t('tr_openRealApp')}
+                              </Button>
+                            </MenuItem>
+                          )}
+
+                          {!isTest &&
+                            !isAppLoad &&
+                            !isCongAccountConnected &&
+                            accountType === 'vip' && (
+                              <MenuItem
+                                disableRipple
+                                sx={menuStyle}
+                                onClick={handleReconnectAccount}
+                              >
+                                <ListItemIcon
+                                  sx={{
+                                    '&.MuiListItemIcon-root': {
+                                      width: '24px',
+                                      minWidth: '24px !important',
+                                    },
+                                  }}
+                                >
+                                  <IconLogin color="var(--black)" />
+                                </ListItemIcon>
+                                <ListItemText>
+                                  <Typography className="body-regular">
+                                    {t('tr_reconnectAccount')}
+                                  </Typography>
+                                </ListItemText>
+                              </MenuItem>
+                            )}
+
+                          {isAuthenticated && (
+                            <MenuItem
+                              disableRipple
+                              sx={menuStyle}
+                              onClick={handleDisonnectAccount}
+                            >
+                              <ListItemIcon
+                                sx={{
+                                  '&.MuiListItemIcon-root': {
+                                    width: '24px',
+                                    minWidth: '24px !important',
+                                  },
+                                }}
+                              >
+                                <IconLogout color="var(--black)" />
+                              </ListItemIcon>
+                              <ListItemText>
+                                <Typography className="body-regular">
+                                  {t('tr_disconnectAccount')}
+                                </Typography>
+                              </ListItemText>
+                            </MenuItem>
+                          )}
+                        </Menu>
+                      </>
+                    )}
+                  </Box>
+                </div>
+              </>
+            ) : (
+              <>
                 <Box
                   sx={{
                     display: 'flex',
@@ -518,9 +556,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       <IconSettings color="var(--black)" />
                     </IconButton>
                   ) : (
-                    !tablet688Up && (
-                      <Box sx={{ width: '22px', height: '22px' }} />
-                    )
+                    !tablet688Up && <Box sx={{ width: '22px', height: '22px' }} />
                   )}
                 </Box>
                 {!!tablet688Up && navBarOptions.buttons && (
@@ -543,12 +579,11 @@ const NavBar = ({ isSupported }: NavBarType) => {
           </Container>
         </Toolbar>
       </AppBar>
-    </Slide>
-    {navBarOptions.buttons && !tablet688Up && (
-      <BottomMenu buttons={navBarOptions.buttons} />
-    )}
-  </>
-);
+      {navBarOptions.buttons && !tablet688Up && (
+        <BottomMenu buttons={navBarOptions.buttons} />
+      )}
+    </>
+  );
 };
 
 export default NavBar;
