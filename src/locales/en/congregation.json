@@ -526,5 +526,10 @@
   "tr_weekendTemplateShowSongs": "Display songs on weekend meeting schedules",
   "tr_pdfExportEnabled": "Enable PDF schedules and reports export",
   "tr_pdfExportEnabledDesc": "Show PDF export and print buttons across meetings, departments, exhibitors, field service, and events schedules.",
-  "tr_personalDetails": "Personal details"
+  "tr_personalDetails": "Personal details",
+  "tr_reportDetails": "Report details",
+  "tr_publisherDetails": "Publisher details",
+  "tr_publisherDetailsDesc": "View and manage the spiritual status and first report date for this publisher.",
+  "tr_branchOfficeReportDesc": "Manage and submit congregation reports to the branch office.",
+  "tr_serviceYearHistory": "History of service reports for the service year."
 }

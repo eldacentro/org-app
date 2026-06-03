@@ -2,8 +2,8 @@ import { Box, Stack } from '@mui/material';
 import { IconInfo } from '@components/icons';
 import { MonthlyReportProps } from './index.types';
 import { useAppTranslation } from '@hooks/index';
+import { CardContainer } from '../../shared_styles';
 import useMonthlyReport from './useMonthlyReport';
-import Card from '@components/card';
 import Divider from '@components/divider';
 import StatsRow from '@features/reports/stats_row';
 import Typography from '@components/typography';
@@ -15,25 +15,27 @@ const MonthlyReport = (props: MonthlyReportProps) => {
     useMonthlyReport(props);
 
   return (
-    <>
-      <Card>
-        <Typography className="h2">{monthname}</Typography>
+    <Stack spacing="16px">
+      <CardContainer>
+        <Stack spacing="8px">
+          <Typography className="h2">{monthname}</Typography>
 
-        {!generated && (
-          <Typography color="var(--grey-350)">
-            <Box
-              component="span"
-              sx={{
-                verticalAlign: '-6px',
-                display: 'inline-flex',
-                marginRight: '4px',
-              }}
-            >
-              <IconInfo color="var(--grey-350)" />
-            </Box>
-            {t('tr_branchOfficeReportMonthsDesc')}
-          </Typography>
-        )}
+          {!generated && (
+            <Typography color="var(--grey-400)">
+              <Box
+                component="span"
+                sx={{
+                  verticalAlign: '-6px',
+                  display: 'inline-flex',
+                  marginRight: '4px',
+                }}
+              >
+                <IconInfo color="var(--grey-400)" />
+              </Box>
+              {t('tr_branchOfficeReportMonthsDesc')}
+            </Typography>
+          )}
+        </Stack>
 
         {generated && (
           <Stack spacing="4px" divider={<Divider color="var(--line)" />}>
@@ -46,45 +48,49 @@ const MonthlyReport = (props: MonthlyReportProps) => {
             ))}
           </Stack>
         )}
-      </Card>
+      </CardContainer>
 
       {generated && (
-        <Card>
-          <Typography className="h2">{t('tr_fieldService')}</Typography>
+        <CardContainer>
+          <Stack spacing="8px">
+            <Typography className="h2">{t('tr_fieldService')}</Typography>
+          </Stack>
 
-          {field_reports.map((section) => (
-            <Stack
-              key={section.section}
-              spacing="4px"
-              borderRadius="var(--radius-l)"
-            >
-              <Typography
-                className="h4"
-                color="var(--accent-dark)"
-                sx={{
-                  borderRadius: 'var(--radius-s)',
-                  padding: '4px 8px',
-                  backgroundColor: 'var(--accent-150)',
-                }}
+          <Stack spacing="16px">
+            {field_reports.map((section) => (
+              <Stack
+                key={section.section}
+                spacing="4px"
+                borderRadius="var(--radius-l)"
               >
-                {section.section}
-              </Typography>
+                <Typography
+                  className="h4"
+                  color="var(--accent-dark)"
+                  sx={{
+                    borderRadius: 'var(--radius-s)',
+                    padding: '4px 8px',
+                    backgroundColor: 'var(--accent-150)',
+                  }}
+                >
+                  {section.section}
+                </Typography>
 
-              <Stack divider={<Divider color="var(--line)" />}>
-                {section.reports.map((report) => (
-                  <StatsRow
-                    key={report.label}
-                    title={report.label}
-                    value={report.value}
-                    sx={{ padding: '8px' }}
-                  />
-                ))}
+                <Stack divider={<Divider color="var(--line)" />}>
+                  {section.reports.map((report) => (
+                    <StatsRow
+                      key={report.label}
+                      title={report.label}
+                      value={report.value}
+                      sx={{ padding: '8px' }}
+                    />
+                  ))}
+                </Stack>
               </Stack>
-            </Stack>
-          ))}
-        </Card>
+            ))}
+          </Stack>
+        </CardContainer>
       )}
-    </>
+    </Stack>
   );
 };
 

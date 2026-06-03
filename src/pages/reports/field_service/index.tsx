@@ -50,13 +50,18 @@ const FieldService = () => {
         sx={{
           display: 'flex',
           gap: '16px',
-          alignItems: 'flex-start',
-          '& > .MuiBox-root': {
-            width: desktopUp ? '50%' : '100%',
-          },
+          flexDirection: desktopUp ? 'row' : 'column',
+          alignItems: desktopUp ? 'flex-start' : 'stretch',
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            flex: 1,
+          }}
+        >
           <SelectorStats />
 
           {desktopUp && <PersonsList />}
@@ -97,7 +102,11 @@ const FieldService = () => {
           )}
         </Box>
 
-        {desktopUp && <ReportDetails />}
+        {desktopUp && (
+          <Box sx={{ flex: 0.8 }}>
+            <ReportDetails />
+          </Box>
+        )}
       </Box>
     </Box>
   );

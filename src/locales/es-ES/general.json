@@ -52,6 +52,7 @@
   "tr_shortNumberLabel": "Nro.",
   "tr_rename": "Renombrar",
   "tr_collapseAll": "Contraer todo",
+  "tr_search": "Buscar",
   "tr_searchResults": "Resultados de búsqueda: {{ count }}",
   "tr_addMonth": "Añadir mes",
   "tr_monthYear": "{{ month }} {{ year }}",

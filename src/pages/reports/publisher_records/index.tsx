@@ -46,7 +46,7 @@ const PublisherRecords = () => {
           display: 'flex',
           gap: '16px',
           flexDirection: desktopUp ? 'row' : 'column',
-          alignItems: 'flex-start',
+          alignItems: desktopUp ? 'flex-start' : 'stretch',
         }}
       >
         <PublisherTabs />

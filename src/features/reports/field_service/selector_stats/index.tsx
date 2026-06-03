@@ -1,22 +1,31 @@
 import { Box, Stack } from '@mui/material';
+import { useAppTranslation } from '@hooks/index';
+import { CardContainer } from '../shared_styles';
 import useSelectorStats from './useSelectorStats';
-import Card from '@components/card';
 import Divider from '@components/divider';
 import ReceivedReports from './received_reports';
 import ServiceYearMonthSelector from '@features/reports/service_year_month_selector';
 import PersonFilter from './person_filter';
 import { IconInfo } from '@components/icons';
 import Typography from '@components/typography';
-import { t } from 'i18next';
 
 const SelectorStats = () => {
+  const { t } = useAppTranslation();
+
   const { handleMonthChange, handleYearChange, month, year, month_locked } =
     useSelectorStats();
 
   return (
-    <Card>
+    <CardContainer>
       <Stack spacing="24px" divider={<Divider color="var(--line)" />}>
         <Stack spacing="24px">
+          <Stack spacing="8px">
+            <Typography className="h2">{t('tr_receivedReports')}</Typography>
+            <Typography color="var(--grey-400)">
+              {t('tr_reportPageInfo')}
+            </Typography>
+          </Stack>
+
           <ServiceYearMonthSelector
             year={year}
             month={month || ''}
@@ -48,7 +57,7 @@ const SelectorStats = () => {
           <PersonFilter />
         </Stack>
       </Stack>
-    </Card>
+    </CardContainer>
   );
 };
 

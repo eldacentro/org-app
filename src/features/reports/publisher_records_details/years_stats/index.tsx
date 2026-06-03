@@ -1,6 +1,7 @@
+import { Stack } from '@mui/material';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { CardContainer } from '../shared_styles';
 import useYearsStats from './useYearsStats';
-import Card from '@components/card';
 import ScrollableTabs from '@components/scrollable_tabs';
 import Typography from '@components/typography';
 
@@ -12,15 +13,22 @@ const YearsStats = () => {
   const { tabs, intial_value } = useYearsStats();
 
   return (
-    <Card sx={{ flex: 0.8, width: '100%' }}>
-      <Typography className="h2">{t('tr_serviceYear')}</Typography>
+    <CardContainer sx={{ flex: 0.8 }}>
+      <Stack spacing="16px">
+        <Stack spacing="8px">
+          <Typography className="h2">{t('tr_serviceYear')}</Typography>
+          <Typography color="var(--grey-400)">
+            {t('tr_serviceYearHistory')}
+          </Typography>
+        </Stack>
 
-      <ScrollableTabs
-        variant={tabletUp ? 'fullWidth' : 'scrollable'}
-        tabs={tabs}
-        value={intial_value}
-      />
-    </Card>
+        <ScrollableTabs
+          variant={tabletUp ? 'fullWidth' : 'scrollable'}
+          tabs={tabs}
+          value={intial_value}
+        />
+      </Stack>
+    </CardContainer>
   );
 };
 

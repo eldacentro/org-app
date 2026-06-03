@@ -52,6 +52,7 @@
   "tr_shortNumberLabel": "No.",
   "tr_rename": "Rename",
   "tr_collapseAll": "Collapse all",
+  "tr_search": "Search",
   "tr_searchResults": "Search results: {{ count }}",
   "tr_addMonth": "Add month",
   "tr_monthYear": "{{ month }} {{ year }}",

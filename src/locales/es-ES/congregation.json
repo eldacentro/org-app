@@ -526,5 +526,10 @@
   "tr_weekendTemplateShowSongs": "Mostrar canciones en los programas de reuniones de fin de semana",
   "tr_pdfExportEnabled": "Habilitar la exportación de programas e informes a PDF",
   "tr_pdfExportEnabledDesc": "Mostrar los botones para exportar o imprimir en PDF en las secciones de reuniones, departamentos, exhibidores, salidas y próximos eventos.",
-  "tr_personalDetails": "Datos personales"
+  "tr_personalDetails": "Datos personales",
+  "tr_reportDetails": "Detalles del informe",
+  "tr_publisherDetails": "Detalles del publicador",
+  "tr_publisherDetailsDesc": "Ver y gestionar la condición espiritual y la fecha del primer informe de este publicador.",
+  "tr_branchOfficeReportDesc": "Gestionar y enviar informes de la congregación a la sucursal.",
+  "tr_serviceYearHistory": "Historial de informes de servicio para el año de servicio."
 }

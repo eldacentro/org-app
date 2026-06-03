@@ -1,26 +1,40 @@
+import { Stack } from '@mui/material';
+import { useAppTranslation } from '@hooks/index';
+import { CardContainer } from '../shared_styles';
 import usePublisherTabs from './usePublisherTabs';
-import Card from '@components/card';
 import ScrollableTabs from '@components/scrollable_tabs';
+import Typography from '@components/typography';
 
 const PublisherTabs = () => {
+  const { t } = useAppTranslation();
+
   const { tabs } = usePublisherTabs();
 
   return (
-    <Card sx={{ flex: 1, width: '100%' }}>
-      <ScrollableTabs
-        indicatorMode
-        tabs={tabs}
-        value={0}
-        sx={{
-          '& button.Mui-selected': {
-            color: 'var(--accent-main)',
-            background: 'unset',
-            borderRadius: 'unset',
-          },
-          '& span.MuiTouchRipple-root': { borderRadius: 'var(--radius-l)' },
-        }}
-      />
-    </Card>
+    <CardContainer sx={{ flex: 1 }}>
+      <Stack spacing="24px">
+        <Stack spacing="8px">
+          <Typography className="h2">{t('tr_publishersRecords')}</Typography>
+          <Typography color="var(--grey-400)">
+            {t('tr_reportPageInfo')}
+          </Typography>
+        </Stack>
+
+        <ScrollableTabs
+          indicatorMode
+          tabs={tabs}
+          value={0}
+          sx={{
+            '& button.Mui-selected': {
+              color: 'var(--accent-main)',
+              background: 'unset',
+              borderRadius: 'unset',
+            },
+            '& span.MuiTouchRipple-root': { borderRadius: 'var(--radius-l)' },
+          }}
+        />
+      </Stack>
+    </CardContainer>
   );
 };
 

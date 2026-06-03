@@ -11,9 +11,9 @@ import {
   useBreakpoints,
   useCurrentUser,
 } from '@hooks/index';
+import { CardContainer } from '../shared_styles';
 import useReportDetails from './useReportDetails';
 import Button from '@components/button';
-import Card from '@components/card';
 import FormS4 from '@features/ministry/report/form_S4';
 import LateReport from './late_report';
 import PersonDetails from '@features/persons/person_details';
@@ -41,21 +41,24 @@ const ReportDetails = () => {
   } = useReportDetails();
 
   return (
-    <Card sx={{ position: 'sticky', top: '72px' }}>
+    <CardContainer sx={{ position: 'sticky', top: '72px' }}>
       {!person && (
-        <Typography color="var(--grey-350)">
-          <Box
-            component="span"
-            sx={{
-              verticalAlign: '-6px',
-              display: 'inline-flex',
-              marginRight: '4px',
-            }}
-          >
-            <IconInfo color="var(--grey-350)" />
-          </Box>
-          {t('tr_reportPageInfo')}
-        </Typography>
+        <Stack spacing="8px">
+          <Typography className="h2">{t('tr_reportDetails')}</Typography>
+          <Typography color="var(--grey-400)">
+            <Box
+              component="span"
+              sx={{
+                verticalAlign: '-6px',
+                display: 'inline-flex',
+                marginRight: '4px',
+              }}
+            >
+              <IconInfo color="var(--grey-400)" />
+            </Box>
+            {t('tr_reportPageInfo')}
+          </Typography>
+        </Stack>
       )}
 
       {person && (
@@ -140,7 +143,7 @@ const ReportDetails = () => {
           )}
         </Stack>
       )}
-    </Card>
+    </CardContainer>
   );
 };
 
