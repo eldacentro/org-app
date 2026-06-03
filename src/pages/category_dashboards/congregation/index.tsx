@@ -7,6 +7,7 @@ import {
   IconGroups,
   IconPioneerForm,
   IconNextEvents,
+  IconAssignment,
 } from '@icons/index';
 
 const CongregationDashboard = () => {
@@ -60,11 +61,11 @@ const CongregationDashboard = () => {
         {/* Responsabilidades */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/responsabilidades')}>
           <div className="ti">
-            <IconGroups color="var(--brand)" width={22} height={22} />
+            <IconAssignment color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">Responsabilidades</div>
-            <div className="tile-meta">Cargos y departamentos</div>
+            <div className="tile-meta">Departamentos y responsabilidades</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
