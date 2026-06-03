@@ -85,37 +85,28 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // Unified scroll trigger for both glassmorphic effect and hide-on-scroll
   const trigger = useScrollTrigger({
     disableHysteresis: false,
     threshold: 10,
   });
-
-  const scrolled = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 10,
-  });
-
-  // Only hide on scroll for mobile
-  const isVisible = tabletUp || !trigger;
 
   return (
     <>
       <AppBar
         position="fixed"
         elevation={0}
-        className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
+        className={trigger ? 'appbar-scrolled' : 'appbar-top'}
         sx={{
-          backgroundColor: scrolled
+          backgroundColor: trigger
             ? 'rgba(var(--accent-100-base), 0.65) !important'
             : 'transparent !important',
           backgroundImage: 'none !important',
           boxShadow: 'none !important',
-          backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
-          WebkitBackdropFilter: scrolled
+          backdropFilter: trigger ? 'blur(24px) !important' : 'none !important',
+          WebkitBackdropFilter: trigger
             ? 'blur(24px) !important'
             : 'none !important',
-          borderBottom: scrolled
+          borderBottom: trigger
             ? '1px solid var(--line) !important'
             : '1px solid transparent !important',
           minHeight: `62px`,
@@ -124,9 +115,12 @@ const NavBar = ({ isSupported }: NavBarType) => {
           width: '100%',
           overflow: 'hidden',
           zIndex: (theme) => theme.zIndex.drawer - 1,
-          transform: isVisible ? 'translateY(0)' : 'translateY(-62px)',
-          transition:
-            'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important',
+          transform: tabletUp 
+            ? 'none' 
+            : trigger 
+              ? 'translateY(-62px)' 
+              : 'translateY(0)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <Toolbar
