@@ -70,7 +70,7 @@ try {
     const notificationOptions = {
       body: payload.data.body,
       icon:
-        payload.data.image || 'https://guide.organized-app.com/img/logo.svg',
+        payload.data.image || 'https://app.eldacentro.com/img/icon/logo.svg',
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);

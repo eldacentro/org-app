@@ -12,10 +12,10 @@ permissions:
 jobs:
   dev_deploy:
     name: Build and Deploy to Production
-    if: ${{ github.repository == 'sws2apps/organized-app' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.repository == 'eldacentro/org-app' && github.ref == 'refs/heads/main' }}
     environment:
-      name: Live (organized-app.com)
-      url: https://organized-app.com
+      name: Production
+      url: https://app.eldacentro.com
     runs-on: ubuntu-latest
     permissions:
       contents: write
