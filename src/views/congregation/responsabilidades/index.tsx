@@ -16,6 +16,8 @@ const styles = StyleSheet.create({
   contentWrapper: {
     display: 'flex',
     flexDirection: 'column',
+    // Reserva el alto del footer (absoluto) para que el contenido no se le solape.
+    paddingBottom: 30,
   },
   topBar: {
     display: 'flex',
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
   },
 
   sectionWrapper: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   // Chips row (cuerpo de ancianos)
   chipsRow: {
@@ -281,6 +283,39 @@ const TemplateResponsabilidades = ({
     return name || uid; // fallback: show raw value if not a uid
   };
 
+  // ── Densidad adaptativa para que SIEMPRE quepa en una página ──
+  // El header / cuerpo / cargos tienen altura estable; lo que crece es la
+  // sección de departamentos. Según cuántos haya, pasamos de 2 a 3 columnas
+  // y escalamos tipografías/espaciados.
+  const deptCount = data.departamentos.length;
+  const memberTotal = data.departamentos.reduce(
+    (n, dep) =>
+      n + (dep.type === 'extended' ? (dep as DepartamentoExtended).members.length : 0),
+    0
+  );
+  const dense = deptCount > 6 || memberTotal > 12;
+  const ultra = deptCount > 11 || memberTotal > 26;
+
+  const kd = ultra ? 0.8 : dense ? 0.9 : 1; // factor de escala de la sección
+  const cardWidth = dense ? '31.6%' : '48.5%'; // 3 columnas cuando hay muchos
+  const r = (n: number) => Math.round(n * kd * 10) / 10;
+
+  // Estilos escalados (se fusionan con los base vía arrays de estilo)
+  const dz = {
+    header: { paddingVertical: r(4), paddingHorizontal: r(10) },
+    headerText: { fontSize: r(11) },
+    body: { paddingVertical: r(7), paddingHorizontal: r(10), gap: r(6) },
+    infoColGap: { gap: r(5) },
+    infoRowGap: { gap: r(20) },
+    label: { fontSize: Math.max(6.5, r(7.5)) },
+    value: { fontSize: r(10.5) },
+    membersLabel: { fontSize: Math.max(6.5, r(7.5)) },
+    membersWrap: { gap: r(3) },
+    memberChip: { paddingVertical: r(2), paddingHorizontal: r(5) },
+    memberText: { fontSize: r(10) },
+    gridRowGap: { rowGap: r(8) },
+  };
+
   return (
     <Document title="Responsabilidades" lang="es">
       <Page>
@@ -329,28 +364,36 @@ const TemplateResponsabilidades = ({
           {/* ── Departamentos ────────────────────── */}
           <View style={styles.sectionWrapper}>
             <Text style={styles.sectionTitle}>Departamentos</Text>
-            <View style={styles.deptGrid}>
+            <View style={[styles.deptGrid, dz.gridRowGap]}>
               {data.departamentos.map((dep) => {
                 const isExtended = dep.type === 'extended';
                 const hasMembers =
                   isExtended &&
                   (dep as DepartamentoExtended).members.length > 0;
                 // Las tarjetas con integrantes ocupan la fila completa para que
-                // los nombres respiren; las demás van en cuadrícula de 2.
+                // los nombres respiren; las demás van en la cuadrícula adaptativa.
                 const isWide = hasMembers;
                 const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
 
                 return (
                   <View
                     key={dep.id}
-                    style={[styles.deptCard, isWide ? styles.deptCardWide : {}]}
+                    style={[
+                      styles.deptCard,
+                      { width: isWide ? '100%' : cardWidth },
+                    ]}
                   >
-                    <View style={styles.deptHeader}>
-                      <Text style={styles.deptHeaderText}>{dep.name}</Text>
+                    <View style={[styles.deptHeader, dz.header]}>
+                      <Text style={[styles.deptHeaderText, dz.headerText]}>
+                        {dep.name}
+                      </Text>
                     </View>
-                    <View style={styles.deptBody}>
+                    <View style={[styles.deptBody, dz.body]}>
                       <View
-                        style={isWide ? styles.deptInfoRow : styles.deptInfoCol}
+                        style={[
+                          isWide ? styles.deptInfoRow : styles.deptInfoCol,
+                          isWide ? dz.infoRowGap : dz.infoColGap,
+                        ]}
                       >
                         <View
                           style={[
@@ -358,8 +401,10 @@ const TemplateResponsabilidades = ({
                             isWide ? styles.deptPersonWide : {},
                           ]}
                         >
-                          <Text style={styles.deptLabel}>Responsable</Text>
-                          <Text style={styles.deptValue}>
+                          <Text style={[styles.deptLabel, dz.label]}>
+                            Responsable
+                          </Text>
+                          <Text style={[styles.deptValue, dz.value]}>
                             {resolve(dep.responsable) || '—'}
                           </Text>
                         </View>
@@ -370,20 +415,31 @@ const TemplateResponsabilidades = ({
                               isWide ? styles.deptPersonWide : {},
                             ]}
                           >
-                            <Text style={styles.deptLabel}>Auxiliar</Text>
-                            <Text style={styles.deptValue}>{auxiliar}</Text>
+                            <Text style={[styles.deptLabel, dz.label]}>
+                              Auxiliar
+                            </Text>
+                            <Text style={[styles.deptValue, dz.value]}>
+                              {auxiliar}
+                            </Text>
                           </View>
                         ) : null}
                       </View>
 
                       {hasMembers ? (
                         <View>
-                          <Text style={styles.deptMembersLabel}>Integrantes</Text>
-                          <View style={styles.deptMembersWrap}>
+                          <Text style={[styles.deptMembersLabel, dz.membersLabel]}>
+                            Integrantes
+                          </Text>
+                          <View style={[styles.deptMembersWrap, dz.membersWrap]}>
                             {(dep as DepartamentoExtended).members.map(
                               (uid, i) => (
-                                <View key={i} style={styles.deptMemberChip}>
-                                  <Text style={styles.deptMemberText}>
+                                <View
+                                  key={i}
+                                  style={[styles.deptMemberChip, dz.memberChip]}
+                                >
+                                  <Text
+                                    style={[styles.deptMemberText, dz.memberText]}
+                                  >
                                     {resolve(uid)}
                                   </Text>
                                 </View>
