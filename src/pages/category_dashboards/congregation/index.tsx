@@ -8,6 +8,7 @@ import {
   IconPioneerForm,
   IconNextEvents,
   IconAssignment,
+  IconMapOverview,
 } from '@icons/index';
 
 const CongregationDashboard = () => {
@@ -66,6 +67,20 @@ const CongregationDashboard = () => {
           <div className="tile-body">
             <div className="tile-name">Responsabilidades</div>
             <div className="tile-meta">Departamentos y responsabilidades</div>
+          </div>
+          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </div>
+
+        {/* Plan de Evacuación (visible para todos) */}
+        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/evacuacion')}>
+          <div className="ti">
+            <IconMapOverview color="var(--brand)" width={22} height={22} />
+          </div>
+          <div className="tile-body">
+            <div className="tile-name">Plan de Evacuación</div>
+            <div className="tile-meta">Salón del Reino · rutas y equipos</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />

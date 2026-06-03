@@ -84,6 +84,7 @@ const PredicacionSalidas = lazy(
 const Exhibitors = lazy(
   () => import('@pages/exhibitors')
 );
+const Evacuacion = lazy(() => import('@pages/congregation/evacuacion'));
 const Responsabilidades = lazy(
   () => import('@pages/congregation/responsabilidades')
 );
@@ -225,6 +226,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 path: '/activities/upcoming-events',
                 element: <UpcomingEvents />,
               },
+              { path: '/congregation/evacuacion', element: <Evacuacion /> },
 
               // publisher routes
               {
