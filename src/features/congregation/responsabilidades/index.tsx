@@ -20,7 +20,7 @@ import {
   IconReorder,
   IconUp,
   IconDown,
-  IconGroup,
+  IconGroups,
   IconAssignment,
   IconCongregation,
 } from '@components/icons';
@@ -241,7 +241,7 @@ const ReadCuerpoAncianos = ({
 }) => (
   <CardContainer>
     <SectionHeader
-      icon={IconGroup}
+      icon={IconGroups}
       title="Cuerpo de Ancianos"
       description="Listado oficial de los ancianos que sirven actualmente en la congregación."
     />
@@ -900,7 +900,7 @@ const ResponsabilidadesFeature = ({
         )}
 
         {[
-          { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroup },
+          { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
           { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
           { label: 'Departamentos de Servicio', content: secDepartamentos, icon: IconCongregation },
         ].map(({ label, content, icon: Icon }) => (
