@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Autocomplete,
@@ -20,9 +20,12 @@ import {
   IconReorder,
   IconUp,
   IconDown,
+  IconGroup,
+  IconAssignment,
+  IconCongregation,
 } from '@components/icons';
 import { responsabilidadesState } from '@states/responsabilidades';
-import { personsActiveState } from '@states/persons';
+import { personsActiveState, eldersActiveState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
 import {
@@ -32,10 +35,12 @@ import {
   DepartamentoSimple,
   DepartamentoExtended,
 } from '@definition/responsabilidades';
+import { CardContainer } from './shared_styles';
 import useBreakpoints from '@hooks/useBreakpoints';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Dialog from '@components/dialog';
+import Divider from '@components/divider';
 
 // ─── Person option type ──────────────────────────────────────────────────────
 
@@ -45,6 +50,7 @@ type PersonOption = { uid: string; label: string };
 
 const usePersonOptions = () => {
   const persons = useAtomValue(personsActiveState);
+  const elders = useAtomValue(eldersActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const resolveName = (uid: string) => {
@@ -59,13 +65,7 @@ const usePersonOptions = () => {
 
   const ancianos: PersonOption[] = useMemo(
     () =>
-      persons
-        .filter((p) => {
-          const privs = p.person_data.privileges ?? [];
-          return privs.some(
-            (priv) => !priv._deleted && priv.privilege.value === 'elder'
-          );
-        })
+      elders
         .map((p) => ({
           uid: p.person_uid,
           label: buildPersonFullname(
@@ -75,7 +75,7 @@ const usePersonOptions = () => {
           ),
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
-    [persons, fullnameOption]
+    [elders, fullnameOption]
   );
 
   const varones: PersonOption[] = useMemo(
@@ -174,53 +174,59 @@ const PersonMultiSelect = ({
 
 // ─── Section wrapper ─────────────────────────────────────────────────────────
 
-const SectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <Box
-    sx={{
-      borderBottom: '2px solid var(--accent-200)',
-      paddingBottom: '6px',
-      marginBottom: '12px',
-    }}
-  >
-    <Typography className="h2" color="var(--accent-dark)">
-      {children}
-    </Typography>
-  </Box>
-);
-
-const CardBox = ({ children }: { children: React.ReactNode }) => (
-  <Box
-    className="big-card-shadow"
-    sx={{
-      backgroundColor: 'var(--white)',
-      border: '1px solid var(--accent-200)',
-      borderRadius: 'var(--radius-xl)',
-      padding: '16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-    }}
-  >
-    {children}
-  </Box>
-);
-
-const FieldRow = ({
-  label,
-  value,
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  description,
 }: {
-  label: string;
-  value: string;
+  icon: React.ElementType;
+  title: string;
+  description?: string;
 }) => (
-  <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+  <Stack spacing="4px" sx={{ mb: '20px' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          borderRadius: 'var(--r-md)',
+          backgroundColor: 'var(--accent-100)',
+          border: '1px solid var(--accent-200)',
+        }}
+      >
+        <Icon color="var(--accent-main)" width={24} height={24} />
+      </Box>
+      <Typography className="h2" color="var(--black)">
+        {title}
+      </Typography>
+    </Box>
+    {description && (
+      <Typography
+        className="body-small-regular"
+        color="var(--grey-400)"
+        sx={{ ml: '52px' }}
+      >
+        {description}
+      </Typography>
+    )}
+  </Stack>
+);
+
+const FieldRow = ({ label, value }: { label: string; value: string }) => (
+  <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', py: '4px' }}>
     <Typography
-      className="label"
+      className="body-small-semibold"
       color="var(--accent-dark)"
-      sx={{ minWidth: 130 }}
+      sx={{ minWidth: 160 }}
     >
       {label}
     </Typography>
-    <Typography className="body-regular">{value}</Typography>
+    <Typography className="body-regular" color="var(--black)" sx={{ fontWeight: 500 }}>
+      {value}
+    </Typography>
   </Box>
 );
 
@@ -233,24 +239,43 @@ const ReadCuerpoAncianos = ({
   uids: string[];
   resolveName: (u: string) => string;
 }) => (
-  <CardBox>
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+  <CardContainer>
+    <SectionHeader
+      icon={IconGroup}
+      title="Cuerpo de Ancianos"
+      description="Listado oficial de los ancianos que sirven actualmente en la congregación."
+    />
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px', ml: { tablet: '52px' } }}>
       {uids.map((uid) => (
         <Chip
           key={uid}
           label={resolveName(uid)}
-          size="small"
           sx={{
-            background: 'var(--accent-150)',
+            background: 'linear-gradient(135deg, var(--accent-100) 0%, var(--white) 100%)',
             color: 'var(--accent-dark)',
             fontFamily: 'Figtree, sans-serif',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
+            border: '1px solid var(--accent-200)',
+            height: '36px',
+            px: '4px',
+            borderRadius: 'var(--r-md)',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.05)',
+              boxShadow: 'var(--shadow-sm)',
+              borderColor: 'var(--accent-main)',
+            },
           }}
         />
       ))}
+      {uids.length === 0 && (
+        <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic', ml: '52px' }}>
+          No se han encontrado ancianos registrados.
+        </Typography>
+      )}
     </Box>
-  </CardBox>
+  </CardContainer>
 );
 
 const ReadCargos = ({
@@ -260,13 +285,27 @@ const ReadCargos = ({
   cargos: AncianoCargo[];
   resolveName: (u: string) => string;
 }) => (
-  <CardBox>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+  <CardContainer>
+    <SectionHeader
+      icon={IconAssignment}
+      title="Responsabilidades de Ancianos"
+      description="Hermanos asignados a los cargos de confianza y gestión del cuerpo."
+    />
+    <Stack spacing="8px" sx={{ ml: { tablet: '52px' } }} divider={<Divider color="var(--accent-100)" />}>
       {cargos.map((item, i) => (
-        <FieldRow key={i} label={item.cargo} value={resolveName(item.responsable)} />
+        <FieldRow
+          key={i}
+          label={item.cargo}
+          value={resolveName(item.responsable)}
+        />
       ))}
-    </Box>
-  </CardBox>
+      {cargos.length === 0 && (
+        <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
+          Aún no se han definido cargos específicos.
+        </Typography>
+      )}
+    </Stack>
+  </CardContainer>
 );
 
 const ReadDepartamentos = ({
@@ -276,112 +315,192 @@ const ReadDepartamentos = ({
   departamentos: Departamento[];
   resolveName: (u: string) => string;
 }) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' },
-      gap: '8px',
-    }}
-  >
-    {departamentos.map((dep) => (
-      <CardBox key={dep.id}>
-        <Typography className="h3" color="var(--accent-main)">
-          {dep.name}
-        </Typography>
-        <FieldRow label="Responsable:" value={resolveName(dep.responsable)} />
-        {dep.auxiliar && (
-          <FieldRow label="Auxiliar:" value={resolveName(dep.auxiliar)} />
-        )}
-        {dep.type === 'extended' &&
-          (dep as DepartamentoExtended).members.length > 0 && (
-            <>
-              <Typography className="label" color="var(--accent-dark)" sx={{ mt: '4px' }}>
-                Miembros
+  <Box>
+    <SectionHeader
+      icon={IconCongregation}
+      title="Departamentos de Servicio"
+      description="Organización interna de los servicios necesarios para el buen funcionamiento de la congregación."
+    />
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          mobile: '1fr',
+          tablet: '1fr 1fr',
+          laptop: '1fr 1fr 1fr',
+        },
+        gap: '20px',
+      }}
+    >
+      {departamentos.map((dep) => (
+        <Box
+          key={dep.id}
+          sx={{
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--r-lg)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 12px 24px -10px rgba(0,0,0,0.1)',
+              borderColor: 'var(--accent-main)',
+            },
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '6px',
+              backgroundColor: 'var(--accent-main)',
+            }
+          }}
+        >
+          <Box sx={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Typography className="h3" color="var(--black)" sx={{ fontWeight: 700 }}>
+                {dep.name}
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                {(dep as DepartamentoExtended).members.map((uid) => (
-                  <Chip
-                    key={uid}
-                    label={resolveName(uid)}
-                    size="small"
-                    sx={{ fontFamily: 'Figtree, sans-serif', fontSize: '12px' }}
-                  />
-                ))}
+              <IconCongregation color="var(--accent-200)" width={24} height={24} />
+            </Box>
+
+            <Stack spacing="12px">
+              <Box>
+                <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                  Responsable
+                </Typography>
+                <Typography className="body-regular-semibold" color="var(--accent-dark)">
+                  {resolveName(dep.responsable)}
+                </Typography>
               </Box>
-            </>
-          )}
-      </CardBox>
-    ))}
+
+              {dep.auxiliar && (
+                <Box>
+                  <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                    Auxiliar
+                  </Typography>
+                  <Typography className="body-regular" color="var(--black)">
+                    {resolveName(dep.auxiliar)}
+                  </Typography>
+                </Box>
+              )}
+
+              {dep.type === 'extended' &&
+                (dep as DepartamentoExtended).members.length > 0 && (
+                  <Box sx={{ mt: '4px' }}>
+                    <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '8px' }}>
+                      Equipo ({ (dep as DepartamentoExtended).members.length })
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {(dep as DepartamentoExtended).members.map((uid) => (
+                        <Chip
+                          key={uid}
+                          label={resolveName(uid)}
+                          size="small"
+                          sx={{
+                            fontFamily: 'Figtree, sans-serif',
+                            fontSize: '11px',
+                            backgroundColor: 'var(--accent-100)',
+                            color: 'var(--accent-dark)',
+                            borderRadius: 'var(--r-sm)',
+                            fontWeight: 500,
+                            '&:hover': { backgroundColor: 'var(--accent-200)' }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+            </Stack>
+          </Box>
+        </Box>
+      ))}
+    </Box>
   </Box>
 );
 
 // ─── Edit views ──────────────────────────────────────────────────────────────
 
-const EditCuerpoAncianos = ({
-  uids,
+const EditCargos = ({
+  cargos,
   ancianos,
   onChange,
 }: {
-  uids: string[];
-  ancianos: PersonOption[];
-  onChange: (v: string[]) => void;
-}) => (
-  <CardBox>
-    <PersonMultiSelect
-      value={uids}
-      options={ancianos}
-      label="Cuerpo de Ancianos"
-      onChange={onChange}
-    />
-  </CardBox>
-);
-
-const EditCargos = ({
-  cargos,
-  varones,
-  onChange,
-}: {
   cargos: AncianoCargo[];
-  varones: PersonOption[];
+  ancianos: PersonOption[];
   onChange: (v: AncianoCargo[]) => void;
 }) => {
   const updateCargo = (i: number, val: string) =>
     onChange(cargos.map((c, idx) => (idx === i ? { ...c, cargo: val } : c)));
   const updateResponsable = (i: number, uid: string) =>
-    onChange(cargos.map((c, idx) => (idx === i ? { ...c, responsable: uid } : c)));
+    onChange(
+      cargos.map((c, idx) => (idx === i ? { ...c, responsable: uid } : c))
+    );
   const remove = (i: number) => onChange(cargos.filter((_, idx) => idx !== i));
   const add = () => onChange([...cargos, { cargo: '', responsable: '' }]);
 
   return (
-    <CardBox>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <CardContainer>
+      <SectionHeader
+        icon={IconAssignment}
+        title="Responsabilidades de Ancianos"
+        description="Añade o edita los cargos principales de la congregación."
+      />
+      <Stack spacing="16px">
         {cargos.map((item, i) => (
-          <Box key={i} sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Box
+            key={i}
+            sx={{
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'center',
+              backgroundColor: 'var(--accent-100)',
+              padding: '12px',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--accent-200)',
+            }}
+          >
             <TextField
               value={item.cargo}
               onChange={(e) => updateCargo(i, e.target.value)}
               size="small"
-              label="Cargo"
-              sx={{ flex: 1 }}
+              label="Nombre del cargo"
+              sx={{ flex: 1, backgroundColor: 'var(--white)', borderRadius: 'var(--r-sm)' }}
             />
             <PersonSelect
               value={item.responsable}
-              options={varones}
-              label="Responsable"
+              options={ancianos}
+              label="Hno. Responsable"
               onChange={(uid) => updateResponsable(i, uid)}
             />
-            <IconButton size="small" onClick={() => remove(i)} color="error">
+            <IconButton
+              size="medium"
+              onClick={() => remove(i)}
+              sx={{
+                color: 'var(--red-main)',
+                backgroundColor: 'var(--white)',
+                border: '1px solid var(--red-200)',
+                '&:hover': { backgroundColor: 'var(--red-100)' },
+              }}
+            >
               <IconDelete />
             </IconButton>
           </Box>
         ))}
-        <Box>
-          <Button variant="secondary" onClick={add} startIcon={<IconAdd />}>
-            Añadir cargo
-          </Button>
-        </Box>
-      </Box>
-    </CardBox>
+        <Button
+          variant="secondary"
+          onClick={add}
+          startIcon={<IconAdd />}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Añadir nuevo cargo
+        </Button>
+      </Stack>
+    </CardContainer>
   );
 };
 
@@ -410,13 +529,32 @@ const EditDepartamento = ({
       void _;
       onChange({ ...rest, type: 'simple' } as DepartamentoSimple);
     } else {
-      onChange({ ...dep, type: 'extended', members: [] } as DepartamentoExtended);
+      onChange({
+        ...dep,
+        type: 'extended',
+        members: [],
+      } as DepartamentoExtended);
     }
   };
 
   return (
-    <CardBox>
-      <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+    <Box
+      sx={{
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        position: 'relative',
+        '&:hover': {
+          borderColor: 'var(--accent-300)',
+          boxShadow: 'var(--shadow-sm)',
+        },
+      }}
+    >
+      <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
         <TextField
           value={dep.name}
           onChange={(e) => updateField('name', e.target.value)}
@@ -425,22 +563,31 @@ const EditDepartamento = ({
           sx={{ flex: 1 }}
         />
         <Chip
-          label={isExtended ? 'Extendido' : 'Simple'}
+          label={isExtended ? 'Estructura Compleja' : 'Estructura Simple'}
           size="small"
           clickable
           onClick={toggleType}
           sx={{
-            background: isExtended ? 'var(--accent-150)' : 'var(--line)',
-            color: isExtended ? 'var(--accent-dark)' : 'var(--text-secondary)',
-            fontFamily: 'Figtree, sans-serif',
+            background: isExtended ? 'var(--accent-main)' : 'var(--line)',
+            color: isExtended ? 'var(--always-white)' : 'var(--text-secondary)',
+            fontWeight: 600,
+            px: '8px',
           }}
         />
-        <IconButton size="small" onClick={onRemove} color="error">
+        <IconButton
+          size="medium"
+          onClick={onRemove}
+          sx={{
+            color: 'var(--red-main)',
+            border: '1px solid var(--red-200)',
+            '&:hover': { backgroundColor: 'var(--red-100)' },
+          }}
+        >
           <IconDelete />
         </IconButton>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
         <PersonSelect
           value={dep.responsable}
           options={varones}
@@ -459,11 +606,11 @@ const EditDepartamento = ({
         <PersonMultiSelect
           value={(dep as DepartamentoExtended).members}
           options={varones}
-          label="Miembros"
+          label="Hermanos que colaboran en este departamento"
           onChange={updateMembers}
         />
       )}
-    </CardBox>
+    </Box>
   );
 };
 
@@ -497,42 +644,78 @@ const ReorderDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} sx={{ padding: '24px' }}>
-      <Typography className="h2">Reordenar departamentos</Typography>
+    <Dialog open={open} onClose={onClose} sx={{ padding: '32px' }} maxWidth="sm">
+      <SectionHeader
+        icon={IconReorder}
+        title="Reordenar Departamentos"
+        description="Arrastra o usa las flechas para cambiar el orden en que aparecen los departamentos."
+      />
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', my: '16px', maxHeight: '60vh', overflowY: 'auto' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          my: '24px',
+          maxHeight: '50vh',
+          overflowY: 'auto',
+          pr: '8px',
+        }}
+      >
         {list.map((dep, i) => (
           <Box
             key={dep.id}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: 'var(--white)',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: 'var(--accent-100)',
               border: '1px solid var(--accent-200)',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: 'var(--r-md)',
+              transition: 'background-color 0.2s',
+              '&:hover': {
+                backgroundColor: 'var(--accent-150)',
+              },
             }}
           >
-            <Typography className="body-regular" sx={{ flex: 1 }}>
-              {dep.name || '(sin nombre)'}
+            <Typography className="body-regular-semibold" sx={{ flex: 1 }} color="var(--black)">
+              {dep.name || '(Sin nombre)'}
             </Typography>
-            <IconButton size="small" onClick={() => moveUp(i)} disabled={i === 0}>
-              <IconUp />
-            </IconButton>
-            <IconButton size="small" onClick={() => moveDown(i)} disabled={i === list.length - 1}>
-              <IconDown />
-            </IconButton>
+            <Stack direction="row" spacing="4px">
+              <IconButton
+                size="small"
+                onClick={() => moveUp(i)}
+                disabled={i === 0}
+                sx={{ border: '1px solid var(--line)', backgroundColor: 'var(--white)' }}
+              >
+                <IconUp />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => moveDown(i)}
+                disabled={i === list.length - 1}
+                sx={{ border: '1px solid var(--line)', backgroundColor: 'var(--white)' }}
+              >
+                <IconDown />
+              </IconButton>
+            </Stack>
           </Box>
         ))}
       </Box>
 
-      <Stack spacing="8px" width="100%">
-        <Button variant="main" onClick={() => { onSave(list); onClose(); }}>
-          Guardar orden
-        </Button>
+      <Stack direction="row" spacing="12px" width="100%" justifyContent="flex-end">
         <Button variant="secondary" onClick={onClose}>
-          Cancelar
+          Cerrar
+        </Button>
+        <Button
+          variant="main"
+          onClick={() => {
+            onSave(list);
+            onClose();
+          }}
+        >
+          Guardar nuevo orden
         </Button>
       </Stack>
     </Dialog>
@@ -562,10 +745,29 @@ const ResponsabilidadesFeature = ({
 
   const [reorderOpen, setReorderOpen] = useState(false);
 
+  // Auto-sync cuerpoAncianos in draft when active elders list changes
+  useEffect(() => {
+    if (isEditing && draft) {
+      const currentUids = ancianos.map((a) => a.uid);
+      const draftUids = draft.cuerpoAncianos || [];
+
+      if (JSON.stringify(currentUids) !== JSON.stringify(draftUids)) {
+        setDraft({ ...draft, cuerpoAncianos: currentUids });
+      }
+    }
+  }, [ancianos, isEditing, draft, setDraft]);
+
   if (!data) {
     return (
-      <Box sx={{ color: 'var(--text-secondary)', fontSize: '14px', padding: '16px' }}>
-        Cargando…
+      <Box
+        sx={{
+          color: 'var(--text-secondary)',
+          fontSize: '14px',
+          padding: '32px',
+          textAlign: 'center',
+        }}
+      >
+        Cargando configuración de la congregación…
       </Box>
     );
   }
@@ -607,86 +809,127 @@ const ResponsabilidadesFeature = ({
   };
 
   // ── Section content ──
-  const secCuerpo = isEditing && draft ? (
-    <EditCuerpoAncianos
-      uids={draft.cuerpoAncianos}
-      ancianos={ancianos}
-      onChange={(v) => updateDraft({ cuerpoAncianos: v })}
+  const secCuerpo = (
+    <ReadCuerpoAncianos
+      uids={ancianos.map((a) => a.uid)}
+      resolveName={resolveName}
     />
-  ) : (
-    <ReadCuerpoAncianos uids={d.cuerpoAncianos} resolveName={resolveName} />
   );
 
-  const secCargos = isEditing && draft ? (
-    <EditCargos
-      cargos={draft.cargosAncianos}
-      varones={varones}
-      onChange={(v) => updateDraft({ cargosAncianos: v })}
-    />
-  ) : (
-    <ReadCargos cargos={d.cargosAncianos} resolveName={resolveName} />
-  );
+  const secCargos =
+    isEditing && draft ? (
+      <EditCargos
+        cargos={draft.cargosAncianos}
+        ancianos={ancianos}
+        onChange={(v) => updateDraft({ cargosAncianos: v })}
+      />
+    ) : (
+      <ReadCargos cargos={d.cargosAncianos} resolveName={resolveName} />
+    );
 
-  const secDepartamentos = isEditing && draft ? (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {draft.departamentos.map((dep, i) => (
-        <EditDepartamento
-          key={dep.id}
-          dep={dep}
-          varones={varones}
-          onChange={(v) => updateDepartamento(i, v)}
-          onRemove={() => removeDepartamento(i)}
+  const secDepartamentos =
+    isEditing && draft ? (
+      <CardContainer>
+        <SectionHeader
+          icon={IconCongregation}
+          title="Departamentos"
+          description="Define los responsables y miembros de cada sección operativa."
         />
-      ))}
-      <Box sx={{ display: 'flex', gap: '8px', mt: '4px' }}>
-        <Button variant="secondary" onClick={addDepartamento} startIcon={<IconAdd />}>
-          Añadir departamento
-        </Button>
-        {draft.departamentos.length > 1 && (
-          <Button variant="secondary" onClick={() => setReorderOpen(true)} startIcon={<IconReorder color="var(--accent-main)" />}>
-            Reordenar
-          </Button>
-        )}
-      </Box>
-    </Box>
-  ) : (
-    <ReadDepartamentos departamentos={d.departamentos} resolveName={resolveName} />
-  );
+        <Stack spacing="16px">
+          {draft.departamentos.map((dep, i) => (
+            <EditDepartamento
+              key={dep.id}
+              dep={dep}
+              varones={varones}
+              onChange={(v) => updateDepartamento(i, v)}
+              onRemove={() => removeDepartamento(i)}
+            />
+          ))}
+          <Stack direction="row" spacing="12px" sx={{ mt: '8px' }}>
+            <Button
+              variant="main"
+              onClick={addDepartamento}
+              startIcon={<IconAdd />}
+            >
+              Crear nuevo departamento
+            </Button>
+            {draft.departamentos.length > 1 && (
+              <Button
+                variant="secondary"
+                onClick={() => setReorderOpen(true)}
+                startIcon={<IconReorder color="var(--accent-main)" />}
+              >
+                Reordenar lista
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      </CardContainer>
+    ) : (
+      <ReadDepartamentos
+        departamentos={d.departamentos}
+        resolveName={resolveName}
+      />
+    );
 
   // ── Render ──
   if (mobile) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', pb: '32px' }}>
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', gap: '16px', pb: '40px' }}
+      >
         {isEditing && (
-          <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <Button variant="secondary" onClick={onCancelEdit} disabled={saving} startIcon={<IconClose />}>
+          <Box sx={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', px: '8px' }}>
+            <Button
+              variant="secondary"
+              onClick={onCancelEdit}
+              disabled={saving}
+              startIcon={<IconClose />}
+            >
               Cancelar
             </Button>
-            <Button variant="main" onClick={onSave} disabled={saving} startIcon={<IconSave />}>
+            <Button
+              variant="main"
+              onClick={onSave}
+              disabled={saving}
+              startIcon={<IconSave />}
+            >
               {saving ? 'Guardando…' : 'Guardar'}
             </Button>
           </Box>
         )}
 
         {[
-          { label: 'Cuerpo de Ancianos', content: secCuerpo },
-          { label: 'Responsabilidades de Ancianos', content: secCargos },
-          { label: 'Departamentos', content: secDepartamentos },
-        ].map(({ label, content }) => (
+          { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroup },
+          { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
+          { label: 'Departamentos de Servicio', content: secDepartamentos, icon: IconCongregation },
+        ].map(({ label, content, icon: Icon }) => (
           <Accordion
             key={label}
             defaultExpanded
             sx={{
-              borderRadius: 'var(--radius-xl) !important',
-              border: '1px solid var(--accent-200)',
-              boxShadow: 'none',
+              borderRadius: 'var(--r-lg) !important',
+              border: '1px solid var(--line)',
+              boxShadow: 'var(--shadow-sm)',
+              overflow: 'hidden',
               '&:before': { display: 'none' },
+              '&.Mui-expanded': { mb: '16px' },
             }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography className="h3" color="var(--accent-dark)">{label}</Typography>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-main)' }} />}
+              sx={{ backgroundColor: 'var(--accent-100)', py: '4px' }}
+            >
+              <Stack direction="row" spacing="12px" alignItems="center">
+                <Icon color="var(--accent-main)" width={22} height={22} />
+                <Typography className="h3" color="var(--black)">
+                  {label}
+                </Typography>
+              </Stack>
             </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0 }}>{content}</AccordionDetails>
+            <AccordionDetails sx={{ pt: '20px', pb: '20px', px: '12px', backgroundColor: 'var(--white)' }}>
+              {content}
+            </AccordionDetails>
           </Accordion>
         ))}
 
@@ -703,24 +946,12 @@ const ResponsabilidadesFeature = ({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', pb: '32px' }}>
-      {/* Cuerpo de Ancianos */}
-      <Box>
-        <SectionHeader>Cuerpo de Ancianos</SectionHeader>
-        {secCuerpo}
-      </Box>
-
-      {/* Responsabilidades de Ancianos */}
-      <Box>
-        <SectionHeader>Responsabilidades de Ancianos</SectionHeader>
-        {secCargos}
-      </Box>
-
-      {/* Departamentos */}
-      <Box>
-        <SectionHeader>Departamentos</SectionHeader>
-        {secDepartamentos}
-      </Box>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '40px' }}
+    >
+      <Box>{secCuerpo}</Box>
+      <Box>{secCargos}</Box>
+      <Box>{secDepartamentos}</Box>
 
       {isEditing && draft && reorderOpen && (
         <ReorderDialog

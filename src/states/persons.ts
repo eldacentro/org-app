@@ -171,4 +171,23 @@ export const applicationsApprovedState = atom((get) => {
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 });
 
+export const eldersActiveState = atom((get) => {
+  const persons = get(personsActiveState);
+
+  return persons.filter((person) => {
+    const privileges = person?.person_data?.privileges || [];
+    return privileges.some((p) => {
+      const privilegeValue =
+        typeof p.privilege === 'object' && p.privilege !== null
+          ? (p.privilege as { value: string }).value
+          : p.privilege;
+      const isElder = privilegeValue === 'elder';
+      const isDeleted = p._deleted === true;
+      const isActive = p.end_date === null || p.end_date === '';
+
+      return isElder && !isDeleted && isActive;
+    });
+  });
+});
+
 export const personsFilterOpenState = atom(false);

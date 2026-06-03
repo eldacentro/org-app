@@ -1,21 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import { IconEdit, IconSave, IconClose, IconPrint } from '@components/icons';
+import { IconEdit, IconSave, IconClose } from '@components/icons';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
 import ResponsabilidadesFeature from '@features/congregation/responsabilidades';
-import useResponsabilidadesExport from '@features/congregation/responsabilidades/useResponsabilidadesExport';
+import ExportResponsabilidades from '@features/congregation/responsabilidades/export_responsabilidades';
 import { responsabilidadesState } from '@states/responsabilidades';
-import { pdfExportEnabledState } from '@states/settings';
 import { dbResponsabilidadesSave } from '@services/dexie/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import useCurrentUser from '@hooks/useCurrentUser';
 
 const ResponsabilidadesPage = () => {
   const data = useAtomValue(responsabilidadesState);
-  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
 
   const { isElder, isAdmin } = useCurrentUser();
   const canEdit = isElder || isAdmin;
@@ -23,8 +21,6 @@ const ResponsabilidadesPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ResponsabilidadesType | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const { handleExportPDF, isProcessing } = useResponsabilidadesExport();
 
   const startEdit = () => {
     if (!data) return;
@@ -52,16 +48,8 @@ const ResponsabilidadesPage = () => {
   const buttons = useMemo(() => {
     const btns: React.ReactNode[] = [];
 
-    if (pdfExportEnabled) {
-      btns.push(
-        <NavBarButton
-          key="export"
-          text="Exportar"
-          onClick={handleExportPDF}
-          icon={<IconPrint color="var(--accent-main)" />}
-          disabled={isProcessing}
-        />
-      );
+    if (isElder || isAdmin) {
+      btns.push(<ExportResponsabilidades key="export" />);
     }
 
     if (canEdit) {
@@ -97,7 +85,7 @@ const ResponsabilidadesPage = () => {
 
     return <>{btns}</>;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canEdit, isEditing, saving, pdfExportEnabled, isProcessing]);
+  }, [canEdit, isEditing, saving, isElder, isAdmin]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
