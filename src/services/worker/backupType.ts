@@ -32,6 +32,7 @@ export type BackupDataType = {
   departments_schedule?: object;
   service_outings?: object;
   exhibitors?: object;
+  responsabilidades?: object;
   sources?: object;
   meeting_attendance?: object;
   upcoming_events?: UpcomingEventType[];

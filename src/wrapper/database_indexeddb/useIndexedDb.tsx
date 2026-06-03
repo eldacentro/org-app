@@ -31,6 +31,9 @@ import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/se
 import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { ExhibitorWeekType, ExhibitorSettingsType } from '@definition/exhibitors';
+import { responsabilidadesState } from '@states/responsabilidades';
+import { ResponsabilidadesType } from '@definition/responsabilidades';
+import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -82,6 +85,9 @@ const useIndexedDb = () => {
   const dbExhibitors = useLiveQuery(() =>
     appDb.exhibitors.toArray()
   );
+  const dbResponsabilidades = useLiveQuery(() =>
+    appDb.responsabilidades.toArray()
+  );
 
   const setSettings = useSetAtom(settingsState);
   const setPersons = useSetAtom(personsState);
@@ -117,6 +123,9 @@ const useIndexedDb = () => {
   );
   const [, setExhibitorsSettings] = useAtom(
     exhibitorsSettingsState as WritableAtom<ExhibitorSettingsType | null, [ExhibitorSettingsType | null], void>
+  );
+  const [, setResponsabilidades] = useAtom(
+    responsabilidadesState as WritableAtom<ResponsabilidadesType | null, [ResponsabilidadesType | null], void>
   );
 
   const loadSettings = useCallback(() => {
@@ -269,6 +278,16 @@ const useIndexedDb = () => {
     }
   }, [dbExhibitors, setExhibitorsList, setExhibitorsSettings]);
 
+  const loadResponsabilidades = useCallback(async () => {
+    if (dbResponsabilidades !== undefined) {
+      if (dbResponsabilidades.length === 0) {
+        await dbResponsabilidadesInit();
+      } else {
+        setResponsabilidades(dbResponsabilidades[0]);
+      }
+    }
+  }, [dbResponsabilidades, setResponsabilidades]);
+
   const loadAssignmentsHistory = useCallback(() => {
     const history = schedulesBuildHistoryList();
     setAssignmentsHistory(history);
@@ -299,6 +318,7 @@ const useIndexedDb = () => {
     loadDeptSchedules,
     loadServiceOutings,
     loadExhibitors,
+    loadResponsabilidades,
     loadAssignmentsHistory,
   };
 };

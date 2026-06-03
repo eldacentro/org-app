@@ -68,6 +68,10 @@ import {
   ExhibitorTable,
   exhibitorsSchema,
 } from './tables/exhibitors';
+import {
+  ResponsabilidadesTable,
+  responsabilidadesSchema,
+} from './tables/responsabilidades';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -92,7 +96,8 @@ type DexieTables = PersonsTable &
   SongTable &
   DeptScheduleTable &
   ServiceOutingTable &
-  ExhibitorTable;
+  ExhibitorTable &
+  ResponsabilidadesTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -230,6 +235,20 @@ appDb.version(15).stores({
   ...departmentsScheduleSchema,
   ...serviceOutingsSchema,
   ...exhibitorsSchema,
+});
+
+appDb.version(16).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
 });
 
 appDb.on('populate', function () {

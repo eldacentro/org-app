@@ -84,6 +84,9 @@ const PredicacionSalidas = lazy(
 const Exhibitors = lazy(
   () => import('@pages/exhibitors')
 );
+const Responsabilidades = lazy(
+  () => import('@pages/congregation/responsabilidades')
+);
 
 const queryClient = new QueryClient();
 
@@ -259,6 +262,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                   {
                     path: '/field-service-groups',
                     element: <FieldServiceGroups />,
+                  },
+                  {
+                    path: '/congregation/responsabilidades',
+                    element: <Responsabilidades />,
                   },
                 ],
               },

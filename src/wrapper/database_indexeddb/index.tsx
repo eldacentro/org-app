@@ -35,6 +35,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
     loadDeptSchedules,
     loadServiceOutings,
     loadExhibitors,
+    loadResponsabilidades,
     loadAssignmentsHistory,
   } = useIndexedDb();
 
@@ -63,6 +64,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
       loadDeptSchedules();
       loadServiceOutings();
       loadExhibitors();
+      loadResponsabilidades();
       loadAssignmentsHistory();
     };
 
@@ -91,6 +93,7 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
     loadDeptSchedules,
     loadServiceOutings,
     loadExhibitors,
+    loadResponsabilidades,
     loadAssignmentsHistory,
   ]);
 

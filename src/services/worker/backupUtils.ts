@@ -18,6 +18,7 @@ import {
 import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { ExhibitorWeekType } from '@definition/exhibitors';
+import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -359,6 +360,7 @@ const dbGetTableData = async () => {
   const departments_schedule = await appDb.departments_schedule.toArray();
   const service_outings = await appDb.service_outings.toArray();
   const exhibitors = await appDb.exhibitors.toArray();
+  const responsabilidades = await appDb.responsabilidades.toArray();
   const sources = await appDb.sources.toArray();
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
@@ -417,6 +419,7 @@ const dbGetTableData = async () => {
     departments_schedule,
     service_outings,
     exhibitors,
+    responsabilidades,
     sources,
     meeting_attendance,
     metadata,
@@ -1901,6 +1904,33 @@ const dbDeduplicateCongregations = async () => {
   }
 };
 
+const dbRestoreResponsabilidades = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.responsabilidades) return;
+
+    const remoteRecord = structuredClone(backupData.responsabilidades) as ResponsabilidadesType;
+
+    decryptObject({
+      data: remoteRecord,
+      table: 'responsabilidades',
+      accessCode,
+    });
+
+    const localRecord = await appDb.responsabilidades.get('main');
+    const remoteUpdated = remoteRecord.updatedAt || '';
+    const localUpdated = localRecord?.updatedAt || '';
+
+    if (!localRecord || remoteUpdated > localUpdated) {
+      await appDb.responsabilidades.put({ ...remoteRecord, id: 'main' });
+    }
+  } catch (error) {
+    throw new Error(`responsabilidades: ${error.message}`);
+  }
+};
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -1937,6 +1967,7 @@ const dbRestoreFromBackup = async (
 
     await dbRestoreServiceOutings(backupData, accessCode);
     await dbRestoreExhibitors(backupData, accessCode);
+    await dbRestoreResponsabilidades(backupData, accessCode);
 
     await dbRestoreUserStudies(backupData, accessCode);
 
@@ -2013,6 +2044,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       departments_schedule,
       service_outings,
       exhibitors,
+      responsabilidades,
       sources,
       meeting_attendance,
       metadata,
@@ -2353,6 +2385,26 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           });
 
           obj.exhibitors = backupExhibitors;
+        }
+
+        // include responsabilidades data (visible to all, editable by elders/admin)
+        if (
+          (elderRole || adminRole) &&
+          metadata.metadata.responsabilidades?.send_local
+        ) {
+          const record = responsabilidades[0];
+
+          if (record) {
+            const toBackup = structuredClone(record);
+
+            encryptObject({
+              data: toBackup,
+              table: 'responsabilidades',
+              accessCode,
+            });
+
+            obj.responsabilidades = toBackup;
+          }
         }
 
         // for admin role

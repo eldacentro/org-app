@@ -255,4 +255,9 @@ export const TABLE_ENCRYPTION_MAP = {
     fixedAssignments: 'shared',
     availability: 'shared',
   },
+  responsabilidades: {
+    cuerpoAncianos: 'shared',
+    cargosAncianos: 'shared',
+    departamentos: 'shared',
+  },
 };
