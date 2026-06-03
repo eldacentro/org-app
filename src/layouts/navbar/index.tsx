@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -35,12 +34,6 @@ import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
 import { isTest } from '@constants/index';
-
-const NAVBAR_HEIGHT = 62;
-
-// Duración de la transición que suaviza las ráfagas de eventos de scroll de iOS.
-// Más alto = más suave pero con algo más de "arrastre"; más bajo = más pegado al dedo.
-const FOLLOW_EASE = 'transform 0.15s ease-out';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -93,54 +86,14 @@ const NavBar = ({ isSupported }: NavBarType) => {
   } = useNavbar();
 
   // --- iOS-Style Fluid Scroll Logic ---
-  // El wrapper (navRef) es lo único que se mueve con transform; el AppBar de
-  // dentro lleva el cristal (backdrop-filter). Separar transform y backdrop-filter
-  // en capas distintas evita el artefacto de "superposición" de WebKit.
-  const navRef = useRef<HTMLDivElement>(null);
-  const lastScrollY = useRef(0);
-  const currentOffset = useRef(0);
-
-  useEffect(() => {
-    // Desktop/tablet: barra siempre visible, sin seguimiento de scroll.
-    if (tabletUp) {
-      if (navRef.current) navRef.current.style.transform = 'translateY(0)';
-      return;
-    }
-
-    // Punto de partida sincronizado con el scroll actual.
-    lastScrollY.current = window.scrollY;
-    currentOffset.current = 0;
-
-    let rafId = 0;
-
-    const handleScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        const delta = scrollY - lastScrollY.current;
-        lastScrollY.current = scrollY;
-
-        // Proporcional y direccional: bajar oculta, subir muestra (0..HEIGHT).
-        currentOffset.current = Math.min(
-          NAVBAR_HEIGHT,
-          Math.max(0, currentOffset.current + delta)
-        );
-
-        // Escribimos en el wrapper. La transición CSS (FOLLOW_EASE) interpola
-        // entre las ráfagas de eventos que iOS entrega durante el scroll inercial,
-        // así el movimiento es suave en vez de a trompicones.
-        if (navRef.current) {
-          navRef.current.style.transform = `translateY(${-currentOffset.current}px)`;
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      cancelAnimationFrame(rafId);
-    };
-  }, [tabletUp]);
+  // El movimiento de ocultar/mostrar la barra NO se hace con JS, sino con una
+  // scroll-driven animation de CSS (clase .navbar-hide-on-scroll en index.css).
+  // El navegador la ata a la posición de scroll en el hilo del compositor, así
+  // que va en lockstep perfecto con el dedo, sin lag (a diferencia de cualquier
+  // listener de 'scroll' en JS, que en iOS llega a ráfagas y se siente "efecto").
+  //
+  // El wrapper se mueve con transform; el AppBar de dentro lleva el cristal
+  // (backdrop-filter). Separar ambas capas evita el artefacto de WebKit.
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
@@ -151,14 +104,13 @@ const NavBar = ({ isSupported }: NavBarType) => {
   return (
     <>
       <Box
-        ref={navRef}
+        className={tabletUp ? undefined : 'navbar-hide-on-scroll'}
         sx={{
           position: 'fixed',
           top: 0,
           left: 0,
           width: '100%',
           zIndex: (theme) => theme.zIndex.drawer - 1,
-          transition: FOLLOW_EASE,
           willChange: 'transform',
         }}
       >

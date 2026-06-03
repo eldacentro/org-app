@@ -326,6 +326,26 @@ body iframe {
   transition: background-color 0.25s ease, backdrop-filter 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, border-radius 0.25s ease !important;
 }
 
+/* Hide-on-scroll NATIVO, dirigido por el compositor (sin JS).
+   La barra se traslada atada a la posición de scroll, en lockstep perfecto con
+   el dedo — como una app real, no como un "efecto" con listener de scroll.
+   Solo se activa si el navegador soporta scroll-driven animations (iOS/Safari 26+,
+   Chrome 115+). Si no, la barra queda siempre visible (degradación limpia). */
+@keyframes navbarHideOnScroll {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .navbar-hide-on-scroll {
+    animation: navbarHideOnScroll linear both;
+    animation-timeline: scroll(root block);
+    /* La barra se oculta gradualmente en los primeros 62px de scroll. */
+    animation-range: 0 62px;
+  }
+}
+
 /* 1. STATE: At the very top (scrolled is false)
    It remains completely transparent to seamlessly match the screen background */
 .appbar-top {
