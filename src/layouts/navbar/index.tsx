@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -34,6 +35,8 @@ import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
 import { isTest } from '@constants/index';
+
+const NAVBAR_HEIGHT = 62;
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -85,19 +88,60 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  const trigger = useScrollTrigger({
-    disableHysteresis: false,
-    threshold: 10,
-  });
-
   const scrolled = useScrollTrigger({
     disableHysteresis: true,
     threshold: 10,
   });
 
+  const navRef = useRef<HTMLElement>(null);
+  const lastScrollY = useRef(0);
+  const currentOffset = useRef(0);
+
+  useEffect(() => {
+    // Desktop/tablet: siempre visible, sin animación de scroll.
+    if (tabletUp) {
+      if (navRef.current) {
+        navRef.current.style.transform = 'translateY(0)';
+      }
+      return;
+    }
+
+    // Sincroniza el punto de partida con el scroll actual al entrar en móvil.
+    lastScrollY.current = window.scrollY;
+
+    let rafId = 0;
+
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const delta = scrollY - lastScrollY.current;
+        lastScrollY.current = scrollY;
+
+        // Acumula cuánto se ha ocultado la barra (0 = visible, HEIGHT = oculta).
+        currentOffset.current = Math.min(
+          NAVBAR_HEIGHT,
+          Math.max(0, currentOffset.current + delta)
+        );
+
+        // Escribe directamente en el DOM, sin setState ni re-render.
+        if (navRef.current) {
+          navRef.current.style.transform = `translateY(${-currentOffset.current}px)`;
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [tabletUp]);
+
   return (
     <>
       <AppBar
+        ref={navRef}
         position="fixed"
         elevation={0}
         className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
@@ -120,12 +164,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
           width: '100%',
           overflow: 'hidden',
           zIndex: (theme) => theme.zIndex.drawer - 1,
-          transform: tabletUp 
-            ? 'none' 
-            : trigger 
-              ? 'translateY(-62px)' 
-              : 'translateY(0)',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
+          willChange: 'transform',
+          transition:
+            'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
         }}
       >
         <Toolbar
