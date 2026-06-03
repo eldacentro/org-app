@@ -144,7 +144,16 @@ export const appThemeState = atom((get) => {
   });
 });
 
+// Contador que se incrementa cuando i18n termina de cargar/cambiar las
+// traducciones (ver @services/i18n). Los átomos derivados de traducción
+// (meses/días) dependen de él para RECALCULARSE cuando las traducciones ya
+// están disponibles. Sin esto, si el átomo se evalúa antes de que i18n esté
+// listo, cachea las claves crudas (p.ej. "tr_may") y nunca se refresca porque
+// appLangState no cambia de valor.
+export const localeReadyState = atom(0);
+
 export const monthNamesState = atom((get) => {
+  get(localeReadyState);
   const appLang = get(appLangState);
 
   const months: string[] = [];
@@ -166,6 +175,7 @@ export const monthNamesState = atom((get) => {
 });
 
 export const monthShortNamesState = atom((get) => {
+  get(localeReadyState);
   const appLang = get(appLangState);
 
   const months: string[] = [];
@@ -187,6 +197,7 @@ export const monthShortNamesState = atom((get) => {
 });
 
 export const dayNamesState = atom((get) => {
+  get(localeReadyState);
   const appLang = get(appLangState);
 
   const days: string[] = [];
@@ -203,6 +214,7 @@ export const dayNamesState = atom((get) => {
 });
 
 export const dayNamesShortState = atom((get) => {
+  get(localeReadyState);
   const appLang = get(appLangState);
 
   const days: string[] = [];

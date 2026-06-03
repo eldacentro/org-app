@@ -3,6 +3,8 @@ import i18n from 'i18next';
 
 import { getAppLang, getListLanguages } from '@services/app';
 import { LANGUAGE_LIST } from '@constants/index';
+import { store } from '@states/index';
+import { localeReadyState } from '@states/app';
 
 export const defaultNS = 'ui';
 
@@ -90,6 +92,18 @@ for (const record of languages) {
 
 const supportedLangs = LANGUAGE_LIST.map((record) => record.threeLettersCode);
 
+// Fuerza el recálculo de los átomos derivados de traducción (meses/días) cada
+// vez que i18n carga o cambia las traducciones. Evita que queden cacheados con
+// las claves crudas (p.ej. "tr_may") si se evaluaron antes de estar listas.
+const bumpLocaleReady = () => {
+  store.set(localeReadyState, (value) => value + 1);
+};
+
+i18n.on('initialized', bumpLocaleReady);
+i18n.on('languageChanged', bumpLocaleReady);
+i18n.on('loaded', bumpLocaleReady);
+i18n.on('added', bumpLocaleReady);
+
 i18n.use(initReactI18next).init({
   resources,
   defaultNS,
@@ -98,6 +112,10 @@ i18n.use(initReactI18next).init({
   supportedLngs: [...supportedLangs],
   interpolation: { escapeValue: false },
 });
+
+// Las traducciones se cargan en línea (síncronas), así que ya están listas
+// justo tras init: refrescamos por si algún átomo se evaluó demasiado pronto.
+bumpLocaleReady();
 
 export default i18n;
 
