@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -86,56 +85,19 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // --- iOS-Style Pro Fluid Scroll Logic ---
-  const [translateY, setTranslateY] = useState(0);
-  const lastScrollY = useRef(0);
-  const currentTranslateY = useRef(0);
-  const NAVBAR_HEIGHT = 62;
+  // Unified scroll trigger for both glassmorphic effect and hide-on-scroll
+  const trigger = useScrollTrigger({
+    disableHysteresis: false,
+    threshold: 10,
+  });
 
-  useEffect(() => {
-    if (tabletUp) {
-      setTranslateY(0);
-      return;
-    }
-
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          const delta = scrollY - lastScrollY.current;
-
-          // Prevent weird behavior at page ends (overscroll)
-          if (scrollY < 0) {
-            currentTranslateY.current = 0;
-          } else {
-            // Update translation based on delta
-            // scroll down (delta > 0) -> move up (increase translate)
-            // scroll up (delta < 0) -> move down (decrease translate)
-            currentTranslateY.current = Math.max(
-              0,
-              Math.min(NAVBAR_HEIGHT, currentTranslateY.current + delta)
-            );
-          }
-
-          setTranslateY(currentTranslateY.current);
-          lastScrollY.current = scrollY;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [tabletUp]);
-
-  // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
     disableHysteresis: true,
     threshold: 10,
   });
+
+  // Only hide on scroll for mobile
+  const isVisible = tabletUp || !trigger;
 
   return (
     <>
@@ -156,28 +118,19 @@ const NavBar = ({ isSupported }: NavBarType) => {
           borderBottom: scrolled
             ? '1px solid var(--line) !important'
             : '1px solid transparent !important',
-          minHeight: `${NAVBAR_HEIGHT}px`,
+          minHeight: `62px`,
           top: 0,
           left: 0,
           width: '100%',
           overflow: 'hidden',
           zIndex: (theme) => theme.zIndex.drawer - 1,
-          // Fluid Pro Animation
-          transform: `translateY(${-translateY}px)`,
-          transition: scrolled
-            ? 'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease'
-            : 'none',
+          transform: isVisible ? 'translateY(0)' : 'translateY(-62px)',
+          transition:
+            'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important',
         }}
       >
         <Toolbar
-          sx={{
-            padding: 0,
-            minHeight: `${NAVBAR_HEIGHT}px`,
-            alignItems: 'center',
-            backgroundColor: 'transparent !important',
-            backgroundImage: 'none !important',
-          }}
-        >
+ sx={{ padding: 0, minHeight: '62px', alignItems: 'center', backgroundColor: 'transparent !important', backgroundImage: 'none !important' }}>
           <Container
             maxWidth={false}
             sx={{
