@@ -4,7 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { congNameState, fullnameOptionState } from '@states/settings';
-import { personsState } from '@states/persons';
+import { personsState, eldersActiveState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -14,6 +14,7 @@ const useResponsabilidadesExport = () => {
   const data = useAtomValue(responsabilidadesState);
   const congName = useAtomValue(congNameState);
   const persons = useAtomValue(personsState);
+  const elders = useAtomValue(eldersActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,9 +36,19 @@ const useResponsabilidadesExport = () => {
     try {
       setIsProcessing(true);
 
+      // El Cuerpo de Ancianos se muestra SIEMPRE en vivo desde la lista de
+      // ancianos activos (igual que la pantalla), no desde el array guardado,
+      // que puede estar vacío o desactualizado.
+      const liveElderUids = elders.map((e) => e.person_uid);
+      const exportData = {
+        ...data,
+        cuerpoAncianos:
+          liveElderUids.length > 0 ? liveElderUids : data.cuerpoAncianos,
+      };
+
       const blob = await pdf(
         <TemplateResponsabilidades
-          data={data}
+          data={exportData}
           congregation={congName}
           resolveName={resolveName}
         />

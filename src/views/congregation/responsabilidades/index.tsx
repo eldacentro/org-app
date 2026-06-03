@@ -246,6 +246,17 @@ const TemplateResponsabilidades = ({
   const now = new Date();
   const monthYear = `${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
 
+  // Fecha de "Última actualización" tomada del registro guardado (igual que el
+  // PDF de Grupos de predicación), no de la fecha actual.
+  const footerDate = data.updatedAt
+    ? (() => {
+        const d = new Date(data.updatedAt);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        return `${dd}/${mm}/${d.getFullYear()}`;
+      })()
+    : '';
+
   const resolve = (uid: string) => {
     const name = resolveName(uid);
     return name || uid; // fallback: show raw value if not a uid
@@ -364,11 +375,13 @@ const TemplateResponsabilidades = ({
         </View>
 
         {/* ── Footer ───────────────────────────── */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Organized · {congregation}</Text>
-          <Text style={styles.footerText}>
-            {String(now.getDate()).padStart(2, '0')}/{String(now.getMonth() + 1).padStart(2, '0')}/{now.getFullYear()}
-          </Text>
+        <View style={styles.footer} fixed>
+          <Text style={styles.footerText}>eldacentro.com</Text>
+          {footerDate ? (
+            <Text style={styles.footerText}>
+              Última actualización · {footerDate}
+            </Text>
+          ) : null}
         </View>
       </Page>
     </Document>
