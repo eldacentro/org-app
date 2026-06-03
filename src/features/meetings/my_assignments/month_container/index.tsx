@@ -5,18 +5,26 @@ import useMonthContainer from './useMonthContainer';
 import AssignmentItem from '../assignment_item';
 import Typography from '@components/typography';
 import { AssignmentHistoryType } from '@definition/schedules';
+import { getWeekDate, formatDate } from '@utils/date';
 
 const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   const { monthLocale } = useMonthContainer(monthData.month);
 
-  // Group assignments by their weekOf (the Monday of their week)
+  // Group assignments by their Monday weekOf
   const weekGroups = useMemo(() => {
     const grouped: Record<string, AssignmentHistoryType[]> = {};
 
     for (const item of monthData.children) {
-      const weekKey = item.weekOf;
-      if (!grouped[weekKey]) grouped[weekKey] = [];
-      grouped[weekKey].push(item);
+      const dateParts = item.weekOf.split('/');
+      let mondayKey = item.weekOf;
+      if (dateParts.length === 3) {
+        const itemDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+        const mondayDate = getWeekDate(itemDate);
+        mondayKey = formatDate(mondayDate, 'yyyy/MM/dd');
+      }
+
+      if (!grouped[mondayKey]) grouped[mondayKey] = [];
+      grouped[mondayKey].push(item);
     }
 
     // Sort weeks chronologically, then sort items within each week by actualDate or weekOf
