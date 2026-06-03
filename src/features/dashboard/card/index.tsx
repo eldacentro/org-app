@@ -9,14 +9,12 @@ const DashboardCard = ({
   fixedHeight = true,
   color,
   sx,
-  icon,
 }: {
   header: string | ReactNode;
   children?: ReactNode;
   fixedHeight?: boolean;
   color?: string;
   sx?: SxProps<Theme>;
-  icon?: ReactNode;
 }) => {
   const { isGroup } = useCurrentUser();
 

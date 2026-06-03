@@ -86,21 +86,61 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  // Scroll trigger for hiding the navbar when scrolling down
-  const hideTrigger = useScrollTrigger();
+  // --- iOS-Style Premium Scroll Logic ---
+  const [navVisible, setNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollDelta = useRef(0);
 
-  // Scroll trigger for the glassmorphic effect (active after 10px)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY.current;
+
+      if (currentScrollY <= 10) {
+        setNavVisible(true);
+        scrollDelta.current = 0;
+      } else {
+        // Accumulate scroll direction delta
+        if (
+          (delta > 0 && scrollDelta.current < 0) ||
+          (delta < 0 && scrollDelta.current > 0)
+        ) {
+          scrollDelta.current = 0;
+        }
+        scrollDelta.current += delta;
+
+        // Thresholds: Down 60px to hide, Up 20px to show
+        if (scrollDelta.current > 60 && navVisible) {
+          setNavVisible(false);
+        } else if (scrollDelta.current < -20 && !navVisible) {
+          setNavVisible(true);
+        }
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [navVisible]);
+
+  // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
     disableHysteresis: true,
     threshold: 10,
   });
 
   // Only hide on scroll for mobile; keep it visible on tablet and desktop
-  const isVisible = tabletUp || !hideTrigger;
+  const isVisible = tabletUp || navVisible;
 
   return (
     <>
-      <Slide appear={false} direction="down" in={isVisible}>
+      <Slide
+        appear={false}
+        direction="down"
+        in={isVisible}
+        timeout={{ enter: 400, exit: 250 }}
+      >
         <AppBar
           position="fixed"
           elevation={0}
@@ -119,7 +159,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
               ? '1px solid var(--line) !important'
               : '1px solid transparent !important',
             transition:
-              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.2s ease-in-out',
+              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1) !important',
             minHeight: '62px',
             top: 0,
             left: 0,
