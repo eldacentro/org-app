@@ -90,23 +90,28 @@ const NavBar = ({ isSupported }: NavBarType) => {
     threshold: 10,
   });
 
+  const scrolled = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: 10,
+  });
+
   return (
     <>
       <AppBar
         position="fixed"
         elevation={0}
-        className={trigger ? 'appbar-scrolled' : 'appbar-top'}
+        className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
         sx={{
-          backgroundColor: trigger
+          backgroundColor: scrolled
             ? 'rgba(var(--accent-100-base), 0.65) !important'
             : 'transparent !important',
           backgroundImage: 'none !important',
           boxShadow: 'none !important',
-          backdropFilter: trigger ? 'blur(24px) !important' : 'none !important',
-          WebkitBackdropFilter: trigger
+          backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
+          WebkitBackdropFilter: scrolled
             ? 'blur(24px) !important'
             : 'none !important',
-          borderBottom: trigger
+          borderBottom: scrolled
             ? '1px solid var(--line) !important'
             : '1px solid transparent !important',
           minHeight: `62px`,
@@ -120,7 +125,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
             : trigger 
               ? 'translateY(-62px)' 
               : 'translateY(0)',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
         }}
       >
         <Toolbar
