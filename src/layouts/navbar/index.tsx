@@ -10,7 +10,6 @@ import {
   Toolbar,
   useTheme,
   useScrollTrigger,
-  Slide,
 } from '@mui/material';
 import {
   IconAccount,
