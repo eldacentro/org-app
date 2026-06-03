@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -110,9 +111,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
         scrollDelta.current += delta;
 
         // Thresholds: Down 60px to hide, Up 20px to show
-        if (scrollDelta.current > 60 && navVisible) {
+        if (scrollDelta.current > 60) {
           setNavVisible(false);
-        } else if (scrollDelta.current < -20 && !navVisible) {
+        } else if (scrollDelta.current < -20) {
           setNavVisible(true);
         }
       }
@@ -122,7 +123,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [navVisible]);
+  }, []);
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
