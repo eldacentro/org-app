@@ -69,7 +69,7 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
         <JWAutoImport />
 
-        <Box className="screen" sx={{ position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
+        <Box className="screen" sx={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh' }}>
           <Box className="glow" />
 
           <Toolbar sx={{ padding: 0, backgroundColor: 'transparent !important', backgroundImage: 'none !important', boxShadow: 'none !important', minHeight: '62px' }}>

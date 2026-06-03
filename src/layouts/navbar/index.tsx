@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   AppBar,
   Box,
@@ -9,6 +8,8 @@ import {
   MenuItem,
   Toolbar,
   useTheme,
+  useScrollTrigger,
+  Slide,
 } from '@mui/material';
 import {
   IconAccount,
@@ -85,41 +86,57 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleQuickSettings,
   } = useNavbar();
 
-  const [scrolled, setScrolled] = useState(false);
+  // Scroll trigger for hiding the navbar when scrolling down
+  const hideTrigger = useScrollTrigger();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Scroll trigger for the glassmorphic effect (active after 10px)
+  const scrolled = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: 10,
+  });
+
+  // Only hide on scroll for mobile; keep it visible on tablet and desktop
+  const isVisible = tabletUp || !hideTrigger;
 
   return (
     <>
-      <AppBar
-        position="fixed"
-        elevation={0}
-        className={scrolled ? "appbar-scrolled" : "appbar-top"}
-        sx={{
-          backgroundColor: scrolled ? 'rgba(var(--accent-100-base), 0.65) !important' : 'transparent !important',
-          backgroundImage: 'none !important',
-          boxShadow: 'none !important',
-          backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
-          WebkitBackdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
-          borderBottom: scrolled ? '1px solid var(--line) !important' : '1px solid transparent !important',
-          transition: 'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease',
-          minHeight: '62px',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          overflow: 'hidden',
-          zIndex: (theme) => theme.zIndex.drawer - 1,
-        }}
-      >
-        <Toolbar sx={{ padding: 0, minHeight: '62px', alignItems: 'center', backgroundColor: 'transparent !important', backgroundImage: 'none !important' }}>
+      <Slide appear={false} direction="down" in={isVisible}>
+        <AppBar
+          position="fixed"
+          elevation={0}
+          className={scrolled ? 'appbar-scrolled' : 'appbar-top'}
+          sx={{
+            backgroundColor: scrolled
+              ? 'rgba(var(--accent-100-base), 0.65) !important'
+              : 'transparent !important',
+            backgroundImage: 'none !important',
+            boxShadow: 'none !important',
+            backdropFilter: scrolled ? 'blur(24px) !important' : 'none !important',
+            WebkitBackdropFilter: scrolled
+              ? 'blur(24px) !important'
+              : 'none !important',
+            borderBottom: scrolled
+              ? '1px solid var(--line) !important'
+              : '1px solid transparent !important',
+            transition:
+              'background-color 0.2s ease, backdrop-filter 0.2s ease, border-color 0.2s ease, transform 0.2s ease-in-out',
+            minHeight: '62px',
+            top: 0,
+            left: 0,
+            width: '100%',
+            overflow: 'hidden',
+            zIndex: (theme) => theme.zIndex.drawer - 1,
+          }}
+        >
+          <Toolbar
+            sx={{
+              padding: 0,
+              minHeight: '62px',
+              alignItems: 'center',
+              backgroundColor: 'transparent !important',
+              backgroundImage: 'none !important',
+            }}
+          >
           <Container
             maxWidth={false}
             sx={{
@@ -485,11 +502,12 @@ const NavBar = ({ isSupported }: NavBarType) => {
           </Container>
         </Toolbar>
       </AppBar>
-      {navBarOptions.buttons && !tablet688Up && (
-        <BottomMenu buttons={navBarOptions.buttons} />
-      )}
-    </>
-  );
+    </Slide>
+    {navBarOptions.buttons && !tablet688Up && (
+      <BottomMenu buttons={navBarOptions.buttons} />
+    )}
+  </>
+);
 };
 
 export default NavBar;
