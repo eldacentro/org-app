@@ -9,7 +9,7 @@ registerFonts();
 // ─── inline styles (no StyleSheet import needed above – registerFonts does it) ──
 const styles = StyleSheet.create({
   page: {
-    padding: '20 25',
+    padding: 30,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
   },
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   topBarBrand: {
     display: 'flex',
@@ -41,49 +41,50 @@ const styles = StyleSheet.create({
     color: '#888888',
   },
   pageTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 700,
     color: '#1a1a2e',
     marginBottom: 4,
   },
   pageSubtitle: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#306CB4',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   // Section
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 700,
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 3,
+    marginBottom: 6,
     borderBottom: '1 solid #d0d7e8',
-    paddingBottom: 2,
+    paddingBottom: 4,
   },
+
   sectionWrapper: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   // Chips row (cuerpo de ancianos)
   chipsRow: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 3,
+    gap: 4,
   },
   chip: {
     backgroundColor: '#e8f0fb',
-    borderRadius: 6,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    borderRadius: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
   },
   chipText: {
-    fontSize: 8,
+    fontSize: 11,
     color: '#306CB4',
     fontWeight: 600,
   },
@@ -91,113 +92,113 @@ const styles = StyleSheet.create({
   table: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 0,
+    gap: 2,
   },
   tableRow: {
     display: 'flex',
     flexDirection: 'row',
-    paddingVertical: 1,
-    paddingHorizontal: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
     borderBottom: '0.5 solid #eef2fa',
   },
   tableRowAlt: {
     backgroundColor: '#f7f9fe',
   },
   tableColLabel: {
-    width: '40%',
-    fontSize: 9,
+    width: '45%',
+    fontSize: 11,
     color: '#444',
     fontWeight: 600,
   },
   tableColValue: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 11,
     color: '#1a1a2e',
   },
-  // Department cards (2 per row)
+  // Department cards (3 per row)
   deptGrid: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 4,
-    rowGap: 4,
+    columnGap: 6,
+    rowGap: 8,
   },
   deptCard: {
-    width: '49.5%',
+    width: '32%',
     border: '0.5 solid #dde3f0',
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: 'hidden',
   },
   deptHeader: {
     backgroundColor: '#306CB4',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   deptHeaderText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: 700,
     color: '#ffffff',
   },
   deptBody: {
-    padding: '3 6',
+    padding: '6 8',
     display: 'flex',
     flexDirection: 'column',
-    gap: 1,
+    gap: 3,
   },
   deptRow: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 3,
+    gap: 4,
   },
   deptLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 700,
     color: '#306CB4',
-    width: 45,
+    width: 52,
   },
   deptValue: {
-    fontSize: 8,
+    fontSize: 11,
     color: '#1a1a2e',
     flex: 1,
   },
   deptMembersLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 700,
     color: '#306CB4',
-    marginTop: 1,
-    marginBottom: 0,
+    marginTop: 3,
+    marginBottom: 2,
   },
   deptMembersWrap: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 2,
+    gap: 3,
   },
   deptMemberChip: {
     backgroundColor: '#f0f4fc',
-    borderRadius: 3,
-    paddingVertical: 0.5,
-    paddingHorizontal: 3,
+    borderRadius: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 5,
   },
   deptMemberText: {
-    fontSize: 7,
+    fontSize: 10,
     color: '#2c2c2c',
   },
   // Footer
   footer: {
     position: 'absolute',
-    bottom: 15,
-    left: 25,
-    right: 25,
+    bottom: 20,
+    left: 30,
+    right: 30,
     borderTop: '0.5 solid #e0e0e0',
-    paddingTop: 5,
+    paddingTop: 7,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#aaaaaa',
   },
 });
@@ -266,7 +267,6 @@ const TemplateResponsabilidades = ({
           <View style={styles.headerDivider} />
 
           <Text style={styles.pageTitle}>Responsabilidades</Text>
-          <Text style={styles.pageSubtitle}>Cargos y departamentos de la congregación</Text>
 
           {/* ── Cuerpo de Ancianos ───────────────── */}
           <View style={styles.sectionWrapper}>

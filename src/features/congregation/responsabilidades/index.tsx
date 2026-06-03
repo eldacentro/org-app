@@ -177,42 +177,29 @@ const PersonMultiSelect = ({
 const SectionHeader = ({
   icon: Icon,
   title,
-  description,
 }: {
   icon: React.ElementType;
   title: string;
-  description?: string;
 }) => (
-  <Stack spacing="4px" sx={{ mb: '20px' }}>
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '40px',
-          height: '40px',
-          borderRadius: 'var(--r-md)',
-          backgroundColor: 'var(--accent-100)',
-          border: '1px solid var(--accent-200)',
-        }}
-      >
-        <Icon color="var(--accent-main)" width={24} height={24} />
-      </Box>
-      <Typography className="h2" color="var(--black)">
-        {title}
-      </Typography>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '12px' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        borderRadius: 'var(--r-md)',
+        backgroundColor: 'var(--accent-100)',
+        border: '1px solid var(--accent-200)',
+      }}
+    >
+      <Icon color="var(--accent-main)" width={24} height={24} />
     </Box>
-    {description && (
-      <Typography
-        className="body-small-regular"
-        color="var(--grey-400)"
-        sx={{ ml: '52px' }}
-      >
-        {description}
-      </Typography>
-    )}
-  </Stack>
+    <Typography className="h2" color="var(--black)">
+      {title}
+    </Typography>
+  </Box>
 );
 
 const FieldRow = ({ label, value }: { label: string; value: string }) => (
@@ -240,12 +227,8 @@ const ReadCuerpoAncianos = ({
   resolveName: (u: string) => string;
 }) => (
   <CardContainer>
-    <SectionHeader
-      icon={IconGroups}
-      title="Cuerpo de Ancianos"
-      description="Listado oficial de los ancianos que sirven actualmente en la congregación."
-    />
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px', ml: { tablet: '52px' } }}>
+    <SectionHeader icon={IconGroups} title="Cuerpo de Ancianos" />
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
       {uids.map((uid) => (
         <Chip
           key={uid}
@@ -270,7 +253,7 @@ const ReadCuerpoAncianos = ({
         />
       ))}
       {uids.length === 0 && (
-        <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic', ml: '52px' }}>
+        <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
           No se han encontrado ancianos registrados.
         </Typography>
       )}
@@ -289,9 +272,8 @@ const ReadCargos = ({
     <SectionHeader
       icon={IconAssignment}
       title="Responsabilidades de Ancianos"
-      description="Hermanos asignados a los cargos de confianza y gestión del cuerpo."
     />
-    <Stack spacing="8px" sx={{ ml: { tablet: '52px' } }} divider={<Divider color="var(--accent-100)" />}>
+    <Stack spacing="8px" divider={<Divider color="var(--accent-100)" />}>
       {cargos.map((item, i) => (
         <FieldRow
           key={i}
@@ -316,11 +298,7 @@ const ReadDepartamentos = ({
   resolveName: (u: string) => string;
 }) => (
   <Box>
-    <SectionHeader
-      icon={IconCongregation}
-      title="Departamentos de Servicio"
-      description="Organización interna de los servicios necesarios para el buen funcionamiento de la congregación."
-    />
+    <SectionHeader icon={IconCongregation} title="Departamentos" />
     <Box
       sx={{
         display: 'grid',
@@ -448,7 +426,6 @@ const EditCargos = ({
       <SectionHeader
         icon={IconAssignment}
         title="Responsabilidades de Ancianos"
-        description="Añade o edita los cargos principales de la congregación."
       />
       <Stack spacing="16px">
         {cargos.map((item, i) => (
@@ -830,11 +807,7 @@ const ResponsabilidadesFeature = ({
   const secDepartamentos =
     isEditing && draft ? (
       <CardContainer>
-        <SectionHeader
-          icon={IconCongregation}
-          title="Departamentos"
-          description="Define los responsables y miembros de cada sección operativa."
-        />
+        <SectionHeader icon={IconCongregation} title="Departamentos" />
         <Stack spacing="16px">
           {draft.departamentos.map((dep, i) => (
             <EditDepartamento
@@ -902,7 +875,7 @@ const ResponsabilidadesFeature = ({
         {[
           { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
           { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
-          { label: 'Departamentos de Servicio', content: secDepartamentos, icon: IconCongregation },
+          { label: 'Departamentos', content: secDepartamentos, icon: IconCongregation },
         ].map(({ label, content, icon: Icon }) => (
           <Accordion
             key={label}
