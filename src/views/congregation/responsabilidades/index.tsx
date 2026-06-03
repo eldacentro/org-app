@@ -300,37 +300,65 @@ const TemplateResponsabilidades = ({
           <View style={styles.sectionWrapper}>
             <Text style={styles.sectionTitle}>Departamentos</Text>
             <View style={styles.deptGrid}>
-              {data.departamentos.map((dep) => (
-                <View key={dep.id} style={styles.deptCard}>
-                  <View style={styles.deptHeader}>
-                    <Text style={styles.deptHeaderText}>{dep.name}</Text>
-                  </View>
-                  <View style={styles.deptBody}>
-                    <View style={styles.deptRow}>
-                      <Text style={styles.deptLabel}>Resp.</Text>
-                      <Text style={styles.deptValue}>{resolve(dep.responsable)}</Text>
+              {data.departamentos.map((dep) => {
+                const isExtended = dep.type === 'extended';
+                return (
+                  <View
+                    key={dep.id}
+                    style={[
+                      styles.deptCard,
+                      isExtended ? { width: '100%' } : {},
+                    ]}
+                  >
+                    <View style={styles.deptHeader}>
+                      <Text style={styles.deptHeaderText}>{dep.name}</Text>
                     </View>
-                    {dep.auxiliar ? (
-                      <View style={styles.deptRow}>
-                        <Text style={styles.deptLabel}>Aux.</Text>
-                        <Text style={styles.deptValue}>{resolve(dep.auxiliar)}</Text>
-                      </View>
-                    ) : null}
-                    {dep.type === 'extended' && (dep as DepartamentoExtended).members.length > 0 ? (
-                      <>
-                        <Text style={styles.deptMembersLabel}>Miembros</Text>
-                        <View style={styles.deptMembersWrap}>
-                          {(dep as DepartamentoExtended).members.map((uid, i) => (
-                            <View key={i} style={styles.deptMemberChip}>
-                              <Text style={styles.deptMemberText}>{resolve(uid)}</Text>
-                            </View>
-                          ))}
+                    <View style={styles.deptBody}>
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          gap: 10,
+                        }}
+                      >
+                        <View style={styles.deptRow}>
+                          <Text style={styles.deptLabel}>Resp.</Text>
+                          <Text style={styles.deptValue}>
+                            {resolve(dep.responsable)}
+                          </Text>
                         </View>
-                      </>
-                    ) : null}
+                        {dep.auxiliar ? (
+                          <View style={styles.deptRow}>
+                            <Text style={styles.deptLabel}>Aux.</Text>
+                            <Text style={styles.deptValue}>
+                              {resolve(dep.auxiliar)}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+
+                      {isExtended &&
+                      (dep as DepartamentoExtended).members.length > 0 ? (
+                        <>
+                          <Text style={styles.deptMembersLabel}>Miembros</Text>
+                          <View style={styles.deptMembersWrap}>
+                            {(dep as DepartamentoExtended).members.map(
+                              (uid, i) => (
+                                <View key={i} style={styles.deptMemberChip}>
+                                  <Text style={styles.deptMemberText}>
+                                    {resolve(uid)}
+                                  </Text>
+                                </View>
+                              )
+                            )}
+                          </View>
+                        </>
+                      ) : null}
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </View>
         </View>

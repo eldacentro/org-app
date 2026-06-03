@@ -110,12 +110,21 @@ const PersonSelect = ({
   label: string;
   onChange: (uid: string) => void;
 }) => {
-  const selected = options.find((o) => o.uid === value) ?? null;
+  // If the value is a legacy name (not a UID found in options),
+  // we create a virtual option so the Autocomplete shows the text.
+  const allOptions = useMemo(() => {
+    if (value && value !== '' && !options.find((o) => o.uid === value)) {
+      return [{ uid: value, label: value }, ...options];
+    }
+    return options;
+  }, [value, options]);
+
+  const selected = allOptions.find((o) => o.uid === value) ?? null;
 
   return (
     <Autocomplete
       value={selected}
-      options={options}
+      options={allOptions}
       getOptionLabel={(o) => o.label}
       isOptionEqualToValue={(a, b) => a.uid === b.uid}
       onChange={(_, v) => onChange(v?.uid ?? '')}
@@ -138,15 +147,24 @@ const PersonMultiSelect = ({
   label: string;
   onChange: (uids: string[]) => void;
 }) => {
+  // Handle legacy names in multi-select as well
+  const allOptions = useMemo(() => {
+    const legacy = value.filter((uid) => !options.find((o) => o.uid === uid));
+    if (legacy.length > 0) {
+      return [...legacy.map((l) => ({ uid: l, label: l })), ...options];
+    }
+    return options;
+  }, [value, options]);
+
   const selected = value
-    .map((uid) => options.find((o) => o.uid === uid))
+    .map((uid) => allOptions.find((o) => o.uid === uid))
     .filter(Boolean) as PersonOption[];
 
   return (
     <Autocomplete
       multiple
       value={selected}
-      options={options}
+      options={allOptions}
       getOptionLabel={(o) => o.label}
       isOptionEqualToValue={(a, b) => a.uid === b.uid}
       onChange={(_, v) => onChange(v.map((o) => o.uid))}
