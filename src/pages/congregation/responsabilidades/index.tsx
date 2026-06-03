@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { IconEdit, IconSave, IconClose } from '@components/icons';
@@ -22,28 +22,30 @@ const ResponsabilidadesPage = () => {
   const [draft, setDraft] = useState<ResponsabilidadesType | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const startEdit = () => {
+  const startEdit = useCallback(() => {
     if (!data) return;
     setDraft(structuredClone(data));
     setIsEditing(true);
-  };
+  }, [data]);
 
-  const cancelEdit = () => {
+  const cancelEdit = useCallback(() => {
     setDraft(null);
     setIsEditing(false);
-  };
+  }, []);
 
-  const save = async () => {
+  const save = useCallback(async () => {
     if (!draft) return;
     setSaving(true);
     try {
       await dbResponsabilidadesSave(draft);
       setIsEditing(false);
       setDraft(null);
+    } catch (error) {
+      console.error('No se pudo guardar Responsabilidades:', error);
     } finally {
       setSaving(false);
     }
-  };
+  }, [draft]);
 
   const buttons = useMemo(() => {
     const btns: React.ReactNode[] = [];
@@ -84,8 +86,7 @@ const ResponsabilidadesPage = () => {
     }
 
     return <>{btns}</>;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canEdit, isEditing, saving, isElder, isAdmin]);
+  }, [canEdit, isEditing, saving, isElder, isAdmin, startEdit, cancelEdit, save]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
