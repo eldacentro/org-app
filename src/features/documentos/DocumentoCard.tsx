@@ -23,14 +23,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
   const renderVigenciaBadge = () => {
     if (documento.archivado) {
       return (
-        <Box sx={{ background: 'var(--red-secondary)', color: 'var(--red-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, display: 'inline-block' }}>
+        <Box sx={{ background: 'var(--red-secondary)', color: 'var(--red-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
           Expirado/Archivado
         </Box>
       );
     }
     if (documento.vigencia === 'indefinido') {
       return (
-        <Box sx={{ background: 'var(--grey-150)', color: 'var(--grey-400)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, display: 'inline-block' }}>
+        <Box sx={{ background: 'var(--grey-150)', color: 'var(--grey-400)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
           Indefinido
         </Box>
       );
@@ -40,13 +40,13 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
       const days = Math.ceil(diff / (1000 * 3600 * 24));
       if (days <= 7) {
         return (
-          <Box sx={{ background: 'var(--orange-secondary)', color: 'var(--orange-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, display: 'inline-block' }}>
+          <Box sx={{ background: 'var(--orange-secondary)', color: 'var(--orange-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
             Expira en {days} días
           </Box>
         );
       }
       return (
-        <Box sx={{ background: 'var(--accent-150)', color: 'var(--accent-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, display: 'inline-block' }}>
+        <Box sx={{ background: 'var(--accent-150)', color: 'var(--accent-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
           Expira el {new Date(documento.fechaExpiracion).toLocaleDateString()}
         </Box>
       );
@@ -102,7 +102,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
         </Box>
         
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" spacing={1} mb={0.5} sx={{ flexWrap: 'wrap', gap: '4px', mb: 1 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px', mb: 1 }}>
             {categoria && (
               <Box sx={{ 
                 backgroundColor: `${categoria.color}20`, 
@@ -113,13 +113,13 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
                 borderRadius: 'var(--radius-s)', 
                 fontSize: '12px',
                 fontWeight: 600,
-                display: 'inline-block'
+                whiteSpace: 'nowrap'
               }}>
                 {categoria.nombre}
               </Box>
             )}
             {renderVigenciaBadge()}
-          </Stack>
+          </Box>
           
           <Typography className="h3" sx={{ 
             color: 'var(--black)',
