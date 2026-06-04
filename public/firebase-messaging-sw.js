@@ -89,14 +89,22 @@ try {
       // Try to read from the local IndexedDB pending_push table first.
       // Fall back to the payload content (or a generic message) if unavailable.
 
+      const DEFAULT_URL = '/#/weekly-schedules';
+
       const showWithContent = (title, body, url) => {
         self.registration.showNotification(title, {
           body: body || '',
           icon: '/img/icon/icon-192x192.png',
           badge: '/img/icon/icon-monochrome-192x192.png',
           tag: 'assignment-update',
-          data: { url: url || '/' },
+          renotify: true,
+          actions: [{ action: 'view', title: 'Ver asignaciones' }],
+          data: { url: url || DEFAULT_URL },
         });
+
+        if ('setAppBadge' in self.navigator) {
+          self.navigator.setAppBadge(1).catch(() => {});
+        }
       };
 
       const openIndexedDb = () =>
@@ -150,14 +158,14 @@ try {
             showWithContent(
               data.title || 'Tienes novedades',
               data.body || 'Abre la app para ver tus asignaciones.',
-              data.url || '/'
+              data.url || DEFAULT_URL
             );
           }
         } catch {
           showWithContent(
             data.title || 'Tienes novedades',
             data.body || 'Abre la app para ver tus asignaciones.',
-            data.url || '/'
+            data.url || DEFAULT_URL
           );
         }
       };
@@ -172,8 +180,14 @@ try {
   self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
+    if ('clearAppBadge' in self.navigator) {
+      self.navigator.clearAppBadge().catch(() => {});
+    }
+
     const targetUrl =
-      (event.notification.data && event.notification.data.url) || '/';
+      event.action === 'view'
+        ? '/#/weekly-schedules'
+        : (event.notification.data && event.notification.data.url) || '/#/weekly-schedules';
 
     event.waitUntil(
       self.clients

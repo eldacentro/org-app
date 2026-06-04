@@ -73,6 +73,13 @@ export const loadApp = () => {
 
   handleAppChangeLanguage(appLang);
 
+  // Clear notification badge when the user opens the app
+  if ('clearAppBadge' in navigator) {
+    (navigator as Navigator & { clearAppBadge: () => Promise<void> })
+      .clearAppBadge()
+      .catch(() => {});
+  }
+
   // load assignment history
   const history = schedulesBuildHistoryList();
   setAssignmentsHistory(history);

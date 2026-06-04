@@ -206,13 +206,15 @@ export const checkAndQueueAssignmentPush = async ({ notify = true }: { notify?: 
 
   const { title, body } = buildNotificationContent(newAssignments);
 
+  const notifUrl = '/#/weekly-schedules';
+
   // Write to pending_push so the SW can show it when the app is closed
   try {
     await appDb.pending_push.add({
       title,
       body,
       tag: 'assignment-update',
-      url: '/',
+      url: notifUrl,
       createdAt: new Date().toISOString(),
       shown: 0,
     });
@@ -228,6 +230,13 @@ export const checkAndQueueAssignmentPush = async ({ notify = true }: { notify?: 
       badge: '/img/icon/icon-monochrome-192x192.png',
       tag: 'assignment-update',
     });
+
+    // Mark all pending records as shown so the SW doesn't re-display them
+    // if an FCM push arrives shortly after (race condition guard).
+    await appDb.pending_push.where('shown').equals(0).modify({ shown: 1 }).catch(() => {});
+
+    // Set app badge so the icon shows a dot until the user opens the app
+    if ('setAppBadge' in navigator) navigator.setAppBadge(1).catch(() => {});
   } catch (err) {
     logger.error('push', `failed to show foreground notification: ${err}`);
   }
