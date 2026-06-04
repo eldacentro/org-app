@@ -145,11 +145,18 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
             </Box>
           )}
           {pdfUrl && !loading && (
-            <iframe
-              src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-              title={documento?.nombre}
-            />
+            <object
+              data={pdfUrl}
+              type="application/pdf"
+              style={{ width: '100%', height: '100%', display: 'block' }}
+            >
+              <Box sx={{ p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography sx={{ mb: 2 }}>Tu dispositivo no soporta la previsualización incrustada de PDFs.</Typography>
+                <Button variant="contained" onClick={handleDownload} startIcon={<IconCloudDownload />}>
+                  Descargar Documento
+                </Button>
+              </Box>
+            </object>
           )}
         </Box>
       </Box>
