@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import {
@@ -45,7 +45,7 @@ const useCongregationDetails = () => {
     setIsElderApproved(value);
   };
 
-  const handleCongregationAction = async () => {
+  const handleCongregationAction = useCallback(async () => {
     if (isProcessing) return;
 
     hideMessage();
@@ -174,7 +174,18 @@ const useCongregationDetails = () => {
       });
       showMessage();
     }
-  };
+  }, [
+    isProcessing,
+    hideMessage,
+    userTmpFirstName,
+    country,
+    congregation,
+    t,
+    showMessage,
+    userTmpLastName,
+    settings,
+    setCurrentStep,
+  ]);
 
   useEffect(() => {
     const autoSelect = async () => {
@@ -208,7 +219,14 @@ const useCongregationDetails = () => {
       hasAutoSubmitted.current = true;
       handleCongregationAction();
     }
-  }, [country, congregation, isElderApproved, userTmpFirstName, isProcessing]);
+  }, [
+    country,
+    congregation,
+    isElderApproved,
+    userTmpFirstName,
+    isProcessing,
+    handleCongregationAction,
+  ]);
 
   return {
     country,

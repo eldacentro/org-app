@@ -309,6 +309,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     fullnameOption,
     sourceLocale,
     talkType,
+    props.dept,
   ]);
 
   const value = useMemo(() => {
@@ -411,6 +412,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     openingPrayerLinked,
     closingPrayerLinked,
     props.personValue,
+    props.dept,
   ]);
 
   const personHistory = useMemo(() => {

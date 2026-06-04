@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, cloneElement } from 'react';
+import { useEffect, useState, useMemo, cloneElement, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
@@ -188,15 +188,15 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  const handleMidweekClick = () => {
+  const handleMidweekClick = useCallback(() => {
     localStorage.setItem('organized_weekly_schedules', 'midweek');
     navigate('/weekly-schedules');
-  };
+  }, [navigate]);
 
-  const handleWeekendClick = () => {
+  const handleWeekendClick = useCallback(() => {
     localStorage.setItem('organized_weekly_schedules', 'weekend');
     navigate('/weekly-schedules');
-  };
+  }, [navigate]);
 
   const locale = useMemo(() => {
     const langItem = LANGUAGE_LIST.find(
@@ -335,6 +335,8 @@ const Dashboard = () => {
     weekendDescription,
     weekendMeetingTime,
     thisWeekEvents,
+    handleMidweekClick,
+    handleWeekendClick,
     t,
     navigate,
   ]);
