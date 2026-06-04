@@ -76,6 +76,10 @@ import {
   PendingPushTable,
   pendingPushSchema,
 } from './tables/pending_push';
+import {
+  DocumentosTable,
+  documentosSchema,
+} from './tables/documentos';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -102,7 +106,8 @@ type DexieTables = PersonsTable &
   ServiceOutingTable &
   ExhibitorTable &
   ResponsabilidadesTable &
-  PendingPushTable;
+  PendingPushTable &
+  DocumentosTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -269,6 +274,22 @@ appDb.version(17).stores({
   ...exhibitorsSchema,
   ...responsabilidadesSchema,
   ...pendingPushSchema,
+});
+
+appDb.version(18).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
 });
 
 appDb.on('populate', function () {

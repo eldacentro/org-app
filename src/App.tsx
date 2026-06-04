@@ -88,6 +88,9 @@ const Evacuacion = lazy(() => import('@pages/congregation/evacuacion'));
 const Responsabilidades = lazy(
   () => import('@pages/congregation/responsabilidades')
 );
+const Documentos = lazy(
+  () => import('@pages/congregation/documentos')
+);
 
 const queryClient = new QueryClient();
 
@@ -227,6 +230,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <UpcomingEvents />,
               },
               { path: '/congregation/evacuacion', element: <Evacuacion /> },
+              { path: '/congregation/documentos', element: <Documentos /> },
 
               // publisher routes
               {

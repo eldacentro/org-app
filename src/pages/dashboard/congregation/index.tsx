@@ -1,15 +1,19 @@
 import { ListItem } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import {
   IconGroups,
   IconParticipants,
   IconApplications,
   IconNextEvents,
   IconJwHome,
+  IconInformationBoard,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import usePersons from '../persons/usePersons';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
+import { useDocumentos } from '@features/documentos/useDocumentos';
+import { unseenDocumentosCountState } from '@states/documentos';
 
 const CongregationCard = () => {
   const { t } = useAppTranslation();
@@ -18,6 +22,9 @@ const CongregationCard = () => {
     useCurrentUser();
 
   const { show_AP, AP_count } = usePersons();
+  
+  useDocumentos(); // Para cargar los documentos en el estado
+  const unseenCount = useAtomValue(unseenDocumentosCountState);
 
   return (
     <DashboardCard
@@ -58,7 +65,17 @@ const CongregationCard = () => {
         </ListItem>
       )}
 
-      {/* 4. Próximos eventos */}
+      {/* Documentos */}
+      <ListItem disablePadding>
+        <DashboardMenu
+          icon={<IconInformationBoard color="var(--black)" />}
+          primaryText="Documentos"
+          badgeText={unseenCount > 0 ? String(unseenCount) : undefined}
+          path="/congregation/documentos"
+        />
+      </ListItem>
+
+      {/* Próximos eventos */}
       <ListItem disablePadding>
         <DashboardMenu
           icon={<IconNextEvents color="var(--black)" />}

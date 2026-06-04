@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
+import { useAtomValue } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import {
@@ -9,13 +10,19 @@ import {
   IconNextEvents,
   IconAssignment,
   IconMapOverview,
+  IconInformationBoard,
 } from '@icons/index';
+import { useDocumentos } from '@features/documentos/useDocumentos';
+import { unseenDocumentosCountState } from '@states/documentos';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
   
   const { isElder, isPersonViewer } = useCurrentUser();
+  
+  useDocumentos(); // Para cargar los documentos en el estado
+  const unseenCount = useAtomValue(unseenDocumentosCountState);
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -81,6 +88,25 @@ const CongregationDashboard = () => {
           <div className="tile-body">
             <div className="tile-name">Plan de Evacuación</div>
             <div className="tile-meta">Salón del Reino · rutas y equipos</div>
+          </div>
+          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </div>
+
+        {/* Documentos */}
+        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/documentos')}>
+          <div className="ti">
+            <IconInformationBoard color="var(--brand)" width={22} height={22} />
+          </div>
+          <div className="tile-body">
+            <div className="tile-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Documentos
+              {unseenCount > 0 && (
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--blue-main)' }} />
+              )}
+            </div>
+            <div className="tile-meta">Tablón de anuncios y archivos</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />

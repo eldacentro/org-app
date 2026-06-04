@@ -7,6 +7,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
   appId: import.meta.env.VITE_FIREBASE_APPID,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGINGSENDERID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGEBUCKET,
 };
 
 // Initialize Firebase
