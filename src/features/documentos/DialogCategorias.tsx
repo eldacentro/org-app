@@ -133,7 +133,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
     >
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--black)' }}>
-          Gestionar Categorías
+          Gestionar categorías
         </Typography>
         <Typography variant="body2" color="var(--grey-400)" sx={{ mb: 3 }}>
           Organiza, crea y colorea las categorías de tus documentos pastorales.
@@ -232,7 +232,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
 
         <Box sx={{ borderTop: '1px solid var(--accent-150)', pt: 3, mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'var(--black)' }}>
-            Crear Nueva Categoría
+            Crear nueva categoría
           </Typography>
           
           <Stack spacing={2}>

@@ -174,7 +174,7 @@ const DocumentosPage = () => {
             }}
           >
             <Typography variant="h6" className="h3" sx={{ color: 'var(--black)' }}>
-              Documentos Archivados/Expirados ({docsArchivados.length})
+              Documentos archivados/expirados ({docsArchivados.length})
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ px: 3, pb: 3, pt: 1 }}>

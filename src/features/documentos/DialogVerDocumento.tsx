@@ -176,7 +176,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                     startIcon={<IconFullscreen />}
                     sx={{ borderRadius: 'var(--radius-m)', borderColor: 'var(--accent-300)', color: 'var(--black)' }}
                   >
-                    Pantalla Completa
+                    Pantalla completa
                   </Button>
                   <Button 
                     variant="contained" 
@@ -202,7 +202,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                 <Box sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                   <Typography sx={{ mb: 2, color: 'var(--black)', fontWeight: 600 }}>El visor de PDF no se cargó correctamente en el navegador.</Typography>
                   <Button variant="contained" onClick={handleDownload} startIcon={<IconCloudDownload />} sx={{ backgroundColor: accentColor }}>
-                    Descargar Documento
+                    Descargar documento
                   </Button>
                 </Box>
               </object>
@@ -341,7 +341,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                   }
                 }}
               >
-                Abrir Documento
+                Abrir documento
               </Button>
               <Button 
                 variant="outlined" 
@@ -360,7 +360,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                   }
                 }}
               >
-                Descargar Archivo
+                Descargar archivo
               </Button>
             </Stack>
           </Box>
