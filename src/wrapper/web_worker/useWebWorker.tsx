@@ -28,6 +28,7 @@ import { dbWeekTypeUpdate } from '@services/dexie/weekType';
 import { dbSpeakersCongregationsSetName } from '@services/dexie/speakers_congregations';
 import logger from '@services/logger';
 import worker from '@services/worker/backupWorker';
+import { checkAndQueueAssignmentPush } from '@services/push/diff';
 
 const useWebWorker = () => {
   const location = useLocation();
@@ -77,6 +78,9 @@ const useWebWorker = () => {
           setAssignmentsHistory(history);
 
           await dbSpeakersCongregationsSetName();
+
+          // check for new assignments and queue push notification
+          checkAndQueueAssignmentPush().catch(() => {});
         }
 
         if (event.data.error === 'BACKUP_FAILED') {

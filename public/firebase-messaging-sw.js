@@ -79,21 +79,92 @@ try {
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    // Listens for background notifications
+    // Listens for background notifications (app closed / not focused).
+    // For assignment-update pushes we read the pending_push table that the app
+    // wrote the last time it was open and synced, so the notification is
+    // specific ("Se te asignaron N cosas") rather than generic.
     messaging.onBackgroundMessage((payload) => {
       const data = payload.data || {};
 
-      const notificationTitle = data.title || 'Elda Centro';
-      const notificationOptions = {
-        body: data.body || '',
-        icon: data.image || '/img/icon/icon-192x192.png',
-        badge: '/img/icon/icon-monochrome-192x192.png',
-        // `tag` lets later batched notifications collapse onto one another
-        tag: data.tag || undefined,
-        data: { url: data.url || '/', ...data },
+      // Try to read from the local IndexedDB pending_push table first.
+      // Fall back to the payload content (or a generic message) if unavailable.
+      self.event = self.event || {};
+
+      const showWithContent = (title, body, url) => {
+        self.registration.showNotification(title, {
+          body: body || '',
+          icon: '/img/icon/icon-192x192.png',
+          badge: '/img/icon/icon-monochrome-192x192.png',
+          tag: 'assignment-update',
+          data: { url: url || '/' },
+        });
       };
 
-      self.registration.showNotification(notificationTitle, notificationOptions);
+      const openIndexedDb = () =>
+        new Promise((resolve, reject) => {
+          const req = indexedDB.open('organized');
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => reject(req.error);
+        });
+
+      const readPendingPush = (db) =>
+        new Promise((resolve) => {
+          try {
+            const tx = db.transaction('pending_push', 'readwrite');
+            const store = tx.objectStore('pending_push');
+            const idx = store.index('shown');
+            const req = idx.getAll(IDBKeyRange.only(0)); // shown = 0
+            req.onsuccess = () => {
+              const records = req.result || [];
+              if (records.length === 0) {
+                resolve(null);
+                return;
+              }
+              // Pick the most recent unshown record
+              records.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+              const record = records[0];
+
+              // Mark all unshown records as shown
+              for (const r of records) {
+                store.put({ ...r, shown: 1 });
+              }
+
+              tx.oncomplete = () => resolve(record);
+              tx.onerror = () => resolve(record);
+            };
+            req.onerror = () => resolve(null);
+          } catch {
+            resolve(null);
+          }
+        });
+
+      const run = async () => {
+        try {
+          const db = await openIndexedDb();
+          const record = await readPendingPush(db);
+          db.close();
+
+          if (record && record.title) {
+            showWithContent(record.title, record.body, record.url);
+          } else {
+            // Generic fallback: data from payload or default message
+            showWithContent(
+              data.title || 'Tienes novedades',
+              data.body || 'Abre la app para ver tus asignaciones.',
+              data.url || '/'
+            );
+          }
+        } catch {
+          showWithContent(
+            data.title || 'Tienes novedades',
+            data.body || 'Abre la app para ver tus asignaciones.',
+            data.url || '/'
+          );
+        }
+      };
+
+      // event.waitUntil keeps the SW alive until the promise resolves
+      self.registration.active && run();
     });
   }
 

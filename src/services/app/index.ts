@@ -76,6 +76,13 @@ export const loadApp = () => {
   // load assignment history
   const history = schedulesBuildHistoryList();
   setAssignmentsHistory(history);
+
+  // check for new assignments on startup (catches changes while app was closed)
+  import('@services/push/diff')
+    .then(({ checkAndQueueAssignmentPush }) =>
+      checkAndQueueAssignmentPush().catch(() => {})
+    )
+    .catch(() => {});
 };
 
 export const runUpdater = async () => {

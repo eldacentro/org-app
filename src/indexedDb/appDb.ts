@@ -72,6 +72,10 @@ import {
   ResponsabilidadesTable,
   responsabilidadesSchema,
 } from './tables/responsabilidades';
+import {
+  PendingPushTable,
+  pendingPushSchema,
+} from './tables/pending_push';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -97,7 +101,8 @@ type DexieTables = PersonsTable &
   DeptScheduleTable &
   ServiceOutingTable &
   ExhibitorTable &
-  ResponsabilidadesTable;
+  ResponsabilidadesTable &
+  PendingPushTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -249,6 +254,21 @@ appDb.version(16).stores({
   ...serviceOutingsSchema,
   ...exhibitorsSchema,
   ...responsabilidadesSchema,
+});
+
+appDb.version(17).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
 });
 
 appDb.on('populate', function () {
