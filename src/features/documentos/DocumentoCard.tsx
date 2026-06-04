@@ -24,12 +24,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
     if (documento.archivado) {
       return (
         <Box sx={{ 
-          background: 'rgba(239, 68, 68, 0.1)', 
+          background: 'rgba(239, 68, 68, 0.08)', 
           color: '#EF4444', 
-          border: '1px solid rgba(239, 68, 68, 0.2)',
+          border: '1px solid rgba(239, 68, 68, 0.15)',
           px: 1.2, 
           py: 0.4, 
-          borderRadius: 'var(--radius-s)', 
+          borderRadius: 'var(--r-sm)', 
           fontSize: '11px', 
           fontWeight: 600, 
           whiteSpace: 'nowrap',
@@ -43,12 +43,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
     if (documento.vigencia === 'indefinido') {
       return (
         <Box sx={{ 
-          background: 'var(--accent-150)', 
-          color: 'var(--grey-400)', 
-          border: '1px solid var(--accent-200)',
+          background: 'var(--brand-tint)', 
+          color: 'var(--brand-deep)', 
+          border: '1px solid var(--line)',
           px: 1.2, 
           py: 0.4, 
-          borderRadius: 'var(--radius-s)', 
+          borderRadius: 'var(--r-sm)', 
           fontSize: '11px', 
           fontWeight: 600, 
           whiteSpace: 'nowrap',
@@ -65,12 +65,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
       if (days <= 0) {
         return (
           <Box sx={{ 
-            background: 'rgba(239, 68, 68, 0.1)', 
+            background: 'rgba(239, 68, 68, 0.08)', 
             color: '#EF4444', 
-            border: '1px solid rgba(239, 68, 68, 0.2)',
+            border: '1px solid rgba(239, 68, 68, 0.15)',
             px: 1.2, 
             py: 0.4, 
-            borderRadius: 'var(--radius-s)', 
+            borderRadius: 'var(--r-sm)', 
             fontSize: '11px', 
             fontWeight: 600, 
             whiteSpace: 'nowrap',
@@ -84,12 +84,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
       if (days <= 7) {
         return (
           <Box sx={{ 
-            background: 'rgba(245, 158, 11, 0.1)', 
+            background: 'rgba(245, 158, 11, 0.08)', 
             color: '#D97706', 
-            border: '1px solid rgba(245, 158, 11, 0.2)',
+            border: '1px solid rgba(245, 158, 11, 0.15)',
             px: 1.2, 
             py: 0.4, 
-            borderRadius: 'var(--radius-s)', 
+            borderRadius: 'var(--r-sm)', 
             fontSize: '11px', 
             fontWeight: 600, 
             whiteSpace: 'nowrap',
@@ -102,12 +102,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
       }
       return (
         <Box sx={{ 
-          background: 'rgba(48, 108, 180, 0.1)', 
+          background: 'rgba(48, 108, 180, 0.08)', 
           color: '#306CB4', 
-          border: '1px solid rgba(48, 108, 180, 0.2)',
+          border: '1px solid rgba(48, 108, 180, 0.15)',
           px: 1.2, 
           py: 0.4, 
-          borderRadius: 'var(--radius-s)', 
+          borderRadius: 'var(--r-sm)', 
           fontSize: '11px', 
           fontWeight: 600, 
           whiteSpace: 'nowrap',
@@ -121,20 +121,19 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
     return null;
   };
 
-  // Curated fallback brand color
-  const accentColor = categoria?.color || '#306CB4';
+  const accentColor = categoria?.color || 'var(--brand)';
 
   return (
     <Box
+      className="active-press"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
         padding: '20px',
-        borderRadius: 'var(--radius-l)',
-        border: `1px solid var(--accent-200)`,
-        background: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(12px)',
+        borderRadius: 'var(--r-md)',
+        border: `1px solid var(--line)`,
+        background: 'var(--card)',
         boxShadow: 'var(--shadow-sm)',
         position: 'relative',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -155,7 +154,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
           boxShadow: 'var(--shadow-md)',
           transform: 'translateY(-4px)',
           borderColor: accentColor,
-          background: 'rgba(255, 255, 255, 0.9)',
           '&::before': {
             width: '8px',
             opacity: 1,
@@ -165,7 +163,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
       onClick={() => onView(documento)}
     >
       {isNew && (
-        <Tooltip title="Nuevo Documento">
+        <Tooltip title="Nuevo documento">
           <Box sx={{
             position: 'absolute',
             top: 14,
@@ -173,8 +171,8 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
             width: 8,
             height: 8,
             borderRadius: '50%',
-            backgroundColor: '#306CB4',
-            boxShadow: '0 0 8px #306CB4',
+            backgroundColor: 'var(--brand)',
+            boxShadow: '0 0 8px var(--brand)',
             animation: 'pulse 2.2s infinite'
           }} />
         </Tooltip>
@@ -188,7 +186,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
           alignItems: 'center', 
           justifyContent: 'center',
           background: `${accentColor}12`,
-          borderRadius: 'var(--radius-m)',
+          borderRadius: 'var(--r-sm)',
           border: `1.5px solid ${accentColor}25`,
           flexShrink: 0,
           transition: 'all 0.3s ease',
@@ -205,12 +203,15 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
                 border: `1px solid ${categoria.color}35`,
                 px: 1.2, 
                 py: 0.4, 
-                borderRadius: 'var(--radius-s)', 
+                borderRadius: 'var(--r-sm)', 
                 fontSize: '11px',
                 fontWeight: 700,
-                whiteSpace: 'nowrap',
                 letterSpacing: '0.02em',
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                lineHeight: 1.2,
+                display: 'inline-block'
               }}>
                 {categoria.nombre}
               </Box>
@@ -219,20 +220,21 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
           </Box>
           
           <Typography className="h3" sx={{ 
-            color: 'var(--black)',
+            color: 'var(--ink)',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             lineHeight: 1.35,
-            fontWeight: 600,
-            fontSize: '16px'
+            fontWeight: 700,
+            fontSize: '16px',
+            letterSpacing: '-0.01em'
           }}>
             {documento.nombre}
           </Typography>
           
           {documento.descripcion && (
-            <Typography color="var(--grey-400)" className="body-small-regular" sx={{ 
+            <Typography color="var(--ink-2)" className="body-small-regular" sx={{ 
               mt: 1,
               display: '-webkit-box',
               WebkitLineClamp: 2,
@@ -247,15 +249,15 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
         </Box>
       </Stack>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 1.5, pl: '4px', borderTop: '1px solid var(--accent-150)' }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 1.5, pl: '4px', borderTop: '1px solid var(--line)' }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Typography className="label-small-regular" color="var(--grey-350)">
+          <Typography className="label-small-regular" color="var(--ink-3)">
             {new Date(documento.fechaSubida).toLocaleDateString()}
           </Typography>
-          <Typography className="label-small-regular" color="var(--grey-350)">
+          <Typography className="label-small-regular" color="var(--ink-3)">
             •
           </Typography>
-          <Typography className="label-small-regular" color="var(--grey-350)">
+          <Typography className="label-small-regular" color="var(--ink-3)">
             {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
           </Typography>
         </Stack>
@@ -263,18 +265,18 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
         {canManage && (
           <Stack direction="row" spacing={0.5} onClick={(e) => e.stopPropagation()}>
             {!documento.archivado && (
-              <Tooltip title="Archivar Documento">
+              <Tooltip title="Archivar documento">
                 <IconButton 
                   onClick={() => onArchive(documento)} 
                   size="small"
                   sx={{ 
-                    color: 'var(--grey-400)',
+                    color: 'var(--ink-2)',
                     padding: '6px',
-                    borderRadius: 'var(--radius-s)',
+                    borderRadius: 'var(--r-sm)',
                     backgroundColor: 'rgba(0, 0, 0, 0.02)',
                     transition: 'all 0.2s',
                     '&:hover': { 
-                      color: 'var(--grey-500)',
+                      color: 'var(--ink)',
                       background: 'rgba(0, 0, 0, 0.06)' 
                     }
                   }}
@@ -283,14 +285,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
                 </IconButton>
               </Tooltip>
             )}
-            <Tooltip title="Eliminar Permanentemente">
+            <Tooltip title="Eliminar permanentemente">
               <IconButton 
                 onClick={() => onDelete(documento)} 
                 size="small" 
                 sx={{ 
                   color: 'var(--red-main)',
                   padding: '6px',
-                  borderRadius: 'var(--radius-s)',
+                  borderRadius: 'var(--r-sm)',
                   backgroundColor: 'rgba(239, 68, 68, 0.04)',
                   transition: 'all 0.2s',
                   '&:hover': { 

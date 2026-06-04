@@ -109,11 +109,11 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
       fullScreen={!tablet688Up}
       PaperProps={{
         sx: { 
-          background: 'var(--white)',
+          background: 'var(--card)',
           maxWidth: tablet688Up ? '850px' : 'none',
           width: tablet688Up ? '90vw' : '100%',
           height: tablet688Up ? '85vh' : '100%',
-          borderRadius: tablet688Up ? 'var(--radius-xl)' : 0,
+          borderRadius: tablet688Up ? 'var(--r-lg)' : 0,
           margin: tablet688Up ? 'auto' : 0,
           overflow: 'hidden'
         }
@@ -128,7 +128,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
             <AppBar position="static" elevation={0} sx={{ 
               background: 'var(--card)', 
               borderBottom: '1px solid var(--line)',
-              color: 'var(--black)'
+              color: 'var(--ink)'
             }}>
               <Toolbar sx={{ justifyContent: 'space-between', padding: '8px 24px', minHeight: '64px !important' }}>
                 <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1, minWidth: 0, mr: 2 }}>
@@ -139,8 +139,8 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                     width: 42, 
                     height: 42, 
                     background: `${accentColor}12`, 
-                    border: `1.5px solid ${accentColor}25`,
-                    borderRadius: 'var(--radius-m)', 
+                    border: `1px solid ${accentColor}25`,
+                    borderRadius: 'var(--r-sm)', 
                     color: accentColor,
                     flexShrink: 0 
                   }}>
@@ -152,7 +152,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
                       fontWeight: 700,
-                      color: 'var(--black)'
+                      color: 'var(--ink)'
                     }}>
                       {documento.nombre}
                     </Typography>
@@ -162,46 +162,44 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                           {categoria.nombre} •
                         </Typography>
                       )}
-                      <Typography className="label-small-regular" color="var(--grey-400)">
+                      <Typography className="label-small-regular" color="var(--ink-2)">
                         {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
                       </Typography>
                     </Stack>
                   </Box>
-                </Stack>
-
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                </Stack>                <Stack direction="row" spacing={1.5} alignItems="center">
                   <Button 
-                    variant="outlined" 
+                    variant="tertiary" 
                     onClick={() => window.open(pdfUrl, '_blank')} 
                     startIcon={<IconFullscreen />}
-                    sx={{ borderRadius: 'var(--radius-m)', borderColor: 'var(--accent-300)', color: 'var(--black)' }}
+                    sx={{ borderRadius: 'var(--r-sm)' }}
                   >
                     Pantalla completa
                   </Button>
                   <Button 
-                    variant="contained" 
+                    variant="main" 
                     onClick={handleDownload} 
                     startIcon={<IconCloudDownload />}
-                    sx={{ borderRadius: 'var(--radius-m)', backgroundColor: accentColor, '&:hover': { backgroundColor: accentColor, opacity: 0.9 } }}
+                    sx={{ borderRadius: 'var(--r-sm)', backgroundColor: accentColor, color: 'var(--always-white) !important', '&:hover': { backgroundColor: accentColor, opacity: 0.9 } }}
                   >
                     Descargar
                   </Button>
-                  <IconButton onClick={handleClose} sx={{ color: 'var(--grey-400)', ml: 1 }}>
+                  <IconButton onClick={handleClose} sx={{ color: 'var(--ink-2)', ml: 1 }}>
                     <IconClose />
                   </IconButton>
                 </Stack>
               </Toolbar>
             </AppBar>
 
-            <Box sx={{ flex: 1, position: 'relative', background: 'var(--grey-100)', p: 1.5 }}>
+            <Box sx={{ flex: 1, position: 'relative', background: 'var(--paper)', p: 1.5 }}>
               <object
                 data={pdfUrl}
                 type="application/pdf"
-                style={{ width: '100%', height: '100%', display: 'block', borderRadius: 'var(--radius-l)', border: '1px solid var(--accent-200)', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.06)' }}
+                style={{ width: '100%', height: '100%', display: 'block', borderRadius: 'var(--r-md)', border: '1px solid var(--line)', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.06)' }}
               >
                 <Box sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography sx={{ mb: 2, color: 'var(--black)', fontWeight: 600 }}>El visor de PDF no se cargó correctamente en el navegador.</Typography>
-                  <Button variant="contained" onClick={handleDownload} startIcon={<IconCloudDownload />} sx={{ backgroundColor: accentColor }}>
+                  <Typography sx={{ mb: 2, color: 'var(--ink)', fontWeight: 600 }}>El visor de PDF no se cargó correctamente en el navegador.</Typography>
+                  <Button variant="main" onClick={handleDownload} startIcon={<IconCloudDownload />} sx={{ backgroundColor: accentColor, color: 'var(--always-white) !important' }}>
                     Descargar documento
                   </Button>
                 </Box>
@@ -228,11 +226,11 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                 position: 'absolute', 
                 top: 16, 
                 right: 16, 
-                color: 'var(--grey-400)',
+                color: 'var(--ink-2)',
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 backdropFilter: 'blur(8px)',
                 boxShadow: 'var(--shadow-sm)',
-                '&:hover': { backgroundColor: 'var(--white)' }
+                '&:hover': { backgroundColor: 'var(--card)' }
               }}
             >
               <IconClose />
@@ -262,10 +260,10 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
             <Box sx={{ 
               width: '100%', 
               maxWidth: '340px', 
-              backgroundColor: 'rgba(255, 255, 255, 0.75)', 
+              backgroundColor: 'var(--card)', 
               backdropFilter: 'blur(20px)',
-              border: '1px solid var(--accent-150)',
-              borderRadius: 'var(--radius-xl)', 
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-md)', 
               p: 4,
               boxSizing: 'border-box',
               boxShadow: '0 12px 32px -8px rgba(48, 108, 180, 0.08)',
@@ -283,7 +281,7 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                 justifyContent: 'center',
                 background: `${accentColor}12`,
                 border: `1.5px solid ${accentColor}25`,
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--r-sm)',
                 color: accentColor,
                 boxShadow: `0 8px 20px -6px ${accentColor}30`
               }}>
@@ -291,31 +289,31 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
               </Box>
 
               <Box>
-                <Typography className="h2" sx={{ color: 'var(--black)', fontWeight: 700, lineHeight: 1.3, mb: 1, fontSize: '18px' }}>
+                <Typography className="h2" sx={{ color: 'var(--ink)', fontWeight: 700, lineHeight: 1.3, mb: 1, fontSize: '18px' }}>
                   {documento.nombre}
                 </Typography>
                 {documento.descripcion && (
-                  <Typography variant="body2" color="var(--grey-400)" sx={{ fontSize: '13px', lineHeight: 1.45 }}>
+                  <Typography variant="body2" color="var(--ink-2)" sx={{ fontSize: '13px', lineHeight: 1.45 }}>
                     {documento.descripcion}
                   </Typography>
                 )}
               </Box>
 
-              <Stack direction="row" spacing={2.5} sx={{ width: '100%', justifyContent: 'center', pt: 2, borderTop: '1px solid var(--accent-150)' }}>
+              <Stack direction="row" spacing={2.5} sx={{ width: '100%', justifyContent: 'center', pt: 2, borderTop: '1px solid var(--line)' }}>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" color="var(--grey-350)" sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}>
+                  <Typography variant="caption" color="var(--ink-3)" sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}>
                     TAMAÑO
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--black)', mt: 0.25 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--ink)', mt: 0.25 }}>
                     {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
                   </Typography>
                 </Box>
-                <Box sx={{ width: '1px', backgroundColor: 'var(--accent-150)' }} />
+                <Box sx={{ width: '1px', backgroundColor: 'var(--line)' }} />
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" color="var(--grey-350)" sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}>
+                  <Typography variant="caption" color="var(--ink-3)" sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}>
                     FECHA
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--black)', mt: 0.25 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--ink)', mt: 0.25 }}>
                     {new Date(documento.fechaSubida).toLocaleDateString()}
                   </Typography>
                 </Box>
@@ -325,15 +323,16 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
             {/* Action buttons */}
             <Stack spacing={1.5} sx={{ width: '100%', maxWidth: '340px', mb: 3 }}>
               <Button 
-                variant="contained" 
+                variant="main" 
                 onClick={() => window.open(pdfUrl, '_blank')}
                 startIcon={<IconFullscreen />}
                 sx={{ 
                   height: '46px', 
-                  borderRadius: 'var(--radius-m)', 
+                  borderRadius: 'var(--r-sm)', 
                   fontSize: '14px', 
                   fontWeight: 700,
                   backgroundColor: accentColor,
+                  color: 'var(--always-white) !important',
                   boxShadow: `0 6px 20px -4px ${accentColor}40`,
                   '&:hover': {
                     backgroundColor: accentColor,
@@ -344,19 +343,19 @@ const DialogVerDocumento = ({ open, documento, onClose, onViewed }: DialogVerDoc
                 Abrir documento
               </Button>
               <Button 
-                variant="outlined" 
+                variant="tertiary" 
                 onClick={handleDownload}
                 startIcon={<IconCloudDownload />}
                 sx={{ 
                   height: '46px', 
-                  borderRadius: 'var(--radius-m)', 
+                  borderRadius: 'var(--r-sm)', 
                   fontSize: '14px', 
                   fontWeight: 600,
-                  borderColor: 'var(--accent-300)',
-                  color: 'var(--black)',
+                  borderColor: `${accentColor}80 !important`,
+                  color: `${accentColor} !important`,
                   '&:hover': {
-                    borderColor: 'var(--accent-400)',
-                    backgroundColor: 'rgba(0,0,0,0.02)'
+                    borderColor: accentColor,
+                    backgroundColor: `${accentColor}08`
                   }
                 }}
               >

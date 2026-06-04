@@ -122,17 +122,18 @@ const DocumentosPage = () => {
             justifyContent: 'center',
             py: 8,
             px: 2,
-            background: 'rgba(255, 255, 255, 0.4)',
+            background: 'var(--card)',
             backdropFilter: 'blur(8px)',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px dashed var(--accent-200)',
-            textAlign: 'center'
+            borderRadius: 'var(--r-lg)',
+            border: '1px dashed var(--line)',
+            textAlign: 'center',
+            boxShadow: 'var(--shadow-sm)'
           }}
         >
-          <Typography variant="h5" sx={{ color: 'var(--accent-400)', mb: 1, fontSize: '48px' }}>
+          <Typography variant="h5" sx={{ color: 'var(--ink-3)', mb: 1, fontSize: '48px' }}>
             📂
           </Typography>
-          <Typography color="var(--grey-400)" className="body-regular">
+          <Typography color="var(--ink-2)" className="body-regular">
             No hay documentos en esta categoría
           </Typography>
         </Box>
@@ -156,24 +157,24 @@ const DocumentosPage = () => {
         <Accordion 
           sx={{ 
             mt: 4, 
-            borderRadius: 'var(--radius-l) !important', 
-            background: 'var(--white)',
-            border: '1px solid var(--accent-200)',
-            boxShadow: 'var(--shadow-01)',
+            borderRadius: 'var(--r-md) !important', 
+            background: 'var(--card)',
+            border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-sm)',
             '&:before': { display: 'none' },
             '&.Mui-expanded': {
-              boxShadow: 'var(--shadow-02)',
+              boxShadow: 'var(--shadow-md)',
             }
           }}
         >
           <AccordionSummary 
-            expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-400)' }} />}
+            expandIcon={<ExpandMoreIcon sx={{ color: 'var(--ink-3)' }} />}
             sx={{
               px: 3,
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--r-md)',
             }}
           >
-            <Typography variant="h6" className="h3" sx={{ color: 'var(--black)' }}>
+            <Typography variant="h6" className="h3" sx={{ color: 'var(--ink)', fontWeight: 700 }}>
               Documentos archivados/expirados ({docsArchivados.length})
             </Typography>
           </AccordionSummary>

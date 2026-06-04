@@ -13,7 +13,7 @@ import { useDocumentos } from './useDocumentos';
 
 const CATEGORIAS_INICIALES = [
   { nombre: 'Cuentas', color: '#10B981' },
-  { nombre: 'Visita del Superintendente', color: '#6366F1' },
+  { nombre: 'Visita del superintendente', color: '#6366F1' },
   { nombre: 'Asambleas', color: '#F59E0B' },
   { nombre: 'Anuncios', color: '#306CB4' },
   { nombre: 'Otros', color: '#64748B' },
@@ -71,7 +71,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
     };
     setDrafts([...drafts, newCat]);
     setNuevaCategoria('');
-    // Pick a different color for the next one randomly or sequentially
+    // Pick a different color for the next one sequentially
     const currentIdx = PALETA_COLORES.indexOf(nuevoColor);
     const nextColor = PALETA_COLORES[(currentIdx + 1) % PALETA_COLORES.length];
     setNuevoColor(nextColor);
@@ -125,25 +125,25 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--radius-xl)',
-          backgroundColor: 'var(--white)',
+          borderRadius: 'var(--r-md)',
+          backgroundColor: 'var(--card)',
           padding: '10px'
         }
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--black)' }}>
+        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Gestionar categorías
         </Typography>
-        <Typography variant="body2" color="var(--grey-400)" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
           Organiza, crea y colorea las categorías de tus documentos pastorales.
         </Typography>
         
         {/* Lista de categorías actuales */}
         <Stack spacing={1.5} sx={{ mb: 4, maxHeight: '280px', overflowY: 'auto', pr: '4px' }}>
           {drafts.length === 0 ? (
-            <Box sx={{ p: 3, border: '1px dashed var(--accent-200)', borderRadius: 'var(--radius-m)', textAlign: 'center' }}>
-              <Typography color="var(--grey-400)" className="body-regular">
+            <Box sx={{ p: 3, border: '1px dashed var(--line)', borderRadius: 'var(--r-sm)', textAlign: 'center' }}>
+              <Typography color="var(--ink-2)" className="body-regular">
                 No hay categorías definidas. Crea una a continuación.
               </Typography>
             </Box>
@@ -155,9 +155,9 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                   display: 'flex',
                   alignItems: 'center',
                   p: '10px 14px', 
-                  border: '1.5px solid var(--accent-150)', 
-                  borderRadius: 'var(--radius-m)',
-                  background: 'rgba(240, 244, 250, 0.3)',
+                  border: '1px solid var(--line)', 
+                  borderRadius: 'var(--r-sm)',
+                  background: 'var(--card)',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.2s',
@@ -172,12 +172,12 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                   },
                   '&:hover': {
                     borderColor: cat.color,
-                    background: 'rgba(240, 244, 250, 0.6)',
-                    boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.05)'
+                    background: 'rgba(0, 0, 0, 0.02)',
+                    boxShadow: 'var(--shadow-sm)'
                   }
                 }}
               >
-                <Typography sx={{ flex: 1, fontWeight: 600, color: 'var(--black)', fontSize: '14.5px', pl: 1 }}>
+                <Typography sx={{ flex: 1, fontWeight: 600, color: 'var(--ink)', fontSize: '14.5px', pl: 1 }}>
                   {cat.nombre}
                 </Typography>
                 
@@ -187,11 +187,11 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                     onClick={() => handleMoveUp(index)} 
                     disabled={index === 0}
                     sx={{ 
-                      color: 'var(--grey-400)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      color: 'var(--ink-3)',
+                      backgroundColor: 'var(--paper)',
                       padding: '5px',
-                      borderRadius: 'var(--radius-s)',
-                      '&:hover': { color: 'var(--black)', backgroundColor: 'var(--accent-150)' }
+                      borderRadius: 'var(--r-sm)',
+                      '&:hover': { color: 'var(--ink)', backgroundColor: 'rgba(0,0,0,0.06)' }
                     }}
                   >
                     <ArrowUpwardIcon sx={{ fontSize: '16px' }} />
@@ -201,11 +201,11 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                     onClick={() => handleMoveDown(index)} 
                     disabled={index === drafts.length - 1}
                     sx={{ 
-                      color: 'var(--grey-400)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      color: 'var(--ink-3)',
+                      backgroundColor: 'var(--paper)',
                       padding: '5px',
-                      borderRadius: 'var(--radius-s)',
-                      '&:hover': { color: 'var(--black)', backgroundColor: 'var(--accent-150)' }
+                      borderRadius: 'var(--r-sm)',
+                      '&:hover': { color: 'var(--ink)', backgroundColor: 'rgba(0,0,0,0.06)' }
                     }}
                   >
                     <ArrowDownwardIcon sx={{ fontSize: '16px' }} />
@@ -217,7 +217,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                       color: 'var(--red-main)',
                       backgroundColor: 'rgba(239, 68, 68, 0.04)',
                       padding: '5px',
-                      borderRadius: 'var(--radius-s)',
+                      borderRadius: 'var(--r-sm)',
                       ml: 1,
                       '&:hover': { color: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)' }
                     }}
@@ -230,15 +230,15 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
           )}
         </Stack>
 
-        <Box sx={{ borderTop: '1px solid var(--accent-150)', pt: 3, mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'var(--black)' }}>
+        <Box sx={{ borderTop: '1px solid var(--line)', pt: 3, mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'var(--ink)' }}>
             Crear nueva categoría
           </Typography>
           
           <Stack spacing={2}>
             {/* Selector de color curado */}
             <Box>
-              <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'var(--grey-400)', fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'var(--ink-3)', fontWeight: 600 }}>
                 SELECCIONA UN COLOR
               </Typography>
               <Grid container spacing={1}>
@@ -255,7 +255,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: nuevoColor === color ? '3px solid var(--white)' : 'none',
+                        border: nuevoColor === color ? '3px solid var(--card)' : 'none',
                         outline: nuevoColor === color ? `2.5px solid ${color}` : 'none',
                         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                         boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
@@ -265,7 +265,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                       }}
                     >
                       {nuevoColor === color && (
-                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--white)', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }} />
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--card)', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }} />
                       )}
                     </Box>
                   </Grid>
@@ -290,7 +290,8 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                 sx={{ 
                   height: '42px', 
                   backgroundColor: nuevoColor, 
-                  color: 'var(--white)',
+                  color: 'var(--card)',
+                  borderRadius: 'var(--r-sm)',
                   boxShadow: `0 4px 10px -2px ${nuevoColor}40`,
                   '&:hover': {
                     backgroundColor: nuevoColor,
@@ -306,12 +307,12 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
         </Box>
 
         {/* Acciones principales del diálogo */}
-        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ borderTop: '1px solid var(--accent-150)', pt: 2.5 }}>
-          <Button variant="outlined" onClick={onClose} disabled={isSaving} sx={{ borderRadius: 'var(--radius-m)' }}>
+        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ borderTop: '1px solid var(--line)', pt: 2.5 }}>
+          <Button variant="outlined" onClick={onClose} disabled={isSaving} sx={{ borderRadius: 'var(--r-sm)', borderColor: 'var(--line)', color: 'var(--ink-2)' }}>
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleSave} disabled={isSaving} sx={{ borderRadius: 'var(--radius-m)' }}>
-            Guardar Cambios
+          <Button variant="contained" onClick={handleSave} disabled={isSaving} sx={{ borderRadius: 'var(--r-sm)', backgroundColor: 'var(--ink)', color: 'var(--card)', '&:hover': { backgroundColor: 'var(--ink)', opacity: 0.9 } }}>
+            Guardar cambios
           </Button>
         </Stack>
       </Box>

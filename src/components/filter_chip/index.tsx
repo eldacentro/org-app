@@ -29,20 +29,27 @@ const CustomFilterChip = ({
       className={selected ? 'body-small-semibold' : 'body-small-regular'}
       sx={{
         fontFeatureSettings: '"cv05"',
-        padding: '8px 16px',
-        color: selected ? 'var(--accent-dark)' : 'var(--accent-400)',
-        borderRadius: 'var(--radius-l)',
+        textTransform: 'none',
+        padding: '6px 14px',
+        color: selected ? 'var(--brand-deep)' : 'var(--ink-2)',
+        borderRadius: 'var(--r-sm)',
         border: selected
-          ? '1px solid var(--accent-dark)'
-          : '1px solid var(--accent-400)',
-        backgroundColor: selected ? 'var(--accent-200)' : 'unset',
+          ? '1.5px solid var(--brand-deep)'
+          : '1px solid var(--line)',
+        backgroundColor: selected ? 'var(--brand-tint)' : 'var(--card)',
         minHeight: '34px',
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+        boxShadow: selected ? 'none' : 'var(--shadow-sm)',
+        transition: 'all 0.2s ease',
         '&:hover': {
-          color: selected ? 'var(--accent-dark)' : 'var(--accent-400)',
-          backgroundColor: selected ? 'var(--accent-200)' : 'var(--accent-150)',
+          color: selected ? 'var(--brand-deep)' : 'var(--ink)',
+          backgroundColor: selected ? 'var(--brand-tint)' : 'rgba(0, 0, 0, 0.04)',
+          borderColor: selected ? 'var(--brand-deep)' : 'var(--ink-3)',
           '@media (hover: none)': {
-            backgroundColor: selected ? 'var(--accent-200)' : 'unset',
-            color: selected ? 'var(--accent-dark)' : 'var(--accent-400)',
+            backgroundColor: selected ? 'var(--brand-tint)' : 'var(--card)',
+            color: selected ? 'var(--brand-deep)' : 'var(--ink-2)',
+            borderColor: selected ? 'var(--brand-deep)' : 'var(--line)',
           },
         },
       }}
