@@ -18,10 +18,10 @@
 
 try {
   importScripts(
-    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js'
+    'https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js'
   );
   importScripts(
-    'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js'
+    'https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging-compat.js'
   );
 
   // Rewrap incoming push events: move the `notification` key into `data` so the

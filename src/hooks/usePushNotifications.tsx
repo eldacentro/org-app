@@ -15,15 +15,39 @@ import logger from '@services/logger/index';
  * obtains the FCM token, and registers it with the backend (per device/session).
  * Disabling revokes the token locally and on the backend.
  *
+ * `enabled` reflects whether push is actually active on THIS device (a persisted
+ * opt-in flag), not merely whether the browser permission is granted — otherwise
+ * the toggle could never be switched off, since revoking a token doesn't reset
+ * `Notification.permission`.
+ *
  * This hook does NOT decide when pushes are sent — that logic (assignment diff +
  * batching, client-side because schedules are E2E encrypted) lands in a later
  * phase.
  */
+const OPT_IN_KEY = 'organized_push-enabled';
+
+const readOptIn = () => {
+  try {
+    return localStorage.getItem(OPT_IN_KEY) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const writeOptIn = (value: boolean) => {
+  try {
+    localStorage.setItem(OPT_IN_KEY, value ? 'true' : 'false');
+  } catch {
+    /* ignore storage failures */
+  }
+};
+
 const usePushNotifications = () => {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
+  const [optedIn, setOptedIn] = useState(readOptIn);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -53,6 +77,8 @@ const usePushNotifications = () => {
         return false;
       }
 
+      writeOptIn(true);
+      setOptedIn(true);
       return true;
     } catch (error) {
       logger.error('push', `failed to enable push: ${error}`);
@@ -66,6 +92,10 @@ const usePushNotifications = () => {
     if (busy) return;
 
     setBusy(true);
+
+    // Reflect the user's intent immediately; the token cleanup is best-effort.
+    writeOptIn(false);
+    setOptedIn(false);
 
     try {
       await apiDeletePushToken();
@@ -81,7 +111,7 @@ const usePushNotifications = () => {
     supported,
     permission,
     busy,
-    enabled: supported && permission === 'granted',
+    enabled: supported && permission === 'granted' && optedIn,
     enablePush,
     disablePush,
   };
