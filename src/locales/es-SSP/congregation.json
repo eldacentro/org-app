@@ -435,7 +435,7 @@
   "tr_activePublisher": "Publicador activo",
   "tr_activePublisherTooltip": "Al hacer clic en la casilla de verificación se establece la fecha de inicio del estado en el primer clic; al hacer clic nuevamente se añade la fecha de finalización. Puedes editarlas expandiendo el menú de historial detallado a continuación.",
   "tr_enableCongregationDataSync": "Activar sincronización de datos de congregación",
-  "tr_enableCongregationDataSyncDesc": "Esta función permite sincronizar datos como programas con otros usuarios en tu congregación y usar la aplicación en múltiples dispositivos al mismo tiempo. (Antes de activarla, asegúrate de que el uso de aplicaciones en línea para almacenar registros no confidenciales esté aprobado para el territorio de tu sucursal)",
+  "tr_enableCongregationDataSyncDesc": "Esta función permite sincronizar datos como programas con otros usuarios en tu congregación y usar la aplicación en múltiples dispositivos al mismo tiempo.",
   "tr_applicationRejected": "Solicitud de precursor rechazada",
   "tr_applicationRejectedDesc": "Esta solicitud ha sido rechazada. Informa al publicador sobre su estado.",
   "tr_serviceGroupsListNone": "Aún no hay grupos de predicación. Los grupos aparecerán aquí tan pronto como se creen.",
