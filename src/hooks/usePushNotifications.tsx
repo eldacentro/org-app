@@ -5,6 +5,7 @@ import {
   revokePushToken,
 } from '@services/firebase/messaging';
 import { apiDeletePushToken, apiRegisterPushToken } from '@services/api/user';
+import { checkAndQueueAssignmentPush } from '@services/push/diff';
 import logger from '@services/logger/index';
 
 /**
@@ -79,6 +80,10 @@ const usePushNotifications = () => {
 
       writeOptIn(true);
       setOptedIn(true);
+
+      // Seed the snapshot so existing assignments don't fire on first enable.
+      checkAndQueueAssignmentPush({ notify: false }).catch(() => {});
+
       return true;
     } catch (error) {
       logger.error('push', `failed to enable push: ${error}`);

@@ -85,7 +85,7 @@ const cleanOldPendingPush = async () => {
     .catch(() => {});
 };
 
-export const checkAndQueueAssignmentPush = async (): Promise<void> => {
+export const checkAndQueueAssignmentPush = async ({ notify = true }: { notify?: boolean } = {}): Promise<void> => {
   if (!isPushEnabled()) return;
 
   const userUID = store.get(userLocalUIDState);
@@ -200,6 +200,9 @@ export const checkAndQueueAssignmentPush = async (): Promise<void> => {
   writeSnapshot(currentFingerprints);
 
   if (newAssignments.length === 0) return;
+
+  // notify=false: called on first enable to seed the snapshot silently
+  if (!notify) return;
 
   const { title, body } = buildNotificationContent(newAssignments);
 
