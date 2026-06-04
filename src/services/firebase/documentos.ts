@@ -18,8 +18,9 @@ export const deleteDocumentoPDF = async (congId: string, docId: string): Promise
   const fileRef = ref(storage, `congregation/${congId}/documentos/${docId}.pdf`);
   try {
     await deleteObject(fileRef);
-  } catch (error: any) {
-    if (error.code !== 'storage/object-not-found') {
+  } catch (error) {
+    const err = error as Error & { code?: string };
+    if (err.code !== 'storage/object-not-found') {
       throw error;
     }
   }

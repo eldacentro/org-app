@@ -141,8 +141,9 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       await reload();
       handleClose();
 
-    } catch (err: any) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      const err = error as Error;
       setError(err.message || 'Error al procesar el archivo');
       setIsCompressing(false);
       setIsUploading(false);

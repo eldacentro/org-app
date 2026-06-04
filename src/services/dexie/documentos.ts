@@ -1,4 +1,4 @@
-import appDb from '@indexedDb/appDb';
+import appDb from '@db/appDb';
 import { DocumentoArchivo, DocumentoCategoria } from '@definition/documentos';
 
 export const dbDocumentosGetAll = async (): Promise<DocumentoArchivo[]> => {
