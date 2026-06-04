@@ -23,14 +23,38 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
   const renderVigenciaBadge = () => {
     if (documento.archivado) {
       return (
-        <Box sx={{ background: 'var(--red-secondary)', color: 'var(--red-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          Expirado/Archivado
+        <Box sx={{ 
+          background: 'rgba(239, 68, 68, 0.1)', 
+          color: '#EF4444', 
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          px: 1.2, 
+          py: 0.4, 
+          borderRadius: 'var(--radius-s)', 
+          fontSize: '11px', 
+          fontWeight: 600, 
+          whiteSpace: 'nowrap',
+          letterSpacing: '0.02em',
+          textTransform: 'uppercase'
+        }}>
+          Archivado
         </Box>
       );
     }
     if (documento.vigencia === 'indefinido') {
       return (
-        <Box sx={{ background: 'var(--grey-150)', color: 'var(--grey-400)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
+        <Box sx={{ 
+          background: 'var(--accent-150)', 
+          color: 'var(--grey-400)', 
+          border: '1px solid var(--accent-200)',
+          px: 1.2, 
+          py: 0.4, 
+          borderRadius: 'var(--radius-s)', 
+          fontSize: '11px', 
+          fontWeight: 600, 
+          whiteSpace: 'nowrap',
+          letterSpacing: '0.02em',
+          textTransform: 'uppercase'
+        }}>
           Indefinido
         </Box>
       );
@@ -38,15 +62,58 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
     if (documento.fechaExpiracion) {
       const diff = new Date(documento.fechaExpiracion).getTime() - new Date().getTime();
       const days = Math.ceil(diff / (1000 * 3600 * 24));
+      if (days <= 0) {
+        return (
+          <Box sx={{ 
+            background: 'rgba(239, 68, 68, 0.1)', 
+            color: '#EF4444', 
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            px: 1.2, 
+            py: 0.4, 
+            borderRadius: 'var(--radius-s)', 
+            fontSize: '11px', 
+            fontWeight: 600, 
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.02em',
+            textTransform: 'uppercase'
+          }}>
+            Expirado
+          </Box>
+        );
+      }
       if (days <= 7) {
         return (
-          <Box sx={{ background: 'var(--orange-secondary)', color: 'var(--orange-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
-            Expira en {days} días
+          <Box sx={{ 
+            background: 'rgba(245, 158, 11, 0.1)', 
+            color: '#D97706', 
+            border: '1px solid rgba(245, 158, 11, 0.2)',
+            px: 1.2, 
+            py: 0.4, 
+            borderRadius: 'var(--radius-s)', 
+            fontSize: '11px', 
+            fontWeight: 600, 
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.02em',
+            textTransform: 'uppercase'
+          }}>
+            Expira en {days} d
           </Box>
         );
       }
       return (
-        <Box sx={{ background: 'var(--accent-150)', color: 'var(--accent-dark)', px: 1, py: 0.25, borderRadius: 'var(--radius-s)', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
+        <Box sx={{ 
+          background: 'rgba(48, 108, 180, 0.1)', 
+          color: '#306CB4', 
+          border: '1px solid rgba(48, 108, 180, 0.2)',
+          px: 1.2, 
+          py: 0.4, 
+          borderRadius: 'var(--radius-s)', 
+          fontSize: '11px', 
+          fontWeight: 600, 
+          whiteSpace: 'nowrap',
+          letterSpacing: '0.02em',
+          textTransform: 'uppercase'
+        }}>
           Expira el {new Date(documento.fechaExpiracion).toLocaleDateString()}
         </Box>
       );
@@ -54,66 +121,96 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
     return null;
   };
 
+  // Curated fallback brand color
+  const accentColor = categoria?.color || '#306CB4';
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
-        padding: '16px',
+        padding: '20px',
         borderRadius: 'var(--radius-l)',
-        border: '1px solid var(--accent-200)',
-        background: 'var(--white)',
-        boxShadow: 'var(--shadow-01)',
+        border: `1px solid var(--accent-200)`,
+        background: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: 'var(--shadow-sm)',
         position: 'relative',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '5px',
+          height: '100%',
+          backgroundColor: accentColor,
+          opacity: 0.8,
+          transition: 'all 0.3s ease',
+        },
         '&:hover': {
-          boxShadow: 'var(--shadow-02)',
-          transform: 'translateY(-2px)',
+          boxShadow: 'var(--shadow-md)',
+          transform: 'translateY(-4px)',
+          borderColor: accentColor,
+          background: 'rgba(255, 255, 255, 0.9)',
+          '&::before': {
+            width: '8px',
+            opacity: 1,
+          }
         },
       }}
       onClick={() => onView(documento)}
     >
       {isNew && (
-        <Box sx={{
-          position: 'absolute',
-          top: 12,
-          right: 12,
-          width: 10,
-          height: 10,
-          borderRadius: '50%',
-          backgroundColor: 'var(--blue-main)'
-        }} />
+        <Tooltip title="Nuevo Documento">
+          <Box sx={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: '#306CB4',
+            boxShadow: '0 0 8px #306CB4',
+            animation: 'pulse 2.2s infinite'
+          }} />
+        </Tooltip>
       )}
 
-      <Stack direction="row" spacing={2} alignItems="flex-start">
+      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ pl: '4px' }}>
         <Box sx={{ 
-          width: 48, 
-          height: 48, 
+          width: 52, 
+          height: 52, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          background: 'var(--red-secondary)',
+          background: `${accentColor}12`,
           borderRadius: 'var(--radius-m)',
-          flexShrink: 0
+          border: `1.5px solid ${accentColor}25`,
+          flexShrink: 0,
+          transition: 'all 0.3s ease',
         }}>
-          <PictureAsPdfIcon sx={{ color: 'var(--red-main)', fontSize: 28 }} />
+          <PictureAsPdfIcon sx={{ color: accentColor, fontSize: 30 }} />
         </Box>
         
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px', mb: 1 }}>
             {categoria && (
               <Box sx={{ 
-                backgroundColor: `${categoria.color}20`, 
+                backgroundColor: `${categoria.color}15`, 
                 color: categoria.color, 
-                border: `1px solid ${categoria.color}40`,
-                px: 1, 
-                py: 0.25, 
+                border: `1px solid ${categoria.color}35`,
+                px: 1.2, 
+                py: 0.4, 
                 borderRadius: 'var(--radius-s)', 
-                fontSize: '12px',
-                fontWeight: 600,
-                whiteSpace: 'nowrap'
+                fontSize: '11px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.02em',
+                textTransform: 'uppercase'
               }}>
                 {categoria.nombre}
               </Box>
@@ -127,18 +224,22 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            lineHeight: 1.3
+            lineHeight: 1.35,
+            fontWeight: 600,
+            fontSize: '16px'
           }}>
             {documento.nombre}
           </Typography>
           
           {documento.descripcion && (
             <Typography color="var(--grey-400)" className="body-small-regular" sx={{ 
-              mt: 0.5,
+              mt: 1,
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              lineHeight: 1.4,
+              fontSize: '13px'
             }}>
               {documento.descripcion}
             </Typography>
@@ -146,8 +247,8 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
         </Box>
       </Stack>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 1, borderTop: '1px solid var(--accent-150)' }}>
-        <Stack direction="row" spacing={1.5}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 1.5, pl: '4px', borderTop: '1px solid var(--accent-150)' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <Typography className="label-small-regular" color="var(--grey-350)">
             {new Date(documento.fechaSubida).toLocaleDateString()}
           </Typography>
@@ -162,29 +263,43 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
         {canManage && (
           <Stack direction="row" spacing={0.5} onClick={(e) => e.stopPropagation()}>
             {!documento.archivado && (
-              <Tooltip title="Archivar">
+              <Tooltip title="Archivar Documento">
                 <IconButton 
                   onClick={() => onArchive(documento)} 
                   size="small"
                   sx={{ 
                     color: 'var(--grey-400)',
-                    '&:hover': { background: 'var(--grey-150)' }
+                    padding: '6px',
+                    borderRadius: 'var(--radius-s)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    transition: 'all 0.2s',
+                    '&:hover': { 
+                      color: 'var(--grey-500)',
+                      background: 'rgba(0, 0, 0, 0.06)' 
+                    }
                   }}
                 >
-                  <ArchiveIcon fontSize="small" />
+                  <ArchiveIcon sx={{ fontSize: '18px' }} />
                 </IconButton>
               </Tooltip>
             )}
-            <Tooltip title="Eliminar">
+            <Tooltip title="Eliminar Permanentemente">
               <IconButton 
                 onClick={() => onDelete(documento)} 
                 size="small" 
                 sx={{ 
                   color: 'var(--red-main)',
-                  '&:hover': { background: 'var(--red-secondary)' }
+                  padding: '6px',
+                  borderRadius: 'var(--radius-s)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                  transition: 'all 0.2s',
+                  '&:hover': { 
+                    color: '#EF4444',
+                    background: 'rgba(239, 68, 68, 0.1)' 
+                  }
                 }}
               >
-                <IconDelete color="var(--red-main)" />
+                <IconDelete color="currentColor" style={{ width: '18px', height: '18px' }} />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -195,3 +310,4 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete, onArchive }: Do
 };
 
 export default DocumentoCard;
+

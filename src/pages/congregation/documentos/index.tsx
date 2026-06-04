@@ -80,10 +80,24 @@ const DocumentosPage = () => {
   }, [canManage, tablet688Up]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', p: 'var(--radius-xl)' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PageTitle title="Documentos" buttons={buttons} />
 
-      <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
+      <Stack 
+        direction="row" 
+        spacing={1} 
+        sx={{ 
+          overflowX: 'auto', 
+          pb: '8px',
+          width: '100%',
+          flexWrap: 'nowrap',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         <FilterChip 
           label="Todos" 
           selected={filtroCategoria === 'all'} 
@@ -100,8 +114,25 @@ const DocumentosPage = () => {
       </Stack>
 
       {docsFiltrados.length === 0 ? (
-        <Box textAlign="center" py={10}>
-          <Typography color="var(--grey-400)">
+        <Box 
+          sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 8,
+            px: 2,
+            background: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: 'var(--radius-xl)',
+            border: '1px dashed var(--accent-200)',
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="h5" sx={{ color: 'var(--accent-400)', mb: 1, fontSize: '48px' }}>
+            📂
+          </Typography>
+          <Typography color="var(--grey-400)" className="body-regular">
             No hay documentos en esta categoría
           </Typography>
         </Box>
@@ -122,11 +153,31 @@ const DocumentosPage = () => {
       )}
 
       {canManage && docsArchivados.length > 0 && (
-        <Accordion sx={{ mt: 4, borderRadius: 'var(--radius-l)', '&:before': { display: 'none' }, boxShadow: 'var(--shadow-02)' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">Documentos Archivados/Expirados ({docsArchivados.length})</Typography>
+        <Accordion 
+          sx={{ 
+            mt: 4, 
+            borderRadius: 'var(--radius-l) !important', 
+            background: 'var(--white)',
+            border: '1px solid var(--accent-200)',
+            boxShadow: 'var(--shadow-01)',
+            '&:before': { display: 'none' },
+            '&.Mui-expanded': {
+              boxShadow: 'var(--shadow-02)',
+            }
+          }}
+        >
+          <AccordionSummary 
+            expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-400)' }} />}
+            sx={{
+              px: 3,
+              borderRadius: 'var(--radius-l)',
+            }}
+          >
+            <Typography variant="h6" className="h3" sx={{ color: 'var(--black)' }}>
+              Documentos Archivados/Expirados ({docsArchivados.length})
+            </Typography>
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails sx={{ px: 3, pb: 3, pt: 1 }}>
             <Grid container spacing={2}>
               {docsArchivados.map(doc => (
                 <Grid item xs={12} sm={6} md={4} key={doc.id}>
