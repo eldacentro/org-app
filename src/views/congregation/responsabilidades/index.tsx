@@ -9,7 +9,7 @@ registerFonts();
 // ─── inline styles (no StyleSheet import needed above – registerFonts does it) ──
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 20,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
   },
@@ -17,76 +17,76 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     // Reserva el alto del footer (absoluto) para que el contenido no se le solape.
-    paddingBottom: 30,
+    paddingBottom: 25,
   },
   topBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4.5,
   },
   topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 7.5,
   },
   topBarBrandName: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: 700,
     color: '#1a1a2e',
   },
   topBarDate: {
-    fontSize: 10,
+    fontSize: 8.5,
     fontWeight: 500,
     color: '#888888',
   },
   pageTitle: {
-    fontSize: 28,
+    fontSize: 23.5,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   pageSubtitle: {
-    fontSize: 11,
+    fontSize: 9.3,
     color: '#306CB4',
-    marginBottom: 12,
+    marginBottom: 9,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
-    marginBottom: 14,
+    marginBottom: 10.5,
   },
   // Section
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 700,
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 6,
+    marginBottom: 4.5,
     borderBottom: '1 solid #d0d7e8',
-    paddingBottom: 4,
+    paddingBottom: 3,
   },
 
   sectionWrapper: {
-    marginBottom: 10,
+    marginBottom: 7.5,
   },
   // Chips row (cuerpo de ancianos)
   chipsRow: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: 3,
   },
   chip: {
     backgroundColor: '#e8f0fb',
     borderRadius: 8,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 2.2,
+    paddingHorizontal: 6,
   },
   chipText: {
-    fontSize: 11,
+    fontSize: 9.3,
     color: '#306CB4',
     fontWeight: 600,
   },
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
   table: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 2,
+    gap: 1.5,
   },
   tableRow: {
     display: 'flex',
     flexDirection: 'row',
-    paddingVertical: 3,
-    paddingHorizontal: 6,
+    paddingVertical: 2.2,
+    paddingHorizontal: 4.5,
     borderBottom: '0.5 solid #eef2fa',
   },
   tableRowAlt: {
@@ -108,13 +108,13 @@ const styles = StyleSheet.create({
   },
   tableColLabel: {
     width: '45%',
-    fontSize: 11,
+    fontSize: 9.3,
     color: '#444',
     fontWeight: 600,
   },
   tableColValue: {
     flex: 1,
-    fontSize: 11,
+    fontSize: 9.3,
     color: '#1a1a2e',
   },
   // Department cards (3 per row)
@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 6,
-    rowGap: 8,
+    columnGap: 4.5,
+    rowGap: 6,
   },
   deptCard: {
     width: '48.5%',
@@ -136,30 +136,30 @@ const styles = StyleSheet.create({
   },
   deptHeader: {
     backgroundColor: '#306CB4',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 7.5,
   },
   deptHeaderText: {
-    fontSize: 11,
+    fontSize: 9.3,
     fontWeight: 700,
     color: '#ffffff',
   },
   deptBody: {
-    padding: '7 10',
+    padding: '5.2 7.5',
     display: 'flex',
     flexDirection: 'column',
-    gap: 6,
+    gap: 4.5,
   },
   // Contenedor Resp./Aux.: apilado en tarjetas normales, en paralelo en las anchas
   deptInfoCol: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 5,
+    gap: 3.7,
   },
   deptInfoRow: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 20,
+    gap: 15,
   },
   deptPerson: {
     display: 'flex',
@@ -169,57 +169,57 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deptLabel: {
-    fontSize: 7.5,
+    fontSize: 6.4,
     fontWeight: 700,
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-    marginBottom: 1,
+    marginBottom: 0.7,
   },
   deptValue: {
-    fontSize: 10.5,
+    fontSize: 9,
     color: '#1a1a2e',
   },
   deptMembersLabel: {
-    fontSize: 7.5,
+    fontSize: 6.4,
     fontWeight: 700,
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-    marginTop: 2,
-    marginBottom: 3,
+    marginTop: 1.5,
+    marginBottom: 2.2,
   },
   deptMembersWrap: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 3,
+    gap: 2.2,
   },
   deptMemberChip: {
     backgroundColor: '#f0f4fc',
     borderRadius: 4,
-    paddingVertical: 2,
-    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    paddingHorizontal: 3.7,
   },
   deptMemberText: {
-    fontSize: 10,
+    fontSize: 8.5,
     color: '#2c2c2c',
   },
   // Footer
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
+    bottom: 15,
+    left: 20,
+    right: 20,
     borderTop: '0.5 solid #e0e0e0',
-    paddingTop: 7,
+    paddingTop: 5,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#aaaaaa',
   },
 });
@@ -293,8 +293,9 @@ const TemplateResponsabilidades = ({
       n + (dep.type === 'extended' ? (dep as DepartamentoExtended).members.length : 0),
     0
   );
-  const dense = deptCount > 6 || memberTotal > 12;
-  const ultra = deptCount > 11 || memberTotal > 26;
+  // Ajuste de umbrales según solicitud
+  const dense = deptCount > 4 || memberTotal > 12;
+  const ultra = deptCount > 8 || memberTotal > 26;
 
   const kd = ultra ? 0.8 : dense ? 0.9 : 1; // factor de escala de la sección
   const cardWidth = dense ? '31.6%' : '48.5%'; // 3 columnas cuando hay muchos
@@ -302,18 +303,18 @@ const TemplateResponsabilidades = ({
 
   // Estilos escalados (se fusionan con los base vía arrays de estilo)
   const dz = {
-    header: { paddingVertical: r(4), paddingHorizontal: r(10) },
-    headerText: { fontSize: r(11) },
-    body: { paddingVertical: r(7), paddingHorizontal: r(10), gap: r(6) },
-    infoColGap: { gap: r(5) },
-    infoRowGap: { gap: r(20) },
-    label: { fontSize: Math.max(6.5, r(7.5)) },
-    value: { fontSize: r(10.5) },
-    membersLabel: { fontSize: Math.max(6.5, r(7.5)) },
-    membersWrap: { gap: r(3) },
-    memberChip: { paddingVertical: r(2), paddingHorizontal: r(5) },
-    memberText: { fontSize: r(10) },
-    gridRowGap: { rowGap: r(8) },
+    header: { paddingVertical: r(3), paddingHorizontal: r(7.5) },
+    headerText: { fontSize: r(9.3) },
+    body: { paddingVertical: r(5.2), paddingHorizontal: r(7.5), gap: r(4.5) },
+    infoColGap: { gap: r(3.7) },
+    infoRowGap: { gap: r(15) },
+    label: { fontSize: Math.max(6.4, r(6.4)) },
+    value: { fontSize: r(9) },
+    membersLabel: { fontSize: Math.max(6.4, r(6.4)) },
+    membersWrap: { gap: r(2.2) },
+    memberChip: { paddingVertical: r(1.5), paddingHorizontal: r(3.7) },
+    memberText: { fontSize: r(8.5) },
+    gridRowGap: { rowGap: r(6) },
   };
 
   return (

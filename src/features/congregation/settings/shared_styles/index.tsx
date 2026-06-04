@@ -16,14 +16,20 @@ export const CardSection = styled(Box)({
   gap: '24px',
 }) as unknown as typeof Box;
 
-export const TwoColumnsRow = styled(Box)({
+export const TwoColumnsRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: '16px',
-  alignItems: 'center',
-  '> *': {
-    flex: '1 0 0',
+  flexDirection: 'column',
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-}) as unknown as typeof Box;
+  '> *': {
+    flex: 1,
+    width: '100%',
+  },
+})) as unknown as typeof Box;
 
 export const CardSectionTitle = ({ children }: PropsWithChildren) => {
   return <Typography className="h2">{children}</Typography>;

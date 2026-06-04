@@ -43,137 +43,145 @@ const ExhibitorsPDF = ({ monthName, cong_name, weekdays, cells, updatedAt }: Exh
       })()
     : '';
 
+  const pagesData = [];
+  for (let i = 0; i < rows.length; i += 2) {
+    pagesData.push(rows.slice(i, i + 2));
+  }
+
   return (
     <Document title={`Exhibidores - ${monthName}`} lang="es-ES">
-      <Page size="A4" orientation="landscape" style={styles.body}>
-        {/*
-         * Wrap all content in contentWrapper so the page structure is clean.
-         */}
-        <View style={styles.contentWrapper}>
-          {/* ── Top bar ───────────────────────── */}
-          <View style={styles.topBar}>
-            <View style={styles.topBarBrand}>
-              <LogoLarge />
-              <Text style={styles.topBarBrandName}>
-                {cong_name || 'Elda Centro'}
-              </Text>
-            </View>
-            {monthName ? (
-              <Text style={styles.topBarDate}>{monthName}</Text>
-            ) : null}
-          </View>
-
-          {/* ── Page title ────────────────────── */}
-          <Text style={styles.pageTitle}>Programa de Exhibidores</Text>
-
-          {/* ── Dividing line ─────────────────── */}
-          <View style={styles.headerDivider} />
-
-        {/* Cuadrícula de Calendario */}
-        <View style={styles.calendarContainer}>
-          {/* Encabezados de los Días de la Semana */}
-          <View style={styles.weekdaysHeader}>
-            {weekdays.map((day) => (
-              <View key={day} style={styles.weekdayCell}>
-                <Text style={styles.weekdayText}>{day}</Text>
+      {pagesData.map((pageRows, pageIdx) => (
+        <Page key={`page-${pageIdx}`} size="A4" orientation="landscape" style={styles.body}>
+          <View style={styles.contentWrapper}>
+            {/* ── Top bar ───────────────────────── */}
+            <View style={styles.topBar}>
+              <View style={styles.topBarBrand}>
+                <LogoLarge />
+                <Text style={styles.topBarBrandName}>
+                  {cong_name || 'Elda Centro'}
+                </Text>
               </View>
-            ))}
-          </View>
+              {monthName ? (
+                <Text style={styles.topBarDate}>{monthName} (Página {pageIdx + 1} de {pagesData.length})</Text>
+              ) : null}
+            </View>
 
-          {/* Filas de Semanas */}
-          {rows.map((row, rowIdx) => (
-            <View key={rowIdx} style={styles.weekRow}>
-              {row.map((cell, cellIdx) => {
-                if (cell.type === 'empty') {
-                  return <View key={`empty-${rowIdx}-${cellIdx}`} style={styles.emptyCell} />;
-                }
+            {/* ── Page title ────────────────────── */}
+            <Text style={styles.pageTitle}>Programa de Exhibidores</Text>
 
+            {/* ── Dividing line ─────────────────── */}
+            <View style={styles.headerDivider} />
+
+          {/* Cuadrícula de Calendario */}
+          <View style={styles.calendarContainer}>
+            {/* Encabezados de los Días de la Semana */}
+            <View style={styles.weekdaysHeader}>
+              {weekdays.map((day, idx) => {
+                const isLastCol = idx === weekdays.length - 1;
                 return (
-                  <View key={`day-${cell.dayNum}`} style={styles.cell}>
-                    {/* Número del Día */}
-                    <Text style={styles.dayNumber}>{cell.dayNum}</Text>
-
-                    {/* Listado de Turnos para este día */}
-                    <View style={styles.turnsWrapper}>
-                      {cell.turns.map((turn) => {
-                        const isCancelled = turn.isCancelled;
-                        const isAssigned = turn.isAssigned;
-
-                        let badgeStyle = styles.assignedBadge;
-                        let timeStyle = styles.assignedTimeText;
-                        let locationStyle = styles.assignedLocationText;
-
-                        if (isCancelled) {
-                          badgeStyle = styles.cancelledBadge;
-                          timeStyle = styles.cancelledTimeText;
-                          locationStyle = styles.cancelledLocationText;
-                        } else if (!isAssigned) {
-                          badgeStyle = styles.unassignedBadge;
-                          timeStyle = styles.unassignedTimeText;
-                          locationStyle = styles.unassignedLocationText;
-                        }
-
-                        return (
-                          <View key={turn.id} style={[styles.turnBadge, badgeStyle]}>
-                            {/* Hora */}
-                            <Text style={[styles.timeText, timeStyle]}>
-                              {turn.time}
-                            </Text>
-
-                            {/* Hermanos */}
-                            {isCancelled ? (
-                              <Text style={[styles.brotherText, styles.cancelledBrotherText]}>
-                                Suspendido
-                              </Text>
-                            ) : (
-                              <View style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                {turn.assignments.map((ass, assIdx) => {
-                                  let broStyle = styles.assignedBrotherText;
-                                  if (ass.isResponsible) {
-                                    broStyle = styles.responsibleBrotherText;
-                                  }
-                                  return (
-                                    <Text key={assIdx} style={[styles.brotherText, broStyle]}>
-                                      {ass.name} {ass.isResponsible ? '(R)' : ''}
-                                    </Text>
-                                  );
-                                })}
-                                {turn.assignments.length === 0 && (
-                                  <Text style={[styles.brotherText, styles.unassignedBrotherText]}>
-                                    Sin asignar
-                                  </Text>
-                                )}
-                              </View>
-                            )}
-
-                            {/* Ubicación */}
-                            {!isCancelled && (
-                              <Text style={[styles.locationText, locationStyle]}>
-                                {turn.location}
-                              </Text>
-                            )}
-                          </View>
-                        );
-                      })}
-                    </View>
+                  <View key={day} style={[styles.weekdayCell, isLastCol && { borderRight: 0 }]}>
+                    <Text style={styles.weekdayText}>{day}</Text>
                   </View>
                 );
               })}
             </View>
-          ))}
-        </View>
-        </View>
 
-        {/* ── Footer: fixed at A4 bottom on every page ── */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerLeft}>eldacentro.com</Text>
-          {footerDate ? (
-            <Text style={styles.footerRight}>
-              Última actualización · {footerDate}
-            </Text>
-          ) : null}
-        </View>
-      </Page>
+            {/* Filas de Semanas */}
+            {pageRows.map((row, rowIdx) => {
+              const isLastRow = rowIdx === pageRows.length - 1;
+              return (
+              <View key={rowIdx} style={styles.weekRow}>
+                {row.map((cell, cellIdx) => {
+                  const isLastCol = cellIdx === row.length - 1;
+                  const cellOuterBorders = {
+                    borderBottom: isLastRow ? 0 : undefined,
+                    borderRight: isLastCol ? 0 : undefined,
+                  };
+
+                  if (cell.type === 'empty') {
+                    return <View key={`empty-${rowIdx}-${cellIdx}`} style={[styles.emptyCell, cellOuterBorders]} />;
+                  }
+
+                  return (
+                    <View key={`day-${cell.dayNum}`} style={[styles.cell, cellOuterBorders]}>
+                      {/* Número del Día */}
+                      <Text style={styles.dayNumber}>{cell.dayNum}</Text>
+
+                      {/* Listado de Turnos para este día */}
+                      <View style={styles.turnsWrapper}>
+                        {cell.turns.map((turn) => {
+                          const isCancelled = turn.isCancelled;
+                          const isAssigned = turn.isAssigned;
+
+                          let badgeStyle = styles.assignedBadge;
+                          let timeStyle = styles.assignedTimeText;
+
+                          if (isCancelled) {
+                            badgeStyle = styles.cancelledBadge;
+                            timeStyle = styles.cancelledTimeText;
+                          } else if (!isAssigned) {
+                            badgeStyle = styles.unassignedBadge;
+                            timeStyle = styles.unassignedTimeText;
+                          }
+
+                          return (
+                            <View key={turn.id} style={[styles.turnBadge, badgeStyle]}>
+                              <View style={{ display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'flex-start' }}>
+                                {/* Hora */}
+                                <Text style={[styles.timeText, timeStyle]}>
+                                  {turn.time}
+                                </Text>
+                              </View>
+
+                              {/* Hermanos */}
+                              {isCancelled ? (
+                                <Text style={[styles.brotherText, styles.cancelledBrotherText]}>
+                                  Suspendido
+                                </Text>
+                              ) : (
+                                <View style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  {turn.assignments.map((ass, assIdx) => {
+                                    let broStyle = styles.assignedBrotherText;
+                                    if (ass.isResponsible) {
+                                      broStyle = styles.responsibleBrotherText;
+                                    }
+                                    return (
+                                      <Text key={assIdx} style={[styles.brotherText, broStyle]}>
+                                        {ass.name} {ass.isResponsible ? '(R)' : ''}
+                                      </Text>
+                                    );
+                                  })}
+                                  {turn.assignments.length === 0 && (
+                                    <Text style={[styles.brotherText, styles.unassignedBrotherText]}>
+                                      Sin asignar
+                                    </Text>
+                                  )}
+                                </View>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+              );
+            })}
+          </View>
+          </View>
+
+          {/* ── Footer: fixed at A4 bottom on every page ── */}
+          <View style={styles.footer} fixed>
+            <Text style={styles.footerLeft}>eldacentro.com</Text>
+            {footerDate ? (
+              <Text style={styles.footerRight}>
+                Última actualización · {footerDate}
+              </Text>
+            ) : null}
+          </View>
+        </Page>
+      ))}
     </Document>
   );
 };

@@ -689,17 +689,13 @@ const PredicacionSalidas = () => {
 
       const disabledSlots = settings.disabledSlots || [];
 
-      // Función para abreviar nombres en celdas pequeñas
+      // Función para abreviar nombres en celdas pequeñas (desactivada por solicitud)
       const getAbbreviatedName = (fullName: string) => {
         if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
         if (fullName === 'Superintendente de circuito' || settings?.sharedSlots?.some((s) => s.congregation === fullName)) {
           return fullName;
         }
-        const parts = fullName.trim().split(/\s+/);
-        if (parts.length === 1) return parts[0];
-        const firstName = parts[0];
-        const lastName = parts[parts.length - 1];
-        return `${firstName.charAt(0)}. ${lastName}`;
+        return fullName; // Devolvemos el nombre completo para que fluya en la fila
       };
 
       // 1. Determinar qué días de la semana tienen salidas configuradas en este mes

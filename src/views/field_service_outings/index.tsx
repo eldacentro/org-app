@@ -49,6 +49,8 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }
       <Page size="A4" orientation="landscape" style={styles.body}>
         {/*
          * Wrap all content in contentWrapper so the page structure is clean.
+         * Si el contenido es demasiado para una página con fontSize mínimo de 7,
+         * considerar reducir los datos de entrada en el servidor.
          */}
         <View style={styles.contentWrapper}>
           {/* ── Top bar ───────────────────────── */}
@@ -74,23 +76,36 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }
         <View style={styles.calendarContainer}>
           {/* Encabezados de los Días de la Semana */}
           <View style={styles.weekdaysHeader}>
-            {weekdays.map((day) => (
-              <View key={day} style={styles.weekdayCell}>
-                <Text style={styles.weekdayText}>{day}</Text>
-              </View>
-            ))}
+            {weekdays.map((day, idx) => {
+              const isLastCol = idx === weekdays.length - 1;
+              return (
+                <View key={day} style={[styles.weekdayCell, isLastCol && { borderRight: 0 }]}>
+                  <Text style={styles.weekdayText}>{day}</Text>
+                </View>
+              );
+            })}
           </View>
 
           {/* Filas de Semanas */}
-          {rows.map((row, rowIdx) => (
+          {rows.map((row, rowIdx) => {
+            const isLastRow = rowIdx === rows.length - 1;
+            return (
             <View key={rowIdx} style={styles.weekRow}>
               {row.map((cell, cellIdx) => {
+                const isLastCol = cellIdx === row.length - 1;
+                const cellOuterBorders = {
+                  borderBottom: isLastRow ? 0 : undefined,
+                  borderRight: isLastCol ? 0 : undefined,
+                };
+
                 if (cell.type === 'empty') {
-                  return <View key={`empty-${rowIdx}-${cellIdx}`} style={styles.emptyCell} />;
+                  return <View key={`empty-${rowIdx}-${cellIdx}`} style={[styles.emptyCell, cellOuterBorders]} />;
                 }
 
+                const isSunday = weekdays[cellIdx].toLowerCase().startsWith('d');
+
                 return (
-                  <View key={`day-${cell.dayNum}`} style={styles.cell}>
+                  <View key={`day-${cell.dayNum}`} style={[styles.cell, cellOuterBorders]}>
                     {/* Número del Día */}
                     <Text style={styles.dayNumber}>{cell.dayNum}</Text>
 
@@ -119,18 +134,20 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }
 
                         return (
                           <View key={outing.id} style={[styles.outingBadge, badgeStyle]}>
-                            {/* Hora */}
-                            <Text style={[styles.timeText, timeStyle]}>
-                              {outing.time}
-                            </Text>
-                            
-                            {/* Nombre del Hermano */}
-                            <Text style={[styles.brotherText, brotherStyle]}>
-                              {isCancelled ? 'Suspendida' : outing.brotherName}
-                            </Text>
+                            <View style={{ display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'flex-start' }}>
+                              {/* Hora */}
+                              <Text style={[styles.timeText, timeStyle]}>
+                                {outing.time}
+                              </Text>
+                              
+                              {/* Nombre del Hermano */}
+                              <Text style={[styles.brotherText, brotherStyle, { flex: 1 }]}>
+                                {isCancelled ? 'Suspendida' : outing.brotherName}
+                              </Text>
+                            </View>
 
-                            {/* Lugar de Reunión */}
-                            {!isCancelled && (
+                            {/* Lugar de Reunión (Solo Domingos) */}
+                            {!isCancelled && isSunday && (
                               <Text style={[styles.infoText, infoStyle]}>
                                 {outing.location}
                               </Text>
@@ -143,7 +160,8 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }
                 );
               })}
             </View>
-          ))}
+            );
+          })}
         </View>
         </View>
 

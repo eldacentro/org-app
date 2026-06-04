@@ -5,9 +5,9 @@ registerFonts();
 
 const styles = StyleSheet.create({
   body: {
-    paddingTop: 24,
-    paddingBottom: 38,
-    paddingHorizontal: 30,
+    paddingTop: 18,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
     fontFamily: 'Figtree',
     backgroundColor: '#ffffff',
     display: 'flex',
@@ -18,39 +18,40 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+    paddingBottom: 25,
   },
   topBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4.5,
   },
   topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 7.5,
   },
   topBarBrandName: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: 700,
     color: '#1a1a2e',
   },
   topBarDate: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: '#888888',
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#475569',
   },
   pageTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
-    marginBottom: 12,
+    marginBottom: 9,
   },
 
   
@@ -59,9 +60,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     display: 'flex',
     flexDirection: 'column',
-    borderLeft: '1 solid #cbd5e1',
-    borderTop: '1 solid #cbd5e1',
-    borderRadius: 8,
+    border: '1 solid #cbd5e1',
+    borderRadius: 16,
     overflow: 'hidden',
   },
   weekdaysHeader: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   weekdayText: {
     color: '#ffffff',
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: 700,
   },
   
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRight: '1 solid #cbd5e1',
     borderBottom: '1 solid #cbd5e1',
-    padding: 4,
+    padding: 6,
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: '#ffffff',
@@ -107,27 +107,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   dayNumber: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: 800,
     color: '#64748b',
-    marginBottom: 3,
+    marginBottom: 3.5,
   },
   
   // Turnos de Exhibidores
   turnsWrapper: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 3,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3.5,
     flexGrow: 1,
     justifyContent: 'flex-start',
   },
   turnBadge: {
-    padding: 3,
-    borderRadius: 4,
-    borderLeftWidth: 2,
+    padding: 3.5,
+    borderRadius: 6,
+    borderLeftWidth: 3,
     display: 'flex',
     flexDirection: 'column',
-    gap: 1,
+    gap: 1.8,
+    width: '100%',
   },
   assignedBadge: {
     backgroundColor: '#f0f7ff',
@@ -144,41 +146,31 @@ const styles = StyleSheet.create({
   
   // Textos
   timeText: {
-    fontSize: 7.5,
+    fontSize: 9.3,
     fontWeight: 800,
+    paddingHorizontal: 3.5,
+    paddingVertical: 1.2,
+    borderRadius: 4,
+    color: '#ffffff',
+    overflow: 'hidden',
   },
   assignedTimeText: {
-    color: '#1e3a8a',
+    backgroundColor: '#306CB4',
   },
   unassignedTimeText: {
-    color: '#b45309',
+    backgroundColor: '#d97706',
   },
   cancelledTimeText: {
-    color: '#991b1b',
-    textDecoration: 'line-through',
-  },
-  
-  locationText: {
-    fontSize: 7,
-    fontWeight: 500,
-  },
-  assignedLocationText: {
-    color: '#1e40af',
-  },
-  unassignedLocationText: {
-    color: '#d97706',
-  },
-  cancelledLocationText: {
-    color: '#ef4444',
+    backgroundColor: '#ef4444',
     textDecoration: 'line-through',
   },
   
   brotherText: {
-    fontSize: 7,
+    fontSize: 8.8,
     fontWeight: 500,
   },
   assignedBrotherText: {
-    color: '#1e3a8a',
+    color: '#334155',
   },
   responsibleBrotherText: {
     fontWeight: 800,
@@ -196,22 +188,22 @@ const styles = StyleSheet.create({
   // Pie de Página
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
+    bottom: 15,
+    left: 20,
+    right: 20,
     borderTop: '0.5 solid #e0e0e0',
-    paddingTop: 7,
+    paddingTop: 5,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   footerLeft: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#aaaaaa',
   },
   footerRight: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#aaaaaa',
   },
 });
