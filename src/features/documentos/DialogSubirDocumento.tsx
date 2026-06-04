@@ -110,13 +110,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       setIsUploading(true);
 
       const id = crypto.randomUUID();
-      let downloadURL = '';
-
-      try {
-        downloadURL = await uploadDocumentoPDF(congId, id, compressedBlob);
-      } catch (uploadErr) {
-        console.error('Error subiendo a Firebase Storage:', uploadErr);
-      }
+      const downloadURL = await uploadDocumentoPDF(congId, id, compressedBlob);
 
       const doc: DocumentoArchivo = {
         id,
