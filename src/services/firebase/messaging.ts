@@ -62,6 +62,7 @@ const getMessagingInstance = async (): Promise<Messaging | null> => {
  * Resolves once the registration has an *active* service worker. `getToken`
  * needs an active SW (PushManager.subscribe fails with AbortError otherwise),
  * and a freshly registered worker starts in `installing`/`waiting`.
+ * A 6-second timeout prevents hanging on iOS if `statechange` never fires.
  */
 const waitForActiveSW = (
   registration: ServiceWorkerRegistration
@@ -72,8 +73,12 @@ const waitForActiveSW = (
   if (!worker) return Promise.resolve();
 
   return new Promise((resolve) => {
+    // Fallback: proceed after timeout even if activation stalls (e.g. iOS edge cases)
+    const timer = setTimeout(resolve, 6000);
+
     const onStateChange = () => {
       if (worker.state === 'activated') {
+        clearTimeout(timer);
         worker.removeEventListener('statechange', onStateChange);
         resolve();
       }
@@ -108,17 +113,22 @@ const registerMessagingSW =
 /**
  * Requests notification permission (if not already decided) and returns the FCM
  * registration token, or null if unsupported/denied/failed.
+ *
+ * Permission is requested FIRST — before any other async work — so that iOS
+ * Safari does not lose the user-gesture context across multiple awaits.
  */
 export const requestPushToken = async (): Promise<string | null> => {
-  const messaging = await getMessagingInstance();
-  if (!messaging) return null;
-
   if (Notification.permission === 'denied') return null;
 
+  // iOS requires requestPermission to be the very first async call after the
+  // user gesture. Do it before getMessagingInstance / registerMessagingSW.
   if (Notification.permission === 'default') {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return null;
   }
+
+  const messaging = await getMessagingInstance();
+  if (!messaging) return null;
 
   const registration = await registerMessagingSW();
   if (!registration) return null;
