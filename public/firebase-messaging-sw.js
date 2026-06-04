@@ -88,7 +88,6 @@ try {
 
       // Try to read from the local IndexedDB pending_push table first.
       // Fall back to the payload content (or a generic message) if unavailable.
-      self.event = self.event || {};
 
       const showWithContent = (title, body, url) => {
         self.registration.showNotification(title, {
@@ -163,8 +162,9 @@ try {
         }
       };
 
-      // event.waitUntil keeps the SW alive until the promise resolves
-      self.registration.active && run();
+      // Returning the promise tells Firebase to extend the SW lifetime until
+      // the IndexedDB read and showNotification complete (waitUntil).
+      return run();
     });
   }
 
