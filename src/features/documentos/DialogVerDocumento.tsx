@@ -40,10 +40,6 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
       setLoading(true);
 
       dbDocumentosGetLocalFile(documento.id).then((fileData) => {
-        console.log('[Documentos] Cargando doc:', documento.id);
-        console.log('[Documentos] fileData local:', fileData ? 'SÍ' : 'NO');
-        console.log('[Documentos] downloadURL:', documento.downloadURL || '(vacío)');
-
         if (fileData) {
           try {
             const byteString = window.atob(fileData);
@@ -60,8 +56,6 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
           }
         } else if (documento.downloadURL) {
           setPdfUrl(documento.downloadURL);
-        } else {
-          console.error('[Documentos] Sin fileData local ni downloadURL — no se puede cargar el doc');
         }
 
         setTimeout(() => setLoading(false), 600);
