@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { schedulesBuildHistoryList } from '@services/app/schedules';
 import { setAssignmentsHistory } from '@services/states/schedules';
+import { syncAutoApprovalIndex } from '@services/app/auto_approval';
 
 import { settingsState } from '@states/settings';
 import { personsState } from '@states/persons';
@@ -137,6 +138,10 @@ const useIndexedDb = () => {
   const loadPersons = useCallback(() => {
     if (dbPersons) {
       setPersons(dbPersons);
+
+      // Mantiene actualizado el índice de auto-aprobación por email (Mejora 1).
+      // Best-effort y solo para admins; deduplicado internamente por firma.
+      syncAutoApprovalIndex(dbPersons);
     }
   }, [dbPersons, setPersons]);
 

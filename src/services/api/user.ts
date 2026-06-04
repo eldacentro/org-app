@@ -455,6 +455,9 @@ export const apiUserJoinCongregation = async ({
     if (res.status !== 200) {
       throw new Error(data.message);
     }
+
+    // 'REQUEST_SENT' (pendiente) o 'REQUEST_APPROVED' (auto-aprobado por email).
+    return data.message as string;
   } catch (error) {
     throw new Error((error as Error).message);
   }

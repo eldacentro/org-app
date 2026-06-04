@@ -8,13 +8,14 @@ import { apiValidateMe } from '@services/api/user';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { isAppLoadState, isSetupState } from '@states/app';
-import { congIDState } from '@states/settings';
+import { congIDState, congMasterKeyState } from '@states/settings';
+import { saveKeysSecurely } from '@services/secure_storage';
 import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 
 const useCongregationAccessCode = () => {
   const { t } = useAppTranslation();
 
-  const { isAuthenticated } = useFirebaseAuth();
+  const { isAuthenticated, user } = useFirebaseAuth();
 
   const { hideMessage, message, showMessage, title, variant } = useFeedback();
 
@@ -22,6 +23,7 @@ const useCongregationAccessCode = () => {
   const setIsAppLoad = useSetAtom(isAppLoadState);
 
   const congID = useAtomValue(congIDState);
+  const congMasterKey = useAtomValue(congMasterKeyState);
 
   const [isLoading, setIsLoading] = useState(true);
   const [tmpAccessCode, setTmpAccessCode] = useState('');
@@ -29,6 +31,7 @@ const useCongregationAccessCode = () => {
   const [isLengthPassed, setIsLengthPassed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [congAccessCode, setCongAccessCode] = useState('');
+  const [rememberKeys, setRememberKeys] = useState(false);
 
   const btnActionDisabled = !isLengthPassed;
 
@@ -43,6 +46,13 @@ const useCongregationAccessCode = () => {
       await dbAppSettingsUpdate({
         'cong_settings.cong_access_code': tmpAccessCode,
       });
+
+      // Opt-in: persist the validated keys on this device so they don't have to
+      // be retyped after a logout / session reset. Master key is the plaintext
+      // already stored in settings (empty for Pocket users, which is fine).
+      if (rememberKeys && user?.uid) {
+        await saveKeysSecurely(user.uid, congMasterKey, tmpAccessCode);
+      }
 
       setIsSetup(false);
       await runUpdater();
@@ -112,6 +122,8 @@ const useCongregationAccessCode = () => {
     setTmpAccessCodeVerify,
     tmpAccessCodeVerify,
     btnActionDisabled,
+    rememberKeys,
+    setRememberKeys,
   };
 };
 

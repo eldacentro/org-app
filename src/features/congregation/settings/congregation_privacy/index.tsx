@@ -12,6 +12,7 @@ import DeleteCongregation from './delete_congregation';
 import MasterKeyView from './master_key_view';
 import OutgoingTalkAccess from './outgoing_talk_access';
 import ShowAwayToAllChange from './time_away_visibility';
+import CodelessAccess from './codeless_access';
 
 const CongregationPrivacy = () => {
   const { t } = useAppTranslation();
@@ -34,6 +35,8 @@ const CongregationPrivacy = () => {
           <ShowAwayToAllChange />
 
           <OutgoingTalkAccess />
+
+          {isConnected && isAdmin && <CodelessAccess />}
         </Stack>
 
         {isConnected && isAdmin && <MasterKeyView />}

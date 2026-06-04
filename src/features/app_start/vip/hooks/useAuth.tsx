@@ -117,6 +117,13 @@ const useAuth = () => {
         return nextStep;
       }
 
+      // Acceso sin código: el servidor provisionó el código de acceso para un
+      // lector puro. Entramos directos sin mostrar la pantalla de cifrado.
+      if (!masterKeyNeeded && cong_settings.cong_access_code_plain) {
+        nextStep.encryption = false;
+        return nextStep;
+      }
+
       nextStep.encryption = true;
       return nextStep;
     },
@@ -210,6 +217,14 @@ const useAuth = () => {
           'cong_settings.midweek_meeting': midweekMeeting,
           'cong_settings.weekend_meeting': weekendMeeting,
           'cong_settings.cong_new': false,
+          // Acceso sin código: guardamos el código de acceso provisionado para
+          // poder descifrar los datos sin que el hermano lo teclee.
+          ...(app_settings.cong_settings.cong_access_code_plain
+            ? {
+                'cong_settings.cong_access_code':
+                  app_settings.cong_settings.cong_access_code_plain,
+              }
+            : {}),
         });
 
         setIsEmailSent(false);
@@ -297,6 +312,7 @@ const useAuth = () => {
       setTokenDev,
       setVerifyMFA,
       setIsEncryptionCodeOpen,
+      setIsSetup,
       settings,
     ]
   );

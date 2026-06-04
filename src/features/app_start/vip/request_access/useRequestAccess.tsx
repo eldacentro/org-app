@@ -6,6 +6,7 @@ import { firstnameState, lastnameState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { apiUserJoinCongregation } from '@services/api/user';
+import { userSignOut } from '@services/firebase/auth';
 
 const useRequestAccess = () => {
   const { t } = useAppTranslation();
@@ -14,6 +15,7 @@ const useRequestAccess = () => {
   const lastnameInitial = useAtomValue(lastnameState);
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -40,7 +42,7 @@ const useRequestAccess = () => {
 
     if (firstname.trim() === '' || lastname.trim() === '') {
       displaySnackNotification({
-        header: t('tr_errorTitle'),
+        header: t('error_app_generic-title'),
         message: t('tr_fillRequiredField'),
         severity: 'error',
       });
@@ -49,9 +51,9 @@ const useRequestAccess = () => {
 
     if (!country || !congregation) {
       displaySnackNotification({
-        header: t('tr_errorTitle'),
-        message: "Cargando datos de la congregación. Por favor, espera unos segundos e inténtalo de nuevo.",
-        severity: 'warning',
+        header: t('error_app_generic-title'),
+        message: t('tr_requestNotReadyYet'),
+        severity: 'error',
       });
       return;
     }
@@ -60,7 +62,7 @@ const useRequestAccess = () => {
       setIsProcessing(true);
       setSubmitError(null);
 
-      await apiUserJoinCongregation({
+      const result = await apiUserJoinCongregation({
         cong_name: congregation.congName,
         country_code: country.countryCode,
         firstname,
@@ -68,6 +70,20 @@ const useRequestAccess = () => {
       });
 
       setIsProcessing(false);
+
+      // Auto-aprobado por email (Mejora 1): el usuario ya es miembro. Recargamos
+      // para que el login recoja la congregación y continúe al cifrado.
+      if (result === 'REQUEST_APPROVED') {
+        displaySnackNotification({
+          header: t('tr_requestAccessApproved'),
+          message: t('tr_requestAccessApprovedDesc'),
+          severity: 'success',
+        });
+
+        setTimeout(() => window.location.reload(), 1500);
+        return;
+      }
+
       setRequestSent(true);
 
       displaySnackNotification({
@@ -90,6 +106,24 @@ const useRequestAccess = () => {
     }
   };
 
+  // "Actualizar": reintenta el login recargando. Si el admin ya concedió acceso
+  // (o se auto-aprobó por email), el arranque recogerá la congregación y entrará.
+  const handleRefresh = () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    window.location.reload();
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await userSignOut();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      window.location.reload();
+    }
+  };
+
   return {
     firstname,
     setFirstname,
@@ -100,11 +134,14 @@ const useRequestAccess = () => {
     congregation,
     setCongregation,
     isProcessing,
+    isRefreshing,
     requestSent,
     loadError,
     setLoadError,
     submitError,
     handleRequestAccess,
+    handleRefresh,
+    handleSignOut,
   };
 };
 

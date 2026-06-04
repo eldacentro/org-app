@@ -109,6 +109,9 @@ export type UserLoginResponseType = {
       cong_number: { value: string; updatedAt: string };
       cong_master_key: string;
       cong_access_code: string;
+      // Código de acceso en claro provisionado por el servidor para entrar sin
+      // teclear (solo lectores puros, si el admin activó el acceso sin código).
+      cong_access_code_plain?: string;
       cong_location: {
         address: string;
         lat: number;

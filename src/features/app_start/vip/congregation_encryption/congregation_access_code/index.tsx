@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, FormControlLabel, Typography } from '@mui/material';
 import { IconCongregationAccess, IconError } from '@icons/index';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -6,6 +6,7 @@ import useCongregationAccessCode from './useCongregationAccessCode';
 import PageHeader from '@features/app_start/shared/page_header';
 import Button from '@components/button';
 import InfoMessage from '@components/info-message';
+import Switch from '@components/switch';
 import TextField from '@components/textfield';
 import WaitingLoader from '@components/waiting_loader';
 
@@ -23,6 +24,8 @@ const CongregationAccessCode = () => {
     tmpAccessCode,
     btnActionDisabled,
     handleValidateAccessCode,
+    rememberKeys,
+    setRememberKeys,
   } = useCongregationAccessCode();
 
   return (
@@ -99,6 +102,36 @@ const CongregationAccessCode = () => {
               >
                 {t('tr_encryptionCodeValidate')}
               </Button>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  width: '100%',
+                }}
+              >
+                <FormControlLabel
+                  sx={{ margin: 0, gap: '8px' }}
+                  control={
+                    <Switch
+                      checked={rememberKeys}
+                      onChange={(_, checked) => setRememberKeys(checked)}
+                    />
+                  }
+                  label={
+                    <Typography color="var(--black)">
+                      {t('tr_eldaRememberKeysOnDevice')}
+                    </Typography>
+                  }
+                />
+                <Typography
+                  color="var(--accent-400)"
+                  sx={{ fontSize: '0.8rem' }}
+                >
+                  {t('tr_eldaRememberKeysDisclaimer')}
+                </Typography>
+              </Box>
             </Box>
           </Box>
 

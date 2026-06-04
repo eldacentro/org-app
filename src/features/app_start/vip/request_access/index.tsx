@@ -1,5 +1,5 @@
 import { Box, Stack } from '@mui/material';
-import { IconAccount, IconCheck } from '@components/icons';
+import { IconAccount, IconClock, IconRefresh, IconLogout } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useRequestAccess from './useRequestAccess';
 import Button from '@components/button';
@@ -16,7 +16,10 @@ const RequestAccess = () => {
     setFirstname,
     setLastname,
     handleRequestAccess,
+    handleRefresh,
+    handleSignOut,
     isProcessing,
+    isRefreshing,
     requestSent,
     loadError,
     submitError,
@@ -26,44 +29,67 @@ const RequestAccess = () => {
 
   if (requestSent) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          gap: '16px',
-          padding: '24px',
-          borderRadius: 'var(--r-lg)',
-          background: 'var(--accent-100)',
-          border: '1px solid var(--line)',
-        }}
-      >
+      <Stack spacing="24px" alignItems="center" sx={{ textAlign: 'center' }}>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '56px',
-            height: '56px',
+            width: '72px',
+            height: '72px',
             borderRadius: '50%',
-            background: 'var(--accent-main)',
-            color: 'var(--always-white)',
-            marginBottom: '8px',
+            background: 'var(--accent-150)',
+            color: 'var(--accent-main)',
+            animation: 'requestPulse 2s ease-in-out infinite',
+            '@keyframes requestPulse': {
+              '0%, 100%': {
+                boxShadow: '0 0 0 0 var(--accent-200)',
+              },
+              '50%': {
+                boxShadow: '0 0 0 12px rgba(0, 0, 0, 0)',
+              },
+            },
           }}
         >
-          <IconCheck width={32} height={32} sx={{ color: 'var(--always-white)' }} />
+          <IconClock width={36} height={36} color="var(--accent-main)" />
         </Box>
-        <Typography
-          className="h2"
-          sx={{ fontWeight: 700, color: 'var(--black)' }}
-        >
-          ¡Solicitud enviada con éxito!
-        </Typography>
-        <Typography className="body-regular" sx={{ color: 'var(--grey-400)', maxWidth: '360px' }}>
-          La solicitud de acceso ha sido enviada. El administrador de la congregación Elda - Centro la revisará. Por favor, actualiza la página una vez te hayan concedido los permisos.
-        </Typography>
-      </Box>
+
+        <Stack spacing="8px" alignItems="center">
+          <Typography className="h2" sx={{ fontWeight: 700, color: 'var(--black)' }}>
+            {t('tr_requestSentTitle')}
+          </Typography>
+          <Typography
+            className="body-regular"
+            sx={{ color: 'var(--grey-400)', maxWidth: '360px' }}
+          >
+            {t('tr_requestSentReassuring')}
+          </Typography>
+        </Stack>
+
+        <Stack spacing="12px" sx={{ width: '100%', maxWidth: '320px' }}>
+          <Button
+            variant="main"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            startIcon={
+              isRefreshing ? (
+                <IconLoading width={22} height={22} color="var(--always-white)" />
+              ) : (
+                <IconRefresh width={22} height={22} color="var(--always-white)" />
+              )
+            }
+          >
+            {t('tr_update')}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleSignOut}
+            startIcon={<IconLogout width={22} height={22} color="var(--accent-main)" />}
+          >
+            {t('tr_logOut')}
+          </Button>
+        </Stack>
+      </Stack>
     );
   }
 
@@ -79,7 +105,7 @@ const RequestAccess = () => {
           }}
         >
           <Typography className="body-regular" sx={{ color: 'var(--red-900)', fontWeight: 600 }}>
-            Error al conectar con Elda Centro:
+            {t('tr_requestErrorConnect')}
           </Typography>
           <Typography className="body-small-regular" sx={{ color: 'var(--red-800)', marginTop: '4px' }}>
             {loadError}
@@ -97,7 +123,7 @@ const RequestAccess = () => {
           }}
         >
           <Typography className="body-regular" sx={{ color: 'var(--red-900)', fontWeight: 600 }}>
-            Error al enviar la solicitud:
+            {t('tr_requestErrorSubmit')}
           </Typography>
           <Typography className="body-small-regular" sx={{ color: 'var(--red-800)', marginTop: '4px' }}>
             {submitError}
@@ -138,7 +164,7 @@ const RequestAccess = () => {
         >
           <IconLoading width={24} height={24} color="var(--accent-main)" />
           <Typography className="body-regular" sx={{ color: 'var(--grey-350)' }}>
-            Conectando con Elda Centro...
+            {t('tr_requestConnecting')}
           </Typography>
         </Box>
       ) : (

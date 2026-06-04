@@ -151,6 +151,7 @@
   "tr_created": "Creado: {{ date }}",
   "tr_missingInfo": "Información faltante",
   "tr_fillRequiredField": "Por favor completa el campo obligatorio",
+  "tr_errorTitle": "Se ha producido un error",
   "tr_mondayShort": "Lun",
   "tr_tuesdayShort": "Mar",
   "tr_wednesdayShort": "Mié",
