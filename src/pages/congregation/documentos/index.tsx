@@ -5,7 +5,7 @@ import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { IconAdd, IconSettings } from '@components/icons';
 import { useDocumentos } from '@features/documentos/useDocumentos';
-import useCurrentUser from '@hooks/useCurrentUser';
+import { useCurrentUser, useBreakpoints } from '@hooks/index';
 import DialogSubirDocumento from '@features/documentos/DialogSubirDocumento';
 import DialogVerDocumento from '@features/documentos/DialogVerDocumento';
 import DialogCategorias from '@features/documentos/DialogCategorias';
@@ -17,6 +17,7 @@ import FilterChip from '@components/filter_chip';
 
 const DocumentosPage = () => {
   const { isElder, isAdmin, congregation } = useCurrentUser();
+  const { tablet688Up } = useBreakpoints();
   const { documentos, categorias, reload } = useDocumentos();
   const canManage = isElder || isAdmin;
 
@@ -61,21 +62,22 @@ const DocumentosPage = () => {
       btns.push(
         <NavBarButton
           key="manage-categories"
-          text="Gestionar categorías"
+          text={tablet688Up ? "Gestionar categorías" : "Categorías"}
           icon={<IconSettings />}
           onClick={() => setOpenCategorias(true)}
         />,
         <NavBarButton
           key="upload-document"
-          text="Subir documento"
+          text={tablet688Up ? "Subir documento" : "Subir"}
           icon={<IconAdd />}
           onClick={() => setOpenSubir(true)}
+          main
         />
       );
     }
 
     return <>{btns}</>;
-  }, [canManage]);
+  }, [canManage, tablet688Up]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', p: 'var(--radius-xl)' }}>
