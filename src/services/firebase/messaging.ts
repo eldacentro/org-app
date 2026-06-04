@@ -118,14 +118,7 @@ const registerMessagingSW =
  * Safari does not lose the user-gesture context across multiple awaits.
  */
 export const requestPushToken = async (): Promise<string | null> => {
-  if (Notification.permission === 'denied') return null;
-
-  // iOS requires requestPermission to be the very first async call after the
-  // user gesture. Do it before getMessagingInstance / registerMessagingSW.
-  if (Notification.permission === 'default') {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return null;
-  }
+  if (Notification.permission !== 'granted') return null;
 
   const messaging = await getMessagingInstance();
   if (!messaging) return null;

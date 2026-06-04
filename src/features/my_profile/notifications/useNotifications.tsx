@@ -22,6 +22,20 @@ const useNotifications = () => {
 
   const handleToggle = async (checked: boolean) => {
     if (checked) {
+      // iOS Safari loses user-gesture context across multiple async boundaries.
+      // Call requestPermission here — first await in the chain after the tap.
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          displaySnackNotification({
+            header: t('tr_notifications'),
+            message: t('tr_notificationPreferencesDesc'),
+            severity: 'error',
+          });
+          return;
+        }
+      }
+
       const ok = await enablePush();
 
       if (ok) {
