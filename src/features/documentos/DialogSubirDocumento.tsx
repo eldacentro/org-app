@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Box, Stack, CircularProgress } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { PDFDocument } from 'pdf-lib';
 import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
@@ -7,14 +8,15 @@ import Select from '@components/select';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { DocumentoArchivo, DocumentoVigencia } from '@definition/documentos';
-import { dbDocumentosSave, dbDocumentosGuardarArchivo } from '@services/dexie/documentos';
-import { uploadDocumentoPDF } from '@services/firebase/documentos';
+import { dbDocumentosGuardarArchivo } from '@services/dexie/documentos';
+import { uploadDocumentoPDF, saveDocumentoFirestore } from '@services/firebase/documentos';
 import useCurrentUser from '@hooks/useCurrentUser';
-import { useDocumentos } from './useDocumentos';
+import { congIDState } from '@states/settings';
+import { documentoCategoriasState } from '@states/documentos';
 import MenuItem from '@components/menuitem';
 
-const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
-const WARN_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
+const WARN_FILE_SIZE = 5 * 1024 * 1024;  // 5 MB
 
 const vigenciaOptions = [
   { value: '1semana', label: '1 semana' },
@@ -28,24 +30,23 @@ const vigenciaOptions = [
 
 const calculateExpiration = (vigencia: DocumentoVigencia): string | undefined => {
   if (vigencia === 'indefinido') return undefined;
-  
+
   const now = new Date();
   switch (vigencia) {
-    case '1semana': now.setDate(now.getDate() + 7); break;
-    case '2semanas': now.setDate(now.getDate() + 14); break;
-    case '1mes': now.setMonth(now.getMonth() + 1); break;
-    case '3meses': now.setMonth(now.getMonth() + 3); break;
-    case '6meses': now.setMonth(now.getMonth() + 6); break;
-    case '1anyo': now.setFullYear(now.getFullYear() + 1); break;
+    case '1semana':  now.setDate(now.getDate() + 7);           break;
+    case '2semanas': now.setDate(now.getDate() + 14);          break;
+    case '1mes':     now.setMonth(now.getMonth() + 1);         break;
+    case '3meses':   now.setMonth(now.getMonth() + 3);         break;
+    case '6meses':   now.setMonth(now.getMonth() + 6);         break;
+    case '1anyo':    now.setFullYear(now.getFullYear() + 1);   break;
   }
   return now.toISOString();
 };
 
-const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   let binary = '';
   const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   return window.btoa(binary);
@@ -57,8 +58,10 @@ interface DialogSubirDocumentoProps {
 }
 
 const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
-  const { categorias, reload } = useDocumentos();
-  const { congregation } = useCurrentUser();
+  const { person } = useCurrentUser();
+  const congId = useAtomValue(congIDState);
+  const categorias = useAtomValue(documentoCategoriasState);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [nombre, setNombre] = useState('');
@@ -66,7 +69,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
   const [categoriaId, setCategoriaId] = useState('');
   const [vigencia, setVigencia] = useState<DocumentoVigencia>('1mes');
   const [file, setFile] = useState<File | null>(null);
-  
+
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +82,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         return;
       }
       if (selected.size > MAX_FILE_SIZE) {
-        setError('El archivo supera el límite de 15MB');
+        setError('El archivo supera el límite de 15 MB');
         return;
       }
       setError(selected.size > WARN_FILE_SIZE ? 'El archivo es grande, la compresión podría tardar' : null);
@@ -100,15 +103,13 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const compressedBytes = await pdfDoc.save({ useObjectStreams: true });
-      const base64Data = arrayBufferToBase64(compressedBytes);
-      
       const compressedBlob = new Blob([compressedBytes], { type: 'application/pdf' });
+      const base64Data = arrayBufferToBase64(compressedBytes);
 
       setIsCompressing(false);
       setIsUploading(true);
 
       const id = crypto.randomUUID();
-      const congId = congregation?.id || 'unknown';
       let downloadURL = '';
 
       try {
@@ -128,23 +129,21 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         vigencia,
         fechaSubida: new Date().toISOString(),
         fechaExpiracion: calculateExpiration(vigencia),
-        subidoPor: 'user', // Need user UID
-        activo: true,
-        archivado: false,
+        subidoPor: person?.person_uid || '',
         vistoPor: [],
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
-      await dbDocumentosGuardarArchivo(id, base64Data);
-      await dbDocumentosSave(doc);
-      
-      await reload();
-      handleClose();
+      // Guardar metadatos en Firestore (visible para todos los dispositivos)
+      await saveDocumentoFirestore(congId, doc);
 
-    } catch (error) {
-      console.error(error);
-      const err = error as Error;
-      setError(err.message || 'Error al procesar el archivo');
+      // Guardar PDF localmente en este dispositivo para acceso instantáneo
+      await dbDocumentosGuardarArchivo(id, base64Data);
+
+      handleClose();
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message || 'Error al procesar el archivo');
       setIsCompressing(false);
       setIsUploading(false);
     }
@@ -174,7 +173,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           onChange={(e) => setNombre(e.target.value)}
           disabled={isBusy}
         />
-        
+
         <TextField
           label="Descripción (opcional)"
           value={descripcion}
@@ -188,7 +187,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           onChange={(e) => setCategoriaId(e.target.value as string)}
           disabled={isBusy}
         >
-          {categorias.map(c => (
+          {categorias.map((c) => (
             <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>
           ))}
         </Select>
@@ -199,12 +198,12 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           onChange={(e) => setVigencia(e.target.value as DocumentoVigencia)}
           disabled={isBusy}
         >
-          {vigenciaOptions.map(o => (
+          {vigenciaOptions.map((o) => (
             <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
           ))}
         </Select>
 
-        <Box sx={{ border: '1px dashed var(--accent-main)', p: 2, borderRadius: 'var(--radius-l)', textAlign: 'center' }}>
+        <Box sx={{ border: '1px dashed var(--accent-main)', p: 2, borderRadius: 'var(--r-md)', textAlign: 'center' }}>
           <input
             type="file"
             accept=".pdf"
@@ -213,18 +212,18 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
             onChange={handleFileChange}
             disabled={isBusy}
           />
-          <Button variant="outlined" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
+          <Button variant="tertiary" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
             Seleccionar PDF
           </Button>
           {file && (
-            <Typography sx={{ mt: 1 }} className="label-small">
+            <Typography sx={{ mt: 1 }} className="label-small-regular">
               {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </Typography>
           )}
         </Box>
 
         {error && (
-          <Typography color="var(--red-main)" className="label-small">{error}</Typography>
+          <Typography color="var(--red-main)" className="label-small-regular">{error}</Typography>
         )}
 
         {isBusy && (
@@ -235,10 +234,14 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         )}
 
         <Stack direction="row" spacing={2} justifyContent="flex-end">
-          <Button variant="outlined" onClick={handleClose} disabled={isBusy}>
+          <Button variant="tertiary" onClick={handleClose} disabled={isBusy}>
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleSubir} disabled={isBusy || !file || !nombre || !categoriaId}>
+          <Button
+            variant="main"
+            onClick={handleSubir}
+            disabled={isBusy || !file || !nombre || !categoriaId}
+          >
             Subir documento
           </Button>
         </Stack>

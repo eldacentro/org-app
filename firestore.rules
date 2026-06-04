@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Documentos pastorales de la congregación
+    match /congregation/{congId}/documentos/{docId} {
+      // Cualquier usuario autenticado puede leer
+      allow read: if request.auth != null;
+
+      // Solo usuarios autenticados pueden escribir (subir, editar)
+      // La validación de rol (elder/admin) se hace en el cliente;
+      // para mayor seguridad añade custom claims si lo necesitas
+      allow create, update: if request.auth != null;
+
+      // Solo borrar si estás autenticado
+      allow delete: if request.auth != null;
+    }
+
+    // Categorías de la congregación
+    match /congregation/{congId}/documento_categorias/{catId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
