@@ -39,9 +39,9 @@ const styles = StyleSheet.create({
     color: '#1a1a2e',
   },
   topBarDate: {
-    fontSize: 8.5,
-    fontWeight: 500,
-    color: '#888888',
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#475569',
   },
   pageTitle: {
     fontSize: 22,
