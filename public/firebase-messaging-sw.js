@@ -80,15 +80,16 @@ try {
     const messaging = firebase.messaging();
 
     // Listens for background notifications (app closed / not focused).
-    // For assignment-update pushes we read the pending_push table that the app
-    // wrote the last time it was open and synced, so the notification is
-    // specific ("Se te asignaron N cosas") rather than generic.
-    messaging.onBackgroundMessage((payload) => {
-      const data = payload.data || {};
-
-      // Try to read from the local IndexedDB pending_push table first.
-      // Fall back to the payload content (or a generic message) if unavailable.
-
+    //
+    // The backend wakes EVERY congregation member's SW whenever schedules
+    // change — it can't know who got a new assignment because the data is E2E
+    // encrypted. So this SW must only show a notification when THIS device has a
+    // genuine, specific pending_push record (written by the app's client-side
+    // diff the last time it synced). If there's nothing pending, we stay SILENT.
+    //
+    // A generic "you have updates" fallback would fire on every member's device
+    // on every congregation save — that is spam, so it has been removed.
+    messaging.onBackgroundMessage(() => {
       const DEFAULT_URL = '/#/weekly-schedules';
 
       const showWithContent = (title, body, url) => {
@@ -151,22 +152,13 @@ try {
           const record = await readPendingPush(db);
           db.close();
 
+          // Only show a notification if there's a genuine, specific pending
+          // record for this device. Otherwise stay silent (no generic fallback).
           if (record && record.title) {
             showWithContent(record.title, record.body, record.url);
-          } else {
-            // Generic fallback: data from payload or default message
-            showWithContent(
-              data.title || 'Tienes novedades',
-              data.body || 'Abre la app para ver tus asignaciones.',
-              data.url || DEFAULT_URL
-            );
           }
         } catch {
-          showWithContent(
-            data.title || 'Tienes novedades',
-            data.body || 'Abre la app para ver tus asignaciones.',
-            data.url || DEFAULT_URL
-          );
+          // On error, stay silent rather than risk a spurious notification.
         }
       };
 
