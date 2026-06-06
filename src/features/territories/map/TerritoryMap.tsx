@@ -22,6 +22,7 @@ type TerritoryMapProps = {
   showLiveLocation?: boolean;
   height?: number | string;
   editable?: boolean;
+  borderRadius?: string | number;
   onGeometryChange?: (geo: Polygon | MultiPolygon | null) => void;
 };
 
@@ -37,14 +38,25 @@ const FitBounds = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
 // ─── Captura de referencia al mapa ───────────────────────────────────────────
 // Necesitamos la instancia de L.Map fuera del MapContainer para poder
 // controlar zoom desde los botones que están FUERA del MapContainer.
-const MapInstanceCapture = ({
-  onReady,
-}: {
-  onReady: (map: L.Map) => void;
-}) => {
+const MapInstanceCapture = ({ onReady }: { onReady: (m: L.Map) => void }) => {
   const map = useMap();
   useEffect(() => {
     onReady(map);
+    // Solución robusta para cuando el mapa está en un Dialog con transición o cambia de tamaño
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    const container = map.getContainer();
+    if (container) observer.observe(container);
+    
+    // Fallback: invalidate tras 200 y 400ms por si el observer no pilla el fin de una animación de MUI
+    setTimeout(() => map.invalidateSize(), 250);
+    setTimeout(() => map.invalidateSize(), 500);
+
+    return () => {
+      if (container) observer.unobserve(container);
+      observer.disconnect();
+    };
   }, [map, onReady]);
   return null;
 };
@@ -154,6 +166,7 @@ const TerritoryMap = ({
   showLiveLocation = false,
   height = 360,
   editable = false,
+  borderRadius,
   onGeometryChange,
 }: TerritoryMapProps) => {
   const bounds = geometry ? geometryBounds(geometry) : null;
@@ -169,7 +182,7 @@ const TerritoryMap = ({
       sx={{
         width: '100%',
         height,
-        borderRadius: 'var(--radius-l, 16px)',
+        borderRadius: borderRadius ?? 'var(--radius-l, 16px)',
         overflow: 'hidden',
         position: 'relative',
         '& .leaflet-container': { height: '100%', width: '100%' },

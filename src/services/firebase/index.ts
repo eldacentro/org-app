@@ -8,7 +8,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
   appId: import.meta.env.VITE_FIREBASE_APPID,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGINGSENDERID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGEBUCKET,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGEBUCKET || 'elda-centro-app.firebasestorage.app',
 };
 
 initializeApp(firebaseConfig);

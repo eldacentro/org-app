@@ -335,6 +335,7 @@ const DialogVerTerritorio = ({
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
+          borderRadius={0}
         />
       </Box>
 
