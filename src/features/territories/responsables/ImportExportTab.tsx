@@ -1,37 +1,218 @@
 import { useState } from 'react';
-import {
-  Box,
-  Stack,
-  FormControlLabel,
-  Checkbox,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
+import type { ReactNode } from 'react';
+import { Box, Stack } from '@mui/material';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 
-const SectionTitle = ({ children }: { children: string }) => (
-  <Typography variant="h6" sx={{ color: 'var(--ink)', mt: 2, mb: 1 }}>
+// ─── Tipos locales ────────────────────────────────────────────────────────────
+type PillOption = { value: string; label: string };
+
+// ─── Componentes de diseño ────────────────────────────────────────────────────
+
+const SectionCard = ({
+  icon,
+  title,
+  subtitle,
+  iconBg,
+  children,
+}: {
+  icon: string;
+  title: string;
+  subtitle: string;
+  iconBg: string;
+  children: ReactNode;
+}) => (
+  <Box
+    sx={{
+      borderRadius: '16px',
+      border: '1px solid var(--line)',
+      backgroundColor: 'var(--card)',
+      boxShadow: 'var(--small-card-shadow)',
+      overflow: 'hidden',
+    }}
+  >
+    {/* ── Cabecera ── */}
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1.5}
+      sx={{
+        px: { mobile: 2, tablet600: 2.5 },
+        py: '14px',
+        borderBottom: '1px solid var(--line)',
+        background: 'linear-gradient(to right, rgba(0,0,0,0.02), transparent)',
+      }}
+    >
+      <Box
+        sx={{
+          width: 36,
+          height: 36,
+          borderRadius: '10px',
+          backgroundColor: iconBg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px',
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </Box>
+      <Box>
+        <Typography
+          sx={{ fontWeight: 700, fontSize: '14px', color: 'var(--ink)', lineHeight: 1.2 }}
+        >
+          {title}
+        </Typography>
+        <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', lineHeight: 1.3 }}>
+          {subtitle}
+        </Typography>
+      </Box>
+    </Stack>
+
+    {/* ── Contenido ── */}
+    <Box sx={{ px: { mobile: 2, tablet600: 2.5 }, py: 2 }}>{children}</Box>
+  </Box>
+);
+
+const PillGroup = ({
+  value,
+  onChange,
+  options,
+  accent = 'var(--accent-main)',
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: PillOption[];
+  accent?: string;
+}) => (
+  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+    {options.map((opt) => {
+      const active = opt.value === value;
+      return (
+        <Box
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          sx={{
+            px: '12px',
+            py: '6px',
+            borderRadius: '999px',
+            border: '1.5px solid',
+            borderColor: active ? accent : 'var(--line)',
+            backgroundColor: active ? `${accent}15` : 'transparent',
+            color: active ? accent : 'var(--ink-2)',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: active ? 600 : 400,
+            transition: 'all 0.15s ease',
+            userSelect: 'none',
+            '&:hover': {
+              borderColor: active ? accent : 'var(--ink-3)',
+              backgroundColor: active ? `${accent}22` : 'var(--bg-hover)',
+            },
+            '&:active': { transform: 'scale(0.96)' },
+          }}
+        >
+          {opt.label}
+        </Box>
+      );
+    })}
+  </Box>
+);
+
+const ToggleRow = ({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) => (
+  <Box
+    onClick={() => onChange(!checked)}
+    sx={{
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: 2,
+      py: '14px',
+      cursor: 'pointer',
+      borderTop: '0.5px solid var(--line)',
+    }}
+  >
+    <Box sx={{ flex: 1 }}>
+      <Typography
+        sx={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink)', lineHeight: 1.3 }}
+      >
+        {label}
+      </Typography>
+      {description && (
+        <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', mt: '3px', lineHeight: 1.4 }}>
+          {description}
+        </Typography>
+      )}
+    </Box>
+    {/* iOS-style toggle */}
+    <Box
+      sx={{
+        width: 44,
+        height: 26,
+        borderRadius: '13px',
+        backgroundColor: checked ? '#34C759' : 'rgba(0,0,0,0.15)',
+        position: 'relative',
+        flexShrink: 0,
+        mt: '2px',
+        transition: 'background 0.22s ease',
+      }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          width: 22,
+          height: 22,
+          borderRadius: '50%',
+          backgroundColor: '#fff',
+          top: 2,
+          left: checked ? 20 : 2,
+          boxShadow: '0 1.5px 4px rgba(0,0,0,0.22)',
+          transition: 'left 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        }}
+      />
+    </Box>
+  </Box>
+);
+
+const FieldLabel = ({ children }: { children: string }) => (
+  <Typography
+    sx={{
+      fontSize: '11px',
+      fontWeight: 700,
+      color: 'var(--ink-2)',
+      textTransform: 'uppercase',
+      letterSpacing: '0.6px',
+      mb: '8px',
+    }}
+  >
     {children}
   </Typography>
 );
 
+// ─── Componente principal ─────────────────────────────────────────────────────
 const ImportExportTab = () => {
-  const { exportS13, exportExcel, exportCsv, exportGeoJson, exportKml } =
-    useTerritoryExport();
+  const { exportS13, exportExcel, exportCsv, exportGeoJson, exportKml } = useTerritoryExport();
 
-  // Años de servicio recientes para el selector del S-13.
   const years = Array.from({ length: 5 }).map((_, i) => {
     const ref = new Date();
     ref.setFullYear(ref.getFullYear() - i);
     return serviceYearRange(ref);
   });
 
-  const [yearIdx, setYearIdx] = useState(0);
+  const [yearIdx, setYearIdx] = useState('0');
   const [includeCampaigns, setIncludeCampaigns] = useState(true);
   const [filter, setFilter] = useState<ExcelFilter>('all');
   const [busy, setBusy] = useState(false);
@@ -47,90 +228,148 @@ const ImportExportTab = () => {
     }
   };
 
+  const yearOptions: PillOption[] = years.map((y, i) => ({ value: String(i), label: y.label }));
+
+  const filterOptions: PillOption[] = [
+    { value: 'all', label: 'Todas' },
+    { value: 'assigned', label: 'Asignados' },
+    { value: 'unassigned', label: 'Sin asignar' },
+    { value: 'campaigns', label: 'Campañas' },
+  ];
+
   return (
-    <Box sx={{ maxWidth: 560 }}>
-      <SectionTitle>Formulario S-13 (PDF)</SectionTitle>
-      <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 1 }}>
-        Registro de asignación de territorios para el superintendente de circuito.
-      </Typography>
-      <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="sy">Año de servicio</InputLabel>
-          <Select
-            labelId="sy"
-            label="Año de servicio"
-            value={yearIdx}
-            onChange={(e) => setYearIdx(Number(e.target.value))}
-          >
-            {years.map((y, i) => (
-              <MenuItem key={y.label} value={i}>
-                {y.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={includeCampaigns}
-              onChange={(e) => setIncludeCampaigns(e.target.checked)}
+    <Stack spacing={2.5}>
+      {/* ── S-13 ────────────────────────────────────────────────────────────── */}
+      <SectionCard
+        icon="📄"
+        title="Formulario S-13 (PDF)"
+        subtitle="Registro oficial para el superintendente de circuito"
+        iconBg="rgba(48, 108, 180, 0.1)"
+      >
+        <Stack spacing={2}>
+          <Box>
+            <FieldLabel>Año de servicio</FieldLabel>
+            <PillGroup
+              value={yearIdx}
+              onChange={setYearIdx}
+              options={yearOptions}
+              accent="#306CB4"
             />
-          }
-          label={<Typography variant="body2">Incluir campañas</Typography>}
-        />
-        <Button
-          variant="main"
-          disabled={busy}
-          onClick={() =>
-            run(() => {
-              const ref = new Date();
-              ref.setFullYear(ref.getFullYear() - yearIdx);
-              return exportS13(ref, includeCampaigns);
-            })
-          }
-        >
-          Exportar S-13
-        </Button>
-      </Stack>
+          </Box>
 
-      <SectionTitle>Hoja de cálculo</SectionTitle>
-      <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="filter">Contenido</InputLabel>
-          <Select
-            labelId="filter"
-            label="Contenido"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as ExcelFilter)}
+          <ToggleRow
+            label="Incluir asignaciones de campaña"
+            description="Las campañas especiales se contarán en el registro del S-13"
+            checked={includeCampaigns}
+            onChange={setIncludeCampaigns}
+          />
+
+          <Box>
+            <Button
+              variant="main"
+              disabled={busy}
+              onClick={() =>
+                run(() => {
+                  const ref = new Date();
+                  ref.setFullYear(ref.getFullYear() - Number(yearIdx));
+                  return exportS13(ref, includeCampaigns);
+                })
+              }
+              sx={{ borderRadius: '999px', px: 3 }}
+            >
+              {busy ? 'Generando…' : '⬇ Exportar S-13'}
+            </Button>
+          </Box>
+        </Stack>
+      </SectionCard>
+
+      {/* ── Hoja de cálculo ──────────────────────────────────────────────────── */}
+      <SectionCard
+        icon="📊"
+        title="Hoja de cálculo"
+        subtitle="Datos de asignaciones en formato Excel o CSV"
+        iconBg="rgba(52, 199, 89, 0.1)"
+      >
+        <Stack spacing={2}>
+          <Box>
+            <FieldLabel>Contenido a exportar</FieldLabel>
+            <PillGroup
+              value={filter}
+              onChange={(v) => setFilter(v as ExcelFilter)}
+              options={filterOptions}
+              accent="#34C759"
+            />
+          </Box>
+
+          <Stack direction="row" spacing={1.5} flexWrap="wrap">
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => run(() => exportExcel(filter))}
+              sx={{ borderRadius: '999px' }}
+            >
+              Excel (.xlsx)
+            </Button>
+            <Button
+              variant="tertiary"
+              disabled={busy}
+              onClick={() => run(() => exportCsv(filter))}
+              sx={{ borderRadius: '999px' }}
+            >
+              CSV (.csv)
+            </Button>
+          </Stack>
+        </Stack>
+      </SectionCard>
+
+      {/* ── Geometría ───────────────────────────────────────────────────────── */}
+      <SectionCard
+        icon="🗺"
+        title="Geometría (mapas)"
+        subtitle="Coordenadas y polígonos de los territorios"
+        iconBg="rgba(255, 149, 0, 0.1)"
+      >
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1.5} flexWrap="wrap">
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => run(exportKml)}
+              sx={{ borderRadius: '999px' }}
+            >
+              Exportar KML
+            </Button>
+            <Button
+              variant="tertiary"
+              disabled={busy}
+              onClick={() => run(exportGeoJson)}
+              sx={{ borderRadius: '999px' }}
+            >
+              Exportar GeoJSON
+            </Button>
+          </Stack>
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1,
+              backgroundColor: 'var(--bg-hover)',
+              borderRadius: '10px',
+              px: 1.5,
+              py: 1.25,
+            }}
           >
-            <MenuItem value="all">Todas las asignaciones</MenuItem>
-            <MenuItem value="assigned">Solo asignados (abiertos)</MenuItem>
-            <MenuItem value="unassigned">Solo sin asignar</MenuItem>
-            <MenuItem value="campaigns">Solo campañas</MenuItem>
-          </Select>
-        </FormControl>
-        <Button variant="tertiary" disabled={busy} onClick={() => run(() => exportExcel(filter))}>
-          Excel (.xlsx)
-        </Button>
-        <Button variant="tertiary" disabled={busy} onClick={() => run(() => exportCsv(filter))}>
-          CSV (.csv)
-        </Button>
-      </Stack>
-
-      <SectionTitle>Geometría (mapas)</SectionTitle>
-      <Stack direction="row" spacing={1.5} flexWrap="wrap">
-        <Button variant="tertiary" disabled={busy} onClick={() => run(exportKml)}>
-          Exportar KML
-        </Button>
-        <Button variant="tertiary" disabled={busy} onClick={() => run(exportGeoJson)}>
-          Exportar GeoJSON
-        </Button>
-      </Stack>
-      <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block', mt: 1 }}>
-        Para importar territorios desde KML/KMZ, usa el botón “Importar KML” en la
-        pestaña Territorios.
-      </Typography>
-    </Box>
+            <Typography sx={{ fontSize: '14px', flexShrink: 0, mt: '-1px' }}>💡</Typography>
+            <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', lineHeight: 1.5 }}>
+              Para importar desde KML/KMZ, usa el botón{' '}
+              <strong>"Importar KML"</strong> en la pestaña{' '}
+              <strong>Territorios</strong>.
+            </Typography>
+          </Box>
+        </Stack>
+      </SectionCard>
+    </Stack>
   );
 };
 

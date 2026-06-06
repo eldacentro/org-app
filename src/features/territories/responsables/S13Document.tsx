@@ -206,8 +206,8 @@ const BodyGroup = ({
 
       {/* Nombre superpuesto centrando en ambas celdas */}
       {a && (
-        <Text style={styles.slotNameAbsolute} numberOfLines={1}>
-          {a.name}
+        <Text style={styles.slotNameAbsolute}>
+          {a.name.length > 18 ? a.name.slice(0, 16) + '…' : a.name}
           {a.isCampaign ? ' (C)' : ''}
         </Text>
       )}

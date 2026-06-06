@@ -27,10 +27,17 @@ import {
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
 // Singletons de módulo — evitan suscripciones duplicadas cuando varios
-// componentes usan useTerritories a la vez. Solo se reinician si cambia el
-// congId (logout / cambio de cuenta).
+// componentes usan useTerritories a la vez. Se reinician si cambia el
+// congId (logout/cambio de cuenta) O si llega la masterKey por primera vez
+// (la clave puede llegar después de que el módulo ya estuviera montado).
 let _activeCongId: string | null = null;
+let _activeMasterKey: string = '';
 let _unsubs: Array<() => void> = [];
+
+const teardown = () => {
+  _unsubs.forEach((u) => u());
+  _unsubs = [];
+};
 
 export const useTerritories = () => {
   const congId = useAtomValue(congIDState);
@@ -47,13 +54,21 @@ export const useTerritories = () => {
   const setSettings = useSetAtom(territorySettingsState);
 
   useEffect(() => {
-    if (!congId || _activeCongId === congId) return;
-
-    _unsubs.forEach((u) => u());
-    _unsubs = [];
-    _activeCongId = congId;
+    if (!congId) return;
 
     const key = masterKey ?? '';
+
+    // Re-suscribir si cambia la congregación O si la masterKey llega por
+    // primera vez (vacía → con valor). Esto garantiza que los campos cifrados
+    // se descifren correctamente cuando la clave esté disponible.
+    const congChanged = _activeCongId !== congId;
+    const keyArrived = key !== '' && _activeMasterKey === '';
+
+    if (!congChanged && !keyArrived) return;
+
+    teardown();
+    _activeCongId = congId;
+    _activeMasterKey = key;
 
     _unsubs.push(
       subscribeZones(congId, setZones),

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -20,14 +19,13 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 type TerritoryMapProps = {
   geometry: Polygon | MultiPolygon | null;
   color?: string;
-  /** Muestra la ubicación del usuario en tiempo real. */
   showLiveLocation?: boolean;
   height?: number | string;
   editable?: boolean;
   onGeometryChange?: (geo: Polygon | MultiPolygon | null) => void;
 };
 
-/** Ajusta la vista del mapa a los límites de la geometría del territorio. */
+// ─── Ajuste de bounds ─────────────────────────────────────────────────────────
 const FitBounds = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   const map = useMap();
   useEffect(() => {
@@ -36,10 +34,24 @@ const FitBounds = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   return null;
 };
 
-/** Sigue la posición del usuario con watchPosition (limpieza al desmontar). */
+// ─── Captura de referencia al mapa ───────────────────────────────────────────
+// Necesitamos la instancia de L.Map fuera del MapContainer para poder
+// controlar zoom desde los botones que están FUERA del MapContainer.
+const MapInstanceCapture = ({
+  onReady,
+}: {
+  onReady: (map: L.Map) => void;
+}) => {
+  const map = useMap();
+  useEffect(() => {
+    onReady(map);
+  }, [map, onReady]);
+  return null;
+};
+
+// ─── Geolocalización en vivo ──────────────────────────────────────────────────
 const useLiveLocation = (enabled: boolean) => {
   const [pos, setPos] = useState<[number, number] | null>(null);
-
   useEffect(() => {
     if (!enabled || !('geolocation' in navigator)) return;
     const id = navigator.geolocation.watchPosition(
@@ -49,11 +61,10 @@ const useLiveLocation = (enabled: boolean) => {
     );
     return () => navigator.geolocation.clearWatch(id);
   }, [enabled]);
-
   return pos;
 };
 
-/** Control de Leaflet Geoman para edición de polígonos */
+// ─── Editor de polígonos (Geoman) ─────────────────────────────────────────────
 const GeomanControl = ({
   geometry,
   color,
@@ -66,7 +77,6 @@ const GeomanControl = ({
   const map = useMap();
 
   useEffect(() => {
-    // Enable geoman controls
     map.pm.addControls({
       position: 'topleft',
       drawMarker: false,
@@ -81,7 +91,6 @@ const GeomanControl = ({
       removalMode: true,
       drawPolygon: true,
     });
-    
     map.pm.setLang('es');
 
     const fg = new L.FeatureGroup();
@@ -89,23 +98,18 @@ const GeomanControl = ({
 
     if (geometry) {
       const geojsonLayer = L.geoJSON(geometry, {
-        style: { color, weight: 2, fillOpacity: 0.18, pmIgnore: false }
+        style: { color, weight: 2, fillOpacity: 0.18, pmIgnore: false },
       });
-      geojsonLayer.eachLayer((layer) => {
-        fg.addLayer(layer);
-      });
+      geojsonLayer.eachLayer((layer) => fg.addLayer(layer));
     }
 
     const handleChange = () => {
       const layers = fg.getLayers() as L.Polygon[];
-      if (layers.length === 0) {
-        onChange(null);
-        return;
-      }
+      if (layers.length === 0) { onChange(null); return; }
       if (layers.length === 1) {
         onChange(layers[0].toGeoJSON().geometry as Polygon);
       } else {
-        const coords = layers.map(l => (l.toGeoJSON().geometry as Polygon).coordinates);
+        const coords = layers.map((l) => (l.toGeoJSON().geometry as Polygon).coordinates);
         onChange({ type: 'MultiPolygon', coordinates: coords });
       }
     };
@@ -115,19 +119,11 @@ const GeomanControl = ({
       e.layer.on('pm:edit', handleChange);
       handleChange();
     });
-
     fg.on('pm:edit', handleChange);
     fg.on('layerremove', handleChange);
-    fg.on('pm:cut', () => {
-       // When cut happens, Geoman might replace layers
-       // We'll just wait a tick for layers to update
-       setTimeout(handleChange, 50);
-    });
+    fg.on('pm:cut', () => setTimeout(handleChange, 50));
     map.on('pm:remove', (e) => {
-      if (fg.hasLayer(e.layer)) {
-        fg.removeLayer(e.layer);
-        handleChange();
-      }
+      if (fg.hasLayer(e.layer)) { fg.removeLayer(e.layer); handleChange(); }
     });
 
     return () => {
@@ -137,104 +133,21 @@ const GeomanControl = ({
       fg.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]); // intentionally ignoring geometry and color to prevent remounting and losing state
+  }, [map]);
 
   return null;
 };
 
-/** Controles flotantes Premium sobre el mapa */
-const PremiumControls = ({ isSatellite, setIsSatellite }: { isSatellite: boolean; setIsSatellite: (v: boolean) => void }) => {
-  const map = useMap();
+// ─── Estilo glassmorphism compartido ─────────────────────────────────────────
+const glass = {
+  backgroundColor: 'rgba(255, 255, 255, 0.78)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '0.5px solid rgba(255, 255, 255, 0.6)',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
+} as const;
 
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1,
-      }}
-    >
-      <Box
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsSatellite(!isSatellite);
-        }}
-        sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          borderRadius: '999px',
-          padding: '8px 16px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          border: '1px solid rgba(0,0,0,0.05)',
-          fontSize: '13px',
-          fontWeight: 600,
-          color: 'var(--ink)',
-          transition: 'transform 0.1s ease, background 0.2s',
-          '&:active': { transform: 'scale(0.95)' },
-          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)' }
-        }}
-      >
-        {isSatellite ? 'Vista Mapa' : 'Vista Satélite'}
-      </Box>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', mt: 1 }}>
-        <Box
-          onClick={(e) => {
-            e.stopPropagation();
-            map.zoomIn();
-          }}
-          sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: '12px 12px 4px 4px',
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-            fontSize: '18px',
-            color: 'var(--ink)',
-            '&:active': { backgroundColor: '#f0f0f0' }
-          }}
-        >
-          +
-        </Box>
-        <Box
-          onClick={(e) => {
-            e.stopPropagation();
-            map.zoomOut();
-          }}
-          sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: '4px 4px 12px 12px',
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-            fontSize: '18px',
-            color: 'var(--ink)',
-            '&:active': { backgroundColor: '#f0f0f0' }
-          }}
-        >
-          -
-        </Box>
-      </Box>
-    </Box>
-  );
-};
-
+// ─── Componente principal ─────────────────────────────────────────────────────
 const TerritoryMap = ({
   geometry,
   color = '#306CB4',
@@ -248,6 +161,9 @@ const TerritoryMap = ({
   const livePos = useLiveLocation(showLiveLocation);
   const [isSatellite, setIsSatellite] = useState(false);
 
+  // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
+  const mapRef = useRef<L.Map | null>(null);
+
   return (
     <Box
       sx={{
@@ -259,6 +175,7 @@ const TerritoryMap = ({
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
     >
+      {/* ─── Mapa Leaflet ─────────────────────────────────────────────────── */}
       <MapContainer center={center} zoom={15} scrollWheelZoom zoomControl={false}>
         {isSatellite ? (
           <TileLayer
@@ -271,35 +188,25 @@ const TerritoryMap = ({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         )}
-        
-        <PremiumControls isSatellite={isSatellite} setIsSatellite={setIsSatellite} />
+
+        {/* Captura la instancia del mapa para el zoom externo */}
+        <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
 
         {editable && onGeometryChange ? (
           <GeomanControl geometry={geometry} color={color} onChange={onGeometryChange} />
-        ) : geometry && (
+        ) : geometry ? (
           <GeoJSON
             key={JSON.stringify(bounds)}
             data={geometry}
-            style={{ 
-              color, 
-              weight: 3, 
-              fillOpacity: 0.12, 
-              interactive: false,
-              className: 'premium-polygon-shadow'
-            }}
+            style={{ color, weight: 3, fillOpacity: 0.13, interactive: false }}
           />
-        )}
+        ) : null}
 
         {livePos && (
           <CircleMarker
             center={livePos}
             radius={8}
-            pathOptions={{
-              color: '#fff',
-              weight: 3,
-              fillColor: '#007AFF', // iOS Blue
-              fillOpacity: 1,
-            }}
+            pathOptions={{ color: '#fff', weight: 3, fillColor: '#007AFF', fillOpacity: 1 }}
           >
             <Tooltip>Tu ubicación</Tooltip>
           </CircleMarker>
@@ -307,15 +214,108 @@ const TerritoryMap = ({
 
         <FitBounds bounds={bounds} />
       </MapContainer>
-      
-      {/* Sombra interna sobre el mapa para mayor profundidad */}
-      <Box sx={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
-        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05), inset 0 2px 12px rgba(0,0,0,0.08)',
-        pointerEvents: 'none',
-        zIndex: 1000
-      }} />
+
+      {/* ─── Controles flotantes FUERA del MapContainer ────────────────────
+          Posicionados relativos al wrapper Box → sin problemas de z-index
+          ni de contexto de posicionamiento.                                */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 14,
+          right: 14,
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: '8px',
+          pointerEvents: 'none', // el wrapper no bloquea clicks del mapa
+          '& > *': { pointerEvents: 'auto' }, // sí los hijos
+        }}
+      >
+        {/* Toggle Satélite / Mapa */}
+        <Box
+          onClick={() => setIsSatellite(!isSatellite)}
+          sx={{
+            ...glass,
+            borderRadius: '999px',
+            px: '14px',
+            py: '8px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 600,
+            color: 'rgba(0,0,0,0.78)',
+            letterSpacing: '-0.1px',
+            transition: 'transform 0.1s ease, background 0.2s ease',
+            '&:active': { transform: 'scale(0.94)' },
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span style={{ fontSize: 14 }}>{isSatellite ? '🗺' : '🛰'}</span>
+          {isSatellite ? 'Mapa' : 'Satélite'}
+        </Box>
+
+        {/* Zoom +/- */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            ...glass,
+          }}
+        >
+          <Box
+            onClick={() => mapRef.current?.zoomIn()}
+            sx={{
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              fontWeight: 300,
+              color: 'rgba(0,0,0,0.75)',
+              borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+              transition: 'background 0.15s ease',
+              '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+            }}
+          >
+            +
+          </Box>
+          <Box
+            onClick={() => mapRef.current?.zoomOut()}
+            sx={{
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              fontWeight: 300,
+              color: 'rgba(0,0,0,0.75)',
+              transition: 'background 0.15s ease',
+              '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+            }}
+          >
+            −
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Sombra interior sutil */}
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05), inset 0 2px 12px rgba(0,0,0,0.06)',
+          pointerEvents: 'none',
+          zIndex: 500,
+        }}
+      />
     </Box>
   );
 };

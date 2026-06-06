@@ -111,7 +111,9 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   }, [zones, zoneId]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth scroll="paper">
+    <Dialog open={open} onClose={onClose} maxWidth={false} fullWidth scroll="paper"
+      PaperProps={{ sx: { maxWidth: '1100px', width: 'calc(100% - 32px)' } }}
+    >
       <DialogTitle sx={{ p: 0 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
           <Typography className="h2">Editar territorio</Typography>
@@ -164,7 +166,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                   options={tags}
                   getOptionLabel={(t: TerritoryTag) => t.nombre}
                   value={selectedTags}
-                  onChange={(_, v) => setTagIds(v.map((t: TerritoryTag) => t.id))}
+                  onChange={(_, v) => setTagIds((v as TerritoryTag[]).map((t) => t.id))}
                   placeholder="Añadir etiqueta..."
                 />
               </Box>
