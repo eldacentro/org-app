@@ -319,7 +319,7 @@ const DialogVerTerritorio = ({
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#1a1a2e',
+        backgroundColor: '#000',
       }}
     >
       {/* MAPA: cubre el 100% del fondo SIEMPRE */}
@@ -1113,7 +1113,7 @@ const DialogVerTerritorio = ({
       PaperProps={{
         sx: tabletDown
           ? {
-              backgroundColor: '#1a1a2e',
+              backgroundColor: '#000',
               overflow: 'hidden',
               // Quitar sombra y bordes del Paper para que el diseño propio tome el control
               boxShadow: 'none',
