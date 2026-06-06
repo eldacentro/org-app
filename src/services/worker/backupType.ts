@@ -40,5 +40,6 @@ export type BackupDataType = {
   metadata?: Record<string, string>;
   delegated_field_service_reports?: object;
   limpieza_config?: object;
+  evacuacion_config?: object;
   affected_uids?: string[];
 };

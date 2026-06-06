@@ -235,11 +235,13 @@ const Limpieza = () => {
         title="Limpieza del Salón"
         buttons={
           <>
-            <NavBarButton
-              text="Configuración"
-              onClick={() => setIsConfigOpen(true)}
-              icon={<IconSettings />}
-            />
+            {isManager && (
+              <NavBarButton
+                text="Configuración"
+                onClick={() => setIsConfigOpen(true)}
+                icon={<IconSettings />}
+              />
+            )}
           </>
         }
       />
@@ -505,7 +507,7 @@ const Limpieza = () => {
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '8px',
-                              cursor: isManager ? 'pointer' : 'default',
+                              cursor: 'pointer',
                               transition: 'all 0.2s ease',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
@@ -563,7 +565,7 @@ const Limpieza = () => {
                             onClick={() => handleOpenEdit(m)}
                             sx={{
                               p: 2,
-                              cursor: isManager ? 'pointer' : 'default',
+                              cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
@@ -618,29 +620,37 @@ const Limpieza = () => {
         />
       )}
 
-      {/* Modal para Modificar Excepciones */}
+      {/* Modal para Ver/Modificar Excepciones */}
       <Dialog open={editModal.open} onClose={() => setEditModal({ ...editModal, open: false })} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '24px' }}>
           <Typography className="h2">Asignación del {editModal.date?.getDate()}</Typography>
-          <Typography color="text.secondary" className="body-small-regular">
-            Puedes cambiar manualmente a qué grupo le toca limpiar esta fecha en particular.
-          </Typography>
+          {isManager && (
+            <Typography color="text.secondary" className="body-small-regular">
+              Puedes cambiar manualmente a qué grupo le toca limpiar esta fecha en particular.
+            </Typography>
+          )}
         </DialogTitle>
         <DialogContent sx={{ p: '24px', pt: 0 }}>
           <Typography className="h4" sx={{ mb: 1, color: 'var(--accent-dark)' }}>Grupo Asignado</Typography>
-          <Select
-            value={selectedOverrideGroup}
-            onChange={(e) => setSelectedOverrideGroup(e.target.value)}
-            fullWidth
-            size="small"
-            sx={{ mb: 3 }}
-          >
-            {activeGroups.map((g) => (
-              <MenuItem key={g.group_id} value={g.group_id}>
-                {getGroupName(g)}
-              </MenuItem>
-            ))}
-          </Select>
+          {isManager ? (
+            <Select
+              value={selectedOverrideGroup}
+              onChange={(e) => setSelectedOverrideGroup(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{ mb: 3 }}
+            >
+              {activeGroups.map((g) => (
+                <MenuItem key={g.group_id} value={g.group_id}>
+                  {getGroupName(g)}
+                </MenuItem>
+              ))}
+            </Select>
+          ) : (
+            <Typography sx={{ mb: 3, fontWeight: 600 }}>
+              {activeGroups.find(g => g.group_id === selectedOverrideGroup)?.group_data.name || getGroupName(editModal.group)}
+            </Typography>
+          )}
 
           {editModal.group && (
             <>
@@ -661,12 +671,20 @@ const Limpieza = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: '24px' }}>
-          <Button onClick={() => setEditModal({ ...editModal, open: false })} color="inherit">
-            Cancelar
-          </Button>
-          <Button onClick={handleSaveOverride} variant="contained" color="primary">
-            Guardar
-          </Button>
+          {isManager ? (
+            <>
+              <Button onClick={() => setEditModal({ ...editModal, open: false })} color="inherit">
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveOverride} variant="contained" color="primary">
+                Guardar
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => setEditModal({ ...editModal, open: false })} variant="contained" color="primary">
+              Cerrar
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Box>

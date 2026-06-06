@@ -365,6 +365,7 @@ const dbGetTableData = async () => {
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
   const limpieza_config = await appDb.limpieza_config.get('1');
+  const evacuacion_config = await appDb.evacuacion_config.get('1');
   const metadata = await appDb.metadata.get(1);
 
   const congId = speakers_congregations.find(
@@ -427,6 +428,7 @@ const dbGetTableData = async () => {
     delegated_field_service_reports,
     upcoming_events,
     limpieza_config,
+    evacuacion_config,
   };
 };
 
@@ -1960,6 +1962,33 @@ const dbRestoreLimpiezaConfig = async (
   }
 };
 
+const dbRestoreEvacuacionConfig = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.evacuacion_config) return;
+
+    const remoteRecord = structuredClone(backupData.evacuacion_config) as Record<string, unknown>;
+
+    decryptObject({
+      data: remoteRecord,
+      table: 'evacuacion_config',
+      accessCode,
+    });
+
+    const localRecord = await appDb.evacuacion_config.get('1');
+    const remoteUpdated = remoteRecord.updatedAt || '';
+    const localUpdated = localRecord?.updatedAt || '';
+
+    if (!localRecord || remoteUpdated > localUpdated) {
+      await appDb.evacuacion_config.put({ ...remoteRecord, id: '1' } as unknown as PlanEvacuacion);
+    }
+  } catch (error) {
+    throw new Error(`evacuacion_config: ${error.message}`);
+  }
+};
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -1998,6 +2027,7 @@ const dbRestoreFromBackup = async (
     await dbRestoreExhibitors(backupData, accessCode);
     await dbRestoreResponsabilidades(backupData, accessCode);
     await dbRestoreLimpiezaConfig(backupData, accessCode);
+    await dbRestoreEvacuacionConfig(backupData, accessCode);
 
     await dbRestoreUserStudies(backupData, accessCode);
 
@@ -2088,6 +2118,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       exhibitors,
       responsabilidades,
       limpieza_config,
+      evacuacion_config,
       sources,
       meeting_attendance,
       metadata,
@@ -2513,6 +2544,23 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.limpieza_config = toBackup;
+          }
+        }
+
+        // include evacuacion_config data
+        if (
+          metadata.metadata.evacuacion_config?.send_local
+        ) {
+          if (evacuacion_config) {
+            const toBackup = structuredClone(evacuacion_config);
+
+            encryptObject({
+              data: toBackup,
+              table: 'evacuacion_config',
+              accessCode,
+            });
+
+            obj.evacuacion_config = toBackup;
           }
         }
 

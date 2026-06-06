@@ -158,6 +158,9 @@ try {
           // sure this user has novelties, so we show the generic fallback.
           if (record && record.title) {
             showWithContent(record.title, record.body, record.url);
+          } else if (payload.data && payload.data.title) {
+            // Use direct data payload if sent from backend
+            showWithContent(payload.data.title, payload.data.body, payload.data.url);
           } else {
             showWithContent(
               'Organized',

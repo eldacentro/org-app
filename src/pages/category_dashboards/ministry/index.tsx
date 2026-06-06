@@ -7,6 +7,7 @@ import {
   IconStatsYear,
   IconInTerritory,
   IconCart,
+  IconMapOverview,
 } from '@icons/index';
 
 const MinistryDashboard = () => {
@@ -74,6 +75,20 @@ const MinistryDashboard = () => {
             </svg>
           </div>
         )}
+
+        {/* Territorios */}
+        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/territories')}>
+          <div className="ti">
+            <IconMapOverview color="var(--brand)" width={22} height={22} />
+          </div>
+          <div className="tile-body">
+            <div className="tile-name">Territorios</div>
+            <div className="tile-meta">Mapas, asignaciones y campañas</div>
+          </div>
+          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </div>
 
         {/* Exhibidores */}
         {(isServiceCommittee) && (

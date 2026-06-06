@@ -35,6 +35,7 @@ const SettingsDashboard = lazy(() => import('@pages/category_dashboards/settings
 
 const Documentos = lazy(() => import('@pages/congregation/documentos'));
 const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
+const Territorios = lazy(() => import('@pages/congregation/territories'));
 
 const MyProfile = lazy(() => import('@pages/my_profile'));
 const PersonsAll = lazy(() => import('@pages/persons/all_persons'));
@@ -232,6 +233,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               { path: '/congregation/evacuacion', element: <Evacuacion /> },
               { path: '/congregation/limpieza', element: <Limpieza /> },
               { path: '/congregation/documentos', element: <Documentos /> },
+              { path: '/congregation/territories', element: <Territorios /> },
 
               // publisher routes
               {

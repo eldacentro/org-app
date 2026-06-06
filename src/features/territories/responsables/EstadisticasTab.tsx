@@ -1,0 +1,343 @@
+import { useMemo } from 'react';
+import { Box, Stack, LinearProgress } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import Button from '@components/button';
+import Typography from '@components/typography';
+import {
+  territoriesState,
+  territoryAssignmentsState,
+  territorySettingsState,
+  territoryZonesState,
+} from '@states/territories';
+import { Territory, TerritoryAssignment } from '@definition/territories';
+import { congIDState, userLocalUIDState } from '@states/settings';
+import { saveNotice } from '@services/firebase/territories';
+import {
+  daysSince,
+  formatTerritoryDate,
+  getZoneName,
+  isOverdue,
+  statsRangeStart,
+  territoryLabel,
+} from '@services/app/territories';
+import { usePersonName } from '@features/territories/usePersonName';
+import { apiSendTerritoryPush } from '@services/api/territories';
+
+type Props = {
+  onAsignar: (t: Territory) => void;
+  onEntregar: (a: TerritoryAssignment) => void;
+};
+
+const KpiCard = ({
+  title,
+  value,
+  total,
+  color,
+  subtext,
+}: {
+  title: string;
+  value: number;
+  total?: number;
+  color: string;
+  subtext?: string;
+}) => (
+  <Box
+    sx={{
+      flex: 1,
+      minWidth: { mobile: '100%', tablet600: 200 },
+      p: 2.5,
+      borderRadius: '16px',
+      backgroundColor: 'var(--card)',
+      border: '1px solid var(--line)',
+      boxShadow: 'var(--small-card-shadow)',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+      '&:hover': {
+        boxShadow: 'var(--hover-shadow)',
+        transform: 'translateY(-2px)',
+      },
+    }}
+  >
+    <Box sx={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: color }} />
+    <Typography variant="body2" sx={{ color: 'var(--ink-2)', fontWeight: 600, mb: 1 }}>
+      {title}
+    </Typography>
+    <Stack direction="row" alignItems="baseline" spacing={1}>
+      <Typography className="big-numbers" sx={{ color: 'var(--ink)', fontWeight: 600, fontSize: '36px', lineHeight: '40px' }}>
+        {value}
+      </Typography>
+      {total !== undefined && (
+        <Typography variant="body1" sx={{ color: 'var(--ink-2)' }}>
+          / {total}
+        </Typography>
+      )}
+    </Stack>
+    {total !== undefined && total > 0 && (
+      <Box sx={{ mt: 2 }}>
+        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+          <Typography variant="caption" color="var(--ink-2)">
+            Progreso
+          </Typography>
+          <Typography variant="caption" sx={{ fontWeight: 700, color }}>
+            {Math.round((value / total) * 100)}%
+          </Typography>
+        </Stack>
+        <LinearProgress
+          variant="determinate"
+          value={(value / total) * 100}
+          sx={{
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: 'var(--line)',
+            '& .MuiLinearProgress-bar': { backgroundColor: color, borderRadius: 3 },
+          }}
+        />
+      </Box>
+    )}
+    {subtext && (
+      <Typography variant="caption" color="var(--ink-2)" sx={{ mt: 1.5, display: 'block' }}>
+        {subtext}
+      </Typography>
+    )}
+  </Box>
+);
+
+const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
+  const territories = useAtomValue(territoriesState);
+  const assignments = useAtomValue(territoryAssignmentsState);
+  const zones = useAtomValue(territoryZonesState);
+  const settings = useAtomValue(territorySettingsState);
+  const congId = useAtomValue(congIDState);
+  const currentUid = useAtomValue(userLocalUIDState);
+  const resolveName = usePersonName();
+
+  const stats = useMemo(() => {
+    const total = territories.length;
+    const rangeStart = statsRangeStart(settings.statsRange);
+
+    const relevant = settings.statsIncludeCampaigns
+      ? assignments
+      : assignments.filter((a) => !a.isCampaign);
+
+    const openByTerritory = new Set(
+      relevant.filter((a) => !a.returnedAt).map((a) => a.territoryId)
+    );
+
+    // Trabajado: con lastWorkedAt dentro del rango. Asignado actual: abierto.
+    // No trabajado: el resto.
+    const asignados = openByTerritory.size;
+    const noAsignados = total - asignados;
+
+    let trabajados = 0;
+    let asignadoActual = 0;
+    let noTrabajados = 0;
+    territories.forEach((t) => {
+      if (openByTerritory.has(t.id)) {
+        asignadoActual += 1;
+      } else if (t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart) {
+        trabajados += 1;
+      } else {
+        noTrabajados += 1;
+      }
+    });
+
+    // Atrasados: asignaciones abiertas que superan los días configurados.
+    const atrasados = relevant
+      .filter((a) => !a.returnedAt && isOverdue(a.assignedAt, settings.daysUntilOverdue))
+      .sort(
+        (x, y) =>
+          new Date(x.assignedAt).getTime() - new Date(y.assignedAt).getTime()
+      );
+
+    // No asignados durante más tiempo (libres), por antigüedad de lastWorkedAt.
+    const noAsignadosLista = territories
+      .filter((t) => !openByTerritory.has(t.id))
+      .sort((a, b) => {
+        const ta = a.lastWorkedAt ? new Date(a.lastWorkedAt).getTime() : 0;
+        const tb = b.lastWorkedAt ? new Date(b.lastWorkedAt).getTime() : 0;
+        return ta - tb;
+      })
+      .slice(0, 10);
+
+    return {
+      total,
+      asignados,
+      noAsignados,
+      trabajados,
+      asignadoActual,
+      noTrabajados,
+      atrasados,
+      noAsignadosLista,
+    };
+  }, [territories, assignments, settings]);
+
+  const notificar = async (a: TerritoryAssignment) => {
+    const nombre = resolveName(a.personUid);
+    if (
+      !window.confirm(
+        `¿Enviar aviso de territorio atrasado a ${nombre}? Le llegará al instante en su lista "Mis territorios".`
+      )
+    ) {
+      return;
+    }
+    try {
+      await saveNotice(congId, {
+        id: crypto.randomUUID(),
+        personUid: a.personUid,
+        mensaje: settings.overdueMessage,
+        territoryId: a.territoryId,
+        sentBy: currentUid || undefined,
+        createdAt: new Date().toISOString(),
+        leido: false,
+      });
+      // Enviar notificación Push al publicador atrasado
+      await apiSendTerritoryPush(
+        [a.personUid],
+        'Territorio atrasado',
+        settings.overdueMessage || 'Tienes un territorio atrasado.'
+      ).catch((err) => console.error('Failed to send push', err));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (stats.total === 0) {
+    return (
+      <Typography variant="body2" color="var(--ink-2)">
+        Aún no hay territorios para mostrar estadísticas.
+      </Typography>
+    );
+  }
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Resumen Dashboard */}
+      <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={2}>
+        <KpiCard
+          title="Asignados"
+          value={stats.asignados}
+          total={stats.total}
+          color="var(--accent-main)"
+          subtext={`${stats.noAsignados} territorios libres`}
+        />
+        <KpiCard
+          title="Trabajados"
+          value={stats.trabajados}
+          total={stats.total}
+          color="var(--green-main)"
+          subtext="En el rango seleccionado"
+        />
+        <KpiCard
+          title="Atrasados"
+          value={stats.atrasados.length}
+          color={stats.atrasados.length > 0 ? 'var(--red-main)' : 'var(--green-main)'}
+          subtext={stats.atrasados.length === 0 ? '¡Todo al día!' : 'Requieren atención'}
+        />
+      </Stack>
+
+      {/* Atrasados */}
+      <Box>
+        <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
+          Territorios atrasados ({stats.atrasados.length})
+        </Typography>
+        {stats.atrasados.length === 0 ? (
+          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+            <Typography variant="body2" color="var(--ink-2)">
+              No hay territorios atrasados. ¡Gran trabajo! 🎉
+            </Typography>
+          </Box>
+        ) : (
+          <Stack spacing={1.5}>
+            {stats.atrasados.map((a) => {
+              const t = territories.find((x) => x.id === a.territoryId);
+              return (
+                <Stack
+                  key={a.id}
+                  direction={{ mobile: 'column', tablet600: 'row' }}
+                  alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
+                  justifyContent="space-between"
+                  spacing={1}
+                  sx={{
+                    p: 2,
+                    borderRadius: '12px',
+                    border: '1px solid var(--line)',
+                    borderLeft: '4px solid var(--red-main)',
+                    backgroundColor: 'var(--card)',
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                      {t ? territoryLabel(t) : '—'}
+                      <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                        {resolveName(a.personUid)}
+                      </span>
+                    </Typography>
+                    <Typography variant="caption" color="var(--ink-2)">
+                      Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
+                      Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 } }}>
+                    <Button variant="tertiary" onClick={() => notificar(a)}>
+                      Notificar
+                    </Button>
+                    <Button variant="main" onClick={() => onEntregar(a)}>
+                      Entregar
+                    </Button>
+                  </Stack>
+                </Stack>
+              );
+            })}
+          </Stack>
+        )}
+      </Box>
+
+      {/* No asignados durante más tiempo */}
+      <Box>
+        <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
+          No asignados durante más tiempo
+        </Typography>
+        <Stack spacing={1.5}>
+          {stats.noAsignadosLista.map((t) => (
+            <Stack
+              key={t.id}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
+                transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                '&:hover': {
+                  borderColor: 'var(--accent-main)',
+                }
+              }}
+            >
+              <Box>
+                <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                  {territoryLabel(t)}
+                  <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                    {getZoneName(t.zoneId, zones)}
+                  </span>
+                </Typography>
+                <Typography variant="caption" color="var(--ink-2)">
+                  {t.lastWorkedAt
+                    ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, settings.dateFormat)}`
+                    : 'Nunca trabajado'}
+                </Typography>
+              </Box>
+              <Button variant="small" onClick={() => onAsignar(t)}>
+                Asignar
+              </Button>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
+    </Box>
+  );
+};
+
+export default EstadisticasTab;

@@ -21,5 +21,38 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
     }
+
+    // ── Módulo de Territorios ──
+    // Validación de rol (responsable/elder/admin) en el cliente, igual que
+    // Documentos. Los campos sensibles (direcciones "No visitar", notas) viajan
+    // cifrados con la master key de la congregación. Mejora futura: acotar por
+    // pertenencia a la congregación vía custom claims.
+    match /congregation/{congId}/territory_zones/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territories/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_assignments/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_locations/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_campaigns/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_requests/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_notices/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_tags/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /congregation/{congId}/territory_settings/{id} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

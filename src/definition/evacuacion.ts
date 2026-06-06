@@ -19,6 +19,7 @@ export type EquipoEvacuacion = {
 };
 
 export type PlanEvacuacion = {
+  id?: string;
   updatedAt: string;
   tiempoMaximo: number; // minutos
   estructuraMando: RolEmergencia[];

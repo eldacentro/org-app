@@ -269,4 +269,13 @@ export const TABLE_ENCRYPTION_MAP = {
     notasGenerales: 'shared',
     overrides: 'shared',
   },
+  evacuacion_config: {
+    id: 'shared',
+    updatedAt: 'shared',
+    tiempoMaximo: 'shared',
+    estructuraMando: 'shared',
+    equipos: 'shared',
+    normasGenerales: 'shared',
+    extintores: 'shared',
+  },
 };

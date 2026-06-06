@@ -81,6 +81,14 @@ import {
   documentosSchema,
 } from './tables/documentos';
 import { LimpiezaTable, limpiezaSchema } from './tables/limpieza';
+import {
+  TerritoriesTable,
+  territoriesSchema,
+} from './tables/territories';
+import {
+  EvacuacionConfigTable,
+  evacuacionConfigSchema,
+} from './tables/evacuacion';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -109,7 +117,9 @@ type DexieTables = PersonsTable &
   ResponsabilidadesTable &
   PendingPushTable &
   DocumentosTable &
-  LimpiezaTable;
+  LimpiezaTable &
+  TerritoriesTable &
+  EvacuacionConfigTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -309,6 +319,43 @@ appDb.version(19).stores({
   ...pendingPushSchema,
   ...documentosSchema,
   ...limpiezaSchema,
+});
+
+appDb.version(20).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+});
+
+appDb.version(21).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+  ...evacuacionConfigSchema,
 });
 
 appDb.on('populate', function () {
