@@ -29,6 +29,7 @@ import {
 } from '@states/settings';
 import {
   uploadTerritoryImage,
+  deleteTerritoryImage,
   saveTerritory,
 } from '@services/firebase/territories';
 import { getZoneColor, getZoneName, territoryLabel } from '@services/app/territories';
@@ -267,6 +268,20 @@ const DialogVerTerritorio = ({
     } catch (e) {
       console.error(e);
       alert('Error subiendo imagen. Verifica tu conexión.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta imagen?')) return;
+    setUploading(true);
+    try {
+      await deleteTerritoryImage(congID, liveTerritory.id);
+      await saveTerritory(congID, { ...liveTerritory, imageURL: '' }, masterKey ?? '');
+    } catch (e) {
+      console.error(e);
+      alert('Error eliminando la imagen. Verifica tu conexión.');
     } finally {
       setUploading(false);
     }
@@ -639,38 +654,66 @@ const DialogVerTerritorio = ({
                 </Box>
               )}
 
-              {/* Botón subir imagen para responsables */}
+              {/* Controles de imagen para responsables */}
               {canManage && (
-                <label style={{ cursor: 'pointer' }}>
-                  <Box
-                    sx={{
-                      width: '100%',
-                      py: '11px',
-                      borderRadius: '12px',
-                      border: `1.5px solid ${color}`,
-                      color: color,
-                      fontWeight: 600,
-                      fontSize: 14,
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s ease',
-                      '&:active': { backgroundColor: `${color}10` },
-                    }}
-                  >
-                    {uploading
-                      ? 'Subiendo…'
-                      : liveTerritory.imageURL
-                      ? 'Cambiar imagen'
-                      : 'Subir imagen (PNG/JPG)'}
+                <Stack direction="row" spacing={1.5}>
+                  <Box sx={{ flex: 1 }}>
+                    <label style={{ cursor: 'pointer', display: 'block' }}>
+                      <Box
+                        sx={{
+                          width: '100%',
+                          py: '11px',
+                          borderRadius: '12px',
+                          border: `1.5px solid ${color}`,
+                          color: color,
+                          fontWeight: 600,
+                          fontSize: 14,
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                          '&:active': { backgroundColor: `${color}10` },
+                        }}
+                      >
+                        {uploading
+                          ? 'Subiendo…'
+                          : liveTerritory.imageURL
+                          ? 'Cambiar imagen'
+                          : 'Subir imagen (PNG/JPG)'}
+                      </Box>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        hidden
+                        disabled={uploading}
+                        onChange={(e) => handleUploadImage(e.target.files?.[0])}
+                      />
+                    </label>
                   </Box>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    hidden
-                    disabled={uploading}
-                    onChange={(e) => handleUploadImage(e.target.files?.[0])}
-                  />
-                </label>
+                  {liveTerritory.imageURL && (
+                    <Box
+                      onClick={uploading ? undefined : handleDeleteImage}
+                      sx={{
+                        width: 'auto',
+                        px: 2,
+                        py: '11px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#EF4444',
+                        fontWeight: 600,
+                        fontSize: 14,
+                        textAlign: 'center',
+                        cursor: uploading ? 'default' : 'pointer',
+                        transition: 'background 0.15s ease',
+                        '&:active': { backgroundColor: uploading ? undefined : 'rgba(239, 68, 68, 0.2)' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      Borrar
+                    </Box>
+                  )}
+                </Stack>
               )}
             </Box>
           )}
@@ -1009,12 +1052,19 @@ const DialogVerTerritorio = ({
                 </Box>
               )}
               {canManage && (
-                <Button variant="tertiary" disableAutoStretch disabled={uploading}>
-                  <label style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
-                    <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => handleUploadImage(e.target.files?.[0])} />
-                  </label>
-                </Button>
+                <Stack direction="row" spacing={1.5}>
+                  <Button variant="tertiary" disableAutoStretch disabled={uploading} sx={{ flex: 1 }}>
+                    <label style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
+                      <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => handleUploadImage(e.target.files?.[0])} />
+                    </label>
+                  </Button>
+                  {liveTerritory.imageURL && (
+                    <Button variant="tertiary" disableAutoStretch disabled={uploading} onClick={handleDeleteImage} sx={{ color: '#EF4444', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
+                      Borrar
+                    </Button>
+                  )}
+                </Stack>
               )}
             </Box>
           )}

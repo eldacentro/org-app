@@ -111,6 +111,18 @@ export const uploadTerritoryImage = async (
   return getDownloadURL(r);
 };
 
+export const deleteTerritoryImage = async (
+  congId: string,
+  territoryId: string
+): Promise<void> => {
+  const storage = getStorage();
+  const r = ref(storage, `congregation/${congId}/territories/${territoryId}.png`);
+  await deleteObject(r).catch((error) => {
+    const err = error as Error & { code?: string };
+    if (err.code !== 'storage/object-not-found') throw error;
+  });
+};
+
 export const uploadTerritoryKml = async (
   congId: string,
   territoryId: string,
