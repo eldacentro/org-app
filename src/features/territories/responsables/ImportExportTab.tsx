@@ -363,7 +363,7 @@ const ImportExportTab = () => {
             <Typography sx={{ fontSize: '14px', flexShrink: 0, mt: '-1px' }}>💡</Typography>
             <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', lineHeight: 1.5 }}>
               Para importar desde KML/KMZ, usa el botón{' '}
-              <strong>"Importar KML"</strong> en la pestaña{' '}
+              <strong>&quot;Importar KML&quot;</strong> en la pestaña{' '}
               <strong>Territorios</strong>.
             </Typography>
           </Box>
