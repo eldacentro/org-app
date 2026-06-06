@@ -895,9 +895,14 @@ const DialogVerTerritorio = ({
             </Stack>
           ) : null}
 
-          {editingTags && canManage && allTags.length > 0 && (
+          {editingTags && canManage && (
             <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
-              <Stack direction="row" flexWrap="wrap" gap={0.75}>
+              {allTags.length === 0 ? (
+                <Typography sx={{ fontSize: 12, color: 'var(--ink-2)' }}>
+                  No hay etiquetas creadas.
+                </Typography>
+              ) : (
+                <Stack direction="row" flexWrap="wrap" gap={0.75}>
                 {allTags.map((tag) => {
                   const active = (liveTerritory.tags || []).includes(tag.id);
                   return (
@@ -922,7 +927,8 @@ const DialogVerTerritorio = ({
                     </Box>
                   );
                 })}
-              </Stack>
+                </Stack>
+              )}
             </Box>
           )}
         </Box>
