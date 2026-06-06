@@ -107,12 +107,12 @@ const useLanguage = () => {
 
     localStorage.setItem('ui_lang', ui_lang);
 
-    setAppFont(font);
-    setAppLang(ui_lang);
-
     await handleUpdateLangDb();
 
     await i18n.changeLanguage(ui_lang);
+
+    setAppFont(font);
+    setAppLang(ui_lang);
 
     handleUpdateLocale(ui_lang);
 

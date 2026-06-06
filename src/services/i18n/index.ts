@@ -132,7 +132,7 @@ export const refreshLocalesResources = async () => {
   const languages = await getListLanguages();
 
   for (const language of languages) {
-    const isResourcesReady = i18n.options.resources[language.locale];
+    const isResourcesReady = i18n.hasResourceBundle(language.locale, 'ui');
 
     if (!isResourcesReady) {
       const resource = await getLangTranslations(language.path);

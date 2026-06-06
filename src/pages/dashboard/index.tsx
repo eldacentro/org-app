@@ -419,11 +419,11 @@ const Dashboard = () => {
       const m = Math.floor((diffSecs % 3600) / 60);
 
       if (d > 0) {
-        setCountdownText(t('tr_countdownDays', `Faltan ${d} d ${h} h`, { days: d, hours: h }));
+        setCountdownText(t('tr_countdownDays', { defaultValue: `Faltan ${d} d ${h} h`, days: d, hours: h }));
       } else if (h > 0) {
-        setCountdownText(t('tr_countdownHours', `Faltan ${h} h ${m} min`, { hours: h, minutes: m }));
+        setCountdownText(t('tr_countdownHours', { defaultValue: `Faltan ${h} h ${m} min`, hours: h, minutes: m }));
       } else {
-        setCountdownText(t('tr_countdownMinutes', `Faltan ${m} min`, { minutes: m }));
+        setCountdownText(t('tr_countdownMinutes', { defaultValue: `Faltan ${m} min`, minutes: m }));
       }
     };
 
@@ -449,7 +449,7 @@ const Dashboard = () => {
       {/* GREETING */}
       <div className="hello-greeting">
         <h1>
-          {t('tr_greeting', 'Hola, {{firstName}}', { firstName: firstName || 'Carlos' })} <span className="waving-hand">👋</span>
+          {t('tr_greeting', { defaultValue: 'Hola, {{firstName}}', firstName: firstName || 'Carlos' })} <span className="waving-hand">👋</span>
         </h1>
         <div className="date-string">{todayStr}</div>
       </div>

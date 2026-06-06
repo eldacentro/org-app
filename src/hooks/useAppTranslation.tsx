@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { getAppLang } from '@services/app';
+import { useAtomValue } from 'jotai';
+import { appLangState } from '@states/app';
 
 const useHookTranslation = () => {
-  const appLang = getAppLang();
+  const appLang = useAtomValue(appLangState);
 
   const { t, i18n } = useTranslation('ui', { lng: appLang });
 
