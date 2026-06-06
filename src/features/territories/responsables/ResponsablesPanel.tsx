@@ -219,7 +219,7 @@ const ResponsablesPanel = ({
           },
         }}
       >
-        <Tab label="Territorios" />
+        <Tab label="Estadísticas" />
         <Tab label="Asignaciones" />
         <Tab
           label={
@@ -228,13 +228,22 @@ const ResponsablesPanel = ({
             </Badge>
           }
         />
-        <Tab label="Estadísticas" />
+        <Tab label="Territorio" />
         <Tab label="Campañas" />
         <Tab label="Importar/Exportar" />
         <Tab label="Configuración" />
       </Tabs>
 
-      {tab === 0 && (
+      {tab === 0 && <EstadisticasTab onAsignar={onAsignar} onEntregar={onEntregar} />}
+
+      {tab === 1 && (
+        <AsignacionesTab onView={onView} onAsignar={onAsignar} onEntregar={onEntregar} />
+      )}
+      {tab === 2 && (
+        <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
+      )}
+
+      {tab === 3 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
             <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
@@ -273,13 +282,6 @@ const ResponsablesPanel = ({
         </Box>
       )}
 
-      {tab === 1 && (
-        <AsignacionesTab onView={onView} onAsignar={onAsignar} onEntregar={onEntregar} />
-      )}
-      {tab === 2 && (
-        <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
-      )}
-      {tab === 3 && <EstadisticasTab onAsignar={onAsignar} onEntregar={onEntregar} />}
       {tab === 4 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
       {tab === 5 && <ImportExportTab />}
       {tab === 6 && <ConfiguracionTab />}
