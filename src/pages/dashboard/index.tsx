@@ -449,7 +449,7 @@ const Dashboard = () => {
       {/* GREETING */}
       <div className="hello-greeting">
         <h1>
-          {t('tr_greeting', { firstName: firstName || 'Carlos' })} <span className="waving-hand">👋</span>
+          {t('tr_greeting', 'Hola, {{firstName}}', { firstName: firstName || 'Carlos' })} <span className="waving-hand">👋</span>
         </h1>
         <div className="date-string">{todayStr}</div>
       </div>
@@ -698,8 +698,8 @@ const Dashboard = () => {
           open={newCongSnack}
           variant="success"
           messageIcon={<IconCheckCircle color="var(--always-white)" />}
-          messageHeader={t('tr_welcomeCongregationTitle')}
-          message={t('tr_welcomeCongregationDesc')}
+          messageHeader={t('tr_welcomeCongregationTitle', '¡Te damos la bienvenida!')}
+          message={t('tr_welcomeCongregationDesc', 'Te has conectado con éxito a tu congregación. Ahora puedes empezar a usar Elda Centro.')}
           onClose={handleCloseNewCongNotice}
         />
       )}
