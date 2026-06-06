@@ -81,14 +81,14 @@ try {
 
     // Listens for background notifications (app closed / not focused).
     //
-    // The backend wakes EVERY congregation member's SW whenever schedules
-    // change — it can't know who got a new assignment because the data is E2E
-    // encrypted. So this SW must only show a notification when THIS device has a
-    // genuine, specific pending_push record (written by the app's client-side
-    // diff the last time it synced). If there's nothing pending, we stay SILENT.
+    // The backend ONLY wakes up the SW of users who are in `affected_uids` 
+    // (users whose schedules actually changed).
     //
-    // A generic "you have updates" fallback would fire on every member's device
-    // on every congregation save — that is spam, so it has been removed.
+    // If the device has a genuine, specific pending_push record (written by the 
+    // app's client-side diff the last time it synced), we show that.
+    // If there's nothing pending (e.g. app was closed before sync could occur),
+    // we show a generic fallback. Since the backend now targets the push strictly,
+    // we know for sure this user has an update, making the fallback safe from spam.
     messaging.onBackgroundMessage(() => {
       const DEFAULT_URL = '/#/weekly-schedules';
 
@@ -152,10 +152,18 @@ try {
           const record = await readPendingPush(db);
           db.close();
 
-          // Only show a notification if there's a genuine, specific pending
-          // record for this device. Otherwise stay silent (no generic fallback).
+          // If we have a specific record from the local diff, show it.
+          // If we don't, it means the app is closed. Since the backend now
+          // ONLY sends FCM pushes to targeted affected_uids, we know for
+          // sure this user has novelties, so we show the generic fallback.
           if (record && record.title) {
             showWithContent(record.title, record.body, record.url);
+          } else {
+            showWithContent(
+              'Organized',
+              'Tienes novedades en tus asignaciones',
+              '/#/weekly-schedules'
+            );
           }
         } catch {
           // On error, stay silent rather than risk a spurious notification.

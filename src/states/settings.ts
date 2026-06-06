@@ -344,7 +344,7 @@ export const midweekMeetingWeekdayState = atom((get) => {
   return (
     settings.cong_settings.midweek_meeting.find(
       (record) => record.type === dataView
-    )?.weekday.value ?? 2
+    )?.weekday.value ?? 3
   );
 });
 
@@ -447,7 +447,7 @@ export const weekendMeetingWeekdayState = atom((get) => {
   return (
     settings.cong_settings.weekend_meeting.find(
       (record) => record.type === dataView
-    )?.weekday.value ?? 6
+    )?.weekday.value ?? 7
   );
 });
 

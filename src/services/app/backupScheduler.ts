@@ -26,6 +26,8 @@ export const generateBackupPayload = async (): Promise<any> => {
   const userFieldReports = await appDb.user_field_service_reports.toArray();
   const userBibleStudies = await appDb.user_bible_studies.toArray();
   const upcomingEvents = await appDb.upcoming_events.toArray();
+  const limpiezaConfigArray = await appDb.limpieza_config.toArray();
+  const limpiezaConfig = limpiezaConfigArray[0];
 
   const handleGetSettings = () => {
     if (!settings) return null;
@@ -74,6 +76,7 @@ export const generateBackupPayload = async (): Promise<any> => {
       ),
       visiting_speakers: visitingSpeakers,
       week_type: handleGetWeekTypes(),
+      limpieza_config: limpiezaConfig,
     },
   };
 };
@@ -126,6 +129,7 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     appDb.user_field_service_reports,
     appDb.user_bible_studies,
     appDb.upcoming_events,
+    appDb.limpieza_config,
   ], async () => {
     await appDb.persons.clear();
     await appDb.branch_cong_analysis.clear();
@@ -140,6 +144,7 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     await appDb.user_field_service_reports.clear();
     await appDb.user_bible_studies.clear();
     await appDb.upcoming_events.clear();
+    await appDb.limpieza_config.clear();
 
     // Populate data
     if (data.persons) await appDb.persons.bulkAdd(data.persons);
@@ -159,6 +164,11 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     if (data.app_settings) {
       await appDb.app_settings.clear();
       await appDb.app_settings.add(data.app_settings);
+    }
+    
+    if (data.limpieza_config) {
+      await appDb.limpieza_config.clear();
+      await appDb.limpieza_config.add(data.limpieza_config);
     }
   });
 };

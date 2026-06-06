@@ -80,6 +80,7 @@ import {
   DocumentosTable,
   documentosSchema,
 } from './tables/documentos';
+import { LimpiezaTable, limpiezaSchema } from './tables/limpieza';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -107,7 +108,8 @@ type DexieTables = PersonsTable &
   ExhibitorTable &
   ResponsabilidadesTable &
   PendingPushTable &
-  DocumentosTable;
+  DocumentosTable &
+  LimpiezaTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -290,6 +292,23 @@ appDb.version(18).stores({
   ...responsabilidadesSchema,
   ...pendingPushSchema,
   ...documentosSchema,
+});
+
+appDb.version(19).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
 });
 
 appDb.on('populate', function () {

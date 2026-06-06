@@ -69,7 +69,7 @@ const MyAssignments = () => {
         <Select
           label="Categoría"
           value={filterType}
-          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching')}
+          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching' | 'limpieza')}
         >
           <MenuItem value="all">
             <Typography>Todas</Typography>
@@ -84,6 +84,11 @@ const MyAssignments = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <IconCart color="var(--preaching-color)" width={16} height={16} />
               <Typography>Predicación</Typography>
+            </Box>
+          </MenuItem>
+          <MenuItem value="limpieza">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Typography>🧹 Limpieza</Typography>
             </Box>
           </MenuItem>
         </Select>
@@ -185,10 +190,7 @@ const MyAssignments = () => {
             display: 'flex',
             flex: 1,
             minHeight: 0,
-            gap: '16px',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            flexDirection: tabletDown ? 'column' : 'row',
+            flexDirection: 'column',
           }}
         >
           <Tabs

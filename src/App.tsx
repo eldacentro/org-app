@@ -33,6 +33,9 @@ const TalksDashboard = lazy(() => import('@pages/category_dashboards/talks'));
 const ReportsDashboard = lazy(() => import('@pages/category_dashboards/reports'));
 const SettingsDashboard = lazy(() => import('@pages/category_dashboards/settings'));
 
+const Documentos = lazy(() => import('@pages/congregation/documentos'));
+const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
+
 const MyProfile = lazy(() => import('@pages/my_profile'));
 const PersonsAll = lazy(() => import('@pages/persons/all_persons'));
 const PersonDetails = lazy(() => import('@pages/persons/person_details'));
@@ -87,9 +90,6 @@ const Exhibitors = lazy(
 const Evacuacion = lazy(() => import('@pages/congregation/evacuacion'));
 const Responsabilidades = lazy(
   () => import('@pages/congregation/responsabilidades')
-);
-const Documentos = lazy(
-  () => import('@pages/congregation/documentos')
 );
 
 const queryClient = new QueryClient();
@@ -230,6 +230,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <UpcomingEvents />,
               },
               { path: '/congregation/evacuacion', element: <Evacuacion /> },
+              { path: '/congregation/limpieza', element: <Limpieza /> },
               { path: '/congregation/documentos', element: <Documentos /> },
 
               // publisher routes

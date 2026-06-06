@@ -9,7 +9,7 @@ import {
 } from '@states/settings';
 import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
-import { assignmentsHistoryState } from '@states/schedules';
+import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
@@ -17,6 +17,14 @@ import { serviceOutingsListState } from '@states/service_outings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
+import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
+import { LimpiezaConfig } from '@definition/limpieza';
+import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+import { fieldServiceGroupsState } from '@states/field_service_groups';
+import { personsState } from '@states/persons';
+import { useEffect } from 'react';
+import { schedulesGetMeetingDate, schedulesWeekNoMeeting } from '@services/app/schedules';
+import { Week } from '@definition/week_type';
 
 const useMyAssignments = () => {
   const navigate = useNavigate();
@@ -33,6 +41,7 @@ const useMyAssignments = () => {
   const exhibitors = useAtomValue(exhibitorsListState);
   const exhibitorsSettings = useAtomValue(exhibitorsSettingsState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
+  const schedules = useAtomValue(schedulesState);
 
   const storageValue = localStorageGetItem(LOCAL_STORAGE_KEY);
   const intialValue: DisplayRange = storageValue
@@ -40,7 +49,16 @@ const useMyAssignments = () => {
     : DisplayRange.MONTHS_12;
 
   const [displayRange, setDisplayRange] = useState(intialValue);
-  const [filterType, setFilterType] = useState<'all' | 'meetings' | 'preaching'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'meetings' | 'preaching' | 'limpieza'>('all');
+  const [limpiezaConfig, setLimpiezaConfig] = useState<LimpiezaConfig | null>(null);
+
+  const groups = useAtomValue(fieldServiceGroupsState);
+  // Keep this hook to preserve hook call order (Rules of Hooks)
+  useAtomValue(personsState);
+
+  useEffect(() => {
+    dbLimpiezaGetConfig().then(setLimpiezaConfig);
+  }, []);
 
   const isSetup = useMemo(() => {
     return userUID.length === 0;
@@ -186,6 +204,89 @@ const useMyAssignments = () => {
       return results;
     };
 
+    const getLimpiezaAssignments = (uid: string): AssignmentHistoryType[] => {
+      const results: AssignmentHistoryType[] = [];
+      if (!limpiezaConfig) return results;
+
+      // Find user's group using the reliable groups data
+      const userGroup = groups.find(g => !g.group_data._deleted && g.group_data.members?.some(m => m.person_uid === uid));
+      const userGroupId = userGroup?.group_id;
+      if (!userGroupId) return results;
+
+      // Generar semanas y filtrar para mostrar solo los próximos 7 días
+      const nowMs = now.getTime();
+      const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const sevenDaysFromNowMs = nowMs + 7 * 24 * 60 * 60 * 1000;
+      const limpiezaMaxMs = nowMs + 14 * 24 * 60 * 60 * 1000; // Solo buscar hasta 2 semanas adelante
+      const maxMs = Math.min(maxDate.getTime(), limpiezaMaxMs);
+      let currentOffset = 0;
+
+      while (true) {
+        const d = new Date(nowMs);
+        d.setDate(d.getDate() + currentOffset * 7);
+        if (d.getTime() > maxMs) break;
+
+        const wOf = getWeekDate(d);
+        const weekOfStr = formatDate(wOf, 'yyyy/MM/dd');
+
+        const schedule = schedules.find(s => s.weekOf === weekOfStr);
+
+        const midweekType = schedule?.midweek_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
+        if (!schedulesWeekNoMeeting(midweekType)) {
+          const meetingDateStr = schedulesGetMeetingDate({ week: weekOfStr, meeting: 'midweek', dataView: 'main' }).date;
+          const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
+          
+          if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
+            const midGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'midweek', groups);
+            if (midGroupId === userGroupId) {
+              results.push({
+                id: `LIMPIEZA_${weekOfStr}_midweek`,
+                weekOf: weekOfStr,
+                weekOfFormatted: formatDate(new Date(weekOfStr), shortDateFormat),
+                actualDate: meetingDateStr || weekOfStr,
+                assignment: {
+                  code: 0 as AssignmentHistoryType['assignment']['code'],
+                  person: uid,
+                  key: `LIMPIEZA_${weekOfStr}_midweek` as AssignmentHistoryType['assignment']['key'],
+                  dataView: 'main',
+                  title: 'Limpieza del Salón (Entre semana)',
+                  desc: '🧹 Tu grupo tiene el turno de limpieza',
+                },
+              });
+            }
+          }
+        }
+
+        const weekendType = schedule?.weekend_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
+        if (!schedulesWeekNoMeeting(weekendType)) {
+          const meetingDateStr = schedulesGetMeetingDate({ week: weekOfStr, meeting: 'weekend', dataView: 'main' }).date;
+          const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
+
+          if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
+            const weekendGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'weekend', groups);
+            if (weekendGroupId === userGroupId) {
+              results.push({
+                id: `LIMPIEZA_${weekOfStr}_weekend`,
+                weekOf: weekOfStr,
+                weekOfFormatted: formatDate(new Date(weekOfStr), shortDateFormat),
+                actualDate: meetingDateStr || weekOfStr,
+                assignment: {
+                  code: 0 as AssignmentHistoryType['assignment']['code'],
+                  person: uid,
+                  key: `LIMPIEZA_${weekOfStr}_weekend` as AssignmentHistoryType['assignment']['key'],
+                  dataView: 'main',
+                  title: 'Limpieza del Salón (Fin de semana)',
+                  desc: '🧹 Tu grupo tiene el turno de limpieza',
+                },
+              });
+            }
+          }
+        }
+        currentOffset++;
+      }
+      return results;
+    };
+
     const filterAssignments = (uid: string) => {
       const meetingAssignments =
         filterType === 'preaching'
@@ -197,11 +298,12 @@ const useMyAssignments = () => {
                 record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
             );
 
-      const deptAssignments = filterType === 'preaching' ? [] : getDeptAssignments(uid);
-      const outingAssignments = filterType === 'meetings' ? [] : getServiceOutingsAssignments(uid);
-      const exhibitorAssignments = filterType === 'meetings' ? [] : getExhibitorsAssignments(uid);
+      const deptAssignments = filterType === 'preaching' || filterType === 'limpieza' ? [] : getDeptAssignments(uid);
+      const outingAssignments = filterType === 'meetings' || filterType === 'limpieza' ? [] : getServiceOutingsAssignments(uid);
+      const exhibitorAssignments = filterType === 'meetings' || filterType === 'limpieza' ? [] : getExhibitorsAssignments(uid);
+      const limpiezaAssign = filterType === 'meetings' || filterType === 'preaching' ? [] : getLimpiezaAssignments(uid);
 
-      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments];
+      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments, ...limpiezaAssign];
     };
 
     const ownAssignments = filterAssignments(userUID);
@@ -255,6 +357,9 @@ const useMyAssignments = () => {
     delegateMembers,
     shortDateFormat,
     filterType,
+    limpiezaConfig,
+    groups,
+    schedules,
   ]);
 
   const handleClose = () => setOpen(false);

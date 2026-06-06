@@ -260,4 +260,13 @@ export const TABLE_ENCRYPTION_MAP = {
     cargosAncianos: 'shared',
     departamentos: 'shared',
   },
+  limpieza_config: {
+    id: 'shared',
+    updatedAt: 'shared',
+    fechaInicio: 'shared',
+    grupoInicio: 'shared',
+    gruposParticipantes: 'shared',
+    notasGenerales: 'shared',
+    overrides: 'shared',
+  },
 };

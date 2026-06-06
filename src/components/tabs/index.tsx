@@ -13,7 +13,12 @@ export const CustomTabPanel = (props: TabsPanelProps) => {
 
   return (
     <Box
-      sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: value === index ? 'flex' : 'none',
+        flexDirection: 'column',
+      }}
       role="tabpanel"
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}

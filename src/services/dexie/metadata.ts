@@ -26,6 +26,7 @@ export const dbMetadataDefault = async () => {
       delegated_field_service_reports: { version: '', send_local: true },
       service_outings: { version: '', send_local: true },
       exhibitors: { version: '', send_local: true },
+      limpieza_config: { version: '', send_local: true },
     };
 
     if (!metadata) {
@@ -82,6 +83,7 @@ export const dbMetadataReset = async () => {
         upcoming_events: { version: '', send_local: true },
         service_outings: { version: '', send_local: true },
         exhibitors: { version: '', send_local: true },
+        limpieza_config: { version: '', send_local: true },
       },
     });
   } catch (error) {

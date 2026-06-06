@@ -11,6 +11,7 @@ import {
   IconAssignment,
   IconMapOverview,
   IconInformationBoard,
+  IconClean,
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
@@ -88,6 +89,20 @@ const CongregationDashboard = () => {
           <div className="tile-body">
             <div className="tile-name">Plan de Evacuación</div>
             <div className="tile-meta">Salón del Reino · rutas y equipos</div>
+          </div>
+          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </div>
+
+        {/* Limpieza */}
+        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/limpieza')}>
+          <div className="ti">
+            <IconClean color="var(--brand)" width={22} height={22} />
+          </div>
+          <div className="tile-body">
+            <div className="tile-name">Limpieza del Salón</div>
+            <div className="tile-meta">Rotación de grupos y tareas</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />

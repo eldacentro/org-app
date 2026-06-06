@@ -364,6 +364,7 @@ const dbGetTableData = async () => {
   const sources = await appDb.sources.toArray();
   const meeting_attendance = await appDb.meeting_attendance.toArray();
   const upcoming_events = await appDb.upcoming_events.toArray();
+  const limpieza_config = await appDb.limpieza_config.get('1');
   const metadata = await appDb.metadata.get(1);
 
   const congId = speakers_congregations.find(
@@ -425,6 +426,7 @@ const dbGetTableData = async () => {
     metadata,
     delegated_field_service_reports,
     upcoming_events,
+    limpieza_config,
   };
 };
 
@@ -1931,6 +1933,33 @@ const dbRestoreResponsabilidades = async (
   }
 };
 
+const dbRestoreLimpiezaConfig = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.limpieza_config) return;
+
+    const remoteRecord = structuredClone(backupData.limpieza_config) as Record<string, unknown>;
+
+    decryptObject({
+      data: remoteRecord,
+      table: 'limpieza_config',
+      accessCode,
+    });
+
+    const localRecord = await appDb.limpieza_config.get('1');
+    const remoteUpdated = remoteRecord.updatedAt || '';
+    const localUpdated = localRecord?.updatedAt || '';
+
+    if (!localRecord || remoteUpdated > localUpdated) {
+      await appDb.limpieza_config.put({ ...remoteRecord, id: '1' });
+    }
+  } catch (error) {
+    throw new Error(`limpieza_config: ${error.message}`);
+  }
+};
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -1968,6 +1997,7 @@ const dbRestoreFromBackup = async (
     await dbRestoreServiceOutings(backupData, accessCode);
     await dbRestoreExhibitors(backupData, accessCode);
     await dbRestoreResponsabilidades(backupData, accessCode);
+    await dbRestoreLimpiezaConfig(backupData, accessCode);
 
     await dbRestoreUserStudies(backupData, accessCode);
 
@@ -2025,6 +2055,18 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         'master_key'
       );
     }
+    // Extract remote data before restore, decrypt to compare later
+    const remoteSched: any[] = backupData.sched ? structuredClone(backupData.sched) : [];
+    remoteSched.forEach(r => decryptObject({ data: r, table: 'sched', accessCode }));
+
+    const remoteDept: any[] = backupData.departments_schedule ? structuredClone(backupData.departments_schedule) : [];
+    remoteDept.forEach(r => decryptObject({ data: r, table: 'departments_schedule', accessCode }));
+
+    const remoteOuting: any[] = backupData.service_outings ? structuredClone(backupData.service_outings) : [];
+    remoteOuting.forEach(r => decryptObject({ data: r, table: 'service_outings', accessCode }));
+
+    const remoteExhibitor: any[] = backupData.exhibitors ? structuredClone(backupData.exhibitors) : [];
+    remoteExhibitor.forEach(r => decryptObject({ data: r, table: 'exhibitors', accessCode }));
 
     await dbRestoreFromBackup(backupData, accessCode, masterKey);
 
@@ -2045,12 +2087,54 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       service_outings,
       exhibitors,
       responsabilidades,
+      limpieza_config,
       sources,
       meeting_attendance,
       metadata,
       delegated_field_service_reports,
       upcoming_events,
     } = await dbGetTableData();
+
+    const affectedUids = new Set<string>();
+
+    const extractUUIDs = (o: any): Set<string> => {
+      const uuids = new Set<string>();
+      const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const traverse = (item: any) => {
+        if (typeof item === 'string' && regex.test(item)) {
+          uuids.add(item);
+        } else if (Array.isArray(item)) {
+          item.forEach(traverse);
+        } else if (item !== null && typeof item === 'object') {
+          Object.values(item).forEach(traverse);
+        }
+      };
+      traverse(o);
+      return uuids;
+    };
+
+    const checkDiff = (localArray: any[], remoteArray: any[], keyField: string) => {
+      for (const local of localArray) {
+        const remote = remoteArray.find((r: any) => r[keyField] === local[keyField]);
+        const localUpdated = local.updatedAt || '';
+        const remoteUpdated = remote?.updatedAt || '';
+        if (!remote || localUpdated > remoteUpdated) {
+          const oldUids = remote ? extractUUIDs(remote) : new Set<string>();
+          const newUids = extractUUIDs(local);
+          for (const uid of oldUids) if (!newUids.has(uid)) affectedUids.add(uid);
+          for (const uid of newUids) if (!oldUids.has(uid)) affectedUids.add(uid);
+        }
+      }
+    };
+
+    if (metadata.metadata.schedules?.send_local) checkDiff(sched, remoteSched, 'weekOf');
+    if (metadata.metadata.departments_schedule?.send_local) checkDiff(departments_schedule, remoteDept, 'weekOf');
+    if (metadata.metadata.service_outings?.send_local) checkDiff(service_outings, remoteOuting, 'monthOf');
+    if (metadata.metadata.exhibitors?.send_local) checkDiff(exhibitors, remoteExhibitor, 'weekOf');
+
+    if (affectedUids.size > 0) {
+      obj.affected_uids = Array.from(affectedUids);
+    }
 
     const dataSync = settings.cong_settings.data_sync.value;
     const accountType = settings.user_settings.account_type;
@@ -2404,6 +2488,23 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.responsabilidades = toBackup;
+          }
+        }
+
+        // include limpieza_config data
+        if (
+          metadata.metadata.limpieza_config?.send_local
+        ) {
+          if (limpieza_config) {
+            const toBackup = structuredClone(limpieza_config);
+
+            encryptObject({
+              data: toBackup,
+              table: 'limpieza_config',
+              accessCode,
+            });
+
+            obj.limpieza_config = toBackup;
           }
         }
 
