@@ -1,4 +1,4 @@
-import { TerritoryRequest } from './territories';
+import { TerritoryRequest, TerritoryNotice } from './territories';
 import { APIUserRequest } from './api';
 
 export type NotificationIconType =
@@ -6,7 +6,8 @@ export type NotificationIconType =
   | 'talk'
   | 'reports'
   | 'join-requests'
-  | 'territory-requests';
+  | 'territory-requests'
+  | 'territory-assigned';
 
 export type NotificationDbRecordType = {
   id: number;
@@ -67,6 +68,17 @@ export type TerritoryRequestNotificationType = {
   read?: boolean;
 };
 
+export type TerritoryAssignedNotificationType = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  icon: NotificationIconType;
+  notice: TerritoryNotice;
+  enableRead: boolean;
+  read?: boolean;
+};
+
 export type StandardNotificationType = {
   id: string;
   title: string;
@@ -82,4 +94,5 @@ export type NotificationRecordType =
   | UnverifiedReportNotificationType
   | JoinRequestNotificationType
   | StandardNotificationType
-  | TerritoryRequestNotificationType;
+  | TerritoryRequestNotificationType
+  | TerritoryAssignedNotificationType;

@@ -20,7 +20,9 @@ import {
   territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
-import { saveAssignment, atenderRequest } from '@services/firebase/territories';
+import { saveAssignment, atenderRequest, saveNotice } from '@services/firebase/territories';
+import { apiSendTerritoryPush } from '@services/api/territories';
+import { sendEmailNotification } from '@services/firebase/email';
 import {
   computeDueAt,
   getZoneName,
@@ -129,6 +131,43 @@ const DialogAsignar = ({
       };
       await saveAssignment(congId, assignment, masterKey ?? '');
       if (requestId) await atenderRequest(congId, requestId, currentUid);
+
+      // Si le estamos asignando a una persona y no somos nosotros mismos, enviarle una notificación
+      const currentSelectedTerritory = territoryOptions.find((o) => o.id === territoryId);
+      if (personUid && personUid !== currentUid && currentSelectedTerritory) {
+        // Notificación in-app (Notice)
+        await saveNotice(congId, {
+          id: crypto.randomUUID(),
+          personUid: personUid,
+          mensaje: `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`,
+          territoryId: effectiveTerritory.id,
+          sentBy: currentUid,
+          createdAt: now,
+        });
+
+        // Notificación Push
+        await apiSendTerritoryPush(
+          [personUid],
+          'Nuevo territorio asignado',
+          `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`
+        ).catch((err) => console.error('Failed to send push', err));
+
+        // Notificación por Correo
+        const assignedPerson = persons.find(p => p.person_uid === personUid);
+        const targetEmail = assignedPerson?.person_data.email.value;
+        if (targetEmail) {
+          await sendEmailNotification(
+            targetEmail,
+            `Nuevo territorio asignado: ${territoryLabel(effectiveTerritory)}`,
+            `<p>Hola <strong>${assignedPerson.person_data.person_display_name.value}</strong>,</p>
+             <p>Se te ha asignado el territorio <strong>${territoryLabel(effectiveTerritory)}</strong>.</p>
+             <div style="text-align: center; margin-top: 30px;">
+               <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
+             </div>`
+          );
+        }
+      }
+
       onClose();
     } catch (e) {
       console.error(e);

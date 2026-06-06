@@ -619,7 +619,6 @@ const Dashboard = () => {
           </div>
           <div>
             <div className="tile-name">{t('tr_meetings', 'Reuniones')}</div>
-            <div className="tile-meta">Programas y partes</div>
           </div>
         </div>
 
@@ -631,7 +630,6 @@ const Dashboard = () => {
             </div>
             <div>
               <div className="tile-name">{t('tr_ministry', 'Predicación')}</div>
-              <div className="tile-meta">Salidas y horario</div>
             </div>
           </div>
         )}
@@ -643,7 +641,6 @@ const Dashboard = () => {
           </div>
           <div>
             <div className="tile-name">{t('tr_congregation', 'Congregación')}</div>
-            <div className="tile-meta">Personas y grupos</div>
           </div>
         </div>
 
@@ -655,7 +652,6 @@ const Dashboard = () => {
             </div>
             <div>
               <div className="tile-name">{t('tr_publicTalks', 'Discursos')}</div>
-              <div className="tile-meta">Oradores y temas</div>
             </div>
           </div>
         )}
@@ -668,7 +664,6 @@ const Dashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_reports', 'Informes')}</div>
-              <div className="tile-meta">Asistencia, predicación, sucursal</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -683,7 +678,6 @@ const Dashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_settings', 'Configuración')}</div>
-            <div className="tile-meta">Ajustes de congregación y cuenta</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />

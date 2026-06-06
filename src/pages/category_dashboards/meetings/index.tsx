@@ -42,7 +42,6 @@ const MeetingsDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_viewMyAssignments', 'Mis asignaciones')}</div>
-            <div className="tile-meta">Ver tus asignaciones pendientes</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -56,7 +55,6 @@ const MeetingsDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_viewAssignmentsSchedule', 'Programas semanales')}</div>
-            <div className="tile-meta">Programa general de la congregación</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -95,7 +93,6 @@ const MeetingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">Departamentos</div>
-              <div className="tile-meta">Acomodadores, audio, etc.</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />

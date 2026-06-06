@@ -10,8 +10,10 @@ import { saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { apiSendTerritoryPush } from '@services/api/territories';
+import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
+import { displaySnackNotification } from '@services/states/app';
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -25,12 +27,10 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
-  const [enviado, setEnviado] = useState(false);
 
   useEffect(() => {
     if (open) {
       setNota('');
-      setEnviado(false);
     }
   }, [open]);
 
@@ -52,10 +52,28 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           'Solicitud de territorio',
           `${resolveName(uid)} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`
         ).catch((err) => console.error('Failed to send push', err));
+
+        const targetEmails = targets
+          .map(targetUid => persons.find(p => p.person_uid === targetUid)?.person_data.email.value)
+          .filter(email => !!email) as string[];
+
+        if (targetEmails.length > 0) {
+          const applicantName = resolveName(uid);
+          const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${nota.trim()}</p>` : '';
+          await sendEmailNotification(
+            targetEmails,
+            `Nueva solicitud de territorio: ${applicantName}`,
+            `<p>El publicador <strong>${applicantName}</strong> ha solicitado un territorio nuevo.</p>
+             ${notaHTML}
+             <div style="text-align: center; margin-top: 30px;">
+               <a href="https://app.eldacentro.com/congregation/territories" class="btn">Abrir aplicación</a>
+             </div>`
+          );
+        }
       }
 
-      setEnviado(true);
-      setTimeout(onClose, 1200);
+      displaySnackNotification({ header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' });
+      onClose();
     } catch (e) {
       console.error(e);
     } finally {
@@ -87,37 +105,29 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           en la nota.
         </Typography>
 
-        {enviado ? (
-          <Typography variant="body1" sx={{ color: 'var(--green-main)', py: 2 }}>
-            ✓ Solicitud enviada.
-          </Typography>
-        ) : (
-          <>
-            <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
-              Nota (opcional)
-            </Typography>
-            <TextField
-              placeholder="Escribe tu nota aquí..."
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
-              multiline
-              minRows={2}
-            />
-            <Stack
-              direction="row"
-              spacing={1.5}
-              justifyContent="flex-end"
-              sx={{ mt: 3 }}
-            >
-              <Button variant="tertiary" onClick={onClose} disabled={saving}>
-                Cancelar
-              </Button>
-              <Button variant="main" onClick={handleSolicitar} disabled={saving}>
-                Solicitar
-              </Button>
-            </Stack>
-          </>
-        )}
+        <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
+          Nota (opcional)
+        </Typography>
+        <TextField
+          placeholder="Escribe tu nota aquí..."
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          multiline
+          minRows={2}
+        />
+        <Stack
+          direction="row"
+          spacing={1.5}
+          justifyContent="flex-end"
+          sx={{ mt: 3 }}
+        >
+          <Button variant="tertiary" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button variant="main" onClick={handleSolicitar} disabled={saving}>
+            Solicitar
+          </Button>
+        </Stack>
       </Box>
     </Dialog>
   );

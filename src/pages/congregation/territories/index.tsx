@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
+import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
@@ -17,6 +19,7 @@ import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
 import DialogSolicitar from '@features/territories/dialogs/DialogSolicitar';
 import MisTerritoriosSection from '@features/territories/MisTerritorios/MisTerritoriosSection';
 import { Territory, TerritoryAssignment } from '@definition/territories';
+import { territoriesState } from '@states/territories';
 
 type AsignarState = {
   open: boolean;
@@ -33,6 +36,8 @@ const TerritoriesPage = () => {
   const { tablet688Up } = useBreakpoints();
   useTerritories();
   const canManage = useIsTerritoryManager();
+  const territories = useAtomValue(territoriesState);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [openZonas, setOpenZonas] = useState(false);
   const [openEtiquetas, setOpenEtiquetas] = useState(false);
@@ -40,8 +45,22 @@ const TerritoriesPage = () => {
   const [openSolicitar, setOpenSolicitar] = useState(false);
   const [viewing, setViewing] = useState<Territory | null>(null);
   const [editing, setEditing] = useState<Territory | null>(null);
-  const [entregando, setEntregando] = useState<TerritoryAssignment | null>(null);
   const [asignar, setAsignar] = useState<AsignarState>(CLOSED_ASIGNAR);
+  const [entregando, setEntregando] = useState<TerritoryAssignment | null>(null);
+
+  useEffect(() => {
+    const viewId = searchParams.get('view');
+    if (viewId && territories.length > 0) {
+      const t = territories.find((t) => t.id === viewId);
+      if (t && (!viewing || viewing.id !== t.id)) {
+        setViewing(t);
+        // Clean up URL so it doesn't stay open if closed
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('view');
+        setSearchParams(newParams, { replace: true });
+      }
+    }
+  }, [searchParams, territories, viewing, setSearchParams]);
 
   const buttons = (
     <NavBarButton

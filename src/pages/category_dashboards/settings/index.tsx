@@ -24,7 +24,6 @@ const SettingsDashboard = () => {
   } = useCurrentUser();
 
   const {
-    secondaryText,
     handleManualSync,
     isConnected,
   } = useCongregation();
@@ -51,7 +50,6 @@ const SettingsDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_myProfile', 'Mi cuenta')}</div>
-            <div className="tile-meta">Tus ajustes personales</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -66,7 +64,6 @@ const SettingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_congregationSettings', 'Ajustes de congregación')}</div>
-              <div className="tile-meta">Configuración general</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -82,7 +79,6 @@ const SettingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_manageAccess', 'Cuentas de usuario')}</div>
-              <div className="tile-meta">Administrar accesos</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -98,7 +94,6 @@ const SettingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_sourceImportJw', 'Importar desde jw.org')}</div>
-              <div className="tile-meta">Importar de forma automática</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -114,7 +109,6 @@ const SettingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_sourceImportEPUB', 'Importar desde archivo .epub')}</div>
-              <div className="tile-meta">Cargar archivo de publicación</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -130,7 +124,6 @@ const SettingsDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_syncAppData', 'Sincronizar datos')}</div>
-              <div className="tile-meta">{secondaryText || 'Sincronizar información'}</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />

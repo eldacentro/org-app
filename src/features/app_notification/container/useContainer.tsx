@@ -35,6 +35,7 @@ import { apiUserGetUpdates } from '@services/api/user';
 import { apiFetchNotifications } from '@services/api/notification';
 import useJoinRequests from './useJoinRequests';
 import useTerritoryRequestsNotifications from './useTerritoryRequestsNotifications';
+import useTerritoryAssignedNotifications from './useTerritoryAssignedNotifications';
 import usePendingRequests from './usePendingRequests';
 import useRemoteNotifications from './useRemoteNotifications';
 import useUnverifiedReports from './useUnverifiedReports';
@@ -53,6 +54,7 @@ const useContainer = () => {
 
   const { setJoinRequests } = useJoinRequests();
   useTerritoryRequestsNotifications();
+  useTerritoryAssignedNotifications();
 
   const [notifications, setNotifications] = useAtom(notificationsState);
 

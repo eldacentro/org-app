@@ -28,25 +28,41 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
     <>
       <Box
         sx={{
-          borderRadius: 'var(--radius-l)',
-          padding: '12px',
-          border: '1px solid var(--accent-300)',
-          marginTop: '8px',
+          mt: '12px',
+          p: '16px',
+          borderRadius: '12px',
+          border: '1px solid var(--accent-200)',
           backgroundColor: 'var(--white)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         }}
       >
-        <Stack spacing={1}>
-          <Typography className="h4">{fullname}</Typography>
+        <Stack spacing={1.5}>
+          <Typography sx={{ fontWeight: 600, fontSize: '14px', color: 'var(--ink)' }}>{fullname}</Typography>
           {request.nota && (
-            <Typography variant="body2" color="var(--grey-400)">
+            <Typography variant="body2" sx={{ color: 'var(--grey-400)', lineHeight: 1.5 }}>
               <strong>Nota:</strong> {request.nota}
             </Typography>
           )}
 
-          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
+          <Stack direction="row" justifyContent="flex-start" sx={{ mt: 1 }}>
             <Button
-              variant="small"
+              variant="main"
               onClick={() => setOpenAssign(true)}
+              sx={{
+                height: '38px',
+                minHeight: '38px',
+                px: '20px',
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '14px',
+                letterSpacing: '0.01em',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }
+              }}
             >
               Asignar territorio
             </Button>

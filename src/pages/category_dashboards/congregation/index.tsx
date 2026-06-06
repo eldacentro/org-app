@@ -45,7 +45,6 @@ const CongregationDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_persons', 'Personas')}</div>
-              <div className="tile-meta">Registro y perfiles</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -60,7 +59,6 @@ const CongregationDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_fieldServiceGroups', 'Grupos de predicación')}</div>
-            <div className="tile-meta">Tus grupos asignados</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -74,7 +72,6 @@ const CongregationDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">Responsabilidades</div>
-            <div className="tile-meta">Departamentos y responsabilidades</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -88,7 +85,6 @@ const CongregationDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">Plan de Evacuación</div>
-            <div className="tile-meta">Salón del Reino · rutas y equipos</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -102,7 +98,6 @@ const CongregationDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">Limpieza del Salón</div>
-            <div className="tile-meta">Rotación de grupos y tareas</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -123,7 +118,6 @@ const CongregationDashboard = () => {
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--blue-main)' }} />
               )}
             </div>
-            <div className="tile-meta">Tablón de anuncios y archivos</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
@@ -138,7 +132,6 @@ const CongregationDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_pioneerApplications', 'Solicitudes de precursor')}</div>
-              <div className="tile-meta">Revisión de solicitudes</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -153,7 +146,6 @@ const CongregationDashboard = () => {
           </div>
           <div className="tile-body">
             <div className="tile-name">Próximos eventos</div>
-            <div className="tile-meta">Calendario de actividades</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />

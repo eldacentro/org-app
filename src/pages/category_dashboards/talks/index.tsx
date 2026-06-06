@@ -34,7 +34,6 @@ const TalksDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_publicTalksList', 'Lista de discursos públicos')}</div>
-              <div className="tile-meta">Programación y asignaciones</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -50,7 +49,6 @@ const TalksDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">Catálogo de oradores</div>
-              <div className="tile-meta">Oradores locales e invitados</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
@@ -66,7 +64,6 @@ const TalksDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_outgoingTalks', 'Oradores salientes')}</div>
-              <div className="tile-meta">Discursos fuera de tu congregación</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />

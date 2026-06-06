@@ -5,6 +5,7 @@ import {
   IconNotifications,
   IconPrepareReport,
   IconTalk,
+  IconLocation,
 } from '@components/icons';
 import {
   JoinRequestNotificationType,
@@ -18,7 +19,8 @@ import Button from '@components/button';
 import JoinRequest from '@features/congregation/app_access/join_requests/item';
 import SpeakerAccessRequest from '../speakers_access_request';
 import TerritoryAccessRequest from '../territory_access_request';
-import { TerritoryRequestNotificationType } from '@definition/notification';
+import TerritoryAssignedNotice from '../territory_assigned_notice';
+import { TerritoryRequestNotificationType, TerritoryAssignedNotificationType } from '@definition/notification';
 import TextMarkup from '@components/text_markup';
 import Typography from '@components/typography';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
@@ -49,6 +51,11 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; color: string; bg: strin
     color: 'var(--orange-main)',
     bg: 'rgba(234,88,12,0.10)',
   },
+  'territory-assigned': {
+    icon: <IconLocation color="var(--green-main)" />,
+    color: 'var(--green-main)',
+    bg: 'var(--green-secondary)',
+  },
 };
 
 const NotificationItem = ({
@@ -68,13 +75,19 @@ const NotificationItem = ({
       className="notif-card"
       sx={{
         position: 'relative',
-        borderRadius: 'var(--radius-l)',
-        p: '14px 16px',
-        mb: '10px',
-        transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease',
+        borderRadius: '16px',
+        p: '16px',
+        mb: '12px',
+        backgroundColor: notification.read ? 'var(--white)' : '#f8fafc',
+        border: '1px solid',
+        borderColor: notification.read ? 'var(--accent-200)' : 'var(--brand-main-10)',
+        boxShadow: notification.read ? 'none' : '0 4px 12px rgba(0,0,0,0.03)',
+        transition: 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
         cursor: 'default',
         '&:hover': {
           transform: 'translateY(-2px)',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.06)',
+          borderColor: 'var(--accent-300)',
         },
       }}
     >
@@ -149,6 +162,10 @@ const NotificationItem = ({
             (notification as TerritoryRequestNotificationType).requests.map((request) => (
               <TerritoryAccessRequest key={request.id} request={request} />
             ))}
+
+          {notification.icon === 'territory-assigned' && (
+            <TerritoryAssignedNotice notification={notification as TerritoryAssignedNotificationType} />
+          )}
 
           {notification.id === 'join-requests' &&
             (notification as JoinRequestNotificationType).requests.map((request) => (
