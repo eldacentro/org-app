@@ -1,3 +1,4 @@
+import { displaySnackNotification } from '@services/states/app';
 import { useState, useMemo } from 'react';
 import {
   Dialog,
@@ -76,7 +77,11 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       onClose();
     } catch (e) {
       console.error(e);
-      alert('Error guardando territorio');
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Error guardando territorio',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -94,7 +99,11 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
         onClose();
       } catch (e) {
         console.error(e);
-        alert('Error eliminando territorio');
+        displaySnackNotification({
+          header: 'Error',
+          message: 'Error eliminando territorio',
+          severity: 'error',
+        });
       } finally {
         setDeleting(false);
       }

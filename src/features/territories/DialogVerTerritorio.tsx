@@ -1,3 +1,4 @@
+import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useMemo, useRef, useState, forwardRef, type ReactElement, type Ref } from 'react';
 import {
   Box,
@@ -267,7 +268,11 @@ const DialogVerTerritorio = ({
       await saveTerritory(congID, { ...liveTerritory, imageURL: url }, masterKey ?? '');
     } catch (e) {
       console.error(e);
-      alert('Error subiendo imagen. Verifica tu conexión.');
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Error subiendo imagen. Verifica tu conexión.',
+        severity: 'error',
+      });
     } finally {
       setUploading(false);
     }
@@ -281,7 +286,11 @@ const DialogVerTerritorio = ({
       await saveTerritory(congID, { ...liveTerritory, imageURL: '' }, masterKey ?? '');
     } catch (e) {
       console.error(e);
-      alert('Error eliminando la imagen. Verifica tu conexión.');
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Error eliminando la imagen. Verifica tu conexión.',
+        severity: 'error',
+      });
     } finally {
       setUploading(false);
     }

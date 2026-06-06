@@ -1,3 +1,4 @@
+import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useState } from 'react';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -74,10 +75,11 @@ const DialogZonas = ({ open, onClose }: Props) => {
   const handleDelete = async (zone: TerritoryZone) => {
     const count = territories.filter((t) => t.zoneId === zone.id).length;
     if (count > 0) {
-      window.alert(
-        `No puedes borrar "${zone.nombre}": tiene ${count} territorio(s). ` +
-          'Muévelos o elimínalos primero.'
-      );
+      displaySnackNotification({
+        header: 'Error',
+        message: `No puedes borrar "${zone.nombre}": tiene ${count} territorio(s). Muévelos o elimínalos primero.`,
+        severity: 'error',
+      });
       return;
     }
     if (window.confirm(`¿Borrar la zona "${zone.nombre}"?`)) {

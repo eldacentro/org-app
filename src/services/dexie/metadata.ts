@@ -28,6 +28,14 @@ export const dbMetadataDefault = async () => {
       exhibitors: { version: '', send_local: true },
       limpieza_config: { version: '', send_local: true },
       evacuacion_config: { version: '', send_local: true },
+      territories: { version: '', send_local: true },
+      territory_zones: { version: '', send_local: true },
+      territory_tags: { version: '', send_local: true },
+      territory_assignments: { version: '', send_local: true },
+      territory_campaigns: { version: '', send_local: true },
+      territory_notices: { version: '', send_local: true },
+      territory_requests: { version: '', send_local: true },
+      territory_settings: { version: '', send_local: true },
     };
 
     if (!metadata) {
@@ -86,6 +94,14 @@ export const dbMetadataReset = async () => {
         exhibitors: { version: '', send_local: true },
         limpieza_config: { version: '', send_local: true },
         evacuacion_config: { version: '', send_local: true },
+        territories: { version: '', send_local: true },
+        territory_zones: { version: '', send_local: true },
+        territory_tags: { version: '', send_local: true },
+        territory_assignments: { version: '', send_local: true },
+        territory_campaigns: { version: '', send_local: true },
+        territory_notices: { version: '', send_local: true },
+        territory_requests: { version: '', send_local: true },
+        territory_settings: { version: '', send_local: true },
       },
     });
   } catch (error) {

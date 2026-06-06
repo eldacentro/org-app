@@ -368,6 +368,15 @@ const dbGetTableData = async () => {
   const evacuacion_config = await appDb.evacuacion_config.get('1');
   const metadata = await appDb.metadata.get(1);
 
+  const territories = await appDb.territories.toArray();
+  const territory_zones = await appDb.territory_zones.toArray();
+  const territory_tags = await appDb.territory_tags.toArray();
+  const territory_assignments = await appDb.territory_assignments.toArray();
+  const territory_campaigns = await appDb.territory_campaigns.toArray();
+  const territory_notices = await appDb.territory_notices.toArray();
+  const territory_requests = await appDb.territory_requests.toArray();
+  const territory_settings = await appDb.territory_settings.toArray();
+
   const congId = speakers_congregations.find(
     (record) =>
       record.cong_data.cong_name.value === settings.cong_settings.cong_name
@@ -429,6 +438,14 @@ const dbGetTableData = async () => {
     upcoming_events,
     limpieza_config,
     evacuacion_config,
+    territories,
+    territory_zones,
+    territory_tags,
+    territory_assignments,
+    territory_campaigns,
+    territory_notices,
+    territory_requests,
+    territory_settings,
   };
 };
 
@@ -2124,6 +2141,14 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       metadata,
       delegated_field_service_reports,
       upcoming_events,
+      territories,
+      territory_zones,
+      territory_tags,
+      territory_assignments,
+      territory_campaigns,
+      territory_notices,
+      territory_requests,
+      territory_settings,
     } = await dbGetTableData();
 
     const affectedUids = new Set<string>();
@@ -2564,6 +2589,38 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           }
         }
 
+
+
+        // include territories data
+        if (adminRole || elderRole || metadata.metadata.territories?.send_local) {
+          const toAdd = [
+            { name: 'territories', data: territories },
+            { name: 'territory_zones', data: territory_zones },
+            { name: 'territory_tags', data: territory_tags },
+            { name: 'territory_assignments', data: territory_assignments },
+            { name: 'territory_campaigns', data: territory_campaigns },
+            { name: 'territory_notices', data: territory_notices },
+            { name: 'territory_requests', data: territory_requests },
+            { name: 'territory_settings', data: territory_settings },
+          ];
+
+          for (const item of toAdd) {
+            if (item.data && item.data.length > 0) {
+              const toBackup = structuredClone(item.data);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              toBackup.forEach((rec: any) => {
+                encryptObject({
+                  data: rec,
+                  table: item.name,
+                  accessCode,
+                  masterKey,
+                });
+              });
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (obj as any)[item.name] = toBackup;
+            }
+          }
+        }
         // for admin role
         if (adminRole) {
           // include branch reports

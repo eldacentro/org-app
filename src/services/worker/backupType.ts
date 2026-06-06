@@ -41,5 +41,13 @@ export type BackupDataType = {
   delegated_field_service_reports?: object;
   limpieza_config?: object;
   evacuacion_config?: object;
+  territories?: object;
+  territory_zones?: object;
+  territory_tags?: object;
+  territory_assignments?: object;
+  territory_campaigns?: object;
+  territory_notices?: object;
+  territory_requests?: object;
+  territory_settings?: object;
   affected_uids?: string[];
 };

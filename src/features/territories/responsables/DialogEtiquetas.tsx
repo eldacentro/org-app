@@ -1,3 +1,4 @@
+import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useState } from 'react';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -73,10 +74,11 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
   const handleDelete = async (tag: TerritoryTag) => {
     const count = territories.filter((t) => t.tags?.includes(tag.id)).length;
     if (count > 0) {
-      window.alert(
-        `No puedes borrar "${tag.nombre}": está asignada a ${count} territorio(s). ` +
-          'Quítala de los territorios primero.'
-      );
+      displaySnackNotification({
+        header: 'Error',
+        message: `No puedes borrar "${tag.nombre}": está asignada a ${count} territorio(s). Quítala de los territorios primero.`,
+        severity: 'error',
+      });
       return;
     }
     if (window.confirm(`¿Borrar la etiqueta "${tag.nombre}"?`)) {
