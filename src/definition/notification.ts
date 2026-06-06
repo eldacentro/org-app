@@ -1,10 +1,12 @@
+import { TerritoryRequest } from './territories';
 import { APIUserRequest } from './api';
 
 export type NotificationIconType =
   | 'standard'
   | 'talk'
   | 'reports'
-  | 'join-requests';
+  | 'join-requests'
+  | 'territory-requests';
 
 export type NotificationDbRecordType = {
   id: number;
@@ -53,6 +55,18 @@ export type JoinRequestNotificationType = {
   read?: boolean;
 };
 
+
+export type TerritoryRequestNotificationType = {
+  id: 'territory-requests';
+  title: string;
+  description: string;
+  date: string;
+  icon: NotificationIconType;
+  requests: TerritoryRequest[];
+  enableRead: boolean;
+  read?: boolean;
+};
+
 export type StandardNotificationType = {
   id: string;
   title: string;
@@ -67,4 +81,5 @@ export type NotificationRecordType =
   | SpeakerNotificationType
   | UnverifiedReportNotificationType
   | JoinRequestNotificationType
-  | StandardNotificationType;
+  | StandardNotificationType
+  | TerritoryRequestNotificationType;

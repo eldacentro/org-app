@@ -17,6 +17,8 @@ import useNotificationItem from './useNotificationItem';
 import Button from '@components/button';
 import JoinRequest from '@features/congregation/app_access/join_requests/item';
 import SpeakerAccessRequest from '../speakers_access_request';
+import TerritoryAccessRequest from '../territory_access_request';
+import { TerritoryRequestNotificationType } from '@definition/notification';
 import TextMarkup from '@components/text_markup';
 import Typography from '@components/typography';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
@@ -36,6 +38,11 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; color: string; bg: strin
     icon: <IconPrepareReport color="#16a34a" />,
     color: '#16a34a',
     bg: 'rgba(22,163,74,0.10)',
+  },
+  'territory-requests': {
+    icon: <IconTalk color="var(--brand)" />,
+    color: 'var(--brand)',
+    bg: 'var(--accent-200)',
   },
   'join-requests': {
     icon: <IconAccount color="var(--orange-main)" />,
@@ -136,6 +143,11 @@ const NotificationItem = ({
           {notification.id === 'speakers-request' &&
             (notification as SpeakerNotificationType).congs.map((request) => (
               <SpeakerAccessRequest key={request.request_id} request={request} />
+            ))}
+
+                    {notification.id === 'territory-requests' &&
+            (notification as TerritoryRequestNotificationType).requests.map((request) => (
+              <TerritoryAccessRequest key={request.id} request={request} />
             ))}
 
           {notification.id === 'join-requests' &&

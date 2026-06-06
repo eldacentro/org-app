@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { notificationsState } from '@states/notification';
 import { territoryPendingRequestsState } from '@states/territories';
-import { StandardNotificationType } from '@definition/notification';
+import { TerritoryRequestNotificationType } from '@definition/notification';
 
 const useTerritoryRequestsNotifications = () => {
   const setNotifications = useSetAtom(notificationsState);
@@ -14,12 +14,13 @@ const useTerritoryRequestsNotifications = () => {
         a.createdAt.localeCompare(b.createdAt)
       )[pendingRequests.length - 1].createdAt;
 
-      const requestNotification: StandardNotificationType = {
+      const requestNotification: TerritoryRequestNotificationType = {
         id: 'territory-requests',
         title: 'Solicitudes de territorio',
         description: `Hay ${pendingRequests.length} solicitud(es) de territorio pendiente(s) de atender. Ve a la sección [Territorios](/territories) para gestionarlas.`,
         date: lastUpdated,
-        icon: 'standard',
+        icon: 'territory-requests',
+        requests: pendingRequests,
         enableRead: false,
         read: false,
       };
