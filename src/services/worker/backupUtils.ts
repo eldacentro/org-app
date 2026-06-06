@@ -2056,16 +2056,16 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       );
     }
     // Extract remote data before restore, decrypt to compare later
-    const remoteSched: any[] = backupData.sched ? structuredClone(backupData.sched) : [];
+    const remoteSched = backupData.sched ? (structuredClone(backupData.sched) as SchedWeekType[]) : [];
     remoteSched.forEach(r => decryptObject({ data: r, table: 'sched', accessCode }));
 
-    const remoteDept: any[] = backupData.departments_schedule ? structuredClone(backupData.departments_schedule) : [];
+    const remoteDept = backupData.departments_schedule ? (structuredClone(backupData.departments_schedule) as DeptWeekType[]) : [];
     remoteDept.forEach(r => decryptObject({ data: r, table: 'departments_schedule', accessCode }));
 
-    const remoteOuting: any[] = backupData.service_outings ? structuredClone(backupData.service_outings) : [];
+    const remoteOuting = backupData.service_outings ? (structuredClone(backupData.service_outings) as ServiceOutingWeekType[]) : [];
     remoteOuting.forEach(r => decryptObject({ data: r, table: 'service_outings', accessCode }));
 
-    const remoteExhibitor: any[] = backupData.exhibitors ? structuredClone(backupData.exhibitors) : [];
+    const remoteExhibitor = backupData.exhibitors ? (structuredClone(backupData.exhibitors) as ExhibitorWeekType[]) : [];
     remoteExhibitor.forEach(r => decryptObject({ data: r, table: 'exhibitors', accessCode }));
 
     await dbRestoreFromBackup(backupData, accessCode, masterKey);
@@ -2097,25 +2097,33 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
     const affectedUids = new Set<string>();
 
-    const extractUUIDs = (o: any): Set<string> => {
+    const extractUUIDs = (o: unknown): Set<string> => {
       const uuids = new Set<string>();
       const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const traverse = (item: any) => {
+      const traverse = (item: unknown) => {
         if (typeof item === 'string' && regex.test(item)) {
           uuids.add(item);
         } else if (Array.isArray(item)) {
-          item.forEach(traverse);
+          (item as unknown[]).forEach(traverse);
         } else if (item !== null && typeof item === 'object') {
-          Object.values(item).forEach(traverse);
+          Object.values(item as Record<string, unknown>).forEach(traverse);
         }
       };
       traverse(o);
       return uuids;
     };
 
-    const checkDiff = (localArray: any[], remoteArray: any[], keyField: string) => {
+    interface DiffableItem extends Record<string, unknown> {
+      updatedAt?: string;
+    }
+
+    const checkDiff = <T extends DiffableItem>(
+      localArray: T[],
+      remoteArray: T[],
+      keyField: keyof T & string
+    ) => {
       for (const local of localArray) {
-        const remote = remoteArray.find((r: any) => r[keyField] === local[keyField]);
+        const remote = remoteArray.find((r) => r[keyField] === local[keyField]);
         const localUpdated = local.updatedAt || '';
         const remoteUpdated = remote?.updatedAt || '';
         if (!remote || localUpdated > remoteUpdated) {
