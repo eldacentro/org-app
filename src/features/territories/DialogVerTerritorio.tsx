@@ -21,6 +21,7 @@ import {
   territoryTagsState,
   territoryOpenAssignmentsState,
   territorySettingsState,
+  territoriesState,
 } from '@states/territories';
 import {
   congIDState,
@@ -208,6 +209,14 @@ const DialogVerTerritorio = ({
   const zones = useAtomValue(territoryZonesState);
   const allTags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
+  const territories = useAtomValue(territoriesState);
+  
+  // LIVE TERRITORY: El prop 'territory' puede ser un snapshot estático (ej. del state de índice).
+  // Buscamos el objeto vivo en jotai para que los cambios (como subir imagen) se reflejen al instante.
+  const liveTerritory = useMemo(() => {
+    return territories.find((t) => t.id === territory?.id) || territory;
+  }, [territories, territory]);
+
   const congID = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
   const settings = useAtomValue(territorySettingsState);
@@ -238,23 +247,23 @@ const DialogVerTerritorio = ({
   }, [territory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const relevantAssignment = useMemo(() => {
-    if (!territory) return null;
-    return openAssignments.find((a) => a.territoryId === territory.id);
-  }, [territory, openAssignments]);
+    if (!liveTerritory) return null;
+    return openAssignments.find((a) => a.territoryId === liveTerritory.id);
+  }, [liveTerritory, openAssignments]);
 
-  if (!territory) return null;
+  if (!liveTerritory) return null;
 
-  const color = getZoneColor(territory.zoneId, zones);
-  const zoneName = getZoneName(territory.zoneId, zones);
-  const label = territoryLabel(territory);
+  const color = getZoneColor(liveTerritory.zoneId, zones);
+  const zoneName = getZoneName(liveTerritory.zoneId, zones);
+  const label = territoryLabel(liveTerritory);
   const isOpen = Boolean(relevantAssignment);
 
   const handleUploadImage = async (file?: File) => {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadTerritoryImage(congID, territory.id, file);
-      await saveTerritory(congID, { ...territory, imageURL: url }, masterKey ?? '');
+      const url = await uploadTerritoryImage(congID, liveTerritory.id, file);
+      await saveTerritory(congID, { ...liveTerritory, imageURL: url }, masterKey ?? '');
     } catch (e) {
       console.error(e);
       alert('Error subiendo imagen. Verifica tu conexión.');
@@ -264,11 +273,11 @@ const DialogVerTerritorio = ({
   };
 
   const handleToggleTag = async (tagId: string) => {
-    const current = territory.tags || [];
+    const current = liveTerritory.tags || [];
     const updated = current.includes(tagId)
       ? current.filter((t) => t !== tagId)
       : [...current, tagId];
-    await saveTerritory(congID, { ...territory, tags: updated }, masterKey ?? '');
+    await saveTerritory(congID, { ...liveTerritory, tags: updated }, masterKey ?? '');
   };
 
   // ── Alturas del sheet por tab ──────────────────────────────────────────────
@@ -298,7 +307,7 @@ const DialogVerTerritorio = ({
         }}
       >
         <TerritoryMap
-          geometry={territory.geometry}
+          geometry={liveTerritory.geometry}
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
@@ -432,7 +441,7 @@ const DialogVerTerritorio = ({
 
             {/* Tags dots + edit button */}
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: '2px', flexShrink: 0 }}>
-              {(territory.tags || []).slice(0, 4).map((tagId) => {
+              {(liveTerritory.tags || []).slice(0, 4).map((tagId) => {
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
                 return (
@@ -489,7 +498,7 @@ const DialogVerTerritorio = ({
               ) : (
                 <Stack direction="row" flexWrap="wrap" gap={0.75}>
                   {allTags.map((tag) => {
-                    const active = (territory.tags || []).includes(tag.id);
+                    const active = (liveTerritory.tags || []).includes(tag.id);
                     return (
                       <Box
                         key={tag.id}
@@ -545,7 +554,7 @@ const DialogVerTerritorio = ({
           {/* TAB 0: Mapa — notas del territorio */}
           {tab === 0 && (
             <Box>
-              {territory.notas ? (
+              {liveTerritory.notas ? (
                 <Box
                   sx={{
                     p: '14px 16px',
@@ -568,7 +577,7 @@ const DialogVerTerritorio = ({
                     Notas
                   </Typography>
                   <Typography sx={{ fontSize: 14, color: '#92400E', lineHeight: 1.5 }}>
-                    {territory.notas}
+                    {liveTerritory.notas}
                   </Typography>
                 </Box>
               ) : (
@@ -586,15 +595,15 @@ const DialogVerTerritorio = ({
             </Box>
           )}
 
-          {/* TAB 1: Imagen — se muestra DENTRO del sheet (no overlay) */}
+          {/* TAB 1: Imagen */}
           {tab === 1 && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {territory.imageURL ? (
+              {liveTerritory.imageURL ? (
                 <PhotoProvider maskOpacity={0.92}>
-                  <PhotoView src={territory.imageURL}>
+                  <PhotoView src={liveTerritory.imageURL}>
                     <Box
                       component="img"
-                      src={territory.imageURL}
+                      src={liveTerritory.imageURL}
                       alt={label}
                       sx={{
                         width: '100%',
@@ -650,7 +659,7 @@ const DialogVerTerritorio = ({
                   >
                     {uploading
                       ? 'Subiendo…'
-                      : territory.imageURL
+                      : liveTerritory.imageURL
                       ? 'Cambiar imagen'
                       : 'Subir imagen (PNG/JPG)'}
                   </Box>
@@ -668,7 +677,7 @@ const DialogVerTerritorio = ({
 
           {/* TAB 2: Direcciones */}
           {tab === 2 && (
-            <DireccionesTab territoryId={territory.id} canManage={canManage} />
+            <DireccionesTab territoryId={liveTerritory.id} canManage={canManage} />
           )}
         </Box>
 
@@ -696,7 +705,7 @@ const DialogVerTerritorio = ({
           {canManage && !relevantAssignment && onAsignar && (
             <ActionButton
               label="Asignar territorio"
-              onClick={() => onAsignar(territory)}
+              onClick={() => onAsignar(liveTerritory)}
               color={color}
               variant="primary"
             />
@@ -728,7 +737,7 @@ const DialogVerTerritorio = ({
         }}
       >
         <TerritoryMap
-          geometry={territory.geometry}
+          geometry={liveTerritory.geometry}
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
@@ -841,9 +850,9 @@ const DialogVerTerritorio = ({
           </Stack>
 
           {/* Tags */}
-          {(territory.tags || []).length > 0 || canManage ? (
+          {(liveTerritory.tags || []).length > 0 || canManage ? (
             <Stack direction="row" alignItems="center" sx={{ mt: 1.25, flexWrap: 'wrap', gap: 0.5 }}>
-              {(territory.tags || []).map((tagId) => {
+              {(liveTerritory.tags || []).map((tagId) => {
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
                 return (
@@ -890,7 +899,7 @@ const DialogVerTerritorio = ({
             <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
               <Stack direction="row" flexWrap="wrap" gap={0.75}>
                 {allTags.map((tag) => {
-                  const active = (territory.tags || []).includes(tag.id);
+                  const active = (liveTerritory.tags || []).includes(tag.id);
                   return (
                     <Box
                       key={tag.id}
@@ -931,7 +940,7 @@ const DialogVerTerritorio = ({
         <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 1 }}>
           {tab === 0 && (
             <Box>
-              {territory.notas ? (
+              {liveTerritory.notas ? (
                 <Box sx={{ p: 2, backgroundColor: '#FFFBEA', borderRadius: '12px', border: '1px solid #FDE68A', mb: 2 }}>
                   <Typography
                     sx={{
@@ -947,7 +956,7 @@ const DialogVerTerritorio = ({
                     Notas internas
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#92400E' }}>
-                    {territory.notas}
+                    {liveTerritory.notas}
                   </Typography>
                 </Box>
               ) : (
@@ -960,12 +969,12 @@ const DialogVerTerritorio = ({
 
           {tab === 1 && (
             <Box>
-              {territory.imageURL ? (
+              {liveTerritory.imageURL ? (
                 <PhotoProvider maskOpacity={0.9}>
-                  <PhotoView src={territory.imageURL}>
+                  <PhotoView src={liveTerritory.imageURL}>
                     <Box
                       component="img"
-                      src={territory.imageURL}
+                      src={liveTerritory.imageURL}
                       alt={label}
                       sx={{
                         width: '100%',
@@ -996,7 +1005,7 @@ const DialogVerTerritorio = ({
               {canManage && (
                 <Button variant="tertiary" disableAutoStretch disabled={uploading}>
                   <label style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {uploading ? 'Subiendo…' : territory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
+                    {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
                     <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => handleUploadImage(e.target.files?.[0])} />
                   </label>
                 </Button>
@@ -1005,7 +1014,7 @@ const DialogVerTerritorio = ({
           )}
 
           {tab === 2 && (
-            <DireccionesTab territoryId={territory.id} canManage={canManage} />
+            <DireccionesTab territoryId={liveTerritory.id} canManage={canManage} />
           )}
         </Box>
 
