@@ -38,4 +38,4 @@ replit.nix
 **/tasks.json
 .vercel
 
-api/
+/api/
