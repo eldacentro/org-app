@@ -93,8 +93,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           </Typography>
         ) : (
           <>
+            <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
+              Nota (opcional)
+            </Typography>
             <TextField
-              label="Nota (opcional)"
+              placeholder="Escribe tu nota aquí..."
               value={nota}
               onChange={(e) => setNota(e.target.value)}
               multiline

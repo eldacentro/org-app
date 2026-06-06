@@ -34,6 +34,7 @@ import { dbHandleIncomingReports } from '@services/dexie/cong_field_service_repo
 import { apiUserGetUpdates } from '@services/api/user';
 import { apiFetchNotifications } from '@services/api/notification';
 import useJoinRequests from './useJoinRequests';
+import useTerritoryRequestsNotifications from './useTerritoryRequestsNotifications';
 import usePendingRequests from './usePendingRequests';
 import useRemoteNotifications from './useRemoteNotifications';
 import useUnverifiedReports from './useUnverifiedReports';
@@ -51,6 +52,7 @@ const useContainer = () => {
   const { handleRemoteNotifications } = useRemoteNotifications();
 
   const { setJoinRequests } = useJoinRequests();
+  useTerritoryRequestsNotifications();
 
   const [notifications, setNotifications] = useAtom(notificationsState);
 

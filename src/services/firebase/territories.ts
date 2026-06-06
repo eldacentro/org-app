@@ -340,7 +340,7 @@ export const deleteCampaign = (congId: string, campaignId: string) =>
   deleteDoc(fsDoc(campaignsCol(congId), campaignId));
 
 export const saveRequest = (congId: string, r: TerritoryRequest) =>
-  setDoc(fsDoc(requestsCol(congId), r.id), r);
+  setDoc(fsDoc(requestsCol(congId), r.id), stripUndefined(r));
 
 export const atenderRequest = (
   congId: string,
