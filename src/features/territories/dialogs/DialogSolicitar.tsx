@@ -27,10 +27,12 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
+  const [enviado, setEnviado] = useState(false);
 
   useEffect(() => {
     if (open) {
       setNota('');
+      setEnviado(false);
     }
   }, [open]);
 
@@ -72,8 +74,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         }
       }
 
-      displaySnackNotification({ header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' });
-      onClose();
+      setEnviado(true);
+      setTimeout(() => {
+        displaySnackNotification({ header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' });
+        onClose();
+      }, 1200);
     } catch (e) {
       console.error(e);
     } finally {
@@ -105,29 +110,37 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           en la nota.
         </Typography>
 
-        <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
-          Nota (opcional)
-        </Typography>
-        <TextField
-          placeholder="Escribe tu nota aquí..."
-          value={nota}
-          onChange={(e) => setNota(e.target.value)}
-          multiline
-          minRows={2}
-        />
-        <Stack
-          direction="row"
-          spacing={1.5}
-          justifyContent="flex-end"
-          sx={{ mt: 3 }}
-        >
-          <Button variant="tertiary" onClick={onClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button variant="main" onClick={handleSolicitar} disabled={saving}>
-            Solicitar
-          </Button>
-        </Stack>
+        {enviado ? (
+          <Typography variant="body1" sx={{ color: 'var(--green-main)', py: 2 }}>
+            ✓ Solicitud enviada.
+          </Typography>
+        ) : (
+          <>
+            <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
+              Nota (opcional)
+            </Typography>
+            <TextField
+              placeholder="Escribe tu nota aquí..."
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              multiline
+              minRows={2}
+            />
+            <Stack
+              direction="row"
+              spacing={1.5}
+              justifyContent="flex-end"
+              sx={{ mt: 3 }}
+            >
+              <Button variant="tertiary" onClick={onClose} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button variant="main" onClick={handleSolicitar} disabled={saving}>
+                Solicitar
+              </Button>
+            </Stack>
+          </>
+        )}
       </Box>
     </Dialog>
   );
