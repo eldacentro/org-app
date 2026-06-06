@@ -9,7 +9,7 @@ import {
   territorySettingsState,
   territoryZonesState,
 } from '@states/territories';
-import { Territory, TerritoryAssignment } from '@definition/territories';
+import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveNotice } from '@services/firebase/territories';
 import {
@@ -103,6 +103,54 @@ const KpiCard = ({
   </Box>
 );
 
+// ─── Fila de territorio no asignado (reutilizable en vista plana y agrupada) ──
+const NoAsignadoRow = ({
+  t,
+  zones,
+  dateFormat,
+  onAsignar,
+  grouping,
+}: {
+  t: Territory;
+  zones: TerritoryZone[];
+  dateFormat: string;
+  onAsignar: (t: Territory) => void;
+  grouping: 'zone' | 'none';
+}) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    justifyContent="space-between"
+    sx={{
+      p: 2,
+      borderRadius: '12px',
+      border: '1px solid var(--line)',
+      backgroundColor: 'var(--card)',
+      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+      '&:hover': { borderColor: 'var(--accent-main)' },
+    }}
+  >
+    <Box>
+      <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+        {territoryLabel(t)}
+        {grouping === 'none' && (
+          <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+            {getZoneName(t.zoneId, zones)}
+          </span>
+        )}
+      </Typography>
+      <Typography variant="caption" color="var(--ink-2)">
+        {t.lastWorkedAt
+          ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, dateFormat)}`
+          : 'Nunca trabajado'}
+      </Typography>
+    </Box>
+    <Button variant="small" onClick={() => onAsignar(t)}>
+      Asignar
+    </Button>
+  </Stack>
+);
+
 const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const territories = useAtomValue(territoriesState);
   const assignments = useAtomValue(territoryAssignmentsState);
@@ -126,6 +174,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
     // Trabajado: con lastWorkedAt dentro del rango. Asignado actual: abierto.
     // No trabajado: el resto.
+    // Si assignedCountsAsWorked=true, los asignados también cuentan como trabajados.
     const asignados = openByTerritory.size;
     const noAsignados = total - asignados;
 
@@ -135,6 +184,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
     territories.forEach((t) => {
       if (openByTerritory.has(t.id)) {
         asignadoActual += 1;
+        if (settings.assignedCountsAsWorked) trabajados += 1;
       } else if (t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart) {
         trabajados += 1;
       } else {
@@ -298,43 +348,64 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
           No asignados durante más tiempo
         </Typography>
-        <Stack spacing={1.5}>
-          {stats.noAsignadosLista.map((t) => (
-            <Stack
-              key={t.id}
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{
-                p: 2,
-                borderRadius: '12px',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-                '&:hover': {
-                  borderColor: 'var(--accent-main)',
-                }
-              }}
-            >
-              <Box>
-                <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
-                  {territoryLabel(t)}
-                  <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
-                    {getZoneName(t.zoneId, zones)}
-                  </span>
-                </Typography>
-                <Typography variant="caption" color="var(--ink-2)">
-                  {t.lastWorkedAt
-                    ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, settings.dateFormat)}`
-                    : 'Nunca trabajado'}
-                </Typography>
-              </Box>
-              <Button variant="small" onClick={() => onAsignar(t)}>
-                Asignar
-              </Button>
+        {settings.statsGrouping === 'zone'
+          ? // ── Agrupado por zona ──────────────────────────────────────────
+            zones
+              .filter((z) => stats.noAsignadosLista.some((t) => t.zoneId === z.id))
+              .map((z) => (
+                <Box key={z.id} sx={{ mb: 3 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        backgroundColor: z.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: 'var(--ink-2)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      {z.nombre}
+                    </Typography>
+                  </Stack>
+                  <Stack spacing={1.5}>
+                    {stats.noAsignadosLista
+                      .filter((t) => t.zoneId === z.id)
+                      .map((t) => (
+                        <NoAsignadoRow
+                          key={t.id}
+                          t={t}
+                          zones={zones}
+                          dateFormat={settings.dateFormat}
+                          onAsignar={onAsignar}
+                          grouping="zone"
+                        />
+                      ))}
+                  </Stack>
+                </Box>
+              ))
+          : // ── Lista plana ────────────────────────────────────────────────
+            <Stack spacing={1.5}>
+              {stats.noAsignadosLista.map((t) => (
+                <NoAsignadoRow
+                  key={t.id}
+                  t={t}
+                  zones={zones}
+                  dateFormat={settings.dateFormat}
+                  onAsignar={onAsignar}
+                  grouping="none"
+                />
+              ))}
             </Stack>
-          ))}
-        </Stack>
+        }
       </Box>
     </Box>
   );

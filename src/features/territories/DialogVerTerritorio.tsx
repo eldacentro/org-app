@@ -1,4 +1,4 @@
-import { useMemo, useState, forwardRef, type ReactElement, type Ref } from 'react';
+import { useEffect, useMemo, useRef, useState, forwardRef, type ReactElement, type Ref } from 'react';
 import {
   Box,
   Stack,
@@ -20,6 +20,7 @@ import {
   territoryZonesState,
   territoryTagsState,
   territoryOpenAssignmentsState,
+  territorySettingsState,
 } from '@states/territories';
 import {
   congIDState,
@@ -209,6 +210,32 @@ const DialogVerTerritorio = ({
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const congID = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
+  const settings = useAtomValue(territorySettingsState);
+
+  // Refs para leer en el efecto sin incluirlos como dependencias
+  // (queremos resetear el tab al abrir un territorio, no cuando cambia la config)
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  const tabletDownRef = useRef(tabletDown);
+  tabletDownRef.current = tabletDown;
+
+  // Reestablece el tab por defecto cada vez que se abre un territorio diferente
+  useEffect(() => {
+    if (!territory?.id) return;
+    const s = settingsRef.current;
+    const mobile = tabletDownRef.current;
+    const defaultTab = mobile
+      ? s.expandMap    ? 0
+      : s.expandImage  ? 1
+      : s.expandLocations ? 2
+      : 0
+      : s.expandInfo   ? 0
+      : s.expandImage  ? 1
+      : s.expandLocations ? 2
+      : 0;
+    setTab(defaultTab);
+    setEditingTags(false);
+  }, [territory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const relevantAssignment = useMemo(() => {
     if (!territory) return null;
@@ -658,7 +685,7 @@ const DialogVerTerritorio = ({
             gap: '8px',
           }}
         >
-          {relevantAssignment && onEntregar && (
+          {relevantAssignment && onEntregar && (canManage || settings.publishersCanReturn) && (
             <ActionButton
               label="Entregar territorio"
               onClick={() => onEntregar(relevantAssignment)}
@@ -986,7 +1013,7 @@ const DialogVerTerritorio = ({
         <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
           <Stack direction="row" spacing={1.5} justifyContent="flex-end">
             <Button variant="tertiary" onClick={onClose}>Cerrar</Button>
-            {relevantAssignment && onEntregar && (
+            {relevantAssignment && onEntregar && (canManage || settings.publishersCanReturn) && (
               <Button variant="main" onClick={() => onEntregar(relevantAssignment)}>
                 Entregar
               </Button>

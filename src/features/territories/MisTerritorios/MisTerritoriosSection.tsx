@@ -3,12 +3,14 @@ import { Box, Stack, Alert } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { congIDState } from '@states/settings';
+import { congIDState, userLocalUIDState } from '@states/settings';
+import { fieldGroupsState } from '@states/field_service_groups';
 import { markNoticeRead } from '@services/firebase/territories';
 import {
   myTerritoryAssignmentsState,
   myUnreadNoticesState,
   territoriesState,
+  territoryOpenAssignmentsState,
   territoryZonesState,
   territorySettingsState,
 } from '@states/territories';
@@ -20,6 +22,7 @@ import {
   isOverdue,
   territoryLabel,
 } from '@services/app/territories';
+import { usePersonName } from '@features/territories/usePersonName';
 
 type Props = {
   onView: (territory: Territory) => void;
@@ -29,11 +32,15 @@ type Props = {
 /** Sección "Mis territorios": territorios actualmente asignados al usuario. */
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const myAssignments = useAtomValue(myTerritoryAssignmentsState);
+  const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const notices = useAtomValue(myUnreadNoticesState);
   const territories = useAtomValue(territoriesState);
   const zones = useAtomValue(territoryZonesState);
   const settings = useAtomValue(territorySettingsState);
   const congId = useAtomValue(congIDState);
+  const uid = useAtomValue(userLocalUIDState);
+  const fieldGroups = useAtomValue(fieldGroupsState);
+  const resolveName = usePersonName();
 
   const rows = useMemo(
     () =>
@@ -47,6 +54,31 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         ),
     [myAssignments, territories]
   );
+
+  /** Asignaciones abiertas de los compañeros del mismo grupo de predicación. */
+  const groupRows = useMemo(() => {
+    if (!settings.publishersCanSeeGroup || !uid) return [];
+
+    const myGroup = fieldGroups.find((g) =>
+      g.group_data.members.some((m) => m.person_uid === uid)
+    );
+    if (!myGroup) return [];
+
+    const memberUids = myGroup.group_data.members
+      .map((m) => m.person_uid)
+      .filter((id) => id !== uid);
+
+    return openAssignments
+      .filter((a) => memberUids.includes(a.personUid))
+      .map((a) => ({
+        assignment: a,
+        territory: territories.find((t) => t.id === a.territoryId),
+      }))
+      .filter(
+        (r): r is { assignment: TerritoryAssignment; territory: Territory } =>
+          Boolean(r.territory)
+      );
+  }, [settings.publishersCanSeeGroup, uid, fieldGroups, openAssignments, territories]);
 
   const noticesBanner = notices.length > 0 && (
     <Stack spacing={1} sx={{ mb: 2 }}>
@@ -141,14 +173,62 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 <Button variant="tertiary" onClick={() => onView(territory)}>
                   Ver territorio
                 </Button>
-                <Button variant="main" onClick={() => onEntregar(assignment)}>
-                  Entregar
-                </Button>
+                {settings.publishersCanReturn && (
+                  <Button variant="main" onClick={() => onEntregar(assignment)}>
+                    Entregar
+                  </Button>
+                )}
               </Stack>
             </Box>
           );
         })}
       </Stack>
+
+      {/* ── Territorios del grupo de predicación ───────────────────────── */}
+      {groupRows.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)', mb: 1 }}>
+            Territorios del grupo ({groupRows.length})
+          </Typography>
+          <Stack spacing={1.5}>
+            {groupRows.map(({ assignment, territory }) => {
+              const color = getZoneColor(territory.zoneId, zones);
+              return (
+                <Box
+                  key={assignment.id}
+                  sx={{
+                    p: 2,
+                    borderRadius: '12px',
+                    border: '1px solid var(--line)',
+                    borderLeft: `5px solid ${color}`,
+                    backgroundColor: 'var(--card)',
+                    boxShadow: 'var(--small-card-shadow)',
+                    opacity: 0.85,
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                        {territoryLabel(territory)}
+                        <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                          {resolveName(assignment.personUid)}
+                        </span>
+                      </Typography>
+                      <Typography variant="caption" color="var(--ink-2)">
+                        {getZoneName(territory.zoneId, zones)} ·{' '}
+                        {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                      </Typography>
+                    </Box>
+                    <Button variant="tertiary" onClick={() => onView(territory)}>
+                      Ver
+                    </Button>
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
     </Box>
   );
 };
