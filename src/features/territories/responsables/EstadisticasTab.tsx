@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Box, Stack, LinearProgress } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -103,19 +103,19 @@ const KpiCard = ({
   </Box>
 );
 
-// ─── Fila de territorio no asignado (reutilizable en vista plana y agrupada) ──
+// ─── Fila de territorio no asignado ────────────────────────────────────────────
 const NoAsignadoRow = ({
   t,
   zones,
   dateFormat,
   onAsignar,
-  grouping,
+  showZone,
 }: {
   t: Territory;
   zones: TerritoryZone[];
   dateFormat: string;
   onAsignar: (t: Territory) => void;
-  grouping: 'zone' | 'none';
+  showZone: boolean;
 }) => (
   <Stack
     direction="row"
@@ -126,14 +126,14 @@ const NoAsignadoRow = ({
       borderRadius: '12px',
       border: '1px solid var(--line)',
       backgroundColor: 'var(--card)',
-      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+      transition: 'border-color 0.15s ease',
       '&:hover': { borderColor: 'var(--accent-main)' },
     }}
   >
     <Box>
       <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
         {territoryLabel(t)}
-        {grouping === 'none' && (
+        {showZone && (
           <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
             {getZoneName(t.zoneId, zones)}
           </span>
@@ -151,6 +151,89 @@ const NoAsignadoRow = ({
   </Stack>
 );
 
+// ─── Grupo por zona con "Ver más" ───────────────────────────────────────────────
+const PAGE_SIZE = 10;
+
+const ZoneGroup = ({
+  zone,
+  territories,
+  dateFormat,
+  onAsignar,
+}: {
+  zone: TerritoryZone;
+  territories: Territory[];
+  dateFormat: string;
+  onAsignar: (t: Territory) => void;
+}) => {
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const visible = territories.slice(0, limit);
+  const remaining = territories.length - limit;
+
+  return (
+    <Box sx={{ mb: 3 }}>
+      {/* Cabecera de zona */}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        <Box
+          sx={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            backgroundColor: zone.color,
+            flexShrink: 0,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: '12px',
+            fontWeight: 700,
+            color: 'var(--ink-2)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}
+        >
+          {zone.nombre}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '12px',
+            color: 'var(--ink-2)',
+            fontWeight: 400,
+          }}
+        >
+          · {territories.length} territorios
+        </Typography>
+      </Stack>
+
+      {/* Filas */}
+      <Stack spacing={1.5}>
+        {visible.map((t) => (
+          <NoAsignadoRow
+            key={t.id}
+            t={t}
+            zones={[zone]}
+            dateFormat={dateFormat}
+            onAsignar={onAsignar}
+            showZone={false}
+          />
+        ))}
+      </Stack>
+
+      {/* Botón "Ver más" */}
+      {remaining > 0 && (
+        <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+          <Button
+            variant="tertiary"
+            onClick={() => setLimit((prev) => prev + PAGE_SIZE)}
+          >
+            Ver {Math.min(remaining, PAGE_SIZE)} más de {zone.nombre}
+          </Button>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+// ─── Tab principal ─────────────────────────────────────────────────────────────
 const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const territories = useAtomValue(territoriesState);
   const assignments = useAtomValue(territoryAssignmentsState);
@@ -159,6 +242,8 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const congId = useAtomValue(congIDState);
   const currentUid = useAtomValue(userLocalUIDState);
   const resolveName = usePersonName();
+  // Estado para "ver más" de la lista plana
+  const [flatLimit, setFlatLimit] = useState(PAGE_SIZE);
 
   const stats = useMemo(() => {
     const total = territories.length;
@@ -172,9 +257,6 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       relevant.filter((a) => !a.returnedAt).map((a) => a.territoryId)
     );
 
-    // Trabajado: con lastWorkedAt dentro del rango. Asignado actual: abierto.
-    // No trabajado: el resto.
-    // Si assignedCountsAsWorked=true, los asignados también cuentan como trabajados.
     const asignados = openByTerritory.size;
     const noAsignados = total - asignados;
 
@@ -192,7 +274,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       }
     });
 
-    // Atrasados: asignaciones abiertas que superan los días configurados.
+    // Atrasados
     const atrasados = relevant
       .filter((a) => !a.returnedAt && isOverdue(a.assignedAt, settings.daysUntilOverdue))
       .sort(
@@ -200,15 +282,22 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           new Date(x.assignedAt).getTime() - new Date(y.assignedAt).getTime()
       );
 
-    // No asignados durante más tiempo (libres), por antigüedad de lastWorkedAt.
+    // No asignados durante más tiempo (SIN slice — ahora el slice lo hace cada ZoneGroup)
     const noAsignadosLista = territories
       .filter((t) => !openByTerritory.has(t.id))
       .sort((a, b) => {
         const ta = a.lastWorkedAt ? new Date(a.lastWorkedAt).getTime() : 0;
         const tb = b.lastWorkedAt ? new Date(b.lastWorkedAt).getTime() : 0;
         return ta - tb;
-      })
-      .slice(0, 10);
+      });
+
+    // Agrupados por zona
+    const noAsignadosPorZona = zones
+      .map((z) => ({
+        zone: z,
+        items: noAsignadosLista.filter((t) => t.zoneId === z.id),
+      }))
+      .filter((g) => g.items.length > 0);
 
     return {
       total,
@@ -219,8 +308,9 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       noTrabajados,
       atrasados,
       noAsignadosLista,
+      noAsignadosPorZona,
     };
-  }, [territories, assignments, settings]);
+  }, [territories, assignments, zones, settings]);
 
   const notificar = async (a: TerritoryAssignment) => {
     const nombre = resolveName(a.personUid);
@@ -241,7 +331,6 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         createdAt: new Date().toISOString(),
         leido: false,
       });
-      // Enviar notificación Push al publicador atrasado
       await apiSendTerritoryPush(
         [a.personUid],
         'Territorio atrasado',
@@ -259,6 +348,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       </Typography>
     );
   }
+
+  // Lista plana paginada
+  const flatVisible = stats.noAsignadosLista.slice(0, flatLimit);
+  const flatRemaining = stats.noAsignadosLista.length - flatLimit;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -286,7 +379,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         />
       </Stack>
 
-      {/* Atrasados */}
+      {/* Territorios atrasados */}
       <Box>
         <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
           Territorios atrasados ({stats.atrasados.length})
@@ -346,66 +439,55 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       {/* No asignados durante más tiempo */}
       <Box>
         <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
-          No asignados durante más tiempo
+          No asignados durante más tiempo ({stats.noAsignadosLista.length})
         </Typography>
-        {settings.statsGrouping === 'zone'
-          ? // ── Agrupado por zona ──────────────────────────────────────────
-            zones
-              .filter((z) => stats.noAsignadosLista.some((t) => t.zoneId === z.id))
-              .map((z) => (
-                <Box key={z.id} sx={{ mb: 3 }}>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        backgroundColor: z.color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: 'var(--ink-2)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      {z.nombre}
-                    </Typography>
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    {stats.noAsignadosLista
-                      .filter((t) => t.zoneId === z.id)
-                      .map((t) => (
-                        <NoAsignadoRow
-                          key={t.id}
-                          t={t}
-                          zones={zones}
-                          dateFormat={settings.dateFormat}
-                          onAsignar={onAsignar}
-                          grouping="zone"
-                        />
-                      ))}
-                  </Stack>
-                </Box>
-              ))
-          : // ── Lista plana ────────────────────────────────────────────────
+
+        {stats.noAsignadosLista.length === 0 ? (
+          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+            <Typography variant="body2" color="var(--ink-2)">
+              Todos los territorios están asignados actualmente.
+            </Typography>
+          </Box>
+        ) : settings.statsGrouping === 'zone' ? (
+          // ── Agrupado por zona (10 por zona + "Ver más") ─────────────────
+          <>
+            {stats.noAsignadosPorZona.map(({ zone, items }) => (
+              <ZoneGroup
+                key={zone.id}
+                zone={zone}
+                territories={items}
+                dateFormat={settings.dateFormat}
+                onAsignar={onAsignar}
+              />
+            ))}
+          </>
+        ) : (
+          // ── Lista plana paginada ──────────────────────────────────────────
+          <>
             <Stack spacing={1.5}>
-              {stats.noAsignadosLista.map((t) => (
+              {flatVisible.map((t) => (
                 <NoAsignadoRow
                   key={t.id}
                   t={t}
                   zones={zones}
                   dateFormat={settings.dateFormat}
                   onAsignar={onAsignar}
-                  grouping="none"
+                  showZone={true}
                 />
               ))}
             </Stack>
-        }
+            {flatRemaining > 0 && (
+              <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+                <Button
+                  variant="tertiary"
+                  onClick={() => setFlatLimit((prev) => prev + PAGE_SIZE)}
+                >
+                  Ver {Math.min(flatRemaining, PAGE_SIZE)} más
+                </Button>
+              </Box>
+            )}
+          </>
+        )}
       </Box>
     </Box>
   );
