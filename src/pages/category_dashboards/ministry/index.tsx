@@ -5,6 +5,7 @@ import PageTitle from '@components/page_title';
 import {
   IconMinistryReport,
   IconStatsYear,
+  IconInTerritory,
   IconCart,
   IconMapOverview,
 } from '@icons/index';
@@ -47,6 +48,21 @@ const MinistryDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">Exhibidores</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
+        {/* Salidas de predicación */}
+        {(isServiceCommittee) && (
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
+            <div className="ti">
+              <IconInTerritory color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Salidas de predicación</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
