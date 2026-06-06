@@ -3,12 +3,12 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { notificationsState } from '@states/notification';
 import { territoryPendingRequestsState } from '@states/territories';
 import { TerritoryRequestNotificationType } from '@definition/notification';
-import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
+import { useCanReceiveTerritoryRequestNotifications } from '@features/territories/useIsTerritoryManager';
 
 const useTerritoryRequestsNotifications = () => {
   const setNotifications = useSetAtom(notificationsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
-  const isManager = useIsTerritoryManager();
+  const isManager = useCanReceiveTerritoryRequestNotifications();
 
   useEffect(() => {
     // Solo mostrar esta notificación a los responsables de territorios

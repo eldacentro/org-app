@@ -7,7 +7,7 @@ import { Departamento } from '@definition/responsabilidades';
 const normalize = (s: string) =>
   s
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // quita acentos
+    .replace(/[\u0300-\u036f]/g, '') // quita acentos
     .toLowerCase();
 
 /** ¿El departamento es el de Territorios? (match por nombre, sin acentos). */
@@ -34,6 +34,29 @@ export const useIsTerritoryManager = (): boolean => {
   if (isElder || isAdmin) return true;
   if (!uid || !responsabilidades) return false;
 
+  return responsabilidades.departamentos
+    .filter(isTerritoryDept)
+    .some((dep) => deptMemberUids(dep).includes(uid));
+};
+
+/**
+ * Determina si el usuario actual debe RECIBIR notificaciones de solicitudes
+ * de territorio. Más restrictivo que useIsTerritoryManager:
+ *   - Superintendente de servicio (role: service_overseer)
+ *   - Admin (coordinador / secretario)
+ *   - Miembros del departamento "Territorios" en Responsabilidades
+ * Los demás ancianos NO reciben esta notificación.
+ */
+export const useCanReceiveTerritoryRequestNotifications = (): boolean => {
+  const { isAdmin, isServiceCommittee } = useCurrentUser();
+  const responsabilidades = useAtomValue(responsabilidadesState);
+  const uid = useAtomValue(userLocalUIDState);
+
+  // Comité de servicio (coordinador, secretario, superv. de servicio) siempre recibe
+  if (isAdmin || isServiceCommittee) return true;
+  if (!uid || !responsabilidades) return false;
+
+  // También reciben los miembros del dpto. "Territorios" en Responsabilidades
   return responsabilidades.departamentos
     .filter(isTerritoryDept)
     .some((dep) => deptMemberUids(dep).includes(uid));
