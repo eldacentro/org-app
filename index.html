@@ -2,6 +2,35 @@
 <html lang="en" class="notranslate" translate="no" data-theme="blue-light">
 
 <head>
+  <script>
+    // Handle script/asset loading errors (e.g. from new deployments with new hashed filenames)
+    (function() {
+      function reloadPage(key) {
+        var lastReload = localStorage.getItem(key);
+        var now = Date.now();
+        if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+          localStorage.setItem(key, String(now));
+          window.location.reload();
+        }
+      }
+
+      // Catch dynamic import preload failures (Vite-specific event)
+      window.addEventListener('vite:preloadError', function() {
+        reloadPage('last-preload-reload');
+      });
+
+      // Catch general resource loading errors (like main script file 404/MIME type errors)
+      window.addEventListener('error', function(event) {
+        var target = event.target;
+        if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+          var url = target.src || target.href;
+          if (url && (url.indexOf('/assets/') !== -1 || url.indexOf('/src/') !== -1)) {
+            reloadPage('last-resource-reload');
+          }
+        }
+      }, true); // Use capture phase because resource errors do not bubble
+    })();
+  </script>
   <!-- Figtree is self-hosted in /public/fonts/ and cached by the service worker for offline use -->
   <meta name="google" content="notranslate" />
   <meta name="robots" content="notranslate" />
