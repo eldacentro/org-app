@@ -8,7 +8,7 @@ import TextField from '@components/textfield';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { territoriesState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
-import { saveAssignment, saveTerritory } from '@services/firebase/territories';
+import { saveAssignment, saveTerritory, saveNotice } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -74,10 +74,28 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
         const territory = territories.find((t) => t.id === assignment.territoryId);
         if (targets.length > 0) {
           const tLabel = territory ? territoryLabel(territory) : 'Un territorio';
+          const msg = `${resolveName(assignment.personUid)} devolvió ${tLabel} sin trabajar.${nota.trim() ? ' Hay una nota.' : ''}`;
+          
+          try {
+            await Promise.all(
+              targets.map(targetUid =>
+                saveNotice(congId, {
+                  id: crypto.randomUUID(),
+                  personUid: targetUid,
+                  mensaje: msg,
+                  sentBy: assignment.personUid,
+                  createdAt: now,
+                })
+              )
+            );
+          } catch (err) {
+            console.error('Failed to save notice', err);
+          }
+
           await apiSendTerritoryPush(
             targets,
             'Territorio devuelto sin trabajar',
-            `${resolveName(assignment.personUid)} devolvió ${tLabel} sin trabajar.${nota.trim() ? ' Hay una nota.' : ''}`
+            msg
           ).catch((err) => console.error('Failed to send push', err));
         }
       }

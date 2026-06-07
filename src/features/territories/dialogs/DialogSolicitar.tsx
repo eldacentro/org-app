@@ -6,7 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { congIDState, userLocalUIDState } from '@states/settings';
-import { saveRequest } from '@services/firebase/territories';
+import { saveRequest, saveNotice } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { territoryPendingRequestsState } from '@states/territories';
@@ -52,10 +52,31 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
       const targets = getTerritoryManagersUids(responsabilidades!);
       if (targets.length > 0) {
+        const applicantName = resolveName(uid);
+        const now = new Date().toISOString();
+        const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
+        
+        // Notificación in-app (Notice) para asegurar que llegue siempre
+        try {
+          await Promise.all(
+            targets.map(targetUid =>
+              saveNotice(congId, {
+                id: crypto.randomUUID(),
+                personUid: targetUid,
+                mensaje: `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`,
+                sentBy: uid,
+                createdAt: now,
+              })
+            )
+          );
+        } catch (err) {
+          console.error('Failed to save notice', err);
+        }
+
         await apiSendTerritoryPush(
           targets,
           'Solicitud de territorio',
-          `${resolveName(uid)} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`
+          `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`
         ).catch((err) => console.error('Failed to send push', err));
 
         const targetEmails = targets
@@ -63,8 +84,6 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           .filter(email => !!email) as string[];
 
         if (targetEmails.length > 0) {
-          const applicantName = resolveName(uid);
-          const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
           try {
             await Promise.all(
               targetEmails.map(email =>
@@ -122,13 +141,13 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           en la nota.
         </Typography>
 
-        {pendingRequests.some(r => r.personUid === uid) ? (
-          <Typography variant="body1" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
-            Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
-          </Typography>
-        ) : enviado ? (
+        {enviado ? (
           <Typography variant="body1" sx={{ color: 'var(--green-main)', py: 2 }}>
             ✓ Solicitud enviada.
+          </Typography>
+        ) : pendingRequests.some(r => r.personUid === uid) ? (
+          <Typography variant="body1" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
+            Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
           </Typography>
         ) : (
           <>
