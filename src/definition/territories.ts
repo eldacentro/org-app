@@ -193,7 +193,7 @@ export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> = 
   expandLocations: true,
   daysUntilExpiration: 90,
   publishersCanReturn: true,
-  publishersCanSeeGroup: true,
+  publishersCanSeeGroup: false,
   publishersCanAddLocations: true,
   locationsRequireApproval: true,
 };
