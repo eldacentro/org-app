@@ -10,7 +10,6 @@ import { territoriesState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
 import { saveAssignment, saveTerritory } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
-import { personsState } from '@states/persons';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
@@ -31,7 +30,6 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
   const masterKey = useAtomValue(congMasterKeyState);
   const territories = useAtomValue(territoriesState);
   const responsabilidades = useAtomValue(responsabilidadesState);
-  const persons = useAtomValue(personsState);
   const resolveName = usePersonName();
 
   const [nota, setNota] = useState('');
