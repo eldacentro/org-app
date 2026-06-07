@@ -61,7 +61,7 @@ const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[]) => {
   const source_lang = store.get(JWLangState);
   const assTypeList = store.get(assignmentTypeAYFOnlyState);
 
-  for await (const src of data) {
+  for (const src of data) {
     const obj = {} as SourceWeekType;
 
     const isMWB = Object.keys(src).includes('mwb_week_date_locale');

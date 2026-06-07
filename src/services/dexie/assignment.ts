@@ -512,7 +512,7 @@ export const dbAssignmentUpdate = async () => {
   for (const [key, value] of Object.entries(initCallVariationsObj)) {
     if (value && value !== '0' && codeIndice < 170) {
       const variations = value.split('|');
-      for await (const variation of variations) {
+      for (const variation of variations) {
         await appDb.assignment.put({
           code: codeIndice,
           maleOnly: false,
@@ -534,7 +534,7 @@ export const dbAssignmentUpdate = async () => {
   for (const [key, value] of Object.entries(rvVariationsObj)) {
     if (value && value !== '0' && codeIndice < 200) {
       const variations = value.split('|');
-      for await (const variation of variations) {
+      for (const variation of variations) {
         await appDb.assignment.put({
           code: codeIndice,
           maleOnly: false,

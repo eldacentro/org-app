@@ -466,7 +466,7 @@ const dbInsertOutgoingTalks = async (
     }
 
     // add or update schedule
-    for await (const talk of talks) {
+    for (const talk of talks) {
       const dbSchedule = await appDb.sched.get(talk.weekOf);
 
       if (dbSchedule) {
@@ -917,7 +917,7 @@ const dbRestoreVisitingSpeakers = async (
 
     const speakersToUpdate: VisitingSpeakerType[] = [];
 
-    for await (const remoteSpeaker of remoteSpeakers) {
+    for (const remoteSpeaker of remoteSpeakers) {
       if (!remoteSpeaker || !remoteSpeaker.person_uid) continue;
       const localSpeaker = speakers.find(
         (record) => record.person_uid === remoteSpeaker.person_uid

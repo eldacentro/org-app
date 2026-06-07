@@ -42,7 +42,7 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
     (record) => !record.report_data._deleted
   );
 
-  for await (const record of reports) {
+  for (const record of reports) {
     const branch = branchReports.find(
       (b) => b.report_date === record.report_month
     );
@@ -197,12 +197,12 @@ export const dbRemoveDuplicateReports = async () => {
       record.months.find((month) => month.reports.length > 1)
     );
 
-    for await (const person of duplicateReports) {
+    for (const person of duplicateReports) {
       const duplicateMonths = person.months.filter(
         (record) => record.reports.length > 1
       );
 
-      for await (const month of duplicateMonths) {
+      for (const month of duplicateMonths) {
         const lastReport = month.reports
           .sort((a, b) =>
             b.report_data.updatedAt.localeCompare(a.report_data.updatedAt)

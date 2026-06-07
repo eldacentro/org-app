@@ -155,7 +155,7 @@ export const dbVisitingSpeakersUpdateRemote = async (
     (record) => record.speaker_data.cong_id === cong_id
   );
 
-  for await (const speaker of newSpeakers) {
+  for (const speaker of newSpeakers) {
     const speakerAdd = structuredClone(speaker);
     speakerAdd.speaker_data.cong_id = cong_id;
 
@@ -163,7 +163,7 @@ export const dbVisitingSpeakersUpdateRemote = async (
     await dbUpdateVisitingSpeakersMetadata();
   }
 
-  for await (const speaker of oldSpeakers) {
+  for (const speaker of oldSpeakers) {
     const findSpeaker = newSpeakers.find(
       (record) => record.person_uid === speaker.person_uid
     );
@@ -182,7 +182,7 @@ export const dbVisitingSpeakersClearRemote = async (cong_id: string) => {
     (record) => record.speaker_data.cong_id === cong_id
   );
 
-  for await (const speaker of oldSpeakers) {
+  for (const speaker of oldSpeakers) {
     await appDb.visiting_speakers.delete(speaker.person_uid);
     await dbUpdateVisitingSpeakersMetadata();
   }
