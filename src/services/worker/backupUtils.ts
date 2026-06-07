@@ -341,112 +341,107 @@ export const dbGetMetadata = async () => {
 };
 
 const dbGetTableData = async () => {
-  const settings = await dbGetSettings();
-  const persons = await appDb.persons.toArray();
-  const cong_field_service_reports =
-    await appDb.cong_field_service_reports.toArray();
-  const field_service_groups = await appDb.field_service_groups.toArray();
-  const visiting_speakers = await appDb.visiting_speakers.toArray();
-  const speakers_congregations = await appDb.speakers_congregations.toArray();
-  const user_bible_studies = await appDb.user_bible_studies.toArray();
-  const user_field_service_reports =
-    await appDb.user_field_service_reports.toArray();
-  const delegated_field_service_reports =
-    await appDb.delegated_field_service_reports.toArray();
-  const branch_cong_analysis = await appDb.branch_cong_analysis.toArray();
-  const branch_field_service_reports =
-    await appDb.branch_field_service_reports.toArray();
-  const sched = await appDb.sched.toArray();
-  const departments_schedule = await appDb.departments_schedule.toArray();
-  const service_outings = await appDb.service_outings.toArray();
-  const exhibitors = await appDb.exhibitors.toArray();
-  const responsabilidades = await appDb.responsabilidades.toArray();
-  const sources = await appDb.sources.toArray();
-  const meeting_attendance = await appDb.meeting_attendance.toArray();
-  const upcoming_events = await appDb.upcoming_events.toArray();
-  const limpieza_config = await appDb.limpieza_config.get('1');
-  const evacuacion_config = await appDb.evacuacion_config.get('1');
-  const metadata = await appDb.metadata.get(1);
+  return await appDb.transaction('r', appDb.tables, async () => {
+    const settings = await dbGetSettings();
+    const persons = await appDb.persons.toArray();
+    const cong_field_service_reports =
+      await appDb.cong_field_service_reports.toArray();
+    const field_service_groups = await appDb.field_service_groups.toArray();
+    const visiting_speakers = await appDb.visiting_speakers.toArray();
+    const speakers_congregations = await appDb.speakers_congregations.toArray();
+    const user_bible_studies = await appDb.user_bible_studies.toArray();
+    const user_field_service_reports =
+      await appDb.user_field_service_reports.toArray();
+    const delegated_field_service_reports =
+      await appDb.delegated_field_service_reports.toArray();
+    const branch_cong_analysis = await appDb.branch_cong_analysis.toArray();
+    const branch_field_service_reports =
+      await appDb.branch_field_service_reports.toArray();
+    const sched = await appDb.sched.toArray();
+    const departments_schedule = await appDb.departments_schedule.toArray();
+    const service_outings = await appDb.service_outings.toArray();
+    const exhibitors = await appDb.exhibitors.toArray();
+    const responsabilidades = await appDb.responsabilidades.toArray();
+    const sources = await appDb.sources.toArray();
+    const meeting_attendance = await appDb.meeting_attendance.toArray();
+    const upcoming_events = await appDb.upcoming_events.toArray();
+    const limpieza_config = await appDb.limpieza_config.get('1');
+    const evacuacion_config = await appDb.evacuacion_config.get('1');
+    const metadata = await appDb.metadata.get(1);
 
-  const territories = await appDb.territories.toArray();
-  const territory_zones = await appDb.territory_zones.toArray();
-  const territory_tags = await appDb.territory_tags.toArray();
-  const territory_assignments = await appDb.territory_assignments.toArray();
-  const territory_campaigns = await appDb.territory_campaigns.toArray();
-  const territory_notices = await appDb.territory_notices.toArray();
-  const territory_requests = await appDb.territory_requests.toArray();
-  const territory_settings = await appDb.territory_settings.toArray();
+    const territories = await appDb.territories.toArray();
+    const territory_zones = await appDb.territory_zones.toArray();
+    const territory_tags = await appDb.territory_tags.toArray();
+    const territory_assignments = await appDb.territory_assignments.toArray();
+    const territory_campaigns = await appDb.territory_campaigns.toArray();
+    const territory_notices = await appDb.territory_notices.toArray();
+    const territory_requests = await appDb.territory_requests.toArray();
+    const territory_settings = await appDb.territory_settings.toArray();
 
-  const congId = speakers_congregations.find(
-    (record) =>
-      record.cong_data.cong_name.value === settings.cong_settings.cong_name
-  )?.id;
+    const congId = speakers_congregations.find(
+      (record) =>
+        record.cong_data.cong_name.value === settings.cong_settings.cong_name
+    )?.id;
 
-  const outgoing_speakers = visiting_speakers
-    .filter((record) => {
-      const person = persons.find((p) => p.person_uid === record.person_uid);
+    const outgoing_speakers = visiting_speakers
+      .filter((record) => {
+        const person = persons.find((p) => p.person_uid === record.person_uid);
 
-      if (!person || !person.person_data.privileges) return false;
+        if (!person || !person.person_data.privileges) return false;
 
-      return (
-        record.speaker_data.cong_id === congId &&
-        !record.speaker_data.local.value
-      );
-    })
-    .map((speaker) => {
-      const person = persons.find(
-        (record) => record.person_uid === speaker.person_uid
-      );
+        const isElder = person.person_data.privileges.some(
+          (p) => p.privilege === 'elder' && p._deleted === false
+        );
 
-      return {
-        person_uid: speaker.person_uid,
-        _deleted: speaker._deleted,
-        speaker_data: {
-          ...speaker.speaker_data,
-          elder: { value: personIsElder(person), updatedAt: '' },
-          ms: { value: personIsMS(person), updatedAt: '' },
-          person_display_name: person.person_data.person_display_name,
-          person_firstname: person.person_data.person_firstname,
-          person_lastname: person.person_data.person_lastname,
-          person_email: person.person_data.email,
-          person_phone: person.person_data.phone,
-        },
-      };
-    });
+        if (isElder) return true;
 
-  return {
-    settings,
-    persons,
-    outgoing_speakers,
-    speakers_congregations,
-    visiting_speakers,
-    user_bible_studies,
-    user_field_service_reports,
-    cong_field_service_reports,
-    field_service_groups,
-    branch_cong_analysis,
-    branch_field_service_reports,
-    sched,
-    departments_schedule,
-    service_outings,
-    exhibitors,
-    responsabilidades,
-    sources,
-    meeting_attendance,
-    metadata,
-    delegated_field_service_reports,
-    upcoming_events,
-    limpieza_config,
-    evacuacion_config,
-    territories,
-    territory_zones,
-    territory_tags,
-    territory_assignments,
-    territory_campaigns,
-    territory_notices,
-    territory_requests,
-    territory_settings,
-  };
+        return personIsMS(person);
+      })
+      .map((record) => {
+        return {
+          person_uid: record.person_uid,
+          speaker_data: {
+            ...record.speaker_data,
+            local: { value: true, updatedAt: '' },
+            cong_id: congId,
+          },
+        } as VisitingSpeakerType;
+      });
+
+    return {
+      settings,
+      persons,
+      outgoing_speakers,
+      speakers_congregations,
+      visiting_speakers,
+      user_bible_studies,
+      user_field_service_reports,
+      cong_field_service_reports,
+      field_service_groups,
+      branch_cong_analysis,
+      branch_field_service_reports,
+      sched,
+      departments_schedule,
+      service_outings,
+      exhibitors,
+      responsabilidades,
+      sources,
+      meeting_attendance,
+      metadata,
+      delegated_field_service_reports,
+      upcoming_events,
+      limpieza_config,
+      evacuacion_config,
+      territories,
+      territory_zones,
+      territory_tags,
+      territory_assignments,
+      territory_campaigns,
+      territory_notices,
+      territory_requests,
+      territory_settings,
+    };
+  });
 };
 
 const dbInsertOutgoingTalks = async (
@@ -2012,65 +2007,67 @@ const dbRestoreFromBackup = async (
   masterKey?: string
 ) => {
   try {
-    await dbRestoreSettings(backupData, accessCode, masterKey);
+    await appDb.transaction('rw', appDb.tables, async () => {
+      await dbRestoreSettings(backupData, accessCode, masterKey);
 
-    await dbRestorePersons(backupData, accessCode, masterKey);
+      await dbRestorePersons(backupData, accessCode, masterKey);
 
-    await dbRestoreSpeakersCongregations(backupData, accessCode, masterKey);
+      await dbRestoreSpeakersCongregations(backupData, accessCode, masterKey);
 
-    await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
+      await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
 
-    await dbDeduplicateSpeakers();
+      await dbDeduplicateSpeakers();
 
-    await dbDeduplicateCongregations();
+      await dbDeduplicateCongregations();
 
-    await dbRestoreFieldGroups(backupData, accessCode);
+      await dbRestoreFieldGroups(backupData, accessCode);
 
-    await dbRestoreCongReports(backupData, accessCode);
+      await dbRestoreCongReports(backupData, accessCode);
 
-    await dbRestoreBranchReports(backupData, accessCode);
+      await dbRestoreBranchReports(backupData, accessCode);
 
-    await dbRestoreBranchCongAnalysis(backupData, accessCode);
+      await dbRestoreBranchCongAnalysis(backupData, accessCode);
 
-    await dbRestoreMeetingAttendance(backupData, accessCode);
+      await dbRestoreMeetingAttendance(backupData, accessCode);
 
-    await dbRestoreSources(backupData, accessCode);
+      await dbRestoreSources(backupData, accessCode);
 
-    await dbRestoreSchedules(backupData, accessCode);
+      await dbRestoreSchedules(backupData, accessCode);
 
-    await dbRestoreDepartmentsSchedule(backupData, accessCode);
+      await dbRestoreDepartmentsSchedule(backupData, accessCode);
 
-    await dbRestoreServiceOutings(backupData, accessCode);
-    await dbRestoreExhibitors(backupData, accessCode);
-    await dbRestoreResponsabilidades(backupData, accessCode);
-    await dbRestoreLimpiezaConfig(backupData, accessCode);
-    await dbRestoreEvacuacionConfig(backupData, accessCode);
+      await dbRestoreServiceOutings(backupData, accessCode);
+      await dbRestoreExhibitors(backupData, accessCode);
+      await dbRestoreResponsabilidades(backupData, accessCode);
+      await dbRestoreLimpiezaConfig(backupData, accessCode);
+      await dbRestoreEvacuacionConfig(backupData, accessCode);
 
-    await dbRestoreUserStudies(backupData, accessCode);
+      await dbRestoreUserStudies(backupData, accessCode);
 
-    await dbRestoreUpcomingEvents(backupData, accessCode);
+      await dbRestoreUpcomingEvents(backupData, accessCode);
 
-    await dbRestoreUserReports(backupData, accessCode);
+      await dbRestoreUserReports(backupData, accessCode);
 
-    await dbRestoreDelegatedReports(backupData, accessCode);
+      await dbRestoreDelegatedReports(backupData, accessCode);
 
-    if (backupData.outgoing_talks) {
-      await dbInsertOutgoingTalks(backupData.outgoing_talks);
-    }
+      if (backupData.outgoing_talks) {
+        await dbInsertOutgoingTalks(backupData.outgoing_talks);
+      }
 
-    if (backupData.public_schedules) {
-      await appDb.sched.clear();
-      const data = backupData.public_schedules as SchedWeekType[];
-      await appDb.sched.bulkPut(data);
-    }
+      if (backupData.public_schedules) {
+        await appDb.sched.clear();
+        const data = backupData.public_schedules as SchedWeekType[];
+        await appDb.sched.bulkPut(data);
+      }
 
-    if (backupData.public_sources) {
-      await appDb.sources.clear();
-      const data = backupData.public_sources as SourceWeekType[];
-      await appDb.sources.bulkPut(data);
-    }
+      if (backupData.public_sources) {
+        await appDb.sources.clear();
+        const data = backupData.public_sources as SourceWeekType[];
+        await appDb.sources.bulkPut(data);
+      }
 
-    await dbInsertMetadata(backupData.metadata);
+      await dbInsertMetadata(backupData.metadata);
+    });
   } catch (error) {
     throw new Error(`Restore failed: ${error.message}`);
   }
