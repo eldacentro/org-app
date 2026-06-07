@@ -1,6 +1,4 @@
-import { PersonType } from '@definition/person';
 import { ResponsabilidadesType, Departamento } from '@definition/responsabilidades';
-import { personIsElder } from '@services/app/persons';
 
 const normalize = (s: string) =>
   s
@@ -29,8 +27,7 @@ const isServiceOverseerCargo = (cargo: string) => {
  * - Los responsables, auxiliares y miembros del departamento "Territorios".
  */
 export const getTerritoryManagersUids = (
-  responsabilidades: ResponsabilidadesType,
-  persons: PersonType[]
+  responsabilidades: ResponsabilidadesType
 ): string[] => {
   const uids = new Set<string>();
 

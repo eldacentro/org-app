@@ -246,7 +246,7 @@ const DialogVerTerritorio = ({
       : 0;
     setTab(defaultTab);
     setEditingTags(false);
-  }, [territory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [territory?.id]);
 
   const relevantAssignment = useMemo(() => {
     if (!liveTerritory) return null;

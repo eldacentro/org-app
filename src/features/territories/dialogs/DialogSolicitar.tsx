@@ -47,7 +47,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         createdAt: new Date().toISOString(),
       });
 
-      const targets = getTerritoryManagersUids(responsabilidades!, persons);
+      const targets = getTerritoryManagersUids(responsabilidades!);
       if (targets.length > 0) {
         await apiSendTerritoryPush(
           targets,

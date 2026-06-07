@@ -71,7 +71,7 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
         }
       } else {
         // Generar solicitud si lo devuelve sin trabajar (opcional según el flujo original, pero sí enviar el push)
-        const targets = getTerritoryManagersUids(responsabilidades!, persons);
+        const targets = getTerritoryManagersUids(responsabilidades!);
         const territory = territories.find((t) => t.id === assignment.territoryId);
         if (targets.length > 0) {
           const tLabel = territory ? territoryLabel(territory) : 'Un territorio';
