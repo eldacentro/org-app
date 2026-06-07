@@ -23,8 +23,14 @@ import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { NextStepType } from './index.types';
 import { settingSchema } from '@services/dexie/schema';
 import { apiSendAuthorization } from '@services/api/user';
-import { displaySnackNotification } from '@services/states/app';
+import {
+  displaySnackNotification,
+  setCongAccountConnected,
+  setIsAppLoad,
+  setOfflineOverride,
+} from '@services/states/app';
 import { getMessageByCode, getTranslation } from '@services/i18n/translation';
+import { loadApp, runUpdater } from '@services/app';
 
 const useAuth = () => {
   const setIsSetup = useSetAtom(isSetupState);
@@ -231,7 +237,16 @@ const useAuth = () => {
         setIsEmailAuth(false);
         setIsUserSignIn(false);
         setIsCongCreate(false);
+
+        await runUpdater();
+        loadApp();
         setIsSetup(false); // This will trigger the app load
+
+        setTimeout(() => {
+          setOfflineOverride(false);
+          setCongAccountConnected(true);
+          setIsAppLoad(false);
+        }, 2000);
       }
 
       if (nextStep.encryption === true) {
