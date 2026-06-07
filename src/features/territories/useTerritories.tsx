@@ -91,7 +91,10 @@ export const useTerritories = () => {
       subscribeTags(congId, setTags),
       subscribeSettings(congId, (settings) => {
         if (settings) {
-          setSettings(settings);
+          setSettings({
+            ...DEFAULT_TERRITORY_SETTINGS,
+            ...settings,
+          });
         } else {
           // Primera vez: sembrar ajustes por defecto
           const seeded = {
