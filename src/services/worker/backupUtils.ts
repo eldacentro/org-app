@@ -36,16 +36,6 @@ import { UpcomingEventType } from '@definition/upcoming_events';
 import { formatDate } from '@utils/date';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 
-const personIsElder = (person: PersonType) => {
-  const hasActive = person?.person_data.privileges?.find(
-    (record) =>
-      record.privilege === 'elder' &&
-      record.end_date === null &&
-      record._deleted === false
-  );
-
-  return hasActive ? true : false;
-};
 
 const personIsMS = (person: PersonType) => {
   const hasActive = person?.person_data.privileges?.find(
