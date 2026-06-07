@@ -17,7 +17,7 @@ const isTerritoryDept = (dep: Departamento) =>
 /** uids implicados en un departamento (responsable, auxiliar y miembros). */
 const deptMemberUids = (dep: Departamento): string[] => {
   const uids = [dep.responsable, dep.auxiliar].filter(Boolean) as string[];
-  if (dep.type === 'extended') uids.push(...dep.members);
+  if (dep.type === 'extended' && Array.isArray(dep.members)) uids.push(...dep.members);
   return uids;
 };
 

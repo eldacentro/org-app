@@ -11,14 +11,14 @@ const isTerritoryDept = (dep: Departamento) =>
 
 const deptMemberUids = (dep: Departamento): string[] => {
   const uids = [dep.responsable, dep.auxiliar].filter(Boolean) as string[];
-  if (dep.type === 'extended') uids.push(...dep.members);
+  if (dep.type === 'extended' && Array.isArray(dep.members)) uids.push(...dep.members);
   return uids;
 };
 
 /** Identifica el cargo del superintendente de servicio por aproximación de texto */
 const isServiceOverseerCargo = (cargo: string) => {
   const norm = normalize(cargo);
-  return norm.includes('servicio') || norm.includes('service') || norm.includes('serviço') || norm.includes('servico');
+  return norm.includes('superintendente de servicio') || norm.includes('service overseer') || norm.includes('superintendente do servico');
 };
 
 /**

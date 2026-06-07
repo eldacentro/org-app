@@ -29,7 +29,7 @@ const useTerritoryRequestsNotifications = () => {
     }
 
     if (pendingRequests.length > 0) {
-      const lastUpdated = pendingRequests.sort((a, b) =>
+      const lastUpdated = [...pendingRequests].sort((a, b) =>
         a.createdAt.localeCompare(b.createdAt)
       )[pendingRequests.length - 1].createdAt;
 

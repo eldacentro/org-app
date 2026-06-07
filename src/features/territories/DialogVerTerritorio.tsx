@@ -1094,7 +1094,7 @@ const DialogVerTerritorio = ({
               </Button>
             )}
             {canManage && !relevantAssignment && onAsignar && (
-              <Button variant="main" onClick={() => onAsignar(territory)}>
+              <Button variant="main" onClick={() => onAsignar(liveTerritory)}>
                 Asignar
               </Button>
             )}

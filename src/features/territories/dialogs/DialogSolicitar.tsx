@@ -60,8 +60,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           .filter(email => !!email) as string[];
 
         if (targetEmails.length > 0) {
-          const applicantPerson = persons.find(p => p.person_uid === uid);
-          const applicantName = applicantPerson ? `${applicantPerson.person_data?.person_firstname?.value || ''} ${applicantPerson.person_data?.person_lastname?.value || ''}`.trim() : resolveName(uid);
+          const applicantName = resolveName(uid);
           const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${nota.trim()}</p>` : '';
           try {
             await Promise.all(

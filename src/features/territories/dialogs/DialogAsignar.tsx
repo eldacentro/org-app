@@ -13,6 +13,7 @@ import {
   fullnameOptionState,
   userLocalUIDState,
 } from '@states/settings';
+import { usePersonName } from '@features/territories/usePersonName';
 import {
   territoriesState,
   territoryAssignedIdsState,
@@ -58,6 +59,7 @@ const DialogAsignar = ({
   const fullnameOption = useAtomValue(fullnameOptionState);
   const settings = useAtomValue(territorySettingsState);
   const territories = useAtomValue(territoriesState);
+  const resolveName = usePersonName();
   const assignedIds = useAtomValue(territoryAssignedIdsState);
   const zones = useAtomValue(territoryZonesState);
 
@@ -133,8 +135,7 @@ const DialogAsignar = ({
       if (requestId) await atenderRequest(congId, requestId, currentUid);
 
       // Si le estamos asignando a una persona y no somos nosotros mismos, enviarle una notificación
-      const currentSelectedTerritory = territoryOptions.find((o) => o.id === territoryId);
-      if (personUid && personUid !== currentUid && currentSelectedTerritory) {
+      if (personUid && personUid !== currentUid && effectiveTerritory) {
         // Notificación in-app (Notice)
         await saveNotice(congId, {
           id: crypto.randomUUID(),
@@ -160,7 +161,7 @@ const DialogAsignar = ({
             await sendEmailNotification(
               targetEmail,
               `Nuevo territorio asignado: ${territoryLabel(effectiveTerritory)}`,
-              `<p>Hola <strong>${assignedPerson.person_data?.person_firstname?.value || ''} ${assignedPerson.person_data?.person_lastname?.value || ''}</strong>,</p>
+              `<p>Hola <strong>${resolveName(personUid)}</strong>,</p>
                <p>Se te ha asignado el territorio <strong>${territoryLabel(effectiveTerritory)}</strong>.</p>
                <div style="text-align: center; margin-top: 30px;">
                  <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
