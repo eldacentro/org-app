@@ -352,7 +352,7 @@ const useAuth = () => {
 
       if (
         nextStep.isVerifyMFA ||
-        nextStep.encryption ||
+        nextStep.encryption !== undefined ||
         nextStep.createCongregation
       ) {
         await updateUserSettings(data as UserLoginResponseType, nextStep);
