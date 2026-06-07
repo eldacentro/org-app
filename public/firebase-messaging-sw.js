@@ -89,7 +89,7 @@ try {
     // If there's nothing pending (e.g. app was closed before sync could occur),
     // we show a generic fallback. Since the backend now targets the push strictly,
     // we know for sure this user has an update, making the fallback safe from spam.
-    messaging.onBackgroundMessage(() => {
+    messaging.onBackgroundMessage((payload) => {
       const DEFAULT_URL = '/#/weekly-schedules';
 
       const showWithContent = (title, body, url) => {
