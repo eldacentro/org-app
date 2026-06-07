@@ -1066,7 +1066,7 @@ const DialogVerTerritorio = ({
                   <Button variant="tertiary" disableAutoStretch disabled={uploading} sx={{ flex: 1 }}>
                     <label style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
-                      <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => handleUploadImage(e.target.files?.[0])} />
+                      <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }} />
                     </label>
                   </Button>
                   {liveTerritory.imageURL && (

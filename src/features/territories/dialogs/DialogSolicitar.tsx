@@ -14,6 +14,7 @@ import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
 import { displaySnackNotification } from '@services/states/app';
+import { escapeHTML } from '@utils/common';
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -61,14 +62,14 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
         if (targetEmails.length > 0) {
           const applicantName = resolveName(uid);
-          const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${nota.trim()}</p>` : '';
+          const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
           try {
             await Promise.all(
               targetEmails.map(email =>
                 sendEmailNotification(
                   email,
-                  `Nueva solicitud de territorio: ${applicantName}`,
-                  `<p>El publicador <strong>${applicantName}</strong> ha solicitado un territorio nuevo.</p>
+                  `Nueva solicitud de territorio: ${escapeHTML(applicantName)}`,
+                  `<p>El publicador <strong>${escapeHTML(applicantName)}</strong> ha solicitado un territorio nuevo.</p>
                    ${notaHTML}
                    <div style="text-align: center; margin-top: 30px;">
                      <a href="https://app.eldacentro.com/congregation/territories" class="btn">Abrir aplicación</a>
@@ -87,8 +88,9 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         displaySnackNotification({ header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' });
         onClose();
       }, 1200);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
     } finally {
       setSaving(false);
     }

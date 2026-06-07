@@ -10,7 +10,8 @@ import ExportResponsabilidades from '@features/congregation/responsabilidades/ex
 import { responsabilidadesState } from '@states/responsabilidades';
 import { dbResponsabilidadesSave } from '@services/dexie/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
-import useCurrentUser from '@hooks/useCurrentUser';
+import { useCurrentUser } from '@hooks/index';
+import { displaySnackNotification } from '@services/states/app';
 
 const ResponsabilidadesPage = () => {
   const data = useAtomValue(responsabilidadesState);
@@ -40,8 +41,9 @@ const ResponsabilidadesPage = () => {
       await dbResponsabilidadesSave(draft);
       setIsEditing(false);
       setDraft(null);
-    } catch (error) {
-      console.error('No se pudo guardar Responsabilidades:', error);
+    } catch (err) {
+      console.error('No se pudo guardar Responsabilidades:', err);
+      displaySnackNotification({ header: 'Error', message: (err as Error).message || 'Error al guardar. Puede que la información esté corrupta o haya conflicto.', severity: 'error' });
     } finally {
       setSaving(false);
     }

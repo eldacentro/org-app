@@ -6,7 +6,8 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { personsActiveState } from '@states/persons';
-import { buildPersonFullname } from '@utils/common';
+import { buildPersonFullname, escapeHTML } from '@utils/common';
+import { displaySnackNotification } from '@services/states/app';
 import {
   congIDState,
   congMasterKeyState,
@@ -161,8 +162,8 @@ const DialogAsignar = ({
             await sendEmailNotification(
               targetEmail,
               `Nuevo territorio asignado: ${territoryLabel(effectiveTerritory)}`,
-              `<p>Hola <strong>${resolveName(personUid)}</strong>,</p>
-               <p>Se te ha asignado el territorio <strong>${territoryLabel(effectiveTerritory)}</strong>.</p>
+              `<p>Hola <strong>${escapeHTML(resolveName(personUid))}</strong>,</p>
+               <p>Se te ha asignado el territorio <strong>${escapeHTML(territoryLabel(effectiveTerritory))}</strong>.</p>
                <div style="text-align: center; margin-top: 30px;">
                  <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
                </div>`
@@ -174,8 +175,9 @@ const DialogAsignar = ({
       }
 
       onClose();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
     } finally {
       setSaving(false);
     }

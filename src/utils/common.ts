@@ -279,3 +279,13 @@ export const updatedAtOverride = <T extends object>(object: T): T => {
 
   return object;
 };
+
+export const escapeHTML = (str: string) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+

@@ -14,6 +14,7 @@ import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
 import { territoryLabel } from '@services/app/territories';
+import { displaySnackNotification } from '@services/states/app';
 
 type Props = {
   assignment: TerritoryAssignment | null;
@@ -81,8 +82,9 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
         }
       }
       onClose();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
     } finally {
       setSaving(false);
     }

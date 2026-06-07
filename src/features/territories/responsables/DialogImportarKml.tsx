@@ -123,7 +123,7 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
                 type="file"
                 accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz"
                 hidden
-                onChange={(e) => handleFile(e.target.files?.[0])}
+                onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }}
               />
             </label>
           </Button>

@@ -1,5 +1,5 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,17 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Sincronizar estado local si cambia el prop territory
+  // (útil si el componente no se desmonta entre ediciones de distintos territorios)
+  useEffect(() => {
+    setNumero(territory.numero);
+    setNombre(territory.nombre || '');
+    setNotas(territory.notas || '');
+    setZoneId(territory.zoneId);
+    setTagIds(territory.tags || []);
+    setGeometry(territory.geometry);
+  }, [territory]);
 
   const hasChanges = useMemo(() => {
     return (
