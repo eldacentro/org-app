@@ -17,9 +17,15 @@ const deptMemberUids = (dep: Departamento): string[] => {
   return uids;
 };
 
+/** Identifica el cargo del superintendente de servicio por aproximación de texto */
+const isServiceOverseerCargo = (cargo: string) => {
+  const norm = normalize(cargo);
+  return norm.includes('servicio') || norm.includes('service') || norm.includes('serviço') || norm.includes('servico');
+};
+
 /**
  * Retorna todos los person_uid de los responsables de territorios:
- * - Todos los ancianos activos.
+ * - El superintendente de servicio (buscado en cargosAncianos).
  * - Los responsables, auxiliares y miembros del departamento "Territorios".
  */
 export const getTerritoryManagersUids = (
@@ -28,11 +34,10 @@ export const getTerritoryManagersUids = (
 ): string[] => {
   const uids = new Set<string>();
 
-  // 1. Añadir a todos los ancianos activos
-  persons.forEach((p) => {
-    if (p._deleted.value) return;
-    if (personIsElder(p)) {
-      uids.add(p.person_uid);
+  // 1. Añadir al superintendente de servicio (buscando en cargosAncianos)
+  responsabilidades?.cargosAncianos?.forEach((c) => {
+    if (isServiceOverseerCargo(c.cargo) && c.responsable) {
+      uids.add(c.responsable);
     }
   });
 

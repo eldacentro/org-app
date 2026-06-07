@@ -2,13 +2,24 @@ import { useEffect } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { notificationsState } from '@states/notification';
 import { territoryPendingRequestsState } from '@states/territories';
+import { territoryRequestsState } from '@states/territories';
 import { TerritoryRequestNotificationType } from '@definition/notification';
 import { useCanReceiveTerritoryRequestNotifications } from '@features/territories/useIsTerritoryManager';
+import { subscribeRequests } from '@services/firebase/territories';
+import { congIDState } from '@states/settings';
 
 const useTerritoryRequestsNotifications = () => {
   const setNotifications = useSetAtom(notificationsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
+  const setRequests = useSetAtom(territoryRequestsState);
   const isManager = useCanReceiveTerritoryRequestNotifications();
+  const congId = useAtomValue(congIDState);
+
+  useEffect(() => {
+    if (!congId || !isManager) return;
+    const unsub = subscribeRequests(congId, setRequests);
+    return () => unsub();
+  }, [congId, isManager, setRequests]);
 
   useEffect(() => {
     // Solo mostrar esta notificación a los responsables de territorios

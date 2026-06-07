@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { markNoticeRead } from '@services/firebase/territories';
 import { useAtomValue } from 'jotai';
 import { congIDState } from '@states/settings';
+import useAppNotification from '@features/app_notification/useAppNotification';
 
 const TerritoryAssignedNotice = ({
   notification,
@@ -14,6 +15,7 @@ const TerritoryAssignedNotice = ({
 }) => {
   const navigate = useNavigate();
   const congId = useAtomValue(congIDState);
+  const { handleCloseNotification } = useAppNotification();
   const notice = notification.notice;
 
   const handleVerTerritorio = async () => {
@@ -28,6 +30,7 @@ const TerritoryAssignedNotice = ({
     
     // Navegar a la página de territorios con el parámetro view
     if (notice.territoryId) {
+      handleCloseNotification();
       navigate(`/congregation/territories?view=${notice.territoryId}`);
     }
   };

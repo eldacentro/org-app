@@ -256,6 +256,9 @@ export const TABLE_ENCRYPTION_MAP = {
     availability: 'shared',
   },
   responsabilidades: {
+    id: 'shared',
+    updatedAt: 'shared',
+    lastModifiedBy: 'shared',
     cuerpoAncianos: 'shared',
     cargosAncianos: 'shared',
     departamentos: 'shared',

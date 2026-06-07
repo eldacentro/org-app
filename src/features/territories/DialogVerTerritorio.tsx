@@ -1117,6 +1117,8 @@ const DialogVerTerritorio = ({
               overflow: 'hidden',
               // Quitar sombra y bordes del Paper para que el diseño propio tome el control
               boxShadow: 'none',
+              borderRadius: 0,
+              margin: 0,
             }
           : {
               maxWidth: '860px',

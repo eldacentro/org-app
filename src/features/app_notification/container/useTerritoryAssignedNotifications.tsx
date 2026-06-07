@@ -1,12 +1,23 @@
 import { useEffect } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { notificationsState } from '@states/notification';
+import { territoryNoticesState } from '@states/territories';
 import { myUnreadNoticesState } from '@states/territories';
 import { TerritoryAssignedNotificationType } from '@definition/notification';
+import { subscribeNotices } from '@services/firebase/territories';
+import { congIDState } from '@states/settings';
 
 const useTerritoryAssignedNotifications = () => {
   const setNotifications = useSetAtom(notificationsState);
   const unreadNotices = useAtomValue(myUnreadNoticesState);
+  const setNotices = useSetAtom(territoryNoticesState);
+  const congId = useAtomValue(congIDState);
+
+  useEffect(() => {
+    if (!congId) return;
+    const unsub = subscribeNotices(congId, setNotices);
+    return () => unsub();
+  }, [congId, setNotices]);
 
   useEffect(() => {
     // Si no hay notificaciones, borrar las existentes de territory-assigned

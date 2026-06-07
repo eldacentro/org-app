@@ -154,17 +154,21 @@ const DialogAsignar = ({
 
         // Notificación por Correo
         const assignedPerson = persons.find(p => p.person_uid === personUid);
-        const targetEmail = assignedPerson?.person_data.email.value;
+        const targetEmail = assignedPerson?.person_data?.email?.value;
         if (targetEmail) {
-          await sendEmailNotification(
-            targetEmail,
-            `Nuevo territorio asignado: ${territoryLabel(effectiveTerritory)}`,
-            `<p>Hola <strong>${assignedPerson.person_data.person_display_name.value}</strong>,</p>
-             <p>Se te ha asignado el territorio <strong>${territoryLabel(effectiveTerritory)}</strong>.</p>
-             <div style="text-align: center; margin-top: 30px;">
-               <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
-             </div>`
-          );
+          try {
+            await sendEmailNotification(
+              targetEmail,
+              `Nuevo territorio asignado: ${territoryLabel(effectiveTerritory)}`,
+              `<p>Hola <strong>${assignedPerson.person_data?.person_firstname?.value || ''} ${assignedPerson.person_data?.person_lastname?.value || ''}</strong>,</p>
+               <p>Se te ha asignado el territorio <strong>${territoryLabel(effectiveTerritory)}</strong>.</p>
+               <div style="text-align: center; margin-top: 30px;">
+                 <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
+               </div>`
+            );
+          } catch (err) {
+            console.error('Failed to send email', err);
+          }
         }
       }
 
