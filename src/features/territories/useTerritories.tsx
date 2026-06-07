@@ -138,7 +138,7 @@ export const useTerritories = () => {
           ) : '',
         };
       })
-      .filter(m => m.uid && m.email);
+      .filter(m => !!m.uid);
 
     // 3. Comparar con lo almacenado en settings
     const storedManagers = settings.managers || [];
