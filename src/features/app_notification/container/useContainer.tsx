@@ -178,6 +178,10 @@ const useContainer = () => {
             const settings = await appDb.app_settings.get(1);
             const congMasterKey = settings.cong_settings.cong_master_key;
 
+            if (!congMasterKey || congMasterKey.length === 0) {
+              continue;
+            }
+
             const masterKey = decryptData(
               data.result.cong_master_key,
               congMasterKey,

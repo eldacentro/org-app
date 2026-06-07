@@ -131,6 +131,10 @@ export const decryptObject = <T extends object>({
       }
 
       if (secretKey === 'private') {
+        if (!masterKey || masterKey === '') {
+          continue;
+        }
+
         data[key] = JSON.parse(decryptData(data[key], masterKey, key, table));
       }
     }

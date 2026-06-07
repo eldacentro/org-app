@@ -2082,7 +2082,11 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
     let masterKey: string;
 
-    if (backupData.app_settings.cong_settings['cong_master_key']) {
+    if (
+      cong_master_key &&
+      cong_master_key.length > 0 &&
+      backupData.app_settings.cong_settings['cong_master_key']
+    ) {
       masterKey = decryptData(
         backupData.app_settings.cong_settings['cong_master_key'],
         cong_master_key,
