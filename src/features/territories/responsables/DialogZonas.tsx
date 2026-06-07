@@ -1,5 +1,6 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useState } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -33,6 +34,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
   const zones = useAtomValue(territoryZonesSortedState);
   const territories = useAtomValue(territoriesState);
 
+  const { confirm, ConfirmDialogNode } = useConfirm();
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#306CB4');
   const [saving, setSaving] = useState(false);
@@ -82,15 +84,20 @@ const DialogZonas = ({ open, onClose }: Props) => {
       });
       return;
     }
-    if (window.confirm(`¿Borrar la zona "${zone.nombre}"?`)) {
-      await deleteZone(congId, zone.id);
-    }
+    const ok = await confirm({
+      message: `¿Borrar la zona "${zone.nombre}"? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (ok) await deleteZone(congId, zone.id);
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={saving ? undefined : onClose}
+    <>
+      {ConfirmDialogNode}
+      <Dialog
+        open={open}
+        onClose={saving ? undefined : onClose}
       PaperProps={{
         style: {
           maxWidth: '520px',
@@ -200,7 +207,8 @@ const DialogZonas = ({ open, onClose }: Props) => {
           </Button>
         </Stack>
       </Box>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
 

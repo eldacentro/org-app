@@ -1,5 +1,6 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useState } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -33,6 +34,7 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
   const tags = useAtomValue(territoryTagsState);
   const territories = useAtomValue(territoriesState);
 
+  const { confirm, ConfirmDialogNode } = useConfirm();
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#EC4899');
   const [saving, setSaving] = useState(false);
@@ -81,15 +83,20 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       });
       return;
     }
-    if (window.confirm(`¿Borrar la etiqueta "${tag.nombre}"?`)) {
-      await deleteTag(congId, tag.id);
-    }
+    const ok = await confirm({
+      message: `¿Borrar la etiqueta "${tag.nombre}"? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (ok) await deleteTag(congId, tag.id);
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={saving ? undefined : onClose}
+    <>
+      {ConfirmDialogNode}
+      <Dialog
+        open={open}
+        onClose={saving ? undefined : onClose}
       PaperProps={{
         style: {
           maxWidth: '520px',
@@ -199,7 +206,8 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
           </Button>
         </Stack>
       </Box>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
 

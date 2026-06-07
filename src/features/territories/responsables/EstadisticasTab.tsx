@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, LinearProgress } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -242,6 +243,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const congId = useAtomValue(congIDState);
   const currentUid = useAtomValue(userLocalUIDState);
   const resolveName = usePersonName();
+  const { confirm, ConfirmDialogNode } = useConfirm();
   // Estado para "ver más" de la lista plana
   const [flatLimit, setFlatLimit] = useState(PAGE_SIZE);
 
@@ -314,13 +316,12 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
   const notificar = async (a: TerritoryAssignment) => {
     const nombre = resolveName(a.personUid);
-    if (
-      !window.confirm(
-        `¿Enviar aviso de territorio atrasado a ${nombre}? Le llegará al instante en su lista "Mis territorios".`
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Notificar territorio atrasado',
+      message: `¿Enviar aviso a ${nombre}? Le llegará al instante en su lista "Mis territorios".`,
+      confirmLabel: 'Enviar',
+    });
+    if (!ok) return;
     try {
       await saveNotice(congId, {
         id: crypto.randomUUID(),
@@ -356,6 +357,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {ConfirmDialogNode}
       {/* Resumen Dashboard */}
       <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={2}>
         <KpiCard

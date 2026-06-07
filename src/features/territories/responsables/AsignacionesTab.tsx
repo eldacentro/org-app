@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import {
   Box,
   Collapse,
@@ -244,6 +245,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const resolveName = usePersonName();
 
   const [filter, setFilter] = useState<Filter>('all');
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   // ── Diálogo de edición de nota ──────────────────────────────────────────────
   const [editTarget, setEditTarget] = useState<TerritoryAssignment | null>(null);
@@ -294,13 +296,13 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     );
 
   const handleDelete = async (a: TerritoryAssignment) => {
-    if (
-      window.confirm(
-        '¿Estás seguro de que deseas borrar esta asignación? Esta acción no se puede deshacer y afecta al registro del S-13.'
-      )
-    ) {
-      await deleteAssignment(congId, a.id);
-    }
+    const ok = await confirm({
+      title: 'Borrar asignación',
+      message: '¿Borrar esta asignación? Esta acción no se puede deshacer y afecta al registro del S-13.',
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (ok) await deleteAssignment(congId, a.id);
   };
 
   const handleEditNote = (a: TerritoryAssignment) => openNoteDialog(a);
@@ -324,6 +326,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {ConfirmDialogNode}
       <Stack direction="row" spacing={1}>
         <FilterChip
           label="Todos"

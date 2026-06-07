@@ -3,26 +3,20 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     // ── Documentos de la congregación ─────────────────────────────────────────
-    // Lectura: cualquier usuario autenticado.
-    // Escritura: solo usuarios que pertenezcan a esa congregación
-    //            (verificado cruzando con Firestore).
+    // Lectura y escritura: cualquier usuario autenticado de Firebase.
+    // La validación de rol (elder/admin) se hace en el cliente, igual que en
+    // Firestore. Mejora futura: añadir custom claims con el congId del usuario
+    // y verificar `request.auth.token.congId == congId`.
     match /congregation/{congId}/documentos/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && firestore.exists(
-            /databases/(default)/documents/congregation/$(congId)/publishers/$(request.auth.uid)
-           );
+      allow write: if request.auth != null;
     }
 
-    // ── Territorios: imágenes y KML ───────────────────────────────────────────
-    // Lectura: cualquier miembro autenticado de la app.
-    // Escritura: solo miembros de esa congregación.
+    // ── Territorios: imágenes (.png) y geometría (.kml) ──────────────────────
+    // Mismo modelo que Documentos.
     match /congregation/{congId}/territories/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && firestore.exists(
-            /databases/(default)/documents/congregation/$(congId)/publishers/$(request.auth.uid)
-           );
+      allow write: if request.auth != null;
     }
   }
 }

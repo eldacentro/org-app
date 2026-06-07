@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Stack, Chip } from '@mui/material';
+import { useConfirm } from '@components/confirm_dialog';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -30,6 +31,8 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   );
   const approved = locations.filter((l) => l.aprobada);
   const pending = locations.filter((l) => !l.aprobada);
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const [direccion, setDireccion] = useState('');
   const [nota, setNota] = useState('');
@@ -81,9 +84,13 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   };
 
   const handleDelete = async (l: TerritoryLocation) => {
-    if (window.confirm('¿Borrar esta dirección?')) {
-      await deleteLocation(congId, l.id);
-    }
+    const ok = await confirm({
+      message: '¿Borrar esta dirección? Esta acción no se puede deshacer.',
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteLocation(congId, l.id);
   };
 
   const renderRow = (l: TerritoryLocation, isPending = false) => (
@@ -124,6 +131,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+      {ConfirmDialogNode}
       <Stack spacing={1}>
         {approved.length === 0 && pending.length === 0 && (
           <Typography variant="body2" color="var(--ink-2)">

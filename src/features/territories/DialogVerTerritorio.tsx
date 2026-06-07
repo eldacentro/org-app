@@ -1,5 +1,6 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useMemo, useRef, useState, forwardRef, type ReactElement, type Ref } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import {
   Box,
   Stack,
@@ -204,6 +205,7 @@ const DialogVerTerritorio = ({
   onEdit,
 }: Props) => {
   const { tabletDown } = useBreakpoints();
+  const { confirm, ConfirmDialogNode } = useConfirm();
   const [tab, setTab] = useState(0);
   const [editingTags, setEditingTags] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -279,7 +281,12 @@ const DialogVerTerritorio = ({
   };
 
   const handleDeleteImage = async () => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta imagen?')) return;
+    const ok = await confirm({
+      message: '¿Eliminar la imagen de este territorio? Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!ok) return;
     setUploading(true);
     try {
       await deleteTerritoryImage(congID, liveTerritory.id);
@@ -1105,10 +1112,12 @@ const DialogVerTerritorio = ({
   );
 
   return (
-    <MUIDialog
-      fullScreen={tabletDown}
-      open={!!territory}
-      onClose={onClose}
+    <>
+      {ConfirmDialogNode}
+      <MUIDialog
+        fullScreen={tabletDown}
+        open={!!territory}
+        onClose={onClose}
       TransitionComponent={tabletDown ? Transition : undefined}
       PaperProps={{
         sx: tabletDown
@@ -1130,8 +1139,9 @@ const DialogVerTerritorio = ({
             },
       }}
     >
-      {tabletDown ? mobileContent : desktopContent}
-    </MUIDialog>
+        {tabletDown ? mobileContent : desktopContent}
+      </MUIDialog>
+    </>
   );
 };
 

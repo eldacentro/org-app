@@ -29,6 +29,7 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
   const upcomingEvents = await appDb.upcoming_events.toArray();
   const limpiezaConfigArray = await appDb.limpieza_config.toArray();
   const limpiezaConfig = limpiezaConfigArray[0];
+  const evacuacionConfig = await appDb.evacuacion_config.get('1') ?? null;
 
   // Territory data lives in Firestore (real-time sync via onSnapshot); read it
   // directly here so the backup captures the authoritative server state.
@@ -82,6 +83,7 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
       visiting_speakers: visitingSpeakers,
       week_type: handleGetWeekTypes(),
       limpieza_config: limpiezaConfig,
+      evacuacion_config: evacuacionConfig,
       ...(territories ? { territories } : {}),
     },
   };
@@ -136,6 +138,7 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     appDb.user_bible_studies,
     appDb.upcoming_events,
     appDb.limpieza_config,
+    appDb.evacuacion_config,
   ], async () => {
     await appDb.persons.clear();
     await appDb.branch_cong_analysis.clear();
@@ -151,6 +154,7 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     await appDb.user_bible_studies.clear();
     await appDb.upcoming_events.clear();
     await appDb.limpieza_config.clear();
+    await appDb.evacuacion_config.clear();
 
     // Populate data
     if (data.persons) await appDb.persons.bulkAdd(data.persons);
@@ -175,6 +179,11 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     if (data.limpieza_config) {
       await appDb.limpieza_config.clear();
       await appDb.limpieza_config.add(data.limpieza_config);
+    }
+
+    if (data.evacuacion_config) {
+      await appDb.evacuacion_config.clear();
+      await appDb.evacuacion_config.put({ ...data.evacuacion_config, id: '1' });
     }
   });
 };

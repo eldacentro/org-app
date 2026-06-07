@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import { Autocomplete, Box, Stack, Collapse, TextField as MuiTextField } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -47,6 +48,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   // IDs de campañas cuyo cierre automático ya está en vuelo — evita escrituras
   // duplicadas cuando onSnapshot dispara en ráfaga antes de que el estado se
@@ -130,17 +132,18 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   };
 
   const handleDelete = async (c: TerritoryCampaign) => {
-    if (
-      window.confirm(
-        `¿Borrar la campaña "${c.nombre}"? Esto también borra sus registros de asignación del S-13. No se debe hacer sin permiso del superintendente de servicio.`
-      )
-    ) {
-      await deleteCampaign(congId, c.id);
-    }
+    const ok = await confirm({
+      title: 'Borrar campaña',
+      message: `¿Borrar la campaña "${c.nombre}"? Esto también borra sus registros de asignación del S-13. No se debe hacer sin permiso del superintendente de servicio.`,
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (ok) await deleteCampaign(congId, c.id);
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {ConfirmDialogNode}
       <Box>
         <Button variant="main" onClick={() => setOpenCrear(true)} disableAutoStretch>
           Crear campaña

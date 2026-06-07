@@ -1,5 +1,6 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useState, useMemo, useEffect } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   // Sincronizar estado local si cambia el prop territory
   // (útil si el componente no se desmonta entre ediciones de distintos territorios)
@@ -99,11 +101,13 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   };
 
   const handleDelete = async () => {
-    if (
-      window.confirm(
-        '¿Estás SEGURO de que deseas eliminar este territorio por completo? Esta acción NO se puede deshacer.'
-      )
-    ) {
+    const ok = await confirm({
+      title: 'Eliminar territorio',
+      message: '¿Eliminar este territorio por completo? Esta acción NO se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (ok) {
       setDeleting(true);
       try {
         await deleteTerritoryCompleto(congId, territory.id);
@@ -131,8 +135,10 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   }, [zones, zoneId]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth={false} fullWidth scroll="paper"
-      PaperProps={{ sx: { maxWidth: '1100px', width: 'calc(100% - 32px)' } }}
+    <>
+      {ConfirmDialogNode}
+      <Dialog open={open} onClose={onClose} maxWidth={false} fullWidth scroll="paper"
+        PaperProps={{ sx: { maxWidth: '1100px', width: 'calc(100% - 32px)' } }}
     >
       <DialogTitle sx={{ p: 0 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
@@ -263,7 +269,8 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           </Button>
         </Stack>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
 
