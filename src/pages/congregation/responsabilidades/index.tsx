@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { IconEdit, IconSave, IconClose } from '@components/icons';
@@ -12,6 +12,7 @@ import { dbResponsabilidadesSave } from '@services/dexie/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { useCurrentUser } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
+import backupWorker from '@services/worker/backupWorker';
 
 const ResponsabilidadesPage = () => {
   const data = useAtomValue(responsabilidadesState);
@@ -22,6 +23,13 @@ const ResponsabilidadesPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ResponsabilidadesType | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Trigger a sync when the page mounts so we always see the latest changes
+  // from other admins/elders (the backup worker is the authoritative sync path
+  // for responsabilidades — it does a GET→merge→POST round-trip).
+  useEffect(() => {
+    backupWorker.postMessage('startWorker');
+  }, []);
 
   const startEdit = useCallback(() => {
     if (!data) return;

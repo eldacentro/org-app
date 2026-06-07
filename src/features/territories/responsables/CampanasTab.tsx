@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Autocomplete, Box, Stack, Collapse, TextField as MuiTextField } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -48,6 +48,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  // IDs de campañas cuyo cierre automático ya está en vuelo — evita escrituras
+  // duplicadas cuando onSnapshot dispara en ráfaga antes de que el estado se
+  // actualice a 'pasada' en Firestore.
+  const closingRef = useRef(new Set<string>());
+
   const closeCampaign = useCallback(
     async (c: TerritoryCampaign) => {
       const key = masterKey ?? '';
@@ -79,11 +84,23 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   );
 
   // Auto-cierre de campañas terminadas (fechaFin pasada y aún no 'pasada').
+  // El Set `closingRef` evita que un burst de snapshots lance el cierre varias
+  // veces sobre la misma campaña antes de que Firestore actualice el estado.
   useEffect(() => {
     const now = new Date();
     campaigns
-      .filter((c) => c.estado !== 'pasada' && new Date(c.fechaFin) < now)
-      .forEach((c) => closeCampaign(c).catch(console.error));
+      .filter(
+        (c) =>
+          c.estado !== 'pasada' &&
+          new Date(c.fechaFin) < now &&
+          !closingRef.current.has(c.id)
+      )
+      .forEach((c) => {
+        closingRef.current.add(c.id);
+        closeCampaign(c)
+          .catch(console.error)
+          .finally(() => closingRef.current.delete(c.id));
+      });
   }, [campaigns, closeCampaign]);
 
   const sorted = useMemo(() => {

@@ -34,12 +34,14 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   const [direccion, setDireccion] = useState('');
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const canAdd = canManage || settings.publishersCanAddLocations;
 
   const handleAdd = async () => {
     if (!direccion.trim()) return;
     setSaving(true);
+    setSaveError('');
     try {
       const now = new Date().toISOString();
       // Responsables: aprobada directa. Publicadores: según la configuración.
@@ -62,6 +64,9 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       );
       setDireccion('');
       setNota('');
+    } catch (err) {
+      console.error('Error al guardar dirección:', err);
+      setSaveError('No se pudo guardar la dirección. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setSaving(false);
     }
@@ -159,6 +164,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
             >
               Añadir
             </Button>
+            {saveError && (
+              <Typography variant="caption" color="var(--red-main)">
+                {saveError}
+              </Typography>
+            )}
             {!canManage && settings.locationsRequireApproval && (
               <Typography variant="caption" color="var(--ink-2)">
                 La dirección quedará pendiente hasta que un responsable la apruebe.

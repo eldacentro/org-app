@@ -20,7 +20,7 @@ import rtlPlugin from '@mui/stylis-plugin-rtl';
 import FeatureFlagsWrapper from '@wrapper/feature_flags';
 import RouteProtected from '@components/route_protected';
 import { determineAppLocale } from '@services/app';
-import { firstDayWeekState } from '@states/settings';
+import { firstDayWeekState, congIDState } from '@states/settings';
 import { LANGUAGE_LIST } from './constants';
 import { triggerAutoBackup } from '@services/app/backupScheduler';
 
@@ -204,6 +204,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   const theme = useAtomValue(appThemeState);
   const appLang = useAtomValue(appLangState);
   const firstDayOfTheWeekOption = useAtomValue(firstDayWeekState);
+  const congId = useAtomValue(congIDState);
 
   const [cache, setCache] = useState(ltrCache);
 
@@ -454,9 +455,9 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
   useEffect(() => {
     if (isAdmin) {
-      triggerAutoBackup(isAdmin);
+      triggerAutoBackup(isAdmin, congId || undefined);
     }
-  }, [isAdmin]);
+  }, [isAdmin, congId]);
 
   useEffect(() => {
     // Clear chunk reload occurred flag since app loaded successfully

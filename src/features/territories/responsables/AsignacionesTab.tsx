@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Box, Stack, Collapse } from '@mui/material';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Box,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+} from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -236,6 +245,33 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
 
   const [filter, setFilter] = useState<Filter>('all');
 
+  // ── Diálogo de edición de nota ──────────────────────────────────────────────
+  const [editTarget, setEditTarget] = useState<TerritoryAssignment | null>(null);
+  const [noteValue, setNoteValue] = useState('');
+  const noteRef = useRef<HTMLInputElement>(null);
+
+  const openNoteDialog = (a: TerritoryAssignment) => {
+    setEditTarget(a);
+    setNoteValue(a.notas ?? '');
+  };
+
+  const closeNoteDialog = () => setEditTarget(null);
+
+  const saveNote = async () => {
+    if (!editTarget) return;
+    await saveAssignment(
+      congId,
+      {
+        ...editTarget,
+        notas: noteValue.trim() || undefined,
+        updatedAt: new Date().toISOString(),
+      },
+      masterKey ?? ''
+    );
+    closeNoteDialog();
+  };
+  // ───────────────────────────────────────────────────────────────────────────
+
   const assignmentsByTerritory = useMemo(() => {
     const map = new Map<string, TerritoryAssignment[]>();
     assignments.forEach((a) => {
@@ -267,15 +303,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     }
   };
 
-  const handleEditNote = async (a: TerritoryAssignment) => {
-    const nota = window.prompt('Nota de la asignación:', a.notas ?? '');
-    if (nota === null) return;
-    await saveAssignment(
-      congId,
-      { ...a, notas: nota.trim() || undefined, updatedAt: new Date().toISOString() },
-      masterKey ?? ''
-    );
-  };
+  const handleEditNote = (a: TerritoryAssignment) => openNoteDialog(a);
 
   const byZone = useMemo(() => {
     return zones.map((zone) => ({
@@ -349,6 +377,53 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           </Stack>
         </Box>
       ))}
+
+      {/* ── Diálogo de edición de nota ─────────────────────────────────── */}
+      <Dialog
+        open={!!editTarget}
+        onClose={closeNoteDialog}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: 'var(--ink)', fontWeight: 700 }}>
+          Editar nota
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            inputRef={noteRef}
+            autoFocus
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={6}
+            label="Nota de la asignación"
+            value={noteValue}
+            onChange={(e) => setNoteValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                saveNote();
+              }
+            }}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button variant="tertiary" onClick={closeNoteDialog}>
+            Cancelar
+          </Button>
+          <Button variant="main" onClick={saveNote}>
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

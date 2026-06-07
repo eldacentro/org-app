@@ -1,6 +1,7 @@
 import appDb from '@db/appDb';
 import backupsDb from '@db/backupsDb';
 import { googleDriveUploadBackup } from './googleDriveBackup';
+import { fetchTerritoryBackupData } from '@services/firebase/territories';
 
 const STORAGE_KEYS = {
   LAST_AUTO_BACKUP: 'elda_centro_last_auto_backup',
@@ -8,7 +9,7 @@ const STORAGE_KEYS = {
 
 // Generates a complete database JSON payload (matching standard useExport)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const generateBackupPayload = async (): Promise<any> => {
+export const generateBackupPayload = async (congId?: string): Promise<any> => {
   const persons = await appDb.persons.toArray();
   const settingsArray = await appDb.app_settings.toArray();
   const settings = settingsArray[0];
@@ -28,6 +29,10 @@ export const generateBackupPayload = async (): Promise<any> => {
   const upcomingEvents = await appDb.upcoming_events.toArray();
   const limpiezaConfigArray = await appDb.limpieza_config.toArray();
   const limpiezaConfig = limpiezaConfigArray[0];
+
+  // Territory data lives in Firestore (real-time sync via onSnapshot); read it
+  // directly here so the backup captures the authoritative server state.
+  const territories = congId ? await fetchTerritoryBackupData(congId) : null;
 
   const handleGetSettings = () => {
     if (!settings) return null;
@@ -77,6 +82,7 @@ export const generateBackupPayload = async (): Promise<any> => {
       visiting_speakers: visitingSpeakers,
       week_type: handleGetWeekTypes(),
       limpieza_config: limpiezaConfig,
+      ...(territories ? { territories } : {}),
     },
   };
 };
@@ -174,7 +180,7 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
 };
 
 // Scheduler function executed on startup for admins
-export const triggerAutoBackup = async (isAdmin: boolean) => {
+export const triggerAutoBackup = async (isAdmin: boolean, congId?: string) => {
   if (!isAdmin) return;
 
   const now = new Date();
@@ -191,7 +197,7 @@ export const triggerAutoBackup = async (isAdmin: boolean) => {
 
   try {
     console.log('Starting automated hybrid database backup...');
-    const payload = await generateBackupPayload();
+    const payload = await generateBackupPayload(congId);
     const payloadString = JSON.stringify(payload);
     const sizeInBytes = new Blob([payloadString]).size;
     const isoString = now.toISOString();

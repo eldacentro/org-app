@@ -27,9 +27,11 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
   const [tab, setTab] = useState(0);
   const [plan, setPlan] = useState<PlanEvacuacion>(JSON.parse(JSON.stringify(currentPlan)));
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError('');
     try {
       const updated = { ...plan, updatedAt: new Date().toISOString(), id: '1' };
       await dbEvacuacionSaveConfig(updated);
@@ -37,6 +39,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
       onClose();
     } catch (err) {
       console.error('Error saving evacuacion config', err);
+      setSaveError('No se pudieron guardar los cambios. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setIsSaving(false);
     }
@@ -109,8 +112,28 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Configuración de Evacuación</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: '20px',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          boxShadow: 'var(--pop-up-shadow)',
+        },
+      }}
+      slotProps={{
+        backdrop: {
+          style: { backgroundColor: 'var(--accent-dark-overlay)' },
+        },
+      }}
+    >
+      <DialogTitle sx={{ color: 'var(--ink)', fontWeight: 700 }}>
+        Configuración de Evacuación
+      </DialogTitle>
       
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)}>
@@ -125,7 +148,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         {tab === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {plan.estructuraMando.map((rol, i) => (
-              <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--radius-l)', position: 'relative' }}>
+              <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--r-lg)', position: 'relative' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <TextField
                     label="Puesto / Título del Rol"
@@ -164,7 +187,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         {tab === 1 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {plan.equipos.map((equipo, i) => (
-              <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--radius-l)' }}>
+              <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--r-lg)' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <TextField
                     label="Nombre del Equipo"
@@ -257,11 +280,18 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
-        <Button onClick={onClose} variant="secondary">Cancelar</Button>
-        <Button onClick={handleSave} variant="main" disabled={isSaving}>
-          {isSaving ? 'Guardando...' : 'Guardar Cambios'}
-        </Button>
+      <DialogActions sx={{ px: 3, pb: 3, flexDirection: 'column', alignItems: 'stretch', gap: 1 }}>
+        {saveError && (
+          <Typography variant="caption" sx={{ color: 'var(--red-main)', textAlign: 'center' }}>
+            {saveError}
+          </Typography>
+        )}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button onClick={onClose} variant="secondary">Cancelar</Button>
+          <Button onClick={handleSave} variant="main" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );

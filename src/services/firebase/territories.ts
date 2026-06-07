@@ -1,11 +1,15 @@
 import {
   collection,
   doc as fsDoc,
+  getDocs,
   onSnapshot,
+  query,
   setDoc,
   deleteDoc,
   updateDoc,
+  where,
   writeBatch,
+  type DocumentData,
 } from 'firebase/firestore';
 import {
   getStorage,
@@ -336,8 +340,28 @@ export const deleteLocation = (congId: string, locationId: string) =>
 export const saveCampaign = (congId: string, c: TerritoryCampaign) =>
   setDoc(fsDoc(campaignsCol(congId), c.id), c);
 
-export const deleteCampaign = (congId: string, campaignId: string) =>
-  deleteDoc(fsDoc(campaignsCol(congId), campaignId));
+/**
+ * Borra la campaña Y todas las asignaciones que le pertenecen.
+ * Las asignaciones de campaña son temporales; al borrar la campaña
+ * deben desaparecer también del historial activo para no dejar huérfanos.
+ */
+export const deleteCampaign = async (
+  congId: string,
+  campaignId: string
+): Promise<void> => {
+  // 1. Obtener todas las asignaciones de esta campaña
+  const q = query(
+    assignmentsCol(congId),
+    where('campaignId', '==', campaignId)
+  );
+  const snap = await getDocs(q);
+
+  // 2. Borrar en batch (máx. 500 ops; las campañas rara vez tienen más)
+  const batch = writeBatch(firestore);
+  snap.docs.forEach((d) => batch.delete(d.ref));
+  batch.delete(fsDoc(campaignsCol(congId), campaignId));
+  await batch.commit();
+};
 
 export const saveRequest = (congId: string, r: TerritoryRequest) =>
   setDoc(fsDoc(requestsCol(congId), r.id), stripUndefined(r));
@@ -369,3 +393,54 @@ export const deleteTag = (congId: string, tagId: string) =>
 
 export const saveSettings = (congId: string, settings: TerritorySettings) =>
   setDoc(settingsDoc(congId), settings);
+
+// ─── Backup helper ─────────────────────────────────────────────────────────────
+/**
+ * Reads all territory collections from Firestore in parallel and returns them
+ * as a plain-object snapshot for inclusion in the congregation backup.
+ * NOTE: sensitive fields (notas, direccion) are returned in their encrypted
+ * form (enc:: prefix) intentionally — the backup mirrors the server state and
+ * only the owning congregation can decrypt them.
+ */
+export const fetchTerritoryBackupData = async (
+  congId: string
+): Promise<Record<string, DocumentData[]>> => {
+  const read = async (col: ReturnType<typeof collection>) => {
+    const snap = await getDocs(col);
+    return snap.docs.map((d) => d.data());
+  };
+
+  const [
+    zones,
+    territories,
+    assignments,
+    locations,
+    campaigns,
+    requests,
+    notices,
+    tags,
+    settingsSnap,
+  ] = await Promise.all([
+    read(zonesCol(congId)),
+    read(territoriesCol(congId)),
+    read(assignmentsCol(congId)),
+    read(locationsCol(congId)),
+    read(campaignsCol(congId)),
+    read(requestsCol(congId)),
+    read(noticesCol(congId)),
+    read(tagsCol(congId)),
+    getDocs(collection(firestore, 'congregation', congId, 'territory_settings')),
+  ]);
+
+  return {
+    zones,
+    territories,
+    assignments,
+    locations,
+    campaigns,
+    requests,
+    notices,
+    tags,
+    settings: settingsSnap.docs.map((d) => d.data()),
+  };
+};
