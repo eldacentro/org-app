@@ -9,6 +9,7 @@ import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
+import { territoryPendingRequestsState } from '@states/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -24,6 +25,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const uid = useAtomValue(userLocalUIDState);
   const responsabilidades = useAtomValue(responsabilidadesState);
   const persons = useAtomValue(personsState);
+  const pendingRequests = useAtomValue(territoryPendingRequestsState);
   const resolveName = usePersonName();
 
   const [nota, setNota] = useState('');
@@ -120,7 +122,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           en la nota.
         </Typography>
 
-        {enviado ? (
+        {pendingRequests.some(r => r.personUid === uid) ? (
+          <Typography variant="body1" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
+            Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
+          </Typography>
+        ) : enviado ? (
           <Typography variant="body1" sx={{ color: 'var(--green-main)', py: 2 }}>
             ✓ Solicitud enviada.
           </Typography>

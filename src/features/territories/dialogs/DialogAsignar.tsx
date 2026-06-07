@@ -116,6 +116,10 @@ const DialogAsignar = ({
 
   const handleAsignar = async () => {
     if (!personUid || !effectiveTerritory) return;
+    if (assignedIds.includes(effectiveTerritory.id)) {
+      displaySnackNotification({ header: 'Error', message: 'Este territorio ya está asignado', severity: 'error' });
+      return;
+    }
     setSaving(true);
     try {
       const now = new Date().toISOString();
