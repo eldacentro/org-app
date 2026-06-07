@@ -6,7 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { congIDState, congMasterKeyState } from '@states/settings';
-import { territoriesState } from '@states/territories';
+import { territoriesState, territorySettingsState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
 import { saveAssignment, saveTerritory, saveNotice } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
@@ -31,6 +31,7 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
   const masterKey = useAtomValue(congMasterKeyState);
   const territories = useAtomValue(territoriesState);
   const responsabilidades = useAtomValue(responsabilidadesState);
+  const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
 
   const [nota, setNota] = useState('');
@@ -70,18 +71,25 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
         }
       } else {
         // Generar solicitud si lo devuelve sin trabajar (opcional según el flujo original, pero sí enviar el push)
-        const targets = getTerritoryManagersUids(responsabilidades!);
+        let targets: string[] = [];
+        if (settings?.managers && settings.managers.length > 0) {
+          targets = settings.managers.map((m) => m.uid);
+        } else if (responsabilidades) {
+          targets = getTerritoryManagersUids(responsabilidades);
+        }
+
         const territory = territories.find((t) => t.id === assignment.territoryId);
         if (targets.length > 0) {
           const tLabel = territory ? territoryLabel(territory) : 'Un territorio';
           const msg = `${resolveName(assignment.personUid)} devolvió ${tLabel} sin trabajar.${nota.trim() ? ' Hay una nota.' : ''}`;
-          
+
           try {
             await Promise.all(
-              targets.map(targetUid =>
+              targets.map((targetUid) =>
                 saveNotice(congId, {
                   id: crypto.randomUUID(),
                   personUid: targetUid,
+                  title: 'Territorio devuelto',
                   mensaje: msg,
                   sentBy: assignment.personUid,
                   createdAt: now,

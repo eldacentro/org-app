@@ -325,6 +325,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       await saveNotice(congId, {
         id: crypto.randomUUID(),
         personUid: a.personUid,
+        title: 'Territorio atrasado',
         mensaje: settings.overdueMessage,
         territoryId: a.territoryId,
         sentBy: currentUid || undefined,

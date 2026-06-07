@@ -125,6 +125,7 @@ export type TerritoryNotice = {
   id: string;
   /** person_uid destinatario. */
   personUid: string;
+  title?: string;
   mensaje: string;
   /** territorio relacionado (opcional). */
   territoryId?: string;
@@ -171,6 +172,7 @@ export type TerritorySettings = {
   publishersCanAddLocations: boolean;
   // ── Configuración de ubicación ──
   locationsRequireApproval: boolean;
+  managers?: { uid: string; email: string; name: string }[];
   updatedAt: string;
 };
 

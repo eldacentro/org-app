@@ -145,6 +145,7 @@ const DialogAsignar = ({
         await saveNotice(congId, {
           id: crypto.randomUUID(),
           personUid: personUid,
+          title: 'Nuevo territorio asignado',
           mensaje: `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`,
           territoryId: effectiveTerritory.id,
           sentBy: currentUid,

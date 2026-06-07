@@ -31,16 +31,20 @@ const useTerritoryAssignedNotifications = () => {
       let newValue = prev.filter((record) => !record.id.startsWith('territory-assigned-'));
 
       // Crear una notificación por cada aviso
-      const newNotifications: TerritoryAssignedNotificationType[] = unreadNotices.map((notice) => ({
-        id: `territory-assigned-${notice.id}`,
-        title: 'Nuevo territorio asignado',
-        description: notice.mensaje,
-        date: notice.createdAt,
-        icon: 'territory-assigned',
-        notice: notice,
-        enableRead: false,
-        read: false,
-      }));
+      const newNotifications: TerritoryAssignedNotificationType[] = unreadNotices.map((notice) => {
+        const isRequest = notice.title?.toLowerCase().includes('solicitud') || notice.mensaje.toLowerCase().includes('solicitó');
+        const isReturn = notice.title?.toLowerCase().includes('devuelto') || notice.mensaje.toLowerCase().includes('devolvió');
+        return {
+          id: `territory-assigned-${notice.id}`,
+          title: notice.title || 'Aviso de territorio',
+          description: notice.mensaje,
+          date: notice.createdAt,
+          icon: isRequest || isReturn ? 'territory-requests' : 'territory-assigned',
+          notice: notice,
+          enableRead: false,
+          read: false,
+        };
+      });
 
       newValue = [...newValue, ...newNotifications];
       return newValue;

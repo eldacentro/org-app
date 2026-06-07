@@ -9,7 +9,7 @@ import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveRequest, saveNotice } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
-import { territoryPendingRequestsState } from '@states/territories';
+import { territoryPendingRequestsState, territorySettingsState } from '@states/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -26,6 +26,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const responsabilidades = useAtomValue(responsabilidadesState);
   const persons = useAtomValue(personsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
+  const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
 
   const [nota, setNota] = useState('');
@@ -50,19 +51,33 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         createdAt: new Date().toISOString(),
       });
 
-      const targets = getTerritoryManagersUids(responsabilidades!);
+      // Si settings.managers está disponible, lo usamos (resuelve el problema de los publicadores sin acceso a responsabilidades/persons)
+      let targets: string[] = [];
+      let targetEmails: string[] = [];
+
+      if (settings?.managers && settings.managers.length > 0) {
+        targets = settings.managers.map((m) => m.uid);
+        targetEmails = settings.managers.map((m) => m.email).filter(Boolean);
+      } else if (responsabilidades) {
+        targets = getTerritoryManagersUids(responsabilidades);
+        targetEmails = targets
+          .map((targetUid) => persons.find((p) => p.person_uid === targetUid)?.person_data?.email?.value)
+          .filter((email) => !!email) as string[];
+      }
+
       if (targets.length > 0) {
         const applicantName = resolveName(uid);
         const now = new Date().toISOString();
         const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
-        
+
         // Notificación in-app (Notice) para asegurar que llegue siempre
         try {
           await Promise.all(
-            targets.map(targetUid =>
+            targets.map((targetUid) =>
               saveNotice(congId, {
                 id: crypto.randomUUID(),
                 personUid: targetUid,
+                title: 'Solicitud de territorio',
                 mensaje: `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`,
                 sentBy: uid,
                 createdAt: now,
@@ -79,14 +94,10 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`
         ).catch((err) => console.error('Failed to send push', err));
 
-        const targetEmails = targets
-          .map(targetUid => persons.find(p => p.person_uid === targetUid)?.person_data?.email?.value)
-          .filter(email => !!email) as string[];
-
         if (targetEmails.length > 0) {
           try {
             await Promise.all(
-              targetEmails.map(email =>
+              targetEmails.map((email) =>
                 sendEmailNotification(
                   email,
                   `Nueva solicitud de territorio: ${escapeHTML(applicantName)}`,
