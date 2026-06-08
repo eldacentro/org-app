@@ -1,5 +1,16 @@
 import { BackupDataType } from './backupType';
 
+/** Timeout (ms) for every backup fetch. Prevents indefinite hangs when the
+ *  server stalls — without this the worker posts 'Syncing' and never resolves. */
+const FETCH_TIMEOUT_MS = 60_000;
+
+/** Returns an AbortSignal that fires after FETCH_TIMEOUT_MS. */
+const fetchSignal = () => {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return controller.signal;
+};
+
 export const apiGetCongregationBackup = async ({
   apiHost,
   userID,
@@ -14,6 +25,7 @@ export const apiGetCongregationBackup = async ({
   const res = await fetch(`${apiHost}api/v3/users/${userID}/backup`, {
     method: 'GET',
     credentials: 'include',
+    signal: fetchSignal(),
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
@@ -67,6 +79,7 @@ export const apiGetPocketBackup = async ({
   const res = await fetch(`${apiHost}api/v3/pockets/backup`, {
     method: 'GET',
     credentials: 'include',
+    signal: fetchSignal(),
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
@@ -93,6 +106,7 @@ export const apiSendPocketBackup = async ({
   const res = await fetch(`${apiHost}api/v3/pockets/backup`, {
     method: 'POST',
     credentials: 'include',
+    signal: fetchSignal(),
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
@@ -135,6 +149,7 @@ export const apiSendCongregationBackupChunk = async ({
     const res = await fetch(`${apiHost}api/v3/users/${userID}/backup/chunked`, {
       method: 'POST',
       credentials: 'include',
+      signal: fetchSignal(),
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',

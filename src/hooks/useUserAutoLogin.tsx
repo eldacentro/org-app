@@ -31,7 +31,7 @@ import {
 } from '@services/dexie/settings';
 
 const useUserAutoLogin = () => {
-  const { isAuthenticated } = useFirebaseAuth();
+  const { isAuthenticated, user } = useFirebaseAuth();
 
   const { t } = useAppTranslation();
 
@@ -204,6 +204,21 @@ const useUserAutoLogin = () => {
               });
 
               worker.postMessage({ field: 'accountType', value: 'vip' });
+
+              // Pass idToken immediately so the first sync runs without waiting
+              // for the periodic timer (which fires every ~5 min). Without this,
+              // VIP users see "Sincronizando" indefinitely on first load or when
+              // backup_automatic.enabled is false.
+              if (user) {
+                try {
+                  const idToken = await user.getIdToken(true);
+                  if (idToken?.length > 0) {
+                    worker.postMessage({ field: 'idToken', value: idToken });
+                  }
+                } catch {
+                  // Non-critical — timer will retry with fresh token
+                }
+              }
 
               worker.postMessage('startWorker');
             }

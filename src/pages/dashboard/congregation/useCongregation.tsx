@@ -36,27 +36,17 @@ const useCongregation = () => {
   }, [joinRequestsCount]);
 
   const getSecondaryText = () => {
-    let label = t('tr_syncAppDataInProgress');
+    if (isSyncing) return t('tr_syncAppDataInProgress');
 
-    if (!isSyncing) {
-      if (lastSync === 'now') {
-        label = t('tr_lastSyncAppDataNow');
-      }
-
-      if (lastSync === 'recently') {
-        label = t('tr_lastSyncAppDataRecently');
-      }
-
-      if (lastSync === 'error') {
-        label = getMessageByCode('error_app_generic-title');
-      }
-
-      if (typeof lastSync === 'number' && lastSync >= 1) {
-        label = t('tr_lastSyncAppData', { duration: lastSync });
-      }
+    if (lastSync === 'now') return t('tr_lastSyncAppDataNow');
+    if (lastSync === 'recently') return t('tr_lastSyncAppDataRecently');
+    if (lastSync === 'error') return getMessageByCode('error_app_generic-title');
+    if (typeof lastSync === 'number' && lastSync >= 1) {
+      return t('tr_lastSyncAppData', { duration: lastSync });
     }
 
-    return label;
+    // lastSync === 0 or '' means no sync has completed yet — show nothing
+    return '';
   };
 
   const handleManualSync = async () => {
