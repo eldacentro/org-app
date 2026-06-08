@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import {
   congAccountConnectedState,
   isAppDataSyncingState,
@@ -24,6 +24,7 @@ const useCongregation = () => {
   const { accountType } = useCurrentUser();
 
   const isSyncing = useAtomValue(isAppDataSyncingState);
+  const setIsSyncing = useSetAtom(isAppDataSyncingState);
   const lastSync = useAtomValue(lastAppDataSyncState);
   const isConnected = useAtomValue(congAccountConnectedState);
   const isUserAdmin = useAtomValue(adminRoleState);
@@ -50,13 +51,19 @@ const useCongregation = () => {
   };
 
   const handleManualSync = async () => {
-    await dbMetadataReset();
+    // Optimistic feedback — show "Sincronizando" immediately without waiting
+    // for the worker's 3-second debounce to fire.
+    setIsSyncing(true);
 
-    if (accountType === 'vip') {
-      worker.postMessage({
-        field: 'idToken',
-        value: await user.getIdToken(true),
-      });
+    try {
+      await dbMetadataReset();
+
+      if (accountType === 'vip' && user) {
+        const idToken = await user.getIdToken(true);
+        worker.postMessage({ field: 'idToken', value: idToken });
+      }
+    } catch {
+      // Non-critical — worker will use its cached token
     }
 
     worker.postMessage('startWorker');

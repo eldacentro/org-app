@@ -248,6 +248,7 @@ const useUserAutoLogin = () => {
     setOfflineOverride,
     congID,
     setCongPrefix,
+    user,
   ]);
 
   useEffect(() => {
