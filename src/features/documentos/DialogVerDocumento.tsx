@@ -67,11 +67,10 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
     };
   }, [open, documento]);
 
-  const handleClose = async () => {
-    if (documento && person?.person_uid && congId) {
-      await marcarDocumentoVisto(congId, documento.id, person.person_uid).catch(
-        console.error
-      );
+  const handleClose = () => {
+    // Fire-and-forget — marcar como visto no bloquea el cierre del diálogo
+    if (documento && person?.person_uid && congId && pdfUrl) {
+      marcarDocumentoVisto(congId, documento.id, person.person_uid).catch(console.error);
     }
     setPdfUrl(null);
     onClose();

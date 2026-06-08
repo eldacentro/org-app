@@ -34,7 +34,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
       confirmLabel: 'Descartar',
       destructive: true,
     });
-    if (ok) await atenderRequest(congId, req.id, uid);
+    if (ok && uid) await atenderRequest(congId, req.id, uid);
   };
 
   if (pending.length === 0) {

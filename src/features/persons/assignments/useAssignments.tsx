@@ -229,10 +229,12 @@ const useAssignments = () => {
             (a) => a.type === dataView
           );
 
-          personAssignments.updatedAt = new Date().toISOString();
-          personAssignments.values = personAssignments.values.filter(
-            (c) => c !== item.code
-          );
+          if (personAssignments) {
+            personAssignments.updatedAt = new Date().toISOString();
+            personAssignments.values = personAssignments.values.filter(
+              (c) => c !== item.code
+            );
+          }
         }
       }
     }
@@ -315,10 +317,12 @@ const useAssignments = () => {
           (a) => a.type === dataView
         );
 
-        personAssignments.updatedAt = new Date().toISOString();
-        personAssignments.values = personAssignments.values.filter(
-          (c) => c !== code
-        );
+        if (personAssignments) {
+          personAssignments.updatedAt = new Date().toISOString();
+          personAssignments.values = personAssignments.values.filter(
+            (c) => c !== code
+          );
+        }
       }
     }
 

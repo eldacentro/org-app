@@ -1,5 +1,5 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -38,11 +38,15 @@ const DialogZonas = ({ open, onClose }: Props) => {
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#306CB4');
   const [saving, setSaving] = useState(false);
+  // Color pendiente local para evitar snapback durante el debounce
+  const [pendingColors, setPendingColors] = useState<Record<string, string>>({});
+  const colorTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     if (open) {
       setNombre('');
       setColor('#306CB4');
+      setPendingColors({});
     }
   }, [open]);
 
@@ -54,24 +58,36 @@ const DialogZonas = ({ open, onClose }: Props) => {
         id: crypto.randomUUID(),
         nombre: nombre.trim(),
         color,
-        orden: zones.length,
+        orden: zones.length === 0 ? 0 : Math.max(...zones.map((z) => z.orden)) + 1,
         updatedAt: new Date().toISOString(),
       };
       await saveZone(congId, zone);
       setNombre('');
       const idx = PALETA_COLORES.indexOf(color);
       setColor(PALETA_COLORES[(idx + 1) % PALETA_COLORES.length]);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la zona.' });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleColorChange = async (zone: TerritoryZone, newColor: string) => {
-    await saveZone(congId, {
-      ...zone,
-      color: newColor,
-      updatedAt: new Date().toISOString(),
-    });
+  const handleColorChange = (zone: TerritoryZone, newColor: string) => {
+    // Actualizar visual inmediatamente
+    setPendingColors((prev) => ({ ...prev, [zone.id]: newColor }));
+    // Debounce: guardar en Firestore solo cuando el usuario suelta
+    if (colorTimers.current[zone.id]) clearTimeout(colorTimers.current[zone.id]);
+    colorTimers.current[zone.id] = setTimeout(async () => {
+      try {
+        await saveZone(congId, { ...zone, color: newColor, updatedAt: new Date().toISOString() });
+        setPendingColors((prev) => { const n = { ...prev }; delete n[zone.id]; return n; });
+      } catch (err) {
+        console.error(err);
+        displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el color.' });
+        setPendingColors((prev) => { const n = { ...prev }; delete n[zone.id]; return n; });
+      }
+    }, 600);
   };
 
   const handleDelete = async (zone: TerritoryZone) => {
@@ -89,7 +105,13 @@ const DialogZonas = ({ open, onClose }: Props) => {
       confirmLabel: 'Borrar',
       destructive: true,
     });
-    if (ok) await deleteZone(congId, zone.id);
+    if (!ok) return;
+    try {
+      await deleteZone(congId, zone.id);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo borrar la zona.' });
+    }
   };
 
   return (
@@ -139,8 +161,9 @@ const DialogZonas = ({ open, onClose }: Props) => {
                 >
                   <input
                     type="color"
-                    value={zone.color}
+                    value={pendingColors[zone.id] ?? zone.color}
                     onChange={(e) => handleColorChange(zone, e.target.value)}
+                    aria-label={`Color de la zona ${zone.nombre}`}
                     style={{
                       width: 32,
                       height: 32,

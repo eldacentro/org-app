@@ -237,7 +237,7 @@ const useMyAssignments = () => {
           const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
           
           if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
-            const midGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'midweek', groups);
+            const midGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'midweek', groups, schedules);
             if (midGroupId === userGroupId) {
               results.push({
                 id: `LIMPIEZA_${weekOfStr}_midweek`,
@@ -263,7 +263,7 @@ const useMyAssignments = () => {
           const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
 
           if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
-            const weekendGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'weekend', groups);
+            const weekendGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'weekend', groups, schedules);
             if (weekendGroupId === userGroupId) {
               results.push({
                 id: `LIMPIEZA_${weekOfStr}_weekend`,

@@ -19,6 +19,8 @@ import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
+import { LimpiezaConfig } from '@definition/limpieza';
+import { PlanEvacuacion } from '@definition/evacuacion';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -1957,7 +1959,7 @@ const dbRestoreLimpiezaConfig = async (
     const localUpdated = localRecord?.updatedAt || '';
 
     if (!localRecord || remoteUpdated > localUpdated) {
-      await appDb.limpieza_config.put({ ...remoteRecord, id: '1' });
+      await appDb.limpieza_config.put({ ...remoteRecord, id: '1' } as unknown as LimpiezaConfig);
     }
   } catch (error) {
     throw new Error(`limpieza_config: ${error.message}`);
@@ -2184,7 +2186,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
     if (metadata.metadata.schedules?.send_local) checkDiff(sched, remoteSched, 'weekOf');
     if (metadata.metadata.departments_schedule?.send_local) checkDiff(departments_schedule, remoteDept, 'weekOf');
-    if (metadata.metadata.service_outings?.send_local) checkDiff(service_outings, remoteOuting, 'monthOf');
+    if (metadata.metadata.service_outings?.send_local) checkDiff(service_outings, remoteOuting, 'weekOf');
     if (metadata.metadata.exhibitors?.send_local) checkDiff(exhibitors, remoteExhibitor, 'weekOf');
 
     if (affectedUids.size > 0) {

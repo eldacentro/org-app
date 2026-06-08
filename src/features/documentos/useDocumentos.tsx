@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { documentosState, documentoCategoriasState } from '@states/documentos';
 import { congIDState } from '@states/settings';
@@ -9,6 +9,7 @@ import {
   deleteDocumentoCompleto,
 } from '@services/firebase/documentos';
 import { DocumentoCategoria } from '@definition/documentos';
+import { useCurrentUser } from '@hooks/index';
 
 export const CATEGORIAS_INICIALES = [
   { nombre: 'Cuentas', color: '#10B981' },
@@ -30,6 +31,21 @@ export const useDocumentos = () => {
   const documentos = useAtomValue(documentosState);
   const categorias = useAtomValue(documentoCategoriasState);
   const congId = useAtomValue(congIDState);
+  const { isElder, isAdmin } = useCurrentUser();
+  const canDelete = isElder || isAdmin;
+  // Ref para que la closure de onSnapshot siempre use el valor más reciente
+  const canDeleteRef = useRef(canDelete);
+  canDeleteRef.current = canDelete;
+
+  // Teardown al hacer logout (congId pasa a '')
+  useEffect(() => {
+    if (congId) return;
+    _unsubDocs?.();
+    _unsubCats?.();
+    _unsubDocs = null;
+    _unsubCats = null;
+    _activeCongId = null;
+  }, [congId]);
 
   useEffect(() => {
     if (!congId || _activeCongId === congId) return;
@@ -50,11 +66,13 @@ export const useDocumentos = () => {
 
       setDocumentos(active);
 
-      // Borrar documentos expirados en segundo plano
-      // (Firestore onSnapshot se actualizará solo cuando se confirme el borrado)
-      expired.forEach((d) =>
-        deleteDocumentoCompleto(congId, d.id).catch(console.error)
-      );
+      // Borrar documentos expirados en segundo plano — solo admins/ancianos.
+      // Usamos la ref para leer el valor más reciente aunque la closure sea vieja.
+      if (canDeleteRef.current) {
+        expired.forEach((d) =>
+          deleteDocumentoCompleto(congId, d.id).catch(console.error)
+        );
+      }
     });
 
     _unsubCats = subscribeCategories(congId, (cats) => {

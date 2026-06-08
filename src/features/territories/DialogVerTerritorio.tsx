@@ -290,7 +290,10 @@ const DialogVerTerritorio = ({
     setUploading(true);
     try {
       await deleteTerritoryImage(congID, liveTerritory.id);
-      await saveTerritory(congID, { ...liveTerritory, imageURL: '' }, masterKey ?? '');
+      // Usar undefined para que stripUndefined elimine el campo de Firestore
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { imageURL: _removed, ...territoryWithoutImage } = liveTerritory;
+      await saveTerritory(congID, { ...territoryWithoutImage }, masterKey ?? '');
     } catch (e) {
       console.error(e);
       displaySnackNotification({

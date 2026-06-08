@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { displaySnackNotification } from '@services/states/app';
+import { useConfirm } from '@components/confirm_dialog';
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +30,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
   const [plan, setPlan] = useState<PlanEvacuacion>(JSON.parse(JSON.stringify(currentPlan)));
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -36,6 +39,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
       const updated = { ...plan, updatedAt: new Date().toISOString(), id: '1' };
       await dbEvacuacionSaveConfig(updated);
       onSave(updated);
+      displaySnackNotification({ severity: 'success', header: 'Plan guardado', message: 'La configuración de evacuación ha sido guardada.' });
       onClose();
     } catch (err) {
       console.error('Error saving evacuacion config', err);
@@ -62,7 +66,15 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
     });
   };
 
-  const handleDeleteRol = (index: number) => {
+  const handleDeleteRol = async (index: number) => {
+    const rol = plan.estructuraMando[index];
+    const ok = await confirm({
+      title: 'Eliminar rol',
+      message: `¿Eliminar el rol "${rol?.rol || 'este rol'}"? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!ok) return;
     const newMando = plan.estructuraMando.filter((_, i) => i !== index);
     setPlan({ ...plan, estructuraMando: newMando });
   };
@@ -90,7 +102,15 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
     });
   };
 
-  const handleDeleteEquipo = (index: number) => {
+  const handleDeleteEquipo = async (index: number) => {
+    const equipo = plan.equipos[index];
+    const ok = await confirm({
+      title: 'Eliminar equipo',
+      message: `¿Eliminar el equipo "${equipo?.nombre || 'este equipo'}"? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!ok) return;
     const newEquipos = plan.equipos.filter((_, i) => i !== index);
     setPlan({ ...plan, equipos: newEquipos });
   };
@@ -106,23 +126,33 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
     setPlan({ ...plan, normasGenerales: [...plan.normasGenerales, ''] });
   };
 
-  const handleDeleteNorma = (index: number) => {
+  const handleDeleteNorma = async (index: number) => {
+    const norma = plan.normasGenerales[index];
+    const ok = await confirm({
+      title: 'Eliminar norma',
+      message: `¿Eliminar la norma "${norma ? norma.slice(0, 60) : 'esta norma'}"?`,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!ok) return;
     const newNormas = plan.normasGenerales.filter((_, i) => i !== index);
     setPlan({ ...plan, normasGenerales: newNormas });
   };
 
   return (
+    <>
+    {ConfirmDialogNode}
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
-      fullWidth
       PaperProps={{
         sx: {
           borderRadius: '20px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
           boxShadow: 'var(--pop-up-shadow)',
+          maxWidth: '900px',
+          width: '100%',
         },
       }}
       slotProps={{
@@ -144,7 +174,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         </Tabs>
       </Box>
 
-      <DialogContent sx={{ p: 3, height: '500px' }}>
+      <DialogContent sx={{ p: 3, minHeight: '300px', maxHeight: { mobile: '60vh', tablet: '500px' }, overflowY: 'auto' }}>
         {tab === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {plan.estructuraMando.map((rol, i) => (
@@ -273,8 +303,13 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               label="Tiempo Máximo de Evacuación (minutos)"
               type="number"
               value={plan.tiempoMaximo?.toString() || ''}
-              onChange={(e) => setPlan({ ...plan, tiempoMaximo: Number(e.target.value) })}
-              sx={{ width: '300px' }}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') return; // no sobreescribir con 0 si el campo está vacío
+                const n = Number(val);
+                if (!isNaN(n) && n > 0) setPlan({ ...plan, tiempoMaximo: n });
+              }}
+              sx={{ width: { mobile: '100%', tablet: '300px' } }}
             />
           </Box>
         )}
@@ -294,6 +329,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         </Box>
       </DialogActions>
     </Dialog>
+    </>
   );
 };
 

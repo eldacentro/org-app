@@ -73,10 +73,7 @@ const EvacuacionPage = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column',
-          '@media (min-width: 1024px)': {
-            flexDirection: 'row',
-          },
+          flexDirection: { mobile: 'column', laptop: 'row' },
           gap: '16px',
           alignItems: 'stretch',
           flex: 1,
@@ -85,13 +82,9 @@ const EvacuacionPage = () => {
         {/* Plano */}
         <Box
           sx={{
-            flex: '0 0 auto',
-            '@media (min-width: 1024px)': {
-              flex: '0 0 65%',
-              height: '600px',
-            },
+            flex: { mobile: '0 0 auto', laptop: '0 0 65%' },
             width: '100%',
-            height: '55vh',
+            height: { mobile: '55vh', laptop: '600px' },
             position: 'relative',
           }}
         >
@@ -105,13 +98,9 @@ const EvacuacionPage = () => {
         {/* Panel de información */}
         <Box
           sx={{
-            flex: '0 0 auto',
-            '@media (min-width: 1024px)': {
-              flex: '1 1 35%',
-              minHeight: '600px',
-            },
+            flex: { mobile: '0 0 auto', laptop: '1 1 35%' },
             width: '100%',
-            minHeight: '450px',
+            minHeight: { mobile: '450px', laptop: '600px' },
           }}
         >
           <PanelInformacion plan={plan} />

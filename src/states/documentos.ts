@@ -11,5 +11,9 @@ export const unseenDocumentosCountState = atom((get) => {
   
   if (!userUID) return 0;
   
-  return docs.filter(d => d.activo && !d.archivado && (!d.vistoPor || !d.vistoPor.includes(userUID))).length;
+  const now = new Date();
+  return docs.filter(d => {
+    const notExpired = !d.fechaExpiracion || new Date(d.fechaExpiracion) > now;
+    return notExpired && (!d.vistoPor || !d.vistoPor.includes(userUID));
+  }).length;
 });

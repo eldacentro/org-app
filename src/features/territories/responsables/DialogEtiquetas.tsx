@@ -1,5 +1,5 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -38,11 +38,15 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#EC4899');
   const [saving, setSaving] = useState(false);
+  // Color pendiente local para evitar snapback durante el debounce
+  const [pendingColors, setPendingColors] = useState<Record<string, string>>({});
+  const colorTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     if (open) {
       setNombre('');
       setColor('#EC4899');
+      setPendingColors({});
     }
   }, [open]);
 
@@ -60,17 +64,29 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       setNombre('');
       const idx = PALETA_COLORES.indexOf(color);
       setColor(PALETA_COLORES[(idx + 1) % PALETA_COLORES.length]);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la etiqueta.' });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleColorChange = async (tag: TerritoryTag, newColor: string) => {
-    await saveTag(congId, {
-      ...tag,
-      color: newColor,
-      updatedAt: new Date().toISOString(),
-    });
+  const handleColorChange = (tag: TerritoryTag, newColor: string) => {
+    // Actualizar visual inmediatamente
+    setPendingColors((prev) => ({ ...prev, [tag.id]: newColor }));
+    // Debounce: guardar en Firestore solo cuando el usuario suelta
+    if (colorTimers.current[tag.id]) clearTimeout(colorTimers.current[tag.id]);
+    colorTimers.current[tag.id] = setTimeout(async () => {
+      try {
+        await saveTag(congId, { ...tag, color: newColor, updatedAt: new Date().toISOString() });
+        setPendingColors((prev) => { const n = { ...prev }; delete n[tag.id]; return n; });
+      } catch (err) {
+        console.error(err);
+        displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el color.' });
+        setPendingColors((prev) => { const n = { ...prev }; delete n[tag.id]; return n; });
+      }
+    }, 600);
   };
 
   const handleDelete = async (tag: TerritoryTag) => {
@@ -88,7 +104,13 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       confirmLabel: 'Borrar',
       destructive: true,
     });
-    if (ok) await deleteTag(congId, tag.id);
+    if (!ok) return;
+    try {
+      await deleteTag(congId, tag.id);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo borrar la etiqueta.' });
+    }
   };
 
   return (
@@ -138,8 +160,9 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
                 >
                   <input
                     type="color"
-                    value={tag.color}
+                    value={pendingColors[tag.id] ?? tag.color}
                     onChange={(e) => handleColorChange(tag, e.target.value)}
+                    aria-label={`Color de la etiqueta ${tag.nombre}`}
                     style={{
                       width: 32,
                       height: 32,

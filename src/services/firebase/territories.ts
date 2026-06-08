@@ -300,6 +300,17 @@ export const deleteTerritoryCompleto = async (
   congId: string,
   territoryId: string
 ): Promise<void> => {
+  // 1. Borrar asignaciones huérfanas en batch (evita que queden en el S-13 para siempre)
+  const assignSnap = await getDocs(
+    query(assignmentsCol(congId), where('territoryId', '==', territoryId))
+  );
+  if (assignSnap.docs.length > 0) {
+    const batch = writeBatch(firestore);
+    assignSnap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+
+  // 2. Borrar el territorio, sus archivos en Storage y su caché Dexie en paralelo
   await Promise.all([
     deleteDoc(fsDoc(territoriesCol(congId), territoryId)),
     deleteTerritoryFiles(congId, territoryId),
@@ -316,6 +327,35 @@ export const saveAssignment = (
     fsDoc(assignmentsCol(congId), a.id),
     stripUndefined({ ...a, notas: enc(a.notas, key) })
   );
+
+/**
+ * Finaliza una asignación y (si status==='trabajado') actualiza lastWorkedAt
+ * del territorio en un único batch — evita estado inconsistente si falla la red
+ * entre las dos escrituras.
+ */
+export const finalizeAssignmentBatch = async (
+  congId: string,
+  assignment: TerritoryAssignment,
+  territory: Territory | null,
+  key: string
+): Promise<void> => {
+  const batch = writeBatch(firestore);
+  batch.set(
+    fsDoc(assignmentsCol(congId), assignment.id),
+    stripUndefined({ ...assignment, notas: enc(assignment.notas, key) })
+  );
+  if (territory && assignment.status === 'trabajado') {
+    batch.set(
+      fsDoc(territoriesCol(congId), territory.id),
+      stripUndefined({
+        ...territory,
+        geometry: serializeGeometry(territory.geometry),
+        notas: enc(territory.notas, key),
+      })
+    );
+  }
+  await batch.commit();
+};
 
 export const deleteAssignment = (congId: string, assignmentId: string) =>
   deleteDoc(fsDoc(assignmentsCol(congId), assignmentId));

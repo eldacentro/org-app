@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
-  personCurrentDetailsState,
   personsFilterOpenState,
 } from '@states/persons';
+import { personSchema } from '@services/dexie/schema';
 import { setPersonCurrentDetails } from '@services/states/persons';
 import { apiCongregationUsersGet } from '@services/api/congregation';
 import { congAccountConnectedState } from '@states/app';
@@ -27,7 +27,6 @@ const useAllPersons = () => {
 
   const setUsers = useSetAtom(congregationUsersState);
 
-  const person = useAtomValue(personCurrentDetailsState);
   const isConnected = useAtomValue(congAccountConnectedState);
 
   const { data } = useQuery({
@@ -38,7 +37,8 @@ const useAllPersons = () => {
   });
 
   const handlePersonAdd = async () => {
-    const newPerson = structuredClone(person);
+    // Partir del schema vacío, no del último hermano visto (evita flash de datos viejos)
+    const newPerson = structuredClone(personSchema);
     newPerson.person_uid = crypto.randomUUID();
 
     setPersonCurrentDetails(newPerson);

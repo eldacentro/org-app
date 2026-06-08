@@ -685,7 +685,7 @@ const OutgoingSpeakersPage = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gridTemplateColumns: { mobile: '1fr', laptop: '1fr 1fr' },
                 gap: '24px',
               }}
             >

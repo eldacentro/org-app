@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Box, Stack, IconButton, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import { displaySnackNotification } from '@services/states/app';
 import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import Button from '@components/button';
@@ -11,7 +12,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DocumentoCategoria } from '@definition/documentos';
 import { saveCategoriasFirestore } from '@services/firebase/documentos';
 import { congIDState } from '@states/settings';
-import { documentoCategoriasState } from '@states/documentos';
+import { documentoCategoriasState, documentosState } from '@states/documentos';
 import { CATEGORIAS_INICIALES } from './useDocumentos';
 
 const PALETA_COLORES = [
@@ -34,6 +35,7 @@ interface DialogCategoriasProps {
 
 const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
   const categorias = useAtomValue(documentoCategoriasState);
+  const documentos = useAtomValue(documentosState);
   const congId = useAtomValue(congIDState);
 
   const [drafts, setDrafts] = useState<DocumentoCategoria[]>([]);
@@ -75,6 +77,14 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
   };
 
   const handleRemove = (id: string) => {
+    const count = documentos.filter((d) => d.categoriaId === id).length;
+    if (count > 0) {
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Categoría en uso',
+        message: `Esta categoría tiene ${count} documento(s). Si la eliminas y guardas, esos documentos quedarán sin categoría.`,
+      });
+    }
     setDrafts(drafts.filter((d) => d.id !== id));
   };
 
@@ -95,6 +105,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
   };
 
   const handleSave = async () => {
+    if (!congId) return;
     setIsSaving(true);
     try {
       const toSave = drafts.map((d, i) => ({
@@ -106,6 +117,11 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
       onClose();
     } catch (err) {
       console.error(err);
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error al guardar',
+        message: 'No se pudieron guardar las categorías. Verifica tu conexión.',
+      });
     } finally {
       setIsSaving(false);
     }

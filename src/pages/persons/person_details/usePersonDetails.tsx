@@ -33,6 +33,9 @@ const usePersonDetails = () => {
     }
 
     if (!isNewPerson) {
+      // Evitar redirect falso mientras persons[] aún está cargando desde IndexedDB
+      if (persons.length === 0) return;
+
       const foundPerson = persons.find((record) => record.person_uid === id);
 
       if (foundPerson) {

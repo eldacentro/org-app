@@ -209,6 +209,7 @@ const useBasicInfo = () => {
         ).length === 1;
 
       setIsInactive(!isActive);
+      return;
     }
 
     if (person.person_data.publisher_unbaptized.active.value) {
@@ -217,7 +218,11 @@ const useBasicInfo = () => {
           (record) => record._deleted === false && record.end_date === null
         ).length === 1;
       setIsInactive(!isActive);
+      return;
     }
+
+    // Sin estado de publicador activo — no está inactivo
+    setIsInactive(false);
   }, [
     person.person_data.publisher_baptized,
     person.person_data.publisher_unbaptized,

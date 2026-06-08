@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { displaySnackNotification } from '@services/states/app';
 import {
   Dialog,
   DialogTitle,
@@ -21,6 +22,49 @@ import { dbLimpiezaGetConfig, dbLimpiezaSaveConfig } from '@services/dexie/limpi
 import { useAppTranslation } from '@hooks/index';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
+import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+
+/**
+ * Congela todas las semanas pasadas (desde fechaInicio hasta el lunes de esta semana)
+ * como overrides explícitos, para que un cambio de config no retroafecte el histórico.
+ */
+const freezePastWeeks = (
+  oldConfig: LimpiezaConfig,
+  groups: FieldServiceGroupType[]
+): Record<string, string> => {
+  const overrides: Record<string, string> = { ...(oldConfig.overrides ?? {}) };
+
+  // Lunes de la semana de fechaInicio
+  const dInicio = new Date(oldConfig.fechaInicio);
+  const dayI = dInicio.getDay();
+  const diffI = dInicio.getDate() - dayI + (dayI === 0 ? -6 : 1);
+  const current = new Date(dInicio.getFullYear(), dInicio.getMonth(), diffI);
+  current.setHours(0, 0, 0, 0);
+
+  // Lunes de la semana ACTUAL (no congelamos la semana en curso)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDay = today.getDay();
+  const todayDiff = today.getDate() - todayDay + (todayDay === 0 ? -6 : 1);
+  const thisMonday = new Date(today.getFullYear(), today.getMonth(), todayDiff);
+  thisMonday.setHours(0, 0, 0, 0);
+
+  while (current < thisMonday) {
+    const weekOf = `${current.getFullYear()}/${String(current.getMonth() + 1).padStart(2, '0')}/${String(current.getDate()).padStart(2, '0')}`;
+
+    for (const reunionDia of ['midweek', 'weekend'] as const) {
+      const key = `${weekOf}-${reunionDia}`;
+      if (!overrides[key]) {
+        const groupId = calcularGrupoReunion(oldConfig, weekOf, reunionDia, groups);
+        if (groupId) overrides[key] = groupId;
+      }
+    }
+
+    current.setDate(current.getDate() + 7);
+  }
+
+  return overrides;
+};
 
 interface Props {
   open: boolean;
@@ -78,23 +122,30 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
     if (!fechaInicio || !grupoInicio) return;
 
     try {
-      // Preserve existing overrides from current config
       const existingConfig = await dbLimpiezaGetConfig();
 
-      const config: LimpiezaConfig = {
+      // Congelar semanas pasadas: convertirlas a overrides explícitos para que
+      // el cambio de fechaInicio/grupoInicio no retroafecte el historial.
+      const frozenOverrides = existingConfig
+        ? freezePastWeeks(existingConfig, groups)
+        : {};
+
+      const newConfig: LimpiezaConfig = {
         id: '1',
         updatedAt: new Date().toISOString(),
         fechaInicio: fechaInicio.toISOString(),
         grupoInicio,
         gruposParticipantes,
         notasGenerales,
-        overrides: existingConfig?.overrides || {},
+        overrides: frozenOverrides,
       };
 
-      await dbLimpiezaSaveConfig(config);
+      await dbLimpiezaSaveConfig(newConfig);
+      displaySnackNotification({ severity: 'success', header: 'Configuración guardada', message: 'La rotación de limpieza ha sido actualizada.' });
       onClose();
     } catch (err) {
       console.error('Error saving limpieza config:', err);
+      displaySnackNotification({ severity: 'error', header: 'Error al guardar', message: 'No se pudo guardar la configuración de limpieza.' });
     }
   };
 
@@ -107,14 +158,14 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { maxWidth: '600px', width: '100%' } }}>
       <DialogTitle>Configuración de Limpieza</DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
           <DatePicker
             label="Fecha de inicio"
             value={fechaInicio}
-            onChange={(newValue) => setFechaInicio(newValue as Date)}
+            onChange={(newValue) => { if (newValue) setFechaInicio(newValue as Date); }}
             view="input"
           />
 

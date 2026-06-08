@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { displaySnackNotification } from '@services/states/app';
 import { Box, Stack, Chip } from '@mui/material';
 import { useConfirm } from '@components/confirm_dialog';
 import { useAtomValue } from 'jotai';
@@ -75,12 +76,22 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
     }
   };
 
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
   const handleApprove = async (l: TerritoryLocation) => {
-    await saveLocation(
-      congId,
-      { ...l, aprobada: true, approvedBy: uid, updatedAt: new Date().toISOString() },
-      masterKey ?? ''
-    );
+    setApprovingId(l.id);
+    try {
+      await saveLocation(
+        congId,
+        { ...l, aprobada: true, approvedBy: uid, updatedAt: new Date().toISOString() },
+        masterKey ?? ''
+      );
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo aprobar la dirección.' });
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   const handleDelete = async (l: TerritoryLocation) => {
@@ -90,7 +101,12 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       destructive: true,
     });
     if (!ok) return;
-    await deleteLocation(congId, l.id);
+    try {
+      await deleteLocation(congId, l.id);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo eliminar la dirección.' });
+    }
   };
 
   const renderRow = (l: TerritoryLocation, isPending = false) => (
@@ -117,8 +133,8 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
         )}
       </Box>
       {isPending && canManage && (
-        <Button variant="small" onClick={() => handleApprove(l)}>
-          Aprobar
+        <Button variant="small" onClick={() => handleApprove(l)} disabled={approvingId === l.id}>
+          {approvingId === l.id ? 'Aprobando…' : 'Aprobar'}
         </Button>
       )}
       {canManage && (

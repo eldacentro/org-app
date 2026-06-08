@@ -68,13 +68,13 @@ export const useTerritories = () => {
 
     const key = masterKey ?? '';
 
-    // Re-suscribir si cambia la congregación O si la masterKey llega por
-    // primera vez (vacía → con valor). Esto garantiza que los campos cifrados
-    // se descifren correctamente cuando la clave esté disponible.
+    // Re-suscribir si cambia la congregación O si la masterKey cambia de valor
+    // (primera llegada vacía→clave, o rotación clave-A→clave-B). Esto garantiza
+    // que los campos cifrados se descifren con la clave correcta en todo momento.
     const congChanged = _activeCongId !== congId;
-    const keyArrived = key !== '' && _activeMasterKey === '';
+    const keyChanged = key !== _activeMasterKey;
 
-    if (!congChanged && !keyArrived) return;
+    if (!congChanged && !keyChanged) return;
 
     teardown();
     _activeCongId = congId;
@@ -143,12 +143,14 @@ export const useTerritories = () => {
       })
       .filter(m => !!m.uid);
 
-    // 3. Comparar con lo almacenado en settings
+    // 3. Comparar con lo almacenado en settings (orden-independiente)
     const storedManagers = settings.managers || [];
+    const sortedStored = [...storedManagers].sort((a, b) => a.uid.localeCompare(b.uid));
+    const sortedCurrent = [...currentManagers].sort((a, b) => a.uid.localeCompare(b.uid));
     const isSame =
-      storedManagers.length === currentManagers.length &&
-      storedManagers.every((sm, i) => {
-        const cm = currentManagers[i];
+      sortedStored.length === sortedCurrent.length &&
+      sortedStored.every((sm, i) => {
+        const cm = sortedCurrent[i];
         return cm && sm.uid === cm.uid && sm.email === cm.email && sm.name === cm.name;
       });
 

@@ -66,7 +66,7 @@ const useCongregationAdd = (onClose: VoidFunction) => {
   const handleMidweekTimeChange = (value: Date) => {
     setIncomingCongregation((prev) => {
       const obj = structuredClone(prev);
-      obj.midweek_meeting.time.value = formatDate(value, 'HH:MM');
+      obj.midweek_meeting.time.value = formatDate(value, 'HH:mm');
 
       return obj;
     });
@@ -84,7 +84,7 @@ const useCongregationAdd = (onClose: VoidFunction) => {
   const handleWeekendTimeChange = (value: Date) => {
     setIncomingCongregation((prev) => {
       const obj = structuredClone(prev);
-      obj.weekend_meeting.time.value = formatDate(value, 'HH:MM');
+      obj.weekend_meeting.time.value = formatDate(value, 'HH:mm');
 
       return obj;
     });

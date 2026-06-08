@@ -89,7 +89,8 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
     return null;
   };
 
-  const accentColor = categoria?.color || 'var(--brand)';
+  // Usar hex fijo como fallback: var(--brand) no es compatible con sufijos alpha hex ("#10B98112")
+  const accentColor = categoria?.color || '#306CB4';
 
   return (
     <Box

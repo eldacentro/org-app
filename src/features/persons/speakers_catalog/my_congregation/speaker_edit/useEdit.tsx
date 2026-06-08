@@ -92,7 +92,7 @@ const useEdit = ({ speaker, outgoing }: SpeakerEditViewType) => {
         (record) => record.talk_number === selectedTalk.talk_number
       );
 
-      if (findTalk && findTalk._deleted !== null) {
+      if (findTalk && findTalk._deleted === true) {
         findTalk._deleted = false;
         findTalk.updatedAt = new Date().toISOString();
         setAddedTalk(selectedTalk);

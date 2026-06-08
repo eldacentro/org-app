@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
+import { displaySnackNotification } from '@services/states/app';
 import {
   Box,
   Collapse,
@@ -259,18 +260,29 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
 
   const closeNoteDialog = () => setEditTarget(null);
 
+  const [savingNote, setSavingNote] = useState(false);
+
   const saveNote = async () => {
     if (!editTarget) return;
-    await saveAssignment(
-      congId,
-      {
-        ...editTarget,
-        notas: noteValue.trim() || undefined,
-        updatedAt: new Date().toISOString(),
-      },
-      masterKey ?? ''
-    );
-    closeNoteDialog();
+    setSavingNote(true);
+    try {
+      await saveAssignment(
+        congId,
+        {
+          ...editTarget,
+          notas: noteValue.trim() || undefined,
+          updatedAt: new Date().toISOString(),
+        },
+        masterKey ?? ''
+      );
+      displaySnackNotification({ severity: 'success', header: 'Nota guardada', message: 'La nota ha sido guardada correctamente.' });
+      closeNoteDialog();
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar la nota.' });
+    } finally {
+      setSavingNote(false);
+    }
   };
   // ───────────────────────────────────────────────────────────────────────────
 
@@ -385,13 +397,14 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
       <Dialog
         open={!!editTarget}
         onClose={closeNoteDialog}
-        fullWidth
-        maxWidth="xs"
         PaperProps={{
           sx: {
             borderRadius: '16px',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
+            maxWidth: '444px',
+            width: '100%',
+            mx: 2,
           },
         }}
       >
@@ -419,11 +432,11 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button variant="tertiary" onClick={closeNoteDialog}>
+          <Button variant="tertiary" onClick={closeNoteDialog} disabled={savingNote}>
             Cancelar
           </Button>
-          <Button variant="main" onClick={saveNote}>
-            Guardar
+          <Button variant="main" onClick={saveNote} disabled={savingNote}>
+            {savingNote ? 'Guardando…' : 'Guardar'}
           </Button>
         </DialogActions>
       </Dialog>

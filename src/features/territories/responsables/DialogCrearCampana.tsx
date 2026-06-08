@@ -8,6 +8,7 @@ import TextField from '@components/textfield';
 import { congIDState } from '@states/settings';
 import { TerritoryCampaign, TerritoryCampaignEstado } from '@definition/territories';
 import { saveCampaign } from '@services/firebase/territories';
+import { displaySnackNotification } from '@services/states/app';
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -48,7 +49,11 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         updatedAt: new Date().toISOString(),
       };
       await saveCampaign(congId, campaign);
+      displaySnackNotification({ severity: 'success', header: 'Campaña creada', message: `La campaña "${campaign.nombre}" ha sido creada.` });
       onClose();
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la campaña.' });
     } finally {
       setSaving(false);
     }

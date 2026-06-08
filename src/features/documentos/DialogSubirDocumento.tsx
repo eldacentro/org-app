@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { Box, Stack, CircularProgress } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { PDFDocument } from 'pdf-lib';
@@ -13,6 +13,7 @@ import { uploadDocumentoPDF, saveDocumentoFirestore } from '@services/firebase/d
 import useCurrentUser from '@hooks/useCurrentUser';
 import { congIDState } from '@states/settings';
 import { documentoCategoriasState } from '@states/documentos';
+import { displaySnackNotification } from '@services/states/app';
 import MenuItem from '@components/menuitem';
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
@@ -74,7 +75,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selected = e.target.files[0];
       if (selected.type !== 'application/pdf') {
@@ -103,8 +104,8 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const compressedBytes = await pdfDoc.save({ useObjectStreams: true });
-      const compressedBlob = new Blob([compressedBytes], { type: 'application/pdf' });
-      const base64Data = arrayBufferToBase64(compressedBytes);
+      const compressedBlob = new Blob([compressedBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
+      const base64Data = arrayBufferToBase64(compressedBytes.buffer as ArrayBuffer);
 
       setIsCompressing(false);
       setIsUploading(true);
@@ -134,6 +135,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       // Guardar PDF localmente en este dispositivo para acceso instantáneo
       await dbDocumentosGuardarArchivo(id, base64Data);
 
+      displaySnackNotification({ severity: 'success', header: 'Documento publicado', message: 'El documento ya está disponible para todos los dispositivos.' });
       handleClose();
     } catch (err) {
       console.error(err);
@@ -160,7 +162,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
   return (
     <Dialog open={open} onClose={isBusy ? undefined : handleClose}>
       <Typography variant="h6" className="h2" sx={{ mb: 2 }}>Subir documento</Typography>
-      <Stack spacing={3} sx={{ minWidth: { sm: 400 } }}>
+      <Stack spacing={3} sx={{ minWidth: { tablet600: 400 } }}>
         <TextField
           label="Nombre del documento *"
           value={nombre}

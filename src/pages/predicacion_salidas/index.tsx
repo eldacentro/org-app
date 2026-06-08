@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -128,7 +128,7 @@ const PredicacionSalidas = () => {
   const [selectedDayNum, setSelectedDayNum] = useState<number | null>(null);
 
   // Sincronizar selectedDayNum cuando cambie el mes seleccionado
-  useMemo(() => {
+  useEffect(() => {
     setSelectedDayNum(initialSelectedDay);
   }, [initialSelectedDay]);
 
@@ -182,7 +182,7 @@ const PredicacionSalidas = () => {
   const [tempCOWeek, setTempCOWeek] = useState<boolean>(false);
 
   // Cargar configuración por defecto en Jotai si está vacía
-  useMemo(() => {
+  useEffect(() => {
     if (!settings) {
       dbServiceOutingsGetSettings().then(setSettings);
     } else {
@@ -2090,7 +2090,7 @@ const PredicacionSalidas = () => {
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
+                      gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
                       gap: '12px',
                       width: '100%',
                     }}
@@ -2256,6 +2256,7 @@ const PredicacionSalidas = () => {
                                                 disabledSlots: currentDisabled,
                                               };
                                               setSettings(updatedSettings);
+                                              dbServiceOutingsSaveSettings(updatedSettings).catch(console.error);
                                             }
                                           }}
                                           sx={{
@@ -2566,7 +2567,7 @@ const PredicacionSalidas = () => {
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
+                      gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
                       gap: '12px',
                       width: '100%',
                     }}

@@ -18,6 +18,7 @@ import { usePersonName } from '@features/territories/usePersonName';
 import {
   territoriesState,
   territoryAssignedIdsState,
+  territoryAssignmentsState,
   territorySettingsState,
   territoryZonesState,
 } from '@states/territories';
@@ -62,6 +63,7 @@ const DialogAsignar = ({
   const territories = useAtomValue(territoriesState);
   const resolveName = usePersonName();
   const assignedIds = useAtomValue(territoryAssignedIdsState);
+  const allAssignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
 
   const personOptions = useMemo(
@@ -116,7 +118,11 @@ const DialogAsignar = ({
 
   const handleAsignar = async () => {
     if (!personUid || !effectiveTerritory) return;
-    if (assignedIds.has(effectiveTerritory.id)) {
+    // Comprobar si hay alguna asignación abierta (campaña O regular) para este territorio
+    const hasOpenAssignment = allAssignments.some(
+      (a) => a.territoryId === effectiveTerritory.id && !a.returnedAt
+    );
+    if (hasOpenAssignment) {
       displaySnackNotification({ header: 'Error', message: 'Este territorio ya está asignado', severity: 'error' });
       return;
     }

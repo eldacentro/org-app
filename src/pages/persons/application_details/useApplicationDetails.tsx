@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { Navigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { applicationsState, personsState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
@@ -32,9 +32,8 @@ const useApplicationDetails = () => {
     );
   }, [application, persons, fullnameOption]);
 
-  if (!application) return <Navigate to="/pioneer-applications" />;
-
-  return { name };
+  // notFound se expone para que el componente renderice el <Navigate>
+  return { name, notFound: !application };
 };
 
 export default useApplicationDetails;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, CircularProgress } from '@mui/material';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
+import { displaySnackNotification } from '@services/states/app';
 
 // ─── Tipos locales ────────────────────────────────────────────────────────────
 type PillOption = { value: string; label: string };
@@ -217,12 +218,14 @@ const ImportExportTab = () => {
   const [filter, setFilter] = useState<ExcelFilter>('all');
   const [busy, setBusy] = useState(false);
 
-  const run = async (fn: () => void | Promise<void>) => {
+  const run = async (fn: () => void | Promise<void>, successMsg?: string) => {
     setBusy(true);
     try {
       await fn();
+      if (successMsg) displaySnackNotification({ severity: 'success', header: 'Listo', message: successMsg });
     } catch (e) {
       console.error(e);
+      displaySnackNotification({ severity: 'error', header: 'Error al exportar', message: 'No se pudo generar el archivo. Inténtalo de nuevo.' });
     } finally {
       setBusy(false);
     }
@@ -273,10 +276,11 @@ const ImportExportTab = () => {
                   const ref = new Date();
                   ref.setFullYear(ref.getFullYear() - Number(yearIdx));
                   return exportS13(ref, includeCampaigns);
-                })
+                }, 'S-13 generado correctamente.')
               }
-              sx={{ borderRadius: '999px', px: 3 }}
+              sx={{ borderRadius: '999px', px: 3, gap: 1 }}
             >
+              {busy ? <CircularProgress size={16} color="inherit" /> : null}
               {busy ? 'Generando…' : '⬇ Exportar S-13'}
             </Button>
           </Box>
@@ -305,7 +309,7 @@ const ImportExportTab = () => {
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => run(() => exportExcel(filter))}
+              onClick={() => run(() => exportExcel(filter), 'Archivo Excel generado correctamente.')}
               sx={{ borderRadius: '999px' }}
             >
               Excel (.xlsx)
@@ -313,7 +317,7 @@ const ImportExportTab = () => {
             <Button
               variant="tertiary"
               disabled={busy}
-              onClick={() => run(() => exportCsv(filter))}
+              onClick={() => run(() => exportCsv(filter), 'Archivo CSV generado correctamente.')}
               sx={{ borderRadius: '999px' }}
             >
               CSV (.csv)
@@ -334,7 +338,7 @@ const ImportExportTab = () => {
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => run(exportKml)}
+              onClick={() => run(exportKml, 'KML generado correctamente.')}
               sx={{ borderRadius: '999px' }}
             >
               Exportar KML
@@ -342,7 +346,7 @@ const ImportExportTab = () => {
             <Button
               variant="tertiary"
               disabled={busy}
-              onClick={() => run(exportGeoJson)}
+              onClick={() => run(exportGeoJson, 'GeoJSON generado correctamente.')}
               sx={{ borderRadius: '999px' }}
             >
               Exportar GeoJSON

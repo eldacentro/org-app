@@ -8,7 +8,7 @@ import TextField from '@components/textfield';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { territoriesState, territorySettingsState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
-import { saveAssignment, saveTerritory, saveNotice } from '@services/firebase/territories';
+import { finalizeAssignmentBatch, saveNotice } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -48,7 +48,11 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
     try {
       const now = new Date().toISOString();
       const key = masterKey ?? '';
-      await saveAssignment(
+      const territory = territories.find((t) => t.id === assignment.territoryId) ?? null;
+
+      // Un único batch garantiza que la asignación y lastWorkedAt se actualizan
+      // de forma atómica — sin riesgo de inconsistencia si falla la red entre writes.
+      await finalizeAssignmentBatch(
         congId,
         {
           ...assignment,
@@ -57,19 +61,11 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           notas: nota.trim() || undefined,
           updatedAt: now,
         },
+        status === 'trabajado' ? (territory ? { ...territory, lastWorkedAt: now, updatedAt: now } : null) : null,
         key
       );
 
-      if (status === 'trabajado') {
-        const territory = territories.find((t) => t.id === assignment.territoryId);
-        if (territory) {
-          await saveTerritory(
-            congId,
-            { ...territory, lastWorkedAt: now, updatedAt: now },
-            key
-          );
-        }
-      } else {
+      if (status === 'no_trabajado') {
         // Generar solicitud si lo devuelve sin trabajar (opcional según el flujo original, pero sí enviar el push)
         let targets: string[] = [];
         if (settings?.managers && settings.managers.length > 0) {
@@ -78,7 +74,6 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           targets = getTerritoryManagersUids(responsabilidades);
         }
 
-        const territory = territories.find((t) => t.id === assignment.territoryId);
         if (targets.length > 0) {
           const tLabel = territory ? territoryLabel(territory) : 'Un territorio';
           const msg = `${resolveName(assignment.personUid)} devolvió ${tLabel} sin trabajar.${nota.trim() ? ' Hay una nota.' : ''}`;

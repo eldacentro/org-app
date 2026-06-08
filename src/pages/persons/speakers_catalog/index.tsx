@@ -1,4 +1,5 @@
-import { useRef, ChangeEvent, useState, MouseEvent } from 'react';
+import { useRef, ChangeEvent, useState, Ref } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import Papa from 'papaparse';
 import { Box, Menu, MenuItem, Typography } from '@mui/material';
 import {
@@ -23,6 +24,7 @@ import MyCongregation from '@features/persons/speakers_catalog/my_congregation';
 import OtherCongregations from '@features/persons/speakers_catalog/other_congregations';
 import NavBarButton from '@components/nav_bar_button';
 import appDb from '@db/appDb';
+import { displaySnackNotification } from '@services/states/app';
 import {
   vistingSpeakerSchema,
   speakersCongregationSchema,
@@ -47,12 +49,14 @@ const SpeakersCatalog = () => {
   const { exportCSV, downloadTemplate } = useSpeakersImportExport();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuButtonRef = useRef<HTMLElement | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { confirm, ConfirmDialogNode } = useConfirm();
   const openMenu = Boolean(anchorEl);
 
-  const handleOpenMenu = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleOpenMenu = () => {
+    setAnchorEl(menuButtonRef.current);
   };
 
   const handleCloseMenu = () => {
@@ -84,27 +88,47 @@ const SpeakersCatalog = () => {
   };
 
   const handlePurgeCatalog = async () => {
-    const confirm = window.confirm(
-      '¿Estás seguro de que quieres eliminar COMPLETAMENTE todo el catálogo de oradores y congregaciones? Esta acción es física y no se puede deshacer.'
-    );
+    const ok = await confirm({
+      title: 'Vaciar catálogo',
+      message: '¿Estás seguro de que quieres eliminar COMPLETAMENTE todo el catálogo de oradores y congregaciones? Esta acción es física y no se puede deshacer.',
+      confirmLabel: 'Vaciar catálogo',
+      destructive: true,
+    });
 
-    if (confirm) {
+    if (ok) {
       try {
-        await appDb.visiting_speakers.clear();
-        await appDb.speakers_congregations.clear();
+        // Borrar ambas tablas de forma atómica en una sola transacción Dexie
+        await appDb.transaction(
+          'rw',
+          appDb.visiting_speakers,
+          appDb.speakers_congregations,
+          appDb.metadata,
+          async () => {
+            await appDb.visiting_speakers.clear();
+            await appDb.speakers_congregations.clear();
 
-        const metadata = await appDb.metadata.get(1);
-        if (metadata) {
-          metadata.metadata.visiting_speakers.send_local = true;
-          metadata.metadata.speakers_congregations.send_local = true;
-          await appDb.metadata.put(metadata);
-        }
+            const metadata = await appDb.metadata.get(1);
+            if (metadata) {
+              metadata.metadata.visiting_speakers.send_local = true;
+              metadata.metadata.speakers_congregations.send_local = true;
+              await appDb.metadata.put(metadata);
+            }
+          }
+        );
 
-        alert('Catálogo vaciado con éxito.');
-        window.location.reload();
+        displaySnackNotification({
+          severity: 'success',
+          header: 'Catálogo vaciado',
+          message: 'El catálogo de oradores y congregaciones ha sido eliminado.',
+        });
+        setTimeout(() => window.location.reload(), 1000);
       } catch (error) {
         console.error(error);
-        alert('Error al vaciar el catálogo.');
+        displaySnackNotification({
+          severity: 'error',
+          header: 'Error al vaciar',
+          message: 'No se pudo vaciar el catálogo. Inténtalo de nuevo.',
+        });
       }
     }
   };
@@ -433,17 +457,27 @@ const SpeakersCatalog = () => {
             await appDb.metadata.put(metadata);
           }
 
-          alert('Importación completada con éxito.');
-          window.location.reload();
+          displaySnackNotification({
+            severity: 'success',
+            header: 'Importación completada',
+            message: 'El catálogo de oradores ha sido importado correctamente.',
+          });
+          setTimeout(() => window.location.reload(), 1000);
         } catch (error) {
           console.error(error);
-          alert('Error al procesar el archivo CSV.');
+          displaySnackNotification({
+            severity: 'error',
+            header: 'Error de importación',
+            message: 'No se pudo procesar el archivo CSV.',
+          });
         }
       },
     });
   };
 
   return (
+    <>
+    {ConfirmDialogNode}
     <Box
       sx={{
         display: 'flex',
@@ -466,11 +500,13 @@ const SpeakersCatalog = () => {
                   onChange={handleImportCSV}
                 />
 
-                <NavBarButton
-                  text="Importar / Exportar"
-                  icon={<IconSettings color="var(--always-white)" />}
-                  onClick={handleOpenMenu}
-                />
+                <Box ref={menuButtonRef as Ref<HTMLDivElement>} sx={{ display: 'inline-flex' }}>
+                  <NavBarButton
+                    text="Importar / Exportar"
+                    icon={<IconSettings color="var(--always-white)" />}
+                    onClick={handleOpenMenu}
+                  />
+                </Box>
 
                 <Menu
                   anchorEl={anchorEl}
@@ -557,6 +593,7 @@ const SpeakersCatalog = () => {
         <OtherCongregations />
       </Box>
     </Box>
+    </>
   );
 };
 

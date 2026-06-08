@@ -7,6 +7,7 @@ import {
 } from '@states/schedules';
 import { dbSchedUpdate } from '@services/dexie/schedules';
 import { congAccountConnectedState, countriesState } from '@states/app';
+import { hour24FormatState } from '@states/settings';
 import {
   formatDate,
   generateDateFromTime,
@@ -28,7 +29,7 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
   const countries = useAtomValue(countriesState);
   const speakersCongregations = useAtomValue(speakersCongregationsActiveState);
 
-  const use24hFormat = true;
+  const use24hFormat = useAtomValue(hour24FormatState);
 
   const [country, setCountry] = useState<CountryResponseType>(null);
   const [congName, setCongName] = useState('');

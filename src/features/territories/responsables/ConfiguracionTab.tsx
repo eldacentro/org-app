@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, CSSProperties } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -339,8 +339,17 @@ const ConfiguracionTab = () => {
   const [draft, setDraft] = useState<TerritorySettings>(settings);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => setDraft(settings), [settings]);
+
+  // Limpiar el timer al desmontar para evitar setState en componente desmontado
+  useEffect(() => {
+    const timerRef = savedTimerRef;
+    return () => {
+      if (timerRef.current !== undefined) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const hasChanges = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(settings),
@@ -355,7 +364,8 @@ const ConfiguracionTab = () => {
     try {
       await saveSettings(congId, { ...draft, updatedAt: new Date().toISOString() });
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      const t = setTimeout(() => setSaved(false), 2000);
+      return () => clearTimeout(t); // limpieza si el componente se desmonta
     } finally {
       setSaving(false);
     }

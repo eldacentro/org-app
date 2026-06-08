@@ -28,6 +28,12 @@ const useScheduleDelete = ({
     try {
       setIsProcessing(true);
 
+      if (!schedule?.weekend_meeting?.outgoing_talks) {
+        onClose?.();
+        setIsProcessing(false);
+        return;
+      }
+
       const outgoingTalks = structuredClone(
         schedule.weekend_meeting.outgoing_talks
       );

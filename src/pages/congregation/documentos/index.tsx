@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useConfirm } from '@components/confirm_dialog';
 import { Box, Typography, Grid, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import PageTitle from '@components/page_title';
@@ -13,6 +14,7 @@ import DocumentoCard from '@features/documentos/DocumentoCard';
 import { DocumentoArchivo } from '@definition/documentos';
 import { deleteDocumentoCompleto } from '@services/firebase/documentos';
 import { congIDState } from '@states/settings';
+import { displaySnackNotification } from '@services/states/app';
 import FilterChip from '@components/filter_chip';
 
 const DocumentosPage = () => {
@@ -26,6 +28,7 @@ const DocumentosPage = () => {
   const [openCategorias, setOpenCategorias] = useState(false);
   const [docToView, setDocToView] = useState<DocumentoArchivo | null>(null);
   const [filtroCategoria, setFiltroCategoria] = useState<string>('all');
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const docsFiltrados = useMemo(() => {
     const base =
@@ -38,9 +41,20 @@ const DocumentosPage = () => {
   }, [documentos, filtroCategoria]);
 
   const handleDelete = async (doc: DocumentoArchivo) => {
-    const ok = window.confirm('¿Estás seguro de que deseas eliminar este documento permanentemente?');
+    const ok = await confirm({
+      title: 'Eliminar documento',
+      message: '¿Estás seguro de que deseas eliminar este documento permanentemente?',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
     if (ok) {
-      await deleteDocumentoCompleto(congId, doc.id);
+      try {
+        await deleteDocumentoCompleto(congId, doc.id);
+        displaySnackNotification({ severity: 'success', header: 'Documento eliminado', message: `"${doc.fileName}" ha sido eliminado.` });
+      } catch (err) {
+        console.error(err);
+        displaySnackNotification({ severity: 'error', header: 'Error al eliminar', message: 'No se pudo eliminar el documento.' });
+      }
     }
   };
 
@@ -67,6 +81,7 @@ const DocumentosPage = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {ConfirmDialogNode}
       <PageTitle title="Documentos" buttons={buttons} />
 
       {/* Filtros por categoría */}
@@ -123,7 +138,7 @@ const DocumentosPage = () => {
       ) : (
         <Grid container spacing={2}>
           {docsFiltrados.map((doc) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={doc.id}>
+            <Grid size={{ mobile: 12, tablet600: 6, laptop: 4 }} key={doc.id}>
               <DocumentoCard
                 documento={doc}
                 categoria={categorias.find((c) => c.id === doc.categoriaId)}

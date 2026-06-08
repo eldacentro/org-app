@@ -119,7 +119,6 @@ const useButtonActions = () => {
           icon: <IconCheckCircle color="var(--card)" />,
         });
 
-        navigate(-1);
         navigate('/persons');
       }
 

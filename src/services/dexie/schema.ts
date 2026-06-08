@@ -168,6 +168,7 @@ export const scheduleSchema: SchedWeekType = {
     circuit_overseer: { type: 'main', value: '', name: '', updatedAt: '' },
     aux_fsg: { value: '', updatedAt: '' },
     week_type: [{ type: 'main', value: Week.NORMAL, updatedAt: '' }],
+    canceled: [{ type: 'main', value: false, updatedAt: '' }],
   },
   weekend_meeting: {
     chairman: [{ type: 'main', value: '', name: '', updatedAt: '' }],
@@ -186,6 +187,7 @@ export const scheduleSchema: SchedWeekType = {
     circuit_overseer: { type: 'main', value: '', name: '', updatedAt: '' },
     week_type: [{ type: 'main', value: Week.NORMAL, updatedAt: '' }],
     outgoing_talks: [],
+    canceled: [{ type: 'main', value: false, updatedAt: '' }],
   },
 };
 

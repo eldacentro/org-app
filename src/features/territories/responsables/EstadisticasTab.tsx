@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, LinearProgress } from '@mui/material';
+import { displaySnackNotification } from '@services/states/app';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -338,8 +339,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         'Territorio atrasado',
         settings.overdueMessage || 'Tienes un territorio atrasado.'
       ).catch((err) => console.error('Failed to send push', err));
+      displaySnackNotification({ severity: 'success', header: 'Aviso enviado', message: `Se ha notificado a ${nombre}.` });
     } catch (e) {
       console.error(e);
+      displaySnackNotification({ severity: 'error', header: 'Error al notificar', message: 'No se pudo enviar el aviso. Inténtalo de nuevo.' });
     }
   };
 

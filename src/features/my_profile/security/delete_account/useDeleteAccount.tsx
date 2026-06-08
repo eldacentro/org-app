@@ -9,7 +9,6 @@ import {
   apiCongregationDelete,
   apiCongregationUsersGet,
 } from '@services/api/congregation';
-import { userSignOut } from '@services/firebase/auth';
 import { handleDeleteDatabase } from '@services/app';
 import { apiPocketDelete } from '@services/api/pocket';
 
@@ -35,9 +34,9 @@ const useDeleteAccount = (closeDialog: VoidFunction) => {
 
   const users = useMemo(() => {
     if (!data) return [];
-    if (!Array.isArray(data.users)) return [];
+    if (!Array.isArray(data)) return [];
 
-    return data.users;
+    return data;
   }, [data]);
 
   const adminCount = useMemo(() => {
@@ -66,7 +65,7 @@ const useDeleteAccount = (closeDialog: VoidFunction) => {
         await apiCongregationDelete(masterKey);
       }
 
-      await userSignOut();
+      // handleDeleteDatabase ya llama userSignOut() internamente — no duplicar
       await handleDeleteDatabase();
 
       setIsProcessing(false);

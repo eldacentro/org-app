@@ -67,7 +67,7 @@ const useTalksSongs = (speaker: VisitingSpeakerType) => {
     handleSongsTalkDelete,
     handleToggleEdit,
     isEdit,
-    cong_synced: congregation.cong_data.cong_id.length > 0,
+    cong_synced: (congregation?.cong_data.cong_id.length ?? 0) > 0,
   };
 };
 

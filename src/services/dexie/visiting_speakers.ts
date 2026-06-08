@@ -5,6 +5,7 @@ import {
   VisitingSpeakerBackupType,
   VisitingSpeakerType,
 } from '@definition/visiting_speakers';
+import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { decryptData } from '@services/encryption';
 import appDb from '@db/appDb';
 import { AssignmentCode } from '@definition/assignment';

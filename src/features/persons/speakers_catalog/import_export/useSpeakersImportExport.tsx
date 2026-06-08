@@ -3,13 +3,14 @@ import Papa from 'papaparse';
 import { useAtomValue } from 'jotai';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
 import { speakersCongregationsActiveState } from '@states/speakers_congregations';
-import { congNameState } from '@states/settings';
+import { congNameState, congNumberState } from '@states/settings';
 import { personsActiveState } from '@states/persons';
 
 const useSpeakersImportExport = () => {
   const speakers = useAtomValue(visitingSpeakersActiveState);
   const congregations = useAtomValue(speakersCongregationsActiveState);
   const homeCongName = useAtomValue(congNameState);
+  const homeCongNumber = useAtomValue(congNumberState);
   const persons = useAtomValue(personsActiveState);
 
   const exportCSV = useCallback(() => {
@@ -37,7 +38,7 @@ const useSpeakersImportExport = () => {
           ? homeCongName
           : cong?.cong_data.cong_name.value || '';
         const congNumber = isLocal
-          ? '9357'
+          ? (homeCongNumber || '')
           : cong?.cong_data.cong_number.value || '';
 
         return {
@@ -84,7 +85,7 @@ const useSpeakersImportExport = () => {
     link.setAttribute('download', `speakers_export_${new Date().toISOString().split('T')[0]}.csv`);
     link.click();
     URL.revokeObjectURL(url);
-  }, [speakers, congregations, homeCongName, persons]);
+  }, [speakers, congregations, homeCongName, homeCongNumber, persons]);
 
   const downloadTemplate = useCallback(() => {
     const template = [

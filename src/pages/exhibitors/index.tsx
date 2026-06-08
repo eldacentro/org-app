@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -96,7 +96,7 @@ const Exhibitors = () => {
   ];
 
   // Cargar configuración por defecto en Jotai si está vacía
-  useMemo(() => {
+  useEffect(() => {
     if (!settings) {
       dbExhibitorsGetSettings().then(setSettings);
     }
@@ -131,7 +131,7 @@ const Exhibitors = () => {
     return 1;
   }, [selectedYear, selectedMonth]);
 
-  useMemo(() => {
+  useEffect(() => {
     setSelectedDayNum(initialSelectedDay);
   }, [initialSelectedDay]);
 
@@ -559,9 +559,11 @@ const Exhibitors = () => {
   // Manejar cambio de asignado en el diálogo
   const handleAssignmentChange = (idx: number, personUid: string) => {
     const updated = [...editDialog.assignments];
+    // Considerar responsable solo si el hermano está en la lista de responsables configurados
+    const isConfiguredResponsible = settings?.responsibles?.includes(personUid) ?? false;
     updated[idx] = {
       person: personUid,
-      isResponsible: idx === 0,
+      isResponsible: isConfiguredResponsible,
     };
 
     setEditDialog({
@@ -1938,7 +1940,7 @@ const Exhibitors = () => {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', gap: '12px', maxWidth: '500px', width: '100%', flexDirection: { xs: 'column', tablet: 'row' } }}>
+                  <Box sx={{ display: 'flex', gap: '12px', maxWidth: '500px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' } }}>
                     <TextField
                       label="Nueva ubicación"
                       value={newExhibitorLocation}
@@ -1996,7 +1998,7 @@ const Exhibitors = () => {
                     <Box
                       sx={{
                         display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
+                        gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
                         gap: '12px',
                         width: '100%',
                       }}
@@ -2103,7 +2105,7 @@ const Exhibitors = () => {
                     <Box
                       sx={{
                         display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
+                        gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
                         gap: '16px',
                         width: '100%',
                       }}
@@ -2272,7 +2274,7 @@ const Exhibitors = () => {
                     <Box
                       sx={{
                         display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
+                        gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
                         gap: '12px',
                         width: '100%',
                       }}
@@ -2436,7 +2438,7 @@ const Exhibitors = () => {
                                       </Typography>
                                     </Box>
 
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr 1fr' }, gap: '20px' }}>
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr 1fr' }, gap: '20px' }}>
                                       {[0, 1, 2].map((idx) => {
                                         const assignment = turnAssignments.find((f, i) =>
                                           f.position !== undefined ? f.position === idx : i === idx
@@ -2676,9 +2678,9 @@ const Exhibitors = () => {
       <Dialog
         open={editDialog.open}
         onClose={() => setEditDialog({ ...editDialog, open: false })}
-        maxWidth="tablet"
+        maxWidth={false}
         fullWidth
-        PaperProps={{ style: { borderRadius: 'var(--r-lg)' } }}
+        PaperProps={{ style: { borderRadius: 'var(--r-lg)', maxWidth: '480px', width: '100%' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
           Asignar Turno de Exhibidor

@@ -26,6 +26,7 @@ import {
 } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
 import DialogCrearCampana from './DialogCrearCampana';
+import { displaySnackNotification } from '@services/states/app';
 
 type Props = {
   onAsignarCampana: (territory: Territory, campaignId: string) => void;
@@ -58,29 +59,35 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   const closeCampaign = useCallback(
     async (c: TerritoryCampaign) => {
       const key = masterKey ?? '';
-      const open = assignments.filter(
-        (a) => a.campaignId === c.id && !a.returnedAt
+      const now = new Date().toISOString();
+      const open = assignments.filter((a) => a.campaignId === c.id && !a.returnedAt);
+
+      // Escribir todas las asignaciones y territorios en paralelo para evitar
+      // fallos parciales por tiempo de espera y límites de escritura por segundo.
+      await Promise.all(
+        open.flatMap((a) => {
+          const ops: Promise<void>[] = [
+            saveAssignment(
+              congId,
+              { ...a, returnedAt: c.fechaFin, status: 'trabajado', updatedAt: now },
+              key
+            ),
+          ];
+          const t = territories.find((x) => x.id === a.territoryId);
+          if (t) {
+            ops.push(
+              saveTerritory(
+                congId,
+                { ...t, lastWorkedAt: c.fechaFin, updatedAt: now },
+                key
+              )
+            );
+          }
+          return ops;
+        })
       );
-      for (const a of open) {
-        await saveAssignment(
-          congId,
-          { ...a, returnedAt: c.fechaFin, status: 'trabajado', updatedAt: new Date().toISOString() },
-          key
-        );
-        const t = territories.find((x) => x.id === a.territoryId);
-        if (t) {
-          await saveTerritory(
-            congId,
-            { ...t, lastWorkedAt: c.fechaFin, updatedAt: new Date().toISOString() },
-            key
-          );
-        }
-      }
-      await saveCampaign(congId, {
-        ...c,
-        estado: 'pasada',
-        updatedAt: new Date().toISOString(),
-      });
+
+      await saveCampaign(congId, { ...c, estado: 'pasada', updatedAt: now });
     },
     [assignments, territories, congId, masterKey]
   );
@@ -116,19 +123,45 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
   const handleAddTerritory = async (c: TerritoryCampaign, territoryId: string) => {
     if (c.territoryIds.includes(territoryId)) return;
-    await saveCampaign(congId, {
-      ...c,
-      territoryIds: [...c.territoryIds, territoryId],
-      updatedAt: new Date().toISOString(),
-    });
+    try {
+      await saveCampaign(congId, {
+        ...c,
+        territoryIds: [...c.territoryIds, territoryId],
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo añadir el territorio a la campaña.' });
+    }
   };
 
   const handleRemoveTerritory = async (c: TerritoryCampaign, territoryId: string) => {
-    await saveCampaign(congId, {
-      ...c,
-      territoryIds: c.territoryIds.filter((id) => id !== territoryId),
-      updatedAt: new Date().toISOString(),
+    try {
+      await saveCampaign(congId, {
+        ...c,
+        territoryIds: c.territoryIds.filter((id) => id !== territoryId),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo quitar el territorio de la campaña.' });
+    }
+  };
+
+  const handleFinalizeCampaign = async (c: TerritoryCampaign) => {
+    const ok = await confirm({
+      title: 'Finalizar campaña',
+      message: `¿Finalizar la campaña "${c.nombre}"? Se devolverán todos los territorios abiertos. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Finalizar',
+      destructive: true,
     });
+    if (!ok) return;
+    try {
+      await closeCampaign(c);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo finalizar la campaña.' });
+    }
   };
 
   const handleDelete = async (c: TerritoryCampaign) => {
@@ -138,7 +171,14 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       confirmLabel: 'Borrar',
       destructive: true,
     });
-    if (ok) await deleteCampaign(congId, c.id);
+    if (!ok) return;
+    try {
+      await deleteCampaign(congId, c.id);
+      displaySnackNotification({ severity: 'success', header: 'Campaña eliminada', message: `La campaña "${c.nombre}" ha sido eliminada.` });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo eliminar la campaña.' });
+    }
   };
 
   return (
@@ -214,8 +254,8 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                 >
                   {isOpen ? 'Cerrar' : 'Gestionar'}
                 </Button>
-                {c.estado !== 'pasada' && (
-                  <Button variant="small" onClick={() => closeCampaign(c)}>
+                {c.estado === 'activa' && (
+                  <Button variant="small" onClick={() => handleFinalizeCampaign(c)}>
                     Finalizar
                   </Button>
                 )}

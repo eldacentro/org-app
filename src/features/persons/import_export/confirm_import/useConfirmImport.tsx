@@ -200,8 +200,6 @@ const useConfirmImport = (props: ConfirmImportProps) => {
         message: finalMessage,
       });
 
-      setTimeout(() => {}, 2000);
-
       setIsProcessing(false);
       props.onClose();
     } catch (error) {

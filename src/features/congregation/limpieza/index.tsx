@@ -34,6 +34,7 @@ import { buildPersonFullname } from '@utils/common';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
+import { displaySnackNotification } from '@services/states/app';
 import {
   IconSettings,
   IconGroups,
@@ -91,8 +92,9 @@ const Limpieza = () => {
 
   const [selectedOverrideGroup, setSelectedOverrideGroup] = useState<string>('');
 
+  // Cargar en mount y después de cerrar el diálogo de configuración (no al abrirlo)
   useEffect(() => {
-    loadConfig();
+    if (!isConfigOpen) loadConfig();
   }, [isConfigOpen]);
 
   const loadConfig = async () => {
@@ -145,7 +147,7 @@ const Limpieza = () => {
 
         if (!cancelled) {
           const reunionDia: 'midweek' | 'weekend' = isMidweek ? 'midweek' : 'weekend';
-          const assignedGroupId = calcularGrupoReunion(config, weekOfStr, reunionDia, groups);
+          const assignedGroupId = calcularGrupoReunion(config, weekOfStr, reunionDia, groups, schedules);
           const group = groups.find((g) => g.group_id === assignedGroupId);
 
           meetings.push({
@@ -186,9 +188,14 @@ const Limpieza = () => {
       delete newConfig.overrides[key];
     }
     
-    await dbLimpiezaSaveConfig(newConfig);
-    setConfig(newConfig);
-    setEditModal({ ...editModal, open: false });
+    try {
+      await dbLimpiezaSaveConfig(newConfig);
+      setConfig(newConfig);
+      setEditModal({ ...editModal, open: false });
+    } catch (err) {
+      console.error('Error saving limpieza override:', err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el cambio de grupo.' });
+    }
   };
 
   const getGroupName = (g: FieldServiceGroupType | undefined) => {
@@ -559,9 +566,9 @@ const Limpieza = () => {
                         Semana del {mondayDate.getDate()} de {MONTH_NAMES[mondayDate.getMonth()]}
                       </Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {meetingsForWeek.map((m, idx) => (
+                        {meetingsForWeek.map((m) => (
                           <Card
-                            key={idx}
+                            key={`${m.weekOf}-${m.reunionDia}`}
                             onClick={() => handleOpenEdit(m)}
                             sx={{
                               p: 2,
@@ -621,7 +628,7 @@ const Limpieza = () => {
       )}
 
       {/* Modal para Ver/Modificar Excepciones */}
-      <Dialog open={editModal.open} onClose={() => setEditModal({ ...editModal, open: false })} maxWidth="xs" fullWidth>
+      <Dialog open={editModal.open} onClose={() => setEditModal({ ...editModal, open: false })} PaperProps={{ sx: { maxWidth: '444px', width: '100%', mx: 2 } }}>
         <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '24px' }}>
           <Typography className="h2">Asignación del {editModal.date?.getDate()}</Typography>
           {isManager && (

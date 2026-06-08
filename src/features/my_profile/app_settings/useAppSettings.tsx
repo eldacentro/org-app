@@ -56,6 +56,15 @@ const useAppSettings = () => {
     setSyncTheme(followOSTheme);
   }, [followOSTheme]);
 
+  // Mantener en sincronía si los átomos cambian externamente (ej. data sync push)
+  useEffect(() => {
+    setAutoSync(autoBackup);
+  }, [autoBackup]);
+
+  useEffect(() => {
+    setAutoSyncInterval(autoBackupInterval);
+  }, [autoBackupInterval]);
+
   return {
     autoSync,
     handleSwitchAutoBackup,

@@ -145,6 +145,22 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                     <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
                       {territoryLabel(territory)}
                     </Typography>
+                    {assignment.isCampaign && (
+                      <Box
+                        sx={{
+                          px: 1,
+                          py: 0.25,
+                          borderRadius: '12px',
+                          backgroundColor: 'var(--blue-main)1A',
+                          color: 'var(--blue-main)',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          border: '1px solid var(--blue-main)33',
+                        }}
+                      >
+                        Campaña
+                      </Box>
+                    )}
                     {overdue && (
                         <Box
                           sx={{
