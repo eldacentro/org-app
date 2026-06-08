@@ -87,13 +87,21 @@ const useWebWorker = () => {
           setIsAppDataSyncing(false);
           setLastBackup('error');
 
-          if (event.data.details?.length > 0) {
-            displaySnackNotification({
-              header: getMessageByCode('error_app_generic-title'),
-              message: `(${event.data.details}) ${getMessageByCode(event.data.details)}`,
-              severity: 'error',
-            });
-          }
+          const details = event.data.details ?? '';
+          console.error('[sync] BACKUP_FAILED —', details || '(sin detalles)');
+
+          // Always show an error so the user knows sync failed.
+          // Use the translated message when available, otherwise show raw details.
+          const translated = details.length > 0 ? getMessageByCode(details) : '';
+          const message = translated && translated !== details
+            ? `(${details}) ${translated}`
+            : details || getMessageByCode('error_app_generic-title');
+
+          displaySnackNotification({
+            header: getMessageByCode('error_app_generic-title'),
+            message,
+            severity: 'error',
+          });
         }
 
         if (event.data.lastBackup) {

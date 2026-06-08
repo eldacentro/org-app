@@ -65,6 +65,8 @@ const runBackup = async () => {
     const settings = await dbGetSettings();
     const accountType = settings?.user_settings?.account_type;
 
+    console.log('[backup] runBackup — accountType:', accountType, '| hasIdToken:', !!idToken, '| hasUserID:', !!userID);
+
     if (accountType === 'vip' && idToken && idToken.length > 0 && userID && userID.length > 0) {
       backup = 'started';
       self.postMessage('Syncing');
@@ -73,6 +75,7 @@ const runBackup = async () => {
       let retry = 1;
 
       do {
+        console.log('[backup] VIP retry', retry);
         const metadata = await dbGetMetadata();
 
         const backupData = await apiGetCongregationBackup({
@@ -82,6 +85,7 @@ const runBackup = async () => {
           metadata: JSON.stringify(metadata),
         });
 
+        console.log('[backup] GET ok — procesando datos del servidor');
         const reqPayload = await dbExportDataBackup(backupData);
 
         const metadataUpdate = await dbGetMetadata();
@@ -93,6 +97,8 @@ const runBackup = async () => {
           idToken,
           metadata: metadataUpdate,
         });
+
+        console.log('[backup] POST response:', data.message);
 
         if (data.message === 'UNAUTHORIZED_REQUEST') {
           backup = 'failed';
@@ -112,6 +118,7 @@ const runBackup = async () => {
         }
 
         if (retry < 3 && backup !== 'completed') {
+          console.log('[backup] reintentando en 10s — respuesta inesperada:', data.message);
           await delay(10000);
         }
 
