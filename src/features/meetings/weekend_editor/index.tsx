@@ -46,7 +46,6 @@ import Typography from '@components/typography';
 import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
 import usePublicTalkInvitation from './usePublicTalkInvitation';
-import PublicTalkInvitationDialog from './public_talk_invitation_dialog';
 import { IconMail } from '@components/icons';
 
 const WeekendEditor = () => {
@@ -89,11 +88,8 @@ const WeekendEditor = () => {
   const { selectedTalk } = usePublicTalkSelector(selectedWeek);
 
   const {
-    dialogOpen,
-    handleCloseDialog,
     handleGenerate,
     speakerName,
-    handleOpenDialog,
   } = usePublicTalkInvitation(
     weekDateLocale,
     weekendMeetingTime,
@@ -227,7 +223,7 @@ const WeekendEditor = () => {
                         disableAutoStretch={true}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenDialog();
+                          handleGenerate();
                         }}
                         startIcon={<IconMail />}
                         sx={{
@@ -528,15 +524,6 @@ const WeekendEditor = () => {
             </SiblingAssignment>
           ))}
         </Box>
-      )}
-
-      {dialogOpen && (
-        <PublicTalkInvitationDialog
-          open={dialogOpen}
-          onClose={handleCloseDialog}
-          onGenerate={handleGenerate}
-          speakerName={speakerName}
-        />
       )}
     </EditorContainer>
   );

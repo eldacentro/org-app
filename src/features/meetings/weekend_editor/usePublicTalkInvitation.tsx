@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { personsState } from '@states/persons';
 import {
@@ -33,9 +33,6 @@ const usePublicTalkInvitation = (
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
   const localSpeakers = useAtomValue(myCongSpeakersState);
   const talksData = useAtomValue(publicTalksLocaleState);
-
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [hasPrompted, setHasPrompted] = useState(false);
 
   // Speaker Info
   const speakerInfo = useMemo(() => {
@@ -132,17 +129,6 @@ const usePublicTalkInvitation = (
     return assistantsUids.map((uid) => resolveCoordinatorInfo(uid));
   }, [assistantsUids, resolveCoordinatorInfo]);
 
-  const handleOpenDialog = () => setDialogOpen(true);
-  const handleCloseDialog = () => setDialogOpen(false);
-
-  // Auto-prompt logic: trigger when both speaker and talk are selected, and haven't prompted yet
-  const shouldPrompt = Boolean(speakerUid && selectedTalkNumber && !hasPrompted && talkType === 'visitingSpeaker');
-
-  if (shouldPrompt && !dialogOpen) {
-    setDialogOpen(true);
-    setHasPrompted(true);
-  }
-
   const handleGenerate = async () => {
     if (!speakerName) return;
 
@@ -166,9 +152,6 @@ const usePublicTalkInvitation = (
   };
 
   return {
-    dialogOpen,
-    handleOpenDialog,
-    handleCloseDialog,
     handleGenerate,
     speakerName,
   };
