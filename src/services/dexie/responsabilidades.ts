@@ -25,7 +25,12 @@ const dbUpdateResponsabilidadesMetadata = async () => {
 
 const initialData = (): ResponsabilidadesType => ({
   id: RECORD_ID,
-  updatedAt: new Date().toISOString(),
+  // Empty placeholder — must lose to any real synced data. dbRestoreResponsabilidades
+  // picks whichever record has the newer updatedAt; if this placeholder used "now",
+  // it would always look newer than genuine saved data and the real data would
+  // never be restored. A later edit on this device would then push this empty
+  // record to the server, wiping the real data on every other device.
+  updatedAt: '',
   cuerpoAncianos: [],
   cargosAncianos: [
     { cargo: 'Coordinador', responsable: '' },
