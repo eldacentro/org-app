@@ -87,7 +87,22 @@ const usePublicTalkInvitation = (
   }, [responsabilidades]);
 
   const ptcCoordinatorUid = publicTalkDept?.responsable || '';
-  const ptcAssistantUid = publicTalkDept?.auxiliar || '';
+
+  const assistantsUids = useMemo(() => {
+    if (!publicTalkDept) return [];
+    const uids: string[] = [];
+    if (publicTalkDept.auxiliar) {
+      uids.push(publicTalkDept.auxiliar);
+    }
+    if (publicTalkDept.type === 'extended' && Array.isArray(publicTalkDept.members)) {
+      publicTalkDept.members.forEach((memberUid) => {
+        if (memberUid && !uids.includes(memberUid)) {
+          uids.push(memberUid);
+        }
+      });
+    }
+    return uids;
+  }, [publicTalkDept]);
 
   // Helper to resolve UIDs to CoordinatorInfo objects
   const resolveCoordinatorInfo = useCallback((uid?: string): CoordinatorInfo => {
@@ -113,9 +128,9 @@ const usePublicTalkInvitation = (
     return resolveCoordinatorInfo(ptcCoordinatorUid);
   }, [ptcCoordinatorUid, resolveCoordinatorInfo]);
 
-  const ptcAssistantInfo = useMemo(() => {
-    return resolveCoordinatorInfo(ptcAssistantUid);
-  }, [ptcAssistantUid, resolveCoordinatorInfo]);
+  const assistantsInfo = useMemo(() => {
+    return assistantsUids.map((uid) => resolveCoordinatorInfo(uid));
+  }, [assistantsUids, resolveCoordinatorInfo]);
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
@@ -141,8 +156,7 @@ const usePublicTalkInvitation = (
         congregationName={congName}
         congregationAddress={congAddress}
         publicTalkCoordinator={ptcCoordinatorInfo}
-        assistantCoordinator={ptcAssistantInfo}
-        congregationCoordinator={congCoordinatorInfo}
+        assistants={assistantsInfo}
         mediaEmail={ptcCoordinatorInfo.email || congCoordinatorInfo.email || ''}
       />
     );

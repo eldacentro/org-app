@@ -111,9 +111,14 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
 
           {/* Coordinators Contact Info */}
           <View style={styles.coordinatorsContainer}>
+            {props.assistants.map((assistant, index) => (
+              <CoordinatorBox
+                key={`assistant-${index}`}
+                title="Auxiliar Discursos"
+                info={assistant}
+              />
+            ))}
             <CoordinatorBox title="Coord. Discursos" info={props.publicTalkCoordinator} />
-            <CoordinatorBox title="Auxiliar Discursos" info={props.assistantCoordinator} />
-            <CoordinatorBox title="Coord. Congregación" info={props.congregationCoordinator} />
           </View>
         </View>
       </Page>

@@ -224,6 +224,7 @@ const WeekendEditor = () => {
                     speakerName ? (
                       <Button
                         variant="small"
+                        disableAutoStretch={true}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenDialog();
@@ -234,11 +235,11 @@ const WeekendEditor = () => {
                           border: '1px solid rgba(255, 255, 255, 0.30)',
                           borderRadius: '8px',
                           color: 'var(--always-white)',
-                          padding: '6px 14px',
+                          padding: { mobile: '4px 10px', tablet: '6px 14px' },
                           textTransform: 'none',
                           fontFamily: 'Figtree, sans-serif',
                           fontWeight: 600,
-                          fontSize: '13px',
+                          fontSize: { mobile: '11px', tablet: '13px' },
                           transition: 'all 0.2s ease-in-out',
                           backdropFilter: 'blur(8px)',
                           '&:hover': {
@@ -252,6 +253,9 @@ const WeekendEditor = () => {
                           },
                           '& svg, & svg g, & svg g path': {
                             fill: 'var(--always-white) !important',
+                          },
+                          '& .MuiButton-startIcon': {
+                            display: { mobile: 'none', tablet: 'inline-flex' },
                           },
                         }}
                       >

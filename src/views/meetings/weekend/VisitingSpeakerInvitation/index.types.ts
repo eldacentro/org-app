@@ -13,7 +13,6 @@ export type VisitingSpeakerInvitationProps = {
   congregationName: string;
   congregationAddress: string;
   publicTalkCoordinator: CoordinatorInfo;
-  assistantCoordinator: CoordinatorInfo;
-  congregationCoordinator: CoordinatorInfo;
+  assistants: CoordinatorInfo[];
   mediaEmail: string;
 };
