@@ -82,9 +82,15 @@ const useDepartmentEditor = () => {
         encargado: { value: '', updatedAt },
       };
 
-      setSchedules(newSchedules);
-      await dbDeptScheduleSave(currentSched);
-      worker.postMessage('startWorker');
+      try {
+        setSchedules(newSchedules);
+        await dbDeptScheduleSave(currentSched);
+        worker.postMessage('startWorker');
+      } catch (err) {
+        console.error('Error clearing schedule:', err);
+        // Revertir el cambio en el estado si falla el guardado
+        setSchedules(schedules);
+      }
     }
     setClearAll(false);
   };

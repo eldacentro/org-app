@@ -60,7 +60,7 @@ const DepartmentEditor = () => {
 
       <Grid container spacing={2}>
         {/* Acomodadores */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ mobile: 12, laptop: 6 }}>
           <Box
             sx={{
               p: 2,
@@ -102,7 +102,7 @@ const DepartmentEditor = () => {
         </Grid>
 
         {/* Micrófonos */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ mobile: 12, laptop: 6 }}>
           <Box
             sx={{
               p: 2,
@@ -144,7 +144,7 @@ const DepartmentEditor = () => {
         </Grid>
 
         {/* Multimedia */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ mobile: 12, laptop: 6 }}>
           <Box
             sx={{
               p: 2,
@@ -182,7 +182,7 @@ const DepartmentEditor = () => {
         </Grid>
 
         {/* Plataforma */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ mobile: 12, laptop: 6 }}>
           <Box
             sx={{
               p: 2,

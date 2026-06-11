@@ -36,14 +36,15 @@ const ConfirmDialog = ({
   <Dialog
     open={open}
     onClose={onCancel}
-    maxWidth="xs"
-    fullWidth
     PaperProps={{
       sx: {
         borderRadius: '20px',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
         boxShadow: 'var(--pop-up-shadow)',
+        maxWidth: '444px',
+        width: '100%',
+        mx: 2,
       },
     }}
     slotProps={{

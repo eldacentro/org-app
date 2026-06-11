@@ -7,7 +7,7 @@ import { COTalkTitleType, SourceWeekType } from '@definition/sources';
 import { dbSourcesUpdate } from '@services/dexie/sources';
 
 const useCOTalk = ({ meeting, week, talk }: COTalkType) => {
-  const timerSource = useRef<NodeJS.Timeout>();
+  const timerSource = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const sources = useAtomValue(sourcesState);
 

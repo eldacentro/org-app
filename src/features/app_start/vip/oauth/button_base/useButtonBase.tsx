@@ -33,13 +33,13 @@ const useButtonBase = ({ provider }: OAuthButtonBaseProps) => {
 
       hideMessage();
 
-      setAuthPersistence();
+      await setAuthPersistence();
 
       const result = await userSignInPopup(provider);
 
       if (!result) return;
 
-      await handlePostLogin();
+      await handlePostLogin(result);
     } catch (error) {
       console.error(error);
       displayOnboardingFeedback({

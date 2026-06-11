@@ -21,6 +21,12 @@ export type WeekTypeCongregation = {
   updatedAt: string;
 };
 
+export type CanceledCongregation = {
+  type: string;
+  value: boolean;
+  updatedAt: string;
+};
+
 export type AssignmentAYFType = {
   main_hall: {
     student: AssignmentCongregation[];
@@ -106,6 +112,7 @@ export type SchedWeekType = {
     circuit_overseer: AssignmentCongregation;
     aux_fsg?: { value: string; updatedAt: string };
     week_type: WeekTypeCongregation[];
+    canceled: CanceledCongregation[];
   };
   weekend_meeting: {
     chairman: AssignmentCongregation[];
@@ -124,6 +131,7 @@ export type SchedWeekType = {
     circuit_overseer: AssignmentCongregation;
     week_type: WeekTypeCongregation[];
     outgoing_talks: OutgoingTalkScheduleType[];
+    canceled: CanceledCongregation[];
   };
 };
 

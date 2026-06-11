@@ -9,7 +9,7 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
 
   return (
     <Grid container spacing={3} sx={{ mt: 1 }}>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ mobile: 12, laptop: 6 }}>
         <Stack
           spacing={2}
           sx={{
@@ -30,7 +30,7 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
           <Export onClose={onClose} />
         </Stack>
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ mobile: 12, laptop: 6 }}>
         <Stack
           spacing={2}
           sx={{

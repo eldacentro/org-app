@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, ElementType } from 'react';
 import {
   Box,
   Autocomplete,
@@ -196,8 +196,9 @@ const SectionHeader = ({
   icon: Icon,
   title,
 }: {
-  icon: React.ElementType;
+  icon: ElementType;
   title: string;
+  description?: string;
 }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '12px' }}>
     <Box
@@ -366,7 +367,7 @@ const ReadDepartamentos = ({
 
             <Stack spacing="12px">
               <Box>
-                <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
                   Responsable
                 </Typography>
                 <Typography className="body-regular-semibold" color="var(--accent-dark)">
@@ -376,7 +377,7 @@ const ReadDepartamentos = ({
 
               {dep.auxiliar && (
                 <Box>
-                  <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                  <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
                     Auxiliar
                   </Typography>
                   <Typography className="body-regular" color="var(--black)">
@@ -388,7 +389,7 @@ const ReadDepartamentos = ({
               {dep.type === 'extended' &&
                 (dep as DepartamentoExtended).members.length > 0 && (
                   <Box sx={{ mt: '4px' }}>
-                    <Typography className="label" color="var(--grey-400)" sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: '8px' }}>
+                    <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '8px' }}>
                       Equipo ({ (dep as DepartamentoExtended).members.length })
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -639,11 +640,10 @@ const ReorderDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} sx={{ padding: '32px' }} maxWidth="sm">
+    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { maxWidth: '600px', width: '100%', p: '24px' } }}>
       <SectionHeader
         icon={IconReorder}
         title="Reordenar Departamentos"
-        description="Arrastra o usa las flechas para cambiar el orden en que aparecen los departamentos."
       />
 
       <Box
@@ -736,7 +736,7 @@ const ResponsabilidadesFeature = ({
 }) => {
   const data = useAtomValue(responsabilidadesState);
   const { resolveName, ancianos, varones } = usePersonOptions();
-  const { mobile } = useBreakpoints();
+  const { tablet600Down: mobile } = useBreakpoints();
 
   const [reorderOpen, setReorderOpen] = useState(false);
 

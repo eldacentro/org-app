@@ -17,6 +17,7 @@ export type ExhibitorSettingsType = {
     day?: string;
     personUid: string;
     isResponsible: boolean;
+    position?: number;
   }[];
   availability: {
     [person_uid: string]: string[]; // Array de turnIds preferidos por cada hermano

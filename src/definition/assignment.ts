@@ -124,4 +124,5 @@ export type AssignmentFieldType =
   | AssignmentFieldWeekendType
   | 'MM_CircuitOverseer'
   | 'WM_CircuitOverseer'
-  | 'WM_Speaker_Outgoing';
+  | 'WM_Speaker_Outgoing'
+  | 'MM_Other';

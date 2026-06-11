@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAtomValue } from 'jotai';
 import { Box, Stack, Grid, CircularProgress } from '@mui/material';
 import { saveAs } from 'file-saver';
 import backupsDb, { SnapshotType } from '@db/backupsDb';
@@ -8,6 +9,7 @@ import {
   restoreFromPayload,
 } from '@services/app/backupScheduler';
 import { googleDriveUploadBackup, googleDriveIsConnected } from '@services/app/googleDriveBackup';
+import { settingsState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import { IconBackupOrganized, IconDelete, IconAdd } from '@components/icons';
 import Button from '@components/button';
@@ -16,6 +18,7 @@ import IconButton from '@components/icon_button';
 import Dialog from '@components/dialog';
 
 const LocalBackupsTab = () => {
+  const settings = useAtomValue(settingsState);
   const [snapshots, setSnapshots] = useState<SnapshotType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -62,7 +65,7 @@ const LocalBackupsTab = () => {
 
       await applySmartRetentionPolicy();
 
-      if (googleDriveIsConnected()) {
+      if (googleDriveIsConnected(settings?.user_settings?.backup_automatic)) {
         await googleDriveUploadBackup(payload);
       }
 
@@ -207,23 +210,23 @@ const LocalBackupsTab = () => {
             }}
           >
             <Grid container>
-              <Grid item xs={5}>
+              <Grid size={5}>
                 <Typography className="label-small-regular" color="var(--accent-dark)">Fecha y Hora</Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography className="label-small-regular" color="var(--accent-dark)">Frecuencia</Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography className="label-small-regular" color="var(--accent-dark)">Tamaño</Typography>
               </Grid>
-              <Grid item xs={3} sx={{ textAlign: 'right' }}>
+              <Grid size={3} sx={{ textAlign: 'right' }}>
                 <Typography className="label-small-regular" color="var(--accent-dark)">Acciones</Typography>
               </Grid>
             </Grid>
           </Box>
 
           {/* Snapshot List Rows */}
-          <Stack spacing={1} sx={{ maxH: '320px', overflowY: 'auto' }}>
+          <Stack spacing={1} sx={{ maxHeight: '320px', overflowY: 'auto' }}>
             {snapshots.map((snapshot) => (
               <Box
                 key={snapshot.id}
@@ -242,12 +245,12 @@ const LocalBackupsTab = () => {
                 }}
               >
                 <Grid container alignItems="center">
-                  <Grid item xs={5}>
+                  <Grid size={5}>
                     <Typography className="body-regular">
                       {new Date(snapshot.timestamp).toLocaleString()}
                     </Typography>
                   </Grid>
-                  <Grid item xs={2}>
+                  <Grid size={2}>
                     <Box
                       sx={{
                         display: 'inline-block',
@@ -267,12 +270,12 @@ const LocalBackupsTab = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={2}>
+                  <Grid size={2}>
                     <Typography className="body-regular">
                       {formatSize(snapshot.size)}
                     </Typography>
                   </Grid>
-                  <Grid item xs={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <Grid size={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                     <Button
                       variant="small"
                       sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '11px', minHeight: 'auto' }}
@@ -308,7 +311,7 @@ const LocalBackupsTab = () => {
             ¿Confirmar restauración?
           </Typography>
           <Typography className="body-regular">
-            Estás a punto de reemplazar **absolutamente todos los datos actuales** de la aplicación por los datos de la copia de seguridad del **{confirmRestore && new Date(confirmRestore.timestamp).toLocaleString()}**.
+            Estás a punto de reemplazar <strong>absolutamente todos los datos actuales</strong> de la aplicación por los datos de la copia de seguridad del <strong>{confirmRestore && new Date(confirmRestore.timestamp).toLocaleString()}</strong>.
           </Typography>
           <Typography className="label-small-regular" color="var(--red-main)" sx={{ fontWeight: 'bold' }}>
             ¡ADVERTENCIA! Esta acción borrará permanentemente cualquier cambio realizado desde esta copia de seguridad. La aplicación se recargará automáticamente al finalizar.

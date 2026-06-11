@@ -14,8 +14,11 @@ type Bloque = {
 };
 
 const Procedimientos = ({ estructuraMando, equipos }: Props) => {
+  // Normalizar para tolerar variantes de acento y capitalización
+  const normalizeRol = (s: string) =>
+    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const intervencion = estructuraMando.find((r) =>
-    r.rol.toLowerCase().includes('jefe de intervención')
+    normalizeRol(r.rol).includes('jefe de intervencion')
   );
 
   const bloques: Bloque[] = [];

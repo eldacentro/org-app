@@ -192,14 +192,14 @@ const useCongregationDetails = () => {
       if (hasAutoSubmitted.current) return;
 
       try {
-        const countries = await apiFetchCountries();
-        const spain = countries.find(c => c.countryCode === 'ES');
-        
+        const countriesResult = await apiFetchCountries();
+        const spain = (countriesResult.data as CountryResponseType[])?.find(c => c.countryCode === 'ES');
+
         if (spain) {
           setCountry(spain);
-          const congs = await apiFetchCongregations(spain.countryGuid, 'Elda Centro');
-          const eldaCentro = congs.find(c => c.congName.includes('Elda Centro'));
-          
+          const congsResult = await apiFetchCongregations(spain.countryGuid, 'Elda Centro');
+          const eldaCentro = (congsResult.data as CongregationResponseType[])?.find(c => c.congName?.includes('Elda Centro'));
+
           if (eldaCentro) {
             setCongregation(eldaCentro);
             setIsElderApproved(true);

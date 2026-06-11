@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 const useUnauthorizedRole = () => {
-  const anchorRef = useRef<HTMLElement>();
+  const anchorRef = useRef<HTMLElement | null>(null);
 
   const reloadApp = () => {
     window.location.reload();

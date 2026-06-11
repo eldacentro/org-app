@@ -12,6 +12,7 @@ import {
   JWLangState,
   userDataViewState,
   weekendMeetingOpeningPrayerAutoAssignState,
+  settingsState,
 } from '@states/settings';
 import { sourcesState } from '@states/sources';
 import { personsState } from '@states/persons';
@@ -41,6 +42,8 @@ const useWeekendEditor = () => {
     showSpeaker2: false,
     clearAll: false,
   });
+
+  const settings = useAtomValue(settingsState);
 
   const schedule = useMemo(() => {
     return schedules.find((record) => record.weekOf === selectedWeek);
@@ -115,6 +118,18 @@ const useWeekendEditor = () => {
     return showSpeaker2;
   }, [schedule, dataView, persons]);
 
+  const speaker1Uid = useMemo(() => {
+    if (!schedule) return undefined;
+    return schedule.weekend_meeting.speaker.part_1.find(
+      (record) => record.type === dataView
+    )?.value || undefined;
+  }, [schedule, dataView]);
+
+  const weekendMeetingTime = useMemo(() => {
+    const defaultTime = settings.cong_settings.weekend_meeting.find((w) => w.type === dataView)?.time.value || '00:00';
+    return defaultTime;
+  }, [settings, dataView]);
+
   const isGroup = useMemo(() => dataView !== 'main', [dataView]);
 
   const showPartsForGroup = useMemo(() => {
@@ -173,6 +188,8 @@ const useWeekendEditor = () => {
     showPartsForGroup,
     weekType,
     dataView,
+    speaker1Uid,
+    weekendMeetingTime,
   };
 };
 

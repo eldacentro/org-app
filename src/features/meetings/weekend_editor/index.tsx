@@ -45,6 +45,9 @@ import TalkTitleSolo from './talk_title_solo';
 import Typography from '@components/typography';
 import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
+import usePublicTalkInvitation from './usePublicTalkInvitation';
+import PublicTalkInvitationDialog from './public_talk_invitation_dialog';
+import { IconMail } from '@components/icons';
 
 const WeekendEditor = () => {
   const { t } = useAppTranslation();
@@ -77,11 +80,27 @@ const WeekendEditor = () => {
     songSelectorOpen,
     showPartsForGroup,
     dataView,
+    speaker1Uid,
+    weekendMeetingTime,
   } = useWeekendEditor();
 
   const { talkType } = usePublicTalkTypeSelector(selectedWeek);
 
   const { selectedTalk } = usePublicTalkSelector(selectedWeek);
+
+  const {
+    dialogOpen,
+    handleCloseDialog,
+    handleGenerate,
+    speakerName,
+    handleOpenDialog,
+  } = usePublicTalkInvitation(
+    weekDateLocale,
+    weekendMeetingTime,
+    selectedTalk?.talk_number,
+    speaker1Uid,
+    talkType
+  );
 
   return (
     <EditorContainer>
@@ -201,6 +220,45 @@ const WeekendEditor = () => {
                   icon={<IconTalk color="var(--always-white)" />}
                   expanded={openPublicTalk}
                   onToggle={handleTogglePulicTalk}
+                  actionButton={
+                    speakerName ? (
+                      <Button
+                        variant="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDialog();
+                        }}
+                        startIcon={<IconMail />}
+                        sx={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          border: '1px solid rgba(255, 255, 255, 0.30)',
+                          borderRadius: '8px',
+                          color: 'var(--always-white)',
+                          padding: '6px 14px',
+                          textTransform: 'none',
+                          fontFamily: 'Figtree, sans-serif',
+                          fontWeight: 600,
+                          fontSize: '13px',
+                          transition: 'all 0.2s ease-in-out',
+                          backdropFilter: 'blur(8px)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.28)',
+                            borderColor: 'rgba(255, 255, 255, 0.50)',
+                            transform: 'translateY(-1px)',
+                          },
+                          '&:active': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.40)',
+                            transform: 'translateY(0)',
+                          },
+                          '& svg, & svg g, & svg g path': {
+                            fill: 'var(--always-white) !important',
+                          },
+                        }}
+                      >
+                        Generar invitación
+                      </Button>
+                    ) : undefined
+                  }
                 >
                   {weekType !== Week.CO_VISIT && (
                     <PublicTalkTypeSelector week={selectedWeek} />
@@ -466,6 +524,15 @@ const WeekendEditor = () => {
             </SiblingAssignment>
           ))}
         </Box>
+      )}
+
+      {dialogOpen && (
+        <PublicTalkInvitationDialog
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          onGenerate={handleGenerate}
+          speakerName={speakerName}
+        />
       )}
     </EditorContainer>
   );

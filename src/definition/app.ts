@@ -24,6 +24,7 @@ export type CustomClassName =
   | 'big-numbers'
   | 'label-small-medium'
   | 'label-small-regular'
+  | 'label-small-semibold'
   | 'h1'
   | 'h2'
   | 'h2-caps'
@@ -31,8 +32,12 @@ export type CustomClassName =
   | 'h4'
   | 'button-caps'
   | 'body-regular'
+  | 'body-regular-semibold'
   | 'body-small-semibold'
-  | 'body-small-regular';
+  | 'body-small-regular'
+  | 'body-small-medium'
+  | 'body-medium-semibold'
+  | 'body-semibold';
 
 export type AssignmentCheckListColors =
   | 'midweek-meeting'

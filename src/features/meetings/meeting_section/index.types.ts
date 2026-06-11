@@ -7,4 +7,5 @@ export type MeetingSectionType = {
   expanded?: boolean;
   onToggle?: VoidFunction;
   alwaysExpanded?: boolean;
+  actionButton?: ReactElement;
 };

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { displaySnackNotification } from '@services/states/app';
 import { Box } from '@mui/material';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import Button from '@components/button';
@@ -55,6 +56,11 @@ const DeptAutofillDialog = ({
       onClose();
     } catch (error) {
       console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'No se pudo completar el autocompletado. Verifica tu conexión.',
+        severity: 'error',
+      });
     } finally {
       setIsProcessing(false);
     }

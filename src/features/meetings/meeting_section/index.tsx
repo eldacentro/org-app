@@ -12,6 +12,7 @@ const MeetingSection = ({
   onToggle,
   children,
   alwaysExpanded,
+  actionButton,
 }: MeetingSectionType & PropsWithChildren) => {
   return (
     <Box
@@ -59,6 +60,11 @@ const MeetingSection = ({
             {part}
           </Typography>
         </Box>
+        {actionButton && (
+          <Box sx={{ marginRight: alwaysExpanded ? 0 : '12px' }}>
+            {actionButton}
+          </Box>
+        )}
         {!alwaysExpanded && (
           <IconExpand
             color="var(--always-white)"
