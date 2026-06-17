@@ -37,7 +37,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
             gap: laptopDown ? '8px' : '16px',
             justifyContent: 'space-between',
             padding: '8px',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--radius-l)',
             backgroundColor: 'var(--accent-100)',
           }}
         >

@@ -1,4 +1,8 @@
-import { Avatar, Box } from '@mui/material';
+import { Avatar, Box, CircularProgress } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import { isAppDataSyncingState } from '@states/app';
+import { useLiveQuery } from 'dexie-react-hooks';
+import appDb from '@db/appDb';
 import { IconExpand, IconHeaderAccount, IconNoConnection } from '@icons/index';
 import { useAccountHeaderIcon } from './useAccountHeaderIcon';
 import { isTest } from '@constants/index';
@@ -23,6 +27,13 @@ const AccountHeaderIcon = ({
   const { userAvatar, isOffline } = useAccountHeaderIcon();
 
   const isRed = !isTest && isOffline;
+
+  const isSyncing = useAtomValue(isAppDataSyncingState);
+  const isPendingSync = useLiveQuery(async () => {
+    const metadata = await appDb.metadata.get(1);
+    if (!metadata) return false;
+    return Object.values(metadata.metadata).some((table) => table.send_local === true);
+  }, []);
 
   return (
     <Box
@@ -58,7 +69,6 @@ const AccountHeaderIcon = ({
           width: '24px',
           height: '24px',
           borderRadius: 'var(--radius-max)',
-          overflow: 'hidden',
           position: 'relative',
         }}
       >
@@ -78,6 +88,29 @@ const AccountHeaderIcon = ({
             color="var(--accent-main)"
           />
         )}
+        {isSyncing ? (
+          <CircularProgress 
+            size={28} 
+            thickness={4} 
+            sx={{ 
+              position: 'absolute', 
+              top: -2, 
+              left: -2, 
+              color: 'var(--accent-main)',
+              zIndex: 1
+            }} 
+          />
+        ) : isPendingSync ? (
+          <Box 
+            sx={{
+              position: 'absolute',
+              top: -2, left: -2, right: -2, bottom: -2,
+              borderRadius: '50%',
+              border: '2px solid var(--orange-main)',
+              zIndex: 1
+            }}
+          />
+        ) : null}
         {isRed && (
           <Box
             sx={{

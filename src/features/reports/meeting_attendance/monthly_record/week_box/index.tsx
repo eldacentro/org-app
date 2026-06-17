@@ -36,7 +36,7 @@ const WeekBox = (props: WeekBoxProps) => {
                 props.type === 'midweek'
                   ? 'var(--accent-150)'
                   : 'var(--green-secondary)',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
             }}
           >
             <Typography
@@ -93,7 +93,7 @@ const WeekBox = (props: WeekBoxProps) => {
                 props.type === 'midweek'
                   ? 'var(--accent-100)'
                   : 'rgba(var(--green-secondary-base), 0.5)',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
             }}
           >
             <Typography

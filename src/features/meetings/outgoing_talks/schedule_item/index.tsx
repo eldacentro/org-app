@@ -1,5 +1,5 @@
 import { Box, Autocomplete, TextField as MuiTextField } from '@mui/material';
-import { IconClose, IconDelete, IconTalk } from '@components/icons';
+import { IconClose, IconDelete, IconTalk, IconLocation, IconAdd, IconArrowBack } from '@components/icons';
 import { ScheduleItemType } from './index.types';
 import {
   DoubleFieldContainer,
@@ -226,8 +226,9 @@ const ScheduleItem = (props: ScheduleItemType) => {
               }}
             >
               {selectedCatalogCong.cong_data.cong_location.address.value && (
-                <Typography sx={{ fontSize: '13px', color: 'var(--grey-500)' }}>
-                  📍 {selectedCatalogCong.cong_data.cong_location.address.value}
+                <Typography sx={{ fontSize: '13px', color: 'var(--grey-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <IconLocation width={16} height={16} color="currentColor" />
+                  {selectedCatalogCong.cong_data.cong_location.address.value}
                 </Typography>
               )}
             </Box>
@@ -248,7 +249,8 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 '&:hover': { textDecoration: 'underline' },
               }}
             >
-              ➕ {t('tr_addCongregation', 'Añadir nueva congregación')}
+              <IconAdd width={16} height={16} color="currentColor" />
+              {t('tr_addCongregation', 'Añadir nueva congregación')}
             </Box>
           )}
         </Box>
@@ -293,7 +295,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
                   slotProps={{ input: { readOnly: schedule.synced } }}
                   value={congAddress}
                   onChange={(e) => handleCongAddressChange(e.target.value)}
-                  onKeyUp={handleCongAddressSave}
+                  onBlur={handleCongAddressSave}
                   sx={{ flex: 1 }}
                 />
 
@@ -329,7 +331,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
                   slotProps={{ input: { readOnly: schedule.synced } }}
                   value={congName}
                   onChange={(e) => handleCongNameChange(e.target.value)}
-                  onKeyUp={handleCongNameSave}
+                  onBlur={handleCongNameSave}
                   sx={{ flex: 1 }}
                 />
 
@@ -338,7 +340,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
                   slotProps={{ input: { readOnly: schedule.synced } }}
                   value={congAddress}
                   onChange={(e) => handleCongAddressChange(e.target.value)}
-                  onKeyUp={handleCongAddressSave}
+                  onBlur={handleCongAddressSave}
                   sx={{ flex: 1 }}
                 />
               </Box>
@@ -385,7 +387,8 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 '&:hover': { color: 'var(--accent-main)', textDecoration: 'underline' },
               }}
             >
-              ← {t('tr_selectFromCatalog', 'Seleccionar del catálogo')}
+              <IconArrowBack width={16} height={16} color="currentColor" />
+              {t('tr_selectFromCatalog', 'Seleccionar del catálogo')}
             </Box>
           )}
         </>

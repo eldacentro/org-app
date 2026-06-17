@@ -940,7 +940,7 @@ const Exhibitors = () => {
               sx={{
                 width: '280px',
                 flexShrink: 0,
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -961,7 +961,7 @@ const Exhibitors = () => {
                   size="small"
                   fullWidth
                   sx={{
-                    borderRadius: 'var(--radius-m)',
+                    borderRadius: 'var(--radius-l)',
                     borderColor: 'var(--line)',
                   }}
                 >
@@ -987,7 +987,7 @@ const Exhibitors = () => {
                       selected={isSelected}
                       onClick={() => setSelectedMonth(idx)}
                       sx={{
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         borderLeft: isSelected ? '4px solid var(--accent-main)' : '4px solid transparent',
                         backgroundColor: isSelected ? 'var(--accent-150)' : 'transparent',
                         '&.Mui-selected': {
@@ -1087,7 +1087,7 @@ const Exhibitors = () => {
                               sx={{
                                 py: '6px',
                                 textTransform: 'none',
-                                borderRadius: 'var(--radius-m)',
+                                borderRadius: 'var(--radius-l)',
                                 fontWeight: '600',
                                 fontSize: '13px',
                                 boxShadow: 'none',
@@ -1132,7 +1132,7 @@ const Exhibitors = () => {
                     padding: '24px',
                     backgroundColor: 'var(--card)',
                     border: '1px solid var(--line)',
-                    borderRadius: 'var(--r-lg)',
+                    borderRadius: 'var(--radius-xl)',
                     justifyContent: 'center',
                   }}
                 >
@@ -1150,7 +1150,7 @@ const Exhibitors = () => {
                     </Typography>
                     
                     {/* Selector de modo de vista */}
-                    <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--line)' }}>
+                    <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
                       <Button
                         onClick={() => setPlannerViewMode('lista')}
                         size="small"
@@ -1491,7 +1491,7 @@ const Exhibitors = () => {
 
                         return (
                           <Box sx={{
-                            borderRadius: 'var(--r-lg)',
+                            borderRadius: 'var(--radius-xl)',
                             border: '1px solid var(--line)',
                             backgroundColor: 'var(--card)',
                             p: { mobile: '12px', tablet: '20px' },
@@ -1524,7 +1524,7 @@ const Exhibitors = () => {
                                         minHeight: desktopUp ? '110px' : 'auto',
                                         backgroundColor: 'var(--accent-50, #f8fafd)',
                                         border: '1px solid var(--line)',
-                                        borderRadius: 'var(--radius-m)',
+                                        borderRadius: 'var(--radius-l)',
                                         opacity: 0.3
                                       }} />
                                     </Grid>
@@ -1595,7 +1595,7 @@ const Exhibitors = () => {
                                                     backgroundColor: bgColor,
                                                     color: textColor,
                                                     border: 'none',
-                                                    borderRadius: 'var(--radius-m)',
+                                                    borderRadius: 'var(--radius-l)',
                                                     p: '6px 8px',
                                                     cursor: isServiceCommittee ? 'pointer' : 'default',
                                                     display: 'flex',
@@ -1676,7 +1676,7 @@ const Exhibitors = () => {
                                           aspectRatio: '1',
                                           backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--card)',
                                           border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
-                                          borderRadius: 'var(--radius-m)',
+                                          borderRadius: 'var(--radius-l)',
                                           display: 'flex',
                                           flexDirection: 'column',
                                           justifyContent: 'center',
@@ -1949,7 +1949,7 @@ const Exhibitors = () => {
                       fullWidth
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          borderRadius: 'var(--radius-m)',
+                          borderRadius: 'var(--radius-l)',
                         }
                       }}
                     />
@@ -1986,7 +1986,7 @@ const Exhibitors = () => {
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
                         border: '1px dashed var(--line)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                       }}
                     >
                       <IconInfo color="var(--accent-main)" />
@@ -2070,7 +2070,7 @@ const Exhibitors = () => {
                         fontWeight: '700',
                         backgroundColor: 'var(--accent-main)',
                         color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         boxShadow: 'none',
                         '&:hover': {
                           backgroundColor: 'var(--accent-dark)',
@@ -2091,7 +2091,7 @@ const Exhibitors = () => {
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
                         border: '1px dashed var(--line)',
-                        borderRadius: 'var(--r-lg)',
+                        borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
                         py: '40px',
                       }}
@@ -2211,7 +2211,7 @@ const Exhibitors = () => {
                                   fontWeight: '700',
                                   color: 'var(--accent-main)',
                                   '&:hover': { backgroundColor: 'var(--accent-100)' },
-                                  borderRadius: 'var(--radius-m)',
+                                  borderRadius: 'var(--radius-l)',
                                 }}
                               >
                                 Editar
@@ -2225,7 +2225,7 @@ const Exhibitors = () => {
                                   fontWeight: '700',
                                   color: 'var(--error-main)',
                                   '&:hover': { backgroundColor: 'var(--error-light)' },
-                                  borderRadius: 'var(--radius-m)',
+                                  borderRadius: 'var(--radius-l)',
                                 }}
                               >
                                 Eliminar
@@ -2260,7 +2260,7 @@ const Exhibitors = () => {
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
                         border: '1px dashed var(--line)',
-                        borderRadius: 'var(--r-lg)',
+                        borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
                         py: '40px',
                       }}
@@ -2452,7 +2452,7 @@ const Exhibitors = () => {
                                           : enabledExhibitorBrothers;
 
                                         return (
-                                          <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '8px', p: '12px', border: '1px solid var(--accent-150)', borderRadius: 'var(--radius-m)', backgroundColor: 'var(--accent-50)' }}>
+                                          <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '8px', p: '12px', border: '1px solid var(--accent-150)', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-50)' }}>
                                             <Typography style={{ fontWeight: '800', fontSize: '11px', color: 'var(--accent-main)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                               {labelText}
                                             </Typography>
@@ -2464,7 +2464,7 @@ const Exhibitors = () => {
                                               fullWidth
                                               sx={{
                                                 backgroundColor: 'var(--card)',
-                                                borderRadius: 'var(--radius-m)',
+                                                borderRadius: 'var(--radius-l)',
                                               }}
                                             >
                                               <MenuItem value="">
@@ -2680,14 +2680,14 @@ const Exhibitors = () => {
         onClose={() => setEditDialog({ ...editDialog, open: false })}
         maxWidth={false}
         fullWidth
-        PaperProps={{ style: { borderRadius: 'var(--r-lg)', maxWidth: '480px', width: '100%' } }}
+        PaperProps={{ style: { borderRadius: 'var(--radius-xl)', maxWidth: '480px', width: '100%' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
           Asignar Turno de Exhibidor
         </DialogTitle>
         <DialogContent sx={{ mt: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {dialogWarnings.map((warning, wIdx) => (
-            <Alert key={wIdx} severity="warning" sx={{ borderRadius: 'var(--radius-m)', fontWeight: '600' }}>
+            <Alert key={wIdx} severity="warning" sx={{ borderRadius: 'var(--radius-l)', fontWeight: '600' }}>
               {warning}
             </Alert>
           ))}
@@ -2816,7 +2816,7 @@ const Exhibitors = () => {
               backgroundColor: 'var(--accent-main)',
               fontWeight: '700',
               textTransform: 'none',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
             }}
           >
             Guardar Cambios
@@ -2831,7 +2831,7 @@ const Exhibitors = () => {
         maxWidth={false}
         fullWidth
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{ style: { borderRadius: 'var(--r-lg)' } }}
+        PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
       >
         <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
           {turnConfigDialog.id ? 'Editar turno global' : 'Crear turno global'}
@@ -2878,7 +2878,7 @@ const Exhibitors = () => {
                 fullWidth
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--radius-m)',
+                    borderRadius: 'var(--radius-l)',
                   }
                 }}
               />
@@ -2893,7 +2893,7 @@ const Exhibitors = () => {
                 fullWidth
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--radius-m)',
+                    borderRadius: 'var(--radius-l)',
                   }
                 }}
               />
@@ -2903,7 +2903,7 @@ const Exhibitors = () => {
           {/* Ubicaciones del Turno (Checkboxes de Ubicaciones Globales) */}
           <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Ubicaciones habilitadas para el turno</Typography>
           {(!settings?.locations || settings.locations.length === 0) ? (
-            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-m)', fontWeight: '600', mb: '8px' }}>
+            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)', fontWeight: '600', mb: '8px' }}>
               No hay ubicaciones configuradas globales. Añade una rápidamente con el formulario inferior.
             </Alert>
           ) : (
@@ -2954,7 +2954,7 @@ const Exhibitors = () => {
               sx={{
                 flexGrow: 1,
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 'var(--radius-m)',
+                  borderRadius: 'var(--radius-l)',
                 }
               }}
               onKeyDown={(e) => {
@@ -2970,7 +2970,7 @@ const Exhibitors = () => {
               size="small"
               startIcon={<IconAdd color="var(--accent-main)" />}
               sx={{
-                borderRadius: 'var(--radius-m)',
+                borderRadius: 'var(--radius-l)',
                 textTransform: 'none',
                 fontWeight: '700',
                 borderColor: 'var(--accent-main)',
@@ -3021,7 +3021,7 @@ const Exhibitors = () => {
               color: 'var(--always-white)',
               fontWeight: '700',
               textTransform: 'none',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
             }}
           >
             Guardar turno

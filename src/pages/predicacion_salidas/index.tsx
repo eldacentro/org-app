@@ -987,7 +987,7 @@ const PredicacionSalidas = () => {
               sx={{
                 width: '280px',
                 flexShrink: 0,
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -1008,7 +1008,7 @@ const PredicacionSalidas = () => {
                   size="small"
                   fullWidth
                   sx={{
-                    borderRadius: 'var(--radius-m)',
+                    borderRadius: 'var(--radius-l)',
                     borderColor: 'var(--line)',
                   }}
                 >
@@ -1034,7 +1034,7 @@ const PredicacionSalidas = () => {
                       selected={isSelected}
                       onClick={() => setSelectedMonth(idx)}
                       sx={{
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         borderLeft: isSelected ? '4px solid var(--accent-main)' : '4px solid transparent',
                         backgroundColor: isSelected ? 'var(--accent-150)' : 'transparent',
                         '&.Mui-selected': {
@@ -1103,7 +1103,7 @@ const PredicacionSalidas = () => {
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
                       size="small"
                       fullWidth
-                      sx={{ borderRadius: 'var(--radius-m)' }}
+                      sx={{ borderRadius: 'var(--radius-l)' }}
                     >
                       {years.map((yr) => (
                         <MenuItem key={yr} value={yr}>
@@ -1133,7 +1133,7 @@ const PredicacionSalidas = () => {
                               sx={{
                                 py: '6px',
                                 textTransform: 'none',
-                                borderRadius: 'var(--radius-m)',
+                                borderRadius: 'var(--radius-l)',
                                 fontWeight: '600',
                                 fontSize: '13px',
                                 boxShadow: 'none',
@@ -1175,7 +1175,7 @@ const PredicacionSalidas = () => {
                 </Typography>
                 
                 {/* Selector de modo de vista */}
-                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--line)' }}>
+                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
                   <Button
                     onClick={() => setPlannerViewMode('lista')}
                     size="small"
@@ -1567,7 +1567,7 @@ const PredicacionSalidas = () => {
 
                     return (
                       <Box sx={{
-                        borderRadius: 'var(--r-lg)',
+                        borderRadius: 'var(--radius-xl)',
                         border: '1px solid var(--line)',
                         backgroundColor: 'var(--card)',
                         p: { mobile: '12px', tablet: '20px' },
@@ -1600,7 +1600,7 @@ const PredicacionSalidas = () => {
                                     minHeight: desktopUp ? '110px' : 'auto',
                                     backgroundColor: 'var(--accent-50, #f8fafd)',
                                     border: '1px solid var(--line)',
-                                    borderRadius: 'var(--radius-m)',
+                                    borderRadius: 'var(--radius-l)',
                                     opacity: 0.3
                                   }} />
                                 </Grid>
@@ -1691,7 +1691,7 @@ const PredicacionSalidas = () => {
                                                  backgroundColor: bgColor,
                                                  color: textColor,
                                                  border: 'none',
-                                                 borderRadius: 'var(--radius-m)',
+                                                 borderRadius: 'var(--radius-l)',
                                                  p: '6px 8px',
                                                  cursor: isServiceCommittee ? 'pointer' : 'default',
                                                  display: 'flex',
@@ -1752,7 +1752,7 @@ const PredicacionSalidas = () => {
                                       aspectRatio: '1',
                                       backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--card)',
                                       border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
-                                      borderRadius: 'var(--radius-m)',
+                                      borderRadius: 'var(--radius-l)',
                                       display: 'flex',
                                       flexDirection: 'column',
                                       justifyContent: 'center',
@@ -2059,7 +2059,7 @@ const PredicacionSalidas = () => {
                       fullWidth
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          borderRadius: 'var(--radius-m)',
+                          borderRadius: 'var(--radius-l)',
                         }
                       }}
                     />
@@ -2127,7 +2127,7 @@ const PredicacionSalidas = () => {
                             sx={{
                               color: 'var(--error-main)',
                               padding: '6px',
-                              borderRadius: 'var(--radius-m)',
+                              borderRadius: 'var(--radius-l)',
                               '&:hover': {
                                 backgroundColor: 'var(--error-light)',
                               },
@@ -2297,7 +2297,7 @@ const PredicacionSalidas = () => {
                                       sx={{
                                         width: '100%',
                                         '& .MuiOutlinedInput-root': {
-                                          borderRadius: 'var(--radius-m)',
+                                          borderRadius: 'var(--radius-l)',
                                         }
                                       }}
                                     />
@@ -2317,7 +2317,7 @@ const PredicacionSalidas = () => {
                       onClick={handleSaveHoursConfig}
                       sx={{
                         backgroundColor: 'var(--accent-main)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--radius-l)',
                         fontWeight: '700',
                         textTransform: 'none',
                         boxShadow: 'none',
@@ -2354,7 +2354,7 @@ const PredicacionSalidas = () => {
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
                         border: '1px dashed var(--line)',
-                        borderRadius: 'var(--r-lg)',
+                        borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
                         py: '40px',
                       }}
@@ -2453,7 +2453,7 @@ const PredicacionSalidas = () => {
                                       sx={{
                                         fontWeight: '700',
                                         fontSize: '11.5px',
-                                        borderRadius: 'var(--radius-m)',
+                                        borderRadius: 'var(--radius-l)',
                                         cursor: 'pointer',
                                         height: '28px',
                                         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -2497,7 +2497,7 @@ const PredicacionSalidas = () => {
                         onChange={(e) => setSharedSlotKey(e.target.value)}
                         size="small"
                         fullWidth
-                        sx={{ borderRadius: 'var(--radius-m)' }}
+                        sx={{ borderRadius: 'var(--radius-l)' }}
                       >
                         {[
                           { key: 'monday_morning', label: 'Lunes Mañana' },
@@ -2534,7 +2534,7 @@ const PredicacionSalidas = () => {
                         fullWidth
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: 'var(--radius-m)',
+                            borderRadius: 'var(--radius-l)',
                           }
                         }}
                       />
@@ -2638,7 +2638,7 @@ const PredicacionSalidas = () => {
                             sx={{
                               color: 'var(--error-main)',
                               padding: '6px',
-                              borderRadius: 'var(--radius-m)',
+                              borderRadius: 'var(--radius-l)',
                               '&:hover': {
                                 backgroundColor: 'var(--error-light)',
                               },
@@ -2660,7 +2660,7 @@ const PredicacionSalidas = () => {
                         padding: '16px',
                         backgroundColor: 'var(--accent-50)',
                         border: '1px dashed var(--line)',
-                        borderRadius: 'var(--r-lg)',
+                        borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
                         py: '30px',
                         width: '100%',
@@ -2689,7 +2689,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--radius-xl)',
             padding: '8px',
           },
         }}
@@ -2705,7 +2705,7 @@ const PredicacionSalidas = () => {
               variant="outlined"
               onClick={() => setEditCancelled(!editCancelled)}
               sx={{
-                borderRadius: 'var(--radius-m)',
+                borderRadius: 'var(--radius-l)',
                 fontWeight: '600',
                 textTransform: 'none',
                 fontSize: '13px',
@@ -2736,7 +2736,7 @@ const PredicacionSalidas = () => {
                   onChange={(e) => setEditPerson(e.target.value)}
                   fullWidth
                   size="small"
-                  sx={{ borderRadius: 'var(--radius-m)' }}
+                  sx={{ borderRadius: 'var(--radius-l)' }}
                 >
                   <MenuItem value="">
                     <em>Ninguno / Sin asignar</em>
@@ -2802,7 +2802,7 @@ const PredicacionSalidas = () => {
                   onChange={(e) => setEditLocation(e.target.value)}
                   fullWidth
                   size="small"
-                  sx={{ borderRadius: 'var(--radius-m)' }}
+                  sx={{ borderRadius: 'var(--radius-l)' }}
                 >
                   {settings?.locations?.map((loc) => (
                     <MenuItem key={loc} value={loc}>
@@ -2847,7 +2847,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--radius-xl)',
             padding: '12px',
           },
         }}
@@ -2872,7 +2872,7 @@ const PredicacionSalidas = () => {
                 onChange={(e) => setPdfExportMonth(Number(e.target.value))}
                 fullWidth
                 size="small"
-                sx={{ borderRadius: 'var(--radius-m)' }}
+                sx={{ borderRadius: 'var(--radius-l)' }}
               >
                 {MONTH_NAMES.map((name, idx) => (
                   <MenuItem key={name} value={idx}>
@@ -2892,7 +2892,7 @@ const PredicacionSalidas = () => {
                 onChange={(e) => setPdfExportYear(Number(e.target.value))}
                 fullWidth
                 size="small"
-                sx={{ borderRadius: 'var(--radius-m)' }}
+                sx={{ borderRadius: 'var(--radius-l)' }}
               >
                 {years.map((y) => (
                   <MenuItem key={y} value={y}>
@@ -2918,7 +2918,7 @@ const PredicacionSalidas = () => {
               backgroundColor: 'var(--accent-main)',
               fontWeight: '600',
               textTransform: 'none',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
               '&:hover': {
                 backgroundColor: 'var(--accent-dark)',
               },
@@ -2938,7 +2938,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--radius-xl)',
             padding: '12px',
           },
         }}
@@ -3007,7 +3007,7 @@ const PredicacionSalidas = () => {
                     };
                     setWeekHoursConfig(defaultHours);
                   }}
-                  sx={{ backgroundColor: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-m)', boxShadow: 'none' }}
+                  sx={{ backgroundColor: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-l)', boxShadow: 'none' }}
                 >
                   Sí
                 </Button>
@@ -3017,7 +3017,7 @@ const PredicacionSalidas = () => {
                   onClick={() => {
                     setShowAdjustHours(false);
                   }}
-                  sx={{ borderColor: 'var(--accent-main)', color: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-m)' }}
+                  sx={{ borderColor: 'var(--accent-main)', color: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-l)' }}
                 >
                   No
                 </Button>
@@ -3082,7 +3082,7 @@ const PredicacionSalidas = () => {
               color: 'var(--accent-main)',
               fontWeight: '700',
               textTransform: 'none',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
               '&:hover': {
                 backgroundColor: 'var(--accent-150)',
                 borderColor: 'var(--accent-main)',
@@ -3107,7 +3107,7 @@ const PredicacionSalidas = () => {
               backgroundColor: 'var(--accent-main)',
               fontWeight: '600',
               textTransform: 'none',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--radius-l)',
               '&:hover': {
                 backgroundColor: 'var(--accent-dark)',
               },

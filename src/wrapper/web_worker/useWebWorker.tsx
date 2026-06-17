@@ -29,6 +29,8 @@ import { dbSpeakersCongregationsSetName } from '@services/dexie/speakers_congreg
 import logger from '@services/logger';
 import worker from '@services/worker/backupWorker';
 import { checkAndQueueAssignmentPush } from '@services/push/diff';
+import { useLiveQuery } from 'dexie-react-hooks';
+import appDb from '@db/appDb';
 
 const useWebWorker = () => {
   const location = useLocation();
@@ -37,7 +39,26 @@ const useWebWorker = () => {
 
   const { isMeetingEditor } = useCurrentUser();
 
+  const isSyncing = useAtomValue(isAppDataSyncingState);
   const setIsAppDataSyncing = useSetAtom(isAppDataSyncingState);
+
+  const isPendingSync = useLiveQuery(async () => {
+    const metadata = await appDb.metadata.get(1);
+    if (!metadata) return false;
+    return Object.values(metadata.metadata).some((table) => table.send_local === true);
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isPendingSync || isSyncing) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isPendingSync, isSyncing]);
 
   const isOnline = useAtomValue(isOnlineState);
   const isConnected = useAtomValue(congAccountConnectedState);
