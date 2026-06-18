@@ -97,7 +97,7 @@ const useAuth = () => {
       console.log('[determineNextStep] cong_settings.cong_id:', cong_settings.id);
       console.log('[determineNextStep] cong_settings.cong_master_key length:', cong_settings.cong_master_key?.length ?? 'N/A');
       console.log('[determineNextStep] cong_settings.cong_access_code length:', cong_settings.cong_access_code?.length ?? 'N/A');
-      console.log('[determineNextStep] cong_settings.encrypted_access_code present:', !!(cong_settings as any).encrypted_access_code);
+      console.log('[determineNextStep] cong_settings.encrypted_access_code present:', !!cong_settings.encrypted_access_code);
       console.log('[determineNextStep] cong_settings.cong_access_code_plain present:', !!cong_settings.cong_access_code_plain, '| value length:', cong_settings.cong_access_code_plain?.length ?? 0);
 
       if (!user_settings.cong_role || user_settings.cong_role?.length === 0) {
@@ -450,7 +450,7 @@ const useAuth = () => {
       console.log('[handlePostLogin] data.app_settings present:', !!data?.app_settings);
       console.log('[handlePostLogin] cong_settings present:', !!data?.app_settings?.cong_settings);
       console.log('[handlePostLogin] cong_settings keys:', data?.app_settings?.cong_settings ? Object.keys(data.app_settings.cong_settings) : 'N/A');
-      console.log('[handlePostLogin] encrypted_access_code present:', !!(data?.app_settings?.cong_settings as any)?.encrypted_access_code);
+      console.log('[handlePostLogin] encrypted_access_code present:', !!data?.app_settings?.cong_settings?.encrypted_access_code);
       console.log('[handlePostLogin] cong_access_code length:', data?.app_settings?.cong_settings?.cong_access_code?.length ?? 'N/A');
       console.log('[handlePostLogin] cong_master_key length:', data?.app_settings?.cong_settings?.cong_master_key?.length ?? 'N/A');
       console.log('[handlePostLogin] user_settings.firstname:', JSON.stringify(data?.app_settings?.user_settings?.firstname));
@@ -465,11 +465,11 @@ const useAuth = () => {
       // --- SILENT AUTO-LOGIN HANDSHAKE INJECTION ---
       // Si el servidor interceptó una invitación y asignó la congregación,
       // vendrá con el código de acceso encriptado. Lo desencriptamos ahora.
-      if ((data?.app_settings?.cong_settings as any)?.encrypted_access_code && user?.email) {
+      if (data?.app_settings?.cong_settings?.encrypted_access_code && user?.email) {
         console.log('[handlePostLogin] encrypted_access_code found, attempting decrypt...');
         try {
           const decryptedCode = await decryptAccessCodeFromInvite(
-            (data.app_settings.cong_settings as any).encrypted_access_code,
+            data.app_settings.cong_settings.encrypted_access_code,
             user.email
           );
           console.log('[handlePostLogin] decrypt SUCCESS, code length:', decryptedCode?.length ?? 0);
