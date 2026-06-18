@@ -112,6 +112,17 @@ const useAuth = () => {
         VIP_ROLES.includes(role)
       );
 
+      // Handshake VIP: el servidor desencriptó y provisionó el código de acceso
+      // para un usuario con rol de anciano/designado. Está asignado a la
+      // congregación — mostramos la pantalla de cifrado para que ingrese la
+      // clave maestra. DEBE ir antes del check de remoteMasterKey.length === 0
+      // porque el servidor nunca almacena la clave maestra (es E2E); ese check
+      // haría early-return con createCongregation=true si va primero.
+      if (masterKeyNeeded && cong_settings.cong_access_code_plain) {
+        nextStep.encryption = true;
+        return nextStep;
+      }
+
       if (masterKeyNeeded && remoteMasterKey.length === 0) {
         setCurrentStep(1);
         nextStep.createCongregation = true;
@@ -121,15 +132,6 @@ const useAuth = () => {
       if (remoteAccessCode.length === 0) {
         setCurrentStep(2);
         nextStep.createCongregation = true;
-        return nextStep;
-      }
-
-      // Handshake VIP: el servidor desencriptó y provisionó el código de acceso
-      // para un usuario con rol de anciano/designado. Está asignado a la
-      // congregación — mostramos la pantalla de cifrado para que ingrese la
-      // clave maestra. NO es un usuario nuevo sin congregación.
-      if (masterKeyNeeded && cong_settings.cong_access_code_plain) {
-        nextStep.encryption = true;
         return nextStep;
       }
 
@@ -363,6 +365,11 @@ const useAuth = () => {
           'cong_settings.midweek_meeting': midweekMeeting,
           'cong_settings.weekend_meeting': weekendMeeting,
           'cong_settings.cong_new': false,
+          // Handshake VIP: save the decrypted access code so CongregationEncryption
+          // only needs to ask for the master key, not both keys.
+          ...(app_settings.cong_settings.cong_access_code_plain
+            ? { 'cong_settings.cong_access_code': app_settings.cong_settings.cong_access_code_plain }
+            : {}),
         });
 
         setSettings((prev) => {
@@ -379,6 +386,9 @@ const useAuth = () => {
           next.cong_settings.midweek_meeting = midweekMeeting;
           next.cong_settings.weekend_meeting = weekendMeeting;
           next.cong_settings.cong_new = false;
+          if (app_settings.cong_settings.cong_access_code_plain) {
+            next.cong_settings.cong_access_code = app_settings.cong_settings.cong_access_code_plain;
+          }
           return next;
         });
 
