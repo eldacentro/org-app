@@ -12,7 +12,7 @@ import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
 import worker from '@services/worker/backupWorker';
 import { congAccessCodeState } from '@states/settings';
-import { apiCreateCongregationInvitation } from '@services/api/congregation';
+import { apiCreateCongregationInvitation, apiDeleteCongregationInvitation } from '@services/api/congregation';
 
 const useButtonActions = () => {
   const { id } = useParams();
@@ -112,10 +112,17 @@ const useButtonActions = () => {
 
       await handleSaveGroup();
 
-      // Auto-create/update Handshake invitation when the person has an email
-      // and has at least one app role (publisher or higher). This allows them to
-      // sign in with Google without any manual "Solicitar Acceso" step.
+      // Sync Handshake invitation with the person's current email and roles.
+      // • Email present  → upsert invitation (create/update)
+      // • Email cleared  → delete any existing invitation for this person
       const personEmail = person.person_data.email?.value?.trim().toLowerCase();
+      if (!personEmail) {
+        try {
+          await apiDeleteCongregationInvitation(person.person_uid);
+        } catch (delErr) {
+          console.error('[handleSavePerson] invitation delete failed (non-critical):', delErr);
+        }
+      }
       if (personEmail && congLocalAccessCode) {
         const roles = refreshReadOnlyRoles(person);
         if (roles.length > 0) {
@@ -182,6 +189,12 @@ const useButtonActions = () => {
       personAssignmentsRemove(newPerson);
 
       await dbPersonsSave(newPerson);
+
+      try {
+        await apiDeleteCongregationInvitation(newPerson.person_uid);
+      } catch (delErr) {
+        console.error('[handleDisqualifyConfirm] invitation delete failed (non-critical):', delErr);
+      }
 
       worker.postMessage('startWorker');
 

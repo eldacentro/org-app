@@ -78,30 +78,17 @@ const useAuth = () => {
       }
 
       if (!app_settings) {
-        console.warn('[determineNextStep] no app_settings → empty nextStep');
         return nextStep;
       }
 
       const { user_settings, cong_settings } = app_settings;
 
-      console.log('[determineNextStep] user_settings.role:', user_settings.role);
-      console.log('[determineNextStep] user_settings.cong_role:', user_settings.cong_role);
-      console.log('[determineNextStep] cong_settings present:', !!cong_settings);
-
       if (!cong_settings) {
-        console.warn('[determineNextStep] cong_settings is null/undefined → createCongregation');
         nextStep.createCongregation = true;
         return nextStep;
       }
 
-      console.log('[determineNextStep] cong_settings.cong_id:', cong_settings.id);
-      console.log('[determineNextStep] cong_settings.cong_master_key length:', cong_settings.cong_master_key?.length ?? 'N/A');
-      console.log('[determineNextStep] cong_settings.cong_access_code length:', cong_settings.cong_access_code?.length ?? 'N/A');
-      console.log('[determineNextStep] cong_settings.encrypted_access_code present:', !!cong_settings.encrypted_access_code);
-      console.log('[determineNextStep] cong_settings.cong_access_code_plain present:', !!cong_settings.cong_access_code_plain, '| value length:', cong_settings.cong_access_code_plain?.length ?? 0);
-
       if (!user_settings.cong_role || user_settings.cong_role?.length === 0) {
-        console.warn('[determineNextStep] cong_role empty → unauthorized');
         nextStep.unauthorized = true;
         return nextStep;
       }
@@ -111,14 +98,12 @@ const useAuth = () => {
       );
 
       if (!approvedRole) {
-        console.warn('[determineNextStep] no approved role → unauthorized');
         nextStep.unauthorized = true;
         return nextStep;
       }
 
       // If user is pocket, skip encryption and enter directly
       if (user_settings.role === 'pocket') {
-        console.log('[determineNextStep] pocket user → encryption=false');
         nextStep.encryption = false;
         return nextStep;
       }
@@ -129,8 +114,6 @@ const useAuth = () => {
         VIP_ROLES.includes(role)
       );
 
-      console.log('[determineNextStep] masterKeyNeeded:', masterKeyNeeded, '| remoteMasterKey len:', remoteMasterKey?.length ?? 0, '| remoteAccessCode len:', remoteAccessCode?.length ?? 0);
-
       // Handshake (VIP o no-VIP): el servidor provisionó el código de acceso
       // en claro (vía invitación descifrada en handlePostLogin).
       // DEBE ir antes de TODOS los checks de createCongregation porque:
@@ -139,26 +122,22 @@ const useAuth = () => {
       // VIP   → encryption = true  (pantalla de clave maestra solamente)
       // no-VIP → encryption = false (entra directo, código ya guardado en Dexie)
       if (cong_settings.cong_access_code_plain) {
-        console.log('[determineNextStep] Handshake path → encryption:', masterKeyNeeded ? true : false);
         nextStep.encryption = masterKeyNeeded ? true : false;
         return nextStep;
       }
 
       if (masterKeyNeeded && remoteMasterKey.length === 0) {
-        console.warn('[determineNextStep] masterKey needed but empty → createCongregation step 1');
         setCurrentStep(1);
         nextStep.createCongregation = true;
         return nextStep;
       }
 
       if (remoteAccessCode.length === 0) {
-        console.warn('[determineNextStep] remoteAccessCode empty → createCongregation step 2');
         setCurrentStep(2);
         nextStep.createCongregation = true;
         return nextStep;
       }
 
-      console.log('[determineNextStep] normal login → encryption=true');
       nextStep.encryption = true;
       return nextStep;
     },
@@ -212,7 +191,6 @@ const useAuth = () => {
       }
 
       if (nextStep.createCongregation) {
-        console.warn('[updateUserSettings] createCongregation branch → setIsUserAccountCreated(true)');
         setIsEmailAuth(false);
         setIsEmailSent(false);
         setIsUserSignIn(false);
@@ -221,7 +199,6 @@ const useAuth = () => {
       }
 
       if (nextStep.encryption === false) {
-        console.log('[updateUserSettings] encryption=false branch → saving all data + loadApp()');
         const midweekMeeting = structuredClone(
           freshSettings?.cong_settings?.midweek_meeting ?? []
         );
@@ -326,7 +303,6 @@ const useAuth = () => {
       }
 
       if (nextStep.encryption === true) {
-        console.log('[updateUserSettings] encryption=true branch → showing encryption screen');
         const midweekMeeting = structuredClone(
           freshSettings?.cong_settings?.midweek_meeting ?? []
         );
@@ -442,22 +418,9 @@ const useAuth = () => {
     try {
       setIsAuthProcessing(true);
 
-      console.log('[handlePostLogin] calling apiSendAuthorization...');
       const { status, data } = await apiSendAuthorization(user);
-      console.log('[handlePostLogin] status:', status);
-      console.log('[handlePostLogin] data.id:', data?.id);
-      console.log('[handlePostLogin] data.user:', JSON.stringify(data?.user));
-      console.log('[handlePostLogin] data.app_settings present:', !!data?.app_settings);
-      console.log('[handlePostLogin] cong_settings present:', !!data?.app_settings?.cong_settings);
-      console.log('[handlePostLogin] cong_settings keys:', data?.app_settings?.cong_settings ? Object.keys(data.app_settings.cong_settings) : 'N/A');
-      console.log('[handlePostLogin] encrypted_access_code present:', !!data?.app_settings?.cong_settings?.encrypted_access_code);
-      console.log('[handlePostLogin] cong_access_code length:', data?.app_settings?.cong_settings?.cong_access_code?.length ?? 'N/A');
-      console.log('[handlePostLogin] cong_master_key length:', data?.app_settings?.cong_settings?.cong_master_key?.length ?? 'N/A');
-      console.log('[handlePostLogin] user_settings.firstname:', JSON.stringify(data?.app_settings?.user_settings?.firstname));
-      console.log('[handlePostLogin] user_settings.cong_role:', data?.app_settings?.user_settings?.cong_role);
 
       if (status !== 200) {
-        console.error('[handlePostLogin] non-200 response:', status, data?.message);
         await handleAuthorizationError(data.message);
         return false;
       }
@@ -466,13 +429,11 @@ const useAuth = () => {
       // Si el servidor interceptó una invitación y asignó la congregación,
       // vendrá con el código de acceso encriptado. Lo desencriptamos ahora.
       if (data?.app_settings?.cong_settings?.encrypted_access_code && user?.email) {
-        console.log('[handlePostLogin] encrypted_access_code found, attempting decrypt...');
         try {
           const decryptedCode = await decryptAccessCodeFromInvite(
             data.app_settings.cong_settings.encrypted_access_code,
             user.email
           );
-          console.log('[handlePostLogin] decrypt SUCCESS, code length:', decryptedCode?.length ?? 0);
           // Lo inyectamos como texto plano para que determineNextStep sepa
           // que no es necesario pedir la clave (encryption = false).
           data.app_settings.cong_settings.cong_access_code_plain = decryptedCode;
@@ -485,14 +446,11 @@ const useAuth = () => {
         } catch (err) {
           console.error('[handlePostLogin] decrypt FAILED:', err);
         }
-      } else {
-        console.log('[handlePostLogin] no encrypted_access_code to decrypt. user.email:', !!user?.email, '| cong_settings:', !!data?.app_settings?.cong_settings);
       }
 
       const nextStep: NextStepType = determineNextStep(
         data as UserLoginResponseType
       );
-      console.log('[handlePostLogin] nextStep:', JSON.stringify(nextStep));
 
       if (
         nextStep.isVerifyMFA ||

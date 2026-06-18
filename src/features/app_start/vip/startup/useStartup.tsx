@@ -93,8 +93,6 @@ const useStartup = () => {
 
       // Fetch the most up-to-date settings directly from Dexie to avoid Jotai asynchronous update race conditions
       const settings = await dbAppSettingsGet();
-      console.log('[startup] initial dbAppSettingsGet():', JSON.parse(JSON.stringify(settings)));
-      
       const currentCongName = settings?.cong_settings?.cong_name || '';
       const currentCongRole = settings?.user_settings?.cong_role || [];
       const currentCongMasterKey = settings?.cong_settings?.cong_master_key || '';
@@ -103,9 +101,7 @@ const useStartup = () => {
 
       if (currentCongName.length === 0) {
         if (isAuthenticated) {
-          console.log('[startup] cong_name empty + authenticated → calling handlePostLogin');
           const success = await handlePostLogin(user);
-          console.log('[startup] handlePostLogin result:', success);
           setIsLoading(false);
           setIsStart(false);
           if (!success) showSignin();
@@ -148,9 +144,6 @@ const useStartup = () => {
 
       const { status, result } = await apiValidateMe();
 
-      console.log('[startup] settings before validateMe:', JSON.parse(JSON.stringify(settings)));
-      console.log('[startup] apiValidateMe result:', status, result);
-
       if (isUserAccountCreated) {
         setIsLoading(false);
         setIsUserSignIn(false);
@@ -184,7 +177,6 @@ const useStartup = () => {
           // should NOT wipe the local DB. Show the encryption screen so the user
           // can proceed; if the cong truly disappeared, the user will see an error
           // when they try to decrypt.
-          console.warn('[startup] 404 from validate-me but local cong_id exists — possible handshake lag, showing encryption screen instead of wiping DB');
           setIsEncryptionCodeOpen(true);
           setIsLoading(false);
           setIsStart(false);
@@ -274,7 +266,6 @@ const useStartup = () => {
   }, [setCookiesConsent]);
 
   useEffect(() => {
-    console.log('[vipStartup effect] isAuthLoading:', isAuthLoading, 'cookiesConsent:', cookiesConsent, 'isStart:', isStart, 'isAuthenticated:', isAuthenticated, 'apiHost:', apiHost);
     if (isAuthLoading || apiHost === '') return;
 
     if (!cookiesConsent) {
@@ -286,7 +277,6 @@ const useStartup = () => {
     }
 
     if (isStart && !startupCompletedRef.current) {
-      console.log('[vipStartup effect] calling runStartupCheck');
       runStartupCheck();
     }
   }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated, apiHost]);

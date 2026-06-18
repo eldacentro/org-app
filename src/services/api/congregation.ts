@@ -408,6 +408,41 @@ export const apiCreateCongregationInvitation = async ({
   }
 };
 
+export const apiDeleteCongregationInvitation = async (personUid: string) => {
+  try {
+    const {
+      apiHost,
+      appVersion: appversion,
+      congID,
+      idToken,
+    } = await apiDefault();
+
+    const res = await fetch(
+      `${apiHost}api/v3/congregations/admin/${congID}/invitations/${personUid}`,
+      {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+          appclient: 'organized',
+          appversion,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.status !== 200) {
+      throw new Error(data.message);
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
+};
+
 export const apiCongregationUsersGet = async () => {
   try {
     const {
