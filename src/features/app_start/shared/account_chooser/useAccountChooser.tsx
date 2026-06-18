@@ -95,6 +95,11 @@ const useAccountChooser = () => {
       setIsAuthProcessing(true);
       await userSignInPopup(authProvider.Google);
     } catch (error) {
+      // User closed the popup before completing sign-in — not an error, just retry.
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        setIsAuthProcessing(false);
+        return;
+      }
       console.error(error);
       displayOnboardingFeedback({
         title: getMessageByCode('error_app_generic-title'),
