@@ -29,8 +29,6 @@ import {
   dbAppSettingsUpdate,
   dbAppSettingsUpdateWithoutNotice,
 } from '@services/dexie/settings';
-import { decryptAccessCodeFromInvite } from '@services/encryption/deterministic';
-import { loadKeysSecurely, saveKeysSecurely } from '@services/secure_storage';
 
 const useUserAutoLogin = () => {
   const { isAuthenticated, user } = useFirebaseAuth();
