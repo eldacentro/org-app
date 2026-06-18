@@ -71,18 +71,7 @@ const useRequestAccess = () => {
 
       setIsProcessing(false);
 
-      // Auto-aprobado por email (Mejora 1): el usuario ya es miembro. Recargamos
-      // para que el login recoja la congregación y continúe al cifrado.
-      if (result === 'REQUEST_APPROVED') {
-        displaySnackNotification({
-          header: t('tr_requestAccessApproved'),
-          message: t('tr_requestAccessApprovedDesc'),
-          severity: 'success',
-        });
 
-        setTimeout(() => window.location.reload(), 1500);
-        return;
-      }
 
       setRequestSent(true);
 

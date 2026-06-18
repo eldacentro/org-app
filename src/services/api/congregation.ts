@@ -157,65 +157,7 @@ export const apiSetCongregationMasterKey = async (key: string) => {
   return { status: res.status, data };
 };
 
-// Auto-aprobación por email (Mejora 1): obtiene la clave de hash de la
-// congregación para calcular los hashes de email localmente.
-export const apiGetAutoApprovalKey = async () => {
-  const {
-    apiHost,
-    appVersion: appversion,
-    congID,
-    idToken,
-  } = await apiDefault();
 
-  const res = await fetch(
-    `${apiHost}api/v3/congregations/admin/${congID}/auto-approval-key`,
-    {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
-        appclient: 'organized',
-        appversion,
-      },
-    }
-  );
-
-  const data = await res.json();
-
-  return { status: res.status, data };
-};
-
-// Auto-aprobación por email: sube el índice de hashes de email -> person_uid.
-export const apiSaveEmailIndex = async (
-  entries: { person_uid: string; hash: string }[]
-) => {
-  const {
-    apiHost,
-    appVersion: appversion,
-    congID,
-    idToken,
-  } = await apiDefault();
-
-  const res = await fetch(
-    `${apiHost}api/v3/congregations/admin/${congID}/auto-approval-index`,
-    {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
-        appclient: 'organized',
-        appversion,
-      },
-      body: JSON.stringify({ entries }),
-    }
-  );
-
-  const data = await res.json();
-
-  return { status: res.status, data };
-};
 
 // Acceso sin código (Mejora 3): lee si está activada la provisión del código.
 export const apiGetAutoProvision = async () => {

@@ -79,6 +79,7 @@ export type ValidateMeResponseType = {
     cong_master_key: string;
     cong_access_code: string;
     mfa: boolean;
+    encrypted_access_code?: string;
   };
 };
 
