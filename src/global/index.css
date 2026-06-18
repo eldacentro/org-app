@@ -225,11 +225,15 @@ body iframe {
   --brand-deep: var(--accent-dark);
   --brand-tint: var(--accent-150);
   --card: var(--white);
+  --surface-2: var(--accent-200);     /* elevated inputs, popovers         */
   --line: rgba(var(--accent-main-base), 0.10);
   --line-2: rgba(var(--accent-main-base), 0.15);
   --ok: var(--green-main);
+  --ok-tint: var(--green-secondary);
   --amber: var(--orange-main);
-  
+  --amber-tint: var(--orange-secondary);
+  --badge: #ff5a4d;                    /* notification badge (semantic)     */
+
   --r-lg: 26px;
   --r-md: 20px;
   --r-sm: 15px;
@@ -238,10 +242,19 @@ body iframe {
   --shadow-md: var(--big-card-shadow);
 }
 
-/* Dynamic theme adjustments for dark mode */
+/* ─── Dark mode semantic overrides ─────────────────────────────────────── */
 [data-theme$='dark'] {
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.12);
+  --badge: #ff7272;                    /* softer notification red in dark   */
+}
+
+/* ─── Smooth theme transitions ──────────────────────────────────────────── */
+html {
+  transition: background-color 0.25s ease;
+}
+body {
+  transition: background-color 0.25s ease;
 }
 
 /* Animations and transitions */
@@ -364,6 +377,16 @@ body iframe {
   background: linear-gradient(to bottom, #ffffff 0px, #ffffff 60px, #F0F4FA 180px) !important;
 }
 
+/* Screen Top Gradients for Dark Theme — uses theme's own base colors */
+[data-theme$='-dark'] .screen {
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--accent-100-base), 1) 0px,
+    rgba(var(--accent-100-base), 1) 60px,
+    rgba(var(--accent-150-base), 1) 280px
+  ) !important;
+}
+
 /* Dynamic height adjustment for the Root Layout placeholder Toolbar
    to match the Safe Area height on iOS and prevent content from sitting too high */
 .screen > .MuiToolbar-root {
@@ -448,7 +471,7 @@ body iframe {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff5a4d;
+  background: var(--badge);
   border: 2px solid var(--card);
 }
 .avatar-circle {
@@ -460,10 +483,10 @@ body iframe {
   box-shadow: var(--shadow-sm);
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--always-white);
   font-weight: 700;
   font-size: 16px;
-  border: 2px solid #fff;
+  border: 2px solid var(--always-white);
 }
 
 /* ---------- GREETING ---------- */
@@ -672,16 +695,16 @@ body iframe {
   color: #a05a0c;
 }
 [data-theme$='dark'] .day-badge.wknd {
-  background: #3e3220;
-  color: #fdf0dd;
+  background: rgba(242, 166, 72, 0.14);
+  color: #F5B860;
 }
 .day-badge.ev {
   background: #f3e8ff;
   color: #6b21a8;
 }
 [data-theme$='dark'] .day-badge.ev {
-  background: #2e1049;
-  color: #e9d5ff;
+  background: rgba(152, 116, 218, 0.16);
+  color: #C4A8F4;
 }
 .meeting-row .meeting-info {
   flex: 1;
@@ -804,8 +827,8 @@ body iframe {
   height: 22px;
   padding: 0 6px;
   border-radius: 11px;
-  background: #ff5a4d;
-  color: #fff;
+  background: var(--badge);
+  color: var(--always-white);
   font-size: 12px;
   font-weight: 800;
   display: grid;
@@ -816,7 +839,7 @@ body iframe {
 .c-blue .ti { background: var(--brand-tint); }
 
 .c-slate .ti { background: #eef0f4; }
-[data-theme$='dark'] .c-slate .ti { background: #22252a; }
+[data-theme$='dark'] .c-slate .ti { background: rgba(var(--accent-200-base), 1); }
 
 .tile-item.full-width {
   grid-column: 1 / -1;
@@ -856,6 +879,13 @@ body iframe {
   border-right: none !important;
   border-bottom: none !important;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Dark mode tabbar — uses each theme's own background color */
+[data-theme$='-dark'] .tabbar {
+  background: rgba(var(--accent-100-base), 0.88) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.40) !important;
 }
 
 /* Light theme Glassmorphic Group Cards */

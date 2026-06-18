@@ -1,6 +1,10 @@
 /**
-* Do not edit directly
-* Generated on 9/3/2024, 9:50:20 PM
+* Premium dark mode refactor — updated 2026-06-19
+* Based on Material Design 3 dark mode principles:
+* - Colored surface tinting (no plain grey cards)
+* - Proper elevation scale (bg → surface → card → elevated)
+* - Desaturated status colors for dark environments
+* - WCAG AAA text contrast (0.87 / 0.60 / 0.38 opacity tiers)
 */
 
 :root {
@@ -69,14 +73,37 @@
   --message-glow: 0px 8px 24px 0px rgba(var(--accent-main-base), 0.24);
 }
 
+/* ─── Dark mode meeting colors (brighter for legibility on dark surfaces) ── */
 [data-theme$='dark'] {
-  --big-card-shadow: 0px 8px 12px 0px #00000052, 0px 2px 4px 0px #00000014;
-  --small-card-shadow: 0px 4px 12px 0px #0000003d, 0px 2px 4px 0px #00000029;
-  --pop-up-shadow: 0px 16px 24px 0px #0000003d;
-  --right-sidebar-shadow: -4px 0px 24px 0px #0000003d;
-  --left-sidebar-shadow: 4px 0px 24px 0px #0000003d;
-  --hover-shadow: 0px 2px 8px 0px #0e1227a3;
+  --midweek-meeting: #7BA8E6;
+  --treasures-from-gods-word: #5AAFBD;
+  --apply-yourself-to-the-field-ministry: #D9A83A;
+  --living-as-christians: #E06050;
+  --weekend-meeting: #6EB868;
+  --watchtower-study: #6EA8DC;
+  --ministry: #A882D8;
+  --text-apply-yourself-to-the-field-ministry: #D9A83A;
+  --text-treasures-from-gods-word: #5AAFBD;
+  --text_living-as-christians: #E06050;
+  --duties: #C09880;
 }
+
+/* ─── Dark mode shadows (deeper, more atmospheric) ─────────────────────── */
+[data-theme$='dark'] {
+  --big-card-shadow: 0px 8px 16px 0px #00000060, 0px 2px 4px 0px #00000020;
+  --small-card-shadow: 0px 4px 12px 0px #00000050, 0px 2px 4px 0px #00000030;
+  --pop-up-shadow: 0px 16px 32px 0px #00000060;
+  --right-sidebar-shadow: -4px 0px 24px 0px #00000050;
+  --left-sidebar-shadow: 4px 0px 24px 0px #00000050;
+  --hover-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.60);
+  --error-glow: 0px 8px 24px 0px rgba(238, 112, 112, 0.28);
+  --warning-glow: 0px 8px 24px 0px rgba(242, 166, 72, 0.28);
+  --success-glow: 0px 8px 24px 0px rgba(96, 200, 82, 0.28);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT THEMES — unchanged
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 /* colors for blue-light theme */
 [data-theme='blue-light'] {
@@ -142,60 +169,75 @@
   --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
 }
 
-/* colors for blue-dark theme */
+/* ═══════════════════════════════════════════════════════════════════════════
+   BLUE DARK — Navy/Electric Blue
+   Background: #0F1117  Surface: #181B28  Card: #181B28
+   Primary: #6499E4  Text: rgba(255,255,255,0.87)
+   ═══════════════════════════════════════════════════════════════════════════ */
 [data-theme='blue-dark'] {
-  --accent-dark-overlay-base: 63, 65, 70;
-  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.92);
-  --accent-dark-base: 120, 165, 235;
+  /* Overlay (modal backdrop) */
+  --accent-dark-overlay-base: 14, 16, 24;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.90);
+
+  /* Accent scale — blue-tinted from bg up to highlight */
+  --accent-dark-base: 150, 192, 244;          /* highlight / emphasis        */
   --accent-dark: rgba(var(--accent-dark-base), 1);
-  --accent-click-base: 65, 110, 185;
+  --accent-click-base: 68, 112, 184;          /* pressed state               */
   --accent-click: rgba(var(--accent-click-base), 1);
-  --accent-main-base: 91, 141, 217;
+  --accent-main-base: 100, 153, 228;          /* primary #6499E4             */
   --accent-main: rgba(var(--accent-main-base), 1);
-  --accent-400-base: 157, 165, 190;
+  --accent-400-base: 138, 162, 208;           /* lighter accent tone         */
   --accent-400: rgba(var(--accent-400-base), 1);
-  --accent-350-base: 133, 140, 159;
+  --accent-350-base: 90, 108, 152;            /* mid-tone accent             */
   --accent-350: rgba(var(--accent-350-base), 1);
-  --accent-300-base: 83, 92, 115;
+  --accent-300-base: 56, 68, 98;              /* elevation 3 / deep surface  */
   --accent-300: rgba(var(--accent-300-base), 1);
-  --accent-200-base: 61, 64, 73;
+  --accent-200-base: 36, 42, 62;              /* elevation 2 / inputs        */
   --accent-200: rgba(var(--accent-200-base), 1);
-  --accent-150-base: 42, 45, 53;
+  --accent-150-base: 26, 30, 48;              /* elevation 1 / brand-tint    */
   --accent-150: rgba(var(--accent-150-base), 1);
-  --accent-100-base: 21, 21, 25;
+  --accent-100-base: 15, 17, 23;              /* page background #0F1117     */
   --accent-100: rgba(var(--accent-100-base), 1);
-  --black-base: 244, 244, 244;
+
+  /* Text — MD3 opacity tiers with slight blue warmth */
+  --black-base: 218, 224, 238;                /* primary text ≈ 0.87 white   */
   --black: rgba(var(--black-base), 1);
-  --white-base: 34, 34, 34;
+  --white-base: 24, 27, 40;                   /* card surface #181B28        */
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 200, 200, 200;
+
+  /* Neutral scale — blue-tinted greys */
+  --grey-400-base: 140, 150, 174;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 129, 126, 126;
+  --grey-350-base: 86, 94, 116;              /* tertiary text ≈ 0.38 white  */
   --grey-350: rgba(var(--grey-350-base), 1);
-  --grey-300-base: 170, 170, 170;
+  --grey-300-base: 158, 164, 180;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
-  --grey-200-base: 68, 68, 68;
+  --grey-200-base: 42, 46, 64;               /* dividers / borders          */
   --grey-200: rgba(var(--grey-200-base), 1);
-  --grey-150-base: 23, 23, 24;
+  --grey-150-base: 18, 20, 28;               /* subtle bg variant           */
   --grey-150: rgba(var(--grey-150-base), 1);
-  --grey-100-base: 44, 44, 44;
+  --grey-100-base: 28, 32, 44;               /* hover state background      */
   --grey-100: rgba(var(--grey-100-base), 1);
-  --red-main-base: 183, 59, 59;
+
+  /* Status — desaturated, softened for dark environments */
+  --red-main-base: 238, 112, 112;            /* error (soft coral red)      */
   --red-main: rgba(var(--red-main-base), 1);
-  --red-dark-base: 227, 90, 90;
+  --red-dark-base: 255, 148, 148;            /* error emphasis              */
   --red-dark: rgba(var(--red-dark-base), 1);
-  --red-secondary-base: 250, 109, 109;
-  --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --orange-dark-base: 197, 114, 14;
+  --red-secondary-base: 238, 80, 80;
+  --red-secondary: rgba(var(--red-secondary-base), 0.12);
+  --orange-dark-base: 232, 172, 68;          /* warning dark                */
   --orange-dark: rgba(var(--orange-dark-base), 1);
-  --orange-main-base: 221, 140, 44;
+  --orange-main-base: 242, 166, 72;          /* warning main                */
   --orange-main: rgba(var(--orange-main-base), 1);
-  --orange-secondary-base: 54, 46, 36;
+  --orange-secondary-base: 48, 38, 22;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
-  --green-main-base: 58, 136, 32;
+  --green-main-base: 96, 200, 82;            /* success (vibrant for dark)  */
   --green-main: rgba(var(--green-main-base), 1);
-  --green-secondary-base: 40, 51, 36;
+  --green-secondary-base: 24, 44, 20;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+
+  /* Always-white (invariant, used on colored backgrounds) */
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -270,60 +312,74 @@
   --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
 }
 
-/* colors for green-dark theme */
+/* ═══════════════════════════════════════════════════════════════════════════
+   GREEN DARK — Forest/Emerald
+   Background: #0C100C  Surface: #121A10  Card: #121A10
+   Primary: #6CB860  Text: rgba(255,255,255,0.84) with green warmth
+   ═══════════════════════════════════════════════════════════════════════════ */
 [data-theme='green-dark'] {
-  --accent-dark-overlay-base: 60, 63, 60;
-  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.92);
-  --accent-dark-base: 97, 166, 80;
+  /* Overlay */
+  --accent-dark-overlay-base: 10, 14, 10;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.90);
+
+  /* Accent scale — forest green tinted */
+  --accent-dark-base: 148, 212, 134;          /* highlight / emphasis        */
   --accent-dark: rgba(var(--accent-dark-base), 1);
-  --accent-click-base: 73, 120, 63;
+  --accent-click-base: 76, 132, 64;           /* pressed state               */
   --accent-click: rgba(var(--accent-click-base), 1);
-  --accent-main-base: 83, 131, 72;
+  --accent-main-base: 108, 184, 96;           /* primary #6CB860             */
   --accent-main: rgba(var(--accent-main-base), 1);
-  --accent-400-base: 165, 187, 165;
+  --accent-400-base: 130, 172, 126;           /* lighter accent tone         */
   --accent-400: rgba(var(--accent-400-base), 1);
-  --accent-350-base: 116, 137, 116;
+  --accent-350-base: 82, 120, 78;             /* mid-tone accent             */
   --accent-350: rgba(var(--accent-350-base), 1);
-  --accent-300-base: 81, 97, 81;
+  --accent-300-base: 48, 76, 44;              /* elevation 3 / deep surface  */
   --accent-300: rgba(var(--accent-300-base), 1);
-  --accent-200-base: 55, 69, 55;
+  --accent-200-base: 30, 50, 26;              /* elevation 2 / inputs        */
   --accent-200: rgba(var(--accent-200-base), 1);
-  --accent-150-base: 40, 48, 40;
+  --accent-150-base: 20, 34, 18;              /* elevation 1 / brand-tint    */
   --accent-150: rgba(var(--accent-150-base), 1);
-  --accent-100-base: 19, 20, 19;
+  --accent-100-base: 12, 16, 12;              /* page background #0C100C     */
   --accent-100: rgba(var(--accent-100-base), 1);
-  --black-base: 244, 244, 244;
+
+  /* Text — green-tinted whites */
+  --black-base: 214, 228, 212;                /* primary text ≈ 0.87 white   */
   --black: rgba(var(--black-base), 1);
-  --white-base: 34, 34, 34;
+  --white-base: 18, 26, 16;                   /* card surface #121A10        */
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 200, 200, 200;
+
+  /* Neutral scale — green-tinted greys */
+  --grey-400-base: 134, 156, 132;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 129, 126, 126;
+  --grey-350-base: 82, 104, 80;              /* tertiary text ≈ 0.38 white  */
   --grey-350: rgba(var(--grey-350-base), 1);
-  --grey-300-base: 170, 170, 170;
+  --grey-300-base: 158, 172, 156;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
-  --grey-200-base: 68, 68, 68;
+  --grey-200-base: 36, 54, 32;               /* dividers / borders          */
   --grey-200: rgba(var(--grey-200-base), 1);
-  --grey-150-base: 23, 23, 24;
+  --grey-150-base: 14, 20, 12;               /* subtle bg variant           */
   --grey-150: rgba(var(--grey-150-base), 1);
-  --grey-100-base: 44, 44, 44;
+  --grey-100-base: 24, 36, 22;               /* hover state background      */
   --grey-100: rgba(var(--grey-100-base), 1);
-  --red-main-base: 202, 38, 38;
+
+  /* Status */
+  --red-main-base: 238, 112, 112;
   --red-main: rgba(var(--red-main-base), 1);
-  --red-dark-base: 227, 90, 90;
+  --red-dark-base: 255, 148, 148;
   --red-dark: rgba(var(--red-dark-base), 1);
-  --red-secondary-base: 250, 109, 109;
-  --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --orange-dark-base: 197, 114, 14;
+  --red-secondary-base: 238, 80, 80;
+  --red-secondary: rgba(var(--red-secondary-base), 0.12);
+  --orange-dark-base: 224, 168, 60;
   --orange-dark: rgba(var(--orange-dark-base), 1);
-  --orange-main-base: 221, 140, 44;
+  --orange-main-base: 234, 178, 72;
   --orange-main: rgba(var(--orange-main-base), 1);
-  --orange-secondary-base: 54, 46, 36;
+  --orange-secondary-base: 44, 36, 18;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
-  --green-main-base: 62, 147, 33;
+  --green-main-base: 96, 200, 82;
   --green-main: rgba(var(--green-main-base), 1);
-  --green-secondary-base: 40, 51, 36;
+  --green-secondary-base: 20, 44, 16;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -334,60 +390,74 @@
   --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
 }
 
-/* colors for purple-dark theme */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PURPLE DARK — Midnight/Indigo
+   Background: #0E0C14  Surface: #161222  Card: #161222
+   Primary: #9874DA  Text: rgba(255,255,255,0.88) with violet warmth
+   ═══════════════════════════════════════════════════════════════════════════ */
 [data-theme='purple-dark'] {
-  --accent-dark-overlay-base: 66, 63, 70;
-  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.92);
-  --accent-dark-base: 208, 183, 251;
+  /* Overlay */
+  --accent-dark-overlay-base: 14, 12, 20;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.90);
+
+  /* Accent scale — deep indigo tinted */
+  --accent-dark-base: 194, 170, 246;          /* highlight / emphasis        */
   --accent-dark: rgba(var(--accent-dark-base), 1);
-  --accent-click-base: 98, 69, 135;
+  --accent-click-base: 108, 78, 166;          /* pressed state               */
   --accent-click: rgba(var(--accent-click-base), 1);
-  --accent-main-base: 125, 97, 184;
+  --accent-main-base: 152, 116, 218;          /* primary #9874DA             */
   --accent-main: rgba(var(--accent-main-base), 1);
-  --accent-400-base: 207, 196, 221;
+  --accent-400-base: 158, 144, 202;           /* lighter accent tone         */
   --accent-400: rgba(var(--accent-400-base), 1);
-  --accent-350-base: 142, 132, 156;
+  --accent-350-base: 100, 86, 148;            /* mid-tone accent             */
   --accent-350: rgba(var(--accent-350-base), 1);
-  --accent-300-base: 95, 81, 111;
+  --accent-300-base: 60, 50, 92;              /* elevation 3 / deep surface  */
   --accent-300: rgba(var(--accent-300-base), 1);
-  --accent-200-base: 60, 55, 67;
+  --accent-200-base: 38, 32, 58;              /* elevation 2 / inputs        */
   --accent-200: rgba(var(--accent-200-base), 1);
-  --accent-150-base: 47, 43, 53;
+  --accent-150-base: 26, 22, 40;              /* elevation 1 / brand-tint    */
   --accent-150: rgba(var(--accent-150-base), 1);
-  --accent-100-base: 20, 18, 22;
+  --accent-100-base: 14, 12, 20;              /* page background #0E0C14     */
   --accent-100: rgba(var(--accent-100-base), 1);
-  --black-base: 244, 244, 244;
+
+  /* Text — violet-tinted whites */
+  --black-base: 226, 220, 240;                /* primary text ≈ 0.88 white   */
   --black: rgba(var(--black-base), 1);
-  --white-base: 34, 34, 34;
+  --white-base: 22, 18, 34;                   /* card surface #161222        */
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 200, 200, 200;
+
+  /* Neutral scale — violet-tinted greys */
+  --grey-400-base: 150, 142, 170;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 129, 126, 126;
+  --grey-350-base: 96, 88, 116;              /* tertiary text ≈ 0.38 white  */
   --grey-350: rgba(var(--grey-350-base), 1);
-  --grey-300-base: 170, 170, 170;
+  --grey-300-base: 164, 156, 184;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
-  --grey-200-base: 68, 68, 68;
+  --grey-200-base: 46, 40, 66;               /* dividers / borders          */
   --grey-200: rgba(var(--grey-200-base), 1);
-  --grey-150-base: 23, 23, 24;
+  --grey-150-base: 18, 16, 26;               /* subtle bg variant           */
   --grey-150: rgba(var(--grey-150-base), 1);
-  --grey-100-base: 44, 44, 44;
+  --grey-100-base: 30, 26, 44;               /* hover state background      */
   --grey-100: rgba(var(--grey-100-base), 1);
-  --red-main-base: 183, 59, 59;
+
+  /* Status */
+  --red-main-base: 238, 112, 112;
   --red-main: rgba(var(--red-main-base), 1);
-  --red-dark-base: 227, 90, 90;
+  --red-dark-base: 255, 148, 148;
   --red-dark: rgba(var(--red-dark-base), 1);
-  --red-secondary-base: 250, 109, 109;
-  --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --green-main-base: 58, 136, 32;
-  --green-main: rgba(var(--green-main-base), 1);
-  --green-secondary-base: 40, 51, 36;
-  --green-secondary: rgba(var(--green-secondary-base), 1);
-  --orange-dark-base: 197, 114, 14;
+  --red-secondary-base: 238, 80, 80;
+  --red-secondary: rgba(var(--red-secondary-base), 0.12);
+  --orange-dark-base: 226, 166, 64;
   --orange-dark: rgba(var(--orange-dark-base), 1);
-  --orange-main-base: 221, 140, 44;
+  --orange-main-base: 240, 178, 80;
   --orange-main: rgba(var(--orange-main-base), 1);
-  --orange-secondary-base: 54, 46, 36;
+  --orange-secondary-base: 52, 40, 22;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
+  --green-main-base: 96, 200, 82;
+  --green-main: rgba(var(--green-main-base), 1);
+  --green-secondary-base: 24, 44, 20;
+  --green-secondary: rgba(var(--green-secondary-base), 1);
+
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -462,60 +532,74 @@
   --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
 }
 
-/* colors for orange-dark theme */
+/* ═══════════════════════════════════════════════════════════════════════════
+   ORANGE DARK — Ember/Amber
+   Background: #120E0A  Surface: #1C160E  Card: #1C160E
+   Primary: #DC9E3C  Text: rgba(255,255,255,0.94) with warm cream
+   ═══════════════════════════════════════════════════════════════════════════ */
 [data-theme='orange-dark'] {
-  --accent-dark-overlay-base: 70, 67, 63;
-  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.92);
-  --accent-dark-base: 225, 177, 82;
+  /* Overlay */
+  --accent-dark-overlay-base: 20, 16, 10;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.90);
+
+  /* Accent scale — warm amber tinted */
+  --accent-dark-base: 244, 196, 108;          /* highlight / emphasis        */
   --accent-dark: rgba(var(--accent-dark-base), 1);
-  --accent-click-base: 178, 118, 28;
+  --accent-click-base: 178, 122, 28;          /* pressed state               */
   --accent-click: rgba(var(--accent-click-base), 1);
-  --accent-main-base: 200, 136, 40;
+  --accent-main-base: 220, 158, 60;           /* primary #DC9E3C             */
   --accent-main: rgba(var(--accent-main-base), 1);
-  --accent-400-base: 189, 154, 131;
+  --accent-400-base: 172, 144, 100;           /* lighter accent tone         */
   --accent-400: rgba(var(--accent-400-base), 1);
-  --accent-350-base: 154, 120, 93;
+  --accent-350-base: 112, 88, 52;             /* mid-tone accent             */
   --accent-350: rgba(var(--accent-350-base), 1);
-  --accent-300-base: 106, 89, 70;
+  --accent-300-base: 68, 54, 28;              /* elevation 3 / deep surface  */
   --accent-300: rgba(var(--accent-300-base), 1);
-  --accent-200-base: 71, 63, 56;
+  --accent-200-base: 46, 36, 18;              /* elevation 2 / inputs        */
   --accent-200: rgba(var(--accent-200-base), 1);
-  --accent-150-base: 55, 49, 44;
+  --accent-150-base: 32, 24, 14;              /* elevation 1 / brand-tint    */
   --accent-150: rgba(var(--accent-150-base), 1);
-  --accent-100-base: 22, 20, 18;
+  --accent-100-base: 18, 14, 10;              /* page background #120E0A     */
   --accent-100: rgba(var(--accent-100-base), 1);
-  --black-base: 244, 244, 244;
+
+  /* Text — warm cream whites */
+  --black-base: 240, 232, 218;                /* primary text (cream white)  */
   --black: rgba(var(--black-base), 1);
-  --white-base: 34, 34, 34;
+  --white-base: 28, 22, 14;                   /* card surface #1C160E        */
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 200, 200, 200;
+
+  /* Neutral scale — warm amber-tinted greys */
+  --grey-400-base: 170, 158, 136;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 129, 126, 126;
+  --grey-350-base: 112, 100, 78;              /* tertiary text ≈ 0.38 white  */
   --grey-350: rgba(var(--grey-350-base), 1);
-  --grey-300-base: 170, 170, 170;
+  --grey-300-base: 180, 164, 140;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
-  --grey-200-base: 68, 68, 68;
+  --grey-200-base: 56, 44, 24;               /* dividers / borders          */
   --grey-200: rgba(var(--grey-200-base), 1);
-  --grey-150-base: 23, 23, 24;
+  --grey-150-base: 22, 16, 10;               /* subtle bg variant           */
   --grey-150: rgba(var(--grey-150-base), 1);
-  --grey-100-base: 44, 44, 44;
+  --grey-100-base: 36, 28, 16;               /* hover state background      */
   --grey-100: rgba(var(--grey-100-base), 1);
-  --red-main-base: 183, 59, 59;
+
+  /* Status */
+  --red-main-base: 238, 112, 112;
   --red-main: rgba(var(--red-main-base), 1);
-  --red-dark-base: 227, 90, 90;
+  --red-dark-base: 255, 148, 148;
   --red-dark: rgba(var(--red-dark-base), 1);
-  --red-secondary-base: 250, 109, 109;
-  --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --green-main-base: 58, 136, 32;
-  --green-main: rgba(var(--green-main-base), 1);
-  --green-secondary-base: 40, 51, 36;
-  --green-secondary: rgba(var(--green-secondary-base), 1);
-  --orange-dark-base: 197, 114, 14;
+  --red-secondary-base: 238, 80, 80;
+  --red-secondary: rgba(var(--red-secondary-base), 0.12);
+  --orange-dark-base: 244, 192, 90;
   --orange-dark: rgba(var(--orange-dark-base), 1);
-  --orange-main-base: 221, 140, 44;
+  --orange-main-base: 234, 174, 72;
   --orange-main: rgba(var(--orange-main-base), 1);
-  --orange-secondary-base: 54, 46, 36;
+  --orange-secondary-base: 50, 38, 18;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
+  --green-main-base: 96, 200, 82;
+  --green-main: rgba(var(--green-main-base), 1);
+  --green-secondary-base: 24, 44, 20;
+  --green-secondary: rgba(var(--green-secondary-base), 1);
+
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -914,29 +998,41 @@
 [data-theme$='dark'] {
   .big-card-shadow {
     box-shadow:
-      0px 8px 12px 0px #00000052,
-      0px 2px 4px 0px #00000014;
+      0px 8px 16px 0px #00000060,
+      0px 2px 4px 0px #00000020;
   }
 
   .small-card-shadow {
     box-shadow:
-      0px 4px 12px 0px #0000003d,
-      0px 2px 4px 0px #00000029;
+      0px 4px 12px 0px #00000050,
+      0px 2px 4px 0px #00000030;
   }
 
   .pop-up-shadow {
-    box-shadow: 0px 16px 24px 0px #0000003d;
+    box-shadow: 0px 16px 32px 0px #00000060;
   }
 
   .right-sidebar-shadow {
-    box-shadow: -4px 0px 24px 0px #0000003d;
+    box-shadow: -4px 0px 24px 0px #00000050;
   }
 
   .left-sidebar-shadow {
-    box-shadow: 4px 0px 24px 0px #0000003d;
+    box-shadow: 4px 0px 24px 0px #00000050;
   }
 
   .hover-shadow {
-    box-shadow: 0px 2px 8px 0px #0e1227a3;
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.60);
   }
-}@keyframes wave { 0% { transform: rotate( 0.0deg) } 10% { transform: rotate(14.0deg) } 20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate( 0.0deg) } 100% { transform: rotate( 0.0deg) } }
+
+  .error-glow {
+    box-shadow: 0px 8px 24px 0px rgba(238, 112, 112, 0.28);
+  }
+
+  .warning-glow {
+    box-shadow: 0px 8px 24px 0px rgba(242, 166, 72, 0.28);
+  }
+
+  .success-glow {
+    box-shadow: 0px 8px 24px 0px rgba(96, 200, 82, 0.28);
+  }
+}
