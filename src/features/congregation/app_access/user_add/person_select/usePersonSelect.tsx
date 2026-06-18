@@ -17,6 +17,7 @@ import {
   apiCreateUser,
   apiGetCongregationAccessCode,
   apiPocketUserCreate,
+  apiCreateCongregationInvitation,
 } from '@services/api/congregation';
 import { decryptData, encryptData } from '@services/encryption';
 import { isEmailValid } from '@services/validator';
@@ -93,19 +94,60 @@ const usePersonSelect = ({
 
       const cong_role = refreshReadOnlyRoles(person);
 
-      // If we found a user via email, bind them directly regardless of type
-      if (userId.length > 0) {
-        const users = await apiCreateUser({
-          cong_person_uid: person?.person_uid || '',
-          cong_role,
-          user_firstname: person?.person_data.person_firstname.value || '',
-          user_lastname: person?.person_data.person_lastname.value || '',
-          user_id: userId,
-        });
+      // If we found a user via email, bind them directly
+      if (userType === 'baptized') {
+        if (userId.length > 0) {
+          const users = await apiCreateUser({
+            cong_person_uid: person?.person_uid || '',
+            cong_role,
+            user_firstname: person?.person_data.person_firstname.value || '',
+            user_lastname: person?.person_data.person_lastname.value || '',
+            user_id: userId,
+          });
 
-        setUsers(users);
-        onClose();
-        return;
+          setUsers(users);
+          onClose();
+          return;
+        }
+
+        if (searchStatus === false) {
+          const { message, status } = await apiGetCongregationAccessCode();
+
+          if (status !== 200) {
+            throw new Error(message);
+          }
+
+          const remoteAccessCode = decryptData(
+            message,
+            congLocalAccessCode,
+            'access_code'
+          );
+
+          const { encryptAccessCodeForInvite } = await import(
+            '@services/encryption/deterministic'
+          );
+
+          const encrypted_access_code = await encryptAccessCodeForInvite(
+            remoteAccessCode,
+            email
+          );
+
+          await apiCreateCongregationInvitation({
+            email,
+            role: cong_role,
+            encrypted_access_code,
+            person_uid: person.person_uid,
+          });
+
+          displaySnackNotification({
+            header: t('tr_done'),
+            message: t('tr_invitationSentDesc', 'Invitation generated and linked.'),
+            severity: 'success',
+          });
+
+          onClose();
+          return;
+        }
       }
 
       // Traditional pocket code generation (fallback)
@@ -204,8 +246,14 @@ const usePersonSelect = ({
   const handleRunAction = async () => {
     if (isProcessing) return;
 
-    if (userId.length > 0) {
-      await handleCreateUser();
+    if (userType === 'baptized') {
+      if (searchStatus === null) {
+        if (email.length > 0) {
+          await handleSearchUser();
+        }
+      } else {
+        await handleCreateUser();
+      }
       return;
     }
 
@@ -213,14 +261,10 @@ const usePersonSelect = ({
       await handleCreateUser();
       return;
     }
-
-    if (email.length > 0) {
-      await handleSearchUser();
-    }
   };
 
   const handleSecondaryAction = () => {
-    if (userId.length > 0) {
+    if (searchStatus !== null) {
       setSearchStatus(null);
       setUserId('');
       return;

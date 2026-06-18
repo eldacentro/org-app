@@ -357,6 +357,57 @@ export const apiPocketUserCreate = async ({
   }
 };
 
+export const apiCreateCongregationInvitation = async ({
+  email,
+  role,
+  encrypted_access_code,
+  person_uid,
+}: {
+  email: string;
+  role: string[];
+  encrypted_access_code: string;
+  person_uid: string;
+}) => {
+  try {
+    const {
+      apiHost,
+      appVersion: appversion,
+      congID,
+      idToken,
+    } = await apiDefault();
+
+    const res = await fetch(
+      `${apiHost}api/v3/congregations/admin/${congID}/invitations`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+          appclient: 'organized',
+          appversion,
+        },
+        body: JSON.stringify({
+          email,
+          role,
+          encrypted_access_code,
+          person_uid,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.status !== 200) {
+      throw new Error(data.message);
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
+};
+
 export const apiCongregationUsersGet = async () => {
   try {
     const {

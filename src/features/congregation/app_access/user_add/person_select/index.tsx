@@ -134,14 +134,14 @@ const PersonSelect = (props: PersonSelectType) => {
           }
           onClick={handleRunAction}
         >
-          {userType === 'baptized' && !searchStatus
+          {userType === 'baptized' && searchStatus === null
             ? t('tr_searchUser')
             : t('tr_bindUser')}
         </Button>
         <Button variant="secondary" onClick={handleSecondaryAction}>
-          {userType !== 'baptized' || !searchStatus
-            ? t('tr_cancel')
-            : t('tr_back')}
+          {userType === 'baptized' && searchStatus !== null
+            ? t('tr_back')
+            : t('tr_cancel')}
         </Button>
       </Box>
     </>

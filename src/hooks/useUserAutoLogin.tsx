@@ -30,7 +30,7 @@ import {
   dbAppSettingsUpdateWithoutNotice,
 } from '@services/dexie/settings';
 import { decryptAccessCodeFromInvite } from '@services/encryption/deterministic';
-import { saveKeysSecurely } from '@services/secure_storage';
+import { loadKeysSecurely, saveKeysSecurely } from '@services/secure_storage';
 
 const useUserAutoLogin = () => {
   const { isAuthenticated, user } = useFirebaseAuth();
@@ -137,7 +137,12 @@ const useUserAutoLogin = () => {
               });
 
               // Guardar en secure_storage (IndexedDB y local)
-              await saveKeysSecurely({ accessCode: decryptedCode });
+              const existingKeys = await loadKeysSecurely(user.uid);
+              await saveKeysSecurely(
+                user.uid,
+                existingKeys?.masterKey || '',
+                decryptedCode
+              );
             } catch (err) {
               console.error('Failed to decrypt and save access code from handshake', err);
             }
