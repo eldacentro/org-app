@@ -62,7 +62,7 @@ const useRequestAccess = () => {
       setIsProcessing(true);
       setSubmitError(null);
 
-      const result = await apiUserJoinCongregation({
+      await apiUserJoinCongregation({
         cong_name: congregation.congName,
         country_code: country.countryCode,
         firstname,
