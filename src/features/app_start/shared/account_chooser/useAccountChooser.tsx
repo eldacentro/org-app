@@ -83,15 +83,18 @@ const useAccountChooser = () => {
         return;
       }
 
-      await setAuthPersistence();
-
       if (isMobile) {
         // Page navigates away to Google. On return, Firebase restores session →
         // isAuthenticated becomes true → useEffect marks account_type → VipStartup loads.
+        await setAuthPersistence();
         await userSignInRedirect(authProvider.Google);
         return;
       }
 
+      // Fire persistence setup without awaiting — keeps signInWithPopup synchronous
+      // with the user gesture so the browser doesn't treat it as a blocked popup.
+      // Persistence completes in <100ms; user always takes longer to pick an account.
+      setAuthPersistence().catch(console.error);
       setIsAuthProcessing(true);
       await userSignInPopup(authProvider.Google);
     } catch (error) {

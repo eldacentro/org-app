@@ -6,11 +6,13 @@ import { personCurrentDetailsState } from '@states/persons';
 import { useAppTranslation } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
 import { dbPersonsSave } from '@services/dexie/persons';
-import { personAssignmentsRemove } from '@services/app/persons';
+import { personAssignmentsRemove, refreshReadOnlyRoles } from '@services/app/persons';
 import { getMessageByCode } from '@services/i18n/translation';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
 import worker from '@services/worker/backupWorker';
+import { congAccessCodeState } from '@states/settings';
+import { apiCreateCongregationInvitation } from '@services/api/congregation';
 
 const useButtonActions = () => {
   const { id } = useParams();
@@ -23,6 +25,7 @@ const useButtonActions = () => {
 
   const person = useAtomValue(personCurrentDetailsState);
   const groups = useAtomValue(fieldWithLanguageGroupsState);
+  const congLocalAccessCode = useAtomValue(congAccessCodeState);
 
   const isPersonDisqualified = person.person_data.disqualified.value;
   const isPersonArchived = person.person_data.archived.value;
@@ -108,6 +111,33 @@ const useButtonActions = () => {
       await dbPersonsSave(person, isNewPerson);
 
       await handleSaveGroup();
+
+      // Auto-create/update Handshake invitation when the person has an email
+      // and has at least one app role (publisher or higher). This allows them to
+      // sign in with Google without any manual "Solicitar Acceso" step.
+      const personEmail = person.person_data.email?.value?.trim().toLowerCase();
+      if (personEmail && congLocalAccessCode) {
+        const roles = refreshReadOnlyRoles(person);
+        if (roles.length > 0) {
+          try {
+            const { encryptAccessCodeForInvite } = await import(
+              '@services/encryption/deterministic'
+            );
+            const encrypted_access_code = await encryptAccessCodeForInvite(
+              congLocalAccessCode,
+              personEmail
+            );
+            await apiCreateCongregationInvitation({
+              email: personEmail,
+              role: roles,
+              encrypted_access_code,
+              person_uid: person.person_uid,
+            });
+          } catch (invErr) {
+            console.error('[handleSavePerson] invitation upsert failed (non-critical):', invErr);
+          }
+        }
+      }
 
       worker.postMessage('startWorker');
 
