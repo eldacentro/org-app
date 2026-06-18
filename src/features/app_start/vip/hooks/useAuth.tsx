@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { User } from 'firebase/auth';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { UserLoginResponseType } from '@definition/api';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
 import {
@@ -19,7 +19,7 @@ import {
   userIDState,
 } from '@states/app';
 import { settingsState } from '@states/settings';
-import { dbAppSettingsUpdate } from '@services/dexie/settings';
+import { dbAppSettingsGet, dbAppSettingsUpdate } from '@services/dexie/settings';
 import { NextStepType } from './index.types';
 import { settingSchema } from '@services/dexie/schema';
 import { apiSendAuthorization } from '@services/api/user';
@@ -49,8 +49,6 @@ const useAuth = () => {
   const setIsCongCreate = useSetAtom(isCongAccountCreateState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
   const setSettings = useSetAtom(settingsState);
-
-  const settings = useAtomValue(settingsState);
 
   const handleAuthorizationError = useCallback(async (message: string) => {
     displaySnackNotification({
@@ -144,6 +142,11 @@ const useAuth = () => {
       { app_settings, code }: UserLoginResponseType,
       nextStep: NextStepType
     ) => {
+      // Lee directamente de Dexie para no cerrar sobre settingsState y así
+      // evitar que este callback se regenere en cada escritura a la BD,
+      // lo que causaba una cascada reactiva que re-disparaba runStartupCheck.
+      const freshSettings = await dbAppSettingsGet();
+
       if (app_settings) {
         await dbAppSettingsUpdate({
           'user_settings.account_type': app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip',
@@ -151,7 +154,6 @@ const useAuth = () => {
           'user_settings.firstname': app_settings.user_settings.firstname,
         });
 
-        // Actualización sincrónica de Jotai para evitar condiciones de carrera en el primer renderizado
         setSettings((prev) => {
           const next = structuredClone(prev);
           next.user_settings.account_type = app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip';
@@ -180,9 +182,8 @@ const useAuth = () => {
       }
 
       if (nextStep.encryption === false) {
-        // Pocket user entering directly
         const midweekMeeting = structuredClone(
-          settings.cong_settings.midweek_meeting
+          freshSettings?.cong_settings?.midweek_meeting ?? []
         );
 
         for (const midweekRemote of app_settings.cong_settings.midweek_meeting) {
@@ -204,7 +205,7 @@ const useAuth = () => {
         }
 
         const weekendMeeting = structuredClone(
-          settings.cong_settings.weekend_meeting
+          freshSettings?.cong_settings?.weekend_meeting ?? []
         );
 
         for (const weekendRemote of app_settings.cong_settings.weekend_meeting) {
@@ -230,8 +231,6 @@ const useAuth = () => {
           'cong_settings.cong_id': app_settings.cong_settings.id,
           'cong_settings.cong_name': app_settings.cong_settings.cong_name,
           'user_settings.cong_role': app_settings.user_settings.cong_role,
-          // Guardar user_local_uid es crítico para que los syncronizadores
-          // encuentren el perfil local del usuario correctamente.
           ...(app_settings.user_settings.user_local_uid
             ? { 'user_settings.user_local_uid': app_settings.user_settings.user_local_uid }
             : {}),
@@ -240,8 +239,6 @@ const useAuth = () => {
           'cong_settings.midweek_meeting': midweekMeeting,
           'cong_settings.weekend_meeting': weekendMeeting,
           'cong_settings.cong_new': false,
-          // Acceso sin código: guardamos el código de acceso provisionado para
-          // poder descifrar los datos sin que el hermano lo teclee.
           ...(app_settings.cong_settings.cong_access_code_plain
             ? {
                 'cong_settings.cong_access_code':
@@ -250,7 +247,6 @@ const useAuth = () => {
             : {}),
         });
 
-        // Actualización sincrónica de Jotai de la congregación
         setSettings((prev) => {
           const next = structuredClone(prev);
           next.cong_settings.country_code = app_settings.cong_settings.country_code;
@@ -275,12 +271,12 @@ const useAuth = () => {
         setIsEmailAuth(false);
         setIsUserSignIn(false);
         setIsCongCreate(false);
-        setIsUserAccountCreated(false); // Reset sincrónico para no mostrar "Solicitar Acceso"
+        setIsUserAccountCreated(false);
         setIsUnauthorizedRole(false);
 
         await runUpdater();
         loadApp();
-        setIsSetup(false); // This will trigger the app load
+        setIsSetup(false);
 
         setTimeout(() => {
           setOfflineOverride(false);
@@ -291,7 +287,7 @@ const useAuth = () => {
 
       if (nextStep.encryption === true) {
         const midweekMeeting = structuredClone(
-          settings.cong_settings.midweek_meeting
+          freshSettings?.cong_settings?.midweek_meeting ?? []
         );
 
         for (const midweekRemote of app_settings.cong_settings.midweek_meeting) {
@@ -313,7 +309,7 @@ const useAuth = () => {
         }
 
         const weekendMeeting = structuredClone(
-          settings.cong_settings.weekend_meeting
+          freshSettings?.cong_settings?.weekend_meeting ?? []
         );
 
         for (const weekendRemote of app_settings.cong_settings.weekend_meeting) {
@@ -335,7 +331,7 @@ const useAuth = () => {
         }
 
         const congID =
-          settings.cong_settings.cong_id ?? app_settings.cong_settings.id;
+          (freshSettings?.cong_settings?.cong_id) || app_settings.cong_settings.id;
 
         await dbAppSettingsUpdate({
           'cong_settings.country_code': app_settings.cong_settings.country_code,
@@ -350,7 +346,6 @@ const useAuth = () => {
           'cong_settings.cong_new': false,
         });
 
-        // Actualización sincrónica de Jotai de la congregación
         setSettings((prev) => {
           const next = structuredClone(prev);
           next.cong_settings.country_code = app_settings.cong_settings.country_code;
@@ -372,7 +367,7 @@ const useAuth = () => {
         setIsEmailAuth(false);
         setIsUserSignIn(false);
         setIsCongCreate(false);
-        setIsUserAccountCreated(false); // Reset sincrónico
+        setIsUserAccountCreated(false);
         setIsUnauthorizedRole(false);
         setIsEncryptionCodeOpen(true);
       }
@@ -389,7 +384,8 @@ const useAuth = () => {
       setIsEncryptionCodeOpen,
       setIsSetup,
       setSettings,
-      settings,
+      // 'settings' eliminado intencionalmente: se lee fresco desde Dexie al inicio
+      // de la función para romper la cascada reactiva Dexie→Jotai→useCallback→useEffect.
     ]
   );
 

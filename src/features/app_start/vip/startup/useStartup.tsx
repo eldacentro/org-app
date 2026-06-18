@@ -62,6 +62,12 @@ const useStartup = () => {
   // → runStartupCheck changes → useEffect re-fires while isStart is still true).
   const startupRunningRef = useRef(false);
 
+  // One-shot guard: set to true in the finally block of runStartupCheck, BEFORE
+  // startupRunningRef resets to false. Closes the gap between the synchronous ref
+  // reset and React committing setIsStart(false) — a window in which a Dexie event
+  // (e.g. avatar download) could re-trigger the useEffect and fire a second startup.
+  const startupCompletedRef = useRef(false);
+
   const isEmailLink = searchParams.get('code') !== null;
 
   const showSignin = useCallback(() => {
@@ -232,6 +238,10 @@ const useStartup = () => {
       setIsLoading(false);
       console.error(error);
     } finally {
+      // Mark completed BEFORE releasing the running lock. This closes the gap
+      // between startupRunningRef becoming false and React committing setIsStart(false),
+      // preventing a spurious second invocation (e.g. triggered by the avatar Dexie write).
+      startupCompletedRef.current = true;
       startupRunningRef.current = false;
     }
   }, [
@@ -273,7 +283,7 @@ const useStartup = () => {
       return;
     }
 
-    if (isStart) {
+    if (isStart && !startupCompletedRef.current) {
       console.log('[vipStartup effect] calling runStartupCheck');
       runStartupCheck();
     }
