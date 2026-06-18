@@ -220,6 +220,11 @@ const useAuth = () => {
           'cong_settings.cong_id': app_settings.cong_settings.id,
           'cong_settings.cong_name': app_settings.cong_settings.cong_name,
           'user_settings.cong_role': app_settings.user_settings.cong_role,
+          // Guardar user_local_uid es crítico para que los syncronizadores
+          // encuentren el perfil local del usuario correctamente.
+          ...(app_settings.user_settings.user_local_uid
+            ? { 'user_settings.user_local_uid': app_settings.user_settings.user_local_uid }
+            : {}),
           'cong_settings.cong_location': app_settings.cong_settings.cong_location,
           'cong_settings.cong_circuit': app_settings.cong_settings.cong_circuit,
           'cong_settings.midweek_meeting': midweekMeeting,

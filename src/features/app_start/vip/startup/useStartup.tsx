@@ -156,20 +156,30 @@ const useStartup = () => {
         return;
       }
 
-      // congregation not found -> user not authorized and delete local data
+      // congregation not found → user not authorized and delete local data
       if (status === 404) {
         if (currentCongID.length === 0) {
           // If the validate-me endpoint returned a user ID, set it!
           if (result && result.id) {
             setUserID(result.id);
           }
-          // New user signed in but has no congregation yet -> show Request Access screen
+          // New user signed in but has no congregation yet → show Request Access screen
           setIsUserAccountCreated(true);
           setIsLoading(false);
           setIsUserSignIn(false);
           return;
         } else {
-          await handleDeleteDatabase();
+          // We have a local congregation ID but the server returned 404.
+          // This can happen transiently right after the Handshake: the loginUser
+          // endpoint already updated the in-memory user but validate-me is called
+          // milliseconds later by a separate React render cycle. In this case we
+          // should NOT wipe the local DB. Show the encryption screen so the user
+          // can proceed; if the cong truly disappeared, the user will see an error
+          // when they try to decrypt.
+          console.warn('[startup] 404 from validate-me but local cong_id exists — possible handshake lag, showing encryption screen instead of wiping DB');
+          setIsEncryptionCodeOpen(true);
+          setIsLoading(false);
+          setIsStart(false);
           return;
         }
       }
