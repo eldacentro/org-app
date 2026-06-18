@@ -124,6 +124,15 @@ const useAuth = () => {
         return nextStep;
       }
 
+      // Handshake VIP: el servidor desencriptó y provisionó el código de acceso
+      // para un usuario con rol de anciano/designado. Está asignado a la
+      // congregación — mostramos la pantalla de cifrado para que ingrese la
+      // clave maestra. NO es un usuario nuevo sin congregación.
+      if (masterKeyNeeded && cong_settings.cong_access_code_plain) {
+        nextStep.encryption = true;
+        return nextStep;
+      }
+
       // Acceso sin código: el servidor provisionó el código de acceso para un
       // lector puro. Entramos directos sin mostrar la pantalla de cifrado.
       if (!masterKeyNeeded && cong_settings.cong_access_code_plain) {
@@ -139,7 +148,7 @@ const useAuth = () => {
 
   const updateUserSettings = useCallback(
     async (
-      { app_settings, code }: UserLoginResponseType,
+      { app_settings, code, user: backendUser }: UserLoginResponseType,
       nextStep: NextStepType
     ) => {
       // Lee directamente de Dexie para no cerrar sobre settingsState y así
@@ -148,17 +157,27 @@ const useAuth = () => {
       const freshSettings = await dbAppSettingsGet();
 
       if (app_settings) {
+        // Prefer backend's Personas-sourced name (user.firstname) over the account
+        // name that may carry the Google displayName (app_settings.user_settings.firstname).
+        const now = new Date().toISOString();
+        const firstnameToSave = backendUser?.firstname
+          ? { value: backendUser.firstname, updatedAt: now }
+          : app_settings.user_settings.firstname;
+        const lastnameToSave = backendUser?.lastname
+          ? { value: backendUser.lastname, updatedAt: now }
+          : app_settings.user_settings.lastname;
+
         await dbAppSettingsUpdate({
           'user_settings.account_type': app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip',
-          'user_settings.lastname': app_settings.user_settings.lastname,
-          'user_settings.firstname': app_settings.user_settings.firstname,
+          'user_settings.lastname': lastnameToSave,
+          'user_settings.firstname': firstnameToSave,
         });
 
         setSettings((prev) => {
           const next = structuredClone(prev);
           next.user_settings.account_type = app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip';
-          next.user_settings.lastname = app_settings.user_settings.lastname;
-          next.user_settings.firstname = app_settings.user_settings.firstname;
+          next.user_settings.lastname = lastnameToSave;
+          next.user_settings.firstname = firstnameToSave;
           return next;
         });
       }

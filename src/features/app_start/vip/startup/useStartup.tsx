@@ -23,6 +23,7 @@ import {
   setUserMfaVerify,
 } from '@services/states/app';
 import { dbAppSettingsGet } from '@services/dexie/settings';
+import { congIDState } from '@states/settings';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
 import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { apiValidateMe } from '@services/api/user';
@@ -48,6 +49,7 @@ const useStartup = () => {
   const isUserMfaVerify = useAtomValue(isUserMfaVerifyState);
   const isUserAccountCreated = useAtomValue(isUserAccountCreatedState);
   const isOfflineOverride = useAtomValue(offlineOverrideState);
+  const congID = useAtomValue(congIDState);
   const isEncryptionCodeOpen = useAtomValue(isEncryptionCodeOpenState);
   const isCongCreate = useAtomValue(isCongAccountCreateState);
   const cookiesConsent = useAtomValue(cookiesConsentState);
@@ -292,7 +294,9 @@ const useStartup = () => {
   return {
     isUserSignIn,
     isUserMfaVerify,
-    isUserAccountCreated,
+    // Defense-in-depth: if the congregation is already known (Handshake ran and
+    // saved cong_id), never render UserAccountCreated regardless of atom state.
+    isUserAccountCreated: isUserAccountCreated && !congID,
     isEmailLinkAuth,
     isEncryptionCodeOpen,
     isCongCreate,

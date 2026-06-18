@@ -87,6 +87,9 @@ export type UserLoginResponseType = {
   message?: string;
   code?: string;
   id: string;
+  // Backend can send the Personas-sourced name at top level.
+  // Takes priority over app_settings.user_settings.firstname (which may carry the Google name).
+  user?: { firstname?: string; lastname?: string };
   app_settings: {
     user_settings: {
       firstname: { value: string; updatedAt: string };
