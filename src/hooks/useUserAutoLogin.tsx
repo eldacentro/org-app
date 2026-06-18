@@ -124,29 +124,7 @@ const useUserAutoLogin = () => {
         }
 
         if (dataVip.status === 200) {
-          // --- SILENT AUTO-LOGIN HANDSHAKE INJECTION ---
-          if (dataVip.result.encrypted_access_code && user?.email) {
-            try {
-              const decryptedCode = await decryptAccessCodeFromInvite(
-                dataVip.result.encrypted_access_code,
-                user.email
-              );
-              
-              await dbAppSettingsUpdateWithoutNotice({
-                'cong_settings.cong_access_code': decryptedCode,
-              });
 
-              // Guardar en secure_storage (IndexedDB y local)
-              const existingKeys = await loadKeysSecurely(user.uid);
-              await saveKeysSecurely(
-                user.uid,
-                existingKeys?.masterKey || '',
-                decryptedCode
-              );
-            } catch (err) {
-              console.error('Failed to decrypt and save access code from handshake', err);
-            }
-          }
 
           if (congID.length > 0 && dataVip.result.cong_id !== congID) {
             await handleDeleteDatabase();

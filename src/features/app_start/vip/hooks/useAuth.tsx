@@ -31,6 +31,8 @@ import {
 } from '@services/states/app';
 import { getMessageByCode, getTranslation } from '@services/i18n/translation';
 import { loadApp, runUpdater } from '@services/app';
+import { decryptAccessCodeFromInvite } from '@services/app/deterministic';
+import { loadKeysSecurely, saveKeysSecurely } from '@services/app/secure_storage';
 
 const useAuth = () => {
   const setIsSetup = useSetAtom(isSetupState);
@@ -344,6 +346,29 @@ const useAuth = () => {
         console.error('[handlePostLogin] non-200 response:', status, data?.message);
         await handleAuthorizationError(data.message);
         return false;
+      }
+
+      // --- SILENT AUTO-LOGIN HANDSHAKE INJECTION ---
+      // Si el servidor interceptó una invitación y asignó la congregación, 
+      // vendrá con el código de acceso encriptado. Lo desencriptamos ahora.
+      if (data?.app_settings?.cong_settings?.encrypted_access_code && user?.email) {
+        try {
+          const decryptedCode = await decryptAccessCodeFromInvite(
+            data.app_settings.cong_settings.encrypted_access_code,
+            user.email
+          );
+          // Lo inyectamos como texto plano para que determineNextStep sepa
+          // que no es necesario pedir la clave (encryption = false).
+          data.app_settings.cong_settings.cong_access_code_plain = decryptedCode;
+
+          // Lo guardamos silenciosamente en Secure Storage de inmediato
+          if (data.id) {
+            const existingKeys = await loadKeysSecurely(data.id);
+            await saveKeysSecurely(data.id, existingKeys?.masterKey || '', decryptedCode);
+          }
+        } catch (err) {
+          console.error('Failed to decrypt access code during handshake', err);
+        }
       }
 
       const nextStep: NextStepType = determineNextStep(
