@@ -112,14 +112,15 @@ const useAuth = () => {
         VIP_ROLES.includes(role)
       );
 
-      // Handshake VIP: el servidor desencriptó y provisionó el código de acceso
-      // para un usuario con rol de anciano/designado. Está asignado a la
-      // congregación — mostramos la pantalla de cifrado para que ingrese la
-      // clave maestra. DEBE ir antes del check de remoteMasterKey.length === 0
-      // porque el servidor nunca almacena la clave maestra (es E2E); ese check
-      // haría early-return con createCongregation=true si va primero.
-      if (masterKeyNeeded && cong_settings.cong_access_code_plain) {
-        nextStep.encryption = true;
+      // Handshake (VIP o no-VIP): el servidor provisionó el código de acceso
+      // en claro (vía invitación descifrada en handlePostLogin).
+      // DEBE ir antes de TODOS los checks de createCongregation porque:
+      //   - VIP: remoteMasterKey siempre está vacío (E2E), dispararía paso 1
+      //   - no-VIP: cong_access_code puede venir vacío en el payload, dispararía paso 2
+      // VIP   → encryption = true  (pantalla de clave maestra solamente)
+      // no-VIP → encryption = false (entra directo, código ya guardado en Dexie)
+      if (cong_settings.cong_access_code_plain) {
+        nextStep.encryption = masterKeyNeeded ? true : false;
         return nextStep;
       }
 
@@ -132,13 +133,6 @@ const useAuth = () => {
       if (remoteAccessCode.length === 0) {
         setCurrentStep(2);
         nextStep.createCongregation = true;
-        return nextStep;
-      }
-
-      // Acceso sin código: el servidor provisionó el código de acceso para un
-      // lector puro. Entramos directos sin mostrar la pantalla de cifrado.
-      if (!masterKeyNeeded && cong_settings.cong_access_code_plain) {
-        nextStep.encryption = false;
         return nextStep;
       }
 
