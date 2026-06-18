@@ -48,6 +48,7 @@ const useAuth = () => {
   const setIsEmailSent = useSetAtom(isEmailSentState);
   const setIsCongCreate = useSetAtom(isCongAccountCreateState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
+  const setSettings = useSetAtom(settingsState);
 
   const settings = useAtomValue(settingsState);
 
@@ -149,6 +150,15 @@ const useAuth = () => {
           'user_settings.lastname': app_settings.user_settings.lastname,
           'user_settings.firstname': app_settings.user_settings.firstname,
         });
+
+        // Actualización sincrónica de Jotai para evitar condiciones de carrera en el primer renderizado
+        setSettings((prev) => {
+          const next = structuredClone(prev);
+          next.user_settings.account_type = app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip';
+          next.user_settings.lastname = app_settings.user_settings.lastname;
+          next.user_settings.firstname = app_settings.user_settings.firstname;
+          return next;
+        });
       }
 
       if (nextStep.isVerifyMFA) {
@@ -240,10 +250,33 @@ const useAuth = () => {
             : {}),
         });
 
+        // Actualización sincrónica de Jotai de la congregación
+        setSettings((prev) => {
+          const next = structuredClone(prev);
+          next.cong_settings.country_code = app_settings.cong_settings.country_code;
+          next.cong_settings.cong_id = app_settings.cong_settings.id;
+          next.cong_settings.cong_name = app_settings.cong_settings.cong_name;
+          next.user_settings.cong_role = app_settings.user_settings.cong_role;
+          if (app_settings.user_settings.user_local_uid) {
+            next.user_settings.user_local_uid = app_settings.user_settings.user_local_uid;
+          }
+          next.cong_settings.cong_location = app_settings.cong_settings.cong_location;
+          next.cong_settings.cong_circuit = app_settings.cong_settings.cong_circuit;
+          next.cong_settings.midweek_meeting = midweekMeeting;
+          next.cong_settings.weekend_meeting = weekendMeeting;
+          next.cong_settings.cong_new = false;
+          if (app_settings.cong_settings.cong_access_code_plain) {
+            next.cong_settings.cong_access_code = app_settings.cong_settings.cong_access_code_plain;
+          }
+          return next;
+        });
+
         setIsEmailSent(false);
         setIsEmailAuth(false);
         setIsUserSignIn(false);
         setIsCongCreate(false);
+        setIsUserAccountCreated(false); // Reset sincrónico para no mostrar "Solicitar Acceso"
+        setIsUnauthorizedRole(false);
 
         await runUpdater();
         loadApp();
@@ -317,10 +350,30 @@ const useAuth = () => {
           'cong_settings.cong_new': false,
         });
 
+        // Actualización sincrónica de Jotai de la congregación
+        setSettings((prev) => {
+          const next = structuredClone(prev);
+          next.cong_settings.country_code = app_settings.cong_settings.country_code;
+          next.cong_settings.cong_id = congID;
+          next.cong_settings.cong_name = app_settings.cong_settings.cong_name;
+          next.user_settings.cong_role = app_settings.user_settings.cong_role;
+          if (app_settings.user_settings.user_local_uid) {
+            next.user_settings.user_local_uid = app_settings.user_settings.user_local_uid;
+          }
+          next.cong_settings.cong_location = app_settings.cong_settings.cong_location;
+          next.cong_settings.cong_circuit = app_settings.cong_settings.cong_circuit;
+          next.cong_settings.midweek_meeting = midweekMeeting;
+          next.cong_settings.weekend_meeting = weekendMeeting;
+          next.cong_settings.cong_new = false;
+          return next;
+        });
+
         setIsEmailSent(false);
         setIsEmailAuth(false);
         setIsUserSignIn(false);
         setIsCongCreate(false);
+        setIsUserAccountCreated(false); // Reset sincrónico
+        setIsUnauthorizedRole(false);
         setIsEncryptionCodeOpen(true);
       }
     },
@@ -335,6 +388,7 @@ const useAuth = () => {
       setVerifyMFA,
       setIsEncryptionCodeOpen,
       setIsSetup,
+      setSettings,
       settings,
     ]
   );

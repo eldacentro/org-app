@@ -7,6 +7,7 @@ import {
   userSignInRedirect,
 } from '@services/firebase/auth';
 import { isAccountChooseState, isAuthProcessingState } from '@states/app';
+import { settingsState } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -19,12 +20,13 @@ const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/
 );
 
 const useAccountChooser = () => {
-  const { t } = useAppTranslation();
+  const t = useAppTranslation();
   const { showMessage, hideMessage } = useFeedback();
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const setIsAccountChoose = useSetAtom(isAccountChooseState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
+  const setSettings = useSetAtom(settingsState);
 
   // When Firebase confirms the user is authenticated, mark account_type as 'vip'.
   // This transitions shared/startup from AccountChooser → VipStartup.
@@ -37,6 +39,11 @@ const useAccountChooser = () => {
         console.log('[markAccount] isAuthenticated=true → setting account_type=vip');
         setIsAuthProcessing(true);
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+        setSettings((prev) => {
+          const next = structuredClone(prev);
+          next.user_settings.account_type = 'vip';
+          return next;
+        });
         setIsAccountChoose(false);
         console.log('[markAccount] account_type set → VipStartup should mount');
       } catch (error) {
@@ -67,6 +74,11 @@ const useAccountChooser = () => {
       // re-mark the account so VipStartup re-runs its startup check.
       if (isAuthenticated) {
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
+        setSettings((prev) => {
+          const next = structuredClone(prev);
+          next.user_settings.account_type = 'vip';
+          return next;
+        });
         setIsAccountChoose(false);
         return;
       }
