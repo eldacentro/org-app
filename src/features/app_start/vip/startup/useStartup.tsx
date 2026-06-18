@@ -85,6 +85,8 @@ const useStartup = () => {
 
       // Fetch the most up-to-date settings directly from Dexie to avoid Jotai asynchronous update race conditions
       const settings = await dbAppSettingsGet();
+      console.log('[startup] initial dbAppSettingsGet():', JSON.parse(JSON.stringify(settings)));
+      
       const currentCongName = settings?.cong_settings?.cong_name || '';
       const currentCongRole = settings?.user_settings?.cong_role || [];
       const currentCongMasterKey = settings?.cong_settings?.cong_master_key || '';
@@ -137,6 +139,9 @@ const useStartup = () => {
       }
 
       const { status, result } = await apiValidateMe();
+
+      console.log('[startup] settings before validateMe:', JSON.parse(JSON.stringify(settings)));
+      console.log('[startup] apiValidateMe result:', status, result);
 
       if (isUserAccountCreated) {
         setIsLoading(false);
