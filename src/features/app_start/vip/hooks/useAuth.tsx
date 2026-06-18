@@ -31,8 +31,8 @@ import {
 } from '@services/states/app';
 import { getMessageByCode, getTranslation } from '@services/i18n/translation';
 import { loadApp, runUpdater } from '@services/app';
-import { decryptAccessCodeFromInvite } from '@services/app/deterministic';
-import { loadKeysSecurely, saveKeysSecurely } from '@services/app/secure_storage';
+import { decryptAccessCodeFromInvite } from '@services/encryption/deterministic';
+import { loadKeysSecurely, saveKeysSecurely } from '@services/secure_storage';
 
 const useAuth = () => {
   const setIsSetup = useSetAtom(isSetupState);
