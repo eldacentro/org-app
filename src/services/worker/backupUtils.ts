@@ -145,7 +145,12 @@ const syncFromRemote = <T extends object>(local: T, remote: T): T => {
     (key) => remote[key] !== null && Array.isArray(remote[key])
   );
 
-  const lockKeys = ['type', 'id', 'talk_number'];
+  // 'id' must win when present: it's the only key guaranteed unique for
+  // dynamic, repeatable lists like weekend_meeting.outgoing_talks (multiple
+  // records can legitimately share the same 'type', e.g. the same dataView).
+  // Fixed-slot records (chairman, opening_prayer, etc.) have no 'id' and
+  // fall through to 'type' as before.
+  const lockKeys = ['id', 'type', 'talk_number'];
 
   for (const key of arrayKeys) {
     if (!local[key]) {
