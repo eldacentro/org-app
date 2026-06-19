@@ -127,6 +127,16 @@ export const POCKET_ROLES: AppRoleType[] = [
   'view_schedules',
 ];
 
+// Single-language lock: while every congregation using this app speaks
+// Spanish, browser-language auto-detection caused some devices to land on
+// English (then mix with Spanish strings that came from elsewhere — data,
+// dates, etc.), producing "Spanglish". Setting this forces the UI language
+// to Spanish for everyone, on every load, ignoring navigator.language.
+// To restore multi-language support later: set this back to `null`. None of
+// the i18n infra (locale JSON files, hooks, LanguageSwitcher) was removed —
+// only gated behind this flag — so re-enabling is a one-line revert.
+export const FORCED_UI_LANG: string | null = 'spa';
+
 export const APP_ENVIRONMENT = import.meta.env.VITE_APP_MODE;
 
 export const isTest = APP_ENVIRONMENT === 'TEST';

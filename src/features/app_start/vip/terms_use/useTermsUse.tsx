@@ -11,7 +11,7 @@ const useTermsUse = () => {
   const [readComplete, setReadComplete] = useState(false);
 
   const handleTermsUse = () => {
-    const lang = localStorage.getItem('ui_lang') ?? 'eng';
+    const lang = localStorage.getItem('ui_lang') ?? 'spa';
 
     const font = localStorage.getItem('app_font') ?? 'Figtree';
 

@@ -34,7 +34,7 @@ import ThemeSwitcher from '@features/theme_switcher';
 import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
-import { isTest } from '@constants/index';
+import { FORCED_UI_LANG, isTest } from '@constants/index';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -232,7 +232,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
 
                     <ThemeSwitcher />
 
-                    {tabletUp && (isAppLoad || isTest) && (
+                    {!FORCED_UI_LANG && tabletUp && (isAppLoad || isTest) && (
                       <Box sx={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--line)', padding: '2px 4px', boxShadow: 'var(--shadow-sm)' }}>
                         <LanguageSwitcher
                           menuStyle={{
@@ -320,9 +320,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           )}
                         </MenuItem>
 
-                        {(tabletDown || (!isAppLoad && !isTest)) && (
-                          <LanguageSwitcher menuStyle={menuStyle} />
-                        )}
+                        {!FORCED_UI_LANG &&
+                          (tabletDown || (!isAppLoad && !isTest)) && (
+                            <LanguageSwitcher menuStyle={menuStyle} />
+                          )}
 
                         {!isAppLoad && (
                           <MenuItem

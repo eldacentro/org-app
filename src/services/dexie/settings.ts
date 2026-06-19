@@ -106,7 +106,7 @@ export const dbAppSettingsSaveProfilePic = async (
 };
 
 export const dbAppSettingsBuildTest = async () => {
-  const appLang = localStorage.getItem('ui_lang') ?? 'eng';
+  const appLang = localStorage.getItem('ui_lang') ?? 'spa';
 
   const souceLangDemo =
     LANGUAGE_LIST.find(

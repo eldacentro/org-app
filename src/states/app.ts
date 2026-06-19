@@ -1,6 +1,6 @@
 import { ReactElement } from 'react';
 import { atom } from 'jotai';
-import { enUS } from 'date-fns/locale';
+import { es } from 'date-fns/locale';
 import {
   getShortDatePickerFormat,
   getTranslation,
@@ -404,7 +404,7 @@ export const navBarAnchorElState = atom<MenuProps['anchorEl']>();
 
 export const isPocketSignUpState = atom(false);
 
-export const appLocaleState = atom(enUS);
+export const appLocaleState = atom(es);
 
 export const navBarOptionsState = atom<NavBarOptionsType>({});
 

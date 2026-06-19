@@ -29,7 +29,7 @@ import {
   dbSchedAuxClassUpdate,
   dbSchedUpdateOutgoingTalksFields,
 } from '@services/dexie/schedules';
-import { LANGUAGE_LIST } from '@constants/index';
+import { FORCED_UI_LANG, LANGUAGE_LIST } from '@constants/index';
 import { dbMetadataDefault } from '@services/dexie/metadata';
 import {
   dbAppSettingsCreatePublishersSort,
@@ -93,7 +93,7 @@ export const loadApp = () => {
 };
 
 export const runUpdater = async () => {
-  const currentLang = localStorage.getItem('ui_lang') || 'eng';
+  const currentLang = localStorage.getItem('ui_lang') || 'spa';
   const currentVersion = '3.37.1';
 
   const lastLang = localStorage.getItem('last_run_updater_lang') || '';
@@ -231,6 +231,15 @@ const setSourceLanguageDefault = async (lang: string) => {
 };
 
 export const getAppLang = () => {
+  if (FORCED_UI_LANG) {
+    // Single-language lock: always Spanish, ignore any previously-cached
+    // browser-detected language and skip detection entirely.
+    localStorage?.setItem('ui_lang', FORCED_UI_LANG);
+    store.set(appLangState, FORCED_UI_LANG);
+
+    return FORCED_UI_LANG;
+  }
+
   let appLang = localStorage?.getItem('ui_lang');
 
   if (!appLang) {

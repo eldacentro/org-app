@@ -30,7 +30,7 @@ const getInitialTheme = () => {
 };
 
 const getInitialDirection = () => {
-  const savedLang = localStorage.getItem('ui_lang') || 'eng';
+  const savedLang = localStorage.getItem('ui_lang') || 'spa';
   const direction = LANGUAGE_LIST.find(
     (record) => record.threeLettersCode === savedLang
   )?.direction;
