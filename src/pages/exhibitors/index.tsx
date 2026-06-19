@@ -1245,7 +1245,7 @@ const Exhibitors = () => {
                     color="primary"
                     size="small"
                     onClick={() => setMonthlySettingsDialog(true)}
-                    startIcon={<IconSettings color="inherit" fontSize="small" />}
+                    startIcon={<IconSettings color={isCurrentlyOverridden ? 'var(--always-white)' : 'var(--accent-main)'} width={18} height={18} />}
                     sx={{ 
                       borderRadius: 'var(--radius-l)', 
                       textTransform: 'none', 
