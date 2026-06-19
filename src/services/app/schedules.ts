@@ -90,7 +90,11 @@ import {
 import { applyAssignmentFilters, personIsElder } from './persons';
 import { personsByViewState } from '@states/persons';
 import { personsStateFind } from '@services/states/persons';
-import { buildPersonFullname, personGetDisplayName } from '@utils/common';
+import {
+  buildPersonFullname,
+  personGetDisplayName,
+  speakerGetDisplayName,
+} from '@utils/common';
 import { sourcesFind } from '@services/states/sources';
 import { weekTypeLocaleState } from '@states/weekType';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
@@ -830,18 +834,11 @@ export const schedulesWeekGetAssigned = ({
       );
 
       if (speaker) {
-        result = useDisplayName
-          ? speaker.speaker_data.person_display_name.value ||
-            buildPersonFullname(
-              speaker.speaker_data.person_lastname.value,
-              speaker.speaker_data.person_firstname.value,
-              fullnameOption
-            )
-          : buildPersonFullname(
-              speaker.speaker_data.person_lastname.value,
-              speaker.speaker_data.person_firstname.value,
-              fullnameOption
-            );
+        result = speakerGetDisplayName(speaker, useDisplayName, fullnameOption);
+      } else if (assigned.name) {
+        // Final fallback: denormalized name baked into the assignment, for
+        // schedule viewers who don't sync the visiting_speakers table.
+        result = assigned.name;
       }
     }
   }
@@ -1309,6 +1306,29 @@ export const schedulesSaveAssignment = async (
         : value.person_uid
       : '';
 
+    // Denormalize the display name into the assignment so schedule viewers who
+    // don't sync the visiting_speakers / persons tables (e.g. plain publishers)
+    // can still render the name from the schedule itself.
+    let nameToSave = '';
+    if (value && typeof value !== 'string') {
+      const useDisplayName = store.get(displayNameMeetingsEnableState);
+      const fullnameOption = store.get(fullnameOptionState);
+
+      if ('speaker_data' in value) {
+        nameToSave = speakerGetDisplayName(
+          value as VisitingSpeakerType,
+          useDisplayName,
+          fullnameOption
+        );
+      } else {
+        nameToSave = personGetDisplayName(
+          value as PersonType,
+          useDisplayName,
+          fullnameOption
+        );
+      }
+    }
+
     const path = ASSIGNMENT_PATH[assignment];
     const fieldUpdate = structuredClone(schedulesGetData(schedule, path));
 
@@ -1317,11 +1337,12 @@ export const schedulesSaveAssignment = async (
 
       if (assigned) {
         assigned.value = toSave;
+        assigned.name = nameToSave;
         assigned.updatedAt = new Date().toISOString();
         assigned.solo = typeof value === 'string';
       } else {
         fieldUpdate.push({
-          name: '',
+          name: nameToSave,
           type: dataView,
           updatedAt: new Date().toISOString(),
           value: toSave,
@@ -1330,6 +1351,7 @@ export const schedulesSaveAssignment = async (
       }
     } else {
       fieldUpdate.value = toSave;
+      fieldUpdate.name = nameToSave;
       fieldUpdate.updatedAt = new Date().toISOString();
       fieldUpdate.solo = typeof value === 'string';
     }

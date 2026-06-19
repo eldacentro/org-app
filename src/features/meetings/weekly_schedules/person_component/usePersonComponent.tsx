@@ -140,6 +140,15 @@ const usePersonComponent = ({
         }
       }
 
+      // Final fallback: use the denormalized name baked into the assignment.
+      // This is what lets schedule viewers (e.g. plain publishers) who don't
+      // sync the visiting_speakers table still see visiting speaker names.
+      if (!result.name && assigned?.value?.length > 0 && assigned?.name) {
+        result.name = assigned.name;
+        result.female = false;
+        result.active = assigned.value === userUID;
+      }
+
       // get default values for some field if blank
       if (
         assignment === 'MM_Chairman_B' &&
@@ -261,6 +270,11 @@ const usePersonComponent = ({
                 displayNameEnabled,
                 fullnameOption
               )} ${t('tr_orWatchtowerStudyReader')}`;
+              result.female = false;
+              result.active = false;
+            } else if (speakerAssigned?.name) {
+              // Fallback to the denormalized name baked into the assignment.
+              result.name = `${speakerAssigned.name} ${t('tr_orWatchtowerStudyReader')}`;
               result.female = false;
               result.active = false;
             }

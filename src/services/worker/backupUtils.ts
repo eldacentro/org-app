@@ -296,7 +296,10 @@ export const dbGetMetadata = async () => {
     delete result.cong_field_service_reports;
   }
 
-  if (!isElder) {
+  // Schedule editors/viewers (not only elders) need the visiting speakers so
+  // the weekend schedule can resolve their names. Keep these tables in the
+  // sync metadata for them so delta sync works.
+  if (!isElder && !isScheduleEditor) {
     delete result.speakers_congregations;
     delete result.visiting_speakers;
   }
