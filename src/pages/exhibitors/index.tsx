@@ -586,6 +586,44 @@ const Exhibitors = () => {
     }
   };
 
+  // Restaurar turno a la asignación fija global (borrar override manual)
+  const handleResetWeekTurn = async () => {
+    if (!settings) return;
+
+    try {
+      const localList = structuredClone(exhibitorsList);
+      let weekRecord = localList.find((w) => w.weekOf === editDialog.weekOf);
+
+      if (!weekRecord || !weekRecord.turns) {
+        setEditDialog({ ...editDialog, open: false });
+        return;
+      }
+
+      // Eliminar el registro manual del IndexedDB
+      weekRecord.turns = weekRecord.turns.filter(
+        (t) => !(t.turnId === editDialog.turnId && t.date === editDialog.date)
+      );
+
+      await dbExhibitorsSaveWeek(weekRecord);
+      setExhibitorsList(localList);
+      triggerSync();
+
+      setEditDialog({ ...editDialog, open: false });
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message: 'Turno restaurado a la configuración global dinámica.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al restaurar el turno de la semana.',
+        severity: 'error',
+      });
+    }
+  };
+
   // Validaciones del diálogo de edición semanal
   const dialogWarnings = useMemo(() => {
     if (!editDialog.open || editDialog.cancelled) return [];
@@ -1195,6 +1233,91 @@ const Exhibitors = () => {
         <Box sx={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}>
           {activeTab === 'planner' ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* HEADER SIEMPRE VISIBLE */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexDirection: { mobile: 'column', tablet: 'row' }, gap: '16px', width: '100%' }}>
+                <Typography className="h2" style={{ color: 'var(--accent-main)', margin: 0 }}>
+                  {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Button
+                    variant={isCurrentlyOverridden ? 'contained' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    onClick={() => setMonthlySettingsDialog(true)}
+                    startIcon={<IconSettings color="inherit" fontSize="small" />}
+                    sx={{ 
+                      borderRadius: 'var(--radius-l)', 
+                      textTransform: 'none', 
+                      fontWeight: 'bold', 
+                      boxShadow: 'none',
+                      height: '36px',
+                      ...(isCurrentlyOverridden && {
+                        backgroundColor: 'var(--orange-main)',
+                        color: 'var(--always-white)',
+                        '&:hover': {
+                          backgroundColor: 'var(--orange-dark)',
+                        }
+                      })
+                    }}
+                  >
+                    Ajustes del mes
+                  </Button>
+
+                  {/* Selector de modo de vista */}
+                  <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)', height: '36px', alignItems: 'center' }}>
+                    <Button
+                      onClick={() => setPlannerViewMode('lista')}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: '700',
+                        borderRadius: 'var(--radius-s)',
+                        py: '4px',
+                        px: '16px',
+                        fontSize: '13px',
+                        boxShadow: 'none',
+                        minWidth: 'unset',
+                        ...(plannerViewMode === 'lista' ? {
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          '&:hover': { backgroundColor: 'var(--accent-dark)' }
+                        } : {
+                          color: 'var(--grey-600)',
+                          '&:hover': { backgroundColor: 'var(--line)' }
+                        })
+                      }}
+                    >
+                      Lista
+                    </Button>
+                    <Button
+                      onClick={() => setPlannerViewMode('mensual')}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: '700',
+                        borderRadius: 'var(--radius-s)',
+                        py: '4px',
+                        px: '16px',
+                        fontSize: '13px',
+                        boxShadow: 'none',
+                        minWidth: 'unset',
+                        ...(plannerViewMode === 'mensual' ? {
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          '&:hover': { backgroundColor: 'var(--accent-dark)' }
+                        } : {
+                          color: 'var(--grey-600)',
+                          '&:hover': { backgroundColor: 'var(--line)' }
+                        })
+                      }}
+                    >
+                      Cuadrícula
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+
               {(!effectiveTurns || effectiveTurns.length === 0) ? (
                 <Box
                   sx={{
@@ -1210,80 +1333,12 @@ const Exhibitors = () => {
                 >
                   <IconInfo color="var(--grey-400)" />
                   <Typography sx={{ color: 'var(--grey-400)', fontWeight: '600' }}>
-                    No hay turnos configurados.
+                    {monthCancelled ? 'Los exhibidores están suspendidos para este mes.' : 'No hay turnos configurados.'}
                   </Typography>
                 </Box>
               ) : (
-                /* Vista de Planificador con selector */
+                /* Vista de Planificador (Grid/Lista) */
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexDirection: { mobile: 'column', tablet: 'row' }, gap: '16px', width: '100%' }}>
-                    <Typography className="h2" style={{ color: 'var(--accent-main)', margin: 0 }}>
-                      {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <Button
-                        variant={isCurrentlyOverridden ? 'contained' : 'outlined'}
-                        color={isCurrentlyOverridden ? 'warning' : 'primary'}
-                        size="small"
-                        onClick={() => setMonthlySettingsDialog(true)}
-                        startIcon={<IconSettings />}
-                        sx={{ borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold', boxShadow: 'none' }}
-                      >
-                        Ajustes del mes
-                      </Button>
-
-                      {/* Selector de modo de vista */}
-                      <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
-                      <Button
-                        onClick={() => setPlannerViewMode('lista')}
-                        size="small"
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          borderRadius: 'var(--radius-s)',
-                          py: '4px',
-                          px: '16px',
-                          fontSize: '13px',
-                          boxShadow: 'none',
-                          ...(plannerViewMode === 'lista' ? {
-                            backgroundColor: 'var(--accent-main)',
-                            color: 'var(--always-white)',
-                            '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                          } : {
-                            color: 'var(--grey-600)',
-                            '&:hover': { backgroundColor: 'var(--line)' }
-                          })
-                        }}
-                      >
-                        Lista
-                      </Button>
-                      <Button
-                        onClick={() => setPlannerViewMode('mensual')}
-                        size="small"
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          borderRadius: 'var(--radius-s)',
-                          py: '4px',
-                          px: '16px',
-                          fontSize: '13px',
-                          boxShadow: 'none',
-                          ...(plannerViewMode === 'mensual' ? {
-                            backgroundColor: 'var(--accent-main)',
-                            color: 'var(--always-white)',
-                            '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                          } : {
-                            color: 'var(--grey-600)',
-                            '&:hover': { backgroundColor: 'var(--line)' }
-                          })
-                        }}
-                      >
-                        Cuadrícula
-                      </Button>
-                      </Box>
-                    </Box>
-                  </Box>
 
                   {plannerViewMode === 'lista' ? (
                     /* Vista de Lista */
@@ -2888,6 +2943,15 @@ const Exhibitors = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          {/* Botón para desvincular el override manual */}
+          {exhibitorsList.some(w => w.weekOf === editDialog.weekOf && w.turns?.some(t => t.turnId === editDialog.turnId && t.date === editDialog.date)) && (
+            <Button
+              onClick={handleResetWeekTurn}
+              sx={{ color: 'var(--error-main)', fontWeight: '600', textTransform: 'none', marginRight: 'auto' }}
+            >
+              Restaurar Fijos
+            </Button>
+          )}
           <Button
             onClick={() => setEditDialog({ ...editDialog, open: false })}
             sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}

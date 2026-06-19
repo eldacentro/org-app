@@ -59,12 +59,71 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
   };
 
   const groupedTurns = useMemo(() => {
-    const turns = weekRecord?.turns || [];
-    if (turns.length === 0) return [];
+    if (!effectiveTurns || effectiveTurns.length === 0) return [];
+    if (!weekRecord?.weekOf) return [];
 
-    const groups: Record<string, typeof turns> = {};
+    const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const [year, month, day] = weekRecord.weekOf.split('/').map(Number);
+    // Parse to local date at midnight to avoid timezone shifts jumping days
+    const mondayDate = new Date(year, month - 1, day);
 
-    for (const turn of turns) {
+    const generatedTurns = [];
+
+    // Iterar por los 7 días de la semana
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(mondayDate);
+      currentDate.setDate(currentDate.getDate() + i);
+      
+      const dayLabel = weekdaysOrder[i];
+      const dateStr = `${currentDate.getFullYear()}/${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}`;
+
+      // Encontrar los turnos configurados para este día
+      const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
+
+      for (const turn of dayTurns) {
+        // Buscar si hay un manual override guardado
+        const savedTurn = weekRecord.turns?.find((t) => t.turnId === turn.id && t.date === dateStr);
+
+        let finalAssignments = savedTurn?.assignments || [];
+        const finalLocation = savedTurn?.location || turn.defaultLocation || 'Exhibidor';
+        const finalCancelled = savedTurn?.cancelled || false;
+
+        if (!savedTurn) {
+          // Asignaciones fijas dinámicas
+          const fixed = settings?.fixedAssignments?.filter((f) => 
+            f.turnId === turn.id && (!f.day || f.day === dayLabel)
+          ) || [];
+          
+          const sortedFixed = [...fixed].sort((a, b) => {
+            const posA = a.position !== undefined ? a.position : 0;
+            const posB = b.position !== undefined ? b.position : 0;
+            return posA - posB;
+          });
+          
+          finalAssignments = sortedFixed.map((f) => ({
+            person: f.personUid,
+            isResponsible: f.isResponsible,
+          }));
+        }
+
+        generatedTurns.push({
+          turnId: turn.id,
+          date: dateStr,
+          dayDate: new Date(currentDate), // clone
+          startTime: turn.startTime,
+          endTime: turn.endTime,
+          assignments: finalAssignments,
+          location: finalLocation,
+          cancelled: finalCancelled,
+        });
+      }
+    }
+
+    if (generatedTurns.length === 0) return [];
+
+    // Agrupar por fecha
+    const groups: Record<string, typeof generatedTurns> = {};
+    for (const turn of generatedTurns) {
       if (!groups[turn.date]) {
         groups[turn.date] = [];
       }
@@ -74,25 +133,14 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
     return Object.keys(groups)
       .sort()
       .map((date) => {
-        const sortedTurns = groups[date].sort((a, b) => {
-          const configA = effectiveTurns.find((t) => t.id === a.turnId);
-          const configB = effectiveTurns.find((t) => t.id === b.turnId);
-          const startA = configA?.startTime || '00:00';
-          const startB = configB?.startTime || '00:00';
-          return startA.localeCompare(startB);
-        });
-
-        // Parse date properly as a UTC date to avoid timezone shift
-        const dateParts = date.split('/');
-        const dayDate = new Date(+dateParts[0], +dateParts[1] - 1, +dateParts[2]);
-
+        const sortedTurns = groups[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
         return {
           date,
-          dayDate,
+          dayDate: groups[date][0].dayDate,
           turns: sortedTurns,
         };
       });
-  }, [weekRecord, effectiveTurns]);
+  }, [weekRecord, effectiveTurns, settings]);
 
   if (monthCancelled) {
     return (
@@ -184,10 +232,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
             {/* Lista de turnos */}
             <Stack sx={{ backgroundColor: 'var(--card)' }}>
               {turns.map((turn, idx) => {
-                const turnConfig = effectiveTurns.find((t) => t.id === turn.turnId);
-                if (!turnConfig) return null; // Ignorar asignaciones huérfanas
-
-                const timeRange = `${turnConfig.startTime} - ${turnConfig.endTime}`;
+                const timeRange = `${turn.startTime} - ${turn.endTime}`;
                 const isAssignedToMe = turn.assignments?.some((a) => a.person === userUID);
                 const isCancelled = turn.cancelled;
 
