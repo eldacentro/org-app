@@ -85,7 +85,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
 
       for (const turn of dayTurns) {
         // Buscar si hay un manual override guardado
-        const savedTurn = weekRecord.turns?.find((t) => t.turnId === turn.id && t.date === dateStr);
+        const savedTurn = weekRecord?.turns?.find((t) => t.turnId === turn.id && t.date === dateStr);
 
         let finalAssignments = savedTurn?.assignments || [];
         const finalLocation = savedTurn?.location || turn.defaultLocation || 'Exhibidor';
