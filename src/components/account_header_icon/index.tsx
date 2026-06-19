@@ -68,40 +68,68 @@ const AccountHeaderIcon = ({
         sx={{
           width: '24px',
           height: '24px',
-          borderRadius: 'var(--radius-max)',
           position: 'relative',
         }}
       >
-        {userAvatar ? (
-          <Avatar
-            alt="Avatar"
-            src={userAvatar}
-            sx={{
-              width: '24px',
-              height: '24px',
-            }}
-          />
-        ) : (
-          <IconHeaderAccount
-            width={24}
-            height={24}
-            color="var(--accent-main)"
-          />
-        )}
+        <Box
+          sx={{
+            width: '24px',
+            height: '24px',
+            borderRadius: 'var(--radius-max)',
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          {userAvatar ? (
+            <Avatar
+              alt="Avatar"
+              src={userAvatar}
+              sx={{
+                width: '24px',
+                height: '24px',
+              }}
+            />
+          ) : (
+            <IconHeaderAccount
+              width={24}
+              height={24}
+              color="var(--accent-main)"
+            />
+          )}
+          {isRed && (
+            <Box
+              sx={{
+                width: '32px',
+                height: '75%',
+                position: 'absolute',
+                bottom: '0',
+                left: 'calc(50% - 16px)',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background:
+                  'linear-gradient(180deg, rgba(202, 38, 38, 0) 0%, #CA2626 100%)',
+              }}
+            >
+              <IconNoConnection color="var(--always-white)" width={12} height={12} />
+            </Box>
+          )}
+        </Box>
         {isSyncing ? (
-          <CircularProgress 
-            size={28} 
-            thickness={4} 
-            sx={{ 
-              position: 'absolute', 
-              top: -2, 
-              left: -2, 
+          <CircularProgress
+            size={28}
+            thickness={4}
+            sx={{
+              position: 'absolute',
+              top: -2,
+              left: -2,
               color: 'var(--accent-main)',
               zIndex: 1
-            }} 
+            }}
           />
         ) : isPendingSync ? (
-          <Box 
+          <Box
             sx={{
               position: 'absolute',
               top: -2, left: -2, right: -2, bottom: -2,
@@ -111,25 +139,6 @@ const AccountHeaderIcon = ({
             }}
           />
         ) : null}
-        {isRed && (
-          <Box
-            sx={{
-              width: '32px',
-              height: '75%',
-              position: 'absolute',
-              bottom: '0',
-              left: 'calc(50% - 16px)',
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              background:
-                'linear-gradient(180deg, rgba(202, 38, 38, 0) 0%, #CA2626 100%)',
-            }}
-          >
-            <IconNoConnection color="var(--always-white)" width={12} height={12} />
-          </Box>
-        )}
       </Box>
       <IconExpand
         width={16}
