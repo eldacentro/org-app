@@ -50,7 +50,7 @@ const ExhibitorsWeeklyContainer = () => {
           </Typography>
         </Box>
       ) : (
-        <ExhibitorsMeeting weekRecord={weekRecord} />
+        <ExhibitorsMeeting weekRecord={weekRecord} week={week as string} />
       )}
     </Box>
   );

@@ -10,8 +10,9 @@ import { ExhibitorWeekType } from '@definition/exhibitors';
 import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
 import { getEffectiveTurnsForMonth, isMonthCancelled } from '../../../../utils/exhibitors';
+import { addDays } from '@utils/date';
 
-const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) => {
+const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekType, week: string }) => {
   const { t } = useAppTranslation();
 
   const settings = useAtomValue(exhibitorsSettingsState);
@@ -20,9 +21,10 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
   const userUID = useAtomValue(userLocalUIDState);
 
   const monthStr = useMemo(() => {
-    if (!weekRecord?.weekOf) return '';
-    return weekRecord.weekOf.substring(0, 7); // "YYYY/MM"
-  }, [weekRecord]);
+    const targetWeek = weekRecord?.weekOf || week;
+    if (!targetWeek) return '';
+    return targetWeek.substring(0, 7); // "YYYY/MM"
+  }, [weekRecord, week]);
 
   const effectiveTurns = useMemo(() => {
     return getEffectiveTurnsForMonth(settings, monthStr);
@@ -60,19 +62,20 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
 
   const groupedTurns = useMemo(() => {
     if (!effectiveTurns || effectiveTurns.length === 0) return [];
-    if (!weekRecord?.weekOf) return [];
+    
+    const targetWeek = weekRecord?.weekOf || week;
+    if (!targetWeek) return [];
 
     const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const [year, month, day] = weekRecord.weekOf.split('/').map(Number);
-    // Parse to local date at midnight to avoid timezone shifts jumping days
-    const mondayDate = new Date(year, month - 1, day);
+    const [year, month, day] = targetWeek.split(/[-/]/).map(Number);
+    // Parse to local date at NOON (12:00:00) to absolutely avoid any DST midnight shift bug
+    const mondayDate = new Date(year, month - 1, day, 12, 0, 0);
 
     const generatedTurns = [];
 
     // Iterar por los 7 días de la semana
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(mondayDate);
-      currentDate.setDate(currentDate.getDate() + i);
+      const currentDate = addDays(mondayDate, i);
       
       const dayLabel = weekdaysOrder[i];
       const dateStr = `${currentDate.getFullYear()}/${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}`;
@@ -140,7 +143,7 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
           turns: sortedTurns,
         };
       });
-  }, [weekRecord, effectiveTurns, settings]);
+  }, [weekRecord, week, effectiveTurns, settings]);
 
   if (monthCancelled) {
     return (
