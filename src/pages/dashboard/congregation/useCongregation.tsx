@@ -1,32 +1,13 @@
 import { useEffect, useMemo } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  congAccountConnectedState,
-  isAppDataSyncingState,
-  lastAppDataSyncState,
-} from '@states/app';
-import {
-  useAppTranslation,
-  useCurrentUser,
-  useFirebaseAuth,
-} from '@hooks/index';
-import { getMessageByCode } from '@services/i18n/translation';
+import { useAtomValue } from 'jotai';
+import { useManualSync } from '@hooks/index';
 import { adminRoleState } from '@states/settings';
 import { joinRequestsCountState } from '@states/congregation';
-import { dbMetadataReset } from '@services/dexie/metadata';
-import worker from '@services/worker/backupWorker';
 
 const useCongregation = () => {
-  const { t } = useAppTranslation();
+  const { isSyncing, isConnected, secondaryText, handleManualSync } =
+    useManualSync();
 
-  const { user } = useFirebaseAuth();
-
-  const { accountType } = useCurrentUser();
-
-  const isSyncing = useAtomValue(isAppDataSyncingState);
-  const setIsSyncing = useSetAtom(isAppDataSyncingState);
-  const lastSync = useAtomValue(lastAppDataSyncState);
-  const isConnected = useAtomValue(congAccountConnectedState);
   const isUserAdmin = useAtomValue(adminRoleState);
   const joinRequestsCount = useAtomValue(joinRequestsCountState);
 
@@ -35,39 +16,6 @@ const useCongregation = () => {
 
     return joinRequestsCount.toString();
   }, [joinRequestsCount]);
-
-  const getSecondaryText = () => {
-    if (isSyncing) return t('tr_syncAppDataInProgress');
-
-    if (lastSync === 'now') return t('tr_lastSyncAppDataNow');
-    if (lastSync === 'recently') return t('tr_lastSyncAppDataRecently');
-    if (lastSync === 'error') return getMessageByCode('error_app_generic-title');
-    if (typeof lastSync === 'number' && lastSync >= 1) {
-      return t('tr_lastSyncAppData', { duration: lastSync });
-    }
-
-    // lastSync === 0 or '' means no sync has completed yet — show nothing
-    return '';
-  };
-
-  const handleManualSync = async () => {
-    // Optimistic feedback — show "Sincronizando" immediately without waiting
-    // for the worker's 3-second debounce to fire.
-    setIsSyncing(true);
-
-    try {
-      await dbMetadataReset();
-
-      if (accountType === 'vip' && user) {
-        const idToken = await user.getIdToken(true);
-        worker.postMessage({ field: 'idToken', value: idToken });
-      }
-    } catch {
-      // Non-critical — worker will use its cached token
-    }
-
-    worker.postMessage('startWorker');
-  };
 
   useEffect(() => {
     if (isConnected) {
@@ -111,7 +59,7 @@ const useCongregation = () => {
   }, [isSyncing, isConnected]);
 
   return {
-    secondaryText: getSecondaryText(),
+    secondaryText,
     handleManualSync,
     isConnected,
     isUserAdmin,

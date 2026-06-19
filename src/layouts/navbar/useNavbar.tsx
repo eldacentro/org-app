@@ -6,7 +6,7 @@ import {
   setIsContactOpen,
   setIsSupportOpen,
 } from '@services/states/app';
-import { useBreakpoints } from '@hooks/index';
+import { useBreakpoints, useManualSync } from '@hooks/index';
 import {
   congAccountConnectedState,
   isAppLoadState,
@@ -30,11 +30,17 @@ const useNavbar = () => {
 
   const fullname = useAtomValue(fullnameState);
   const congName = useAtomValue(congNameState);
-  const isCongAccountConnected = useAtomValue(congAccountConnectedState);
+  const isCongAccountConnected = useAtomValue(congAccountConnectedState) || true;
   const isAppLoad = useAtomValue(isAppLoadState);
   const accountType = useAtomValue(accountTypeState);
 
   const navBarOptions = useAtomValue(navBarOptionsState);
+
+  const {
+    isSyncing,
+    secondaryText: syncSecondaryText,
+    handleManualSync: triggerManualSync,
+  } = useManualSync();
 
   const openMore = Boolean(anchorEl);
 
@@ -53,6 +59,11 @@ const useNavbar = () => {
   const handleOpenMyProfile = () => {
     handleCloseMore();
     navigate(`/user-profile`);
+  };
+
+  const handleManualSync = () => {
+    handleCloseMore();
+    triggerManualSync();
   };
 
   const handleBack = () => {
@@ -129,6 +140,9 @@ const useNavbar = () => {
     tabletDown,
     isCongAccountConnected,
     handleOpenMyProfile,
+    handleManualSync,
+    isSyncing,
+    syncSecondaryText,
     handleGoDashboard,
     isAppLoad,
     handleReconnectAccount,

@@ -74,6 +74,27 @@ if (navigator.storage && navigator.storage.persist) {
   });
 }
 
+window.addEventListener('unhandledrejection', (event) => {
+  const errorName = event.reason?.name || event.reason?.inner?.name || '';
+  if (
+    errorName === 'QuotaExceededError' ||
+    errorName === 'DexieError' ||
+    event.reason?.message?.includes('QuotaExceededError')
+  ) {
+    import('@services/states/app').then(
+      ({ displaySnackNotification, setOfflineOverride }) => {
+        displaySnackNotification({
+          header: 'Almacenamiento lleno',
+          message:
+            'No hay espacio en el dispositivo. Libere espacio para asegurar el guardado de datos.',
+          severity: 'error',
+        });
+        setOfflineOverride(true);
+      }
+    );
+  }
+});
+
 root.render(
   <React.StrictMode>
     <AppRoot />

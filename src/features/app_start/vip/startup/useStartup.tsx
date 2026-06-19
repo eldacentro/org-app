@@ -271,6 +271,7 @@ const useStartup = () => {
     handlePostLogin,
     setUserID,
     user,
+    congID,
   ]);
 
   useEffect(() => {

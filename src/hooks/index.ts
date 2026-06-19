@@ -10,3 +10,4 @@ export { default as useConsoleWarning } from './useConsoleWarning';
 export { default as useKeyboardShortcut } from './useKeyboardShortcut';
 export { default as useAppTheme } from './useAppTheme';
 export { default as usePushNotifications } from './usePushNotifications';
+export { default as useManualSync } from './useManualSync';

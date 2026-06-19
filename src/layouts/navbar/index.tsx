@@ -21,6 +21,7 @@ import {
   IconArrowBack,
   IconSettings,
   IconHome,
+  IconSynced,
 } from '@icons/index';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
 
@@ -72,6 +73,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
     tabletDown,
     isCongAccountConnected,
     handleOpenMyProfile,
+    handleManualSync,
+    isSyncing,
+    syncSecondaryText,
     handleGoDashboard,
     isAppLoad,
     handleReconnectAccount,
@@ -345,6 +349,45 @@ const NavBar = ({ isSupported }: NavBarType) => {
                               <Typography className="body-regular">
                                 {t('tr_myProfile')}
                               </Typography>
+                            </ListItemText>
+                          </MenuItem>
+                        )}
+
+                        {isCongAccountConnected && (
+                          <MenuItem
+                            disableRipple
+                            sx={menuStyle}
+                            onClick={handleManualSync}
+                          >
+                            <ListItemIcon
+                              sx={{
+                                '&.MuiListItemIcon-root': {
+                                  width: '24px',
+                                  minWidth: '24px !important',
+                                },
+                              }}
+                            >
+                              <IconSynced
+                                color="var(--black)"
+                                sx={{
+                                  animation: isSyncing
+                                    ? 'rotate 2s linear infinite'
+                                    : 'none',
+                                }}
+                              />
+                            </ListItemIcon>
+                            <ListItemText>
+                              <Typography className="body-regular">
+                                {t('tr_syncAppData')}
+                              </Typography>
+                              {syncSecondaryText && (
+                                <Typography
+                                  className="label-small-regular"
+                                  color="var(--grey-350)"
+                                >
+                                  {syncSecondaryText}
+                                </Typography>
+                              )}
                             </ListItemText>
                           </MenuItem>
                         )}
