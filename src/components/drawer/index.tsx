@@ -61,27 +61,51 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
             boxShadow: 'unset',
             overflowY: 'unset',
             width: laptopUp ? 'unset' : '100%',
+            height: props.anchor === 'bottom' ? 'auto' : '100%',
+            maxHeight: props.anchor === 'bottom' ? '90vh' : 'unset',
           },
         },
       }}
     >
-      <Toolbar sx={{ padding: 0 }} />
+      {props.anchor !== 'bottom' && <Toolbar sx={{ padding: 0 }} />}
       <Stack
         className="drawer-glass-panel"
         sx={{
-          height: '100%',
+          height: props.anchor === 'bottom' ? 'auto' : '100%',
           width: laptopUp ? '600px' : '100%',
           margin: laptopUp ? '10px' : 'unset',
-          borderRadius: laptopUp ? 'var(--r-lg)' : 'unset',
+          borderRadius: laptopUp
+            ? 'var(--r-lg)'
+            : props.anchor === 'bottom'
+            ? 'var(--r-lg) var(--r-lg) 0 0'
+            : 'unset',
           border: laptopUp
             ? '1px solid rgba(255,255,255,0.18)'
+            : props.anchor === 'bottom'
+            ? '1px solid rgba(255,255,255,0.18)'
             : 'unset',
+          borderBottom: 'none',
           padding: '20px 16px',
           overflow: 'hidden',
           '&::-webkit-scrollbar': { width: '8px' },
         }}
         role="presentation"
       >
+        {/* Puller indicator for bottom sheet */}
+        {props.anchor === 'bottom' && !laptopUp && (
+          <Box
+            sx={{
+              width: '40px',
+              height: '4px',
+              backgroundColor: 'var(--grey-300)',
+              borderRadius: '2px',
+              alignSelf: 'center',
+              mb: '16px',
+              mt: '-8px',
+            }}
+          />
+        )}
+        
         {/* Header */}
         <Stack
           direction="row"
@@ -119,7 +143,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           </Stack>
         </Stack>
 
-        <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', pb: props.anchor === 'bottom' ? 'env(safe-area-inset-bottom, 20px)' : 0 }}>
           {children}
         </Box>
       </Stack>

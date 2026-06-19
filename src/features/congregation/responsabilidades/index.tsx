@@ -1,28 +1,26 @@
 import { useState, useMemo, useEffect, ElementType } from 'react';
 import {
   Box,
-  Autocomplete,
-  TextField,
-  IconButton,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Stack,
   Chip,
+  IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAtomValue } from 'jotai';
 import {
   IconAdd,
-  IconDelete,
-  IconSave,
   IconClose,
-  IconReorder,
-  IconUp,
-  IconDown,
+  IconSave,
   IconGroups,
   IconAssignment,
   IconCongregation,
+  IconReorder,
+  IconUp,
+  IconDown,
+  IconEdit,
 } from '@components/icons';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsActiveState, eldersActiveState } from '@states/persons';
@@ -42,9 +40,9 @@ import Button from '@components/button';
 import Dialog from '@components/dialog';
 import Divider from '@components/divider';
 
-// ─── Person option type ──────────────────────────────────────────────────────
-
-type PersonOption = { uid: string; label: string };
+import { PersonOption } from './components';
+import DrawerEditCargo from './DrawerEditCargo';
+import DrawerEditDepartamento from './DrawerEditDepartamento';
 
 // ─── Hooks for person lists ──────────────────────────────────────────────────
 
@@ -97,99 +95,6 @@ const usePersonOptions = () => {
   return { resolveName, ancianos, varones };
 };
 
-// ─── PersonSelect ────────────────────────────────────────────────────────────
-
-const PersonSelect = ({
-  value,
-  options,
-  label,
-  onChange,
-}: {
-  value: string;
-  options: PersonOption[];
-  label: string;
-  onChange: (uid: string) => void;
-}) => {
-  // If the value is a legacy name (not a UID found in options),
-  // we create a virtual option so the Autocomplete shows the text.
-  const allOptions = useMemo(() => {
-    if (value && value !== '' && !options.find((o) => o.uid === value)) {
-      return [{ uid: value, label: value }, ...options];
-    }
-    return options;
-  }, [value, options]);
-
-  const selected = allOptions.find((o) => o.uid === value) ?? null;
-
-  return (
-    <Autocomplete
-      value={selected}
-      options={allOptions}
-      getOptionLabel={(o) => o.label}
-      isOptionEqualToValue={(a, b) => a.uid === b.uid}
-      onChange={(_, v) => onChange(v?.uid ?? '')}
-      size="small"
-      renderInput={(params) => <TextField {...params} label={label} />}
-      sx={{ flex: 1, fontFamily: 'Figtree, sans-serif' }}
-      noOptionsText="Sin resultados"
-    />
-  );
-};
-
-const PersonMultiSelect = ({
-  value,
-  options,
-  label,
-  onChange,
-}: {
-  value: string[];
-  options: PersonOption[];
-  label: string;
-  onChange: (uids: string[]) => void;
-}) => {
-  // Handle legacy names in multi-select as well
-  const allOptions = useMemo(() => {
-    const legacy = value.filter((uid) => !options.find((o) => o.uid === uid));
-    if (legacy.length > 0) {
-      return [...legacy.map((l) => ({ uid: l, label: l })), ...options];
-    }
-    return options;
-  }, [value, options]);
-
-  const selected = value
-    .map((uid) => allOptions.find((o) => o.uid === uid))
-    .filter(Boolean) as PersonOption[];
-
-  return (
-    <Autocomplete
-      multiple
-      value={selected}
-      options={allOptions}
-      getOptionLabel={(o) => o.label}
-      isOptionEqualToValue={(a, b) => a.uid === b.uid}
-      onChange={(_, v) => onChange(v.map((o) => o.uid))}
-      size="small"
-      renderInput={(params) => <TextField {...params} label={label} />}
-      sx={{ width: '100%', fontFamily: 'Figtree, sans-serif' }}
-      noOptionsText="Sin resultados"
-      renderTags={(tagValue, getTagProps) =>
-        tagValue.map((option, index) => {
-          const { key, ...tagProps } = getTagProps({ index });
-          return (
-            <Chip
-              key={key}
-              label={option.label}
-              size="small"
-              {...tagProps}
-              sx={{ fontFamily: 'Figtree, sans-serif', fontSize: '12px' }}
-            />
-          );
-        })
-      }
-    />
-  );
-};
-
 // ─── Section wrapper ─────────────────────────────────────────────────────────
 
 const SectionHeader = ({
@@ -198,7 +103,6 @@ const SectionHeader = ({
 }: {
   icon: ElementType;
   title: string;
-  description?: string;
 }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '12px' }}>
     <Box
@@ -288,10 +192,7 @@ const ReadCargos = ({
   resolveName: (u: string) => string;
 }) => (
   <CardContainer>
-    <SectionHeader
-      icon={IconAssignment}
-      title="Responsabilidades de Ancianos"
-    />
+    <SectionHeader icon={IconAssignment} title="Responsabilidades de Ancianos" />
     <Stack spacing="8px" divider={<Divider color="var(--accent-100)" />}>
       {cargos.map((item, i) => (
         <FieldRow
@@ -420,195 +321,47 @@ const ReadDepartamentos = ({
   </Box>
 );
 
-// ─── Edit views ──────────────────────────────────────────────────────────────
+// ─── Edit Mode Summary Cards ──────────────────────────────────────────────────
 
-const EditCargos = ({
-  cargos,
-  ancianos,
-  onChange,
+const EditSummaryCard = ({
+  title,
+  subtitle,
+  onClick,
 }: {
-  cargos: AncianoCargo[];
-  ancianos: PersonOption[];
-  onChange: (v: AncianoCargo[]) => void;
-}) => {
-  const updateCargo = (i: number, val: string) =>
-    onChange(cargos.map((c, idx) => (idx === i ? { ...c, cargo: val } : c)));
-  const updateResponsable = (i: number, uid: string) =>
-    onChange(
-      cargos.map((c, idx) => (idx === i ? { ...c, responsable: uid } : c))
-    );
-  const remove = (i: number) => onChange(cargos.filter((_, idx) => idx !== i));
-  const add = () => onChange([...cargos, { cargo: '', responsable: '' }]);
-
-  return (
-    <CardContainer>
-      <SectionHeader
-        icon={IconAssignment}
-        title="Responsabilidades de Ancianos"
-      />
-      <Stack spacing="16px">
-        {cargos.map((item, i) => (
-          <Box
-            key={i}
-            sx={{
-              display: 'flex',
-              gap: '12px',
-              alignItems: 'center',
-              backgroundColor: 'var(--accent-100)',
-              padding: '12px',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid var(--accent-200)',
-            }}
-          >
-            <TextField
-              value={item.cargo}
-              onChange={(e) => updateCargo(i, e.target.value)}
-              size="small"
-              label="Nombre del cargo"
-              sx={{ flex: 1, backgroundColor: 'var(--white)', borderRadius: 'var(--r-sm)' }}
-            />
-            <PersonSelect
-              value={item.responsable}
-              options={ancianos}
-              label="Hno. Responsable"
-              onChange={(uid) => updateResponsable(i, uid)}
-            />
-            <IconButton
-              size="medium"
-              onClick={() => remove(i)}
-              sx={{
-                color: 'var(--red-main)',
-                backgroundColor: 'var(--white)',
-                border: '1px solid var(--red-200)',
-                '&:hover': { backgroundColor: 'var(--red-100)' },
-              }}
-            >
-              <IconDelete />
-            </IconButton>
-          </Box>
-        ))}
-        <Button
-          variant="secondary"
-          onClick={add}
-          startIcon={<IconAdd />}
-          sx={{ alignSelf: 'flex-start' }}
-        >
-          Añadir nuevo cargo
-        </Button>
-      </Stack>
-    </CardContainer>
-  );
-};
-
-const EditDepartamento = ({
-  dep,
-  varones,
-  onChange,
-  onRemove,
-}: {
-  dep: Departamento;
-  varones: PersonOption[];
-  onChange: (v: Departamento) => void;
-  onRemove: () => void;
-}) => {
-  const isExtended = dep.type === 'extended';
-
-  const updateField = (field: string, val: string) =>
-    onChange({ ...dep, [field]: val } as Departamento);
-
-  const updateMembers = (members: string[]) =>
-    onChange({ ...dep, members } as DepartamentoExtended);
-
-  const toggleType = () => {
-    if (isExtended) {
-      const { members: _, ...rest } = dep as DepartamentoExtended;
-      void _;
-      onChange({ ...rest, type: 'simple' } as DepartamentoSimple);
-    } else {
-      onChange({
-        ...dep,
-        type: 'extended',
-        members: [],
-      } as DepartamentoExtended);
-    }
-  };
-
-  return (
-    <Box
-      sx={{
-        backgroundColor: 'var(--card)',
-        border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        position: 'relative',
-        '&:hover': {
-          borderColor: 'var(--accent-300)',
-          boxShadow: 'var(--shadow-sm)',
-        },
-      }}
-    >
-      <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <TextField
-          value={dep.name}
-          onChange={(e) => updateField('name', e.target.value)}
-          size="small"
-          label="Nombre del departamento"
-          sx={{ flex: 1 }}
-        />
-        <Chip
-          label={isExtended ? 'Estructura Compleja' : 'Estructura Simple'}
-          size="small"
-          clickable
-          onClick={toggleType}
-          sx={{
-            background: isExtended ? 'var(--accent-main)' : 'var(--line)',
-            color: isExtended ? 'var(--always-white)' : 'var(--text-secondary)',
-            fontWeight: 600,
-            px: '8px',
-          }}
-        />
-        <IconButton
-          size="medium"
-          onClick={onRemove}
-          sx={{
-            color: 'var(--red-main)',
-            border: '1px solid var(--red-200)',
-            '&:hover': { backgroundColor: 'var(--red-100)' },
-          }}
-        >
-          <IconDelete />
-        </IconButton>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-        <PersonSelect
-          value={dep.responsable}
-          options={varones}
-          label="Responsable"
-          onChange={(uid) => updateField('responsable', uid)}
-        />
-        <PersonSelect
-          value={dep.auxiliar ?? ''}
-          options={varones}
-          label="Auxiliar (opcional)"
-          onChange={(uid) => updateField('auxiliar', uid)}
-        />
-      </Box>
-
-      {isExtended && (
-        <PersonMultiSelect
-          value={(dep as DepartamentoExtended).members}
-          options={varones}
-          label="Hermanos que colaboran en este departamento"
-          onChange={updateMembers}
-        />
-      )}
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+}) => (
+  <Box
+    onClick={onClick}
+    sx={{
+      backgroundColor: 'var(--card)',
+      border: '1px solid var(--line)',
+      borderRadius: 'var(--r-md)',
+      padding: '16px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      '&:hover': {
+        borderColor: 'var(--accent-main)',
+        boxShadow: 'var(--shadow-sm)',
+        backgroundColor: 'var(--accent-100)',
+      },
+    }}
+  >
+    <Box>
+      <Typography className="body-regular-semibold" color="var(--black)">
+        {title || '(Sin título)'}
+      </Typography>
+      <Typography className="body-small" color="var(--grey-400)">
+        {subtitle || 'Sin asignar'}
+      </Typography>
     </Box>
-  );
-};
+    <IconEdit color="var(--accent-main)" />
+  </Box>
+);
 
 // ─── Reorder Dialog ──────────────────────────────────────────────────────────
 
@@ -624,6 +377,10 @@ const ReorderDialog = ({
   onSave: (v: Departamento[]) => void;
 }) => {
   const [list, setList] = useState([...departamentos]);
+
+  useEffect(() => {
+    if (open) setList([...departamentos]);
+  }, [open, departamentos]);
 
   const moveUp = (i: number) => {
     if (i === 0) return;
@@ -687,7 +444,7 @@ const ReorderDialog = ({
                 <IconUp />
               </IconButton>
               <IconButton
-                size="small"
+               size="small"
                 onClick={() => moveDown(i)}
                 disabled={i === list.length - 1}
                 sx={{ border: '1px solid var(--line)', backgroundColor: 'var(--white)' }}
@@ -739,8 +496,11 @@ const ResponsabilidadesFeature = ({
   const { tablet600Down: mobile } = useBreakpoints();
 
   const [reorderOpen, setReorderOpen] = useState(false);
+  
+  // Drawer States
+  const [editCargoIndex, setEditCargoIndex] = useState<number | null>(null);
+  const [editDepIndex, setEditDepIndex] = useState<number | null>(null);
 
-  // Auto-sync cuerpoAncianos in draft when active elders list changes
   useEffect(() => {
     if (isEditing && draft) {
       const currentUids = ancianos.map((a) => a.uid);
@@ -767,164 +527,213 @@ const ResponsabilidadesFeature = ({
     );
   }
 
-  const d = isEditing && draft ? draft : data;
-
   const updateDraft = (patch: Partial<ResponsabilidadesType>) => {
     if (draft) setDraft({ ...draft, ...patch });
   };
 
-  const addDepartamento = () => {
-    if (!draft) return;
-    updateDraft({
-      departamentos: [
-        ...draft.departamentos,
-        {
-          id: crypto.randomUUID(),
-          name: '',
-          type: 'simple',
-          responsable: '',
-          updatedAt: new Date().toISOString(),
-        } as DepartamentoSimple,
-      ],
-    });
-  };
+  // ─── Render functions ───
 
-  const updateDepartamento = (i: number, dep: Departamento) => {
-    if (!draft) return;
-    updateDraft({
-      departamentos: draft.departamentos.map((d, idx) => (idx === i ? dep : d)),
-    });
-  };
-
-  const removeDepartamento = (i: number) => {
-    if (!draft) return;
-    updateDraft({
-      departamentos: draft.departamentos.filter((_, idx) => idx !== i),
-    });
-  };
-
-  // ── Section content ──
-  const secCuerpo = (
-    <ReadCuerpoAncianos
-      uids={ancianos.map((a) => a.uid)}
-      resolveName={resolveName}
-    />
-  );
-
-  const secCargos =
-    isEditing && draft ? (
-      <EditCargos
-        cargos={draft.cargosAncianos}
-        ancianos={ancianos}
-        onChange={(v) => updateDraft({ cargosAncianos: v })}
-      />
-    ) : (
-      <ReadCargos cargos={d.cargosAncianos} resolveName={resolveName} />
-    );
-
-  const secDepartamentos =
-    isEditing && draft ? (
-      <CardContainer>
-        <SectionHeader icon={IconCongregation} title="Departamentos" />
-        <Stack spacing="16px">
-          {draft.departamentos.map((dep, i) => (
-            <EditDepartamento
-              key={dep.id}
-              dep={dep}
-              varones={varones}
-              onChange={(v) => updateDepartamento(i, v)}
-              onRemove={() => removeDepartamento(i)}
-            />
-          ))}
-          <Stack direction="row" spacing="12px" sx={{ mt: '8px' }}>
-            <Button
-              variant="main"
-              onClick={addDepartamento}
-              startIcon={<IconAdd />}
-            >
-              Crear nuevo departamento
-            </Button>
-            {draft.departamentos.length > 1 && (
-              <Button
-                variant="secondary"
-                onClick={() => setReorderOpen(true)}
-                startIcon={<IconReorder color="var(--accent-main)" />}
-              >
-                Reordenar lista
-              </Button>
-            )}
-          </Stack>
-        </Stack>
-      </CardContainer>
-    ) : (
-      <ReadDepartamentos
-        departamentos={d.departamentos}
+  const renderReadMode = () => {
+    const secCuerpo = (
+      <ReadCuerpoAncianos
+        uids={ancianos.map((a) => a.uid)}
         resolveName={resolveName}
       />
     );
 
-  // ── Render ──
-  if (mobile) {
+    const secCargos = (
+      <ReadCargos cargos={data.cargosAncianos} resolveName={resolveName} />
+    );
+
+    const secDepartamentos = (
+      <ReadDepartamentos
+        departamentos={data.departamentos}
+        resolveName={resolveName}
+      />
+    );
+
+    if (mobile) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', pb: '40px' }}>
+          {[
+            { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
+            { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
+            { label: 'Departamentos', content: secDepartamentos, icon: IconCongregation },
+          ].map(({ label, content, icon: Icon }) => (
+            <Accordion
+              key={label}
+              defaultExpanded
+              sx={{
+                borderRadius: 'var(--r-lg) !important',
+                border: '1px solid var(--line)',
+                boxShadow: 'var(--shadow-sm)',
+                overflow: 'hidden',
+                '&:before': { display: 'none' },
+                '&.Mui-expanded': { mb: '16px' },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-main)' }} />}
+                sx={{ backgroundColor: 'var(--accent-100)', py: '4px' }}
+              >
+                <Stack direction="row" spacing="12px" alignItems="center">
+                  <Icon color="var(--accent-main)" width={22} height={22} />
+                  <Typography className="h3" color="var(--black)">
+                    {label}
+                  </Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: '20px', pb: '20px', px: '12px', backgroundColor: 'var(--white)' }}>
+                {content}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      );
+    }
+
     return (
-      <Box
-        sx={{ display: 'flex', flexDirection: 'column', gap: '16px', pb: '40px' }}
-      >
-        {isEditing && (
-          <Box sx={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', px: '8px' }}>
-            <Button
-              variant="secondary"
-              onClick={onCancelEdit}
-              disabled={saving}
-              startIcon={<IconClose />}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="main"
-              onClick={onSave}
-              disabled={saving}
-              startIcon={<IconSave />}
-            >
-              {saving ? 'Guardando…' : 'Guardar'}
-            </Button>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '40px' }}>
+        <Box>{secCuerpo}</Box>
+        <Box>{secCargos}</Box>
+        <Box>{secDepartamentos}</Box>
+      </Box>
+    );
+  };
+
+  const renderEditMode = () => {
+    if (!draft) return null;
+
+    const addCargo = () => {
+      const newIndex = draft.cargosAncianos.length;
+      updateDraft({
+        cargosAncianos: [...draft.cargosAncianos, { cargo: '', responsable: '' }]
+      });
+      setEditCargoIndex(newIndex);
+    };
+
+    const addDepartamento = () => {
+      const newIndex = draft.departamentos.length;
+      updateDraft({
+        departamentos: [
+          ...draft.departamentos,
+          {
+            id: crypto.randomUUID(),
+            name: '',
+            type: 'simple',
+            responsable: '',
+            updatedAt: new Date().toISOString(),
+          } as DepartamentoSimple,
+        ],
+      });
+      setEditDepIndex(newIndex);
+    };
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '120px' }}>
+        {/* Cuerpo de Ancianos (Read Only View) */}
+        <ReadCuerpoAncianos uids={draft.cuerpoAncianos || []} resolveName={resolveName} />
+
+        {/* Cargos */}
+        <Box>
+          <SectionHeader icon={IconAssignment} title="Responsabilidades de Ancianos" />
+          <Box sx={{ display: 'grid', gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' }, gap: '12px' }}>
+            {draft.cargosAncianos.map((cargo, i) => (
+              <EditSummaryCard
+                key={i}
+                title={cargo.cargo}
+                subtitle={resolveName(cargo.responsable)}
+                onClick={() => setEditCargoIndex(i)}
+              />
+            ))}
           </Box>
+          <Button
+            variant="secondary"
+            onClick={addCargo}
+            startIcon={<IconAdd />}
+            sx={{ mt: '16px' }}
+          >
+            Añadir nuevo cargo
+          </Button>
+        </Box>
+
+        <Divider color="var(--line)" />
+
+        {/* Departamentos */}
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '16px' }}>
+             <SectionHeader icon={IconCongregation} title="Departamentos" />
+             {draft.departamentos.length > 1 && (
+               <Button
+                 variant="tertiary"
+                 onClick={() => setReorderOpen(true)}
+                 startIcon={<IconReorder color="var(--accent-main)" />}
+               >
+                 Reordenar
+               </Button>
+             )}
+          </Box>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' }, gap: '12px' }}>
+            {draft.departamentos.map((dep, i) => (
+              <EditSummaryCard
+                key={dep.id}
+                title={dep.name}
+                subtitle={resolveName(dep.responsable)}
+                onClick={() => setEditDepIndex(i)}
+              />
+            ))}
+          </Box>
+          <Button
+            variant="secondary"
+            onClick={addDepartamento}
+            startIcon={<IconAdd />}
+            sx={{ mt: '16px' }}
+          >
+            Añadir nuevo departamento
+          </Button>
+        </Box>
+
+        {/* Drawers */}
+        {editCargoIndex !== null && draft.cargosAncianos[editCargoIndex] && (
+          <DrawerEditCargo
+            open={editCargoIndex !== null}
+            cargo={draft.cargosAncianos[editCargoIndex]}
+            ancianos={ancianos}
+            onClose={() => setEditCargoIndex(null)}
+            onSave={(val) => {
+              updateDraft({
+                cargosAncianos: draft.cargosAncianos.map((c, i) => i === editCargoIndex ? val : c)
+              });
+            }}
+            onDelete={() => {
+              updateDraft({
+                cargosAncianos: draft.cargosAncianos.filter((_, i) => i !== editCargoIndex)
+              });
+            }}
+          />
         )}
 
-        {[
-          { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
-          { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
-          { label: 'Departamentos', content: secDepartamentos, icon: IconCongregation },
-        ].map(({ label, content, icon: Icon }) => (
-          <Accordion
-            key={label}
-            defaultExpanded
-            sx={{
-              borderRadius: 'var(--r-lg) !important',
-              border: '1px solid var(--line)',
-              boxShadow: 'var(--shadow-sm)',
-              overflow: 'hidden',
-              '&:before': { display: 'none' },
-              '&.Mui-expanded': { mb: '16px' },
+        {editDepIndex !== null && draft.departamentos[editDepIndex] && (
+          <DrawerEditDepartamento
+            open={editDepIndex !== null}
+            departamento={draft.departamentos[editDepIndex]}
+            varones={varones}
+            onClose={() => setEditDepIndex(null)}
+            onSave={(val) => {
+              updateDraft({
+                departamentos: draft.departamentos.map((d, i) => i === editDepIndex ? val : d)
+              });
             }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-main)' }} />}
-              sx={{ backgroundColor: 'var(--accent-100)', py: '4px' }}
-            >
-              <Stack direction="row" spacing="12px" alignItems="center">
-                <Icon color="var(--accent-main)" width={22} height={22} />
-                <Typography className="h3" color="var(--black)">
-                  {label}
-                </Typography>
-              </Stack>
-            </AccordionSummary>
-            <AccordionDetails sx={{ pt: '20px', pb: '20px', px: '12px', backgroundColor: 'var(--white)' }}>
-              {content}
-            </AccordionDetails>
-          </Accordion>
-        ))}
+            onDelete={() => {
+              updateDraft({
+                departamentos: draft.departamentos.filter((_, i) => i !== editDepIndex)
+              });
+            }}
+          />
+        )}
 
-        {isEditing && draft && reorderOpen && (
+        {reorderOpen && (
           <ReorderDialog
             open={reorderOpen}
             departamentos={draft.departamentos}
@@ -932,28 +741,50 @@ const ResponsabilidadesFeature = ({
             onSave={(v) => updateDraft({ departamentos: v })}
           />
         )}
+
+        {/* Sticky Action Bar */}
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'var(--surface-color)',
+            borderTop: '1px solid var(--line)',
+            padding: '16px 24px',
+            display: 'flex',
+            gap: '16px',
+            justifyContent: 'center',
+            boxShadow: '0 -4px 12px rgba(0,0,0,0.05)',
+            zIndex: 100,
+            backdropFilter: 'blur(10px)',
+            background: 'rgba(var(--bg-rgb), 0.8)',
+          }}
+        >
+          <Button
+            variant="secondary"
+            onClick={onCancelEdit}
+            disabled={saving}
+            startIcon={<IconClose />}
+            sx={{ flex: mobile ? 1 : 'none', minWidth: '150px', height: '48px' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="main"
+            onClick={onSave}
+            disabled={saving}
+            startIcon={<IconSave />}
+            sx={{ flex: mobile ? 1 : 'none', minWidth: '150px', height: '48px' }}
+          >
+            {saving ? 'Guardando…' : 'Guardar Todos'}
+          </Button>
+        </Box>
       </Box>
     );
-  }
+  };
 
-  return (
-    <Box
-      sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '40px' }}
-    >
-      <Box>{secCuerpo}</Box>
-      <Box>{secCargos}</Box>
-      <Box>{secDepartamentos}</Box>
-
-      {isEditing && draft && reorderOpen && (
-        <ReorderDialog
-          open={reorderOpen}
-          departamentos={draft.departamentos}
-          onClose={() => setReorderOpen(false)}
-          onSave={(v) => updateDraft({ departamentos: v })}
-        />
-      )}
-    </Box>
-  );
+  return isEditing ? renderEditMode() : renderReadMode();
 };
 
 export default ResponsabilidadesFeature;

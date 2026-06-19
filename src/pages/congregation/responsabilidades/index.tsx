@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, ReactNode } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { IconEdit, IconSave, IconClose } from '@components/icons';
@@ -58,7 +58,7 @@ const ResponsabilidadesPage = () => {
   }, [draft]);
 
   const buttons = useMemo(() => {
-    const btns: React.ReactNode[] = [];
+    const btns: ReactNode[] = [];
 
     if (isElder || isAdmin) {
       btns.push(<ExportResponsabilidades key="export" />);
