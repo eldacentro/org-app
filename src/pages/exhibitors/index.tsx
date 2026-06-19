@@ -62,6 +62,7 @@ import worker from '@services/worker/backupWorker';
 import { congNameState, displayNameMeetingsEnableState, fullnameOptionState, pdfExportEnabledState } from '@states/settings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
+import { getEffectiveTurnsForMonth, isMonthCancelled } from '../../utils/exhibitors';
 
 const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const weekdaysSpanish = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -135,6 +136,18 @@ const Exhibitors = () => {
     setSelectedDayNum(initialSelectedDay);
   }, [initialSelectedDay]);
 
+  const currentMonthStr = useMemo(() => {
+    return `${selectedYear}/${String(selectedMonth + 1).padStart(2, '0')}`;
+  }, [selectedYear, selectedMonth]);
+
+  const effectiveTurns = useMemo(() => {
+    return getEffectiveTurnsForMonth(settings, currentMonthStr);
+  }, [settings, currentMonthStr]);
+
+  const monthCancelled = useMemo(() => {
+    return isMonthCancelled(settings, currentMonthStr);
+  }, [settings, currentMonthStr]);
+
   // Diálogo de edición de turno semanal
   const [editDialog, setEditDialog] = useState<{
     open: boolean;
@@ -164,6 +177,7 @@ const Exhibitors = () => {
     locations: string[];
     defaultLocation: string;
     newLocationText: string;
+    isMonthlyOverride: boolean;
   }>({
     open: false,
     id: '',
@@ -173,7 +187,48 @@ const Exhibitors = () => {
     locations: [],
     defaultLocation: '',
     newLocationText: '',
+    isMonthlyOverride: false,
   });
+
+  // Diálogo de Ajustes Mensuales
+  const [monthlySettingsDialog, setMonthlySettingsDialog] = useState(false);
+  const isCurrentlyOverridden = !!settings?.monthlyOverrides?.[currentMonthStr];
+
+  const handleCreateOverride = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+    localSettings.monthlyOverrides[currentMonthStr] = structuredClone(settings.turns || []);
+    await dbExhibitorsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
+  const handleRestoreGlobal = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (localSettings.monthlyOverrides) {
+      delete localSettings.monthlyOverrides[currentMonthStr];
+    }
+    await dbExhibitorsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
+  const handleToggleCancelMonth = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+    
+    if (monthCancelled) {
+      delete localSettings.monthlyOverrides[currentMonthStr];
+    } else {
+      localSettings.monthlyOverrides[currentMonthStr] = { isCancelledMonth: true };
+    }
+    await dbExhibitorsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
 
   // Forzar sincronización con la nube
   const handleForceSync = () => {
@@ -201,7 +256,7 @@ const Exhibitors = () => {
 
   // Turnos configurados activos en el mes
   const generatedSlotsInMonth = useMemo(() => {
-    if (!settings || !settings.turns || settings.turns.length === 0) return [];
+    if (!effectiveTurns || effectiveTurns.length === 0) return [];
 
     const slots = [];
     const start = new Date(selectedYear, selectedMonth, 1);
@@ -213,7 +268,7 @@ const Exhibitors = () => {
       const dayLabel = weekdaysOrder[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
 
       // Buscar si hay turnos configurados para este día
-      const dayTurns = settings.turns.filter((t) => t.days.includes(dayLabel));
+      const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
 
       for (const turn of dayTurns) {
         const weekOf = getWeekOfDate(date);
@@ -266,19 +321,19 @@ const Exhibitors = () => {
 
   // Determinar qué días de la semana tienen al menos un turno para la cuadrícula horizontal
   const activeWeekdaysInMonth = useMemo(() => {
-    if (!settings || !settings.turns || settings.turns.length === 0) return weekdaysOrder;
+    if (!effectiveTurns || effectiveTurns.length === 0) return weekdaysOrder;
     const active = new Set<string>();
-    for (const turn of settings.turns) {
+    for (const turn of effectiveTurns) {
       for (const day of turn.days) {
         active.add(day);
       }
     }
     return weekdaysOrder.filter((d) => active.has(d));
-  }, [settings]);
+  }, [effectiveTurns]);
 
   // Autocompletar todo el mes con turnos fijos
   const handleAutofillMonth = async () => {
-    if (!settings || !settings.turns || settings.turns.length === 0) return;
+    if (!effectiveTurns || effectiveTurns.length === 0) return;
 
     try {
       const uniqueWeeks = Array.from(new Set(generatedSlotsInMonth.map((s) => s.weekOf)));
@@ -574,21 +629,25 @@ const Exhibitors = () => {
 
   // --- CRUD CONFIGURACIÓN GLOBAL DE TURNOS ---
 
-  // Eliminar un turno global
-  const handleDeleteGlobalTurn = async (turnId: string) => {
+  // Eliminar un turno global o override mensual
+  const handleDeleteGlobalTurn = async (turnId: string, isMonthlyOverride: boolean = false) => {
     if (!settings) return;
     try {
-      const updatedTurns = settings.turns.filter((t) => t.id !== turnId);
-      const updatedFixed = settings.fixedAssignments.filter((f) => f.turnId !== turnId);
-      
-      const newSettings = {
-        ...settings,
-        turns: updatedTurns,
-        fixedAssignments: updatedFixed,
-      };
+      const localSettings = structuredClone(settings);
 
-      await dbExhibitorsSaveSettings(newSettings);
-      setSettings(newSettings);
+      if (isMonthlyOverride) {
+        if (!localSettings.monthlyOverrides) return;
+        const currentOverrides = localSettings.monthlyOverrides[currentMonthStr];
+        if (Array.isArray(currentOverrides)) {
+          localSettings.monthlyOverrides[currentMonthStr] = currentOverrides.filter((t) => t.id !== turnId);
+        }
+      } else {
+        localSettings.turns = localSettings.turns.filter((t) => t.id !== turnId);
+        localSettings.fixedAssignments = localSettings.fixedAssignments.filter((f) => f.turnId !== turnId);
+      }
+      
+      await dbExhibitorsSaveSettings(localSettings);
+      setSettings(localSettings);
       triggerSync();
 
       displaySnackNotification({
@@ -664,10 +723,23 @@ const Exhibitors = () => {
         defaultLocation: turnConfigDialog.defaultLocation || turnConfigDialog.locations[0] || 'Exhibidor',
       };
 
-      if (turnConfigDialog.id) {
-        localSettings.turns = localSettings.turns.map((t) => (t.id === id ? updatedTurn : t));
+      if (turnConfigDialog.isMonthlyOverride) {
+        if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+        let currentOverrides = localSettings.monthlyOverrides[currentMonthStr] || [];
+        if (!Array.isArray(currentOverrides)) currentOverrides = [];
+        const overridesArray = currentOverrides as ExhibitorTurnType[];
+
+        if (turnConfigDialog.id) {
+          localSettings.monthlyOverrides[currentMonthStr] = overridesArray.map((t) => (t.id === id ? updatedTurn : t));
+        } else {
+          localSettings.monthlyOverrides[currentMonthStr] = [...overridesArray, updatedTurn];
+        }
       } else {
-        localSettings.turns.push(updatedTurn);
+        if (turnConfigDialog.id) {
+          localSettings.turns = localSettings.turns.map((t) => (t.id === id ? updatedTurn : t));
+        } else {
+          localSettings.turns.push(updatedTurn);
+        }
       }
 
       await dbExhibitorsSaveSettings(localSettings);
@@ -1123,7 +1195,7 @@ const Exhibitors = () => {
         <Box sx={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}>
           {activeTab === 'planner' ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {(!settings || !settings.turns || settings.turns.length === 0) ? (
+              {(!effectiveTurns || effectiveTurns.length === 0) ? (
                 <Box
                   sx={{
                     display: 'flex',
@@ -1138,7 +1210,7 @@ const Exhibitors = () => {
                 >
                   <IconInfo color="var(--grey-400)" />
                   <Typography sx={{ color: 'var(--grey-400)', fontWeight: '600' }}>
-                    No hay turnos configurados globales. Ve a la pestaña &quot;Configuración&quot; en la cabecera para definir tus turnos de exhibidores.
+                    No hay turnos configurados.
                   </Typography>
                 </Box>
               ) : (
@@ -1149,8 +1221,20 @@ const Exhibitors = () => {
                       {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
                     </Typography>
                     
-                    {/* Selector de modo de vista */}
-                    <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
+                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Button
+                        variant={isCurrentlyOverridden ? 'contained' : 'outlined'}
+                        color={isCurrentlyOverridden ? 'warning' : 'primary'}
+                        size="small"
+                        onClick={() => setMonthlySettingsDialog(true)}
+                        startIcon={<IconSettings />}
+                        sx={{ borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold', boxShadow: 'none' }}
+                      >
+                        Ajustes del mes
+                      </Button>
+
+                      {/* Selector de modo de vista */}
+                      <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
                       <Button
                         onClick={() => setPlannerViewMode('lista')}
                         size="small"
@@ -2824,7 +2908,181 @@ const Exhibitors = () => {
         </DialogActions>
       </Dialog>
 
-      {/* --- DIÁLOGO 2: DIÁLOGO DE CONFIGURACIÓN GLOBAL DE TURNO --- */}
+      {/* DIÁLOGO: Ajustes Mensuales */}
+      <Dialog
+        open={monthlySettingsDialog}
+        onClose={() => setMonthlySettingsDialog(false)}
+        maxWidth="mobile"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
+        PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
+      >
+        <DialogTitle sx={{ fontWeight: '700', paddingBottom: '8px' }}>
+          Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+          {isCurrentlyOverridden ? (
+            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)' }}>
+              Este mes tiene una configuración personalizada que sobreescribe la Global.
+            </Alert>
+          ) : (
+            <Alert severity="info" sx={{ borderRadius: 'var(--radius-l)' }}>
+              Usando Configuración Global. Si necesitas horarios diferentes este mes, personalízalos aquí.
+            </Alert>
+          )}
+
+          <FormGroup sx={{ mt: '8px' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={monthCancelled}
+                  onChange={handleToggleCancelMonth}
+                  color="error"
+                />
+              }
+              label={
+                <Typography sx={{ fontWeight: '600', color: monthCancelled ? 'var(--error-main)' : 'var(--black)' }}>
+                  Suspender exhibidores todo el mes
+                </Typography>
+              }
+            />
+          </FormGroup>
+
+          {!monthCancelled && (
+            <Box sx={{ mt: '8px' }}>
+              <Typography sx={{ fontWeight: '700', fontSize: '14px', mb: '12px' }}>
+                Turnos activos este mes
+              </Typography>
+              
+              {effectiveTurns.length === 0 ? (
+                <Typography sx={{ color: 'var(--grey-500)', fontSize: '14px' }}>No hay turnos.</Typography>
+              ) : (
+                <List sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {effectiveTurns.map((turn) => (
+                    <Card
+                      key={turn.id}
+                      sx={{
+                        border: '1px solid var(--line)',
+                        borderRadius: 'var(--radius-l)',
+                        boxShadow: 'none',
+                        p: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: 'var(--always-white)'
+                      }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontWeight: '700', fontSize: '15px' }}>
+                          {turn.startTime} - {turn.endTime}
+                        </Typography>
+                        <Typography sx={{ fontSize: '13px', color: 'var(--grey-500)' }}>
+                          {turn.days.map((d) => {
+                            const idx = weekdaysOrder.indexOf(d);
+                            return weekdaysSpanish[idx];
+                          }).join(', ')}
+                        </Typography>
+                      </Box>
+                      {isCurrentlyOverridden && (
+                        <Box sx={{ display: 'flex', gap: '8px' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => {
+                              setTurnConfigDialog({
+                                open: true,
+                                id: turn.id,
+                                days: turn.days,
+                                startTime: turn.startTime,
+                                endTime: turn.endTime,
+                                locations: turn.locations,
+                                defaultLocation: turn.defaultLocation,
+                                newLocationText: '',
+                                isMonthlyOverride: true,
+                              });
+                            }}
+                          >
+                            Editar
+                          </Button>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteGlobalTurn(turn.id, true)}
+                          >
+                            <IconDelete />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Card>
+                  ))}
+                </List>
+              )}
+
+              {!isCurrentlyOverridden ? (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleCreateOverride}
+                  sx={{ mt: '16px', borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold' }}
+                >
+                  Personalizar turnos para este mes
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<IconAdd />}
+                  onClick={() => {
+                    setTurnConfigDialog({
+                      open: true,
+                      id: '',
+                      days: [],
+                      startTime: '09:00',
+                      endTime: '11:00',
+                      locations: settings?.locations || [],
+                      defaultLocation: settings?.locations?.[0] || '',
+                      newLocationText: '',
+                      isMonthlyOverride: true,
+                    });
+                  }}
+                  sx={{ mt: '16px', borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold', borderStyle: 'dashed' }}
+                >
+                  Añadir turno excepcional
+                </Button>
+              )}
+            </Box>
+          )}
+
+        </DialogContent>
+        <DialogActions sx={{ padding: '16px', justifyContent: 'space-between' }}>
+          {isCurrentlyOverridden ? (
+            <Button
+              color="error"
+              onClick={handleRestoreGlobal}
+              sx={{ fontWeight: '600', textTransform: 'none' }}
+            >
+              Restaurar al Global
+            </Button>
+          ) : (
+            <Box /> // Spacer
+          )}
+          <Button
+            onClick={() => setMonthlySettingsDialog(false)}
+            variant="contained"
+            sx={{
+              backgroundColor: 'var(--accent-main)',
+              color: 'var(--always-white)',
+              fontWeight: '700',
+              textTransform: 'none',
+              borderRadius: 'var(--radius-l)',
+            }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* --- DIÁLOGO 2: DIÁLOGO DE CONFIGURACIÓN GLOBAL O MENSUAL DE TURNO --- */}
       <Dialog
         open={turnConfigDialog.open}
         onClose={() => setTurnConfigDialog({ ...turnConfigDialog, open: false })}
@@ -2833,8 +3091,13 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
       >
-        <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
-          {turnConfigDialog.id ? 'Editar turno global' : 'Crear turno global'}
+        <DialogTitle sx={{ fontWeight: '700', paddingBottom: '8px' }}>
+          {turnConfigDialog.id ? 'Editar turno' : 'Crear turno'}
+          {turnConfigDialog.isMonthlyOverride && (
+            <Typography variant="body2" sx={{ color: 'var(--accent-main)', fontWeight: 'bold' }}>
+              (Excepción para este mes)
+            </Typography>
+          )}
         </DialogTitle>
         <DialogContent sx={{ mt: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Días de la semana */}

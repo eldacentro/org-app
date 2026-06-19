@@ -1,15 +1,18 @@
+export type ExhibitorTurnType = {
+  id: string; // ID único auto-generado (UUID)
+  days: string[]; // ['tuesday', 'saturday'] etc.
+  startTime: string; // "10:00"
+  endTime: string; // "12:00"
+  locations: string[]; // Opciones específicas de ubicación
+  defaultLocation: string;
+};
+
 export type ExhibitorSettingsType = {
   weekOf: 'settings';
   updatedAt?: string;
   lastModifiedBy?: string;
-  turns: {
-    id: string; // ID único auto-generado (UUID)
-    days: string[]; // ['tuesday', 'saturday'] etc.
-    startTime: string; // "10:00"
-    endTime: string; // "12:00"
-    locations: string[]; // Opciones específicas de ubicación
-    defaultLocation: string;
-  }[];
+  turns: ExhibitorTurnType[];
+  monthlyOverrides?: Record<string, ExhibitorTurnType[] | { isCancelledMonth: boolean }>; // YYYY/MM key
   locations: string[]; // Listado global de ubicaciones de exhibidores
   responsibles: string[]; // Array de person_uids habilitados como responsables de turno
   fixedAssignments: {

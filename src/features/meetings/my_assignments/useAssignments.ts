@@ -18,6 +18,7 @@ import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
+import { getEffectiveTurnsForMonth, isMonthCancelled } from '@utils/exhibitors';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
@@ -165,6 +166,10 @@ const useMyAssignments = () => {
       for (const week of exhibitors) {
         if (!week || !week.turns) continue;
         const weekDate = week.weekOf;
+        const monthStr = weekDate.substring(0, 7);
+        
+        if (isMonthCancelled(exhibitorsSettings, monthStr)) continue;
+        const effectiveTurns = getEffectiveTurnsForMonth(exhibitorsSettings, monthStr);
 
         for (const turn of week.turns) {
           if (
@@ -175,8 +180,9 @@ const useMyAssignments = () => {
             const myAss = turn.assignments?.find((a) => a.person === uid);
             if (myAss) {
               const roleTitle = myAss.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
-              const turnConfig = exhibitorsSettings?.turns?.find((t) => t.id === turn.turnId);
-              const timeRange = turnConfig ? `${turnConfig.startTime}-${turnConfig.endTime}` : '';
+              const turnConfig = effectiveTurns.find((t) => t.id === turn.turnId);
+              if (!turnConfig) continue; // Ignorar asignaciones de turnos eliminados
+              const timeRange = `${turnConfig.startTime}-${turnConfig.endTime}`;
               const descText = `🕒 ${timeRange}  •  📍 ${turn.location}`;
 
               results.push({

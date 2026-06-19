@@ -9,6 +9,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
+import { getEffectiveTurnsForMonth, isMonthCancelled } from '../../../../utils/exhibitors';
 
 const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) => {
   const { t } = useAppTranslation();
@@ -17,6 +18,19 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
+
+  const monthStr = useMemo(() => {
+    if (!weekRecord?.weekOf) return '';
+    return weekRecord.weekOf.substring(0, 7); // "YYYY/MM"
+  }, [weekRecord]);
+
+  const effectiveTurns = useMemo(() => {
+    return getEffectiveTurnsForMonth(settings, monthStr);
+  }, [settings, monthStr]);
+
+  const monthCancelled = useMemo(() => {
+    return isMonthCancelled(settings, monthStr);
+  }, [settings, monthStr]);
 
   const formatLegibleDate = (date: Date): string => {
     const weekdays = [
@@ -61,8 +75,8 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
       .sort()
       .map((date) => {
         const sortedTurns = groups[date].sort((a, b) => {
-          const configA = settings?.turns?.find((t) => t.id === a.turnId);
-          const configB = settings?.turns?.find((t) => t.id === b.turnId);
+          const configA = effectiveTurns.find((t) => t.id === a.turnId);
+          const configB = effectiveTurns.find((t) => t.id === b.turnId);
           const startA = configA?.startTime || '00:00';
           const startB = configB?.startTime || '00:00';
           return startA.localeCompare(startB);
@@ -78,7 +92,30 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
           turns: sortedTurns,
         };
       });
-  }, [weekRecord, settings]);
+  }, [weekRecord, effectiveTurns]);
+
+  if (monthCancelled) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          padding: '24px',
+          backgroundColor: '#fce8e6',
+          border: '1px solid var(--error-main)',
+          borderRadius: 'var(--r-lg)',
+          marginTop: '16px',
+          justifyContent: 'center',
+        }}
+      >
+        <IconCancelFilled color="var(--error-main)" />
+        <Typography className="body-regular" style={{ color: 'var(--error-main)', fontWeight: '600' }}>
+          Los turnos de exhibidores están suspendidos este mes.
+        </Typography>
+      </Box>
+    );
+  }
 
   if (groupedTurns.length === 0) {
     return (
@@ -147,8 +184,10 @@ const ExhibitorsMeeting = ({ weekRecord }: { weekRecord?: ExhibitorWeekType }) =
             {/* Lista de turnos */}
             <Stack sx={{ backgroundColor: 'var(--card)' }}>
               {turns.map((turn, idx) => {
-                const turnConfig = settings?.turns?.find((t) => t.id === turn.turnId);
-                const timeRange = turnConfig ? `${turnConfig.startTime} - ${turnConfig.endTime}` : 'Turno';
+                const turnConfig = effectiveTurns.find((t) => t.id === turn.turnId);
+                if (!turnConfig) return null; // Ignorar asignaciones huérfanas
+
+                const timeRange = `${turnConfig.startTime} - ${turnConfig.endTime}`;
                 const isAssignedToMe = turn.assignments?.some((a) => a.person === userUID);
                 const isCancelled = turn.cancelled;
 
