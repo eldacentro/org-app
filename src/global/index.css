@@ -66,6 +66,7 @@ body {
   background-color: var(--paper) !important;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
 p {
