@@ -18,7 +18,7 @@ import {
   congNameState,
   fullnameState,
 } from '@states/settings';
-import { userSignOut } from '@services/firebase/auth';
+import { currentAuthUser, userSignOut } from '@services/firebase/auth';
 
 const useNavbar = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const useNavbar = () => {
 
   const fullname = useAtomValue(fullnameState);
   const congName = useAtomValue(congNameState);
-  const isCongAccountConnected = useAtomValue(congAccountConnectedState) || true;
+  const isCongAccountConnected = useAtomValue(congAccountConnectedState);
   const isAppLoad = useAtomValue(isAppLoadState);
   const accountType = useAtomValue(accountTypeState);
 
