@@ -312,7 +312,9 @@ export const dbGetMetadata = async () => {
   if (isPersonMinimal) {
     delete result.sources;
     delete result.schedules;
-    delete result.departments_schedule;
+    // departments_schedule is kept: the read-only Departments tab in weekly
+    // schedules is visible to every publisher (the editor page is role-gated
+    // separately in the router).
   }
 
   if (!isPersonViewer) {
