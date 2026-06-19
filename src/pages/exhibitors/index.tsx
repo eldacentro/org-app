@@ -1281,6 +1281,7 @@ const Exhibitors = () => {
                       >
                         Cuadrícula
                       </Button>
+                      </Box>
                     </Box>
                   </Box>
 
