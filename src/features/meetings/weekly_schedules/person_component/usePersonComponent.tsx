@@ -102,30 +102,10 @@ const usePersonComponent = ({
         };
       }
 
-      // speaker 1 field to accomodate incoming speakers
+      // talkType is needed for WM_ClosingPrayer fallback logic below
       const talkType = schedule.weekend_meeting?.public_talk_type.find(
         (record) => record.type === dataView
       );
-
-      if (
-        (assignment === 'WM_Speaker_Part1' ||
-          assignment === 'WM_ClosingPrayer') &&
-        talkType?.value === 'visitingSpeaker'
-      ) {
-        const speaker = incomingSpeakers.find(
-          (record) => record.person_uid === assigned?.value
-        );
-
-        if (speaker) {
-          result.name = speakerGetDisplayName(
-            speaker,
-            displayNameEnabled,
-            fullnameOption
-          );
-          result.female = false;
-          result.active = false;
-        }
-      }
 
       const person = persons.find(
         (record) => record.person_uid === assigned?.value
@@ -139,6 +119,25 @@ const usePersonComponent = ({
         );
         result.female = person.person_data.female.value;
         result.active = assigned.value === userUID;
+      }
+
+      // Fallback: check incomingSpeakers when not found in local persons.
+      // Covers visitingSpeaker talk type and cases where talkType is missing
+      // or out of sync with the stored speaker UID (e.g. after a talk-type change).
+      if (!result.name && assigned?.value?.length > 0) {
+        const speaker = incomingSpeakers.find(
+          (record) => record.person_uid === assigned?.value
+        );
+
+        if (speaker) {
+          result.name = speakerGetDisplayName(
+            speaker,
+            displayNameEnabled,
+            fullnameOption
+          );
+          result.female = false;
+          result.active = false;
+        }
       }
 
       // get default values for some field if blank
@@ -198,12 +197,20 @@ const usePersonComponent = ({
           assigned?.value?.length > 0 &&
           assigned?.value === speakerAssigned?.value;
 
-        if (isSpeaker && result.name && talkType?.value === 'visitingSpeaker') {
+        // Determine if the public-talk speaker is an incoming (visiting) speaker,
+        // either by explicit talkType or by UID presence in incomingSpeakers.
+        const speakerIsVisiting =
+          talkType?.value === 'visitingSpeaker' ||
+          incomingSpeakers.some(
+            (s) => s.person_uid === speakerAssigned?.value
+          );
+
+        if (isSpeaker && result.name && speakerIsVisiting) {
           result.name = `${result.name} ${t('tr_orWatchtowerStudyReader')}`;
         }
 
         if (!result?.name) {
-          if (talkType?.value !== 'visitingSpeaker') {
+          if (!speakerIsVisiting) {
             const person = persons.find(
               (record) => record.person_uid === speakerAssigned?.value
             );
@@ -243,7 +250,7 @@ const usePersonComponent = ({
             }
           }
 
-          if (talkType?.value === 'visitingSpeaker') {
+          if (speakerIsVisiting) {
             const speaker = incomingSpeakers.find(
               (record) => record.person_uid === speakerAssigned?.value
             );

@@ -799,6 +799,11 @@ export const schedulesWeekGetAssigned = ({
   let result: string;
 
   if (assigned?.value?.length > 0) {
+    // Solo values are free-text strings, return them as-is
+    if (assigned.solo) {
+      return assigned.value;
+    }
+
     const person = personsStateFind(assigned.value);
     if (person) {
       if (useDisplayName) {
@@ -816,8 +821,28 @@ export const schedulesWeekGetAssigned = ({
       }
     }
 
+    // Fallback: check incomingSpeakers when not a local person
     if (!person) {
-      result = assigned.value;
+      const fullnameOption = store.get(fullnameOptionState);
+      const incomingSpeakers = store.get(incomingSpeakersState);
+      const speaker = incomingSpeakers.find(
+        (s) => s.person_uid === assigned.value
+      );
+
+      if (speaker) {
+        result = useDisplayName
+          ? speaker.speaker_data.person_display_name.value ||
+            buildPersonFullname(
+              speaker.speaker_data.person_lastname.value,
+              speaker.speaker_data.person_firstname.value,
+              fullnameOption
+            )
+          : buildPersonFullname(
+              speaker.speaker_data.person_lastname.value,
+              speaker.speaker_data.person_firstname.value,
+              fullnameOption
+            );
+      }
     }
   }
 
