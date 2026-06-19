@@ -317,7 +317,7 @@ const Exhibitors = () => {
     }
 
     return slots;
-  }, [selectedYear, selectedMonth, settings, exhibitorsList]);
+  }, [selectedYear, selectedMonth, settings, exhibitorsList, effectiveTurns]);
 
   // Determinar qué días de la semana tienen al menos un turno para la cuadrícula horizontal
   const activeWeekdaysInMonth = useMemo(() => {
@@ -592,7 +592,7 @@ const Exhibitors = () => {
 
     try {
       const localList = structuredClone(exhibitorsList);
-      let weekRecord = localList.find((w) => w.weekOf === editDialog.weekOf);
+      const weekRecord = localList.find((w) => w.weekOf === editDialog.weekOf);
 
       if (!weekRecord || !weekRecord.turns) {
         setEditDialog({ ...editDialog, open: false });
