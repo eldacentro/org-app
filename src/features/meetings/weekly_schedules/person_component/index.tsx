@@ -72,13 +72,17 @@ const PersonComponent = (props: PersonComponentProps) => {
             <Typography 
               className="body-small-semibold" 
               sx={{ 
-                whiteSpace: 'nowrap', 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
                 overflow: 'hidden', 
                 textOverflow: 'ellipsis',
                 fontWeight: 700,
                 fontSize: '13.5px',
                 color: personData.active ? 'var(--brand-deep)' : 'var(--ink)',
-                letterSpacing: '0.1px'
+                letterSpacing: '0.1px',
+                lineHeight: 1.25,
+                wordBreak: 'break-word',
               }}
             >
               {personData.name}
