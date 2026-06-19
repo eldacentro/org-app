@@ -12,8 +12,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAtomValue } from 'jotai';
 import {
   IconAdd,
-  IconClose,
-  IconSave,
   IconGroups,
   IconAssignment,
   IconCongregation,
@@ -477,19 +475,13 @@ const ReorderDialog = ({
 // ─── Main component ──────────────────────────────────────────────────────────
 
 const ResponsabilidadesFeature = ({
-  onSave,
-  onCancelEdit,
   isEditing,
   draft,
   setDraft,
-  saving,
 }: {
-  onSave: () => void;
-  onCancelEdit: () => void;
   isEditing: boolean;
   draft: ResponsabilidadesType | null;
   setDraft: (v: ResponsabilidadesType) => void;
-  saving: boolean;
 }) => {
   const data = useAtomValue(responsabilidadesState);
   const { resolveName, ancianos, varones } = usePersonOptions();
@@ -630,7 +622,7 @@ const ResponsabilidadesFeature = ({
     };
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '120px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         {/* Cuerpo de Ancianos (Read Only View) */}
         <ReadCuerpoAncianos uids={draft.cuerpoAncianos || []} resolveName={resolveName} />
 
@@ -741,45 +733,6 @@ const ResponsabilidadesFeature = ({
             onSave={(v) => updateDraft({ departamentos: v })}
           />
         )}
-
-        {/* Sticky Action Bar */}
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: 'var(--surface-color)',
-            borderTop: '1px solid var(--line)',
-            padding: '16px 24px',
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'center',
-            boxShadow: '0 -4px 12px rgba(0,0,0,0.05)',
-            zIndex: 100,
-            backdropFilter: 'blur(10px)',
-            background: 'rgba(var(--bg-rgb), 0.8)',
-          }}
-        >
-          <Button
-            variant="secondary"
-            onClick={onCancelEdit}
-            disabled={saving}
-            startIcon={<IconClose />}
-            sx={{ flex: mobile ? 1 : 'none', minWidth: '150px', height: '48px' }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="main"
-            onClick={onSave}
-            disabled={saving}
-            startIcon={<IconSave />}
-            sx={{ flex: mobile ? 1 : 'none', minWidth: '150px', height: '48px' }}
-          >
-            {saving ? 'Guardando…' : 'Guardar Todos'}
-          </Button>
-        </Box>
       </Box>
     );
   };

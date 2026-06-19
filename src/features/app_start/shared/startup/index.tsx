@@ -36,7 +36,7 @@ const Startup = () => {
                   position: 'fixed',
                   top: 0,
                   left: 0,
-                  minHeight: '100vh',
+                  minHeight: '100dvh',
                   width: '100vw',
                   zIndex: 1300,
                   padding: { mobile: '16px', tablet: '24px' },

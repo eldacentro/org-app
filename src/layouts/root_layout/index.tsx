@@ -43,6 +43,7 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
     isImportEPUB,
     isDashboard,
     initialSetupOpen,
+    hasFloatingBottomBar,
   } = useRootLayout();
 
   if (isSupported && isAppLoad) {
@@ -69,7 +70,7 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
         <JWAutoImport />
 
-        <Box className="screen" sx={{ position: 'relative', minHeight: '100vh' }}>
+        <Box className="screen" sx={{ position: 'relative', minHeight: '100dvh' }}>
           <Box className="glow" />
 
           <Toolbar sx={{ padding: 0, backgroundColor: 'transparent !important', backgroundImage: 'none !important', boxShadow: 'none !important', minHeight: '62px' }}>
@@ -110,7 +111,14 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                   {!isTest && initialSetupOpen && <InitialSetup />}
                   {isPublisher && <AppReminders />}
 
-                  <Box sx={{ marginBottom: '32px' }}>
+                  <Box
+                    sx={{
+                      marginBottom: '32px',
+                      paddingBottom: hasFloatingBottomBar
+                        ? 'calc(80px + env(safe-area-inset-bottom, 0px))'
+                        : 0,
+                    }}
+                  >
                     <MyAssignments />
                     <Outlet />
                   </Box>

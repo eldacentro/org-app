@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { SnackbarPropsType } from './index.types';
 import InfoMessage from '@components/info-message';
+import useBreakpoints from '@hooks/useBreakpoints';
 
 /**
  * Custom transition component for the Snackbar.
@@ -19,6 +20,8 @@ const FadeTransition = (props: FadeProps) => {
  * Custom Snackbar component.
  */
 const Snackbar = (props: SnackbarPropsType) => {
+  const { tablet688Up } = useBreakpoints();
+
   const open = props.open || false;
   const messageHeader = props.messageHeader || '';
   const message = props.message || '';
@@ -76,7 +79,12 @@ const Snackbar = (props: SnackbarPropsType) => {
       sx={{
         padding: 0,
         top: position === 'top-center' ? '80px' : 'unset',
-        bottom: position === 'bottom-center' ? '24px' : 'unset',
+        bottom:
+          position === 'bottom-center'
+            ? tablet688Up
+              ? '24px'
+              : 'calc(80px + env(safe-area-inset-bottom, 0px))'
+            : 'unset',
         left: '50%',
         right: 'auto',
         transform: 'translateX(-50%)',

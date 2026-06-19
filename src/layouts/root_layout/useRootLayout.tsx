@@ -10,11 +10,12 @@ import {
   isDarkThemeState,
   isOnlineState,
   isSupportOpenState,
+  navBarOptionsState,
   restoreDbOpenState,
   userConfirmationOpenState,
 } from '@states/app';
 import { useEffect, useMemo } from 'react';
-import { useUserAutoLogin } from '@hooks/index';
+import { useBreakpoints, useUserAutoLogin } from '@hooks/index';
 import { isImportEPUBState, isImportJWOrgState } from '@states/sources';
 import { settingsState } from '@states/settings';
 import { checkPwaUpdate } from '@services/app';
@@ -40,8 +41,17 @@ const useRootLayout = () => {
   const isDemoNoticeOpen = useAtomValue(demoNoticeOpenState);
   const settings = useAtomValue(settingsState);
   const isDarkTheme = useAtomValue(isDarkThemeState);
+  const navBarOptions = useAtomValue(navBarOptionsState);
+  const { tablet688Up } = useBreakpoints();
 
   const isDashboard = location.pathname === '/';
+
+  // The page's NavBarButton actions render as a floating pill bar fixed to
+  // the bottom of the screen on mobile (see layouts/bottom_menu). Since it's
+  // position:fixed, it overlays content regardless of document flow — pages
+  // need bottom clearance so their last item never ends up hidden behind it.
+  // Centralized here so individual pages don't each need to remember it.
+  const hasFloatingBottomBar = Boolean(navBarOptions.buttons) && !tablet688Up;
 
   const initialSetupOpen = useMemo(() => {
     return settings.cong_settings.cong_new ?? false;
@@ -89,6 +99,7 @@ const useRootLayout = () => {
     isDemoNoticeOpen,
     initialSetupOpen,
     isDarkTheme,
+    hasFloatingBottomBar,
   };
 };
 

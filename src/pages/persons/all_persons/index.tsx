@@ -22,7 +22,7 @@ import ImportExport from '@features/persons/import_export';
 const PersonsAll = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { desktopUp } = useBreakpoints();
 
   const { isPersonEditor } = useCurrentUser();
 
@@ -41,7 +41,6 @@ const PersonsAll = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
       }}
     >
       <PageTitle

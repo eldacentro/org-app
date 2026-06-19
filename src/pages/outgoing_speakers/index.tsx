@@ -1153,7 +1153,7 @@ const OutgoingSpeakersPage = () => {
               backgroundColor: 'var(--card)',
               border: '1px solid var(--line)',
               boxShadow: 'var(--shadow-sm)',
-              height: 'calc(100vh - 120px)',
+              height: 'calc(100dvh - 120px)',
               overflowY: 'auto',
               flexGrow: 1,
               width: '100%',

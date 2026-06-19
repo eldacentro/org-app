@@ -113,9 +113,6 @@ const ResponsabilidadesPage = () => {
         isEditing={isEditing}
         draft={draft}
         setDraft={setDraft}
-        saving={saving}
-        onSave={save}
-        onCancelEdit={cancelEdit}
       />
     </Box>
   );
