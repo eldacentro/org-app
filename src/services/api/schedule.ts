@@ -1,6 +1,6 @@
 import { store } from '@states/index';
 import { accountTypeState } from '@states/settings';
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 import { SourceWeekType } from '@definition/sources';
 import {
   OutgoingTalkExportScheduleType,
@@ -22,7 +22,7 @@ export const apiFetchSchedule = async () => {
     let res;
 
     if (accountType === 'pocket') {
-      res = await fetch(`${apiHost}api/v3/sws-pocket/meeting-schedule`, {
+      res = await apiFetch(`${apiHost}api/v3/sws-pocket/meeting-schedule`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const apiFetchSchedule = async () => {
     }
 
     if (accountType === 'vip') {
-      res = await fetch(
+      res = await apiFetch(
         `${apiHost}api/v3/congregations/${congID}/meeting-schedule`,
         {
           method: 'GET',
@@ -61,7 +61,7 @@ export const apiPublicScheduleGet = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/schedules`,
     {
       method: 'GET',
@@ -98,7 +98,7 @@ export const apiPublishSchedule = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/schedules`,
     {
       method: 'POST',

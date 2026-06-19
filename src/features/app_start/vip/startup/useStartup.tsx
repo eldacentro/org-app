@@ -21,6 +21,7 @@ import {
   setIsEncryptionCodeOpen,
   setIsSetup,
   setUserMfaVerify,
+  setOfflineOverride,
 } from '@services/states/app';
 import { dbAppSettingsGet } from '@services/dexie/settings';
 import { congIDState } from '@states/settings';
@@ -84,13 +85,6 @@ const useStartup = () => {
     try {
       setIsLoading(true);
 
-      if (isOfflineOverride) {
-        setIsLoading(false);
-        setIsStart(false);
-        showSignin();
-        return;
-      }
-
       // Fetch the most up-to-date settings directly from Dexie to avoid Jotai asynchronous update race conditions
       const settings = await dbAppSettingsGet();
       const currentCongName = settings?.cong_settings?.cong_name || '';
@@ -98,6 +92,22 @@ const useStartup = () => {
       const currentCongMasterKey = settings?.cong_settings?.cong_master_key || '';
       const currentCongAccessCode = settings?.cong_settings?.cong_access_code || '';
       const currentCongID = settings?.cong_settings?.cong_id || '';
+
+      if (isOfflineOverride) {
+        setIsLoading(false);
+        setIsStart(false);
+        if (currentCongName.length > 0) {
+          setIsSetup(false);
+          loadApp();
+          setTimeout(() => {
+            setIsSetup(false);
+            setIsAppLoad(false);
+          }, 1000);
+        } else {
+          showSignin();
+        }
+        return;
+      }
 
       if (currentCongName.length === 0) {
         if (isAuthenticated) {
@@ -228,9 +238,20 @@ const useStartup = () => {
       setIsStart(false);
       setIsLoading(false);
     } catch (error) {
-      showSignin();
-      setIsLoading(false);
       console.error(error);
+      if (congID && congID.length > 0) {
+        setOfflineOverride(true);
+        setIsStart(false);
+        setIsSetup(false);
+        loadApp();
+        setTimeout(() => {
+          setIsSetup(false);
+          setIsAppLoad(false);
+        }, 1000);
+      } else {
+        showSignin();
+      }
+      setIsLoading(false);
     } finally {
       // Mark completed BEFORE releasing the running lock. This closes the gap
       // between startupRunningRef becoming false and React committing setIsStart(false),

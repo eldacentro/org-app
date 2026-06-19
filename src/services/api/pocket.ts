@@ -3,13 +3,13 @@ import {
   UserLoginResponseType,
   UserSessionsResponseType,
 } from '@definition/api';
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 import { APRecordType } from '@definition/ministry';
 
 export const apiPocketSignup = async (code: string) => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/signup`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/signup`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -28,7 +28,7 @@ export const apiPocketSignup = async (code: string) => {
 export const apiPocketValidateMe = async () => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/validate-me`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/validate-me`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -47,7 +47,7 @@ export const apiGetPocketSessions =
   async (): Promise<UserSessionsResponseType> => {
     const { apiHost, appVersion: appversion } = await apiDefault();
 
-    const res = await fetch(`${apiHost}api/v3/pockets/sessions`, {
+    const res = await apiFetch(`${apiHost}api/v3/pockets/sessions`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -68,7 +68,7 @@ export const apiGetPocketSessions =
 export const apiRevokePocketSession = async (id: string) => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/sessions`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/sessions`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -87,7 +87,7 @@ export const apiRevokePocketSession = async (id: string) => {
 export const apiPocketFieldServiceReportPost = async (report: object) => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/field-service-reports`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/field-service-reports`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -117,7 +117,7 @@ export const apiPocketFieldServiceReportPost = async (report: object) => {
 export const apiGetPocketApplications = async (): Promise<APRecordType[]> => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/applications`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/applications`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -141,7 +141,7 @@ export const apiPocketSubmitApplication = async (
 ) => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/applications`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/applications`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -171,7 +171,7 @@ export const apiPocketSubmitApplication = async (
 export const apiPocketDelete = async () => {
   const { apiHost, appVersion: appversion } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/pockets/erase`, {
+  const res = await apiFetch(`${apiHost}api/v3/pockets/erase`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {

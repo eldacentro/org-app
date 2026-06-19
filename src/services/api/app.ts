@@ -1,4 +1,4 @@
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 
 export const apiFeatureFlagsGet = async (
   installation: string,
@@ -7,7 +7,7 @@ export const apiFeatureFlagsGet = async (
   try {
     const { apiHost, appVersion: appversion, idToken } = await apiDefault();
 
-    const res = await fetch(`${apiHost}api/v3/public/feature-flags`, {
+    const res = await apiFetch(`${apiHost}api/v3/public/feature-flags`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

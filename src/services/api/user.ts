@@ -6,13 +6,13 @@ import {
   UserSessionsResponseType,
   ValidateMeResponseType,
 } from '@definition/api';
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 import { APRecordType } from '@definition/ministry';
 
 export const apiUserLogout = async () => {
   const { apiHost, appVersion: appversion, idToken } = await apiDefault();
 
-  await fetch(`${apiHost}api/v3/users/logout`, {
+  await apiFetch(`${apiHost}api/v3/users/logout`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -27,7 +27,7 @@ export const apiUserLogout = async () => {
 export const apiRequestPasswordlesssLink = async (email: string) => {
   const { apiHost, appVersion: appversion, appLang } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/user-passwordless-login`, {
+  const res = await apiFetch(`${apiHost}api/v3/user-passwordless-login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export const apiRequestPasswordlesssLink = async (email: string) => {
 export const apiUpdatePasswordlessInfo = async () => {
   const { apiHost, appVersion: appversion, idToken } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/user-passwordless-verify`, {
+  const res = await apiFetch(`${apiHost}api/v3/user-passwordless-verify`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -65,7 +65,7 @@ export const apiUpdatePasswordlessInfo = async () => {
 export const apiSendAuthorization = async (user?: User) => {
   const { apiHost, appVersion: appversion, idToken } = await apiDefault(user);
 
-  const res = await fetch(`${apiHost}api/v3/user-login`, {
+  const res = await apiFetch(`${apiHost}api/v3/user-login`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -84,7 +84,7 @@ export const apiSendAuthorization = async (user?: User) => {
 export const apiHandleVerifyOTP = async (userOTP: string) => {
   const { apiHost, appVersion: appversion, idToken } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/mfa/verify-token`, {
+  const res = await apiFetch(`${apiHost}api/v3/mfa/verify-token`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -104,7 +104,7 @@ export const apiHandleVerifyOTP = async (userOTP: string) => {
 export const apiValidateMe = async (): Promise<ValidateMeResponseType> => {
   const { apiHost, appVersion: appversion, idToken } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/validate-me`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/validate-me`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -128,7 +128,7 @@ export const apiGetUser2FA = async (): Promise<User2FAResponseType> => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/2fa`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/2fa`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -152,7 +152,7 @@ export const apiDisableUser2FA = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/2fa/disable`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/2fa/disable`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -176,7 +176,7 @@ export const apiRevokeVIPSession = async (id: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/sessions`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/sessions`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -202,7 +202,7 @@ export const apiGetUserSessions =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(`${apiHost}api/v3/users/${userID}/sessions`, {
+    const res = await apiFetch(`${apiHost}api/v3/users/${userID}/sessions`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -229,7 +229,7 @@ export const apiUserFieldServiceReportPost = async (report: object) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/users/${userID}/field-service-reports`,
     {
       method: 'POST',
@@ -268,7 +268,7 @@ export const apiUserSubmitApplication = async (application: APFormOutgoing) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/applications`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/applications`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -306,7 +306,7 @@ export const apiUserGetApplications = async (): Promise<APRecordType[]> => {
 
   if (!userID) return [];
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/applications`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/applications`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -339,7 +339,7 @@ export const apiUserGetUpdates =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/users/${userID}/updates-routine`,
       {
         method: 'GET',
@@ -366,7 +366,7 @@ export const apiUserPostFeedback = async (subject: string, message: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/feedback`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/feedback`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -393,7 +393,7 @@ export const apiUserDelete = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/erase`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/erase`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -430,7 +430,7 @@ export const apiUserJoinCongregation = async ({
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/users/${userID}/join-congregation`,
       {
         method: 'POST',
@@ -468,7 +468,7 @@ export const apiHandleVerifyEmailOTP = async (userOTP: string) => {
 
   const email = localStorage.getItem('emailForSignIn');
 
-  const res = await fetch(`${apiHost}api/v3/verify-email-token`, {
+  const res = await apiFetch(`${apiHost}api/v3/verify-email-token`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -494,7 +494,7 @@ export const apiRegisterPushToken = async (token: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/push-token`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/push-token`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -520,7 +520,7 @@ export const apiDeletePushToken = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/push-token`, {
+  const res = await apiFetch(`${apiHost}api/v3/users/${userID}/push-token`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {

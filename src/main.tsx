@@ -64,6 +64,16 @@ const root = createRoot(container, {
   onRecoverableError: Sentry.reactErrorHandler(),
 });
 
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().then((granted) => {
+    if (granted) {
+      console.info('Storage persistence granted.');
+    } else {
+      console.warn('Storage persistence not granted.');
+    }
+  });
+}
+
 root.render(
   <React.StrictMode>
     <AppRoot />

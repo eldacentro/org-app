@@ -114,14 +114,14 @@ const useUserAutoLogin = () => {
           return;
         }
 
-        if (errorVip || dataVip.result.message) {
-          const msg = errorVip?.message || dataVip.result.message;
+        if (errorVip || dataVip?.result?.message || dataVip?.status >= 500) {
+          const msg = errorVip?.message || dataVip?.result?.message || 'Network Error';
           logger.error('app', msg);
-
+          setOfflineOverride(true);
           return;
         }
 
-        if (dataVip.status === 200) {
+        if (dataVip && dataVip.status === 200) {
 
 
           if (congID.length > 0 && dataVip.result.cong_id !== congID) {
@@ -268,14 +268,14 @@ const useUserAutoLogin = () => {
           return;
         }
 
-        if (errorPocket || dataPocket.result.message) {
-          const msg = errorPocket?.message || dataPocket.result.message;
+        if (errorPocket || dataPocket?.result?.message || dataPocket?.status >= 500) {
+          const msg = errorPocket?.message || dataPocket?.result?.message || 'Network Error';
           logger.error('app', msg);
-
+          setOfflineOverride(true);
           return;
         }
 
-        if (dataPocket.status === 200) {
+        if (dataPocket && dataPocket.status === 200) {
           if (
             congID.length > 0 &&
             dataPocket.result.app_settings.cong_settings.id !== congID
@@ -330,6 +330,7 @@ const useUserAutoLogin = () => {
     setCongConnected,
     setUserID,
     setIsMFAEnabled,
+    setOfflineOverride,
     congID,
   ]);
 

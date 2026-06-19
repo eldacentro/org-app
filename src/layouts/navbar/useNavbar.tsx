@@ -3,11 +3,8 @@ import { useAtom, useAtomValue } from 'jotai';
 import {
   disconnectCongAccount,
   setIsAboutOpen,
-  setIsAppLoad,
   setIsContactOpen,
-  setIsSetup,
   setIsSupportOpen,
-  setOfflineOverride,
 } from '@services/states/app';
 import { useBreakpoints } from '@hooks/index';
 import {
@@ -67,12 +64,19 @@ const useNavbar = () => {
     navBarOptions.quickSettings();
   };
 
-  const handleReconnectAccount = () => {
+  const handleReconnectAccount = async () => {
     handleCloseMore();
 
-    setOfflineOverride(true);
-    setIsSetup(true);
-    setIsAppLoad(true);
+    const user = currentAuthUser();
+    if (user) {
+      try {
+        await user.getIdToken(true);
+      } catch (error) {
+        console.error('Error refreshing token on reconnect:', error);
+      }
+    }
+    
+    globalThis.location.reload();
   };
 
   const handleOpenContact = async () => {

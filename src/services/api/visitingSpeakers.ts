@@ -1,5 +1,5 @@
 import { VisitingSpeakersAccessResponseType } from '@definition/api';
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 
 export const apiGetApprovedVisitingSpeakersAccess =
   async (): Promise<VisitingSpeakersAccessResponseType> => {
@@ -10,7 +10,7 @@ export const apiGetApprovedVisitingSpeakersAccess =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/access`,
       {
         method: 'GET',
@@ -41,7 +41,7 @@ export const apiRequestAccessCongregationSpeakers = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/request`,
     {
       method: 'POST',
@@ -69,7 +69,7 @@ export const apiFindCongregationSpeakers = async (name: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/congregations?name=${name}`,
     {
       method: 'GET',
@@ -97,7 +97,7 @@ export const apiGetPendingVisitingSpeakersAccess =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/pending-access`,
       {
         method: 'GET',
@@ -127,7 +127,7 @@ export const apiApproveRequestCongregationSpeakers = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/request/approve`,
     {
       method: 'POST',
@@ -157,7 +157,7 @@ export const apiRejectRequestCongregationSpeakers = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/meeting/${congID}/visiting-speakers/request/reject`,
     {
       method: 'POST',

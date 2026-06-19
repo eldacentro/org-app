@@ -1,4 +1,4 @@
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 
 export const apiSendTerritoryPush = async (
   target_person_uids: string[],
@@ -16,7 +16,7 @@ export const apiSendTerritoryPush = async (
     throw new Error('No congregation ID found');
   }
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/${congID}/territories/push`,
     {
       method: 'POST',

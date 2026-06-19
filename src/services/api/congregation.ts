@@ -3,7 +3,7 @@ import {
   APIUserRequest,
   CongregationUserType,
 } from '@definition/api';
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 import { AppRoleType } from '@definition/app';
 import { APRecordType } from '@definition/ministry';
 
@@ -15,7 +15,7 @@ export const apiFetchCountries = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/countries?language=${JWLang.toUpperCase()}`,
     {
       method: 'GET',
@@ -45,7 +45,7 @@ export const apiFetchCongregations = async (country: string, name: string) => {
     return { data: [] };
   }
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/search?language=${JWLang.toUpperCase()}&country=${country}&name=${name}`,
     {
       method: 'GET',
@@ -78,7 +78,7 @@ export const apiCreateCongregation = async (
     appLang,
   } = await apiDefault();
 
-  const res = await fetch(`${apiHost}api/v3/congregations`, {
+  const res = await apiFetch(`${apiHost}api/v3/congregations`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -110,7 +110,7 @@ export const apiFetchCongregationUsers = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/members`,
     {
       method: 'GET',
@@ -137,7 +137,7 @@ export const apiSetCongregationMasterKey = async (key: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/master-key`,
     {
       method: 'POST',
@@ -168,7 +168,7 @@ export const apiGetAutoProvision = async () => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/auto-provision`,
     {
       method: 'GET',
@@ -201,7 +201,7 @@ export const apiSetAutoProvision = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/auto-provision`,
     {
       method: 'POST',
@@ -229,7 +229,7 @@ export const apiSetCongregationAccessCode = async (access_code: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/access-code`,
     {
       method: 'POST',
@@ -258,7 +258,7 @@ export const apiGetCongregationMasterKey =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/master-key`,
       {
         credentials: 'include',
@@ -285,7 +285,7 @@ export const apiGetCongregationAccessCode =
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/access-code`,
       {
         credentials: 'include',
@@ -324,7 +324,7 @@ export const apiPocketUserCreate = async ({
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/pocket-user`,
       {
         method: 'POST',
@@ -376,7 +376,7 @@ export const apiCreateCongregationInvitation = async ({
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/invitations`,
       {
         method: 'POST',
@@ -417,7 +417,7 @@ export const apiDeleteCongregationInvitation = async (personUid: string) => {
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/invitations/${personUid}`,
       {
         method: 'DELETE',
@@ -452,7 +452,7 @@ export const apiCongregationUsersGet = async () => {
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/users`,
       {
         credentials: 'include',
@@ -502,7 +502,7 @@ export const apiCongregationUserUpdate = async ({
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/users/${user_id}`,
       {
         method: 'PATCH',
@@ -548,7 +548,7 @@ export const apiAdminRevokeUserSession = async (
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/users/${user_id}/sessions`,
       {
         method: 'DELETE',
@@ -584,7 +584,7 @@ export const apiAdminDeletePocketCode = async (user_id: string) => {
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/pocket-user/${user_id}`,
       {
         method: 'DELETE',
@@ -618,7 +618,7 @@ export const apiAdminGlobalSearchUser = async (email: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/users/global?email=${email}`,
     {
       method: 'GET',
@@ -658,7 +658,7 @@ export const apiCreateUser = async ({
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/users`,
       {
         method: 'POST',
@@ -700,7 +700,7 @@ export const apiCongregationUserDelete = async (user_id: string) => {
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/users/${user_id}`,
       {
         method: 'DELETE',
@@ -736,7 +736,7 @@ export const apiCongregationSaveApplication = async (
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/${congID}/applications/${application.request_id}`,
     {
       method: 'PATCH',
@@ -772,7 +772,7 @@ export const apiCongregationDeleteApplication = async (request_id: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/${congID}/applications/${request_id}`,
     {
       method: 'DELETE',
@@ -807,7 +807,7 @@ export const apiSetUserUid = async (user_uid: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/local-uid`,
     {
       method: 'POST',
@@ -839,7 +839,7 @@ export const apiCongregationDelete = async (key: string) => {
     idToken,
   } = await apiDefault();
 
-  const res = await fetch(
+  const res = await apiFetch(
     `${apiHost}api/v3/congregations/admin/${congID}/erase`,
     {
       method: 'DELETE',
@@ -870,7 +870,7 @@ export const apiCongregationJoinRequestDecline = async (user: string) => {
       idToken,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/join-requests`,
       {
         method: 'DELETE',
@@ -919,7 +919,7 @@ export const apiCongregationJoinRequestAccept = async ({
       appLang,
     } = await apiDefault();
 
-    const res = await fetch(
+    const res = await apiFetch(
       `${apiHost}api/v3/congregations/admin/${congID}/join-requests`,
       {
         method: 'PATCH',

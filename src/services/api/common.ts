@@ -36,3 +36,54 @@ export const apiDefault = async (user?: User) => {
     roles,
   };
 };
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+};
+
+export const apiFetch = async (
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> => {
+  let res = await fetch(input, init);
+  
+  if (res.status === 401) {
+    const authUser = currentAuthUser();
+    if (authUser) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          const newToken = await authUser.getIdToken(true);
+          isRefreshing = false;
+          onTokenRefreshed(newToken);
+        } catch (error) {
+          isRefreshing = false;
+          onTokenRefreshed('');
+          console.error('Error refreshing token on 401:', error);
+          return res;
+        }
+      }
+
+      const newToken = await new Promise<string>((resolve) => {
+        subscribeTokenRefresh((token) => resolve(token));
+      });
+
+      if (newToken) {
+        const headers = new Headers(init?.headers);
+        headers.set('Authorization', `Bearer ${newToken}`);
+        const newInit = { ...init, headers };
+        res = await fetch(input, newInit);
+      }
+    }
+  }
+  
+  return res;
+};

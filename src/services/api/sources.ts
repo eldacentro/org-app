@@ -1,4 +1,4 @@
-import { apiDefault } from './common';
+import { apiDefault, apiFetch } from './common';
 
 export const apiFetchSources = async () => {
   const { isOnline, JWLang } = await apiDefault();
@@ -8,7 +8,7 @@ export const apiFetchSources = async () => {
       import.meta.env.VITE_SOURCE_MATERIALS_API ||
       'https://source-materials.organized-app.com';
 
-    const res = await fetch(`${url}/api/${JWLang}`, {
+    const res = await apiFetch(`${url}/api/${JWLang}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });

@@ -5,7 +5,7 @@ import {
   OAuthProvider,
   getAuth,
   getRedirectResult,
-  indexedDBLocalPersistence,
+  browserLocalPersistence,
   setPersistence,
   signInWithCustomToken,
   signInWithPopup,
@@ -29,7 +29,7 @@ export const currentAuthUser = () => {
 export const setAuthPersistence = async () => {
   const auth = getAuth();
 
-  await setPersistence(auth, indexedDBLocalPersistence);
+  await setPersistence(auth, browserLocalPersistence);
 };
 
 export const userSignInCustomToken = async (code: string) => {
