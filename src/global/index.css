@@ -67,6 +67,7 @@ body {
   margin: 0;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 p {

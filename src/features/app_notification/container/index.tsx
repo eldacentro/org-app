@@ -52,6 +52,7 @@ const NotificationContainer = ({
         sx={{
           height: '100%',
           overflow: 'auto',
+          overscrollBehavior: 'contain',
           '&::-webkit-scrollbar': { width: '4px' },
         }}
       >

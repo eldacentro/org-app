@@ -101,6 +101,7 @@ const MyAssignments = () => {
         minHeight: 0,
         mt: '-8px',
         overflowY: 'auto',
+        overscrollBehavior: 'contain',
         '&::-webkit-scrollbar': {
           width: '4px',
         },

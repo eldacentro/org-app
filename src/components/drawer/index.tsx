@@ -146,7 +146,12 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           </Stack>
         </Stack>
 
-        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'none', display: 'flex', flexDirection: 'column', pb: 'env(safe-area-inset-bottom, 20px)' }}>
+        {/* This wrapper never scrolls itself — each consumer owns its own
+            scrollable area sized to fit, so there's exactly one scroll
+            surface. Two nested `overflow: auto` boxes fighting over the
+            same touch gesture is what made the drawer feel like the page
+            behind it was scrolling. */}
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', pb: 'env(safe-area-inset-bottom, 20px)' }}>
           {children}
         </Box>
       </Stack>
