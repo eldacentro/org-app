@@ -206,6 +206,7 @@ const Button: FC<ButtonPropsType> = (props) => {
         fontFeatureSettings: '"cv05"',
         padding: variant === 'small' ? '4px 8px' : '8px 16px',
         backgroundColor: getBackgroundColor(),
+        transition: 'transform 100ms ease, background-color 150ms ease',
         border:
           internalVariant === 'outlined'
             ? '1px solid var(--accent-dark)'
@@ -240,6 +241,7 @@ const Button: FC<ButtonPropsType> = (props) => {
 
         '&:active': {
           backgroundColor: getBackgroundColorClick(),
+          transform: 'scale(0.97)',
           border:
             internalVariant === 'outlined'
               ? '1px solid var(--accent-dark)'
