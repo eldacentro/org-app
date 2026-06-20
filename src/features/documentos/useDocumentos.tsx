@@ -24,6 +24,10 @@ export const CATEGORIAS_INICIALES = [
 let _activeCongId: string | null = null;
 let _unsubDocs: (() => void) | null = null;
 let _unsubCats: (() => void) | null = null;
+// Evita sembrar categorías dos veces si onSnapshot dispara el callback con
+// cats.length === 0 más de una vez (cache local + confirmación del servidor)
+// antes de que el primer saveCategoriasFirestore() se refleje de vuelta.
+let _seedingCategories = false;
 
 export const useDocumentos = () => {
   const setDocumentos = useSetAtom(documentosState);
@@ -77,6 +81,9 @@ export const useDocumentos = () => {
 
     _unsubCats = subscribeCategories(congId, (cats) => {
       if (cats.length === 0) {
+        if (_seedingCategories) return;
+        _seedingCategories = true;
+
         // Primera vez: sembrar categorías por defecto
         const initialCats: DocumentoCategoria[] = CATEGORIAS_INICIALES.map(
           (c, i) => ({
@@ -87,7 +94,11 @@ export const useDocumentos = () => {
             updatedAt: new Date().toISOString(),
           })
         );
-        saveCategoriasFirestore(congId, initialCats).catch(console.error);
+        saveCategoriasFirestore(congId, initialCats)
+          .catch(console.error)
+          .finally(() => {
+            _seedingCategories = false;
+          });
         return;
       }
       setCategorias(cats);

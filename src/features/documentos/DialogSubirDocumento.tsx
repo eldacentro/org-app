@@ -9,7 +9,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import { DocumentoArchivo, DocumentoVigencia } from '@definition/documentos';
 import { dbDocumentosGuardarArchivo } from '@services/dexie/documentos';
-import { uploadDocumentoPDF, saveDocumentoFirestore } from '@services/firebase/documentos';
+import { uploadDocumentoPDF, saveDocumentoFirestore, deleteDocumentoPDF } from '@services/firebase/documentos';
 import useCurrentUser from '@hooks/useCurrentUser';
 import { congIDState } from '@states/settings';
 import { documentoCategoriasState } from '@states/documentos';
@@ -97,6 +97,10 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       return;
     }
 
+    const id = crypto.randomUUID();
+    let uploaded = false;
+    let firestoreSaved = false;
+
     try {
       setIsCompressing(true);
       setError(null);
@@ -110,8 +114,8 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       setIsCompressing(false);
       setIsUploading(true);
 
-      const id = crypto.randomUUID();
       const downloadURL = await uploadDocumentoPDF(congId, id, compressedBlob);
+      uploaded = true;
 
       const doc: DocumentoArchivo = {
         id,
@@ -131,6 +135,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
 
       // Guardar metadatos en Firestore (visible para todos los dispositivos)
       await saveDocumentoFirestore(congId, doc);
+      firestoreSaved = true;
 
       // Guardar PDF localmente en este dispositivo para acceso instantáneo
       await dbDocumentosGuardarArchivo(id, base64Data);
@@ -142,6 +147,16 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       setError((err as Error).message || 'Error al procesar el archivo');
       setIsCompressing(false);
       setIsUploading(false);
+
+      // El archivo subió a Storage pero el registro en Firestore nunca se
+      // creó — sin esto quedaría huérfano: ocupando espacio, sin ningún
+      // registro que lo referencie ni forma de borrarlo desde la app. Si
+      // Firestore SÍ se guardó y lo que falló fue el paso siguiente (caché
+      // local en Dexie), no debe borrarse: ese registro ya es la fuente de
+      // verdad para el resto de dispositivos.
+      if (uploaded && !firestoreSaved) {
+        deleteDocumentoPDF(congId, id).catch(console.error);
+      }
     }
   };
 
