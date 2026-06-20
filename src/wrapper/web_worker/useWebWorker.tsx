@@ -31,6 +31,7 @@ import worker from '@services/worker/backupWorker';
 import { checkAndQueueAssignmentPush } from '@services/push/diff';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
+import { processPendingPublisherReports } from '@services/app/pending_publisher_reports';
 
 const useWebWorker = () => {
   const location = useLocation();
@@ -71,6 +72,14 @@ const useWebWorker = () => {
 
   const backupEnabled = isOnline && isConnected && backupAuto;
   const interval = backupInterval * 60 * 1000;
+
+  // Retry any publisher field service reports that couldn't be sent earlier
+  // because of a connectivity problem, as soon as we're back online.
+  useEffect(() => {
+    if (isOnline) {
+      processPendingPublisherReports().catch(console.error);
+    }
+  }, [isOnline]);
 
   const sourceLang =
     LANGUAGE_LIST.find((record) => record.code.toUpperCase() === jwLang)
@@ -181,12 +190,20 @@ const useWebWorker = () => {
 
         worker.postMessage('startWorker');
       }
+
+      // Also retry pending publisher reports here, not just on the isOnline
+      // online/offline transition — a request can fail (timeout, dropped
+      // packet) without navigator.onLine ever flipping, so the isOnline
+      // effect alone would leave it stuck until the next real disconnect.
+      if (isOnline) {
+        processPendingPublisherReports().catch(console.error);
+      }
     }, interval);
 
     return () => {
       clearInterval(runBackupTimer);
     };
-  }, [backupEnabled, interval, user, location]);
+  }, [backupEnabled, interval, user, location, isOnline]);
 
   useEffect(() => {
     const runCheckLastBackup = setInterval(() => {

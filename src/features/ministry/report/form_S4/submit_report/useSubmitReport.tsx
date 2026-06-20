@@ -34,6 +34,10 @@ import { decryptData, encryptObject } from '@services/encryption';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import { dbDelegatedFieldServiceReportsSave } from '@services/dexie/delegated_field_service_reports';
 import { handleSaveDailyFieldServiceReport } from '@services/app/user_field_service_reports';
+import {
+  isNetworkError,
+  queuePendingPublisherReport,
+} from '@services/app/pending_publisher_reports';
 
 const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
   const { t } = useAppTranslation();
@@ -190,7 +194,9 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
     await handleSaveFieldServiceReports(report);
   };
 
-  const handleSubmitPublisher = async (round: boolean) => {
+  // Returns true if the report was queued for automatic retry instead of
+  // sent immediately (connectivity problem, not a real failure).
+  const handleSubmitPublisher = async (round: boolean): Promise<boolean> => {
     let fieldHours = +hours_fields.split(':').at(0);
 
     if (round) {
@@ -214,47 +220,67 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
       _deleted: false,
     };
 
-    if (accountType === 'vip') {
-      const whoami = await apiValidateMe();
-      const data = whoami.result;
-      const remoteCode = data.cong_access_code;
+    try {
+      if (accountType === 'vip') {
+        const whoami = await apiValidateMe();
+        const data = whoami.result;
+        const remoteCode = data.cong_access_code;
 
-      const accessCode = decryptData(
-        remoteCode,
+        const accessCode = decryptData(
+          remoteCode,
+          localAccessCode,
+          'access_code'
+        );
+
+        encryptObject({ data: report, table: 'incoming_reports', accessCode });
+
+        await apiUserFieldServiceReportPost(report);
+      }
+
+      if (accountType === 'pocket') {
+        const whoami = await apiPocketValidateMe();
+        const data = whoami.result;
+        const remoteCode = data.app_settings.cong_settings.cong_access_code;
+
+        const accessCode = decryptData(
+          remoteCode,
+          localAccessCode,
+          'access_code'
+        );
+
+        encryptObject({ data: report, table: 'incoming_reports', accessCode });
+
+        await apiPocketFieldServiceReportPost(report);
+      }
+
+      return false;
+    } catch (error) {
+      if (!isNetworkError(error)) throw error;
+
+      // Connectivity problem, not a real failure — queue the original
+      // (unencrypted) report and retry automatically once back online,
+      // instead of losing what the person just filled in.
+      queuePendingPublisherReport({
+        accountType,
         localAccessCode,
-        'access_code'
-      );
+        report,
+      });
 
-      encryptObject({ data: report, table: 'incoming_reports', accessCode });
-
-      await apiUserFieldServiceReportPost(report);
-    }
-
-    if (accountType === 'pocket') {
-      const whoami = await apiPocketValidateMe();
-      const data = whoami.result;
-      const remoteCode = data.app_settings.cong_settings.cong_access_code;
-
-      const accessCode = decryptData(
-        remoteCode,
-        localAccessCode,
-        'access_code'
-      );
-
-      encryptObject({ data: report, table: 'incoming_reports', accessCode });
-
-      await apiPocketFieldServiceReportPost(report);
+      return true;
     }
   };
 
-  const handleSubmit = async (round = false) => {
+  // Returns true if the report was queued for retry rather than sent now.
+  const handleSubmit = async (round = false): Promise<boolean> => {
+    let queued = false;
+
     // check if current role is secretary or group overseer
     if (isSecretary || isGroupOverseer || isLanguageGroupOverseer) {
       await handleSubmitSelf(round);
     }
 
     if (!isSecretary && !isGroupOverseer && !isLanguageGroupOverseer) {
-      await handleSubmitPublisher(round);
+      queued = await handleSubmitPublisher(round);
     }
 
     if (isSelf) {
@@ -349,6 +375,8 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
 
       await dbDelegatedFieldServiceReportsSave(report);
     }
+
+    return queued;
   };
 
   const handleTransferAndSubmit = async () => {
@@ -359,11 +387,13 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
     try {
       setIsProcessing(true);
 
-      await handleSubmit();
+      const queued = await handleSubmit();
 
       displaySnackNotification({
         header: t('tr_done'),
-        message: t('tr_reportSubmittedDesc', { month: month_name }),
+        message: queued
+          ? 'Tu informe se guardó. Se enviará automáticamente en cuanto vuelva la conexión.'
+          : t('tr_reportSubmittedDesc', { month: month_name }),
         severity: 'success',
       });
 
@@ -389,11 +419,13 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
     try {
       setIsProcessing(true);
 
-      await handleSubmit(true);
+      const queued = await handleSubmit(true);
 
       displaySnackNotification({
         header: t('tr_done'),
-        message: t('tr_reportSubmittedDesc', { month: month_name }),
+        message: queued
+          ? 'Tu informe se guardó. Se enviará automáticamente en cuanto vuelva la conexión.'
+          : t('tr_reportSubmittedDesc', { month: month_name }),
         severity: 'success',
       });
 
