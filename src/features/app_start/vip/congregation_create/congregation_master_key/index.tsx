@@ -164,7 +164,7 @@ const CongregationMasterKey = () => {
                 />
               ) : null
             }
-            disabled={btnActionDisabled}
+            disabled={btnActionDisabled || isProcessing}
           >
             {t('tr_encryptionCodeSet')}
           </Button>

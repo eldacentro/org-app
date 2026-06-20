@@ -20,6 +20,7 @@ const VerifyMFA = () => {
     hasError,
     handleGoBack,
     tokenDev,
+    isProcessing,
   } = useVerifyMFA();
 
   return (
@@ -44,6 +45,7 @@ const VerifyMFA = () => {
             value={code}
             onChange={handleCodeChange}
             hasError={hasError}
+            TextFieldsProps={{ disabled: isProcessing }}
           />
 
           {tokenDev?.length > 0 && (

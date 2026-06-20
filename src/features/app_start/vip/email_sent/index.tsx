@@ -20,6 +20,7 @@ const EmailSent = () => {
     handleCodeChange,
     hasError,
     handleReturnChooser,
+    isProcessing,
   } = useEmailSent();
 
   return (
@@ -50,6 +51,7 @@ const EmailSent = () => {
             value={code}
             onChange={handleCodeChange}
             hasError={hasError}
+            TextFieldsProps={{ disabled: isProcessing }}
           />
         </Stack>
 

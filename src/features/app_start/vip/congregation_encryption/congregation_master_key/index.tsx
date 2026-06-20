@@ -95,7 +95,7 @@ const CongregationEncryption = () => {
                     />
                   ) : null
                 }
-                disabled={btnActionDisabled}
+                disabled={btnActionDisabled || isProcessing}
               >
                 {t('tr_encryptionCodeValidate')}
               </Button>

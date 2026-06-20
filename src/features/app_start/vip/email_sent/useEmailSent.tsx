@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import {
@@ -32,6 +32,11 @@ const useEmailSent = () => {
 
   const [code, setCode] = useState('');
   const [hasError, setHasError] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  // Synchronous lock: the 6th digit auto-triggers verification, and without
+  // this, pasting a code or re-typing fast enough could fire a second
+  // apiHandleVerifyEmailOTP call while the first is still in flight.
+  const verifyingRef = useRef(false);
 
   const handleReturnChooser = () => {
     setIsEmailSent(false);
@@ -62,6 +67,10 @@ const useEmailSent = () => {
   };
 
   const handleVerifyCode = async (code: string) => {
+    if (verifyingRef.current) return;
+    verifyingRef.current = true;
+    setIsProcessing(true);
+
     try {
       const { data, status } = await apiHandleVerifyEmailOTP(code);
 
@@ -96,10 +105,14 @@ const useEmailSent = () => {
       });
 
       showMessage();
+    } finally {
+      verifyingRef.current = false;
+      setIsProcessing(false);
     }
   };
 
   const handleCodeChange = (value: string) => {
+    if (verifyingRef.current) return;
     setHasError(false);
     setCode(value);
 
@@ -118,6 +131,7 @@ const useEmailSent = () => {
     code,
     hasError,
     handleReturnChooser,
+    isProcessing,
   };
 };
 

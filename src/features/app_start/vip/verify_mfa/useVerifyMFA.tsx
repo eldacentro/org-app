@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { displayOnboardingFeedback } from '@services/states/app';
@@ -35,6 +35,11 @@ const useVerifyMFA = () => {
 
   const [code, setCode] = useState('');
   const [hasError, setHasError] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  // Synchronous lock: the 6th digit auto-triggers verification, and without
+  // this, pasting a code or re-typing fast enough could fire a second
+  // apiHandleVerifyOTP call while the first is still in flight.
+  const verifyingRef = useRef(false);
 
   const handleGoBack = () => {
     setIsMfaVerify(false);
@@ -42,6 +47,7 @@ const useVerifyMFA = () => {
   };
 
   const handleCodeChange = (value: string) => {
+    if (verifyingRef.current) return;
     setHasError(false);
     setCode(value);
 
@@ -146,6 +152,10 @@ const useVerifyMFA = () => {
   };
 
   const handleVerifyCode = async (code: string) => {
+    if (verifyingRef.current) return;
+    verifyingRef.current = true;
+    setIsProcessing(true);
+
     try {
       const { data, status } = await apiHandleVerifyOTP(code);
 
@@ -176,6 +186,9 @@ const useVerifyMFA = () => {
       });
 
       showMessage();
+    } finally {
+      verifyingRef.current = false;
+      setIsProcessing(false);
     }
   };
 
@@ -189,6 +202,7 @@ const useVerifyMFA = () => {
     hasError,
     handleGoBack,
     tokenDev,
+    isProcessing,
   };
 };
 
