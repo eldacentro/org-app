@@ -1053,6 +1053,43 @@ body {
   --preaching-border: rgba(221, 140, 44, 0.18) !important;
 }
 
+@keyframes page-enter-forward {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes page-enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.page-transition--forward {
+  animation: page-enter-forward 220ms ease-out;
+}
+
+.page-transition--back {
+  animation: page-enter-back 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition--forward,
+  .page-transition--back {
+    animation: none;
+  }
+}
+
 [data-theme^='green-dark'] {
   --preaching-color: #fbbf24 !important;
   --preaching-tint: rgba(251, 191, 36, 0.12) !important;

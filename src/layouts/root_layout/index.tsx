@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Outlet, ScrollRestoration } from 'react-router';
+import { ScrollRestoration } from 'react-router';
 import { Box, Container, Toolbar } from '@mui/material';
 import { IconClose } from '@components/icons';
 import { AppModalWrapper, WebWorkerWrapper } from '@wrapper/index';
@@ -24,6 +24,7 @@ import JWAutoImport from '@features/meeting_materials/jw_auto_import';
 import JWMaterialsImport from '@features/meeting_materials/jw_import';
 import MyAssignments from '@features/meetings/my_assignments';
 import NavBar from '@layouts/navbar';
+import PageTransition from './PageTransition';
 import Support from '@features/support';
 import UnsupportedBrowser from '@features/app_start/shared/unsupported_browser';
 import WaitingLoader from '@components/waiting_loader';
@@ -122,7 +123,7 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                     }}
                   >
                     <MyAssignments />
-                    <Outlet />
+                    <PageTransition />
                   </Box>
                 </Suspense>
               </>
