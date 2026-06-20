@@ -2156,16 +2156,28 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
     const affectedUids = new Set<string>();
 
-    const extractUUIDs = (o: unknown): Set<string> => {
+    // Person references in these schedule-shaped tables always live under a
+    // 'value' or 'person' key (chairman/outgoing_talks/departments use
+    // 'value'; service_outings/exhibitors use 'person'). Record-own 'id'
+    // fields are also UUID-shaped but are NOT person references — collecting
+    // those too would tell the backend to wake people who have no actual
+    // change, which is how this used to misfire.
+    const PERSON_REF_KEYS = new Set(['value', 'person']);
+
+    const extractPersonUids = (o: unknown): Set<string> => {
       const uuids = new Set<string>();
       const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const traverse = (item: unknown) => {
-        if (typeof item === 'string' && regex.test(item)) {
-          uuids.add(item);
-        } else if (Array.isArray(item)) {
-          (item as unknown[]).forEach(traverse);
+        if (Array.isArray(item)) {
+          item.forEach(traverse);
         } else if (item !== null && typeof item === 'object') {
-          Object.values(item as Record<string, unknown>).forEach(traverse);
+          for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+            if (PERSON_REF_KEYS.has(key) && typeof value === 'string' && regex.test(value)) {
+              uuids.add(value);
+            } else {
+              traverse(value);
+            }
+          }
         }
       };
       traverse(o);
@@ -2181,13 +2193,20 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       remoteArray: T[],
       keyField: keyof T & string
     ) => {
+      // Cold-start guard: an empty remote baseline (first sync, or a backup
+      // that hasn't caught up yet) is not evidence of a real edit — diffing
+      // against it would flag every assigned person in every local week as
+      // "affected" in one shot. Mirrors the seeding guard the client-side
+      // per-device diff already has (checkAndQueueAssignmentPush).
+      if (remoteArray.length === 0 && localArray.length > 0) return;
+
       for (const local of localArray) {
         const remote = remoteArray.find((r) => r[keyField] === local[keyField]);
         const localUpdated = local.updatedAt || '';
         const remoteUpdated = remote?.updatedAt || '';
         if (!remote || localUpdated > remoteUpdated) {
-          const oldUids = remote ? extractUUIDs(remote) : new Set<string>();
-          const newUids = extractUUIDs(local);
+          const oldUids = remote ? extractPersonUids(remote) : new Set<string>();
+          const newUids = extractPersonUids(local);
           for (const uid of oldUids) if (!newUids.has(uid)) affectedUids.add(uid);
           for (const uid of newUids) if (!oldUids.has(uid)) affectedUids.add(uid);
         }

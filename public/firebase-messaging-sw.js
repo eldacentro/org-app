@@ -81,14 +81,17 @@ try {
 
     // Listens for background notifications (app closed / not focused).
     //
-    // The backend ONLY wakes up the SW of users who are in `affected_uids` 
-    // (users whose schedules actually changed).
+    // The backend wakes the SW of users it believes are in `affected_uids`,
+    // but that targeting is computed client-side from a diff and is not
+    // guaranteed precise. The only thing that IS reliable is a genuine,
+    // specific pending_push record written by this device's own client-side
+    // diff the last time it synced.
     //
-    // If the device has a genuine, specific pending_push record (written by the 
-    // app's client-side diff the last time it synced), we show that.
-    // If there's nothing pending (e.g. app was closed before sync could occur),
-    // we show a generic fallback. Since the backend now targets the push strictly,
-    // we know for sure this user has an update, making the fallback safe from spam.
+    // If there's nothing pending, we stay silent rather than show a generic
+    // "you have updates" banner. A silent wake is invisible to the user and
+    // costs nothing; a wrong notification erodes trust. Do NOT reintroduce a
+    // generic fallback here — it was tried before and caused notification
+    // spam to people with no real change (see project history).
     messaging.onBackgroundMessage((payload) => {
       const DEFAULT_URL = '/#/weekly-schedules';
 
@@ -152,21 +155,14 @@ try {
           const record = await readPendingPush(db);
           db.close();
 
-          // If we have a specific record from the local diff, show it.
-          // If we don't, it means the app is closed. Since the backend now
-          // ONLY sends FCM pushes to targeted affected_uids, we know for
-          // sure this user has novelties, so we show the generic fallback.
+          // Show the specific record from this device's own local diff if we
+          // have one, or whatever specific content the backend sent directly
+          // (it doesn't today, but the path is harmless to keep). Otherwise
+          // stay silent — see the comment above onBackgroundMessage.
           if (record && record.title) {
             showWithContent(record.title, record.body, record.url);
           } else if (payload.data && payload.data.title) {
-            // Use direct data payload if sent from backend
             showWithContent(payload.data.title, payload.data.body, payload.data.url);
-          } else {
-            showWithContent(
-              'Organized',
-              'Tienes novedades en tus asignaciones',
-              '/#/weekly-schedules'
-            );
           }
         } catch {
           // On error, stay silent rather than risk a spurious notification.
