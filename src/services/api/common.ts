@@ -49,12 +49,39 @@ const onTokenRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
+// Every API call in the app goes through this one function, and `fetch` has
+// no built-in timeout — on a flaky connection (the normal case for someone
+// out in the field), a request that never resolves left whatever screen
+// called it stuck on "loading" forever, with no way out except reloading.
+const REQUEST_TIMEOUT_MS = 20000;
+
+const fetchWithTimeout = async (
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') {
+      throw new Error(
+        'La solicitud tardó demasiado en responder. Revisa tu conexión e inténtalo de nuevo.'
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const apiFetch = async (
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> => {
-  let res = await fetch(input, init);
-  
+  let res = await fetchWithTimeout(input, init);
+
   if (res.status === 401) {
     const authUser = currentAuthUser();
     if (authUser) {
@@ -80,10 +107,10 @@ export const apiFetch = async (
         const headers = new Headers(init?.headers);
         headers.set('Authorization', `Bearer ${newToken}`);
         const newInit = { ...init, headers };
-        res = await fetch(input, newInit);
+        res = await fetchWithTimeout(input, newInit);
       }
     }
   }
-  
+
   return res;
 };
