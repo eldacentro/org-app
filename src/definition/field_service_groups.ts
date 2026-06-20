@@ -23,7 +23,7 @@ export type FieldServiceGroupType = {
 export type FieldServiceGroupExportType = {
   group_number: number;
   group_name: string;
-  overseer?: string;
-  overseerAssistant?: string;
-  publishers: string[];
+  overseer?: { name: string; isPioneer: boolean };
+  overseerAssistant?: { name: string; isPioneer: boolean };
+  publishers: { name: string; isPioneer: boolean }[];
 };

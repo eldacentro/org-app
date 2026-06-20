@@ -74,7 +74,7 @@ const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
         width: 6,
         height: 6,
         borderRadius: '50%',
-        backgroundColor: open ? '#F97316' : color,
+        backgroundColor: open ? 'var(--orange-main)' : color,
         ...(open && {
           animation: 'pulse 2s ease-in-out infinite',
           '@keyframes pulse': {
@@ -90,7 +90,7 @@ const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
         fontSize: '12px',
         fontWeight: 600,
         lineHeight: 1,
-        color: open ? '#C2410C' : color,
+        color: open ? 'var(--orange-dark)' : color,
         letterSpacing: '-0.1px',
       }}
     >
@@ -129,7 +129,7 @@ const ActionButton = ({
             background: color
               ? `linear-gradient(135deg, ${color}ee 0%, ${color}bb 100%)`
               : 'linear-gradient(135deg, var(--accent-main) 0%, var(--brand) 100%)',
-            color: '#fff',
+            color: 'var(--always-white)',
             boxShadow: color
               ? `0 4px 16px ${color}50`
               : '0 4px 16px rgba(var(--accent-main-rgb, 59,130,246), 0.35)',
@@ -343,7 +343,7 @@ const DialogVerTerritorio = ({
             '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
           }}
         >
-          <IconClose color="#fff" width={14} height={14} />
+          <IconClose color="var(--always-white)" width={14} height={14} />
         </Box>
       </Box>
 
@@ -558,9 +558,9 @@ const DialogVerTerritorio = ({
                 <Box
                   sx={{
                     p: '14px 16px',
-                    backgroundColor: '#FFFBEA',
+                    backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
                     borderRadius: '14px',
-                    border: '1px solid #FDE68A',
+                    border: '1px solid rgba(var(--orange-main-base), 0.3)',
                   }}
                 >
                   <Typography
@@ -975,7 +975,7 @@ const DialogVerTerritorio = ({
           {tab === 0 && (
             <Box>
               {liveTerritory.notas ? (
-                <Box sx={{ p: 2, backgroundColor: '#FFFBEA', borderRadius: '12px', border: '1px solid #FDE68A', mb: 2 }}>
+                <Box sx={{ p: 2, backgroundColor: 'rgba(var(--orange-main-base), 0.1)', borderRadius: '12px', border: '1px solid rgba(var(--orange-main-base), 0.3)', mb: 2 }}>
                   <Typography
                     sx={{
                       fontWeight: 700,

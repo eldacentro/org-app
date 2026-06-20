@@ -22,7 +22,7 @@ import { TemplateFieldServiceGroups } from '@views/index';
 const useExportGroups = () => {
   const { t } = useAppTranslation();
 
-  const { personIsPublisher } = usePerson();
+  const { personIsPublisher, personIsEnrollmentActive } = usePerson();
 
   const groups_list = useAtomValue(fieldWithLanguageGroupsState);
   const persons = useAtomValue(personsActiveState);
@@ -69,6 +69,11 @@ const useExportGroups = () => {
                 (p) => p.person_uid === record.person_uid
               );
 
+              const isPioneer =
+                personIsEnrollmentActive(person, 'FR') ||
+                personIsEnrollmentActive(person, 'FS') ||
+                personIsEnrollmentActive(person, 'FMF');
+
               return {
                 ...record,
                 person_name: buildPersonFullname(
@@ -76,6 +81,7 @@ const useExportGroups = () => {
                   person.person_data.person_firstname.value,
                   fullnameOption
                 ),
+                isPioneer,
               };
             })
             .sort((a, b) => {
@@ -90,17 +96,19 @@ const useExportGroups = () => {
               return 0;
             });
 
-          const overseer =
-            group_members.find((record) => record.isOverseer)?.person_name ||
-            null;
+          const overseerMember = group_members.find((record) => record.isOverseer);
+          const overseer = overseerMember
+            ? { name: overseerMember.person_name, isPioneer: overseerMember.isPioneer }
+            : undefined;
 
-          const overseerAssistant =
-            group_members.find((record) => record.isAssistant)?.person_name ||
-            null;
+          const assistantMember = group_members.find((record) => record.isAssistant);
+          const overseerAssistant = assistantMember
+            ? { name: assistantMember.person_name, isPioneer: assistantMember.isPioneer }
+            : undefined;
 
           const publishers = group_members
             .filter((record) => !record.isOverseer && !record.isAssistant)
-            .map((record) => record.person_name);
+            .map((record) => ({ name: record.person_name, isPioneer: record.isPioneer }));
 
           return {
             group_name: final_name,

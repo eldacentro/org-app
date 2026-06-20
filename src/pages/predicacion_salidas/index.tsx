@@ -1396,14 +1396,14 @@ const PredicacionSalidas = () => {
                                         py: '14px',
                                         borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                                         backgroundColor: isCancelled
-                                          ? '#fce8e6'
+                                          ? 'rgba(var(--red-main-base), 0.1)'
                                           : isAssignedToMe
-                                          ? 'var(--accent-50, #f0f7ff)'
+                                          ? 'var(--accent-150)'
                                           : 'var(--card)',
                                         cursor: isServiceCommittee ? 'pointer' : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
-                                          ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
+                                          ? { backgroundColor: isCancelled ? 'rgba(var(--red-main-base), 0.15)' : 'var(--accent-100)' }
                                           : {},
                                       }}
                                     >
@@ -1598,7 +1598,7 @@ const PredicacionSalidas = () => {
                                   <Box sx={{
                                     aspectRatio: desktopUp ? 'auto' : '1',
                                     minHeight: desktopUp ? '110px' : 'auto',
-                                    backgroundColor: 'var(--accent-50, #f8fafd)',
+                                    backgroundColor: 'var(--accent-150)',
                                     border: '1px solid var(--line)',
                                     borderRadius: 'var(--radius-l)',
                                     opacity: 0.3
@@ -1665,18 +1665,18 @@ const PredicacionSalidas = () => {
                                           
                                           const text = isCancelled ? 'Suspendida' : getAbbreviatedName(brotherName);
                                           
-                                           let bgColor = '#e8f0fe';
+                                           let bgColor = 'var(--accent-150)';
                                            let textColor = 'var(--accent-dark)';
-                                           let hoverBgColor = '#d2e3fc';
+                                           let hoverBgColor = 'var(--accent-200)';
                                            
                                            if (isCancelled) {
-                                             bgColor = '#fce8e6';
+                                             bgColor = 'rgba(var(--red-main-base), 0.1)';
                                              textColor = 'var(--error-dark)';
-                                             hoverBgColor = '#fad2cf';
+                                             hoverBgColor = 'rgba(var(--red-main-base), 0.15)';
                                            } else if (!brotherName) {
-                                             bgColor = '#fef7e0';
-                                             textColor = '#855000';
-                                             hoverBgColor = '#feebb3';
+                                             bgColor = 'rgba(var(--orange-main-base), 0.1)';
+                                             textColor = 'var(--orange-dark)';
+                                             hoverBgColor = 'rgba(var(--orange-main-base), 0.15)';
                                            } else if (isAssignedToMe) {
                                              bgColor = 'var(--accent-main)';
                                              textColor = 'var(--always-white)';
@@ -1782,10 +1782,10 @@ const PredicacionSalidas = () => {
                                             borderRadius: '50%',
                                             backgroundColor:
                                               dotColor === 'green'
-                                                ? '#2e7d32'
+                                                ? 'var(--green-main)'
                                                 : dotColor === 'yellow'
-                                                ? '#ed6c02'
-                                                : '#d32f2f',
+                                                ? 'var(--orange-main)'
+                                                : 'var(--error-main)',
                                           }}
                                         />
                                       ))}
@@ -1879,14 +1879,14 @@ const PredicacionSalidas = () => {
                                         py: '14px',
                                         borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                                         backgroundColor: isCancelled
-                                          ? '#fce8e6'
+                                          ? 'rgba(var(--red-main-base), 0.1)'
                                           : isAssignedToMe
-                                          ? 'var(--accent-50, #f0f7ff)'
+                                          ? 'var(--accent-150)'
                                           : 'var(--card)',
                                         cursor: isServiceCommittee ? 'pointer' : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
-                                          ? { backgroundColor: isCancelled ? '#f8d7d4' : 'var(--accent-100)' }
+                                          ? { backgroundColor: isCancelled ? 'rgba(var(--red-main-base), 0.15)' : 'var(--accent-100)' }
                                           : {},
                                       }}
                                     >

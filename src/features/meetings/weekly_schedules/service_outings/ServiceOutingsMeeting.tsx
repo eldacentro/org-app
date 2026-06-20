@@ -284,9 +284,9 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
-                        ? '#fce8e6'
+                        ? 'rgba(var(--red-main-base), 0.1)'
                         : isAssignedToMe
-                        ? 'var(--accent-50, #f0f7ff)'
+                        ? 'var(--accent-150)'
                         : 'var(--card)',
                       transition: 'background-color 0.2s ease',
                     }}

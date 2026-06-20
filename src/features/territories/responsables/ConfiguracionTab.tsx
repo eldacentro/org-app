@@ -166,7 +166,7 @@ const ToggleRow = ({
         width: 44,
         height: 26,
         borderRadius: '13px',
-        backgroundColor: checked ? '#34C759' : 'rgba(0,0,0,0.15)',
+        backgroundColor: checked ? 'var(--green-main)' : 'var(--grey-300)',
         position: 'relative',
         flexShrink: 0,
         mt: '2px',
@@ -179,7 +179,7 @@ const ToggleRow = ({
           width: 22,
           height: 22,
           borderRadius: '50%',
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--white)',
           top: 2,
           left: checked ? 20 : 2,
           boxShadow: '0 1.5px 4px rgba(0,0,0,0.22)',
@@ -583,7 +583,7 @@ const ConfiguracionTab = () => {
                     width: 7,
                     height: 7,
                     borderRadius: '50%',
-                    backgroundColor: '#FF9500',
+                    backgroundColor: 'var(--orange-main)',
                     flexShrink: 0,
                   }}
                 />
@@ -595,7 +595,7 @@ const ConfiguracionTab = () => {
               </>
             )}
             {saved && (
-              <Typography sx={{ fontSize: '13px', color: '#34C759', fontWeight: 600 }}>
+              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600 }}>
                 ✓ Guardado
               </Typography>
             )}

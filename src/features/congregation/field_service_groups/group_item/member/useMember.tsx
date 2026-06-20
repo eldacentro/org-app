@@ -18,7 +18,7 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
 
   const { isServiceCommittee } = useCurrentUser();
 
-  const { personIsElder, personIsMS, personIsBaptizedPublisher } = usePerson();
+  const { personIsElder, personIsMS, personIsBaptizedPublisher, personIsEnrollmentActive } = usePerson();
 
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -278,6 +278,15 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
     }
   };
 
+  const isPioneer = useMemo(() => {
+    if (!person) return false;
+    return (
+      personIsEnrollmentActive(person, 'FR') ||
+      personIsEnrollmentActive(person, 'FS') ||
+      personIsEnrollmentActive(person, 'FMF')
+    );
+  }, [person, personIsEnrollmentActive]);
+
   return {
     member_icon,
     member_name,
@@ -298,6 +307,7 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
     removeOpen,
     isServiceCommittee,
     label_overseer,
+    isPioneer,
   };
 };
 

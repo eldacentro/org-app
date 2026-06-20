@@ -15,7 +15,7 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
   const { t } = useAppTranslation();
 
   return (
-    <FormControl fullWidth sx={props.sx} disabled={props.disabled ?? false}>
+    <FormControl fullWidth size="small" sx={props.sx} disabled={props.disabled ?? false}>
       <InputLabel
         className="body-regular"
         sx={{

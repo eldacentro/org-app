@@ -6,7 +6,7 @@ const FSGGroupMember = ({ member }: FSGGroupMemberProps) => {
   return (
     <View style={styles.memberRow}>
       <Text style={styles.memberBullet}>·</Text>
-      <Text style={styles.groupMember}>{member}</Text>
+      <Text style={[styles.groupMember, member.isPioneer && { fontWeight: 700 }]}>{member.name}</Text>
     </View>
   );
 };

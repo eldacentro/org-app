@@ -36,6 +36,7 @@ const GroupMember = (props: GroupMemberProps) => {
     removeOpen,
     isServiceCommittee,
     label_overseer,
+    isPioneer,
   } = useMember(props);
 
   return (
@@ -90,7 +91,11 @@ const GroupMember = (props: GroupMemberProps) => {
         </Box>
 
         <Stack>
-          <Typography className="body-medium-semibold" color="var(--black)">
+          <Typography
+            className={isPioneer ? 'body-medium-semibold' : 'body-medium-regular'}
+            color="var(--black)"
+            sx={{ fontWeight: isPioneer ? 600 : 400 }}
+          >
             {member_name}
           </Typography>
 

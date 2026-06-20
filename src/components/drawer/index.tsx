@@ -63,6 +63,8 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
             width: laptopUp ? 'unset' : '100%',
             height: props.anchor === 'bottom' ? 'auto' : '100%',
             maxHeight: props.anchor === 'bottom' ? '90vh' : 'unset',
+            display: 'flex',
+            flexDirection: 'column',
           },
         },
       }}
@@ -71,7 +73,8 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
       <Stack
         className="drawer-glass-panel"
         sx={{
-          height: props.anchor === 'bottom' ? 'auto' : '100%',
+          flex: props.anchor === 'bottom' ? 'none' : 1,
+          height: props.anchor === 'bottom' ? 'auto' : 'unset',
           width: laptopUp ? '600px' : '100%',
           margin: laptopUp ? '10px' : 'unset',
           borderRadius: laptopUp
@@ -143,7 +146,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           </Stack>
         </Stack>
 
-        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', pb: props.anchor === 'bottom' ? 'env(safe-area-inset-bottom, 20px)' : 0 }}>
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'none', display: 'flex', flexDirection: 'column', pb: 'env(safe-area-inset-bottom, 20px)' }}>
           {children}
         </Box>
       </Stack>

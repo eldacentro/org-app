@@ -13,5 +13,5 @@ export type FSGGroupProps = {
 };
 
 export type FSGGroupMemberProps = {
-  member: string;
+  member: { name: string; isPioneer: boolean };
 };
