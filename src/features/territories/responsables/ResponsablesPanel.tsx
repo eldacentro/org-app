@@ -20,6 +20,7 @@ import EstadisticasTab from './EstadisticasTab';
 import ConfiguracionTab from './ConfiguracionTab';
 import CampanasTab from './CampanasTab';
 import ImportExportTab from './ImportExportTab';
+import TerritoriesOverviewMap from '../map/TerritoriesOverviewMap';
 
 type Props = {
   onView: (t: Territory) => void;
@@ -229,6 +230,7 @@ const ResponsablesPanel = ({
           }
         />
         <Tab label="Territorio" />
+        <Tab label="Mapa" />
         <Tab label="Campañas" />
         <Tab label="Importar/Exportar" />
         <Tab label="Configuración" />
@@ -282,9 +284,10 @@ const ResponsablesPanel = ({
         </Box>
       )}
 
-      {tab === 4 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
-      {tab === 5 && <ImportExportTab />}
-      {tab === 6 && <ConfiguracionTab />}
+      {tab === 4 && <TerritoriesOverviewMap onViewTerritory={onView} />}
+      {tab === 5 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
+      {tab === 6 && <ImportExportTab />}
+      {tab === 7 && <ConfiguracionTab />}
     </Box>
   );
 };

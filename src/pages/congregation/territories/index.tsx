@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAtomValue } from 'jotai';
-import { Box } from '@mui/material';
+import { Box, Badge } from '@mui/material';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
+import ScrollableTabs from '@components/scrollable_tabs';
 import { IconAdd } from '@components/icons';
 import { useBreakpoints } from '@hooks/index';
 import { useTerritories } from '@features/territories/useTerritories';
@@ -19,7 +20,7 @@ import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
 import DialogSolicitar from '@features/territories/dialogs/DialogSolicitar';
 import MisTerritoriosSection from '@features/territories/MisTerritorios/MisTerritoriosSection';
 import { Territory, TerritoryAssignment } from '@definition/territories';
-import { territoriesState } from '@states/territories';
+import { territoriesState, territoryPendingRequestsState } from '@states/territories';
 
 type AsignarState = {
   open: boolean;
@@ -37,6 +38,7 @@ const TerritoriesPage = () => {
   useTerritories();
   const canManage = useIsTerritoryManager();
   const territories = useAtomValue(territoriesState);
+  const pendingRequestsCount = useAtomValue(territoryPendingRequestsState).length;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [openZonas, setOpenZonas] = useState(false);
@@ -47,6 +49,7 @@ const TerritoriesPage = () => {
   const [editing, setEditing] = useState<Territory | null>(null);
   const [asignar, setAsignar] = useState<AsignarState>(CLOSED_ASIGNAR);
   const [entregando, setEntregando] = useState<TerritoryAssignment | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     const viewId = searchParams.get('view');
@@ -71,40 +74,71 @@ const TerritoriesPage = () => {
     />
   );
 
+  const misTerritorios = (
+    <MisTerritoriosSection
+      onView={(t) => setViewing(t)}
+      onEntregar={(a) => setEntregando(a)}
+    />
+  );
+
+  const responsables = canManage ? (
+    <ResponsablesPanel
+      onView={(t) => setViewing(t)}
+      onAsignar={(t) => setAsignar({ open: true, territory: t })}
+      onEntregar={(a) => setEntregando(a)}
+      onAsignarParaSolicitud={(req) =>
+        setAsignar({
+          open: true,
+          territory: null,
+          defaultPersonUid: req.personUid,
+          requestId: req.id,
+        })
+      }
+      onAsignarCampana={(t, campaignId) =>
+        setAsignar({
+          open: true,
+          territory: t,
+          isCampaign: true,
+          campaignId,
+        })
+      }
+      onOpenZonas={() => setOpenZonas(true)}
+      onOpenEtiquetas={() => setOpenEtiquetas(true)}
+      onOpenImport={() => setOpenImport(true)}
+    />
+  ) : null;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <PageTitle title="Territorios" buttons={buttons} />
 
-      <MisTerritoriosSection
-        onView={(t) => setViewing(t)}
-        onEntregar={(a) => setEntregando(a)}
-      />
-
-      {canManage && (
-        <ResponsablesPanel
-          onView={(t) => setViewing(t)}
-          onAsignar={(t) => setAsignar({ open: true, territory: t })}
-          onEntregar={(a) => setEntregando(a)}
-          onAsignarParaSolicitud={(req) =>
-            setAsignar({
-              open: true,
-              territory: null,
-              defaultPersonUid: req.personUid,
-              requestId: req.id,
-            })
-          }
-          onAsignarCampana={(t, campaignId) =>
-            setAsignar({
-              open: true,
-              territory: t,
-              isCampaign: true,
-              campaignId,
-            })
-          }
-          onOpenZonas={() => setOpenZonas(true)}
-          onOpenEtiquetas={() => setOpenEtiquetas(true)}
-          onOpenImport={() => setOpenImport(true)}
-        />
+      {/* Los publicadores normales solo tienen "Mis territorios" — sin
+          pestañas. Los responsables ven dos secciones separadas para que
+          el panel de gestión no quede empujado debajo de sus propias
+          asignaciones personales. */}
+      {canManage ? (
+        <Box sx={{ marginBottom: '-24px' }}>
+          <ScrollableTabs
+            indicatorMode
+            tabs={[
+              { label: 'Mis territorios', Component: misTerritorios },
+              {
+                label: pendingRequestsCount > 0 ? (
+                  <Badge badgeContent={pendingRequestsCount} color="primary" sx={{ pr: '6px' }}>
+                    Responsables
+                  </Badge>
+                ) : (
+                  'Responsables'
+                ),
+                Component: responsables,
+              },
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+          />
+        </Box>
+      ) : (
+        misTerritorios
       )}
 
       {/* Diálogos */}

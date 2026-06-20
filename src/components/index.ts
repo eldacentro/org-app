@@ -27,6 +27,7 @@ export { default as PageTitle } from './page_title';
 export { default as PlusButton } from './plus_button/index';
 export { default as Radio } from './radio/index';
 export { default as ScrollableTabs } from './scrollable_tabs/index';
+export { default as SegmentedControl } from './segmented_control/index';
 export { default as Select } from './select/index';
 export { default as SnackBar } from './snackbar/index';
 export { default as Switch } from './switch/index';

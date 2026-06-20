@@ -17,6 +17,7 @@ import Typography from '@components/typography';
 import { IconEdit, IconClose } from '@components/icons';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
+import SegmentedControl from '@components/segmented_control';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
   territoryZonesState,
@@ -53,54 +54,6 @@ const Transition = forwardRef(function Transition(
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
-// ─── Pill segmented control estilo iOS ──────────────────────────────────────
-const SegmentedControl = ({
-  tabs,
-  active,
-  onChange,
-}: {
-  tabs: string[];
-  active: number;
-  onChange: (idx: number) => void;
-}) => (
-  <Box
-    sx={{
-      display: 'flex',
-      backgroundColor: 'rgba(120,120,128,0.12)',
-      borderRadius: '10px',
-      p: '3px',
-    }}
-  >
-    {tabs.map((t, i) => (
-      <Box
-        key={t}
-        onClick={() => onChange(i)}
-        sx={{
-          flex: 1,
-          textAlign: 'center',
-          py: '6px',
-          borderRadius: '8px',
-          backgroundColor: active === i ? '#fff' : 'transparent',
-          boxShadow:
-            active === i
-              ? '0 1px 3px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.05)'
-              : 'none',
-          color: active === i ? '#000' : 'rgba(60,60,67,0.6)',
-          fontWeight: active === i ? 600 : 400,
-          fontSize: '13px',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          letterSpacing: '-0.1px',
-        }}
-      >
-        {t}
-      </Box>
-    ))}
-  </Box>
-);
 
 // ─── Chip de estado animado ──────────────────────────────────────────────────
 const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
@@ -315,11 +268,22 @@ const DialogVerTerritorio = ({
   };
 
   // ── Alturas del sheet por tab ──────────────────────────────────────────────
-  // tab 0 (Mapa):      sheet corto → mapa muy visible sobre el sheet
+  // tab 0 (Mapa):      sheet corto → mapa muy visible sobre el sheet. Más
+  //                    corto aún si no hay notas que mostrar (si no, queda
+  //                    un hueco vacío bajo el aviso de una sola línea).
   // tab 1 (Imagen):    sheet alto → la imagen se muestra DENTRO del sheet
   // tab 2 (Direcciones): sheet medio
-  const SHEET_HEIGHTS = ['44vh', '90vh', '72vh'];
+  const mapTabHeight = liveTerritory.notas ? '44vh' : '30vh';
+  const SHEET_HEIGHTS = [mapTabHeight, '90vh', '72vh'];
   const sheetHeight = SHEET_HEIGHTS[tab];
+
+  // En vh para animar (consistente con SHEET_HEIGHTS) y en px para pasarle a
+  // Leaflet el espacio que debe reservar abajo al encuadrar/centrar el mapa.
+  const sheetHeightVh = parseFloat(sheetHeight);
+  const sheetHeightPx =
+    typeof window !== 'undefined'
+      ? Math.round((sheetHeightVh / 100) * window.innerHeight)
+      : 0;
 
   // ── LAYOUT MÓVIL ───────────────────────────────────────────────────────────
   const mobileContent = (
@@ -346,6 +310,7 @@ const DialogVerTerritorio = ({
           showLiveLocation={showLiveLocation}
           height="100%"
           borderRadius={0}
+          bottomInset={sheetHeightPx}
         />
       </Box>
 

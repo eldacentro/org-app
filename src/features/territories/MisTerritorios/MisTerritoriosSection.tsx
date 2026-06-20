@@ -23,6 +23,7 @@ import {
   territoryLabel,
 } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
+import TerritoryThumbnail from '@features/territories/TerritoryThumbnail';
 
 type Props = {
   onView: (territory: Territory) => void;
@@ -138,8 +139,9 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 direction="row"
                 alignItems="center"
                 justifyContent="space-between"
-                spacing={1}
+                spacing={1.5}
               >
+                <TerritoryThumbnail geometry={territory.geometry} color={color} />
                 <Box sx={{ flex: 1 }}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>

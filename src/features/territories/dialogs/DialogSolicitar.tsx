@@ -6,7 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { congIDState, userLocalUIDState } from '@states/settings';
-import { saveRequest, saveNotice } from '@services/firebase/territories';
+import { saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { territoryPendingRequestsState, territorySettingsState } from '@states/territories';
@@ -67,27 +67,14 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
       if (targets.length > 0) {
         const applicantName = resolveName(uid);
-        const now = new Date().toISOString();
         const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
 
-        // Notificación in-app (Notice) para asegurar que llegue siempre
-        try {
-          await Promise.all(
-            targets.map((targetUid) =>
-              saveNotice(congId, {
-                id: crypto.randomUUID(),
-                personUid: targetUid,
-                title: 'Solicitud de territorio',
-                mensaje: `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`,
-                sentBy: uid,
-                createdAt: now,
-              })
-            )
-          );
-        } catch (err) {
-          console.error('Failed to save notice', err);
-        }
-
+        // No se crea un TerritoryNotice aquí a propósito: el propio
+        // TerritoryRequest ya alimenta, vía suscripción en tiempo real, la
+        // notificación accionable con botón "Asignar territorio" (ver
+        // useTerritoryRequestsNotifications + TerritoryAccessRequest). Crear
+        // también un Notice generaba un segundo aviso duplicado para lo
+        // mismo, que además no se quitaba al actuar sobre el primero.
         await apiSendTerritoryPush(
           targets,
           'Solicitud de territorio',

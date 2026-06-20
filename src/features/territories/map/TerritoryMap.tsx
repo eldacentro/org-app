@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -24,14 +24,52 @@ type TerritoryMapProps = {
   editable?: boolean;
   borderRadius?: string | number;
   onGeometryChange?: (geo: Polygon | MultiPolygon | null) => void;
+  /** Espacio (px) a reservar abajo al encuadrar/centrar — para que un panel
+   *  flotante (p.ej. el bottom sheet de DialogVerTerritorio) no tape el
+   *  territorio. */
+  bottomInset?: number;
 };
 
 // ─── Ajuste de bounds ─────────────────────────────────────────────────────────
-const FitBounds = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
+// `bounds` expuesto con ref para que los botones (recentrar) puedan
+// reutilizar exactamente el mismo encuadre sin recalcularlo.
+const FitBounds = ({
+  bounds,
+  bottomInset,
+  onReady,
+}: {
+  bounds: LatLngBoundsExpression | null;
+  bottomInset: number;
+  onReady: (fit: () => void) => void;
+}) => {
   const map = useMap();
+
+  const fit = useRef(() => {
+    if (bounds) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [24, 24],
+        paddingBottomRight: [24, 24 + bottomInset],
+      });
+    }
+  });
+  fit.current = () => {
+    if (bounds) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [24, 24],
+        paddingBottomRight: [24, 24 + bottomInset],
+      });
+    }
+  };
+
   useEffect(() => {
-    if (bounds) map.fitBounds(bounds, { padding: [24, 24] });
-  }, [bounds, map]);
+    onReady(() => fit.current());
+    // Solo cuando cambia la geometría de fondo (bounds ya viene memorizado
+    // por valor desde el padre — no se recrea en cada render) o el espacio
+    // reservado abajo (p.ej. el sheet cambia de alto al cambiar de pestaña).
+    fit.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bounds, bottomInset]);
+
   return null;
 };
 
@@ -168,14 +206,22 @@ const TerritoryMap = ({
   editable = false,
   borderRadius,
   onGeometryChange,
+  bottomInset = 0,
 }: TerritoryMapProps) => {
-  const bounds = geometry ? geometryBounds(geometry) : null;
+  // Memorizado por VALOR (no por referencia de `geometry`, que llega como un
+  // objeto nuevo en cada snapshot de Firestore aunque el polígono no haya
+  // cambiado) — si no, FitBounds se vuelve a disparar y recentra el mapa
+  // cada vez que CUALQUIER territorio de la congregación cambia, no solo este.
+  const geometryKey = JSON.stringify(geometry);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const bounds = useMemo(() => (geometry ? geometryBounds(geometry) : null), [geometryKey]);
   const center = (geometry && geometryCenter(geometry)) || [40.4168, -3.7038];
   const livePos = useLiveLocation(showLiveLocation);
   const [isSatellite, setIsSatellite] = useState(false);
 
   // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
   const mapRef = useRef<L.Map | null>(null);
+  const fitFnRef = useRef<() => void>(() => {});
 
   return (
     <Box
@@ -225,7 +271,11 @@ const TerritoryMap = ({
           </CircleMarker>
         )}
 
-        <FitBounds bounds={bounds} />
+        <FitBounds
+          bounds={bounds}
+          bottomInset={bottomInset}
+          onReady={(fit) => { fitFnRef.current = fit; }}
+        />
       </MapContainer>
 
       {/* ─── Controles flotantes FUERA del MapContainer ────────────────────
@@ -267,6 +317,77 @@ const TerritoryMap = ({
         >
           <span style={{ fontSize: 14 }}>{isSatellite ? '🗺' : '🛰'}</span>
           {isSatellite ? 'Mapa' : 'Satélite'}
+        </Box>
+
+        {/* Recentrar territorio / Mi ubicación — agrupados como un solo
+            bloque junto al zoom, en vez de 4 elementos flotantes sueltos. */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            ...glass,
+          }}
+        >
+          <Box
+            onClick={() => fitFnRef.current()}
+            title="Recentrar territorio"
+            sx={{
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+              transition: 'background 0.15s ease',
+              '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+            }}
+          >
+            <Box
+              sx={{
+                width: 16,
+                height: 16,
+                borderRadius: '3px',
+                border: '2px solid rgba(0,0,0,0.7)',
+              }}
+            />
+          </Box>
+          <Box
+            onClick={() => {
+              if (livePos) mapRef.current?.setView(livePos, 17);
+            }}
+            title="Mi ubicación"
+            sx={{
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: livePos ? 'pointer' : 'default',
+              opacity: livePos ? 1 : 0.35,
+              transition: 'background 0.15s ease',
+              '&:active': livePos ? { backgroundColor: 'rgba(0,0,0,0.08)' } : undefined,
+            }}
+          >
+            <Box
+              sx={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                border: '2px solid #007AFF',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: '4px',
+                  borderRadius: '50%',
+                  backgroundColor: '#007AFF',
+                },
+              }}
+            />
+          </Box>
         </Box>
 
         {/* Zoom +/- */}
