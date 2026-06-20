@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
 import { useBreakpoints } from '@hooks/index';
 import {
@@ -9,12 +9,15 @@ import {
   formatDateShortMonth,
 } from '@utils/date';
 import { generateMonthNames } from '@services/i18n/translation';
+import { schedulesState } from '@states/schedules';
+import { schedulesWeekHasNoMeetingAtAll } from '@services/app/schedules';
 
 const useDeptWeekSelector = () => {
   const { desktopUp } = useBreakpoints();
 
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
   const [expanded, setExpanded] = useState(true);
+  const meetingSchedules = useAtomValue(schedulesState);
 
   const handleToggleExpand = () => {
     setExpanded((prev) => !prev);
@@ -48,6 +51,7 @@ const useDeptWeekSelector = () => {
             weeks.push({
               weekOf,
               label: `${formatDateShortMonth(currentMonday)} - ${formatDateShortMonth(endOfWeek)}`,
+              noMeeting: schedulesWeekHasNoMeetingAtAll(weekOf, meetingSchedules),
             });
           }
           currentMonday = addWeeks(currentMonday, 1);
@@ -71,7 +75,7 @@ const useDeptWeekSelector = () => {
       }
     }
     return result;
-  }, []);
+  }, [meetingSchedules]);
 
   useEffect(() => {
     if (selectedWeek === '' && yearsList.length > 0) {

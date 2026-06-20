@@ -4,18 +4,25 @@ import { personsActiveState } from '@states/persons';
 import { DeptWeekType, DepartmentAssignment } from '@definition/departments_schedule';
 import { dbDeptScheduleBulkSave } from '@services/dexie/departments_schedule';
 import { addWeeks, formatDate } from '@utils/date';
+import { schedulesState } from '@states/schedules';
+import { schedulesWeekHasNoMeetingAtAll } from '@services/app/schedules';
 
 export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
   const allSchedules = store.get(deptScheduleState);
   const allPersons = store.get(personsActiveState);
+  const meetingSchedules = store.get(schedulesState);
 
   if (startWeek.length === 0 || endWeek.length === 0) return;
 
-  // Generate all weeks within the range (Fix: ensure even empty weeks are filled)
+  // Generate all weeks within the range, skipping weeks with no meeting at
+  // the hall at all (assembly, convention, memorial, etc.) — there's no
+  // ushers/mics/multimedia/platform turn to fill when there's no meeting.
   const rangeWeeks: string[] = [];
   let current = startWeek;
   while (current <= endWeek) {
-    rangeWeeks.push(current);
+    if (!schedulesWeekHasNoMeetingAtAll(current, meetingSchedules)) {
+      rangeWeeks.push(current);
+    }
     const nextDate = addWeeks(current.replace(/\//g, '-'), 1);
     current = formatDate(nextDate, 'yyyy/MM/dd');
   }

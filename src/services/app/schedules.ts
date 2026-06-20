@@ -2143,6 +2143,32 @@ export const schedulesWeekNoMeeting = (week: Week) => {
   );
 };
 
+/**
+ * Whether weekOf has no regular meeting at the hall at all (assembly,
+ * convention, memorial, etc.) — true if EITHER the midweek or the weekend
+ * meeting that week is cancelled. Used by anything scheduling hall-duty
+ * turns (ushers, mics, multimedia, platform) that don't apply when there's
+ * no meeting to staff.
+ */
+export const schedulesWeekHasNoMeetingAtAll = (
+  weekOf: string,
+  schedules: SchedWeekType[]
+) => {
+  const schedule = schedules.find((s) => s.weekOf === weekOf);
+  if (!schedule) return false;
+
+  const midweekType =
+    schedule.midweek_meeting?.week_type?.find((r) => r.type === 'main')
+      ?.value ?? Week.NORMAL;
+  const weekendType =
+    schedule.weekend_meeting?.week_type?.find((r) => r.type === 'main')
+      ?.value ?? Week.NORMAL;
+
+  return (
+    schedulesWeekNoMeeting(midweekType) || schedulesWeekNoMeeting(weekendType)
+  );
+};
+
 export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
   const fullnameOption = store.get(fullnameOptionState);
 

@@ -5,19 +5,29 @@ import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { PersonType } from '@definition/person';
 import worker from '@services/worker/backupWorker';
-import { schedulesGetMeetingDate } from '@services/app/schedules';
+import {
+  schedulesGetMeetingDate,
+  schedulesWeekHasNoMeetingAtAll,
+} from '@services/app/schedules';
 import { userDataViewState } from '@states/settings';
+import { schedulesState } from '@states/schedules';
 
 const useDepartmentEditor = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const dataView = useAtomValue(userDataViewState);
   const [schedules, setSchedules] = useAtom(deptScheduleState);
+  const meetingSchedules = useAtomValue(schedulesState);
 
   const [clearAll, setClearAll] = useState(false);
 
   const schedule = useMemo(() => {
     return schedules.find((record) => record?.weekOf === selectedWeek);
   }, [schedules, selectedWeek]);
+
+  const isNoMeetingWeek = useMemo(() => {
+    if (!selectedWeek) return false;
+    return schedulesWeekHasNoMeetingAtAll(selectedWeek, meetingSchedules);
+  }, [selectedWeek, meetingSchedules]);
 
   const handleSaveAssignment = async (
     dept: keyof Omit<DeptWeekType, 'weekOf'>,
@@ -117,6 +127,7 @@ const useDepartmentEditor = () => {
     handleCloseClearAll,
     handleClearAll,
     weekName,
+    isNoMeetingWeek,
   };
 };
 

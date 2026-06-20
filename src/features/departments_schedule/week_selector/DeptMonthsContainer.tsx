@@ -9,7 +9,7 @@ const DeptMonthsContainer = ({
   months: {
     label: string;
     value: string;
-    weeks: { weekOf: string; label: string }[];
+    weeks: { weekOf: string; label: string; noMeeting: boolean }[];
   }[];
 }) => {
   const [currentExpanded, setCurrentExpanded] = useState('');

@@ -13,7 +13,7 @@ const DeptMonthItem = ({
 }: {
   monthLabel: string;
   monthValue: string;
-  weeks: { weekOf: string; label: string }[];
+  weeks: { weekOf: string; label: string; noMeeting: boolean }[];
   currentExpanded: string;
   onChangeCurrentExpanded: (value: string) => void;
   onWeekSelect?: () => void;
@@ -51,6 +51,7 @@ const DeptMonthItem = ({
             key={week.weekOf}
             weekOf={week.weekOf}
             label={week.label}
+            noMeeting={week.noMeeting}
             onWeekSelect={
               onWeekSelect ? () => onChangeCurrentExpanded('') : undefined
             }

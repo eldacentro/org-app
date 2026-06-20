@@ -2,6 +2,7 @@ import { Box, Grid } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { Button, Dialog, Typography } from '@components/index';
 import { IconClose } from '@components/icons';
+import Badge from '@components/badge';
 import PersonSelector from '@features/meetings/person_selector';
 import { personsStateFind } from '@services/states/persons';
 import useDepartmentEditor from './useDepartmentEditor';
@@ -17,9 +18,46 @@ const DepartmentEditor = () => {
     handleCloseClearAll,
     handleClearAll,
     weekName,
+    isNoMeetingWeek,
   } = useDepartmentEditor();
 
   if (selectedWeek.length === 0) return null;
+
+  if (isNoMeetingWeek) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexGrow: 1,
+          flexDirection: 'column',
+          gap: '16px',
+          width: '100%',
+        }}
+      >
+        <Typography className="h2-caps">{weekName}</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            flexGrow: 1,
+            minHeight: '200px',
+            textAlign: 'center',
+          }}
+        >
+          <Badge text={t('tr_noMeetingWeek')} color="grey" size="medium" filled={false} />
+          <Typography color="var(--grey-400)" sx={{ maxWidth: '320px' }}>
+            {t(
+              'tr_noMeetingWeekDeptDesc',
+              'No hay reunión esta semana (asamblea, conmemoración u otro evento especial), así que no hace falta asignar turno.'
+            )}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box

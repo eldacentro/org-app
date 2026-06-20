@@ -2,16 +2,21 @@ import { Box } from '@mui/material';
 import { useAtom } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
+import { useAppTranslation } from '@hooks/index';
 
 const DeptWeekItem = ({
   weekOf,
   label,
+  noMeeting,
   onWeekSelect,
 }: {
   weekOf: string;
   label: string;
+  noMeeting?: boolean;
   onWeekSelect?: () => void;
 }) => {
+  const { t } = useAppTranslation();
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
   const isSelected = selectedWeek === weekOf;
 
@@ -43,6 +48,9 @@ const DeptWeekItem = ({
       <Typography className={isSelected ? 'body-semibold' : 'body-regular'}>
         {label}
       </Typography>
+      {noMeeting && (
+        <Badge text={t('tr_noMeetingWeek')} color="grey" size="small" filled={false} />
+      )}
     </Box>
   );
 };
