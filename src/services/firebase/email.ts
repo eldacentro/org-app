@@ -33,7 +33,7 @@ const wrapWithTemplate = (contentHtml: string) => {
             <table class="main">
               <tr>
                 <td class="header">
-                  <img src="https://app.eldacentro.com/img/icon/icon-192x192.png" alt="Elda Centro Logo">
+                  <img src="https://eldacentro.com/img/icon/icon-192x192.png" alt="Elda Centro Logo">
                 </td>
               </tr>
               <tr>

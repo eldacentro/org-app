@@ -180,7 +180,7 @@ const DialogAsignar = ({
               `<p>Hola <strong>${escapeHTML(resolveName(personUid))}</strong>,</p>
                <p>Se te ha asignado el territorio <strong>${escapeHTML(territoryLabel(effectiveTerritory))}</strong>.</p>
                <div style="text-align: center; margin-top: 30px;">
-                 <a href="https://app.eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
+                 <a href="https://eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
                </div>`
             );
           } catch (err) {

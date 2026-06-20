@@ -91,7 +91,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                   `<p>El publicador <strong>${escapeHTML(applicantName)}</strong> ha solicitado un territorio nuevo.</p>
                    ${notaHTML}
                    <div style="text-align: center; margin-top: 30px;">
-                     <a href="https://app.eldacentro.com/congregation/territories" class="btn">Abrir aplicación</a>
+                     <a href="https://eldacentro.com/congregation/territories" class="btn">Abrir aplicación</a>
                    </div>`
                 )
               )

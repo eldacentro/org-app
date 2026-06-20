@@ -171,7 +171,7 @@ Verificado: `tsc` sin errores en archivos nuevos, `eslint` limpio, y **`vite bui
 
 ## 7. Cómo probar la Fase 0 (end-to-end)
 
-1. **Levantar:** frontend `npm run dev` (o usar `app.eldacentro.com`), backend desplegado/local.
+1. **Levantar:** frontend `npm run dev` (o usar `eldacentro.com`), backend desplegado/local.
    El push real solo funciona sobre **HTTPS** o `localhost` (no IP LAN).
 2. **Activar:** entrar a *Mi perfil* → "Preferencias de notificaciones" → activar el switch.
    El navegador pide permiso → aceptar. Debe aparecer el snackbar de éxito.

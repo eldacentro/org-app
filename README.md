@@ -20,7 +20,7 @@ Crea un archivo `.env.local` en la raíz del proyecto con la siguiente estructur
 
 ```env
 VITE_FIREBASE_APIKEY=tu_api_key
-VITE_FIREBASE_AUTHDOMAIN=app.eldacentro.com
+VITE_FIREBASE_AUTHDOMAIN=eldacentro.com
 VITE_FIREBASE_PROJECTID=elda-centro-app
 VITE_FIREBASE_APPID=tu_app_id
 VITE_APP_MODE="PRODUCTION"
