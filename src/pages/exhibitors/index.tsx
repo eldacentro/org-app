@@ -114,6 +114,7 @@ const Exhibitors = () => {
   };
 
   // Estados de UI
+  const [isSavingTurn, setIsSavingTurn] = useState(false);
   const [activeTab, setActiveTab] = useState<'planner' | 'settings'>('planner');
   const [configSubTab, setConfigSubTab] = useState<number>(0);
   const [newExhibitorLocation, setNewExhibitorLocation] = useState<string>('');
@@ -532,7 +533,8 @@ const Exhibitors = () => {
 
   // Guardar edición del turno semanal
   const handleSaveWeekTurn = async () => {
-    if (!settings) return;
+    if (!settings || isSavingTurn) return;
+    setIsSavingTurn(true);
 
     try {
       const localList = structuredClone(exhibitorsList);
@@ -583,6 +585,8 @@ const Exhibitors = () => {
         message: 'Ocurrió un error al guardar el turno de la semana.',
         severity: 'error',
       });
+    } finally {
+      setIsSavingTurn(false);
     }
   };
 
@@ -728,6 +732,8 @@ const Exhibitors = () => {
 
   // Guardar turno global
   const handleSaveGlobalTurn = async () => {
+    if (isSavingTurn) return;
+
     if (turnConfigDialog.days.length === 0) {
       displaySnackNotification({
         header: 'Aviso',
@@ -737,6 +743,7 @@ const Exhibitors = () => {
       return;
     }
 
+    setIsSavingTurn(true);
     try {
       const baseSettings: ExhibitorSettingsType = settings || {
         weekOf: 'settings',
@@ -792,6 +799,13 @@ const Exhibitors = () => {
       });
     } catch (err) {
       console.error(err);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al guardar la configuración del turno.',
+        severity: 'error',
+      });
+    } finally {
+      setIsSavingTurn(false);
     }
   };
 
@@ -2960,6 +2974,7 @@ const Exhibitors = () => {
           </Button>
           <Button
             onClick={handleSaveWeekTurn}
+            disabled={isSavingTurn}
             variant="contained"
             sx={{
               backgroundColor: 'var(--accent-main)',
@@ -3343,6 +3358,7 @@ const Exhibitors = () => {
           </Button>
           <Button
             onClick={handleSaveGlobalTurn}
+            disabled={isSavingTurn}
             variant="contained"
             sx={{
               backgroundColor: 'var(--accent-main)',

@@ -91,6 +91,7 @@ const Limpieza = () => {
   });
 
   const [selectedOverrideGroup, setSelectedOverrideGroup] = useState<string>('');
+  const [isSavingOverride, setIsSavingOverride] = useState(false);
 
   // Cargar en mount y después de cerrar el diálogo de configuración (no al abrirlo)
   useEffect(() => {
@@ -176,18 +177,20 @@ const Limpieza = () => {
   };
 
   const handleSaveOverride = async () => {
-    if (!config || !editModal.weekOf) return;
+    if (!config || !editModal.weekOf || isSavingOverride) return;
+    setIsSavingOverride(true);
+
     const newConfig = { ...config };
     if (!newConfig.overrides) newConfig.overrides = {};
-    
+
     const key = `${editModal.weekOf}-${editModal.reunionDia}`;
-    
+
     if (selectedOverrideGroup) {
       newConfig.overrides[key] = selectedOverrideGroup;
     } else {
       delete newConfig.overrides[key];
     }
-    
+
     try {
       await dbLimpiezaSaveConfig(newConfig);
       setConfig(newConfig);
@@ -195,6 +198,8 @@ const Limpieza = () => {
     } catch (err) {
       console.error('Error saving limpieza override:', err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el cambio de grupo.' });
+    } finally {
+      setIsSavingOverride(false);
     }
   };
 
@@ -683,7 +688,7 @@ const Limpieza = () => {
               <Button onClick={() => setEditModal({ ...editModal, open: false })} color="inherit">
                 Cancelar
               </Button>
-              <Button onClick={handleSaveOverride} variant="contained" color="primary">
+              <Button onClick={handleSaveOverride} variant="contained" color="primary" disabled={isSavingOverride}>
                 Guardar
               </Button>
             </>

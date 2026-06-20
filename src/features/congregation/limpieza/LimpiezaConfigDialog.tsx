@@ -90,6 +90,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   const [grupoInicio, setGrupoInicio] = useState<string>('');
   const [gruposParticipantes, setGruposParticipantes] = useState<string[]>([]);
   const [notasGenerales, setNotasGenerales] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -119,7 +120,8 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   }, [open]);
 
   const handleSave = async () => {
-    if (!fechaInicio || !grupoInicio) return;
+    if (!fechaInicio || !grupoInicio || isSaving) return;
+    setIsSaving(true);
 
     try {
       const existingConfig = await dbLimpiezaGetConfig();
@@ -146,6 +148,8 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
     } catch (err) {
       console.error('Error saving limpieza config:', err);
       displaySnackNotification({ severity: 'error', header: 'Error al guardar', message: 'No se pudo guardar la configuración de limpieza.' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -216,7 +220,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
         <Button onClick={onClose} variant="secondary">
           Cancelar
         </Button>
-        <Button onClick={handleSave} variant="main">
+        <Button onClick={handleSave} variant="main" disabled={isSaving}>
           Guardar
         </Button>
       </DialogActions>

@@ -109,6 +109,7 @@ const PredicacionSalidas = () => {
   // Selector de Año y Mes activo
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear + 1];
+  const [isSavingOuting, setIsSavingOuting] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-indexed
   const [monthsExpanded, setMonthsExpanded] = useState<boolean>(false);
@@ -312,66 +313,78 @@ const PredicacionSalidas = () => {
 
   // Guardar asignación de la salida específica
   const handleSaveOuting = async () => {
-    if (!editDialog.date) return;
+    if (!editDialog.date || isSavingOuting) return;
+    setIsSavingOuting(true);
 
-    const weekOf = getWeekOfDate(editDialog.date);
-    const dbDate = formatToDbDate(editDialog.date);
+    try {
+      const weekOf = getWeekOfDate(editDialog.date);
+      const dbDate = formatToDbDate(editDialog.date);
 
-    let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
-    if (!weekRecord) {
-      weekRecord = {
-        weekOf,
-        outings: [],
-      };
-    } else {
-      weekRecord = structuredClone(weekRecord);
-    }
+      let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+      if (!weekRecord) {
+        weekRecord = {
+          weekOf,
+          outings: [],
+        };
+      } else {
+        weekRecord = structuredClone(weekRecord);
+      }
 
-    if (!weekRecord.outings) {
-      weekRecord.outings = [];
-    }
+      if (!weekRecord.outings) {
+        weekRecord.outings = [];
+      }
 
-    // Filtrar la salida anterior si ya existía para sobreescribirla
-    weekRecord.outings = weekRecord.outings.filter(
-      (o) => !(o.date === dbDate && o.time === editDialog.time)
-    );
+      // Filtrar la salida anterior si ya existía para sobreescribirla
+      weekRecord.outings = weekRecord.outings.filter(
+        (o) => !(o.date === dbDate && o.time === editDialog.time)
+      );
 
-    // Agregar nueva salida solo si no es un slot completamente vacío y activo (evitando registros vacíos redundantes)
-    const isUnassignedAndActive = editPerson === '' && !editCancelled;
+      // Agregar nueva salida solo si no es un slot completamente vacío y activo (evitando registros vacíos redundantes)
+      const isUnassignedAndActive = editPerson === '' && !editCancelled;
 
-    if (!isUnassignedAndActive) {
-      weekRecord.outings.push({
-        id: editDialog.outingId,
-        date: dbDate,
-        time: editDialog.time,
-        person: editPerson,
-        location: editLocation,
-        cancelled: editCancelled,
+      if (!isUnassignedAndActive) {
+        weekRecord.outings.push({
+          id: editDialog.outingId,
+          date: dbDate,
+          time: editDialog.time,
+          person: editPerson,
+          location: editLocation,
+          cancelled: editCancelled,
+        });
+      }
+
+      // Guardar localmente en Dexie y reactivar Jotai
+      await dbServiceOutingsSaveWeek(weekRecord);
+      triggerSync();
+      setOutingsWeeks((prev) => {
+        const filtered = prev.filter((w) => w.weekOf !== weekOf);
+        return [...filtered, weekRecord!];
       });
+
+      setEditDialog({
+        open: false,
+        date: null,
+        time: '',
+        slotId: '',
+        timeKey: '',
+        outingId: '',
+      });
+
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message: 'Salida actualizada correctamente.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al guardar la salida.',
+        severity: 'error',
+      });
+    } finally {
+      setIsSavingOuting(false);
     }
-
-    // Guardar localmente en Dexie y reactivar Jotai
-    await dbServiceOutingsSaveWeek(weekRecord);
-    triggerSync();
-    setOutingsWeeks((prev) => {
-      const filtered = prev.filter((w) => w.weekOf !== weekOf);
-      return [...filtered, weekRecord!];
-    });
-
-    setEditDialog({
-      open: false,
-      date: null,
-      time: '',
-      slotId: '',
-      timeKey: '',
-      outingId: '',
-    });
-
-    displaySnackNotification({
-      header: t('tr_done', 'Hecho'),
-      message: 'Salida actualizada correctamente.',
-      severity: 'success',
-    });
   };
 
   // Manejar el catálogo de ubicaciones
@@ -524,38 +537,52 @@ const PredicacionSalidas = () => {
 
   // Guardar ajustes de semana
   const handleSaveWeekSettings = async () => {
-    const { weekOf } = weekSettingsDialog;
-    let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+    if (isSavingOuting) return;
+    setIsSavingOuting(true);
 
-    if (!weekRecord) {
-      weekRecord = {
-        weekOf,
-        outings: [],
-      };
-    } else {
-      weekRecord = structuredClone(weekRecord);
+    try {
+      const { weekOf } = weekSettingsDialog;
+      let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+
+      if (!weekRecord) {
+        weekRecord = {
+          weekOf,
+          outings: [],
+        };
+      } else {
+        weekRecord = structuredClone(weekRecord);
+      }
+
+      weekRecord.isCircuitOverseerWeek = tempCOWeek;
+      if (showAdjustHours) {
+        weekRecord.weekOverrideHours = weekHoursConfig;
+      } else {
+        delete weekRecord.weekOverrideHours;
+      }
+
+      await dbServiceOutingsSaveWeek(weekRecord);
+      triggerSync();
+      setOutingsWeeks((prev) => {
+        const filtered = prev.filter((w) => w.weekOf !== weekOf);
+        return [...filtered, weekRecord!];
+      });
+
+      setWeekSettingsDialog({ open: false, weekOf: '' });
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message: 'Ajustes semanales actualizados correctamente.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Ocurrió un error al guardar los ajustes semanales.',
+        severity: 'error',
+      });
+    } finally {
+      setIsSavingOuting(false);
     }
-
-    weekRecord.isCircuitOverseerWeek = tempCOWeek;
-    if (showAdjustHours) {
-      weekRecord.weekOverrideHours = weekHoursConfig;
-    } else {
-      delete weekRecord.weekOverrideHours;
-    }
-
-    await dbServiceOutingsSaveWeek(weekRecord);
-    triggerSync();
-    setOutingsWeeks((prev) => {
-      const filtered = prev.filter((w) => w.weekOf !== weekOf);
-      return [...filtered, weekRecord!];
-    });
-
-    setWeekSettingsDialog({ open: false, weekOf: '' });
-    displaySnackNotification({
-      header: t('tr_done', 'Hecho'),
-      message: 'Ajustes semanales actualizados correctamente.',
-      severity: 'success',
-    });
   };
 
   // Autocompletar asignaciones de la semana actual
@@ -2240,7 +2267,7 @@ const PredicacionSalidas = () => {
                                       control={
                                         <Switch
                                           checked={!isDisabled}
-                                          onChange={(e) => {
+                                          onChange={async (e) => {
                                             const checked = e.target.checked;
                                             let currentDisabled = [...(settings?.disabledSlots ?? [])];
                                             if (checked) {
@@ -2251,12 +2278,23 @@ const PredicacionSalidas = () => {
                                               }
                                             }
                                             if (settings) {
+                                              const previousSettings = settings;
                                               const updatedSettings = {
                                                 ...settings,
                                                 disabledSlots: currentDisabled,
                                               };
                                               setSettings(updatedSettings);
-                                              dbServiceOutingsSaveSettings(updatedSettings).catch(console.error);
+                                              try {
+                                                await dbServiceOutingsSaveSettings(updatedSettings);
+                                              } catch (err) {
+                                                console.error(err);
+                                                setSettings(previousSettings);
+                                                displaySnackNotification({
+                                                  header: 'Error',
+                                                  message: 'No se pudo guardar el cambio. Inténtalo de nuevo.',
+                                                  severity: 'error',
+                                                });
+                                              }
                                             }
                                           }}
                                           sx={{
@@ -2824,6 +2862,7 @@ const PredicacionSalidas = () => {
           </Button>
           <Button
             onClick={handleSaveOuting}
+            disabled={isSavingOuting}
             variant="contained"
             sx={{
               backgroundColor: 'var(--accent-main)',
@@ -3102,6 +3141,7 @@ const PredicacionSalidas = () => {
           </Button>
           <Button
             onClick={handleSaveWeekSettings}
+            disabled={isSavingOuting}
             variant="contained"
             sx={{
               backgroundColor: 'var(--accent-main)',
