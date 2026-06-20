@@ -29,6 +29,16 @@ interface CustomDrawerProps {
    * Function to handle the close event of the drawer.
    */
   onClose: () => void;
+
+  /**
+   * Set when the content already manages its own scroll area (e.g. a fixed
+   * header/tabs above a scrollable list). Without this, that inner scrollable
+   * box and this wrapper's own auto-scroll fight over the same touch
+   * gesture, which is what made some drawers feel like the page behind them
+   * was scrolling. Most consumers don't need this — leave it unset and let
+   * the wrapper scroll the whole content, same as before.
+   */
+  disableContentScroll?: boolean;
 }
 
 /**
@@ -42,6 +52,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
   headActions,
   onClose,
   children,
+  disableContentScroll,
   ...props
 }) => {
   const { laptopUp } = useBreakpoints();
@@ -146,12 +157,22 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           </Stack>
         </Stack>
 
-        {/* This wrapper never scrolls itself — each consumer owns its own
-            scrollable area sized to fit, so there's exactly one scroll
-            surface. Two nested `overflow: auto` boxes fighting over the
-            same touch gesture is what made the drawer feel like the page
-            behind it was scrolling. */}
-        <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', pb: 'env(safe-area-inset-bottom, 20px)' }}>
+        {/* Scrolls by default so simple content just works. Consumers that
+            manage their own scroll area (fixed header/tabs + scrollable
+            list) pass disableContentScroll to avoid two nested `overflow:
+            auto` boxes fighting over the same touch gesture — that's what
+            made those drawers feel like the page behind them was scrolling. */}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: disableContentScroll ? 'hidden' : 'auto',
+            overscrollBehavior: 'contain',
+            display: 'flex',
+            flexDirection: 'column',
+            pb: 'env(safe-area-inset-bottom, 20px)',
+          }}
+        >
           {children}
         </Box>
       </Stack>

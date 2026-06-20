@@ -166,6 +166,7 @@ const MyAssignments = () => {
       open={open}
       onClose={handleClose}
       title={t('tr_viewMyAssignments')}
+      disableContentScroll
     >
       {isSetup && (
         <Box sx={{ display: 'flex', gap: '16px' }}>

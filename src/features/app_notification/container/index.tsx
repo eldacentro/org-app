@@ -23,6 +23,7 @@ const NotificationContainer = ({
       onClose={onClose}
       open={open}
       title={t('tr_notifications')}
+      disableContentScroll
       headActions={
         unreadCount > 0 ? (
           <Box
