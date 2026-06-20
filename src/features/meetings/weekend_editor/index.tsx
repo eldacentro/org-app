@@ -255,7 +255,7 @@ const WeekendEditor = () => {
                           },
                         }}
                       >
-                        Generar invitación
+                        Invitación
                       </Button>
                     ) : undefined
                   }

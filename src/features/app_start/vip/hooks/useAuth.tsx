@@ -149,6 +149,44 @@ const useAuth = () => {
       { app_settings, code, user: backendUser }: UserLoginResponseType,
       nextStep: NextStepType
     ) => {
+      // Sincronizar átomos de Jotai de inmediato para evitar Race Conditions en el router
+      if (nextStep.isVerifyMFA) {
+        setTokenDev(code);
+        setIsEmailAuth(false);
+        setIsUserSignIn(false);
+        setIsUserAccountCreated(false);
+        setIsUnauthorizedRole(false);
+        setIsCongCreate(false);
+        setVerifyMFA(true);
+      }
+
+      if (nextStep.createCongregation) {
+        setIsEmailAuth(false);
+        setIsEmailSent(false);
+        setIsUserSignIn(false);
+        setIsCongCreate(false);
+        setIsUserAccountCreated(true);
+      }
+
+      if (nextStep.encryption === false) {
+        setIsEmailSent(false);
+        setIsEmailAuth(false);
+        setIsUserSignIn(false);
+        setIsCongCreate(false);
+        setIsUserAccountCreated(false);
+        setIsUnauthorizedRole(false);
+      }
+
+      if (nextStep.encryption === true) {
+        setIsEmailSent(false);
+        setIsEmailAuth(false);
+        setIsUserSignIn(false);
+        setIsCongCreate(false);
+        setIsUserAccountCreated(false);
+        setIsUnauthorizedRole(false);
+        setIsEncryptionCodeOpen(true);
+      }
+
       // Lee directamente de Dexie para no cerrar sobre settingsState y así
       // evitar que este callback se regenere en cada escritura a la BD,
       // lo que causaba una cascada reactiva que re-disparaba runStartupCheck.
@@ -181,21 +219,11 @@ const useAuth = () => {
       }
 
       if (nextStep.isVerifyMFA) {
-        setTokenDev(code);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsUserAccountCreated(false);
-        setIsUnauthorizedRole(false);
-        setIsCongCreate(false);
-        setVerifyMFA(true);
+        // Estado actualizado al inicio de la función
       }
 
       if (nextStep.createCongregation) {
-        setIsEmailAuth(false);
-        setIsEmailSent(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(true);
+        // Estado actualizado al inicio de la función
       }
 
       if (nextStep.encryption === false) {
@@ -284,12 +312,7 @@ const useAuth = () => {
           return next;
         });
 
-        setIsEmailSent(false);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(false);
-        setIsUnauthorizedRole(false);
+        // Estado de router actualizado al inicio de la función
 
         await runUpdater();
         loadApp();
@@ -388,13 +411,7 @@ const useAuth = () => {
           return next;
         });
 
-        setIsEmailSent(false);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(false);
-        setIsUnauthorizedRole(false);
-        setIsEncryptionCodeOpen(true);
+        // Estado de router actualizado al inicio de la función
       }
     },
     [
