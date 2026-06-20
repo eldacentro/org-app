@@ -37,12 +37,8 @@ const VipStartup = () => {
               {isUserMfaVerify && <VerifyMFA />}
               {isUserAccountCreated && <UserAccountCreated />}
               {isCongCreate && <CongregationCreate />}
-              {isEmailLinkAuth && !isUserAccountCreated && (
-                <EmailLinkAuthentication />
-              )}
-              {!isCongCreate && isEncryptionCodeOpen && (
-                <CongregationEncryption />
-              )}
+              {isEmailLinkAuth && <EmailLinkAuthentication />}
+              {isEncryptionCodeOpen && <CongregationEncryption />}
               {isEmailSent && <EmailSent />}
             </>
           )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useSetAtom } from 'jotai';
 import {
@@ -8,19 +8,13 @@ import {
 import { apiUpdatePasswordlessInfo } from '@services/api/user';
 import {
   displayOnboardingFeedback,
-  setIsCongAccountCreate,
-  setIsEmailLinkAuthenticate,
   setIsUnauthorizedRole,
-  setIsUserSignIn,
 } from '@services/states/app';
 import { useAppTranslation } from '@hooks/index';
 import { getMessageByCode } from '@services/i18n/translation';
 import { NextStepType } from './index.types';
 import { UserLoginResponseType } from '@definition/api';
-import {
-  isEmailLinkAuthenticateState,
-  isUserAccountCreatedState,
-} from '@states/app';
+import { vipOnboardingStepState } from '@states/app';
 import useAuth from '../hooks/useAuth';
 import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 
@@ -33,8 +27,7 @@ const useEmailLinkAuth = () => {
 
   const { determineNextStep, updateUserSettings } = useAuth();
 
-  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
-  const setIsEmailAuth = useSetAtom(isEmailLinkAuthenticateState);
+  const setStep = useSetAtom(vipOnboardingStepState);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -51,14 +44,12 @@ const useEmailLinkAuth = () => {
   };
 
   const handleReturn = () => {
-    setIsEmailLinkAuthenticate(false);
-    setIsUserSignIn(true);
+    setStep('sign_in');
     setSearchParams('');
   };
 
   const handleUnauthorizedUser = () => {
-    setIsEmailAuth(true);
-    setIsUserAccountCreated(false);
+    setStep('none');
     setIsUnauthorizedRole(true);
   };
 
@@ -108,11 +99,6 @@ const useEmailLinkAuth = () => {
       );
     }
   };
-
-  useEffect(() => {
-    setIsUserSignIn(false);
-    setIsCongAccountCreate(false);
-  }, []);
 
   return {
     completeEmailAuth,

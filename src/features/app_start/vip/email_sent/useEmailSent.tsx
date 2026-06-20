@@ -1,13 +1,7 @@
 import { useRef, useState } from 'react';
 import { useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import {
-  isEmailLinkAuthenticateState,
-  isEmailSentState,
-  isUnauthorizedRoleState,
-  isUserAccountCreatedState,
-  isUserSignInState,
-} from '@states/app';
+import { isUnauthorizedRoleState, vipOnboardingStepState } from '@states/app';
 import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { apiHandleVerifyEmailOTP } from '@services/api/user';
@@ -24,11 +18,8 @@ const useEmailSent = () => {
 
   const { determineNextStep, updateUserSettings } = useAuth();
 
-  const setIsEmailLink = useSetAtom(isEmailLinkAuthenticateState);
-  const setIsEmailSent = useSetAtom(isEmailSentState);
-  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
+  const setStep = useSetAtom(vipOnboardingStepState);
   const setIsUnauthorizedRole = useSetAtom(isUnauthorizedRoleState);
-  const setIsUserSignIn = useSetAtom(isUserSignInState);
 
   const [code, setCode] = useState('');
   const [hasError, setHasError] = useState(false);
@@ -39,18 +30,15 @@ const useEmailSent = () => {
   const verifyingRef = useRef(false);
 
   const handleReturnChooser = () => {
-    setIsEmailSent(false);
-    setIsUserSignIn(true);
+    setStep('sign_in');
   };
 
   const handleLinkClick = () => {
-    setIsEmailSent(false);
-    setIsEmailLink(true);
+    setStep('email_link_auth');
   };
 
   const handleUnauthorizedUser = () => {
-    setIsEmailSent(false);
-    setIsUserAccountCreated(false);
+    setStep('none');
     setIsUnauthorizedRole(true);
   };
 

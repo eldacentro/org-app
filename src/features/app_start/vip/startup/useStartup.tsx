@@ -5,22 +5,13 @@ import {
   apiHostState,
   congregationCreateStepState,
   cookiesConsentState,
-  isCongAccountCreateState,
-  isEmailLinkAuthenticateState,
-  isEmailSentState,
-  isEncryptionCodeOpenState,
-  isUserAccountCreatedState,
-  isUserMfaVerifyState,
-  isUserSignInState,
   offlineOverrideState,
   userIDState,
+  vipOnboardingStepState,
 } from '@states/app';
 import {
   setIsAppLoad,
-  setIsEmailLinkAuthenticate,
-  setIsEncryptionCodeOpen,
   setIsSetup,
-  setUserMfaVerify,
   setOfflineOverride,
 } from '@services/states/app';
 import { dbAppSettingsGet } from '@services/dexie/settings';
@@ -38,23 +29,15 @@ const useStartup = () => {
   const { isAuthenticated, loading: isAuthLoading, user } = useFirebaseAuth();
   const { handlePostLogin } = useAuth();
 
-  const [isUserSignIn, setIsUserSignIn] = useAtom(isUserSignInState);
+  const [step, setStep] = useAtom(vipOnboardingStepState);
 
   const setCookiesConsent = useSetAtom(cookiesConsentState);
-  const setCongCreate = useSetAtom(isCongAccountCreateState);
   const setCurrentStep = useSetAtom(congregationCreateStepState);
-  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
   const setUserID = useSetAtom(userIDState);
 
-  const isEmailLinkAuth = useAtomValue(isEmailLinkAuthenticateState);
-  const isUserMfaVerify = useAtomValue(isUserMfaVerifyState);
-  const isUserAccountCreated = useAtomValue(isUserAccountCreatedState);
   const isOfflineOverride = useAtomValue(offlineOverrideState);
   const congID = useAtomValue(congIDState);
-  const isEncryptionCodeOpen = useAtomValue(isEncryptionCodeOpenState);
-  const isCongCreate = useAtomValue(isCongAccountCreateState);
   const cookiesConsent = useAtomValue(cookiesConsentState);
-  const isEmailSent = useAtomValue(isEmailSentState);
   const apiHost = useAtomValue(apiHostState);
 
   const [isStart, setIsStart] = useState(true);
@@ -74,9 +57,8 @@ const useStartup = () => {
   const isEmailLink = searchParams.get('code') !== null;
 
   const showSignin = useCallback(() => {
-    setIsUserSignIn(!isEmailLink);
-    setUserMfaVerify(false);
-  }, [setIsUserSignIn, isEmailLink]);
+    setStep(isEmailLink ? 'email_link_auth' : 'sign_in');
+  }, [setStep, isEmailLink]);
 
   const runStartupCheck = useCallback(async () => {
     if (startupRunningRef.current) return;
@@ -154,13 +136,12 @@ const useStartup = () => {
 
       const { status, result } = await apiValidateMe();
 
-      if (isUserAccountCreated) {
+      if (step === 'request_access') {
         setIsLoading(false);
-        setIsUserSignIn(false);
         return;
       }
 
-      if (!isUserAccountCreated && (status === 403 || status === 400)) {
+      if (status === 403 || status === 400) {
         await userSignOut();
         setIsLoading(false);
         showSignin();
@@ -175,9 +156,8 @@ const useStartup = () => {
             setUserID(result.id);
           }
           // New user signed in but has no congregation yet → show Request Access screen
-          setIsUserAccountCreated(true);
+          setStep('request_access');
           setIsLoading(false);
-          setIsUserSignIn(false);
           return;
         } else {
           // We have a local congregation ID but the server returned 404.
@@ -187,7 +167,7 @@ const useStartup = () => {
           // should NOT wipe the local DB. Show the encryption screen so the user
           // can proceed; if the cong truly disappeared, the user will see an error
           // when they try to decrypt.
-          setIsEncryptionCodeOpen(true);
+          setStep('encryption_code');
           setIsLoading(false);
           setIsStart(false);
           return;
@@ -210,7 +190,7 @@ const useStartup = () => {
           setCurrentStep(1);
           setIsLoading(false);
           setIsStart(false);
-          setCongCreate(true);
+          setStep('cong_create');
           return;
         }
 
@@ -222,7 +202,7 @@ const useStartup = () => {
           setCurrentStep(2);
           setIsLoading(false);
           setIsStart(false);
-          setCongCreate(true);
+          setStep('cong_create');
           return;
         }
       }
@@ -232,7 +212,7 @@ const useStartup = () => {
         currentCongAccessCode.length === 0
       ) {
         setIsStart(false);
-        setIsEncryptionCodeOpen(true);
+        setStep('encryption_code');
       }
 
       setIsStart(false);
@@ -261,22 +241,25 @@ const useStartup = () => {
     }
   }, [
     isOfflineOverride,
-    isUserAccountCreated,
+    step,
     showSignin,
-    setCongCreate,
+    setStep,
     setCurrentStep,
     isAuthenticated,
-    setIsUserSignIn,
-    setIsUserAccountCreated,
     handlePostLogin,
     setUserID,
     user,
     congID,
   ]);
 
+  // Reactively show the email-link-auth screen whenever the URL carries a
+  // pending ?code= param. Doesn't reset back to 'none' when the param is
+  // absent — leaving that to whichever explicit transition moves the user
+  // off this screen — so it can't clobber an unrelated step that's already
+  // active (e.g. a stale ?code= lingering on browser back/forward).
   useEffect(() => {
-    setIsEmailLinkAuthenticate(isEmailLink);
-  }, [isEmailLink]);
+    if (isEmailLink) setStep('email_link_auth');
+  }, [isEmailLink, setStep]);
 
   useEffect(() => {
     const checkCookiesConsent = async () => {
@@ -292,7 +275,7 @@ const useStartup = () => {
 
     if (!cookiesConsent) {
       if (!isAuthenticated) {
-        setIsUserSignIn(true);
+        setStep('sign_in');
       }
       setIsLoading(false);
       return;
@@ -301,19 +284,19 @@ const useStartup = () => {
     if (isStart && !startupCompletedRef.current) {
       runStartupCheck();
     }
-  }, [setIsUserSignIn, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated, apiHost]);
+  }, [setStep, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated, apiHost]);
 
   return {
-    isUserSignIn,
-    isUserMfaVerify,
+    isUserSignIn: step === 'sign_in',
+    isUserMfaVerify: step === 'mfa_verify',
     // Defense-in-depth: if the congregation is already known (Handshake ran and
-    // saved cong_id), never render UserAccountCreated regardless of atom state.
-    isUserAccountCreated: isUserAccountCreated && !congID,
-    isEmailLinkAuth,
-    isEncryptionCodeOpen,
-    isCongCreate,
+    // saved cong_id), never render UserAccountCreated regardless of step.
+    isUserAccountCreated: step === 'request_access' && !congID,
+    isEmailLinkAuth: step === 'email_link_auth',
+    isEncryptionCodeOpen: step === 'encryption_code',
+    isCongCreate: step === 'cong_create',
     isLoading,
-    isEmailSent,
+    isEmailSent: step === 'email_sent',
   };
 };
 

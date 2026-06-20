@@ -6,17 +6,11 @@ import { APP_ROLES, VIP_ROLES } from '@constants/index';
 import {
   congregationCreateStepState,
   isAuthProcessingState,
-  isCongAccountCreateState,
-  isEmailLinkAuthenticateState,
-  isEmailSentState,
-  isEncryptionCodeOpenState,
   isSetupState,
   isUnauthorizedRoleState,
-  isUserAccountCreatedState,
-  isUserMfaVerifyState,
-  isUserSignInState,
   tokenDevState,
   userIDState,
+  vipOnboardingStepState,
 } from '@states/app';
 import { settingsState } from '@states/settings';
 import { dbAppSettingsGet, dbAppSettingsUpdate } from '@services/dexie/settings';
@@ -36,17 +30,11 @@ import { loadKeysSecurely, saveKeysSecurely } from '@services/secure_storage';
 
 const useAuth = () => {
   const setIsSetup = useSetAtom(isSetupState);
-  const setIsUserSignIn = useSetAtom(isUserSignInState);
-  const setVerifyMFA = useSetAtom(isUserMfaVerifyState);
+  const setStep = useSetAtom(vipOnboardingStepState);
   const setTokenDev = useSetAtom(tokenDevState);
-  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
-  const setIsEmailAuth = useSetAtom(isEmailLinkAuthenticateState);
   const setCurrentStep = useSetAtom(congregationCreateStepState);
   const setUserID = useSetAtom(userIDState);
   const setIsUnauthorizedRole = useSetAtom(isUnauthorizedRoleState);
-  const setIsEncryptionCodeOpen = useSetAtom(isEncryptionCodeOpenState);
-  const setIsEmailSent = useSetAtom(isEmailSentState);
-  const setIsCongCreate = useSetAtom(isCongAccountCreateState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
   const setSettings = useSetAtom(settingsState);
 
@@ -61,10 +49,9 @@ const useAuth = () => {
   }, [setIsAuthProcessing]);
 
   const handleUnauthorizedUser = useCallback(() => {
-    setIsEmailSent(false);
-    setIsUserAccountCreated(false);
+    setStep('none');
     setIsUnauthorizedRole(true);
-  }, [setIsEmailSent, setIsUserAccountCreated, setIsUnauthorizedRole]);
+  }, [setStep, setIsUnauthorizedRole]);
 
   const determineNextStep = useCallback(
     ({ app_settings, message, id }: UserLoginResponseType): NextStepType => {
@@ -149,42 +136,26 @@ const useAuth = () => {
       { app_settings, code, user: backendUser }: UserLoginResponseType,
       nextStep: NextStepType
     ) => {
-      // Sincronizar átomos de Jotai de inmediato para evitar Race Conditions en el router
+      // Un solo paso de router a la vez — imposible que dos pantallas queden
+      // activas a la vez por olvidar limpiar alguna de las otras.
       if (nextStep.isVerifyMFA) {
         setTokenDev(code);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsUserAccountCreated(false);
         setIsUnauthorizedRole(false);
-        setIsCongCreate(false);
-        setVerifyMFA(true);
+        setStep('mfa_verify');
       }
 
       if (nextStep.createCongregation) {
-        setIsEmailAuth(false);
-        setIsEmailSent(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(true);
+        setStep('request_access');
       }
 
       if (nextStep.encryption === false) {
-        setIsEmailSent(false);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(false);
         setIsUnauthorizedRole(false);
+        setStep('none');
       }
 
       if (nextStep.encryption === true) {
-        setIsEmailSent(false);
-        setIsEmailAuth(false);
-        setIsUserSignIn(false);
-        setIsCongCreate(false);
-        setIsUserAccountCreated(false);
         setIsUnauthorizedRole(false);
-        setIsEncryptionCodeOpen(true);
+        setStep('encryption_code');
       }
 
       // Lee directamente de Dexie para no cerrar sobre settingsState y así
@@ -216,14 +187,6 @@ const useAuth = () => {
           next.user_settings.firstname = firstnameToSave;
           return next;
         });
-      }
-
-      if (nextStep.isVerifyMFA) {
-        // Estado actualizado al inicio de la función
-      }
-
-      if (nextStep.createCongregation) {
-        // Estado actualizado al inicio de la función
       }
 
       if (nextStep.encryption === false) {
@@ -311,8 +274,6 @@ const useAuth = () => {
           }
           return next;
         });
-
-        // Estado de router actualizado al inicio de la función
 
         await runUpdater();
         loadApp();
@@ -415,15 +376,9 @@ const useAuth = () => {
       }
     },
     [
-      setIsEmailAuth,
-      setIsEmailSent,
-      setIsUserSignIn,
-      setIsCongCreate,
-      setIsUserAccountCreated,
+      setStep,
       setIsUnauthorizedRole,
       setTokenDev,
-      setVerifyMFA,
-      setIsEncryptionCodeOpen,
       setIsSetup,
       setSettings,
       // 'settings' eliminado intencionalmente: se lee fresco desde Dexie al inicio

@@ -239,15 +239,9 @@ export const shortDatePickerFormatState = atom(getShortDatePickerFormat());
 
 export const isDeleteDbOpenState = atom(false);
 
-export const isUserSignInState = atom(false);
-
 export const isEmailNotVerifiedState = atom(false);
 
 export const isEmailBlockedState = atom(false);
-
-export const isUserAccountCreatedState = atom(false);
-
-export const isCongAccountCreateState = atom(false);
 
 export const qrCodePathState = atom('');
 
@@ -257,9 +251,31 @@ export const isOnlineState = atom(navigator.onLine);
 
 export const isUserMfaSetupState = atom(false);
 
-export const isUserMfaVerifyState = atom(false);
-
 export const isUnauthorizedRoleState = atom(false);
+
+/**
+ * Which single onboarding screen VipStartup should show, once Firebase auth
+ * and the local startup check have resolved. Replaces 7 independent
+ * booleans (isUserSignIn, isUserMfaVerify, isUserAccountCreated,
+ * isCongAccountCreate, isEmailLinkAuthenticate, isEncryptionCodeOpen,
+ * isEmailSent) that every transition had to manually set true/false across —
+ * miss clearing one and two onboarding screens could render stacked at once.
+ * A single value makes that class of bug structurally impossible: there is
+ * only ever one current step, full stop.
+ *
+ * 'none' = no onboarding screen needed (normal app should be loading/loaded).
+ */
+export type VipOnboardingStepType =
+  | 'sign_in'
+  | 'mfa_verify'
+  | 'request_access'
+  | 'cong_create'
+  | 'email_link_auth'
+  | 'encryption_code'
+  | 'email_sent'
+  | 'none';
+
+export const vipOnboardingStepState = atom<VipOnboardingStepType>('none');
 
 export const showReloadState = atom(false);
 
@@ -298,8 +314,6 @@ export const isAccountChooseState = atom(false);
 export const isFetchingScheduleState = atom(true);
 
 export const refreshScreenState = atom(false);
-
-export const isEmailLinkAuthenticateState = atom(false);
 
 export const appSnackOpenState = atom(false);
 
@@ -373,8 +387,6 @@ export const isSupportOpenState = atom(false);
 
 export const isNewCongregationState = atom(false);
 
-export const isEncryptionCodeOpenState = atom(false);
-
 export const isAppDataSyncingState = atom(false);
 
 export const lastAppDataSyncState = atom<number | string>(0);
@@ -421,8 +433,6 @@ export const colorSchemeState = atomWithStorage<ColorSchemeType>(
   'color',
   'blue'
 );
-
-export const isEmailSentState = atom(false);
 
 export const devAuthLinkState = atom('');
 

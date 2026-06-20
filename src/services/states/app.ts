@@ -16,15 +16,13 @@ import {
   showReloadState,
   isSetupState,
   isUnauthorizedRoleState,
-  isUserSignInState,
   offlineOverrideState,
   rootModalOpenState,
   userIDState,
   secretTokenPathState,
   qrCodePathState,
-  isEmailLinkAuthenticateState,
-  isCongAccountCreateState,
-  isUserMfaVerifyState,
+  vipOnboardingStepState,
+  VipOnboardingStepType,
   isUserMfaSetupState,
   isAuthProcessingState,
   isMyAssignmentOpenState,
@@ -42,7 +40,6 @@ import {
   onboardingVariantState,
   isSupportOpenState,
   isNewCongregationState,
-  isEncryptionCodeOpenState,
   isAppDataSyncingState,
   lastAppDataSyncState,
   appMessageHeaderState,
@@ -137,8 +134,8 @@ export const setIsAppLoad = (value: boolean) => {
   store.set(isAppLoadState, value);
 };
 
-export const setIsUserSignIn = (value: boolean) => {
-  store.set(isUserSignInState, value);
+export const setVipOnboardingStep = (value: VipOnboardingStepType) => {
+  store.set(vipOnboardingStepState, value);
 };
 
 export const setUserID = (value: string) => {
@@ -159,18 +156,6 @@ export const setSecretTokenPathState = (value: string) => {
 
 export const setQrCodePathState = (value: string) => {
   store.set(qrCodePathState, value);
-};
-
-export const setIsEmailLinkAuthenticate = (value: boolean) => {
-  store.set(isEmailLinkAuthenticateState, value);
-};
-
-export const setIsCongAccountCreate = (value: boolean) => {
-  store.set(isCongAccountCreateState, value);
-};
-
-export const setUserMfaVerify = (value: boolean) => {
-  store.set(isUserMfaVerifyState, value);
 };
 
 export const setUserMfaSetup = (value: boolean) => {
@@ -235,10 +220,6 @@ export const setIsSupportOpen = (value: boolean) => {
 
 export const setIsNewCongregation = (value: boolean) => {
   store.set(isNewCongregationState, value);
-};
-
-export const setIsEncryptionCodeOpen = (value: boolean) => {
-  store.set(isEncryptionCodeOpenState, value);
 };
 
 export const setIsAppDataSyncing = (value: boolean) => {

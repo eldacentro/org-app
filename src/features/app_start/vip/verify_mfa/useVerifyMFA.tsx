@@ -5,12 +5,9 @@ import { displayOnboardingFeedback } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { apiHandleVerifyOTP } from '@services/api/user';
 import {
-  isEncryptionCodeOpenState,
   isUnauthorizedRoleState,
-  isUserAccountCreatedState,
-  isUserMfaVerifyState,
-  isUserSignInState,
   tokenDevState,
+  vipOnboardingStepState,
 } from '@states/app';
 import { UserLoginResponseType } from '@definition/api';
 import { APP_ROLES } from '@constants/index';
@@ -24,11 +21,8 @@ const useVerifyMFA = () => {
 
   const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
-  const setIsUserSignIn = useSetAtom(isUserSignInState);
-  const setIsMfaVerify = useSetAtom(isUserMfaVerifyState);
+  const setStep = useSetAtom(vipOnboardingStepState);
   const setUnauthorized = useSetAtom(isUnauthorizedRoleState);
-  const setIsEncryptionCodeOpen = useSetAtom(isEncryptionCodeOpenState);
-  const setIsUserAccountCreated = useSetAtom(isUserAccountCreatedState);
 
   const tokenDev = useAtomValue(tokenDevState);
   const settings = useAtomValue(settingsState);
@@ -42,8 +36,7 @@ const useVerifyMFA = () => {
   const verifyingRef = useRef(false);
 
   const handleGoBack = () => {
-    setIsMfaVerify(false);
-    setIsUserSignIn(true);
+    setStep('sign_in');
   };
 
   const handleCodeChange = (value: string) => {
@@ -68,14 +61,13 @@ const useVerifyMFA = () => {
     }
 
     if (!app_settings.cong_settings) {
-      setIsMfaVerify(false);
-      setIsUserAccountCreated(true);
+      setStep('request_access');
 
       return;
     }
 
     if (app_settings.user_settings.cong_role.length === 0) {
-      setIsMfaVerify(false);
+      setStep('none');
       setUnauthorized(true);
 
       return;
@@ -86,7 +78,7 @@ const useVerifyMFA = () => {
     );
 
     if (!roleApproved) {
-      setIsMfaVerify(false);
+      setStep('none');
       setUnauthorized(true);
 
       return;
@@ -147,8 +139,7 @@ const useVerifyMFA = () => {
       'cong_settings.cong_new': false,
     });
 
-    setIsMfaVerify(false);
-    setIsEncryptionCodeOpen(true);
+    setStep('encryption_code');
   };
 
   const handleVerifyCode = async (code: string) => {
