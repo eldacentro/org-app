@@ -1,10 +1,10 @@
-import { Box, Button } from '@mui/material';
+import { Box, Button, CircularProgress } from '@mui/material';
 import { IconGoogle } from '@icons/index';
 import useAccountChooser from './useAccountChooser';
 import Typography from '@components/typography';
 
 const AccountChooser = () => {
-  const { handleChooseGoogle } = useAccountChooser();
+  const { handleChooseGoogle, isAuthProcessing } = useAccountChooser();
 
   return (
     <Box
@@ -36,7 +36,14 @@ const AccountChooser = () => {
         <Button
           variant="outlined"
           onClick={handleChooseGoogle}
-          startIcon={<IconGoogle width={24} height={24} />}
+          disabled={isAuthProcessing}
+          startIcon={
+            isAuthProcessing ? (
+              <CircularProgress size={20} sx={{ color: 'var(--black)' }} />
+            ) : (
+              <IconGoogle width={24} height={24} />
+            )
+          }
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -53,6 +60,10 @@ const AccountChooser = () => {
             color: 'var(--black)',
             boxShadow: 'var(--btn-shadow)',
             transition: 'all 0.2s ease-in-out',
+            '&.Mui-disabled': {
+              opacity: 0.7,
+              border: '1px solid var(--line)',
+            },
             '&:hover': {
               border: '1px solid var(--accent-main)',
               background: 'var(--accent-100)',
@@ -61,7 +72,7 @@ const AccountChooser = () => {
             },
           }}
         >
-          Continuar con Google
+          {isAuthProcessing ? 'Conectando…' : 'Continuar con Google'}
         </Button>
       </Box>
 

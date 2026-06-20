@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
-import { useSetAtom } from 'jotai';
+import { useEffect, useRef } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
 import {
   authProvider,
   setAuthPersistence,
   userSignInPopup,
-  userSignInRedirect,
 } from '@services/firebase/auth';
 import { isAccountChooseState, isAuthProcessingState } from '@states/app';
 import { settingsState } from '@states/settings';
@@ -15,16 +14,13 @@ import useFirebaseAuth from '@hooks/useFirebaseAuth';
 import useFeedback from '../hooks/useFeedback';
 import useAppTranslation from '@hooks/useAppTranslation';
 
-const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-  navigator.userAgent
-);
-
 const useAccountChooser = () => {
-  const t = useAppTranslation();
+  const { t } = useAppTranslation();
   const { showMessage, hideMessage } = useFeedback();
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const setIsAccountChoose = useSetAtom(isAccountChooseState);
+  const isAuthProcessing = useAtomValue(isAuthProcessingState);
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
   const setSettings = useSetAtom(settingsState);
 
@@ -64,14 +60,24 @@ const useAccountChooser = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isAuthLoading]);
 
+  // Synchronous lock — isAuthProcessing (Jotai) isn't guaranteed to be
+  // readable by a second rapid tap before the first call's state update
+  // propagates, so a ref is the only thing that reliably blocks a second
+  // signInWithPopup from firing while the first is still in flight. Two
+  // concurrent popups racing each other is its own source of "stuck on
+  // loading after picking the account" reports.
+  const inFlightRef = useRef(false);
+
   const handleChooseGoogle = async () => {
+    if (inFlightRef.current) return;
+
     try {
       hideMessage();
 
       // Already signed in: this screen is being shown as the post-login
-      // fallback, not as a fresh login. Re-running signInWithRedirect here would
-      // reload the page and re-enter the same flow — the infinite loop. Instead
-      // re-mark the account so VipStartup re-runs its startup check.
+      // fallback, not as a fresh login. Re-running sign-in here would just
+      // re-enter the same flow. Instead re-mark the account so VipStartup
+      // re-runs its startup check.
       if (isAuthenticated) {
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
         setSettings((prev) => {
@@ -83,26 +89,36 @@ const useAccountChooser = () => {
         return;
       }
 
-      if (isMobile) {
-        // Page navigates away to Google. On return, Firebase restores session →
-        // isAuthenticated becomes true → useEffect marks account_type → VipStartup loads.
-        await setAuthPersistence();
-        await userSignInRedirect(authProvider.Google);
-        return;
-      }
+      inFlightRef.current = true;
 
-      // Fire persistence setup without awaiting — keeps signInWithPopup synchronous
-      // with the user gesture so the browser doesn't treat it as a blocked popup.
-      // Persistence completes in <100ms; user always takes longer to pick an account.
+      // signInWithPopup on every platform, mobile included: it must be the
+      // first await in this handler so it stays synchronous with the click
+      // (any await before it risks the browser treating the popup as
+      // programmatic, not user-initiated, and silently blocking it — the
+      // most likely reason a tap could appear to do nothing). signInWithRedirect
+      // was tried for mobile before and made things worse — it depends on the
+      // browser correctly persisting "a redirect is pending" across a full page
+      // reload, which Safari's tracking-prevention can interfere with, and it
+      // can't be retried without the user noticing a real page navigation.
+      // Persistence is fired without awaiting for the same reason; it
+      // reliably finishes well before the user picks an account.
       setAuthPersistence().catch(console.error);
       setIsAuthProcessing(true);
       await userSignInPopup(authProvider.Google);
     } catch (error) {
-      // User closed the popup before completing sign-in — not an error, just retry.
+      // User closed the popup or a second popup request superseded this one
+      // — not a real error, just let them try again. Still worth a gentle
+      // message: silently doing nothing is exactly what makes people tap
+      // repeatedly, unsure if anything happened at all.
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        setIsAuthProcessing(false);
+        displayOnboardingFeedback({
+          title: t('tr_signInCancelledTitle', 'Inicio de sesión cancelado'),
+          message: t('tr_signInCancelledDesc', 'Se cerró la ventana de Google antes de terminar. Inténtalo de nuevo.'),
+        });
+        showMessage();
         return;
       }
+
       console.error(error);
       displayOnboardingFeedback({
         title: getMessageByCode('error_app_generic-title'),
@@ -111,11 +127,13 @@ const useAccountChooser = () => {
         ),
       });
       showMessage();
+    } finally {
+      inFlightRef.current = false;
       setIsAuthProcessing(false);
     }
   };
 
-  return { handleChooseGoogle };
+  return { handleChooseGoogle, isAuthProcessing };
 };
 
 export default useAccountChooser;
