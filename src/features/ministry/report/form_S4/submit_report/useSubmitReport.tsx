@@ -256,6 +256,10 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
       return false;
     } catch (error) {
       if (!isNetworkError(error)) throw error;
+      // Can't queue without knowing which flow to retry with later — this
+      // shouldn't happen since accountType gates which branch above runs,
+      // but rethrow rather than silently dropping the report if it ever did.
+      if (accountType !== 'vip' && accountType !== 'pocket') throw error;
 
       // Connectivity problem, not a real failure — queue the original
       // (unencrypted) report and retry automatically once back online,
