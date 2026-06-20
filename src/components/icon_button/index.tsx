@@ -28,16 +28,15 @@ const IconButton: FC<CustomIconButtonProps> = (props) => {
     <MUIIconButton
       color="inherit"
       edge="start"
+      disableRipple
       sx={{
         padding: '8px',
         borderRadius: 'var(--radius-l)',
+        transition: 'transform 100ms ease, background-color 150ms ease',
 
         ...(disableHover
           ? {
               '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '.MuiTouchRipple-ripple .MuiTouchRipple-child': {
                 backgroundColor: 'transparent',
               },
             }
@@ -45,9 +44,9 @@ const IconButton: FC<CustomIconButtonProps> = (props) => {
               '&:hover': {
                 backgroundColor: getBackgroundColor(),
               },
-              '.MuiTouchRipple-ripple .MuiTouchRipple-child': {
-                borderRadius: 'var(--radius-l)',
+              '&:active': {
                 backgroundColor: getBackgroundColor(),
+                transform: 'scale(0.92)',
               },
             }),
 
