@@ -15,7 +15,7 @@ const useCongregationMasterKey = () => {
 
   const { isAuthenticated } = useFirebaseAuth();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const congID = useAtomValue(congIDState);
 
@@ -97,6 +97,7 @@ const useCongregationMasterKey = () => {
     handleValidateMasterKey,
     message,
     title,
+    isVisible,
     hideMessage,
     variant,
     btnActionDisabled,

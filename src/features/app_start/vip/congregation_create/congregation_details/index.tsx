@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Fade } from '@mui/material';
 import { IconAccount, IconError } from '@icons/index';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -24,6 +24,7 @@ const CongregationDetails = () => {
     message,
     hideMessage,
     variant,
+    isVisible,
     setUserTmpFirstName,
     setUserTmpLastName,
     userTmpFirstName,
@@ -109,7 +110,7 @@ const CongregationDetails = () => {
 
           <Button
             variant="main"
-            disabled={!isElderApproved}
+            disabled={!isElderApproved || isProcessing}
             onClick={handleCongregationAction}
             sx={{ width: '100%' }}
             startIcon={
@@ -129,15 +130,17 @@ const CongregationDetails = () => {
 
       <VipInfoTip variant="congregationSearch" />
 
-      <Box id="onboarding-error" sx={{ display: 'none' }}>
-        <InfoMessage
-          variant={variant}
-          messageIcon={<IconError />}
-          messageHeader={title}
-          message={message}
-          onClose={hideMessage}
-        />
-      </Box>
+      <Fade in={isVisible} unmountOnExit timeout={150}>
+        <Box>
+          <InfoMessage
+            variant={variant}
+            messageIcon={<IconError />}
+            messageHeader={title}
+            message={message}
+            onClose={hideMessage}
+          />
+        </Box>
+      </Fade>
     </Box>
   );
 };

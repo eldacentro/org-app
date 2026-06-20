@@ -22,7 +22,7 @@ import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 const useVerifyMFA = () => {
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const setIsUserSignIn = useSetAtom(isUserSignInState);
   const setIsMfaVerify = useSetAtom(isUserMfaVerifyState);
@@ -194,6 +194,7 @@ const useVerifyMFA = () => {
 
   return {
     title,
+    isVisible,
     message,
     variant,
     hideMessage,

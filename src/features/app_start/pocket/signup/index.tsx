@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Fade } from '@mui/material';
 import { IconError } from '@icons/index';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -22,6 +22,7 @@ const PocketSignUp = () => {
     title,
     message,
     variant,
+    isVisible,
   } = useSignup();
 
   return (
@@ -54,7 +55,7 @@ const PocketSignUp = () => {
           />
           <Button
             variant="main"
-            disabled={code.length === 0 || !isOnline}
+            disabled={code.length === 0 || !isOnline || isProcessing}
             onClick={handleValidate}
             sx={{ padding: '8px 32px', minHeight: '44px' }}
             startIcon={
@@ -71,15 +72,17 @@ const PocketSignUp = () => {
           </Button>
         </Box>
 
-        <Box id="onboarding-error" sx={{ display: 'none' }}>
-          <InfoMessage
-            variant={variant}
-            messageIcon={<IconError />}
-            messageHeader={title}
-            message={message}
-            onClose={hideMessage}
-          />
-        </Box>
+        <Fade in={isVisible} unmountOnExit timeout={150}>
+          <Box>
+            <InfoMessage
+              variant={variant}
+              messageIcon={<IconError />}
+              messageHeader={title}
+              message={message}
+              onClose={hideMessage}
+            />
+          </Box>
+        </Fade>
       </Box>
     </Box>
   );

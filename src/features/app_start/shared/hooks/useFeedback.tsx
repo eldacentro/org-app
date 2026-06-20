@@ -1,34 +1,22 @@
 import {
   onboardingMessageState,
+  onboardingMessageVisibleState,
   onboardingTitleState,
   onboardingVariantState,
 } from '@states/app';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 
 const useFeedback = () => {
   const title = useAtomValue(onboardingTitleState);
   const message = useAtomValue(onboardingMessageState);
   const variant = useAtomValue(onboardingVariantState);
+  const isVisible = useAtomValue(onboardingMessageVisibleState);
+  const setIsVisible = useSetAtom(onboardingMessageVisibleState);
 
-  const hideMessage = () => {
-    const onboardingError =
-      document.querySelector<HTMLElement>('#onboarding-error');
-    if (onboardingError) {
-      onboardingError.style.animation = 'fade-out 0.15s forwards';
-    }
-  };
+  const hideMessage = () => setIsVisible(false);
+  const showMessage = () => setIsVisible(true);
 
-  const showMessage = () => {
-    const onboardingError =
-      document.querySelector<HTMLElement>('#onboarding-error');
-    if (onboardingError) {
-      onboardingError.style.opacity = '0';
-      onboardingError.style.display = 'block';
-      onboardingError.style.animation = 'fade-in 0.15s forwards';
-    }
-  };
-
-  return { title, message, variant, hideMessage, showMessage };
+  return { title, message, variant, hideMessage, showMessage, isVisible };
 };
 
 export default useFeedback;

@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Fade } from '@mui/material';
 import Button from '@components/button';
 import InfoMessage from '@components/info-message';
 import { IconError } from '@icons/index';
@@ -18,6 +18,7 @@ const EmailLinkAuthentication = () => {
     message,
     title,
     variant,
+    isVisible,
   } = useEmailLinkAuth();
 
   return (
@@ -41,6 +42,7 @@ const EmailLinkAuthentication = () => {
           <Button
             variant="main"
             onClick={completeEmailAuth}
+            disabled={isProcessing}
             sx={{ padding: '8px 32px', minHeight: '44px' }}
             startIcon={
               isProcessing ? (
@@ -56,15 +58,17 @@ const EmailLinkAuthentication = () => {
           </Button>
         </Box>
 
-        <Box id="onboarding-error" sx={{ display: 'none' }}>
-          <InfoMessage
-            variant={variant}
-            messageIcon={<IconError />}
-            messageHeader={title}
-            message={message}
-            onClose={hideMessage}
-          />
-        </Box>
+        <Fade in={isVisible} unmountOnExit timeout={150}>
+          <Box>
+            <InfoMessage
+              variant={variant}
+              messageIcon={<IconError />}
+              messageHeader={title}
+              message={message}
+              onClose={hideMessage}
+            />
+          </Box>
+        </Fade>
       </Box>
     </Box>
   );

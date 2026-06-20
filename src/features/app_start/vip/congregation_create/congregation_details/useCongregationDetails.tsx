@@ -23,7 +23,7 @@ const useCongregationDetails = () => {
   const { t } = useAppTranslation();
   const hasAutoSubmitted = useRef(false);
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const setCurrentStep = useSetAtom(congregationCreateStepState);
 
@@ -240,6 +240,7 @@ const useCongregationDetails = () => {
     setUserTmpLastName,
     message,
     title,
+    isVisible,
     hideMessage,
     variant,
     handleToggleApproval,

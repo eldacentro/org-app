@@ -17,7 +17,7 @@ const useCongregationAccessCode = () => {
 
   const { isAuthenticated, user } = useFirebaseAuth();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const setIsSetup = useSetAtom(isSetupState);
   const setIsAppLoad = useSetAtom(isAppLoadState);
@@ -117,6 +117,7 @@ const useCongregationAccessCode = () => {
     handleValidateAccessCode,
     message,
     title,
+    isVisible,
     hideMessage,
     variant,
     setTmpAccessCodeVerify,

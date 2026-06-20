@@ -1,10 +1,19 @@
-import { Box, Button, CircularProgress } from '@mui/material';
-import { IconGoogle } from '@icons/index';
+import { Box, Button, CircularProgress, Fade } from '@mui/material';
+import { IconError, IconGoogle } from '@icons/index';
 import useAccountChooser from './useAccountChooser';
+import InfoMessage from '@components/info-message';
 import Typography from '@components/typography';
 
 const AccountChooser = () => {
-  const { handleChooseGoogle, isAuthProcessing } = useAccountChooser();
+  const {
+    handleChooseGoogle,
+    isAuthProcessing,
+    isVisible,
+    title,
+    message,
+    variant,
+    hideMessage,
+  } = useAccountChooser();
 
   return (
     <Box
@@ -82,6 +91,18 @@ const AccountChooser = () => {
       >
         ¿No tienes acceso? Habla con un anciano
       </Typography>
+
+      <Fade in={isVisible} unmountOnExit timeout={150}>
+        <Box>
+          <InfoMessage
+            variant={variant}
+            messageIcon={<IconError />}
+            messageHeader={title}
+            message={message}
+            onClose={hideMessage}
+          />
+        </Box>
+      </Fade>
     </Box>
   );
 };

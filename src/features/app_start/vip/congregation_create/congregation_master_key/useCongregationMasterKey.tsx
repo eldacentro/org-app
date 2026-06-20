@@ -12,7 +12,7 @@ import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 const useCongregationMasterKey = () => {
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const setCurrentStep = useSetAtom(congregationCreateStepState);
 
@@ -89,6 +89,7 @@ const useCongregationMasterKey = () => {
     isProcessing,
     message,
     title,
+    isVisible,
     hideMessage,
     variant,
     isMatch,

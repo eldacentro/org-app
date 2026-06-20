@@ -20,7 +20,7 @@ import { userSignInCustomToken } from '@services/firebase/auth';
 const useEmailSent = () => {
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const { determineNextStep, updateUserSettings } = useAuth();
 
@@ -125,6 +125,7 @@ const useEmailSent = () => {
     hideMessage,
     message,
     title,
+    isVisible,
     variant,
     handleLinkClick,
     handleCodeChange,

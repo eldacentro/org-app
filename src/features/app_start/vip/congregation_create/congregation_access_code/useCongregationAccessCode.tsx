@@ -13,7 +13,7 @@ import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 const useCongregationAccessCode = () => {
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
 
   const setIsSetup = useSetAtom(isSetupState);
   const setIsAppLoad = useSetAtom(isAppLoadState);
@@ -95,6 +95,7 @@ const useCongregationAccessCode = () => {
     isProcessing,
     message,
     title,
+    isVisible,
     hideMessage,
     variant,
     isMatch,

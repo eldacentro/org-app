@@ -1,4 +1,4 @@
-import { Box, Stack } from '@mui/material';
+import { Box, Fade, Stack } from '@mui/material';
 import { IconError } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useEmailSent from './useEmailSent';
@@ -21,6 +21,7 @@ const EmailSent = () => {
     hasError,
     handleReturnChooser,
     isProcessing,
+    isVisible,
   } = useEmailSent();
 
   return (
@@ -55,15 +56,17 @@ const EmailSent = () => {
           />
         </Stack>
 
-        <Box id="onboarding-error" sx={{ display: 'none' }}>
-          <InfoMessage
-            variant={variant}
-            messageIcon={<IconError />}
-            messageHeader={title}
-            message={message}
-            onClose={hideMessage}
-          />
-        </Box>
+        <Fade in={isVisible} unmountOnExit timeout={150}>
+          <Box>
+            <InfoMessage
+              variant={variant}
+              messageIcon={<IconError />}
+              messageHeader={title}
+              message={message}
+              onClose={hideMessage}
+            />
+          </Box>
+        </Fade>
       </Box>
     </Box>
   );

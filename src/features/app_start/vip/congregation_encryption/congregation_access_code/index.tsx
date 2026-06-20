@@ -1,4 +1,4 @@
-import { Box, FormControlLabel, Typography } from '@mui/material';
+import { Box, Fade, FormControlLabel, Typography } from '@mui/material';
 import { IconCongregationAccess, IconError } from '@icons/index';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -20,6 +20,7 @@ const CongregationAccessCode = () => {
     message,
     title,
     variant,
+    isVisible,
     setTmpAccessCode,
     tmpAccessCode,
     btnActionDisabled,
@@ -135,15 +136,17 @@ const CongregationAccessCode = () => {
             </Box>
           </Box>
 
-          <Box id="onboarding-error" sx={{ display: 'none' }}>
-            <InfoMessage
-              variant={variant}
-              messageIcon={<IconError />}
-              messageHeader={title}
-              message={message}
-              onClose={hideMessage}
-            />
-          </Box>
+          <Fade in={isVisible} unmountOnExit timeout={150}>
+            <Box>
+              <InfoMessage
+                variant={variant}
+                messageIcon={<IconError />}
+                messageHeader={title}
+                message={message}
+                onClose={hideMessage}
+              />
+            </Box>
+          </Fade>
         </>
       )}
     </Box>

@@ -16,7 +16,7 @@ import useAppTranslation from '@hooks/useAppTranslation';
 
 const useAccountChooser = () => {
   const { t } = useAppTranslation();
-  const { showMessage, hideMessage } = useFeedback();
+  const { showMessage, hideMessage, isVisible, title, message, variant } = useFeedback();
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const setIsAccountChoose = useSetAtom(isAccountChooseState);
@@ -133,7 +133,15 @@ const useAccountChooser = () => {
     }
   };
 
-  return { handleChooseGoogle, isAuthProcessing };
+  return {
+    handleChooseGoogle,
+    isAuthProcessing,
+    isVisible,
+    title,
+    message,
+    variant,
+    hideMessage,
+  };
 };
 
 export default useAccountChooser;

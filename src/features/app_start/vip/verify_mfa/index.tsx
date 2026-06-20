@@ -1,4 +1,4 @@
-import { Badge, Box, Stack } from '@mui/material';
+import { Badge, Box, Fade, Stack } from '@mui/material';
 import { IconError } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useVerifyMFA from './useVerifyMFA';
@@ -21,6 +21,7 @@ const VerifyMFA = () => {
     handleGoBack,
     tokenDev,
     isProcessing,
+    isVisible,
   } = useVerifyMFA();
 
   return (
@@ -58,15 +59,17 @@ const VerifyMFA = () => {
           )}
         </Stack>
 
-        <Box id="onboarding-error" sx={{ display: 'none' }}>
-          <InfoMessage
-            variant={variant}
-            messageIcon={<IconError />}
-            messageHeader={title}
-            message={message}
-            onClose={hideMessage}
-          />
-        </Box>
+        <Fade in={isVisible} unmountOnExit timeout={150}>
+          <Box>
+            <InfoMessage
+              variant={variant}
+              messageIcon={<IconError />}
+              messageHeader={title}
+              message={message}
+              onClose={hideMessage}
+            />
+          </Box>
+        </Fade>
       </Box>
     </Box>
   );

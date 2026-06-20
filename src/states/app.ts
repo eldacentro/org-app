@@ -360,6 +360,15 @@ export const onboardingVariantState = atom(
   'error' as 'error' | 'success' | 'message-with-button'
 );
 
+// Drives whether the onboarding error/feedback box is shown. Previously each
+// screen rendered a permanently-mounted #onboarding-error element and
+// useFeedback toggled it via direct DOM manipulation (querySelector + style
+// mutation) — fragile (silently no-ops if the element isn't in THIS screen's
+// JSX, which is how a real error message went undisplayed on AccountChooser)
+// and outside React's render cycle. This atom lets each screen instead
+// conditionally render its feedback box, which is what it should have been.
+export const onboardingMessageVisibleState = atom(false);
+
 export const isSupportOpenState = atom(false);
 
 export const isNewCongregationState = atom(false);

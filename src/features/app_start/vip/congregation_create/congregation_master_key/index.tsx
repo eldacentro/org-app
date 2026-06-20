@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Fade } from '@mui/material';
 import { IconEncryptionKey, IconError } from '@icons/index';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -24,6 +24,7 @@ const CongregationMasterKey = () => {
     message,
     title,
     variant,
+    isVisible,
     isMatch,
     setTmpMasterKey,
     setTmpMasterKeyVerify,
@@ -171,15 +172,17 @@ const CongregationMasterKey = () => {
         </Box>
       </Box>
 
-      <Box id="onboarding-error" sx={{ display: 'none' }}>
-        <InfoMessage
-          variant={variant}
-          messageIcon={<IconError />}
-          messageHeader={title}
-          message={message}
-          onClose={hideMessage}
-        />
-      </Box>
+      <Fade in={isVisible} unmountOnExit timeout={150}>
+        <Box>
+          <InfoMessage
+            variant={variant}
+            messageIcon={<IconError />}
+            messageHeader={title}
+            message={message}
+            onClose={hideMessage}
+          />
+        </Box>
+      </Fade>
     </Box>
   );
 };
