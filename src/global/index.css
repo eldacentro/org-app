@@ -373,9 +373,16 @@ body {
   border-radius: 0 0 16px 16px !important;
 }
 
-/* Screen Top Gradients for Light Theme */
+/* Screen Top Gradients for Light Theme — uses theme's own base colors (was
+   hardcoded to a blue-ish #F0F4FA before, which didn't match the green/
+   purple/orange light schemes' own accent-100/150) */
 [data-theme$='-light'] .screen {
-  background: linear-gradient(to bottom, #ffffff 0px, #ffffff 60px, #F0F4FA 180px) !important;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0px,
+    #ffffff 60px,
+    rgba(var(--accent-150-base), 1) 180px
+  ) !important;
 }
 
 /* Screen Top Gradients for Dark Theme — uses theme's own base colors */
@@ -386,6 +393,18 @@ body {
     rgba(var(--accent-100-base), 1) 60px,
     rgba(var(--accent-150-base), 1) 280px
   ) !important;
+}
+
+/* `body`'s own background (set in global.css) is accent-100, but .screen's
+   gradient settles into accent-150 past its first ~180-280px. On iOS the
+   dynamic toolbar can make 100dvh settle a few px short of the real
+   scrollable area right after it expands/collapses, briefly exposing body
+   below .screen — if the two colors differ (they did, especially in dark
+   mode) that gap reads as a visible seam/divider line at the bottom of an
+   otherwise short page. Matching body to the same end-color makes any such
+   gap invisible regardless of the exact dvh timing. */
+body {
+  background-color: rgba(var(--accent-150-base), 1) !important;
 }
 
 /* Dynamic height adjustment for the Root Layout placeholder Toolbar

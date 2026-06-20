@@ -9,7 +9,7 @@ import {
 } from '@states/settings';
 import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
-import { assignmentsHistoryState, schedulesState } from '@states/schedules';
+import { assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
@@ -18,11 +18,7 @@ import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { getEffectiveTurnsForMonth, isMonthCancelled } from '@utils/exhibitors';
-import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { personsState } from '@states/persons';
-import { useEffect } from 'react';
-import { schedulesGetMeetingDate, schedulesWeekNoMeeting } from '@services/app/schedules';
-import { Week } from '@definition/week_type';
 
 const useMyAssignments = () => {
   const navigate = useNavigate();
@@ -39,7 +35,6 @@ const useMyAssignments = () => {
   const exhibitors = useAtomValue(exhibitorsListState);
   const exhibitorsSettings = useAtomValue(exhibitorsSettingsState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
-  const schedules = useAtomValue(schedulesState);
 
   const storageValue = localStorageGetItem(LOCAL_STORAGE_KEY);
   const intialValue: DisplayRange = storageValue
@@ -49,7 +44,6 @@ const useMyAssignments = () => {
   const [displayRange, setDisplayRange] = useState(intialValue);
   const [filterType, setFilterType] = useState<'all' | 'meetings' | 'preaching'>('all');
 
-  const groups = useAtomValue(fieldServiceGroupsState);
   // Keep this hook to preserve hook call order (Rules of Hooks)
   useAtomValue(personsState);
 
@@ -274,8 +268,6 @@ const useMyAssignments = () => {
     delegateMembers,
     shortDateFormat,
     filterType,
-    groups,
-    schedules,
   ]);
 
   const handleClose = () => setOpen(false);

@@ -1,5 +1,5 @@
 import { Box, Stack } from '@mui/material';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { useAppTranslation } from '@hooks/index';
 import { IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { DisplayRange } from './indextypes';
@@ -16,8 +16,6 @@ import Typography from '@components/typography';
 
 const MyAssignments = () => {
   const { t } = useAppTranslation();
-
-  const { tabletDown } = useBreakpoints();
 
   const {
     handleClose,
