@@ -38,9 +38,9 @@ const MyAssignments = () => {
       sx={{
         display: 'flex',
         gap: '10px',
-        flexDirection: tabletDown ? 'column' : 'row',
+        flexDirection: 'row',
         width: '100%',
-        mt: tabletDown ? '4px' : '0px',
+        mt: '0px',
       }}
     >
       {/* Range selector */}
@@ -69,7 +69,7 @@ const MyAssignments = () => {
         <Select
           label="Categoría"
           value={filterType}
-          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching' | 'limpieza')}
+          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching')}
         >
           <MenuItem value="all">
             <Typography>Todas</Typography>
@@ -84,11 +84,6 @@ const MyAssignments = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <IconCart color="var(--preaching-color)" width={16} height={16} />
               <Typography>Predicación</Typography>
-            </Box>
-          </MenuItem>
-          <MenuItem value="limpieza">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Typography>🧹 Limpieza</Typography>
             </Box>
           </MenuItem>
         </Select>
@@ -106,6 +101,7 @@ const MyAssignments = () => {
       sx={{
         flex: 1,
         minHeight: 0,
+        mt: '-8px',
         overflowY: 'auto',
         '&::-webkit-scrollbar': {
           width: '4px',
