@@ -135,6 +135,10 @@ const DialogAsignar = ({
         personUid,
         assignedAt: now,
         dueAt: computeDueAt(now, settings.daysUntilExpiration),
+        // Explicit null (not omitted) so a future where('returnedAt','==',null)
+        // query can find open assignments — Firestore equality filters don't
+        // match documents where the field is simply absent.
+        returnedAt: null,
         status: 'asignado',
         isCampaign,
         campaignId,

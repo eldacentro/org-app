@@ -360,6 +360,35 @@ export const finalizeAssignmentBatch = async (
 export const deleteAssignment = (congId: string, assignmentId: string) =>
   deleteDoc(fsDoc(assignmentsCol(congId), assignmentId));
 
+/**
+ * Migración de un solo uso (idempotente): rellena returnedAt: null en las
+ * asignaciones abiertas que se crearon antes de que ese campo se escribiera
+ * explícito (antes simplemente se omitía). Necesario para poder filtrar más
+ * adelante con where('returnedAt','==',null) — Firestore no encuentra
+ * documentos donde el campo no existe en absoluto.
+ *
+ * Recibe las asignaciones ya cargadas (vía la suscripción existente) en vez
+ * de volver a consultarlas, así no duplica lecturas. Se puede llamar en cada
+ * carga: una vez migrada una asignación, deja de aparecer en `stale` y no
+ * vuelve a escribirse.
+ */
+export const backfillMissingReturnedAt = async (
+  congId: string,
+  assignments: TerritoryAssignment[]
+): Promise<void> => {
+  const stale = assignments.filter((a) => a.returnedAt === undefined);
+  if (stale.length === 0) return;
+
+  for (let i = 0; i < stale.length; i += 450) {
+    const slice = stale.slice(i, i + 450);
+    const batch = writeBatch(firestore);
+    slice.forEach((a) =>
+      batch.update(fsDoc(assignmentsCol(congId), a.id), { returnedAt: null })
+    );
+    await batch.commit();
+  }
+};
+
 export const saveLocation = (
   congId: string,
   l: TerritoryLocation,

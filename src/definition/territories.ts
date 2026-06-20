@@ -60,8 +60,11 @@ export type TerritoryAssignment = {
   assignedAt: string;
   /** ISO date — fecha de vencimiento calculada (assignedAt + días config). */
   dueAt?: string;
-  /** ISO date — fecha de devolución (vacío = sigue asignado). */
-  returnedAt?: string;
+  /** ISO date — fecha de devolución. null/undefined = sigue asignado.
+   *  Las asignaciones nuevas escriben null explícito (no se omite el campo)
+   *  para que una consulta where('returnedAt','==',null) pueda encontrarlas;
+   *  undefined solo aparece en documentos antiguos previos a esa migración. */
+  returnedAt?: string | null;
   status: TerritoryAssignmentStatus;
   /** true si la asignación pertenece a una campaña (se marca con "(C)"). */
   isCampaign: boolean;

@@ -5,7 +5,10 @@ import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
 import { getTerritoryManagersUids } from './utils/managers';
-import { useCanReceiveTerritoryRequestNotifications } from './useIsTerritoryManager';
+import {
+  useCanReceiveTerritoryRequestNotifications,
+  useIsTerritoryManager,
+} from './useIsTerritoryManager';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -28,6 +31,7 @@ import {
   subscribeTerritories,
   subscribeZones,
   saveSettings,
+  backfillMissingReturnedAt,
 } from '@services/firebase/territories';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
@@ -38,10 +42,16 @@ import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 let _activeCongId: string | null = null;
 let _activeMasterKey: string = '';
 let _unsubs: Array<() => void> = [];
+// Cuenta cuántos componentes montados están usando el hook ahora mismo, para
+// no cerrar las suscripciones mientras alguno todavía las necesita, pero sí
+// cerrarlas en cuanto el último se desmonta (p.ej. al salir de la página).
+let _refCount = 0;
 
 const teardown = () => {
   _unsubs.forEach((u) => u());
   _unsubs = [];
+  _activeCongId = null;
+  _activeMasterKey = '';
 };
 
 export const useTerritories = () => {
@@ -62,6 +72,20 @@ export const useTerritories = () => {
   const settings = useAtomValue(territorySettingsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const isManager = useCanReceiveTerritoryRequestNotifications();
+  const canManage = useIsTerritoryManager();
+  const assignments = useAtomValue(territoryAssignmentsState);
+
+  // Cierra las 9 suscripciones cuando el último componente que las usa se
+  // desmonta (p.ej. el usuario navega fuera de Territorios), para no dejar
+  // conexiones de Firestore corriendo en segundo plano el resto de la sesión.
+  useEffect(() => {
+    _refCount += 1;
+
+    return () => {
+      _refCount -= 1;
+      if (_refCount === 0) teardown();
+    };
+  }, []);
 
   useEffect(() => {
     if (!congId) return;
@@ -165,4 +189,18 @@ export const useTerritories = () => {
       );
     }
   }, [congId, isManager, responsabilidades, persons, settings, fullnameOption]);
+
+  // Migración de un solo uso: rellena returnedAt: null en asignaciones
+  // abiertas creadas antes de que ese valor se escribiera explícito. Solo
+  // quien puede escribir asignaciones (responsable/admin) lo intenta, para
+  // no generar errores de permiso en los dispositivos de publicadores.
+  // Idempotente: una vez migradas, dejan de aparecer en el filtro y no
+  // se reescriben en cargas siguientes.
+  useEffect(() => {
+    if (!congId || !canManage || assignments.length === 0) return;
+
+    backfillMissingReturnedAt(congId, assignments).catch((err) =>
+      console.error('Failed to backfill returnedAt:', err)
+    );
+  }, [congId, canManage, assignments]);
 };
