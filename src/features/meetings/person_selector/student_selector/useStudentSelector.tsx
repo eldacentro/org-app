@@ -375,6 +375,18 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     );
 
     if (weekAssignments.length > 1) {
+      // Ver el comentario equivalente en useBrotherSelector.tsx — sin esto
+      // no se podía saber CUÁL asignación tiene la persona sin abrir el
+      // historial.
+      const otherTitles = weekAssignments
+        .filter((record) => record.assignment.key !== assignment)
+        .map((record) => record.assignment.title)
+        .filter((title) => title.length > 0);
+
+      if (otherTitles.length > 0) {
+        return `${t('tr_personAlreadyAssignmentWeek')}: ${otherTitles.join(', ')}`;
+      }
+
       return t('tr_personAlreadyAssignmentWeek');
     }
 
@@ -390,7 +402,7 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     }
 
     return '';
-  }, [persons, value, week, personHistory, t, meetingDate]);
+  }, [persons, value, week, personHistory, t, meetingDate, assignment]);
 
   const handleGenderChange = (
     e: MouseEvent<HTMLLabelElement>,

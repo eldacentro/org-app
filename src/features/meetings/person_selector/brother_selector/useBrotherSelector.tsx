@@ -453,6 +453,20 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     );
 
     if (weekAssignments.length > 1) {
+      // Sin esto, el aviso no decía CUÁL asignación ya tiene la persona, así
+      // que había que abrir el historial (la lupa) para averiguarlo — lento
+      // para algo que se necesita decidir rápido al armar el programa. Se
+      // excluye la propia parte que se está asignando ahora (si ya estaba
+      // guardada) para no listarse a sí misma como "conflicto".
+      const otherTitles = weekAssignments
+        .filter((record) => record.assignment.key !== assignment)
+        .map((record) => record.assignment.title)
+        .filter((title) => title.length > 0);
+
+      if (otherTitles.length > 0) {
+        return `${t('tr_personAlreadyAssignmentWeek')}: ${otherTitles.join(', ')}`;
+      }
+
       return t('tr_personAlreadyAssignmentWeek');
     }
 
