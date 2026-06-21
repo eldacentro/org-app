@@ -12,4 +12,5 @@ export { default as useAppTheme } from './useAppTheme';
 export { default as usePushNotifications } from './usePushNotifications';
 export { default as useManualSync } from './useManualSync';
 export { default as useViewportInset } from './useViewportInset';
+export { default as useStaticSafeAreaInsetBottom } from './useStaticSafeAreaInsetBottom';
 export { default as useScrollFocusedInputIntoView } from './useScrollFocusedInputIntoView';
