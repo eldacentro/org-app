@@ -54,7 +54,12 @@ import {
   upcomingEventsSchema,
   UpcomingEventsTable,
 } from './tables/upcoming_events';
-import { publicTalkSchema, PublicTalkTable } from './tables/public_talk';
+import {
+  publicTalkSchema,
+  PublicTalkTable,
+  publicTalkOverrideSchema,
+  PublicTalkOverrideTable,
+} from './tables/public_talk';
 import { songSchema, SongTable } from './tables/songs';
 import {
   DeptScheduleTable,
@@ -110,6 +115,7 @@ type DexieTables = PersonsTable &
   MetadataTable &
   DelegatedFieldServiceReportsTable &
   PublicTalkTable &
+  PublicTalkOverrideTable &
   SongTable &
   DeptScheduleTable &
   ServiceOutingTable &
@@ -356,6 +362,26 @@ appDb.version(21).stores({
   ...limpiezaSchema,
   ...territoriesSchema,
   ...evacuacionConfigSchema,
+});
+
+appDb.version(22).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+  ...evacuacionConfigSchema,
+  ...publicTalkOverrideSchema,
 });
 
 appDb.on('populate', function () {

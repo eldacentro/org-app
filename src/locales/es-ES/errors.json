@@ -7,6 +7,7 @@
   "error_api_unauthorized-request": "No tienes acceso a este recurso",
   "error_app_security_invalid-invitation-code-title": "Código de invitación incorrecto",
   "error_app_security_invalid-invitation-code": "Por favor, verifica el código que proporcionaste",
+  "error_app_jwpub_invalid-file": "Este archivo no parece ser un .jwpub válido de bosquejos de discursos públicos (S-34)",
   "error_app_generic-title": "Ocurrió un error",
   "error_app_generic-desc": "Ocurrió un error. Intenta actualizar la página. Si esto no ayuda, intenta reiniciar Elda Centro por completo. Ten en cuenta que esto borrará todos tus datos no sincronizados.",
   "error_app_unsupported-browser-title": "Navegador no compatible",

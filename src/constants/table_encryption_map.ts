@@ -278,6 +278,11 @@ export const TABLE_ENCRYPTION_MAP = {
     normasGenerales: 'shared',
     extintores: 'shared',
   },
+  public_talks_override: {
+    id: 'shared',
+    updatedAt: 'shared',
+    overrides: 'shared',
+  },
   territories: {
     id: 'shared',
     zoneId: 'shared',

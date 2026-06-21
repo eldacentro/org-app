@@ -21,6 +21,8 @@ import { ExhibitorWeekType } from '@definition/exhibitors';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { PlanEvacuacion } from '@definition/evacuacion';
+import { PublicTalkOverrideType } from '@definition/public_talks';
+import { applyPublicTalksOverride } from '@utils/public_talks';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -369,6 +371,7 @@ const dbGetTableData = async () => {
     const upcoming_events = await appDb.upcoming_events.toArray();
     const limpieza_config = await appDb.limpieza_config.get('1');
     const evacuacion_config = await appDb.evacuacion_config.get('1');
+    const public_talks_override = await appDb.public_talks_override.get('1');
     const metadata = await appDb.metadata.get(1);
 
     const territories = await appDb.territories.toArray();
@@ -434,6 +437,7 @@ const dbGetTableData = async () => {
       upcoming_events,
       limpieza_config,
       evacuacion_config,
+      public_talks_override,
       territories,
       territory_zones,
       territory_tags,
@@ -2087,6 +2091,47 @@ const dbRestoreEvacuacionConfig = async (
   }
 };
 
+const dbRestorePublicTalksOverride = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.public_talks_override) return;
+
+    const remoteRecord = structuredClone(
+      backupData.public_talks_override
+    ) as Record<string, unknown>;
+
+    decryptObject({
+      data: remoteRecord,
+      table: 'public_talks_override',
+      accessCode,
+    });
+
+    const localRecord = await appDb.public_talks_override.get('1');
+    const remoteUpdated = (remoteRecord.updatedAt as string) || '';
+    const localUpdated = localRecord?.updatedAt || '';
+
+    if (!localRecord || remoteUpdated > localUpdated) {
+      const newOverride = {
+        ...remoteRecord,
+        id: '1',
+      } as unknown as PublicTalkOverrideType;
+
+      await appDb.public_talks_override.put(newOverride);
+
+      // No se usa dbPublicTalkUpdate() aquí — ese reconstruye desde
+      // getI18n(), que no existe en este Web Worker. Se aplica el override
+      // directamente sobre lo que ya hay en `public_talks`, sin tocar i18n.
+      const talks = await appDb.public_talks.toArray();
+      applyPublicTalksOverride(talks, newOverride);
+      await appDb.public_talks.bulkPut(talks);
+    }
+  } catch (error) {
+    throw new Error(`public_talks_override: ${error.message}`);
+  }
+};
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -2131,6 +2176,7 @@ const dbRestoreFromBackup = async (
       await dbRestoreResponsabilidades(backupData, accessCode);
       await dbRestoreLimpiezaConfig(backupData, accessCode);
       await dbRestoreEvacuacionConfig(backupData, accessCode);
+      await dbRestorePublicTalksOverride(backupData, accessCode);
 
       await dbRestoreUserStudies(backupData, accessCode);
 
@@ -2227,6 +2273,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       responsabilidades,
       limpieza_config,
       evacuacion_config,
+      public_talks_override,
       sources,
       meeting_attendance,
       metadata,
@@ -2696,6 +2743,21 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.evacuacion_config = toBackup;
+          }
+        }
+
+        // include public_talks_override data
+        if (metadata.metadata.public_talks_override?.send_local) {
+          if (public_talks_override) {
+            const toBackup = structuredClone(public_talks_override);
+
+            encryptObject({
+              data: toBackup,
+              table: 'public_talks_override',
+              accessCode,
+            });
+
+            obj.public_talks_override = toBackup;
           }
         }
 
