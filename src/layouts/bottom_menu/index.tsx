@@ -7,8 +7,11 @@ import {
   useViewportInset,
 } from '@hooks/index';
 
-const GRADIENT_HEIGHT = 100;
 const BAR_MARGIN = 16;
+// Un cambio de tamaño real (rotar el teléfono, plegar una tablet) mueve
+// window.innerHeight muchísimo más que esto. Por debajo del umbral, lo
+// tratamos como ruido — ver el comentario en el useEffect de abajo.
+const RESIZE_THRESHOLD_PX = 150;
 
 const BottomMenu = (props: BottomMenuProps) => {
   const { t } = useAppTranslation();
@@ -34,8 +37,18 @@ const BottomMenu = (props: BottomMenuProps) => {
 
     // Solo escuchamos 'resize' (rotación de pantalla, cambio real de
     // tamaño) — deliberadamente NO 'scroll' ni visualViewport, que es
-    // justo la fuente del falso recálculo que estamos evitando.
-    const handleResize = () => setWindowHeight(window.innerHeight);
+    // justo la fuente del falso recálculo que estamos evitando. Pero
+    // incluso 'resize' no es 100% confiable en standalone: iOS puede
+    // disparar uno espurio, con un innerHeight apenas distinto, como
+    // residuo del mismo mecanismo fantasma de la barra de Safari — eso
+    // deshacía este arreglo. Por eso solo aceptamos el nuevo valor si el
+    // cambio es grande (un giro de pantalla real), no un par de píxeles.
+    const handleResize = () => {
+      const next = window.innerHeight;
+      setWindowHeight((prev) =>
+        Math.abs(next - prev) > RESIZE_THRESHOLD_PX ? next : prev
+      );
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -57,29 +70,11 @@ const BottomMenu = (props: BottomMenuProps) => {
     return () => observer.disconnect();
   }, []);
 
-  const gradientTop = windowHeight - GRADIENT_HEIGHT;
   const barTop =
     windowHeight - barHeight - BAR_MARGIN - safeAreaInsetBottom;
 
   return (
     <>
-      {/* Fade gradient behind the bar */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: `${gradientTop}px`,
-          left: 0,
-          right: 0,
-          height: `${GRADIENT_HEIGHT}px`,
-          background:
-            'linear-gradient(180deg, rgba(var(--accent-100-base), 0) 0%, rgba(var(--accent-100-base), 0.9) 100%)',
-          zIndex: (theme) => theme.zIndex.drawer,
-          pointerEvents: 'none',
-          opacity: keyboardOpen ? 0 : 1,
-          transition: 'opacity 0.18s ease',
-        }}
-      />
-
       {/* Action pill bar */}
       <Box
         ref={barRef}
