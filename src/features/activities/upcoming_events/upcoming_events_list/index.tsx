@@ -57,7 +57,13 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                       }
                     : '16px 0px 0px 0px',
                   position: isStuck ? 'fixed' : 'relative',
-                  top: isStuck ? '50px' : 'auto',
+                  // +env(safe-area-inset-top): en iOS la barra de navegación
+                  // real ya se desplaza ese alto (notch/Dynamic Island) — sin
+                  // esto, el año pegado queda más arriba que la barra y se
+                  // solapa con los botones de volver/inicio.
+                  top: isStuck
+                    ? 'calc(50px + env(safe-area-inset-top, 0px))'
+                    : 'auto',
                   height: isStuck ? '80px' : 'auto',
                   zIndex: 2,
                   background: isStuck
