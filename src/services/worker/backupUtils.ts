@@ -1791,6 +1791,23 @@ const getObjectLatestUpdate = (obj: unknown) => {
 
 const dbDeduplicateSpeakers = async () => {
   const speakers = await appDb.visiting_speakers.toArray();
+  const allCongregations = await appDb.speakers_congregations.toArray();
+  // Un discursante con un cong_id que no apunta a ninguna congregación real
+  // (huérfano — la causa típica: una sync externa que generó un cong_id
+  // nuevo en vez de reusar el existente) no debe tratarse como un grupo
+  // aparte solo porque su cong_id es distinto. Por eso ya no se agrupa por
+  // nombre+cong_id, sino por nombre, y luego se decide cómo fusionar según
+  // cuántos cong_id válidos distintos aparecen en el grupo (ver abajo).
+  const validCongIds = new Set(
+    allCongregations
+      .filter(
+        (cong) =>
+          cong._deleted &&
+          typeof cong._deleted === 'object' &&
+          cong._deleted.value === false
+      )
+      .map((cong) => cong.id)
+  );
   const normalize = (str: string) =>
     str
       .toLowerCase()
@@ -1812,11 +1829,10 @@ const dbDeduplicateSpeakers = async () => {
 
     const firstNameVal = speaker.speaker_data.person_firstname?.value || '';
     const lastNameVal = speaker.speaker_data.person_lastname?.value || '';
-    const congId = speaker.speaker_data.cong_id || '';
 
     const firstName = normalize(firstNameVal);
     const lastName = normalize(lastNameVal);
-    const key = `${firstName}|${lastName}|${congId}`;
+    const key = `${firstName}|${lastName}`;
 
     if (!groups.has(key)) {
       groups.set(key, []);
@@ -1827,42 +1843,60 @@ const dbDeduplicateSpeakers = async () => {
   const speakersToUpdate: VisitingSpeakerType[] = [];
 
   for (const group of groups.values()) {
-    if (group.length > 1) {
-      group.sort((a, b) => {
-        const dateA = getObjectLatestUpdate(a);
-        const dateB = getObjectLatestUpdate(b);
-        return dateB.localeCompare(dateA);
-      });
+    if (group.length <= 1) continue;
 
-      // El sobreviviente es el más reciente, pero sus bosquejos (talks) no
-      // necesariamente son el conjunto completo — la sync con el catálogo
-      // externo de oradores a veces crea un duplicado en vez de añadir un
-      // bosquejo nuevo al existente, y cada copia termina con bosquejos
-      // distintos. Antes esto se descartaba sin más al borrar el duplicado;
-      // ahora se fusionan los bosquejos de todas las copias en el
-      // sobreviviente antes de borrar el resto, para no perder ninguno.
-      const survivor = group[0];
-      const mergedTalks = new Map(
-        survivor.speaker_data.talks.map((talk) => [talk.talk_number, talk])
-      );
+    const distinctValidCongIds = new Set(
+      group
+        .map((speaker) => speaker.speaker_data.cong_id)
+        .filter((congId) => validCongIds.has(congId))
+    );
 
-      for (let i = 1; i < group.length; i++) {
-        for (const talk of group[i].speaker_data.talks) {
-          const existing = mergedTalks.get(talk.talk_number);
-          if (!existing || talk.updatedAt > existing.updatedAt) {
-            mergedTalks.set(talk.talk_number, talk);
-          }
+    // 2+ cong_id válidos y distintos: probablemente son personas reales
+    // distintas que comparten nombre en congregaciones distintas, no
+    // duplicados — no se fusionan a ciegas para no mezclar a dos hermanos.
+    if (distinctValidCongIds.size > 1) continue;
+
+    group.sort((a, b) => {
+      // El que tiene un cong_id que sí resuelve a una congregación real va
+      // primero — preferirlo como sobreviviente es lo que corrige el caso
+      // reportado (una copia sin congregación visible, las demás con ella).
+      const aValid = validCongIds.has(a.speaker_data.cong_id) ? 1 : 0;
+      const bValid = validCongIds.has(b.speaker_data.cong_id) ? 1 : 0;
+      if (aValid !== bValid) return bValid - aValid;
+
+      const dateA = getObjectLatestUpdate(a);
+      const dateB = getObjectLatestUpdate(b);
+      return dateB.localeCompare(dateA);
+    });
+
+    // El sobreviviente es el más reciente (y con congregación válida si la
+    // hay), pero sus bosquejos (talks) no necesariamente son el conjunto
+    // completo — la sync con el catálogo externo de oradores a veces crea
+    // un duplicado en vez de añadir un bosquejo nuevo al existente, y cada
+    // copia termina con bosquejos distintos. Antes esto se descartaba sin
+    // más al borrar el duplicado; ahora se fusionan los bosquejos de todas
+    // las copias en el sobreviviente antes de borrar el resto.
+    const survivor = group[0];
+    const mergedTalks = new Map(
+      survivor.speaker_data.talks.map((talk) => [talk.talk_number, talk])
+    );
+
+    for (let i = 1; i < group.length; i++) {
+      for (const talk of group[i].speaker_data.talks) {
+        const existing = mergedTalks.get(talk.talk_number);
+        if (!existing || talk.updatedAt > existing.updatedAt) {
+          mergedTalks.set(talk.talk_number, talk);
         }
       }
+    }
 
-      survivor.speaker_data.talks = Array.from(mergedTalks.values());
-      speakersToUpdate.push(survivor);
+    survivor.speaker_data.talks = Array.from(mergedTalks.values());
+    speakersToUpdate.push(survivor);
 
-      for (let i = 1; i < group.length; i++) {
-        const speaker = group[i];
-        speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
-        speakersToUpdate.push(speaker);
-      }
+    for (let i = 1; i < group.length; i++) {
+      const speaker = group[i];
+      speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
+      speakersToUpdate.push(speaker);
     }
   }
 
