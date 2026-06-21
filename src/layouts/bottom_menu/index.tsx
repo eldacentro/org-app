@@ -10,35 +10,27 @@ const BottomMenu = (props: BottomMenuProps) => {
   const { keyboardOpen } = useViewportInset();
 
   return (
-    // Este wrapper es quien resuelve lo de la barra de herramientas dinámica
-    // de Safari/Chrome en iOS — antes se intentaba compensar con JS
-    // (window.visualViewport), pero el cálculo llegaba un frame tarde
-    // respecto a la animación nativa del navegador y la barra igual
-    // "saltaba" al hacer scroll. `100dvh` (dynamic viewport height) lo
-    // recalcula el propio navegador sin lag, así que un hijo `position:
-    // absolute; bottom: 0` dentro de este wrapper queda siempre pegado al
-    // borde real visible, sin JS de por medio.
-    <Box
-      sx={{
-        position: 'fixed',
-        inset: 0,
-        height: '100dvh',
-        pointerEvents: 'none',
-        zIndex: (theme) => theme.zIndex.drawer,
-      }}
-    >
+    <>
       {/* Fade gradient behind the bar */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed',
           bottom: 0,
           left: 0,
           right: 0,
           height: '100px',
           background:
             'linear-gradient(180deg, rgba(var(--accent-100-base), 0) 0%, rgba(var(--accent-100-base), 0.9) 100%)',
+          zIndex: (theme) => theme.zIndex.drawer,
+          pointerEvents: 'none',
           opacity: keyboardOpen ? 0 : 1,
           transition: 'opacity 0.18s ease',
+          // Capa GPU propia y estable — sin esto, WebKit puede re-componer
+          // (y desplazar visualmente un instante) elementos `fixed` con
+          // backdrop-filter cada vez que el scroll dispara un repintado,
+          // que es justo el "salto" reportado en iOS.
+          transform: 'translateZ(0)',
+          willChange: 'transform',
         }}
       />
 
@@ -47,16 +39,17 @@ const BottomMenu = (props: BottomMenuProps) => {
         component="nav"
         aria-label={t('tr_bottomActionsMenu')}
         sx={{
-          position: 'absolute',
+          position: 'fixed',
           bottom: `calc(16px + env(safe-area-inset-bottom, 0px))`,
           left: '50%',
           transform: keyboardOpen
-            ? 'translate(-50%, 16px)'
-            : 'translateX(-50%)',
+            ? 'translate3d(-50%, 16px, 0)'
+            : 'translate3d(-50%, 0, 0)',
           opacity: keyboardOpen ? 0 : 1,
           pointerEvents: keyboardOpen ? 'none' : 'auto',
           transition: 'opacity 0.18s ease, transform 0.18s ease',
-          zIndex: 1,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          willChange: 'transform',
 
           /* Glass */
           backgroundColor: 'rgba(var(--accent-150-base), 0.78)',
@@ -81,7 +74,7 @@ const BottomMenu = (props: BottomMenuProps) => {
       >
         {props.buttons}
       </Box>
-    </Box>
+    </>
   );
 };
 
