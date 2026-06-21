@@ -4,32 +4,39 @@ import { useAppTranslation, useViewportInset } from '@hooks/index';
 
 const BottomMenu = (props: BottomMenuProps) => {
   const { t } = useAppTranslation();
-  // env(safe-area-inset-bottom) por sí solo no compensa la barra de
-  // herramientas dinámica de Safari/Chrome en iOS al hacer scroll — por eso
-  // la barra "saltaba" o quedaba tapada un instante en los extremos del
-  // scroll. bottomInset mide el viewport visual real y corrige eso.
-  // Con el teclado abierto, en vez de perseguirlo con precisión píxel a
-  // píxel (frágil), se oculta — patrón estándar en apps nativas.
-  const { bottomInset, keyboardOpen } = useViewportInset();
-  // Mientras el teclado está abierto la barra se oculta, así que su posición
-  // exacta no importa — evita sumar la altura del teclado al `bottom` y que
-  // se vea "saltar" de más antes de desaparecer en la transición.
-  const inset = keyboardOpen ? 0 : bottomInset;
+  // Con el teclado abierto la barra se oculta en vez de perseguirlo con
+  // precisión píxel a píxel (frágil entre navegadores/versiones) — patrón
+  // estándar en apps nativas.
+  const { keyboardOpen } = useViewportInset();
 
   return (
-    <>
+    // Este wrapper es quien resuelve lo de la barra de herramientas dinámica
+    // de Safari/Chrome en iOS — antes se intentaba compensar con JS
+    // (window.visualViewport), pero el cálculo llegaba un frame tarde
+    // respecto a la animación nativa del navegador y la barra igual
+    // "saltaba" al hacer scroll. `100dvh` (dynamic viewport height) lo
+    // recalcula el propio navegador sin lag, así que un hijo `position:
+    // absolute; bottom: 0` dentro de este wrapper queda siempre pegado al
+    // borde real visible, sin JS de por medio.
+    <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        height: '100dvh',
+        pointerEvents: 'none',
+        zIndex: (theme) => theme.zIndex.drawer,
+      }}
+    >
       {/* Fade gradient behind the bar */}
       <Box
         sx={{
-          position: 'fixed',
+          position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           height: '100px',
           background:
             'linear-gradient(180deg, rgba(var(--accent-100-base), 0) 0%, rgba(var(--accent-100-base), 0.9) 100%)',
-          zIndex: (theme) => theme.zIndex.drawer,
-          pointerEvents: 'none',
           opacity: keyboardOpen ? 0 : 1,
           transition: 'opacity 0.18s ease',
         }}
@@ -38,19 +45,18 @@ const BottomMenu = (props: BottomMenuProps) => {
       {/* Action pill bar */}
       <Box
         component="nav"
-        className="tabbar"
         aria-label={t('tr_bottomActionsMenu')}
         sx={{
-          position: 'fixed',
-          bottom: `calc(16px + env(safe-area-inset-bottom, 0px) + ${inset}px)`,
+          position: 'absolute',
+          bottom: `calc(16px + env(safe-area-inset-bottom, 0px))`,
           left: '50%',
           transform: keyboardOpen
             ? 'translate(-50%, 16px)'
             : 'translateX(-50%)',
           opacity: keyboardOpen ? 0 : 1,
           pointerEvents: keyboardOpen ? 'none' : 'auto',
-          transition: 'opacity 0.18s ease, transform 0.18s ease, bottom 0.1s ease-out',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          transition: 'opacity 0.18s ease, transform 0.18s ease',
+          zIndex: 1,
 
           /* Glass */
           backgroundColor: 'rgba(var(--accent-150-base), 0.78)',
@@ -75,7 +81,7 @@ const BottomMenu = (props: BottomMenuProps) => {
       >
         {props.buttons}
       </Box>
-    </>
+    </Box>
   );
 };
 

@@ -3,29 +3,21 @@ import { useEffect, useState } from 'react';
 const KEYBOARD_THRESHOLD_PX = 120;
 
 /**
- * Mide en tiempo real cuánto del viewport "de layout" queda cubierto por
- * encima del borde inferior del viewport "visual" (window.visualViewport),
- * usando la única API que refleja con precisión tanto el teclado virtual
- * como la barra de herramientas dinámica de Safari/Chrome en iOS.
+ * Detecta si el teclado virtual está abierto, vía window.visualViewport.
  *
- * Por qué hace falta esto: un `position: fixed; bottom: 0` puro asume que el
- * viewport no cambia de tamaño salvo por el teclado, pero en iOS la barra de
- * direcciones/herramientas también se expande y contrae al hacer scroll,
- * cambiando env(safe-area-inset-bottom) de forma que CSS por sí solo no
- * puede compensar a tiempo — por eso una barra fija "salta" o queda tapada
- * un instante en los bordes del scroll, sin que el usuario haya tocado el
- * teclado para nada.
- *
- * `bottomInset`: píxeles a sumar a un elemento `position: fixed; bottom: 0`
- *   para que su posición coincida siempre con el borde real visible (cubre
- *   tanto el caso "barra de Safari visible" como el caso "teclado abierto").
- * `keyboardOpen`: true cuando el cambio de tamaño es demasiado grande para
- *   ser la barra del navegador — heurística para ocultar elementos
- *   flotantes en vez de intentar perseguir al teclado con precisión píxel
- *   a píxel (frágil entre versiones/dispositivos).
+ * Nota histórica: esto antes también calculaba un `bottomInset` en JS para
+ * compensar la barra de herramientas dinámica de Safari/Chrome en iOS al
+ * hacer scroll (un `position: fixed; bottom: 0` puro no la sigue a tiempo).
+ * Ese cálculo tenía lag frente a la animación nativa del navegador — el
+ * propio JS llegaba un frame tarde, así que la barra igual "saltaba". La
+ * solución de verdad es 100% CSS: dimensionar el contenedor del elemento
+ * fijo con `100dvh` (dynamic viewport height), que el navegador recalcula
+ * de forma nativa y sin lag al mostrar/ocultar su barra — ver BottomMenu.
+ * Por eso este hook ya solo necesita resolver el teclado, que sí requiere
+ * JS porque su comportamiento varía demasiado entre navegadores/versiones
+ * como para fiarse de un único valor de CSS.
  */
 const useViewportInset = () => {
-  const [bottomInset, setBottomInset] = useState(0);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
@@ -37,7 +29,6 @@ const useViewportInset = () => {
         0,
         Math.round(window.innerHeight - vv.height - vv.offsetTop)
       );
-      setBottomInset(inset);
       setKeyboardOpen(inset > KEYBOARD_THRESHOLD_PX);
     };
 
@@ -51,7 +42,7 @@ const useViewportInset = () => {
     };
   }, []);
 
-  return { bottomInset, keyboardOpen };
+  return { keyboardOpen };
 };
 
 export default useViewportInset;

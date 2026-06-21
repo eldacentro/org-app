@@ -881,34 +881,6 @@ body {
   height: 20px;
 }
 
-/* Premium bottom iOS safe-area tabbar */
-.tabbar {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  transform: none !important;
-  border-radius: 0 !important;
-  background: rgba(240, 244, 250, 0.85) !important;
-  backdrop-filter: blur(20px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
-  padding: 8px 16px calc(env(safe-area-inset-bottom) + 8px) 16px !important;
-  border-top: 1px solid rgba(59, 114, 196, 0.10) !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03) !important;
-}
-
-/* Dark mode tabbar — uses each theme's own background color */
-[data-theme$='-dark'] .tabbar {
-  background: rgba(var(--accent-100-base), 0.88) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.40) !important;
-}
-
 /* Light theme Glassmorphic Group Cards */
 [data-theme$='-light'] .group-card-glass {
   background: rgba(255, 255, 255, 0.62) !important;
