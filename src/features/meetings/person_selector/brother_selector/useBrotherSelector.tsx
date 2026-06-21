@@ -93,6 +93,16 @@ const useBrotherSelector = (props: PersonSelectorType) => {
 
   const [isLinkedPart, setIsLinkedPart] = useState(false);
 
+  // `value` (más abajo) se deriva de `schedule`, que se actualiza recién
+  // cuando el guardado en Dexie viaja de vuelta por el liveQuery — un
+  // instante después del clic, no en el mismo render. Sin este estado
+  // optimista, la persona elegida se ve seleccionada y luego "se borra"
+  // sola hasta que ese viaje de vuelta termina (visible sobre todo si el
+  // dispositivo va lento o hay varias escrituras seguidas).
+  const [pendingValue, setPendingValue] = useState<PersonOptionsType | null>(
+    null
+  );
+
   useEffect(() => {
     if (
       (assignment === 'MM_OpeningPrayer' && openingPrayerLinked !== '') ||
@@ -312,7 +322,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     props.dept,
   ]);
 
-  const value = useMemo(() => {
+  const derivedValue = useMemo(() => {
     if (props.personValue) {
       return (
         options.find(
@@ -414,6 +424,22 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     props.personValue,
     props.dept,
   ]);
+
+  // Una vez que `derivedValue` (lo que de verdad quedó guardado) alcanza a
+  // la selección optimista, ya no hace falta seguir mostrándola por
+  // separado — y si el guardado falla, se limpia también (ver
+  // handleSaveAssignment) para no dejar una selección visual que nunca
+  // se guardó.
+  useEffect(() => {
+    if (
+      pendingValue &&
+      derivedValue?.person_uid === pendingValue.person_uid
+    ) {
+      setPendingValue(null);
+    }
+  }, [derivedValue, pendingValue]);
+
+  const value = pendingValue ?? derivedValue;
 
   const personHistory = useMemo(() => {
     if (!value) return [];
@@ -563,19 +589,26 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     persons,
   ]);
 
-  const handleSaveAssignment = async (value: PersonOptionsType) => {
+  const handleSaveAssignment = async (newValue: PersonOptionsType) => {
     try {
       if (props.onSelect) {
-        props.onSelect(value);
+        props.onSelect(newValue);
         return;
       }
 
-      await schedulesSaveAssignment(schedule, assignment, value);
+      // Solo para el flujo que guarda en el programa — `props.onSelect`
+      // maneja su propio estado y no pasa por `schedule`, así que no hay
+      // nada con lo que esta selección optimista pueda "alcanzar".
+      setPendingValue(newValue);
+
+      await schedulesSaveAssignment(schedule, assignment, newValue);
 
       if (assignment === 'WM_Speaker_Part1') {
         setLocalSongSelectorOpen(true);
       }
     } catch (error) {
+      setPendingValue(null);
+
       console.error(error);
 
       displaySnackNotification({

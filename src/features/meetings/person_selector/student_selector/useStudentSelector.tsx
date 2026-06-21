@@ -59,6 +59,13 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [groupChecked, setGroupChecked] = useState(false);
 
+  // Ver el comentario equivalente en useBrotherSelector.tsx — sin esto, la
+  // persona elegida se ve seleccionada y luego "se borra" sola hasta que
+  // el guardado viaja de vuelta por el liveQuery de Dexie.
+  const [pendingValue, setPendingValue] = useState<PersonOptionsType | null>(
+    null
+  );
+
   const schedule = useMemo(() => {
     return schedules.find((record) => record.weekOf === week);
   }, [schedules, week]);
@@ -327,7 +334,7 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     [showGenderSelector, showGroupToggle]
   );
 
-  const value = useMemo(() => {
+  const derivedValue = useMemo(() => {
     if (!personAssigned) return null;
 
     const person = options.find(
@@ -336,6 +343,17 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
 
     return person || null;
   }, [options, personAssigned]);
+
+  useEffect(() => {
+    if (
+      pendingValue &&
+      derivedValue?.person_uid === pendingValue.person_uid
+    ) {
+      setPendingValue(null);
+    }
+  }, [derivedValue, pendingValue]);
+
+  const value = pendingValue ?? derivedValue;
 
   const personHistory = useMemo(() => {
     if (!value) return [];
@@ -417,10 +435,14 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     setGroupChecked((prev) => !prev);
   };
 
-  const handleSaveAssignment = async (value: PersonOptionsType) => {
+  const handleSaveAssignment = async (newValue: PersonOptionsType) => {
+    setPendingValue(newValue);
+
     try {
-      await schedulesSaveAssignment(schedule, assignment, value);
+      await schedulesSaveAssignment(schedule, assignment, newValue);
     } catch (error) {
+      setPendingValue(null);
+
       console.error(error);
 
       displaySnackNotification({
