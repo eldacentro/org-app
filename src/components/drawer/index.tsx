@@ -170,6 +170,13 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
             overscrollBehavior: 'contain',
             display: 'flex',
             flexDirection: 'column',
+            // Un input outlined con label flotante (ej. los Select de
+            // filtros) necesita asomar unos px por ENCIMA de su propia caja
+            // — comportamiento normal de MUI. Sin este margen, cuando ese
+            // input es lo primero dentro de un drawer con scroll propio
+            // (disableContentScroll), ese borde superior recorta el label.
+            pt: '10px',
+            mt: '-10px',
             pb: 'env(safe-area-inset-bottom, 20px)',
           }}
         >
