@@ -25,6 +25,13 @@ import { getMessageByCode } from '@services/i18n/translation';
 
 const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
   const timerSource = useRef<NodeJS.Timeout>(undefined);
+  // Mientras el guardado está en curso, `schedule` (y por lo tanto
+  // `defaultValue`/`value`) todavía no refleja la selección recién hecha —
+  // el guardado escribe a Dexie y el estado tarda un instante en
+  // alcanzarlo. Sin este flag, el useEffect de abajo ve `value` como
+  // "vacío" en ese instante y sobreescribe el texto que el usuario acaba
+  // de seleccionar, como si lo hubiera deseleccionado.
+  const isSavingRef = useRef(false);
 
   const setLocalSongSelectorOpen = useSetAtom(weekendSongSelectorOpenState);
 
@@ -110,6 +117,8 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
   }, [defaultValue, options]);
 
   const handleSaveAssignment = async (value: PersonOptionsType) => {
+    isSavingRef.current = true;
+
     try {
       await schedulesSaveAssignment(schedule, assignment, value);
 
@@ -125,6 +134,8 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
         severity: 'error',
         icon: <IconError color="var(--card)" />,
       });
+    } finally {
+      isSavingRef.current = false;
     }
   };
 
@@ -169,7 +180,7 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
   };
 
   useEffect(() => {
-    if (!value) {
+    if (!value && !isSavingRef.current) {
       setInputValue(defaultValue || '');
     }
   }, [defaultValue, value]);
