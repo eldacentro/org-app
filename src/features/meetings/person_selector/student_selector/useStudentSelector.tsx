@@ -416,6 +416,15 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     });
 
     if (monthAssignments.length > 1) {
+      const otherTitles = monthAssignments
+        .filter((record) => record.assignment.key !== assignment)
+        .map((record) => record.assignment.title)
+        .filter((title) => title.length > 0);
+
+      if (otherTitles.length > 0) {
+        return `${t('tr_repeatedMonthlyWarningDesc')}: ${otherTitles.join(', ')}`;
+      }
+
       return t('tr_repeatedMonthlyWarningDesc');
     }
 

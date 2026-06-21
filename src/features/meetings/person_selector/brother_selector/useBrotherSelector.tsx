@@ -506,6 +506,17 @@ const useBrotherSelector = (props: PersonSelectorType) => {
       });
 
       if (monthAssignments.length > 1) {
+        // Mismo detalle que el aviso semanal: sin esto no se sabía CUÁL
+        // asignación del mes ya tiene, solo que "se repite".
+        const otherTitles = monthAssignments
+          .filter((record) => record.assignment.key !== assignment)
+          .map((record) => record.assignment.title)
+          .filter((title) => title.length > 0);
+
+        if (otherTitles.length > 0) {
+          return `${t('tr_repeatedMonthlyWarningDesc')}: ${otherTitles.join(', ')}`;
+        }
+
         return t('tr_repeatedMonthlyWarningDesc');
       }
     }
