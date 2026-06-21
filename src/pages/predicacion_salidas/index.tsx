@@ -15,12 +15,14 @@ import {
   Button,
   Switch,
   FormControlLabel,
+  FormGroup,
   TextField,
   Tabs,
   Tab,
   IconButton,
   Chip,
   ListSubheader,
+  Alert,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
@@ -61,6 +63,7 @@ import {
 } from '@services/dexie/service_outings';
 import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
+import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
 
 // Nombres de meses en español
 const MONTH_NAMES = [
@@ -113,6 +116,76 @@ const PredicacionSalidas = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-indexed
   const [monthsExpanded, setMonthsExpanded] = useState<boolean>(false);
+
+  // Excepciones de horario por mes ("Ajustes del mes") — mismo patrón que Exhibidores
+  const currentMonthStr = useMemo(() => {
+    return `${selectedYear}/${String(selectedMonth + 1).padStart(2, '0')}`;
+  }, [selectedYear, selectedMonth]);
+
+  const effectiveHours = useMemo(() => {
+    return getEffectiveHoursForMonth(settings, currentMonthStr);
+  }, [settings, currentMonthStr]);
+
+  const monthCancelled = useMemo(() => {
+    return isOutingsMonthCancelled(settings, currentMonthStr);
+  }, [settings, currentMonthStr]);
+
+  const isCurrentlyOverridden = !!settings?.monthlyOverrides?.[currentMonthStr];
+
+  const [monthlySettingsDialog, setMonthlySettingsDialog] = useState(false);
+  const [monthHoursDraft, setMonthHoursDraft] = useState<Record<string, string>>({});
+
+  const handleOpenMonthlySettings = () => {
+    setMonthHoursDraft(structuredClone(effectiveHours));
+    setMonthlySettingsDialog(true);
+  };
+
+  const handleCreateOutingsOverride = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+    localSettings.monthlyOverrides[currentMonthStr] = structuredClone(effectiveHours);
+    await dbServiceOutingsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
+  const handleRestoreOutingsGlobal = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (localSettings.monthlyOverrides) {
+      delete localSettings.monthlyOverrides[currentMonthStr];
+    }
+    await dbServiceOutingsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
+  const handleToggleCancelOutingsMonth = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+
+    if (monthCancelled) {
+      delete localSettings.monthlyOverrides[currentMonthStr];
+    } else {
+      localSettings.monthlyOverrides[currentMonthStr] = { isCancelledMonth: true };
+    }
+    await dbServiceOutingsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
+  const handleSaveMonthHours = async () => {
+    if (!settings) return;
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+    localSettings.monthlyOverrides[currentMonthStr] = structuredClone(monthHoursDraft);
+    await dbServiceOutingsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+    setMonthlySettingsDialog(false);
+  };
 
   // Control de Vista del Planificador ("lista" o "mensual")
   const [plannerViewMode, setPlannerViewMode] = useState<'lista' | 'mensual'>('lista');
@@ -200,24 +273,9 @@ const PredicacionSalidas = () => {
 
   // Generar dinámicamente todos los slots de salidas del mes/año seleccionado
   const outingsSlotsInMonth = useMemo(() => {
-    if (!settings) return [];
+    if (!settings || monthCancelled) return [];
 
-    const defaultHours = settings.defaultHours || {
-      monday_morning: '10:00',
-      monday_afternoon: '17:00',
-      tuesday_morning: '10:00',
-      tuesday_afternoon: '17:00',
-      wednesday_morning: '10:00',
-      wednesday_afternoon: '17:00',
-      thursday_morning: '10:00',
-      thursday_afternoon: '17:00',
-      friday_morning: '10:00',
-      friday_afternoon: '17:30',
-      saturday_morning: '09:45',
-      saturday_afternoon: '17:00',
-      sunday_morning: '10:30',
-      sunday_afternoon: '17:00',
-    };
+    const defaultHours = effectiveHours;
 
     const slots = [];
     const disabledSlots = settings.disabledSlots || [];
@@ -268,7 +326,7 @@ const PredicacionSalidas = () => {
       date.setDate(date.getDate() + 1);
     }
     return slots;
-  }, [selectedYear, selectedMonth, settings, outingsWeeks]);
+  }, [selectedYear, selectedMonth, settings, outingsWeeks, effectiveHours, monthCancelled]);
 
   const triggerSync = () => {
     import('@services/worker/backupWorker').then(
@@ -696,23 +754,19 @@ const PredicacionSalidas = () => {
   const handleExportPDF = async () => {
     if (!settings) return;
 
+    const pdfMonthStr = `${pdfExportYear}/${String(pdfExportMonth + 1).padStart(2, '0')}`;
+
+    if (isOutingsMonthCancelled(settings, pdfMonthStr)) {
+      displaySnackNotification({
+        header: 'Info',
+        message: 'Las salidas de predicación están suspendidas ese mes — no hay nada que exportar.',
+        severity: 'success',
+      });
+      return;
+    }
+
     try {
-      const defaultHours = settings.defaultHours || {
-        monday_morning: '10:00',
-        monday_afternoon: '17:00',
-        tuesday_morning: '10:00',
-        tuesday_afternoon: '17:00',
-        wednesday_morning: '10:00',
-        wednesday_afternoon: '17:00',
-        thursday_morning: '10:00',
-        thursday_afternoon: '17:00',
-        friday_morning: '10:00',
-        friday_afternoon: '17:30',
-        saturday_morning: '09:45',
-        saturday_afternoon: '17:00',
-        sunday_morning: '10:30',
-        sunday_afternoon: '17:00',
-      };
+      const defaultHours = getEffectiveHoursForMonth(settings, pdfMonthStr);
 
       const disabledSlots = settings.disabledSlots || [];
 
@@ -1200,7 +1254,33 @@ const PredicacionSalidas = () => {
                 <Typography className="h2" style={{ color: 'var(--accent-main)', margin: 0 }}>
                   {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
                 </Typography>
-                
+
+                <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {isServiceCommittee && (
+                  <Button
+                    variant={isCurrentlyOverridden || monthCancelled ? 'contained' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenMonthlySettings}
+                    startIcon={<IconSettings color={isCurrentlyOverridden || monthCancelled ? 'var(--always-white)' : 'var(--accent-main)'} width={18} height={18} />}
+                    sx={{
+                      borderRadius: 'var(--radius-l)',
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                      boxShadow: 'none',
+                      height: '36px',
+                      ...((isCurrentlyOverridden || monthCancelled) && {
+                        backgroundColor: 'var(--orange-main)',
+                        color: 'var(--always-white)',
+                        '&:hover': {
+                          backgroundColor: 'var(--orange-dark)',
+                        },
+                      }),
+                    }}
+                  >
+                    Ajustes del mes
+                  </Button>
+                )}
                 {/* Selector de modo de vista */}
                 <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
                   <Button
@@ -1249,6 +1329,7 @@ const PredicacionSalidas = () => {
                   >
                     Cuadrícula
                   </Button>
+                </Box>
                 </Box>
               </Box>
 
@@ -2877,6 +2958,165 @@ const PredicacionSalidas = () => {
         </DialogActions>
       </Dialog>
 
+      {/* DIÁLOGO: Ajustes del mes (excepciones de horario, ej. verano) */}
+      <Dialog
+        open={monthlySettingsDialog}
+        onClose={() => setMonthlySettingsDialog(false)}
+        maxWidth="mobile"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
+        PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
+      >
+        <DialogTitle sx={{ fontWeight: '700', paddingBottom: '8px' }}>
+          Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+          {isCurrentlyOverridden ? (
+            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)' }}>
+              Este mes tiene horarios personalizados que sobreescriben los globales.
+            </Alert>
+          ) : (
+            <Alert severity="info" sx={{ borderRadius: 'var(--radius-l)' }}>
+              Usando horarios globales. Si este mes necesita horarios distintos (ej. verano), personalízalos aquí.
+            </Alert>
+          )}
+
+          <FormGroup sx={{ mt: '8px' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={monthCancelled}
+                  onChange={handleToggleCancelOutingsMonth}
+                  color="error"
+                />
+              }
+              label={
+                <Typography sx={{ fontWeight: '600', color: monthCancelled ? 'var(--error-main)' : 'var(--black)' }}>
+                  Suspender salidas todo el mes
+                </Typography>
+              }
+            />
+          </FormGroup>
+
+          {!monthCancelled && (
+            <Box sx={{ mt: '8px' }}>
+              <Typography sx={{ fontWeight: '700', fontSize: '14px', mb: '12px' }}>
+                Horarios de este mes
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', pr: '8px' }}>
+                {[
+                  { key: 'monday_morning', label: 'Lunes Mañana' },
+                  { key: 'monday_afternoon', label: 'Lunes Tarde' },
+                  { key: 'tuesday_morning', label: 'Martes Mañana' },
+                  { key: 'tuesday_afternoon', label: 'Martes Tarde' },
+                  { key: 'wednesday_morning', label: 'Miércoles Mañana' },
+                  { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
+                  { key: 'thursday_morning', label: 'Jueves Mañana' },
+                  { key: 'thursday_afternoon', label: 'Jueves Tarde' },
+                  { key: 'friday_morning', label: 'Viernes Mañana' },
+                  { key: 'friday_afternoon', label: 'Viernes Tarde' },
+                  { key: 'saturday_morning', label: 'Sábado Mañana' },
+                  { key: 'saturday_afternoon', label: 'Sábado Tarde' },
+                  { key: 'sunday_morning', label: 'Domingo Mañana' },
+                  { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+                ].map((slot) => {
+                  if (settings?.disabledSlots?.includes(slot.key)) return null;
+
+                  const currentVal = monthHoursDraft[slot.key] || effectiveHours[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
+
+                  return (
+                    <Box key={slot.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                      <Typography style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--black)' }}>
+                        {slot.label}
+                      </Typography>
+                      <TimePicker
+                        ampm={!hour24}
+                        value={generateDateFromTime(currentVal)}
+                        onChange={(newDate) => {
+                          const hrs = String(newDate.getHours()).padStart(2, '0');
+                          const mins = String(newDate.getMinutes()).padStart(2, '0');
+                          setMonthHoursDraft({ ...monthHoursDraft, [slot.key]: `${hrs}:${mins}` });
+                        }}
+                        sx={{ width: '130px' }}
+                      />
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              {!isCurrentlyOverridden && (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={async () => {
+                    await handleCreateOutingsOverride();
+                    setMonthHoursDraft(structuredClone(effectiveHours));
+                  }}
+                  sx={{ mt: '16px', borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold' }}
+                >
+                  Personalizar horarios para este mes
+                </Button>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ padding: '16px', justifyContent: 'space-between' }}>
+          {isCurrentlyOverridden ? (
+            <Button
+              color="error"
+              onClick={async () => {
+                await handleRestoreOutingsGlobal();
+                setMonthlySettingsDialog(false);
+              }}
+              sx={{ fontWeight: '600', textTransform: 'none' }}
+            >
+              Restaurar a Global
+            </Button>
+          ) : (
+            <Box />
+          )}
+          <Box sx={{ display: 'flex', gap: '8px' }}>
+            <Button
+              onClick={() => setMonthlySettingsDialog(false)}
+              sx={{ fontWeight: '600', textTransform: 'none' }}
+            >
+              Cancelar
+            </Button>
+            {isCurrentlyOverridden && !monthCancelled && (
+              <Button
+                onClick={handleSaveMonthHours}
+                variant="contained"
+                sx={{
+                  backgroundColor: 'var(--accent-main)',
+                  color: 'var(--always-white)',
+                  fontWeight: '700',
+                  textTransform: 'none',
+                  borderRadius: 'var(--radius-l)',
+                }}
+              >
+                Guardar
+              </Button>
+            )}
+            {!isCurrentlyOverridden && (
+              <Button
+                onClick={() => setMonthlySettingsDialog(false)}
+                variant="contained"
+                sx={{
+                  backgroundColor: 'var(--accent-main)',
+                  color: 'var(--always-white)',
+                  fontWeight: '700',
+                  textTransform: 'none',
+                  borderRadius: 'var(--radius-l)',
+                }}
+              >
+                Cerrar
+              </Button>
+            )}
+          </Box>
+        </DialogActions>
+      </Dialog>
+
       {/* DIÁLOGO DE EXPORTACIÓN DE PDF */}
       <Dialog
         open={pdfExportDialogOpen}
@@ -3028,23 +3268,8 @@ const PredicacionSalidas = () => {
                   variant="contained"
                   onClick={() => {
                     setShowAdjustHours(true);
-                    const defaultHours = settings?.defaultHours || {
-                      monday_morning: '10:00',
-                      monday_afternoon: '17:00',
-                      tuesday_morning: '10:00',
-                      tuesday_afternoon: '17:00',
-                      wednesday_morning: '10:00',
-                      wednesday_afternoon: '17:00',
-                      thursday_morning: '10:00',
-                      thursday_afternoon: '17:00',
-                      friday_morning: '10:00',
-                      friday_afternoon: '17:30',
-                      saturday_morning: '09:45',
-                      saturday_afternoon: '17:00',
-                      sunday_morning: '10:30',
-                      sunday_afternoon: '17:00',
-                    };
-                    setWeekHoursConfig(defaultHours);
+                    const weekMonthStr = weekSettingsDialog.weekOf.slice(0, 7);
+                    setWeekHoursConfig(getEffectiveHoursForMonth(settings, weekMonthStr));
                   }}
                   sx={{ backgroundColor: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-l)', boxShadow: 'none' }}
                 >
@@ -3088,7 +3313,8 @@ const PredicacionSalidas = () => {
                 const isSlotDisabled = settings?.disabledSlots?.includes(slot.key);
                 if (isSlotDisabled) return null;
 
-                const currentVal = weekHoursConfig[slot.key] || settings?.defaultHours?.[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
+                const weekEffectiveHours = getEffectiveHoursForMonth(settings, weekSettingsDialog.weekOf.slice(0, 7));
+                const currentVal = weekHoursConfig[slot.key] || weekEffectiveHours[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
                 return (
                   <Box key={slot.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
                     <Typography style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--black)' }}>

@@ -9,6 +9,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
+import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
 
 const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?: ServiceOutingWeekType }) => {
   const { t } = useAppTranslation();
@@ -18,28 +19,23 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
 
+  // Mes de esta semana (YYYY/MM) — para respetar "Ajustes del mes" (excepciones
+  // de horario configuradas en Salidas de predicación, ej. verano).
+  const weekMonthStr = useMemo(() => week?.slice(0, 7) || '', [week]);
+
+  const monthCancelled = useMemo(() => {
+    return isOutingsMonthCancelled(settings, weekMonthStr);
+  }, [settings, weekMonthStr]);
+
   const defaultSettings = useMemo(() => {
-    return settings || {
-      defaultHours: {
-        monday_morning: '10:00',
-        monday_afternoon: '17:00',
-        tuesday_morning: '10:00',
-        tuesday_afternoon: '17:00',
-        wednesday_morning: '10:00',
-        wednesday_afternoon: '17:00',
-        thursday_morning: '10:00',
-        thursday_afternoon: '17:00',
-        friday_morning: '10:00',
-        friday_afternoon: '17:30',
-        saturday_morning: '09:45',
-        saturday_afternoon: '17:00',
-        sunday_morning: '10:30',
-        sunday_afternoon: '17:00',
-      },
-      locations: ['Salón del Reino'],
-      disabledSlots: [],
+    const effectiveHours = getEffectiveHoursForMonth(settings, weekMonthStr);
+
+    return {
+      defaultHours: effectiveHours,
+      locations: settings?.locations || ['Salón del Reino'],
+      disabledSlots: settings?.disabledSlots || [],
     };
-  }, [settings]);
+  }, [settings, weekMonthStr]);
 
   const weekDays = useMemo(() => {
     if (!week) return [];
@@ -75,7 +71,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   };
 
   const generatedSlots = useMemo(() => {
-    if (!week || weekDays.length === 0) return [];
+    if (!week || weekDays.length === 0 || monthCancelled) return [];
 
     const defaultHours = defaultSettings.defaultHours || {};
     const disabledSlots = defaultSettings.disabledSlots || [];
@@ -128,7 +124,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
     }
 
     return slots;
-  }, [week, weekDays, defaultSettings, weekRecord]);
+  }, [week, weekDays, defaultSettings, weekRecord, monthCancelled]);
 
   const groupedOutings = useMemo(() => {
     if (generatedSlots.length === 0) return [];

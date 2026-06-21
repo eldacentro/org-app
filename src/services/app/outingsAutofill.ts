@@ -2,6 +2,7 @@ import { store } from '@states/index';
 import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/service_outings';
 import { personsState } from '@states/persons';
 import { dbServiceOutingsSaveWeek } from '@services/dexie/service_outings';
+import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
 
 
 const formatToDbDate = (date: Date): string => {
@@ -14,6 +15,7 @@ export const outingsStartAutofill = async (weekOf: string): Promise<number> => {
   const allPersons = store.get(personsState);
 
   if (!weekOf || !settings) return 0;
+  if (isOutingsMonthCancelled(settings, weekOf.slice(0, 7))) return 0;
 
   // 1. Filtrar hermanos habilitados
   const eligibleBrothers = allPersons.filter(
@@ -73,7 +75,7 @@ export const outingsStartAutofill = async (weekOf: string): Promise<number> => {
   };
 
   const disabledSlots = settings.disabledSlots || [];
-  const defaultHours = settings.defaultHours || {};
+  const defaultHours = getEffectiveHoursForMonth(settings, weekOf.slice(0, 7));
   const overrideHours = weekRecord.weekOverrideHours || {};
   let count = 0;
 
@@ -113,7 +115,8 @@ export const outingsStartAutofill = async (weekOf: string): Promise<number> => {
       const prevDateStr = formatToDbDate(prevDayDate);
       
       const prevOverrideHours = prevWeekRecord?.weekOverrideHours || {};
-      const prevTime = prevOverrideHours[slotKey] || defaultHours[slotKey] || (turn === 'morning' ? '10:00' : '17:00');
+      const prevDefaultHours = getEffectiveHoursForMonth(settings, prevWeekOf.slice(0, 7));
+      const prevTime = prevOverrideHours[slotKey] || prevDefaultHours[slotKey] || (turn === 'morning' ? '10:00' : '17:00');
       
       const prevOuting = prevWeekRecord?.outings?.find(
         (o) => o.date === prevDateStr && o.time === prevTime

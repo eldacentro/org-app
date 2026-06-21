@@ -21,6 +21,11 @@ export type ServiceOutingSettingsType = {
   updatedAt?: string;
   lastModifiedBy?: string;
   defaultHours: Record<string, string>;
+  // Excepciones de horario por mes (ej: julio con salidas de tarde más tarde
+  // por el calor). Clave "YYYY/MM". Mismo patrón que monthlyOverrides en
+  // Exhibitors — reemplaza defaultHours por completo para ese mes, o marca
+  // el mes entero como suspendido.
+  monthlyOverrides?: Record<string, Record<string, string> | { isCancelledMonth: boolean }>;
   locations: string[];
   availability: {
     [person_uid: string]: string[]; // array de slots en los que está disponible (ej: ["tue_morning", "sat"])
