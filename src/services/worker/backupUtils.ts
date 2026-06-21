@@ -1834,6 +1834,30 @@ const dbDeduplicateSpeakers = async () => {
         return dateB.localeCompare(dateA);
       });
 
+      // El sobreviviente es el más reciente, pero sus bosquejos (talks) no
+      // necesariamente son el conjunto completo — la sync con el catálogo
+      // externo de oradores a veces crea un duplicado en vez de añadir un
+      // bosquejo nuevo al existente, y cada copia termina con bosquejos
+      // distintos. Antes esto se descartaba sin más al borrar el duplicado;
+      // ahora se fusionan los bosquejos de todas las copias en el
+      // sobreviviente antes de borrar el resto, para no perder ninguno.
+      const survivor = group[0];
+      const mergedTalks = new Map(
+        survivor.speaker_data.talks.map((talk) => [talk.talk_number, talk])
+      );
+
+      for (let i = 1; i < group.length; i++) {
+        for (const talk of group[i].speaker_data.talks) {
+          const existing = mergedTalks.get(talk.talk_number);
+          if (!existing || talk.updatedAt > existing.updatedAt) {
+            mergedTalks.set(talk.talk_number, talk);
+          }
+        }
+      }
+
+      survivor.speaker_data.talks = Array.from(mergedTalks.values());
+      speakersToUpdate.push(survivor);
+
       for (let i = 1; i < group.length; i++) {
         const speaker = group[i];
         speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
@@ -1891,6 +1915,9 @@ const dbDeduplicateCongregations = async () => {
   }
 
   const congsToUpdate: SpeakersCongregationsType[] = [];
+  // Cong duplicada (id) -> id de la que sobrevive, para reapuntar a los
+  // discursantes que referenciaban la duplicada antes de borrarla.
+  const congIdRemap = new Map<string, string>();
 
   for (const group of groups.values()) {
     if (group.length > 1) {
@@ -1900,10 +1927,13 @@ const dbDeduplicateCongregations = async () => {
         return dateB.localeCompare(dateA);
       });
 
+      const survivorId = group[0].id;
+
       for (let i = 1; i < group.length; i++) {
         const cong = group[i];
         cong._deleted = { value: true, updatedAt: new Date().toISOString() };
         congsToUpdate.push(cong);
+        congIdRemap.set(cong.id, survivorId);
       }
     }
   }
@@ -1918,6 +1948,26 @@ const dbDeduplicateCongregations = async () => {
         send_local: true,
       };
       await appDb.metadata.put(metadata);
+    }
+  }
+
+  // Sin esto, un discursante que apuntaba a la congregación duplicada
+  // (ahora borrada) queda con un cong_id huérfano para siempre: nunca
+  // calza con su gemelo real en dbDeduplicateSpeakers, porque la clave de
+  // agrupación incluye cong_id y ahora difieren.
+  if (congIdRemap.size > 0) {
+    const speakers = await appDb.visiting_speakers.toArray();
+    const speakersToRemap = speakers.filter((speaker) =>
+      congIdRemap.has(speaker.speaker_data?.cong_id)
+    );
+
+    if (speakersToRemap.length > 0) {
+      for (const speaker of speakersToRemap) {
+        speaker.speaker_data.cong_id = congIdRemap.get(
+          speaker.speaker_data.cong_id
+        );
+      }
+      await appDb.visiting_speakers.bulkPut(speakersToRemap);
     }
   }
 };
@@ -2018,9 +2068,13 @@ const dbRestoreFromBackup = async (
 
       await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
 
-      await dbDeduplicateSpeakers();
-
+      // Las congregaciones se desduplican (y los discursantes huérfanos se
+      // reapuntan) ANTES de desduplicar discursantes — si no, un discursante
+      // que apuntaba a una congregación duplicada nunca calza con su gemelo
+      // real, porque sus cong_id siguen siendo distintos.
       await dbDeduplicateCongregations();
+
+      await dbDeduplicateSpeakers();
 
       await dbRestoreFieldGroups(backupData, accessCode);
 

@@ -6,6 +6,7 @@ import {
 } from '@states/public_talks';
 import { setPublicTalksSearchKey } from '@services/states/publicTalks';
 import { assignmentsHistoryState } from '@states/schedules';
+import { AssignmentCode } from '@definition/assignment';
 import { TalkItemType } from './index.types';
 import { personsAllState } from '@states/persons';
 import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
@@ -31,7 +32,9 @@ const usePublicTalks = () => {
 
   const historyByView = useMemo(() => {
     return assignmentsHistory.filter(
-      (record) => record.assignment.dataView === dataView
+      (record) =>
+        record.assignment.dataView === dataView &&
+        record.assignment.code !== AssignmentCode.WM_SpeakerOutgoing
     );
   }, [assignmentsHistory, dataView]);
 

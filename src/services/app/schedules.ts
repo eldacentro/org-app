@@ -1097,7 +1097,12 @@ export const schedulesGetHistoryDetails = ({
   }
 
   if (assignment === 'WM_Speaker_Outgoing') {
-    history.assignment.code = AssignmentCode.WM_Speaker;
+    // Código distinto al de WM_Speaker (discurso local): si no, la lista de
+    // "discursos públicos" (que filtra por code) no puede distinguir un
+    // discurso saliente (a OTRA congregación) de uno que de verdad se dio
+    // aquí, y termina mostrando ambos mezclados en el historial de cada
+    // bosquejo.
+    history.assignment.code = AssignmentCode.WM_SpeakerOutgoing;
     history.assignment.title = getTranslation({
       key: 'tr_visitingSpeaker',
     });
