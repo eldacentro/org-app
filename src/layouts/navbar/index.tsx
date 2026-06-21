@@ -35,6 +35,7 @@ import ThemeSwitcher from '@features/theme_switcher';
 import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
+import { hasRenderableContent } from '@utils/common';
 import { FORCED_UI_LANG, isTest } from '@constants/index';
 
 const baseMenuStyle = {
@@ -585,7 +586,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     )
                   )}
                 </Box>
-                {!!tablet688Up && navBarOptions.buttons && (
+                {!!tablet688Up && hasRenderableContent(navBarOptions.buttons) && (
                   <Box
                     className="navbar-actions-container"
                     sx={{
@@ -606,7 +607,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
         </Toolbar>
       </AppBar>
     </Box>
-    {navBarOptions.buttons && !tablet688Up && (
+    {hasRenderableContent(navBarOptions.buttons) && !tablet688Up && (
       <BottomMenu buttons={navBarOptions.buttons} />
     )}
   </>

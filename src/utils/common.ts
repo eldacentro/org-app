@@ -1,6 +1,32 @@
+import { Children, Fragment, isValidElement, ReactNode } from 'react';
 import { PersonType } from '@definition/person';
 import { FullnameOption } from '@definition/settings';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
+
+/**
+ * Several pages build a "buttons" node for the navbar/bottom action bar by
+ * returning `<></>` (or `<>{[]}</>`) when the current user has no actions
+ * available — a valid, truthy React element with nothing renderable inside.
+ * A plain `someNode &&` check doesn't see through that, so the navbar/
+ * bottom bar still renders its pill/box wrapper with no buttons in it,
+ * showing up as a stray dot/blob. This looks inside Fragments to tell
+ * "an empty Fragment" apart from "actually has buttons to show."
+ */
+export const hasRenderableContent = (node: ReactNode): boolean => {
+  if (isValidElement<{ children?: ReactNode }>(node) && node.type === Fragment) {
+    return hasRenderableContent(node.props.children);
+  }
+
+  return Children.toArray(node).some((child) => {
+    if (typeof child === 'boolean') return false;
+
+    if (isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment) {
+      return hasRenderableContent(child.props.children);
+    }
+
+    return true;
+  });
+};
 
 export const convertStringToBoolean = (value) => {
   switch (value) {
