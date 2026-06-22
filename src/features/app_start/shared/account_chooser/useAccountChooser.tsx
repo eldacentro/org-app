@@ -4,6 +4,7 @@ import {
   authProvider,
   setAuthPersistence,
   userSignInPopup,
+  userSignInRedirect,
 } from '@services/firebase/auth';
 import { isAccountChooseState, isAuthProcessingState } from '@states/app';
 import { settingsState } from '@states/settings';
@@ -91,32 +92,40 @@ const useAccountChooser = () => {
 
       inFlightRef.current = true;
 
-      // signInWithPopup on every platform, mobile included: it must be the
-      // first await in this handler so it stays synchronous with the click
-      // (any await before it risks the browser treating the popup as
-      // programmatic, not user-initiated, and silently blocking it — the
-      // most likely reason a tap could appear to do nothing). signInWithRedirect
-      // was tried for mobile before and made things worse — it depends on the
-      // browser correctly persisting "a redirect is pending" across a full page
-      // reload, which Safari's tracking-prevention can interfere with, and it
-      // can't be retried without the user noticing a real page navigation.
-      // Persistence is fired without awaiting for the same reason; it
-      // reliably finishes well before the user picks an account.
+      // signInWithPopup must be the first await in this handler so it stays
+      // synchronous with the click (any await before it risks the browser
+      // treating the popup as programmatic, not user-initiated, and
+      // silently blocking it). Persistence is fired without awaiting for
+      // the same reason; it reliably finishes well before the user picks
+      // an account.
       setAuthPersistence().catch(console.error);
       setIsAuthProcessing(true);
       await userSignInPopup(authProvider.Google);
     } catch (error) {
-      // User closed the popup or a second popup request superseded this one
-      // — not a real error, just let them try again. Still worth a gentle
-      // message: silently doing nothing is exactly what makes people tap
-      // repeatedly, unsure if anything happened at all.
+      // The popup itself is the unreliable part here, not the user: it gets
+      // closed (by the OS, by third-party-cookie blocking, by Google's own
+      // side giving up if the round trip is slow) well more often than
+      // "the user actually meant to cancel," and it surfaces as the exact
+      // same auth/popup-closed-by-user regardless of which of those
+      // happened. Retrying with signInWithRedirect — a full-page navigation
+      // to Google and back, immune to all of that — instead of just asking
+      // the user to tap the same broken button again is what actually
+      // recovers from this on the SAME attempt.
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        displayOnboardingFeedback({
-          title: t('tr_signInCancelledTitle', 'Inicio de sesión cancelado'),
-          message: t('tr_signInCancelledDesc', 'Se cerró la ventana de Google antes de terminar. Inténtalo de nuevo.'),
-        });
-        showMessage();
-        return;
+        try {
+          await setAuthPersistence();
+          await userSignInRedirect(authProvider.Google);
+          // Page is navigating away to Google now — nothing left to do here.
+          return;
+        } catch (redirectError) {
+          console.error(redirectError);
+          displayOnboardingFeedback({
+            title: t('tr_signInCancelledTitle', 'Inicio de sesión cancelado'),
+            message: t('tr_signInCancelledDesc', 'Se cerró la ventana de Google antes de terminar. Inténtalo de nuevo.'),
+          });
+          showMessage();
+          return;
+        }
       }
 
       console.error(error);

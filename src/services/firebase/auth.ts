@@ -8,6 +8,7 @@ import {
   setPersistence,
   signInWithCustomToken,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
 } from 'firebase/auth';
 
@@ -41,6 +42,15 @@ export const userSignInPopup = async (provider: AuthProvider) => {
   const auth = getAuth();
   const result = await signInWithPopup(auth, provider);
   return result?.user;
+};
+
+// Solo se usa como respaldo cuando el popup ya falló (ver
+// useAccountChooser) — navega la página entera a Google y vuelve, así que
+// no le afecta lo que sí rompe al popup (bloqueo de cookies de terceros,
+// la propia ventana de Google cerrándose si la vuelta tarda demasiado).
+export const userSignInRedirect = async (provider: AuthProvider) => {
+  const auth = getAuth();
+  await signInWithRedirect(auth, provider);
 };
 
 export const authProvider = {
