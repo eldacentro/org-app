@@ -76,6 +76,12 @@ const useContainer = () => {
   const FEATURE_FLAGS = useAtomValue(featureFlagsState);
   const isAppSyncing = useAtomValue(isAppDataSyncingState);
 
+  // 3 min, not 1: these are administrative notices (join requests,
+  // applications, incoming reports) that a human reviews — a couple of
+  // minutes' delay is invisible to them, while every 60s × every open tab ×
+  // every elder adds up fast in server bandwidth for no real benefit.
+  const NOTIFICATIONS_REFETCH_INTERVAL = 3 * 60 * 1000;
+
   const { data, isFetching } = useQuery({
     enabled:
       userID?.length > 0 &&
@@ -85,14 +91,14 @@ const useContainer = () => {
       congAccountConnected,
     queryKey: ['congregation_updates'],
     queryFn: apiUserGetUpdates,
-    refetchInterval: 60 * 1000,
+    refetchInterval: NOTIFICATIONS_REFETCH_INTERVAL,
     refetchOnWindowFocus: 'always',
   });
 
   const { data: appNotifications } = useQuery({
     queryKey: ['app_notifications'],
     queryFn: apiFetchNotifications,
-    refetchInterval: 60 * 1000,
+    refetchInterval: NOTIFICATIONS_REFETCH_INTERVAL,
     refetchOnWindowFocus: 'always',
   });
 
