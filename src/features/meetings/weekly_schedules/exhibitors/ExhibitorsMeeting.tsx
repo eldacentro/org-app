@@ -343,6 +343,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                                 <Typography
                                   className="body-small-semibold"
                                   sx={{
+                                    minWidth: 0,
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',

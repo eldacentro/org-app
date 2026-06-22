@@ -325,7 +325,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                     />
 
                     {/* Hermano asignado */}
-                    <Box sx={{ flex: 1, display: 'flex', width: { mobile: '100%', laptop: 'auto' } }}>
+                    <Box sx={{ flex: 1, display: 'flex', minWidth: 0, width: { mobile: '100%', laptop: 'auto' } }}>
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
@@ -367,6 +367,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                               <Typography
                                 className="body-small-semibold"
                                 sx={{
+                                  minWidth: 0,
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',

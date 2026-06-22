@@ -80,11 +80,12 @@ const DeptPersonComponent = ({ label, person }: { label: string; person?: Person
           ) : (
             <IconMale width={16} height={16} color={accentColor} />
           )}
-          <Typography 
+          <Typography
             className="body-small-semibold"
-            sx={{ 
-              whiteSpace: 'nowrap', 
-              overflow: 'hidden', 
+            sx={{
+              minWidth: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontWeight: 700,
               fontSize: '13.5px',

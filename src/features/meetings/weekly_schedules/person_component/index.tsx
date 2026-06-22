@@ -69,13 +69,14 @@ const PersonComponent = (props: PersonComponentProps) => {
             ) : (
               <IconMale width={16} height={16} color={accentColor} />
             )}
-            <Typography 
-              className="body-small-semibold" 
-              sx={{ 
+            <Typography
+              className="body-small-semibold"
+              sx={{
+                minWidth: 0,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
-                overflow: 'hidden', 
+                overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 fontWeight: 700,
                 fontSize: '13.5px',
