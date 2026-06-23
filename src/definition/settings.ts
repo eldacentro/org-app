@@ -143,6 +143,7 @@ export type SettingsType = {
         updatedAt: string;
       };
     }[];
+    territories_enabled_publishers?: { value: boolean; updatedAt: string };
     circuit_overseer: {
       firstname: { value: string; updatedAt: string };
       lastname: { value: string; updatedAt: string };

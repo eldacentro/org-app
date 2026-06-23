@@ -5,6 +5,7 @@ import {
   CardSectionHeader,
 } from '../shared_styles';
 import SpecialMonths from './special_months';
+import TerritoriesEnabled from './territories_enabled';
 
 const MinistrySettings = () => {
   const { t } = useAppTranslation();
@@ -14,6 +15,7 @@ const MinistrySettings = () => {
       <CardSectionHeader title={t('tr_ministry')} />
 
       <CardSectionContent>
+        <TerritoriesEnabled />
         <SpecialMonths />
       </CardSectionContent>
     </CardSection>

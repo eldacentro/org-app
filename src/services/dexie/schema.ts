@@ -331,6 +331,7 @@ export const settingSchema: SettingsType = {
         outgoing_talks_schedule_public: { value: false, updatedAt: '' },
       },
     ],
+    territories_enabled_publishers: { value: false, updatedAt: '' },
     language_groups: { enabled: { value: false, updatedAt: '' } },
     responsabilities: {
       coordinator: '',

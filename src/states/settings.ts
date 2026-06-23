@@ -60,6 +60,11 @@ export const countryCodeState = atom((get) => {
   return settings.cong_settings.country_code;
 });
 
+export const territoriesEnabledPublishersState = atom((get) => {
+  const settings = get(settingsState);
+  return settings.cong_settings.territories_enabled_publishers?.value ?? false;
+});
+
 export const congMasterKeyState = atom((get) => {
   const settings = get(settingsState);
 
