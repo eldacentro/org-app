@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     // Reserva el alto del footer (absoluto) para que el contenido no se le solape.
-    paddingBottom: 25,
+    paddingBottom: 10,
   },
   topBar: {
     display: 'flex',

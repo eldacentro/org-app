@@ -1,5 +1,8 @@
 import { Font } from '@react-pdf/renderer';
 
+// Deshabilita la separación silábica (hyphenation) globalmente para evitar palabras cortadas
+Font.registerHyphenationCallback((word) => [word]);
+
 import FontItalic from '/assets/fonts/Inter-Italic.ttf';
 import FontExtraBold from '/assets/fonts/Inter-ExtraBold.ttf';
 import FontBold from '/assets/fonts/Inter-Bold.ttf';
