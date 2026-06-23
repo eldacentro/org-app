@@ -7,7 +7,7 @@ import {
   IconStatsYear,
   IconInTerritory,
   IconCart,
-  IconMapOverview,
+  // IconMapOverview,
 } from '@icons/index';
 
 const MinistryDashboard = () => {
