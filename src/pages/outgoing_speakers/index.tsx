@@ -409,14 +409,15 @@ const OutgoingSpeakersPage = () => {
           const recordDate = new Date(weekDate);
           recordDate.setDate(weekDate.getDate() + dayDiff);
 
-          const formattedDate = recordDate.toLocaleDateString(
-            lang === 'es' ? 'es-ES' : 'en-US',
-            {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }
-          );
+          // toLocaleDateString comparaba `lang` (código de idioma de
+          // publicación JW, p.ej. 'S') contra 'es', que nunca coincide, así
+          // que siempre caía a inglés. Se usa el mismo array manual de
+          // meses en español que ya usa selectedWeekLabel en este archivo.
+          const mesesEs = [
+            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+          ];
+          const formattedDate = `${recordDate.getDate()} de ${mesesEs[recordDate.getMonth()]} de ${recordDate.getFullYear()}`;
 
           history[speakerUid].push({
             weekOf: schedule.weekOf,
