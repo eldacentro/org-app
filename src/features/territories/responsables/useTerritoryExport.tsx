@@ -25,7 +25,7 @@ import S13Document, {
   S13TerritoryRow,
 } from './S13Document';
 
-const S13_DATE = 'dd/MM/yy';
+const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
 
 export type ExcelFilter = 'all' | 'assigned' | 'unassigned' | 'campaigns';
@@ -44,7 +44,7 @@ export const useTerritoryExport = () => {
   const exportS13 = useCallback(
     async (refDate: Date, includeCampaigns: boolean) => {
       const { start, end } = serviceYearRange(refDate);
-      const startYear = String(start.getFullYear());
+      const startYear = String(end.getFullYear());
 
       const inYear = (a: TerritoryAssignment) => {
         const assigned = new Date(a.assignedAt);

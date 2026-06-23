@@ -31,8 +31,9 @@ export type S13Sheet = {
 export type S13Data = { sheets: S13Sheet[] };
 
 const BORDER = '#000';
-const THICK = '2.5px';
-const THIN = '1px';
+const THICK = '1.5px'; // Borde exterior y separadores principales
+const THIN = '1px'; // Borde interior
+const BG_HEADER = '#E4E4E4';
 
 const styles = StyleSheet.create({
   page: {
@@ -69,13 +70,13 @@ const styles = StyleSheet.create({
 
   table: { border: `${THICK} solid ${BORDER}` },
 
-  // anchos de columna
+  // anchos de columna (20% para los 4 grupos de asignación, deja 20% para las dos primeras)
   cTerr: { width: '6.5%' },
   cLast: { width: '13.5%' },
   cGroup: { width: '20%' },
 
   // celdas de cabecera
-  headRow: { flexDirection: 'row', borderBottom: `${THICK} solid ${BORDER}` },
+  headRow: { flexDirection: 'row', borderBottom: `${THICK} solid ${BORDER}`, backgroundColor: BG_HEADER },
   headCellTall: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -128,38 +129,43 @@ const styles = StyleSheet.create({
   bodyGroup: {
     width: '20%',
     borderRight: `${THICK} solid ${BORDER}`,
+    flexDirection: 'column',
   },
   
   // Líneas dentro del grupo
   slotLine: { 
     flex: 1, 
-    flexDirection: 'row',
-    position: 'relative',
+    flexDirection: 'column',
   },
   slotLineDivider: { borderBottom: `${THIN} solid ${BORDER}` },
   
+  // Nombres (Top half)
+  slotNameContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottom: `${THIN} solid ${BORDER}`,
+  },
+  slotName: {
+    fontSize: 7,
+    textAlign: 'center',
+  },
+
+  // Fechas (Bottom half)
+  slotDatesContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
   slotColLeft: {
     flex: 1,
     borderRight: `${THIN} solid ${BORDER}`,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 2,
+    justifyContent: 'center',
   },
   slotColRight: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 2,
-  },
-
-  slotNameAbsolute: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    right: 2,
-    textAlign: 'center',
-    fontSize: 7,
-    backgroundColor: '#fff', // Para tapar la línea central un poco si el nombre es largo
+    justifyContent: 'center',
   },
   dateText: {
     fontSize: 7,
@@ -171,15 +177,15 @@ const styles = StyleSheet.create({
 
 const GroupHeader = ({ last }: { last: boolean }) => (
   <View style={[styles.cGroup, !last ? styles.groupHead : { borderRight: 'none' }]}>
-    <Text style={styles.groupHeadTitle}>Assigned to</Text>
+    <Text style={styles.groupHeadTitle}>Asignado a</Text>
     <View style={styles.groupHeadSubRow}>
       <View style={[styles.groupHeadSub, styles.groupHeadSubDivider]}>
-        <Text>Date</Text>
-        <Text>assigned</Text>
+        <Text>Fecha</Text>
+        <Text>asignada</Text>
       </View>
       <View style={styles.groupHeadSub}>
-        <Text>Date</Text>
-        <Text>completed</Text>
+        <Text>Fecha</Text>
+        <Text>completada</Text>
       </View>
     </View>
   </View>
@@ -196,21 +202,21 @@ const BodyGroup = ({
 }) => {
   const renderLine = (a: S13Assignment | undefined, divider: boolean) => (
     <View style={[styles.slotLine, divider ? styles.slotLineDivider : {}]}>
-      {/* Celdas de fechas y línea vertical continua */}
-      <View style={styles.slotColLeft}>
-        <Text style={styles.dateText}>{a?.dateAssigned ?? ''}</Text>
-      </View>
-      <View style={styles.slotColRight}>
-        <Text style={styles.dateText}>{a?.dateCompleted ?? ''}</Text>
-      </View>
-
-      {/* Nombre superpuesto centrando en ambas celdas */}
-      {a && (
-        <Text style={styles.slotNameAbsolute}>
-          {a.name.length > 18 ? a.name.slice(0, 16) + '…' : a.name}
-          {a.isCampaign ? ' (C)' : ''}
+      {/* Mitad superior: Nombre centrado */}
+      <View style={styles.slotNameContainer}>
+        <Text style={styles.slotName}>
+          {a ? (a.name.length > 18 ? a.name.slice(0, 16) + '…' : a.name) + (a.isCampaign ? ' (C)' : '') : ''}
         </Text>
-      )}
+      </View>
+      {/* Mitad inferior: Fechas divididas */}
+      <View style={styles.slotDatesContainer}>
+        <View style={styles.slotColLeft}>
+          <Text style={styles.dateText}>{a?.dateAssigned ?? ''}</Text>
+        </View>
+        <View style={styles.slotColRight}>
+          <Text style={styles.dateText}>{a?.dateCompleted ?? ''}</Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -224,12 +230,12 @@ const BodyGroup = ({
 
 const Sheet = ({ sheet }: { sheet: S13Sheet }) => (
   <Page size="A4" style={styles.page}>
-    <Text style={styles.title}>TERRITORY ASSIGNMENT RECORD</Text>
+    <Text style={styles.title}>REGISTRO DE ASIGNACIÓN DE TERRITORIO</Text>
 
     <View style={styles.metaRow}>
-      <Text style={styles.metaLabel}>Service Year:</Text>
+      <Text style={styles.metaLabel}>Año de servicio:</Text>
       <Text style={styles.metaValueSY}>{sheet.serviceYear}</Text>
-      <Text style={styles.metaLabel}>Territory Type:</Text>
+      <Text style={styles.metaLabel}>Tipo de territorio:</Text>
       <Text style={styles.metaValueTT}>{sheet.territoryType}</Text>
     </View>
 
@@ -237,12 +243,13 @@ const Sheet = ({ sheet }: { sheet: S13Sheet }) => (
       {/* Cabecera */}
       <View style={styles.headRow}>
         <View style={[styles.cTerr, styles.headCellTall]}>
-          <Text>Terr.</Text>
-          <Text>No.</Text>
+          <Text>Núm.</Text>
+          <Text>de terr.</Text>
         </View>
         <View style={[styles.cLast, styles.headCellTall]}>
-          <Text>Last date</Text>
-          <Text>completed*</Text>
+          <Text>Última fecha en</Text>
+          <Text>que se</Text>
+          <Text>completó*</Text>
         </View>
         {[0, 1, 2, 3].map((i) => (
           <GroupHeader key={i} last={i === 3} />
@@ -251,7 +258,6 @@ const Sheet = ({ sheet }: { sheet: S13Sheet }) => (
 
       {/* Filas */}
       {sheet.rows.map((row, idx) => {
-        // La última fila no debe tener borde inferior
         const isLastRow = idx === sheet.rows.length - 1;
         return (
           <View key={idx} style={[styles.bodyRow, isLastRow ? { borderBottom: 'none' } : {}]}>
@@ -271,7 +277,7 @@ const Sheet = ({ sheet }: { sheet: S13Sheet }) => (
     </View>
 
     <Text style={styles.footnote}>
-      *When beginning a new sheet, use this column to record the date on which each territory was last completed.
+      *Cuando comience una nueva página, anote en esta columna la última fecha en que los territorios se completaron.
     </Text>
     <Text style={styles.formCode}>S-13 1/22</Text>
   </Page>
