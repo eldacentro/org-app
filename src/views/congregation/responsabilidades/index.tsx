@@ -117,22 +117,23 @@ const styles = StyleSheet.create({
     fontSize: 9.3,
     color: '#1a1a2e',
   },
-  // Department cards (3 per row)
-  deptGrid: {
+  // Department cards (Masonry 2-columns)
+  masonryContainer: {
     display: 'flex',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    columnGap: 4.5,
-    rowGap: 6,
+    gap: 8,
+  },
+  masonryColumn: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
   },
   deptCard: {
-    width: '48.5%',
-    border: '0.5 solid #dde3f0',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  deptCardWide: {
     width: '100%',
+    border: '0.5 solid #dde3f0',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   deptHeader: {
     backgroundColor: '#306CB4',
@@ -285,36 +286,36 @@ const TemplateResponsabilidades = ({
 
   // ── Densidad adaptativa para que SIEMPRE quepa en una página ──
   // El header / cuerpo / cargos tienen altura estable; lo que crece es la
-  // sección de departamentos. Según cuántos haya, pasamos de 2 a 3 columnas
-  // y escalamos tipografías/espaciados.
+  // sección de departamentos. Con el empaquetado por columnas balanceadas
+  // (ver más abajo) 17 departamentos / 30 integrantes en total ya caben de
+  // sobra a tamaño completo — antes estos umbrales compensaban un reparto en
+  // columnas desbalanceado, así que ahora solo deben achicar la fuente para
+  // congregaciones bastante más grandes que la prueba real con la que se
+  // verificó esto.
   const deptCount = data.departamentos.length;
   const memberTotal = data.departamentos.reduce(
     (n, dep) =>
       n + (dep.type === 'extended' ? (dep as DepartamentoExtended).members.length : 0),
     0
   );
-  // Ajuste de umbrales según solicitud
-  const dense = deptCount > 4 || memberTotal > 12;
-  const ultra = deptCount > 8 || memberTotal > 26;
+  const dense = deptCount > 22 || memberTotal > 40;
+  const ultra = deptCount > 30 || memberTotal > 60;
 
   const kd = ultra ? 0.8 : dense ? 0.9 : 1; // factor de escala de la sección
-  const cardWidth = dense ? '31.6%' : '48.5%'; // 3 columnas cuando hay muchos
   const r = (n: number) => Math.round(n * kd * 10) / 10;
 
   // Estilos escalados (se fusionan con los base vía arrays de estilo)
   const dz = {
-    header: { paddingVertical: r(3), paddingHorizontal: r(7.5) },
+    header: { paddingVertical: r(2.5), paddingHorizontal: r(6) },
     headerText: { fontSize: r(9.3) },
-    body: { paddingVertical: r(5.2), paddingHorizontal: r(7.5), gap: r(4.5) },
-    infoColGap: { gap: r(3.7) },
-    infoRowGap: { gap: r(15) },
-    label: { fontSize: Math.max(6.4, r(6.4)) },
+    body: { paddingVertical: r(4), paddingHorizontal: r(6), gap: r(3.5) },
+    infoColGap: { gap: r(3) },
+    label: { fontSize: Math.max(6, r(6.4)), marginBottom: 0 },
     value: { fontSize: r(9) },
-    membersLabel: { fontSize: Math.max(6.4, r(6.4)) },
-    membersWrap: { gap: r(2.2) },
-    memberChip: { paddingVertical: r(1.5), paddingHorizontal: r(3.7) },
+    membersLabel: { fontSize: Math.max(6, r(6.4)), marginTop: 1, marginBottom: 1.5 },
+    membersWrap: { gap: r(1.8) },
+    memberChip: { paddingVertical: r(1.2), paddingHorizontal: r(3) },
     memberText: { fontSize: r(8.5) },
-    gridRowGap: { rowGap: r(6) },
   };
 
   return (
@@ -365,94 +366,117 @@ const TemplateResponsabilidades = ({
           {/* ── Departamentos ────────────────────── */}
           <View style={styles.sectionWrapper}>
             <Text style={styles.sectionTitle}>Departamentos</Text>
-            <View style={[styles.deptGrid, dz.gridRowGap]}>
-              {data.departamentos.map((dep) => {
-                const isExtended = dep.type === 'extended';
-                const hasMembers =
-                  isExtended &&
-                  (dep as DepartamentoExtended).members.length > 0;
-                // Las tarjetas con integrantes ocupan la fila completa para que
-                // los nombres respiren; las demás van en la cuadrícula adaptativa.
-                const isWide = hasMembers;
-                const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
+            <View style={styles.masonryContainer}>
+              {(() => {
+                // Antes esto repartía los departamentos alternando por
+                // posición (i % 2) sin importar cuánto contenido tenía cada
+                // uno — una columna podía terminar mucho más larga que la
+                // otra, empujando los últimos departamentos (los más
+                // pequeños) a una segunda página aunque sobrara espacio en
+                // la otra columna. Ahora cada departamento se asigna a la
+                // columna que en ese momento tenga MENOS contenido
+                // acumulado (estimado en "líneas"), y usamos 3 columnas en
+                // vez de 2 para aprovechar mejor el ancho — así los
+                // departamentos chicos (Territorios, Cuentas, etc.) se
+                // empaquetan juntos en vez de ocupar una fila completa cada
+                // uno.
+                const COLUMN_COUNT = 3;
 
-                return (
-                  <View
-                    key={dep.id}
-                    style={[
-                      styles.deptCard,
-                      { width: isWide ? '100%' : cardWidth },
-                    ]}
-                  >
-                    <View style={[styles.deptHeader, dz.header]}>
-                      <Text style={[styles.deptHeaderText, dz.headerText]}>
-                        {dep.name}
-                      </Text>
-                    </View>
-                    <View style={[styles.deptBody, dz.body]}>
-                      <View
-                        style={[
-                          isWide ? styles.deptInfoRow : styles.deptInfoCol,
-                          isWide ? dz.infoRowGap : dz.infoColGap,
-                        ]}
-                      >
-                        <View
-                          style={[
-                            styles.deptPerson,
-                            isWide ? styles.deptPersonWide : {},
-                          ]}
-                        >
-                          <Text style={[styles.deptLabel, dz.label]}>
-                            Responsable
-                          </Text>
-                          <Text style={[styles.deptValue, dz.value]}>
-                            {resolve(dep.responsable) || '—'}
-                          </Text>
-                        </View>
-                        {auxiliar ? (
-                          <View
-                            style={[
-                              styles.deptPerson,
-                              isWide ? styles.deptPersonWide : {},
-                            ]}
-                          >
-                            <Text style={[styles.deptLabel, dz.label]}>
-                              Auxiliar
-                            </Text>
-                            <Text style={[styles.deptValue, dz.value]}>
-                              {auxiliar}
+                const estimateUnits = (dep: typeof data.departamentos[number]) => {
+                  let units = 1; // encabezado
+                  units += 1; // responsable (siempre se muestra)
+                  if (dep.auxiliar) units += 1;
+
+                  if (dep.type === 'extended') {
+                    const memberCount = (dep as DepartamentoExtended).members.length;
+                    if (memberCount > 0) {
+                      // a 1/3 de ancho de página caben ~2 chips por línea
+                      units += 1 + Math.ceil(memberCount / 2);
+                    }
+                  }
+
+                  return units + 0.8; // borde/padding de la tarjeta
+                };
+
+                const columns: typeof data.departamentos[] = Array.from(
+                  { length: COLUMN_COUNT },
+                  () => []
+                );
+                const columnUnits = new Array(COLUMN_COUNT).fill(0);
+
+                data.departamentos.forEach((dep) => {
+                  let shortest = 0;
+                  for (let c = 1; c < COLUMN_COUNT; c++) {
+                    if (columnUnits[c] < columnUnits[shortest]) shortest = c;
+                  }
+                  columns[shortest].push(dep);
+                  columnUnits[shortest] += estimateUnits(dep);
+                });
+
+                return columns.map((colItems, colIndex) => (
+                  <View key={colIndex} style={styles.masonryColumn}>
+                    {colItems.map((dep) => {
+                      const isExtended = dep.type === 'extended';
+                      const hasMembers =
+                        isExtended &&
+                        (dep as DepartamentoExtended).members.length > 0;
+                      const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
+
+                      return (
+                        <View key={dep.id} style={styles.deptCard}>
+                          <View style={[styles.deptHeader, dz.header]}>
+                            <Text style={[styles.deptHeaderText, dz.headerText]}>
+                              {dep.name}
                             </Text>
                           </View>
-                        ) : null}
-                      </View>
-
-                      {hasMembers ? (
-                        <View>
-                          <Text style={[styles.deptMembersLabel, dz.membersLabel]}>
-                            Integrantes
-                          </Text>
-                          <View style={[styles.deptMembersWrap, dz.membersWrap]}>
-                            {(dep as DepartamentoExtended).members.map(
-                              (uid, i) => (
-                                <View
-                                  key={i}
-                                  style={[styles.deptMemberChip, dz.memberChip]}
-                                >
-                                  <Text
-                                    style={[styles.deptMemberText, dz.memberText]}
-                                  >
-                                    {resolve(uid)}
+                          <View style={[styles.deptBody, dz.body]}>
+                            <View style={[styles.deptInfoCol, dz.infoColGap]}>
+                              <View style={styles.deptPerson}>
+                                <Text style={[styles.deptLabel, dz.label]}>
+                                  Responsable
+                                </Text>
+                                <Text style={[styles.deptValue, dz.value]}>
+                                  {resolve(dep.responsable) || '—'}
+                                </Text>
+                              </View>
+                              {auxiliar ? (
+                                <View style={styles.deptPerson}>
+                                  <Text style={[styles.deptLabel, dz.label]}>
+                                    Auxiliar
+                                  </Text>
+                                  <Text style={[styles.deptValue, dz.value]}>
+                                    {auxiliar}
                                   </Text>
                                 </View>
-                              )
-                            )}
+                              ) : null}
+                            </View>
+
+                            {hasMembers ? (
+                              <View>
+                                <Text style={[styles.deptMembersLabel, dz.membersLabel]}>
+                                  Integrantes
+                                </Text>
+                                <View style={[styles.deptMembersWrap, dz.membersWrap]}>
+                                  {(dep as DepartamentoExtended).members.map((uid, i) => (
+                                    <View
+                                      key={i}
+                                      style={[styles.deptMemberChip, dz.memberChip]}
+                                    >
+                                      <Text style={[styles.deptMemberText, dz.memberText]}>
+                                        {resolve(uid)}
+                                      </Text>
+                                    </View>
+                                  ))}
+                                </View>
+                              </View>
+                            ) : null}
                           </View>
                         </View>
-                      ) : null}
-                    </View>
+                      );
+                    })}
                   </View>
-                );
-              })}
+                ));
+              })()}
             </View>
           </View>
         </View>
