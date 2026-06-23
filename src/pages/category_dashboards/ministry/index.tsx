@@ -27,7 +27,8 @@ const MinistryDashboard = () => {
         <div className="t">{t('tr_ministry', 'Predicación')}</div>
       </div>
       <div className="tile-grid">
-        {/* Territorios */}
+        {/* Territorios (Oculto temporalmente) */}
+        {/*
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/territories')}>
           <div className="ti">
             <IconMapOverview color="var(--brand)" width={22} height={22} />
@@ -39,6 +40,7 @@ const MinistryDashboard = () => {
             <path d="M9 6l6 6-6 6" />
           </svg>
         </div>
+        */}
 
         {/* Exhibidores */}
         {(isServiceCommittee) && (
