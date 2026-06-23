@@ -5,6 +5,7 @@ import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
+import DatePicker from '@components/date_picker';
 import { congIDState } from '@states/settings';
 import { TerritoryCampaign, TerritoryCampaignEstado } from '@definition/territories';
 import { saveCampaign } from '@services/firebase/territories';
@@ -83,28 +84,22 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
           />
-          <Stack direction="row" spacing={1.5}>
+          <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={2}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="var(--ink-2)">
-                Fecha de inicio
-              </Typography>
-              <input
-                type="date"
-                value={inicio}
-                onChange={(e) => setInicio(e.target.value)}
-                style={{ width: '100%', height: 42, padding: '0 8px' }}
+              <DatePicker
+                label="Fecha de inicio"
+                value={inicio ? new Date(inicio) : null}
+                onChange={(d) => setInicio(d ? d.toISOString() : '')}
+                view="input"
               />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="var(--ink-2)">
-                Fecha de finalización
-              </Typography>
-              <input
-                type="date"
-                value={fin}
-                min={inicio || undefined}
-                onChange={(e) => setFin(e.target.value)}
-                style={{ width: '100%', height: 42, padding: '0 8px' }}
+              <DatePicker
+                label="Fecha de finalización"
+                value={fin ? new Date(fin) : null}
+                minDate={inicio ? new Date(inicio) : undefined}
+                onChange={(d) => setFin(d ? d.toISOString() : '')}
+                view="input"
               />
             </Box>
           </Stack>
