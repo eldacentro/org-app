@@ -4,6 +4,7 @@ import { useAppTranslation } from '@hooks/index';
 import { ScheduleAutofillType } from './index.types';
 import useScheduleAutofill from './useScheduleAutofill';
 import Button from '@components/button';
+import Checkbox from '@components/checkbox';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import WeekRangeSelector from '../week_range_selector';
@@ -20,6 +21,8 @@ const ScheduleAutofillDialog = ({
     handleSetStartWeek,
     handleStartAutoFill,
     isProcessing,
+    skipPublicTalk,
+    handleToggleSkipPublicTalk,
   } = useScheduleAutofill(meeting, onClose);
 
   return (
@@ -36,6 +39,18 @@ const ScheduleAutofillDialog = ({
         onStartChange={handleSetStartWeek}
         onEndChange={handleSetEndWeek}
       />
+
+      {meeting === 'weekend' && (
+        <Checkbox
+          checked={skipPublicTalk}
+          onChange={handleToggleSkipPublicTalk}
+          label={t('tr_autofillSkipPublicTalk', 'No autocompletar el discurso público')}
+          labelDescription={t(
+            'tr_autofillSkipPublicTalkDesc',
+            'Rellena todo lo demás (presidente, oración, lector de La Atalaya) pero deja sin asignar el orador del discurso público, para que lo coordine otra persona.'
+          )}
+        />
+      )}
 
       <Box
         sx={{

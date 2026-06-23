@@ -11,10 +11,13 @@ const useScheduleAutofill = (
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [skipPublicTalk, setSkipPublicTalk] = useState(false);
 
   const handleSetStartWeek = (value: string) => setStartWeek(value);
 
   const handleSetEndWeek = (value: string) => setEndWeek(value);
+
+  const handleToggleSkipPublicTalk = () => setSkipPublicTalk((prev) => !prev);
 
   const handleStartAutoFill = async () => {
     if (startWeek.length === 0 || endWeek.length === 0) return;
@@ -22,7 +25,9 @@ const useScheduleAutofill = (
     try {
       setIsProcessing(true);
 
-      await schedulesStartAutofill(startWeek, endWeek, meeting);
+      await schedulesStartAutofill(startWeek, endWeek, meeting, {
+        skipPublicTalk,
+      });
 
       setIsProcessing(false);
       onClose?.();
@@ -45,6 +50,8 @@ const useScheduleAutofill = (
     handleSetEndWeek,
     isProcessing,
     handleStartAutoFill,
+    skipPublicTalk,
+    handleToggleSkipPublicTalk,
   };
 };
 

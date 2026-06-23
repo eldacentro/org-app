@@ -1021,7 +1021,10 @@ const handleWMStudyReader = (
   }
 };
 
-const handleAutofillWeekend = async (weeksList: SchedWeekType[]) => {
+const handleAutofillWeekend = async (
+  weeksList: SchedWeekType[],
+  options?: { skipPublicTalk?: boolean }
+) => {
   const assignmentsHistory = store.get(assignmentsHistoryState);
   const isWeekendEditor = store.get(isWeekendEditorState);
   const dataView = store.get(userDataViewState);
@@ -1033,8 +1036,12 @@ const handleAutofillWeekend = async (weeksList: SchedWeekType[]) => {
   const weeksAutofill = structuredClone(weeksList);
   const historyAutofill = structuredClone(assignmentsHistory);
 
-  // assign Speakers
-  handleWMAssignSpeaker(weeksAutofill, historyAutofill);
+  // assign Speakers — se omite cuando el usuario marca "no autocompletar el
+  // discurso público" en el diálogo, para que quien coordina los discursos
+  // los asigne aparte sin que el autocompletado general le pise el trabajo.
+  if (!options?.skipPublicTalk) {
+    handleWMAssignSpeaker(weeksAutofill, historyAutofill);
+  }
 
   // Assign other parts
   if (isWeekendEditor) {
@@ -1090,7 +1097,8 @@ const handleAutofillWeekend = async (weeksList: SchedWeekType[]) => {
 export const schedulesStartAutofill = async (
   start: string,
   end: string,
-  meeting: 'midweek' | 'weekend'
+  meeting: 'midweek' | 'weekend',
+  options?: { skipPublicTalk?: boolean }
 ) => {
   try {
     if (start.length === 0 || end.length === 0) return;
@@ -1122,7 +1130,7 @@ export const schedulesStartAutofill = async (
     }
 
     if (meeting === 'weekend') {
-      await handleAutofillWeekend(weeksList);
+      await handleAutofillWeekend(weeksList, options);
     }
   } catch (error) {
     throw new Error(`autofill error: ${error.message}`);
