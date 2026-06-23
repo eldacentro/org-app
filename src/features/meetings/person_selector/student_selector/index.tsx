@@ -275,12 +275,18 @@ const StudentSelector = (props: PersonSelectorType) => {
             height: '44px !important',
           },
           '& .MuiOutlinedInput-input': {
-            // +30px respecto al original: ahora hay dos íconos propios sobre
-            // el campo (historial + exportar S-89), no solo uno.
-            paddingRight: '110px !important',
+            // Hueco para los tres elementos a la derecha: X de limpiar (al
+            // hover) · exportar S-89 · historial. Antes era 80px con un
+            // solo ícono propio.
+            paddingRight: '120px !important',
           },
           '& .MuiAutocomplete-clearIndicator': {
-            marginRight: '30px',
+            // +30px respecto al original (era 30px): al añadir un segundo
+            // ícono propio (exportar S-89), la X de limpiar caía justo
+            // encima de él. Se corre un "hueco" más a la izquierda para que
+            // los tres (X · exportar · historial) queden alineados sin
+            // solaparse.
+            marginRight: '60px',
           },
         }}
       />
