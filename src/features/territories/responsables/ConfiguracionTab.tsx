@@ -616,12 +616,12 @@ const ConfiguracionTab = () => {
               </>
             )}
             {saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600 }}>
+              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 ✓ Guardado
               </Typography>
             )}
             {!hasChanges && !saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
                 Todo al día
               </Typography>
             )}
@@ -631,6 +631,7 @@ const ConfiguracionTab = () => {
             variant="main"
             onClick={handleSave}
             disabled={saving || !hasChanges}
+            disableAutoStretch
             sx={{ borderRadius: '999px', px: 3, flexShrink: 0 }}
           >
             {saving ? 'Guardando…' : 'Guardar'}
