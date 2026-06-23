@@ -2,8 +2,13 @@ import { doc, writeBatch } from 'firebase/firestore';
 import { firestore as db } from './index';
 import { PersonType } from '@definition/persons';
 
-export const runMigrationDB = async (migrationData: Record<string, unknown>, persons: PersonType[], congId: string) => {
+export const runMigrationDB = async (migrationData: Record<string, any>, persons: PersonType[], congId: string) => {
   if (!congId) throw new Error("No hay congregación activa");
+
+  const stripUndefined = <T extends object>(obj: T): T =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
+
+  const serializeGeometry = (g: any) => (g ? JSON.stringify(g) : null);
 
   // Create lookup dictionary for persons by email
   const emailToUid = new Map<string, string>();
@@ -41,17 +46,21 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
 
   // 1. Zonas
   for (const z of migrationData.zones) {
-    await addOp('territory_zones', z.id, z);
+    await addOp('territory_zones', z.id, stripUndefined(z));
   }
 
   // 2. Territorios
   for (const t of migrationData.territories) {
-    await addOp('territories', t.id, t);
+    const payload = stripUndefined({
+      ...t,
+      geometry: serializeGeometry(t.geometry),
+    });
+    await addOp('territories', t.id, payload);
   }
 
   // 3. Campaña
   if (migrationData.campaign) {
-    await addOp('territory_campaigns', migrationData.campaign.id, migrationData.campaign);
+    await addOp('territory_campaigns', migrationData.campaign.id, stripUndefined(migrationData.campaign));
   }
 
   // 4. Asignaciones
@@ -64,7 +73,7 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
       status = a.status === 'no_trabajado' ? 'no_trabajado' : 'trabajado';
     }
 
-    const assignmentData = {
+    const assignmentData = stripUndefined({
       id: a.id,
       territoryId: a.territoryId,
       personUid,
@@ -76,7 +85,7 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
       notas: a.notas || '',
       updatedAt: a.updatedAt,
       assignedBy: 'MIGRATION_SCRIPT'
-    };
+    });
 
     await addOp('territory_assignments', a.id, assignmentData);
   }
