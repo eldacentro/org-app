@@ -2,13 +2,13 @@ import { doc, writeBatch } from 'firebase/firestore';
 import { firestore as db } from './index';
 import { PersonType } from '@definition/persons';
 
-export const runMigrationDB = async (migrationData: Record<string, any>, persons: PersonType[], congId: string) => {
+export const runMigrationDB = async (migrationData: Record<string, unknown>, persons: PersonType[], congId: string) => {
   if (!congId) throw new Error("No hay congregación activa");
 
   const stripUndefined = <T extends object>(obj: T): T =>
     Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
 
-  const serializeGeometry = (g: any) => (g ? JSON.stringify(g) : null);
+  const serializeGeometry = (g: unknown) => (g ? JSON.stringify(g) : null);
 
   // Create lookup dictionary for persons by email
   const emailToUid = new Map<string, string>();
