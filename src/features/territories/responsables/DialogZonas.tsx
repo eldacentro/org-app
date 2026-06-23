@@ -7,7 +7,7 @@ import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconDelete } from '@components/icons';
+import { IconDelete, IconEdit } from '@components/icons';
 import { TerritoryZone } from '@definition/territories';
 import { saveZone, deleteZone } from '@services/firebase/territories';
 import { congIDState } from '@states/settings';
@@ -42,11 +42,17 @@ const DialogZonas = ({ open, onClose }: Props) => {
   const [pendingColors, setPendingColors] = useState<Record<string, string>>({});
   const colorTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+  // Edición de zonas
+  const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
   useEffect(() => {
     if (open) {
       setNombre('');
       setColor('#306CB4');
       setPendingColors({});
+      setEditingZoneId(null);
+      setEditingName('');
     }
   }, [open]);
 
@@ -88,6 +94,17 @@ const DialogZonas = ({ open, onClose }: Props) => {
         setPendingColors((prev) => { const n = { ...prev }; delete n[zone.id]; return n; });
       }
     }, 600);
+  };
+
+  const handleSaveEdit = async (zone: TerritoryZone) => {
+    if (!editingName.trim()) return;
+    try {
+      await saveZone(congId, { ...zone, nombre: editingName.trim(), updatedAt: new Date().toISOString() });
+      setEditingZoneId(null);
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo actualizar la zona.' });
+    }
   };
 
   const handleDelete = async (zone: TerritoryZone) => {
@@ -173,13 +190,48 @@ const DialogZonas = ({ open, onClose }: Props) => {
                     }}
                   />
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ color: 'var(--ink)' }}>
-                      {zone.nombre}
-                    </Typography>
-                    <Typography variant="caption" color="var(--ink-2)">
-                      {count} territorio(s)
-                    </Typography>
+                    {editingZoneId === zone.id ? (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <TextField
+                          label=""
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          sx={{ '& .MuiInputBase-root': { height: '36px' } }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(zone);
+                            if (e.key === 'Escape') setEditingZoneId(null);
+                          }}
+                        />
+                        <Button variant="small" onClick={() => handleSaveEdit(zone)}>
+                          Guardar
+                        </Button>
+                        <Button variant="tertiary" onClick={() => setEditingZoneId(null)}>
+                          Cancelar
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <>
+                        <Typography variant="body1" sx={{ color: 'var(--ink)' }}>
+                          {zone.nombre}
+                        </Typography>
+                        <Typography variant="caption" color="var(--ink-2)">
+                          {count} territorio(s)
+                        </Typography>
+                      </>
+                    )}
                   </Box>
+                  {editingZoneId !== zone.id && (
+                    <Button
+                      variant="small"
+                      onClick={() => {
+                        setEditingZoneId(zone.id);
+                        setEditingName(zone.nombre);
+                      }}
+                      ariaLabel="Editar zona"
+                    >
+                      <IconEdit color="var(--ink)" width={20} height={20} />
+                    </Button>
+                  )}
                   <Button
                     variant="small"
                     onClick={() => handleDelete(zone)}

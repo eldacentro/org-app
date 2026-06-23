@@ -215,6 +215,27 @@ const DialogVerTerritorio = ({
   const label = territoryLabel(liveTerritory);
   const isOpen = Boolean(relevantAssignment);
 
+  const handleNavigate = () => {
+    if (!liveTerritory.geometry) return;
+    const geo = liveTerritory.geometry;
+    let coords: number[][] = [];
+    if (geo.type === 'Polygon') {
+      coords = geo.coordinates[0];
+    } else if (geo.type === 'MultiPolygon') {
+      coords = geo.coordinates[0][0];
+    }
+    if (!coords || coords.length === 0) return;
+    let lngSum = 0;
+    let latSum = 0;
+    coords.forEach(([lng, lat]) => {
+      lngSum += lng;
+      latSum += lat;
+    });
+    const lat = latSum / coords.length;
+    const lng = lngSum / coords.length;
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  };
+
   const handleUploadImage = async (file?: File) => {
     if (!file) return;
     setUploading(true);
@@ -311,6 +332,7 @@ const DialogVerTerritorio = ({
           height="100%"
           borderRadius={0}
           bottomInset={sheetHeightPx}
+          onNavigate={handleNavigate}
         />
       </Box>
 
@@ -769,6 +791,7 @@ const DialogVerTerritorio = ({
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
+          onNavigate={handleNavigate}
         />
 
         {/* Ficha de identidad glass en mapa */}

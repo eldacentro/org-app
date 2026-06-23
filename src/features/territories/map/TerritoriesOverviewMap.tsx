@@ -39,6 +39,68 @@ const FitAll = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   return null;
 };
 
+// ─── Control de Zoom personalizado (estilo glass) ───────────────────────────
+const CustomZoomControl = () => {
+  const map = useMap();
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 14,
+        right: 14,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        backgroundColor: 'rgba(255, 255, 255, 0.78)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '0.5px solid rgba(255, 255, 255, 0.6)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
+      }}
+    >
+      <Box
+        onClick={() => map.zoomIn()}
+        sx={{
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: '20px',
+          fontWeight: 300,
+          color: 'rgba(0,0,0,0.75)',
+          borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+          transition: 'background 0.15s ease',
+          '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+        }}
+      >
+        +
+      </Box>
+      <Box
+        onClick={() => map.zoomOut()}
+        sx={{
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: '20px',
+          fontWeight: 300,
+          color: 'rgba(0,0,0,0.75)',
+          transition: 'background 0.15s ease',
+          '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+        }}
+      >
+        −
+      </Box>
+    </Box>
+  );
+};
+
 /**
  * Mapa con todos los territorios de la congregación a la vez, coloreados por
  * zona (relleno/borde del polígono) y por estado (punto central naranja =
@@ -99,13 +161,14 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       sx={{
         position: 'relative',
         width: '100%',
-        height: { mobile: '60vh', tablet600: '70vh' },
+        height: { mobile: 'calc(100vh - 150px)', tablet600: '70vh' },
         borderRadius: 'var(--radius-l, 16px)',
         overflow: 'hidden',
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
     >
-      <MapContainer center={[40.4168, -3.7038]} zoom={13} scrollWheelZoom>
+      <MapContainer center={[40.4168, -3.7038]} zoom={13} scrollWheelZoom zoomControl={false}>
+        <CustomZoomControl />
         <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {withGeometry.map((t) => (

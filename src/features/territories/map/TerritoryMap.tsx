@@ -28,6 +28,7 @@ type TerritoryMapProps = {
    *  flotante (p.ej. el bottom sheet de DialogVerTerritorio) no tape el
    *  territorio. */
   bottomInset?: number;
+  onNavigate?: () => void;
 };
 
 // ─── Ajuste de bounds ─────────────────────────────────────────────────────────
@@ -207,6 +208,7 @@ const TerritoryMap = ({
   borderRadius,
   onGeometryChange,
   bottomInset = 0,
+  onNavigate,
 }: TerritoryMapProps) => {
   // Memorizado por VALOR (no por referencia de `geometry`, que llega como un
   // objeto nuevo en cada snapshot de Firestore aunque el polígono no haya
@@ -438,6 +440,30 @@ const TerritoryMap = ({
             −
           </Box>
         </Box>
+
+        {/* Navegación */}
+        {onNavigate && (
+          <Box
+            onClick={onNavigate}
+            title="Cómo llegar"
+            sx={{
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              ...glass,
+              transition: 'background 0.15s ease',
+              '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+            }}
+          >
+            🧭
+          </Box>
+        )}
       </Box>
 
       {/* Sombra interior sutil */}

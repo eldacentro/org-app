@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, Stack, Grid, Tabs, Tab, Badge } from '@mui/material';
+import { Box, Stack, Grid, Tabs, Tab, Badge, Checkbox } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -12,10 +12,15 @@ import {
   territoryPendingRequestsState,
   territoryTagsState,
 } from '@states/territories';
+import { congIDState } from '@states/settings';
+import { useConfirm } from '@components/confirm_dialog';
+import { displaySnackNotification } from '@services/states/app';
+import { deleteTerritoryCompleto } from '@services/firebase/territories';
 import { Territory, TerritoryAssignment, TerritoryRequest, TerritoryZone, TerritoryTag } from '@definition/territories';
 import { territoryLabel } from '@services/app/territories';
 import AsignacionesTab from './AsignacionesTab';
 import SolicitudesTab from './SolicitudesTab';
+import HistorialTab from './HistorialTab';
 import EstadisticasTab from './EstadisticasTab';
 import ConfiguracionTab from './ConfiguracionTab';
 import CampanasTab from './CampanasTab';
@@ -38,10 +43,13 @@ type ZoneSectionProps = {
   items: Territory[];
   assignedIds: Set<string>;
   tags: TerritoryTag[];
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
   onView: (t: Territory) => void;
 };
 
-const ZoneSection = ({ zone, items, assignedIds, tags, onView }: ZoneSectionProps) => {
+const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedIds, onToggleSelect, onView }: ZoneSectionProps) => {
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const label = (
@@ -96,10 +104,11 @@ const ZoneSection = ({ zone, items, assignedIds, tags, onView }: ZoneSectionProp
         <Grid container spacing={1.5}>
             {items.map((t: Territory) => {
               const assigned = assignedIds.has(t.id);
+              const selected = selectedIds.has(t.id);
               return (
                 <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
                   <Box
-                    onClick={() => onView(t)}
+                    onClick={() => selectionMode ? onToggleSelect(t.id) : onView(t)}
                     className="active-press"
                     sx={{
                       p: 2,
@@ -107,16 +116,26 @@ const ZoneSection = ({ zone, items, assignedIds, tags, onView }: ZoneSectionProp
                       border: '1px solid var(--line)',
                       borderLeft: `5px solid ${zone.color}`,
                       cursor: 'pointer',
-                      backgroundColor: 'var(--card)',
+                      backgroundColor: selected ? 'var(--accent-150)' : 'var(--card)',
                       boxShadow: 'var(--small-card-shadow)',
-                      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                      transition: 'box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s',
+                      position: 'relative',
                       '&:hover': {
                         boxShadow: 'var(--hover-shadow)',
                         transform: 'translateY(-2px)',
                       },
                     }}
                   >
-                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1 }}>
+                    {selectionMode && (
+                      <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
+                        <Checkbox
+                          checked={selected}
+                          size="small"
+                          sx={{ p: 0.5 }}
+                        />
+                      </Box>
+                    )}
+                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1, pr: selectionMode ? 3 : 0 }}>
                       {territoryLabel(t)}
                     </Typography>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
@@ -177,12 +196,75 @@ const ResponsablesPanel = ({
   onOpenEtiquetas,
   onOpenImport,
 }: Props) => {
+  const congId = useAtomValue(congIDState);
   const zones = useAtomValue(territoryZonesSortedState);
   const tags = useAtomValue(territoryTagsState);
   const territories = useAtomValue(territoriesState);
   const assignedIds = useAtomValue(territoryAssignedIdsState);
   const pending = useAtomValue(territoryPendingRequestsState);
   const [tab, setTab] = useState(0);
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    
+    const selectedArr = Array.from(selectedIds);
+    // Filtrar los que tienen asignación abierta
+    const toDelete = selectedArr.filter(id => !assignedIds.has(id));
+    const skipped = selectedArr.length - toDelete.length;
+
+    if (toDelete.length === 0) {
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Acción no permitida',
+        message: 'Todos los territorios seleccionados están asignados. No se pueden borrar.',
+      });
+      return;
+    }
+
+    let msg = `¿Estás seguro de que deseas eliminar estos ${toDelete.length} territorios? Esta acción no se puede deshacer.`;
+    if (skipped > 0) {
+      msg += ` Se omitirán ${skipped} territorio(s) porque están asignados actualmente.`;
+    }
+
+    const ok = await confirm({
+      message: msg,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      await Promise.all(toDelete.map(id => deleteTerritoryCompleto(congId, id)));
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Territorios eliminados',
+        message: `Se han eliminado ${toDelete.length} territorios correctamente.`,
+      });
+      setSelectionMode(false);
+      setSelectedIds(new Set());
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudieron eliminar todos los territorios.' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const byZone = useMemo(
     () =>
@@ -229,7 +311,8 @@ const ResponsablesPanel = ({
             </Badge>
           }
         />
-        <Tab label="Territorio" />
+        <Tab label="Historial" />
+        <Tab label="Territorios" />
         <Tab label="Mapa" />
         <Tab label="Campañas" />
         <Tab label="Importar/Exportar" />
@@ -244,25 +327,51 @@ const ResponsablesPanel = ({
       {tab === 2 && (
         <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
       )}
+      {tab === 3 && <HistorialTab />}
 
-      {tab === 3 && (
+      {tab === 4 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-            <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <IconMapOverview width={18} height={18} /> Zonas
-              </Box>
-            </Button>
-            <Button variant="tertiary" onClick={onOpenEtiquetas} disableAutoStretch>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <IconCustom width={18} height={18} /> Etiquetas
-              </Box>
-            </Button>
-            <Button variant="main" onClick={onOpenImport} disableAutoStretch>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <IconAdd width={18} height={18} /> Importar KML
-              </Box>
-            </Button>
+          {ConfirmDialogNode}
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+            <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+              <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <IconMapOverview width={18} height={18} /> Zonas
+                </Box>
+              </Button>
+              <Button variant="tertiary" onClick={onOpenEtiquetas} disableAutoStretch>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <IconCustom width={18} height={18} /> Etiquetas
+                </Box>
+              </Button>
+              <Button variant="main" onClick={onOpenImport} disableAutoStretch>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <IconAdd width={18} height={18} /> Importar KML
+                </Box>
+              </Button>
+            </Stack>
+
+            <Stack direction="row" spacing={1}>
+              {selectionMode && selectedIds.size > 0 && (
+                <Button 
+                  variant="tertiary" 
+                  onClick={handleBulkDelete}
+                  disabled={deleting}
+                  sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'var(--red-main)1A' } }}
+                >
+                  Eliminar ({selectedIds.size})
+                </Button>
+              )}
+              <Button
+                variant={selectionMode ? 'main' : 'tertiary'}
+                onClick={() => {
+                  setSelectionMode(!selectionMode);
+                  if (selectionMode) setSelectedIds(new Set());
+                }}
+              >
+                {selectionMode ? 'Hecho' : 'Seleccionar'}
+              </Button>
+            </Stack>
           </Stack>
 
           {territories.length === 0 && (
@@ -278,16 +387,19 @@ const ResponsablesPanel = ({
               items={items}
               assignedIds={assignedIds}
               tags={tags}
+              selectionMode={selectionMode}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
               onView={onView}
             />
           ))}
         </Box>
       )}
 
-      {tab === 4 && <TerritoriesOverviewMap onViewTerritory={onView} />}
-      {tab === 5 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
-      {tab === 6 && <ImportExportTab />}
-      {tab === 7 && <ConfiguracionTab />}
+      {tab === 5 && <TerritoriesOverviewMap onViewTerritory={onView} />}
+      {tab === 6 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
+      {tab === 7 && <ImportExportTab />}
+      {tab === 8 && <ConfiguracionTab />}
     </Box>
   );
 };
