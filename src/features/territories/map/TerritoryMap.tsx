@@ -240,15 +240,13 @@ const TerritoryMap = ({
       <MapContainer center={center} zoom={15} scrollWheelZoom zoomControl={false}>
         {isSatellite ? (
           <TileLayer
-            attribution="&copy; Google"
-            url="https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
-            maxZoom={20}
+            attribution="&copy; Esri World Imagery"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
         ) : (
           <TileLayer
-            attribution="&copy; Google"
-            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-            maxZoom={20}
+            attribution="&copy; OpenStreetMap"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         )}
 

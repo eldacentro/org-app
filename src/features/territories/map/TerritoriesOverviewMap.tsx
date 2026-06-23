@@ -169,11 +169,7 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
     >
       <MapContainer center={[40.4168, -3.7038]} zoom={13} scrollWheelZoom zoomControl={false}>
         <CustomZoomControl />
-        <TileLayer
-          attribution="&copy; Google"
-          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-          maxZoom={20}
-        />
+        <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {withGeometry.map((t) => (
           <GeoJSON
