@@ -15,8 +15,12 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
   const nameToUid = new Map<string, string>();
 
   persons.forEach(p => {
-    if (p.email) emailToUid.set(p.email.toLowerCase().trim(), p.id);
-    if (p.display_name) nameToUid.set(p.display_name.toLowerCase().trim(), p.id);
+    const email = p.person_data?.email?.value;
+    const name = p.person_data?.person_display_name?.value;
+    const uid = p.person_uid;
+
+    if (email) emailToUid.set(email.toLowerCase().trim(), uid);
+    if (name) nameToUid.set(name.toLowerCase().trim(), uid);
   });
 
   const getPersonUid = (email?: string, name?: string) => {
