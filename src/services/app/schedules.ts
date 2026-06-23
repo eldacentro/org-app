@@ -3400,13 +3400,20 @@ export const schedulesGetMeetingDate = ({
   const schedule = schedules.find((record) => record.weekOf === week);
   const source = sources.find((record) => record.weekOf === week);
 
-  if (!schedule || !source) return { locale, date };
-
+  // Antes esta función exigía que `schedule` Y `source` ya existieran para
+  // calcular cualquier fecha, lo que bloqueaba semanas futuras sin material
+  // de JW.org todavía (ver useWeekSelector.tsx / useWeekendContainer.tsx,
+  // donde ahora se generan semanas por fecha en vez de depender de qué
+  // `source` ya llegó). En realidad, `source` solo hace falta para el caso
+  // muy específico de abajo (fecha textual exacta del midweek para
+  // imprimir), y `weekTypes` ya tiene su propio fallback a Week.NORMAL.
   if (meeting === 'midweek' && forPrint && !useExact) {
+    if (!source) return { locale, date };
+
     locale = source.midweek_meeting.week_date_locale[lang] ?? '';
   }
 
-  const weekTypes = (meeting === 'weekOf' ? null : schedule[`${meeting}_meeting`]?.week_type) as WeekTypeCongregation[];
+  const weekTypes = (meeting === 'weekOf' ? null : schedule?.[`${meeting}_meeting`]?.week_type) as WeekTypeCongregation[];
 
   const weekType =
     weekTypes?.find((record) => record.type === dataView)?.value ?? Week.NORMAL;

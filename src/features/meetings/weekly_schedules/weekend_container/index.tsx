@@ -16,6 +16,7 @@ const WeekendContainer = () => {
     handleValueChange,
     value,
     week,
+    weeksRange,
     scheduleLastUpdated,
     noSchedule,
     dataView,
@@ -31,7 +32,11 @@ const WeekendContainer = () => {
             marginTop: '8px',
           }}
         >
-          <WeekSelector value={value} onChange={handleValueChange} />
+          <WeekSelector
+            value={value}
+            onChange={handleValueChange}
+            customWeeksList={weeksRange}
+          />
 
           <WeekScheduleHeader
             currentVisible={currentWeekVisible}

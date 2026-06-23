@@ -59,6 +59,7 @@ const WeekendEditor = () => {
 
   const {
     weekDateLocale,
+    hasSchedule,
     selectedWeek,
     weekType,
     wtStudyTitle,
@@ -122,7 +123,11 @@ const WeekendEditor = () => {
         </Box>
       )}
 
-      {weekDateLocale.length > 0 && (
+      {/* Para una semana recién elegida sin material de JW.org todavía, el
+          `sched` se crea de forma asíncrona (ver useWeekendEditor.tsx) — el
+          resto de esta sección asume que ya existe, así que se espera a
+          `hasSchedule` (es casi instantáneo, es una escritura local). */}
+      {weekDateLocale.length > 0 && hasSchedule && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <DoubleFieldContainer
             sx={{ flexDirection: laptopUp ? 'row' : 'column' }}

@@ -37,7 +37,11 @@ const useWeekTypeSelector = ({ meeting, week }: WeekTypeSelectorType) => {
   }, [weekTypeOptions, meeting]);
 
   const weekTypeInitial = useMemo(() => {
-    if (week.length === 0) return Week.NORMAL;
+    // Una semana recién elegida (aún sin material de JW.org, programada con
+    // antelación) puede no tener `schedule` todavía en el primer render —
+    // se crea de forma asíncrona en cuanto se selecciona (ver
+    // useWeekendEditor.tsx), así que esto no debe asumir que ya existe.
+    if (week.length === 0 || !schedule) return Week.NORMAL;
 
     // check if no meeting and exit out early
     if (meeting === 'midweek') {
@@ -64,6 +68,8 @@ const useWeekTypeSelector = ({ meeting, week }: WeekTypeSelectorType) => {
   const [weekType, setWeekType] = useState(weekTypeInitial);
 
   const handleWeekTypeChange = async (value: Week) => {
+    if (!schedule) return;
+
     setWeekType(value);
 
     const meetingType: WeekTypeCongregation[] = structuredClone(

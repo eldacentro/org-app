@@ -8,6 +8,12 @@ import { sourcesFormattedState, sourcesValidState } from '@states/sources';
 import { useBreakpoints } from '@hooks/index';
 import { selectedWeekState } from '@states/schedules';
 import { convertStringToBoolean } from '@utils/common';
+import {
+  addMonths,
+  addWeeks,
+  formatDate,
+  getWeekDate,
+} from '@utils/date';
 import { JWLangState, meetingExactDateState } from '@states/settings';
 import MonthsContainer from './months_container';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
@@ -112,12 +118,51 @@ const useWeekSelector = () => {
     return { weeksExact, weeks };
   }, [meeting, lang, sourcesFormattedByWeek, sourcesValid]);
 
+  // El discursante y el discurso público se programan con mucha antelación
+  // (a veces de un año para otro), bastante antes de que JW.org publique el
+  // material de esa semana. Antes, esta lista solo incluía semanas que YA
+  // tenían ese material (sourcesValid), así que no se podía ni seleccionar
+  // una semana futura para dejar puesto el discurso. Por eso, solo para fin
+  // de semana, se genera la lista de semanas directamente por fecha — hasta
+  // el 31 de diciembre del año que viene — en vez de depender de qué
+  // `source` ya llegó. Cuando el material sí llegue después (vía sync de
+  // JW.org o import de .epub), se completa solo encima sin tocar lo que ya
+  // se haya asignado (son tablas independientes).
+  const weeksWithFuture = useMemo(() => {
+    if (meeting !== 'weekend') return weeksWithoutMemorial.weeks;
+
+    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const horizon = new Date(new Date().getFullYear() + 1, 11, 31);
+
+    const generated: string[] = [];
+    let cursor = getWeekDate(addMonths(new Date(), -2));
+
+    while (cursor <= horizon) {
+      const weekOf = formatDate(cursor, 'yyyy/MM/dd');
+
+      if (weekOf >= minDate) {
+        generated.push(weekOf);
+      }
+
+      cursor = addWeeks(cursor, 1);
+    }
+
+    const horizonStr = formatDate(horizon, 'yyyy/MM/dd');
+    const extraSources = weeksWithoutMemorial.weeks
+      .filter((record) => record.weekOf > horizonStr)
+      .map((record) => record.weekOf);
+
+    const allWeekOfs = new Set([...generated, ...extraSources]);
+
+    return [...allWeekOfs].sort().map((weekOf) => ({ weekOf }));
+  }, [meeting, weeksWithoutMemorial]);
+
   const sources = useMemo(() => {
     if (meeting === 'midweek' && !meetingExactDate) {
       return weeksWithoutMemorial.weeksExact;
     }
 
-    const groupedData = weeksWithoutMemorial.weeks.reduce<
+    const groupedData = weeksWithFuture.reduce<
       SourcesFormattedType[]
     >((acc, curr) => {
       const mtd = schedulesGetMeetingDate({
@@ -159,7 +204,7 @@ const useWeekSelector = () => {
     }
 
     return groupedData;
-  }, [meeting, meetingExactDate, weeksWithoutMemorial]);
+  }, [meeting, meetingExactDate, weeksWithoutMemorial, weeksWithFuture]);
 
   const tabs = useMemo(() => {
     return sources.toReversed().map((year) => ({

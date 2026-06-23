@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtom, useAtomValue } from 'jotai';
 import { WEEK_TYPE_NO_MEETING } from '@constants/index';
@@ -18,6 +18,7 @@ import { sourcesState } from '@states/sources';
 import { personsState } from '@states/persons';
 import { AssignmentCode } from '@definition/assignment';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
+import { dbSchedCheck } from '@services/dexie/schedules';
 
 const useWeekendEditor = () => {
   const navigate = useNavigate();
@@ -52,6 +53,16 @@ const useWeekendEditor = () => {
   const source = useMemo(() => {
     return sources.find((record) => record.weekOf === selectedWeek);
   }, [sources, selectedWeek]);
+
+  // Una semana futura elegida antes de que llegue el material de JW.org
+  // todavía no tiene fila en `sched` — sin esto, en cuanto se intente
+  // asignar el discursante/discurso ahí, el guardado fallaría (no habría
+  // nada que actualizar). Se crea vacía en el momento en que se entra.
+  useEffect(() => {
+    if (selectedWeek.length === 0 || schedule) return;
+
+    dbSchedCheck(selectedWeek);
+  }, [selectedWeek, schedule]);
 
   const weekType = useMemo(() => {
     if (!schedule) return Week.NORMAL;
@@ -172,6 +183,12 @@ const useWeekendEditor = () => {
   return {
     ...state,
     selectedWeek,
+    // El resto de la página asume que `schedule` ya existe para leer
+    // `weekend_meeting`. Para una semana recién elegida (sin material de
+    // JW.org todavía) se crea justo arriba, pero de forma asíncrona — este
+    // flag evita pintar esos componentes en el instante en que aún no
+    // existe (ver el gate en index.tsx).
+    hasSchedule: !!schedule,
     showEventEditor,
     handleTogglePulicTalk,
     handleToggleWTStudy,
