@@ -284,7 +284,9 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               height: '100%',
               background: `linear-gradient(135deg, ${accentColor}08 0%, ${accentColor}18 100%)`,
               position: 'relative',
-              p: 3,
+              px: 3,
+              pb: 3,
+              pt: 'calc(max(24px, env(safe-area-inset-top, 0px)) + 16px)',
               boxSizing: 'border-box',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -294,7 +296,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               onClick={handleClose}
               sx={{
                 position: 'absolute',
-                top: 16,
+                top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
                 right: 16,
                 color: 'var(--ink-2)',
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
@@ -306,7 +308,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               <IconClose />
             </IconButton>
 
-            <Box sx={{ mt: 4 }}>
+            <Box sx={{ mt: 2 }}>
               {categoria && (
                 <Box
                   sx={{
