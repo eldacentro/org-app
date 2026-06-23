@@ -22,33 +22,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4.5,
   },
   topBarBrand: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 7.5,
   },
   topBarBrandName: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: 700,
     color: '#1a1a2e',
   },
   topBarDate: {
-    fontSize: 10,
+    fontSize: 8.5,
     fontWeight: 500,
     color: '#888888',
   },
   pageTitle: {
-    fontSize: 28,
+    fontSize: 23.5,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
-    marginBottom: 14,
+    marginBottom: 10.5,
   },
 
   // ─── Groups grid ─────────────────────────────────────────────────────────────
