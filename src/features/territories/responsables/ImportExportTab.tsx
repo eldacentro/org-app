@@ -6,6 +6,7 @@ import Typography from '@components/typography';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 import { displaySnackNotification } from '@services/states/app';
+import MigrationRunner from './MigrationRunner';
 
 // ─── Tipos locales ────────────────────────────────────────────────────────────
 type PillOption = { value: string; label: string };
@@ -373,6 +374,9 @@ const ImportExportTab = () => {
           </Box>
         </Stack>
       </SectionCard>
+      
+      {/* ── Herramienta de Migración ── */}
+      <MigrationRunner />
     </Stack>
   );
 };

@@ -109,6 +109,7 @@
     "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^5.1.4",
     "conventional-changelog-conventionalcommits": "^9.3.1",
+    "csv-parse": "^7.0.0",
     "cypress": "^15.14.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
