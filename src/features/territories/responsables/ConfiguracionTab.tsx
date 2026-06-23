@@ -240,17 +240,23 @@ const PillGroup = ({
 const NumberStepper = ({
   value,
   onChange,
-  min = 1,
-  max = 999,
+  min = 0,
+  max = 99,
   suffix,
 }: {
-  value: number;
-  onChange: (v: number) => void;
+  value: number | string;
+  onChange: (val: number) => void;
   min?: number;
   max?: number;
   suffix?: string;
 }) => {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
+
+  const [localVal, setLocalVal] = useState<string>(String(value));
+
+  useEffect(() => {
+    setLocalVal(String(value));
+  }, [value]);
 
   const btnSx = {
     width: 36,
@@ -268,6 +274,16 @@ const NumberStepper = ({
     '&:active': { backgroundColor: 'rgba(0,0,0,0.07)' },
   };
 
+  const handleMinus = () => {
+    const num = Number(localVal);
+    if (!isNaN(num)) onChange(clamp(num - 1));
+  };
+
+  const handlePlus = () => {
+    const num = Number(localVal);
+    if (!isNaN(num)) onChange(clamp(num + 1));
+  };
+
   return (
     <Box
       sx={{
@@ -279,7 +295,7 @@ const NumberStepper = ({
         overflow: 'hidden',
       }}
     >
-      <Box onClick={() => onChange(clamp(value - 1))} sx={btnSx}>
+      <Box onClick={handleMinus} sx={btnSx}>
         −
       </Box>
 
@@ -291,21 +307,26 @@ const NumberStepper = ({
           px: '8px',
           borderLeft: '1px solid var(--line)',
           borderRight: '1px solid var(--line)',
-          minWidth: 64,
+          minWidth: 72,
           justifyContent: 'center',
         }}
       >
         <input
           type="number"
-          value={value}
+          value={localVal}
           min={min}
           max={max}
-          onChange={(e) => {
-            const n = parseInt(e.target.value, 10);
-            if (!isNaN(n)) onChange(clamp(n));
+          onChange={(e) => setLocalVal(e.target.value)}
+          onBlur={() => {
+            const n = parseInt(localVal, 10);
+            if (!isNaN(n)) {
+              onChange(clamp(n));
+            } else {
+              setLocalVal(String(value));
+            }
           }}
           style={{
-            width: 36,
+            width: 44,
             textAlign: 'center',
             border: 'none',
             background: 'transparent',
@@ -324,7 +345,7 @@ const NumberStepper = ({
         )}
       </Box>
 
-      <Box onClick={() => onChange(clamp(value + 1))} sx={btnSx}>
+      <Box onClick={handlePlus} sx={btnSx}>
         +
       </Box>
     </Box>
