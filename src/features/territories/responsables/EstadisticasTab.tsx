@@ -267,11 +267,13 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
     let asignadoActual = 0;
     let noTrabajados = 0;
     territories.forEach((t) => {
-      if (openByTerritory.has(t.id)) {
+      const workedThisYear = t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart;
+
+      if (workedThisYear) {
+        trabajados += 1;
+      } else if (openByTerritory.has(t.id)) {
         asignadoActual += 1;
         if (settings.assignedCountsAsWorked) trabajados += 1;
-      } else if (t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart) {
-        trabajados += 1;
       } else {
         noTrabajados += 1;
       }
