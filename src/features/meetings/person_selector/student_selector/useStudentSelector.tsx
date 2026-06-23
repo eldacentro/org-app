@@ -1,8 +1,11 @@
 import { MouseEvent, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useAtomValue } from 'jotai';
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
 import { IconError } from '@components/icons';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
+import { TemplateS89 } from '@views/index';
 import { personsByViewState } from '@states/persons';
 import {
   displayNameMeetingsEnableState,
@@ -23,6 +26,7 @@ import { Gender } from './index.types';
 import {
   schedulesGetData,
   schedulesGetMeetingDate,
+  schedulesS89DataForAssignment,
   schedulesSaveAssignment,
 } from '@services/app/schedules';
 import { AssignmentCongregation } from '@definition/schedules';
@@ -58,6 +62,7 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
   const [gender, setGender] = useState<Gender>('male');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [groupChecked, setGroupChecked] = useState(false);
+  const [isExportingS89, setIsExportingS89] = useState(false);
 
   // Ver el comentario equivalente en useBrotherSelector.tsx — sin esto, la
   // persona elegida se ve seleccionada y luego "se borra" sola hasta que
@@ -467,6 +472,52 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
 
   const handleCloseHistory = () => setIsHistoryOpen(false);
 
+  const handleExportS89 = async () => {
+    if (isExportingS89) return;
+
+    setIsExportingS89(true);
+
+    try {
+      // Una fila de auxiliar no tiene hoja S-89 propia — su nombre ya va
+      // dentro de la del estudiante principal, así que se exporta esa.
+      const resolvedAssignment = (
+        isAssistant ? assignment.replace('Assistant', 'Student') : assignment
+      ) as typeof assignment;
+
+      const data = schedulesS89DataForAssignment(
+        schedule,
+        dataView,
+        resolvedAssignment
+      );
+
+      // No debería pasar — este botón solo se muestra cuando `value` ya
+      // tiene a alguien asignado — pero por si hay una carrera entre el
+      // render y el clic, no truena en silencio sin avisar.
+      if (!data) return;
+
+      const blob = await pdf(
+        <TemplateS89 data={data} lang={sourceLocale} />
+      ).toBlob();
+
+      const filename = `S-89_${data.weekOf.replaceAll('/', '')}_${data.student_name.replace(' ', '_')}.pdf`;
+
+      saveAs(blob, filename);
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(
+          error.code || error.message || t('error_app_generic-desc')
+        ),
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    } finally {
+      setIsExportingS89(false);
+    }
+  };
+
   useEffect(() => {
     if (personAssigned?.person_data.female.value) {
       setGender('female');
@@ -490,6 +541,8 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
     isHistoryOpen,
     handleOpenHistory,
     handleCloseHistory,
+    handleExportS89,
+    isExportingS89,
     personHistory,
     helperText,
     handleToggleGroup,

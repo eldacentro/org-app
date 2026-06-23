@@ -4,6 +4,7 @@ import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import {
   IconAssignmetHistory,
   IconClose,
+  IconDownload,
   IconFemale,
   IconMale,
   IconPersonPlaceholder,
@@ -44,6 +45,8 @@ const StudentSelector = (props: PersonSelectorType) => {
     handleSaveAssignment,
     handleCloseHistory,
     handleOpenHistory,
+    handleExportS89,
+    isExportingS89,
     helperText,
     isHistoryOpen,
     personHistory,
@@ -272,7 +275,9 @@ const StudentSelector = (props: PersonSelectorType) => {
             height: '44px !important',
           },
           '& .MuiOutlinedInput-input': {
-            paddingRight: '80px !important',
+            // +30px respecto al original: ahora hay dos íconos propios sobre
+            // el campo (historial + exportar S-89), no solo uno.
+            paddingRight: '110px !important',
           },
           '& .MuiAutocomplete-clearIndicator': {
             marginRight: '30px',
@@ -281,19 +286,36 @@ const StudentSelector = (props: PersonSelectorType) => {
       />
 
       {value && (
-        <IconButton
-          sx={{ padding: 0, position: 'absolute', right: 35, top: 10 }}
-          title={t('tr_assignmentHistory')}
-          onClick={handleOpenHistory}
-        >
-          <IconAssignmetHistory
-            color={
-              helperText.length > 0
-                ? 'var(--orange-dark)'
-                : 'var(--accent-main)'
-            }
-          />
-        </IconButton>
+        <>
+          <IconButton
+            sx={{ padding: 0, position: 'absolute', right: 65, top: 10 }}
+            title={t('tr_exportS89Sheet', 'Exportar hoja de asignación (S-89)')}
+            onClick={handleExportS89}
+            disabled={isExportingS89}
+          >
+            <IconDownload
+              color={
+                helperText.length > 0
+                  ? 'var(--orange-dark)'
+                  : 'var(--accent-main)'
+              }
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ padding: 0, position: 'absolute', right: 35, top: 10 }}
+            title={t('tr_assignmentHistory')}
+            onClick={handleOpenHistory}
+          >
+            <IconAssignmetHistory
+              color={
+                helperText.length > 0
+                  ? 'var(--orange-dark)'
+                  : 'var(--accent-main)'
+              }
+            />
+          </IconButton>
+        </>
       )}
 
       {helperText.length > 0 && (

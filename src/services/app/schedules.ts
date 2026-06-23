@@ -2174,9 +2174,103 @@ export const schedulesWeekHasNoMeetingAtAll = (
   );
 };
 
-export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
+// Construye la hoja S-89 de UNA sola asignación (ej. 'MM_TGWBibleReading_A',
+// 'MM_AYFPart2_Student_B'). Extraído de schedulesS89Data para que el botón de
+// "exportar esta hoja" (en cada fila de Lectura de la Biblia / Seamos
+// Mejores Maestros) reutilice exactamente la misma lógica que el export
+// masivo, en vez de reconstruirla aparte y arriesgar que con el tiempo
+// queden desincronizadas.
+export const schedulesS89DataForAssignment = (
+  schedule: SchedWeekType,
+  dataView: string,
+  assignment: AssignmentFieldType
+): S89DataType | null => {
   const fullnameOption = store.get(fullnameOptionState);
 
+  const path = ASSIGNMENT_PATH[assignment];
+  const assigned = schedulesGetData(
+    schedule,
+    path,
+    dataView
+  ) as AssignmentCongregation;
+
+  if (!(assigned?.value?.length > 0)) return null;
+
+  const person = personsStateFind(assigned.value);
+
+  if (!person) return null;
+
+  const obj = {} as S89DataType;
+
+  obj.id = crypto.randomUUID();
+  obj.weekOf = schedule.weekOf;
+  obj.student_name = buildPersonFullname(
+    person.person_data.person_lastname.value,
+    person.person_data.person_firstname.value,
+    fullnameOption
+  );
+
+  if (assignment.includes('AYFPart')) {
+    const assistant = assignment.replace('Student', 'Assistant');
+    const path = ASSIGNMENT_PATH[assistant];
+    const assistantAssigned = schedulesGetData(
+      schedule,
+      path,
+      dataView
+    ) as AssignmentCongregation;
+
+    if (assistantAssigned?.value.length > 0) {
+      const assistantPerson = personsStateFind(assistantAssigned.value);
+
+      obj.assistant_name = buildPersonFullname(
+        assistantPerson.person_data.person_lastname.value,
+        assistantPerson.person_data.person_firstname.value,
+        fullnameOption
+      );
+    }
+  }
+
+  const meetingDate = schedulesGetMeetingDate({
+    week: schedule.weekOf,
+    meeting: 'midweek',
+    forPrint: true,
+    key: 'tr_longDateWithYearLocale',
+  });
+
+  obj.assignment_date = meetingDate.locale;
+
+  if (assignment.includes('TGWBibleReading')) {
+    obj.part_number = '3';
+  }
+
+  if (assignment.includes('Part1')) {
+    obj.part_number = '4';
+  }
+
+  if (assignment.includes('Part2')) {
+    obj.part_number = '5';
+  }
+
+  if (assignment.includes('Part3')) {
+    obj.part_number = '6';
+  }
+
+  if (assignment.includes('Part4')) {
+    obj.part_number = '7';
+  }
+
+  if (assignment.endsWith('_A')) {
+    obj.main_hall = true;
+  }
+
+  if (assignment.endsWith('_B')) {
+    obj.aux_class_1 = true;
+  }
+
+  return obj;
+};
+
+export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
   const result: S89DataType[] = [];
 
   const assignments: AssignmentFieldType[] = [
@@ -2220,87 +2314,9 @@ export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
       continue;
     }
 
-    const path = ASSIGNMENT_PATH[assignment];
-    const assigned = schedulesGetData(
-      schedule,
-      path,
-      dataView
-    ) as AssignmentCongregation;
+    const obj = schedulesS89DataForAssignment(schedule, dataView, assignment);
 
-    if (assigned.value?.length > 0) {
-      const person = personsStateFind(assigned.value);
-
-      if (!person) continue;
-
-      const obj = {} as S89DataType;
-
-      obj.id = crypto.randomUUID();
-      obj.weekOf = schedule.weekOf;
-      obj.student_name = buildPersonFullname(
-        person.person_data.person_lastname.value,
-        person.person_data.person_firstname.value,
-        fullnameOption
-      );
-
-      if (assignment.includes('AYFPart')) {
-        const assistant = assignment.replace('Student', 'Assistant');
-        const path = ASSIGNMENT_PATH[assistant];
-        const assistantAssigned = schedulesGetData(
-          schedule,
-          path,
-          dataView
-        ) as AssignmentCongregation;
-
-        if (assistantAssigned?.value.length > 0) {
-          const assistantPerson = personsStateFind(assistantAssigned.value);
-
-          obj.assistant_name = buildPersonFullname(
-            assistantPerson.person_data.person_lastname.value,
-            assistantPerson.person_data.person_firstname.value,
-            fullnameOption
-          );
-        }
-      }
-
-      const meetingDate = schedulesGetMeetingDate({
-        week: schedule.weekOf,
-        meeting: 'midweek',
-        forPrint: true,
-        key: 'tr_longDateWithYearLocale',
-      });
-
-      obj.assignment_date = meetingDate.locale;
-
-      if (assignment.includes('TGWBibleReading')) {
-        obj.part_number = '3';
-      }
-
-      if (assignment.includes('Part1')) {
-        obj.part_number = '4';
-      }
-
-      if (assignment.includes('Part2')) {
-        obj.part_number = '5';
-      }
-
-      if (assignment.includes('Part3')) {
-        obj.part_number = '6';
-      }
-
-      if (assignment.includes('Part4')) {
-        obj.part_number = '7';
-      }
-
-      if (assignment.endsWith('_A')) {
-        obj.main_hall = true;
-      }
-
-      if (assignment.endsWith('_B')) {
-        obj.aux_class_1 = true;
-      }
-
-      result.push(obj);
-    }
+    if (obj) result.push(obj);
   }
 
   return result;
