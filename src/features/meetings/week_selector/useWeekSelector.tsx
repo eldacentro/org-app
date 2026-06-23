@@ -8,12 +8,7 @@ import { sourcesFormattedState, sourcesValidState } from '@states/sources';
 import { useBreakpoints } from '@hooks/index';
 import { selectedWeekState } from '@states/schedules';
 import { convertStringToBoolean } from '@utils/common';
-import {
-  addMonths,
-  addWeeks,
-  formatDate,
-  getWeekDate,
-} from '@utils/date';
+import { addMonths, addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { JWLangState, meetingExactDateState } from '@states/settings';
 import MonthsContainer from './months_container';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
@@ -123,36 +118,29 @@ const useWeekSelector = () => {
   // material de esa semana. Antes, esta lista solo incluía semanas que YA
   // tenían ese material (sourcesValid), así que no se podía ni seleccionar
   // una semana futura para dejar puesto el discurso. Por eso, solo para fin
-  // de semana, se genera la lista de semanas directamente por fecha — hasta
-  // el 31 de diciembre del año que viene — en vez de depender de qué
-  // `source` ya llegó. Cuando el material sí llegue después (vía sync de
-  // JW.org o import de .epub), se completa solo encima sin tocar lo que ya
-  // se haya asignado (son tablas independientes).
+  // de semana, se le añaden semanas futuras generadas por fecha — hasta 12
+  // meses por delante de hoy (deslizante: no salta a un año entero de golpe,
+  // por ejemplo no se ve 2028 hasta que falte menos de un año para esa
+  // fecha) — sin tocar ni recortar el historial real ya sincronizado. Cuando
+  // el material sí llegue después (vía sync de JW.org o import de .epub),
+  // se completa solo encima sin tocar lo que ya se haya asignado (son
+  // tablas independientes).
   const weeksWithFuture = useMemo(() => {
     if (meeting !== 'weekend') return weeksWithoutMemorial.weeks;
 
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
-    const horizon = new Date(new Date().getFullYear() + 1, 11, 31);
+    const horizon = addMonths(new Date(), 12);
 
     const generated: string[] = [];
-    let cursor = getWeekDate(addMonths(new Date(), -2));
+    let cursor = getWeekDate(new Date());
 
     while (cursor <= horizon) {
-      const weekOf = formatDate(cursor, 'yyyy/MM/dd');
-
-      if (weekOf >= minDate) {
-        generated.push(weekOf);
-      }
-
+      generated.push(formatDate(cursor, 'yyyy/MM/dd'));
       cursor = addWeeks(cursor, 1);
     }
 
-    const horizonStr = formatDate(horizon, 'yyyy/MM/dd');
-    const extraSources = weeksWithoutMemorial.weeks
-      .filter((record) => record.weekOf > horizonStr)
-      .map((record) => record.weekOf);
+    const existing = weeksWithoutMemorial.weeks.map((record) => record.weekOf);
 
-    const allWeekOfs = new Set([...generated, ...extraSources]);
+    const allWeekOfs = new Set([...existing, ...generated]);
 
     return [...allWeekOfs].sort().map((weekOf) => ({ weekOf }));
   }, [meeting, weeksWithoutMemorial]);

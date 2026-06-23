@@ -52,37 +52,34 @@ const useWeekendContainer = () => {
   // de esa semana (tema de Atalaya, canciones). Antes, el selector solo
   // mostraba semanas que YA tenían ese material (filtrando `sources`), así
   // que no se podía ni entrar a una semana futura para dejar puesto el
-  // discurso. Por eso, en vez de depender de qué `source` ya llegó, se
-  // genera la lista de semanas directamente por fecha — hasta el 31 de
-  // diciembre del año que viene — y cuando el material sí llegue después
-  // (vía sync de JW.org o import de .epub), se completa solo encima sin
-  // tocar lo que ya se haya asignado (son tablas independientes, ver
-  // dbSchedCheck/sourcesFormatAndSaveData).
+  // discurso. Por eso, además de las semanas con material real, se añaden
+  // semanas futuras generadas por fecha — hasta 12 meses por delante de hoy
+  // (deslizante, no salta a un año entero de golpe) — y cuando el material
+  // sí llegue después (vía sync de JW.org o import de .epub), se completa
+  // solo encima sin tocar lo que ya se haya asignado (son tablas
+  // independientes, ver dbSchedCheck/sourcesFormatAndSaveData).
   const weeksRange = useMemo(() => {
     const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
-    const horizon = new Date(new Date().getFullYear() + 1, 11, 31);
+    const horizon = addMonths(new Date(), 12);
 
     const generated: { weekOf: string }[] = [];
-    let cursor = getWeekDate(addMonths(new Date(), -2));
+    let cursor = getWeekDate(new Date());
 
     while (cursor <= horizon) {
-      const weekOf = formatDate(cursor, 'yyyy/MM/dd');
-
-      if (weekOf >= minDate) {
-        generated.push({ weekOf });
-      }
-
+      generated.push({ weekOf: formatDate(cursor, 'yyyy/MM/dd') });
       cursor = addWeeks(cursor, 1);
     }
 
-    // Por si algún source ya sincronizado cae más allá del horizonte
-    // generado (poco probable, pero así no se pierde si pasara).
-    const horizonStr = formatDate(horizon, 'yyyy/MM/dd');
-    const extraSources = sources.filter(
-      (record) => isMondayDate(record.weekOf) && record.weekOf > horizonStr
-    );
+    const existingSources = sources
+      .filter((record) => isMondayDate(record.weekOf) && record.weekOf >= minDate)
+      .map((record) => ({ weekOf: record.weekOf }));
 
-    return [...generated, ...extraSources.map((record) => ({ weekOf: record.weekOf }))];
+    const allWeekOfs = new Set([
+      ...existingSources.map((record) => record.weekOf),
+      ...generated.map((record) => record.weekOf),
+    ]);
+
+    return [...allWeekOfs].sort().map((weekOf) => ({ weekOf }));
   }, [sources]);
 
   const week = useMemo(() => {
