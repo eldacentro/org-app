@@ -10,6 +10,8 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
 
   const serializeGeometry = (g: unknown) => (g ? JSON.stringify(g) : null);
 
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/\s+/g, ' ');
+
   // Create lookup dictionary for persons by email
   const emailToUid = new Map<string, string>();
   const nameToUid = new Map<string, string>();
@@ -17,16 +19,24 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
   persons.forEach(p => {
     const email = p.person_data?.email?.value;
     const name = p.person_data?.person_display_name?.value;
+    const firstName = p.person_data?.person_firstname?.value;
+    const lastName = p.person_data?.person_lastname?.value;
     const uid = p.person_uid;
 
-    if (email) emailToUid.set(email.toLowerCase().trim(), uid);
-    if (name) nameToUid.set(name.toLowerCase().trim(), uid);
+    if (email) emailToUid.set(normalize(email), uid);
+    if (name) nameToUid.set(normalize(name), uid);
+    if (firstName && lastName) nameToUid.set(normalize(`${firstName} ${lastName}`), uid);
   });
 
+  const missingNames = new Set<string>();
+
   const getPersonUid = (email?: string, name?: string) => {
-    if (email && emailToUid.has(email.toLowerCase().trim())) return emailToUid.get(email.toLowerCase().trim())!;
-    if (name && nameToUid.has(name.toLowerCase().trim())) return nameToUid.get(name.toLowerCase().trim())!;
-    return 'UNKNOWN_USER'; // O podemos saltarlos si no cuadran
+    if (email && emailToUid.has(normalize(email))) return emailToUid.get(normalize(email))!;
+    if (name && nameToUid.has(normalize(name))) return nameToUid.get(normalize(name))!;
+    
+    // Fallback: try matching just by first word or last word if it's unique? Better just log.
+    if (name) missingNames.add(name);
+    return 'UNKNOWN_USER'; 
   };
 
   const batches = [];
@@ -58,6 +68,7 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
     const payload = stripUndefined({
       ...t,
       geometry: serializeGeometry(t.geometry),
+      notas: '', // Borramos las notas internas según solicitud
     });
     await addOp('territories', t.id, payload);
   }
@@ -86,7 +97,7 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
       status,
       isCampaign: a.isCampaign,
       campaignId: a.campaignId || null,
-      notas: a.notas || '',
+      notas: '', // Borramos las notas
       updatedAt: a.updatedAt,
       assignedBy: 'MIGRATION_SCRIPT'
     });
@@ -96,4 +107,9 @@ export const runMigrationDB = async (migrationData: Record<string, unknown>, per
 
   await commitBatch();
   await Promise.all(batches);
+
+  if (missingNames.size > 0) {
+    console.warn("No se encontraron los siguientes publicadores para enlazar:", Array.from(missingNames));
+    alert("Algunos publicadores no se pudieron enlazar y saldrán con el guion (-). Revisa la consola (F12) para ver la lista de los nombres exactos que no coincidieron.");
+  }
 };
