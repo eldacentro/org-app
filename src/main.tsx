@@ -4,6 +4,7 @@ import AppRoot from './RootWrap';
 import { getCSSPropertyValue } from '@utils/common';
 import Sentry from '@services/sentry';
 import { LANGUAGE_LIST } from './constants';
+import { initDbWithRecovery } from '@services/app/dbRecovery';
 
 const getInitialColor = () => {
   const savedColor = localStorage.getItem('color');
@@ -53,6 +54,11 @@ document
   .setAttribute('content', themeColor);
 
 console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
+
+// Fire-and-forget: opens the local DB early so a fatal VersionError can
+// auto-recover (delete + reload) before it bricks startup. Not awaited so a
+// healthy DB never delays first paint — see initDbWithRecovery.
+initDbWithRecovery();
 
 const container = document.getElementById('root');
 
