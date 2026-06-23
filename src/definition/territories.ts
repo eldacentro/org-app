@@ -182,7 +182,7 @@ export type TerritorySettings = {
 export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> = {
   id: 'settings',
   dateFormat: 'dd-MM-yyyy',
-  statsIncludeCampaigns: true,
+  statsIncludeCampaigns: false,
   assignedCountsAsWorked: false,
   daysUntilOverdue: 120,
   overdueMessage:
