@@ -310,11 +310,14 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               {categoria && (
                 <Box
                   sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
                     backgroundColor: `${categoria.color}15`,
                     color: categoria.color,
                     border: `1.5px solid ${categoria.color}35`,
                     px: 2,
-                    py: 0.6,
+                    py: 0.8,
+                    lineHeight: 1,
                     borderRadius: '999px',
                     fontSize: '11px',
                     fontWeight: 700,

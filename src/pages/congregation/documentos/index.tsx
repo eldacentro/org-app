@@ -135,6 +135,41 @@ const DocumentosPage = () => {
             No hay documentos en esta categoría
           </Typography>
         </Box>
+      ) : filtroCategoria === 'all' ? (
+        <Stack spacing={4}>
+          {categorias.map((cat) => {
+            const catDocs = docsFiltrados.filter((d) => d.categoriaId === cat.id);
+            if (catDocs.length === 0) return null;
+            return (
+              <Box key={cat.id}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 2,
+                    fontWeight: 700,
+                    color: cat.color,
+                    borderBottom: `2px solid ${cat.color}30`,
+                    paddingBottom: '6px',
+                  }}
+                >
+                  {cat.nombre}
+                </Typography>
+                <Grid container spacing={2}>
+                  {catDocs.map((doc) => (
+                    <Grid size={{ mobile: 12, tablet600: 6, laptop: 4 }} key={doc.id}>
+                      <DocumentoCard
+                        documento={doc}
+                        categoria={cat}
+                        onView={setDocToView}
+                        onDelete={handleDelete}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            );
+          })}
+        </Stack>
       ) : (
         <Grid container spacing={2}>
           {docsFiltrados.map((doc) => (

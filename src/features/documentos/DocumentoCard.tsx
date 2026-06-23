@@ -25,11 +25,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
       return (
         <Box
           sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            lineHeight: 1,
             background: 'var(--brand-tint)',
             color: 'var(--brand-deep)',
             border: '1px solid var(--line)',
             px: 1.2,
-            py: 0.4,
+            py: 0.6,
             borderRadius: 'var(--r-sm)',
             fontSize: '11px',
             fontWeight: 600,
@@ -49,11 +52,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
         return (
           <Box
             sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              lineHeight: 1,
               background: 'rgba(245, 158, 11, 0.08)',
               color: '#D97706',
               border: '1px solid rgba(245, 158, 11, 0.15)',
               px: 1.2,
-              py: 0.4,
+              py: 0.6,
               borderRadius: 'var(--r-sm)',
               fontSize: '11px',
               fontWeight: 600,
@@ -69,11 +75,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
       return (
         <Box
           sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            lineHeight: 1,
             background: 'rgba(48, 108, 180, 0.08)',
             color: '#306CB4',
             border: '1px solid rgba(48, 108, 180, 0.15)',
             px: 1.2,
-            py: 0.4,
+            py: 0.6,
             borderRadius: 'var(--r-sm)',
             fontSize: '11px',
             fontWeight: 600,
@@ -169,11 +178,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             {categoria && (
               <Box
                 sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  lineHeight: 1,
                   backgroundColor: `${categoria.color}15`,
                   color: categoria.color,
                   border: `1px solid ${categoria.color}35`,
                   px: 1.2,
-                  py: 0.4,
+                  py: 0.6,
                   borderRadius: 'var(--r-sm)',
                   fontSize: '11px',
                   fontWeight: 700,
@@ -181,8 +193,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
                   textTransform: 'uppercase',
                   whiteSpace: 'normal',
                   wordBreak: 'break-word',
-                  lineHeight: 1.2,
-                  display: 'inline-block',
                 }}
               >
                 {categoria.nombre}

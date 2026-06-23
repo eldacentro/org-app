@@ -300,7 +300,12 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
               </Grid>
             </Box>
 
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: '100%' }}>
+            <Stack
+              direction={{ mobile: 'column', tablet600: 'row' }}
+              spacing={1.5}
+              alignItems="stretch"
+              sx={{ width: '100%' }}
+            >
               <Box sx={{ flex: 1 }}>
                 <TextField
                   label="Nombre de categoría"
@@ -314,7 +319,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                 onClick={handleAdd}
                 disabled={!nuevaCategoria.trim()}
                 sx={{
-                  height: '42px',
+                  height: { mobile: '48px', tablet600: '42px' },
                   backgroundColor: nuevoColor,
                   color: 'var(--always-white) !important',
                   borderRadius: 'var(--r-sm)',

@@ -117,6 +117,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       const downloadURL = await uploadDocumentoPDF(congId, id, compressedBlob);
       uploaded = true;
 
+      const expirationDate = calculateExpiration(vigencia);
       const doc: DocumentoArchivo = {
         id,
         nombre,
@@ -127,7 +128,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         downloadURL,
         vigencia,
         fechaSubida: new Date().toISOString(),
-        fechaExpiracion: calculateExpiration(vigencia),
+        ...(expirationDate ? { fechaExpiracion: expirationDate } : {}),
         subidoPor: person?.person_uid || '',
         vistoPor: [],
         updatedAt: new Date().toISOString(),
