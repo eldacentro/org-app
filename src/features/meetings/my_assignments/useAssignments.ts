@@ -11,14 +11,14 @@ import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { addDays, addWeeks, formatDate, getWeekDate } from '@utils/date';
+import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
-import { getEffectiveTurnsForMonth, isMonthCancelled } from '@utils/exhibitors';
+import { getMyExhibitorTurns } from '@utils/exhibitors';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
@@ -161,83 +161,45 @@ const useMyAssignments = () => {
       return results;
     };
 
-    // Antes esto solo recorría turn.assignments ya GUARDADOS explícitamente
-    // por semana (week.turns) — pero un turno fijo/recurrente (configurado
-    // en exhibitorsSettings.fixedAssignments, p.ej. "todos los martes")
-    // nunca se guarda como override hasta que alguien lo edita manualmente.
-    // La vista de "Programas semanales > Exhibidores" sí genera esos turnos
-    // al vuelo (ver ExhibitorsMeeting.tsx); aquí no, así que un publicador
-    // con un turno fijo en un mes futuro nunca lo veía en "Mis asignaciones"
-    // aunque sí le saliera correctamente en el programa semanal.
+    // Un turno fijo/recurrente (exhibitorsSettings.fixedAssignments) se
+    // repite indefinidamente, así que mostrarlo hasta el final del rango
+    // visible (hasta 12 meses) abruma y confunde — a diferencia de las demás
+    // categorías, que solo muestran lo que un responsable ya creó a mano. Por
+    // eso aquí se limita aparte a "el mes corriente + uno más", sin importar
+    // el rango elegido para el resto de "Mis asignaciones".
     const getExhibitorsAssignments = (uid: string): AssignmentHistoryType[] => {
-      const results: AssignmentHistoryType[] = [];
-      if (!exhibitorsSettings) return results;
+      const exhibitorMaxDate = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+      const exhibitorMaxDateStr = formatDate(exhibitorMaxDate, 'yyyy/MM/dd');
 
-      const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-      const maxDateStr = formatDate(maxDate, 'yyyy/MM/dd');
+      const turns = getMyExhibitorTurns(
+        exhibitors,
+        exhibitorsSettings,
+        uid,
+        now,
+        currentDayStr,
+        exhibitorMaxDateStr
+      );
 
-      let weekMonday = getWeekDate(new Date(now));
+      return turns.map((turn) => {
+        const roleTitle = turn.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
+        const timeRange = `${turn.startTime}-${turn.endTime}`;
+        const descText = `🕒 ${timeRange}  •  📍 ${turn.location}`;
 
-      while (formatDate(weekMonday, 'yyyy/MM/dd') <= maxDateStr) {
-        const weekOf = formatDate(weekMonday, 'yyyy/MM/dd');
-        const monthStr = weekOf.substring(0, 7);
-
-        if (!isMonthCancelled(exhibitorsSettings, monthStr)) {
-          const effectiveTurns = getEffectiveTurnsForMonth(exhibitorsSettings, monthStr);
-          const weekRecord = exhibitors.find((w) => w?.weekOf === weekOf);
-
-          for (let i = 0; i < 7; i++) {
-            const currentDate = addDays(weekMonday, i);
-            const dateStr = formatDate(currentDate, 'yyyy/MM/dd');
-
-            if (dateStr >= currentDayStr && dateStr <= maxDateStr) {
-              const dayLabel = weekdaysOrder[i];
-              const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
-
-              for (const turn of dayTurns) {
-                const savedTurn = weekRecord?.turns?.find(
-                  (t) => t.turnId === turn.id && t.date === dateStr
-                );
-
-                if (savedTurn?.cancelled) continue;
-
-                const finalAssignments =
-                  savedTurn?.assignments ||
-                  (exhibitorsSettings.fixedAssignments || [])
-                    .filter((f) => f.turnId === turn.id && (!f.day || f.day === dayLabel))
-                    .map((f) => ({ person: f.personUid, isResponsible: f.isResponsible }));
-
-                const myAss = finalAssignments.find((a) => a.person === uid);
-                if (myAss) {
-                  const roleTitle = myAss.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
-                  const timeRange = `${turn.startTime}-${turn.endTime}`;
-                  const location = savedTurn?.location || turn.defaultLocation || 'Exhibidor';
-                  const descText = `🕒 ${timeRange}  •  📍 ${location}`;
-
-                  results.push({
-                    id: `${turn.id}_${dateStr}`,
-                    weekOf,
-                    weekOfFormatted: formatDate(new Date(dateStr), shortDateFormat),
-                    actualDate: dateStr,
-                    assignment: {
-                      code: 0 as AssignmentHistoryType['assignment']['code'],
-                      person: uid,
-                      key: `EXHIBITOR_${turn.id}_${dateStr}` as AssignmentHistoryType['assignment']['key'],
-                      dataView: 'main',
-                      title: roleTitle,
-                      desc: descText,
-                    },
-                  });
-                }
-              }
-            }
-          }
-        }
-
-        weekMonday = addWeeks(weekMonday, 1);
-      }
-
-      return results;
+        return {
+          id: `${turn.turnId}_${turn.date}`,
+          weekOf: turn.weekOf,
+          weekOfFormatted: formatDate(new Date(turn.date), shortDateFormat),
+          actualDate: turn.date,
+          assignment: {
+            code: 0 as AssignmentHistoryType['assignment']['code'],
+            person: uid,
+            key: `EXHIBITOR_${turn.turnId}_${turn.date}` as AssignmentHistoryType['assignment']['key'],
+            dataView: 'main',
+            title: roleTitle,
+            desc: descText,
+          },
+        };
+      });
     };
 
     const getLimpiezaAssignments = (uid: string): AssignmentHistoryType[] => {

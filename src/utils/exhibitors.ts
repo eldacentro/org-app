@@ -1,4 +1,5 @@
-import { ExhibitorSettingsType, ExhibitorTurnType } from '../definition/exhibitors';
+import { ExhibitorSettingsType, ExhibitorTurnType, ExhibitorWeekType } from '../definition/exhibitors';
+import { addDays, addWeeks, formatDate, getWeekDate } from './date';
 
 /**
  * Gets the effective turns for a given month.
@@ -43,4 +44,93 @@ export const isMonthCancelled = (
   
   const override = settings.monthlyOverrides[monthStr];
   return 'isCancelledMonth' in override && override.isCancelledMonth === true;
+};
+
+export type MyExhibitorTurn = {
+  date: string; // "YYYY/MM/DD"
+  weekOf: string;
+  turnId: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  isResponsible: boolean;
+};
+
+/**
+ * Genera los turnos de exhibidores de una persona entre dos fechas,
+ * incluyendo los cubiertos por una asignación FIJA/recurrente
+ * (settings.fixedAssignments) — esos nunca se guardan como override de una
+ * semana concreta hasta que alguien la edita a mano, así que no basta con
+ * recorrer los registros guardados en `exhibitors` (eso es justo lo que
+ * generaba el desfase entre lo que mostraba el programa semanal y lo que
+ * mostraban "Mis asignaciones" y el contador del panel).
+ *
+ * Se usa tanto desde "Mis asignaciones" como desde el contador del
+ * dashboard, para que ambos cuenten exactamente lo mismo.
+ */
+export const getMyExhibitorTurns = (
+  exhibitors: ExhibitorWeekType[],
+  settings: ExhibitorSettingsType | null,
+  uid: string,
+  fromDate: Date,
+  fromDateStr: string,
+  toDateStr: string
+): MyExhibitorTurn[] => {
+  const results: MyExhibitorTurn[] = [];
+  if (!settings || !uid) return results;
+
+  const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  let weekMonday = getWeekDate(new Date(fromDate));
+
+  while (formatDate(weekMonday, 'yyyy/MM/dd') <= toDateStr) {
+    const weekOf = formatDate(weekMonday, 'yyyy/MM/dd');
+    const monthStr = weekOf.substring(0, 7);
+
+    if (!isMonthCancelled(settings, monthStr)) {
+      const effectiveTurns = getEffectiveTurnsForMonth(settings, monthStr);
+      const weekRecord = exhibitors.find((w) => w?.weekOf === weekOf);
+
+      for (let i = 0; i < 7; i++) {
+        const currentDate = addDays(weekMonday, i);
+        const dateStr = formatDate(currentDate, 'yyyy/MM/dd');
+
+        if (dateStr >= fromDateStr && dateStr <= toDateStr) {
+          const dayLabel = weekdaysOrder[i];
+          const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
+
+          for (const turn of dayTurns) {
+            const savedTurn = weekRecord?.turns?.find(
+              (t) => t.turnId === turn.id && t.date === dateStr
+            );
+
+            if (savedTurn?.cancelled) continue;
+
+            const finalAssignments =
+              savedTurn?.assignments ||
+              (settings.fixedAssignments || [])
+                .filter((f) => f.turnId === turn.id && (!f.day || f.day === dayLabel))
+                .map((f) => ({ person: f.personUid, isResponsible: f.isResponsible }));
+
+            const myAss = finalAssignments.find((a) => a.person === uid);
+            if (myAss) {
+              results.push({
+                date: dateStr,
+                weekOf,
+                turnId: turn.id,
+                startTime: turn.startTime,
+                endTime: turn.endTime,
+                location: savedTurn?.location || turn.defaultLocation || 'Exhibidor',
+                isResponsible: myAss.isResponsible,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    weekMonday = addWeeks(weekMonday, 1);
+  }
+
+  return results;
 };

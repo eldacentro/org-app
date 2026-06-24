@@ -16,6 +16,8 @@ import { formatDate, getWeekDate } from '@utils/date';
 import { isTest } from '@constants/index';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
+import { exhibitorsSettingsState } from '@states/exhibitors';
+import { getMyExhibitorTurns } from '@utils/exhibitors';
 
 const useDashboard = () => {
   const setIsMyAssignmentOpen = useSetAtom(isMyAssignmentOpenState);
@@ -27,6 +29,7 @@ const useDashboard = () => {
   const deptSchedules = useAtomValue(deptScheduleState);
   const serviceOutings = useAtomValue(serviceOutingsListState);
   const exhibitors = useAtomValue(exhibitorsListState);
+  const exhibitorsSettings = useAtomValue(exhibitorsSettingsState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
   const settings = useAtomValue(settingsState);
 
@@ -86,20 +89,25 @@ const useDashboard = () => {
       }
     }
 
-    let exhibitorAssignmentsCount = 0;
-
-    for (const week of exhibitors) {
-      if (week.weekOf >= today && week.turns) {
-        for (const turn of week.turns) {
-          if (!turn.cancelled && turn.assignments?.some((a) => a.person === userUID)) {
-            exhibitorAssignmentsCount++;
-          }
-        }
-      }
-    }
+    // Igual que en "Mis asignaciones": contar solo turn.assignments
+    // GUARDADOS se quedaba corto, porque un turno fijo/recurrente
+    // (exhibitorsSettings.fixedAssignments) nunca se guarda como override
+    // hasta que alguien edita esa semana a mano. Se usa la misma función
+    // que "Mis asignaciones" (con el mismo límite de 2 meses) para que este
+    // número siempre coincida con lo que se ve al abrir el diálogo.
+    const exhibitorMaxDate = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+    const exhibitorMaxDateStr = formatDate(exhibitorMaxDate, 'yyyy/MM/dd');
+    const exhibitorAssignmentsCount = getMyExhibitorTurns(
+      exhibitors,
+      exhibitorsSettings,
+      userUID,
+      now,
+      today,
+      exhibitorMaxDateStr
+    ).length;
 
     return meetingAssignmentsCount + deptAssignmentsCount + outingAssignmentsCount + exhibitorAssignmentsCount;
-  }, [assignmentsHistory, deptSchedules, serviceOutings, exhibitors, shortDateFormat, userUID]);
+  }, [assignmentsHistory, deptSchedules, serviceOutings, exhibitors, exhibitorsSettings, shortDateFormat, userUID]);
 
   const handleCloseNewCongNotice = async () => {
     setNewCongSnack(false);
