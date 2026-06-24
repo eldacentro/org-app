@@ -158,7 +158,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 <Box sx={{ flex: 1 }}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
-                      {territoryLabel(territory)}
+                      {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
                     </Typography>
                     {assignment.isCampaign && (
                       <Box
@@ -194,8 +194,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                     )}
                   </Stack>
                   <Typography variant="caption" color="var(--ink-2)">
-                    {getZoneName(territory.zoneId, zones)} · Entregado:{' '}
-                    {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)} ·
+                    Entregado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)} ·
                     Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilExpiration), settings.dateFormat)}
                   </Typography>
                 </Box>
@@ -250,14 +249,13 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
-                        {territoryLabel(territory)}
+                        {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
                         <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
                           {resolveName(assignment.personUid)}
                         </span>
                       </Typography>
                       <Typography variant="caption" color="var(--ink-2)">
-                        {getZoneName(territory.zoneId, zones)} ·{' '}
-                        {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                        Entregado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
                       </Typography>
                     </Box>
                     <Button variant="tertiary" onClick={() => onView(territory)}>

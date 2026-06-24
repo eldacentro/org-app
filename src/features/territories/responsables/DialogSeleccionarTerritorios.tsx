@@ -51,9 +51,14 @@ const DialogSeleccionarTerritorios = ({
           territoryLabel(t).toLowerCase().includes(lower) ||
           getZoneName(t.zoneId, zones).toLowerCase().includes(lower)
       )
-      .sort((a, b) =>
-        territoryLabel(a).localeCompare(territoryLabel(b), undefined, { numeric: true })
-      );
+      .sort((a, b) => {
+        const zoneA = zones.find((z) => z.id === a.zoneId);
+        const zoneB = zones.find((z) => z.id === b.zoneId);
+        if (zoneA?.orden !== zoneB?.orden) {
+          return (zoneA?.orden ?? 999) - (zoneB?.orden ?? 999);
+        }
+        return territoryLabel(a).localeCompare(territoryLabel(b), undefined, { numeric: true });
+      });
   }, [territories, zones, search]);
 
   const allSelected = filtered.length > 0 && filtered.every((t) => selected.has(t.id));
@@ -149,23 +154,23 @@ const DialogSeleccionarTerritorios = ({
                 <Box
                   key={t.id}
                   sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     px: 1,
+                    py: 0.5,
                     borderRadius: '8px',
                     '&:hover': { backgroundColor: 'var(--bg-hover)' },
+                    cursor: 'pointer',
                   }}
+                  onClick={() => toggleOne(t.id)}
                 >
-                  <Checkbox
-                    checked={selected.has(t.id)}
-                    onChange={() => toggleOne(t.id)}
-                    sx={{ width: '100%' }}
-                    label={
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        sx={{ width: '100%', pr: 1 }}
-                      >
-                        <Box>
+                  <Box sx={{ pointerEvents: 'none' }}>
+                    <Checkbox
+                      checked={selected.has(t.id)}
+                      onChange={() => toggleOne(t.id)}
+                      label={
+                        <Box sx={{ pointerEvents: 'auto' }}>
                           <Typography sx={{ fontSize: 14, color: 'var(--ink)' }}>
                             {territoryLabel(t)}
                           </Typography>
@@ -173,12 +178,12 @@ const DialogSeleccionarTerritorios = ({
                             {getZoneName(t.zoneId, zones)}
                           </Typography>
                         </Box>
-                        <Typography sx={{ fontSize: 13, color: 'var(--ink-2)', flexShrink: 0 }}>
-                          {since ? formatTerritoryDate(since, dateFormat) : '—'}
-                        </Typography>
-                      </Stack>
-                    }
-                  />
+                      }
+                    />
+                  </Box>
+                  <Typography sx={{ fontSize: 13, color: 'var(--ink-2)', flexShrink: 0, ml: 1, textAlign: 'right' }}>
+                    {since ? formatTerritoryDate(since, dateFormat) : '—'}
+                  </Typography>
                 </Box>
               );
             })

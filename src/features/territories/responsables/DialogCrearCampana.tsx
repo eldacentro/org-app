@@ -27,18 +27,21 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
   const [inicio, setInicio] = useState('');
   const [fin, setFin] = useState('');
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (open) {
       setNombre('');
       setInicio('');
       setFin('');
+      setErrorMsg('');
     }
   }, [open]);
 
   const handleCrear = async () => {
     if (!nombre.trim() || !inicio || !fin) return;
     setSaving(true);
+    setErrorMsg('');
     try {
       const campaign: TerritoryCampaign = {
         id: crypto.randomUUID(),
@@ -49,11 +52,15 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         territoryIds: [],
         updatedAt: new Date().toISOString(),
       };
+      console.log('Guardando campaña...', campaign);
       await saveCampaign(congId, campaign);
+      console.log('Campaña guardada con éxito.');
       displaySnackNotification({ severity: 'success', header: 'Campaña creada', message: `La campaña "${campaign.nombre}" ha sido creada.` });
       onClose();
     } catch (err) {
-      console.error(err);
+      console.error('Error al crear campaña:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setErrorMsg(errorMessage);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la campaña.' });
     } finally {
       setSaving(false);
@@ -78,6 +85,13 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         <Typography variant="h6" className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
           Crear campaña
         </Typography>
+        {errorMsg && (
+          <Box sx={{ mb: 2, p: 1, backgroundColor: 'var(--red-light)', borderRadius: 'var(--r-sm)' }}>
+            <Typography variant="body2" sx={{ color: 'var(--red-main)' }}>
+              {errorMsg}
+            </Typography>
+          </Box>
+        )}
         <Stack spacing={2}>
           <TextField
             label="Nombre (ej. Conmemoración 2026)"

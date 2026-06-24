@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai';
 import { getWeeksInMonth, isValid } from 'date-fns';
 import { Box, ClickAwayListener } from '@mui/material';
 import { ArrowDropDown, ArrowLeft, ArrowRight } from '@mui/icons-material';
-import { DesktopDatePicker } from '@mui/x-date-pickers';
+import { DatePicker as MuiDatePicker } from '@mui/x-date-pickers';
 import { IconDate } from '@components/icons';
 import { shortDateFormatState } from '@states/settings';
 import { CustomDatePickerProps } from './index.types';
@@ -97,7 +97,7 @@ const DatePicker = ({
   return (
     <ClickAwayListener onClickAway={() => setOpen(false)}>
       <Box sx={{ width: '100%' }}>
-        <DesktopDatePicker
+        <MuiDatePicker
           readOnly={readOnly}
           minDate={minDate}
           maxDate={maxDate}
