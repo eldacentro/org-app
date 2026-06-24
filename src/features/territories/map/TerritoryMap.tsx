@@ -11,6 +11,7 @@ import L from 'leaflet';
 import type { LatLngBoundsExpression } from 'leaflet';
 import type { MultiPolygon, Polygon } from 'geojson';
 import { Box } from '@mui/material';
+import DirectionsIcon from '@mui/icons-material/Directions';
 import { geometryBounds, geometryCenter } from '@services/app/territories';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
@@ -501,15 +502,15 @@ const TerritoryMap = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '20px',
               borderRadius: '12px',
               overflow: 'hidden',
+              color: 'rgba(0,0,0,0.75)',
               ...glass,
               transition: 'background 0.15s ease',
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
-            <span aria-hidden="true">🧭</span>
+            <DirectionsIcon sx={{ fontSize: 22 }} />
           </Box>
         )}
       </Box>
