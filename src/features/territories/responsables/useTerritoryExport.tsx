@@ -11,7 +11,6 @@ import {
   territoryZonesSortedState,
   territorySettingsState,
 } from '@states/territories';
-import { TerritoryAssignment } from '@definition/territories';
 import {
   formatTerritoryDate,
   getZoneName,
@@ -46,11 +45,15 @@ export const useTerritoryExport = () => {
       const { start, end } = serviceYearRange(refDate);
       const startYear = String(end.getFullYear());
 
-      const inYear = (a: TerritoryAssignment) => {
+      // Un año de servicio va del 1 de septiembre al 31 de agosto siguiente.
+      // Se incluye una asignación si: empezó dentro de ese año, terminó
+      // dentro de ese año, o estaba en curso atravesando el año entero (sin
+      // devolver, o devuelta después de que el año terminara).
+      const inServiceYear = (a: (typeof assignments)[number]) => {
         const assigned = new Date(a.assignedAt);
         const returned = a.returnedAt ? new Date(a.returnedAt) : null;
         const assignedIn = assigned >= start && assigned < end;
-        const returnedIn = returned && returned >= start && returned < end;
+        const returnedIn = !!returned && returned >= start && returned < end;
         const spanning = assigned < start && (!returned || returned >= end);
         return assignedIn || returnedIn || spanning;
       };
@@ -79,7 +82,7 @@ export const useTerritoryExport = () => {
           assignments: assignments
             .filter((a) => a.territoryId === t.id)
             .filter((a) => includeCampaigns || !a.isCampaign)
-            .filter(inYear)
+            .filter(inServiceYear)
             .sort(
               (x, y) =>
                 new Date(x.assignedAt).getTime() -

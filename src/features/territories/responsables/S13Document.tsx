@@ -105,10 +105,16 @@ const styles = StyleSheet.create({
   groupHeadSubDivider: { borderRight: `${THIN} solid ${BORDER}` },
 
   // cuerpo
+  // Antes esto era `height: 31` fijo — con 2 asignaciones apiladas (cada una
+  // necesita una línea de nombre + una línea de fechas, ~9pt cada una), el
+  // contenido real necesita más alto que eso, así que el texto se recortaba
+  // y la fila se veía en blanco aunque sí tuviera datos. Ahora la fila crece
+  // según lo que necesite cada territorio (en blanco = fila corta, con 1-2
+  // asignaciones = fila más alta), igual que en el PDF de referencia.
   bodyRow: {
     flexDirection: 'row',
     borderBottom: `${THIN} solid ${BORDER}`,
-    height: 31, // Altura fija para cuadrar bien 20 filas en A4
+    minHeight: 16,
   },
   bodyTerr: {
     width: '6.5%',
@@ -131,17 +137,20 @@ const styles = StyleSheet.create({
     borderRight: `${THICK} solid ${BORDER}`,
     flexDirection: 'column',
   },
-  
-  // Líneas dentro del grupo
-  slotLine: { 
-    flex: 1, 
+
+  // Líneas dentro del grupo — cada una (nombre + fechas) necesita ~16pt de
+  // alto real para no recortarse; antes la fila entera estaba fijada a
+  // 31pt y esto se aplastaba a casi 0, así que el texto quedaba invisible
+  // aunque sí llegara con datos.
+  slotLine: {
     flexDirection: 'column',
+    minHeight: 16,
   },
   slotLineDivider: { borderBottom: `${THIN} solid ${BORDER}` },
-  
-  // Nombres (Top half)
+
+  // Nombres (mitad superior de cada línea)
   slotNameContainer: {
-    flex: 1,
+    minHeight: 9,
     justifyContent: 'center',
     alignItems: 'center',
     borderBottom: `${THIN} solid ${BORDER}`,
@@ -151,9 +160,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Fechas (Bottom half)
+  // Fechas (mitad inferior de cada línea)
   slotDatesContainer: {
-    flex: 1,
+    minHeight: 9,
     flexDirection: 'row',
   },
   slotColLeft: {
@@ -200,30 +209,35 @@ const BodyGroup = ({
   topAssignment?: S13Assignment;
   bottomAssignment?: S13Assignment;
 }) => {
-  const renderLine = (a: S13Assignment | undefined, divider: boolean) => (
+  const renderLine = (a: S13Assignment, divider: boolean) => (
     <View style={[styles.slotLine, divider ? styles.slotLineDivider : {}]}>
       {/* Mitad superior: Nombre centrado */}
       <View style={styles.slotNameContainer}>
         <Text style={styles.slotName}>
-          {a ? (a.name.length > 18 ? a.name.slice(0, 16) + '…' : a.name) + (a.isCampaign ? ' (C)' : '') : ''}
+          {(a.name.length > 18 ? a.name.slice(0, 16) + '…' : a.name) + (a.isCampaign ? ' (C)' : '')}
         </Text>
       </View>
       {/* Mitad inferior: Fechas divididas */}
       <View style={styles.slotDatesContainer}>
         <View style={styles.slotColLeft}>
-          <Text style={styles.dateText}>{a?.dateAssigned ?? ''}</Text>
+          <Text style={styles.dateText}>{a.dateAssigned}</Text>
         </View>
         <View style={styles.slotColRight}>
-          <Text style={styles.dateText}>{a?.dateCompleted ?? ''}</Text>
+          <Text style={styles.dateText}>{a.dateCompleted}</Text>
         </View>
       </View>
     </View>
   );
 
+  // Antes esto siempre dibujaba 2 líneas (una vacía si no había segunda
+  // asignación), forzando la misma altura en todas las filas sin importar
+  // cuántos datos tuvieran. Ahora solo se dibuja lo que realmente hay —
+  // así una fila sin asignaciones queda corta y una con dos se ve más alta,
+  // igual que en el PDF de Territory Helper.
   return (
     <View style={[styles.bodyGroup, last ? { borderRight: 'none' } : {}]}>
-      {renderLine(topAssignment, true)}
-      {renderLine(bottomAssignment, false)}
+      {topAssignment && renderLine(topAssignment, !!bottomAssignment)}
+      {bottomAssignment && renderLine(bottomAssignment, false)}
     </View>
   );
 };
