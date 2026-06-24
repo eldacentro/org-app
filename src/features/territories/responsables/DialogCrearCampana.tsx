@@ -85,7 +85,11 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
             onChange={(e) => setNombre(e.target.value)}
           />
           <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={2}>
-            <Box sx={{ flex: 1 }}>
+            {/* Sin minWidth:0 estos campos no se podían encoger por debajo
+                del ancho natural de su contenido (placeholder + icono), así
+                que "Fecha de finalización" se salía del diálogo en vez de
+                compartir el espacio con el de inicio. */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <DatePicker
                 label="Fecha de inicio"
                 value={inicio ? new Date(inicio) : null}
@@ -93,7 +97,7 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
                 view="input"
               />
             </Box>
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <DatePicker
                 label="Fecha de finalización"
                 value={fin ? new Date(fin) : null}
