@@ -1332,8 +1332,12 @@ const dbRestoreSources = async (
       isMondayDate(record.weekOf)
     );
 
+    // Algunas semanas (legadas/incompletas) llegan sin midweek_meeting o
+    // weekend_meeting del todo — antes esto reventaba toda la transacción de
+    // restauración (incluyendo programas, departamentos, exhibidores, etc.)
+    // para CUALQUIER usuario que recibiera esa semana, no solo la afectada.
     validRemoteData.forEach((source) => {
-      const midweekEvent = source.midweek_meeting.event_name;
+      const midweekEvent = source.midweek_meeting?.event_name;
 
       if (typeof midweekEvent === 'object' && !Array.isArray(midweekEvent)) {
         source.midweek_meeting.event_name = [
@@ -1345,7 +1349,7 @@ const dbRestoreSources = async (
         ];
       }
 
-      const weekendEvent = source.weekend_meeting.event_name;
+      const weekendEvent = source.weekend_meeting?.event_name;
 
       if (typeof weekendEvent === 'object' && !Array.isArray(weekendEvent)) {
         source.weekend_meeting.event_name = [
@@ -1372,12 +1376,12 @@ const dbRestoreSources = async (
       if (localItem) {
         const newItem = structuredClone(localItem);
 
-        if (!Array.isArray(newItem.midweek_meeting.event_name)) {
-          delete newItem.midweek_meeting.event_name;
+        if (!Array.isArray(newItem.midweek_meeting?.event_name)) {
+          delete newItem.midweek_meeting?.event_name;
         }
 
-        if (!Array.isArray(newItem.weekend_meeting.event_name)) {
-          delete newItem.weekend_meeting.event_name;
+        if (!Array.isArray(newItem.weekend_meeting?.event_name)) {
+          delete newItem.weekend_meeting?.event_name;
         }
 
         syncFromRemote(newItem, remoteItem);
@@ -1613,7 +1617,7 @@ const dbRestoreSchedules = async (
         (record) => record.weekOf === remoteItem.weekOf
       );
 
-      if (typeof remoteItem.midweek_meeting.aux_fsg === 'string') {
+      if (typeof remoteItem.midweek_meeting?.aux_fsg === 'string') {
         delete remoteItem.midweek_meeting.aux_fsg;
       }
 
@@ -1625,61 +1629,58 @@ const dbRestoreSchedules = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
+        // Semanas legadas/incompletas pueden no tener midweek_meeting del
+        // todo — sin esta guarda, una sola semana así reventaba la
+        // transacción completa de restauración para todo el que la recibiera.
         const midweek = newItem.midweek_meeting;
+        const localMidweek = localItem.midweek_meeting;
 
-        if (Array.isArray(midweek.chairman.aux_class_1)) {
-          midweek.chairman.aux_class_1 =
-            localItem.midweek_meeting.chairman.aux_class_1;
-        }
+        if (midweek && localMidweek) {
+          if (Array.isArray(midweek.chairman?.aux_class_1)) {
+            midweek.chairman.aux_class_1 = localMidweek.chairman.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.tgw_bible_reading.aux_class_1)) {
-          midweek.tgw_bible_reading.aux_class_1 =
-            localItem.midweek_meeting.tgw_bible_reading.aux_class_1;
-        }
+          if (Array.isArray(midweek.tgw_bible_reading?.aux_class_1)) {
+            midweek.tgw_bible_reading.aux_class_1 =
+              localMidweek.tgw_bible_reading.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.tgw_bible_reading.aux_class_2)) {
-          midweek.tgw_bible_reading.aux_class_2 =
-            localItem.midweek_meeting.tgw_bible_reading.aux_class_2;
-        }
+          if (Array.isArray(midweek.tgw_bible_reading?.aux_class_2)) {
+            midweek.tgw_bible_reading.aux_class_2 =
+              localMidweek.tgw_bible_reading.aux_class_2;
+          }
 
-        if (Array.isArray(midweek.ayf_part1.aux_class_1)) {
-          midweek.ayf_part1.aux_class_1 =
-            localItem.midweek_meeting.ayf_part1.aux_class_1;
-        }
+          if (Array.isArray(midweek.ayf_part1?.aux_class_1)) {
+            midweek.ayf_part1.aux_class_1 = localMidweek.ayf_part1.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.ayf_part1.aux_class_2)) {
-          midweek.ayf_part1.aux_class_2 =
-            localItem.midweek_meeting.ayf_part1.aux_class_2;
-        }
+          if (Array.isArray(midweek.ayf_part1?.aux_class_2)) {
+            midweek.ayf_part1.aux_class_2 = localMidweek.ayf_part1.aux_class_2;
+          }
 
-        if (Array.isArray(midweek.ayf_part2.aux_class_1)) {
-          midweek.ayf_part2.aux_class_1 =
-            localItem.midweek_meeting.ayf_part2.aux_class_1;
-        }
+          if (Array.isArray(midweek.ayf_part2?.aux_class_1)) {
+            midweek.ayf_part2.aux_class_1 = localMidweek.ayf_part2.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.ayf_part2.aux_class_2)) {
-          midweek.ayf_part2.aux_class_2 =
-            localItem.midweek_meeting.ayf_part2.aux_class_2;
-        }
+          if (Array.isArray(midweek.ayf_part2?.aux_class_2)) {
+            midweek.ayf_part2.aux_class_2 = localMidweek.ayf_part2.aux_class_2;
+          }
 
-        if (Array.isArray(midweek.ayf_part3.aux_class_1)) {
-          midweek.ayf_part3.aux_class_1 =
-            localItem.midweek_meeting.ayf_part3.aux_class_1;
-        }
+          if (Array.isArray(midweek.ayf_part3?.aux_class_1)) {
+            midweek.ayf_part3.aux_class_1 = localMidweek.ayf_part3.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.ayf_part3.aux_class_2)) {
-          midweek.ayf_part3.aux_class_2 =
-            localItem.midweek_meeting.ayf_part3.aux_class_2;
-        }
+          if (Array.isArray(midweek.ayf_part3?.aux_class_2)) {
+            midweek.ayf_part3.aux_class_2 = localMidweek.ayf_part3.aux_class_2;
+          }
 
-        if (Array.isArray(midweek.ayf_part4.aux_class_1)) {
-          midweek.ayf_part4.aux_class_1 =
-            localItem.midweek_meeting.ayf_part4.aux_class_1;
-        }
+          if (Array.isArray(midweek.ayf_part4?.aux_class_1)) {
+            midweek.ayf_part4.aux_class_1 = localMidweek.ayf_part4.aux_class_1;
+          }
 
-        if (Array.isArray(midweek.ayf_part4.aux_class_2)) {
-          midweek.ayf_part4.aux_class_2 =
-            localItem.midweek_meeting.ayf_part4.aux_class_2;
+          if (Array.isArray(midweek.ayf_part4?.aux_class_2)) {
+            midweek.ayf_part4.aux_class_2 = localMidweek.ayf_part4.aux_class_2;
+          }
         }
 
         dataToUpdate.push(newItem);
