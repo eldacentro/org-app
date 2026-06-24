@@ -23,13 +23,19 @@ import { PDFDocument, rgb } from 'pdf-lib';
 const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
 
-// Coordenadas y layout para la plantilla original
+// Coordenadas y layout para la plantilla original — medidas directamente
+// del flujo de contenido del PDF original (public/pdf/S-13_S.pdf), no a
+// ojo: se extrajeron las 20 líneas divisorias reales de la tabla y se
+// promedió su separación. La altura real es 31.32pt, no 31.743pt — esa
+// diferencia de ~0.42pt por fila es lo que causaba el desfase acumulado
+// (para la fila 20, ya eran casi 8pt de diferencia).
 const PAGE_HEIGHT = 842.04;
-const ROW_START_Y = 697.72; // Borde superior de la fila 1 (desde abajo)
-const ROW_HEIGHT = 31.743; // Alto de cada fila
-// Baselines
-const BASELINE_TOP = 11; // Desde el borde superior de la fila hasta el texto del nombre/num
-const BASELINE_BOTTOM = 26; // Desde el borde superior de la fila hasta el texto de fechas
+const ROW_START_Y = 695.59; // Borde superior de la fila 1 (desde abajo)
+const ROW_HEIGHT = 31.32; // Alto exacto de cada fila
+// Baselines — recalibrados para que la fila 1 quede exactamente donde ya
+// estaba (confirmado correcto), ahora medidos desde el ROW_START_Y real.
+const BASELINE_TOP = 8.87; // Desde el borde superior de la fila hasta el texto del nombre/num
+const BASELINE_BOTTOM = 23.87; // Desde el borde superior de la fila hasta el texto de fechas
 
 const COL_NUM_X = 55; // Centro de Núm. de terr.
 const COL_DATE_X = 105; // Centro de Última fecha
