@@ -11,7 +11,7 @@ import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { addWeeks, formatDate, getWeekDate } from '@utils/date';
+import { addDays, addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
@@ -161,51 +161,80 @@ const useMyAssignments = () => {
       return results;
     };
 
+    // Antes esto solo recorría turn.assignments ya GUARDADOS explícitamente
+    // por semana (week.turns) — pero un turno fijo/recurrente (configurado
+    // en exhibitorsSettings.fixedAssignments, p.ej. "todos los martes")
+    // nunca se guarda como override hasta que alguien lo edita manualmente.
+    // La vista de "Programas semanales > Exhibidores" sí genera esos turnos
+    // al vuelo (ver ExhibitorsMeeting.tsx); aquí no, así que un publicador
+    // con un turno fijo en un mes futuro nunca lo veía en "Mis asignaciones"
+    // aunque sí le saliera correctamente en el programa semanal.
     const getExhibitorsAssignments = (uid: string): AssignmentHistoryType[] => {
       const results: AssignmentHistoryType[] = [];
+      if (!exhibitorsSettings) return results;
 
-      for (const week of exhibitors) {
-        if (!week || !week.turns) continue;
-        const weekDate = week.weekOf;
-        const monthStr = weekDate.substring(0, 7);
-        
-        if (isMonthCancelled(exhibitorsSettings, monthStr)) continue;
-        const effectiveTurns = getEffectiveTurnsForMonth(exhibitorsSettings, monthStr);
+      const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const maxDateStr = formatDate(maxDate, 'yyyy/MM/dd');
 
-        for (const turn of week.turns) {
-          if (
-            !turn.cancelled &&
-            turn.date >= currentDayStr &&
-            turn.date <= formatDate(maxDate, 'yyyy/MM/dd')
-          ) {
-            const myAss = turn.assignments?.find((a) => a.person === uid);
-            if (myAss) {
-              const roleTitle = myAss.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
-              const turnConfig = effectiveTurns.find((t) => t.id === turn.turnId);
-              if (!turnConfig) continue; // Ignorar asignaciones de turnos eliminados
-              const timeRange = `${turnConfig.startTime}-${turnConfig.endTime}`;
-              const descText = `🕒 ${timeRange}  •  📍 ${turn.location}`;
+      let weekMonday = getWeekDate(new Date(now));
 
-              results.push({
-                id: `${turn.turnId}_${turn.date}`,
-                weekOf: weekDate,
-                weekOfFormatted: formatDate(
-                  new Date(turn.date),
-                  shortDateFormat
-                ),
-                actualDate: turn.date,
-                assignment: {
-                  code: 0 as AssignmentHistoryType['assignment']['code'],
-                  person: uid,
-                  key: `EXHIBITOR_${turn.turnId}_${turn.date}` as AssignmentHistoryType['assignment']['key'],
-                  dataView: 'main',
-                  title: roleTitle,
-                  desc: descText,
-                },
-              });
+      while (formatDate(weekMonday, 'yyyy/MM/dd') <= maxDateStr) {
+        const weekOf = formatDate(weekMonday, 'yyyy/MM/dd');
+        const monthStr = weekOf.substring(0, 7);
+
+        if (!isMonthCancelled(exhibitorsSettings, monthStr)) {
+          const effectiveTurns = getEffectiveTurnsForMonth(exhibitorsSettings, monthStr);
+          const weekRecord = exhibitors.find((w) => w?.weekOf === weekOf);
+
+          for (let i = 0; i < 7; i++) {
+            const currentDate = addDays(weekMonday, i);
+            const dateStr = formatDate(currentDate, 'yyyy/MM/dd');
+
+            if (dateStr >= currentDayStr && dateStr <= maxDateStr) {
+              const dayLabel = weekdaysOrder[i];
+              const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
+
+              for (const turn of dayTurns) {
+                const savedTurn = weekRecord?.turns?.find(
+                  (t) => t.turnId === turn.id && t.date === dateStr
+                );
+
+                if (savedTurn?.cancelled) continue;
+
+                const finalAssignments =
+                  savedTurn?.assignments ||
+                  (exhibitorsSettings.fixedAssignments || [])
+                    .filter((f) => f.turnId === turn.id && (!f.day || f.day === dayLabel))
+                    .map((f) => ({ person: f.personUid, isResponsible: f.isResponsible }));
+
+                const myAss = finalAssignments.find((a) => a.person === uid);
+                if (myAss) {
+                  const roleTitle = myAss.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
+                  const timeRange = `${turn.startTime}-${turn.endTime}`;
+                  const location = savedTurn?.location || turn.defaultLocation || 'Exhibidor';
+                  const descText = `🕒 ${timeRange}  •  📍 ${location}`;
+
+                  results.push({
+                    id: `${turn.id}_${dateStr}`,
+                    weekOf,
+                    weekOfFormatted: formatDate(new Date(dateStr), shortDateFormat),
+                    actualDate: dateStr,
+                    assignment: {
+                      code: 0 as AssignmentHistoryType['assignment']['code'],
+                      person: uid,
+                      key: `EXHIBITOR_${turn.id}_${dateStr}` as AssignmentHistoryType['assignment']['key'],
+                      dataView: 'main',
+                      title: roleTitle,
+                      desc: descText,
+                    },
+                  });
+                }
+              }
             }
           }
         }
+
+        weekMonday = addWeeks(weekMonday, 1);
       }
 
       return results;
