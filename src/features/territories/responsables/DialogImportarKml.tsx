@@ -144,13 +144,14 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
           direction="row"
           spacing={1.5}
           justifyContent="flex-end"
-          sx={{ borderTop: '1px solid var(--line)', pt: 2.5, mt: 3 }}
+          sx={{ borderTop: '1px solid var(--line)', pt: 2.5, mt: 3, flexWrap: 'wrap' }}
         >
-          <Button variant="tertiary" onClick={onClose} disabled={importing}>
+          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={importing}>
             Cancelar
           </Button>
           <Button
             variant="main"
+            disableAutoStretch
             onClick={handleImport}
             disabled={importing || parsed.length === 0 || !zoneId}
           >

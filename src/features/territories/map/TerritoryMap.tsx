@@ -307,13 +307,18 @@ const TerritoryMap = ({
       <Box
         sx={{
           position: 'absolute',
-          top: 14,
-          right: 14,
+          // Antes era un `top: 14` fijo, sin contar la zona segura del
+          // dispositivo — en móvil (notch / isla dinámica / barra de
+          // estado) quedaba pegado casi al borde de la pantalla. En
+          // escritorio `env(safe-area-inset-top)` es 0, así que no cambia
+          // nada ahí.
+          top: 'max(14px, env(safe-area-inset-top))',
+          right: 16,
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
-          gap: '8px',
+          gap: '10px',
           pointerEvents: 'none', // el wrapper no bloquea clicks del mapa
           '& > *': { pointerEvents: 'auto' }, // sí los hijos
         }}
@@ -329,10 +334,10 @@ const TerritoryMap = ({
             ...mapButtonReset,
             ...glass,
             borderRadius: '999px',
-            px: '14px',
-            py: '8px',
+            px: '16px',
+            py: '10px',
             cursor: 'pointer',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             color: 'rgba(0,0,0,0.78)',
             letterSpacing: '-0.1px',
@@ -343,7 +348,7 @@ const TerritoryMap = ({
             gap: '6px',
           }}
         >
-          <span aria-hidden="true" style={{ fontSize: 14 }}>{isSatellite ? '🗺' : '🛰'}</span>
+          <span aria-hidden="true" style={{ fontSize: 15 }}>{isSatellite ? '🗺' : '🛰'}</span>
           {isSatellite ? 'Mapa' : 'Satélite'}
         </Box>
 
@@ -366,8 +371,8 @@ const TerritoryMap = ({
             aria-label="Recentrar territorio"
             sx={{
               ...mapButtonReset,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -380,8 +385,8 @@ const TerritoryMap = ({
             <Box
               aria-hidden="true"
               sx={{
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 borderRadius: '3px',
                 border: '2px solid rgba(0,0,0,0.7)',
               }}
@@ -398,8 +403,8 @@ const TerritoryMap = ({
             aria-label="Mi ubicación"
             sx={{
               ...mapButtonReset,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -412,8 +417,8 @@ const TerritoryMap = ({
             <Box
               aria-hidden="true"
               sx={{
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 borderRadius: '50%',
                 border: '2px solid #007AFF',
                 position: 'relative',
@@ -446,13 +451,13 @@ const TerritoryMap = ({
             aria-label="Acercar"
             sx={{
               ...mapButtonReset,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '20px',
+              fontSize: '22px',
               fontWeight: 300,
               color: 'rgba(0,0,0,0.75)',
               borderBottom: '0.5px solid rgba(0,0,0,0.1)',
@@ -469,13 +474,13 @@ const TerritoryMap = ({
             aria-label="Alejar"
             sx={{
               ...mapButtonReset,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '20px',
+              fontSize: '22px',
               fontWeight: 300,
               color: 'rgba(0,0,0,0.75)',
               transition: 'background 0.15s ease',
@@ -496,8 +501,8 @@ const TerritoryMap = ({
             aria-label="Cómo llegar"
             sx={{
               ...mapButtonReset,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -510,7 +515,7 @@ const TerritoryMap = ({
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
-            <DirectionsIcon sx={{ fontSize: 22 }} />
+            <DirectionsIcon sx={{ fontSize: 24 }} />
           </Box>
         )}
       </Box>

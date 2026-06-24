@@ -104,12 +104,13 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
             </Box>
           </Stack>
         </Stack>
-        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
-          <Button variant="tertiary" onClick={onClose} disabled={saving}>
+        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3, flexWrap: 'wrap' }}>
+          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
           <Button
             variant="main"
+            disableAutoStretch
             onClick={handleCrear}
             disabled={saving || !nombre.trim() || !inicio || !fin}
           >

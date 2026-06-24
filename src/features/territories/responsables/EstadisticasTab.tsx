@@ -429,11 +429,11 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                       Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
                     </Typography>
                   </Box>
-                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 } }}>
-                    <Button variant="tertiary" onClick={() => notificar(a)}>
+                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 }, flexWrap: 'wrap' }}>
+                    <Button variant="tertiary" disableAutoStretch onClick={() => notificar(a)}>
                       Notificar
                     </Button>
-                    <Button variant="main" onClick={() => onEntregar(a)}>
+                    <Button variant="main" disableAutoStretch onClick={() => onEntregar(a)}>
                       Entregar
                     </Button>
                   </Stack>

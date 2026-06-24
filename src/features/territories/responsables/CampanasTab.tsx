@@ -247,24 +247,26 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                   <span style={{ color: 'var(--ink)' }}>{c.territoryIds.length} territorios</span>
                 </Typography>
               </Box>
-              <Stack direction="row" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
                 <Button
                   variant="small"
+                  disableAutoStretch
                   onClick={() => setExpanded(isOpen ? null : c.id)}
                 >
                   {isOpen ? 'Cerrar' : 'Gestionar'}
                 </Button>
                 {c.estado === 'activa' && (
-                  <Button variant="small" onClick={() => handleFinalizeCampaign(c)}>
+                  <Button variant="small" color="orange" disableAutoStretch onClick={() => handleFinalizeCampaign(c)}>
                     Finalizar
                   </Button>
                 )}
                 <Button
                   variant="small"
+                  disableAutoStretch
                   onClick={() => handleDelete(c)}
                   ariaLabel="Borrar campaña"
                 >
-                  <IconDelete color="var(--red-main)" width={16} height={16} />
+                  <IconDelete color="var(--red-main)" width={20} height={20} />
                 </Button>
               </Stack>
             </Stack>
@@ -339,10 +341,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                                 : ' · nunca trabajado'}
                             </Typography>
                           </Box>
-                          <Stack direction="row" spacing={1}>
+                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
                             {c.estado !== 'pasada' && !open && (
                               <Button
                                 variant="small"
+                                disableAutoStretch
                                 onClick={() => onAsignarCampana(t, c.id)}
                               >
                                 Asignar
@@ -351,6 +354,8 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                             {c.estado !== 'pasada' && (
                               <Button
                                 variant="small"
+                                color="orange"
+                                disableAutoStretch
                                 onClick={() => handleRemoveTerritory(c, t.id)}
                               >
                                 Quitar

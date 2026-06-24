@@ -115,7 +115,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       direction="row"
       alignItems="center"
       spacing={1}
-      sx={{ p: 1, borderRadius: 'var(--r-sm)', border: '1px solid var(--line)' }}
+      sx={{ p: 1, borderRadius: '12px', border: '1px solid var(--line)' }}
     >
       <Chip
         label="NO VISITAR"
@@ -139,7 +139,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       )}
       {canManage && (
         <Button variant="small" onClick={() => handleDelete(l)} ariaLabel="Borrar">
-          <IconDelete color="var(--red-main)" width={18} height={18} />
+          <IconDelete color="var(--red-main)" width={20} height={20} />
         </Button>
       )}
     </Stack>

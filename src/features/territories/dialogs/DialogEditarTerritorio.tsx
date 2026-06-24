@@ -260,11 +260,11 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           </Grid>
         </Grid>
 
-        <Stack direction="row" justifyContent="flex-end" spacing={1} sx={{ mt: 3, pt: 2, borderTop: '1px solid var(--line)' }}>
-          <Button variant="secondary" onClick={onClose} disabled={saving}>
+        <Stack direction="row" justifyContent="flex-end" spacing={1} sx={{ mt: 3, pt: 2, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
+          <Button variant="secondary" disableAutoStretch onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
-          <Button variant="main" onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>
+          <Button variant="main" disableAutoStretch onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </Button>
         </Stack>

@@ -412,8 +412,8 @@ const DialogVerTerritorio = ({
           aria-label="Cerrar"
           sx={{
             ...buttonReset,
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             backgroundColor: 'rgba(0,0,0,0.45)',
             backdropFilter: 'blur(12px)',
@@ -428,7 +428,7 @@ const DialogVerTerritorio = ({
             '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
           }}
         >
-          <IconClose color="var(--always-white)" width={14} height={14} />
+          <IconClose color="var(--always-white)" width={16} height={16} />
         </Box>
       </Box>
 

@@ -105,11 +105,11 @@ const TerritoryAssignmentCard = ({
           </Box>
         </Stack>
         <Stack direction="row" spacing={1}>
-          <Button variant="secondary" onClick={() => onView(t)}>
+          <Button variant="secondary" disableAutoStretch onClick={() => onView(t)}>
             Ver
           </Button>
           {!open && (
-            <Button variant="main" onClick={() => onAsignar(t)}>
+            <Button variant="main" disableAutoStretch onClick={() => onAsignar(t)}>
               Asignar
             </Button>
           )}
@@ -152,21 +152,22 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.notas ? ` · ${activeOrLatest.notas}` : ''}
               </Typography>
             </Box>
-            <Stack direction="row" spacing={0.5}>
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
               {!activeOrLatest.returnedAt && (
-                <Button variant="main" onClick={() => onEntregar(activeOrLatest)}>
+                <Button variant="main" disableAutoStretch onClick={() => onEntregar(activeOrLatest)}>
                   Entregar
                 </Button>
               )}
-              <Button variant="tertiary" onClick={() => onEditNote(activeOrLatest)}>
+              <Button variant="tertiary" disableAutoStretch onClick={() => onEditNote(activeOrLatest)}>
                 Nota
               </Button>
               <Button
-                variant="tertiary"
+                variant="small"
+                disableAutoStretch
                 onClick={() => onDelete(activeOrLatest)}
                 ariaLabel="Borrar asignación"
               >
-                <IconDelete color="var(--red-main)" width={16} height={16} />
+                <IconDelete color="var(--red-main)" width={20} height={20} />
               </Button>
             </Stack>
           </Stack>
@@ -214,15 +215,16 @@ const TerritoryAssignmentCard = ({
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={0.5}>
-                        <Button variant="small" onClick={() => onEditNote(a)}>
+                        <Button variant="small" disableAutoStretch onClick={() => onEditNote(a)}>
                           Nota
                         </Button>
                         <Button
                           variant="small"
+                          disableAutoStretch
                           onClick={() => onDelete(a)}
                           ariaLabel="Borrar asignación"
                         >
-                          <IconDelete color="var(--red-main)" width={16} height={16} />
+                          <IconDelete color="var(--red-main)" width={20} height={20} />
                         </Button>
                       </Stack>
                     </Stack>
@@ -465,11 +467,11 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button variant="tertiary" onClick={closeNoteDialog} disabled={savingNote}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+          <Button variant="tertiary" disableAutoStretch onClick={closeNoteDialog} disabled={savingNote}>
             Cancelar
           </Button>
-          <Button variant="main" onClick={saveNote} disabled={savingNote}>
+          <Button variant="main" disableAutoStretch onClick={saveNote} disabled={savingNote}>
             {savingNote ? 'Guardando…' : 'Guardar'}
           </Button>
         </DialogActions>

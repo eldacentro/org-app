@@ -25,8 +25,8 @@ const ROWS_PER_SHEET = 20;
 
 // Coordenadas y layout para la plantilla original
 const PAGE_HEIGHT = 842.04;
-const ROW_START_Y = 697.5; // Borde superior de la fila 1 (desde abajo)
-const ROW_HEIGHT = 31.7; // Alto de cada fila
+const ROW_START_Y = 697.72; // Borde superior de la fila 1 (desde abajo)
+const ROW_HEIGHT = 31.743; // Alto de cada fila
 // Baselines
 const BASELINE_TOP = 11; // Desde el borde superior de la fila hasta el texto del nombre/num
 const BASELINE_BOTTOM = 26; // Desde el borde superior de la fila hasta el texto de fechas

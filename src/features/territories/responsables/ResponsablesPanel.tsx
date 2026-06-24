@@ -385,10 +385,11 @@ const ResponsablesPanel = ({
               </Button>
             </Stack>
 
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
               {selectionMode && selectedIds.size > 0 && (
                 <Button
                   variant="main"
+                  disableAutoStretch
                   onClick={handleBulkAsignar}
                   disabled={deleting}
                 >
@@ -398,6 +399,7 @@ const ResponsablesPanel = ({
               {selectionMode && selectedIds.size > 0 && (
                 <Button
                   variant="tertiary"
+                  disableAutoStretch
                   onClick={handleBulkDelete}
                   disabled={deleting}
                   sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'var(--red-main)1A' } }}

@@ -76,11 +76,11 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                   &quot;{req.nota}&quot;
                 </Typography>
               )}
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Button variant="main" onClick={() => onAsignarParaSolicitud(req)}>
+              <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+                <Button variant="main" disableAutoStretch onClick={() => onAsignarParaSolicitud(req)}>
                   Asignar territorio
                 </Button>
-                <Button variant="tertiary" onClick={() => handleDescartar(req)}>
+                <Button variant="tertiary" disableAutoStretch onClick={() => handleDescartar(req)}>
                   Descartar
                 </Button>
               </Stack>
