@@ -456,10 +456,12 @@ const dbInsertOutgoingTalks = async (
   if (!Array.isArray(talks)) return;
 
   try {
-    // get all records with synced data
+    // get all records with synced data — semanas legadas/incompletas sin
+    // weekend_meeting.outgoing_talks ya no revientan esto (se omiten, ya
+    // que de todas formas no hay nada que actualizar en ellas)
     const schedules = await appDb.sched.toArray();
     const syncedSchedules = schedules.filter((record) =>
-      record.weekend_meeting.outgoing_talks.some((talk) => talk.synced)
+      record.weekend_meeting?.outgoing_talks?.some((talk) => talk.synced)
     );
 
     const schedulesToUpdate: SchedWeekType[] = [];
@@ -485,7 +487,7 @@ const dbInsertOutgoingTalks = async (
     for (const talk of talks) {
       const dbSchedule = await appDb.sched.get(talk.weekOf);
 
-      if (dbSchedule) {
+      if (dbSchedule?.weekend_meeting) {
         const tmpSched = talk;
 
         delete tmpSched.recipient;
@@ -495,6 +497,10 @@ const dbInsertOutgoingTalks = async (
         const addSched = tmpSched as OutgoingTalkScheduleType;
 
         const schedule = structuredClone(dbSchedule);
+
+        if (!Array.isArray(schedule.weekend_meeting.outgoing_talks)) {
+          schedule.weekend_meeting.outgoing_talks = [];
+        }
 
         const localSched = schedule.weekend_meeting.outgoing_talks.find(
           (record) => record.id === talk.id
@@ -1503,9 +1509,21 @@ const dbRestoreServiceOutings = async (
         const localUpdated = localItem.updatedAt || '';
 
         if (remoteUpdated > localUpdated) {
-          const newItem = structuredClone(localItem);
-          syncFromRemote(newItem, remoteItem);
-          dataToUpdate.push(newItem);
+          // El registro 'settings' guarda availability como un mapa plano
+          // {person_uid: string[]} — syncFromRemote empareja arrays por
+          // 'id'/'type'/'talk_number', y un array de strings no tiene
+          // ninguno de esos, así que un cambio de disponibilidad de un
+          // publicador se descartaba en silencio si el mapa ya existía
+          // localmente. El registro 'settings' comparte un solo updatedAt
+          // para todo, así que no hace falta fusionar campo por campo: si el
+          // remoto es más nuevo, gana entero (igual que en exhibitors).
+          if (remoteItem.weekOf === 'settings') {
+            dataToUpdate.push(remoteItem);
+          } else {
+            const newItem = structuredClone(localItem);
+            syncFromRemote(newItem, remoteItem);
+            dataToUpdate.push(newItem);
+          }
         }
       }
     }
