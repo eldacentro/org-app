@@ -14,8 +14,7 @@ type Props = {
   /** Territorios candidatos a añadir (ya filtrados: los que no están en la campaña). */
   territories: Territory[];
   zones: TerritoryZone[];
-  /** territoryId → fecha ISO desde la que está libre (null si nunca se ha trabajado). */
-  unassignedSince: Map<string, string | null>;
+  territoryStatusMap: Map<string, { status: 'assigned' | 'free' | 'never', date: string | null }>;
   dateFormat: string;
   onConfirm: (territoryIds: string[]) => void;
 };
@@ -28,7 +27,7 @@ const DialogSeleccionarTerritorios = ({
   onClose,
   territories,
   zones,
-  unassignedSince,
+  territoryStatusMap,
   dateFormat,
   onConfirm,
 }: Props) => {
@@ -149,7 +148,7 @@ const DialogSeleccionarTerritorios = ({
             </Typography>
           ) : (
             filtered.map((t) => {
-              const since = unassignedSince.get(t.id);
+              const info = territoryStatusMap.get(t.id);
               return (
                 <Box
                   key={t.id}
@@ -181,8 +180,12 @@ const DialogSeleccionarTerritorios = ({
                       }
                     />
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: 'var(--ink-2)', flexShrink: 0, ml: 1, textAlign: 'right' }}>
-                    {since ? formatTerritoryDate(since, dateFormat) : '—'}
+                  <Typography sx={{ fontSize: 13, color: info?.status === 'assigned' ? 'var(--orange-main)' : 'var(--ink-2)', flexShrink: 0, ml: 1, textAlign: 'right' }}>
+                    {info?.status === 'assigned'
+                      ? 'Asignado act.'
+                      : info?.date
+                        ? formatTerritoryDate(info.date, dateFormat)
+                        : '—'}
                   </Typography>
                 </Box>
               );

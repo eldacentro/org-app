@@ -49,18 +49,19 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   const [selectingFor, setSelectingFor] = useState<TerritoryCampaign | null>(null);
   const { confirm, ConfirmDialogNode } = useConfirm();
 
-  // Para cada territorio, fecha desde la que está libre (la `returnedAt` de
-  // su asignación más reciente) — para mostrar "Sin asignar desde" al
-  // elegir territorios para una campaña. `null` si nunca se ha asignado.
-  const unassignedSince = useMemo(() => {
-    const map = new Map<string, string | null>();
+  // Para cada territorio, determinamos su estado actual para mostrarlo
+  // en el diálogo al elegir territorios para una campaña.
+  const territoryStatusMap = useMemo(() => {
+    const map = new Map<string, { status: 'assigned' | 'free' | 'never', date: string | null }>();
     for (const t of territories) {
-      const last = assignments
-        .filter((a) => a.territoryId === t.id)
-        .sort(
-          (a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()
-        )[0];
-      map.set(t.id, last?.returnedAt ?? null);
+      const isOpen = assignments.some((a) => a.territoryId === t.id && !a.returnedAt);
+      if (isOpen) {
+        map.set(t.id, { status: 'assigned', date: null });
+      } else if (t.lastWorkedAt) {
+        map.set(t.id, { status: 'free', date: t.lastWorkedAt });
+      } else {
+        map.set(t.id, { status: 'never', date: null });
+      }
     }
     return map;
   }, [territories, assignments]);
@@ -394,7 +395,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
             : []
         }
         zones={zones}
-        unassignedSince={unassignedSince}
+        territoryStatusMap={territoryStatusMap}
         dateFormat={settings.dateFormat}
         onConfirm={(ids) => {
           if (selectingFor) handleAddTerritories(selectingFor, ids);
