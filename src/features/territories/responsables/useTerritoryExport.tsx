@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useAtomValue } from 'jotai';
-import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import writeXlsxFile, { Row, SheetData } from 'write-excel-file/browser';
 import Papa from 'papaparse';
@@ -19,13 +18,24 @@ import {
 } from '@services/app/territories';
 import { territoriesToKml } from '@utils/kml';
 import { usePersonName } from '@features/territories/usePersonName';
-import S13Document, {
-  S13Sheet,
-  S13TerritoryRow,
-} from './S13Document';
+import { PDFDocument, rgb } from 'pdf-lib';
 
 const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
+
+// Coordenadas y layout para la plantilla original
+const PAGE_HEIGHT = 842.04;
+const ROW_START_Y = 697.5; // Borde superior de la fila 1 (desde abajo)
+const ROW_HEIGHT = 31.7; // Alto de cada fila
+// Baselines
+const BASELINE_TOP = 11; // Desde el borde superior de la fila hasta el texto del nombre/num
+const BASELINE_BOTTOM = 26; // Desde el borde superior de la fila hasta el texto de fechas
+
+const COL_NUM_X = 55; // Centro de Núm. de terr.
+const COL_DATE_X = 105; // Centro de Última fecha
+const COL_GROUPS_X = [135, 241.6, 348.2, 454.8]; // Borde izquierdo de cada grupo
+const GROUP_WIDTH = 106.6;
+const HALF_GROUP = GROUP_WIDTH / 2;
 
 export type ExcelFilter = 'all' | 'assigned' | 'unassigned' | 'campaigns';
 
@@ -39,16 +49,12 @@ export const useTerritoryExport = () => {
 
   const safeName = (congName || 'congregacion').replace(/\s+/g, '_');
 
-  // ── S-13 (PDF) — réplica del formulario oficial ──
+  // ── S-13 (PDF) — réplica con pdf-lib sobre plantilla original ──
   const exportS13 = useCallback(
     async (refDate: Date, includeCampaigns: boolean) => {
       const { start, end } = serviceYearRange(refDate);
       const startYear = String(end.getFullYear());
 
-      // Un año de servicio va del 1 de septiembre al 31 de agosto siguiente.
-      // Se incluye una asignación si: empezó dentro de ese año, terminó
-      // dentro de ese año, o estaba en curso atravesando el año entero (sin
-      // devolver, o devuelta después de que el año terminara).
       const inServiceYear = (a: (typeof assignments)[number]) => {
         const assigned = new Date(a.assignedAt);
         const returned = a.returnedAt ? new Date(a.returnedAt) : null;
@@ -58,13 +64,8 @@ export const useTerritoryExport = () => {
         return assignedIn || returnedIn || spanning;
       };
 
-      const emptyRow = (): S13TerritoryRow => ({
-        numero: '',
-        lastCompleted: '',
-        assignments: [],
-      });
-
-      const sheets: S13Sheet[] = [];
+      // Preparar datos
+      const sheetsData: { zoneName: string; rows: { numero: string; lastCompleted: string; assignments: { name: string; dateAssigned: string; dateCompleted: string; }[] }[] }[] = [];
 
       zones.forEach((zone) => {
         const zoneTerritories = territories
@@ -74,7 +75,7 @@ export const useTerritoryExport = () => {
           );
         if (zoneTerritories.length === 0) return;
 
-        const rows: S13TerritoryRow[] = zoneTerritories.map((t) => ({
+        const rows = zoneTerritories.map((t) => ({
           numero: t.numero,
           lastCompleted: t.lastWorkedAt
             ? formatTerritoryDate(t.lastWorkedAt, S13_DATE)
@@ -88,30 +89,107 @@ export const useTerritoryExport = () => {
                 new Date(x.assignedAt).getTime() -
                 new Date(y.assignedAt).getTime()
             )
-            .slice(0, 8)
+            .slice(0, 4) // ← IMPORTANTE: La plantilla física solo tiene 4 columnas
             .map((a) => ({
-              name: resolveName(a.personUid),
+              name: resolveName(a.personUid) + (a.isCampaign ? ' (C)' : ''),
               dateAssigned: formatTerritoryDate(a.assignedAt, S13_DATE),
               dateCompleted: a.returnedAt
                 ? formatTerritoryDate(a.returnedAt, S13_DATE)
                 : '',
-              isCampaign: a.isCampaign,
             })),
         }));
 
-        // Paginar en hojas de 20 filas, rellenando la última con filas vacías.
         for (let i = 0; i < rows.length; i += ROWS_PER_SHEET) {
-          const slice = rows.slice(i, i + ROWS_PER_SHEET);
-          while (slice.length < ROWS_PER_SHEET) slice.push(emptyRow());
-          sheets.push({
-            serviceYear: startYear,
-            territoryType: zone.nombre,
-            rows: slice,
+          sheetsData.push({
+            zoneName: zone.nombre,
+            rows: rows.slice(i, i + ROWS_PER_SHEET),
           });
         }
       });
 
-      const blob = await pdf(<S13Document data={{ sheets }} />).toBlob();
+      if (sheetsData.length === 0) return;
+
+      // Cargar plantilla base
+      const templateRes = await fetch('/pdf/S-13_S.pdf');
+      const templateBytes = await templateRes.arrayBuffer();
+      
+      const doc = await PDFDocument.create();
+      const baseDoc = await PDFDocument.load(templateBytes);
+      
+      const font = await doc.embedFont('Helvetica');
+      const fontBold = await doc.embedFont('Helvetica-Bold');
+
+      for (const sheet of sheetsData) {
+        // Por cada "sheet", creamos una página nueva clonando la base
+        const [pageTemplate] = await doc.copyPages(baseDoc, [0]);
+        const page = doc.addPage(pageTemplate);
+
+        const textColor = rgb(0, 0, 0);
+
+        // Año de servicio y zona (arriba)
+        page.drawText(`${startYear} - ${sheet.zoneName}`, {
+          x: 135,
+          y: PAGE_HEIGHT - 94,
+          size: 11,
+          font: fontBold,
+          color: textColor,
+        });
+
+        // Dibujar cada fila
+        sheet.rows.forEach((row, rowIndex) => {
+          const rowY = ROW_START_Y - rowIndex * ROW_HEIGHT;
+          
+          // Centro del número y fecha
+          const drawCentered = (text: string, xPos: number, yPos: number, fontSize: number, fnt = font) => {
+            if (!text) return;
+            const textWidth = fnt.widthOfTextAtSize(text, fontSize);
+            page.drawText(text, {
+              x: xPos - textWidth / 2,
+              y: yPos,
+              size: fontSize,
+              font: fnt,
+              color: textColor,
+            });
+          };
+
+          // Núm y Última fecha
+          drawCentered(row.numero, COL_NUM_X, rowY - BASELINE_TOP, 9, fontBold);
+          drawCentered(row.lastCompleted, COL_DATE_X, rowY - BASELINE_TOP, 8);
+
+          // Asignaciones
+          row.assignments.forEach((assign, aIndex) => {
+            const grpX = COL_GROUPS_X[aIndex];
+            
+            // Nombre (Top half)
+            const nameWidth = font.widthOfTextAtSize(assign.name, 8);
+            // Centrado dentro del grupo o alineado a la izquierda si es muy largo
+            let nameX = grpX + HALF_GROUP - nameWidth / 2;
+            if (nameWidth > GROUP_WIDTH - 4) nameX = grpX + 2; // Si no cabe centrado, alinear a la izq
+            
+            // Truncar nombre si sigue siendo muy grande
+            let displayName = assign.name;
+            if (font.widthOfTextAtSize(displayName, 8) > GROUP_WIDTH - 2) {
+               displayName = displayName.substring(0, 20) + '...';
+            }
+
+            page.drawText(displayName, {
+              x: nameX,
+              y: rowY - BASELINE_TOP,
+              size: 8,
+              font,
+              color: textColor,
+            });
+
+            // Fechas (Bottom half)
+            drawCentered(assign.dateAssigned, grpX + HALF_GROUP / 2, rowY - BASELINE_BOTTOM, 8);
+            drawCentered(assign.dateCompleted, grpX + HALF_GROUP + HALF_GROUP / 2, rowY - BASELINE_BOTTOM, 8);
+          });
+        });
+      }
+
+      // Descargar el PDF final
+      const pdfBytes = await doc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       saveAs(blob, `S-13_${safeName}_${startYear}.pdf`);
     },
     [zones, territories, assignments, resolveName, safeName]
