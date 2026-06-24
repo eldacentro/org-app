@@ -2138,6 +2138,32 @@ const dbRestorePublicTalksOverride = async (
   }
 };
 
+// Un registro legado/malformado en CUALQUIER categoría (ya nos pasó con
+// sources, sched y exhibitors) reventaba toda la transacción — incluyendo
+// dbInsertMetadata al final. Como ese insert nunca llegaba a correr, la
+// versión local de TODAS las categorías se quedaba congelada para siempre,
+// así que cada sync posterior volvía a mandar metadata vieja y el servidor
+// la rechazaba con error_api_sync-conflict en un bucle sin salida — aunque
+// el conflicto reportado fuera por una categoría sin relación con la que
+// realmente tenía el dato malo.
+//
+// Cada una de estas categorías es independiente (tabla propia, sin
+// dependencias cruzadas), así que un fallo aislado se registra y se omite
+// en vez de tirar abajo el resto — el resto de categorías y el avance de
+// versión siguen su curso con normalidad.
+const restoreCategorySafely = async (
+  name: string,
+  fn: () => Promise<void>,
+  failedCategories: Set<string>
+) => {
+  try {
+    await fn();
+  } catch (error) {
+    console.error(`[backup] restore "${name}" falló, se omite esta categoría:`, error);
+    failedCategories.add(name);
+  }
+};
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -2161,54 +2187,74 @@ const dbRestoreFromBackup = async (
 
       await dbDeduplicateSpeakers();
 
-      await dbRestoreFieldGroups(backupData, accessCode);
+      const failedCategories = new Set<string>();
+      const safe = (name: string, fn: () => Promise<void>) =>
+        restoreCategorySafely(name, fn, failedCategories);
 
-      await dbRestoreCongReports(backupData, accessCode);
+      await safe('field_service_groups', () => dbRestoreFieldGroups(backupData, accessCode));
 
-      await dbRestoreBranchReports(backupData, accessCode);
+      await safe('cong_field_service_reports', () => dbRestoreCongReports(backupData, accessCode));
 
-      await dbRestoreBranchCongAnalysis(backupData, accessCode);
+      await safe('branch_field_service_reports', () => dbRestoreBranchReports(backupData, accessCode));
 
-      await dbRestoreMeetingAttendance(backupData, accessCode);
+      await safe('branch_cong_analysis', () => dbRestoreBranchCongAnalysis(backupData, accessCode));
 
-      await dbRestoreSources(backupData, accessCode);
+      await safe('meeting_attendance', () => dbRestoreMeetingAttendance(backupData, accessCode));
 
-      await dbRestoreSchedules(backupData, accessCode);
+      await safe('sources', () => dbRestoreSources(backupData, accessCode));
 
-      await dbRestoreDepartmentsSchedule(backupData, accessCode);
+      await safe('schedules', () => dbRestoreSchedules(backupData, accessCode));
 
-      await dbRestoreServiceOutings(backupData, accessCode);
-      await dbRestoreExhibitors(backupData, accessCode);
-      await dbRestoreResponsabilidades(backupData, accessCode);
-      await dbRestoreLimpiezaConfig(backupData, accessCode);
-      await dbRestoreEvacuacionConfig(backupData, accessCode);
-      await dbRestorePublicTalksOverride(backupData, accessCode);
+      await safe('departments_schedule', () => dbRestoreDepartmentsSchedule(backupData, accessCode));
 
-      await dbRestoreUserStudies(backupData, accessCode);
+      await safe('service_outings', () => dbRestoreServiceOutings(backupData, accessCode));
+      await safe('exhibitors', () => dbRestoreExhibitors(backupData, accessCode));
+      await safe('responsabilidades', () => dbRestoreResponsabilidades(backupData, accessCode));
+      await safe('limpieza_config', () => dbRestoreLimpiezaConfig(backupData, accessCode));
+      await safe('evacuacion_config', () => dbRestoreEvacuacionConfig(backupData, accessCode));
+      await safe('public_talks_override', () => dbRestorePublicTalksOverride(backupData, accessCode));
 
-      await dbRestoreUpcomingEvents(backupData, accessCode);
+      await safe('user_bible_studies', () => dbRestoreUserStudies(backupData, accessCode));
 
-      await dbRestoreUserReports(backupData, accessCode);
+      await safe('upcoming_events', () => dbRestoreUpcomingEvents(backupData, accessCode));
 
-      await dbRestoreDelegatedReports(backupData, accessCode);
+      await safe('user_field_service_reports', () => dbRestoreUserReports(backupData, accessCode));
 
-      if (backupData.outgoing_talks) {
-        await dbInsertOutgoingTalks(backupData.outgoing_talks);
+      await safe('delegated_field_service_reports', () => dbRestoreDelegatedReports(backupData, accessCode));
+
+      await safe('outgoing_talks', async () => {
+        if (backupData.outgoing_talks) {
+          await dbInsertOutgoingTalks(backupData.outgoing_talks);
+        }
+      });
+
+      await safe('public_schedules', async () => {
+        if (backupData.public_schedules) {
+          await appDb.sched.clear();
+          const data = backupData.public_schedules as SchedWeekType[];
+          await appDb.sched.bulkPut(data);
+        }
+      });
+
+      await safe('public_sources', async () => {
+        if (backupData.public_sources) {
+          await appDb.sources.clear();
+          const data = backupData.public_sources as SourceWeekType[];
+          await appDb.sources.bulkPut(data);
+        }
+      });
+
+      // Si alguna categoría falló, no avanzamos SU versión local — así el
+      // próximo sync la vuelve a pedir y a intentar, en vez de marcarla como
+      // sincronizada cuando en realidad se quedó con datos viejos. El resto
+      // de categorías (y con ellas, el desbloqueo de cualquier conflicto 409
+      // que dependiera de que esta sync avance) sí se confirman con normalidad.
+      const metadataToInsert = { ...backupData.metadata };
+      for (const category of failedCategories) {
+        delete metadataToInsert[category];
       }
 
-      if (backupData.public_schedules) {
-        await appDb.sched.clear();
-        const data = backupData.public_schedules as SchedWeekType[];
-        await appDb.sched.bulkPut(data);
-      }
-
-      if (backupData.public_sources) {
-        await appDb.sources.clear();
-        const data = backupData.public_sources as SourceWeekType[];
-        await appDb.sources.bulkPut(data);
-      }
-
-      await dbInsertMetadata(backupData.metadata);
+      await dbInsertMetadata(metadataToInsert);
     });
   } catch (error) {
     throw new Error(`Restore failed: ${error.message}`);
