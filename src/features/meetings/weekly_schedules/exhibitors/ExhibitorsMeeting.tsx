@@ -309,8 +309,14 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                       ) : (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                           {turn.assignments?.map((ass, aIdx) => {
-                            const name = getBrotherDisplayName(ass.person);
-                            if (!name) return null;
+                            // Antes, si el nombre no se podía resolver (p.ej.
+                            // el registro de la persona aún no había
+                            // terminado de sincronizar en este dispositivo),
+                            // la asignación desaparecía sin ningún aviso —
+                            // parecía que "no salía la asignación". Si hay
+                            // una persona asignada, siempre se muestra algo.
+                            if (!ass.person) return null;
+                            const name = getBrotherDisplayName(ass.person) || 'Hermano asignado';
                             const isMe = ass.person === userUID;
                             const accentColor = 'var(--brand)';
 
