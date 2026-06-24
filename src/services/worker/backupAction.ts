@@ -76,6 +76,8 @@ const runBackup = async () => {
 
       do {
         console.log('[backup] VIP retry', retry);
+        const syncStart = performance.now();
+
         const metadata = await dbGetMetadata();
 
         const backupData = await apiGetCongregationBackup({
@@ -85,8 +87,9 @@ const runBackup = async () => {
           metadata: JSON.stringify(metadata),
         });
 
-        console.log('[backup] GET ok — procesando datos del servidor');
+        const exportStart = performance.now();
         const reqPayload = await dbExportDataBackup(backupData);
+        console.log(`[backup] export/merge local en ${Math.round(performance.now() - exportStart)}ms`);
 
         const metadataUpdate = await dbGetMetadata();
 
@@ -98,7 +101,9 @@ const runBackup = async () => {
           metadata: metadataUpdate,
         });
 
-        console.log('[backup] POST response:', data.message);
+        console.log(
+          `[backup] POST response: ${data.message} — sync completo en ${Math.round(performance.now() - syncStart)}ms`
+        );
 
         if (data.message === 'UNAUTHORIZED_REQUEST') {
           backup = 'failed';
