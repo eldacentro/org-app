@@ -1,5 +1,5 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -13,19 +13,8 @@ import { saveTag, deleteTag } from '@services/firebase/territories';
 import { congIDState } from '@states/settings';
 import { territoryTagsState } from '@states/territories';
 import { territoriesState } from '@states/territories';
-
-const PALETA_COLORES = [
-  '#306CB4',
-  '#10B981',
-  '#6366F1',
-  '#8B5CF6',
-  '#EC4899',
-  '#EF4444',
-  '#F59E0B',
-  '#14B8A6',
-  '#06B6D4',
-  '#64748B',
-];
+import { PALETA_COLORES } from './colorPalette';
+import { useDebouncedColorSave } from './useDebouncedColorSave';
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -38,16 +27,18 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#EC4899');
   const [saving, setSaving] = useState(false);
-  // Color pendiente local para evitar snapback durante el debounce
-  const [pendingColors, setPendingColors] = useState<Record<string, string>>({});
-  const colorTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const { getColor, handleColorChange, reset: resetColors } = useDebouncedColorSave<TerritoryTag>(
+    (tag, newColor) => saveTag(congId, { ...tag, color: newColor, updatedAt: new Date().toISOString() }),
+    'No se pudo guardar el color.'
+  );
 
   useEffect(() => {
     if (open) {
       setNombre('');
       setColor('#EC4899');
-      setPendingColors({});
+      resetColors();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleAdd = async () => {
@@ -70,23 +61,6 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleColorChange = (tag: TerritoryTag, newColor: string) => {
-    // Actualizar visual inmediatamente
-    setPendingColors((prev) => ({ ...prev, [tag.id]: newColor }));
-    // Debounce: guardar en Firestore solo cuando el usuario suelta
-    if (colorTimers.current[tag.id]) clearTimeout(colorTimers.current[tag.id]);
-    colorTimers.current[tag.id] = setTimeout(async () => {
-      try {
-        await saveTag(congId, { ...tag, color: newColor, updatedAt: new Date().toISOString() });
-        setPendingColors((prev) => { const n = { ...prev }; delete n[tag.id]; return n; });
-      } catch (err) {
-        console.error(err);
-        displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el color.' });
-        setPendingColors((prev) => { const n = { ...prev }; delete n[tag.id]; return n; });
-      }
-    }, 600);
   };
 
   const handleDelete = async (tag: TerritoryTag) => {
@@ -160,7 +134,7 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
                 >
                   <input
                     type="color"
-                    value={pendingColors[tag.id] ?? tag.color}
+                    value={getColor(tag)}
                     onChange={(e) => handleColorChange(tag, e.target.value)}
                     aria-label={`Color de la etiqueta ${tag.nombre}`}
                     style={{

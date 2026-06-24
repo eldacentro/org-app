@@ -55,6 +55,39 @@ const Transition = forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+// Reset de estilos nativos de <button> — varios controles aquí usaban un
+// Box con onClick (invisible para lectores de pantalla y sin soporte de
+// teclado); ahora son botones reales con este reset para conservar el
+// aspecto visual exacto.
+const buttonReset = {
+  appearance: 'none',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  margin: 0,
+  font: 'inherit',
+  color: 'inherit',
+  textAlign: 'inherit',
+  '&:focus-visible': {
+    outline: '2px solid #007AFF',
+    outlineOffset: '2px',
+  },
+} as const;
+
+// Oculta visualmente un control sin sacarlo del árbol de accesibilidad ni
+// del orden de tabulación (a diferencia del atributo `hidden`).
+const visuallyHidden = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+} as const;
+
 // ─── Chip de estado animado ──────────────────────────────────────────────────
 const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
   <Box
@@ -105,45 +138,71 @@ const ActionButton = ({
   onClick,
   color,
   variant = 'primary',
+  disabled = false,
+  disabledReason,
 }: {
   label: string;
   onClick: () => void;
   color?: string;
   variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+  /** Si está deshabilitado, motivo mostrado debajo — para no dejar al
+   *  usuario sin explicación de por qué no puede pulsarlo. */
+  disabledReason?: string;
 }) => (
-  <Box
-    onClick={onClick}
-    sx={{
-      width: '100%',
-      py: '15px',
-      borderRadius: '16px',
-      textAlign: 'center',
-      cursor: 'pointer',
-      fontWeight: 700,
-      fontSize: '16px',
-      letterSpacing: '-0.2px',
-      transition: 'transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease',
-      '&:active': { transform: 'scale(0.97)', opacity: 0.85 },
-      ...(variant === 'primary'
-        ? {
-            background: color
-              ? `linear-gradient(135deg, ${color}ee 0%, ${color}bb 100%)`
-              : 'linear-gradient(135deg, var(--accent-main) 0%, var(--brand) 100%)',
-            color: 'var(--always-white)',
-            boxShadow: color
-              ? `0 4px 16px ${color}50`
-              : '0 4px 16px rgba(var(--accent-main-rgb, 59,130,246), 0.35)',
-          }
-        : {
-            backgroundColor: 'rgba(0,0,0,0.05)',
-            color: 'var(--ink-2)',
-            fontSize: '14px',
-            fontWeight: 500,
-            py: '11px',
-          }),
-    }}
-  >
-    {label}
+  <Box>
+    <Box
+      component="button"
+      type="button"
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
+      title={disabled ? disabledReason : undefined}
+      sx={{
+        ...buttonReset,
+        width: '100%',
+        py: '15px',
+        borderRadius: '16px',
+        textAlign: 'center',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        fontWeight: 700,
+        fontSize: '16px',
+        letterSpacing: '-0.2px',
+        transition: 'transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease',
+        '&:active': disabled ? undefined : { transform: 'scale(0.97)', opacity: 0.85 },
+        ...(variant === 'primary'
+          ? {
+              background: color
+                ? `linear-gradient(135deg, ${color}ee 0%, ${color}bb 100%)`
+                : 'linear-gradient(135deg, var(--accent-main) 0%, var(--brand) 100%)',
+              color: 'var(--always-white)',
+              boxShadow: color
+                ? `0 4px 16px ${color}50`
+                : '0 4px 16px rgba(var(--accent-main-rgb, 59,130,246), 0.35)',
+            }
+          : {
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              color: 'var(--ink-2)',
+              fontSize: '14px',
+              fontWeight: 500,
+              py: '11px',
+            }),
+      }}
+    >
+      {label}
+    </Box>
+    {disabled && disabledReason && (
+      <Typography
+        sx={{
+          fontSize: '12px',
+          color: 'var(--ink-2)',
+          textAlign: 'center',
+          mt: '6px',
+        }}
+      >
+        {disabledReason}
+      </Typography>
+    )}
   </Box>
 );
 
@@ -347,8 +406,12 @@ const DialogVerTerritorio = ({
         }}
       >
         <Box
+          component="button"
+          type="button"
           onClick={onClose}
+          aria-label="Cerrar"
           sx={{
+            ...buttonReset,
             width: 36,
             height: 36,
             borderRadius: '50%',
@@ -481,8 +544,13 @@ const DialogVerTerritorio = ({
               })}
               {canManage && (
                 <Box
+                  component="button"
+                  type="button"
                   onClick={() => setEditingTags(!editingTags)}
+                  aria-label="Editar etiquetas"
+                  aria-expanded={editingTags}
                   sx={{
+                    ...buttonReset,
                     ml: 0.5,
                     width: 28,
                     height: 28,
@@ -523,15 +591,19 @@ const DialogVerTerritorio = ({
                     const active = (liveTerritory.tags || []).includes(tag.id);
                     return (
                       <Box
+                        component="button"
+                        type="button"
                         key={tag.id}
                         onClick={() => handleToggleTag(tag.id)}
+                        aria-pressed={active}
                         sx={{
+                          ...buttonReset,
                           px: '12px',
                           py: '5px',
                           borderRadius: '20px',
                           border: `1.5px solid ${tag.color}`,
                           backgroundColor: active ? tag.color : 'transparent',
-                          color: active ? '#fff' : tag.color,
+                          color: active ? 'var(--always-white)' : tag.color,
                           cursor: 'pointer',
                           fontWeight: 600,
                           fontSize: '12px',
@@ -591,14 +663,14 @@ const DialogVerTerritorio = ({
                       fontWeight: 700,
                       letterSpacing: '0.6px',
                       textTransform: 'uppercase',
-                      color: '#B45309',
+                      color: 'var(--orange-dark)',
                       mb: '6px',
                       display: 'block',
                     }}
                   >
                     Notas
                   </Typography>
-                  <Typography sx={{ fontSize: 14, color: '#92400E', lineHeight: 1.5 }}>
+                  <Typography sx={{ fontSize: 14, color: 'var(--orange-dark)', lineHeight: 1.5 }}>
                     {liveTerritory.notas}
                   </Typography>
                 </Box>
@@ -687,31 +759,41 @@ const DialogVerTerritorio = ({
                           ? 'Cambiar imagen'
                           : 'Subir imagen (PNG/JPG)'}
                       </Box>
-                      <input
+                      {/* `hidden` saca el input del orden de tabulación —
+                          nadie podía llegar aquí con teclado. Se oculta
+                          visualmente en su lugar, así sigue siendo
+                          enfocable y activable con Enter/Espacio. */}
+                      <Box
+                        component="input"
                         type="file"
                         accept="image/png,image/jpeg"
-                        hidden
                         disabled={uploading}
                         onChange={(e) => handleUploadImage(e.target.files?.[0])}
+                        sx={visuallyHidden}
                       />
                     </label>
                   </Box>
                   {liveTerritory.imageURL && (
                     <Box
-                      onClick={uploading ? undefined : handleDeleteImage}
+                      component="button"
+                      type="button"
+                      disabled={uploading}
+                      onClick={handleDeleteImage}
+                      aria-label="Borrar imagen del territorio"
                       sx={{
+                        ...buttonReset,
                         width: 'auto',
                         px: 2,
                         py: '11px',
                         borderRadius: '12px',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        color: '#EF4444',
+                        backgroundColor: 'rgba(var(--red-main-base), 0.1)',
+                        color: 'var(--red-main)',
                         fontWeight: 600,
                         fontSize: 14,
                         textAlign: 'center',
                         cursor: uploading ? 'default' : 'pointer',
                         transition: 'background 0.15s ease',
-                        '&:active': { backgroundColor: uploading ? undefined : 'rgba(239, 68, 68, 0.2)' },
+                        '&:active': { backgroundColor: uploading ? undefined : 'rgba(var(--red-main-base), 0.2)' },
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -750,6 +832,16 @@ const DialogVerTerritorio = ({
               onClick={() => onEntregar(relevantAssignment)}
               color={color}
               variant="primary"
+            />
+          )}
+          {/* Antes este botón solo desaparecía sin explicar nada cuando un
+              publicador no podía entregar por sí mismo. */}
+          {relevantAssignment && onEntregar && !canManage && !settings.publishersCanReturn && (
+            <ActionButton
+              label="Entregar territorio"
+              onClick={() => {}}
+              disabled
+              disabledReason="Solo un responsable puede marcar este territorio como entregado"
             />
           )}
           {canManage && !relevantAssignment && onAsignar && (
@@ -885,6 +977,7 @@ const DialogVerTerritorio = ({
                 <IconButton
                   size="small"
                   onClick={onEdit}
+                  aria-label="Editar territorio"
                   sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--bg-hover)' } }}
                 >
                   <IconEdit width={15} height={15} />
@@ -893,6 +986,7 @@ const DialogVerTerritorio = ({
               <IconButton
                 size="small"
                 onClick={onClose}
+                aria-label="Cerrar"
                 sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--bg-hover)' } }}
               >
                 <IconClose width={15} height={15} />
@@ -926,8 +1020,13 @@ const DialogVerTerritorio = ({
               })}
               {canManage && (
                 <Box
+                  component="button"
+                  type="button"
                   onClick={() => setEditingTags(!editingTags)}
+                  aria-label="Editar etiquetas"
+                  aria-expanded={editingTags}
                   sx={{
+                    ...buttonReset,
                     px: '10px',
                     py: '3px',
                     borderRadius: '20px',
@@ -958,15 +1057,19 @@ const DialogVerTerritorio = ({
                   const active = (liveTerritory.tags || []).includes(tag.id);
                   return (
                     <Box
+                      component="button"
+                      type="button"
                       key={tag.id}
                       onClick={() => handleToggleTag(tag.id)}
+                      aria-pressed={active}
                       sx={{
+                        ...buttonReset,
                         px: '12px',
                         py: '5px',
                         borderRadius: '20px',
                         border: `1.5px solid ${tag.color}`,
                         backgroundColor: active ? tag.color : 'transparent',
-                        color: active ? '#fff' : tag.color,
+                        color: active ? 'var(--always-white)' : tag.color,
                         cursor: 'pointer',
                         fontWeight: 600,
                         fontSize: '12px',
@@ -1002,7 +1105,7 @@ const DialogVerTerritorio = ({
                   <Typography
                     sx={{
                       fontWeight: 700,
-                      color: '#B45309',
+                      color: 'var(--orange-dark)',
                       fontSize: '11px',
                       letterSpacing: '0.5px',
                       textTransform: 'uppercase',
@@ -1012,7 +1115,7 @@ const DialogVerTerritorio = ({
                   >
                     Notas internas
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#92400E' }}>
+                  <Typography variant="body2" sx={{ color: 'var(--orange-dark)' }}>
                     {liveTerritory.notas}
                   </Typography>
                 </Box>
@@ -1061,14 +1164,39 @@ const DialogVerTerritorio = ({
               )}
               {canManage && (
                 <Stack direction="row" spacing={1.5}>
-                  <Button variant="tertiary" disableAutoStretch disabled={uploading} sx={{ flex: 1 }}>
-                    <label style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
-                      <input type="file" accept="image/png,image/jpeg" hidden onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }} />
+                  <Box sx={{ flex: 1 }}>
+                    <label style={{ cursor: 'pointer', display: 'block' }}>
+                      <Box
+                        sx={{
+                          ...buttonReset,
+                          width: '100%',
+                          py: '7px',
+                          borderRadius: 'var(--r-md, 12px)',
+                          border: '1.5px solid var(--accent-main)',
+                          color: 'var(--accent-main)',
+                          fontWeight: 600,
+                          fontSize: 14,
+                          textAlign: 'center',
+                          cursor: uploading ? 'default' : 'pointer',
+                          opacity: uploading ? 0.6 : 1,
+                          transition: 'background 0.15s ease',
+                          '&:active': uploading ? undefined : { backgroundColor: 'var(--bg-hover)' },
+                        }}
+                      >
+                        {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
+                      </Box>
+                      <Box
+                        component="input"
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        disabled={uploading}
+                        onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }}
+                        sx={visuallyHidden}
+                      />
                     </label>
-                  </Button>
+                  </Box>
                   {liveTerritory.imageURL && (
-                    <Button variant="tertiary" disableAutoStretch disabled={uploading} onClick={handleDeleteImage} sx={{ color: '#EF4444', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
+                    <Button variant="tertiary" disableAutoStretch disabled={uploading} onClick={handleDeleteImage} sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.08)' } }}>
                       Borrar
                     </Button>
                   )}
@@ -1084,10 +1212,19 @@ const DialogVerTerritorio = ({
 
         {/* Acciones inferiores */}
         <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
-          <Stack direction="row" spacing={1.5} justifyContent="flex-end">
+          <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="flex-end">
+            {relevantAssignment && onEntregar && !canManage && !settings.publishersCanReturn && (
+              <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)' }}>
+                Solo un responsable puede marcar este territorio como entregado.
+              </Typography>
+            )}
             <Button variant="tertiary" onClick={onClose}>Cerrar</Button>
-            {relevantAssignment && onEntregar && (canManage || settings.publishersCanReturn) && (
-              <Button variant="main" onClick={() => onEntregar(relevantAssignment)}>
+            {relevantAssignment && onEntregar && (
+              <Button
+                variant="main"
+                onClick={() => onEntregar(relevantAssignment)}
+                disabled={!canManage && !settings.publishersCanReturn}
+              >
                 Entregar
               </Button>
             )}

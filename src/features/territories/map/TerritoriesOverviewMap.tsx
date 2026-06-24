@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, Marker, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import L from 'leaflet';
 import type { LatLngBoundsExpression } from 'leaflet';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import { IconClose } from '@components/icons';
@@ -29,6 +33,20 @@ type Props = {
 
 const ASSIGNED_COLOR = '#F97316';
 const FREE_COLOR = '#22C55E';
+
+// Antes cada territorio pintaba su propio CircleMarker siempre, sin agrupar
+// — con muchos territorios juntos (zoom alejado) se amontonaban en un lío de
+// puntos indistinguibles y de paso pesaba más en móviles de gama baja.
+// CircleMarker no es compatible con el agrupado de leaflet.markercluster (no
+// es un L.Marker), así que se reconstruye el mismo punto como un ícono
+// divIcon — visualmente idéntico — para poder agruparlo.
+const dotIcon = (color: string) =>
+  L.divIcon({
+    className: 'territory-dot-icon',
+    html: `<span style="display:block;width:12px;height:12px;border-radius:50%;background:${color};border:1.5px solid #fff;box-shadow:0 0 0 0.5px rgba(0,0,0,0.15);"></span>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
 
 // ─── Encuadra el mapa para mostrar todos los territorios a la vez ───────────
 const FitAll = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
@@ -184,25 +202,25 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
           />
         ))}
 
-        {withGeometry.map((t) => {
-          const center = t.geometry ? geometryCenter(t.geometry) : null;
-          if (!center) return null;
-          const assigned = assignmentByTerritory.has(t.id);
-          return (
-            <CircleMarker
-              key={`${t.id}-dot`}
-              center={center}
-              radius={6}
-              pathOptions={{
-                color: '#fff',
-                weight: 1.5,
-                fillColor: assigned ? ASSIGNED_COLOR : FREE_COLOR,
-                fillOpacity: 1,
-              }}
-              eventHandlers={{ click: () => setSelected(t) }}
-            />
-          );
-        })}
+        <MarkerClusterGroup
+          maxClusterRadius={50}
+          spiderfyOnMaxZoom
+          showCoverageOnHover={false}
+        >
+          {withGeometry.map((t) => {
+            const center = t.geometry ? geometryCenter(t.geometry) : null;
+            if (!center) return null;
+            const assigned = assignmentByTerritory.has(t.id);
+            return (
+              <Marker
+                key={`${t.id}-dot`}
+                position={center}
+                icon={dotIcon(assigned ? ASSIGNED_COLOR : FREE_COLOR)}
+                eventHandlers={{ click: () => setSelected(t) }}
+              />
+            );
+          })}
+        </MarkerClusterGroup>
 
         <FitAll bounds={overallBounds} />
       </MapContainer>

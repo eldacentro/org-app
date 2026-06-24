@@ -31,12 +31,10 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
-  const [enviado, setEnviado] = useState(false);
 
   useEffect(() => {
     if (open) {
       setNota('');
-      setEnviado(false);
     }
   }, [open]);
 
@@ -65,6 +63,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           .filter((email) => !!email) as string[];
       }
 
+      // Si el aviso a los responsables falla, la solicitud ya quedó
+      // guardada igual (y seguirá viéndose dentro de la app) — pero quien la
+      // mandó debe saber que puede tardar más en que alguien se entere.
+      let notifyFailed = false;
+
       if (targets.length > 0) {
         const applicantName = resolveName(uid);
         const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
@@ -79,7 +82,10 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           targets,
           'Solicitud de territorio',
           `${applicantName} ha solicitado un territorio.${nota.trim() ? ' Incluye una nota.' : ''}`
-        ).catch((err) => console.error('Failed to send push', err));
+        ).catch((err) => {
+          console.error('Failed to send push', err);
+          notifyFailed = true;
+        });
 
         if (targetEmails.length > 0) {
           try {
@@ -98,15 +104,21 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
             );
           } catch (err) {
             console.error('Failed to send email', err);
+            notifyFailed = true;
           }
         }
       }
 
-      setEnviado(true);
-      setTimeout(() => {
-        displaySnackNotification({ header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' });
-        onClose();
-      }, 1200);
+      onClose();
+      displaySnackNotification(
+        notifyFailed
+          ? {
+              header: 'Solicitud enviada',
+              message: 'No se pudo avisar a los responsables por correo o notificación push. Tu solicitud ya quedó registrada, pero puede tardar más en que la vean.',
+              severity: 'error',
+            }
+          : { header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' }
+      );
     } catch (error) {
       console.error(error);
       displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
@@ -139,11 +151,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           en la nota.
         </Typography>
 
-        {enviado ? (
-          <Typography variant="body1" sx={{ color: 'var(--green-main)', py: 2 }}>
-            ✓ Solicitud enviada.
-          </Typography>
-        ) : pendingRequests.some(r => r.personUid === uid) ? (
+        {pendingRequests.some(r => r.personUid === uid) ? (
           <Typography variant="body1" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
             Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
           </Typography>

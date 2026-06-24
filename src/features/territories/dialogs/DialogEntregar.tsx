@@ -65,6 +65,11 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
         key
       );
 
+      // Si avisar a los responsables falla, la entrega ya quedó registrada
+      // igual — pero quien la hizo debe saber que puede que no se entere
+      // nadie todavía, para poder avisar a mano si es algo urgente.
+      let notifyManagersFailed = false;
+
       if (status === 'no_trabajado') {
         // Generar solicitud si lo devuelve sin trabajar (opcional según el flujo original, pero sí enviar el push)
         let targets: string[] = [];
@@ -93,16 +98,28 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
             );
           } catch (err) {
             console.error('Failed to save notice', err);
+            notifyManagersFailed = true;
           }
 
           await apiSendTerritoryPush(
             targets,
             'Territorio devuelto sin trabajar',
             msg
-          ).catch((err) => console.error('Failed to send push', err));
+          ).catch((err) => {
+            console.error('Failed to send push', err);
+            notifyManagersFailed = true;
+          });
         }
       }
       onClose();
+
+      if (notifyManagersFailed) {
+        displaySnackNotification({
+          header: 'Territorio devuelto',
+          message: 'No se pudo avisar a los responsables. La devolución ya quedó registrada, pero conviene avisarles por otra vía.',
+          severity: 'error',
+        });
+      }
     } catch (error) {
       console.error(error);
       displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });

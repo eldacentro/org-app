@@ -25,6 +25,8 @@ import { territoriesState, territoryPendingRequestsState } from '@states/territo
 type AsignarState = {
   open: boolean;
   territory: Territory | null;
+  /** Modo masivo: varios territorios a la vez al mismo publicador. */
+  bulkTerritories?: Territory[];
   defaultPersonUid?: string;
   requestId?: string;
   isCampaign?: boolean;
@@ -101,6 +103,9 @@ const TerritoriesPage = () => {
           isCampaign: true,
           campaignId,
         })
+      }
+      onAsignarBulk={(ts) =>
+        setAsignar({ open: true, territory: null, bulkTerritories: ts })
       }
       onOpenZonas={() => setOpenZonas(true)}
       onOpenEtiquetas={() => setOpenEtiquetas(true)}
@@ -179,6 +184,7 @@ const TerritoriesPage = () => {
       <DialogAsignar
         open={asignar.open}
         territory={asignar.territory}
+        bulkTerritories={asignar.bulkTerritories}
         defaultPersonUid={asignar.defaultPersonUid}
         requestId={asignar.requestId}
         isCampaign={asignar.isCampaign}

@@ -1,5 +1,5 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -13,19 +13,8 @@ import { saveZone, deleteZone } from '@services/firebase/territories';
 import { congIDState } from '@states/settings';
 import { territoryZonesSortedState } from '@states/territories';
 import { territoriesState } from '@states/territories';
-
-const PALETA_COLORES = [
-  '#306CB4',
-  '#10B981',
-  '#6366F1',
-  '#8B5CF6',
-  '#EC4899',
-  '#EF4444',
-  '#F59E0B',
-  '#14B8A6',
-  '#06B6D4',
-  '#64748B',
-];
+import { PALETA_COLORES } from './colorPalette';
+import { useDebouncedColorSave } from './useDebouncedColorSave';
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -38,9 +27,10 @@ const DialogZonas = ({ open, onClose }: Props) => {
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#306CB4');
   const [saving, setSaving] = useState(false);
-  // Color pendiente local para evitar snapback durante el debounce
-  const [pendingColors, setPendingColors] = useState<Record<string, string>>({});
-  const colorTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const { getColor, handleColorChange, reset: resetColors } = useDebouncedColorSave<TerritoryZone>(
+    (zone, newColor) => saveZone(congId, { ...zone, color: newColor, updatedAt: new Date().toISOString() }),
+    'No se pudo guardar el color.'
+  );
 
   // Edición de zonas
   const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
@@ -50,10 +40,11 @@ const DialogZonas = ({ open, onClose }: Props) => {
     if (open) {
       setNombre('');
       setColor('#306CB4');
-      setPendingColors({});
+      resetColors();
       setEditingZoneId(null);
       setEditingName('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleAdd = async () => {
@@ -77,23 +68,6 @@ const DialogZonas = ({ open, onClose }: Props) => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleColorChange = (zone: TerritoryZone, newColor: string) => {
-    // Actualizar visual inmediatamente
-    setPendingColors((prev) => ({ ...prev, [zone.id]: newColor }));
-    // Debounce: guardar en Firestore solo cuando el usuario suelta
-    if (colorTimers.current[zone.id]) clearTimeout(colorTimers.current[zone.id]);
-    colorTimers.current[zone.id] = setTimeout(async () => {
-      try {
-        await saveZone(congId, { ...zone, color: newColor, updatedAt: new Date().toISOString() });
-        setPendingColors((prev) => { const n = { ...prev }; delete n[zone.id]; return n; });
-      } catch (err) {
-        console.error(err);
-        displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el color.' });
-        setPendingColors((prev) => { const n = { ...prev }; delete n[zone.id]; return n; });
-      }
-    }, 600);
   };
 
   const handleSaveEdit = async (zone: TerritoryZone) => {
@@ -178,7 +152,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
                 >
                   <input
                     type="color"
-                    value={pendingColors[zone.id] ?? zone.color}
+                    value={getColor(zone)}
                     onChange={(e) => handleColorChange(zone, e.target.value)}
                     aria-label={`Color de la zona ${zone.nombre}`}
                     style={{

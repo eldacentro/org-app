@@ -33,6 +33,10 @@ type Props = {
   onEntregar: (a: TerritoryAssignment) => void;
   onAsignarParaSolicitud: (req: TerritoryRequest) => void;
   onAsignarCampana: (t: Territory, campaignId: string) => void;
+  /** Asigna varios territorios de una vez al mismo publicador — usado desde
+   *  la selección múltiple de la pestaña "Territorios", para no tener que
+   *  asignar uno a uno durante una campaña grande. */
+  onAsignarBulk: (territories: Territory[]) => void;
   onOpenZonas: () => void;
   onOpenEtiquetas: () => void;
   onOpenImport: () => void;
@@ -192,6 +196,7 @@ const ResponsablesPanel = ({
   onEntregar,
   onAsignarParaSolicitud,
   onAsignarCampana,
+  onAsignarBulk,
   onOpenZonas,
   onOpenEtiquetas,
   onOpenImport,
@@ -216,6 +221,35 @@ const ResponsablesPanel = ({
       else next.add(id);
       return next;
     });
+  };
+
+  const handleBulkAsignar = () => {
+    if (selectedIds.size === 0) return;
+
+    const selected = territories.filter((t) => selectedIds.has(t.id));
+    const toAssign = selected.filter((t) => !assignedIds.has(t.id));
+    const skipped = selected.length - toAssign.length;
+
+    if (toAssign.length === 0) {
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Acción no permitida',
+        message: 'Todos los territorios seleccionados ya están asignados.',
+      });
+      return;
+    }
+
+    if (skipped > 0) {
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Algunos territorios se omitieron',
+        message: `${skipped} territorio(s) ya estaban asignados y no se incluyeron.`,
+      });
+    }
+
+    onAsignarBulk(toAssign);
+    setSelectionMode(false);
+    setSelectedIds(new Set());
   };
 
   const handleBulkDelete = async () => {
@@ -353,8 +387,17 @@ const ResponsablesPanel = ({
 
             <Stack direction="row" spacing={1}>
               {selectionMode && selectedIds.size > 0 && (
-                <Button 
-                  variant="tertiary" 
+                <Button
+                  variant="main"
+                  onClick={handleBulkAsignar}
+                  disabled={deleting}
+                >
+                  Asignar ({selectedIds.size})
+                </Button>
+              )}
+              {selectionMode && selectedIds.size > 0 && (
+                <Button
+                  variant="tertiary"
                   onClick={handleBulkDelete}
                   disabled={deleting}
                   sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'var(--red-main)1A' } }}

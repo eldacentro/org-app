@@ -15,6 +15,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import FilterChip from '@components/filter_chip';
+import SearchField from '@components/textfield';
 import { IconDelete } from '@components/icons';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import {
@@ -246,6 +247,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const resolveName = usePersonName();
 
   const [filter, setFilter] = useState<Filter>('all');
+  const [search, setSearch] = useState('');
   const { confirm, ConfirmDialogNode } = useConfirm();
 
   // ── Diálogo de edición de nota ──────────────────────────────────────────────
@@ -320,25 +322,51 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const handleEditNote = (a: TerritoryAssignment) => openNoteDialog(a);
 
   const byZone = useMemo(() => {
-    return zones.map((zone) => ({
-      zone,
-      items: territories
-        .filter((t) => t.zoneId === zone.id)
-        .filter((t) => {
-          if (filter === 'assigned') return isOpenAssigned(t.id);
-          if (filter === 'unassigned') return !isOpenAssigned(t.id);
-          return true;
-        })
-        .sort((a, b) =>
-          a.numero.localeCompare(b.numero, undefined, { numeric: true })
-        ),
-    }));
+    const lower = search.trim().toLowerCase();
+
+    return zones
+      .map((zone) => ({
+        zone,
+        items: territories
+          .filter((t) => t.zoneId === zone.id)
+          .filter((t) => {
+            if (filter === 'assigned') return isOpenAssigned(t.id);
+            if (filter === 'unassigned') return !isOpenAssigned(t.id);
+            return true;
+          })
+          .filter((t) => {
+            if (!lower) return true;
+            if (territoryLabel(t).toLowerCase().includes(lower)) return true;
+            const history = assignmentsByTerritory.get(t.id) ?? [];
+            return history.some((a) =>
+              resolveName(a.personUid).toLowerCase().includes(lower)
+            );
+          })
+          .sort((a, b) =>
+            a.numero.localeCompare(b.numero, undefined, { numeric: true })
+          ),
+      }))
+      // Sin búsqueda, se mantienen todas las zonas (aunque estén vacías,
+      // como ya hacía antes). Buscando, ocultar las que no tengan resultados
+      // en vez de mostrar encabezados de zona vacíos.
+      .filter(({ items }) => !lower || items.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zones, territories, filter, assignmentsByTerritory]);
+  }, [zones, territories, filter, search, assignmentsByTerritory, resolveName]);
+
+  const hasAnyResults = byZone.some(({ items }) => items.length > 0);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {ConfirmDialogNode}
+
+      <Box sx={{ maxWidth: 400 }}>
+        <SearchField
+          label="Buscar por territorio o publicador..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Box>
+
       <Stack direction="row" spacing={1}>
         <FilterChip
           label="Todos"
@@ -356,6 +384,12 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           onClick={() => setFilter('unassigned')}
         />
       </Stack>
+
+      {search.trim().length > 0 && !hasAnyResults && (
+        <Typography variant="body2" color="var(--ink-2)">
+          No hay territorios que coincidan con tu búsqueda.
+        </Typography>
+      )}
 
       {byZone.map(({ zone, items }) => (
         <Box key={zone.id}>

@@ -37,6 +37,10 @@ type Props = {
   onClose: () => void;
   /** Territorio fijo. Si es null y `open`, se muestra un selector de territorio. */
   territory?: Territory | null;
+  /** Modo masivo: asigna varios territorios a la vez al mismo publicador
+   *  (selección múltiple desde la pestaña "Territorios"). Si se pasa esto,
+   *  `territory` se ignora y el selector de territorio se oculta. */
+  bulkTerritories?: Territory[];
   /** Preselecciona publicador (al asignar desde una solicitud). */
   defaultPersonUid?: string;
   /** Si se asigna desde una solicitud, se marca como atendida. */
@@ -49,11 +53,13 @@ const DialogAsignar = ({
   open,
   onClose,
   territory = null,
+  bulkTerritories,
   defaultPersonUid,
   requestId,
   isCampaign = false,
   campaignId,
 }: Props) => {
+  const isBulk = (bulkTerritories?.length ?? 0) > 0;
   const congId = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
   const currentUid = useAtomValue(userLocalUIDState);
@@ -116,7 +122,126 @@ const DialogAsignar = ({
   const effectiveTerritory =
     territory ?? territories.find((t) => t.id === territoryId) ?? null;
 
+  /** Asigna varios territorios a la vez al mismo publicador. Los que ya
+   *  tengan una asignación abierta se omiten (igual que en el flujo de
+   *  borrado masivo de la pestaña Territorios) en vez de bloquear todo el
+   *  lote por uno solo. */
+  const handleAsignarBulk = async () => {
+    if (!personUid || !bulkTerritories || bulkTerritories.length === 0) return;
+
+    setSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const toAssign = bulkTerritories.filter(
+        (t) =>
+          !allAssignments.some((a) => a.territoryId === t.id && !a.returnedAt)
+      );
+      const skipped = bulkTerritories.length - toAssign.length;
+
+      if (toAssign.length === 0) {
+        displaySnackNotification({
+          header: 'Error',
+          message: 'Todos los territorios seleccionados ya están asignados.',
+          severity: 'error',
+        });
+        return;
+      }
+
+      await Promise.all(
+        toAssign.map((t) =>
+          saveAssignment(
+            congId,
+            {
+              id: crypto.randomUUID(),
+              territoryId: t.id,
+              personUid,
+              assignedAt: now,
+              dueAt: computeDueAt(now, settings.daysUntilExpiration),
+              returnedAt: null,
+              status: 'asignado',
+              isCampaign,
+              campaignId,
+              notas: nota.trim() || undefined,
+              assignedBy: currentUid || undefined,
+              updatedAt: now,
+            },
+            masterKey ?? ''
+          )
+        )
+      );
+
+      let notificationFailed = false;
+
+      if (personUid !== currentUid) {
+        const labelsList = toAssign.map((t) => territoryLabel(t)).join(', ');
+        const mensaje = `Se te han asignado ${toAssign.length} territorios: ${labelsList}.`;
+
+        await saveNotice(congId, {
+          id: crypto.randomUUID(),
+          personUid,
+          title: 'Nuevos territorios asignados',
+          mensaje,
+          sentBy: currentUid,
+          createdAt: now,
+        });
+
+        await apiSendTerritoryPush(
+          [personUid],
+          'Nuevos territorios asignados',
+          mensaje
+        ).catch((err) => {
+          console.error('Failed to send push', err);
+          notificationFailed = true;
+        });
+
+        const assignedPerson = persons.find((p) => p.person_uid === personUid);
+        const targetEmail = assignedPerson?.person_data?.email?.value;
+        if (targetEmail) {
+          try {
+            await sendEmailNotification(
+              targetEmail,
+              `Nuevos territorios asignados (${toAssign.length})`,
+              `<p>Hola <strong>${escapeHTML(resolveName(personUid))}</strong>,</p>
+               <p>Se te han asignado <strong>${toAssign.length} territorios</strong>: ${escapeHTML(labelsList)}.</p>
+               <div style="text-align: center; margin-top: 30px;">
+                 <a href="https://eldacentro.com/congregation/territories" class="btn">Ver Territorios</a>
+               </div>`
+            );
+          } catch (err) {
+            console.error('Failed to send email', err);
+            notificationFailed = true;
+          }
+        }
+      }
+
+      onClose();
+
+      if (notificationFailed) {
+        displaySnackNotification({
+          header: `${toAssign.length} territorios asignados`,
+          message: 'No se pudo enviar el aviso por correo o notificación push. Los territorios ya quedaron asignados, pero conviene avisar al publicador por otra vía.',
+          severity: 'error',
+        });
+      } else {
+        displaySnackNotification({
+          header: '¡Listo!',
+          message:
+            skipped > 0
+              ? `${toAssign.length} territorios asignados. ${skipped} se omitieron porque ya estaban asignados.`
+              : `${toAssign.length} territorios asignados correctamente.`,
+          severity: 'success',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleAsignar = async () => {
+    if (isBulk) return handleAsignarBulk();
     if (!personUid || !effectiveTerritory) return;
     // Comprobar si hay alguna asignación abierta (campaña O regular) para este territorio
     const hasOpenAssignment = allAssignments.some(
@@ -150,6 +275,12 @@ const DialogAsignar = ({
       if (requestId) await atenderRequest(congId, requestId, currentUid);
 
       // Si le estamos asignando a una persona y no somos nosotros mismos, enviarle una notificación
+      // El aviso in-app (Notice) sí queda registrado siempre dentro de la app;
+      // push y email son solo un "extra" — si fallan, la asignación ya se
+      // guardó correctamente, pero el responsable debe saber que puede que
+      // el publicador no se entere por esa vía y conviene avisarle a mano.
+      let notificationFailed = false;
+
       if (personUid && personUid !== currentUid && effectiveTerritory) {
         // Notificación in-app (Notice)
         await saveNotice(congId, {
@@ -167,7 +298,10 @@ const DialogAsignar = ({
           [personUid],
           'Nuevo territorio asignado',
           `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`
-        ).catch((err) => console.error('Failed to send push', err));
+        ).catch((err) => {
+          console.error('Failed to send push', err);
+          notificationFailed = true;
+        });
 
         // Notificación por Correo
         const assignedPerson = persons.find(p => p.person_uid === personUid);
@@ -185,11 +319,20 @@ const DialogAsignar = ({
             );
           } catch (err) {
             console.error('Failed to send email', err);
+            notificationFailed = true;
           }
         }
       }
 
       onClose();
+
+      if (notificationFailed) {
+        displaySnackNotification({
+          header: 'Territorio asignado',
+          message: 'No se pudo enviar el aviso por correo o notificación push. El territorio ya quedó asignado, pero conviene avisar al publicador por otra vía.',
+          severity: 'error',
+        });
+      }
     } catch (error) {
       console.error(error);
       displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
@@ -218,11 +361,27 @@ const DialogAsignar = ({
     >
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6" className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
-          Asignar territorio{isCampaign ? ' (campaña)' : ''}
+          {isBulk
+            ? `Asignar ${bulkTerritories!.length} territorios`
+            : `Asignar territorio${isCampaign ? ' (campaña)' : ''}`}
         </Typography>
 
         <Stack spacing={2}>
-          {territory ? (
+          {isBulk ? (
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: '12px',
+                backgroundColor: 'var(--accent-100)',
+                maxHeight: 140,
+                overflowY: 'auto',
+              }}
+            >
+              <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
+                {bulkTerritories!.map((t) => territoryLabel(t)).join(', ')}
+              </Typography>
+            </Box>
+          ) : territory ? (
             <Typography variant="body2" color="var(--ink-2)">
               {territoryLabel(territory)}
             </Typography>
@@ -265,9 +424,9 @@ const DialogAsignar = ({
           <Button
             variant="main"
             onClick={handleAsignar}
-            disabled={saving || !personUid || !effectiveTerritory}
+            disabled={saving || !personUid || (!isBulk && !effectiveTerritory)}
           >
-            Asignar
+            {isBulk ? `Asignar ${bulkTerritories!.length}` : 'Asignar'}
           </Button>
         </Stack>
       </Box>

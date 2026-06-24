@@ -198,6 +198,26 @@ const glass = {
   boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
 } as const;
 
+// Reset de estilos nativos de <button> — los controles del mapa usan
+// component="button" (en vez de un Box con onClick) para que lectores de
+// pantalla y navegación por teclado los reconozcan como botones reales.
+const mapButtonReset = {
+  appearance: 'none',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  margin: 0,
+  font: 'inherit',
+  color: 'inherit',
+  '&:focus-visible': {
+    outline: '2px solid #007AFF',
+    outlineOffset: '2px',
+  },
+  '&:disabled': {
+    cursor: 'default',
+  },
+} as const;
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 const TerritoryMap = ({
   geometry,
@@ -299,8 +319,13 @@ const TerritoryMap = ({
       >
         {/* Toggle Satélite / Mapa */}
         <Box
+          component="button"
+          type="button"
           onClick={() => setIsSatellite(!isSatellite)}
+          aria-pressed={isSatellite}
+          aria-label={isSatellite ? 'Cambiar a vista de mapa' : 'Cambiar a vista satélite'}
           sx={{
+            ...mapButtonReset,
             ...glass,
             borderRadius: '999px',
             px: '14px',
@@ -317,7 +342,7 @@ const TerritoryMap = ({
             gap: '6px',
           }}
         >
-          <span style={{ fontSize: 14 }}>{isSatellite ? '🗺' : '🛰'}</span>
+          <span aria-hidden="true" style={{ fontSize: 14 }}>{isSatellite ? '🗺' : '🛰'}</span>
           {isSatellite ? 'Mapa' : 'Satélite'}
         </Box>
 
@@ -333,9 +358,13 @@ const TerritoryMap = ({
           }}
         >
           <Box
+            component="button"
+            type="button"
             onClick={() => fitFnRef.current()}
             title="Recentrar territorio"
+            aria-label="Recentrar territorio"
             sx={{
+              ...mapButtonReset,
               width: 40,
               height: 40,
               display: 'flex',
@@ -348,6 +377,7 @@ const TerritoryMap = ({
             }}
           >
             <Box
+              aria-hidden="true"
               sx={{
                 width: 16,
                 height: 16,
@@ -357,11 +387,16 @@ const TerritoryMap = ({
             />
           </Box>
           <Box
+            component="button"
+            type="button"
+            disabled={!livePos}
             onClick={() => {
               if (livePos) mapRef.current?.setView(livePos, 17);
             }}
             title="Mi ubicación"
+            aria-label="Mi ubicación"
             sx={{
+              ...mapButtonReset,
               width: 40,
               height: 40,
               display: 'flex',
@@ -374,6 +409,7 @@ const TerritoryMap = ({
             }}
           >
             <Box
+              aria-hidden="true"
               sx={{
                 width: 16,
                 height: 16,
@@ -403,8 +439,12 @@ const TerritoryMap = ({
           }}
         >
           <Box
+            component="button"
+            type="button"
             onClick={() => mapRef.current?.zoomIn()}
+            aria-label="Acercar"
             sx={{
+              ...mapButtonReset,
               width: 40,
               height: 40,
               display: 'flex',
@@ -419,11 +459,15 @@ const TerritoryMap = ({
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
-            +
+            <span aria-hidden="true">+</span>
           </Box>
           <Box
+            component="button"
+            type="button"
             onClick={() => mapRef.current?.zoomOut()}
+            aria-label="Alejar"
             sx={{
+              ...mapButtonReset,
               width: 40,
               height: 40,
               display: 'flex',
@@ -437,16 +481,20 @@ const TerritoryMap = ({
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
-            −
+            <span aria-hidden="true">−</span>
           </Box>
         </Box>
 
         {/* Navegación */}
         {onNavigate && (
           <Box
+            component="button"
+            type="button"
             onClick={onNavigate}
             title="Cómo llegar"
+            aria-label="Cómo llegar"
             sx={{
+              ...mapButtonReset,
               width: 40,
               height: 40,
               display: 'flex',
@@ -461,7 +509,7 @@ const TerritoryMap = ({
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
-            🧭
+            <span aria-hidden="true">🧭</span>
           </Box>
         )}
       </Box>

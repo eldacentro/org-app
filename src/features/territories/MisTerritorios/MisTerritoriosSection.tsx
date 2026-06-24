@@ -6,6 +6,7 @@ import Typography from '@components/typography';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { fieldGroupsState } from '@states/field_service_groups';
 import { markNoticeRead } from '@services/firebase/territories';
+import { displaySnackNotification } from '@services/states/app';
 import {
   myTerritoryAssignmentsState,
   myUnreadNoticesState,
@@ -87,7 +88,18 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         <Alert
           key={n.id}
           severity="warning"
-          onClose={() => markNoticeRead(congId, n.id).catch(console.error)}
+          onClose={() =>
+            markNoticeRead(congId, n.id).catch((err) => {
+              console.error(err);
+              // Sin esto, al fallar el aviso simplemente no desaparecía y
+              // quien hizo clic en la X no tenía forma de saber por qué.
+              displaySnackNotification({
+                header: 'Error',
+                message: 'No se pudo descartar el aviso. Inténtalo de nuevo.',
+                severity: 'error',
+              });
+            })
+          }
         >
           {n.mensaje}
         </Alert>
@@ -191,12 +203,22 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 <Button variant="tertiary" onClick={() => onView(territory)}>
                   Ver territorio
                 </Button>
-                {settings.publishersCanReturn && (
-                  <Button variant="main" onClick={() => onEntregar(assignment)}>
-                    Entregar
-                  </Button>
-                )}
+                {/* Antes este botón simplemente desaparecía si la opción
+                    estaba desactivada, sin explicar por qué — ahora se ve
+                    pero deshabilitado, con el motivo. */}
+                <Button
+                  variant="main"
+                  onClick={() => onEntregar(assignment)}
+                  disabled={!settings.publishersCanReturn}
+                >
+                  Entregar
+                </Button>
               </Stack>
+              {!settings.publishersCanReturn && (
+                <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
+                  Solo un responsable puede marcar este territorio como entregado.
+                </Typography>
+              )}
             </Box>
           );
         })}
