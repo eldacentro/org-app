@@ -1562,10 +1562,15 @@ const dbRestoreExhibitors = async (
         const remoteUpdated = remoteItem.updatedAt || '';
         const localUpdated = localItem.updatedAt || '';
 
+        // syncFromRemote fusiona arrays emparejando por 'id'/'type'/
+        // 'talk_number' — pero ExhibitorWeekTurnType usa turnId+date, así
+        // que nunca encontraba coincidencia y descartaba en silencio los
+        // turnos nuevos/editados del remoto (mientras igual actualizaba
+        // updatedAt, aparentando que sí se sincronizó). Como todo el
+        // registro de la semana comparte un solo updatedAt, no hace falta
+        // fusionar campo por campo: si el remoto es más nuevo, gana entero.
         if (remoteUpdated > localUpdated) {
-          const newItem = structuredClone(localItem);
-          syncFromRemote(newItem, remoteItem);
-          dataToUpdate.push(newItem as ExhibitorWeekType);
+          dataToUpdate.push(remoteItem);
         }
       }
     }
