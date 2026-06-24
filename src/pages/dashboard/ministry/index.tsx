@@ -1,4 +1,6 @@
 import { ListItem } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import { territoriesEnabledPublishersState } from '@states/settings';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import useMinistry from './useMinistry';
 import DashboardCard from '@features/dashboard/card';
@@ -7,11 +9,12 @@ import MinistryTimer from '@features/ministry/report/ministry_timer';
 import IconMinistryReport from '@icons/IconMinistryReport';
 import IconPioneerForm from '@icons/IconPioneerForm';
 import IconStatsYear from '@icons/IconStatsYear';
-import { IconInTerritory, IconCart } from '@icons/index';
+import { IconInTerritory, IconCart, IconMapOverview } from '@icons/index';
 
 const MinistryCard = () => {
   const { t } = useAppTranslation();
   const { isServiceCommittee } = useCurrentUser();
+  const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
 
   const { isPioneer, enable_AP_application, hours, hours_balance } =
     useMinistry();
@@ -43,6 +46,16 @@ const MinistryCard = () => {
           path="/service-year"
         />
       </ListItem>
+      {(isServiceCommittee || territoriesEnabled) && (
+        <ListItem disablePadding>
+          <DashboardMenu
+            icon={<IconMapOverview color="var(--black)" />}
+            primaryText="Territorios"
+            path="/congregation/territories"
+          />
+        </ListItem>
+      )}
+
       {isServiceCommittee && (
         <>
           <ListItem disablePadding>

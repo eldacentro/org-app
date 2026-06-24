@@ -133,7 +133,7 @@ const NumberStepper = ({
             }
           }}
           style={{
-            width: 44,
+            width: 50,
             textAlign: 'center',
             border: 'none',
             background: 'transparent',
@@ -143,6 +143,7 @@ const NumberStepper = ({
             outline: 'none',
             fontVariantNumeric: 'tabular-nums',
             MozAppearance: 'textfield',
+            WebkitAppearance: 'none',
           } as CSSProperties}
         />
         {suffix && (
@@ -415,20 +416,18 @@ const ConfiguracionTab = () => {
                     flexShrink: 0,
                   }}
                 />
-                <Typography
-                  sx={{ fontSize: '13px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}
-                >
+                <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
                   Cambios sin guardar
                 </Typography>
               </>
             )}
             {saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600 }}>
                 ✓ Guardado
               </Typography>
             )}
             {!hasChanges && !saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
                 Todo al día
               </Typography>
             )}

@@ -22,6 +22,7 @@ import {
   getZoneName,
   isOverdue,
   territoryLabel,
+  computeDueAt,
 } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
 import TerritoryThumbnail from '@features/territories/TerritoryThumbnail';
@@ -195,7 +196,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   <Typography variant="caption" color="var(--ink-2)">
                     {getZoneName(territory.zoneId, zones)} · Entregado:{' '}
                     {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)} ·
-                    Vence: {formatTerritoryDate(assignment.dueAt, settings.dateFormat)}
+                    Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilExpiration), settings.dateFormat)}
                   </Typography>
                 </Box>
               </Stack>

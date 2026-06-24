@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
-import { Autocomplete, Box, Stack, Collapse, TextField as MuiTextField } from '@mui/material';
+import { Box, Stack, Collapse } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -19,13 +19,10 @@ import {
   saveAssignment,
   saveTerritory,
 } from '@services/firebase/territories';
-import {
-  formatTerritoryDate,
-  getZoneName,
-  territoryLabel,
-} from '@services/app/territories';
+import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
 import DialogCrearCampana from './DialogCrearCampana';
+import DialogSeleccionarTerritorios from './DialogSeleccionarTerritorios';
 import { displaySnackNotification } from '@services/states/app';
 
 type Props = {
@@ -49,7 +46,24 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [selectingFor, setSelectingFor] = useState<TerritoryCampaign | null>(null);
   const { confirm, ConfirmDialogNode } = useConfirm();
+
+  // Para cada territorio, fecha desde la que está libre (la `returnedAt` de
+  // su asignación más reciente) — para mostrar "Sin asignar desde" al
+  // elegir territorios para una campaña. `null` si nunca se ha asignado.
+  const unassignedSince = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const t of territories) {
+      const last = assignments
+        .filter((a) => a.territoryId === t.id)
+        .sort(
+          (a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()
+        )[0];
+      map.set(t.id, last?.returnedAt ?? null);
+    }
+    return map;
+  }, [territories, assignments]);
 
   // IDs de campañas cuyo cierre automático ya está en vuelo — evita escrituras
   // duplicadas cuando onSnapshot dispara en ráfaga antes de que el estado se
@@ -121,17 +135,23 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     );
   }, [campaigns]);
 
-  const handleAddTerritory = async (c: TerritoryCampaign, territoryId: string) => {
-    if (c.territoryIds.includes(territoryId)) return;
+  const handleAddTerritories = async (c: TerritoryCampaign, territoryIds: string[]) => {
+    const newIds = territoryIds.filter((id) => !c.territoryIds.includes(id));
+    if (newIds.length === 0) return;
     try {
       await saveCampaign(congId, {
         ...c,
-        territoryIds: [...c.territoryIds, territoryId],
+        territoryIds: [...c.territoryIds, ...newIds],
         updatedAt: new Date().toISOString(),
+      });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Territorios añadidos',
+        message: `${newIds.length} territorio(s) añadido(s) a "${c.nombre}".`,
       });
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo añadir el territorio a la campaña.' });
+      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudieron añadir los territorios a la campaña.' });
     }
   };
 
@@ -274,26 +294,16 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
             <Collapse in={isOpen}>
               <Box sx={{ mt: 2 }}>
                 {c.estado !== 'pasada' && (
-                  <Autocomplete
-                    options={addable.map((t) => ({
-                      id: t.id,
-                      label: `${territoryLabel(t)} · ${getZoneName(t.zoneId, zones)}`,
-                    }))}
-                    value={null}
-                    blurOnSelect
-                    clearOnBlur
-                    onChange={(_, v) => v && handleAddTerritory(c, v.id)}
-                    getOptionLabel={(o) => o.label}
-                    isOptionEqualToValue={(o, v) => o.id === v.id}
-                    renderInput={(params) => (
-                      <MuiTextField
-                        {...params}
-                        label="Añadir territorio a la campaña"
-                        size="small"
-                      />
-                    )}
-                    sx={{ mb: 2 }}
-                  />
+                  <Box sx={{ mb: 2 }}>
+                    <Button
+                      variant="tertiary"
+                      disableAutoStretch
+                      onClick={() => setSelectingFor(c)}
+                      disabled={addable.length === 0}
+                    >
+                      Añadir territorios
+                    </Button>
+                  </Box>
                 )}
 
                 <Stack spacing={1}>
@@ -374,6 +384,22 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       })}
 
       <DialogCrearCampana open={openCrear} onClose={() => setOpenCrear(false)} />
+
+      <DialogSeleccionarTerritorios
+        open={!!selectingFor}
+        onClose={() => setSelectingFor(null)}
+        territories={
+          selectingFor
+            ? territories.filter((t) => !selectingFor.territoryIds.includes(t.id))
+            : []
+        }
+        zones={zones}
+        unassignedSince={unassignedSince}
+        dateFormat={settings.dateFormat}
+        onConfirm={(ids) => {
+          if (selectingFor) handleAddTerritories(selectingFor, ids);
+        }}
+      />
     </Box>
   );
 };
