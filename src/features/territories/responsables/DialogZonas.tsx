@@ -176,10 +176,10 @@ const DialogZonas = ({ open, onClose }: Props) => {
                             if (e.key === 'Escape') setEditingZoneId(null);
                           }}
                         />
-                        <Button variant="small" onClick={() => handleSaveEdit(zone)}>
+                        <Button variant="small" disableAutoStretch onClick={() => handleSaveEdit(zone)}>
                           Guardar
                         </Button>
-                        <Button variant="tertiary" onClick={() => setEditingZoneId(null)}>
+                        <Button variant="small" disableAutoStretch onClick={() => setEditingZoneId(null)}>
                           Cancelar
                         </Button>
                       </Stack>
@@ -197,6 +197,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
                   {editingZoneId !== zone.id && (
                     <Button
                       variant="small"
+                      disableAutoStretch
                       onClick={() => {
                         setEditingZoneId(zone.id);
                         setEditingName(zone.nombre);
@@ -208,6 +209,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
                   )}
                   <Button
                     variant="small"
+                    disableAutoStretch
                     onClick={() => handleDelete(zone)}
                     ariaLabel="Borrar zona"
                   >
