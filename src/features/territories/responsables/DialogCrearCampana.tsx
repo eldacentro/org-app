@@ -93,7 +93,10 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
               <DatePicker
                 label="Fecha de inicio"
                 value={inicio ? new Date(inicio) : null}
-                onChange={(d) => setInicio(d ? d.toISOString() : '')}
+                onChange={(d) => {
+                  if (!d) setInicio('');
+                  else if (!isNaN(d.getTime())) setInicio(d.toISOString());
+                }}
                 view="input"
               />
             </Box>
@@ -102,7 +105,10 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
                 label="Fecha de finalización"
                 value={fin ? new Date(fin) : null}
                 minDate={inicio ? new Date(inicio) : undefined}
-                onChange={(d) => setFin(d ? d.toISOString() : '')}
+                onChange={(d) => {
+                  if (!d) setFin('');
+                  else if (!isNaN(d.getTime())) setFin(d.toISOString());
+                }}
                 view="input"
               />
             </Box>
