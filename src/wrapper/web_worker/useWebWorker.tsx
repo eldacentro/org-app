@@ -165,43 +165,64 @@ const useWebWorker = () => {
   }, [location.pathname, backupEnabled, user]);
 
   useEffect(() => {
-    const runBackupTimer = setInterval(async () => {
-      // Only pause the periodic timer on person DETAIL pages (when a person is
-      // open for editing) to avoid overwriting unsaved changes. The persons LIST
-      // page (/persons exactly) is allowed to sync so other devices receive
-      // updates while browsing.
-      const onPersonDetail = /\/persons\/.+/.test(location.pathname);
-      if (onPersonDetail) {
-        logger.info('app', 'synchronization paused - person detail open');
-        return;
-      }
+    // setTimeout que se reprograma solo, en vez de setInterval con un
+    // periodo fijo — un setInterval idéntico en todos los dispositivos
+    // tiende a alinearse con el tiempo (sobre todo justo después de un
+    // despliegue, cuando muchos abren la app casi a la vez), haciendo que
+    // toda la congregación sincronice en el mismo instante exacto cada
+    // ciclo. Eso es justo el patrón de tráfico "en bloque" que puede verse
+    // como sospechoso para sistemas de detección de abuso del lado de
+    // Google — y fue parte de lo que pasó hoy. Sumar un margen aleatorio a
+    // cada ciclo reparte esos mismos syncs en el tiempo sin cambiar cuánto
+    // se sincroniza ni con qué frecuencia en promedio, solo CUÁNDO cae cada
+    // vez exactamente.
+    const JITTER_RATIO = 0.3; // hasta ±30% del intervalo
 
-      if (backupEnabled) {
-        if (user) {
-          const idToken = await user.getIdToken(true);
+    let timer: ReturnType<typeof setTimeout>;
 
-          if (idToken?.length > 0) {
-            worker.postMessage({
-              field: 'idToken',
-              value: idToken,
-            });
+    const scheduleNext = () => {
+      const jitter = interval * JITTER_RATIO * (Math.random() * 2 - 1);
+      const delay = Math.max(1000, interval + jitter);
+
+      timer = setTimeout(async () => {
+        // Only pause the periodic timer on person DETAIL pages (when a person is
+        // open for editing) to avoid overwriting unsaved changes. The persons LIST
+        // page (/persons exactly) is allowed to sync so other devices receive
+        // updates while browsing.
+        const onPersonDetail = /\/persons\/.+/.test(location.pathname);
+        if (onPersonDetail) {
+          logger.info('app', 'synchronization paused - person detail open');
+        } else if (backupEnabled) {
+          if (user) {
+            const idToken = await user.getIdToken(true);
+
+            if (idToken?.length > 0) {
+              worker.postMessage({
+                field: 'idToken',
+                value: idToken,
+              });
+            }
           }
+
+          worker.postMessage('startWorker');
         }
 
-        worker.postMessage('startWorker');
-      }
+        // Also retry pending publisher reports here, not just on the isOnline
+        // online/offline transition — a request can fail (timeout, dropped
+        // packet) without navigator.onLine ever flipping, so the isOnline
+        // effect alone would leave it stuck until the next real disconnect.
+        if (isOnline) {
+          processPendingPublisherReports().catch(console.error);
+        }
 
-      // Also retry pending publisher reports here, not just on the isOnline
-      // online/offline transition — a request can fail (timeout, dropped
-      // packet) without navigator.onLine ever flipping, so the isOnline
-      // effect alone would leave it stuck until the next real disconnect.
-      if (isOnline) {
-        processPendingPublisherReports().catch(console.error);
-      }
-    }, interval);
+        scheduleNext();
+      }, delay);
+    };
+
+    scheduleNext();
 
     return () => {
-      clearInterval(runBackupTimer);
+      clearTimeout(timer);
     };
   }, [backupEnabled, interval, user, location, isOnline]);
 

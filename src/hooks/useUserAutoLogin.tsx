@@ -30,6 +30,19 @@ import {
   dbAppSettingsUpdateWithoutNotice,
 } from '@services/dexie/settings';
 
+// Reparte el primer sync tras iniciar sesión en una ventana de unos
+// segundos en vez de dispararlo en el mismo instante para todos — si muchos
+// dispositivos abren la app casi a la vez (típico justo después de un
+// despliegue), antes todos mandaban su primera sincronización exactamente
+// al mismo tiempo, un patrón de tráfico "en bloque" que puede leerse como
+// sospechoso para sistemas de detección de abuso. La demora es corta
+// (máx. 8s) para no notarse como un retraso real en el primer sync.
+const FIRST_SYNC_JITTER_MS = 8000;
+const startWorkerWithJitter = () => {
+  const jitter = Math.random() * FIRST_SYNC_JITTER_MS;
+  setTimeout(() => worker.postMessage('startWorker'), jitter);
+};
+
 const useUserAutoLogin = () => {
   const { isAuthenticated, user } = useFirebaseAuth();
 
@@ -222,7 +235,7 @@ const useUserAutoLogin = () => {
                 }
               }
 
-              worker.postMessage('startWorker');
+              startWorkerWithJitter();
             }
           }
 
@@ -309,7 +322,7 @@ const useUserAutoLogin = () => {
 
             worker.postMessage({ field: 'accountType', value: 'pocket' });
 
-            worker.postMessage('startWorker');
+            startWorkerWithJitter();
           }
 
           setAutoLoginStatus('auto login process completed');
