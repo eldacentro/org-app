@@ -1,4 +1,5 @@
 import { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAtomValue } from 'jotai';
 import { getWeeksInMonth, isValid } from 'date-fns';
 import { Box, ClickAwayListener } from '@mui/material';
@@ -19,6 +20,7 @@ import ActionBar from './slots/actionBar';
 import ButtonField from './view/button';
 import InputTextField from './view/input';
 import Toolbar from './slots/toolbar';
+import Layout from './slots/layout';
 
 const DatePicker = ({
   label,
@@ -97,6 +99,31 @@ const DatePicker = ({
   return (
     <ClickAwayListener onClickAway={() => setOpen(false)}>
       <Box sx={{ width: '100%' }}>
+        {/* Fondo oscuro detrás de la hoja, solo en móvil — sin esto, el
+            calendario se sentía como una tarjeta flotando sobre el diálogo
+            que ya estaba abierto, en vez de una hoja propia con su propia
+            jerarquía visual. Va portado directo al body porque la hoja
+            (el Popper) también se renderiza ahí — si quedara dentro del
+            árbol normal, un position:fixed adentro de un diálogo con
+            transform quedaría atrapado dentro de ese diálogo en vez de
+            cubrir toda la pantalla. */}
+        {open &&
+          createPortal(
+            <Box
+              onClick={() => setOpen(false)}
+              sx={{
+                display: 'none',
+                '@media (max-width:430px)': {
+                  display: 'block',
+                  position: 'fixed',
+                  inset: 0,
+                  backgroundColor: 'rgba(15, 23, 42, 0.45)',
+                  zIndex: 1399,
+                },
+              }}
+            />,
+            document.body
+          )}
         <MuiDatePicker
           readOnly={readOnly}
           minDate={minDate}
@@ -116,6 +143,7 @@ const DatePicker = ({
           }}
           slots={{
             ...slotFieldProps,
+            layout: Layout,
             toolbar: () => <Toolbar selected={valueTmp} />,
             actionBar: () => (
               <ActionBar

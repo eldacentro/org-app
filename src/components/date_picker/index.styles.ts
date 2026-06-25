@@ -51,6 +51,15 @@ export const StyleDatePickerDesktopPaper = {
     borderRadius: 'var(--radius-xxl)',
     border: '1px solid var(--accent-200)',
     backgroundColor: 'var(--white)',
+    // En móvil esto ya no es una tarjeta flotando junto al campo — es una
+    // hoja anclada abajo (ver StyleDatePickerPopper), así que solo tienen
+    // sentido las esquinas redondeadas arriba; abajo toca el borde de la
+    // pantalla, igual que cualquier hoja nativa de iOS/Android.
+    '@media (max-width:430px)': {
+      borderRadius: 'var(--radius-xxl) var(--radius-xxl) 0 0',
+      borderBottom: 'none',
+      boxShadow: '0 -8px 32px rgba(15, 23, 42, 0.18)',
+    },
   },
 } as PickerPopperSlotProps['desktopPaper'];
 
@@ -87,11 +96,25 @@ export const StyleDatePickerLayout = {
 
 export const StyleDatePickerPopper: SxProps<Theme> = {
   width: '360px',
-  // 96vw (antes 90vw) le da algo más de aire al popup en móvil — junto con
-  // las celdas más angostas de abajo, esto es lo que evita que la
-  // cuadrícula de 7 columnas se rompa en pantallas angostas.
+  // zIndex explícito: el fondo oscuro detrás de la hoja (el backdrop en
+  // index.tsx) se renderiza con 1399 — esto tiene que quedar arriba de eso,
+  // sin depender de qué z-index le toque por defecto al Popper de MUI.
+  zIndex: 1400,
+  // En pantallas de móvil, esto deja de comportarse como un menú flotante
+  // junto al campo de fecha y pasa a ser una hoja anclada abajo de la
+  // pantalla — el mismo lenguaje que usan los selectores nativos de
+  // iOS/Android. Se usa !important porque Popper.js pone su propio
+  // transform/posición calculados como estilo inline, y eso pisa cualquier
+  // regla de una hoja de estilos que no sea más específica.
   '@media (max-width:430px)': {
-    width: '96vw',
+    width: '100vw !important',
+    position: 'fixed !important',
+    top: 'auto !important',
+    left: '0 !important',
+    right: '0 !important',
+    bottom: '0 !important',
+    transform: 'none !important',
+    maxHeight: '88vh',
   },
   '.MuiPickersLayout-root': {
     display: 'flex',
@@ -99,6 +122,14 @@ export const StyleDatePickerPopper: SxProps<Theme> = {
   },
   '.Mui-selected': {
     backgroundColor: 'var(--accent-main) !important',
+    color: 'var(--white) !important',
+    fontWeight: '700 !important',
+  },
+  // "Hoy" necesita su propia señal visual incluso cuando NO es el día
+  // elegido — antes no se distinguía para nada del resto de los días.
+  '.MuiPickersDay-today:not(.Mui-selected)': {
+    border: '1.5px solid var(--accent-main) !important',
+    fontWeight: '700',
   },
   '.Mui-disabled': {
     color: 'var(--grey-200) !important',

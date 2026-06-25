@@ -10,8 +10,8 @@ const Toolbar = ({ selected }: ToolbarProps) => {
   const { t } = useAppTranslation();
 
   const value = useMemo(() => {
-    if (!selected) return '***';
-    if (!isValidDate(selected)) return '***';
+    if (!selected) return '';
+    if (!isValidDate(selected)) return '';
 
     return formatLongDateWithShortVars(selected);
   }, [selected]);
@@ -27,7 +27,10 @@ const Toolbar = ({ selected }: ToolbarProps) => {
       <Typography className="body-small-semibold" color={'var(--grey-400)'}>
         {t('tr_pickerSelectDate')}
       </Typography>
-      <Typography className="h2">{value}</Typography>
+      {/* Antes mostraba "***" como placeholder cuando no había fecha
+          elegida — se veía como un error o texto sin traducir. Mejor no
+          mostrar nada hasta que haya una fecha real que mostrar. */}
+      {value && <Typography className="h2">{value}</Typography>}
     </Stack>
   );
 };
