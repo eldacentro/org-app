@@ -27,6 +27,14 @@ export const isDarkThemeState = atom((get) => {
 
 export const offlineOverrideState = atom(false);
 
+// Refleja si la barra de navegación superior está escondida (oculta al
+// bajar el scroll en móvil). El propio navbar la mueve directamente con
+// CSS por rendimiento, sin pasar por React en cada frame — pero otros
+// elementos que se posicionan "justo debajo de la barra" (como el año
+// pegajoso en Próximos eventos) necesitan saber esto para no dejar un
+// hueco cuando la barra desaparece.
+export const navBarHiddenState = atom(false);
+
 export const isAppLoadState = atom(true);
 
 export const isDbReadyState = atom(false);

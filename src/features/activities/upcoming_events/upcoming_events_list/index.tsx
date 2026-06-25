@@ -1,16 +1,20 @@
 import { Box, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { IconInfo } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { UpcomingEventsListProps } from './index.types';
 import useUpcomingEventsList from './useUpcomingEventsList';
 import InfoTip from '@components/info_tip';
 import UpcomingEvent from '../upcoming_event';
+import { navBarHiddenState } from '@states/app';
 
 const UpcomingEventsList = (props: UpcomingEventsListProps) => {
   const { t } = useAppTranslation();
 
   const { eventsSortedByYear, stickyYearRefs, stuckYearIndexes, offsetLeft } =
     useUpcomingEventsList(props);
+
+  const navBarHidden = useAtomValue(navBarHiddenState);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -61,8 +65,12 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                   // real ya se desplaza ese alto (notch/Dynamic Island) — sin
                   // esto, el año pegado queda más arriba que la barra y se
                   // solapa con los botones de volver/inicio.
+                  // La barra se esconde sola al bajar el scroll (en móvil) —
+                  // sin restar esos 50px aquí cuando está escondida, el año
+                  // se quedaba "flotando" en la posición de la barra,
+                  // dejando un hueco vacío arriba en vez de subir con ella.
                   top: isStuck
-                    ? 'calc(50px + env(safe-area-inset-top, 0px))'
+                    ? `calc(${navBarHidden ? '0px' : '50px'} + env(safe-area-inset-top, 0px))`
                     : 'auto',
                   height: isStuck ? '80px' : 'auto',
                   zIndex: 2,
@@ -71,7 +79,7 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                     : 'transparent',
                   width: isStuck ? '100%' : 'auto',
                   left: isStuck ? '0' : 'auto',
-                  transition: 'transform 0.5s ease',
+                  transition: 'transform 0.5s ease, top 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
                   transform: isStuck ? 'translateY(6px)' : 'translateY(0px)',
                 }}
               >

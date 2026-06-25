@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useSetAtom } from 'jotai';
 import {
   AppBar,
   Box,
@@ -37,6 +38,7 @@ import IconButton from '@components/icon_button';
 import BottomMenu from '@layouts/bottom_menu';
 import { hasRenderableContent } from '@utils/common';
 import { FORCED_UI_LANG, isTest } from '@constants/index';
+import { navBarHiddenState } from '@states/app';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -99,6 +101,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
   // -> siempre visible. El wrapper se mueve con transform y el AppBar de dentro
   // lleva el cristal: capas separadas para evitar el artefacto de WebKit.
   const navRef = useRef<HTMLDivElement>(null);
+  const setNavBarHidden = useSetAtom(navBarHiddenState);
 
   useEffect(() => {
     const el = navRef.current;
@@ -107,6 +110,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     // Desktop/tablet: siempre visible, sin escuchar el scroll.
     if (tabletUp) {
       el.style.transform = 'translateY(0)';
+      setNavBarHidden(false);
       return;
     }
 
@@ -122,6 +126,11 @@ const NavBar = ({ isSupported }: NavBarType) => {
       if (next === hidden) return;
       hidden = next;
       el.style.transform = next ? 'translateY(-100%)' : 'translateY(0)';
+      // El movimiento de la barra lo hace CSS por rendimiento (sin pasar por
+      // React en cada frame), pero otros elementos que se posicionan "justo
+      // debajo de la barra" (ej. el año pegajoso en Próximos eventos) sí
+      // necesitan saber cuándo se esconde, para no dejar un hueco ahí.
+      setNavBarHidden(next);
     };
 
     const onScroll = () => {
@@ -145,7 +154,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [tabletUp]);
+  }, [tabletUp, setNavBarHidden]);
 
   // Glassmorphic state trigger (active after 10px)
   const scrolled = useScrollTrigger({
