@@ -5,7 +5,6 @@ import Typography from '@components/typography';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 import { displaySnackNotification } from '@services/states/app';
-import MigrationRunner from './MigrationRunner';
 import { SectionCard, PillGroup, ToggleRow, PillOption } from './SettingsControls';
 
 const FieldLabel = ({ children }: { children: string }) => (
@@ -194,9 +193,6 @@ const ImportExportTab = () => {
           </Box>
         </Stack>
       </SectionCard>
-      
-      {/* ── Herramienta de Migración ── */}
-      <MigrationRunner />
     </Stack>
   );
 };
