@@ -191,6 +191,12 @@ const Limpieza = () => {
       delete newConfig.overrides[key];
     }
 
+    // Sin esto, dbRestoreLimpiezaConfig (que compara updatedAt para decidir
+    // si aplica el cambio remoto) ve la misma fecha de antes y descarta el
+    // cambio en cualquier otro dispositivo — el override se queda guardado
+    // solo en este dispositivo, aunque sí se suba al servidor.
+    newConfig.updatedAt = new Date().toISOString();
+
     try {
       await dbLimpiezaSaveConfig(newConfig);
       setConfig(newConfig);
