@@ -33,8 +33,15 @@ export const StyleDatePickerDay = {
     '.MuiPickersYear-yearButton:hover': {
       backgroundColor: 'red',
     },
+    // A 40px + 8px de margen (48px por celda) las 7 columnas necesitan 336px
+    // solo para los días, más el padding del calendario — no entran en el
+    // 90vw del popup en pantallas angostas (~320-375px), así que la cuadrícula
+    // se partía a 4 columnas en vez de 7. Con 36px + 4px (40px/celda) caben
+    // las 7 incluso en el iPhone más angosto en uso hoy.
     '@media (max-width:430px)': {
       height: '100%',
+      width: '36px',
+      margin: '0 2px',
     },
   },
 } as DayCalendarSlotProps['day'];
@@ -80,8 +87,11 @@ export const StyleDatePickerLayout = {
 
 export const StyleDatePickerPopper: SxProps<Theme> = {
   width: '360px',
+  // 96vw (antes 90vw) le da algo más de aire al popup en móvil — junto con
+  // las celdas más angostas de abajo, esto es lo que evita que la
+  // cuadrícula de 7 columnas se rompa en pantallas angostas.
   '@media (max-width:430px)': {
-    width: '90vw',
+    width: '96vw',
   },
   '.MuiPickersLayout-root': {
     display: 'flex',
@@ -102,6 +112,13 @@ export const StyleDatePickerPopper: SxProps<Theme> = {
     lineHeight: '20px',
     margin: '0 4px',
     color: 'var(--grey-400)',
+    // Mismo ancho/margen que las celdas de día en móvil (StyleDatePickerDay)
+    // — si no, los encabezados L M M J V S D no quedan alineados con sus
+    // columnas de abajo.
+    '@media (max-width:430px)': {
+      width: '36px',
+      margin: '0 2px',
+    },
   },
   '.MuiDialogActions-root': {
     justifyContent: 'space-between',
