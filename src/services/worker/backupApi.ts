@@ -53,6 +53,53 @@ const gzipCompressToBase64 = async (text: string): Promise<string | null> => {
  *  contraproducente; con este tope siguen yendo en paralelo, pero sin saturar. */
 const CHUNK_CONCURRENCY = 6;
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const RETRY_MAX_ATTEMPTS = 3; // intento inicial + 2 reintentos
+const RETRY_DELAY_MS = 1000;
+
+/**
+ * Reintenta UNA petición en su lugar ante un fallo de red o un error
+ * transitorio del servidor (5xx) — antes, un corte momentáneo de conexión
+ * en una sola petición (la descarga, o un solo chunk de la subida) tiraba
+ * abajo TODO el intento de sincronización (incluyendo, en la subida, los
+ * demás chunks que ya habían llegado bien), forzando el ciclo completo de
+ * descarga+fusión+compresión otra vez 10s después. Reenviar exactamente la
+ * misma petición es seguro en ambos casos: la descarga no tiene efectos
+ * secundarios, y el servidor solo vuelve a guardar el chunk en la misma
+ * posición, sin efecto distinto a la primera vez.
+ *
+ * Un 409 (conflicto de versión) o un 4xx (petición inválida) NO se
+ * reintentan aquí — mandar exactamente lo mismo otra vez no los arregla.
+ */
+const withTransientRetry = async (sendOnce: () => Promise<Response>): Promise<Response> => {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= RETRY_MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await sendOnce();
+
+      if (res.status >= 500 && attempt < RETRY_MAX_ATTEMPTS) {
+        console.warn(`[backup] petición respondió ${res.status}, reintento ${attempt}/${RETRY_MAX_ATTEMPTS - 1}`);
+        await delay(RETRY_DELAY_MS * attempt);
+        continue;
+      }
+
+      return res;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < RETRY_MAX_ATTEMPTS) {
+        console.warn(`[backup] petición falló (red), reintento ${attempt}/${RETRY_MAX_ATTEMPTS - 1}:`, error);
+        await delay(RETRY_DELAY_MS * attempt);
+        continue;
+      }
+    }
+  }
+
+  throw lastError;
+};
+
 const mapWithConcurrency = async <T, R>(
   items: T[],
   limit: number,
@@ -87,19 +134,21 @@ export const apiGetCongregationBackup = async ({
 }) => {
   const start = performance.now();
 
-  const res = await fetch(`${apiHost}api/v3/users/${userID}/backup`, {
-    method: 'GET',
-    credentials: 'include',
-    signal: fetchSignal(),
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      Authorization: `Bearer ${idToken}`,
-      appclient: 'organized',
-      appversion: '3.37.1',
-      metadata,
-    },
-  });
+  const res = await withTransientRetry(() =>
+    fetch(`${apiHost}api/v3/users/${userID}/backup`, {
+      method: 'GET',
+      credentials: 'include',
+      signal: fetchSignal(),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion: '3.37.1',
+        metadata,
+      },
+    })
+  );
 
   // Leer como texto primero (no res.json()) para poder loguear el tamaño
   // real recibido sin tener que volver a serializar el objeto ya parseado
@@ -262,20 +311,22 @@ export const apiSendCongregationBackupChunk = async ({
 
     const chunkData = dataToSend.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
 
-    const res = await fetch(`${apiHost}api/v3/users/${userID}/backup/chunked`, {
-      method: 'POST',
-      credentials: 'include',
-      signal: fetchSignal(),
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        Authorization: `Bearer ${idToken}`,
-        appclient: 'organized',
-        appversion: '3.37.1',
-        metadata: JSON.stringify(metadata),
-      },
-      body: JSON.stringify({ uploadId, chunkIndex: i, totalChunks, chunkData, compressed }),
-    });
+    const res = await withTransientRetry(() =>
+      fetch(`${apiHost}api/v3/users/${userID}/backup/chunked`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: fetchSignal(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          Authorization: `Bearer ${idToken}`,
+          appclient: 'organized',
+          appversion: '3.37.1',
+          metadata: JSON.stringify(metadata),
+        },
+        body: JSON.stringify({ uploadId, chunkIndex: i, totalChunks, chunkData, compressed }),
+      })
+    );
 
     if (res.status === 409) {
       conflict = true;
