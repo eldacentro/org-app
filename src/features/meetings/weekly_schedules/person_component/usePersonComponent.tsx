@@ -6,6 +6,7 @@ import { schedulesState } from '@states/schedules';
 import { ASSIGNMENT_PATH } from '@constants/index';
 import { schedulesGetData } from '@services/app/schedules';
 import {
+  congNameState,
   CODisplayNameState,
   COFullnameState,
   displayNameMeetingsEnableState,
@@ -17,6 +18,7 @@ import { AssignmentCongregation } from '@definition/schedules';
 import { personsState } from '@states/persons';
 import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
 import { incomingSpeakersState, visitingSpeakersState } from '@states/visiting_speakers';
+import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 
 const usePersonComponent = ({
   week,
@@ -35,6 +37,8 @@ const usePersonComponent = ({
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
   const visitingSpeakers = useAtomValue(visitingSpeakersState);
   const settings = useAtomValue(settingsState);
+  const congName = useAtomValue(congNameState);
+  const congregations = useAtomValue(speakersCongregationsActiveState);
 
   const mmAuxCounselorDefaultEnabled = useMemo(() => {
     return (
@@ -65,6 +69,7 @@ const usePersonComponent = ({
       name: undefined,
       active: undefined,
       female: undefined,
+      congregation: undefined,
     };
 
     const schedule = schedules.find((record) => record.weekOf === week);
@@ -119,6 +124,10 @@ const usePersonComponent = ({
         );
         result.female = person.person_data.female.value;
         result.active = assigned.value === userUID;
+        
+        if (props.showCongregation) {
+          result.congregation = congName;
+        }
       }
 
       // Fallback: check incomingSpeakers when not found in local persons.
@@ -137,6 +146,14 @@ const usePersonComponent = ({
           );
           result.female = false;
           result.active = false;
+
+          if (props.showCongregation) {
+            const speakerCong = congregations.find(c => c.id === speaker.speaker_data.cong_id);
+            const congNameVal = typeof speakerCong?.cong_data?.cong_name === 'object' 
+              ? speakerCong.cong_data.cong_name.value 
+              : speakerCong?.cong_data?.cong_name;
+            result.congregation = (congNameVal as string) || undefined;
+          }
         }
       }
 

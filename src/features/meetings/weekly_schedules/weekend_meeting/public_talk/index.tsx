@@ -66,6 +66,7 @@ const PublicTalk = (props: PublicTalkProps) => {
                 assignment="WM_Speaker_Part1"
                 dataView={props.dataView}
                 color="var(--weekend-meeting)"
+                showCongregation={true}
               />
 
               {showSecondSpeaker && (
@@ -75,6 +76,7 @@ const PublicTalk = (props: PublicTalkProps) => {
                   assignment="WM_Speaker_Part2"
                   dataView={props.dataView}
                   color="var(--weekend-meeting)"
+                  showCongregation={true}
                 />
               )}
             </Stack>

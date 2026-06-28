@@ -7,11 +7,13 @@ export type PersonComponentProps = {
   schedule_id?: string;
   dataView?: string;
   color?: string;
+  showCongregation?: boolean;
 };
 
 export type PersonDataType = {
   name: string;
   female?: boolean;
   active?: boolean;
+  congregation?: string;
 };
 

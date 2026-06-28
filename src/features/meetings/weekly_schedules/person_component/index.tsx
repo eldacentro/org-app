@@ -65,29 +65,47 @@ const PersonComponent = (props: PersonComponentProps) => {
             }}
           >
             {personData.female ? (
-              <IconFemale width={16} height={16} color={accentColor} />
+              <IconFemale width={16} height={16} color={accentColor} sx={{ flexShrink: 0 }} />
             ) : (
-              <IconMale width={16} height={16} color={accentColor} />
+              <IconMale width={16} height={16} color={accentColor} sx={{ flexShrink: 0 }} />
             )}
-            <Typography
-              className="body-small-semibold"
-              sx={{
-                minWidth: 0,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontWeight: 700,
-                fontSize: '13.5px',
-                color: personData.active ? 'var(--brand-deep)' : 'var(--ink)',
-                letterSpacing: '0.1px',
-                lineHeight: 1.25,
-                wordBreak: 'break-word',
-              }}
-            >
-              {personData.name}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
+              <Typography
+                className="body-small-semibold"
+                sx={{
+                  minWidth: 0,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontWeight: 700,
+                  fontSize: '13.5px',
+                  color: personData.active ? 'var(--brand-deep)' : 'var(--ink)',
+                  letterSpacing: '0.1px',
+                  lineHeight: 1.25,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {personData.name}
+              </Typography>
+              {props.showCongregation && personData.congregation && (
+                <Typography
+                  sx={{
+                    fontSize: '12px',
+                    color: personData.active ? 'var(--brand)' : 'var(--ink-2)',
+                    lineHeight: 1.2,
+                    mt: '2px',
+                    wordBreak: 'break-word',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {personData.congregation}
+                </Typography>
+              )}
+            </Box>
           </Box>
         </Tooltip>
       ) : (
