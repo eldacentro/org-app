@@ -125,6 +125,15 @@ const DatePicker = ({
             document.body
           )}
         <MuiDatePicker
+          // El DatePicker responsive de MUI elige entre la variante de
+          // escritorio (un popper) y la de móvil (un modal por defecto) según
+          // `@media (pointer: fine)`. En un teléfono real el puntero es
+          // "grueso" (el dedo), así que sin esto MUI mostraba su modal por
+          // defecto — que nunca estilizamos — en vez de nuestra hoja
+          // rediseñada. Forzamos siempre la variante de escritorio para que
+          // nuestro rediseño (la hoja anclada abajo, el toolbar, los estados
+          // de día) aplique en cualquier dispositivo, no solo con ratón.
+          desktopModeMediaQuery="@media (min-width: 0px)"
           readOnly={readOnly}
           minDate={minDate}
           maxDate={maxDate}
