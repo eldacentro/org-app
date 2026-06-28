@@ -25,6 +25,7 @@ const usePersonComponent = ({
   assignment,
   schedule_id,
   dataView,
+  showCongregation,
 }: PersonComponentProps) => {
   const { t } = useAppTranslation();
   const schedules = useAtomValue(schedulesState);
@@ -125,7 +126,7 @@ const usePersonComponent = ({
         result.female = person.person_data.female.value;
         result.active = assigned.value === userUID;
         
-        if (props.showCongregation) {
+        if (showCongregation) {
           result.congregation = congName;
         }
       }
@@ -147,7 +148,7 @@ const usePersonComponent = ({
           result.female = false;
           result.active = false;
 
-          if (props.showCongregation) {
+          if (showCongregation) {
             const speakerCong = congregations.find(c => c.id === speaker.speaker_data.cong_id);
             const congNameVal = typeof speakerCong?.cong_data?.cong_name === 'object' 
               ? speakerCong.cong_data.cong_name.value 
