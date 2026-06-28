@@ -221,7 +221,17 @@ const useWeekSelector = () => {
   const handleCloseDelete = () => setOpenDelete(false);
 
   useEffect(() => {
-    if (!currentYear) return;
+    if (!currentYear) {
+      const realCurrentYear = new Date().getFullYear().toString();
+      const findIndex = tabs.findIndex((record) => record.label === realCurrentYear);
+
+      if (findIndex !== -1) {
+        setActiveTab(findIndex);
+      } else if (tabs.length > 0) {
+        setActiveTab(0);
+      }
+      return;
+    }
 
     const findIndex = tabs.findIndex((record) => record.label === currentYear);
 

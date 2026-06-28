@@ -115,8 +115,7 @@ const OutgoingSpeakersPage = () => {
       if (exactMatch) {
         setSelectedWeek(exactMatch.weekOf);
       } else {
-        const sortedSchedules = [...schedules].sort((a, b) => b.weekOf.localeCompare(a.weekOf));
-        setSelectedWeek(sortedSchedules[0]?.weekOf || '');
+        setSelectedWeek(currentWeekSlash);
       }
     }
   }, [selectedWeek, schedules, setSelectedWeek]);
