@@ -11,8 +11,7 @@ import { navBarHiddenState } from '@states/app';
 const UpcomingEventsList = (props: UpcomingEventsListProps) => {
   const { t } = useAppTranslation();
 
-  const { eventsSortedByYear, stickyYearRefs, stuckYearIndexes, offsetLeft } =
-    useUpcomingEventsList(props);
+  const { eventsSortedByYear } = useUpcomingEventsList(props);
 
   const navBarHidden = useAtomValue(navBarHiddenState);
 
@@ -35,8 +34,6 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
 
           const year = new Date(firstStart).getFullYear();
 
-          const isStuck = stuckYearIndexes.has(yearIndex);
-
           return (
             <Box
               key={year}
@@ -46,41 +43,35 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                 gap: '16px',
               }}
             >
-              {isStuck && <Box sx={{ height: '36px' }} />}
 
               <Box
-                ref={(element: HTMLDivElement) => {
-                  stickyYearRefs.current[yearIndex] = element;
-                }}
                 sx={{
-                  padding: isStuck
-                    ? {
-                        mobile: `16px 16px 60px ${offsetLeft}px`,
-                        tablet: `16px 24px 60px ${offsetLeft}px`,
-                        desktop: `16px 32px 60px ${offsetLeft}px`,
-                      }
-                    : '16px 0px 0px 0px',
-                  position: isStuck ? 'fixed' : 'relative',
-                  // +env(safe-area-inset-top): en iOS la barra de navegación
-                  // real ya se desplaza ese alto (notch/Dynamic Island) — sin
-                  // esto, el año pegado queda más arriba que la barra y se
-                  // solapa con los botones de volver/inicio.
-                  // La barra se esconde sola al bajar el scroll (en móvil) —
-                  // sin restar esos 50px aquí cuando está escondida, el año
-                  // se quedaba "flotando" en la posición de la barra,
-                  // dejando un hueco vacío arriba en vez de subir con ella.
-                  top: isStuck
-                    ? `calc(${navBarHidden ? '0px' : '50px'} + env(safe-area-inset-top, 0px))`
-                    : 'auto',
-                  height: isStuck ? '80px' : 'auto',
+                  position: 'sticky',
+                  top: navBarHidden ? '0px' : `calc(50px + env(safe-area-inset-top, 0px))`,
+                  paddingTop: navBarHidden
+                    ? `calc(16px + env(safe-area-inset-top, 0px))`
+                    : '16px',
+                  paddingBottom: '40px',
                   zIndex: 2,
-                  background: isStuck
-                    ? 'linear-gradient(180deg, var(--accent-100) 31%, rgba(248, 249, 255, 0%) 100%)'
-                    : 'transparent',
-                  width: isStuck ? '100%' : 'auto',
-                  left: isStuck ? '0' : 'auto',
-                  transition: 'transform 0.5s ease, top 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
-                  transform: isStuck ? 'translateY(6px)' : 'translateY(0px)',
+                  background:
+                    'linear-gradient(180deg, var(--accent-100) 40%, rgba(248, 249, 255, 0%) 100%)',
+                  transition: 'top 0.24s cubic-bezier(0.22, 1, 0.36, 1), padding-top 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
+                  pointerEvents: 'none', // So it doesn't block clicks on events underneath the gradient
+                  margin: {
+                    mobile: '0 -16px',
+                    tablet: '0 -24px',
+                    desktop: '0 -32px',
+                  },
+                  paddingLeft: {
+                    mobile: '16px',
+                    tablet: '24px',
+                    desktop: '32px',
+                  },
+                  paddingRight: {
+                    mobile: '16px',
+                    tablet: '24px',
+                    desktop: '32px',
+                  },
                 }}
               >
                 <Typography className="h4" color="var(--accent-400)">
