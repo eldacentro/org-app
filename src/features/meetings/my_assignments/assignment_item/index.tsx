@@ -14,22 +14,23 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     assignmentDate,
     assignmentDayName,
     isDept,
+    rows,
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
-    history,
-    badges,
   } = useAssignmentItem(props);
 
+  const firstKey = props.items[0].assignment.key ?? '';
   const isPreaching =
-    history.assignment.key.startsWith('OUTING_') ||
-    history.assignment.key.startsWith('EXHIBITOR_');
+    firstKey.startsWith('OUTING_') || firstKey.startsWith('EXHIBITOR_');
+
+  const hasMultiple = rows.length > 1;
 
   return (
     <Stack
       direction="row"
       spacing={2}
-      alignItems="center"
+      alignItems="flex-start"
       sx={(theme) => ({
         padding: '12px 14px',
         borderRadius: 'var(--r-md)',
@@ -54,6 +55,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     >
       <Box
         sx={{
+          position: 'relative',
           textAlign: 'center',
           width: '46px',
           height: '56px',
@@ -103,95 +105,153 @@ const AssignmentItem = (props: AssignmentItemProps) => {
         >
           {assignmentDate}
         </Typography>
+
+        {/* Cuando hay más de una asignación el mismo día, hace falta una
+            señal visible de inmediato — si no, a simple vista parece una
+            sola tarjeta con una sola asignación. */}
+        {hasMultiple && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-6px',
+              right: '-6px',
+              minWidth: '18px',
+              height: '18px',
+              borderRadius: '999px',
+              backgroundColor: isPreaching
+                ? 'var(--preaching-color)'
+                : 'var(--brand)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid var(--card)',
+              padding: '0 3px',
+            }}
+          >
+            <Typography
+              sx={{
+                color: 'var(--always-white) !important',
+                fontWeight: '800 !important',
+                fontSize: '10px !important',
+                lineHeight: 1,
+              }}
+            >
+              {rows.length}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       <Stack
-        alignItems="center"
-        justifyContent="space-between"
-        direction="row"
+        justifyContent="center"
         width="calc(100% - 58px)"
-        spacing={1}
+        spacing="10px"
+        divider={
+          hasMultiple ? (
+            <Box sx={{ height: '1px', background: 'var(--line)' }} />
+          ) : null
+        }
       >
-        <Stack justifyContent="center" spacing="2px">
-          <Stack direction="row" spacing={1.2} alignItems="center" flexWrap="wrap">
-            <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700, fontSize: '15px' }}>
-              {history.assignment.title}
-            </Typography>
-
-            {badges.map((badge) => badge)}
-          </Stack>
-
-          {userUID !== history.assignment.person && (
-            <Badge
-              size="small"
-              filled
-              color="orange"
-              sx={{ width: 'fit-content', height: 'auto', marginTop: '2px' }}
-              text={t('tr_deliveredBy', {
-                name: personGetName(history.assignment.person),
-              })}
-            />
-          )}
-
-          {history.assignment.ayf?.student && (
-            <Typography
-              className={'body-small-semibold'}
-              color={'var(--grey-400)'}
-              sx={{ fontSize: '13px', marginTop: '2px' }}
-            >
-              {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
-            </Typography>
-          )}
-
-          {history.assignment.ayf?.assistant && (
-            <Typography
-              className={'body-small-semibold'}
-              color={'var(--grey-400)'}
-              sx={{ fontSize: '13px' }}
-            >
-              {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
-            </Typography>
-          )}
-
-          {history.assignment.src && (
-            <Typography
-              className={
-                history.assignment.ayf
-                  ? 'body-small-regular'
-                  : 'body-small-semibold'
-              }
-              color={
-                history.assignment.ayf ? 'var(--grey-350)' : 'var(--grey-400)'
-              }
-              sx={{ fontSize: '13px', marginTop: '1px' }}
-            >
-              {history.assignment.src}
-            </Typography>
-          )}
-
-          {history.assignment.desc && (
-            <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
-              {history.assignment.desc}
-            </Typography>
-          )}
-        </Stack>
-
-        {ADD_CALENDAR_SHOW && (
-          <IconButton
-            sx={(theme) => ({
-              borderRadius: 'var(--r-sm)',
-              border: '1px solid var(--line)',
-              padding: '6px',
-              [theme.breakpoints.up('tablet')]: {
-                opacity: 0,
-                pointerEvents: 'none',
-                transition: 'opacity 500ms ease',
-              },
-            })}
+        {rows.map(({ history, badges, isDept: rowIsDept }) => (
+          <Stack
+            key={history.id}
+            justifyContent="center"
+            spacing="2px"
+            direction="row"
+            alignItems="flex-start"
           >
-            <IconAddMonth color="var(--brand)" />
-          </IconButton>
-        )}
+            <Stack justifyContent="center" spacing="2px" flex={1}>
+              <Stack direction="row" spacing={1.2} alignItems="center" flexWrap="wrap">
+                <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700, fontSize: '15px' }}>
+                  {history.assignment.title}
+                </Typography>
+
+                {badges.map((badge) => badge)}
+              </Stack>
+
+              {rowIsDept && (
+                <Typography
+                  className="body-small-semibold"
+                  color="var(--grey-400)"
+                  sx={{ fontSize: '12px', fontStyle: 'italic' }}
+                >
+                  Toda la semana
+                </Typography>
+              )}
+
+              {userUID !== history.assignment.person && (
+                <Badge
+                  size="small"
+                  filled
+                  color="orange"
+                  sx={{ width: 'fit-content', height: 'auto', marginTop: '2px' }}
+                  text={t('tr_deliveredBy', {
+                    name: personGetName(history.assignment.person),
+                  })}
+                />
+              )}
+
+              {history.assignment.ayf?.student && (
+                <Typography
+                  className={'body-small-semibold'}
+                  color={'var(--grey-400)'}
+                  sx={{ fontSize: '13px', marginTop: '2px' }}
+                >
+                  {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
+                </Typography>
+              )}
+
+              {history.assignment.ayf?.assistant && (
+                <Typography
+                  className={'body-small-semibold'}
+                  color={'var(--grey-400)'}
+                  sx={{ fontSize: '13px' }}
+                >
+                  {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
+                </Typography>
+              )}
+
+              {history.assignment.src && (
+                <Typography
+                  className={
+                    history.assignment.ayf
+                      ? 'body-small-regular'
+                      : 'body-small-semibold'
+                  }
+                  color={
+                    history.assignment.ayf ? 'var(--grey-350)' : 'var(--grey-400)'
+                  }
+                  sx={{ fontSize: '13px', marginTop: '1px' }}
+                >
+                  {history.assignment.src}
+                </Typography>
+              )}
+
+              {history.assignment.desc && (
+                <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
+                  {history.assignment.desc}
+                </Typography>
+              )}
+            </Stack>
+
+            {ADD_CALENDAR_SHOW && (
+              <IconButton
+                sx={(theme) => ({
+                  borderRadius: 'var(--r-sm)',
+                  border: '1px solid var(--line)',
+                  padding: '6px',
+                  [theme.breakpoints.up('tablet')]: {
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    transition: 'opacity 500ms ease',
+                  },
+                })}
+              >
+                <IconAddMonth color="var(--brand)" />
+              </IconButton>
+            )}
+          </Stack>
+        ))}
       </Stack>
     </Stack>
   );

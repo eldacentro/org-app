@@ -9,12 +9,13 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { formatDate } from '@utils/date';
+import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import Badge from '@components/badge';
 
 const ADD_CALENDAR_SHOW = false;
 
-const useAssignmentItem = ({ history }: AssignmentItemProps) => {
+const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   const { t } = useAppTranslation();
 
   const persons = useAtomValue(personsState);
@@ -22,27 +23,28 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
   const userUID = useAtomValue(userLocalUIDState);
   const dataView = useAtomValue(userDataViewState);
 
-  const isMidweek = useMemo(() => {
-    return history.assignment.key.startsWith('MM_');
-  }, [history.assignment]);
+  // Todos los elementos de un mismo grupo comparten fecha y categoría, así
+  // que la "cara" de la tarjeta (día, número, si es de departamento) se
+  // calcula una sola vez con el primero.
+  const first = items[0];
 
   const isDept = useMemo(() => {
-    return history.assignment.key.startsWith('DEPT_');
-  }, [history.assignment]);
+    return first.assignment.key?.startsWith('DEPT_') ?? false;
+  }, [first.assignment]);
 
   const assignmentDate = useMemo(() => {
     try {
-      const dateToUse = history.actualDate || history.weekOf;
+      const dateToUse = first.actualDate || first.weekOf;
       return formatDate(new Date(dateToUse), 'd');
     } catch {
       return formatDate(new Date(), 'd');
     }
-  }, [history]);
+  }, [first]);
 
   const assignmentDayName = useMemo(() => {
     const DAY_ABBREV = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
     try {
-      const dateToUse = history.actualDate || history.weekOf;
+      const dateToUse = first.actualDate || first.weekOf;
       const parts = dateToUse.split('/');
       if (parts.length >= 3) {
         const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
@@ -52,9 +54,22 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
     } catch {
       return '';
     }
-  }, [history]);
+  }, [first]);
 
-  const badges = useMemo(() => {
+  const personGetName = (value: string) => {
+    const person = persons.find((record) => record.person_uid === value);
+    if (!person) return '';
+
+    const name = buildPersonFullname(
+      person.person_data.person_lastname.value,
+      person.person_data.person_firstname.value,
+      fullnameOption
+    );
+
+    return name;
+  };
+
+  const getBadges = (history: AssignmentHistoryType) => {
     const result: JSX.Element[] = [];
 
     if (history.assignment.dataView !== dataView) {
@@ -74,31 +89,24 @@ const useAssignmentItem = ({ history }: AssignmentItemProps) => {
     }
 
     return result;
-  }, [t, dataView, history.assignment]);
-
-  const personGetName = (value: string) => {
-    const person = persons.find((record) => record.person_uid === value);
-    if (!person) return '';
-
-    const name = buildPersonFullname(
-      person.person_data.person_lastname.value,
-      person.person_data.person_firstname.value,
-      fullnameOption
-    );
-
-    return name;
   };
+
+  const rows = useMemo(() => {
+    return items.map((history) => ({
+      history,
+      badges: getBadges(history),
+      isDept: history.assignment.key?.startsWith('DEPT_') ?? false,
+    }));
+  }, [items, dataView, t]);
 
   return {
     assignmentDate,
     assignmentDayName,
-    isMidweek,
     isDept,
+    rows,
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
-    badges,
-    history,
   };
 };
 

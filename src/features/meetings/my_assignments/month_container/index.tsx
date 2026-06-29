@@ -10,6 +10,20 @@ import { getWeekDate, formatDate } from '@utils/date';
 const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   const { monthLocale } = useMonthContainer(monthData.month);
 
+  // Una asignación de "predicación" nunca debe compartir tarjeta con una de
+  // "reuniones" aunque caigan el mismo día — son mundos distintos para quien
+  // las lee. Limpieza tampoco se mezcla con ninguna de las dos.
+  const getCategory = (item: AssignmentHistoryType) => {
+    const key = item.assignment.key ?? '';
+    if (key.startsWith('OUTING_') || key.startsWith('EXHIBITOR_')) {
+      return 'preaching';
+    }
+    if (key.startsWith('LIMPIEZA_')) {
+      return 'limpieza';
+    }
+    return 'meetings';
+  };
+
   // Group assignments by their Monday weekOf
   const weekGroups = useMemo(() => {
     const grouped: Record<string, AssignmentHistoryType[]> = {};
@@ -27,15 +41,34 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
       grouped[mondayKey].push(item);
     }
 
-    // Sort weeks chronologically, then sort items within each week by actualDate or weekOf
+    // Dentro de cada semana, agrupamos por (día + categoría) para que varias
+    // asignaciones del mismo día y mismo tipo (ej. presidente + lector de
+    // entre semana) salgan en una sola tarjeta, sin mezclar predicación con
+    // reuniones aunque coincida la fecha.
     return Object.keys(grouped)
       .sort()
-      .map((weekOf) => ({
-        weekOf,
-        items: grouped[weekOf].toSorted((a, b) =>
-          (a.actualDate || a.weekOf).localeCompare(b.actualDate || b.weekOf)
-        ),
-      }));
+      .map((weekOf) => {
+        const dayGroups: Record<string, AssignmentHistoryType[]> = {};
+
+        for (const item of grouped[weekOf]) {
+          const dayKey = `${item.actualDate || item.weekOf}__${getCategory(item)}`;
+          if (!dayGroups[dayKey]) dayGroups[dayKey] = [];
+          dayGroups[dayKey].push(item);
+        }
+
+        const items = Object.values(dayGroups)
+          .map((group) =>
+            group.toSorted((a, b) => a.id.localeCompare(b.id))
+          )
+          .toSorted(
+            (a, b) =>
+              (a[0].actualDate || a[0].weekOf).localeCompare(
+                b[0].actualDate || b[0].weekOf
+              )
+          );
+
+        return { weekOf, items };
+      });
   }, [monthData.children]);
 
   // Format the week label: "Semana del DD/MM" e.g. "2 jun"
@@ -126,8 +159,8 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
 
             {/* Items in this week */}
             <Stack spacing="8px">
-              {items.map((history) => (
-                <AssignmentItem key={history.id} history={history} />
+              {items.map((group) => (
+                <AssignmentItem key={group[0].id} items={group} />
               ))}
             </Stack>
           </Stack>
