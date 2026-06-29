@@ -47,36 +47,38 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
               <Box
                 sx={{
                   position: 'sticky',
-                  top: navBarHidden ? '0px' : `calc(50px + env(safe-area-inset-top, 0px))`,
-                  paddingTop: navBarHidden
-                    ? `calc(16px + env(safe-area-inset-top, 0px))`
-                    : '16px',
-                  paddingBottom: '40px',
+                  // Solo esta propiedad se anima — antes también se animaba
+                  // paddingTop a la vez, y las dos transiciones compitiendo
+                  // sobre un elemento sticky producían el salto/tirón al
+                  // esconderse la barra de navegación.
+                  top: navBarHidden
+                    ? 'env(safe-area-inset-top, 0px)'
+                    : `calc(50px + env(safe-area-inset-top, 0px))`,
+                  transition: 'top 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
                   zIndex: 2,
-                  background:
-                    'linear-gradient(180deg, var(--accent-100) 40%, rgba(248, 249, 255, 0%) 100%)',
-                  transition: 'top 0.24s cubic-bezier(0.22, 1, 0.36, 1), padding-top 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
-                  pointerEvents: 'none', // So it doesn't block clicks on events underneath the gradient
-                  margin: {
-                    mobile: '0 -16px',
-                    tablet: '0 -24px',
-                    desktop: '0 -32px',
-                  },
-                  paddingLeft: {
-                    mobile: '16px',
-                    tablet: '24px',
-                    desktop: '32px',
-                  },
-                  paddingRight: {
-                    mobile: '16px',
-                    tablet: '24px',
-                    desktop: '32px',
-                  },
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  pointerEvents: 'none', // el wrapper no bloquea clicks de la lista
                 }}
               >
-                <Typography className="h4" color="var(--accent-400)">
-                  {year}
-                </Typography>
+                <Box
+                  className="upcoming-year-pill"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    borderRadius: '999px',
+                    padding: '6px 18px',
+                    pointerEvents: 'auto',
+                  }}
+                >
+                  <Typography
+                    className="h4"
+                    color="var(--accent-400)"
+                    sx={{ fontWeight: 700, letterSpacing: '0.2px' }}
+                  >
+                    {year}
+                  </Typography>
+                </Box>
               </Box>
 
               {upcomingEventsYear.map((upcomingEvent) => (

@@ -442,6 +442,25 @@ body {
 .profile-menu-glass li:last-child {
   border-bottom: none !important;
 }
+
+/* Pill flotante del año en "Próximos eventos" — mismo lenguaje glass que el
+   menú de perfil, en vez del bloque de gradiente de ancho completo que antes
+   dejaba una línea visible al cortarse contra el fondo de la página. */
+[data-theme$='-light'] .upcoming-year-pill {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(1.9);
+  -webkit-backdrop-filter: blur(20px) saturate(1.9);
+  border: 1px solid rgba(59, 114, 196, 0.1);
+  box-shadow: 0 6px 20px -6px rgba(59, 114, 196, 0.22);
+}
+
+[data-theme$='-dark'] .upcoming-year-pill {
+  background: rgba(21, 21, 25, 0.78);
+  backdrop-filter: blur(20px) saturate(1.9);
+  -webkit-backdrop-filter: blur(20px) saturate(1.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45);
+}
 .logo-container {
   flex: 0 0 auto;
   display: grid;
