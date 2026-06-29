@@ -18,6 +18,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
+    jwLibraryUrl,
   } = useAssignmentItem(props);
 
   const firstKey = props.items[0].assignment.key ?? '';
@@ -270,6 +271,43 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             )}
           </Stack>
         ))}
+
+        {jwLibraryUrl && (
+          <Box
+            component="a"
+            href={jwLibraryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              alignSelf: 'flex-start',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              px: '6px',
+              py: '2px',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              border: '1px solid var(--line)',
+              opacity: 0.55,
+              transition: 'opacity 0.2s ease',
+              '&:hover': { opacity: 0.9 },
+              '&:active': { opacity: 1 },
+            }}
+          >
+            <Typography
+              component="span"
+              sx={{
+                fontSize: '10px',
+                fontWeight: 600,
+                color: 'var(--grey-400)',
+                lineHeight: 1.2,
+                letterSpacing: '0.2px',
+              }}
+            >
+              JW Library ↗
+            </Typography>
+          </Box>
+        )}
       </Stack>
     </Stack>
   );

@@ -1,4 +1,5 @@
 import { loadPub } from 'meeting-schedules-parser';
+import { extractMwbDocids } from './mwb_docid_extractor';
 import { store } from '@states/index';
 import {
   ApplyMinistryType,
@@ -23,8 +24,11 @@ import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { STORAGE_KEY } from '@constants/index';
 
 export const sourcesImportEPUB = async (fileEPUB) => {
-  const data = await loadPub(fileEPUB);
-  await sourcesFormatAndSaveData(data);
+  const [data, docids] = await Promise.all([
+    loadPub(fileEPUB),
+    extractMwbDocids(fileEPUB),
+  ]);
+  await sourcesFormatAndSaveData(data, docids);
 };
 
 export const sourcesImportJW = async (dataJw) => {
@@ -57,11 +61,11 @@ const remapAssignmentType = (week: string, type: number) => {
   }
 };
 
-const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[]) => {
+const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[], docidsByIndex?: number[]) => {
   const source_lang = store.get(JWLangState);
   const assTypeList = store.get(assignmentTypeAYFOnlyState);
 
-  for (const src of data) {
+  for (const [index, src] of data.entries()) {
     const obj = {} as SourceWeekType;
 
     const isMWB = Object.keys(src).includes('mwb_week_date_locale');
@@ -245,6 +249,10 @@ const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[]) => {
           default: { [source_lang]: src.w_study_concluding_song.toString() },
           override: [],
         };
+      }
+
+      if (isMWB && docidsByIndex?.[index] !== undefined) {
+        obj.mwb_week_docid = docidsByIndex[index];
       }
 
       await dbSourcesSave(obj);

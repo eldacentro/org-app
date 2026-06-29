@@ -92,6 +92,7 @@ export type COTalkTitleType = { src: string; updatedAt: string };
 
 export type SourceWeekType = {
   weekOf: string;
+  mwb_week_docid?: number;
   midweek_meeting: {
     event_name: EventNameType[];
     week_date_locale: LanguageStringType;

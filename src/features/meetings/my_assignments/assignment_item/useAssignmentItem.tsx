@@ -7,7 +7,9 @@ import {
   fullnameOptionState,
   userDataViewState,
   userLocalUIDState,
+  JWLangState,
 } from '@states/settings';
+import { sourcesState } from '@states/sources';
 import { formatDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
@@ -22,6 +24,8 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
   const dataView = useAtomValue(userDataViewState);
+  const sources = useAtomValue(sourcesState);
+  const jwLang = useAtomValue(JWLangState);
 
   // Todos los elementos de un mismo grupo comparten fecha y categoría, así
   // que la "cara" de la tarjeta (día, número, si es de departamento) se
@@ -99,6 +103,32 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     }));
   }, [items, dataView, t]);
 
+  const jwLibraryUrl = useMemo(() => {
+    const key = first.assignment.key ?? '';
+    const isSpecial =
+      key.startsWith('DEPT_') ||
+      key.startsWith('OUTING_') ||
+      key.startsWith('EXHIBITOR_') ||
+      key.startsWith('LIMPIEZA_');
+    if (isSpecial) return null;
+
+    const code = first.assignment.code as number;
+    const PRAYER_CODE = 111;
+    const isMidweek =
+      (code >= 101 && code <= 115) || (code >= 123 && code <= 125);
+    if (!isMidweek || code === PRAYER_CODE) return null;
+
+    const locale = jwLang || 'S';
+    const source = sources.find((s) => s.weekOf === first.weekOf);
+
+    if (source?.mwb_week_docid) {
+      return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.mwb_week_docid}`;
+    }
+
+    const [year, month] = first.weekOf.split('/');
+    return `https://www.jw.org/finder?wtlocale=${locale}&pub=mwb&issue=${year}${month}`;
+  }, [first, sources, jwLang]);
+
   return {
     assignmentDate,
     assignmentDayName,
@@ -107,6 +137,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
+    jwLibraryUrl,
   };
 };
 
