@@ -26,11 +26,29 @@ const AssignmentItem = (props: AssignmentItemProps) => {
 
   const hasMultiple = rows.length > 1;
 
+  // Cuando la única fila no tiene ni descripción, ni fuente, ni estudiante,
+  // ni el aviso de "asignado a otro" — o sea, solo el título — queda muy
+  // poco contenido y se ve pegado arriba en vez de centrado con el bloque de
+  // la fecha. Con varias filas o con texto secundario, en cambio, alinear
+  // arriba es lo correcto (el título debe quedar a la altura del día).
+  const singleRow = !hasMultiple ? rows[0] : null;
+  const singleRowHasExtraContent =
+    singleRow &&
+    (singleRow.isDept ||
+      userUID !== singleRow.history.assignment.person ||
+      !!singleRow.history.assignment.ayf?.student ||
+      !!singleRow.history.assignment.ayf?.assistant ||
+      !!singleRow.history.assignment.src ||
+      !!singleRow.history.assignment.desc);
+
+  const cardAlignItems =
+    singleRow && !singleRowHasExtraContent ? 'center' : 'flex-start';
+
   return (
     <Stack
       direction="row"
       spacing={2}
-      alignItems="flex-start"
+      alignItems={cardAlignItems}
       sx={(theme) => ({
         padding: '12px 14px',
         borderRadius: 'var(--r-md)',
