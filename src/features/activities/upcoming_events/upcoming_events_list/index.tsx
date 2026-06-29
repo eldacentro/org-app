@@ -27,7 +27,7 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
       )}
 
       {eventsSortedByYear.length > 0 &&
-        eventsSortedByYear.map((upcomingEventsYear, yearIndex) => {
+        eventsSortedByYear.map((upcomingEventsYear) => {
           const firstStart = upcomingEventsYear[0]?.event_data.start;
 
           if (!firstStart) return null;
