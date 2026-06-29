@@ -9,7 +9,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
-import { getEffectiveTurnsForMonth, isMonthCancelled } from '../../../../utils/exhibitors';
+import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../../../utils/exhibitors';
 import { addDays } from '@utils/date';
 
 const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekType, week: string }) => {
@@ -32,6 +32,10 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
 
   const monthCancelled = useMemo(() => {
     return isMonthCancelled(settings, monthStr);
+  }, [settings, monthStr]);
+
+  const cancelledMonthMessage = useMemo(() => {
+    return getMonthCancelledMessage(settings, monthStr);
   }, [settings, monthStr]);
 
   const formatLegibleDate = (date: Date): string => {
@@ -150,20 +154,31 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       <Box
         sx={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '16px',
+          gap: '4px',
           padding: '24px',
           backgroundColor: 'rgba(var(--red-main-base), 0.1)',
           border: '1px solid var(--error-main)',
           borderRadius: 'var(--r-lg)',
           marginTop: '16px',
-          justifyContent: 'center',
         }}
       >
-        <IconCancelFilled color="var(--error-main)" />
-        <Typography className="body-regular" style={{ color: 'var(--error-main)', fontWeight: '600' }}>
-          Los turnos de exhibidores están suspendidos este mes.
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <IconCancelFilled color="var(--error-main)" />
+          <Typography className="body-regular" style={{ color: 'var(--error-main)', fontWeight: '600' }}>
+            Los turnos de exhibidores están suspendidos este mes.
+          </Typography>
+        </Box>
+
+        {cancelledMonthMessage && (
+          <Typography
+            className="body-regular"
+            style={{ color: 'var(--error-main)', textAlign: 'center', whiteSpace: 'pre-wrap' }}
+          >
+            {cancelledMonthMessage}
+          </Typography>
+        )}
       </Box>
     );
   }

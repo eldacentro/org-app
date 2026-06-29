@@ -41,9 +41,30 @@ export const isMonthCancelled = (
   if (!settings || !settings.monthlyOverrides || !settings.monthlyOverrides[monthStr]) {
     return false;
   }
-  
+
   const override = settings.monthlyOverrides[monthStr];
   return 'isCancelledMonth' in override && override.isCancelledMonth === true;
+};
+
+/**
+ * Texto personalizado opcional que el responsable puede agregar al
+ * suspender los turnos de un mes completo (ej. para explicar el motivo).
+ * Sale debajo del aviso de suspensión en "Programas semanales".
+ */
+export const getMonthCancelledMessage = (
+  settings: ExhibitorSettingsType | null,
+  monthStr: string
+): string => {
+  if (!settings || !settings.monthlyOverrides || !settings.monthlyOverrides[monthStr]) {
+    return '';
+  }
+
+  const override = settings.monthlyOverrides[monthStr];
+  if ('isCancelledMonth' in override && override.isCancelledMonth) {
+    return override.cancelledMessage ?? '';
+  }
+
+  return '';
 };
 
 export type MyExhibitorTurn = {

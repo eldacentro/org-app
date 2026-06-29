@@ -62,7 +62,7 @@ import worker from '@services/worker/backupWorker';
 import { congNameState, displayNameMeetingsEnableState, fullnameOptionState, pdfExportEnabledState } from '@states/settings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
-import { getEffectiveTurnsForMonth, isMonthCancelled } from '../../utils/exhibitors';
+import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../utils/exhibitors';
 
 const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const weekdaysSpanish = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -195,6 +195,34 @@ const Exhibitors = () => {
   const [monthlySettingsDialog, setMonthlySettingsDialog] = useState(false);
   const isCurrentlyOverridden = !!settings?.monthlyOverrides?.[currentMonthStr];
 
+  const cancelledMonthMessage = useMemo(() => {
+    return getMonthCancelledMessage(settings, currentMonthStr);
+  }, [settings, currentMonthStr]);
+
+  // Estado local del texto para no escribir a la base de datos en cada
+  // tecla — se guarda al salir del campo (onBlur). Se resincroniza si se
+  // cambia de mes o se abre el diálogo de nuevo.
+  const [cancelledMessageInput, setCancelledMessageInput] = useState('');
+
+  useEffect(() => {
+    setCancelledMessageInput(cancelledMonthMessage);
+  }, [cancelledMonthMessage, monthlySettingsDialog]);
+
+  const handleSaveCancelledMonthMessage = async () => {
+    if (!settings || !monthCancelled) return;
+    if (cancelledMessageInput === cancelledMonthMessage) return;
+
+    const localSettings = structuredClone(settings);
+    if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
+    localSettings.monthlyOverrides[currentMonthStr] = {
+      isCancelledMonth: true,
+      cancelledMessage: cancelledMessageInput,
+    };
+    await dbExhibitorsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+  };
+
   const handleCreateOverride = async () => {
     if (!settings) return;
     const localSettings = structuredClone(settings);
@@ -224,7 +252,10 @@ const Exhibitors = () => {
     if (monthCancelled) {
       delete localSettings.monthlyOverrides[currentMonthStr];
     } else {
-      localSettings.monthlyOverrides[currentMonthStr] = { isCancelledMonth: true };
+      localSettings.monthlyOverrides[currentMonthStr] = {
+        isCancelledMonth: true,
+        cancelledMessage: cancelledMessageInput,
+      };
     }
     await dbExhibitorsSaveSettings(localSettings);
     setSettings(localSettings);
@@ -3027,6 +3058,25 @@ const Exhibitors = () => {
               }
             />
           </FormGroup>
+
+          {monthCancelled && (
+            <TextField
+              label="Texto adicional (opcional)"
+              placeholder="Ej. Por la asamblea de circuito"
+              value={cancelledMessageInput}
+              onChange={(e) => setCancelledMessageInput(e.target.value)}
+              onBlur={handleSaveCancelledMonthMessage}
+              multiline
+              minRows={2}
+              fullWidth
+              helperText='Sale debajo de "Los turnos de exhibidores están suspendidos este mes." en Programas semanales.'
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 'var(--radius-l)',
+                },
+              }}
+            />
+          )}
 
           {!monthCancelled && (
             <Box sx={{ mt: '8px' }}>

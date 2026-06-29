@@ -12,7 +12,7 @@ export type ExhibitorSettingsType = {
   updatedAt?: string;
   lastModifiedBy?: string;
   turns: ExhibitorTurnType[];
-  monthlyOverrides?: Record<string, ExhibitorTurnType[] | { isCancelledMonth: boolean }>; // YYYY/MM key
+  monthlyOverrides?: Record<string, ExhibitorTurnType[] | { isCancelledMonth: boolean; cancelledMessage?: string }>; // YYYY/MM key
   locations: string[]; // Listado global de ubicaciones de exhibidores
   responsibles: string[]; // Array de person_uids habilitados como responsables de turno
   fixedAssignments: {
