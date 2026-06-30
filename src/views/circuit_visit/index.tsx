@@ -8,12 +8,14 @@ export type CircuitVisitPdfPreachingRow = {
   date: string;
   time: string;
   location: string;
-  companionName: string;
+  companionName: string;      // hermano que acompaña al CO
+  spouseCompanions: string;   // hermanas con la esposa (texto ya formateado)
 };
 
 type Props = {
   visit: CircuitVisitType;
   coName: string;
+  coSpouseName: string;
   lang: string;
   preachingRows: CircuitVisitPdfPreachingRow[];
 };
@@ -54,7 +56,7 @@ const SpecialMeetingRow = ({
   );
 };
 
-const CircuitVisitProgramDoc = ({ visit, coName, lang, preachingRows }: Props) => {
+const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, lang, preachingRows }: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
 
   return (
@@ -65,7 +67,10 @@ const CircuitVisitProgramDoc = ({ visit, coName, lang, preachingRows }: Props) =
           <Text style={styles.eyebrow}>
             Visita del Superintendente de Circuito
           </Text>
-          <Text style={styles.title}>{coName || 'Programa de la visita'}</Text>
+          <Text style={styles.title}>
+            {coName || 'Programa de la visita'}
+            {coSpouseName ? ` y ${coSpouseName}` : ''}
+          </Text>
           <Text style={styles.headerMeta}>{fmtRange(visit)}</Text>
         </View>
 
@@ -130,9 +135,14 @@ const CircuitVisitProgramDoc = ({ visit, coName, lang, preachingRows }: Props) =
                   <Text style={[styles.headCell, { width: '28%' }]}>
                     Punto de salida
                   </Text>
-                  <Text style={[styles.headCell, { width: '40%' }]}>
-                    Compañía del superintendente
+                  <Text style={[styles.headCell, { width: '20%' }]}>
+                    Hno. del CO
                   </Text>
+                  {coSpouseName ? (
+                    <Text style={[styles.headCell, { width: '20%' }]}>
+                      Con {coSpouseName}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
               {preachingRows.map((row, idx) => (
@@ -146,9 +156,14 @@ const CircuitVisitProgramDoc = ({ visit, coName, lang, preachingRows }: Props) =
                   <Text style={[styles.cell, { width: '28%' }]}>
                     {row.location || '—'}
                   </Text>
-                  <Text style={[styles.cell, { width: '40%' }]}>
+                  <Text style={[styles.cell, { width: '20%' }]}>
                     {row.companionName || '—'}
                   </Text>
+                  {coSpouseName ? (
+                    <Text style={[styles.cell, { width: '20%' }]}>
+                      {row.spouseCompanions || '—'}
+                    </Text>
+                  ) : null}
                 </View>
               ))}
             </View>

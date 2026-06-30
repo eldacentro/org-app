@@ -9,7 +9,7 @@ import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { generateDisplayName } from '@utils/common';
 
 const useCircuitOverseer = () => {
-  type FieldKey = 'firstname' | 'lastname' | 'displayname';
+  type FieldKey = 'firstname' | 'lastname' | 'displayname' | 'spouse_name';
 
   const saveTimers = useRef<Partial<Record<FieldKey, ReturnType<typeof setTimeout>>>>({});
 
@@ -20,10 +20,12 @@ const useCircuitOverseer = () => {
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [displayname, setDisplayname] = useState('');
+  const [spouseName, setSpouseName] = useState('');
   const [editing, setEditing] = useState<Record<FieldKey, boolean>>({
     firstname: false,
     lastname: false,
     displayname: false,
+    spouse_name: false,
   });
 
   const clearTimer = (key: FieldKey) => {
@@ -81,6 +83,11 @@ const useCircuitOverseer = () => {
     setDisplayname(value);
   };
 
+  const handleSpouseNameChange = (value: string) => {
+    markEditing(['spouse_name']);
+    setSpouseName(value);
+  };
+
   const handleFirstnameSave = () => {
     scheduleSave('firstname', handleFirstnameSaveDb, ['firstname', 'displayname']);
   };
@@ -91,6 +98,10 @@ const useCircuitOverseer = () => {
 
   const handleDisplaynameSave = () => {
     scheduleSave('displayname', handleDisplaynameSaveDb, ['displayname']);
+  };
+
+  const handleSpouseNameSave = () => {
+    scheduleSave('spouse_name', handleSpouseNameSaveDb, ['spouse_name']);
   };
 
   const handleFirstnameSaveDb = async () => {
@@ -146,12 +157,25 @@ const useCircuitOverseer = () => {
     });
   };
 
+  const handleSpouseNameSaveDb = async () => {
+    const existing = structuredClone(
+      settings.cong_settings.circuit_overseer.spouse_name ?? { value: '', updatedAt: '' }
+    );
+    existing.value = spouseName;
+    existing.updatedAt = new Date().toISOString();
+
+    await dbAppSettingsUpdate({
+      'cong_settings.circuit_overseer.spouse_name': existing,
+    });
+  };
+
   useEffect(() => {
     const co = settings.cong_settings.circuit_overseer;
 
     setFirstname((prev) => (editing.firstname ? prev : co.firstname.value));
     setLastname((prev) => (editing.lastname ? prev : co.lastname.value));
     setDisplayname((prev) => (editing.displayname ? prev : co.display_name.value));
+    setSpouseName((prev) => (editing.spouse_name ? prev : co.spouse_name?.value ?? ''));
   }, [settings, editing]);
 
   useEffect(() => {
@@ -179,6 +203,9 @@ const useCircuitOverseer = () => {
     displayname,
     handleDisplaynameChange,
     handleDisplaynameSave,
+    spouseName,
+    handleSpouseNameChange,
+    handleSpouseNameSave,
   };
 };
 

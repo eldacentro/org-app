@@ -24,9 +24,12 @@ export type CircuitVisitCompanion = {
   // Clave estable de la salida en service_outings: `${date}_${time}`. NO se usa
   // el id de la salida porque ese id se regenera para slots aún sin asignar.
   outingKey: string;
-  brother: string; // person_uid
-  withWife: boolean;
+  brother: string; // person_uid del hermano que acompaña al CO
+  withWife: boolean; // ¿viene la esposa del CO?
   activity: CircuitVisitCompanionActivity;
+  // Hermanas asignadas para ir con la esposa del CO en esa misma salida
+  // (grupo paralelo). Vacío si el CO es soltero o la esposa no viene.
+  spouse_companions: string[]; // person_uids
 };
 
 export type CircuitVisitSpecialMeeting = {

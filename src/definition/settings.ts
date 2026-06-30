@@ -155,6 +155,9 @@ export type SettingsType = {
       // defecto martes (1), ya que la mayoría de congregaciones mueven la
       // reunión al martes esa semana.
       visit_weekday?: { value: number; updatedAt: string };
+      // Nombre de la esposa del CO (vacío = soltero). También se usa para el
+      // sustituto cuando hay uno activo.
+      spouse_name?: { value: string; updatedAt: string };
     };
     language_groups: { enabled: { value: boolean; updatedAt: string } };
     format_24h_enabled: {

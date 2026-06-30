@@ -4,6 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import { circuitVisitsState } from '@states/circuit_visit';
 import {
   COFullnameState,
+  COSpouseNameState,
   JWLangState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
@@ -48,6 +49,7 @@ const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
 const useCircuitVisitDashboard = () => {
   const visits = useAtomValue(circuitVisitsState);
   const coName = useAtomValue(COFullnameState);
+  const coSpouseName = useAtomValue(COSpouseNameState);
   const jwLang = useAtomValue(JWLangState);
   const outingsList = useAtomValue(serviceOutingsListState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
@@ -181,6 +183,7 @@ const useCircuitVisitDashboard = () => {
               brother: '',
               withWife: false,
               activity: 'predicacion',
+              spouse_companions: [],
               ...changes,
             };
 
@@ -247,13 +250,20 @@ const useCircuitVisitDashboard = () => {
           ? personGetDisplayName(companionPerson, displayNameEnabled, fullnameOption)
           : '';
 
+        const spouseNames = (companion?.spouse_companions ?? [])
+          .map((uid) => {
+            const p = personsStateFind(uid);
+            return p ? personGetDisplayName(p, displayNameEnabled, fullnameOption) : '';
+          })
+          .filter(Boolean)
+          .join(', ');
+
         return {
           date: o.date,
           time: o.time,
           location: o.location,
-          companionName: companion
-            ? `${companionName}${companion.withWife ? ' y esposa' : ''}`
-            : '',
+          companionName: companionName,
+          spouseCompanions: spouseNames,
         };
       })
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
@@ -262,6 +272,7 @@ const useCircuitVisitDashboard = () => {
       <CircuitVisitProgramDoc
         visit={working}
         coName={coName}
+        coSpouseName={coSpouseName}
         lang={jwLang}
         preachingRows={preachingRows}
       />
@@ -273,7 +284,7 @@ const useCircuitVisitDashboard = () => {
     link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [working, coName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
+  }, [working, coName, coSpouseName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
 
   return {
     visits: sortedVisits,

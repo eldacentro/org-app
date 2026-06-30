@@ -150,6 +150,12 @@ export const COFullnameState = atom((get) => {
   return fullname;
 });
 
+/** Nombre de la esposa del CO. Vacío = soltero. */
+export const COSpouseNameState = atom((get) => {
+  const settings = get(settingsState);
+  return settings.cong_settings.circuit_overseer.spouse_name?.value ?? '';
+});
+
 export const COScheduleNameState = atom((get) => {
   const fullname = get(COFullnameState);
   const displayName = get(CODisplayNameState);

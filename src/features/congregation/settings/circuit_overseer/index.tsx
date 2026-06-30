@@ -34,6 +34,9 @@ const CircuitOverseer = () => {
     handleLastnameChange,
     handleLastnameSave,
     lastname,
+    spouseName,
+    handleSpouseNameChange,
+    handleSpouseNameSave,
   } = useCircuitOverseer();
 
   return (
@@ -84,6 +87,15 @@ const CircuitOverseer = () => {
               slotProps={{ input: { readOnly: !isAdmin } }}
             />
           )}
+
+          <TextField
+            type="text"
+            label="Nombre de la esposa (vacío si soltero)"
+            value={spouseName}
+            onChange={(e) => handleSpouseNameChange(e.target.value)}
+            onKeyUp={handleSpouseNameSave}
+            slotProps={{ input: { readOnly: !isAdmin } }}
+          />
 
           <WeeksList />
         </Stack>

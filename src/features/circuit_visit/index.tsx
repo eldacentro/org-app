@@ -35,7 +35,7 @@ import {
   CircuitVisitCompanionActivity,
 } from '@definition/circuit_visit';
 import { personsState } from '@states/persons';
-import { fullnameOptionState } from '@states/settings';
+import { fullnameOptionState, COSpouseNameState } from '@states/settings';
 import { serviceOutingsListState } from '@states/service_outings';
 import { buildPersonFullname } from '@utils/common';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
@@ -210,6 +210,7 @@ const PreachingSection = ({
   const outingsList = useAtomValue(serviceOutingsListState);
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const coSpouseName = useAtomValue(COSpouseNameState);
 
   const weekRecord = useMemo(
     () => outingsList.find((r) => r.weekOf === visit.weekOf),
@@ -308,20 +309,52 @@ const PreachingSection = ({
                           </MenuItem>
                         ))}
                       </Select>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={companion.withWife}
-                            onChange={(e) =>
-                              onUpsertCompanion(outing.outingKey, {
-                                withWife: e.target.checked,
-                              })
-                            }
-                          />
-                        }
-                        label="Con esposa"
-                      />
+                      {/* Solo muestra "con esposa" si el CO no es soltero
+                          (hay nombre de esposa configurado en Ajustes). */}
+                      {coSpouseName && (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={companion.withWife}
+                              onChange={(e) =>
+                                onUpsertCompanion(outing.outingKey, {
+                                  withWife: e.target.checked,
+                                  spouse_companions: e.target.checked
+                                    ? companion.spouse_companions ?? []
+                                    : [],
+                                })
+                              }
+                            />
+                          }
+                          label={`Con ${coSpouseName}`}
+                        />
+                      )}
                     </>
+                  )}
+                  {/* Hermanas que acompañan a la esposa del CO en paralelo */}
+                  {companion?.withWife && coSpouseName && (
+                    <Autocomplete
+                      sx={{ flex: 1, minWidth: '200px' }}
+                      multiple
+                      options={personOptions}
+                      value={personOptions.filter((o) =>
+                        (companion.spouse_companions ?? []).includes(o.uid)
+                      )}
+                      onChange={(_, selected) =>
+                        onUpsertCompanion(outing.outingKey, {
+                          spouse_companions: selected.map((s) => s.uid),
+                        })
+                      }
+                      getOptionLabel={(o) => o.label}
+                      isOptionEqualToValue={(o, v) => o.uid === v.uid}
+                      renderInput={(params) => (
+                        <MuiTextField
+                          {...params}
+                          label={`Hermanas con ${coSpouseName}`}
+                          size="small"
+                        />
+                      )}
+                    />
                   )}
                 </Stack>
               );
