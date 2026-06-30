@@ -26,9 +26,11 @@ const useMeetingMaterials = () => {
         strict: true,
       });
 
+      const isJwpub = file.name.toLowerCase().endsWith('.jwpub');
       const epubLang = file.name.split('_')[1]?.split('.')[0];
+      const langOk = isJwpub || (!!epubLang && epubLang === sourceLang.toUpperCase());
 
-      if (epubLang && epubLang === sourceLang.toUpperCase()) {
+      if (langOk) {
         setEpubFile(file);
         setIsImportEPUB(true);
       } else {
