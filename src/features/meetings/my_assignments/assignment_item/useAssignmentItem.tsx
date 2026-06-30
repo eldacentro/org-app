@@ -10,7 +10,7 @@ import {
   JWLangState,
 } from '@states/settings';
 import { sourcesState } from '@states/sources';
-import { formatDate } from '@utils/date';
+import { formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import Badge from '@components/badge';
@@ -119,30 +119,29 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     if (!isMidweek || EXCLUDED.has(code)) return null;
 
     const locale = jwLang || 'S';
-    const source = sources.find((s) => s.weekOf === first.weekOf);
+
+    // El weekOf de una asignación es el día real de la reunión (p. ej. el
+    // miércoles), pero las fuentes del .jwpub se guardan bajo el LUNES de la
+    // semana. Normalizamos ambos al lunes para que coincidan; si no, la
+    // búsqueda falla y, peor, el fallback toma el mes del miércoles (que en la
+    // última semana del cuaderno cae en el mes siguiente → cuaderno erróneo).
+    const toMonday = (week: string) =>
+      formatDate(getWeekDate(new Date(week)), 'yyyy/MM/dd');
+    const targetMonday = toMonday(first.weekOf);
+
+    const source = sources.find((s) => toMonday(s.weekOf) === targetMonday);
 
     if (source?.mwb_week_docid) {
       return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.mwb_week_docid}`;
     }
 
-    const [year, month] = first.weekOf.split('/');
+    const [year, month] = targetMonday.split('/');
     // MWB is published bi-monthly: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec.
     // The issue code uses the first month of each pair (always odd).
     const monthNum = parseInt(month, 10);
     const issueMonth = String(monthNum % 2 === 0 ? monthNum - 1 : monthNum).padStart(2, '0');
     return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${issueMonth}`;
   }, [first, sources, jwLang]);
-
-  // DIAGNÓSTICO TEMPORAL — quitar después de depurar el docid del MWB.
-  const jwDebug = useMemo(() => {
-    const wk = first.weekOf;
-    const src = sources.find((s) => s.weekOf === wk);
-    const withDocid = sources.filter(
-      (s) => typeof s.mwb_week_docid === 'number'
-    ).length;
-    const code = first.assignment.code;
-    return `wk:${wk} | src:${src ? 'sí' : 'NO'} | docid:${src?.mwb_week_docid ?? '—'} | total c/docid:${withDocid} | code:${code}`;
-  }, [first, sources]);
 
   return {
     assignmentDate,
@@ -152,7 +151,6 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
-    jwDebug,
     jwLibraryUrl,
   };
 };

@@ -19,7 +19,6 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     userUID,
     ADD_CALENDAR_SHOW,
     jwLibraryUrl,
-    jwDebug,
   } = useAssignmentItem(props);
 
   const firstKey = props.items[0].assignment.key ?? '';
@@ -272,22 +271,6 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             )}
           </Stack>
         ))}
-
-        {/* DIAGNÓSTICO TEMPORAL */}
-        {jwLibraryUrl && jwDebug && (
-          <Typography
-            component="span"
-            sx={{
-              fontSize: '9px',
-              color: 'var(--red-main)',
-              fontFamily: 'monospace',
-              wordBreak: 'break-all',
-              lineHeight: 1.3,
-            }}
-          >
-            {jwDebug}
-          </Typography>
-        )}
 
         {jwLibraryUrl && (
           <Box
