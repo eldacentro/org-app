@@ -18,6 +18,7 @@ import {
   CircuitVisitMeal,
   CircuitVisitCompanion,
   CircuitVisitSpecialMeeting,
+  CircuitVisitShepherdingVisit,
 } from '@definition/circuit_visit';
 import {
   dbCircuitVisitSave,
@@ -38,8 +39,12 @@ const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
     weekOf,
     date_start: formatDate(addDays(monday, 1), 'yyyy/MM/dd'), // martes
     date_end: formatDate(addDays(monday, 6), 'yyyy/MM/dd'), // domingo
+    is_substitute: false,
+    substitute_name: '',
+    substitute_spouse_name: '',
     meals: [],
     co_companions: [],
+    shepherding_visits: [],
     meeting_pioneers: null,
     meeting_elders: null,
     accounting_note: '',
@@ -218,6 +223,61 @@ const useCircuitVisitDashboard = () => {
     [flushSave]
   );
 
+  // ── Visitas de pastoreo ──────────────────────────────────────────────
+  const addShepherding = useCallback(() => {
+    setWorking((prev) => {
+      if (!prev) return prev;
+      const visit: CircuitVisitShepherdingVisit = {
+        id: crypto.randomUUID(),
+        brother: '',
+        elder: '',
+        date: prev.date_start,
+        time: '',
+        note: '',
+      };
+      const next = {
+        ...prev,
+        shepherding_visits: [...(prev.shepherding_visits ?? []), visit],
+      };
+      flushSave(next);
+      return next;
+    });
+  }, [flushSave]);
+
+  const updateShepherding = useCallback(
+    (id: string, changes: Partial<CircuitVisitShepherdingVisit>) => {
+      setWorking((prev) => {
+        if (!prev) return prev;
+        const next = {
+          ...prev,
+          shepherding_visits: (prev.shepherding_visits ?? []).map((v) =>
+            v.id === id ? { ...v, ...changes } : v
+          ),
+        };
+        flushSave(next);
+        return next;
+      });
+    },
+    [flushSave]
+  );
+
+  const removeShepherding = useCallback(
+    (id: string) => {
+      setWorking((prev) => {
+        if (!prev) return prev;
+        const next = {
+          ...prev,
+          shepherding_visits: (prev.shepherding_visits ?? []).filter(
+            (v) => v.id !== id
+          ),
+        };
+        flushSave(next);
+        return next;
+      });
+    },
+    [flushSave]
+  );
+
   // ── Reuniones especiales ─────────────────────────────────────────────
   const updateSpecialMeeting = useCallback(
     (
@@ -300,6 +360,9 @@ const useCircuitVisitDashboard = () => {
     removeMeal,
     upsertCompanion,
     removeCompanion,
+    addShepherding,
+    updateShepherding,
+    removeShepherding,
     updateSpecialMeeting,
     handleExportPdf,
   };

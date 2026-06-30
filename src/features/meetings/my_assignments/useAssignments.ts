@@ -14,6 +14,8 @@ import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
+import { circuitVisitsState } from '@states/circuit_visit';
+import { personsStateFind } from '@services/states/persons';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { DeptWeekType } from '@definition/departments_schedule';
@@ -54,6 +56,7 @@ const useMyAssignments = () => {
   const [limpiezaConfig, setLimpiezaConfig] = useState<LimpiezaConfig | null>(null);
 
   const groups = useAtomValue(fieldServiceGroupsState);
+  const circuitVisits = useAtomValue(circuitVisitsState);
   // Keep this hook to preserve hook call order (Rules of Hooks)
   useAtomValue(personsState);
 
@@ -285,6 +288,72 @@ const useMyAssignments = () => {
       return results;
     };
 
+    // Visitas de pastoreo: le aparece al anciano acompañante (NO al hermano visitado).
+    // Comidas de la visita del CO: le aparece al anfitrión.
+    const getCircuitVisitAssignments = (uid: string): AssignmentHistoryType[] => {
+      const results: AssignmentHistoryType[] = [];
+      const maxDateStr = formatDate(maxDate, 'yyyy/MM/dd');
+
+      for (const visit of circuitVisits) {
+        if (visit._deleted) continue;
+        // Comidas: aparece al anfitrión (host = person_uid)
+        for (const meal of visit.meals ?? []) {
+          if (
+            meal.host === uid &&
+            meal.date >= currentDayStr &&
+            meal.date <= maxDateStr
+          ) {
+            const hostPerson = personsStateFind(uid);
+            const hostName = hostPerson
+              ? `${hostPerson.person_data.person_firstname.value} ${hostPerson.person_data.person_lastname.value}`.trim()
+              : '';
+            results.push({
+              id: `COVISIT_MEAL_${visit.id}_${meal.id}`,
+              weekOf: visit.weekOf,
+              weekOfFormatted: formatDate(new Date(meal.date), shortDateFormat),
+              actualDate: meal.date,
+              assignment: {
+                code: 0 as AssignmentHistoryType['assignment']['code'],
+                person: uid,
+                key: `COVISIT_MEAL_${meal.id}` as AssignmentHistoryType['assignment']['key'],
+                dataView: 'main',
+                title: 'Comida con el superintendente',
+                desc: hostName ? `🍽️ Anfitrión: ${hostName}` : '🍽️ Visita del superintendente de circuito',
+              },
+            });
+          }
+        }
+        // Pastoreo: aparece al anciano acompañante
+        for (const sv of visit.shepherding_visits ?? []) {
+          if (
+            sv.elder === uid &&
+            sv.date >= currentDayStr &&
+            sv.date <= maxDateStr
+          ) {
+            const brotherPerson = personsStateFind(sv.brother);
+            const brotherName = brotherPerson
+              ? `${brotherPerson.person_data.person_firstname.value} ${brotherPerson.person_data.person_lastname.value}`.trim()
+              : 'hermano';
+            results.push({
+              id: `COVISIT_SHEPHERD_${visit.id}_${sv.id}`,
+              weekOf: visit.weekOf,
+              weekOfFormatted: formatDate(new Date(sv.date), shortDateFormat),
+              actualDate: sv.date,
+              assignment: {
+                code: 0 as AssignmentHistoryType['assignment']['code'],
+                person: uid,
+                key: `COVISIT_SHEPHERD_${sv.id}` as AssignmentHistoryType['assignment']['key'],
+                dataView: 'main',
+                title: 'Visita de pastoreo (CO)',
+                desc: `🕒 ${sv.time || '—'}  •  👤 ${brotherName}`,
+              },
+            });
+          }
+        }
+      }
+      return results;
+    };
+
     const filterAssignments = (uid: string) => {
       const meetingAssignments =
         filterType === 'preaching'
@@ -301,7 +370,8 @@ const useMyAssignments = () => {
       const exhibitorAssignments = filterType === 'meetings' || filterType === 'limpieza' ? [] : getExhibitorsAssignments(uid);
       const limpiezaAssign = filterType === 'meetings' || filterType === 'preaching' ? [] : getLimpiezaAssignments(uid);
 
-      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments, ...limpiezaAssign];
+      const circuitAssignments = getCircuitVisitAssignments(uid);
+      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments, ...limpiezaAssign, ...circuitAssignments];
     };
 
     const ownAssignments = filterAssignments(userUID);
@@ -358,6 +428,7 @@ const useMyAssignments = () => {
     limpiezaConfig,
     groups,
     schedules,
+    circuitVisits,
   ]);
 
   const handleClose = () => setOpen(false);

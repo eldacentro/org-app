@@ -38,6 +38,7 @@ import { personsState } from '@states/persons';
 import { fullnameOptionState, COSpouseNameState } from '@states/settings';
 import { serviceOutingsListState } from '@states/service_outings';
 import { buildPersonFullname } from '@utils/common';
+import { personIsElder } from '@services/app/persons';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
 
@@ -366,6 +367,35 @@ const PreachingSection = ({
   );
 };
 
+// Selector compacto de una sola persona (para anfitriones de comida, hermano
+// visitado en pastoreo, anciano acompañante, etc.).
+const PersonPicker = ({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { uid: string; label: string }[];
+  onChange: (uid: string) => void;
+}) => {
+  const selected = options.find((o) => o.uid === value) ?? null;
+  return (
+    <Autocomplete
+      sx={{ flex: 1, minWidth: '180px' }}
+      options={options}
+      value={selected}
+      onChange={(_, v) => onChange(v?.uid ?? '')}
+      getOptionLabel={(o) => o.label}
+      isOptionEqualToValue={(o, v) => o.uid === v.uid}
+      renderInput={(params) => (
+        <MuiTextField {...params} label={label} size="small" />
+      )}
+    />
+  );
+};
+
 const CircuitVisitDashboard = () => {
   const {
     visits,
@@ -381,12 +411,41 @@ const CircuitVisitDashboard = () => {
     removeMeal,
     upsertCompanion,
     removeCompanion,
+    addShepherding,
+    updateShepherding,
+    removeShepherding,
     updateSpecialMeeting,
     handleExportPdf,
   } = useCircuitVisitDashboard();
 
   const navigate = useNavigate();
   const [newWeek, setNewWeek] = useState<Date | null>(null);
+
+  const persons = useAtomValue(personsState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
+
+  const personOptions = useMemo(
+    () =>
+      persons
+        .map((p) => ({
+          uid: p.person_uid,
+          label: buildPersonFullname(
+            p.person_data.person_lastname.value,
+            p.person_data.person_firstname.value,
+            fullnameOption
+          ),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [persons, fullnameOption]
+  );
+
+  const elderOptions = useMemo(
+    () => personOptions.filter((o) => {
+      const p = persons.find((pe) => pe.person_uid === o.uid);
+      return p ? personIsElder(p) : false;
+    }),
+    [personOptions, persons]
+  );
 
   return (
     <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
@@ -506,6 +565,42 @@ const CircuitVisitDashboard = () => {
             </Stack>
           </Stack>
 
+          {/* Superintendente sustituto */}
+          <Card
+            title="Superintendente"
+            subtitle="El CO titular se muestra en Ajustes. Activa el sustituto si viene uno distinto."
+          >
+            <Stack spacing="12px">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={working.is_substitute ?? false}
+                    onChange={(e) =>
+                      patch({ is_substitute: e.target.checked })
+                    }
+                  />
+                }
+                label="Superintendente sustituto"
+              />
+              {working.is_substitute && (
+                <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px">
+                  <TextField
+                    label="Nombre del sustituto"
+                    value={working.substitute_name ?? ''}
+                    onChange={(e) => patch({ substitute_name: e.target.value })}
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    label="Nombre de su esposa (vacío si soltero)"
+                    value={working.substitute_spouse_name ?? ''}
+                    onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
+                    sx={{ flex: 1 }}
+                  />
+                </Stack>
+              )}
+            </Stack>
+          </Card>
+
           {/* Programa de comidas */}
           <Card title="Programa de comidas" subtitle="Anfitriones por día.">
             <Stack spacing="12px">
@@ -526,10 +621,11 @@ const CircuitVisitDashboard = () => {
                       })
                     }
                   />
-                  <TextField
+                  <PersonPicker
                     label="Anfitrión"
                     value={meal.host}
-                    onChange={(e) => updateMeal(meal.id, { host: e.target.value })}
+                    options={personOptions}
+                    onChange={(uid) => updateMeal(meal.id, { host: uid })}
                   />
                   <IconButton onClick={() => removeMeal(meal.id)}>
                     <IconDelete color="var(--red-main)" />
@@ -542,6 +638,65 @@ const CircuitVisitDashboard = () => {
                 onClick={addMeal}
               >
                 Añadir comida
+              </Button>
+            </Stack>
+          </Card>
+
+          {/* Visitas de pastoreo */}
+          <Card
+            title="Visitas de pastoreo"
+            subtitle="Hermanos que el superintendente visitará durante la semana."
+          >
+            <Stack spacing="14px">
+              {(working.shepherding_visits ?? []).map((sv) => (
+                <Stack
+                  key={sv.id}
+                  direction={{ mobile: 'column', tablet: 'row' }}
+                  spacing="10px"
+                  alignItems={{ tablet: 'center' }}
+                  sx={{
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-m, 8px)',
+                    border: '1px solid var(--line)',
+                  }}
+                >
+                  <PersonPicker
+                    label="Hermano visitado"
+                    value={sv.brother}
+                    options={personOptions}
+                    onChange={(uid) => updateShepherding(sv.id, { brother: uid })}
+                  />
+                  <PersonPicker
+                    label="Anciano acompañante"
+                    value={sv.elder}
+                    options={elderOptions}
+                    onChange={(uid) => updateShepherding(sv.id, { elder: uid })}
+                  />
+                  <CustomDatePicker
+                    label="Fecha"
+                    view="input"
+                    value={sv.date ? new Date(sv.date) : null}
+                    onChange={(d) =>
+                      updateShepherding(sv.id, {
+                        date: d ? formatDate(d, 'yyyy/MM/dd') : '',
+                      })
+                    }
+                  />
+                  <TimeField
+                    value={sv.time}
+                    onChange={(t) => updateShepherding(sv.id, { time: t })}
+                  />
+                  <IconButton onClick={() => removeShepherding(sv.id)}>
+                    <IconDelete color="var(--red-main)" />
+                  </IconButton>
+                </Stack>
+              ))}
+              <Button
+                variant="secondary"
+                startIcon={<IconAdd color="var(--accent-main)" />}
+                onClick={addShepherding}
+              >
+                Añadir visita de pastoreo
               </Button>
             </Stack>
           </Card>

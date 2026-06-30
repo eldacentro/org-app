@@ -109,7 +109,8 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
       key.startsWith('DEPT_') ||
       key.startsWith('OUTING_') ||
       key.startsWith('EXHIBITOR_') ||
-      key.startsWith('LIMPIEZA_');
+      key.startsWith('LIMPIEZA_') ||
+      key.startsWith('COVISIT_');
     if (isSpecial) return null;
 
     const code = first.assignment.code as number;

@@ -360,8 +360,12 @@ export const TABLE_ENCRYPTION_MAP = {
     weekOf: 'shared',
     // arrays/objetos anidados se cifran como un único blob JSON con la clave
     // compartida de la congregación (todo el cuerpo de ancianos debe poder leerlo).
+    is_substitute: 'shared',
+    substitute_name: 'shared',
+    substitute_spouse_name: 'shared',
     meals: 'shared',
     co_companions: 'shared',
+    shepherding_visits: 'shared',
     meeting_pioneers: 'shared',
     meeting_elders: 'shared',
     accounting_note: 'shared',

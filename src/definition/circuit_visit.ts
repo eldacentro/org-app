@@ -38,6 +38,15 @@ export type CircuitVisitSpecialMeeting = {
   place: string;
 } | null;
 
+export type CircuitVisitShepherdingVisit = {
+  id: string;
+  brother: string; // person_uid del hermano visitado
+  elder: string;   // person_uid del anciano que acompaña al CO
+  date: string;    // yyyy/MM/dd
+  time: string;    // HH:mm
+  note: string;
+};
+
 export type CircuitVisitType = {
   id: string;
   _deleted: boolean;
@@ -50,8 +59,15 @@ export type CircuitVisitType = {
   date_end: string; // yyyy/MM/dd (domingo)
   weekOf: string; // yyyy/MM/dd (lunes)
 
+  // Superintendente sustituto: si viene uno distinto al habitual.
+  // Vacío/false = viene el CO titular (nombre desde settings).
+  is_substitute: boolean;
+  substitute_name: string;
+  substitute_spouse_name: string;
+
   meals: CircuitVisitMeal[];
   co_companions: CircuitVisitCompanion[];
+  shepherding_visits: CircuitVisitShepherdingVisit[];
 
   meeting_pioneers: CircuitVisitSpecialMeeting;
   meeting_elders: CircuitVisitSpecialMeeting;
