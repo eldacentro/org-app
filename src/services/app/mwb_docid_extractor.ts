@@ -1,5 +1,12 @@
 import JSZip from 'jszip';
-import initSqlJs from 'sql.js';
+// Importamos el build ESTÁNDAR explícitamente. Si dejamos `from 'sql.js'`,
+// Vite resuelve la condición `browser` del package.json y carga
+// `sql-wasm-browser.js`, que espera el binario `sql-wasm-browser.wasm`; al
+// pasarle nuestro `sql-wasm.wasm` el glue y el wasm son incompatibles y
+// initSqlJs falla en el navegador (en Node sí cargaba el build default, por
+// eso funcionaba en las pruebas pero no en producción). El build estándar usa
+// locateFile + sql-wasm.wasm, que es justo lo que importamos abajo.
+import initSqlJs from 'sql.js/dist/sql-wasm.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 
 /**
