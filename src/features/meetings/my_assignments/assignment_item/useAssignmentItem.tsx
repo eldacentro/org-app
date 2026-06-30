@@ -115,7 +115,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     const code = first.assignment.code as number;
     const PRAYER_CODE = 111;
     const isMidweek =
-      (code >= 101 && code <= 115) || (code >= 123 && code <= 125);
+      (code >= 100 && code <= 115) || (code >= 123 && code <= 125);
     if (!isMidweek || code === PRAYER_CODE) return null;
 
     const locale = jwLang || 'S';
@@ -126,7 +126,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     }
 
     const [year, month] = first.weekOf.split('/');
-    return `https://www.jw.org/finder?wtlocale=${locale}&pub=mwb&issue=${year}${month}`;
+    return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${month}`;
   }, [first, sources, jwLang]);
 
   return {

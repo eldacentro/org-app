@@ -26,7 +26,7 @@ const useMeetingMaterials = () => {
         strict: true,
       });
 
-      const epubLang = file.name.split('_')[1];
+      const epubLang = file.name.split('_')[1]?.split('.')[0];
 
       if (epubLang && epubLang === sourceLang.toUpperCase()) {
         setEpubFile(file);
