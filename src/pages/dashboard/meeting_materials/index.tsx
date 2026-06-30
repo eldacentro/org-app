@@ -34,9 +34,10 @@ const MeetingsMaterialsCard = () => {
           icon={<IconImportFile color="var(--black)" />}
           primaryText={t('tr_sourceImportEPUB')}
         />
+        {/* Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
+            (no es un UTI reconocido). La validación se hace en handleFileSelected. */}
         <input
           type="file"
-          accept=".epub,.jwpub"
           style={{
             position: 'absolute',
             inset: 0,
@@ -44,7 +45,7 @@ const MeetingsMaterialsCard = () => {
             height: '100%',
             opacity: 0,
             cursor: 'pointer',
-            zIndex: 1,
+            zIndex: 2,
           }}
           onChange={handleFileSelected}
         />
