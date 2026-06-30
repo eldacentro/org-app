@@ -133,6 +133,17 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${issueMonth}`;
   }, [first, sources, jwLang]);
 
+  // DIAGNÓSTICO TEMPORAL — quitar después de depurar el docid del MWB.
+  const jwDebug = useMemo(() => {
+    const wk = first.weekOf;
+    const src = sources.find((s) => s.weekOf === wk);
+    const withDocid = sources.filter(
+      (s) => typeof s.mwb_week_docid === 'number'
+    ).length;
+    const code = first.assignment.code;
+    return `wk:${wk} | src:${src ? 'sí' : 'NO'} | docid:${src?.mwb_week_docid ?? '—'} | total c/docid:${withDocid} | code:${code}`;
+  }, [first, sources]);
+
   return {
     assignmentDate,
     assignmentDayName,
@@ -141,6 +152,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
+    jwDebug,
     jwLibraryUrl,
   };
 };
