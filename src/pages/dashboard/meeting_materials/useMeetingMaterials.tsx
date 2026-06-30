@@ -1,5 +1,5 @@
+import { ChangeEvent, useRef } from 'react';
 import { useAtomValue } from 'jotai';
-import { fileDialog } from 'file-select-dialog';
 import { IconError } from '@components/icons';
 import { useAppTranslation, useInternetChecker } from '@hooks/index';
 import {
@@ -17,32 +17,29 @@ const useMeetingMaterials = () => {
 
   const sourceLang = useAtomValue(JWLangState);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleOpenJWImport = () => setIsImportJWOrg(true);
 
-  const handleOpenEPUBFile = async () => {
-    try {
-      const file = await fileDialog({
-        accept: ['.epub', '.jwpub'],
-        strict: true,
-      });
+  const handleOpenEPUBFile = () => {
+    fileInputRef.current?.click();
+  };
 
-      const isJwpub = file.name.toLowerCase().endsWith('.jwpub');
-      const epubLang = file.name.split('_')[1]?.split('.')[0];
-      const langOk = isJwpub || (!!epubLang && epubLang === sourceLang.toUpperCase());
+  const handleFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Reset so selecting the same file again triggers onChange.
+    event.target.value = '';
 
-      if (langOk) {
-        setEpubFile(file);
-        setIsImportEPUB(true);
-      } else {
-        displaySnackNotification({
-          header: t('tr_EPUBImportFailed'),
-          message: t('tr_EPUBImportFailedDesc'),
-          severity: 'error',
-          icon: <IconError color="var(--always-white)" />,
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    if (!file) return;
+
+    const isJwpub = file.name.toLowerCase().endsWith('.jwpub');
+    const epubLang = file.name.split('_')[1]?.split('.')[0];
+    const langOk = isJwpub || (!!epubLang && epubLang === sourceLang.toUpperCase());
+
+    if (langOk) {
+      setEpubFile(file);
+      setIsImportEPUB(true);
+    } else {
       displaySnackNotification({
         header: t('tr_EPUBImportFailed'),
         message: t('tr_EPUBImportFailedDesc'),
@@ -52,7 +49,7 @@ const useMeetingMaterials = () => {
     }
   };
 
-  return { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile };
+  return { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected };
 };
 
 export default useMeetingMaterials;

@@ -29,7 +29,7 @@ const SettingsDashboard = () => {
     isConnected,
   } = useCongregation();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile } =
+  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected } =
     useMeetingMaterials();
 
   const handleTileClick = (path: string) => {
@@ -102,7 +102,16 @@ const SettingsDashboard = () => {
           </div>
         )}
 
-        {/* Importar desde archivo .epub */}
+        {/* Importar desde archivo .jwpub */}
+        {isMeetingEditor && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".epub,.jwpub"
+            style={{ display: 'none' }}
+            onChange={handleFileSelected}
+          />
+        )}
         {isMeetingEditor && (
           <div className="tile-item c-blue active-press full-width" onClick={handleOpenEPUBFile}>
             <div className="ti">
