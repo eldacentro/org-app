@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef } from 'react';
+import { ChangeEvent } from 'react';
 import { useAtomValue } from 'jotai';
 import { IconError } from '@components/icons';
 import { useAppTranslation, useInternetChecker } from '@hooks/index';
@@ -17,13 +17,7 @@ const useMeetingMaterials = () => {
 
   const sourceLang = useAtomValue(JWLangState);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleOpenJWImport = () => setIsImportJWOrg(true);
-
-  const handleOpenEPUBFile = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -49,7 +43,7 @@ const useMeetingMaterials = () => {
     }
   };
 
-  return { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected };
+  return { handleOpenJWImport, isNavigatorOnline, handleFileSelected };
 };
 
 export default useMeetingMaterials;

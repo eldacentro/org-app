@@ -126,7 +126,11 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     }
 
     const [year, month] = first.weekOf.split('/');
-    return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${month}`;
+    // MWB is published bi-monthly: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec.
+    // The issue code uses the first month of each pair (always odd).
+    const monthNum = parseInt(month, 10);
+    const issueMonth = String(monthNum % 2 === 0 ? monthNum - 1 : monthNum).padStart(2, '0');
+    return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${issueMonth}`;
   }, [first, sources, jwLang]);
 
   return {

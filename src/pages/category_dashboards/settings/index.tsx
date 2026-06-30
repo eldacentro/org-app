@@ -29,7 +29,7 @@ const SettingsDashboard = () => {
     isConnected,
   } = useCongregation();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected } =
+  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
     useMeetingMaterials();
 
   const handleTileClick = (path: string) => {
@@ -104,16 +104,7 @@ const SettingsDashboard = () => {
 
         {/* Importar desde archivo .jwpub */}
         {isMeetingEditor && (
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".epub,.jwpub"
-            style={{ display: 'none' }}
-            onChange={handleFileSelected}
-          />
-        )}
-        {isMeetingEditor && (
-          <div className="tile-item c-blue active-press full-width" onClick={handleOpenEPUBFile}>
+          <div className="tile-item c-blue full-width" style={{ position: 'relative' }}>
             <div className="ti">
               <IconImportFile color="var(--brand)" width={22} height={22} />
             </div>
@@ -123,6 +114,20 @@ const SettingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
+            <input
+              type="file"
+              accept=".epub,.jwpub"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                zIndex: 1,
+              }}
+              onChange={handleFileSelected}
+            />
           </div>
         )}
 

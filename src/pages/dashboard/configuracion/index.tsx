@@ -31,7 +31,7 @@ const ConfiguracionCard = () => {
     requests_count,
   } = useCongregation();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected } =
+  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
     useMeetingMaterials();
 
   // Determine if we should show congregation/group settings
@@ -83,22 +83,26 @@ const ConfiguracionCard = () => {
 
       {/* 4. Importar desde archivo .jwpub */}
       {isMeetingEditor && (
-        <>
+        <ListItem disablePadding sx={{ position: 'relative' }}>
+          <DashboardMenu
+            icon={<IconImportFile color="var(--black)" />}
+            primaryText={t('tr_sourceImportEPUB')}
+          />
           <input
-            ref={fileInputRef}
             type="file"
             accept=".epub,.jwpub"
-            style={{ display: 'none' }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0,
+              cursor: 'pointer',
+              zIndex: 1,
+            }}
             onChange={handleFileSelected}
           />
-          <ListItem disablePadding>
-            <DashboardMenu
-              icon={<IconImportFile color="var(--black)" />}
-              primaryText={t('tr_sourceImportEPUB')}
-              onClick={handleOpenEPUBFile}
-            />
-          </ListItem>
-        </>
+        </ListItem>
       )}
 
       {/* 5. Sincronizar datos */}

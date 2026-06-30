@@ -11,7 +11,7 @@ const MeetingsMaterialsCard = () => {
 
   const { showMeetingCard } = useSharedHook();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleOpenEPUBFile, fileInputRef, handleFileSelected } =
+  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
     useMeetingMaterials();
 
   if (!showMeetingCard) return null;
@@ -29,18 +29,24 @@ const MeetingsMaterialsCard = () => {
         </ListItem>
       )}
 
-      <ListItem disablePadding>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".epub,.jwpub"
-          style={{ display: 'none' }}
-          onChange={handleFileSelected}
-        />
+      <ListItem disablePadding sx={{ position: 'relative' }}>
         <DashboardMenu
           icon={<IconImportFile color="var(--black)" />}
           primaryText={t('tr_sourceImportEPUB')}
-          onClick={handleOpenEPUBFile}
+        />
+        <input
+          type="file"
+          accept=".epub,.jwpub"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            opacity: 0,
+            cursor: 'pointer',
+            zIndex: 1,
+          }}
+          onChange={handleFileSelected}
         />
       </ListItem>
     </DashboardCard>
