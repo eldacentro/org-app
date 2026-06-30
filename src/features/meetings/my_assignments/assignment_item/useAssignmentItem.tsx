@@ -113,10 +113,10 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     if (isSpecial) return null;
 
     const code = first.assignment.code as number;
-    const PRAYER_CODE = 111;
+    const EXCLUDED = new Set([111, 118, 119, 120, 121, 122, 130, 131]);
     const isMidweek =
-      (code >= 100 && code <= 115) || (code >= 123 && code <= 125);
-    if (!isMidweek || code === PRAYER_CODE) return null;
+      (code >= 100 && code <= 117) || (code >= 123 && code <= 129);
+    if (!isMidweek || EXCLUDED.has(code)) return null;
 
     const locale = jwLang || 'S';
     const source = sources.find((s) => s.weekOf === first.weekOf);
