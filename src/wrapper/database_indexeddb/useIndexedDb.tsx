@@ -35,6 +35,7 @@ import { responsabilidadesState } from '@states/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
 import { circuitVisitsState } from '@states/circuit_visit';
+import { reconcileAllVisits } from '@services/app/circuit_visit_projection';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -297,7 +298,15 @@ const useIndexedDb = () => {
 
   const loadCircuitVisits = useCallback(() => {
     if (dbCircuitVisits) {
-      setCircuitVisits(dbCircuitVisits.filter((visit) => !visit._deleted));
+      const active = dbCircuitVisits.filter((visit) => !visit._deleted);
+      setCircuitVisits(active);
+
+      // Re-aplica los marcadores derivados (semana del horario, Salidas de
+      // predicación, Próximos eventos) por si algún destino no existía la
+      // última vez (p. ej. una semana futura sin schedule todavía, o una
+      // visita recién sincronizada desde otro dispositivo). Es idempotente:
+      // si ya está todo aplicado, no escribe nada.
+      reconcileAllVisits(active);
     }
   }, [dbCircuitVisits, setCircuitVisits]);
 

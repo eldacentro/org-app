@@ -149,6 +149,12 @@ export type SettingsType = {
       lastname: { value: string; updatedAt: string };
       display_name: { value: string; updatedAt: string };
       visits: CircuitOverseerVisitType[];
+      // Día de la reunión de entre semana durante la semana de la visita.
+      // Mismo offset 0-indexado desde el lunes que usa el resto de la app
+      // (DaySelector/generateWeekday): 0=lunes, 1=martes, ..., 6=domingo. Por
+      // defecto martes (1), ya que la mayoría de congregaciones mueven la
+      // reunión al martes esa semana.
+      visit_weekday?: { value: number; updatedAt: string };
     };
     language_groups: { enabled: { value: boolean; updatedAt: string } };
     format_24h_enabled: {

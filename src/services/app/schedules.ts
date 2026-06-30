@@ -3438,6 +3438,14 @@ export const schedulesGetMeetingDate = ({
           (record) => record.type === 'main'
         )?.weekday.value ?? 2;
     }
+
+    // Semana de la visita del CO: la reunión de entre semana se mueve al día
+    // configurado para la visita (por defecto martes). Regla aditiva y
+    // gateada — solo aplica cuando mainWeekType === CO_VISIT; el resto de
+    // semanas siguen exactamente igual que antes.
+    if (mainWeekType === Week.CO_VISIT) {
+      meetingDay = settings.cong_settings.circuit_overseer.visit_weekday?.value ?? 1;
+    }
   }
 
   if (meeting === 'weekend') {

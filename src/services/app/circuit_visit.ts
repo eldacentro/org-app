@@ -45,12 +45,26 @@ const revertedFromCo = (
   return next;
 };
 
+const isAlreadyCoVisit = (current: WeekTypeCongregation[] | undefined) =>
+  current?.find((r) => r.type === DATA_VIEW)?.value === Week.CO_VISIT;
+
 /** Marca la semana (lunes) como semana del CO en ambas reuniones. */
 export const circuitVisitMarkWeek = async (weekOf: string) => {
   const schedule = await appDb.sched.get(weekOf);
   // Semana sin schedule todavía (p. ej. futura, sin material importado): se
   // omite sin romper. Se podrá re-aplicar al crearse el schedule.
   if (!schedule) return;
+
+  // Idempotente de verdad: si ambas reuniones ya están en CO_VISIT, no se
+  // escribe nada. projectVisit() se llama en cada autoguardado de la visita
+  // (comidas, predicación, etc.), así que sin este corte tocaría el schedule
+  // (updatedAt + triggerSync) en cada pulsación.
+  if (
+    isAlreadyCoVisit(schedule.midweek_meeting?.week_type) &&
+    isAlreadyCoVisit(schedule.weekend_meeting?.week_type)
+  ) {
+    return;
+  }
 
   await dbSchedUpdate(weekOf, {
     'midweek_meeting.week_type': withValue(

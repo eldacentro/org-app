@@ -1,5 +1,6 @@
 import appDb from '@db/appDb';
 import { CircuitVisitType } from '@definition/circuit_visit';
+import { projectVisit, unprojectVisit } from '@services/app/circuit_visit_projection';
 
 const triggerSync = () => {
   import('@services/worker/backupWorker').then(({ default: worker }) =>
@@ -31,6 +32,11 @@ export const dbCircuitVisitSave = async (visit: CircuitVisitType) => {
 
   await appDb.circuit_overseer_visits.put(record);
   await dbUpdateCircuitVisitMetadata();
+
+  if (!record._deleted) {
+    await projectVisit(record);
+  }
+
   triggerSync();
 
   return record;
@@ -48,5 +54,6 @@ export const dbCircuitVisitDelete = async (id: string) => {
     updatedAt: new Date().toISOString(),
   });
   await dbUpdateCircuitVisitMetadata();
+  await unprojectVisit(existing);
   triggerSync();
 };

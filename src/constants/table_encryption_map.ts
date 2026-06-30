@@ -361,7 +361,7 @@ export const TABLE_ENCRYPTION_MAP = {
     // arrays/objetos anidados se cifran como un único blob JSON con la clave
     // compartida de la congregación (todo el cuerpo de ancianos debe poder leerlo).
     meals: 'shared',
-    preaching: 'shared',
+    co_companions: 'shared',
     meeting_pioneers: 'shared',
     meeting_elders: 'shared',
     accounting_note: 'shared',

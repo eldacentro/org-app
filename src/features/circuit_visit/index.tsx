@@ -1,6 +1,15 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Box, Stack, MenuItem } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import {
+  Box,
+  Stack,
+  Autocomplete,
+  TextField as MuiTextField,
+  Checkbox,
+  FormControlLabel,
+  MenuItem,
+} from '@mui/material';
 import PageTitle from '@components/page_title';
 import Typography from '@components/typography';
 import Button from '@components/button';
@@ -23,8 +32,20 @@ import { formatDate } from '@utils/date';
 import {
   CircuitVisitSpecialMeeting,
   CircuitVisitType,
+  CircuitVisitCompanionActivity,
 } from '@definition/circuit_visit';
+import { personsState } from '@states/persons';
+import { fullnameOptionState } from '@states/settings';
+import { serviceOutingsListState } from '@states/service_outings';
+import { buildPersonFullname } from '@utils/common';
+import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
+
+const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
+  predicacion: 'Predicación',
+  revisitas: 'Revisitas',
+  curso: 'Curso bíblico',
+};
 
 const Card = ({
   title,
@@ -171,6 +192,147 @@ const SpecialMeetingEditor = ({
   );
 };
 
+const PreachingSection = ({
+  visit,
+  companions,
+  onUpsertCompanion,
+  onRemoveCompanion,
+}: {
+  visit: CircuitVisitType;
+  companions: CircuitVisitType['co_companions'];
+  onUpsertCompanion: (
+    outingKey: string,
+    changes: Partial<Omit<CircuitVisitType['co_companions'][number], 'outingKey'>>
+  ) => void;
+  onRemoveCompanion: (outingKey: string) => void;
+}) => {
+  const navigate = useNavigate();
+  const outingsList = useAtomValue(serviceOutingsListState);
+  const persons = useAtomValue(personsState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
+
+  const weekRecord = useMemo(
+    () => outingsList.find((r) => r.weekOf === visit.weekOf),
+    [outingsList, visit.weekOf]
+  );
+
+  const personOptions = useMemo(
+    () =>
+      persons
+        .map((p) => ({
+          uid: p.person_uid,
+          label: buildPersonFullname(
+            p.person_data.person_lastname.value,
+            p.person_data.person_firstname.value,
+            fullnameOption
+          ),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [persons, fullnameOption]
+  );
+
+  // Solo tiene sentido elegir compañía para una salida ya asignada a alguien.
+  const assignedOutings = useMemo(() => {
+    const outings = weekRecord?.outings ?? [];
+    return outings
+      .filter((o) => !o.cancelled && o.person)
+      .map((o) => ({ ...o, outingKey: `${o.date}_${o.time}` }))
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  }, [weekRecord]);
+
+  return (
+    <Card
+      title="Programa de predicación"
+      subtitle="Mismas salidas de “Salidas de predicación” de esta semana."
+    >
+      <Stack spacing="16px">
+        <ServiceOutingsMeeting week={visit.weekOf} weekRecord={weekRecord} />
+
+        <Button variant="secondary" onClick={() => navigate('/predicacion-salidas')}>
+          Editar en Salidas de predicación
+        </Button>
+
+        {assignedOutings.length > 0 && (
+          <Stack spacing="12px">
+            <Typography className="body-regular-semibold">
+              Compañía del superintendente
+            </Typography>
+            {assignedOutings.map((outing) => {
+              const companion = companions.find(
+                (c) => c.outingKey === outing.outingKey
+              );
+              const selectedPerson =
+                personOptions.find((o) => o.uid === companion?.brother) ?? null;
+
+              return (
+                <Stack
+                  key={outing.outingKey}
+                  direction={{ mobile: 'column', tablet: 'row' }}
+                  spacing="10px"
+                  alignItems={{ tablet: 'center' }}
+                >
+                  <Typography
+                    className="body-small-semibold"
+                    sx={{ minWidth: '140px' }}
+                  >
+                    {formatDate(new Date(outing.date), 'EEE d MMM')} · {outing.time}
+                  </Typography>
+                  <Autocomplete
+                    sx={{ flex: 1, minWidth: '200px' }}
+                    options={personOptions}
+                    value={selectedPerson}
+                    onChange={(_, v) =>
+                      v
+                        ? onUpsertCompanion(outing.outingKey, { brother: v.uid })
+                        : onRemoveCompanion(outing.outingKey)
+                    }
+                    getOptionLabel={(o) => o.label}
+                    isOptionEqualToValue={(o, v) => o.uid === v.uid}
+                    renderInput={(params) => (
+                      <MuiTextField {...params} label="Hermano que acompaña" size="small" />
+                    )}
+                  />
+                  {companion && (
+                    <>
+                      <Select
+                        value={companion.activity}
+                        onChange={(e) =>
+                          onUpsertCompanion(outing.outingKey, {
+                            activity: e.target.value as CircuitVisitCompanionActivity,
+                          })
+                        }
+                      >
+                        {Object.entries(ACTIVITY_LABELS).map(([value, label]) => (
+                          <MenuItem key={value} value={value}>
+                            {label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={companion.withWife}
+                            onChange={(e) =>
+                              onUpsertCompanion(outing.outingKey, {
+                                withWife: e.target.checked,
+                              })
+                            }
+                          />
+                        }
+                        label="Con esposa"
+                      />
+                    </>
+                  )}
+                </Stack>
+              );
+            })}
+          </Stack>
+        )}
+      </Stack>
+    </Card>
+  );
+};
+
 const CircuitVisitDashboard = () => {
   const {
     visits,
@@ -184,9 +346,8 @@ const CircuitVisitDashboard = () => {
     addMeal,
     updateMeal,
     removeMeal,
-    addPreaching,
-    updatePreaching,
-    removePreaching,
+    upsertCompanion,
+    removeCompanion,
     updateSpecialMeeting,
     handleExportPdf,
   } = useCircuitVisitDashboard();
@@ -243,7 +404,7 @@ const CircuitVisitDashboard = () => {
             />
             <DocRow
               icon={<IconAssignment color="var(--accent-main)" width={20} height={20} />}
-              title="Asistencia a las reuniones"
+              title="Asistencia a las reuniones (S-88)"
               subtitle="Registros de asistencia entre semana y fin de semana."
               onClick={() => navigate('/reports/meeting-attendance')}
             />
@@ -332,17 +493,6 @@ const CircuitVisitDashboard = () => {
                       })
                     }
                   />
-                  <Select
-                    value={meal.type}
-                    onChange={(e) =>
-                      updateMeal(meal.id, {
-                        type: e.target.value as 'lunch' | 'dinner',
-                      })
-                    }
-                  >
-                    <MenuItem value="lunch">Almuerzo</MenuItem>
-                    <MenuItem value="dinner">Cena</MenuItem>
-                  </Select>
                   <TextField
                     label="Anfitrión"
                     value={meal.host}
@@ -363,61 +513,13 @@ const CircuitVisitDashboard = () => {
             </Stack>
           </Card>
 
-          {/* Programa de predicación */}
-          <Card
-            title="Programa de predicación"
-            subtitle="Horario, punto de salida y grupo por día."
-          >
-            <Stack spacing="12px">
-              {working.preaching.map((row) => (
-                <Stack
-                  key={row.id}
-                  direction={{ mobile: 'column', tablet: 'row' }}
-                  spacing="10px"
-                  alignItems={{ tablet: 'center' }}
-                >
-                  <CustomDatePicker
-                    label="Día"
-                    view="input"
-                    value={row.date ? new Date(row.date) : null}
-                    onChange={(d) =>
-                      updatePreaching(row.id, {
-                        date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                      })
-                    }
-                  />
-                  <TimeField
-                    value={row.time}
-                    onChange={(t) => updatePreaching(row.id, { time: t })}
-                  />
-                  <TextField
-                    label="Punto de salida"
-                    value={row.meetingPoint}
-                    onChange={(e) =>
-                      updatePreaching(row.id, { meetingPoint: e.target.value })
-                    }
-                  />
-                  <TextField
-                    label="Grupo"
-                    value={row.group}
-                    onChange={(e) =>
-                      updatePreaching(row.id, { group: e.target.value })
-                    }
-                  />
-                  <IconButton onClick={() => removePreaching(row.id)}>
-                    <IconDelete color="var(--red-main)" />
-                  </IconButton>
-                </Stack>
-              ))}
-              <Button
-                variant="secondary"
-                startIcon={<IconAdd color="var(--accent-main)" />}
-                onClick={addPreaching}
-              >
-                Añadir salida
-              </Button>
-            </Stack>
-          </Card>
+          {/* Programa de predicación (mismas salidas que ya existen) */}
+          <PreachingSection
+            visit={working}
+            companions={working.co_companions}
+            onUpsertCompanion={upsertCompanion}
+            onRemoveCompanion={removeCompanion}
+          />
 
           {/* Reuniones especiales */}
           <Card

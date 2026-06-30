@@ -2,22 +2,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { pdf } from '@react-pdf/renderer';
 import { circuitVisitsState } from '@states/circuit_visit';
-import { COFullnameState, JWLangState } from '@states/settings';
+import {
+  COFullnameState,
+  JWLangState,
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+} from '@states/settings';
+import { serviceOutingsListState } from '@states/service_outings';
+import { personsStateFind } from '@services/states/persons';
+import { personGetDisplayName } from '@utils/common';
 import CircuitVisitProgramDoc from '@views/circuit_visit';
 import {
   CircuitVisitType,
   CircuitVisitMeal,
-  CircuitVisitPreaching,
+  CircuitVisitCompanion,
   CircuitVisitSpecialMeeting,
 } from '@definition/circuit_visit';
 import {
   dbCircuitVisitSave,
   dbCircuitVisitDelete,
 } from '@services/dexie/circuit_visit';
-import {
-  circuitVisitMarkWeek,
-  circuitVisitUnmarkWeek,
-} from '@services/app/circuit_visit';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
 
 const AUTOSAVE_MS = 800;
@@ -34,7 +38,7 @@ const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
     date_start: formatDate(addDays(monday, 1), 'yyyy/MM/dd'), // martes
     date_end: formatDate(addDays(monday, 6), 'yyyy/MM/dd'), // domingo
     meals: [],
-    preaching: [],
+    co_companions: [],
     meeting_pioneers: null,
     meeting_elders: null,
     accounting_note: '',
@@ -45,6 +49,9 @@ const useCircuitVisitDashboard = () => {
   const visits = useAtomValue(circuitVisitsState);
   const coName = useAtomValue(COFullnameState);
   const jwLang = useAtomValue(JWLangState);
+  const outingsList = useAtomValue(serviceOutingsListState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
 
   // Más recientes primero.
   const sortedVisits = useMemo(
@@ -92,29 +99,26 @@ const useCircuitVisitDashboard = () => {
     [flushSave]
   );
 
-  const handleCreateVisit = useCallback(
-    async (anyDateInWeek: Date) => {
-      const visit = buildVisitForWeek(anyDateInWeek);
-      const saved = await dbCircuitVisitSave(visit);
-      await circuitVisitMarkWeek(saved.weekOf);
-      setSelectedId(saved.id);
-      setWorking(saved);
-      return saved;
-    },
-    []
-  );
+  // dbCircuitVisitSave/dbCircuitVisitDelete ya proyectan (y revierten) los
+  // marcadores derivados — semana del horario, Salidas de predicación y
+  // Próximos eventos — así que aquí solo hace falta guardar/borrar.
+  const handleCreateVisit = useCallback(async (anyDateInWeek: Date) => {
+    const visit = buildVisitForWeek(anyDateInWeek);
+    const saved = await dbCircuitVisitSave(visit);
+    setSelectedId(saved.id);
+    setWorking(saved);
+    return saved;
+  }, []);
 
   const handleDeleteVisit = useCallback(
     async (id: string) => {
-      const visit = visits.find((v) => v.id === id);
       await dbCircuitVisitDelete(id);
-      if (visit) await circuitVisitUnmarkWeek(visit.weekOf);
       if (selectedId === id) {
         setSelectedId(null);
         setWorking(null);
       }
     },
-    [visits, selectedId]
+    [selectedId]
   );
 
   // ── Comidas ──────────────────────────────────────────────────────────
@@ -124,7 +128,6 @@ const useCircuitVisitDashboard = () => {
       const meal: CircuitVisitMeal = {
         id: crypto.randomUUID(),
         date: prev.date_start,
-        type: 'lunch',
         host: '',
         note: '',
       };
@@ -161,34 +164,33 @@ const useCircuitVisitDashboard = () => {
     [flushSave]
   );
 
-  // ── Predicación ──────────────────────────────────────────────────────
-  const addPreaching = useCallback(() => {
-    setWorking((prev) => {
-      if (!prev) return prev;
-      const row: CircuitVisitPreaching = {
-        id: crypto.randomUUID(),
-        date: prev.date_start,
-        time: '',
-        meetingPoint: '',
-        group: '',
-        note: '',
-      };
-      const next = { ...prev, preaching: [...prev.preaching, row] };
-      flushSave(next);
-      return next;
-    });
-  }, [flushSave]);
-
-  const updatePreaching = useCallback(
-    (id: string, changes: Partial<CircuitVisitPreaching>) => {
+  // ── Compañía del CO tras cada salida ────────────────────────────────
+  // La predicación en sí vive en "Salidas de predicación" (service_outings);
+  // aquí solo guardamos con quién sale el CO para una salida ya asignada,
+  // identificada por su clave estable `${date}_${time}`.
+  const upsertCompanion = useCallback(
+    (outingKey: string, changes: Partial<Omit<CircuitVisitCompanion, 'outingKey'>>) => {
       setWorking((prev) => {
         if (!prev) return prev;
-        const next = {
-          ...prev,
-          preaching: prev.preaching.map((p) =>
-            p.id === id ? { ...p, ...changes } : p
-          ),
-        };
+        const existing = prev.co_companions.find((c) => c.outingKey === outingKey);
+
+        const updated: CircuitVisitCompanion = existing
+          ? { ...existing, ...changes }
+          : {
+              outingKey,
+              brother: '',
+              withWife: false,
+              activity: 'predicacion',
+              ...changes,
+            };
+
+        const co_companions = existing
+          ? prev.co_companions.map((c) =>
+              c.outingKey === outingKey ? updated : c
+            )
+          : [...prev.co_companions, updated];
+
+        const next = { ...prev, co_companions };
         flushSave(next);
         return next;
       });
@@ -196,13 +198,15 @@ const useCircuitVisitDashboard = () => {
     [flushSave]
   );
 
-  const removePreaching = useCallback(
-    (id: string) => {
+  const removeCompanion = useCallback(
+    (outingKey: string) => {
       setWorking((prev) => {
         if (!prev) return prev;
         const next = {
           ...prev,
-          preaching: prev.preaching.filter((p) => p.id !== id),
+          co_companions: prev.co_companions.filter(
+            (c) => c.outingKey !== outingKey
+          ),
         };
         flushSave(next);
         return next;
@@ -226,11 +230,40 @@ const useCircuitVisitDashboard = () => {
   const handleExportPdf = useCallback(async () => {
     if (!working) return;
 
+    const weekRecord = outingsList.find((r) => r.weekOf === working.weekOf);
+
+    const preachingRows = (weekRecord?.outings ?? [])
+      .filter((o) => !o.cancelled && o.person)
+      .map((o) => {
+        const outingKey = `${o.date}_${o.time}`;
+        const companion = working.co_companions.find(
+          (c) => c.outingKey === outingKey
+        );
+
+        const companionPerson = companion?.brother
+          ? personsStateFind(companion.brother)
+          : undefined;
+        const companionName = companionPerson
+          ? personGetDisplayName(companionPerson, displayNameEnabled, fullnameOption)
+          : '';
+
+        return {
+          date: o.date,
+          time: o.time,
+          location: o.location,
+          companionName: companion
+            ? `${companionName}${companion.withWife ? ' y esposa' : ''}`
+            : '',
+        };
+      })
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
     const blob = await pdf(
       <CircuitVisitProgramDoc
         visit={working}
         coName={coName}
         lang={jwLang}
+        preachingRows={preachingRows}
       />
     ).toBlob();
 
@@ -240,7 +273,7 @@ const useCircuitVisitDashboard = () => {
     link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [working, coName, jwLang]);
+  }, [working, coName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
 
   return {
     visits: sortedVisits,
@@ -254,9 +287,8 @@ const useCircuitVisitDashboard = () => {
     addMeal,
     updateMeal,
     removeMeal,
-    addPreaching,
-    updatePreaching,
-    removePreaching,
+    upsertCompanion,
+    removeCompanion,
     updateSpecialMeeting,
     handleExportPdf,
   };

@@ -4,10 +4,18 @@ import { CircuitVisitType } from '@definition/circuit_visit';
 import { formatDate } from '@utils/date';
 import { styles } from './index.styles';
 
+export type CircuitVisitPdfPreachingRow = {
+  date: string;
+  time: string;
+  location: string;
+  companionName: string;
+};
+
 type Props = {
   visit: CircuitVisitType;
   coName: string;
   lang: string;
+  preachingRows: CircuitVisitPdfPreachingRow[];
 };
 
 const fmtDay = (date: string) => {
@@ -29,9 +37,6 @@ const fmtRange = (visit: CircuitVisitType) => {
   }
 };
 
-const mealTypeLabel = (type: 'lunch' | 'dinner') =>
-  type === 'lunch' ? 'Almuerzo' : 'Cena';
-
 const SpecialMeetingRow = ({
   label,
   when,
@@ -49,7 +54,7 @@ const SpecialMeetingRow = ({
   );
 };
 
-const CircuitVisitProgramDoc = ({ visit, coName, lang }: Props) => {
+const CircuitVisitProgramDoc = ({ visit, coName, lang, preachingRows }: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
 
   return (
@@ -90,22 +95,18 @@ const CircuitVisitProgramDoc = ({ visit, coName, lang }: Props) => {
             <View style={styles.table}>
               <View style={styles.headRow}>
                 <View style={styles.row}>
-                  <Text style={[styles.headCell, { width: '30%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '25%' }]}>Comida</Text>
-                  <Text style={[styles.headCell, { width: '45%' }]}>
+                  <Text style={[styles.headCell, { width: '35%' }]}>Día</Text>
+                  <Text style={[styles.headCell, { width: '65%' }]}>
                     Anfitrión
                   </Text>
                 </View>
               </View>
               {visit.meals.map((meal) => (
                 <View key={meal.id} style={styles.row}>
-                  <Text style={[styles.cell, { width: '30%' }]}>
+                  <Text style={[styles.cell, { width: '35%' }]}>
                     {fmtDay(meal.date)}
                   </Text>
-                  <Text style={[styles.cell, { width: '25%' }]}>
-                    {mealTypeLabel(meal.type)}
-                  </Text>
-                  <Text style={[styles.cell, { width: '45%' }]}>
+                  <Text style={[styles.cell, { width: '65%' }]}>
                     {meal.host || '—'}
                     {meal.note ? `  (${meal.note})` : ''}
                   </Text>
@@ -117,34 +118,36 @@ const CircuitVisitProgramDoc = ({ visit, coName, lang }: Props) => {
           )}
         </View>
 
-        {/* Programa de predicación */}
+        {/* Programa de predicación (Salidas de predicación de esta semana) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Programa de predicación</Text>
-          {visit.preaching.length > 0 ? (
+          {preachingRows.length > 0 ? (
             <View style={styles.table}>
               <View style={styles.headRow}>
                 <View style={styles.row}>
-                  <Text style={[styles.headCell, { width: '26%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '16%' }]}>Hora</Text>
-                  <Text style={[styles.headCell, { width: '36%' }]}>
+                  <Text style={[styles.headCell, { width: '20%' }]}>Día</Text>
+                  <Text style={[styles.headCell, { width: '12%' }]}>Hora</Text>
+                  <Text style={[styles.headCell, { width: '28%' }]}>
                     Punto de salida
                   </Text>
-                  <Text style={[styles.headCell, { width: '22%' }]}>Grupo</Text>
+                  <Text style={[styles.headCell, { width: '40%' }]}>
+                    Compañía del superintendente
+                  </Text>
                 </View>
               </View>
-              {visit.preaching.map((row) => (
-                <View key={row.id} style={styles.row}>
-                  <Text style={[styles.cell, { width: '26%' }]}>
+              {preachingRows.map((row, idx) => (
+                <View key={`${row.date}_${row.time}_${idx}`} style={styles.row}>
+                  <Text style={[styles.cell, { width: '20%' }]}>
                     {fmtDay(row.date)}
                   </Text>
-                  <Text style={[styles.cell, { width: '16%' }]}>
+                  <Text style={[styles.cell, { width: '12%' }]}>
                     {row.time || '—'}
                   </Text>
-                  <Text style={[styles.cell, { width: '36%' }]}>
-                    {row.meetingPoint || '—'}
+                  <Text style={[styles.cell, { width: '28%' }]}>
+                    {row.location || '—'}
                   </Text>
-                  <Text style={[styles.cell, { width: '22%' }]}>
-                    {row.group || '—'}
+                  <Text style={[styles.cell, { width: '40%' }]}>
+                    {row.companionName || '—'}
                   </Text>
                 </View>
               ))}
