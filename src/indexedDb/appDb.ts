@@ -94,6 +94,10 @@ import {
   EvacuacionConfigTable,
   evacuacionConfigSchema,
 } from './tables/evacuacion';
+import {
+  CircuitVisitTable,
+  circuitVisitSchema,
+} from './tables/circuit_visit';
 
 type DexieTables = PersonsTable &
   SettingsTable &
@@ -125,7 +129,8 @@ type DexieTables = PersonsTable &
   DocumentosTable &
   LimpiezaTable &
   TerritoriesTable &
-  EvacuacionConfigTable;
+  EvacuacionConfigTable &
+  CircuitVisitTable;
 type Dexie<T = DexieTables> = BaseDexie & T;
 
 const appDb = new BaseDexie('organized') as Dexie;
@@ -382,6 +387,27 @@ appDb.version(22).stores({
   ...territoriesSchema,
   ...evacuacionConfigSchema,
   ...publicTalkOverrideSchema,
+});
+
+appDb.version(23).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+  ...evacuacionConfigSchema,
+  ...publicTalkOverrideSchema,
+  ...circuitVisitSchema,
 });
 
 appDb.on('populate', function () {

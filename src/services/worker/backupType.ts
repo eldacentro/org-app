@@ -50,5 +50,6 @@ export type BackupDataType = {
   territory_notices?: object;
   territory_requests?: object;
   territory_settings?: object;
+  circuit_overseer_visits?: object;
   affected_uids?: string[];
 };

@@ -34,6 +34,7 @@ import { ExhibitorWeekType, ExhibitorSettingsType } from '@definition/exhibitors
 import { responsabilidadesState } from '@states/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
+import { circuitVisitsState } from '@states/circuit_visit';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -88,6 +89,9 @@ const useIndexedDb = () => {
   const dbResponsabilidades = useLiveQuery(() =>
     appDb.responsabilidades.toArray()
   );
+  const dbCircuitVisits = useLiveQuery(() =>
+    appDb.circuit_overseer_visits.toArray()
+  );
 
   const setSettings = useSetAtom(settingsState);
   const setPersons = useSetAtom(personsState);
@@ -127,6 +131,7 @@ const useIndexedDb = () => {
   const [, setResponsabilidades] = useAtom(
     responsabilidadesState as WritableAtom<ResponsabilidadesType | null, [ResponsabilidadesType | null], void>
   );
+  const setCircuitVisits = useSetAtom(circuitVisitsState);
 
   const loadSettings = useCallback(() => {
     if (dbSettings && dbSettings[0]) {
@@ -290,6 +295,12 @@ const useIndexedDb = () => {
     }
   }, [dbResponsabilidades, setResponsabilidades]);
 
+  const loadCircuitVisits = useCallback(() => {
+    if (dbCircuitVisits) {
+      setCircuitVisits(dbCircuitVisits.filter((visit) => !visit._deleted));
+    }
+  }, [dbCircuitVisits, setCircuitVisits]);
+
   const loadAssignmentsHistory = useCallback(() => {
     const history = schedulesBuildHistoryList();
     setAssignmentsHistory(history);
@@ -321,6 +332,7 @@ const useIndexedDb = () => {
     loadServiceOutings,
     loadExhibitors,
     loadResponsabilidades,
+    loadCircuitVisits,
     loadAssignmentsHistory,
   };
 };

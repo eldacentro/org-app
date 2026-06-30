@@ -351,4 +351,19 @@ export const TABLE_ENCRYPTION_MAP = {
     id: 'shared',
     updatedAt: 'shared',
   },
+  circuit_overseer_visits: {
+    id: 'shared',
+    _deleted: 'shared',
+    updatedAt: 'shared',
+    date_start: 'shared',
+    date_end: 'shared',
+    weekOf: 'shared',
+    // arrays/objetos anidados se cifran como un único blob JSON con la clave
+    // compartida de la congregación (todo el cuerpo de ancianos debe poder leerlo).
+    meals: 'shared',
+    preaching: 'shared',
+    meeting_pioneers: 'shared',
+    meeting_elders: 'shared',
+    accounting_note: 'shared',
+  },
 };

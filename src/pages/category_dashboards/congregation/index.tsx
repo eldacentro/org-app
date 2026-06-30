@@ -12,16 +12,19 @@ import {
   IconMapOverview,
   IconInformationBoard,
   IconClean,
+  IconCalendarWeek,
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
+import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
   
   const { isElder, isPersonViewer } = useCurrentUser();
-  
+  const canManageCircuitVisit = useIsCircuitVisitManager();
+
   useDocumentos(); // Para cargar los documentos en el estado
   const unseenCount = useAtomValue(unseenDocumentosCountState);
 
@@ -90,6 +93,21 @@ const CongregationDashboard = () => {
             <path d="M9 6l6 6-6 6" />
           </svg>
         </div>
+
+        {/* Visita del Superintendente de Circuito (solo COBA/Admin) */}
+        {canManageCircuitVisit && (
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/circuit-visit')}>
+            <div className="ti">
+              <IconCalendarWeek color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Visita del Superintendente</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
 
         {/* Limpieza */}
         <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/limpieza')}>

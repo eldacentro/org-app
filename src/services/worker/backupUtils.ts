@@ -18,6 +18,7 @@ import {
 import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { ExhibitorWeekType } from '@definition/exhibitors';
+import { CircuitVisitType } from '@definition/circuit_visit';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { PlanEvacuacion } from '@definition/evacuacion';
@@ -382,6 +383,8 @@ const dbGetTableData = async () => {
     const territory_notices = await appDb.territory_notices.toArray();
     const territory_requests = await appDb.territory_requests.toArray();
     const territory_settings = await appDb.territory_settings.toArray();
+    const circuit_overseer_visits =
+      await appDb.circuit_overseer_visits.toArray();
 
     const congId = speakers_congregations.find(
       (record) =>
@@ -446,6 +449,7 @@ const dbGetTableData = async () => {
       territory_notices,
       territory_requests,
       territory_settings,
+      circuit_overseer_visits,
     };
   });
 };
@@ -1778,6 +1782,43 @@ const dbRestoreDelegatedReports = async (
   }
 };
 
+const dbRestoreCircuitVisits = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.circuit_overseer_visits) return;
+
+    const remoteData = (
+      backupData.circuit_overseer_visits as CircuitVisitType[]
+    ).map((data) => {
+      decryptObject({ data, table: 'circuit_overseer_visits', accessCode });
+      return data;
+    });
+
+    const localData = await appDb.circuit_overseer_visits.toArray();
+    const dataToUpdate: CircuitVisitType[] = [];
+
+    for (const remoteItem of remoteData) {
+      const localItem = localData.find((record) => record.id === remoteItem.id);
+
+      if (!localItem) {
+        dataToUpdate.push(remoteItem);
+      } else {
+        const newItem = structuredClone(localItem);
+        syncFromRemote(newItem, remoteItem);
+        dataToUpdate.push(newItem);
+      }
+    }
+
+    if (dataToUpdate.length > 0) {
+      await appDb.circuit_overseer_visits.bulkPut(dataToUpdate);
+    }
+  } catch (error) {
+    throw new Error(`circuit_overseer_visits: ${error.message}`);
+  }
+};
+
 const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const oldMetadata = await appDb.metadata.get(1);
 
@@ -2232,6 +2273,8 @@ const dbRestoreFromBackup = async (
       await safe('evacuacion_config', () => dbRestoreEvacuacionConfig(backupData, accessCode));
       await safe('public_talks_override', () => dbRestorePublicTalksOverride(backupData, accessCode));
 
+      await safe('circuit_overseer_visits', () => dbRestoreCircuitVisits(backupData, accessCode));
+
       await safe('user_bible_studies', () => dbRestoreUserStudies(backupData, accessCode));
 
       await safe('upcoming_events', () => dbRestoreUpcomingEvents(backupData, accessCode));
@@ -2357,6 +2400,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       territory_notices,
       territory_requests,
       territory_settings,
+      circuit_overseer_visits,
     } = await dbGetTableData();
 
     const affectedUids = new Set<string>();
@@ -2863,6 +2907,29 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             }
           }
         }
+
+        // include circuit overseer visits (gestionado por COBA/Admin; ancianos
+        // pueden verlas). Cifrado por registro como las demás listas.
+        if (
+          adminRole ||
+          elderRole ||
+          metadata.metadata.circuit_overseer_visits?.send_local
+        ) {
+          if (circuit_overseer_visits && circuit_overseer_visits.length > 0) {
+            const toBackup = structuredClone(circuit_overseer_visits);
+            toBackup.forEach((rec) => {
+              encryptObject({
+                data: rec,
+                table: 'circuit_overseer_visits',
+                accessCode,
+                masterKey,
+              });
+            });
+
+            obj.circuit_overseer_visits = toBackup;
+          }
+        }
+
         // for admin role
         if (adminRole) {
           // include branch reports
