@@ -4,6 +4,9 @@
 declare const React: typeof React;
 declare const ReactDOM: typeof ReactDOM;
 
+// Hash corto del commit, inyectado por vite.config.ts (define).
+declare const __BUILD_SHA__: string;
+
 interface MyWorkerGlobalScope extends DedicatedWorkerGlobalScope {
   setting: {
     apiHost: string | undefined;

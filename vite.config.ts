@@ -4,9 +4,22 @@ import eslint from 'vite-plugin-eslint';
 import loadVersion from 'vite-plugin-package-version';
 import { comlink } from 'vite-plugin-comlink';
 import { resolve } from 'path';
+import { execSync } from 'child_process';
 import svgx from '@svgx/vite-plugin-react';
 
+// Hash corto del commit en el momento del build. Se muestra en "Acerca de"
+// para poder verificar exactamente qué versión está corriendo un dispositivo.
+let buildSha = 'dev';
+try {
+  buildSha = execSync('git rev-parse --short HEAD').toString().trim();
+} catch {
+  // fuera de un repo git (p.ej. build aislado): se queda como 'dev'
+}
+
 export default defineConfig({
+  define: {
+    __BUILD_SHA__: JSON.stringify(buildSha),
+  },
   plugins: [react(), comlink(), eslint(), loadVersion(), svgx()],
   resolve: {
     alias: [
