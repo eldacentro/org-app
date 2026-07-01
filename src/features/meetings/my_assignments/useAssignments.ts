@@ -96,7 +96,12 @@ const useMyAssignments = () => {
 
   const personAssignments = useMemo(() => {
     const now = new Date();
-    const currentWeekMonday = getWeekDate(now);
+    // getWeekDate muta el Date que recibe (setDate en su interior), así que
+    // hay que pasarle una copia — si no, `now` deja de ser "hoy" y pasa a ser
+    // el lunes de la semana, rompiendo todos los filtros de "ya pasó" que
+    // dependen de currentDayStr (Exhibidores, Salidas, Comidas, Visita del
+    // CO, Limpieza...).
+    const currentWeekMonday = getWeekDate(new Date(now));
     const today = formatDate(currentWeekMonday, 'yyyy/MM/dd');
     const currentDayStr = formatDate(now, 'yyyy/MM/dd');
 
