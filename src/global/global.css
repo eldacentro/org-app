@@ -695,6 +695,150 @@
   --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   RED DARK — Apple System Red (#FF453A dark-mode variant)
+   Background: #140E0E  Surface: #1C1313  Card: #1C1313
+   Primary: #FF453A  Text: rgba(255,255,255,0.87) with warm red tint
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-theme='red-dark'] {
+  /* Overlay */
+  --accent-dark-overlay-base: 20, 12, 11;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.90);
+
+  /* Accent scale — Apple system red tinted */
+  --accent-dark-base: 255, 138, 130;          /* highlight / emphasis        */
+  --accent-dark: rgba(var(--accent-dark-base), 1);
+  --accent-click-base: 196, 58, 50;           /* pressed state               */
+  --accent-click: rgba(var(--accent-click-base), 1);
+  --accent-main-base: 255, 69, 58;            /* primary #FF453A             */
+  --accent-main: rgba(var(--accent-main-base), 1);
+  --accent-400-base: 208, 120, 114;           /* lighter accent tone         */
+  --accent-400: rgba(var(--accent-400-base), 1);
+  --accent-350-base: 150, 82, 78;             /* mid-tone accent             */
+  --accent-350: rgba(var(--accent-350-base), 1);
+  --accent-300-base: 90, 50, 48;              /* elevation 3 / deep surface  */
+  --accent-300: rgba(var(--accent-300-base), 1);
+  --accent-200-base: 58, 34, 33;              /* elevation 2 / inputs        */
+  --accent-200: rgba(var(--accent-200-base), 1);
+  --accent-150-base: 40, 24, 24;              /* elevation 1 / brand-tint    */
+  --accent-150: rgba(var(--accent-150-base), 1);
+  --accent-100-base: 20, 14, 14;              /* page background #140E0E     */
+  --accent-100: rgba(var(--accent-100-base), 1);
+
+  /* Text — warm red-tinted whites */
+  --black-base: 238, 220, 218;                /* primary text ≈ 0.87 white   */
+  --black: rgba(var(--black-base), 1);
+  --white-base: 28, 19, 19;                   /* card surface #1C1313        */
+  --white: rgba(var(--white-base), 1);
+
+  /* Neutral scale — warm red-tinted greys */
+  --grey-400-base: 180, 150, 148;             /* secondary text ≈ 0.60 white */
+  --grey-400: rgba(var(--grey-400-base), 1);
+  --grey-350-base: 120, 94, 92;               /* tertiary text ≈ 0.38 white  */
+  --grey-350: rgba(var(--grey-350-base), 1);
+  --grey-300-base: 190, 164, 162;             /* placeholder text            */
+  --grey-300: rgba(var(--grey-300-base), 1);
+  --grey-200-base: 56, 36, 35;                /* dividers / borders          */
+  --grey-200: rgba(var(--grey-200-base), 1);
+  --grey-150-base: 22, 15, 15;                /* subtle bg variant           */
+  --grey-150: rgba(var(--grey-150-base), 1);
+  --grey-100-base: 34, 24, 24;                /* hover state background      */
+  --grey-100: rgba(var(--grey-100-base), 1);
+
+  /* Status — kept independent of the red accent so errors stay legible */
+  --red-main-base: 238, 112, 112;
+  --red-main: rgba(var(--red-main-base), 1);
+  --red-dark-base: 255, 148, 148;
+  --red-dark: rgba(var(--red-dark-base), 1);
+  --red-secondary-base: 238, 80, 80;
+  --red-secondary: rgba(var(--red-secondary-base), 0.12);
+  --orange-dark-base: 232, 172, 68;
+  --orange-dark: rgba(var(--orange-dark-base), 1);
+  --orange-main-base: 242, 166, 72;
+  --orange-main: rgba(var(--orange-main-base), 1);
+  --orange-secondary-base: 48, 38, 22;
+  --orange-secondary: rgba(var(--orange-secondary-base), 1);
+  --green-main-base: 96, 200, 82;
+  --green-main: rgba(var(--green-main-base), 1);
+  --green-secondary-base: 24, 44, 20;
+  --green-secondary: rgba(var(--green-secondary-base), 1);
+
+  --always-white-base: 254, 254, 254;
+  --always-white: rgba(var(--always-white-base), 1);
+  --white-semi-s-base: 255, 255, 255;
+  --white-semi-s: rgba(var(--white-semi-s-base), 0.16);
+  --white-semi-m-base: 255, 255, 255;
+  --white-semi-m: rgba(var(--white-semi-m-base), 0.32);
+  --white-semi-l-base: 255, 255, 255;
+  --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
+}
+
+/* colors for red-light theme — Apple System Red (#FF3B30 light-mode variant) */
+[data-theme='red-light'] {
+  --accent-dark-overlay-base: 24, 8, 7;
+  --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.48);
+  --accent-dark-base: 178, 28, 20;
+  --accent-dark: rgba(var(--accent-dark-base), 1);
+  --accent-click-base: 214, 46, 36;
+  --accent-click: rgba(var(--accent-click-base), 1);
+  --accent-main-base: 255, 59, 48;
+  --accent-main: rgba(var(--accent-main-base), 1);
+  --accent-400-base: 255, 133, 124;
+  --accent-400: rgba(var(--accent-400-base), 1);
+  --accent-350-base: 255, 168, 161;
+  --accent-350: rgba(var(--accent-350-base), 1);
+  --accent-300-base: 255, 197, 192;
+  --accent-300: rgba(var(--accent-300-base), 1);
+  --accent-200-base: 255, 222, 219;
+  --accent-200: rgba(var(--accent-200-base), 1);
+  --accent-150-base: 255, 238, 236;
+  --accent-150: rgba(var(--accent-150-base), 1);
+  --accent-100-base: 255, 247, 246;
+  --accent-100: rgba(var(--accent-100-base), 1);
+  --black-base: 34, 34, 34;
+  --black: rgba(var(--black-base), 1);
+  --white-base: 254, 254, 254;
+  --white: rgba(var(--white-base), 1);
+  --grey-400-base: 80, 80, 80;
+  --grey-400: rgba(var(--grey-400-base), 1);
+  --grey-350-base: 117, 117, 117;
+  --grey-350: rgba(var(--grey-350-base), 1);
+  --grey-300-base: 170, 170, 170;
+  --grey-300: rgba(var(--grey-300-base), 1);
+  --grey-200-base: 218, 218, 218;
+  --grey-200: rgba(var(--grey-200-base), 1);
+  --grey-150-base: 240, 240, 240;
+  --grey-150: rgba(var(--grey-150-base), 1);
+  --grey-100-base: 245, 245, 245;
+  --grey-100: rgba(var(--grey-100-base), 1);
+  /* Error status shifted to a rose/wine red — distinct from the vivid
+     orange-leaning accent red so error states stay legible against it. */
+  --red-main-base: 199, 42, 74;
+  --red-main: rgba(var(--red-main-base), 1);
+  --red-dark-base: 168, 28, 60;
+  --red-dark: rgba(var(--red-dark-base), 1);
+  --red-secondary-base: 199, 42, 74;
+  --red-secondary: rgba(var(--red-secondary-base), 0.1);
+  --green-main-base: 62, 147, 33;
+  --green-main: rgba(var(--green-main-base), 1);
+  --green-secondary-base: 238, 246, 235;
+  --green-secondary: rgba(var(--green-secondary-base), 1);
+  --orange-dark-base: 197, 114, 14;
+  --orange-dark: rgba(var(--orange-dark-base), 1);
+  --orange-main-base: 221, 140, 44;
+  --orange-main: rgba(var(--orange-main-base), 1);
+  --orange-secondary-base: 253, 245, 237;
+  --orange-secondary: rgba(var(--orange-secondary-base), 1);
+  --always-white-base: 254, 254, 254;
+  --always-white: rgba(var(--always-white-base), 1);
+  --white-semi-s-base: 255, 255, 255;
+  --white-semi-s: rgba(var(--white-semi-s-base), 0.16);
+  --white-semi-m-base: 255, 255, 255;
+  --white-semi-m: rgba(var(--white-semi-m-base), 0.32);
+  --white-semi-l-base: 255, 255, 255;
+  --white-semi-l: rgba(var(--white-semi-l-base), 0.4);
+}
+
 /* font styles generic */
 .huge-numbers {
   font-size: 64px;

@@ -37,6 +37,7 @@
   "tr_green": "Verde",
   "tr_purple": "Morado",
   "tr_orange": "Naranja",
+  "tr_red": "Rojo",
   "tr_security": "Seguridad",
   "tr_2FA": "Autenticación de dos factores",
   "tr_2FADesc": "La autenticación de dos factores hace tu cuenta más segura al solicitar un código de seguridad generado por tu aplicación de autenticación móvil.",

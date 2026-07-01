@@ -45,6 +45,11 @@ const ColorSchemeSwitcher = () => {
           selected={colorScheme}
           label={t('tr_orange')}
         />
+        <ColorSchemeContainer
+          value="red"
+          selected={colorScheme}
+          label={t('tr_red')}
+        />
       </RadioGroup>
     </FormControl>
   );

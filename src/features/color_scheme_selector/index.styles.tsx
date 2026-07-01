@@ -41,6 +41,10 @@ export const ColorSchemeContainer: FC<ColorSchemeSelectorType> = (props) => {
     backgroundColor = 'rgba(226, 156, 20, 1)';
   }
 
+  if (value === 'red') {
+    backgroundColor = 'rgba(255, 59, 48, 1)';
+  }
+
   return (
     <FormControlLabel
       {...props}
