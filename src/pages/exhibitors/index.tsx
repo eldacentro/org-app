@@ -62,6 +62,7 @@ import worker from '@services/worker/backupWorker';
 import { congNameState, displayNameMeetingsEnableState, fullnameOptionState, pdfExportEnabledState } from '@states/settings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
+import { personIsAway } from '@services/app/persons';
 import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../utils/exhibitors';
 
 const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -681,8 +682,22 @@ const Exhibitors = () => {
       warnings.push('Al menos uno de los hermanos asignados debe ser varón y estar designado como "Responsable de turno".');
     }
 
+    // Igual que en las asignaciones de reunión: si el hermano tiene un
+    // período de ausencia que cubre el día de este turno, se avisa aquí
+    // también en vez de dejar que se asigne en silencio.
+    for (const a of activeBrothers) {
+      const personData = personsStateFind(a.person);
+      if (!personData) continue;
+
+      const awayNotice = personIsAway(personData, editDialog.date);
+      if (awayNotice) {
+        const name = personGetDisplayName(personData, displayNameEnabled, fullnameOption);
+        warnings.push(`${name}: ${awayNotice}`);
+      }
+    }
+
     return warnings;
-  }, [editDialog, settings]);
+  }, [editDialog, settings, displayNameEnabled, fullnameOption]);
 
   // Manejar cambio de asignado en el diálogo
   const handleAssignmentChange = (idx: number, personUid: string) => {

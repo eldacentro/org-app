@@ -64,6 +64,7 @@ import {
 import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
 import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
+import { personIsAway } from '@services/app/persons';
 
 // Nombres de meses en español
 const MONTH_NAMES = [
@@ -1005,6 +1006,19 @@ const PredicacionSalidas = () => {
 
     return { recommended, others };
   }, [editDialog.open, editDialog.timeKey, enabledBrothers, settings]);
+
+  // Igual que en las asignaciones de reunión: si el hermano elegido tiene un
+  // período de ausencia que cubre el día de esta salida, se avisa aquí
+  // también en vez de dejar que se asigne en silencio.
+  const editPersonAwayWarning = useMemo(() => {
+    if (!editDialog.open || !editDialog.date || !editPerson) return '';
+    if (editPerson === 'CIRCUIT_OVERSEER' || editPerson.startsWith('SHARED_CONG:')) return '';
+
+    const person = persons.find((record) => record.person_uid === editPerson);
+    if (!person) return '';
+
+    return personIsAway(person, formatToDbDate(editDialog.date)) ?? '';
+  }, [editDialog.open, editDialog.date, editPerson, persons]);
 
   return (
     <Box sx={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
@@ -2909,6 +2923,12 @@ const PredicacionSalidas = () => {
                     </MenuItem>
                   ))}
                 </Select>
+
+                {editPersonAwayWarning && (
+                  <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)' }}>
+                    {editPersonAwayWarning}
+                  </Alert>
+                )}
               </Box>
 
               {/* Asignar Ubicación */}

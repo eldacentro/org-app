@@ -7,3 +7,4 @@ export { default as TemplateFieldServiceGroups } from './congregation/field_serv
 export { default as TemplateResponsabilidades } from './congregation/responsabilidades';
 export { default as TemplateUpcomingEvents } from './activities/upcoming_events';
 export { default as TemplateOutgoingSpeakersSchedule } from './meetings/weekend/outgoing_speakers_schedule';
+export { default as TemplateEmergencyContacts } from './persons/emergency_contacts';

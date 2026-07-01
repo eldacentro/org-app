@@ -1,17 +1,24 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { IconBackupOrganized } from '@components/icons';
+import Divider from '@mui/material/Divider';
+import { IconBackupOrganized, IconPrint } from '@components/icons';
 import IconLoading from '@components/icon_loading';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { useAppTranslation } from '@hooks/index';
 import useExportPersons from './useExportPersons';
+import useExportEmergencyContacts from './useExportEmergencyContacts';
 import type { ExportType } from './index.types';
 
 const Export = (props: ExportType) => {
   const { t } = useAppTranslation();
 
   const { fileName, isProcessing, handleExport } = useExportPersons();
+
+  const {
+    isProcessing: isProcessingEmergencyContacts,
+    handleExport: handleExportEmergencyContacts,
+  } = useExportEmergencyContacts();
 
   return (
     <Stack spacing="16px">
@@ -37,9 +44,22 @@ const Export = (props: ExportType) => {
         >
           {t('tr_download')}
         </Button>
+      </Stack>
+
+      <Divider />
+
+      <Stack spacing="8px">
         <Button
           variant="secondary"
-          disabled={isProcessing}
+          startIcon={<IconPrint />}
+          onClick={handleExportEmergencyContacts}
+          endIcon={isProcessingEmergencyContacts && <IconLoading />}
+        >
+          Contactos de emergencia (PDF)
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={isProcessing || isProcessingEmergencyContacts}
           onClick={props.onClose}
         >
           {t('tr_cancel')}
