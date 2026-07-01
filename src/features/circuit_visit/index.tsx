@@ -458,7 +458,6 @@ const CircuitVisitDashboard = () => {
     selectedId,
     setSelectedId,
     working,
-    hasVisits,
     handleCreateVisit,
     handleDeleteVisit,
     patch,
