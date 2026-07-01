@@ -98,16 +98,12 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     return result;
   };
 
-  const rows = useMemo(() => {
-    return items.map((history) => ({
-      history,
-      badges: getBadges(history),
-      isDept: (history.assignment.key?.startsWith('DEPT_') ?? false) && !history.actualDate,
-    }));
-  }, [items, dataView, t]);
-
-  const jwLibraryUrl = useMemo(() => {
-    const key = first.assignment.key ?? '';
+  // Cada fila puede corresponder a una parte distinta de la reunión (p. ej.
+  // Lectura de la Biblia + Multimedia el mismo día), así que el enlace de JW
+  // Library se calcula POR FILA — solo aplica a la parte de reunión concreta,
+  // no a la tarjeta entera, y se muestra justo debajo de esa fila.
+  const computeJwLibraryUrl = (history: AssignmentHistoryType) => {
+    const key = history.assignment.key ?? '';
     const isSpecial =
       key.startsWith('DEPT_') ||
       key.startsWith('OUTING_') ||
@@ -116,7 +112,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
       key.startsWith('COVISIT_');
     if (isSpecial) return null;
 
-    const code = first.assignment.code as number;
+    const code = history.assignment.code as number;
     const EXCLUDED = new Set([111, 118, 119, 120, 121, 122, 130, 131]);
     const isMidweek =
       (code >= 100 && code <= 117) || (code >= 123 && code <= 129);
@@ -131,7 +127,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     // última semana del cuaderno cae en el mes siguiente → cuaderno erróneo).
     const toMonday = (week: string) =>
       formatDate(getWeekDate(new Date(week)), 'yyyy/MM/dd');
-    const targetMonday = toMonday(first.weekOf);
+    const targetMonday = toMonday(history.weekOf);
 
     const source = sources.find((s) => toMonday(s.weekOf) === targetMonday);
 
@@ -145,7 +141,16 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     const monthNum = parseInt(month, 10);
     const issueMonth = String(monthNum % 2 === 0 ? monthNum - 1 : monthNum).padStart(2, '0');
     return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${issueMonth}`;
-  }, [first, sources, jwLang]);
+  };
+
+  const rows = useMemo(() => {
+    return items.map((history) => ({
+      history,
+      badges: getBadges(history),
+      isDept: (history.assignment.key?.startsWith('DEPT_') ?? false) && !history.actualDate,
+      jwLibraryUrl: computeJwLibraryUrl(history),
+    }));
+  }, [items, dataView, t, sources, jwLang]);
 
   return {
     assignmentDate,
@@ -155,7 +160,6 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
-    jwLibraryUrl,
   };
 };
 

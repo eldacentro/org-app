@@ -18,7 +18,6 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     personGetName,
     userUID,
     ADD_CALENDAR_SHOW,
-    jwLibraryUrl,
   } = useAssignmentItem(props);
 
   const firstKey = props.items[0].assignment.key ?? '';
@@ -40,7 +39,8 @@ const AssignmentItem = (props: AssignmentItemProps) => {
       !!singleRow.history.assignment.ayf?.student ||
       !!singleRow.history.assignment.ayf?.assistant ||
       !!singleRow.history.assignment.src ||
-      !!singleRow.history.assignment.desc);
+      !!singleRow.history.assignment.desc ||
+      !!singleRow.jwLibraryUrl);
 
   const cardAlignItems =
     singleRow && !singleRowHasExtraContent ? 'center' : 'flex-start';
@@ -171,7 +171,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           ) : null
         }
       >
-        {rows.map(({ history, badges, isDept: rowIsDept }) => (
+        {rows.map(({ history, badges, isDept: rowIsDept, jwLibraryUrl: rowJwLibraryUrl }) => (
           <Stack
             key={history.id}
             justifyContent="center"
@@ -251,6 +251,44 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                   {history.assignment.desc}
                 </Typography>
               )}
+
+              {rowJwLibraryUrl && (
+                <Box
+                  component="a"
+                  href={rowJwLibraryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    alignSelf: 'flex-start',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    px: '6px',
+                    py: '2px',
+                    marginTop: '4px',
+                    borderRadius: '4px',
+                    textDecoration: 'none',
+                    border: '1px solid var(--line)',
+                    opacity: 0.55,
+                    transition: 'opacity 0.2s ease',
+                    '&:hover': { opacity: 0.9 },
+                    '&:active': { opacity: 1 },
+                  }}
+                >
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: 'var(--grey-400)',
+                      lineHeight: 1.2,
+                      letterSpacing: '0.2px',
+                    }}
+                  >
+                    JW Library ↗
+                  </Typography>
+                </Box>
+              )}
             </Stack>
 
             {ADD_CALENDAR_SHOW && (
@@ -271,43 +309,6 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             )}
           </Stack>
         ))}
-
-        {jwLibraryUrl && (
-          <Box
-            component="a"
-            href={jwLibraryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{
-              alignSelf: 'flex-start',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              px: '6px',
-              py: '2px',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              border: '1px solid var(--line)',
-              opacity: 0.55,
-              transition: 'opacity 0.2s ease',
-              '&:hover': { opacity: 0.9 },
-              '&:active': { opacity: 1 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                fontSize: '10px',
-                fontWeight: 600,
-                color: 'var(--grey-400)',
-                lineHeight: 1.2,
-                letterSpacing: '0.2px',
-              }}
-            >
-              JW Library ↗
-            </Typography>
-          </Box>
-        )}
       </Stack>
     </Stack>
   );

@@ -131,6 +131,13 @@ const useMyAssignments = () => {
                 }).date;
                 const actualDate = meetingDateStr || weekDate;
 
+                // El filtro grueso de arriba (weekDate >= today) solo evita
+                // recorrer semanas ya pasadas del todo; dentro de la semana
+                // actual, cada mitad (entre semana / fin de semana) debe
+                // desaparecer en cuanto pase SU día real, no esperar a que
+                // acabe la semana entera.
+                if (actualDate < currentDayStr) continue;
+
                 results.push({
                   id: `DEPT_${weekDate}_${dept}_${role}_${meeting}`,
                   // weekOf = fecha real de la reunión (no el lunes), igual
