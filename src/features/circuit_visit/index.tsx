@@ -22,13 +22,18 @@ import {
   IconAdd,
   IconDelete,
   IconExport,
+  IconDownload,
   IconPerson,
   IconAssignment,
   IconMapOverview,
   IconWallet,
   IconChevronRight,
+  IconHistory,
 } from '@components/icons';
-import { formatDate } from '@utils/date';
+import { addDays, formatDate } from '@utils/date';
+import useExportS21 from '@features/reports/publisher_records/export_S21/useExportS21';
+import useExportS88 from '@features/reports/meeting_attendance/export_S88/useExportS88';
+import { useTerritoryExport } from '@features/territories/responsables/useTerritoryExport';
 import {
   CircuitVisitSpecialMeeting,
   CircuitVisitType,
@@ -85,23 +90,20 @@ const DocRow = ({
   title,
   subtitle,
   onClick,
+  exportButton,
 }: {
   icon: ReactNode;
   title: string;
   subtitle: string;
   onClick?: () => void;
+  exportButton?: ReactNode;
 }) => (
   <Box
-    onClick={onClick}
     sx={{
       display: 'flex',
       alignItems: 'center',
       gap: '12px',
-      padding: '12px 8px',
-      borderRadius: 'var(--radius-m, 8px)',
-      cursor: onClick ? 'pointer' : 'default',
-      transition: 'background 0.15s ease',
-      '&:hover': onClick ? { background: 'var(--accent-150, rgba(0,0,0,0.03))' } : {},
+      padding: '10px 8px',
     }}
   >
     <Box
@@ -126,7 +128,15 @@ const DocRow = ({
         {subtitle}
       </Typography>
     </Stack>
-    {onClick && <IconChevronRight color="var(--grey-350)" />}
+    {exportButton}
+    {onClick && (
+      <Box
+        onClick={onClick}
+        sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', p: '4px' }}
+      >
+        <IconChevronRight color="var(--grey-350)" />
+      </Box>
+    )}
   </Box>
 );
 
@@ -367,6 +377,52 @@ const PreachingSection = ({
   );
 };
 
+// ── Subcomponentes de exportación directa ──────────────────────────────────
+// Cada uno monta el hook de exportación correspondiente. Se usan en la sección
+// "Documentación para la Visita" para exportar sin navegar a la página.
+
+const S21DirectExportButton = ({ disabled }: { disabled: boolean }) => {
+  const { handleExportCards } = useExportS21({ open: false, onClose: () => {} });
+  return (
+    <Button
+      variant="secondary"
+      startIcon={<IconDownload />}
+      disabled={disabled}
+      onClick={() => handleExportCards([], 'all')}
+    >
+      Exportar
+    </Button>
+  );
+};
+
+const S88DirectExportButton = ({ disabled }: { disabled: boolean }) => {
+  const { handleExportS88 } = useExportS88();
+  return (
+    <Button
+      variant="secondary"
+      startIcon={<IconDownload />}
+      disabled={disabled}
+      onClick={handleExportS88}
+    >
+      Exportar
+    </Button>
+  );
+};
+
+const S13DirectExportButton = ({ disabled }: { disabled: boolean }) => {
+  const { exportS13 } = useTerritoryExport();
+  return (
+    <Button
+      variant="secondary"
+      startIcon={<IconDownload />}
+      disabled={disabled}
+      onClick={() => exportS13(new Date(), false)}
+    >
+      Exportar
+    </Button>
+  );
+};
+
 // Selector compacto de una sola persona (para anfitriones de comida, hermano
 // visitado en pastoreo, anciano acompañante, etc.).
 const PersonPicker = ({
@@ -420,6 +476,7 @@ const CircuitVisitDashboard = () => {
 
   const navigate = useNavigate();
   const [newWeek, setNewWeek] = useState<Date | null>(null);
+  const [showPast, setShowPast] = useState(false);
 
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -446,6 +503,31 @@ const CircuitVisitDashboard = () => {
     }),
     [personOptions, persons]
   );
+
+  const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
+
+  // Visitas activas: date_end >= hoy. Pasadas: date_end < hoy.
+  const activeVisits = useMemo(
+    () => visits.filter((v) => v.date_end >= todayStr),
+    [visits, todayStr]
+  );
+  const pastVisits = useMemo(
+    () => visits.filter((v) => v.date_end < todayStr),
+    [visits, todayStr]
+  );
+
+  // Los informes se desbloquean 10 días antes del inicio de la visita.
+  const exportUnlocked = useMemo(() => {
+    if (!working?.date_start) return false;
+    const unlockDate = addDays(new Date(working.date_start), -10);
+    return new Date() >= unlockDate;
+  }, [working?.date_start]);
+
+  const exportLockedMsg = exportUnlocked
+    ? ''
+    : working?.date_start
+    ? `Disponible 10 días antes (${formatDate(addDays(new Date(working.date_start), -10), 'd MMM')})`
+    : '';
 
   return (
     <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
@@ -480,12 +562,15 @@ const CircuitVisitDashboard = () => {
         </Card>
       </Box>
 
-      {/* Documentación para la Visita — reúne los informes que ya existen en la
-          app; cada uno abre su propia pantalla de revisión y exportación. */}
+      {/* Documentación para la Visita */}
       <Box sx={{ mb: '20px' }}>
         <Card
           title="Documentación para la Visita"
-          subtitle="Informes listos para revisar y exportar para el superintendente."
+          subtitle={
+            exportLockedMsg
+              ? `Exportación directa: ${exportLockedMsg}`
+              : 'Exporta directamente o abre la página para revisar.'
+          }
         >
           <Stack divider={<Box sx={{ height: '1px', background: 'var(--line)' }} />}>
             <DocRow
@@ -493,18 +578,21 @@ const CircuitVisitDashboard = () => {
               title="Registro de publicadores (S-21)"
               subtitle="Tarjetas de informe de cada publicador."
               onClick={() => navigate('/publisher-records')}
+              exportButton={<S21DirectExportButton disabled={!exportUnlocked} />}
             />
             <DocRow
               icon={<IconAssignment color="var(--accent-main)" width={20} height={20} />}
               title="Asistencia a las reuniones (S-88)"
               subtitle="Registros de asistencia entre semana y fin de semana."
               onClick={() => navigate('/reports/meeting-attendance')}
+              exportButton={<S88DirectExportButton disabled={!exportUnlocked} />}
             />
             <DocRow
               icon={<IconMapOverview color="var(--accent-main)" width={20} height={20} />}
               title="Territorios (S-13)"
               subtitle="Registro y estado actual de los territorios."
               onClick={() => navigate('/congregation/territories')}
+              exportButton={<S13DirectExportButton disabled={!exportUnlocked} />}
             />
             <DocRow
               icon={<IconWallet color="var(--accent-main)" width={20} height={20} />}
@@ -515,10 +603,10 @@ const CircuitVisitDashboard = () => {
         </Card>
       </Box>
 
-      {/* Selector de visitas existentes */}
-      {hasVisits && (
+      {/* Selector de visitas activas */}
+      {activeVisits.length > 0 && (
         <Stack direction="row" spacing="8px" flexWrap="wrap" mb="16px">
-          {visits.map((visit) => (
+          {activeVisits.map((visit) => (
             <Button
               key={visit.id}
               variant={visit.id === selectedId ? 'main' : 'secondary'}
@@ -532,9 +620,9 @@ const CircuitVisitDashboard = () => {
 
       {!working && (
         <Typography className="body-regular" color="var(--grey-400)">
-          {hasVisits
+          {activeVisits.length > 0
             ? 'Selecciona una visita para ver y editar su programa.'
-            : 'Aún no hay visitas. Activa una nueva visita arriba para empezar.'}
+            : 'Aún no hay visitas activas. Activa una nueva visita arriba para empezar.'}
         </Typography>
       )}
 
@@ -744,6 +832,127 @@ const CircuitVisitDashboard = () => {
             />
           </Card>
         </Stack>
+      )}
+
+      {/* Visitas pasadas — archivo de solo lectura */}
+      {pastVisits.length > 0 && (
+        <Box sx={{ mt: '32px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              mb: '12px',
+              cursor: 'pointer',
+            }}
+            onClick={() => setShowPast((p) => !p)}
+          >
+            <IconHistory color="var(--grey-400)" />
+            <Typography className="body-small-semibold" color="var(--grey-400)">
+              {showPast ? 'Ocultar' : 'Ver'} visitas pasadas ({pastVisits.length})
+            </Typography>
+          </Box>
+
+          {showPast && (
+            <Stack spacing="12px">
+              {pastVisits.map((visit) => {
+                const coDisplayName = visit.is_substitute
+                  ? `${visit.substitute_name || 'Sustituto'}${visit.substitute_spouse_name ? ` y ${visit.substitute_spouse_name}` : ''}`
+                  : null;
+                return (
+                  <Box
+                    key={visit.id}
+                    sx={{
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--line)',
+                      borderRadius: 'var(--radius-l, 12px)',
+                      padding: '14px 18px',
+                      opacity: 0.85,
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb="10px">
+                      <Stack>
+                        <Typography className="h3">{formatRange(visit)}</Typography>
+                        {coDisplayName && (
+                          <Typography className="body-small-regular" color="var(--grey-400)">
+                            Sustituto: {coDisplayName}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Stack>
+
+                    {/* Comidas */}
+                    {visit.meals.length > 0 && (
+                      <Stack spacing="2px" mb="8px">
+                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                          Comidas
+                        </Typography>
+                        {visit.meals.map((meal) => {
+                          const host = persons.find((p) => p.person_uid === meal.host);
+                          const hostName = host
+                            ? buildPersonFullname(
+                                host.person_data.person_lastname.value,
+                                host.person_data.person_firstname.value,
+                                fullnameOption
+                              )
+                            : meal.host || '—';
+                          return (
+                            <Typography key={meal.id} className="body-small-regular">
+                              {meal.date ? formatDate(new Date(meal.date), 'EEE d MMM') : '—'} — {hostName}
+                            </Typography>
+                          );
+                        })}
+                      </Stack>
+                    )}
+
+                    {/* Pastoreo */}
+                    {(visit.shepherding_visits ?? []).length > 0 && (
+                      <Stack spacing="2px" mb="8px">
+                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                          Pastoreo
+                        </Typography>
+                        {(visit.shepherding_visits ?? []).map((sv) => {
+                          const bro = persons.find((p) => p.person_uid === sv.brother);
+                          const broName = bro
+                            ? buildPersonFullname(
+                                bro.person_data.person_lastname.value,
+                                bro.person_data.person_firstname.value,
+                                fullnameOption
+                              )
+                            : '—';
+                          return (
+                            <Typography key={sv.id} className="body-small-regular">
+                              {sv.date ? formatDate(new Date(sv.date), 'EEE d MMM') : '—'} · {sv.time || '—'} — {broName}
+                            </Typography>
+                          );
+                        })}
+                      </Stack>
+                    )}
+
+                    {/* Reuniones especiales */}
+                    {(visit.meeting_pioneers || visit.meeting_elders) && (
+                      <Stack spacing="2px">
+                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                          Reuniones especiales
+                        </Typography>
+                        {visit.meeting_pioneers && (
+                          <Typography className="body-small-regular">
+                            Precursores — {visit.meeting_pioneers.date ? formatDate(new Date(visit.meeting_pioneers.date), 'EEE d MMM') : '—'} {visit.meeting_pioneers.time}
+                          </Typography>
+                        )}
+                        {visit.meeting_elders && (
+                          <Typography className="body-small-regular">
+                            Ancianos y SM — {visit.meeting_elders.date ? formatDate(new Date(visit.meeting_elders.date), 'EEE d MMM') : '—'} {visit.meeting_elders.time}
+                          </Typography>
+                        )}
+                      </Stack>
+                    )}
+                  </Box>
+                );
+              })}
+            </Stack>
+          )}
+        </Box>
       )}
     </Box>
   );
