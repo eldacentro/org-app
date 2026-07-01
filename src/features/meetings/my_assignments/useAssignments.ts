@@ -64,6 +64,32 @@ const useMyAssignments = () => {
     dbLimpiezaGetConfig().then(setLimpiezaConfig);
   }, []);
 
+  // El cálculo de abajo depende de "hoy" (new Date()), pero un useMemo solo
+  // se reevalúa cuando cambian sus dependencias — nunca solo porque pasa el
+  // tiempo. En una PWA que la gente deja abierta horas o días, eso significa
+  // que una asignación ya pasada (de cualquier categoría: reunión,
+  // departamentos, predicación, exhibidores, limpieza, Visita del CO) se
+  // quedaría visible hasta que algo más forzara un recálculo. dayTick es el
+  // disparador: se actualiza cada minuto y al volver a la pestaña, y entra en
+  // las dependencias del useMemo para forzar la reevaluación real cuando
+  // cambia el día calendario.
+  const [dayTick, setDayTick] = useState(() => formatDate(new Date(), 'yyyy/MM/dd'));
+
+  useEffect(() => {
+    const checkDay = () => {
+      const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
+      setDayTick((prev) => (prev === todayStr ? prev : todayStr));
+    };
+
+    const intervalId = setInterval(checkDay, 60 * 1000);
+    document.addEventListener('visibilitychange', checkDay);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', checkDay);
+    };
+  }, []);
+
   const isSetup = useMemo(() => {
     return userUID.length === 0;
   }, [userUID]);
@@ -470,6 +496,7 @@ const useMyAssignments = () => {
     groups,
     schedules,
     circuitVisits,
+    dayTick,
   ]);
 
   const handleClose = () => setOpen(false);
