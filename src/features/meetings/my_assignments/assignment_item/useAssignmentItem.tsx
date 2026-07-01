@@ -32,9 +32,12 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   // calcula una sola vez con el primero.
   const first = items[0];
 
+  // "Toda la semana"/"SEM." solo aplica a una entrada de departamento
+  // heredada sin fecha real; con actualDate ya se muestra como el día
+  // normal de la reunión (entre semana o fin de semana).
   const isDept = useMemo(() => {
-    return first.assignment.key?.startsWith('DEPT_') ?? false;
-  }, [first.assignment]);
+    return (first.assignment.key?.startsWith('DEPT_') ?? false) && !first.actualDate;
+  }, [first]);
 
   const assignmentDate = useMemo(() => {
     try {
@@ -99,7 +102,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     return items.map((history) => ({
       history,
       badges: getBadges(history),
-      isDept: history.assignment.key?.startsWith('DEPT_') ?? false,
+      isDept: (history.assignment.key?.startsWith('DEPT_') ?? false) && !history.actualDate,
     }));
   }, [items, dataView, t]);
 

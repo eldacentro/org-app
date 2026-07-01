@@ -99,16 +99,46 @@ const useMyAssignments = () => {
             'plataforma',
           ];
 
+          // Un rol de departamento cubre toda la semana en un solo dato (así
+          // se organiza y edita en la página de Departamentos, sin cambios).
+          // Aquí, de cara al hermano, tiene más sentido verlo como DOS
+          // asignaciones separadas: una para el día real de la reunión de
+          // entre semana y otra para el de fin de semana — incluyendo el
+          // ajuste a martes durante una semana de visita del CO, porque
+          // ambas usan schedulesGetMeetingDate (misma fuente que "Programas
+          // semanales"). Se omite el día que no tenga reunión esa semana
+          // (asamblea, congreso, Memorial, etc.).
+          const schedule = schedules.find((s) => s.weekOf === weekDate);
+
+          const meetingDays: Array<'midweek' | 'weekend'> = ['midweek', 'weekend'];
+
           for (const dept of depts) {
             for (const [role, data] of Object.entries(week[dept])) {
-              if (data.value === uid) {
+              if (data.value !== uid) continue;
+
+              for (const meeting of meetingDays) {
+                const weekType =
+                  schedule?.[`${meeting}_meeting`]?.week_type?.find(
+                    (r) => r.type === 'main'
+                  )?.value ?? Week.NORMAL;
+
+                if (schedulesWeekNoMeeting(weekType)) continue;
+
+                const meetingDateStr = schedulesGetMeetingDate({
+                  week: weekDate,
+                  meeting,
+                  dataView: 'main',
+                }).date;
+                const actualDate = meetingDateStr || weekDate;
+
                 results.push({
-                  id: crypto.randomUUID(),
+                  id: `DEPT_${weekDate}_${dept}_${role}_${meeting}`,
                   weekOf: weekDate,
                   weekOfFormatted: formatDate(
-                    new Date(weekDate),
+                    new Date(actualDate),
                     shortDateFormat
                   ),
+                  actualDate,
                   assignment: {
                     code: 0 as AssignmentHistoryType['assignment']['code'],
                     person: uid,
