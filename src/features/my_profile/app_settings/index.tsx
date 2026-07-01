@@ -23,6 +23,9 @@ const AppSettings = () => {
     laptopUp,
     handleUpdateSyncTheme,
     syncTheme,
+    showPdfExportPersonal,
+    pdfExportPersonalEnabled,
+    handleSwitchPdfExportPersonal,
   } = useAppSettings();
 
   return (
@@ -83,6 +86,26 @@ const AppSettings = () => {
             </Typography>
           </Box>
         </SwitcherContainer>
+
+        {showPdfExportPersonal && (
+          <SwitcherContainer>
+            <Switch
+              checked={pdfExportPersonalEnabled}
+              onChange={(e) => handleSwitchPdfExportPersonal(e.target.checked)}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Typography>
+                {t('tr_pdfExportPersonalEnabled', 'Habilitar exportación a PDF para mi cuenta')}
+              </Typography>
+              <Typography className="label-small-regular" color="var(--grey-350)">
+                {t(
+                  'tr_pdfExportPersonalEnabledDesc',
+                  'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
+                )}
+              </Typography>
+            </Box>
+          </SwitcherContainer>
+        )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Typography className="h4">{t('tr_colorScheme')}</Typography>

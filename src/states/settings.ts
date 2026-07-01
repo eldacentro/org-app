@@ -526,10 +526,32 @@ export const weekendSchedulesSongsWeekend = atom((get) => {
   );
 });
 
+// Toggle personal (solo esta cuenta) que ancianos/admin pueden activar en
+// "Mi cuenta" → "Ajustes de la aplicación", sin tocar el ajuste de
+// congregación que ven todos los demás.
+export const pdfExportEnabledPersonalState = atom((get) => {
+  const settings = get(settingsState);
+
+  return settings.user_settings.pdf_export_enabled_personal?.value ?? false;
+});
+
 export const pdfExportEnabledState = atom((get) => {
   const settings = get(settingsState);
 
-  return settings.cong_settings.pdf_export_enabled?.value ?? false;
+  const congEnabled = settings.cong_settings.pdf_export_enabled?.value ?? false;
+  if (congEnabled) return true;
+
+  const personalEnabled = get(pdfExportEnabledPersonalState);
+  if (!personalEnabled) return false;
+
+  const role = settings.user_settings.cong_role;
+  const accountType = settings.user_settings.account_type;
+  const isAdmin = role.some(
+    (r) => r === 'admin' || r === 'coordinator' || r === 'secretary'
+  );
+  const isElder = isAdmin || (accountType !== 'pocket' && role.includes('elder'));
+
+  return isElder;
 });
 
 // USER SETTINGS

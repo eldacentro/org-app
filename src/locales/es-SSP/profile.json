@@ -30,6 +30,8 @@
   "tr_selectFeature": "Seleccionar función",
   "tr_autoThemeChange": "Cambio automático de tema de la aplicación",
   "tr_autoThemeChangeDesc": "Sigue la configuración del sistema de tu dispositivo al elegir entre el modo claro y el modo oscuro",
+  "tr_pdfExportPersonalEnabled": "Habilitar exportación a PDF para mi cuenta",
+  "tr_pdfExportPersonalEnabledDesc": "Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.",
   "tr_colorScheme": "Esquema de colores",
   "tr_blue": "Azul",
   "tr_green": "Verde",
