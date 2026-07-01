@@ -133,7 +133,11 @@ const useMyAssignments = () => {
 
                 results.push({
                   id: `DEPT_${weekDate}_${dept}_${role}_${meeting}`,
-                  weekOf: weekDate,
+                  // weekOf = fecha real de la reunión (no el lunes), igual
+                  // que resolveAssignmentDate hace para las asignaciones
+                  // normales de reunión — así el agrupamiento por mes y por
+                  // tarjeta usa el mismo criterio y ambas caen juntas.
+                  weekOf: actualDate,
                   weekOfFormatted: formatDate(
                     new Date(actualDate),
                     shortDateFormat
