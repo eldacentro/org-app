@@ -21,7 +21,8 @@ import UpcomingEventDate from '../upcoming_event_date';
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
 
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, isElder } = useCurrentUser();
+  const canManageEvents = isAdmin || isElder;
   const { desktopUp, tabletUp, tablet600Up } = useBreakpoints();
 
   const {
@@ -122,7 +123,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
               </Typography>
             </Box>
 
-            {isAdmin && (!desktopUp || showEditIcon) && (
+            {canManageEvents && (!desktopUp || showEditIcon) && (
               <IconButton sx={{ padding: 0 }} onClick={handleTurnEditMode}>
                 <IconEdit color="var(--accent-main)" />
               </IconButton>

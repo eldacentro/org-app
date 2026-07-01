@@ -11,7 +11,10 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { userDataViewState } from '@states/settings';
 
 const useUpcomingEvents = () => {
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, isElder } = useCurrentUser();
+  // Cualquier anciano puede añadir/exportar Próximos eventos, no solo
+  // coordinador/secretario/admin.
+  const canManageEvents = isAdmin || isElder;
 
   const upcomingEvents = useAtomValue(upcomingEventsActiveState);
   const dataView = useAtomValue(userDataViewState);
@@ -75,7 +78,7 @@ const useUpcomingEvents = () => {
   };
 
   return {
-    isAdmin,
+    canManageEvents,
     emptyEvent,
     events,
     addEventBoxShow,

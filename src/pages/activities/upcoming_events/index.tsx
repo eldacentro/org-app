@@ -13,7 +13,7 @@ const UpcomingEvents = () => {
   const { tablet688Up } = useBreakpoints();
 
   const {
-    isAdmin,
+    canManageEvents,
     emptyEvent,
     events,
     handleAddEventButtonClick,
@@ -34,7 +34,7 @@ const UpcomingEvents = () => {
       <PageTitle
         title={t('tr_upcomingEvents')}
         buttons={
-          isAdmin && (
+          canManageEvents && (
             <>
               <ExportUpcomingEvents />
               <NavBarButton
