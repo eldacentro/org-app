@@ -35,6 +35,7 @@ const DatePicker = ({
   hideNav,
   error,
   helperText,
+  shouldDisableDate,
 }: CustomDatePickerProps) => {
   const poperRef = useRef<HTMLDivElement>(null);
 
@@ -138,6 +139,7 @@ const DatePicker = ({
           minDate={minDate}
           maxDate={maxDate}
           disablePast={disablePast}
+          shouldDisableDate={shouldDisableDate}
           yearsPerRow={3}
           showDaysOutsideCurrentMonth={true}
           label={label}

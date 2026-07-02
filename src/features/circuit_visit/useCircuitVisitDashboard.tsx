@@ -6,12 +6,15 @@ import {
   COFullnameState,
   COSpouseNameState,
   JWLangState,
+  congFullnameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  settingsState,
 } from '@states/settings';
 import { serviceOutingsListState } from '@states/service_outings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
+import { displaySnackNotification } from '@services/states/app';
 import CircuitVisitProgramDoc from '@views/circuit_visit';
 import {
   CircuitVisitType,
@@ -24,7 +27,10 @@ import {
   dbCircuitVisitSave,
   dbCircuitVisitDelete,
 } from '@services/dexie/circuit_visit';
+import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
+
+export type CircuitVisitSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 const AUTOSAVE_MS = 800;
 
@@ -55,10 +61,12 @@ const useCircuitVisitDashboard = () => {
   const visits = useAtomValue(circuitVisitsState);
   const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
+  const congName = useAtomValue(congFullnameState);
   const jwLang = useAtomValue(JWLangState);
   const outingsList = useAtomValue(serviceOutingsListState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const settings = useAtomValue(settingsState);
 
   // Más recientes primero.
   const sortedVisits = useMemo(
@@ -68,8 +76,10 @@ const useCircuitVisitDashboard = () => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [working, setWorking] = useState<CircuitVisitType | null>(null);
+  const [saveStatus, setSaveStatus] = useState<CircuitVisitSaveStatus>('idle');
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Selección por defecto: la visita más próxima a hoy (o la primera).
   useEffect(() => {
@@ -88,8 +98,23 @@ const useCircuitVisitDashboard = () => {
 
   const flushSave = useCallback((record: CircuitVisitType) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      dbCircuitVisitSave(record);
+    if (savedResetTimer.current) clearTimeout(savedResetTimer.current);
+
+    saveTimer.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      try {
+        await dbCircuitVisitSave(record);
+        setSaveStatus('saved');
+        savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (error) {
+        setSaveStatus('error');
+        console.error(error);
+        displaySnackNotification({
+          header: 'Error',
+          message: 'No se pudo guardar el cambio. Revisa tu conexión.',
+          severity: 'error',
+        });
+      }
     }, AUTOSAVE_MS);
   }, []);
 
@@ -117,15 +142,53 @@ const useCircuitVisitDashboard = () => {
     return saved;
   }, []);
 
+  // Además de la entidad completa, limpia cualquier entrada suelta con la
+  // misma semana en la lista ligera de Ajustes (settings.circuit_overseer.
+  // visits) — es una fuente de datos aparte que puede quedar desincronizada
+  // si esa semana también se había planificado desde ahí. El tipo de semana
+  // en el horario ya lo revierte dbCircuitVisitDelete/unprojectVisit.
+  const cleanupSettingsVisitEntry = useCallback(
+    async (weekOf: string) => {
+      if (!weekOf) return;
+
+      const coVisits = structuredClone(
+        settings.cong_settings.circuit_overseer.visits
+      );
+
+      let changed = false;
+      for (const record of coVisits) {
+        if (record._deleted === false && record.weekOf === weekOf) {
+          record._deleted = true;
+          record.updatedAt = new Date().toISOString();
+          changed = true;
+        }
+      }
+
+      if (!changed) return;
+
+      await dbAppSettingsUpdate({
+        'cong_settings.circuit_overseer.visits': coVisits,
+      });
+    },
+    [settings]
+  );
+
   const handleDeleteVisit = useCallback(
     async (id: string) => {
+      const target = sortedVisits.find((v) => v.id === id);
+
       await dbCircuitVisitDelete(id);
+
+      if (target) {
+        await cleanupSettingsVisitEntry(target.weekOf);
+      }
+
       if (selectedId === id) {
         setSelectedId(null);
         setWorking(null);
       }
     },
-    [selectedId]
+    [selectedId, sortedVisits, cleanupSettingsVisitEntry]
   );
 
   // ── Comidas ──────────────────────────────────────────────────────────
@@ -328,11 +391,23 @@ const useCircuitVisitDashboard = () => {
       })
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
+    // Si es un sustituto, el programa debe mostrar su nombre, no el del CO
+    // titular configurado en Ajustes — de lo contrario el PDF de esa semana
+    // saldría con el nombre equivocado.
+    const effectiveCoName =
+      working.is_substitute && working.substitute_name
+        ? working.substitute_name
+        : coName;
+    const effectiveCoSpouseName = working.is_substitute
+      ? working.substitute_spouse_name || ''
+      : coSpouseName;
+
     const blob = await pdf(
       <CircuitVisitProgramDoc
         visit={working}
-        coName={coName}
-        coSpouseName={coSpouseName}
+        coName={effectiveCoName}
+        coSpouseName={effectiveCoSpouseName}
+        congregation={congName}
         lang={jwLang}
         preachingRows={preachingRows}
       />
@@ -344,13 +419,14 @@ const useCircuitVisitDashboard = () => {
     link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [working, coName, coSpouseName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
+  }, [working, coName, coSpouseName, congName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
 
   return {
     visits: sortedVisits,
     selectedId,
     setSelectedId,
     working,
+    saveStatus,
     hasVisits: sortedVisits.length > 0,
     handleCreateVisit,
     handleDeleteVisit,

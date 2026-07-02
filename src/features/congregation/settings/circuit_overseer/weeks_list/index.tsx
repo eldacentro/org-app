@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import { IconAdd } from '@components/icons';
-import { useAppTranslation, useCurrentUser } from '@hooks/index';
+import { useAppTranslation } from '@hooks/index';
+import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
 import useWeeksList from './useWeeksList';
 import Button from '@components/button';
 import WeekItem from '../week_item';
@@ -8,7 +9,7 @@ import WeekItem from '../week_item';
 const WeeksList = () => {
   const { t } = useAppTranslation();
 
-  const { isAdmin } = useCurrentUser();
+  const canEdit = useIsCircuitVisitManager();
 
   const { handleAddVisit, handleVisitDeleted, handleWeekChange, weeks, errors } =
     useWeeksList();
@@ -46,7 +47,7 @@ const WeeksList = () => {
         );
       })}
 
-      {isAdmin && (
+      {canEdit && (
         <Button
           variant="small"
           sx={{

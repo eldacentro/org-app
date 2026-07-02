@@ -1,16 +1,17 @@
 import { Box } from '@mui/material';
 import { IconDelete } from '@components/icons';
-import { useAppTranslation, useCurrentUser } from '@hooks/index';
+import { useAppTranslation } from '@hooks/index';
 import { DatePicker } from '@components/index';
 import { WeekItemType } from './index.types';
 import useWeekItem from './useWeekItem';
+import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
 import IconButton from '@components/icon_button';
-import { formatDate, getWeekDate } from '@utils/date';
+import { addDays, formatDate, getWeekDate } from '@utils/date';
 
 const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItemType) => {
   const { t } = useAppTranslation();
 
-  const { isAdmin } = useCurrentUser();
+  const canEdit = useIsCircuitVisitManager();
 
   const { handleDateChange, handleDeleteVisit } = useWeekItem(visit);
 
@@ -57,14 +58,18 @@ const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItem
       <DatePicker
         disablePast
         label={t('tr_coNextVisitWeek')}
-        value={visit.weekOf === '' ? null : new Date(visit.weekOf)}
+        // weekOf guarda el lunes de la semana (convención interna); se
+        // muestra/selecciona el martes, que es el día real en que arranca
+        // la visita — computeWeekOf() vuelve a derivar el lunes al elegir.
+        value={visit.weekOf === '' ? null : addDays(new Date(visit.weekOf), 1)}
         onChange={handlePickerChange}
-        readOnly={!isAdmin}
+        readOnly={!canEdit}
         error={error}
-        helperText={helperText}
+        helperText={helperText ?? 'Las visitas siempre empiezan en martes'}
+        shouldDisableDate={(date) => date.getDay() !== 2}
       />
 
-      {isAdmin && (
+      {canEdit && (
         <IconButton
           color="error"
           sx={{

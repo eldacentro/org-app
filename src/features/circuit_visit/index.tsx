@@ -45,6 +45,7 @@ import { serviceOutingsListState } from '@states/service_outings';
 import { buildPersonFullname } from '@utils/common';
 import { personIsElder } from '@services/app/persons';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
+import { useConfirm } from '@components/confirm_dialog';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
 
 const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
@@ -154,10 +155,14 @@ const SpecialMeetingEditor = ({
   label,
   value,
   onChange,
+  minDate,
+  maxDate,
 }: {
   label: string;
   value: CircuitVisitSpecialMeeting;
   onChange: (v: CircuitVisitSpecialMeeting) => void;
+  minDate?: Date;
+  maxDate?: Date;
 }) => {
   const enabled = value !== null;
 
@@ -187,6 +192,8 @@ const SpecialMeetingEditor = ({
                 date: d ? formatDate(d, 'yyyy/MM/dd') : '',
               })
             }
+            minDate={minDate}
+            maxDate={maxDate}
           />
           <TimeField
             value={value.time}
@@ -458,6 +465,7 @@ const CircuitVisitDashboard = () => {
     selectedId,
     setSelectedId,
     working,
+    saveStatus,
     handleCreateVisit,
     handleDeleteVisit,
     patch,
@@ -476,6 +484,30 @@ const CircuitVisitDashboard = () => {
   const navigate = useNavigate();
   const [newWeek, setNewWeek] = useState<Date | null>(null);
   const [showPast, setShowPast] = useState(false);
+  const { confirm, ConfirmDialogNode } = useConfirm();
+
+  const handleDeleteVisitClick = async () => {
+    if (!working) return;
+
+    const ok = await confirm({
+      title: 'Eliminar visita',
+      message:
+        'Se eliminará todo el programa de esta visita (comidas, acompañantes, pastoreo y reuniones especiales). Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+
+    if (!ok) return;
+
+    handleDeleteVisit(working.id);
+  };
+
+  const saveStatusLabel =
+    saveStatus === 'saving'
+      ? 'Guardando…'
+      : saveStatus === 'saved'
+      ? 'Guardado'
+      : '';
 
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -536,7 +568,7 @@ const CircuitVisitDashboard = () => {
       <Box sx={{ mt: '12px', mb: '20px' }}>
         <Card
           title="Activar nueva visita"
-          subtitle="Elige una fecha de la semana de la visita (martes a domingo)."
+          subtitle="Elige el martes en que empieza la visita."
         >
           <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end">
             <CustomDatePicker
@@ -544,6 +576,7 @@ const CircuitVisitDashboard = () => {
               view="input"
               value={newWeek}
               onChange={(d) => setNewWeek(d)}
+              shouldDisableDate={(date) => date.getDay() !== 2}
             />
             <Button
               variant="main"
@@ -633,7 +666,14 @@ const CircuitVisitDashboard = () => {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Typography className="h2">{formatRange(working)}</Typography>
+            <Stack direction="row" alignItems="center" spacing="10px">
+              <Typography className="h2">{formatRange(working)}</Typography>
+              {saveStatusLabel && (
+                <Typography className="body-small-regular" color="var(--grey-400)">
+                  {saveStatusLabel}
+                </Typography>
+              )}
+            </Stack>
             <Stack direction="row" spacing="8px">
               <Button
                 variant="main"
@@ -645,7 +685,7 @@ const CircuitVisitDashboard = () => {
               <Button
                 variant="tertiary"
                 startIcon={<IconDelete color="var(--red-main)" />}
-                onClick={() => handleDeleteVisit(working.id)}
+                onClick={handleDeleteVisitClick}
               >
                 Eliminar visita
               </Button>
@@ -806,12 +846,16 @@ const CircuitVisitDashboard = () => {
                 label="Reunión con precursores"
                 value={working.meeting_pioneers}
                 onChange={(v) => updateSpecialMeeting('meeting_pioneers', v)}
+                minDate={new Date(working.date_start)}
+                maxDate={new Date(working.date_end)}
               />
               <Box sx={{ height: '1px', background: 'var(--line)' }} />
               <SpecialMeetingEditor
                 label="Reunión con ancianos y SM"
                 value={working.meeting_elders}
                 onChange={(v) => updateSpecialMeeting('meeting_elders', v)}
+                minDate={new Date(working.date_start)}
+                maxDate={new Date(working.date_end)}
               />
             </Stack>
           </Card>
@@ -953,6 +997,7 @@ const CircuitVisitDashboard = () => {
           )}
         </Box>
       )}
+      {ConfirmDialogNode}
     </Box>
   );
 };

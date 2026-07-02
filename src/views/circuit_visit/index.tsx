@@ -16,6 +16,7 @@ type Props = {
   visit: CircuitVisitType;
   coName: string;
   coSpouseName: string;
+  congregation: string;
   lang: string;
   preachingRows: CircuitVisitPdfPreachingRow[];
 };
@@ -56,7 +57,7 @@ const SpecialMeetingRow = ({
   );
 };
 
-const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, lang, preachingRows }: Props) => {
+const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lang, preachingRows }: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
 
   return (
@@ -173,7 +174,7 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, lang, preachingRo
         </View>
 
         <Text style={styles.footer} fixed>
-          Congregación Elda Centro
+          {congregation}
         </Text>
       </Page>
     </Document>

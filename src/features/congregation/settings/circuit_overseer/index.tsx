@@ -2,7 +2,6 @@ import { FullnameOption } from '@definition/settings';
 import {
   useAppTranslation,
   useBreakpoints,
-  useCurrentUser,
 } from '@hooks/index';
 import {
   CardSection,
@@ -11,6 +10,7 @@ import {
   TwoColumnsRow,
 } from '../shared_styles';
 import useCircuitOverseer from './useCircuitOverseer';
+import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
 import TextField from '@components/textfield';
 import WeeksList from './weeks_list';
 import { Stack } from '@mui/material';
@@ -20,7 +20,9 @@ const CircuitOverseer = () => {
 
   const { tablet600Up } = useBreakpoints();
 
-  const { isAdmin } = useCurrentUser();
+  // El Coordinador gestiona el programa completo de la visita, así que
+  // también debe poder editar aquí la identidad del CO — no solo el Admin.
+  const canEdit = useIsCircuitVisitManager();
 
   const {
     fullnameOption,
@@ -65,7 +67,7 @@ const CircuitOverseer = () => {
               value={firstname}
               onChange={(e) => handleFirstnameChange(e.target.value)}
               onKeyUp={handleFirstnameSave}
-              slotProps={{ input: { readOnly: !isAdmin } }}
+              slotProps={{ input: { readOnly: !canEdit } }}
             />
             <TextField
               type="text"
@@ -73,7 +75,7 @@ const CircuitOverseer = () => {
               value={lastname}
               onChange={(e) => handleLastnameChange(e.target.value)}
               onKeyUp={handleLastnameSave}
-              slotProps={{ input: { readOnly: !isAdmin } }}
+              slotProps={{ input: { readOnly: !canEdit } }}
             />
           </TwoColumnsRow>
 
@@ -84,7 +86,7 @@ const CircuitOverseer = () => {
               value={displayname}
               onChange={(e) => handleDisplaynameChange(e.target.value)}
               onKeyUp={handleDisplaynameSave}
-              slotProps={{ input: { readOnly: !isAdmin } }}
+              slotProps={{ input: { readOnly: !canEdit } }}
             />
           )}
 
@@ -94,7 +96,7 @@ const CircuitOverseer = () => {
             value={spouseName}
             onChange={(e) => handleSpouseNameChange(e.target.value)}
             onKeyUp={handleSpouseNameSave}
-            slotProps={{ input: { readOnly: !isAdmin } }}
+            slotProps={{ input: { readOnly: !canEdit } }}
           />
 
           <WeeksList />

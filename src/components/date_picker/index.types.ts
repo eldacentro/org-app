@@ -60,4 +60,10 @@ export interface CustomDatePickerProps {
   error?: boolean;
 
   helperText?: string;
+
+  /**
+   * Deshabilita días concretos del calendario (p. ej. restringir a un
+   * día de la semana). Se pasa tal cual a MUI DatePicker.
+   */
+  shouldDisableDate?: (date: Date) => boolean;
 }

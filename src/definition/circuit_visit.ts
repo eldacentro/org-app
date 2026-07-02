@@ -14,7 +14,7 @@
 export type CircuitVisitMeal = {
   id: string;
   date: string; // yyyy/MM/dd
-  host: string; // familia/publicador anfitrión (texto libre; selector real en Fase 4)
+  host: string; // person_uid del anfitrión, elegido con PersonPicker
   note: string;
 };
 
