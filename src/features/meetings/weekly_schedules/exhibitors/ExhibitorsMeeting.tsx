@@ -20,23 +20,24 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
 
-  const monthStr = useMemo(() => {
+  // El mes de la semana del lunes NO sirve para toda la semana: una semana
+  // que empieza en un mes y termina en otro (ej. lunes 29 de junio a domingo
+  // 5 de julio) debe usar los ajustes/turnos del mes de CADA día, no el del
+  // lunes para todos. Por eso effectiveTurns/monthCancelled se calculan por
+  // día dentro de groupedTurns, no una sola vez aquí para toda la semana.
+  const weekMonthStr = useMemo(() => {
     const targetWeek = weekRecord?.weekOf || week;
     if (!targetWeek) return '';
-    return targetWeek.substring(0, 7); // "YYYY/MM"
+    return targetWeek.substring(0, 7); // "YYYY/MM" — solo para el mensaje de mes suspendido de más abajo
   }, [weekRecord, week]);
 
-  const effectiveTurns = useMemo(() => {
-    return getEffectiveTurnsForMonth(settings, monthStr);
-  }, [settings, monthStr]);
-
   const monthCancelled = useMemo(() => {
-    return isMonthCancelled(settings, monthStr);
-  }, [settings, monthStr]);
+    return isMonthCancelled(settings, weekMonthStr);
+  }, [settings, weekMonthStr]);
 
   const cancelledMonthMessage = useMemo(() => {
-    return getMonthCancelledMessage(settings, monthStr);
-  }, [settings, monthStr]);
+    return getMonthCancelledMessage(settings, weekMonthStr);
+  }, [settings, weekMonthStr]);
 
   const formatLegibleDate = (date: Date): string => {
     const weekdays = [
@@ -65,8 +66,6 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
   };
 
   const groupedTurns = useMemo(() => {
-    if (!effectiveTurns || effectiveTurns.length === 0) return [];
-    
     const targetWeek = weekRecord?.weekOf || week;
     if (!targetWeek) return [];
 
@@ -80,12 +79,19 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
     // Iterar por los 7 días de la semana
     for (let i = 0; i < 7; i++) {
       const currentDate = addDays(mondayDate, i);
-      
+
       const dayLabel = weekdaysOrder[i];
       const dateStr = `${currentDate.getFullYear()}/${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}`;
 
+      // Los turnos efectivos son los del mes de ESTE día concreto, no el
+      // del lunes de la semana — así un jueves de julio usa los turnos de
+      // julio aunque la semana empiece en junio.
+      const dayMonthStr = dateStr.substring(0, 7);
+      if (isMonthCancelled(settings, dayMonthStr)) continue;
+      const dayEffectiveTurns = getEffectiveTurnsForMonth(settings, dayMonthStr);
+
       // Encontrar los turnos configurados para este día
-      const dayTurns = effectiveTurns.filter((t) => t.days.includes(dayLabel));
+      const dayTurns = dayEffectiveTurns.filter((t) => t.days.includes(dayLabel));
 
       for (const turn of dayTurns) {
         // Buscar si hay un manual override guardado
@@ -147,9 +153,12 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
           turns: sortedTurns,
         };
       });
-  }, [weekRecord, week, effectiveTurns, settings]);
+  }, [weekRecord, week, settings]);
 
-  if (monthCancelled) {
+  // Solo mostrar el aviso de "mes suspendido" si de verdad no queda ningún
+  // turno que enseñar — una semana límite (ej. termina en un mes distinto
+  // al que empieza) puede tener días válidos en el otro mes.
+  if (monthCancelled && groupedTurns.length === 0) {
     return (
       <Box
         sx={{

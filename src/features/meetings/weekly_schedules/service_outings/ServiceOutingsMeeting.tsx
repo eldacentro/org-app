@@ -19,23 +19,17 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
 
-  // Mes de esta semana (YYYY/MM) — para respetar "Ajustes del mes" (excepciones
-  // de horario configuradas en Salidas de predicación, ej. verano).
-  const weekMonthStr = useMemo(() => week?.slice(0, 7) || '', [week]);
-
-  const monthCancelled = useMemo(() => {
-    return isOutingsMonthCancelled(settings, weekMonthStr);
-  }, [settings, weekMonthStr]);
-
+  // "Ajustes del mes" (excepciones de horario, ej. verano) son por mes, no
+  // por semana — una semana que empieza en un mes y termina en otro (ej.
+  // lunes 29 de junio a domingo 5 de julio) debe usar el mes de CADA día,
+  // no el mes del lunes para toda la semana entera. defaultSettings ya no
+  // depende de un único mes; locations/disabledSlots sí son globales.
   const defaultSettings = useMemo(() => {
-    const effectiveHours = getEffectiveHoursForMonth(settings, weekMonthStr);
-
     return {
-      defaultHours: effectiveHours,
       locations: settings?.locations || ['Salón del Reino'],
       disabledSlots: settings?.disabledSlots || [],
     };
-  }, [settings, weekMonthStr]);
+  }, [settings]);
 
   const weekDays = useMemo(() => {
     if (!week) return [];
@@ -71,9 +65,8 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   };
 
   const generatedSlots = useMemo(() => {
-    if (!week || weekDays.length === 0 || monthCancelled) return [];
+    if (!week || weekDays.length === 0) return [];
 
-    const defaultHours = defaultSettings.defaultHours || {};
     const disabledSlots = defaultSettings.disabledSlots || [];
     const outings = weekRecord?.outings || [];
     const overrideHours = weekRecord?.weekOverrideHours || {};
@@ -85,6 +78,13 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       const date = weekDays[i];
       const dayLabel = dayKeys[i];
       const dbDateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+
+      // El mes de ESTE día concreto, no el del lunes de la semana — así un
+      // jueves de julio usa los ajustes de julio aunque la semana empiece
+      // en junio.
+      const dayMonthStr = dbDateStr.slice(0, 7);
+      if (isOutingsMonthCancelled(settings, dayMonthStr)) continue;
+      const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
 
       // Morning Turn
       const morningType = `${dayLabel}_morning`;
@@ -124,7 +124,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
     }
 
     return slots;
-  }, [week, weekDays, defaultSettings, weekRecord, monthCancelled]);
+  }, [week, weekDays, defaultSettings, weekRecord, settings]);
 
   const groupedOutings = useMemo(() => {
     if (generatedSlots.length === 0) return [];
