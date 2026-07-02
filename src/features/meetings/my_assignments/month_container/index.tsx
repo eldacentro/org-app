@@ -58,7 +58,17 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
 
         const items = Object.values(dayGroups)
           .map((group) =>
-            group.toSorted((a, b) => a.id.localeCompare(b.id))
+            group.toSorted((a, b) => {
+              // Cuando Salida de predicación y Exhibidores caen el mismo
+              // día, la salida siempre va primero — el orden alfabético por
+              // id daba un resultado no intencional (a veces uno, a veces
+              // el otro) según los ids concretos.
+              const aIsOuting = (a.assignment.key ?? '').startsWith('OUTING_');
+              const bIsOuting = (b.assignment.key ?? '').startsWith('OUTING_');
+              if (aIsOuting && !bIsOuting) return -1;
+              if (!aIsOuting && bIsOuting) return 1;
+              return a.id.localeCompare(b.id);
+            })
           )
           .toSorted(
             (a, b) =>

@@ -147,6 +147,25 @@ const useMyAssignments = () => {
             for (const [role, data] of Object.entries(week[dept])) {
               if (data.value !== uid) continue;
 
+              // El compañero de rol dentro del mismo departamento (p. ej.
+              // interior/exterior en Acomodadores). Plataforma solo tiene un
+              // rol, así que aquí simplemente no encuentra ninguno.
+              const companionName = Object.entries(week[dept])
+                .filter(
+                  ([otherRole, otherData]) =>
+                    otherRole !== role &&
+                    otherData.value &&
+                    otherData.value !== uid
+                )
+                .map(([, otherData]) => {
+                  const companion = personsStateFind(otherData.value);
+                  return companion
+                    ? `${companion.person_data.person_firstname.value} ${companion.person_data.person_lastname.value}`.trim()
+                    : '';
+                })
+                .filter((name) => name.length > 0)
+                .join(', ');
+
               for (const meeting of meetingDays) {
                 const weekType =
                   schedule?.[`${meeting}_meeting`]?.week_type?.find(
@@ -187,6 +206,7 @@ const useMyAssignments = () => {
                     key: `DEPT_${dept}_${role}` as AssignmentHistoryType['assignment']['key'],
                     dataView: 'main',
                     title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
+                    desc: companionName ? `👥 Con: ${companionName}` : undefined,
                   },
                 });
               }
@@ -258,7 +278,17 @@ const useMyAssignments = () => {
       return turns.map((turn) => {
         const roleTitle = turn.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
         const timeRange = `${turn.startTime}-${turn.endTime}`;
-        const descText = `🕒 ${timeRange}  •  📍 ${turn.location}`;
+        const companionNames = turn.companions
+          .map((companionUid) => {
+            const companion = personsStateFind(companionUid);
+            return companion
+              ? `${companion.person_data.person_firstname.value} ${companion.person_data.person_lastname.value}`.trim()
+              : '';
+          })
+          .filter((name) => name.length > 0);
+
+        const descText = `🕒 ${timeRange}  •  📍 ${turn.location}` +
+          (companionNames.length > 0 ? `  •  👥 Con: ${companionNames.join(', ')}` : '');
 
         return {
           id: `${turn.turnId}_${turn.date}`,

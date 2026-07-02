@@ -75,6 +75,7 @@ export type MyExhibitorTurn = {
   endTime: string;
   location: string;
   isResponsible: boolean;
+  companions: string[]; // person_uids de los demás en el mismo turno
 };
 
 /**
@@ -135,6 +136,10 @@ export const getMyExhibitorTurns = (
 
             const myAss = finalAssignments.find((a) => a.person === uid);
             if (myAss) {
+              const companions = finalAssignments
+                .filter((a) => a.person && a.person !== uid)
+                .map((a) => a.person);
+
               results.push({
                 date: dateStr,
                 weekOf,
@@ -143,6 +148,7 @@ export const getMyExhibitorTurns = (
                 endTime: turn.endTime,
                 location: savedTurn?.location || turn.defaultLocation || 'Exhibidor',
                 isResponsible: myAss.isResponsible,
+                companions,
               });
             }
           }
