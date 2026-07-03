@@ -21,8 +21,18 @@ const useUpcomingEvents = () => {
 
   const [addEventBoxShow, setAddEventBoxShow] = useState(false);
 
+  // Reunión con precursores / con ancianos y SM de una visita del CO: se
+  // muestran integradas día a día dentro de la propia tarjeta de la visita
+  // (ver CircuitVisitWeekAgenda), así que no deben salir aquí como tarjeta
+  // aparte y duplicada. Siguen existiendo en Dexie/sync para el calendario
+  // y la reconciliación, solo se ocultan en este listado.
+  const isStandaloneCircuitVisitMeeting = (eventUid: string) =>
+    /^covisit_.+_(pioneers|elders)$/.test(eventUid);
+
   const events = useMemo(() => {
     return upcomingEvents.filter((record) => {
+      if (isStandaloneCircuitVisitMeeting(record.event_uid)) return false;
+
       if (dataView === 'main') {
         return record.event_data.type === 'main';
       }

@@ -12,6 +12,7 @@ import {
   circuitVisitMarkWeek,
   circuitVisitUnmarkWeek,
 } from './circuit_visit';
+import { addHours } from '@utils/date';
 
 /**
  * Proyección de la Visita hacia los lugares de la app que YA existen y que
@@ -97,11 +98,20 @@ const upsertSpecialMeetingEvent = async (
     ? `${label} — ${meeting.place}`
     : label;
 
+  // start/end incluyen la hora real (antes solo guardaban la fecha, con
+  // hora 00:00) — así "Añadir al calendario" exporta la hora correcta en
+  // vez de medianoche. La hora en sí sigue viviendo también en
+  // `description` para mostrarla en la tarjeta, como ya hacía.
+  const startDate = new Date(`${meeting.date.replace(/\//g, '-')}T${meeting.time || '00:00'}:00`);
+  const endDate = addHours(1, startDate);
+  const start = startDate.toISOString();
+  const end = endDate.toISOString();
+
   // Idempotente: sin cambios reales, no se reescribe.
   if (
     existing &&
     !existing.event_data._deleted &&
-    existing.event_data.start === meeting.date &&
+    existing.event_data.start === start &&
     existing.event_data.description === meeting.time &&
     existing.event_data.custom === custom
   ) {
@@ -115,8 +125,8 @@ const upsertSpecialMeetingEvent = async (
     event_data: {
       _deleted: false,
       updatedAt: new Date().toISOString(),
-      start: meeting.date,
-      end: meeting.date,
+      start,
+      end,
       type: 'main',
       category: UpcomingEventCategory.Custom,
       duration: UpcomingEventDuration.SingleDay,

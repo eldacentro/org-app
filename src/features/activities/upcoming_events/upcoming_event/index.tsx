@@ -17,6 +17,7 @@ import EditUpcomingEvent from '../edit_upcoming_event';
 import AddToCalendar from '../add_to_calendar';
 import Typography from '@components/typography';
 import UpcomingEventDate from '../upcoming_event_date';
+import CircuitVisitWeekAgenda from '@features/circuit_visit/shared/CircuitVisitWeekAgenda';
 
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -159,8 +160,16 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       )}
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
+        props.data.event_data.category ===
+          UpcomingEventCategory.CircuitOverseerWeek && (
+          <CircuitVisitWeekAgenda event={props.data} previousDay={previousDay} />
+        )}
+
+      {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
         props.data.event_data.category !==
           UpcomingEventCategory.SpecialCampaignWeek &&
+        props.data.event_data.category !==
+          UpcomingEventCategory.CircuitOverseerWeek &&
         eventFormatted.dates.map((eventDate, eventDateIndex) => (
           <Fragment key={eventDate.date}>
             <UpcomingEventDate
