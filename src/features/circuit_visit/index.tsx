@@ -31,6 +31,7 @@ import {
   IconHistory,
 } from '@components/icons';
 import { addDays, formatDate } from '@utils/date';
+import { fmtDayEs, fmtDateShortEs, fmtRangeEs } from './shared/fmtDayEs';
 import useExportS21 from '@features/reports/publisher_records/export_S21/useExportS21';
 import useExportS88 from '@features/reports/meeting_attendance/export_S88/useExportS88';
 import { useTerritoryExport } from '@features/territories/responsables/useTerritoryExport';
@@ -110,15 +111,7 @@ const DocRow = ({
   </Box>
 );
 
-const formatRange = (visit: CircuitVisitType) => {
-  try {
-    const start = formatDate(new Date(visit.date_start), 'd MMM');
-    const end = formatDate(new Date(visit.date_end), 'd MMM yyyy');
-    return `${start} – ${end}`;
-  } catch {
-    return visit.weekOf;
-  }
-};
+const formatRange = (visit: CircuitVisitType) => fmtRangeEs(visit.date_start, visit.date_end);
 
 const SpecialMeetingEditor = ({
   label,
@@ -266,7 +259,7 @@ const PreachingSection = ({
                     className="body-small-semibold"
                     sx={{ minWidth: '140px' }}
                   >
-                    {formatDate(new Date(outing.date), 'EEE d MMM')} · {outing.time}
+                    {fmtDayEs(outing.date)} · {outing.time}
                   </Typography>
                   <Autocomplete
                     sx={{ flex: 1, minWidth: '200px' }}
@@ -529,7 +522,7 @@ const CircuitVisitDashboard = () => {
   const exportLockedMsg = exportUnlocked
     ? ''
     : working?.date_start
-    ? `Disponible 10 días antes (${formatDate(addDays(new Date(working.date_start), -10), 'd MMM')})`
+    ? `Disponible 10 días antes (${fmtDateShortEs(formatDate(addDays(new Date(working.date_start), -10), 'yyyy/MM/dd'))})`
     : '';
 
   return (
@@ -913,7 +906,7 @@ const CircuitVisitDashboard = () => {
                             : meal.host || '—';
                           return (
                             <Typography key={meal.id} className="body-small-regular">
-                              {meal.date ? formatDate(new Date(meal.date), 'EEE d MMM') : '—'} — {hostName}
+                              {meal.date ? fmtDayEs(meal.date) : '—'} — {hostName}
                             </Typography>
                           );
                         })}
@@ -937,7 +930,7 @@ const CircuitVisitDashboard = () => {
                             : '—';
                           return (
                             <Typography key={sv.id} className="body-small-regular">
-                              {sv.date ? formatDate(new Date(sv.date), 'EEE d MMM') : '—'} · {sv.time || '—'} — {broName}
+                              {sv.date ? fmtDayEs(sv.date) : '—'} · {sv.time || '—'} — {broName}
                             </Typography>
                           );
                         })}
@@ -952,12 +945,12 @@ const CircuitVisitDashboard = () => {
                         </Typography>
                         {visit.meeting_pioneers && (
                           <Typography className="body-small-regular">
-                            Precursores — {visit.meeting_pioneers.date ? formatDate(new Date(visit.meeting_pioneers.date), 'EEE d MMM') : '—'} {visit.meeting_pioneers.time}
+                            Precursores — {visit.meeting_pioneers.date ? fmtDayEs(visit.meeting_pioneers.date) : '—'} {visit.meeting_pioneers.time}
                           </Typography>
                         )}
                         {visit.meeting_elders && (
                           <Typography className="body-small-regular">
-                            Ancianos y SM — {visit.meeting_elders.date ? formatDate(new Date(visit.meeting_elders.date), 'EEE d MMM') : '—'} {visit.meeting_elders.time}
+                            Ancianos y SM — {visit.meeting_elders.date ? fmtDayEs(visit.meeting_elders.date) : '—'} {visit.meeting_elders.time}
                           </Typography>
                         )}
                       </Stack>

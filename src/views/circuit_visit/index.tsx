@@ -1,7 +1,7 @@
 import { Page, Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
 import { CircuitVisitType } from '@definition/circuit_visit';
-import { formatDate } from '@utils/date';
+import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
 import { styles } from './index.styles';
 
 export type CircuitVisitPdfPreachingRow = {
@@ -21,24 +21,9 @@ type Props = {
   preachingRows: CircuitVisitPdfPreachingRow[];
 };
 
-const fmtDay = (date: string) => {
-  if (!date) return '—';
-  try {
-    return formatDate(new Date(date), 'EEE d MMM');
-  } catch {
-    return date;
-  }
-};
+const fmtDay = fmtDayEs;
 
-const fmtRange = (visit: CircuitVisitType) => {
-  try {
-    const start = formatDate(new Date(visit.date_start), 'd MMM');
-    const end = formatDate(new Date(visit.date_end), 'd MMM yyyy');
-    return `${start} – ${end}`;
-  } catch {
-    return visit.weekOf;
-  }
-};
+const fmtRange = (visit: CircuitVisitType) => fmtRangeEs(visit.date_start, visit.date_end);
 
 const SpecialMeetingRow = ({
   label,

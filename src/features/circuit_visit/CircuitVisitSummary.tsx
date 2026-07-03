@@ -17,26 +17,10 @@ import { personGetDisplayName } from '@utils/common';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
 import { CircuitVisitAccessTier } from './useCircuitVisitAccess';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
+import { fmtDayEs, fmtRangeEs } from './shared/fmtDayEs';
 import Card from './shared/Card';
 
-const fmtRange = (visit: CircuitVisitType) => {
-  try {
-    const start = formatDate(new Date(visit.date_start), 'd MMM');
-    const end = formatDate(new Date(visit.date_end), 'd MMM yyyy');
-    return `${start} – ${end}`;
-  } catch {
-    return visit.weekOf;
-  }
-};
-
-const fmtDay = (date: string) => {
-  if (!date) return '—';
-  try {
-    return formatDate(new Date(date), 'EEE d MMM');
-  } catch {
-    return date;
-  }
-};
+const fmtDay = fmtDayEs;
 
 const SpecialMeetingRow = ({
   label,
@@ -109,7 +93,10 @@ const CircuitVisitSummary = ({
       <PageTitle title="Visita del Superintendente de Circuito" />
 
       <Stack spacing="16px" mt="16px">
-        <Card title={effectiveCoName || 'Superintendente de circuito'} subtitle={fmtRange(visit)}>
+        <Card
+          title={effectiveCoName || 'Superintendente de circuito'}
+          subtitle={fmtRangeEs(visit.date_start, visit.date_end)}
+        >
           {effectiveCoSpouseName && (
             <Typography className="body-regular" color="var(--grey-400)">
               Con {effectiveCoSpouseName}
