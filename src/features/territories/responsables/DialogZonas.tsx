@@ -25,7 +25,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
 
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [nombre, setNombre] = useState('');
-  const [color, setColor] = useState('#306CB4');
+  const [color, setColor] = useState('var(--accent-main)');
   const [saving, setSaving] = useState(false);
   const { getColor, handleColorChange, reset: resetColors } = useDebouncedColorSave<TerritoryZone>(
     (zone, newColor) => saveZone(congId, { ...zone, color: newColor, updatedAt: new Date().toISOString() }),
@@ -39,7 +39,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
   useEffect(() => {
     if (open) {
       setNombre('');
-      setColor('#306CB4');
+      setColor('var(--accent-main)');
       resetColors();
       setEditingZoneId(null);
       setEditingName('');

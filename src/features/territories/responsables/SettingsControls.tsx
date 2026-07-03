@@ -125,7 +125,7 @@ export const PillGroup = ({
             },
             '&:active': { transform: 'scale(0.96)' },
             '&:focus-visible': {
-              outline: '2px solid #007AFF',
+              outline: '2px solid var(--accent-main)',
               outlineOffset: '2px',
             },
           }}
@@ -177,7 +177,7 @@ export const ToggleRow = ({
       WebkitTapHighlightColor: 'transparent',
       '&:active': { backgroundColor: 'rgba(0,0,0,0.03)' },
       '&:focus-visible': {
-        outline: '2px solid #007AFF',
+        outline: '2px solid var(--accent-main)',
         outlineOffset: '2px',
       },
       mx: -0.5,

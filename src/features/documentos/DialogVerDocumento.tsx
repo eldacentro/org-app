@@ -31,7 +31,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
   const categoria = documento
     ? categorias.find((c) => c.id === documento.categoriaId)
     : undefined;
-  const accentColor = categoria?.color || '#306CB4';
+  const accentColor = categoria?.color || 'var(--accent-main)';
 
   useEffect(() => {
     let blobUrl = '';
@@ -164,8 +164,8 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                       justifyContent: 'center',
                       width: 42,
                       height: 42,
-                      background: `${accentColor}12`,
-                      border: `1px solid ${accentColor}25`,
+                      background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
+                      border: `1px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
                       borderRadius: 'var(--r-sm)',
                       color: accentColor,
                       flexShrink: 0,
@@ -282,7 +282,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              background: `linear-gradient(135deg, ${accentColor}08 0%, ${accentColor}18 100%)`,
+              background: `linear-gradient(135deg, color-mix(in srgb, ${accentColor} 3%, transparent) 0%, color-mix(in srgb, ${accentColor} 9%, transparent) 100%)`,
               position: 'relative',
               px: 3,
               pb: 3,
@@ -356,11 +356,11 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: `${accentColor}12`,
-                  border: `1.5px solid ${accentColor}25`,
+                  background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
+                  border: `1.5px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
                   borderRadius: 'var(--r-sm)',
                   color: accentColor,
-                  boxShadow: `0 8px 20px -6px ${accentColor}30`,
+                  boxShadow: `0 8px 20px -6px color-mix(in srgb, ${accentColor} 19%, transparent)`,
                 }}
               >
                 <PictureAsPdfIcon sx={{ fontSize: 40 }} />
@@ -425,7 +425,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   fontWeight: 700,
                   backgroundColor: accentColor,
                   color: 'var(--always-white) !important',
-                  boxShadow: `0 6px 20px -4px ${accentColor}40`,
+                  boxShadow: `0 6px 20px -4px color-mix(in srgb, ${accentColor} 25%, transparent)`,
                   '&:hover': { backgroundColor: accentColor, opacity: 0.95 },
                 }}
               >
@@ -440,9 +440,9 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   borderRadius: 'var(--r-sm)',
                   fontSize: '14px',
                   fontWeight: 600,
-                  borderColor: `${accentColor}80 !important`,
+                  borderColor: `color-mix(in srgb, ${accentColor} 50%, transparent) !important`,
                   color: `${accentColor} !important`,
-                  '&:hover': { borderColor: accentColor, backgroundColor: `${accentColor}08` },
+                  '&:hover': { borderColor: accentColor, backgroundColor: `color-mix(in srgb, ${accentColor} 3%, transparent)` },
                 }}
               >
                 Descargar archivo

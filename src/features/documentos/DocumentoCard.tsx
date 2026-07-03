@@ -78,9 +78,9 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             display: 'inline-flex',
             alignItems: 'center',
             lineHeight: 1,
-            background: 'rgba(48, 108, 180, 0.08)',
-            color: '#306CB4',
-            border: '1px solid rgba(48, 108, 180, 0.15)',
+            background: 'rgba(var(--accent-main-base), 0.08)',
+            color: 'var(--accent-main)',
+            border: '1px solid rgba(var(--accent-main-base), 0.15)',
             px: 1.2,
             py: 0.6,
             borderRadius: 'var(--r-sm)',
@@ -98,8 +98,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
     return null;
   };
 
-  // Usar hex fijo como fallback: var(--brand) no es compatible con sufijos alpha hex ("#10B98112")
-  const accentColor = categoria?.color || '#306CB4';
+  const accentColor = categoria?.color || 'var(--accent-main)';
 
   return (
     <Box
@@ -163,9 +162,9 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: `${accentColor}12`,
+            background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
             borderRadius: 'var(--r-sm)',
-            border: `1.5px solid ${accentColor}25`,
+            border: `1.5px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
             flexShrink: 0,
             transition: 'all 0.3s ease',
           }}

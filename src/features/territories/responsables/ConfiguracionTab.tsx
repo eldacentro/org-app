@@ -207,7 +207,7 @@ const ConfiguracionTab = () => {
         <SectionCard
           icon="📋"
           title="Ajustes de asignación"
-          iconBg="rgba(48, 108, 180, 0.1)"
+          iconBg="rgba(var(--accent-main-base), 0.1)"
         >
           <FieldRow
             label="Formato de fecha"
@@ -222,7 +222,7 @@ const ConfiguracionTab = () => {
                 { value: 'yyyy-MM-dd', label: 'aaaa-mm-dd' },
                 { value: 'MM/dd/yyyy', label: 'mm/dd/aaaa' },
               ]}
-              accent="#306CB4"
+              accent="var(--accent-main)"
             />
           </FieldRow>
           <ToggleRow
@@ -244,7 +244,7 @@ const ConfiguracionTab = () => {
         <SectionCard
           icon="📊"
           title="Dashboard y estadísticas"
-          iconBg="rgba(52, 199, 89, 0.1)"
+          iconBg="rgba(var(--green-main-base), 0.1)"
         >
           <FieldRow
             label="Días para territorio atrasado"
@@ -295,7 +295,7 @@ const ConfiguracionTab = () => {
                 { value: 'one_year', label: '12 meses' },
                 { value: 'all', label: 'Todo' },
               ]}
-              accent="#34C759"
+              accent="var(--green-main)"
             />
           </FieldRow>
 
@@ -307,7 +307,7 @@ const ConfiguracionTab = () => {
                 { value: 'zone', label: 'Por zona' },
                 { value: 'none', label: 'Sin agrupar' },
               ]}
-              accent="#34C759"
+              accent="var(--green-main)"
             />
           </FieldRow>
         </SectionCard>
@@ -317,7 +317,7 @@ const ConfiguracionTab = () => {
           icon="🗺"
           title="Vista del territorio"
           subtitle="Secciones expandidas por defecto al abrir un territorio"
-          iconBg="rgba(255, 149, 0, 0.1)"
+          iconBg="rgba(var(--orange-main-base), 0.1)"
         >
           <ToggleRow
             label="Información del territorio"
@@ -373,7 +373,7 @@ const ConfiguracionTab = () => {
         <SectionCard
           icon="📍"
           title="Configuración de ubicaciones"
-          iconBg="rgba(255, 59, 48, 0.1)"
+          iconBg="rgba(var(--red-main-base), 0.1)"
         >
           <ToggleRow
             label="Ubicaciones requieren aprobación"

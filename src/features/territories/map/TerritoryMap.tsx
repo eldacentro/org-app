@@ -211,7 +211,7 @@ const mapButtonReset = {
   font: 'inherit',
   color: 'inherit',
   '&:focus-visible': {
-    outline: '2px solid #007AFF',
+    outline: '2px solid var(--accent-main)',
     outlineOffset: '2px',
   },
   '&:disabled': {
@@ -222,7 +222,7 @@ const mapButtonReset = {
 // ─── Componente principal ─────────────────────────────────────────────────────
 const TerritoryMap = ({
   geometry,
-  color = '#306CB4',
+  color = 'var(--accent-main)',
   showLiveLocation = false,
   height = 360,
   editable = false,
@@ -288,7 +288,7 @@ const TerritoryMap = ({
           <CircleMarker
             center={livePos}
             radius={8}
-            pathOptions={{ color: '#fff', weight: 3, fillColor: '#007AFF', fillOpacity: 1 }}
+            pathOptions={{ color: '#fff', weight: 3, fillColor: 'var(--accent-main)', fillOpacity: 1 }}
           >
             <Tooltip>Tu ubicación</Tooltip>
           </CircleMarker>
@@ -420,14 +420,14 @@ const TerritoryMap = ({
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                border: '2px solid #007AFF',
+                border: '2px solid var(--accent-main)',
                 position: 'relative',
                 '&::after': {
                   content: '""',
                   position: 'absolute',
                   inset: '4px',
                   borderRadius: '50%',
-                  backgroundColor: '#007AFF',
+                  backgroundColor: 'var(--accent-main)',
                 },
               }}
             />

@@ -15,7 +15,7 @@ export const CATEGORIAS_INICIALES = [
   { nombre: 'Cuentas', color: '#10B981' },
   { nombre: 'Visita del Superintendente', color: '#6366F1' },
   { nombre: 'Asambleas', color: '#F59E0B' },
-  { nombre: 'Anuncios', color: '#306CB4' },
+  { nombre: 'Anuncios', color: 'var(--accent-main)' },
   { nombre: 'Otros', color: '#64748B' },
 ];
 

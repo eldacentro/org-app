@@ -69,7 +69,7 @@ const buttonReset = {
   color: 'inherit',
   textAlign: 'inherit',
   '&:focus-visible': {
-    outline: '2px solid #007AFF',
+    outline: '2px solid var(--accent-main)',
     outlineOffset: '2px',
   },
 } as const;
@@ -98,8 +98,8 @@ const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
       px: '10px',
       py: '4px',
       borderRadius: '20px',
-      backgroundColor: open ? 'rgba(251,146,60,0.13)' : `${color}18`,
-      border: `1px solid ${open ? 'rgba(249,115,22,0.3)' : color + '35'}`,
+      backgroundColor: open ? 'rgba(var(--orange-main-base), 0.13)' : `${color}18`,
+      border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.3)' : color + '35'}`,
     }}
   >
     <Box
@@ -111,8 +111,8 @@ const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
         ...(open && {
           animation: 'pulse 2s ease-in-out infinite',
           '@keyframes pulse': {
-            '0%, 100%': { boxShadow: `0 0 0 0 rgba(249,115,22,0.4)` },
-            '50%': { boxShadow: `0 0 0 4px rgba(249,115,22,0)` },
+            '0%, 100%': { boxShadow: `0 0 0 0 rgba(var(--orange-main-base), 0.4)` },
+            '50%': { boxShadow: `0 0 0 4px rgba(var(--orange-main-base), 0)` },
           },
         }),
       }}

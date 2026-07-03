@@ -177,12 +177,12 @@ const GoogleDriveTab = () => {
         <Box
           sx={{
             p: 2.5,
-            border: '1px dashed #ff9800',
+            border: '1px dashed var(--orange-main)',
             borderRadius: 'var(--radius-m)',
             bgcolor: 'rgba(255, 152, 0, 0.04)',
           }}
         >
-          <Typography className="h4" color="#ff9800" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography className="h4" color="var(--orange-main)" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             ⚠️ Sesión de Google Drive expirada
           </Typography>
           <Typography className="body-regular" color="var(--grey-400)">

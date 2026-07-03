@@ -66,7 +66,7 @@ const ImportExportTab = () => {
         icon="📄"
         title="Formulario S-13 (PDF)"
         subtitle="Registro oficial para el superintendente de circuito"
-        iconBg="rgba(48, 108, 180, 0.1)"
+        iconBg="rgba(var(--accent-main-base), 0.1)"
       >
         <Stack spacing={2} sx={{ py: 2 }}>
           <Box>
@@ -75,7 +75,7 @@ const ImportExportTab = () => {
               value={yearIdx}
               onChange={setYearIdx}
               options={yearOptions}
-              accent="#306CB4"
+              accent="var(--accent-main)"
             />
           </Box>
 
@@ -112,7 +112,7 @@ const ImportExportTab = () => {
         icon="📊"
         title="Hoja de cálculo"
         subtitle="Datos de asignaciones en formato Excel o CSV"
-        iconBg="rgba(52, 199, 89, 0.1)"
+        iconBg="rgba(var(--green-main-base), 0.1)"
       >
         <Stack spacing={2} sx={{ py: 2 }}>
           <Box>
@@ -121,7 +121,7 @@ const ImportExportTab = () => {
               value={filter}
               onChange={(v) => setFilter(v as ExcelFilter)}
               options={filterOptions}
-              accent="#34C759"
+              accent="var(--green-main)"
             />
           </Box>
 
@@ -151,7 +151,7 @@ const ImportExportTab = () => {
         icon="🗺"
         title="Geometría (mapas)"
         subtitle="Coordenadas y polígonos de los territorios"
-        iconBg="rgba(255, 149, 0, 0.1)"
+        iconBg="rgba(var(--orange-main-base), 0.1)"
       >
         <Stack spacing={2} sx={{ py: 2 }}>
           <Stack direction="row" spacing={1.5} flexWrap="wrap">

@@ -131,7 +131,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   );
   
   const zoneColor = useMemo(() => {
-    return zones.find(z => z.id === zoneId)?.color || '#306CB4';
+    return zones.find(z => z.id === zoneId)?.color || 'var(--accent-main)';
   }, [zones, zoneId]);
 
   return (

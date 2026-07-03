@@ -326,6 +326,7 @@ const ResponsablesPanel = ({
           mb: 3,
           '& .MuiTabs-indicator': {
             borderRadius: '2px 2px 0 0',
+            backgroundColor: 'var(--accent-main)',
           },
           '& .MuiTab-root': {
             minHeight: '48px',
@@ -333,6 +334,9 @@ const ResponsablesPanel = ({
             fontWeight: 500,
             fontSize: '15px',
             transition: 'color 0.2s ease-in-out',
+          },
+          '& .MuiTab-root.Mui-selected': {
+            color: 'var(--accent-main)',
           },
         }}
       >
