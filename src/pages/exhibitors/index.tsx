@@ -702,11 +702,15 @@ const Exhibitors = () => {
   // Manejar cambio de asignado en el diálogo
   const handleAssignmentChange = (idx: number, personUid: string) => {
     const updated = [...editDialog.assignments];
-    // Considerar responsable solo si el hermano está en la lista de responsables configurados
+    // Responsable solo si el hermano está en la lista de responsables
+    // configurados Y va en la primera posición del turno — antes solo se
+    // comprobaba lo primero, así que si el segundo o tercer hermano también
+    // estaba habilitado como responsable, le salía la etiqueta igual que al
+    // primero (dos "Resp." a la vez en el mismo turno).
     const isConfiguredResponsible = settings?.responsibles?.includes(personUid) ?? false;
     updated[idx] = {
       person: personUid,
-      isResponsible: isConfiguredResponsible,
+      isResponsible: idx === 0 && isConfiguredResponsible,
     };
 
     setEditDialog({

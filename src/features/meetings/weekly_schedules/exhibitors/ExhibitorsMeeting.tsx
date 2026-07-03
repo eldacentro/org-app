@@ -330,78 +330,88 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                         />
                       ) : (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                          {turn.assignments?.map((ass, aIdx) => {
-                            // Antes, si el nombre no se podía resolver (p.ej.
-                            // el registro de la persona aún no había
-                            // terminado de sincronizar en este dispositivo),
-                            // la asignación desaparecía sin ningún aviso —
-                            // parecía que "no salía la asignación". Si hay
-                            // una persona asignada, siempre se muestra algo.
-                            if (!ass.person) return null;
-                            const name = getBrotherDisplayName(ass.person) || 'Hermano asignado';
-                            const isMe = ass.person === userUID;
-                            const accentColor = 'var(--brand)';
+                          {/* Solo el primero del turno debe llevar la etiqueta
+                              de responsable, aunque los demás también estén
+                              habilitados — si datos antiguos tuvieran más de
+                              uno marcado como responsable, esto evita que se
+                              vea más de una etiqueta a la vez. */}
+                          {(() => {
+                            const firstResponsibleIdx = turn.assignments?.findIndex(
+                              (a) => a.isResponsible
+                            ) ?? -1;
+                            return turn.assignments?.map((ass, aIdx) => {
+                              // Antes, si el nombre no se podía resolver (p.ej.
+                              // el registro de la persona aún no había
+                              // terminado de sincronizar en este dispositivo),
+                              // la asignación desaparecía sin ningún aviso —
+                              // parecía que "no salía la asignación". Si hay
+                              // una persona asignada, siempre se muestra algo.
+                              if (!ass.person) return null;
+                              const name = getBrotherDisplayName(ass.person) || 'Hermano asignado';
+                              const isMe = ass.person === userUID;
+                              const accentColor = 'var(--brand)';
 
-                            return (
-                              <Box 
-                                key={aIdx} 
-                                sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: '8px',
-                                  borderRadius: 'var(--radius-xl)',
-                                  border: isMe 
-                                    ? '1.5px solid var(--brand)' 
-                                    : '1px solid var(--line)',
-                                  borderLeft: `4px solid ${accentColor}`,
-                                  backgroundColor: isMe 
-                                    ? 'var(--brand-tint)' 
-                                    : 'var(--card)',
-                                  padding: '6px 12px',
-                                  boxShadow: isMe ? 'var(--hover-shadow)' : 'none',
-                                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                  cursor: 'default',
-                                  '&:hover': {
-                                    transform: 'translateY(-1.5px)',
-                                    borderColor: isMe ? 'var(--brand)' : accentColor,
-                                    boxShadow: 'var(--small-card-shadow)',
-                                  },
-                                }}
-                              >
-                                <Typography
-                                  className="body-small-semibold"
+                              return (
+                                <Box
+                                  key={aIdx}
                                   sx={{
-                                    minWidth: 0,
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    fontWeight: 700,
-                                    fontSize: '13.5px',
-                                    color: isMe ? 'var(--brand-deep)' : 'var(--ink)',
-                                    letterSpacing: '0.1px'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    borderRadius: 'var(--radius-xl)',
+                                    border: isMe
+                                      ? '1.5px solid var(--brand)'
+                                      : '1px solid var(--line)',
+                                    borderLeft: `4px solid ${accentColor}`,
+                                    backgroundColor: isMe
+                                      ? 'var(--brand-tint)'
+                                      : 'var(--card)',
+                                    padding: '6px 12px',
+                                    boxShadow: isMe ? 'var(--hover-shadow)' : 'none',
+                                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    cursor: 'default',
+                                    '&:hover': {
+                                      transform: 'translateY(-1.5px)',
+                                      borderColor: isMe ? 'var(--brand)' : accentColor,
+                                      boxShadow: 'var(--small-card-shadow)',
+                                    },
                                   }}
                                 >
-                                  {name}
-                                </Typography>
-                                {ass.isResponsible && (
-                                  <Chip
-                                    label="Resp."
-                                    size="small"
+                                  <Typography
+                                    className="body-small-semibold"
                                     sx={{
-                                      height: '18px',
-                                      fontSize: '9px',
-                                      fontWeight: '800',
-                                      backgroundColor: accentColor,
-                                      color: 'var(--always-white)',
-                                      px: '4px',
-                                      ml: '4px',
-                                      borderRadius: '4px'
+                                      minWidth: 0,
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      fontWeight: 700,
+                                      fontSize: '13.5px',
+                                      color: isMe ? 'var(--brand-deep)' : 'var(--ink)',
+                                      letterSpacing: '0.1px'
                                     }}
-                                  />
-                                )}
-                              </Box>
-                            );
-                          })}
+                                  >
+                                    {name}
+                                  </Typography>
+                                  {ass.isResponsible && aIdx === firstResponsibleIdx && (
+                                    <Chip
+                                      label="Resp."
+                                      size="small"
+                                      sx={{
+                                        height: '18px',
+                                        fontSize: '9px',
+                                        fontWeight: '800',
+                                        backgroundColor: accentColor,
+                                        color: 'var(--always-white)',
+                                        px: '4px',
+                                        ml: '4px',
+                                        borderRadius: '4px'
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              );
+                            });
+                          })()}
                           {(!turn.assignments || turn.assignments.length === 0) && (
                             <Box
                               sx={{

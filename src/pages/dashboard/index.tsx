@@ -21,21 +21,33 @@ import {
   weekendMeetingWeekdayState,
   weekendMeetingTimeState,
   userDataViewState,
+  userLocalUIDState,
+  shortDateFormatState,
 } from '@states/settings';
 import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
 import Snackbar from '@components/snackbar';
+import Badge from '@components/badge';
 import { LANGUAGE_LIST, WEEK_TYPE_NO_MEETING } from '@constants/index';
 import PageTitle from '@components/page_title';
 import { getWeekDate, formatDate } from '@utils/date';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
-import { schedulesState } from '@states/schedules';
+import { schedulesState, assignmentsHistoryState } from '@states/schedules';
+import { deptScheduleState } from '@states/departments_schedule';
+import { resolveAssignmentDate } from '@utils/assignments';
 import { Week } from '@definition/week_type';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
 import { upcomingEventData } from '@services/app/upcoming_events';
 import { decorationsForEvent } from '@features/activities/upcoming_events/decorations_for_event';
 import { UpcomingEventCategory, UpcomingEventDuration } from '@definition/upcoming_events';
+
+const DASHBOARD_DEPT_LABELS: Record<string, string> = {
+  acomodadores: 'Acomodadores',
+  microfonos: 'Micrófonos',
+  multimedia: 'Multimedia',
+  plataforma: 'Plataforma',
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -44,6 +56,10 @@ const Dashboard = () => {
   const schedules = useAtomValue(schedulesState);
   const dataView = useAtomValue(userDataViewState);
   const upcomingEvents = useAtomValue(upcomingEventsActiveState);
+  const userUID = useAtomValue(userLocalUIDState);
+  const shortDateFormat = useAtomValue(shortDateFormatState);
+  const assignmentsHistory = useAtomValue(assignmentsHistoryState);
+  const deptSchedules = useAtomValue(deptScheduleState);
 
   // App settings atoms
   const midweekMeetingWeekday = useAtomValue(midweekMeetingWeekdayState);
@@ -184,6 +200,63 @@ const Dashboard = () => {
     return '';
   }, [weekendWeekType, t]);
 
+  // Qué tiene la persona en la reunión de esta semana (si tiene algo) — solo
+  // partes de la reunión y roles de departamento, que son lo que de verdad
+  // ocurre DURANTE la reunión. Salidas de predicación/exhibidores/limpieza no
+  // cuentan aquí aunque caigan el mismo día, porque no son "la reunión" en sí.
+  const midweekMeetingDateStr = useMemo(
+    () => formatDate(midweekMeetingDate, 'yyyy/MM/dd'),
+    [midweekMeetingDate]
+  );
+  const weekendMeetingDateStr = useMemo(
+    () => formatDate(weekendMeetingDate, 'yyyy/MM/dd'),
+    [weekendMeetingDate]
+  );
+
+  const { midweekAssignmentTitles, weekendAssignmentTitles } = useMemo(() => {
+    const midweekTitles: string[] = [];
+    const weekendTitles: string[] = [];
+
+    if (userUID) {
+      for (const record of assignmentsHistory) {
+        if (record.assignment.person !== userUID) continue;
+        const resolved = resolveAssignmentDate(record, shortDateFormat);
+        if (resolved.weekOf === midweekMeetingDateStr) {
+          midweekTitles.push(record.assignment.title);
+        } else if (resolved.weekOf === weekendMeetingDateStr) {
+          weekendTitles.push(record.assignment.title);
+        }
+      }
+
+      // Los roles de departamento se guardan una vez por semana (no por
+      // reunión), y sirven en ambas reuniones de esa semana.
+      const deptWeek = deptSchedules.find((w) => w?.weekOf === weekOf);
+      if (deptWeek) {
+        const depts = ['acomodadores', 'microfonos', 'multimedia', 'plataforma'] as const;
+        for (const dept of depts) {
+          const deptData = deptWeek[dept] as Record<string, { value: string }> | undefined;
+          if (!deptData) continue;
+          const isAssigned = Object.values(deptData).some((role) => role?.value === userUID);
+          if (!isAssigned) continue;
+          if (showMidweekRow) midweekTitles.push(DASHBOARD_DEPT_LABELS[dept]);
+          if (showWeekendRow) weekendTitles.push(DASHBOARD_DEPT_LABELS[dept]);
+        }
+      }
+    }
+
+    return { midweekAssignmentTitles: midweekTitles, weekendAssignmentTitles: weekendTitles };
+  }, [
+    assignmentsHistory,
+    userUID,
+    shortDateFormat,
+    midweekMeetingDateStr,
+    weekendMeetingDateStr,
+    deptSchedules,
+    weekOf,
+    showMidweekRow,
+    showWeekendRow,
+  ]);
+
   const handleTileClick = (path: string) => {
     navigate(path);
   };
@@ -272,6 +345,7 @@ const Dashboard = () => {
           id: record.event_uid,
           type: 'event' as const,
           date: eventDateObj,
+          endDate: new Date(record.event_data.end),
           dayNum: eventDayNum,
           monthStr: eventMonthStr,
           title: eventTitle,
@@ -282,10 +356,22 @@ const Dashboard = () => {
       });
   }, [upcomingEvents, dataView, startOfWeek, endOfWeek, locale, t]);
 
+  // Combina una fecha (solo día) con una hora "HH:MM" para saber si ese
+  // momento ya pasó — así la fila se puede atenuar en vez de desaparecer.
+  const isDateTimePast = (date: Date, time: string, now: Date) => {
+    const [hrs, mins] = time.split(':').map(Number);
+    const target = new Date(date);
+    if (!Number.isNaN(hrs) && !Number.isNaN(mins)) target.setHours(hrs, mins, 0, 0);
+    else target.setHours(23, 59, 59, 999);
+    return target.getTime() < now.getTime();
+  };
+
   const agendaItems = useMemo(() => {
     const items = [];
+    const now = new Date();
 
     if (showMidweekRow) {
+      const midweekAssignmentText = midweekAssignmentTitles.join(', ');
       items.push({
         id: 'midweek',
         type: 'midweek' as const,
@@ -293,13 +379,16 @@ const Dashboard = () => {
         dayNum: midweekDayNum,
         monthStr: midweekMonthStr,
         title: t('tr_midweekMeeting', 'Reunión de entre semana'),
-        description: midweekDescription,
+        description: [midweekDescription, midweekAssignmentText].filter(Boolean).join(' · '),
+        hasAssignment: midweekAssignmentTitles.length > 0,
         time: midweekMeetingTime,
+        isPast: isDateTimePast(midweekMeetingDate, midweekMeetingTime, now),
         onClick: handleMidweekClick,
       });
     }
 
     if (showWeekendRow) {
+      const weekendAssignmentText = weekendAssignmentTitles.join(', ');
       items.push({
         id: 'weekend',
         type: 'weekend' as const,
@@ -307,8 +396,10 @@ const Dashboard = () => {
         dayNum: weekendDayNum,
         monthStr: weekendMonthStr,
         title: t('tr_weekendMeeting', 'Reunión de fin de semana'),
-        description: weekendDescription,
+        description: [weekendDescription, weekendAssignmentText].filter(Boolean).join(' · '),
+        hasAssignment: weekendAssignmentTitles.length > 0,
         time: weekendMeetingTime,
+        isPast: isDateTimePast(weekendMeetingDate, weekendMeetingTime, now),
         onClick: handleWeekendClick,
       });
     }
@@ -322,7 +413,13 @@ const Dashboard = () => {
         monthStr: ev.monthStr,
         title: ev.title,
         description: ev.description,
+        hasAssignment: false,
         time: ev.time,
+        // Multi-day event (sin hora) — se atenúa cuando ya pasó su ÚLTIMO
+        // día, no el primero, para no atenuar un evento que sigue en curso.
+        isPast: ev.time
+          ? isDateTimePast(ev.date, ev.time, now)
+          : ev.endDate.getTime() < now.getTime(),
         decoration: ev.decoration,
         onClick: () => navigate('/activities/upcoming-events'),
       });
@@ -336,12 +433,14 @@ const Dashboard = () => {
     midweekDayNum,
     midweekMonthStr,
     midweekDescription,
+    midweekAssignmentTitles,
     midweekMeetingTime,
     showWeekendRow,
     weekendMeetingDate,
     weekendDayNum,
     weekendMonthStr,
     weekendDescription,
+    weekendAssignmentTitles,
     weekendMeetingTime,
     thisWeekEvents,
     handleMidweekClick,
@@ -570,7 +669,7 @@ const Dashboard = () => {
                   return (
                     <div
                       key={item.id}
-                      className="meeting-row active-press"
+                      className={`meeting-row active-press${item.isPast ? ' past' : ''}`}
                       onClick={item.onClick}
                     >
                       <div className={badgeClass}>
@@ -591,6 +690,14 @@ const Dashboard = () => {
                             style: { width: '16px', height: '16px', flexShrink: 0 }
                           })}
                           <span>{item.title}</span>
+                          {item.hasAssignment && (
+                            <Badge
+                              size="small"
+                              color="green"
+                              filled
+                              text={t('tr_youHaveSomething', 'Tienes algo')}
+                            />
+                          )}
                         </div>
                         {item.description && (
                           <div className="sub">{item.description}</div>

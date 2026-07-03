@@ -703,6 +703,14 @@ body {
 .meeting-row:hover {
   background: rgba(var(--black-base), 0.02);
 }
+/* Ya pasó (esta semana) — se atenúa en vez de desaparecer, así se ve de
+   un vistazo qué ya se hizo sin perder el contexto de la semana. */
+.meeting-row.past {
+  opacity: .5;
+}
+.meeting-row.past:hover {
+  background: none;
+}
 .meeting-row .day-badge {
   flex: 0 0 auto;
   width: 54px;
