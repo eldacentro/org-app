@@ -252,6 +252,7 @@ const useMyAssignments = () => {
                   { icon: 'clock', text: outing.time },
                   { icon: 'location', text: outing.location || 'Salón del Reino' },
                 ],
+                startTime: outing.time || undefined,
               },
             });
           }
@@ -312,6 +313,8 @@ const useMyAssignments = () => {
             dataView: 'main',
             title: roleTitle,
             descItems,
+            startTime: turn.startTime || undefined,
+            endTime: turn.endTime || undefined,
           },
         };
       });
@@ -475,6 +478,7 @@ const useMyAssignments = () => {
                   { icon: 'clock', text: sv.time || '—' },
                   { icon: 'person', text: brotherName },
                 ],
+                startTime: sv.time || undefined,
               },
             });
           }

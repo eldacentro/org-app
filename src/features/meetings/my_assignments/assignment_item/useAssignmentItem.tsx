@@ -1,6 +1,6 @@
 import { JSX, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { useAppTranslation } from '@hooks/index';
+import { useAppTranslation, useCalendarExportPreference } from '@hooks/index';
 import { personsState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
 import {
@@ -16,8 +16,6 @@ import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import Badge from '@components/badge';
 
-const ADD_CALENDAR_SHOW = false;
-
 const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   const { t } = useAppTranslation();
 
@@ -28,6 +26,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   const sources = useAtomValue(sourcesState);
   const jwLang = useAtomValue(JWLangState);
   const dayNamesShort = useAtomValue(dayNamesShortState);
+  const { enabled: ADD_CALENDAR_SHOW } = useCalendarExportPreference();
 
   // Todos los elementos de un mismo grupo comparten fecha y categoría, así
   // que la "cara" de la tarjeta (día, número, si es de departamento) se

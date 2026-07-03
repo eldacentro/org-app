@@ -17,6 +17,8 @@
   "tr_collabActivities": "Nuevas actividades colaborativas",
   "tr_collabActivitiesDesc": "Recibe notificaciones sobre actividades donde se necesita ayuda, por ejemplo, trabajo de jardinería o preparar el salón para la escuela o asamblea de circuito",
   "tr_myAssignmentsDesc": "Recibe notificaciones al instante sobre todas tus nuevas asignaciones",
+  "tr_calendarExportPreference": "Añadir al calendario",
+  "tr_calendarExportPreferenceDesc": "Muestra el botón para añadir tus asignaciones a tu calendario personal. Si vuelves a exportar una asignación después de un cambio, se actualiza el mismo evento en vez de duplicarlo — y si tienes las notificaciones activadas, te avisaremos cuando una asignación ya exportada cambie.",
   "tr_infoBoardAnnouncements": "Nuevos anuncios del tablero de anuncios",
   "tr_infoBoardAnnouncementsDesc": "Si está desactivado, no recibirás notificaciones de nuevos anuncios, a menos que los ancianos decidan avisar a toda la congregación sobre algo importante",
   "tr_partnerSearch": "Publicador busca compañero de servicio",

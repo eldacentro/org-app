@@ -64,6 +64,7 @@
   "tr_arrangementWith": "Con: {{ publisherName }}",
   "tr_addToCalendar": "Añadir al calendario",
   "tr_addToCalendarDesc": "¿Quieres añadir este evento a tu calendario personal? Debes tener una aplicación de calendario instalada en tu dispositivo.",
+  "tr_addAllToCalendar": "Añadir todo al calendario",
   "tr_forMyself": "Para mí",
   "tr_forOthers": "Para otros",
   "tr_publisherWithNumber": "Publicador {{ publisherNumber }}",

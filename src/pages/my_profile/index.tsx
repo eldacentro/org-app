@@ -4,6 +4,7 @@ import { IconLogout } from '@icons/index';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useMyProfile from './useMyProfile';
 import AppSettings from '@features/my_profile/app_settings';
+import CalendarExport from '@features/my_profile/calendar_export';
 import LogoutConfirm from '@features/my_profile/logout_confirm';
 import MinistryPreferences from '@features/my_profile/ministry_preferences';
 import Notifications from '@features/my_profile/notifications';
@@ -89,6 +90,8 @@ const MyProfile = () => {
           }}
         >
           <AppSettings />
+
+          <CalendarExport />
 
           {isConnected && <Notifications />}
 

@@ -84,10 +84,10 @@ export const loadApp = () => {
   const history = schedulesBuildHistoryList();
   setAssignmentsHistory(history);
 
-  // check for new assignments on startup (catches changes while app was closed)
+  // check for new/changed assignments on startup (catches changes while app was closed)
   import('@services/push/diff')
-    .then(({ checkAndQueueAssignmentPush }) =>
-      checkAndQueueAssignmentPush().catch(() => {})
+    .then(({ runAssignmentPushDiffs }) =>
+      runAssignmentPushDiffs().catch(() => {})
     )
     .catch(() => {});
 };

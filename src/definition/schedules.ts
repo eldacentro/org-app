@@ -175,6 +175,14 @@ export type AssignmentHistoryType = {
       student?: string;
       assistant?: string;
     };
+    /** Hora exacta conocida (HH:MM), cuando existe — usada para exportar un
+     *  evento de calendario con hora en vez de todo el día. Solo se rellena
+     *  para los tipos que de verdad la tienen (salidas, exhibidores, visita
+     *  de pastoreo del CO); el resto se exporta como evento de todo el día
+     *  en vez de inventar una hora. */
+    startTime?: string;
+    /** Hora exacta de fin, cuando se conoce (hoy solo Exhibidores). */
+    endTime?: string;
   };
 };
 

@@ -12,8 +12,10 @@ import { AssignmentDescItem } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import useAssignmentItem from './useAssignmentItem';
+import useAddAssignmentToCalendar from './useAddAssignmentToCalendar';
 import Badge from '@components/badge';
 import IconButton from '@components/icon_button';
+import IconLoading from '@components/icon_loading';
 import Typography from '@components/typography';
 
 // Icono por tipo de línea de detalle — antes esto era un único string con
@@ -40,6 +42,8 @@ const AssignmentItem = (props: AssignmentItemProps) => {
     userUID,
     ADD_CALENDAR_SHOW,
   } = useAssignmentItem(props);
+
+  const { isProcessingId, handleAddToCalendar } = useAddAssignmentToCalendar();
 
   const firstKey = props.items[0].assignment.key ?? '';
   const isPreaching =
@@ -340,6 +344,9 @@ const AssignmentItem = (props: AssignmentItemProps) => {
 
             {ADD_CALENDAR_SHOW && (
               <IconButton
+                onClick={() =>
+                  handleAddToCalendar(history, { personGetName, userUID, t })
+                }
                 sx={(theme) => ({
                   borderRadius: 'var(--r-sm)',
                   border: '1px solid var(--line)',
@@ -351,7 +358,11 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                   },
                 })}
               >
-                <IconAddMonth color="var(--brand)" />
+                {isProcessingId === history.id ? (
+                  <IconLoading />
+                ) : (
+                  <IconAddMonth color="var(--brand)" />
+                )}
               </IconButton>
             )}
           </Stack>

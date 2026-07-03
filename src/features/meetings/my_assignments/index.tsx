@@ -1,10 +1,13 @@
 import { Box, Stack } from '@mui/material';
-import { useAppTranslation } from '@hooks/index';
-import { IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
+import { useAppTranslation, useCalendarExportPreference } from '@hooks/index';
+import { IconAddMonth, IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { DisplayRange } from './indextypes';
 import useMyAssignments from './useAssignments';
+import useAddAllAssignmentsToCalendar from './useAddAllAssignmentsToCalendar';
+import Button from '@components/button';
 import Drawer from '@components/drawer';
+import IconLoading from '@components/icon_loading';
 import Markup from '@components/text_markup';
 import MenuItem from '@components/menuitem';
 import MonthContainer from './month_container';
@@ -28,6 +31,11 @@ const MyAssignments = () => {
     filterType,
     setFilterType,
   } = useMyAssignments();
+
+  const { enabled: calendarExportEnabled } = useCalendarExportPreference();
+  const { isProcessing, handleAddAllToCalendar } = useAddAllAssignmentsToCalendar();
+
+  const ownAssignmentsFlat = ownAssignments.byDate.flatMap((month) => month.children);
 
   const hasDelegatedAssignments = delegateAssignments.total > 0;
 
@@ -93,7 +101,8 @@ const MyAssignments = () => {
     assignments: {
       month: string;
       children: AssignmentHistoryType[];
-    }[]
+    }[],
+    showAddAll = false
   ) => (
     <Box
       sx={{
@@ -112,6 +121,22 @@ const MyAssignments = () => {
         pr: '2px',
       }}
     >
+      {/* Solo para las asignaciones propias (no delegado) — exporta de una
+          vez todas las que ya tienen fecha, reutilizando el mismo
+          UID/SEQUENCE por asignación que el botón individual, así que
+          repetir esto tras un cambio actualiza los eventos en vez de
+          duplicarlos. */}
+      {showAddAll && calendarExportEnabled && assignments.length > 0 && (
+        <Button
+          variant="secondary"
+          startIcon={isProcessing ? <IconLoading /> : <IconAddMonth />}
+          sx={{ mb: '12px' }}
+          onClick={() => handleAddAllToCalendar(ownAssignmentsFlat)}
+        >
+          {t('tr_addAllToCalendar')}
+        </Button>
+      )}
+
       {assignments.length === 0 ? (
         <Box
           sx={{
@@ -143,7 +168,7 @@ const MyAssignments = () => {
   const tabs = [
     {
       label: <TabLabel count={ownAssignments.total} label={t('tr_myOwn')} />,
-      Component: renderAssignments(ownAssignments.byDate),
+      Component: renderAssignments(ownAssignments.byDate, true),
     },
     ...(hasDelegatedAssignments
       ? [

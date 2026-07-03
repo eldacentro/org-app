@@ -28,7 +28,7 @@ import { dbWeekTypeUpdate } from '@services/dexie/weekType';
 import { dbSpeakersCongregationsSetName } from '@services/dexie/speakers_congregations';
 import logger from '@services/logger';
 import worker from '@services/worker/backupWorker';
-import { checkAndQueueAssignmentPush } from '@services/push/diff';
+import { runAssignmentPushDiffs } from '@services/push/diff';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { processPendingPublisherReports } from '@services/app/pending_publisher_reports';
@@ -109,8 +109,8 @@ const useWebWorker = () => {
 
           await dbSpeakersCongregationsSetName();
 
-          // check for new assignments and queue push notification
-          checkAndQueueAssignmentPush().catch(() => {});
+          // check for new/changed assignments and queue push notification
+          runAssignmentPushDiffs().catch(() => {});
         }
 
         if (event.data.error === 'BACKUP_FAILED') {
