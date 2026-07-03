@@ -47,44 +47,13 @@ import { personIsElder } from '@services/app/persons';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
 import { useConfirm } from '@components/confirm_dialog';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
+import Card from './shared/Card';
 
 const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
   predicacion: 'Predicación',
   revisitas: 'Revisitas',
   curso: 'Curso bíblico',
 };
-
-const Card = ({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: ReactNode;
-}) => (
-  <Box
-    sx={{
-      backgroundColor: 'var(--card)',
-      border: '1px solid var(--line)',
-      borderRadius: 'var(--radius-l, 12px)',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-      padding: '18px 20px',
-    }}
-  >
-    <Stack spacing="2px" mb="14px">
-      <Typography className="h3" color="var(--ink, var(--black))">
-        {title}
-      </Typography>
-      {subtitle && (
-        <Typography className="body-small-regular" color="var(--grey-400)">
-          {subtitle}
-        </Typography>
-      )}
-    </Stack>
-    {children}
-  </Box>
-);
 
 const DocRow = ({
   icon,
@@ -250,14 +219,17 @@ const PreachingSection = ({
     [persons, fullnameOption]
   );
 
-  // Solo tiene sentido elegir compañía para una salida ya asignada a alguien.
+  // Solo tiene sentido elegir compañía para una salida ya asignada a alguien,
+  // y solo dentro de la semana de la visita — weekRecord trae la semana
+  // completa (de lunes a domingo), pero el lunes es anterior a que el CO
+  // llegue (la visita empieza el martes), así que no debe salir aquí.
   const assignedOutings = useMemo(() => {
     const outings = weekRecord?.outings ?? [];
     return outings
-      .filter((o) => !o.cancelled && o.person)
+      .filter((o) => !o.cancelled && o.person && o.date >= visit.date_start)
       .map((o) => ({ ...o, outingKey: `${o.date}_${o.time}` }))
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  }, [weekRecord]);
+  }, [weekRecord, visit.date_start]);
 
   return (
     <Card

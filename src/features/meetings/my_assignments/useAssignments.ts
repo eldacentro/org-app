@@ -11,7 +11,7 @@ import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { addWeeks, formatDate, getWeekDate } from '@utils/date';
+import { addDays, addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
 import { circuitVisitsState } from '@states/circuit_visit';
@@ -398,6 +398,13 @@ const useMyAssignments = () => {
 
       for (const visit of circuitVisits) {
         if (visit._deleted) continue;
+
+        // No se avisa al anfitrión/anciano de pastoreo hasta 21 días antes
+        // de que empiece la visita, aunque el coordinador la haya programado
+        // con más antelación — evita notificar con meses de adelanto.
+        const visibleFromStr = formatDate(addDays(new Date(visit.date_start), -21), 'yyyy/MM/dd');
+        if (currentDayStr < visibleFromStr) continue;
+
         // Comidas: aparece al anfitrión (host = person_uid)
         for (const meal of visit.meals ?? []) {
           if (

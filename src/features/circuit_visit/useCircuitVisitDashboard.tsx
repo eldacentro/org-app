@@ -29,6 +29,7 @@ import {
 } from '@services/dexie/circuit_visit';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
+import { getEffectiveCoName } from './shared/getEffectiveCoName';
 
 export type CircuitVisitSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -195,9 +196,29 @@ const useCircuitVisitDashboard = () => {
   const addMeal = useCallback(() => {
     setWorking((prev) => {
       if (!prev) return prev;
+
+      // Las comidas normalmente empiezan el miércoles (el martes el CO
+      // llega y no suele haber comida programada) — se ofrece el primer
+      // día libre desde ahí en vez de repetir siempre date_start, que antes
+      // dejaba todas las comidas nuevas en el mismo día (el martes) hasta
+      // que alguien las cambiaba una a una a mano.
+      const usedDates = new Set(prev.meals.map((m) => m.date));
+      const end = new Date(prev.date_end);
+      let candidate = addDays(new Date(prev.date_start), 1);
+      let defaultDate = formatDate(candidate, 'yyyy/MM/dd');
+
+      while (candidate <= end) {
+        const candidateStr = formatDate(candidate, 'yyyy/MM/dd');
+        if (!usedDates.has(candidateStr)) {
+          defaultDate = candidateStr;
+          break;
+        }
+        candidate = addDays(candidate, 1);
+      }
+
       const meal: CircuitVisitMeal = {
         id: crypto.randomUUID(),
-        date: prev.date_start,
+        date: defaultDate,
         host: '',
         note: '',
       };
@@ -359,7 +380,9 @@ const useCircuitVisitDashboard = () => {
     const weekRecord = outingsList.find((r) => r.weekOf === working.weekOf);
 
     const preachingRows = (weekRecord?.outings ?? [])
-      .filter((o) => !o.cancelled && o.person)
+      // El lunes es anterior a que el CO llegue (la visita empieza el
+      // martes) — no debe salir en el programa de predicación.
+      .filter((o) => !o.cancelled && o.person && o.date >= working.date_start)
       .map((o) => {
         const outingKey = `${o.date}_${o.time}`;
         const companion = working.co_companions.find(
@@ -391,16 +414,11 @@ const useCircuitVisitDashboard = () => {
       })
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
-    // Si es un sustituto, el programa debe mostrar su nombre, no el del CO
-    // titular configurado en Ajustes — de lo contrario el PDF de esa semana
-    // saldría con el nombre equivocado.
-    const effectiveCoName =
-      working.is_substitute && working.substitute_name
-        ? working.substitute_name
-        : coName;
-    const effectiveCoSpouseName = working.is_substitute
-      ? working.substitute_spouse_name || ''
-      : coSpouseName;
+    const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
+      working,
+      coName,
+      coSpouseName
+    );
 
     const blob = await pdf(
       <CircuitVisitProgramDoc

@@ -16,14 +16,14 @@ import {
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
-import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
+import useCircuitVisitAccess from '@features/circuit_visit/useCircuitVisitAccess';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
-  
+
   const { isElder, isPersonViewer } = useCurrentUser();
-  const canManageCircuitVisit = useIsCircuitVisitManager();
+  const { tier: circuitVisitTier } = useCircuitVisitAccess();
 
   useDocumentos(); // Para cargar los documentos en el estado
   const unseenCount = useAtomValue(unseenDocumentosCountState);
@@ -94,8 +94,10 @@ const CongregationDashboard = () => {
           </svg>
         </div>
 
-        {/* Visita del Superintendente de Circuito (solo COBA/Admin) */}
-        {canManageCircuitVisit && (
+        {/* Visita del Superintendente de Circuito — COBA/Admin y ancianos en
+            cualquier momento; el resto de publicadores solo desde 21 días
+            antes de que empiece la visita (ver useCircuitVisitAccess). */}
+        {circuitVisitTier !== 'none' && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/circuit-visit')}>
             <div className="ti">
               <IconCalendarWeek color="var(--brand)" width={22} height={22} />
