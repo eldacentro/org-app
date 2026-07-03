@@ -34,6 +34,8 @@ export type SpeakerNotificationType = {
   read?: boolean;
 };
 
+export type UnverifiedReportEntry = { person_uid: string; report_date: string };
+
 export type UnverifiedReportNotificationType = {
   id: 'reports-unverified';
   title: string;
@@ -41,6 +43,7 @@ export type UnverifiedReportNotificationType = {
   date: string;
   icon: NotificationIconType;
   count: number;
+  reports: UnverifiedReportEntry[];
   enableRead: boolean;
   read?: boolean;
 };

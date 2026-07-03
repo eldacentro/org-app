@@ -37,6 +37,10 @@ const useUnverifiedReports = () => {
       return;
     }
 
+    const sortedReports = unverified_reports.toSorted((a, b) =>
+      b.report_data.report_date.localeCompare(a.report_data.report_date)
+    );
+
     const lastUpdated = unverified_reports.sort((a, b) =>
       a.report_data.updatedAt.localeCompare(b.report_data.updatedAt)
     )[0].report_data.updatedAt;
@@ -48,6 +52,10 @@ const useUnverifiedReports = () => {
       date: lastUpdated,
       icon: 'reports',
       count,
+      reports: sortedReports.map((record) => ({
+        person_uid: record.report_data.person_uid,
+        report_date: record.report_data.report_date,
+      })),
       enableRead: false,
     };
 

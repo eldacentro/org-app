@@ -47,16 +47,14 @@ const useNotificationItem = (notification: NotificationRecordType) => {
     }
 
     if (!isStandardNotif) {
-      setNotifications((prev) => {
-        const find = prev.find((record) => record.id === notification.id);
-        const newObj = { icon: find.icon, ...find };
-        newObj.read = true;
-
-        const newData = prev.filter((record) => record.id !== notification.id);
-        newData.push(newObj);
-
-        return newData;
-      });
+      // Son informativas de un solo uso ("tu solicitud fue aceptada/
+      // rechazada") — antes se quedaban marcadas como leídas pero seguían
+      // en la lista para siempre, porque nada las volvía a quitar una vez
+      // que la congregación dejaba de estar "pendiente". Al confirmarlas,
+      // se quitan del todo en vez de solo atenuarlas.
+      setNotifications((prev) =>
+        prev.filter((record) => record.id !== notification.id)
+      );
     }
   };
 

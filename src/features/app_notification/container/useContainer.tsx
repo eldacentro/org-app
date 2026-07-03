@@ -12,7 +12,8 @@ import {
 } from '@states/app';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { StandardNotificationType } from '@definition/notification';
-import { notificationsState } from '@states/notification';
+import { notificationsState, notificationsDbState } from '@states/notification';
+import { dbNotificationsSave } from '@services/dexie/notifications';
 import {
   congregationsNotDisapprovedState,
   congregationsPendingState,
@@ -57,6 +58,7 @@ const useContainer = () => {
   useTerritoryAssignedNotifications();
 
   const [notifications, setNotifications] = useAtom(notificationsState);
+  const dbNotifications = useAtomValue(notificationsDbState);
 
   const setSpeakersKey = useSetAtom(speakersKeyState);
   const setEncryptedMasterKey = useSetAtom(encryptedMasterKeyState);
@@ -487,7 +489,36 @@ const useContainer = () => {
     }
   }, [notifications]);
 
-  return { notifications: sortedNotifications };
+  // Mismo criterio que ya usa cada tarjeta individual (useNotificationItem):
+  // las "standard-notification-*" están respaldadas en Dexie y solo se
+  // marcan como leídas ahí; el resto (aceptada/rechazada) simplemente se
+  // quita de la lista al confirmarla.
+  const handleMarkAllAsRead = useCallback(async () => {
+    const markable = notifications.filter(
+      (record) => record.enableRead && !record.read
+    );
+
+    for (const record of markable) {
+      if (record.id.startsWith('standard-notification')) {
+        const id = +record.id.split('-').at(-1);
+        const dbNotif = dbNotifications.find((r) => r.id === id);
+
+        if (!dbNotif) continue;
+
+        const newNotif = structuredClone(dbNotif);
+        newNotif.read = true;
+        newNotif.updatedAt = new Date().toISOString();
+
+        await dbNotificationsSave(newNotif);
+      }
+    }
+
+    const markableIds = new Set(markable.map((record) => record.id));
+
+    setNotifications((prev) => prev.filter((record) => !markableIds.has(record.id)));
+  }, [notifications, dbNotifications, setNotifications]);
+
+  return { notifications: sortedNotifications, handleMarkAllAsRead };
 };
 
 export default useContainer;

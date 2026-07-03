@@ -6,6 +6,7 @@ import Drawer from '@components/drawer';
 import NotificationItem from '../notification_item';
 import NoNotificationImg from '@assets/img/illustration_no_notifications.svg?component';
 import Typography from '@components/typography';
+import Button from '@components/button';
 
 const NotificationContainer = ({
   onClose,
@@ -13,9 +14,10 @@ const NotificationContainer = ({
 }: NotificationContainerType) => {
   const { t } = useAppTranslation();
 
-  const { notifications } = useContainer();
+  const { notifications, handleMarkAllAsRead } = useContainer();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const hasMarkableUnread = notifications.some((n) => n.enableRead && !n.read);
 
   return (
     <Drawer
@@ -25,27 +27,39 @@ const NotificationContainer = ({
       title={t('tr_notifications')}
       disableContentScroll
       headActions={
-        unreadCount > 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '22px',
-              height: '22px',
-              borderRadius: '999px',
-              backgroundColor: 'var(--accent-main)',
-              px: '6px',
-              mr: '4px',
-            }}
-          >
-            <Typography
-              className="label-small-medium"
-              sx={{ color: 'white', fontSize: '11px', fontWeight: 700 }}
-            >
-              {unreadCount}
-            </Typography>
-          </Box>
+        unreadCount > 0 || hasMarkableUnread ? (
+          <Stack direction="row" alignItems="center" spacing="8px" sx={{ mr: '4px' }}>
+            {hasMarkableUnread && (
+              <Button
+                variant="tertiary"
+                onClick={handleMarkAllAsRead}
+                sx={{ fontSize: '12px', height: '28px', minHeight: '28px', px: '10px' }}
+              >
+                Marcar todas como leídas
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '22px',
+                  height: '22px',
+                  borderRadius: '999px',
+                  backgroundColor: 'var(--accent-main)',
+                  px: '6px',
+                }}
+              >
+                <Typography
+                  className="label-small-medium"
+                  sx={{ color: 'white', fontSize: '11px', fontWeight: 700 }}
+                >
+                  {unreadCount}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
         ) : undefined
       }
     >

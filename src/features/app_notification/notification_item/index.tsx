@@ -20,6 +20,7 @@ import JoinRequest from '@features/congregation/app_access/join_requests/item';
 import SpeakerAccessRequest from '../speakers_access_request';
 import TerritoryAccessRequest from '../territory_access_request';
 import TerritoryAssignedNotice from '../territory_assigned_notice';
+import UnverifiedReportItem from '../unverified_report_item';
 import { TerritoryRequestNotificationType, TerritoryAssignedNotificationType } from '@definition/notification';
 import TextMarkup from '@components/text_markup';
 import Typography from '@components/typography';
@@ -153,6 +154,11 @@ const NotificationItem = ({
           />
 
           {/* Nested content */}
+          {notification.id === 'reports-unverified' &&
+            (notification as UnverifiedReportNotificationType).reports.map((r) => (
+              <UnverifiedReportItem key={`${r.person_uid}-${r.report_date}`} entry={r} />
+            ))}
+
           {notification.id === 'speakers-request' &&
             (notification as SpeakerNotificationType).congs.map((request) => (
               <SpeakerAccessRequest key={request.request_id} request={request} />
