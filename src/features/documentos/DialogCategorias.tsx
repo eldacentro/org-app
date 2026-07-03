@@ -14,6 +14,7 @@ import { saveCategoriasFirestore } from '@services/firebase/documentos';
 import { congIDState } from '@states/settings';
 import { documentoCategoriasState, documentosState } from '@states/documentos';
 import { CATEGORIAS_INICIALES } from './useDocumentos';
+import { getAccentMainHex } from '@utils/color';
 
 const PALETA_COLORES = [
   '#306CB4',
@@ -40,7 +41,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
 
   const [drafts, setDrafts] = useState<DocumentoCategoria[]>([]);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
-  const [nuevoColor, setNuevoColor] = useState('#306CB4');
+  const [nuevoColor, setNuevoColor] = useState(getAccentMainHex);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {

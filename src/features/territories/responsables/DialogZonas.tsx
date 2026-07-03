@@ -15,21 +15,9 @@ import { territoryZonesSortedState } from '@states/territories';
 import { territoriesState } from '@states/territories';
 import { PALETA_COLORES } from './colorPalette';
 import { useDebouncedColorSave } from './useDebouncedColorSave';
+import { getAccentMainHex } from '@utils/color';
 
 type Props = { open: boolean; onClose: () => void };
-
-// El input nativo <input type="color"> exige un hex real (#rrggbb) — pasarle
-// directamente 'var(--accent-main)' lo deja en negro, porque el navegador no
-// resuelve variables CSS ahí. Convertimos --accent-main-base ("r, g, b") a
-// hex al vuelo para que el color de partida siga el esquema elegido.
-const getAccentMainHex = () => {
-  const base = getComputedStyle(document.documentElement)
-    .getPropertyValue('--accent-main-base')
-    .trim();
-  const parts = base.split(',').map((n) => parseInt(n.trim(), 10));
-  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return '#306CB4';
-  return '#' + parts.map((n) => n.toString(16).padStart(2, '0')).join('');
-};
 
 const DialogZonas = ({ open, onClose }: Props) => {
   const congId = useAtomValue(congIDState);
