@@ -42,6 +42,15 @@ export type Territory = {
   tags: string[];
   /** Última fecha en que el territorio fue devuelto como trabajado (ISO). */
   lastWorkedAt?: string;
+  /**
+   * Id de la TerritoryAssignment abierta que "tiene" este territorio ahora
+   * mismo (normal o de campaña) — actúa como candado dentro de una
+   * transacción de Firestore para que dos responsables no puedan asignarlo
+   * a la vez. `null`/ausente = libre. Territorios creados antes de este
+   * campo no lo tienen todavía; un efecto de backfill lo repara la primera
+   * vez que alguien con rol de responsable carga la app (ver useTerritories.tsx).
+   */
+  openAssignmentId?: string | null;
   updatedAt: string;
 };
 

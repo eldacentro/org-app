@@ -277,7 +277,25 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
                 {getZoneName(selected.zoneId, zones)}
               </Typography>
             </Box>
-            <Box onClick={() => setSelected(null)} sx={{ cursor: 'pointer', p: '4px' }}>
+            <Box
+              component="button"
+              type="button"
+              onClick={() => setSelected(null)}
+              aria-label="Cerrar"
+              sx={{
+                appearance: 'none',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                p: '4px',
+                color: 'inherit',
+                display: 'flex',
+                '&:focus-visible': {
+                  outline: '2px solid var(--accent-main)',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
               <IconClose width={16} height={16} />
             </Box>
           </Stack>

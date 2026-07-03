@@ -6,6 +6,7 @@ import {
   query,
   setDoc,
   deleteDoc,
+  runTransaction,
   updateDoc,
   where,
   writeBatch,
@@ -272,6 +273,18 @@ export const saveTerritory = (
     })
   );
 
+/**
+ * Actualiza solo los campos indicados del territorio (`updateDoc`, no
+ * `setDoc`) — a diferencia de `saveTerritory`, no sobrescribe el documento
+ * entero, así que no hay riesgo de pisar una edición concurrente (nombre,
+ * notas, geometría) que el snapshot local todavía no reflejaba.
+ */
+export const updateTerritoryFields = (
+  congId: string,
+  territoryId: string,
+  fields: Partial<Territory>
+) => updateDoc(fsDoc(territoriesCol(congId), territoryId), fields);
+
 /** Guarda muchos territorios de una vez (importación KML). */
 export const saveTerritoriesBatch = async (
   congId: string,
@@ -328,10 +341,78 @@ export const saveAssignment = (
     stripUndefined({ ...a, notas: enc(a.notas, key) })
   );
 
+/** Mensaje mostrado cuando dos responsables intentan asignar el mismo
+ *  territorio casi a la vez — el segundo pierde la carrera y ve este error
+ *  igual que si el territorio ya hubiera estado asignado de antes. */
+export const TERRITORY_ALREADY_ASSIGNED_MESSAGE = 'Este territorio ya está asignado';
+
 /**
- * Finaliza una asignación y (si status==='trabajado') actualiza lastWorkedAt
- * del territorio en un único batch — evita estado inconsistente si falla la red
- * entre las dos escrituras.
+ * Abre una asignación nueva de forma segura frente a condiciones de
+ * carrera: antes `saveAssignment` era un `setDoc` directo sin comprobar
+ * nada en el servidor, así que si dos responsables (o el mismo en dos
+ * pestañas) asignaban casi a la vez el mismo territorio libre, ambos
+ * escribían con éxito y quedaban dos asignaciones abiertas duplicadas. Esta
+ * transacción usa `territory.openAssignmentId` como candado: lee el
+ * territorio, aborta si ya está ocupado, y si no, crea la asignación y
+ * marca el territorio como ocupado en la misma transacción atómica.
+ */
+export const saveAssignmentTransactional = (
+  congId: string,
+  a: TerritoryAssignment,
+  key: string
+) =>
+  runTransaction(firestore, async (tx) => {
+    const territoryRef = fsDoc(territoriesCol(congId), a.territoryId);
+    const territorySnap = await tx.get(territoryRef);
+    if (territorySnap.data()?.openAssignmentId) {
+      throw new Error(TERRITORY_ALREADY_ASSIGNED_MESSAGE);
+    }
+    tx.set(
+      fsDoc(assignmentsCol(congId), a.id),
+      stripUndefined({ ...a, notas: enc(a.notas, key) })
+    );
+    tx.update(territoryRef, { openAssignmentId: a.id });
+  });
+
+/**
+ * Igual que `saveAssignmentTransactional`, pero además marca la solicitud
+ * de origen como atendida en la misma transacción — antes eran dos
+ * escrituras (`saveAssignment` + `atenderRequest`) sueltas; si la conexión
+ * se cortaba entre medias, la solicitud quedaba "pendiente" para siempre
+ * aunque el territorio ya se había asignado, y un segundo responsable
+ * podía asignarle otro territorio más sin darse cuenta.
+ */
+export const saveAssignmentAndAttendRequest = (
+  congId: string,
+  a: TerritoryAssignment,
+  key: string,
+  requestId: string,
+  attendedBy: string
+) =>
+  runTransaction(firestore, async (tx) => {
+    const territoryRef = fsDoc(territoriesCol(congId), a.territoryId);
+    const territorySnap = await tx.get(territoryRef);
+    if (territorySnap.data()?.openAssignmentId) {
+      throw new Error(TERRITORY_ALREADY_ASSIGNED_MESSAGE);
+    }
+    tx.set(
+      fsDoc(assignmentsCol(congId), a.id),
+      stripUndefined({ ...a, notas: enc(a.notas, key) })
+    );
+    tx.update(territoryRef, { openAssignmentId: a.id });
+    tx.update(fsDoc(requestsCol(congId), requestId), {
+      atendidaPor: attendedBy,
+      atendidaAt: new Date().toISOString(),
+    });
+  });
+
+/**
+ * Finaliza una asignación (entregada trabajada o devuelta sin trabajar) y
+ * libera el candado del territorio (`openAssignmentId`) si esta era la
+ * asignación que lo tenía — antes solo se actualizaba el territorio cuando
+ * status==='trabajado' (para lastWorkedAt), así que al "devolver sin
+ * trabajar" el territorio se quedaba marcado como ocupado para siempre.
+ * Un único batch evita estado inconsistente si falla la red entre escrituras.
  */
 export const finalizeAssignmentBatch = async (
   congId: string,
@@ -344,21 +425,43 @@ export const finalizeAssignmentBatch = async (
     fsDoc(assignmentsCol(congId), assignment.id),
     stripUndefined({ ...assignment, notas: enc(assignment.notas, key) })
   );
-  if (territory && assignment.status === 'trabajado') {
-    batch.set(
-      fsDoc(territoriesCol(congId), territory.id),
-      stripUndefined({
-        ...territory,
-        geometry: serializeGeometry(territory.geometry),
-        notas: enc(territory.notas, key),
-      })
-    );
+  if (territory) {
+    const territoryUpdate: Record<string, unknown> = {};
+    if (territory.openAssignmentId === assignment.id) {
+      territoryUpdate.openAssignmentId = null;
+    }
+    if (assignment.status === 'trabajado') {
+      territoryUpdate.lastWorkedAt = assignment.returnedAt;
+      territoryUpdate.updatedAt = assignment.updatedAt;
+    }
+    if (Object.keys(territoryUpdate).length > 0) {
+      batch.update(fsDoc(territoriesCol(congId), territory.id), territoryUpdate);
+    }
   }
   await batch.commit();
 };
 
-export const deleteAssignment = (congId: string, assignmentId: string) =>
-  deleteDoc(fsDoc(assignmentsCol(congId), assignmentId));
+/**
+ * Borra una asignación y libera el candado del territorio si era la que lo
+ * tenía — sin esto, borrar manualmente una asignación abierta (en vez de
+ * "Entregar") dejaba el territorio marcado como ocupado para siempre.
+ */
+export const deleteAssignment = async (
+  congId: string,
+  assignmentId: string,
+  territory?: Territory | null
+): Promise<void> => {
+  if (territory && territory.openAssignmentId === assignmentId) {
+    const batch = writeBatch(firestore);
+    batch.delete(fsDoc(assignmentsCol(congId), assignmentId));
+    batch.update(fsDoc(territoriesCol(congId), territory.id), {
+      openAssignmentId: null,
+    });
+    await batch.commit();
+    return;
+  }
+  await deleteDoc(fsDoc(assignmentsCol(congId), assignmentId));
+};
 
 /**
  * Migración de un solo uso (idempotente): rellena returnedAt: null en las
@@ -387,6 +490,52 @@ export const backfillMissingReturnedAt = async (
     );
     await batch.commit();
   }
+};
+
+/**
+ * Migración de un solo uso: repara `territory.openAssignmentId` para
+ * territorios que ya existían ANTES de que este campo existiera (por eso se
+ * mira específicamente `undefined`, no `null` — `null` significa "ya
+ * migrado y libre", no "sin migrar"). Sin esto, esos territorios se verían
+ * como "libres" para el candado de la transacción de asignación aunque ya
+ * estuvieran ocupados.
+ *
+ * A propósito NO compara contra el estado local `assignments` para decidir
+ * si hay que escribir (ese estado viene de onSnapshot y va un paso por
+ * detrás de Firestore) — una primera versión de esta función comparaba
+ * "¿coincide con lo que debería ser?" usando el snapshot local, y podía
+ * pisar un candado recién puesto por una transacción de asignación real
+ * que el listener local todavía no había reflejado. Ahora cada territorio
+ * se repara con su propia transacción, que solo actúa si el campo sigue
+ * siendo `undefined` en el momento de leer — si alguien ya lo asignó
+ * (o cualquier otra escritura ya fijó el campo, aunque sea a `null`) esta
+ * migración ya no lo vuelve a tocar nunca.
+ */
+export const backfillOpenAssignmentLocks = async (
+  congId: string,
+  territories: Territory[],
+  assignments: TerritoryAssignment[]
+): Promise<void> => {
+  const openByTerritory = new Map<string, string>();
+  assignments.forEach((a) => {
+    if (!a.returnedAt) openByTerritory.set(a.territoryId, a.id);
+  });
+
+  const unmigrated = territories.filter((t) => t.openAssignmentId === undefined);
+  if (unmigrated.length === 0) return;
+
+  await Promise.all(
+    unmigrated.map((t) =>
+      runTransaction(firestore, async (tx) => {
+        const territoryRef = fsDoc(territoriesCol(congId), t.id);
+        const snap = await tx.get(territoryRef);
+        if (snap.data()?.openAssignmentId !== undefined) return; // ya migrado
+        tx.update(territoryRef, { openAssignmentId: openByTerritory.get(t.id) ?? null });
+      }).catch((err) => {
+        console.error(`Failed to backfill openAssignmentId for ${t.id}:`, err);
+      })
+    )
+  );
 };
 
 export const saveLocation = (
@@ -460,8 +609,15 @@ export const saveTag = (congId: string, tag: TerritoryTag) =>
 export const deleteTag = (congId: string, tagId: string) =>
   deleteDoc(fsDoc(tagsCol(congId), tagId));
 
-export const saveSettings = (congId: string, settings: TerritorySettings) =>
-  setDoc(settingsDoc(congId), settings);
+// `merge: true` — antes era un setDoc de documento completo, así que el
+// efecto que auto-sincroniza `managers` (useTerritories.tsx) podía pisar
+// cambios de Configuración guardados casi al mismo tiempo (y viceversa) si
+// cada uno partía de una copia local de `settings` ligeramente distinta.
+// Con merge, cada llamada solo toca los campos que de verdad pasa.
+export const saveSettings = (
+  congId: string,
+  settings: Partial<TerritorySettings>
+) => setDoc(settingsDoc(congId), settings, { merge: true });
 
 // ─── Backup helper ─────────────────────────────────────────────────────────────
 /**

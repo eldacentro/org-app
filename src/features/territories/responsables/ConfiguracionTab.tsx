@@ -193,8 +193,7 @@ const ConfiguracionTab = () => {
     try {
       await saveSettings(congId, { ...draft, updatedAt: new Date().toISOString() });
       setSaved(true);
-      const t = setTimeout(() => setSaved(false), 2000);
-      return () => clearTimeout(t); // limpieza si el componente se desmonta
+      savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
     } finally {
       setSaving(false);
     }

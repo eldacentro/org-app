@@ -19,6 +19,16 @@ export type ParsedTerritory = {
 
 const parseKmlString = (text: string): ParsedTerritory[] => {
   const dom = new DOMParser().parseFromString(text, 'text/xml');
+
+  // DOMParser nunca lanza con XML inválido: en su lugar devuelve un
+  // documento cuyo root es un <parsererror>. Sin este chequeo, un archivo
+  // corrupto o con la extensión equivocada termina mostrando el genérico
+  // "no se encontraron polígonos", indistinguible de un KML válido sin
+  // polígonos.
+  if (dom.getElementsByTagName('parsererror').length > 0) {
+    throw new Error('El archivo KML no es válido o está dañado.');
+  }
+
   const geojson = kmlToGeoJson(dom) as FeatureCollection;
 
   return geojson.features

@@ -29,7 +29,7 @@ import {
   deleteAssignment,
   saveAssignment,
 } from '@services/firebase/territories';
-import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
+import { formatTerritoryDate, isPastDue, territoryLabel } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
 
 type Filter = 'all' | 'assigned' | 'unassigned';
@@ -52,6 +52,7 @@ const TerritoryAssignmentCard = ({
   onDelete,
   resolveName,
   dateFormat,
+  daysUntilExpiration,
 }: {
   t: Territory;
   zone: TerritoryZone;
@@ -64,6 +65,7 @@ const TerritoryAssignmentCard = ({
   onDelete: (a: TerritoryAssignment) => void;
   resolveName: (uid: string) => string;
   dateFormat: string;
+  daysUntilExpiration: number;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const activeOrLatest = history[0];
@@ -98,7 +100,7 @@ const TerritoryAssignmentCard = ({
               color: open ? 'var(--orange-dark)' : 'var(--green-main)',
               fontWeight: 600,
               fontSize: '0.75rem',
-              border: `1px solid ${open ? 'var(--orange-main)' : 'var(--green-main)'}33`
+              border: `1px solid rgba(var(--${open ? 'orange' : 'green'}-main-base), 0.2)`
             }}
           >
             {open ? 'Asignado' : 'Libre'}
@@ -132,7 +134,7 @@ const TerritoryAssignmentCard = ({
               px: 1.5,
               borderRadius: '8px',
               backgroundColor: open ? 'var(--orange-secondary)' : 'var(--accent-100)',
-              border: `1px solid ${open ? 'var(--orange-main)33' : 'var(--line)'}`,
+              border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.2)' : 'var(--line)'}`,
             }}
             spacing={1}
           >
@@ -142,6 +144,10 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.isCampaign && (
                   <span style={{ color: 'var(--blue-main)' }}> (Campaña)</span>
                 )}
+                {!activeOrLatest.returnedAt &&
+                  isPastDue(activeOrLatest.assignedAt, daysUntilExpiration, activeOrLatest.dueAt) && (
+                    <span style={{ color: 'var(--orange-main)' }}> (Vencido)</span>
+                  )}
               </Typography>
               <Typography variant="caption" color="var(--ink-2)">
                 {formatTerritoryDate(activeOrLatest.assignedAt, dateFormat)}
@@ -318,7 +324,10 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
       confirmLabel: 'Borrar',
       destructive: true,
     });
-    if (ok) await deleteAssignment(congId, a.id);
+    if (ok) {
+      const territory = territories.find((t) => t.id === a.territoryId) ?? null;
+      await deleteAssignment(congId, a.id, territory);
+    }
   };
 
   const handleEditNote = (a: TerritoryAssignment) => openNoteDialog(a);
@@ -422,6 +431,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
                   onDelete={handleDelete}
                   resolveName={resolveName}
                   dateFormat={settings.dateFormat}
+                  daysUntilExpiration={settings.daysUntilExpiration}
                 />
               );
             })}

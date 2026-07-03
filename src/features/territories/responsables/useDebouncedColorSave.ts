@@ -51,7 +51,15 @@ export const useDebouncedColorSave = <T extends { id: string; color: string }>(
     }, 600);
   };
 
-  const reset = () => setPendingColors({});
+  // Antes solo limpiaba `pendingColors` (el color que se ve en pantalla),
+  // pero dejaba correr los timers ya armados — así que si el diálogo se
+  // cerraba y volvía a abrir justo tras cambiar un color, ese color se
+  // guardaba igual 600ms después aunque el usuario ya había "reseteado".
+  const reset = () => {
+    Object.values(timers.current).forEach(clearTimeout);
+    timers.current = {};
+    setPendingColors({});
+  };
 
   return { getColor, handleColorChange, reset };
 };

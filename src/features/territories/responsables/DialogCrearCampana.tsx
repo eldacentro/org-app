@@ -52,9 +52,7 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         territoryIds: [],
         updatedAt: new Date().toISOString(),
       };
-      console.log('Guardando campaña...', campaign);
       await saveCampaign(congId, campaign);
-      console.log('Campaña guardada con éxito.');
       displaySnackNotification({ severity: 'success', header: 'Campaña creada', message: `La campaña "${campaign.nombre}" ha sido creada.` });
       onClose();
     } catch (err) {

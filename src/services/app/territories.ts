@@ -27,6 +27,23 @@ export const isOverdue = (
   return addDays(new Date(assignedAt), daysUntilOverdue) < now;
 };
 
+/**
+ * Configuración promete "el territorio puede reasignarse cuando lleve este
+ * tiempo asignado" (daysUntilExpiration), pero antes solo se usaba para
+ * mostrar "Vence: …" al publicador — ninguna pestaña de Responsables
+ * señalaba territorios vencidos (solo "Atrasados", un umbral distinto y
+ * mayor). Mismo cálculo que ya usa MisTerritoriosSection.tsx.
+ */
+export const isPastDue = (
+  assignedAt: string,
+  daysUntilExpiration: number,
+  dueAt?: string,
+  now: Date = new Date()
+): boolean => {
+  const due = dueAt ? new Date(dueAt) : new Date(computeDueAt(assignedAt, daysUntilExpiration));
+  return due < now;
+};
+
 /** Días transcurridos desde una fecha ISO. */
 export const daysSince = (iso: string, now: Date = new Date()): number => {
   return Math.floor(

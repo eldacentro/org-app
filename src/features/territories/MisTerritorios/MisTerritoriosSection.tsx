@@ -32,6 +32,26 @@ type Props = {
   onEntregar: (assignment: TerritoryAssignment) => void;
 };
 
+/** Insignia "Campaña" — antes solo se mostraba en la lista personal; los
+ *  compañeros de grupo (publishersCanSeeGroup) veían una asignación de
+ *  campaña como si fuera normal, sin poder distinguirla. */
+const CampanaBadge = () => (
+  <Box
+    sx={{
+      px: 1,
+      py: 0.25,
+      borderRadius: '12px',
+      backgroundColor: 'rgba(var(--blue-main-base), 0.1)',
+      color: 'var(--blue-main)',
+      fontWeight: 600,
+      fontSize: '0.75rem',
+      border: '1px solid rgba(var(--blue-main-base), 0.2)',
+    }}
+  >
+    Campaña
+  </Box>
+);
+
 /** Sección "Mis territorios": territorios actualmente asignados al usuario. */
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const myAssignments = useAtomValue(myTerritoryAssignmentsState);
@@ -160,33 +180,18 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                     <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
                       {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
                     </Typography>
-                    {assignment.isCampaign && (
-                      <Box
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: '12px',
-                          backgroundColor: 'var(--blue-main)1A',
-                          color: 'var(--blue-main)',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          border: '1px solid var(--blue-main)33',
-                        }}
-                      >
-                        Campaña
-                      </Box>
-                    )}
+                    {assignment.isCampaign && <CampanaBadge />}
                     {overdue && (
                         <Box
                           sx={{
                             px: 1,
                             py: 0.25,
                             borderRadius: '12px',
-                            backgroundColor: 'var(--red-main)1A',
+                            backgroundColor: 'rgba(var(--red-main-base), 0.1)',
                             color: 'var(--red-main)',
                             fontWeight: 600,
                             fontSize: '0.75rem',
-                            border: '1px solid var(--red-main)33'
+                            border: '1px solid rgba(var(--red-main-base), 0.2)'
                           }}
                         >
                           Atrasado
@@ -248,12 +253,15 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 >
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
-                        {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
-                        <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
-                          {resolveName(assignment.personUid)}
-                        </span>
-                      </Typography>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                          {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
+                          <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                            {resolveName(assignment.personUid)}
+                          </span>
+                        </Typography>
+                        {assignment.isCampaign && <CampanaBadge />}
+                      </Stack>
                       <Typography variant="caption" color="var(--ink-2)">
                         Entregado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
                       </Typography>

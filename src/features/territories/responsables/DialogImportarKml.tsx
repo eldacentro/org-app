@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { congIDState, congMasterKeyState } from '@states/settings';
-import { territoryZonesSortedState } from '@states/territories';
+import { territoryZonesSortedState, territoriesState } from '@states/territories';
 import { parseKmlFile, ParsedTerritory } from '@utils/kml';
 import { Territory } from '@definition/territories';
 import { saveTerritoriesBatch } from '@services/firebase/territories';
@@ -16,12 +16,31 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
   const congId = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
   const zones = useAtomValue(territoryZonesSortedState);
+  const territories = useAtomValue(territoriesState);
 
   const [zoneId, setZoneId] = useState('');
   const [parsed, setParsed] = useState<ParsedTerritory[]>([]);
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
   const [importing, setImporting] = useState(false);
+
+  // Avisa (sin bloquear) si el número de un territorio a importar ya existe
+  // en la zona destino — típico al reimportar el mismo KML tras corregir un
+  // polígono, que si no se detecta duplica el territorio con un ID nuevo.
+  const duplicateNumeros = useMemo(() => {
+    if (!zoneId || parsed.length === 0) return [];
+    const existing = new Set(
+      territories.filter((t) => t.zoneId === zoneId).map((t) => t.numero)
+    );
+    const seenInFile = new Set<string>();
+    const dupes = new Set<string>();
+    parsed.forEach((p, i) => {
+      const numero = p.name || String(i + 1);
+      if (existing.has(numero) || seenInFile.has(numero)) dupes.add(numero);
+      seenInFile.add(numero);
+    });
+    return [...dupes];
+  }, [zoneId, parsed, territories]);
 
   useEffect(() => {
     if (open) {
@@ -131,6 +150,14 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
           {parsed.length > 0 && (
             <Typography variant="body2" sx={{ color: 'var(--green-main)' }}>
               {parsed.length} territorio(s) detectado(s).
+            </Typography>
+          )}
+          {duplicateNumeros.length > 0 && (
+            <Typography variant="body2" sx={{ color: 'var(--orange-main)' }}>
+              {duplicateNumeros.length} número(s) ya existen en esta zona o se repiten
+              en el archivo ({duplicateNumeros.slice(0, 6).join(', ')}
+              {duplicateNumeros.length > 6 ? '…' : ''}). Si importas, se crearán como
+              territorios nuevos y duplicados.
             </Typography>
           )}
           {error && (

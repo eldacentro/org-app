@@ -61,7 +61,7 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           notas: nota.trim() || undefined,
           updatedAt: now,
         },
-        status === 'trabajado' ? (territory ? { ...territory, lastWorkedAt: now, updatedAt: now } : null) : null,
+        territory,
         key
       );
 

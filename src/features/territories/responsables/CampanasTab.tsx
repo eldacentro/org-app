@@ -17,7 +17,7 @@ import {
   saveCampaign,
   deleteCampaign,
   saveAssignment,
-  saveTerritory,
+  updateTerritoryFields,
 } from '@services/firebase/territories';
 import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
@@ -90,13 +90,15 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
           ];
           const t = territories.find((x) => x.id === a.territoryId);
           if (t) {
-            ops.push(
-              saveTerritory(
-                congId,
-                { ...t, lastWorkedAt: c.fechaFin, updatedAt: now },
-                key
-              )
-            );
+            // Actualización parcial (no saveTerritory completo) — así no se
+            // pisa una edición concurrente de nombre/notas/geometría que el
+            // snapshot local todavía no reflejara.
+            const fields: Partial<Territory> = { lastWorkedAt: c.fechaFin, updatedAt: now };
+            // Libera el candado si esta era la asignación de campaña que lo
+            // tenía — sin esto, cerrar una campaña dejaba el territorio
+            // marcado como ocupado para siempre.
+            if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
+            ops.push(updateTerritoryFields(congId, t.id, fields));
           }
           return ops;
         })

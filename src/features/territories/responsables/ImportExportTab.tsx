@@ -37,14 +37,16 @@ const ImportExportTab = () => {
   const [filter, setFilter] = useState<ExcelFilter>('all');
   const [busy, setBusy] = useState(false);
 
-  const run = async (fn: () => void | Promise<void>, successMsg?: string) => {
+  const run = async <T,>(fn: () => T | Promise<T>, successMsg?: string) => {
     setBusy(true);
     try {
-      await fn();
+      const result = await fn();
       if (successMsg) displaySnackNotification({ severity: 'success', header: 'Listo', message: successMsg });
+      return result;
     } catch (e) {
       console.error(e);
       displaySnackNotification({ severity: 'error', header: 'Error al exportar', message: 'No se pudo generar el archivo. Inténtalo de nuevo.' });
+      return undefined;
     } finally {
       setBusy(false);
     }
@@ -91,13 +93,21 @@ const ImportExportTab = () => {
             <Button
               variant="main"
               disabled={busy}
-              onClick={() =>
-                run(() => {
-                  const ref = new Date();
-                  ref.setFullYear(ref.getFullYear() - Number(yearIdx));
-                  return exportS13(ref, includeCampaigns);
-                }, 'S-13 generado correctamente.')
-              }
+              onClick={async () => {
+                const ref = new Date();
+                ref.setFullYear(ref.getFullYear() - Number(yearIdx));
+                const result = await run(
+                  () => exportS13(ref, includeCampaigns),
+                  'S-13 generado correctamente.'
+                );
+                if (result && result.truncatedTerritories > 0) {
+                  displaySnackNotification({
+                    severity: 'success',
+                    header: 'Algunos territorios tienen más de 4 asignaciones',
+                    message: `${result.truncatedTerritories} territorio(s) tuvieron más de 4 asignaciones este año de servicio; el S-13 solo tiene espacio para las 4 más recientes de cada uno.`,
+                  });
+                }
+              }}
               sx={{ borderRadius: '999px', px: 3, gap: 1 }}
             >
               {busy ? <CircularProgress size={16} color="inherit" /> : null}

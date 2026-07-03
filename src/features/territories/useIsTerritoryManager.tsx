@@ -2,24 +2,7 @@ import { useAtomValue } from 'jotai';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { userLocalUIDState } from '@states/settings';
 import { useCurrentUser } from '@hooks/index';
-import { Departamento } from '@definition/responsabilidades';
-
-const normalize = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // quita acentos
-    .toLowerCase();
-
-/** ¿El departamento es el de Territorios? (match por nombre, sin acentos). */
-const isTerritoryDept = (dep: Departamento) =>
-  normalize(dep.name).includes('territorio');
-
-/** uids implicados en un departamento (responsable, auxiliar y miembros). */
-const deptMemberUids = (dep: Departamento): string[] => {
-  const uids = [dep.responsable, dep.auxiliar].filter(Boolean) as string[];
-  if (dep.type === 'extended' && Array.isArray(dep.members)) uids.push(...dep.members);
-  return uids;
-};
+import { isTerritoryDept, deptMemberUids } from './utils/managers';
 
 /**
  * Acceso al panel de gestión de Territorios: ancianos/admin SIEMPRE, además de

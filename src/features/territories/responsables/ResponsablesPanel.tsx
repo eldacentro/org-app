@@ -406,7 +406,7 @@ const ResponsablesPanel = ({
                   disableAutoStretch
                   onClick={handleBulkDelete}
                   disabled={deleting}
-                  sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'var(--red-main)1A' } }}
+                  sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.1)' } }}
                 >
                   Eliminar ({selectedIds.size})
                 </Button>

@@ -39,10 +39,17 @@ export const territoryOpenAssignmentsState = atom((get) => {
   return get(territoryAssignmentsState).filter((a) => !a.returnedAt);
 });
 
-/** Set de territoryId actualmente asignados (territorio normal, no campaña). */
+/**
+ * Set de territoryId actualmente ocupados por CUALQUIER asignación abierta
+ * (normal o de campaña). Antes excluía las de campaña, así que un territorio
+ * en uso por una campaña activa aparecía como "Libre" en la cuadrícula de
+ * Territorios y podía seleccionarse para asignar/eliminar en bloque — pese a
+ * que `handleAsignar` (DialogAsignar) sí lo bloquea como ya asignado. Ahora
+ * ambos coinciden.
+ */
 export const territoryAssignedIdsState = atom((get) => {
   const open = get(territoryOpenAssignmentsState);
-  return new Set(open.filter((a) => !a.isCampaign).map((a) => a.territoryId));
+  return new Set(open.map((a) => a.territoryId));
 });
 
 /** "Mis territorios": asignaciones abiertas del usuario actual. */

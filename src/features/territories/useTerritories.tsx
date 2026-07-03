@@ -32,6 +32,7 @@ import {
   subscribeZones,
   saveSettings,
   backfillMissingReturnedAt,
+  backfillOpenAssignmentLocks,
 } from '@services/firebase/territories';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
@@ -74,6 +75,7 @@ export const useTerritories = () => {
   const isManager = useCanReceiveTerritoryRequestNotifications();
   const canManage = useIsTerritoryManager();
   const assignments = useAtomValue(territoryAssignmentsState);
+  const territories = useAtomValue(territoriesState);
 
   // Cierra las 9 suscripciones cuando el último componente que las usa se
   // desmonta (p.ej. el usuario navega fuera de Territorios), para no dejar
@@ -179,12 +181,13 @@ export const useTerritories = () => {
       });
 
     if (!isSame) {
-      const updatedSettings = {
-        ...settings,
+      // Solo se escriben los campos que este efecto realmente cambia (ver
+      // el `merge: true` de saveSettings) — así no se pisa un guardado
+      // concurrente de Configuración hecho desde otra pestaña/dispositivo.
+      saveSettings(congId, {
         managers: currentManagers,
         updatedAt: new Date().toISOString(),
-      };
-      saveSettings(congId, updatedSettings).catch((err) =>
+      }).catch((err) =>
         console.error('Failed to sync managers to settings:', err)
       );
     }
@@ -203,4 +206,16 @@ export const useTerritories = () => {
       console.error('Failed to backfill returnedAt:', err)
     );
   }, [congId, canManage, assignments]);
+
+  // Migración de un solo uso: repara territory.openAssignmentId para
+  // territorios que ya tenían una asignación abierta antes de que ese
+  // candado existiera. Mismo criterio que la migración de arriba (solo
+  // responsables/admin, idempotente).
+  useEffect(() => {
+    if (!congId || !canManage || territories.length === 0) return;
+
+    backfillOpenAssignmentLocks(congId, territories, assignments).catch((err) =>
+      console.error('Failed to backfill openAssignmentId:', err)
+    );
+  }, [congId, canManage, territories, assignments]);
 };

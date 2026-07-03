@@ -72,6 +72,7 @@ export const useTerritoryExport = () => {
 
       // Preparar datos
       const sheetsData: { zoneName: string; rows: { numero: string; lastCompleted: string; assignments: { name: string; dateAssigned: string; dateCompleted: string; }[] }[] }[] = [];
+      let truncatedTerritories = 0;
 
       zones.forEach((zone) => {
         const zoneTerritories = territories
@@ -81,12 +82,8 @@ export const useTerritoryExport = () => {
           );
         if (zoneTerritories.length === 0) return;
 
-        const rows = zoneTerritories.map((t) => ({
-          numero: t.numero,
-          lastCompleted: t.lastWorkedAt
-            ? formatTerritoryDate(t.lastWorkedAt, S13_DATE)
-            : '',
-          assignments: assignments
+        const rows = zoneTerritories.map((t) => {
+          const yearAssignments = assignments
             .filter((a) => a.territoryId === t.id)
             .filter((a) => includeCampaigns || !a.isCampaign)
             .filter(inServiceYear)
@@ -94,16 +91,29 @@ export const useTerritoryExport = () => {
               (x, y) =>
                 new Date(x.assignedAt).getTime() -
                 new Date(y.assignedAt).getTime()
-            )
-            .slice(0, 4) // ← IMPORTANTE: La plantilla física solo tiene 4 columnas
-            .map((a) => ({
+            );
+
+          // La plantilla física solo tiene 4 columnas: si hay más de 4
+          // asignaciones en el año, nos quedamos con las 4 MÁS RECIENTES
+          // (antes se tomaban las 4 más antiguas con slice(0, 4), así que la
+          // asignación vigente/más reciente podía desaparecer del S-13).
+          if (yearAssignments.length > 4) truncatedTerritories += 1;
+          const shown = yearAssignments.slice(-4);
+
+          return {
+            numero: t.numero,
+            lastCompleted: t.lastWorkedAt
+              ? formatTerritoryDate(t.lastWorkedAt, S13_DATE)
+              : '',
+            assignments: shown.map((a) => ({
               name: resolveName(a.personUid) + (a.isCampaign ? ' (C)' : ''),
               dateAssigned: formatTerritoryDate(a.assignedAt, S13_DATE),
               dateCompleted: a.returnedAt
                 ? formatTerritoryDate(a.returnedAt, S13_DATE)
                 : '',
             })),
-        }));
+          };
+        });
 
         for (let i = 0; i < rows.length; i += ROWS_PER_SHEET) {
           sheetsData.push({
@@ -172,10 +182,21 @@ export const useTerritoryExport = () => {
             let nameX = grpX + HALF_GROUP - nameWidth / 2;
             if (nameWidth > GROUP_WIDTH - 4) nameX = grpX + 2; // Si no cabe centrado, alinear a la izq
             
-            // Truncar nombre si sigue siendo muy grande
+            // Truncar nombre si sigue siendo muy grande — recorta carácter a
+            // carácter y vuelve a medir cada vez (antes cortaba a 20
+            // caracteres fijos y añadía "..." sin comprobar si ESO cabía,
+            // así que nombres con letras anchas seguían desbordando la
+            // columna y nombres con letras muy estrechas se recortaban de más).
             let displayName = assign.name;
             if (font.widthOfTextAtSize(displayName, 8) > GROUP_WIDTH - 2) {
-               displayName = displayName.substring(0, 20) + '...';
+              let truncated = displayName;
+              while (
+                truncated.length > 1 &&
+                font.widthOfTextAtSize(truncated + '...', 8) > GROUP_WIDTH - 2
+              ) {
+                truncated = truncated.slice(0, -1);
+              }
+              displayName = truncated + '...';
             }
 
             page.drawText(displayName, {
@@ -197,6 +218,8 @@ export const useTerritoryExport = () => {
       const pdfBytes = await doc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       saveAs(blob, `S-13_${safeName}_${startYear}.pdf`);
+
+      return { truncatedTerritories };
     },
     [zones, territories, assignments, resolveName, safeName]
   );

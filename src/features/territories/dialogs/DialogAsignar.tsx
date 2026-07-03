@@ -23,7 +23,11 @@ import {
   territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
-import { saveAssignment, atenderRequest, saveNotice } from '@services/firebase/territories';
+import {
+  saveAssignmentAndAttendRequest,
+  saveAssignmentTransactional,
+  saveNotice,
+} from '@services/firebase/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import {
@@ -132,13 +136,12 @@ const DialogAsignar = ({
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      const toAssign = bulkTerritories.filter(
+      const candidates = bulkTerritories.filter(
         (t) =>
           !allAssignments.some((a) => a.territoryId === t.id && !a.returnedAt)
       );
-      const skipped = bulkTerritories.length - toAssign.length;
 
-      if (toAssign.length === 0) {
+      if (candidates.length === 0) {
         displaySnackNotification({
           header: 'Error',
           message: 'Todos los territorios seleccionados ya están asignados.',
@@ -147,9 +150,15 @@ const DialogAsignar = ({
         return;
       }
 
-      await Promise.all(
-        toAssign.map((t) =>
-          saveAssignment(
+      // Cada territorio se asigna en su propia transacción (candado
+      // openAssignmentId) — así, si otro responsable asignó alguno de estos
+      // territorios justo antes (carrera real, no solo el chequeo previo
+      // contra el snapshot local), esa transacción falla y el territorio se
+      // cuenta como omitido de verdad, en vez de crear una asignación
+      // duplicada.
+      const results = await Promise.allSettled(
+        candidates.map((t) =>
+          saveAssignmentTransactional(
             congId,
             {
               id: crypto.randomUUID(),
@@ -166,9 +175,25 @@ const DialogAsignar = ({
               updatedAt: now,
             },
             masterKey ?? ''
-          )
+          ).then(() => t)
         )
       );
+
+      const toAssign = results
+        .filter((r): r is PromiseFulfilledResult<Territory> => r.status === 'fulfilled')
+        .map((r) => r.value);
+      const skipped =
+        bulkTerritories.length - candidates.length +
+        results.filter((r) => r.status === 'rejected').length;
+
+      if (toAssign.length === 0) {
+        displaySnackNotification({
+          header: 'Error',
+          message: 'No se pudo asignar ningún territorio: todos estaban ya ocupados o hubo un error al guardar.',
+          severity: 'error',
+        });
+        return;
+      }
 
       let notificationFailed = false;
 
@@ -227,7 +252,7 @@ const DialogAsignar = ({
           header: '¡Listo!',
           message:
             skipped > 0
-              ? `${toAssign.length} territorios asignados. ${skipped} se omitieron porque ya estaban asignados.`
+              ? `${toAssign.length} territorios asignados. ${skipped} se omitieron (ya estaban asignados o hubo un error al guardar).`
               : `${toAssign.length} territorios asignados correctamente.`,
           severity: 'success',
         });
@@ -271,8 +296,22 @@ const DialogAsignar = ({
         assignedBy: currentUid || undefined,
         updatedAt: now,
       };
-      await saveAssignment(congId, assignment, masterKey ?? '');
-      if (requestId) await atenderRequest(congId, requestId, currentUid);
+      // Si viene de una solicitud, se guarda la asignación y se marca la
+      // solicitud como atendida en un único batch atómico — antes eran dos
+      // escrituras sueltas, y si la conexión se cortaba entre medias la
+      // solicitud quedaba "pendiente" para siempre aunque el territorio ya
+      // se había asignado.
+      if (requestId) {
+        await saveAssignmentAndAttendRequest(
+          congId,
+          assignment,
+          masterKey ?? '',
+          requestId,
+          currentUid
+        );
+      } else {
+        await saveAssignmentTransactional(congId, assignment, masterKey ?? '');
+      }
 
       // Si le estamos asignando a una persona y no somos nosotros mismos, enviarle una notificación
       // El aviso in-app (Notice) sí queda registrado siempre dentro de la app;

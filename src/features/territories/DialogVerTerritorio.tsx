@@ -216,7 +216,11 @@ const DialogVerTerritorio = ({
   onAsignar,
   onEdit,
 }: Props) => {
-  const { tabletDown } = useBreakpoints();
+  // Antes usaba `tabletDown` (breakpoint 'tablet' = 480px), así que en
+  // tablets (480-768px) se mostraba el diálogo de escritorio en vez del
+  // mapa a pantalla completa. Con `laptopDown` (768px) la vista de mapa
+  // a pantalla completa cubre también las tablets, no solo el móvil.
+  const { laptopDown: tabletDown } = useBreakpoints();
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [tab, setTab] = useState(0);
   const [editingTags, setEditingTags] = useState(false);
@@ -262,9 +266,16 @@ const DialogVerTerritorio = ({
     setEditingTags(false);
   }, [territory?.id]);
 
+  // Solo asignaciones normales — igual que TerritoriesOverviewMap. Las de
+  // campaña se gestionan aparte (pestaña Campañas) y mostrarlas aquí podía
+  // hacer que un territorio en campaña apareciera como "Asignado" a un
+  // publicador distinto, o que "Entregar" actuara sobre la asignación
+  // equivocada si el territorio tenía ambas a la vez.
   const relevantAssignment = useMemo(() => {
     if (!liveTerritory) return null;
-    return openAssignments.find((a) => a.territoryId === liveTerritory.id);
+    return openAssignments.find(
+      (a) => a.territoryId === liveTerritory.id && !a.isCampaign
+    );
   }, [liveTerritory, openAssignments]);
 
   if (!liveTerritory) return null;

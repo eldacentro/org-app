@@ -1,15 +1,24 @@
 import { ResponsabilidadesType, Departamento } from '@definition/responsabilidades';
 
-const normalize = (s: string) =>
+/**
+ * Normaliza texto para comparaciones (quita acentos, minusculas). Antes
+ * existian 2 copias verbatim de esto (y de isTerritoryDept/deptMemberUids)
+ * en este archivo y en useIsTerritoryManager.tsx - un cambio en como se
+ * detecta "quien es encargado de Territorios" corria el riesgo de
+ * actualizarse en un sitio y olvidarse en el otro. Ahora es la unica copia.
+ */
+export const normalize = (s: string) =>
   s
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
-const isTerritoryDept = (dep: Departamento) =>
+/** Es el departamento de Territorios? (match por nombre, sin acentos). */
+export const isTerritoryDept = (dep: Departamento) =>
   normalize(dep.name).includes('territorio');
 
-const deptMemberUids = (dep: Departamento): string[] => {
+/** uids implicados en un departamento (responsable, auxiliar y miembros). */
+export const deptMemberUids = (dep: Departamento): string[] => {
   const uids = [dep.responsable, dep.auxiliar].filter(Boolean) as string[];
   if (dep.type === 'extended' && Array.isArray(dep.members)) uids.push(...dep.members);
   return uids;

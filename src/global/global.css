@@ -180,6 +180,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 37, 99, 235;
+  --blue-main: rgba(var(--blue-main-base), 1);
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -257,6 +259,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 24, 44, 20;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 96, 165, 250;
+  --blue-main: rgba(var(--blue-main-base), 1);
 
   /* Always-white (invariant, used on colored backgrounds) */
   --always-white-base: 254, 254, 254;
@@ -323,6 +327,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 37, 99, 235;
+  --blue-main: rgba(var(--blue-main-base), 1);
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
   --white-semi-s-base: 255, 255, 255;
@@ -400,6 +406,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 20, 44, 16;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 96, 165, 250;
+  --blue-main: rgba(var(--blue-main-base), 1);
 
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
@@ -478,6 +486,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 24, 44, 20;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 96, 165, 250;
+  --blue-main: rgba(var(--blue-main-base), 1);
 
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
@@ -537,6 +547,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 37, 99, 235;
+  --blue-main: rgba(var(--blue-main-base), 1);
   --orange-dark-base: 197, 114, 14;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
@@ -620,6 +632,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 24, 44, 20;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 96, 165, 250;
+  --blue-main: rgba(var(--blue-main-base), 1);
 
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
@@ -679,6 +693,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 37, 99, 235;
+  --blue-main: rgba(var(--blue-main-base), 1);
   --orange-dark-base: 197, 114, 14;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
@@ -762,6 +778,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 24, 44, 20;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 96, 165, 250;
+  --blue-main: rgba(var(--blue-main-base), 1);
 
   --always-white-base: 254, 254, 254;
   --always-white: rgba(var(--always-white-base), 1);
@@ -823,6 +841,8 @@
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
+  --blue-main-base: 37, 99, 235;
+  --blue-main: rgba(var(--blue-main-base), 1);
   --orange-dark-base: 197, 114, 14;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;

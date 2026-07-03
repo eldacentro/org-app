@@ -15,10 +15,12 @@ import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/terri
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveNotice } from '@services/firebase/territories';
 import {
+  computeDueAt,
   daysSince,
   formatTerritoryDate,
   getZoneName,
   isOverdue,
+  isPastDue,
   statsRangeStart,
   territoryLabel,
 } from '@services/app/territories';
@@ -287,6 +289,21 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           new Date(x.assignedAt).getTime() - new Date(y.assignedAt).getTime()
       );
 
+    // Vencidos — umbral de "daysUntilExpiration", distinto (y normalmente
+    // menor) que el de "Atrasados". Antes no aparecía en ningún sitio de
+    // Responsables pese a que Configuración promete que el territorio
+    // "puede reasignarse cuando venza".
+    const vencidos = relevant
+      .filter(
+        (a) =>
+          !a.returnedAt &&
+          isPastDue(a.assignedAt, settings.daysUntilExpiration, a.dueAt)
+      )
+      .sort(
+        (x, y) =>
+          new Date(x.assignedAt).getTime() - new Date(y.assignedAt).getTime()
+      );
+
     // No asignados durante más tiempo (SIN slice — ahora el slice lo hace cada ZoneGroup)
     const noAsignadosLista = territories
       .filter((t) => !openByTerritory.has(t.id))
@@ -312,6 +329,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       asignadoActual,
       noTrabajados,
       atrasados,
+      vencidos,
       noAsignadosLista,
       noAsignadosPorZona,
     };
@@ -385,6 +403,12 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           color={stats.atrasados.length > 0 ? 'var(--red-main)' : 'var(--green-main)'}
           subtext={stats.atrasados.length === 0 ? '¡Todo al día!' : 'Requieren atención'}
         />
+        <KpiCard
+          title="Vencidos"
+          value={stats.vencidos.length}
+          color={stats.vencidos.length > 0 ? 'var(--orange-main)' : 'var(--green-main)'}
+          subtext={stats.vencidos.length === 0 ? '¡Todo al día!' : 'Pueden reasignarse'}
+        />
       </Stack>
 
       {/* Territorios atrasados */}
@@ -433,6 +457,59 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                     <Button variant="tertiary" disableAutoStretch onClick={() => notificar(a)}>
                       Notificar
                     </Button>
+                    <Button variant="main" disableAutoStretch onClick={() => onEntregar(a)}>
+                      Entregar
+                    </Button>
+                  </Stack>
+                </Stack>
+              );
+            })}
+          </Stack>
+        )}
+      </Box>
+
+      {/* Territorios vencidos */}
+      <Box>
+        <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
+          Territorios vencidos ({stats.vencidos.length})
+        </Typography>
+        {stats.vencidos.length === 0 ? (
+          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+            <Typography variant="body2" color="var(--ink-2)">
+              No hay territorios vencidos.
+            </Typography>
+          </Box>
+        ) : (
+          <Stack spacing={1.5}>
+            {stats.vencidos.map((a) => {
+              const t = territories.find((x) => x.id === a.territoryId);
+              return (
+                <Stack
+                  key={a.id}
+                  direction={{ mobile: 'column', tablet600: 'row' }}
+                  alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
+                  justifyContent="space-between"
+                  spacing={1}
+                  sx={{
+                    p: 2,
+                    borderRadius: '12px',
+                    border: '1px solid var(--line)',
+                    borderLeft: '4px solid var(--orange-main)',
+                    backgroundColor: 'var(--card)',
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                      {t ? territoryLabel(t) : '—'}
+                      <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                        {resolveName(a.personUid)}
+                      </span>
+                    </Typography>
+                    <Typography variant="caption" color="var(--ink-2)">
+                      Venció el {formatTerritoryDate(a.dueAt || computeDueAt(a.assignedAt, settings.daysUntilExpiration), settings.dateFormat)}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 }, flexWrap: 'wrap' }}>
                     <Button variant="main" disableAutoStretch onClick={() => onEntregar(a)}>
                       Entregar
                     </Button>
