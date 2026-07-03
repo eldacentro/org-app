@@ -12,12 +12,27 @@ export type CircuitVisitPdfPreachingRow = {
   spouseCompanions: string;   // hermanas con la esposa (texto ya formateado)
 };
 
+export type CircuitVisitPdfMealRow = {
+  date: string;
+  hostName: string;
+  note: string;
+};
+
+export type CircuitVisitPdfShepherdingRow = {
+  date: string;
+  time: string;
+  brotherName: string;
+  elderName: string;
+};
+
 type Props = {
   visit: CircuitVisitType;
   coName: string;
   coSpouseName: string;
   congregation: string;
   lang: string;
+  mealsRows: CircuitVisitPdfMealRow[];
+  shepherdingRows: CircuitVisitPdfShepherdingRow[];
   preachingRows: CircuitVisitPdfPreachingRow[];
 };
 
@@ -42,7 +57,7 @@ const SpecialMeetingRow = ({
   );
 };
 
-const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lang, preachingRows }: Props) => {
+const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lang, mealsRows, shepherdingRows, preachingRows }: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
 
   return (
@@ -82,7 +97,7 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
         {/* Programa de comidas */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Programa de comidas</Text>
-          {visit.meals.length > 0 ? (
+          {mealsRows.length > 0 ? (
             <View style={styles.table}>
               <View style={styles.headRow}>
                 <View style={styles.row}>
@@ -92,13 +107,13 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
                   </Text>
                 </View>
               </View>
-              {visit.meals.map((meal) => (
-                <View key={meal.id} style={styles.row}>
+              {mealsRows.map((meal, idx) => (
+                <View key={`${meal.date}_${idx}`} style={styles.row}>
                   <Text style={[styles.cell, { width: '35%' }]}>
                     {fmtDay(meal.date)}
                   </Text>
                   <Text style={[styles.cell, { width: '65%' }]}>
-                    {meal.host || '—'}
+                    {meal.hostName || '—'}
                     {meal.note ? `  (${meal.note})` : ''}
                   </Text>
                 </View>
@@ -106,6 +121,41 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
             </View>
           ) : (
             <Text style={styles.empty}>Sin comidas asignadas.</Text>
+          )}
+        </View>
+
+        {/* Visitas (de pastoreo) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Visitas</Text>
+          {shepherdingRows.length > 0 ? (
+            <View style={styles.table}>
+              <View style={styles.headRow}>
+                <View style={styles.row}>
+                  <Text style={[styles.headCell, { width: '30%' }]}>Día</Text>
+                  <Text style={[styles.headCell, { width: '35%' }]}>
+                    Hermano visitado
+                  </Text>
+                  <Text style={[styles.headCell, { width: '35%' }]}>
+                    Anciano acompañante
+                  </Text>
+                </View>
+              </View>
+              {shepherdingRows.map((sv, idx) => (
+                <View key={`${sv.date}_${sv.time}_${idx}`} style={styles.row}>
+                  <Text style={[styles.cell, { width: '30%' }]}>
+                    {[fmtDay(sv.date), sv.time].filter(Boolean).join('  •  ')}
+                  </Text>
+                  <Text style={[styles.cell, { width: '35%' }]}>
+                    {sv.brotherName || '—'}
+                  </Text>
+                  <Text style={[styles.cell, { width: '35%' }]}>
+                    {sv.elderName || '—'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.empty}>Sin visitas de pastoreo programadas.</Text>
           )}
         </View>
 

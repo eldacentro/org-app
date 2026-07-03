@@ -414,6 +414,32 @@ const useCircuitVisitDashboard = () => {
       })
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
+    // El PDF mostraba el uid en bruto del anfitrión (ej. "e992044-676c-...")
+    // en vez de su nombre — meal.host nunca se resolvía contra persons,
+    // a diferencia de preachingRows arriba. Mismo criterio que ya usa
+    // CircuitVisitSummary.tsx en pantalla (findPersonName).
+    const findPersonName = (uid: string) => {
+      if (!uid) return '';
+      const person = personsStateFind(uid);
+      return person ? personGetDisplayName(person, displayNameEnabled, fullnameOption) : '';
+    };
+
+    const mealsRows = working.meals.map((meal) => ({
+      date: meal.date,
+      hostName: findPersonName(meal.host),
+      note: meal.note,
+    }));
+
+    // Las visitas de pastoreo no salían en el PDF en absoluto.
+    const shepherdingRows = (working.shepherding_visits ?? [])
+      .map((sv) => ({
+        date: sv.date,
+        time: sv.time,
+        brotherName: findPersonName(sv.brother),
+        elderName: findPersonName(sv.elder),
+      }))
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
     const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
       working,
       coName,
@@ -427,6 +453,8 @@ const useCircuitVisitDashboard = () => {
         coSpouseName={effectiveCoSpouseName}
         congregation={congName}
         lang={jwLang}
+        mealsRows={mealsRows}
+        shepherdingRows={shepherdingRows}
         preachingRows={preachingRows}
       />
     ).toBlob();

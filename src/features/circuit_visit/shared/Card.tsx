@@ -15,7 +15,7 @@ const Card = ({
     sx={{
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
-      borderRadius: 'var(--radius-l, 12px)',
+      borderRadius: 'var(--radius-l)',
       boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
       padding: '18px 20px',
     }}

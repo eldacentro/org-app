@@ -15,6 +15,7 @@ const TimeField = (props: TimeFieldProps) => {
       onBlur={handleBlur}
       onDragStart={(e) => e.preventDefault()}
       onDrop={(e) => e.preventDefault()}
+      label={props.label}
       placeholder="0:00"
       slotProps={{
         htmlInput: {
@@ -35,14 +36,12 @@ const TimeField = (props: TimeFieldProps) => {
       sx={{
         ...props.sx,
         '.MuiInputBase-input': {
-          textAlign: 'center',
+          textAlign: props.label ? 'left' : 'center',
         },
         '.MuiOutlinedInput-root': {
           paddingRight: 'unset !important',
         },
-        '& fieldset': {
-          border: 'none',
-        },
+        ...(props.label ? {} : { '& fieldset': { border: 'none' } }),
       }}
     />
   );

@@ -81,7 +81,7 @@ const DocRow = ({
       sx={{
         width: 36,
         height: 36,
-        borderRadius: 'var(--radius-m, 8px)',
+        borderRadius: 'var(--radius-l)',
         backgroundColor: 'var(--accent-150, rgba(59,114,196,0.1))',
         display: 'flex',
         alignItems: 'center',
@@ -143,29 +143,41 @@ const SpecialMeetingEditor = ({
       </Stack>
 
       {enabled && (
-        <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px">
-          <CustomDatePicker
-            label="Fecha"
-            view="input"
-            value={value.date ? new Date(value.date) : null}
-            onChange={(d) =>
-              onChange({
-                ...value,
-                date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-              })
-            }
-            minDate={minDate}
-            maxDate={maxDate}
-          />
-          <TimeField
-            value={value.time}
-            onChange={(t) => onChange({ ...value, time: t })}
-          />
-          <TextField
-            label="Lugar"
-            value={value.place}
-            onChange={(e) => onChange({ ...value, place: e.target.value })}
-          />
+        <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
+          {/* CustomDatePicker/TextField/TimeField son siempre ancho-100% de
+              su propio contenedor (fullWidth fijo) — sin envolverlos en una
+              Box con flex/minWidth propios, cada uno reclama toda la fila
+              para sí y los demás quedan siempre apilados debajo, aunque el
+              Stack esté en modo "row". */}
+          <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+            <CustomDatePicker
+              label="Fecha"
+              view="input"
+              value={value.date ? new Date(value.date) : null}
+              onChange={(d) =>
+                onChange({
+                  ...value,
+                  date: d ? formatDate(d, 'yyyy/MM/dd') : '',
+                })
+              }
+              minDate={minDate}
+              maxDate={maxDate}
+            />
+          </Box>
+          <Box sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}>
+            <TimeField
+              label="Hora"
+              value={value.time}
+              onChange={(t) => onChange({ ...value, time: t })}
+            />
+          </Box>
+          <Box sx={{ flex: { tablet: '2 1 200px' }, minWidth: { tablet: '180px' } }}>
+            <TextField
+              label="Lugar"
+              value={value.place}
+              onChange={(e) => onChange({ ...value, place: e.target.value })}
+            />
+          </Box>
         </Stack>
       )}
     </Stack>
@@ -254,6 +266,12 @@ const PreachingSection = ({
                   direction={{ mobile: 'column', tablet: 'row' }}
                   spacing="10px"
                   alignItems={{ tablet: 'center' }}
+                  flexWrap="wrap" useFlexGap
+                  sx={{
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-l)',
+                    border: '1px solid var(--line)',
+                  }}
                 >
                   <Typography
                     className="body-small-semibold"
@@ -279,6 +297,7 @@ const PreachingSection = ({
                   {companion && (
                     <>
                       <Select
+                        sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}
                         value={companion.activity}
                         onChange={(e) =>
                           onUpsertCompanion(outing.outingKey, {
@@ -535,14 +554,16 @@ const CircuitVisitDashboard = () => {
           title="Activar nueva visita"
           subtitle="Elige el martes en que empieza la visita."
         >
-          <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end">
-            <CustomDatePicker
-              label="Semana de la visita"
-              view="input"
-              value={newWeek}
-              onChange={(d) => setNewWeek(d)}
-              shouldDisableDate={(date) => date.getDay() !== 2}
-            />
+          <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end" flexWrap="wrap" useFlexGap>
+            <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+              <CustomDatePicker
+                label="Semana de la visita"
+                view="input"
+                value={newWeek}
+                onChange={(d) => setNewWeek(d)}
+                shouldDisableDate={(date) => date.getDay() !== 2}
+              />
+            </Box>
             <Button
               variant="main"
               startIcon={<IconAdd color="var(--always-white)" />}
@@ -602,7 +623,7 @@ const CircuitVisitDashboard = () => {
 
       {/* Selector de visitas activas */}
       {activeVisits.length > 0 && (
-        <Stack direction="row" spacing="8px" flexWrap="wrap" mb="16px">
+        <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap mb="16px">
           {activeVisits.map((visit) => (
             <Button
               key={visit.id}
@@ -675,19 +696,24 @@ const CircuitVisitDashboard = () => {
                 label="Superintendente sustituto"
               />
               {working.is_substitute && (
-                <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px">
-                  <TextField
-                    label="Nombre del sustituto"
-                    value={working.substitute_name ?? ''}
-                    onChange={(e) => patch({ substitute_name: e.target.value })}
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Nombre de su esposa (vacío si soltero)"
-                    value={working.substitute_spouse_name ?? ''}
-                    onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
-                    sx={{ flex: 1 }}
-                  />
+                <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
+                  {/* TextField es fullWidth fijo y descarta cualquier sx que
+                      se le pase (lo reemplaza por el suyo propio) — por eso
+                      el flex:1 de aquí no bastaba; hace falta envolverlo. */}
+                  <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                    <TextField
+                      label="Nombre del sustituto"
+                      value={working.substitute_name ?? ''}
+                      onChange={(e) => patch({ substitute_name: e.target.value })}
+                    />
+                  </Box>
+                  <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                    <TextField
+                      label="Nombre de su esposa (vacío si soltero)"
+                      value={working.substitute_spouse_name ?? ''}
+                      onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
+                    />
+                  </Box>
                 </Stack>
               )}
             </Stack>
@@ -697,32 +723,49 @@ const CircuitVisitDashboard = () => {
           <Card title="Programa de comidas" subtitle="Anfitriones por día.">
             <Stack spacing="12px">
               {working.meals.map((meal) => (
-                <Stack
+                <Box
                   key={meal.id}
-                  direction={{ mobile: 'column', tablet: 'row' }}
-                  spacing="10px"
-                  alignItems={{ tablet: 'center' }}
+                  sx={{
+                    padding: '10px 12px 12px',
+                    borderRadius: 'var(--radius-l)',
+                    border: '1px solid var(--line)',
+                  }}
                 >
-                  <CustomDatePicker
-                    label="Día"
-                    view="input"
-                    value={meal.date ? new Date(meal.date) : null}
-                    onChange={(d) =>
-                      updateMeal(meal.id, {
-                        date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                      })
-                    }
-                  />
-                  <PersonPicker
-                    label="Anfitrión"
-                    value={meal.host}
-                    options={personOptions}
-                    onChange={(uid) => updateMeal(meal.id, { host: uid })}
-                  />
-                  <IconButton onClick={() => removeMeal(meal.id)}>
-                    <IconDelete color="var(--red-main)" />
-                  </IconButton>
-                </Stack>
+                  {/* Botón de eliminar en su propia fila, arriba — puesto
+                      encima de los campos (position:absolute) chocaba con
+                      el icono propio del calendario/desplegable de cada
+                      campo, que también vive en esa esquina. */}
+                  <Stack direction="row" justifyContent="flex-end" sx={{ mb: '2px' }}>
+                    <IconButton onClick={() => removeMeal(meal.id)}>
+                      <IconDelete color="var(--red-main)" />
+                    </IconButton>
+                  </Stack>
+                  <Stack
+                    direction={{ mobile: 'column', tablet: 'row' }}
+                    spacing="10px"
+                    alignItems={{ tablet: 'center' }}
+                    flexWrap="wrap" useFlexGap
+                  >
+                    <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+                      <CustomDatePicker
+                        label="Día"
+                        view="input"
+                        value={meal.date ? new Date(meal.date) : null}
+                        onChange={(d) =>
+                          updateMeal(meal.id, {
+                            date: d ? formatDate(d, 'yyyy/MM/dd') : '',
+                          })
+                        }
+                      />
+                    </Box>
+                    <PersonPicker
+                      label="Anfitrión"
+                      value={meal.host}
+                      options={personOptions}
+                      onChange={(uid) => updateMeal(meal.id, { host: uid })}
+                    />
+                  </Stack>
+                </Box>
               ))}
               <Button
                 variant="secondary"
@@ -741,47 +784,58 @@ const CircuitVisitDashboard = () => {
           >
             <Stack spacing="14px">
               {(working.shepherding_visits ?? []).map((sv) => (
-                <Stack
+                <Box
                   key={sv.id}
-                  direction={{ mobile: 'column', tablet: 'row' }}
-                  spacing="10px"
-                  alignItems={{ tablet: 'center' }}
                   sx={{
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-m, 8px)',
+                    padding: '10px 12px 12px',
+                    borderRadius: 'var(--radius-l)',
                     border: '1px solid var(--line)',
                   }}
                 >
-                  <PersonPicker
-                    label="Hermano visitado"
-                    value={sv.brother}
-                    options={personOptions}
-                    onChange={(uid) => updateShepherding(sv.id, { brother: uid })}
-                  />
-                  <PersonPicker
-                    label="Anciano acompañante"
-                    value={sv.elder}
-                    options={elderOptions}
-                    onChange={(uid) => updateShepherding(sv.id, { elder: uid })}
-                  />
-                  <CustomDatePicker
-                    label="Fecha"
-                    view="input"
-                    value={sv.date ? new Date(sv.date) : null}
-                    onChange={(d) =>
-                      updateShepherding(sv.id, {
-                        date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                      })
-                    }
-                  />
-                  <TimeField
-                    value={sv.time}
-                    onChange={(t) => updateShepherding(sv.id, { time: t })}
-                  />
-                  <IconButton onClick={() => removeShepherding(sv.id)}>
-                    <IconDelete color="var(--red-main)" />
-                  </IconButton>
-                </Stack>
+                  <Stack direction="row" justifyContent="flex-end" sx={{ mb: '2px' }}>
+                    <IconButton onClick={() => removeShepherding(sv.id)}>
+                      <IconDelete color="var(--red-main)" />
+                    </IconButton>
+                  </Stack>
+                  <Stack
+                    direction={{ mobile: 'column', tablet: 'row' }}
+                    spacing="10px"
+                    alignItems={{ tablet: 'center' }}
+                    flexWrap="wrap" useFlexGap
+                  >
+                    <PersonPicker
+                      label="Hermano visitado"
+                      value={sv.brother}
+                      options={personOptions}
+                      onChange={(uid) => updateShepherding(sv.id, { brother: uid })}
+                    />
+                    <PersonPicker
+                      label="Anciano acompañante"
+                      value={sv.elder}
+                      options={elderOptions}
+                      onChange={(uid) => updateShepherding(sv.id, { elder: uid })}
+                    />
+                    <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+                      <CustomDatePicker
+                        label="Fecha"
+                        view="input"
+                        value={sv.date ? new Date(sv.date) : null}
+                        onChange={(d) =>
+                          updateShepherding(sv.id, {
+                            date: d ? formatDate(d, 'yyyy/MM/dd') : '',
+                          })
+                        }
+                      />
+                    </Box>
+                    <Box sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}>
+                      <TimeField
+                        label="Hora"
+                        value={sv.time}
+                        onChange={(t) => updateShepherding(sv.id, { time: t })}
+                      />
+                    </Box>
+                  </Stack>
+                </Box>
               ))}
               <Button
                 variant="secondary"
@@ -873,7 +927,7 @@ const CircuitVisitDashboard = () => {
                     sx={{
                       backgroundColor: 'var(--card)',
                       border: '1px solid var(--line)',
-                      borderRadius: 'var(--radius-l, 12px)',
+                      borderRadius: 'var(--radius-l)',
                       padding: '14px 18px',
                       opacity: 0.85,
                     }}
