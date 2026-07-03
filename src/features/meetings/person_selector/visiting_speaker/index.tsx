@@ -4,7 +4,9 @@ import { IconClose, IconMale } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useVisitingSpeaker from './useVisitingSpeaker';
 import AutoComplete from '@components/autocomplete';
+import Button from '@components/button';
 import Typography from '@components/typography';
+import QuickAddSpeaker from './quick_add';
 
 const VisitingSpeaker = (props: PersonSelectorType) => {
   const showIcon = props.showIcon ?? true;
@@ -18,6 +20,10 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
     handleValueChange,
     handleValueSave,
     inputValue,
+    isQuickAddOpen,
+    handleOpenQuickAdd,
+    handleCloseQuickAdd,
+    handleSpeakerCreated,
   } = useVisitingSpeaker(props);
 
   return (
@@ -105,7 +111,24 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
         clearIcon={<IconClose width={20} height={20} />}
       />
 
-      {inputValue.length > 0 && !value && props.helperNode}
+      {inputValue.length > 0 && !value && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {props.helperNode}
+          <Button
+            variant="tertiary"
+            sx={{ alignSelf: 'flex-start', padding: '4px 16px' }}
+            onClick={handleOpenQuickAdd}
+          >
+            Añadir orador nuevo
+          </Button>
+        </Box>
+      )}
+
+      <QuickAddSpeaker
+        open={isQuickAddOpen}
+        onClose={handleCloseQuickAdd}
+        onCreated={handleSpeakerCreated}
+      />
     </>
   );
 };

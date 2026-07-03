@@ -121,6 +121,41 @@ export const dbVisitingSpeakersAdd = async (cong_id: string) => {
   }
 };
 
+// Igual que dbVisitingSpeakersAdd, pero con el nombre (y opcionalmente
+// anciano/SM) ya puestos — para el alta rápida desde el selector de
+// oradores de Reunión de fin de semana, sin pasar por una pantalla de
+// edición aparte. Devuelve el registro creado para seleccionarlo al
+// instante.
+export const dbVisitingSpeakerQuickAdd = async (
+  cong_id: string,
+  firstname: string,
+  lastname: string,
+  isElder = false,
+  isMinisterialServant = false
+): Promise<VisitingSpeakerType> => {
+  const now = new Date().toISOString();
+  const newSpeaker = structuredClone(vistingSpeakerSchema);
+
+  newSpeaker.person_uid = crypto.randomUUID();
+  newSpeaker.speaker_data.cong_id = cong_id;
+  newSpeaker.speaker_data.person_firstname = { value: firstname, updatedAt: now };
+  newSpeaker.speaker_data.person_lastname = { value: lastname, updatedAt: now };
+  newSpeaker.speaker_data.person_display_name = {
+    value: generateDisplayName(lastname, firstname),
+    updatedAt: now,
+  };
+  newSpeaker.speaker_data.elder = { value: isElder, updatedAt: now };
+  newSpeaker.speaker_data.ministerial_servant = {
+    value: isMinisterialServant,
+    updatedAt: now,
+  };
+
+  await appDb.visiting_speakers.put(newSpeaker);
+  await dbUpdateVisitingSpeakersMetadata();
+
+  return newSpeaker;
+};
+
 export const decryptVisitingSpeakers = (
   visiting_speakers: VisitingSpeakerBackupType[],
   masterKey

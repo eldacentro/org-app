@@ -260,7 +260,7 @@ const WeekendEditor = () => {
                           },
                         }}
                       >
-                        Invitación
+                        {t('tr_publicTalkInvitation')}
                       </Button>
                     ) : undefined
                   }

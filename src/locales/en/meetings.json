@@ -84,6 +84,7 @@
   "tr_EPUBImport": "Importing materials from the .epub file",
   "tr_offline": "You are offline",
   "tr_countPublicTalks": "Public talks: {{ count }}",
+  "tr_publicTalkInvitation": "Invitation",
   "tr_publicTalkLastSync": "Last synced {{ date }} at {{ time }}",
   "tr_exportS99": "Export S-99",
   "tr_alreadyInSchedule": "Already in schedule",

@@ -63,6 +63,7 @@ const ServiceTalk = (props: ServiceTalkProps) => {
               week={props.week}
               assignment="WM_CircuitOverseer"
               color="var(--weekend-meeting)"
+              dataView={props.dataView}
             />
           </SecondaryFieldContainer>
         </DoubleFieldContainer>
@@ -90,6 +91,7 @@ const ServiceTalk = (props: ServiceTalkProps) => {
               week={props.week}
               assignment="WM_CircuitOverseer"
               color="var(--weekend-meeting)"
+              dataView={props.dataView}
             />
           </SecondaryFieldContainer>
         </DoubleFieldContainer>

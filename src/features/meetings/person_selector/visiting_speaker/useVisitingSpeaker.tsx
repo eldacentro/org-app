@@ -20,6 +20,7 @@ import { incomingSpeakersState } from '@states/visiting_speakers';
 import { personSchema } from '@services/dexie/schema';
 import { ASSIGNMENT_PATH } from '@constants/index';
 import { AssignmentCongregation } from '@definition/schedules';
+import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 
@@ -42,6 +43,7 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
   const dataView = useAtomValue(userDataViewState);
 
   const [inputValue, setInputValue] = useState('');
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
   const schedule = useMemo(() => {
     return schedules.find((record) => record.weekOf === week);
@@ -139,6 +141,32 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
     }
   };
 
+  const handleOpenQuickAdd = () => setIsQuickAddOpen(true);
+  const handleCloseQuickAdd = () => setIsQuickAddOpen(false);
+
+  // Mismo shape que las opciones de la lista (construidas más arriba desde
+  // incomingSpeakers) — así el recién creado queda vinculado de verdad al
+  // catálogo (guarda su person_uid), no como texto libre.
+  const handleSpeakerCreated = (speaker: VisitingSpeakerType) => {
+    const person: PersonOptionsType = structuredClone(personSchema);
+
+    person.person_uid = speaker.person_uid;
+    person.person_data.person_lastname.value =
+      speaker.speaker_data.person_lastname.value;
+    person.person_data.person_firstname.value =
+      speaker.speaker_data.person_firstname.value;
+    person.person_data.person_display_name.value =
+      speaker.speaker_data.person_display_name.value;
+    person.person_data.male.value = true;
+    person.person_name = personGetDisplayName(
+      person,
+      displayNameEnabled,
+      fullnameOption
+    );
+
+    handleSaveAssignment(person);
+  };
+
   const handleValueChange = async (text: string) => {
     setInputValue(text);
 
@@ -192,6 +220,10 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
     inputValue,
     handleValueChange,
     handleValueSave,
+    isQuickAddOpen,
+    handleOpenQuickAdd,
+    handleCloseQuickAdd,
+    handleSpeakerCreated,
   };
 };
 
