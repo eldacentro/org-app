@@ -11,6 +11,8 @@ import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
 import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../../../utils/exhibitors';
 import { addDays } from '@utils/date';
+import { monthNamesState } from '@states/app';
+import { CANCELLED_ROW_BG } from '../shared_styles';
 
 const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekType, week: string }) => {
   const { t } = useAppTranslation();
@@ -19,6 +21,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
+  const monthNames = useAtomValue(monthNamesState);
 
   // El mes de la semana del lunes NO sirve para toda la semana: una semana
   // que empieza en un mes y termina en otro (ej. lunes 29 de junio a domingo
@@ -50,12 +53,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       t('tr_saturday', 'Sábado'),
     ];
     
-    const months = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ];
-    
-    return `${weekdays[date.getDay()]} ${date.getDate()} de ${months[date.getMonth()]}`;
+    return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
   const getBrotherDisplayName = (personUid: string) => {
@@ -167,7 +165,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
           alignItems: 'center',
           gap: '4px',
           padding: '24px',
-          backgroundColor: 'rgba(var(--red-main-base), 0.1)',
+          backgroundColor: CANCELLED_ROW_BG,
           border: '1px solid var(--error-main)',
           borderRadius: 'var(--r-lg)',
           marginTop: '16px',
@@ -275,7 +273,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                       py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
-                        ? 'rgba(var(--red-main-base), 0.1)'
+                        ? CANCELLED_ROW_BG
                         : isAssignedToMe
                         ? 'var(--accent-150)'
                         : 'var(--card)',

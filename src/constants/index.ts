@@ -335,3 +335,8 @@ export const WEEKEND_WITH_WTSTUDY = [
 ];
 
 export const TIMER_KEY = 'organized_timer';
+
+/** Duración estándar del discurso de servicio del superintendente de
+ *  circuito — antes escrita a mano en 2 sitios (el cálculo de horario en
+ *  schedulesMidweekGetTiming y la etiqueta en useCOTalk). */
+export const CO_TALK_DURATION_MINUTES = 30;

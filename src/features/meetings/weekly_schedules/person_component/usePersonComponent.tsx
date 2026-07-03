@@ -184,7 +184,12 @@ const usePersonComponent = ({
             fullnameOption
           );
           result.female = false;
-          result.active = assigned.value === userUID;
+          // Esta rama solo se ejecuta cuando !result?.name, es decir cuando
+          // `assigned.value` está vacío (nadie fue asignado explícito) — así
+          // que comparar contra `assigned.value` siempre daba false. Hay que
+          // comparar contra el uid que de verdad se está mostrando aquí:
+          // mmAuxCounselorDefault.
+          result.active = mmAuxCounselorDefault === userUID;
         }
       }
 
@@ -201,7 +206,10 @@ const usePersonComponent = ({
           );
 
           result.female = false;
-          result.active = assigned?.value === userUID;
+          // Mismo caso que arriba: esta rama solo corre cuando `assigned`
+          // está vacío, así que hay que comparar contra el uid que
+          // realmente se muestra (wsConductor), no contra assigned.value.
+          result.active = wsConductor === userUID;
         }
       }
 
@@ -330,6 +338,13 @@ const usePersonComponent = ({
           fullnameOption
         );
 
+        result.female = false;
+        result.active = talkSchedule.value === userUID;
+      } else if (talkSchedule?.personName) {
+        // Respaldo: el registro de la persona (o del orador visitante) ya no
+        // existe, pero se guardó su nombre al asignar el discurso saliente
+        // — sin esto, el discurso se quedaba en blanco para siempre.
+        result.name = talkSchedule.personName;
         result.female = false;
         result.active = talkSchedule.value === userUID;
       }

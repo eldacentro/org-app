@@ -10,6 +10,8 @@ import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
 import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
+import { monthNamesState } from '@states/app';
+import { CANCELLED_ROW_BG } from '../shared_styles';
 
 const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?: ServiceOutingWeekType }) => {
   const { t } = useAppTranslation();
@@ -18,6 +20,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
+  const monthNames = useAtomValue(monthNamesState);
 
   // "Ajustes del mes" (excepciones de horario, ej. verano) son por mes, no
   // por semana — una semana que empieza en un mes y termina en otro (ej.
@@ -56,12 +59,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       t('tr_saturday', 'Sábado'),
     ];
     
-    const months = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ];
-    
-    return `${weekdays[date.getDay()]} ${date.getDate()} de ${months[date.getMonth()]}`;
+    return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
   const generatedSlots = useMemo(() => {
@@ -280,7 +278,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       py: '18px',
                       borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                       backgroundColor: isCancelled
-                        ? 'rgba(var(--red-main-base), 0.1)'
+                        ? CANCELLED_ROW_BG
                         : isAssignedToMe
                         ? 'var(--accent-150)'
                         : 'var(--card)',
@@ -329,7 +327,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
-                          label="Suspendia"
+                          label="Suspendida"
                           size="small"
                           sx={{
                             backgroundColor: 'var(--error-150)',

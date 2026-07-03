@@ -61,6 +61,7 @@ import {
 } from '@definition/schedules';
 import {
   ASSIGNMENT_PATH,
+  CO_TALK_DURATION_MINUTES,
   MIDWEEK_FULL,
   MIDWEEK_WITH_CBS,
   MIDWEEK_WITH_LIVING,
@@ -1384,8 +1385,19 @@ export const schedulesSaveAssignment = async (
 
     const speaker = value as PersonType;
 
+    // Igual que el resto de asignaciones (ver arriba): se guarda el nombre
+    // desnormalizado además del uid — si el registro de la persona se borra
+    // más tarde, el discurso saliente ya no se queda en blanco para siempre.
+    let nameToSave = '';
+    if (speaker) {
+      const useDisplayName = store.get(displayNameMeetingsEnableState);
+      const fullnameOption = store.get(fullnameOptionState);
+      nameToSave = personGetDisplayName(speaker, useDisplayName, fullnameOption);
+    }
+
     outgoingSchedule.updatedAt = new Date().toISOString();
     outgoingSchedule.value = speaker === null ? '' : speaker.person_uid;
+    outgoingSchedule.personName = nameToSave;
     outgoingSchedule.type = dataView;
 
     await dbSchedUpdate(schedule.weekOf, {
@@ -2440,7 +2452,7 @@ export const schedulesMidweekGetTiming = ({
 
     timing.co_talk = timeAddMinutes(timing.concluding_comments, 3);
 
-    timing.pgm_end = timeAddMinutes(timing.co_talk, 30);
+    timing.pgm_end = timeAddMinutes(timing.co_talk, CO_TALK_DURATION_MINUTES);
   }
 
   return timing;

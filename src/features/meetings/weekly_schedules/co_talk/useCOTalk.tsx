@@ -4,6 +4,7 @@ import { sourcesState } from '@states/sources';
 import { COTalkType } from './index.types';
 import { COTalkTitleType } from '@definition/sources';
 import { useAppTranslation } from '@hooks/index';
+import { CO_TALK_DURATION_MINUTES } from '@constants/index';
 
 const useCOTalk = ({ meeting, week, talk }: COTalkType) => {
   const { t } = useAppTranslation();
@@ -30,7 +31,7 @@ const useCOTalk = ({ meeting, week, talk }: COTalkType) => {
       src = talkTitle.src;
     }
 
-    src += ` (30 ${t('tr_minLabel')})`;
+    src += ` (${CO_TALK_DURATION_MINUTES} ${t('tr_minLabel')})`;
 
     return src;
   }, [source, meeting, talk, t]);

@@ -1,7 +1,9 @@
 import { Box, CircularProgress } from '@mui/material';
 import WeekSelector from '../week_selector';
+import WeekScheduleHeader from '../week_schedule_header';
 import useExhibitorsContainer from './useExhibitorsContainer';
 import ExhibitorsMeeting from './ExhibitorsMeeting';
+import Typography from '@components/typography';
 
 const ExhibitorsWeeklyContainer = () => {
   const {
@@ -21,10 +23,19 @@ const ExhibitorsWeeklyContainer = () => {
       <WeekSelector
         value={value}
         onChange={handleValueChange}
-        currentWeekVisible={currentWeekVisible}
-        onGoCurrent={handleGoCurrent}
-        scheduleLastUpdated={scheduleLastUpdated}
         customWeeksList={filteredSources}
+      />
+
+      {/* Antes esta pestaña no mostraba el rango de semana, ni el botón
+          "ir a la semana actual", ni "última actualización" — currentWeekVisible/
+          onGoCurrent/scheduleLastUpdated se pasaban a WeekSelector, cuyo tipo
+          nunca los declara, así que se descartaban en silencio. Igual que
+          Departamentos y Salidas de predicación. */}
+      <WeekScheduleHeader
+        currentVisible={currentWeekVisible}
+        week={week}
+        onCurrent={handleGoCurrent}
+        lastUpdated={scheduleLastUpdated}
       />
 
       {week === null ? (
@@ -55,7 +66,5 @@ const ExhibitorsWeeklyContainer = () => {
     </Box>
   );
 };
-
-import Typography from '@components/typography';
 
 export default ExhibitorsWeeklyContainer;

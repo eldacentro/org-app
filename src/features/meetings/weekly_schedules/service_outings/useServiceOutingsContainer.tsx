@@ -70,7 +70,11 @@ const useServiceOutingsContainer = () => {
       (record) => record.weekOf === weekOf
     );
 
-    setValue(index);
+    // Array.prototype.at(-1) devuelve el ÚLTIMO elemento, no undefined — si
+    // la semana actual todavía no está publicada/sincronizada, findIndex
+    // devuelve -1 y sin este guard "ir a la semana actual" saltaba en
+    // silencio a la última semana del array en vez de mostrar la actual.
+    setValue(index !== -1 ? index : 0);
   };
 
   const handleValueChange = (value: number) => {

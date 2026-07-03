@@ -1,3 +1,4 @@
+import { ReactElement } from 'react';
 import { Stack } from '@mui/material';
 import { IconWavingHand } from '@components/icons';
 import { Week } from '@definition/week_type';
@@ -26,6 +27,25 @@ import {
   MIDWEEK_WITH_TREASURES,
 } from '@constants/index';
 import { MidweekMeetingProps } from './index.types';
+import { BadgeColor } from '@definition/app';
+
+// Antes cada tipo de semana repetía el mismo bloque de <Badge> 5 veces con
+// solo el texto/icono/color distintos — un mapa evita que una futura
+// actualización visual (ej. cambiar `size` o `filled` para todos) tenga que
+// tocar 5 sitios idénticos por separado.
+const WEEK_TYPE_BADGE_CONFIG: Partial<
+  Record<Week, { textKey: string; color: BadgeColor; icon?: ReactElement }>
+> = {
+  [Week.CO_VISIT]: {
+    textKey: 'tr_circuitOverseerWeek',
+    color: 'accent',
+    icon: <IconWavingHand />,
+  },
+  [Week.ASSEMBLY]: { textKey: 'tr_assemblyWeek', color: 'accent' },
+  [Week.CONVENTION]: { textKey: 'tr_conventionWeek', color: 'accent' },
+  [Week.MEMORIAL]: { textKey: 'tr_memorialWeek', color: 'accent' },
+  [Week.NO_MEETING]: { textKey: 'tr_noMeetingWeek', color: 'grey' },
+};
 
 const MidweekMeeting = (props: MidweekMeetingProps) => {
   const { t } = useAppTranslation();
@@ -42,6 +62,8 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
     openingPrayerLinked,
   } = useMidweekMeeting(props);
 
+  const weekTypeBadge = WEEK_TYPE_BADGE_CONFIG[weekType];
+
   return (
     <Stack spacing="8px">
       <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
@@ -55,58 +77,14 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
         >
           <WeekHeader week={week} dataView={props.dataView} />
 
-          {weekType === Week.CO_VISIT && (
+          {weekTypeBadge && (
             <Badge
-              text={t('tr_circuitOverseerWeek')}
-              color="accent"
+              text={t(weekTypeBadge.textKey)}
+              color={weekTypeBadge.color}
               size="medium"
               multiLine
               filled={false}
-              icon={<IconWavingHand />}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.ASSEMBLY && (
-            <Badge
-              text={t('tr_assemblyWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.CONVENTION && (
-            <Badge
-              text={t('tr_conventionWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.MEMORIAL && (
-            <Badge
-              text={t('tr_memorialWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.NO_MEETING && (
-            <Badge
-              text={t('tr_noMeetingWeek')}
-              color="grey"
-              size="medium"
-              multiLine
-              filled={false}
+              icon={weekTypeBadge.icon}
               sx={{ width: 'fit-content' }}
             />
           )}

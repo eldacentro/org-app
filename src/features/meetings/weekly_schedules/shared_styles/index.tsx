@@ -27,3 +27,7 @@ export const SecondaryFieldContainer = styled(Box, {
   gap: '16px',
   alignSelf: 'self-start',
 })) as unknown as typeof Box;
+
+/** Fondo/tinte de una fila cancelada (salida de predicación, exhibidor,
+ *  mes suspendido) — antes duplicado como texto literal en 3+ sitios. */
+export const CANCELLED_ROW_BG = 'rgba(var(--red-main-base), 0.1)';

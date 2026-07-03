@@ -63,6 +63,12 @@ export type OutgoingTalkScheduleType = {
   opening_song: string;
   public_talk: number;
   value: string;
+  /** Nombre desnormalizado del orador (`value`) al momento de asignarlo —
+   *  igual que ya hace el resto de asignaciones (ver `assigned.name` en
+   *  schedulesSaveAssignment). Sin esto, si el registro de la persona/orador
+   *  se borra más tarde, el discurso saliente se queda en blanco para
+   *  siempre sin forma de saber quién era. */
+  personName?: string;
   type: string;
   congregation: {
     name: string;

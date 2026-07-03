@@ -1,45 +1,64 @@
 import { Box } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { IconDate } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { WeekScheduleHeaderProps } from './index.types';
 import useWeekScheduleHeader from './useWeekScheduleHeader';
 import Typography from '@components/typography';
+import { monthNamesState } from '@states/app';
 
 const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
   const { t } = useAppTranslation();
+  const monthNames = useAtomValue(monthNamesState);
 
   const { showToCurrent } = useWeekScheduleHeader(props);
 
+  // Antes esto tenía los nombres de mes y las 3 plantillas de frase en
+  // español fijo, sin pasar por t() — invisible hoy porque la app está
+  // forzada a español (FORCED_UI_LANG), pero rompería en cuanto eso cambie.
   const getWeekRangeLabel = (weekStr: string) => {
     if (!weekStr) return '';
-    
+
     // Parse YYYY/MM/DD
     const parts = weekStr.split('/');
     if (parts.length !== 3) return weekStr;
-    
+
     const monday = new Date(+parts[0], +parts[1] - 1, +parts[2]);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    const months = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ];
-
     const mondayDay = monday.getDate();
-    const mondayMonth = months[monday.getMonth()];
+    const mondayMonth = monthNames[monday.getMonth()];
     const mondayYear = monday.getFullYear();
 
     const sundayDay = sunday.getDate();
-    const sundayMonth = months[sunday.getMonth()];
+    const sundayMonth = monthNames[sunday.getMonth()];
     const sundayYear = sunday.getFullYear();
 
     if (monday.getMonth() === sunday.getMonth()) {
-      return `Semana del ${mondayDay} al ${sundayDay} de ${mondayMonth} de ${mondayYear}`;
+      return t('tr_weekRangeSameMonth', {
+        mondayDay,
+        sundayDay,
+        month: mondayMonth,
+        year: mondayYear,
+      });
     } else if (monday.getFullYear() === sunday.getFullYear()) {
-      return `Semana del ${mondayDay} de ${mondayMonth} al ${sundayDay} de ${sundayMonth} de ${mondayYear}`;
+      return t('tr_weekRangeSameYear', {
+        mondayDay,
+        mondayMonth,
+        sundayDay,
+        sundayMonth,
+        year: mondayYear,
+      });
     } else {
-      return `Semana del ${mondayDay} de ${mondayMonth} de ${mondayYear} al ${sundayDay} de ${sundayMonth} de ${sundayYear}`;
+      return t('tr_weekRangeDiffYear', {
+        mondayDay,
+        mondayMonth,
+        mondayYear,
+        sundayDay,
+        sundayMonth,
+        sundayYear,
+      });
     }
   };
 
