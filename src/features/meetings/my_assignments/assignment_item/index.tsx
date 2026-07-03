@@ -1,11 +1,32 @@
 import { Box, Stack } from '@mui/material';
-import { IconAddMonth } from '@components/icons';
+import {
+  IconAddMonth,
+  IconClean,
+  IconClock,
+  IconGroups,
+  IconLocation,
+  IconPerson,
+  IconRestaurant,
+} from '@components/icons';
+import { AssignmentDescItem } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import useAssignmentItem from './useAssignmentItem';
 import Badge from '@components/badge';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
+
+// Icono por tipo de línea de detalle — antes esto era un único string con
+// emojis pegados uno tras otro; ahora cada dato tiene su propio icono y su
+// propia línea, igual que el resto de la app.
+const DESC_ICON_MAP: Record<AssignmentDescItem['icon'], typeof IconClock> = {
+  clock: IconClock,
+  location: IconLocation,
+  people: IconGroups,
+  person: IconPerson,
+  clean: IconClean,
+  meal: IconRestaurant,
+};
 
 const AssignmentItem = (props: AssignmentItemProps) => {
   const { t } = useAppTranslation();
@@ -40,6 +61,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
       !!singleRow.history.assignment.ayf?.assistant ||
       !!singleRow.history.assignment.src ||
       !!singleRow.history.assignment.desc ||
+      (singleRow.history.assignment.descItems?.length ?? 0) > 0 ||
       !!singleRow.jwLibraryUrl);
 
   const cardAlignItems =
@@ -250,6 +272,31 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                 <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
                   {history.assignment.desc}
                 </Typography>
+              )}
+
+              {history.assignment.descItems && history.assignment.descItems.length > 0 && (
+                <Stack spacing="3px" sx={{ marginTop: '3px' }}>
+                  {history.assignment.descItems.map((item, idx) => {
+                    const DescIcon = DESC_ICON_MAP[item.icon];
+                    return (
+                      <Stack
+                        key={`${item.icon}-${idx}`}
+                        direction="row"
+                        alignItems="center"
+                        spacing="6px"
+                      >
+                        <DescIcon color="var(--grey-350)" width={13} height={13} />
+                        <Typography
+                          className="body-small-regular"
+                          color="var(--grey-400)"
+                          sx={{ fontSize: '12px', lineHeight: 1.3 }}
+                        >
+                          {item.text}
+                        </Typography>
+                      </Stack>
+                    );
+                  })}
+                </Stack>
               )}
 
               {rowJwLibraryUrl && (

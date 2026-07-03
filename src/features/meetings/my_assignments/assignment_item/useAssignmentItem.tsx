@@ -10,6 +10,7 @@ import {
   JWLangState,
 } from '@states/settings';
 import { sourcesState } from '@states/sources';
+import { dayNamesShortState } from '@states/app';
 import { formatDate, getWeekDate } from '@utils/date';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
@@ -26,6 +27,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   const dataView = useAtomValue(userDataViewState);
   const sources = useAtomValue(sourcesState);
   const jwLang = useAtomValue(JWLangState);
+  const dayNamesShort = useAtomValue(dayNamesShortState);
 
   // Todos los elementos de un mismo grupo comparten fecha y categoría, así
   // que la "cara" de la tarjeta (día, número, si es de departamento) se
@@ -49,19 +51,18 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   }, [first]);
 
   const assignmentDayName = useMemo(() => {
-    const DAY_ABBREV = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
     try {
       const dateToUse = first.actualDate || first.weekOf;
       const parts = dateToUse.split('/');
       if (parts.length >= 3) {
         const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-        return DAY_ABBREV[d.getDay()];
+        return dayNamesShort[d.getDay()];
       }
-      return DAY_ABBREV[new Date(dateToUse).getDay()];
+      return dayNamesShort[new Date(dateToUse).getDay()];
     } catch {
       return '';
     }
-  }, [first]);
+  }, [first, dayNamesShort]);
 
   const personGetName = (value: string) => {
     const person = persons.find((record) => record.person_uid === value);

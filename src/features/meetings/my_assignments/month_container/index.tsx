@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useAtomValue } from 'jotai';
 import { Box, Stack } from '@mui/material';
 import { AssignmentsMonthContainerProps } from './index.types';
 import useMonthContainer from './useMonthContainer';
@@ -6,9 +7,13 @@ import AssignmentItem from '../assignment_item';
 import Typography from '@components/typography';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { getWeekDate, formatDate } from '@utils/date';
+import { monthShortNamesState } from '@states/app';
+import { useAppTranslation } from '@hooks/index';
 
 const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   const { monthLocale } = useMonthContainer(monthData.month);
+  const { t } = useAppTranslation();
+  const monthShortNames = useAtomValue(monthShortNamesState);
 
   // Una asignación de "predicación" nunca debe compartir tarjeta con una de
   // "reuniones" aunque caigan el mismo día — son mundos distintos para quien
@@ -86,12 +91,8 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
     const parts = weekOf.split('/');
     if (parts.length < 3) return weekOf;
     const d = parseInt(parts[2], 10);
-    const monthNames = [
-      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-      'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
-    ];
     const m = parseInt(parts[1], 10);
-    return `Semana del ${d} de ${monthNames[m - 1]}`;
+    return t('tr_weekOfDay', { day: d, month: monthShortNames[m - 1] });
   };
 
   return (

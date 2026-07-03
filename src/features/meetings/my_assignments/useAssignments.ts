@@ -12,7 +12,7 @@ import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addDays, addWeeks, formatDate, getWeekDate } from '@utils/date';
-import { AssignmentHistoryType } from '@definition/schedules';
+import { AssignmentDescItem, AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { personsStateFind } from '@services/states/persons';
@@ -206,7 +206,9 @@ const useMyAssignments = () => {
                     key: `DEPT_${dept}_${role}` as AssignmentHistoryType['assignment']['key'],
                     dataView: 'main',
                     title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
-                    desc: companionName ? `👥 Con: ${companionName}` : undefined,
+                    descItems: companionName
+                      ? [{ icon: 'people', text: `Con: ${companionName}` }]
+                      : undefined,
                   },
                 });
               }
@@ -246,7 +248,10 @@ const useMyAssignments = () => {
                 key: `OUTING_${outing.id}` as AssignmentHistoryType['assignment']['key'],
                 dataView: 'main',
                 title: 'Salida de predicación',
-                desc: `🕒 ${outing.time}  •  📍 ${outing.location || 'Salón del Reino'}`,
+                descItems: [
+                  { icon: 'clock', text: outing.time },
+                  { icon: 'location', text: outing.location || 'Salón del Reino' },
+                ],
               },
             });
           }
@@ -287,8 +292,13 @@ const useMyAssignments = () => {
           })
           .filter((name) => name.length > 0);
 
-        const descText = `🕒 ${timeRange}  •  📍 ${turn.location}` +
-          (companionNames.length > 0 ? `  •  👥 Con: ${companionNames.join(', ')}` : '');
+        const descItems: AssignmentDescItem[] = [
+          { icon: 'clock', text: timeRange },
+          { icon: 'location', text: turn.location },
+        ];
+        if (companionNames.length > 0) {
+          descItems.push({ icon: 'people', text: `Con: ${companionNames.join(', ')}` });
+        }
 
         return {
           id: `${turn.turnId}_${turn.date}`,
@@ -301,7 +311,7 @@ const useMyAssignments = () => {
             key: `EXHIBITOR_${turn.turnId}_${turn.date}` as AssignmentHistoryType['assignment']['key'],
             dataView: 'main',
             title: roleTitle,
-            desc: descText,
+            descItems,
           },
         };
       });
@@ -353,7 +363,7 @@ const useMyAssignments = () => {
                   key: `LIMPIEZA_${weekOfStr}_midweek` as AssignmentHistoryType['assignment']['key'],
                   dataView: 'main',
                   title: 'Limpieza del Salón (Entre semana)',
-                  desc: '🧹 Tu grupo tiene el turno de limpieza',
+                  descItems: [{ icon: 'clean', text: 'Tu grupo tiene el turno de limpieza' }],
                 },
               });
             }
@@ -379,7 +389,7 @@ const useMyAssignments = () => {
                   key: `LIMPIEZA_${weekOfStr}_weekend` as AssignmentHistoryType['assignment']['key'],
                   dataView: 'main',
                   title: 'Limpieza del Salón (Fin de semana)',
-                  desc: '🧹 Tu grupo tiene el turno de limpieza',
+                  descItems: [{ icon: 'clean', text: 'Tu grupo tiene el turno de limpieza' }],
                 },
               });
             }
@@ -427,7 +437,14 @@ const useMyAssignments = () => {
                 key: `COVISIT_MEAL_${meal.id}` as AssignmentHistoryType['assignment']['key'],
                 dataView: 'main',
                 title: 'Comida con el superintendente',
-                desc: hostName ? `🍽️ Anfitrión: ${hostName}` : '🍽️ Visita del superintendente de circuito',
+                descItems: [
+                  {
+                    icon: 'meal',
+                    text: hostName
+                      ? `Anfitrión: ${hostName}`
+                      : 'Visita del superintendente de circuito',
+                  },
+                ],
               },
             });
           }
@@ -454,7 +471,10 @@ const useMyAssignments = () => {
                 key: `COVISIT_SHEPHERD_${sv.id}` as AssignmentHistoryType['assignment']['key'],
                 dataView: 'main',
                 title: 'Visita de pastoreo (CO)',
-                desc: `🕒 ${sv.time || '—'}  •  👤 ${brotherName}`,
+                descItems: [
+                  { icon: 'clock', text: sv.time || '—' },
+                  { icon: 'person', text: brotherName },
+                ],
               },
             });
           }

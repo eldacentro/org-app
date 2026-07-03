@@ -141,6 +141,19 @@ export type SchedWeekType = {
   };
 };
 
+/** Línea de detalle secundaria de "Mis asignaciones" (hora, lugar,
+ *  compañeros...) — antes Departamentos/Salidas/Exhibidores/Limpieza/Visita
+ *  del CO armaban un único string con emojis concatenados
+ *  ("🕒 18:00 • 📍 Salón del Reino"); ahora cada dato es su propia línea con
+ *  su propio icono, igual que el resto de la app. `desc` (string) se
+ *  mantiene aparte: lo sigue usando el historial de asignaciones normales de
+ *  reunión (p. ej. la descripción de una parte de Vivamos como cristianos,
+ *  tomada tal cual del contenido de JW.org), que no es parte de este rediseño. */
+export type AssignmentDescItem = {
+  icon: 'clock' | 'location' | 'people' | 'person' | 'clean' | 'meal';
+  text: string;
+};
+
 export type AssignmentHistoryType = {
   id: string;
   weekOf: string;
@@ -152,6 +165,7 @@ export type AssignmentHistoryType = {
     title: string;
     src?: string;
     desc?: string;
+    descItems?: AssignmentDescItem[];
     person: string;
     dataView: string;
     classroom?: string;

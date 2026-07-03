@@ -94,6 +94,7 @@
   "tr_weekRangeSameMonth": "Semana del {{ mondayDay }} al {{ sundayDay }} de {{ month }} de {{ year }}",
   "tr_weekRangeSameYear": "Semana del {{ mondayDay }} de {{ mondayMonth }} al {{ sundayDay }} de {{ sundayMonth }} de {{ year }}",
   "tr_weekRangeDiffYear": "Semana del {{ mondayDay }} de {{ mondayMonth }} de {{ mondayYear }} al {{ sundayDay }} de {{ sundayMonth }} de {{ sundayYear }}",
+  "tr_weekOfDay": "Semana del {{ day }} de {{ month }}",
   "tr_edit": "Editar",
   "tr_noPersonsFound": "No se encontraron personas",
   "tr_noPersonsFoundDesc": "No hay personas que coincidan con tus parámetros de búsqueda. Por favor, intenta ajustar la categoría o la fecha.",
