@@ -223,6 +223,15 @@ const Dashboard = () => {
   const thisWeekEvents = useMemo(() => {
     return upcomingEvents
       .filter((record) => {
+        // La semana de la visita del CO ya se indica en las propias filas
+        // de reunión (midweekDescription/weekendDescription) — mostrar
+        // además el evento de 6 días completo aquí sería redundante.
+        // Las reuniones con precursores y con ancianos/SM sí se quedan,
+        // son informativas por sí solas.
+        if (record.event_data.category === UpcomingEventCategory.CircuitOverseerWeek) {
+          return false;
+        }
+
         // filter by type / dataView
         if (dataView === 'main') {
           if (record.event_data.type !== 'main') return false;
