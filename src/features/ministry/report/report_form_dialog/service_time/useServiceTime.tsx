@@ -1,6 +1,9 @@
 import { useMemo, useRef } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
-import { reportUserDraftState } from '@states/user_field_service_reports';
+import {
+  reportUserDraftState,
+  userFieldServiceDailyReportsState,
+} from '@states/user_field_service_reports';
 import { displaySnackNotification } from '@services/states/app';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -22,6 +25,8 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
   const hoursRef = useRef<Element>(null);
 
   const [currentReport, setCurrentReport] = useAtom(reportUserDraftState);
+
+  const dailyReports = useAtomValue(userFieldServiceDailyReportsState);
 
   const hoursCreditEnabled = useAtomValue(hoursCreditsEnabledState);
   const dataView = useAtomValue(userDataViewState);
@@ -57,6 +62,40 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
 
     return hoursCreditEnabled ? hasAssignment : false;
   }, [person, hoursCreditEnabled, dataView]);
+
+  // El borrador siempre está "listo" para guardar visualmente, pero no hay
+  // nada nuevo que guardar si coincide con lo que ya está persistido (o si
+  // está vacío y nunca se guardó nada) — deshabilita el botón en esos casos
+  // para que "Guardar" deje de verse igual antes y después de guardar.
+  const isDirty = useMemo(() => {
+    if (!currentReport) return false;
+
+    const draftData = currentReport.report_data;
+
+    const draftHasContent =
+      draftData.bible_studies.value > 0 ||
+      draftData.hours.field_service.length > 0 ||
+      draftData.hours.credit.length > 0;
+
+    const persisted = dailyReports.find(
+      (r) => r.report_date === currentReport.report_date
+    );
+
+    if (!persisted) return draftHasContent;
+
+    const persistedData = persisted.report_data;
+
+    return (
+      draftData.hours.field_service !== persistedData.hours.field_service ||
+      draftData.hours.credit !== persistedData.hours.credit ||
+      draftData.bible_studies.value !== persistedData.bible_studies.value ||
+      draftData.bible_studies.records.length !==
+        persistedData.bible_studies.records.length ||
+      draftData.bible_studies.records.some(
+        (id, idx) => id !== persistedData.bible_studies.records[idx]
+      )
+    );
+  }, [currentReport, dailyReports]);
 
   const handleHoursChange = (value: string) => {
     const newReport = structuredClone(currentReport);
@@ -131,6 +170,12 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
       report.report_data._deleted = false;
       await handleSaveDailyFieldServiceReport(report);
 
+      displaySnackNotification({
+        header: t('tr_ministry'),
+        message: t('tr_dailyReportSaved', 'Informe guardado'),
+        severity: 'success',
+      });
+
       onClose();
     } catch (error) {
       console.error(error);
@@ -150,6 +195,13 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
     newReport.report_data.updatedAt = new Date().toISOString();
 
     await handleSaveDailyFieldServiceReport(newReport);
+
+    displaySnackNotification({
+      header: t('tr_ministry'),
+      message: t('tr_dailyReportDeleted', 'Informe eliminado'),
+      severity: 'success',
+    });
+
     onClose();
   };
 
@@ -186,6 +238,7 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
     handleBibleStudiesChange,
     bibleStudiesValidator,
     handleSaveReport,
+    isDirty,
     handleHoursCreditChange,
     hours_credit,
     hours_credit_enabled,

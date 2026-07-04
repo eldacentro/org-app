@@ -39,6 +39,7 @@ const DayRowEditor = ({
     handleBibleStudiesChange,
     bibleStudiesValidator,
     handleSaveReport,
+    isDirty,
     handleDeleteReport,
     hours_credit_enabled,
     hoursEnabled,
@@ -110,7 +111,12 @@ const DayRowEditor = ({
           </IconButton>
         )}
 
-        <Button variant="main" onClick={handleSaveReport} sx={{ width: '100%' }}>
+        <Button
+          variant="main"
+          onClick={handleSaveReport}
+          disabled={!isDirty}
+          sx={{ width: '100%' }}
+        >
           {t('tr_save')}
         </Button>
       </Stack>
