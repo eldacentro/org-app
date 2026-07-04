@@ -33,9 +33,7 @@ const Informe = () => {
 
           {activeView === 'year' && <YearView />}
 
-          {activeView === 'month' && (
-            <MonthView onSelectDay={() => setActiveView('day')} />
-          )}
+          {activeView === 'month' && <MonthView />}
 
           {activeView === 'day' && <DayView />}
         </>

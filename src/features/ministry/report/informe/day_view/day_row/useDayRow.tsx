@@ -1,20 +1,17 @@
-import { useState } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
-import {
-  reportUserDraftState,
-  userFieldServiceDailyReportsState,
-} from '@states/user_field_service_reports';
-import { userFieldServiceDailyReportSchema } from '@services/dexie/schema';
+import { userFieldServiceDailyReportsState } from '@states/user_field_service_reports';
 import { personIsEnrollmentActive } from '@services/app/persons';
 import { MonthDayCell } from '../../month_view/useMonthView';
 
-const useDayRow = (cell: MonthDayCell, locked: boolean) => {
+/**
+ * Fila de solo resumen — la edición ya no vive aquí (se movió a la tarjeta
+ * grande de arriba, `today_card`), así que esta fila solo necesita mostrar
+ * el resumen y avisar al padre qué día se tocó.
+ */
+const useDayRow = (cell: MonthDayCell) => {
   const { person } = useCurrentUser();
   const dailyReports = useAtomValue(userFieldServiceDailyReportsState);
-  const setDraftReport = useSetAtom(reportUserDraftState);
-
-  const [expanded, setExpanded] = useState(false);
 
   const existingReport = dailyReports.find((r) => r.report_date === cell.dateStr);
 
@@ -29,37 +26,13 @@ const useDayRow = (cell: MonthDayCell, locked: boolean) => {
     );
   })();
 
-  const handleToggleExpand = () => {
-    if (locked) return;
-
-    if (!expanded) {
-      const report = existingReport
-        ? structuredClone(existingReport)
-        : (() => {
-            const fresh = structuredClone(userFieldServiceDailyReportSchema);
-            fresh.report_date = cell.dateStr;
-            return fresh;
-          })();
-
-      setDraftReport(report);
-    }
-
-    setExpanded((prev) => !prev);
-  };
-
-  const handleClose = () => setExpanded(false);
-
   const summaryHours = existingReport?.report_data.hours.field_service || '0:00';
   const summaryStudies = existingReport?.report_data.bible_studies.value || 0;
 
   return {
-    expanded,
-    handleToggleExpand,
-    handleClose,
     hoursEnabled,
     summaryHours,
     summaryStudies,
-    hasExistingReport: Boolean(existingReport),
   };
 };
 
