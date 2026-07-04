@@ -28,7 +28,11 @@ const useError = ({ updatePwa }: ErrorBoundaryProps) => {
         errMsg.includes('dynamically imported module') ||
         errData.includes('dynamically imported module') ||
         errMsg.includes('Importing a module script failed') ||
-        errData.includes('Importing a module script failed');
+        errData.includes('Importing a module script failed') ||
+        errMsg.includes('MIME type') ||
+        errData.includes('MIME type') ||
+        errMsg.includes('text/html') ||
+        errData.includes('text/html');
 
       if (isChunkError) {
         const hasReloaded = window.sessionStorage.getItem('chunk-reload-occurred');
