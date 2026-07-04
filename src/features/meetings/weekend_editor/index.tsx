@@ -81,6 +81,7 @@ const WeekendEditor = () => {
     showPartsForGroup,
     dataView,
     speaker1Uid,
+    speaker1Name,
     weekendMeetingTime,
   } = useWeekendEditor();
 
@@ -96,7 +97,8 @@ const WeekendEditor = () => {
     weekendMeetingTime,
     selectedTalk?.talk_number,
     speaker1Uid,
-    talkType
+    talkType,
+    speaker1Name
   );
 
   return (

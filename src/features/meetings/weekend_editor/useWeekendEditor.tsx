@@ -136,6 +136,19 @@ const useWeekendEditor = () => {
     )?.value || undefined;
   }, [schedule, dataView]);
 
+  // Nombre ya guardado junto con el uid al momento de asignar (ver
+  // `schedulesSaveAssignment`) — se usa como respaldo si el orador
+  // visitante se borra después del catálogo, para que la invitación no
+  // se quede sin nombre silenciosamente.
+  const speaker1Name = useMemo(() => {
+    if (!schedule) return '';
+    return (
+      schedule.weekend_meeting.speaker.part_1.find(
+        (record) => record.type === dataView
+      )?.name || ''
+    );
+  }, [schedule, dataView]);
+
   const weekendMeetingTime = useMemo(() => {
     const defaultTime = settings.cong_settings.weekend_meeting.find((w) => w.type === dataView)?.time.value || '00:00';
     return defaultTime;
@@ -206,6 +219,7 @@ const useWeekendEditor = () => {
     weekType,
     dataView,
     speaker1Uid,
+    speaker1Name,
     weekendMeetingTime,
   };
 };

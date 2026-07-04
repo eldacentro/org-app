@@ -22,7 +22,8 @@ const usePublicTalkInvitation = (
   time: string,
   selectedTalkNumber?: number,
   speakerUid?: string,
-  talkType?: string
+  talkType?: string,
+  speakerNameFallback?: string
 ) => {
   const { t } = useAppTranslation();
   
@@ -44,9 +45,14 @@ const usePublicTalkInvitation = (
     return incomingSpeakers.find((s) => s.person_uid === speakerUid);
   }, [speakerUid, talkType, localSpeakers, incomingSpeakers]);
 
-  const speakerName = speakerInfo 
+  // Si el orador ya no está en el catálogo (se borró), se usa el nombre
+  // que ya se guardó junto con el uid al momento de asignarlo (ver
+  // `schedulesSaveAssignment`) en vez de dejar la invitación sin nombre.
+  const speakerName = speakerInfo
     ? `${speakerInfo.speaker_data.person_firstname.value} ${speakerInfo.speaker_data.person_lastname.value}`
-    : '';
+    : speakerUid
+      ? speakerNameFallback || ''
+      : '';
 
   // Outline Info
   const outlineTitle = useMemo(() => {
