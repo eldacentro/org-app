@@ -370,7 +370,10 @@ const Dashboard = () => {
     const now = new Date();
 
     if (showMidweekRow) {
-      const midweekAssignmentText = midweekAssignmentTitles.join(', ');
+      const midweekAssignmentText =
+        midweekAssignmentTitles.length > 0
+          ? `${t('tr_youHave', 'Tienes')}: ${midweekAssignmentTitles.join(', ')}`
+          : '';
       items.push({
         id: 'midweek',
         type: 'midweek' as const,
@@ -387,7 +390,10 @@ const Dashboard = () => {
     }
 
     if (showWeekendRow) {
-      const weekendAssignmentText = weekendAssignmentTitles.join(', ');
+      const weekendAssignmentText =
+        weekendAssignmentTitles.length > 0
+          ? `${t('tr_youHave', 'Tienes')}: ${weekendAssignmentTitles.join(', ')}`
+          : '';
       items.push({
         id: 'weekend',
         type: 'weekend' as const,
