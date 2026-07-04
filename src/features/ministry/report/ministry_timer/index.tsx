@@ -3,7 +3,6 @@ import useMinistryTimer from './useMinistryTimer';
 import AddTimeDialog from './add_time_dialog';
 import Duration from './duration';
 import LeftButton from './left_button';
-import ReportFormDialog from '../report_form_dialog';
 import RightButton from './right_button';
 
 const MinistryTimer = () => {
@@ -11,14 +10,11 @@ const MinistryTimer = () => {
     timerState,
     handleRightButtonAction,
     handleLeftButtonAction,
-    editorOpen,
-    handleCloseEditor,
     sliderOpen,
     handleCloseSlider,
     handleOpenSlider,
     handleTimeAdded,
     time,
-    report_date,
   } = useMinistryTimer();
 
   return (
@@ -32,14 +28,6 @@ const MinistryTimer = () => {
         gap: '12px',
       }}
     >
-      {editorOpen && (
-        <ReportFormDialog
-          open={editorOpen}
-          onClose={handleCloseEditor}
-          date={report_date}
-        />
-      )}
-
       {sliderOpen && (
         <AddTimeDialog
           time={time}

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { FormS4Props } from '../index.types';
-import { congSpecialMonthsState } from '@states/settings';
 import { UserFieldServiceMonthlyReportType } from '@definition/user_field_service_reports';
 import {
   congFieldServiceReportSchema,
@@ -17,14 +15,10 @@ import { CongFieldServiceReportType } from '@definition/cong_field_service_repor
 import { dbFieldServiceReportsSave } from '@services/dexie/cong_field_service_reports';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthlyRecord';
-import usePerson from '@features/persons/hooks/usePerson';
+import useMonthlyGoal from '@features/ministry/hooks/useMonthlyGoal';
 
 const useHoursFields = ({ month, person_uid, publisher }: FormS4Props) => {
   const { t } = useAppTranslation();
-
-  const specialMonths = useAtomValue(congSpecialMonthsState);
-
-  const { personIsEnrollmentActive } = usePerson();
 
   const {
     person,
@@ -43,28 +37,7 @@ const useHoursFields = ({ month, person_uid, publisher }: FormS4Props) => {
     publisher,
   });
 
-  const goal = useMemo(() => {
-    if (!person) return;
-
-    let value: number;
-
-    const isAP = personIsEnrollmentActive(person, 'AP', month);
-    const isFR = personIsEnrollmentActive(person, 'FR', month);
-
-    if (isAP) {
-      // check for allowed 15h
-      const isSpecial = specialMonths.find((record) =>
-        record.months.includes(month)
-      );
-      value = isSpecial ? 15 : 30;
-    }
-
-    if (isFR) {
-      value = 50;
-    }
-
-    return value;
-  }, [person, month, specialMonths, personIsEnrollmentActive]);
+  const goal = useMonthlyGoal(person, month);
 
   const locked = useMemo(() => {
     if (read_only) return true;

@@ -401,6 +401,26 @@ export const personIsFS = (person: PersonType) => {
   return hasActive ? true : false;
 };
 
+/**
+ * A diferencia de `personIsAP`/`personIsFR`/etc. (que solo miran si la
+ * inscripción está activa AHORA MISMO, `end_date === null`), esto pregunta
+ * si la persona ha sido precursora ALGUNA VEZ (auxiliar o regular, misión
+ * de campo o especial), sin importar si esa inscripción ya terminó. Es lo
+ * que decide si "Informe de predicación" le muestra las vistas de
+ * precursor (Día/Mes/Año) — si solo mirara "activo ahora", alguien que dejó
+ * de ser precursor a mitad de año perdería de golpe el acceso a revisar sus
+ * meses/año como precursor.
+ */
+export const personWasEverPioneer = (person: PersonType) => {
+  const PIONEER_ENROLLMENTS: EnrollmentType[] = ['AP', 'FR', 'FS', 'FMF'];
+
+  return person.person_data.enrollments.some(
+    (record) =>
+      PIONEER_ENROLLMENTS.includes(record.enrollment) &&
+      record._deleted === false
+  );
+};
+
 export const personHasNoAssignment = (person: PersonType) => {
   const dataView = store.get(userDataViewState);
 

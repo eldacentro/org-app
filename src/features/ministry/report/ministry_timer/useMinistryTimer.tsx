@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useNavigate } from 'react-router';
 import { addMonths, formatDate } from '@utils/date';
 import {
   reportUserSelectedMonthState,
@@ -14,6 +15,8 @@ import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthl
 
 const useMinistryTimer = () => {
   const timerRef = useRef<NodeJS.Timeout>(null);
+
+  const navigate = useNavigate();
 
   const [timer, setTimer] = useAtom(userMinistryTimerState);
 
@@ -70,7 +73,6 @@ const useMinistryTimer = () => {
   }, [timer.state]);
 
   const [time, setTime] = useState(initialTime);
-  const [editorOpen, setEditorOpen] = useState(false);
   const [sliderOpen, setSliderOpen] = useState(false);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
@@ -97,7 +99,7 @@ const useMinistryTimer = () => {
 
   const handleAddTime = () => {
     setSelectedMonth(report_date.slice(0, 7));
-    setEditorOpen(true);
+    navigate('/ministry-report');
   };
 
   const handleStop = async () => {
@@ -140,7 +142,7 @@ const useMinistryTimer = () => {
       await handleSaveDailyFieldServiceReport(draftReport);
 
       setSelectedMonth(draftReport.report_date.slice(0, 7));
-      setEditorOpen(true);
+      navigate('/ministry-report');
     }
   };
 
@@ -163,8 +165,6 @@ const useMinistryTimer = () => {
       handlePause();
     }
   };
-
-  const handleCloseEditor = () => setEditorOpen(false);
 
   const handleOpenSlider = () => {
     setSliderOpen(true);
@@ -253,14 +253,11 @@ const useMinistryTimer = () => {
     timerState,
     handleLeftButtonAction,
     today,
-    editorOpen,
-    handleCloseEditor,
     sliderOpen,
     handleOpenSlider,
     handleCloseSlider,
     handleTimeAdded,
     time,
-    report_date,
   };
 };
 

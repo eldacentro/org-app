@@ -6,9 +6,8 @@ import {
   personIsFR,
   personIsFS,
 } from '@services/app/persons';
-import { currentMonthServiceYear, currentServiceYear } from '@utils/date';
+import { currentMonthServiceYear } from '@utils/date';
 import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthlyRecord';
-import usePioneerStats from '@features/ministry/service_year/yearly_stats/pioneer_stats/usePioneerStats';
 
 const useMinistry = () => {
   const { person, enable_AP_application } = useCurrentUser();
@@ -16,12 +15,6 @@ const useMinistry = () => {
   const currentMonth = useMemo(() => {
     return currentMonthServiceYear();
   }, []);
-
-  const currentSY = useMemo(() => {
-    return currentServiceYear();
-  }, []);
-
-  const { hours_balance } = usePioneerStats(currentSY);
 
   const { hours_total } = useMinistryMonthlyRecord({
     month: currentMonth,
@@ -51,7 +44,6 @@ const useMinistry = () => {
   return {
     isPioneer,
     hours,
-    hours_balance: String(hours_balance),
     enable_AP_application,
   };
 };

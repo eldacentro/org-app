@@ -28,7 +28,6 @@ import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
 import Snackbar from '@components/snackbar';
-import Badge from '@components/badge';
 import { LANGUAGE_LIST, WEEK_TYPE_NO_MEETING } from '@constants/index';
 import PageTitle from '@components/page_title';
 import { getWeekDate, formatDate } from '@utils/date';
@@ -691,12 +690,7 @@ const Dashboard = () => {
                           })}
                           <span>{item.title}</span>
                           {item.hasAssignment && (
-                            <Badge
-                              size="small"
-                              color="green"
-                              filled
-                              text={t('tr_youHaveSomething', 'Tienes algo')}
-                            />
+                            <span className="assignment-dot" title={t('tr_youHaveSomething', 'Tienes algo')} />
                           )}
                         </div>
                         {item.description && (

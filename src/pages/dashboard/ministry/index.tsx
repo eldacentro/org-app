@@ -8,7 +8,6 @@ import DashboardMenu from '@features/dashboard/menu';
 import MinistryTimer from '@features/ministry/report/ministry_timer';
 import IconMinistryReport from '@icons/IconMinistryReport';
 import IconPioneerForm from '@icons/IconPioneerForm';
-import IconStatsYear from '@icons/IconStatsYear';
 import { IconInTerritory, IconCart, IconMapOverview } from '@icons/index';
 
 const MinistryCard = () => {
@@ -16,8 +15,7 @@ const MinistryCard = () => {
   const { isServiceCommittee } = useCurrentUser();
   const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
 
-  const { isPioneer, enable_AP_application, hours, hours_balance } =
-    useMinistry();
+  const { isPioneer, enable_AP_application, hours } = useMinistry();
 
   return (
     <DashboardCard 
@@ -36,14 +34,6 @@ const MinistryCard = () => {
           primaryText={t('tr_report')}
           badgeText={isPioneer && hours}
           path="/ministry-report"
-        />
-      </ListItem>
-      <ListItem disablePadding>
-        <DashboardMenu
-          icon={<IconStatsYear color="var(--black)" />}
-          primaryText={t('tr_serviceYear')}
-          badgeText={isPioneer && hours_balance}
-          path="/service-year"
         />
       </ListItem>
       {(isServiceCommittee || territoriesEnabled) && (

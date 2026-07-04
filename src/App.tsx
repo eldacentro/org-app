@@ -1,5 +1,5 @@
 import { lazy, useEffect, useMemo, useState } from 'react';
-import { createHashRouter, RouterProvider } from 'react-router';
+import { createHashRouter, Navigate, RouterProvider } from 'react-router';
 import { useAtom, useAtomValue } from 'jotai';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@components/index';
@@ -53,7 +53,6 @@ const FieldServiceReportsPage = lazy(
 );
 const MidweekMeeting = lazy(() => import('@pages/meetings/midweek'));
 const MinistryReport = lazy(() => import('@pages/ministry/ministry_report'));
-const ServiceYear = lazy(() => import('@pages/ministry/service_year'));
 const AuxiliaryPioneerApplication = lazy(
   () => import('@pages/ministry/auxiliary_pioneer')
 );
@@ -243,7 +242,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <PublisherRoute />,
                 children: [
                   { path: '/ministry-report', element: <MinistryReport /> },
-                  { path: '/service-year', element: <ServiceYear /> },
+                  {
+                    path: '/service-year',
+                    element: <Navigate to="/ministry-report" replace />,
+                  },
 
                   // only if connected
                   {
