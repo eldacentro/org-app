@@ -9,14 +9,21 @@ import {
   schedulesGetMeetingDate,
   schedulesWeekHasNoMeetingAtAll,
 } from '@services/app/schedules';
-import { userDataViewState } from '@states/settings';
+import {
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+  userDataViewState,
+} from '@states/settings';
 import { schedulesState } from '@states/schedules';
+import { personGetDisplayName } from '@utils/common';
 
 const useDepartmentEditor = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const dataView = useAtomValue(userDataViewState);
   const [schedules, setSchedules] = useAtom(deptScheduleState);
   const meetingSchedules = useAtomValue(schedulesState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [clearAll, setClearAll] = useState(false);
 
@@ -59,6 +66,9 @@ const useDepartmentEditor = () => {
 
     currentSched[dept][role] = {
       value: person?.person_uid || '',
+      name: person
+        ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
+        : '',
       updatedAt: new Date().toISOString(),
     };
 

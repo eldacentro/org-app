@@ -10,14 +10,25 @@ import { DeptWeekType } from '@definition/departments_schedule';
 import { PersonType } from '@definition/person';
 import MeetingSection from '@features/meetings/meeting_section';
 
-const DeptPersonComponent = ({ label, person }: { label: string; person?: PersonType }) => {
+const DeptPersonComponent = ({
+  label,
+  person,
+  fallbackName,
+}: {
+  label: string;
+  person?: PersonType;
+  fallbackName?: string;
+}) => {
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
 
+  // Si la persona ya no existe (se borró), se usa el nombre que ya se
+  // guardó junto con el uid al momento de asignar, en vez de dejar la
+  // fila en blanco sin ningún rastro de quién estaba asignado.
   const displayName = person
     ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
-    : '';
+    : fallbackName || '';
 
   const active = person?.person_uid === userUID;
   const accentColor = 'var(--brand)';
@@ -148,10 +159,12 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         <DeptPersonComponent
           label="Exterior"
           person={personsStateFind(schedule?.acomodadores?.exterior?.value)}
+          fallbackName={schedule?.acomodadores?.exterior?.name}
         />
         <DeptPersonComponent
           label="Interior"
           person={personsStateFind(schedule?.acomodadores?.interior?.value)}
+          fallbackName={schedule?.acomodadores?.interior?.name}
         />
       </MeetingSection>
 
@@ -165,10 +178,12 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         <DeptPersonComponent
           label="Micro 1"
           person={personsStateFind(schedule?.microfonos?.micro1?.value)}
+          fallbackName={schedule?.microfonos?.micro1?.name}
         />
         <DeptPersonComponent
           label="Micro 2"
           person={personsStateFind(schedule?.microfonos?.micro2?.value)}
+          fallbackName={schedule?.microfonos?.micro2?.name}
         />
       </MeetingSection>
 
@@ -182,10 +197,12 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         <DeptPersonComponent
           label="Vídeo"
           person={personsStateFind(schedule?.multimedia?.video?.value)}
+          fallbackName={schedule?.multimedia?.video?.name}
         />
         <DeptPersonComponent
           label="Audio"
           person={personsStateFind(schedule?.multimedia?.audio?.value)}
+          fallbackName={schedule?.multimedia?.audio?.name}
         />
       </MeetingSection>
 
@@ -199,6 +216,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         <DeptPersonComponent
           label="Encargado"
           person={personsStateFind(schedule?.plataforma?.encargado?.value)}
+          fallbackName={schedule?.plataforma?.encargado?.name}
         />
       </MeetingSection>
     </Stack>
