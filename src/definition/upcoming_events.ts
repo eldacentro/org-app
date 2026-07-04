@@ -36,6 +36,12 @@ export type UpcomingEventType = {
     duration: UpcomingEventDuration;
     description: string;
     custom?: string;
+    topic?: string;
+    // Solo aplica cuando category === AssemblyWeek — quién asiste a la
+    // asamblea. Se muestra como un selector aparte que solo aparece para
+    // ese tipo de evento, y su texto se añade al título, no reemplaza el
+    // tipo de evento en sí.
+    assemblyRepresentative?: 'branch' | 'co';
   };
 };
 

@@ -66,7 +66,7 @@ const UpcomingEvent = ({ event }: UpcomingEventProps) => {
               key={eventDate.date}
               date={eventDate.dateFormatted}
               day={eventDate.day}
-              title={t('tr_wholeDay')}
+              title={event.time}
               description={`${t('tr_day')} ${eventDateIndex + 1}/${event.dates.length}`}
             />
           ))}

@@ -67,6 +67,10 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
           ...prev.event_data,
           category: targetValue,
           duration: decorationsForEvent[targetValue].duration,
+          assemblyRepresentative:
+            targetValue === UpcomingEventCategory.AssemblyWeek
+              ? prev.event_data.assemblyRepresentative
+              : undefined,
         },
       }));
 
@@ -108,6 +112,36 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
           event_data: {
             ...prev.event_data,
             description: event.target.value,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleChangeEventTopic = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            topic: event.target.value,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleChangeAssemblyRepresentative = useCallback(
+    (event: SelectChangeEvent<unknown>) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            assemblyRepresentative: event.target.value as 'branch' | 'co',
           },
         };
       });
@@ -188,8 +222,12 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
         ...prev,
         event_data: {
           ...prev.event_data,
+          // Usa la propia fecha de fin, no la de inicio — en un evento de
+          // varios días son fechas distintas, y tomar la de inicio movería
+          // silenciosamente la fecha de fin al mismo día que la de inicio
+          // cada vez que solo se cambia la hora.
           end: stackDatesToOne(
-            new Date(prev.event_data.start),
+            new Date(prev.event_data.end),
             value,
             true
           ).toISOString(),
@@ -225,6 +263,8 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     handleChangeEventCategory,
     handleChangeEventCustomTitle,
     handleChangeEventDescription,
+    handleChangeEventTopic,
+    handleChangeAssemblyRepresentative,
     handleChangeEventDuration,
 
     handleChangeEventStartDate,

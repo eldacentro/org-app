@@ -513,6 +513,7 @@
   "tr_dateAndTime": "Fecha y hora",
   "tr_eventTitle": "Título del evento",
   "tr_eventDescription": "Descripción del evento",
+  "tr_eventTopic": "Tema (opcional)",
   "tr_eventDuration": "Duración del evento",
   "tr_singleDay": "Un solo día",
   "tr_multipleDays": "Múltiples días",

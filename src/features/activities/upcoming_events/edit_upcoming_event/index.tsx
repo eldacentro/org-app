@@ -1,4 +1,4 @@
-import { cloneElement } from 'react';
+import { cloneElement, useMemo } from 'react';
 import { Box } from '@mui/material';
 import { IconCheck, IconClose, IconDelete } from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
@@ -31,6 +31,8 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     handleChangeEventCategory,
     handleChangeEventCustomTitle,
     handleChangeEventDescription,
+    handleChangeEventTopic,
+    handleChangeAssemblyRepresentative,
     handleSaveEvent,
     handleDeleteEvent,
     handleChangeEventDuration,
@@ -39,6 +41,31 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     handleChangeEventEndDate,
     handleChangeEventEndTime,
   } = useEditUpcomingEvent(props);
+
+  // El valor guardado (category) es la posición de la opción en
+  // decorationsForEvent, así que ese arreglo no se puede reordenar sin
+  // corromper eventos ya guardados. Se ordena solo la lista que se muestra
+  // en el desplegable, alfabéticamente por el texto ya traducido, dejando
+  // "Personalizado" siempre al final.
+  const sortedTypeOptions = useMemo(() => {
+    const withIndex = decorationsForEvent.map((option, index) => ({
+      option,
+      index,
+    }));
+
+    const custom = withIndex.filter(
+      ({ option }) => option.translationKey === 'tr_custom'
+    );
+    const rest = withIndex.filter(
+      ({ option }) => option.translationKey !== 'tr_custom'
+    );
+
+    rest.sort((a, b) =>
+      t(a.option.translationKey).localeCompare(t(b.option.translationKey), 'es')
+    );
+
+    return [...rest, ...custom];
+  }, [t]);
 
   return (
     <Box
@@ -111,7 +138,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             error={errors.category}
             helperText={errors.category && t('tr_fillRequiredField')}
           >
-            {decorationsForEvent.map((option, index) => (
+            {sortedTypeOptions.map(({ option, index }) => (
               <MenuItem value={index} key={option.translationKey}>
                 <Box
                   sx={{
@@ -130,6 +157,34 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             ))}
           </Select>
 
+          {localEvent.event_data.category ===
+            UpcomingEventCategory.AssemblyWeek && (
+            <Select
+              label={t('tr_assemblyType')}
+              value={localEvent.event_data.assemblyRepresentative ?? ''}
+              onChange={handleChangeAssemblyRepresentative}
+            >
+              <MenuItem value="branch">
+                <Typography
+                  className="body-regular"
+                  color="var(--black)"
+                  sx={{ '&::first-letter': { textTransform: 'uppercase' } }}
+                >
+                  {t('tr_assemblyRepBranch')}
+                </Typography>
+              </MenuItem>
+              <MenuItem value="co">
+                <Typography
+                  className="body-regular"
+                  color="var(--black)"
+                  sx={{ '&::first-letter': { textTransform: 'uppercase' } }}
+                >
+                  {t('tr_assemblyRepCO')}
+                </Typography>
+              </MenuItem>
+            </Select>
+          )}
+
           {localEvent.event_data.category === UpcomingEventCategory.Custom && (
             <TextField
               label={t('tr_eventTitle')}
@@ -139,6 +194,12 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
               helperText={errors.custom && t('tr_fillRequiredField')}
             />
           )}
+
+          <TextField
+            label={t('tr_eventTopic')}
+            value={localEvent.event_data.topic ?? ''}
+            onChange={handleChangeEventTopic}
+          />
 
           <TextField
             label={t('tr_eventDescription')}
@@ -212,6 +273,20 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
               <DatePicker
                 label={t('tr_endDate')}
                 onChange={handleChangeEventEndDate}
+                value={new Date(localEvent.event_data.end)}
+              />
+              <TimePicker
+                onChange={handleChangeEventStartTime}
+                label={t('tr_startTime')}
+                ampm={!hour24}
+                sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                value={new Date(localEvent.event_data.start)}
+              />
+              <TimePicker
+                onChange={handleChangeEventEndTime}
+                label={t('tr_endTime')}
+                ampm={!hour24}
+                sx={{ minWidth: hour24 ? '140px' : '150px' }}
                 value={new Date(localEvent.event_data.end)}
               />
             </>

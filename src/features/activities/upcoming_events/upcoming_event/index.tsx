@@ -24,7 +24,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
 
   const { isAdmin, isElder } = useCurrentUser();
   const canManageEvents = isAdmin || isElder;
-  const { desktopUp, tabletUp, tablet600Up } = useBreakpoints();
+  const { desktopUp, tabletUp } = useBreakpoints();
 
   const {
     eventDecoration,
@@ -85,44 +85,55 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: tablet600Up ? 'row' : 'column',
-          gap: '16px',
-          justifyContent: 'space-between',
+          gap: '4px',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
         <Box
           sx={{
             display: 'flex',
-            gap: '4px',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            width: tablet600Up ? 'auto' : '100%',
+            gap: '16px',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
           }}
         >
           <Box
             sx={{
               display: 'flex',
-              gap: '16px',
+              flexDirection: 'row',
+              gap: '8px',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              minWidth: 0,
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: '8px',
-                alignItems: 'center',
-              }}
-            >
-              {cloneElement(eventDecoration.icon, { color: 'var(--black)' })}
+            {cloneElement(eventDecoration.icon, { color: 'var(--black)' })}
 
-              <Typography className="h3" color="var(--black)">
-                {props.data.event_data.category !== UpcomingEventCategory.Custom
-                  ? t(eventDecoration.translationKey)
-                  : props.data.event_data.custom}
-              </Typography>
-            </Box>
+            <Typography className="h3" color="var(--black)">
+              {props.data.event_data.category !== UpcomingEventCategory.Custom
+                ? t(eventDecoration.translationKey)
+                : props.data.event_data.custom}
+              {props.data.event_data.category ===
+                UpcomingEventCategory.AssemblyWeek &&
+                props.data.event_data.assemblyRepresentative &&
+                ` (${t(
+                  props.data.event_data.assemblyRepresentative === 'branch'
+                    ? 'tr_assemblyRepBranch'
+                    : 'tr_assemblyRepCO'
+                )})`}
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '8px',
+              alignItems: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <AddToCalendar event={props.data} />
 
             {canManageEvents && (!desktopUp || showEditIcon) && (
               <IconButton sx={{ padding: 0 }} onClick={handleTurnEditMode}>
@@ -130,12 +141,21 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
               </IconButton>
             )}
           </Box>
-
-          <Typography className="body-regular" color="var(--grey-400)">
-            {props.data.event_data.description}
-          </Typography>
         </Box>
-        <AddToCalendar event={props.data} />
+
+        {props.data.event_data.topic && (
+          <Typography
+            className="h4"
+            color="var(--brand-deep)"
+            sx={{ fontStyle: 'italic' }}
+          >
+            “{props.data.event_data.topic}”
+          </Typography>
+        )}
+
+        <Typography className="body-regular" color="var(--grey-400)">
+          {props.data.event_data.description}
+        </Typography>
       </Box>
 
       <Divider color="var(--line)" />
@@ -175,7 +195,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             <UpcomingEventDate
               date={eventDate.dateFormatted}
               day={eventDate.day}
-              title={t('tr_wholeDay')}
+              title={eventFormatted.time}
               disabled={eventDate.date <= previousDay}
               description={`${t('tr_day')} ${eventDateIndex + 1}/${eventFormatted.dates.length}`}
               dayIndicatorRef={(element: HTMLDivElement) => {

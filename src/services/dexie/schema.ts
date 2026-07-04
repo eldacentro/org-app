@@ -385,6 +385,7 @@ export const upcomingEventsSchema: UpcomingEventType = {
     description: '',
     category: null,
     custom: '',
+    topic: '',
     type: 'main',
     duration: null,
   },
