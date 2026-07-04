@@ -48,6 +48,16 @@ const DASHBOARD_DEPT_LABELS: Record<string, string> = {
   plataforma: 'Plataforma',
 };
 
+// Mismas etiquetas de rol que ya usa DepartmentsMeeting (weekly_schedules),
+// para que "Tienes: X" en el dashboard diga también el rol concreto (ej.
+// "Multimedia (Audio)"), no solo el departamento.
+const DASHBOARD_DEPT_ROLE_LABELS: Record<string, Record<string, string>> = {
+  acomodadores: { exterior: 'Exterior', interior: 'Interior' },
+  microfonos: { micro1: 'Micro 1', micro2: 'Micro 2' },
+  multimedia: { video: 'Vídeo', audio: 'Audio' },
+  plataforma: { encargado: 'Encargado' },
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useAppTranslation();
@@ -235,10 +245,16 @@ const Dashboard = () => {
         for (const dept of depts) {
           const deptData = deptWeek[dept] as Record<string, { value: string }> | undefined;
           if (!deptData) continue;
-          const isAssigned = Object.values(deptData).some((role) => role?.value === userUID);
-          if (!isAssigned) continue;
-          if (showMidweekRow) midweekTitles.push(DASHBOARD_DEPT_LABELS[dept]);
-          if (showWeekendRow) weekendTitles.push(DASHBOARD_DEPT_LABELS[dept]);
+          const matchedRole = Object.entries(deptData).find(
+            ([, role]) => role?.value === userUID
+          )?.[0];
+          if (!matchedRole) continue;
+          const roleLabel = DASHBOARD_DEPT_ROLE_LABELS[dept]?.[matchedRole];
+          const label = roleLabel
+            ? `${DASHBOARD_DEPT_LABELS[dept]} (${roleLabel})`
+            : DASHBOARD_DEPT_LABELS[dept];
+          if (showMidweekRow) midweekTitles.push(label);
+          if (showWeekendRow) weekendTitles.push(label);
         }
       }
     }
