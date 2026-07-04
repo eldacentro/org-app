@@ -5,6 +5,7 @@ import BibleStudiesStats from '../bible_studies_stats';
 import Divider from '@components/divider';
 import HoursStats from '../hours_stats';
 import PioneerStats from '../pioneer_stats';
+import YearlyChart from './yearly_chart';
 
 const YearlItem = ({ year }: YearlyItemProps) => {
   const { hours, hoursEnabled, isFR } = useYearItem(year);
@@ -18,6 +19,8 @@ const YearlItem = ({ year }: YearlyItemProps) => {
       spacing="8px"
       divider={<Divider color="var(--line)" />}
     >
+      {(hours.total > 0 || hoursEnabled) && <YearlyChart year={year} />}
+
       {(hours.total > 0 || hoursEnabled) && <HoursStats year={year} />}
 
       <BibleStudiesStats year={year} />

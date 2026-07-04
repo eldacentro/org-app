@@ -62,9 +62,7 @@ const DayView = () => {
   };
 
   return (
-    <Stack spacing="12px">
-      <div ref={topRef} />
-
+    <Stack spacing="12px" ref={topRef}>
       <TodayCard
         focusedDateStr={focusedDateStr}
         weekday={weekday}
