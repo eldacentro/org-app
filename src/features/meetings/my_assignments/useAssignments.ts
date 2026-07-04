@@ -207,7 +207,7 @@ const useMyAssignments = () => {
                     dataView: 'main',
                     title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
                     descItems: companionName
-                      ? [{ icon: 'people', text: `Con: ${companionName}` }]
+                      ? [{ icon: 'people', text: `Con ${companionName}` }]
                       : undefined,
                   },
                 });
@@ -298,7 +298,7 @@ const useMyAssignments = () => {
           { icon: 'location', text: turn.location },
         ];
         if (companionNames.length > 0) {
-          descItems.push({ icon: 'people', text: `Con: ${companionNames.join(', ')}` });
+          descItems.push({ icon: 'people', text: `Con ${companionNames.join(', ')}` });
         }
 
         return {
