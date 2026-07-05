@@ -5,9 +5,15 @@ import { saveAs } from 'file-saver';
 import { IconError } from '@components/icons';
 import { getMessageByCode } from '@services/i18n/translation';
 import { displaySnackNotification } from '@services/states/app';
-import { personsActiveState } from '@states/persons';
+import { personsAllState } from '@states/persons';
 import { fieldGroupsState } from '@states/field_service_groups';
-import { congNameState, publishersSortState } from '@states/settings';
+import {
+  congNameState,
+  publishersSortState,
+  COFullnameState,
+  COPhoneState,
+  COEmailState,
+} from '@states/settings';
 import { PublishersSortOption } from '@definition/settings';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import usePerson from '@features/persons/hooks/usePerson';
@@ -18,12 +24,15 @@ import type {
 } from '@views/persons/emergency_contacts/index.types';
 
 const useExportEmergencyContacts = () => {
-  const { getName, personIsPublisher } = usePerson();
+  const { getName } = usePerson();
 
   const groups = useAtomValue(fieldGroupsState);
-  const persons = useAtomValue(personsActiveState);
+  const persons = useAtomValue(personsAllState);
   const congName = useAtomValue(congNameState);
   const sortMethod = useAtomValue(publishersSortState);
+  const coFullname = useAtomValue(COFullnameState);
+  const coPhone = useAtomValue(COPhoneState);
+  const coEmail = useAtomValue(COEmailState);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -48,9 +57,10 @@ const useExportEmergencyContacts = () => {
       setIsProcessing(true);
 
       const assignedUids = new Set<string>();
+      const personUidToGroupIndex = new Map<string, number>();
 
       const formattedGroups: EmergencyContactsGroupType[] = groups.map(
-        (record) => {
+        (record, groupIndex) => {
           const group_name =
             record.group_data.name.length > 0
               ? record.group_data.name
@@ -72,9 +82,9 @@ const useExportEmergencyContacts = () => {
             );
 
             if (!person) continue;
-            if (!personIsPublisher(person)) continue;
 
             assignedUids.add(person.person_uid);
+            personUidToGroupIndex.set(person.person_uid, groupIndex);
             memberEntries.push(buildEntry(person));
           }
 
@@ -82,9 +92,34 @@ const useExportEmergencyContacts = () => {
         }
       );
 
-      const unassigned = persons
-        .filter((person) => personIsPublisher(person))
-        .filter((person) => !assignedUids.has(person.person_uid))
+      // Todos deben salir en el PDF, tengan o no grupo propio (estudiantes
+      // de entre semana, archivados, etc.). Quien no tenga grupo propio
+      // pero sí pertenezca a una familia cuyo cabeza SÍ tiene grupo, se
+      // añade a ese mismo grupo — regla general, no solo para estudiantes.
+      // Solo cae en "Sin grupo asignado" quien de verdad no tenga ninguna
+      // relación de grupo, ni propia ni por familia.
+      const stillUnassigned: (typeof persons)[number][] = [];
+
+      for (const person of persons) {
+        if (assignedUids.has(person.person_uid)) continue;
+
+        const familyHead = persons.find((p) =>
+          p.person_data.family_members?.members.includes(person.person_uid)
+        );
+
+        const headGroupIndex = familyHead
+          ? personUidToGroupIndex.get(familyHead.person_uid)
+          : undefined;
+
+        if (headGroupIndex !== undefined) {
+          formattedGroups[headGroupIndex].members.push(buildEntry(person));
+          assignedUids.add(person.person_uid);
+        } else {
+          stillUnassigned.push(person);
+        }
+      }
+
+      const unassigned = stillUnassigned
         .sort((a, b) => getName(a).localeCompare(getName(b)))
         .map((person) => buildEntry(person));
 
@@ -100,6 +135,7 @@ const useExportEmergencyContacts = () => {
           unassigned={unassigned}
           congregation={congName}
           generatedAt={generatedAt}
+          coContact={{ name: coFullname, phone: coPhone, email: coEmail }}
         />
       ).toBlob();
 

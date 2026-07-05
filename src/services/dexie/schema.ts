@@ -239,6 +239,10 @@ export const personSchema: PersonType = {
     emergency_contacts: [],
     predicacion_salidas: { value: false, updatedAt: '' },
     predicacion_exhibidores: { value: false, updatedAt: '' },
+    person_fullname: { value: '', updatedAt: '' },
+    deaf: { value: false, updatedAt: '' },
+    blind: { value: false, updatedAt: '' },
+    incarcerated: { value: false, updatedAt: '' },
   },
 };
 

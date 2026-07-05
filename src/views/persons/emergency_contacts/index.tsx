@@ -7,6 +7,7 @@ const TemplateEmergencyContacts = ({
   unassigned,
   congregation,
   generatedAt,
+  coContact,
 }: TemplateEmergencyContactsProps) => {
   const allGroups = [...groups];
   if (unassigned.length > 0) {
@@ -21,6 +22,7 @@ const TemplateEmergencyContacts = ({
           group={group}
           congregation={congregation}
           generatedAt={generatedAt}
+          coContact={coContact}
         />
       ))}
     </Document>

@@ -31,7 +31,14 @@ const LogoLarge = () => (
 // hoja en una cuadrícula y, con congregaciones/grupos grandes, el contenido
 // se salía por debajo del margen. Ahora cada grupo tiene su propia página (o
 // varias, si no cabe), así el contenido nunca se corta.
-const ECGroupPage = ({ group, congregation, generatedAt }: ECGroupPageProps) => {
+const ECGroupPage = ({
+  group,
+  congregation,
+  generatedAt,
+  coContact,
+}: ECGroupPageProps) => {
+  const showCoContact = !!(coContact?.phone || coContact?.email);
+
   return (
     <Page>
       <View style={styles.contentWrapper}>
@@ -42,7 +49,23 @@ const ECGroupPage = ({ group, congregation, generatedAt }: ECGroupPageProps) => 
               {congregation || 'Elda Centro'}
             </Text>
           </View>
-          <Text style={styles.topBarDate}>{generatedAt}</Text>
+
+          <View style={styles.topBarRight}>
+            {showCoContact && (
+              <>
+                <Text style={styles.coContactName}>
+                  Sup. de circuito: {coContact.name}
+                </Text>
+                {coContact.phone && (
+                  <Text style={styles.coContactLine}>{coContact.phone}</Text>
+                )}
+                {coContact.email && (
+                  <Text style={styles.coContactLine}>{coContact.email}</Text>
+                )}
+              </>
+            )}
+            <Text style={styles.topBarDate}>{generatedAt}</Text>
+          </View>
         </View>
 
         <View style={styles.headerDivider} />

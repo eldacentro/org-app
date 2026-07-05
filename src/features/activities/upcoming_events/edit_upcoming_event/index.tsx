@@ -453,7 +453,10 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                     aspectRatio: '16 / 9',
                     objectFit: 'cover',
                     objectPosition: 'center',
-                    borderRadius: 'var(--r-lg)',
+                    // Radio concéntrico con el del formulario (26px,
+                    // var(--r-lg)) menos su padding fijo de 16px — ver la
+                    // misma nota en upcoming_event/index.tsx.
+                    borderRadius: '10px',
                   }}
                 />
               )}

@@ -116,6 +116,12 @@ export type PersonType = {
       members: string[];
       updatedAt: string;
     };
+    // Solo informativo — nunca se usa como nombre para mostrar en ningún
+    // sitio (para eso siguen usándose person_firstname/person_lastname).
+    person_fullname?: { value: string; updatedAt: string };
+    deaf?: { value: boolean; updatedAt: string };
+    blind?: { value: boolean; updatedAt: string };
+    incarcerated?: { value: boolean; updatedAt: string };
   };
 };
 

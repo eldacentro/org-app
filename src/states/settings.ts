@@ -156,6 +156,16 @@ export const COSpouseNameState = atom((get) => {
   return settings.cong_settings.circuit_overseer.spouse_name?.value ?? '';
 });
 
+export const COPhoneState = atom((get) => {
+  const settings = get(settingsState);
+  return settings.cong_settings.circuit_overseer.phone?.value ?? '';
+});
+
+export const COEmailState = atom((get) => {
+  const settings = get(settingsState);
+  return settings.cong_settings.circuit_overseer.email?.value ?? '';
+});
+
 export const COScheduleNameState = atom((get) => {
   const fullname = get(COFullnameState);
   const displayName = get(CODisplayNameState);

@@ -44,19 +44,20 @@ const Export = (props: ExportType) => {
         >
           {t('tr_download')}
         </Button>
-      </Stack>
-
-      <Divider />
-
-      <Stack spacing="8px">
         <Button
-          variant="secondary"
+          variant="main"
+          color="red"
           startIcon={<IconPrint />}
           onClick={handleExportEmergencyContacts}
           endIcon={isProcessingEmergencyContacts && <IconLoading />}
         >
           Contactos de emergencia (PDF)
         </Button>
+      </Stack>
+
+      <Divider />
+
+      <Stack spacing="8px">
         <Button
           variant="secondary"
           disabled={isProcessing || isProcessingEmergencyContacts}

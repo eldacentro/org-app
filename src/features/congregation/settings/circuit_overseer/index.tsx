@@ -39,6 +39,12 @@ const CircuitOverseer = () => {
     spouseName,
     handleSpouseNameChange,
     handleSpouseNameSave,
+    phone,
+    handlePhoneChange,
+    handlePhoneSave,
+    email,
+    handleEmailChange,
+    handleEmailSave,
   } = useCircuitOverseer();
 
   return (
@@ -98,6 +104,25 @@ const CircuitOverseer = () => {
             onKeyUp={handleSpouseNameSave}
             slotProps={{ input: { readOnly: !canEdit } }}
           />
+
+          <TwoColumnsRow>
+            <TextField
+              type="text"
+              label={t('tr_phoneNumber')}
+              value={phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              onKeyUp={handlePhoneSave}
+              slotProps={{ input: { readOnly: !canEdit } }}
+            />
+            <TextField
+              type="text"
+              label={t('tr_emailAddress')}
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onKeyUp={handleEmailSave}
+              slotProps={{ input: { readOnly: !canEdit } }}
+            />
+          </TwoColumnsRow>
 
           <WeeksList />
         </Stack>

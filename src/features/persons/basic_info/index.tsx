@@ -27,6 +27,7 @@ const PersonBasicInfo = () => {
     handleChangeFirstname,
     handleChangeLastname,
     handleChangeDisplayName,
+    handleChangeFullname,
     handleChangeAddress,
     handleChangeEmailAddress,
     handleChangePhone,
@@ -147,6 +148,14 @@ const PersonBasicInfo = () => {
             slotProps={{ input: { readOnly: !isPersonEditor } }}
           />
         </Box>
+
+        <TextField
+          label={t('tr_fullName')}
+          value={person.person_data.person_fullname?.value ?? ''}
+          onChange={(e) => handleChangeFullname(e.target.value)}
+          slotProps={{ input: { readOnly: !isPersonEditor } }}
+        />
+
         {displayNameEnabled && (
           <TextField
             label={t('tr_displayName')}

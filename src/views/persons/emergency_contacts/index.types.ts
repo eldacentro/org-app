@@ -15,17 +15,25 @@ export type EmergencyContactsGroupType = {
   members: PersonContactEntry[];
 };
 
+export type CircuitOverseerContact = {
+  name: string;
+  phone: string;
+  email: string;
+};
+
 export type TemplateEmergencyContactsProps = {
   groups: EmergencyContactsGroupType[];
   unassigned: PersonContactEntry[];
   congregation: string;
   generatedAt: string;
+  coContact?: CircuitOverseerContact;
 };
 
 export type ECGroupPageProps = {
   group: EmergencyContactsGroupType;
   congregation: string;
   generatedAt: string;
+  coContact?: CircuitOverseerContact;
 };
 
 export type ECMemberProps = {

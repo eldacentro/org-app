@@ -12,6 +12,7 @@ import PersonBasicInfo from '@features/persons/basic_info';
 import PersonEnrollments from '@features/persons/enrollments';
 import PersonSpiritualStatus from '@features/persons/spiritual_status';
 import PersonPredicacion from '@features/persons/predicacion';
+import PersonSpecialCircumstances from '@features/persons/special_circumstances';
 import PersonPrivileges from '@features/persons/privileges';
 import PersonTimeAway from '@features/persons/time_away';
 import PersonEmergencyContacts from '@features/persons/emergency_contacts';
@@ -61,6 +62,8 @@ const PersonDetails = () => {
           <PersonSpiritualStatus />
 
           <PersonPredicacion />
+
+          <PersonSpecialCircumstances />
 
           <FamilyMembers />
 

@@ -101,6 +101,19 @@ const useBasicInfo = () => {
     setPersonCurrentDetails(newPerson);
   };
 
+  // Puramente informativo — a diferencia de firstname/lastname/display_name,
+  // no se usa para mostrar el nombre de la persona en ningún sitio de la app.
+  const handleChangeFullname = async (value: string) => {
+    const newPerson = structuredClone(person);
+
+    newPerson.person_data.person_fullname = {
+      value,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setPersonCurrentDetails(newPerson);
+  };
+
   const handleToggleGender = async (value) => {
     const newPerson = structuredClone(person);
 
@@ -236,6 +249,7 @@ const useBasicInfo = () => {
     handleChangeFirstname,
     handleChangeLastname,
     handleChangeDisplayName,
+    handleChangeFullname,
     handleChangeEmailAddress,
     handleChangePhone,
     handleChangeAddress,

@@ -33,8 +33,23 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     color: '#888888',
   },
+  topBarRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  coContactName: {
+    fontSize: 8.7,
+    fontWeight: 700,
+    color: '#1a1a2e',
+  },
+  coContactLine: {
+    fontSize: 7.5,
+    color: '#555555',
+  },
   pageTitle: {
-    fontSize: 16,
+    fontSize: 17.5,
     fontWeight: 700,
     color: '#1a1a2e',
     marginBottom: 3,
@@ -57,7 +72,7 @@ const styles = StyleSheet.create({
   },
   groupBannerTitle: {
     color: '#ffffff',
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: 700,
   },
   membersCountBadge: {
@@ -99,7 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   memberName: {
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: 700,
     color: '#1a1a2e',
     marginBottom: 3,
@@ -116,16 +131,16 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   memberInfoLabel: {
-    fontSize: 6.8,
+    fontSize: 7.5,
     fontWeight: 700,
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
-    width: 28,
+    width: 30,
     paddingTop: 0.6,
   },
   memberInfoValue: {
-    fontSize: 8.7,
+    fontSize: 10,
     color: '#2c2c2c',
     flex: 1,
   },
@@ -140,14 +155,14 @@ const styles = StyleSheet.create({
     gap: 1.5,
   },
   emergencyLabel: {
-    fontSize: 6.8,
+    fontSize: 7.5,
     fontWeight: 700,
     color: '#b8860b',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   emergencyValue: {
-    fontSize: 8.7,
+    fontSize: 10,
     color: '#5c4a13',
     fontWeight: 600,
   },

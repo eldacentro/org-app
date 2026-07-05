@@ -9,7 +9,13 @@ import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { generateDisplayName } from '@utils/common';
 
 const useCircuitOverseer = () => {
-  type FieldKey = 'firstname' | 'lastname' | 'displayname' | 'spouse_name';
+  type FieldKey =
+    | 'firstname'
+    | 'lastname'
+    | 'displayname'
+    | 'spouse_name'
+    | 'phone'
+    | 'email';
 
   const saveTimers = useRef<Partial<Record<FieldKey, ReturnType<typeof setTimeout>>>>({});
 
@@ -21,11 +27,15 @@ const useCircuitOverseer = () => {
   const [lastname, setLastname] = useState('');
   const [displayname, setDisplayname] = useState('');
   const [spouseName, setSpouseName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [editing, setEditing] = useState<Record<FieldKey, boolean>>({
     firstname: false,
     lastname: false,
     displayname: false,
     spouse_name: false,
+    phone: false,
+    email: false,
   });
 
   const clearTimer = (key: FieldKey) => {
@@ -88,6 +98,16 @@ const useCircuitOverseer = () => {
     setSpouseName(value);
   };
 
+  const handlePhoneChange = (value: string) => {
+    markEditing(['phone']);
+    setPhone(value);
+  };
+
+  const handleEmailChange = (value: string) => {
+    markEditing(['email']);
+    setEmail(value);
+  };
+
   const handleFirstnameSave = () => {
     scheduleSave('firstname', handleFirstnameSaveDb, ['firstname', 'displayname']);
   };
@@ -102,6 +122,14 @@ const useCircuitOverseer = () => {
 
   const handleSpouseNameSave = () => {
     scheduleSave('spouse_name', handleSpouseNameSaveDb, ['spouse_name']);
+  };
+
+  const handlePhoneSave = () => {
+    scheduleSave('phone', handlePhoneSaveDb, ['phone']);
+  };
+
+  const handleEmailSave = () => {
+    scheduleSave('email', handleEmailSaveDb, ['email']);
   };
 
   const handleFirstnameSaveDb = async () => {
@@ -169,6 +197,30 @@ const useCircuitOverseer = () => {
     });
   };
 
+  const handlePhoneSaveDb = async () => {
+    const existing = structuredClone(
+      settings.cong_settings.circuit_overseer.phone ?? { value: '', updatedAt: '' }
+    );
+    existing.value = phone;
+    existing.updatedAt = new Date().toISOString();
+
+    await dbAppSettingsUpdate({
+      'cong_settings.circuit_overseer.phone': existing,
+    });
+  };
+
+  const handleEmailSaveDb = async () => {
+    const existing = structuredClone(
+      settings.cong_settings.circuit_overseer.email ?? { value: '', updatedAt: '' }
+    );
+    existing.value = email;
+    existing.updatedAt = new Date().toISOString();
+
+    await dbAppSettingsUpdate({
+      'cong_settings.circuit_overseer.email': existing,
+    });
+  };
+
   useEffect(() => {
     const co = settings.cong_settings.circuit_overseer;
 
@@ -176,6 +228,8 @@ const useCircuitOverseer = () => {
     setLastname((prev) => (editing.lastname ? prev : co.lastname.value));
     setDisplayname((prev) => (editing.displayname ? prev : co.display_name.value));
     setSpouseName((prev) => (editing.spouse_name ? prev : co.spouse_name?.value ?? ''));
+    setPhone((prev) => (editing.phone ? prev : co.phone?.value ?? ''));
+    setEmail((prev) => (editing.email ? prev : co.email?.value ?? ''));
   }, [settings, editing]);
 
   useEffect(() => {
@@ -206,6 +260,12 @@ const useCircuitOverseer = () => {
     spouseName,
     handleSpouseNameChange,
     handleSpouseNameSave,
+    phone,
+    handlePhoneChange,
+    handlePhoneSave,
+    email,
+    handleEmailChange,
+    handleEmailSave,
   };
 };
 

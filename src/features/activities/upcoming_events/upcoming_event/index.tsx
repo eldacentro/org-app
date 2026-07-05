@@ -102,7 +102,12 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             aspectRatio: '16 / 9',
             objectFit: 'cover',
             objectPosition: 'center',
-            borderRadius: 'var(--r-lg)',
+            // Para que la curva de la portada se vea "combinada" con la de
+            // la tarjeta (concéntrica) en vez de descuadrada, el radio no
+            // puede ser el mismo que el de la tarjeta — tiene que ser el
+            // radio de la tarjeta (26px, var(--r-lg)) menos el padding que
+            // la separa del borde real (16px en móvil, 24px en desktop).
+            borderRadius: tabletUp ? '2px' : '10px',
           }}
         />
       )}

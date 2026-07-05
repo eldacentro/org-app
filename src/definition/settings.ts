@@ -158,6 +158,10 @@ export type SettingsType = {
       // Nombre de la esposa del CO (vacío = soltero). También se usa para el
       // sustituto cuando hay uno activo.
       spouse_name?: { value: string; updatedAt: string };
+      // Contacto del CO — se muestra en el encabezado del PDF de contactos
+      // de emergencia (solo si hay algo guardado).
+      phone?: { value: string; updatedAt: string };
+      email?: { value: string; updatedAt: string };
     };
     language_groups: { enabled: { value: boolean; updatedAt: string } };
     format_24h_enabled: {
