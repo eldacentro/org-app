@@ -111,6 +111,11 @@ const DatabaseWrapper = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     if (isSettingsReady) {
       setIsDbReady(true);
+
+      // Le avisa al watchdog de index.html (ver ese archivo) que la app sí
+      // terminó de arrancar, para que no fuerce una recuperación dura tras
+      // una recarga por actualización que en realidad salió bien.
+      window.dispatchEvent(new Event('app-booted'));
     }
   }, [isSettingsReady, setIsDbReady]);
 

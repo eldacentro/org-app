@@ -30,6 +30,60 @@
         }
       }, true); // Use capture phase because resource errors do not bubble
     })();
+
+    // Watchdog: cuando el usuario toca "Actualizar" (useUpdater.tsx), se marca
+    // sessionStorage['pwa-update-pending'] justo antes de recargar. Si tras esa
+    // recarga la app nunca termina de arrancar (evento 'app-booted', disparado
+    // por DatabaseWrapper una vez la base de datos local está lista) — por un
+    // service worker nuevo a medio activar, un chunk que no llegó a cachearse
+    // a tiempo en una conexión móvil lenta, etc. — este código corre ANTES de
+    // que se cargue el bundle de React, así que funciona incluso si el propio
+    // arranque de la app nunca llega a ejecutarse. Se hace una recuperación
+    // dura: se desregistra el service worker y se borran sus caches, para que
+    // la siguiente carga no pueda quedarse pegada por la misma causa.
+    (function() {
+      var UPDATE_FLAG = 'pwa-update-pending';
+      var BOOT_TIMEOUT_MS = 10000;
+
+      if (!sessionStorage.getItem(UPDATE_FLAG)) return;
+
+      var recovered = false;
+
+      function hardRecover() {
+        if (recovered) return;
+        recovered = true;
+        sessionStorage.removeItem(UPDATE_FLAG);
+
+        var cleanup = Promise.resolve();
+
+        if ('serviceWorker' in navigator) {
+          cleanup = navigator.serviceWorker.getRegistrations()
+            .then(function(regs) {
+              return Promise.all(regs.map(function(r) { return r.unregister(); }));
+            })
+            .catch(function() {});
+        }
+
+        if (window.caches) {
+          cleanup = cleanup.then(function() {
+            return caches.keys().then(function(keys) {
+              return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+            });
+          }).catch(function() {});
+        }
+
+        cleanup.finally(function() {
+          window.location.reload();
+        });
+      }
+
+      var watchdog = setTimeout(hardRecover, BOOT_TIMEOUT_MS);
+
+      window.addEventListener('app-booted', function() {
+        clearTimeout(watchdog);
+        sessionStorage.removeItem(UPDATE_FLAG);
+      });
+    })();
   </script>
   <!-- Figtree is self-hosted in /public/fonts/ and cached by the service worker for offline use -->
   <meta name="google" content="notranslate" />
