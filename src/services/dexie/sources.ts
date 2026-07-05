@@ -1,6 +1,7 @@
 import { UpdateSpec } from 'dexie';
 import appDb from '@db/appDb';
 import { sourceSchema } from '@services/dexie/schema';
+import { dbSchedUpdate } from '@services/dexie/schedules';
 import { SourceWeekType } from '@definition/sources';
 type SourceChanges = UpdateSpec<SourceWeekType> & Record<string, unknown>;
 import { updateObject } from '@utils/common';
@@ -43,6 +44,19 @@ export const dbSourcesUpdate = async (
 ) => {
   await appDb.sources.update(weekOf, changes);
   await dbUpdateSourcesMetadata();
+
+  // A esta función solo llegan ediciones manuales de los editores de
+  // reuniones (discurso, título, canciones, partes de entre semana...) —
+  // las importaciones de materiales usan dbSourcesSave/dbSourcesBulkPut.
+  // Aunque el dato viva en sources, para el usuario es una edición del
+  // programa de esa semana, así que se sella también updatedAt y
+  // lastModifiedBy del registro sched, que es lo que muestran las páginas
+  // de reuniones como "Última actualización".
+  const sched = await appDb.sched.get(weekOf);
+
+  if (sched) {
+    await dbSchedUpdate(weekOf, {});
+  }
 };
 
 export const dbSourcesBulkPut = async (sources: SourceWeekType[]) => {
