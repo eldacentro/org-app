@@ -40,7 +40,7 @@ import {
   CircuitVisitType,
   CircuitVisitCompanionActivity,
 } from '@definition/circuit_visit';
-import { personsState } from '@states/persons';
+import { personsActiveState } from '@states/persons';
 import { fullnameOptionState, COSpouseNameState } from '@states/settings';
 import { serviceOutingsListState } from '@states/service_outings';
 import { buildPersonFullname } from '@utils/common';
@@ -200,7 +200,7 @@ const PreachingSection = ({
 }) => {
   const navigate = useNavigate();
   const outingsList = useAtomValue(serviceOutingsListState);
-  const persons = useAtomValue(personsState);
+  const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const coSpouseName = useAtomValue(COSpouseNameState);
 
@@ -493,7 +493,7 @@ const CircuitVisitDashboard = () => {
       ? 'Guardado'
       : '';
 
-  const persons = useAtomValue(personsState);
+  const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const personOptions = useMemo(

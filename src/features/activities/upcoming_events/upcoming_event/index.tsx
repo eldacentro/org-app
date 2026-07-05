@@ -94,8 +94,11 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
           alt=""
           sx={{
             width: '100%',
-            maxWidth: '720px',
-            margin: '0 auto',
+            // En móvil ocupa todo el ancho de la tarjeta (ya angosta) —
+            // en desktop se ve mejor más pequeña y pegada a la izquierda,
+            // en vez de un banner enorme centrado.
+            maxWidth: desktopUp ? '420px' : '720px',
+            margin: 0,
             aspectRatio: '16 / 9',
             objectFit: 'cover',
             objectPosition: 'center',

@@ -20,8 +20,21 @@ export const uploadUpcomingEventCoverPhoto = async (
     storage,
     `congregation/${congId}/upcoming_events/${eventUid}.jpg`
   );
-  await uploadBytes(fileRef, blob);
-  return getDownloadURL(fileRef);
+
+  // Sin esto, Storage sirve el archivo sin Cache-Control explícito, así
+  // que el navegador vuelve a pedirlo por red cada vez que se abre la
+  // página (de ahí la demora, aunque el archivo pese poco). Con caché
+  // larga + un parámetro de versión en la URL guardada, la MISMA foto se
+  // sirve al instante desde caché en visitas futuras, y "Cambiar portada"
+  // sigue funcionando porque genera una URL distinta (nunca sirve la
+  // versión vieja cacheada).
+  await uploadBytes(fileRef, blob, {
+    cacheControl: 'public, max-age=31536000, immutable',
+  });
+
+  const url = await getDownloadURL(fileRef);
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${Date.now()}`;
 };
 
 export const deleteUpcomingEventCoverPhoto = async (
