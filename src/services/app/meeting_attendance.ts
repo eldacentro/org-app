@@ -22,7 +22,7 @@ const handleUpdateRecord = ({
   month: string;
   index: number;
   record: 'present' | 'online';
-  value: number;
+  value: number | null;
   type: MeetingType;
   dataView: string;
 }) => {
@@ -49,8 +49,8 @@ const handleUpdateRecord = ({
   if (!current) {
     meetingRecord.push({
       type: dataView,
-      online: undefined,
-      present: undefined,
+      online: null,
+      present: null,
       updatedAt: '',
     });
     current = meetingRecord.find((record) => record.type === dataView);
@@ -78,7 +78,7 @@ const handlePresentSaveDb = async ({
   dataView: string;
 }) => {
   try {
-    const value = count.length === 0 ? undefined : +count;
+    const value = count.length === 0 ? null : +count;
     const attendance = handleUpdateRecord({
       index,
       month,

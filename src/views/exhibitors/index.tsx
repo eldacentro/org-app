@@ -173,7 +173,7 @@ const ExhibitorsPDF = ({ monthName, cong_name, weekdays, cells, updatedAt }: Exh
 
           {/* ── Footer: fixed at A4 bottom on every page ── */}
           <View style={styles.footer} fixed>
-            <Text style={styles.footerLeft}>Elda - Centro</Text>
+            <Text style={styles.footerLeft}>Elda Centro</Text>
             {footerDate ? (
               <Text style={styles.footerRight}>
                 Última actualización · {footerDate}

@@ -91,6 +91,26 @@ const useActivePublishers = ({ onExport }: ActivePublishersProps) => {
           };
         }),
       });
+
+      // Mismas personas que "Todos los demás publicadores" de arriba, pero
+      // con id con prefijo "group:" — así el usuario puede marcarlas aquí
+      // sin chocar con su selección (independiente) en la otra categoría.
+      // useExportS21.tsx separa por ese prefijo para exportar un PDF por
+      // grupo de predicación en vez de uno combinado.
+      result.push({
+        id: 'publishers_by_group',
+        label: t('tr_activePublishersByGroup'),
+        children: person_publishers.map((person) => {
+          return {
+            id: `group:${person.person_uid}`,
+            label: buildPersonFullname(
+              person.person_data.person_lastname.value,
+              person.person_data.person_firstname.value,
+              fullnameOption
+            ),
+          };
+        }),
+      });
     }
 
     return result;
@@ -101,7 +121,11 @@ const useActivePublishers = ({ onExport }: ActivePublishersProps) => {
     if (selected.length === 0) return label;
 
     const cn = selected.filter(
-      (record) => record !== 'FTS' && record !== 'AP' && record !== 'publishers'
+      (record) =>
+        record !== 'FTS' &&
+        record !== 'AP' &&
+        record !== 'publishers' &&
+        record !== 'publishers_by_group'
     );
 
     label += `: ${cn.length}`;

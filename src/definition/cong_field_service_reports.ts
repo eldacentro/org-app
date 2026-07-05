@@ -5,12 +5,19 @@ export type PersonFixedFilterOption =
   | 'unbaptized'
   | 'AP'
   | 'FR'
-  | 'not_submitted'
-  | 'unverified'
-  | 'verified'
   | 'appointed';
 
 export type PersonFilterOption = PersonFixedFilterOption | (string & {});
+
+// Filtro independiente por estado del informe — se combina (AND) con
+// PersonFilterOption en vez de ser una opción más de esa misma lista, para
+// poder, por ejemplo, ver solo los precursores auxiliares con informe
+// pendiente de verificación al mismo tiempo.
+export type ReportStatusFilterOption =
+  | ''
+  | 'not_submitted'
+  | 'unverified'
+  | 'verified';
 
 export type CongFieldServiceReportType = {
   report_id: string;

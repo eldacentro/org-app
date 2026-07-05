@@ -6,6 +6,7 @@ import {
   congAddressState,
   settingsState,
   fullnameOptionState,
+  publicTalkSpeakersEmailState,
 } from '@states/settings';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { buildPersonFullname } from '@utils/common';
@@ -34,6 +35,7 @@ const usePublicTalkInvitation = (
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
   const localSpeakers = useAtomValue(myCongSpeakersState);
   const talksData = useAtomValue(publicTalksLocaleState);
+  const speakersEmail = useAtomValue(publicTalkSpeakersEmailState);
 
   // Speaker Info
   const speakerInfo = useMemo(() => {
@@ -149,7 +151,9 @@ const usePublicTalkInvitation = (
         congregationAddress={congAddress}
         publicTalkCoordinator={ptcCoordinatorInfo}
         assistants={assistantsInfo}
-        mediaEmail={ptcCoordinatorInfo.email || congCoordinatorInfo.email || ''}
+        mediaEmail={
+          speakersEmail || ptcCoordinatorInfo.email || congCoordinatorInfo.email || ''
+        }
       />
     );
 

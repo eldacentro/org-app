@@ -6,6 +6,7 @@ import {
   congFieldServiceReportsState,
   personFilterFieldServiceReportState,
   personSearchFieldServiceReportState,
+  reportStatusFilterFieldServiceReportState,
   selectedMonthFieldServiceReportState,
   selectedPublisherReportState,
 } from '@states/field_service_reports';
@@ -46,6 +47,7 @@ const usePersonsList = () => {
   const setSelectedPublisher = useSetAtom(selectedPublisherReportState);
 
   const currentFilter = useAtomValue(personFilterFieldServiceReportState);
+  const statusFilter = useAtomValue(reportStatusFilterFieldServiceReportState);
   const currentMonth = useAtomValue(selectedMonthFieldServiceReportState);
   const reports = useAtomValue(congFieldServiceReportsState);
   const branchReports = useAtomValue(branchFieldReportsState);
@@ -98,52 +100,35 @@ const usePersonsList = () => {
     return filterByLanguageGroup(result);
   }, [getPublishersUnbaptized, currentMonth, filterByLanguageGroup]);
 
-  const unsubmitted_reports = useMemo(() => {
-    const result = active_publishers.filter((record) => {
-      const reportReceived = reports.some(
-        (report) =>
-          report.report_data.person_uid === record.person_uid &&
-          report.report_data.report_date === currentMonth &&
-          report.report_data.shared_ministry
-      );
+  // Filtro de estado de informe — se aplica sobre CUALQUIER lista de
+  // personas ya elegida por currentFilter (combinado, no reemplaza al otro
+  // filtro), así se puede ver por ejemplo solo los precursores auxiliares
+  // con informe pendiente de verificación al mismo tiempo.
+  const filterByReportStatus = useCallback(
+    (options: PersonType[]) => {
+      if (!statusFilter) return options;
 
-      return reportReceived ? false : true;
-    });
+      return options.filter((record) => {
+        const report = reports.find(
+          (report) =>
+            report.report_data.person_uid === record.person_uid &&
+            report.report_data.report_date === currentMonth &&
+            report.report_data.shared_ministry
+        );
 
-    return result;
-  }, [active_publishers, reports, currentMonth]);
+        if (statusFilter === 'not_submitted') return !report;
+        if (statusFilter === 'unverified') {
+          return !!report && report.report_data.status === 'received';
+        }
+        if (statusFilter === 'verified') {
+          return !!report && report.report_data.status === 'confirmed';
+        }
 
-  const verified_reports = useMemo(() => {
-    const result = active_publishers.filter((record) => {
-      const reportReceived = reports.some(
-        (report) =>
-          report.report_data.person_uid === record.person_uid &&
-          report.report_data.report_date === currentMonth &&
-          report.report_data.shared_ministry &&
-          report.report_data.status === 'confirmed'
-      );
-
-      return reportReceived;
-    });
-
-    return result;
-  }, [active_publishers, reports, currentMonth]);
-
-  const unverified_reports = useMemo(() => {
-    const result = active_publishers.filter((record) => {
-      const reportReceived = reports.some(
-        (report) =>
-          report.report_data.person_uid === record.person_uid &&
-          report.report_data.report_date === currentMonth &&
-          report.report_data.shared_ministry &&
-          report.report_data.status === 'received'
-      );
-
-      return reportReceived;
-    });
-
-    return result;
-  }, [active_publishers, reports, currentMonth]);
+        return true;
+      });
+    },
+    [statusFilter, reports, currentMonth]
+  );
 
   const appointed_brothers = useMemo(() => {
     const result = getAppointedBrothers(currentMonth);
@@ -239,18 +224,6 @@ const usePersonsList = () => {
       result.push(...baptized_publishers);
     }
 
-    if (currentFilter === 'not_submitted') {
-      result.push(...unsubmitted_reports);
-    }
-
-    if (currentFilter === 'unverified') {
-      result.push(...unverified_reports);
-    }
-
-    if (currentFilter === 'verified') {
-      result.push(...verified_reports);
-    }
-
     if (currentFilter === 'appointed') {
       result.push(...appointed_brothers);
     }
@@ -271,7 +244,7 @@ const usePersonsList = () => {
       result.push(...language_group_members);
     }
 
-    return result.filter(
+    return filterByReportStatus(result).filter(
       (record) =>
         record.person_data.person_lastname.value
           .toLowerCase()
@@ -287,13 +260,11 @@ const usePersonsList = () => {
     inactive_publishers,
     baptized_publishers,
     unbaptized_publishers,
-    unsubmitted_reports,
+    filterByReportStatus,
     appointed_brothers,
     auxiliary_pioneers,
     regular_pioneers,
     group_members,
-    unverified_reports,
-    verified_reports,
     language_group_members,
   ]);
 

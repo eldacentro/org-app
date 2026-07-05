@@ -6,6 +6,7 @@ import { atom } from 'jotai';
 import {
   CongFieldServiceReportType,
   PersonFilterOption,
+  ReportStatusFilterOption,
 } from '@definition/cong_field_service_reports';
 import { congFieldServiceReportSchema } from '@services/dexie/schema';
 
@@ -25,6 +26,9 @@ export const selectedMonthFieldServiceReportState = atom<string>();
 
 export const personFilterFieldServiceReportState =
   atom<PersonFilterOption>('active');
+
+export const reportStatusFilterFieldServiceReportState =
+  atom<ReportStatusFilterOption>('');
 
 export const selectedPublisherReportState = atom<string>();
 

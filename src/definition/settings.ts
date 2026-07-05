@@ -144,6 +144,10 @@ export type SettingsType = {
       };
     }[];
     territories_enabled_publishers?: { value: boolean; updatedAt: string };
+    // Correo al que los oradores públicos envían el contenido multimedia
+    // (imágenes/videos) de su discurso. Se usa en la invitación al orador
+    // en vez del correo del coordinador cuando está definido.
+    public_talk_speakers_email?: { value: string; updatedAt: string };
     circuit_overseer: {
       firstname: { value: string; updatedAt: string };
       lastname: { value: string; updatedAt: string };

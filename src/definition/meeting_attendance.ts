@@ -1,6 +1,10 @@
 export type AttendanceCongregation = {
-  present: number;
-  online: number;
+  // null representa "borrado a propósito" — a diferencia de undefined, no
+  // se pierde al cifrar (JSON.stringify) ni al fusionar con datos
+  // remotos durante la sincronización E2E, así que un valor borrado no
+  // puede "resucitar" con el número anterior tras sincronizar.
+  present: number | null;
+  online: number | null;
   type: string;
   updatedAt: string;
 };

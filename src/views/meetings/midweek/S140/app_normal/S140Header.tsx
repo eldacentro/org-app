@@ -21,7 +21,7 @@ const S140Header = ({ lang }: S140HeaderType) => {
           </Text>
           <Text style={stylesSmart.headerCongregation}>
             {rtl && '\u200f'}
-            {`Elda - Centro`}
+            {`Elda Centro`}
           </Text>
         </View>
       </View>

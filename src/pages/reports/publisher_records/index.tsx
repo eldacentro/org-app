@@ -4,6 +4,7 @@ import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import usePublisherRecords from './usePublisherRecords';
 import ExportS21 from '@features/reports/publisher_records/export_S21';
 import PageTitle from '@components/page_title';
+import PioneerBalance from '@features/reports/publisher_records/pioneer_balance';
 import PublisherTabs from '@features/reports/publisher_records/publisher_tabs';
 import YearsStats from '@features/reports/publisher_records/years_stats';
 import NavBarButton from '@components/nav_bar_button';
@@ -50,7 +51,19 @@ const PublisherRecords = () => {
         }}
       >
         <PublisherTabs />
-        <YearsStats />
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            flex: 0.8,
+            width: desktopUp ? 'auto' : '100%',
+          }}
+        >
+          <YearsStats />
+          <PioneerBalance />
+        </Box>
       </Box>
     </Box>
   );

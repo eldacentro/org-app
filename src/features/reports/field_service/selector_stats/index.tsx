@@ -1,16 +1,19 @@
 import { Box, Stack } from '@mui/material';
-import { useAppTranslation } from '@hooks/index';
+import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import { CardContainer } from '../shared_styles';
 import useSelectorStats from './useSelectorStats';
 import Divider from '@components/divider';
 import ReceivedReports from './received_reports';
 import ServiceYearMonthSelector from '@features/reports/service_year_month_selector';
 import PersonFilter from './person_filter';
+import ReportStatusFilter from './report_status_filter';
 import { IconInfo } from '@components/icons';
 import Typography from '@components/typography';
 
 const SelectorStats = () => {
   const { t } = useAppTranslation();
+
+  const { desktopUp } = useBreakpoints();
 
   const { handleMonthChange, handleYearChange, month, year, month_locked } =
     useSelectorStats();
@@ -54,7 +57,18 @@ const SelectorStats = () => {
 
         <Stack spacing="24px">
           <ReceivedReports />
-          <PersonFilter />
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: desktopUp ? 'row' : 'column',
+              gap: '16px',
+              '& > *': { flex: 1 },
+            }}
+          >
+            <PersonFilter />
+            <ReportStatusFilter />
+          </Box>
         </Stack>
       </Stack>
     </CardContainer>

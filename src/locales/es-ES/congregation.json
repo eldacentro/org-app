@@ -252,6 +252,8 @@
   "tr_repeatedMonthlyWarning": "Mostrar advertencia de asignación repetida – mensual",
   "tr_repeatedMonthlyWarningDesc": "Esta persona ya tiene una asignación este mes",
   "tr_mainStudyConductor": "Conductor principal del estudio",
+  "tr_publicTalkSpeakersEmail": "Correo para discursantes",
+  "tr_publicTalkSpeakersEmailDesc": "Correo que aparecerá en la invitación para que los oradores visitantes envíen el contenido multimedia de su discurso",
   "tr_monthsPeriod": "{{ MonthCount }} meses",
   "tr_congregationInfo": "Información de la congregación",
   "tr_speakers": "Oradores",

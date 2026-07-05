@@ -166,6 +166,12 @@ export const COEmailState = atom((get) => {
   return settings.cong_settings.circuit_overseer.email?.value ?? '';
 });
 
+/** Correo al que los oradores públicos envían el contenido multimedia de su discurso. */
+export const publicTalkSpeakersEmailState = atom((get) => {
+  const settings = get(settingsState);
+  return settings.cong_settings.public_talk_speakers_email?.value ?? '';
+});
+
 export const COScheduleNameState = atom((get) => {
   const fullname = get(COFullnameState);
   const displayName = get(CODisplayNameState);

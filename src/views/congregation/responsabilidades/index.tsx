@@ -483,7 +483,7 @@ const TemplateResponsabilidades = ({
 
         {/* ── Footer ───────────────────────────── */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Elda - Centro</Text>
+          <Text style={styles.footerText}>Elda Centro</Text>
           {footerDate ? (
             <Text style={styles.footerText}>
               Última actualización · {footerDate}

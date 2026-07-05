@@ -461,42 +461,42 @@ export const meetingAttendanceSchema: MeetingAttendanceType = {
   month_date: '',
   week_1: {
     midweek: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
     weekend: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
   },
   week_2: {
     midweek: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
     weekend: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
   },
   week_3: {
     midweek: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
     weekend: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
   },
   week_4: {
     midweek: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
     weekend: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
   },
   week_5: {
     midweek: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
     weekend: [
-      { type: 'main', online: undefined, present: undefined, updatedAt: '' },
+      { type: 'main', online: null, present: null, updatedAt: '' },
     ],
   },
 };

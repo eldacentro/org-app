@@ -5,7 +5,10 @@ import { NotificationRecordType } from '@definition/notification';
 import { notificationsDbState, notificationsState } from '@states/notification';
 import { isAppNotificationOpenState } from '@states/app';
 import { formatLongDate } from '@utils/date';
-import { personFilterFieldServiceReportState } from '@states/field_service_reports';
+import {
+  personFilterFieldServiceReportState,
+  reportStatusFilterFieldServiceReportState,
+} from '@states/field_service_reports';
 import { dbNotificationsSave } from '@services/dexie/notifications';
 import { hour24FormatState, shortDateFormatState } from '@states/settings';
 
@@ -15,6 +18,7 @@ const useNotificationItem = (notification: NotificationRecordType) => {
   const setNotifications = useSetAtom(notificationsState);
   const setOpen = useSetAtom(isAppNotificationOpenState);
   const setFilter = useSetAtom(personFilterFieldServiceReportState);
+  const setStatusFilter = useSetAtom(reportStatusFilterFieldServiceReportState);
 
   const dbNotifications = useAtomValue(notificationsDbState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
@@ -62,7 +66,8 @@ const useNotificationItem = (notification: NotificationRecordType) => {
     setOpen(false);
 
     if (notification.id === 'reports-unverified') {
-      setFilter('unverified');
+      setFilter('active');
+      setStatusFilter('unverified');
       navigate('/reports/field-service');
     }
   };

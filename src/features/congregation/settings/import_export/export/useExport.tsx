@@ -45,7 +45,7 @@ const useExport = ({ onClose }: ExportType) => {
   const filename = useMemo(() => {
     const now = formatDate(new Date(), 'yyyy-MM-dd_HH:mm:ss').replace('_', 'T');
 
-    return `Organized-backup-${now}.json`;
+    return `EldaCentro-backup-${now}.json`;
   }, []);
 
   const handleGetSettings = () => {

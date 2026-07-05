@@ -1063,8 +1063,8 @@ export const dbMeetingAttendanceFill = async () => {
         if (!midweek) {
           weeklyAttendance.midweek.push({
             type: view,
-            online: undefined,
-            present: undefined,
+            online: null,
+            present: null,
             updatedAt: '',
           });
 
@@ -1088,8 +1088,8 @@ export const dbMeetingAttendanceFill = async () => {
         if (!weekend) {
           weeklyAttendance.weekend.push({
             type: view,
-            online: undefined,
-            present: undefined,
+            online: null,
+            present: null,
             updatedAt: '',
           });
 

@@ -14,6 +14,7 @@ import useCongregationCard from '@features/reports/hooks/useCongregationCard';
 import usePersons from '@features/persons/hooks/usePersons';
 import usePublisherCard from '@features/reports/hooks/usePublisherCard';
 import TemplateS21Doc2in1 from '@views/reports/S21/2in1';
+import TemplateS21DocMulti from '@views/reports/S21/multi';
 
 const useExportS21 = ({ onClose }: ExportS21Props) => {
   const { t } = useAppTranslation();
@@ -222,31 +223,52 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
     const url = URL.createObjectURL(content);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Organized_S-21_Cards.zip';
+    link.download = 'EldaCentro_S-21_Cards.zip';
     link.click();
   };
 
   const handleExportInactive = async (values: string[]) => {
-    const zip = new JSZip();
+    // El árbol de selección incluye el id del nodo contenedor
+    // ("inactive_all") junto con los uids reales cuando se usa
+    // "Seleccionar todo" — se descarta aquí antes de buscar cada persona.
+    const publisherUids = values.filter((value) =>
+      publishers_inactive.some((record) => record.person_uid === value)
+    );
 
-    for await (const publisher of values) {
-      const data = getCardsData(publisher);
-      const name = `S-21_${data.at(0).name}.pdf`;
+    const publishers = publisherUids.map((person_uid) => getCardsData(person_uid));
 
-      const blob = await pdf(
-        <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
-      ).toBlob();
+    const blob = await pdf(
+      <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />
+    ).toBlob();
 
-      zip.file(name, blob);
-    }
-
-    const content = await zip.generateAsync({ type: 'blob' });
-
-    const url = URL.createObjectURL(content);
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Organized_S-21_Cards_Inactives.zip';
+    link.download = 'EldaCentro_S-21_Cards_Inactives.pdf';
     link.click();
+  };
+
+  // Arma un solo Document (una página por publicador) con los publicadores
+  // indicados y lo agrega al zip con el nombre dado — reemplaza el patrón
+  // anterior de un archivo PDF por publicador.
+  const addCombinedPdfToZip = async ({
+    zip,
+    fileName,
+    person_uids,
+  }: {
+    zip: JSZip;
+    fileName: string;
+    person_uids: string[];
+  }) => {
+    if (person_uids.length === 0) return;
+
+    const publishers = person_uids.map((person_uid) => getCardsData(person_uid));
+
+    const blob = await pdf(
+      <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />
+    ).toBlob();
+
+    zip.file(fileName, blob);
   };
 
   const handleExportGroups = async (values: string[]) => {
@@ -280,24 +302,19 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       // Remove invalid characters from folder name
       folderName = folderName.replace(/[<>:"/\\|?*]/g, '_');
 
-      const groupZip = zip.folder(folderName);
+      const groupMembers = group.group_data.members
+        .filter((publisher) =>
+          publishers_others.some(
+            (record) => record.person_uid === publisher.person_uid
+          )
+        )
+        .map((publisher) => publisher.person_uid);
 
-      for await (const publisher of group.group_data.members) {
-        const isPub = publishers_others.some(
-          (record) => record.person_uid === publisher.person_uid
-        );
-
-        if (isPub) {
-          const data = getCardsData(publisher.person_uid);
-          const name = `S-21_${data.at(0).name}.pdf`;
-
-          const blob = await pdf(
-            <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
-          ).toBlob();
-
-          groupZip.file(name, blob);
-        }
-      }
+      await addCombinedPdfToZip({
+        zip,
+        fileName: `S-21_${folderName}.pdf`,
+        person_uids: groupMembers,
+      });
 
       index++;
     }
@@ -307,11 +324,17 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
     const url = URL.createObjectURL(content);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Organized_S-21_Cards_Groups.zip';
+    link.download = 'EldaCentro_S-21_Cards_Groups.zip';
     link.click();
   };
 
   const handleExportActive = async (values: string[]) => {
+    // Los ids de la categoría "por grupos" llevan el prefijo "group:" (ver
+    // useActivePublishers.tsx) — se separan aquí del resto de la selección.
+    const byGroupUids = values
+      .filter((value) => value.startsWith('group:'))
+      .map((value) => value.slice('group:'.length));
+
     const FTS = publishers_FTS.filter((record) =>
       values.includes(record.person_uid)
     );
@@ -326,55 +349,55 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const zip = new JSZip();
 
-    // get FTS
-    if (FTS.length > 0) {
-      const ftsZip = zip.folder(
-        t('tr_fulltimeServants', { lng: sourceLocale })
+    await addCombinedPdfToZip({
+      zip,
+      fileName: `S-21_${t('tr_fulltimeServants', { lng: sourceLocale })}.pdf`,
+      person_uids: FTS.map((record) => record.person_uid),
+    });
+
+    await addCombinedPdfToZip({
+      zip,
+      fileName: `S-21_${t('tr_APs', { lng: sourceLocale })}.pdf`,
+      person_uids: AP.map((record) => record.person_uid),
+    });
+
+    await addCombinedPdfToZip({
+      zip,
+      fileName: `S-21_${t('tr_activePublishersAll', { lng: sourceLocale })}.pdf`,
+      person_uids: publishers.map((record) => record.person_uid),
+    });
+
+    // "Todos los demás publicadores (por grupos)" — un PDF combinado por
+    // cada grupo de predicación, en vez de uno solo con todos juntos.
+    if (byGroupUids.length > 0) {
+      const byGroupZip = zip.folder(
+        t('tr_activePublishersByGroup', { lng: sourceLocale })
       );
 
-      for await (const publisher of FTS) {
-        const data = getCardsData(publisher.person_uid);
-        const name = `S-21_${data.at(0).name}.pdf`;
+      let index = 1;
+      for await (const group of publishers_group) {
+        const groupMembers = group.group_data.members
+          .filter((publisher) => byGroupUids.includes(publisher.person_uid))
+          .map((publisher) => publisher.person_uid);
 
-        const blob = await pdf(
-          <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
-        ).toBlob();
+        let folderName = group.group_data.name;
 
-        ftsZip.file(name, blob);
-      }
-    }
+        if (folderName === '') {
+          folderName = t('tr_groupNumber', {
+            lng: sourceLocale,
+            groupNumber: index,
+          });
+        }
 
-    // get AP
-    if (AP.length > 0) {
-      const apZip = zip.folder(t('tr_APs', { lng: sourceLocale }));
+        folderName = folderName.replace(/[<>:"/\\|?*]/g, '_');
 
-      for await (const publisher of AP) {
-        const data = getCardsData(publisher.person_uid);
-        const name = `S-21_${data.at(0).name}.pdf`;
+        await addCombinedPdfToZip({
+          zip: byGroupZip,
+          fileName: `S-21_${folderName}.pdf`,
+          person_uids: groupMembers,
+        });
 
-        const blob = await pdf(
-          <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
-        ).toBlob();
-
-        apZip.file(name, blob);
-      }
-    }
-
-    // get other publishers
-    if (publishers.length > 0) {
-      const otherPubZip = zip.folder(
-        t('tr_activePublishersAll', { lng: sourceLocale })
-      );
-
-      for await (const publisher of publishers) {
-        const data = getCardsData(publisher.person_uid);
-        const name = `S-21_${data.at(0).name}.pdf`;
-
-        const blob = await pdf(
-          <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
-        ).toBlob();
-
-        otherPubZip.file(name, blob);
+        index++;
       }
     }
 
@@ -383,28 +406,40 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
     const url = URL.createObjectURL(content);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Organized_S-21_Cards_Actives.zip';
+    link.download = 'EldaCentro_S-21_Cards_Actives.zip';
     link.click();
   };
 
   const handleExportCards = async (values: string[], type: string) => {
-    if (type === 'all') {
-      await handleExportAll();
-    }
+    try {
+      if (type === 'all') {
+        await handleExportAll();
+      }
 
-    if (type === 'inactive') {
-      await handleExportInactive(values);
-    }
+      if (type === 'inactive') {
+        await handleExportInactive(values);
+      }
 
-    if (type === 'groups') {
-      await handleExportGroups(values);
-    }
+      if (type === 'groups') {
+        await handleExportGroups(values);
+      }
 
-    if (type === 'active') {
-      await handleExportActive(values);
-    }
+      if (type === 'active') {
+        await handleExportActive(values);
+      }
 
-    onClose?.();
+      onClose?.();
+    } catch (error) {
+      onClose?.();
+
+      console.error(error);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(error.message),
+        severity: 'error',
+      });
+    }
   };
 
   const handleAction = async () => {
