@@ -100,20 +100,26 @@ const upsertSpecialMeetingEvent = async (
 
   // start/end incluyen la hora real (antes solo guardaban la fecha, con
   // hora 00:00) — así "Añadir al calendario" exporta la hora correcta en
-  // vez de medianoche. La hora en sí sigue viviendo también en
-  // `description` para mostrarla en la tarjeta, como ya hacía.
+  // vez de medianoche. La hora ya no se repite en `description`: el
+  // dashboard la calcula aparte a partir de start/end y la muestra en su
+  // propio recuadro, así que ponerla también en la descripción quedaba
+  // duplicada en la tarjeta.
   const startDate = new Date(`${meeting.date.replace(/\//g, '-')}T${meeting.time || '00:00'}:00`);
   const endDate = addHours(1, startDate);
   const start = startDate.toISOString();
   const end = endDate.toISOString();
 
-  // Idempotente: sin cambios reales, no se reescribe.
+  // Idempotente: sin cambios reales, no se reescribe. La comparación con
+  // description === '' hace que una visita ya proyectada ANTES de este
+  // cambio (que guardó la hora también en description) se reescriba una
+  // vez más para quitar ese texto duplicado, en vez de quedarse repetida
+  // para siempre por no haber "cambiado" nada más.
   if (
     existing &&
     !existing.event_data._deleted &&
     existing.event_data.start === start &&
-    existing.event_data.description === meeting.time &&
-    existing.event_data.custom === custom
+    existing.event_data.custom === custom &&
+    existing.event_data.description === ''
   ) {
     return;
   }
@@ -130,7 +136,7 @@ const upsertSpecialMeetingEvent = async (
       type: 'main',
       category: UpcomingEventCategory.Custom,
       duration: UpcomingEventDuration.SingleDay,
-      description: meeting.time,
+      description: '',
       custom,
     },
   });

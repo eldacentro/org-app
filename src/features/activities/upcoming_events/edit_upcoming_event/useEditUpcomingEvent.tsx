@@ -1,21 +1,35 @@
-import { ChangeEvent, useCallback, useState } from 'react';
+import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { SelectChangeEvent } from '@mui/material';
 import {
   UpcomingEventCategory,
   UpcomingEventDuration,
 } from '@definition/upcoming_events';
-import { hour24FormatState } from '@states/settings';
-import { stackDatesToOne } from '@utils/date';
+import { hour24FormatState, congIDState } from '@states/settings';
+import { formatDate, getDatesBetweenDates, stackDatesToOne } from '@utils/date';
+import { resizeImageToJpeg } from '@utils/image';
+import {
+  uploadUpcomingEventCoverPhoto,
+  deleteUpcomingEventCoverPhoto,
+} from '@services/firebase/upcoming_events';
+import { displaySnackNotification } from '@services/states/app';
 import { decorationsForEvent } from '../decorations_for_event';
 import { EditUpcomingEventProps } from './index.types';
 
+// Ancho máximo real al que se muestra la portada en la tarjeta de
+// "Próximos eventos" (ver upcoming_event/index.tsx) — no tiene sentido
+// subir/guardar una imagen más ancha que eso.
+const COVER_PHOTO_MAX_WIDTH = 720;
+
 const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
   const hour24 = useAtomValue(hour24FormatState);
+  const congID = useAtomValue(congIDState);
 
   const [localEvent, setLocalEvent] = useState(data);
 
   const [wasSubmitted, setWasSubmitted] = useState(false);
+
+  const [uploadingCoverPhoto, setUploadingCoverPhoto] = useState(false);
 
   const [errors, setErrors] = useState({
     category: false,
@@ -149,6 +163,72 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     []
   );
 
+  const handleChangeJwLibraryUrl = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            jwLibraryUrl: event.target.value,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleUploadCoverPhoto = useCallback(
+    async (file?: File) => {
+      if (!file) return;
+
+      setUploadingCoverPhoto(true);
+      try {
+        const blob = await resizeImageToJpeg(file, COVER_PHOTO_MAX_WIDTH);
+        const url = await uploadUpcomingEventCoverPhoto(
+          congID,
+          localEvent.event_uid,
+          blob
+        );
+
+        setLocalEvent((prev) => ({
+          ...prev,
+          event_data: { ...prev.event_data, coverPhotoUrl: url },
+        }));
+      } catch (error) {
+        console.error(error);
+        displaySnackNotification({
+          header: 'Error',
+          message: 'Error subiendo la portada. Verifica tu conexión.',
+          severity: 'error',
+        });
+      } finally {
+        setUploadingCoverPhoto(false);
+      }
+    },
+    [congID, localEvent.event_uid]
+  );
+
+  const handleDeleteCoverPhoto = useCallback(async () => {
+    setUploadingCoverPhoto(true);
+    try {
+      await deleteUpcomingEventCoverPhoto(congID, localEvent.event_uid);
+      setLocalEvent((prev) => ({
+        ...prev,
+        event_data: { ...prev.event_data, coverPhotoUrl: '' },
+      }));
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Error eliminando la portada. Verifica tu conexión.',
+        severity: 'error',
+      });
+    } finally {
+      setUploadingCoverPhoto(false);
+    }
+  }, [congID, localEvent.event_uid]);
+
   const handleChangeEventDuration = useCallback(
     (event: SelectChangeEvent<unknown>) => {
       setLocalEvent((prev) => {
@@ -170,15 +250,28 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
 
   const handleChangeEventStartDate = useCallback((value: Date) => {
     setLocalEvent((prev) => {
+      const newStart = stackDatesToOne(
+        value,
+        new Date(prev.event_data.start),
+        true
+      ).toISOString();
+
+      // En un evento de un solo día, la fecha es una sola — mover el campo
+      // "Fecha" tiene que mover también el fin, si no el evento se queda
+      // con una fecha de fin obsoleta que nadie ve en el formulario pero
+      // que sí se usa al comparar el evento con otras fechas (p. ej. para
+      // saber si suspende una reunión).
+      const newEnd =
+        prev.event_data.duration === UpcomingEventDuration.SingleDay
+          ? stackDatesToOne(value, new Date(prev.event_data.end), true).toISOString()
+          : prev.event_data.end;
+
       return {
         ...prev,
         event_data: {
           ...prev.event_data,
-          start: stackDatesToOne(
-            value,
-            new Date(prev.event_data.start),
-            true
-          ).toISOString(),
+          start: newStart,
+          end: newEnd,
         },
       };
     });
@@ -236,6 +329,95 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     });
   }, []);
 
+  // Un evento de varios días puede tener horas distintas cada jornada (p.
+  // ej. una asamblea regional). Esta lista se arma a partir del rango de
+  // fechas actual — si un día concreto no tiene su propio horario guardado
+  // en dailyTimes, cae al horario general (start/end) como valor por
+  // defecto, así que extender el rango de fechas nunca deja un día "vacío".
+  const dailyTimesList = useMemo(() => {
+    if (localEvent.event_data.duration !== UpcomingEventDuration.MultipleDays) {
+      return [];
+    }
+
+    const dates = getDatesBetweenDates(
+      localEvent.event_data.start,
+      localEvent.event_data.end
+    );
+
+    return dates.map((date) => {
+      const dateStr = formatDate(date, 'yyyy/MM/dd');
+
+      const override = localEvent.event_data.dailyTimes?.find(
+        (record) => record.date === dateStr
+      );
+
+      const start = override
+        ? new Date(override.start)
+        : stackDatesToOne(date, new Date(localEvent.event_data.start), true);
+
+      const end = override
+        ? new Date(override.end)
+        : stackDatesToOne(date, new Date(localEvent.event_data.end), true);
+
+      return { date: dateStr, start, end };
+    });
+  }, [
+    localEvent.event_data.duration,
+    localEvent.event_data.start,
+    localEvent.event_data.end,
+    localEvent.event_data.dailyTimes,
+  ]);
+
+  const handleChangeDailyTime = useCallback(
+    (date: string, field: 'start' | 'end', value: Date) => {
+      setLocalEvent((prev) => {
+        const dates = getDatesBetweenDates(
+          prev.event_data.start,
+          prev.event_data.end
+        );
+        const dateObj =
+          dates.find((d) => formatDate(d, 'yyyy/MM/dd') === date) ??
+          new Date(date);
+
+        const existing = prev.event_data.dailyTimes?.find(
+          (record) => record.date === date
+        );
+
+        const currentStart = existing
+          ? new Date(existing.start)
+          : stackDatesToOne(dateObj, new Date(prev.event_data.start), true);
+        const currentEnd = existing
+          ? new Date(existing.end)
+          : stackDatesToOne(dateObj, new Date(prev.event_data.end), true);
+
+        const newStart =
+          field === 'start'
+            ? stackDatesToOne(dateObj, value, true)
+            : currentStart;
+        const newEnd =
+          field === 'end' ? stackDatesToOne(dateObj, value, true) : currentEnd;
+
+        const dailyTimes = (prev.event_data.dailyTimes ?? []).filter(
+          (record) => record.date !== date
+        );
+        dailyTimes.push({
+          date,
+          start: newStart.toISOString(),
+          end: newEnd.toISOString(),
+        });
+
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            dailyTimes,
+          },
+        };
+      });
+    },
+    []
+  );
+
   const handleSaveEvent = useCallback(() => {
     setWasSubmitted(true);
 
@@ -265,12 +447,19 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     handleChangeEventDescription,
     handleChangeEventTopic,
     handleChangeAssemblyRepresentative,
+    handleChangeJwLibraryUrl,
+    uploadingCoverPhoto,
+    handleUploadCoverPhoto,
+    handleDeleteCoverPhoto,
     handleChangeEventDuration,
 
     handleChangeEventStartDate,
     handleChangeEventStartTime,
     handleChangeEventEndDate,
     handleChangeEventEndTime,
+
+    dailyTimesList,
+    handleChangeDailyTime,
 
     handleSaveEvent,
     handleDeleteEvent,

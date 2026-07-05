@@ -16,7 +16,19 @@ import {
   IconWavingHand,
   IconWine,
 } from '@components/icons';
-import { UpcomingEventDuration } from '@definition/upcoming_events';
+import {
+  UpcomingEventCategory,
+  UpcomingEventDuration,
+} from '@definition/upcoming_events';
+
+// Las 3 categorías que en español se llaman "Asamblea ___" — solo para
+// ellas aplica el enlace de JW Library y la foto de portada (no hay
+// programa de JW Library ni portada oficial para el resto de eventos).
+export const ASSEMBLY_CATEGORIES = [
+  UpcomingEventCategory.AssemblyWeek,
+  UpcomingEventCategory.ConventionWeek,
+  UpcomingEventCategory.InternationalConventionWeek,
+];
 
 export const decorationsForEvent = [
   {

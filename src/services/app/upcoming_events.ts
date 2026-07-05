@@ -48,19 +48,44 @@ export const upcomingEventData = (event: UpcomingEventType) => {
     event.event_data.end
   );
 
+  const formatTime = (value: Date) =>
+    formatDate(value, hour24 ? 'HH:mm' : 'hh:mmaaa');
+
   result.dates = eventDates.map((date) => {
     const dayIndex = date.getDay();
     const dateV = date.getDate();
     const monthIndex = date.getMonth();
     const month = months[monthIndex];
+    const dateStr = formatDate(date, 'yyyy/MM/dd');
+
+    // Un evento de varios días puede tener horarios distintos cada
+    // jornada (p. ej. una asamblea regional) — si este día tiene su
+    // propio horario guardado, se usa ese; si no, cae al horario general
+    // del evento (event_data.start/end).
+    const override = event.event_data.dailyTimes?.find(
+      (record) => record.date === dateStr
+    );
+
+    const dayTime = getTranslation({
+      key: 'tr_dateRangeNoYear',
+      params: {
+        startDate: formatTime(
+          new Date(override ? override.start : event.event_data.start)
+        ),
+        endDate: formatTime(
+          new Date(override ? override.end : event.event_data.end)
+        ),
+      },
+    });
 
     return {
-      date: formatDate(date, 'yyyy/MM/dd'),
+      date: dateStr,
       day: weekdays[dayIndex === 0 ? 6 : dayIndex - 1],
       dateFormatted: getTranslation({
         key: 'tr_longDateNoYearLocale',
         params: { month, date: dateV },
       }),
+      time: dayTime,
     };
   });
 
@@ -120,21 +145,11 @@ export const upcomingEventData = (event: UpcomingEventType) => {
     }
   }
 
-  const startTime = formatDate(
-    new Date(event.event_data.start),
-    hour24 ? 'HH:mm' : 'hh:mmaaa'
-  );
-
-  const endTime = formatDate(
-    new Date(event.event_data.end),
-    hour24 ? 'HH:mm' : 'hh:mmaaa'
-  );
-
   result.time = getTranslation({
     key: 'tr_dateRangeNoYear',
     params: {
-      startDate: startTime,
-      endDate: endTime,
+      startDate: formatTime(new Date(event.event_data.start)),
+      endDate: formatTime(new Date(event.event_data.end)),
     },
   });
 

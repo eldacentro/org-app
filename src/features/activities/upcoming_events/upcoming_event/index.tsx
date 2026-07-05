@@ -18,6 +18,7 @@ import AddToCalendar from '../add_to_calendar';
 import Typography from '@components/typography';
 import UpcomingEventDate from '../upcoming_event_date';
 import CircuitVisitWeekAgenda from '@features/circuit_visit/shared/CircuitVisitWeekAgenda';
+import { ASSEMBLY_CATEGORIES } from '../decorations_for_event';
 
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -51,6 +52,10 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
     );
   }
 
+  const isAssemblyCategory = ASSEMBLY_CATEGORIES.includes(
+    props.data.event_data.category
+  );
+
   return (
     <Box
       sx={{
@@ -82,6 +87,23 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      {isAssemblyCategory && props.data.event_data.coverPhotoUrl && (
+        <Box
+          component="img"
+          src={props.data.event_data.coverPhotoUrl}
+          alt=""
+          sx={{
+            width: '100%',
+            maxWidth: '720px',
+            margin: '0 auto',
+            aspectRatio: '16 / 9',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            borderRadius: 'var(--r-lg)',
+          }}
+        />
+      )}
+
       <Box
         sx={{
           display: 'flex',
@@ -149,7 +171,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             color="var(--brand-deep)"
             sx={{ fontStyle: 'italic' }}
           >
-            “{props.data.event_data.topic}”
+            {props.data.event_data.topic}
           </Typography>
         )}
 
@@ -195,7 +217,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             <UpcomingEventDate
               date={eventDate.dateFormatted}
               day={eventDate.day}
-              title={eventFormatted.time}
+              title={eventDate.time}
               disabled={eventDate.date <= previousDay}
               description={`${t('tr_day')} ${eventDateIndex + 1}/${eventFormatted.dates.length}`}
               dayIndicatorRef={(element: HTMLDivElement) => {
@@ -209,6 +231,37 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             )}
           </Fragment>
         ))}
+
+      {isAssemblyCategory && props.data.event_data.jwLibraryUrl && (
+        <Box
+          component="a"
+          href={props.data.event_data.jwLibraryUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            alignSelf: 'flex-start',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            px: '8px',
+            py: '4px',
+            borderRadius: 'var(--r-sm)',
+            textDecoration: 'none',
+            border: '1px solid var(--line)',
+            opacity: 0.7,
+            transition: 'opacity 0.2s ease',
+            '&:hover': { opacity: 1 },
+          }}
+        >
+          <Typography
+            component="span"
+            className="body-small-semibold"
+            color="var(--grey-400)"
+          >
+            JW Library ↗
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

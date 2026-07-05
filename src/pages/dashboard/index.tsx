@@ -28,9 +28,14 @@ import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
 import Snackbar from '@components/snackbar';
-import { LANGUAGE_LIST, WEEK_TYPE_NO_MEETING } from '@constants/index';
+import {
+  LANGUAGE_LIST,
+  WEEK_TYPE_NO_MEETING,
+  UPCOMING_EVENT_ASSEMBLY_CATEGORIES,
+  UPCOMING_EVENT_MEMORIAL_CATEGORIES,
+} from '@constants/index';
 import PageTitle from '@components/page_title';
-import { getWeekDate, formatDate } from '@utils/date';
+import { getWeekDate, formatDate, getDatesBetweenDates } from '@utils/date';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 import { schedulesState, assignmentsHistoryState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
@@ -39,7 +44,61 @@ import { Week } from '@definition/week_type';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
 import { upcomingEventData } from '@services/app/upcoming_events';
 import { decorationsForEvent } from '@features/activities/upcoming_events/decorations_for_event';
-import { UpcomingEventCategory, UpcomingEventDuration } from '@definition/upcoming_events';
+import {
+  UpcomingEventCategory,
+  UpcomingEventDuration,
+  UpcomingEventType,
+} from '@definition/upcoming_events';
+
+const matchesDataView = (record: UpcomingEventType, dataView: string) => {
+  if (dataView === 'main') return record.event_data.type === 'main';
+  return record.event_data.type === 'main' || record.event_data.type === dataView;
+};
+
+// Mientras dura una asamblea/congreso (cualquier día del evento cae dentro
+// de esta semana de lunes a domingo), NO hay ni reunión de entre semana ni
+// de fin de semana — sin necesitar que alguien además marque a mano el
+// week_type de esa semana en el editor.
+const isWeekSuppressedByAssembly = (
+  events: UpcomingEventType[],
+  dataView: string,
+  weekStart: Date,
+  weekEnd: Date
+) => {
+  return events.some((record) => {
+    if (!UPCOMING_EVENT_ASSEMBLY_CATEGORIES.includes(record.event_data.category)) {
+      return false;
+    }
+    if (!matchesDataView(record, dataView)) return false;
+
+    const eventStart = new Date(record.event_data.start);
+    const eventEnd = new Date(record.event_data.end);
+
+    return eventStart <= weekEnd && eventEnd >= weekStart;
+  });
+};
+
+// La Conmemoración solo cancela la reunión concreta cuyo día coincide con
+// su fecha (entre semana O fin de semana, no ambas).
+const isMeetingDaySuppressedByMemorial = (
+  events: UpcomingEventType[],
+  dataView: string,
+  meetingDate: Date
+) => {
+  const meetingDateStr = formatDate(meetingDate, 'yyyy/MM/dd');
+
+  return events.some((record) => {
+    if (!UPCOMING_EVENT_MEMORIAL_CATEGORIES.includes(record.event_data.category)) {
+      return false;
+    }
+    if (!matchesDataView(record, dataView)) return false;
+
+    const startStr = formatDate(new Date(record.event_data.start), 'yyyy/MM/dd');
+    const endStr = formatDate(new Date(record.event_data.end), 'yyyy/MM/dd');
+
+    return meetingDateStr >= startStr && meetingDateStr <= endStr;
+  });
+};
 
 const DASHBOARD_DEPT_LABELS: Record<string, string> = {
   acomodadores: 'Acomodadores',
@@ -120,6 +179,20 @@ const Dashboard = () => {
     return formatDate(monday, 'yyyy/MM/dd');
   }, [monday]);
 
+  // Delimit the week (Monday to Sunday)
+  const startOfWeek = useMemo(() => {
+    const d = new Date(monday);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [monday]);
+
+  const endOfWeek = useMemo(() => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + 6);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  }, [monday]);
+
   const currentWeekSchedule = useMemo(() => {
     return schedules.find((record) => record.weekOf === weekOf);
   }, [schedules, weekOf]);
@@ -145,9 +218,6 @@ const Dashboard = () => {
   const isWeekendSuspended = useMemo(() => {
     return WEEK_TYPE_NO_MEETING.includes(weekendWeekType);
   }, [weekendWeekType]);
-
-  const showMidweekRow = showMidweek && !isMidweekSuspended;
-  const showWeekendRow = showWeekend && !isWeekendSuspended;
 
   const midweekMeetingDate = useMemo(() => {
     const info = schedulesGetMeetingDate({ week: weekOf, meeting: 'midweek' });
@@ -176,6 +246,32 @@ const Dashboard = () => {
     d.setDate(monday.getDate() + weekendMeetingWeekday);
     return d;
   }, [weekOf, monday, weekendMeetingWeekday]);
+
+  const isWeekSuppressedByAssemblyEvent = useMemo(
+    () => isWeekSuppressedByAssembly(upcomingEvents, dataView, startOfWeek, endOfWeek),
+    [upcomingEvents, dataView, startOfWeek, endOfWeek]
+  );
+
+  const isMidweekSuppressedByMemorial = useMemo(
+    () => isMeetingDaySuppressedByMemorial(upcomingEvents, dataView, midweekMeetingDate),
+    [upcomingEvents, dataView, midweekMeetingDate]
+  );
+
+  const isWeekendSuppressedByMemorial = useMemo(
+    () => isMeetingDaySuppressedByMemorial(upcomingEvents, dataView, weekendMeetingDate),
+    [upcomingEvents, dataView, weekendMeetingDate]
+  );
+
+  const showMidweekRow =
+    showMidweek &&
+    !isMidweekSuspended &&
+    !isWeekSuppressedByAssemblyEvent &&
+    !isMidweekSuppressedByMemorial;
+  const showWeekendRow =
+    showWeekend &&
+    !isWeekendSuspended &&
+    !isWeekSuppressedByAssemblyEvent &&
+    !isWeekendSuppressedByMemorial;
 
   const midweekDayNum = midweekMeetingDate.getDate();
   const midweekMonthStr = useMemo(() => {
@@ -293,20 +389,6 @@ const Dashboard = () => {
     return langItem ? langItem.locale : 'es-ES';
   }, [appLang]);
 
-  // Delimit the week (Monday to Sunday)
-  const startOfWeek = useMemo(() => {
-    const d = new Date(monday);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, [monday]);
-
-  const endOfWeek = useMemo(() => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + 6);
-    d.setHours(23, 59, 59, 999);
-    return d;
-  }, [monday]);
-
   // Filter events belonging to this week
   const thisWeekEvents = useMemo(() => {
     return upcomingEvents
@@ -356,6 +438,27 @@ const Dashboard = () => {
 
         const isMultiDay = record.event_data.duration === UpcomingEventDuration.MultipleDays;
 
+        // Línea informativa breve: para eventos de varios días, cuántos
+        // días abarca (ej. "3 días"), más el Tema si se puso — así una
+        // asamblea regional se entiende de un vistazo sin abrir la página
+        // de "Próximos eventos".
+        const eventDaysLabel = isMultiDay
+          ? t('tr_days', {
+              daysCount: getDatesBetweenDates(
+                record.event_data.start,
+                record.event_data.end
+              ).length,
+            })
+          : '';
+
+        const description = [
+          eventDaysLabel,
+          record.event_data.topic,
+          record.event_data.description,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+
         return {
           id: record.event_uid,
           type: 'event' as const,
@@ -364,7 +467,7 @@ const Dashboard = () => {
           dayNum: eventDayNum,
           monthStr: eventMonthStr,
           title: eventTitle,
-          description: record.event_data.description,
+          description,
           time: isMultiDay ? '' : details.time,
           decoration: eventDecoration,
         };

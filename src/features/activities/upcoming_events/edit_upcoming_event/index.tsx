@@ -6,7 +6,8 @@ import {
   UpcomingEventCategory,
   UpcomingEventDuration,
 } from '@definition/upcoming_events';
-import { decorationsForEvent } from '../decorations_for_event';
+import { formatDate } from '@utils/date';
+import { ASSEMBLY_CATEGORIES, decorationsForEvent } from '../decorations_for_event';
 import { EditUpcomingEventProps } from './index.types';
 import useEditUpcomingEvent from './useEditUpcomingEvent';
 import Button from '@components/button';
@@ -18,6 +19,20 @@ import Select from '@components/select';
 import TextField from '@components/textfield';
 import TimePicker from '@components/time_picker';
 import Typography from '@components/typography';
+
+// Oculta visualmente un control sin sacarlo del árbol de accesibilidad ni
+// del orden de tabulación (a diferencia del atributo `hidden`).
+const visuallyHidden = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+} as const;
 
 const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -33,6 +48,10 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     handleChangeEventDescription,
     handleChangeEventTopic,
     handleChangeAssemblyRepresentative,
+    handleChangeJwLibraryUrl,
+    uploadingCoverPhoto,
+    handleUploadCoverPhoto,
+    handleDeleteCoverPhoto,
     handleSaveEvent,
     handleDeleteEvent,
     handleChangeEventDuration,
@@ -40,18 +59,31 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     handleChangeEventStartTime,
     handleChangeEventEndDate,
     handleChangeEventEndTime,
+    dailyTimesList,
+    handleChangeDailyTime,
   } = useEditUpcomingEvent(props);
 
+  const isAssemblyCategory = ASSEMBLY_CATEGORIES.includes(
+    localEvent.event_data.category
+  );
+
   // El valor guardado (category) es la posición de la opción en
-  // decorationsForEvent, así que ese arreglo no se puede reordenar sin
-  // corromper eventos ya guardados. Se ordena solo la lista que se muestra
-  // en el desplegable, alfabéticamente por el texto ya traducido, dejando
-  // "Personalizado" siempre al final.
+  // decorationsForEvent, así que ese arreglo no se puede reordenar ni
+  // recortar sin corromper eventos ya guardados. Se ordena/filtra solo la
+  // lista que se muestra en el desplegable, alfabéticamente por el texto ya
+  // traducido, dejando "Personalizado" siempre al final.
+  //
+  // "Visita del superintendente de circuito" se excluye a propósito: ese
+  // evento ya se crea y mantiene solo desde la página dedicada de la
+  // Visita (Congregación > Visita del superintendente), que también
+  // proyecta las reuniones con precursores/ancianos — añadirlo aquí a mano
+  // duplicaría esa gestión.
   const sortedTypeOptions = useMemo(() => {
-    const withIndex = decorationsForEvent.map((option, index) => ({
-      option,
-      index,
-    }));
+    const withIndex = decorationsForEvent
+      .map((option, index) => ({ option, index }))
+      .filter(
+        ({ option }) => option.translationKey !== 'tr_circuitOverseerWeek'
+      );
 
     const custom = withIndex.filter(
       ({ option }) => option.translationKey === 'tr_custom'
@@ -275,23 +307,160 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                 onChange={handleChangeEventEndDate}
                 value={new Date(localEvent.event_data.end)}
               />
-              <TimePicker
-                onChange={handleChangeEventStartTime}
-                label={t('tr_startTime')}
-                ampm={!hour24}
-                sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                value={new Date(localEvent.event_data.start)}
-              />
-              <TimePicker
-                onChange={handleChangeEventEndTime}
-                label={t('tr_endTime')}
-                ampm={!hour24}
-                sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                value={new Date(localEvent.event_data.end)}
-              />
             </>
           )}
         </Box>
+
+        {localEvent.event_data.duration === UpcomingEventDuration.MultipleDays &&
+          dailyTimesList.length > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <Typography className="body-small-semibold" color="var(--grey-400)">
+                {t('tr_dailyTimesTitle', 'Horario de cada día')}
+              </Typography>
+
+              {dailyTimesList.map((day, index) => (
+                <Box
+                  key={day.date}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '16px',
+                    alignItems: 'center',
+                    flexWrap: !desktopUp ? 'wrap' : 'nowrap',
+                  }}
+                >
+                  <Typography
+                    className="body-small-semibold"
+                    color="var(--black)"
+                    sx={{ minWidth: '96px' }}
+                  >
+                    {`${t('tr_day')} ${index + 1} · ${formatDate(day.start, 'dd/MM')}`}
+                  </Typography>
+
+                  <TimePicker
+                    onChange={(value: Date) =>
+                      handleChangeDailyTime(day.date, 'start', value)
+                    }
+                    label={t('tr_startTime')}
+                    ampm={!hour24}
+                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                    value={day.start}
+                  />
+                  <TimePicker
+                    onChange={(value: Date) =>
+                      handleChangeDailyTime(day.date, 'end', value)
+                    }
+                    label={t('tr_endTime')}
+                    ampm={!hour24}
+                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                    value={day.end}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+
+        {isAssemblyCategory && (
+          <>
+            <Divider color="var(--line)" />
+
+            <Typography className="h4">{t('tr_assemblySection')}</Typography>
+
+            <TextField
+              label={t('tr_jwLibraryUrl')}
+              value={localEvent.event_data.jwLibraryUrl ?? ''}
+              onChange={handleChangeJwLibraryUrl}
+              placeholder="https://www.jw.org/finder?..."
+            />
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <Typography className="body-small-semibold" color="var(--grey-400)">
+                {t('tr_coverPhoto')}
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '12px',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <label style={{ cursor: uploadingCoverPhoto ? 'default' : 'pointer' }}>
+                  <Box
+                    sx={{
+                      padding: '8px 16px',
+                      borderRadius: 'var(--r-sm)',
+                      border: '1.5px solid var(--accent-main)',
+                      color: 'var(--accent-main)',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {uploadingCoverPhoto
+                      ? t('tr_uploadingCoverPhoto')
+                      : localEvent.event_data.coverPhotoUrl
+                        ? t('tr_changeCoverPhoto')
+                        : t('tr_uploadCoverPhoto')}
+                  </Box>
+                  <Box
+                    component="input"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    disabled={uploadingCoverPhoto}
+                    onChange={(e) => {
+                      handleUploadCoverPhoto(e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                    sx={visuallyHidden}
+                  />
+                </label>
+
+                {localEvent.event_data.coverPhotoUrl && (
+                  <Button
+                    variant="secondary"
+                    color="red"
+                    disabled={uploadingCoverPhoto}
+                    onClick={handleDeleteCoverPhoto}
+                  >
+                    {t('tr_delete')}
+                  </Button>
+                )}
+              </Box>
+
+              {localEvent.event_data.coverPhotoUrl && (
+                <Box
+                  component="img"
+                  src={localEvent.event_data.coverPhotoUrl}
+                  alt=""
+                  sx={{
+                    width: '100%',
+                    maxWidth: '360px',
+                    aspectRatio: '16 / 9',
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    borderRadius: 'var(--r-lg)',
+                  }}
+                />
+              )}
+            </Box>
+          </>
+        )}
+
         <Divider color="var(--line)" />
       </Box>
 

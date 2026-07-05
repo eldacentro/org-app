@@ -2,6 +2,7 @@ import { de, enUS, es, fr, it, ptBR } from 'date-fns/locale';
 import { AppRoleType, LanguageItem } from '@definition/app';
 import { AssignmentCode } from '@definition/assignment';
 import { Week } from '@definition/week_type';
+import { UpcomingEventCategory } from '@definition/upcoming_events';
 
 export const LANGUAGE_LIST: LanguageItem[] = [
   {
@@ -240,6 +241,23 @@ export const WEEK_TYPE_NO_MEETING = [
   Week.CONVENTION,
   Week.NO_MEETING,
   Week.MEMORIAL,
+];
+
+// Categorías de "Próximos eventos" que, mientras dura el evento, cancelan
+// AMBAS reuniones de esa semana (entre semana y fin de semana) — a
+// diferencia de, p. ej., una visita del superintendente de circuito, que sí
+// mantiene la reunión aunque cambie de día.
+export const UPCOMING_EVENT_ASSEMBLY_CATEGORIES = [
+  UpcomingEventCategory.AssemblyWeek,
+  UpcomingEventCategory.ConventionWeek,
+  UpcomingEventCategory.InternationalConventionWeek,
+];
+
+// La Conmemoración, en cambio, solo cancela la reunión concreta cuyo día
+// coincide con su fecha (si cae entre semana, cancela solo esa; si cae en
+// fin de semana, cancela solo la de fin de semana).
+export const UPCOMING_EVENT_MEMORIAL_CATEGORIES = [
+  UpcomingEventCategory.MemorialWeek,
 ];
 
 export const WEEK_TYPE_LANGUAGE_GROUPS = [
