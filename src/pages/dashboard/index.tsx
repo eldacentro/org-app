@@ -476,11 +476,17 @@ const Dashboard = () => {
 
   // Combina una fecha (solo día) con una hora "HH:MM" para saber si ese
   // momento ya pasó — así la fila se puede atenuar en vez de desaparecer.
+  // Las reuniones no guardan hora de fin, así que se asume una duración de
+  // 2 horas desde el inicio en vez de atenuar justo a la hora de inicio.
   const isDateTimePast = (date: Date, time: string, now: Date) => {
     const [hrs, mins] = time.split(':').map(Number);
     const target = new Date(date);
-    if (!Number.isNaN(hrs) && !Number.isNaN(mins)) target.setHours(hrs, mins, 0, 0);
-    else target.setHours(23, 59, 59, 999);
+    if (!Number.isNaN(hrs) && !Number.isNaN(mins)) {
+      target.setHours(hrs, mins, 0, 0);
+      target.setTime(target.getTime() + 2 * 60 * 60 * 1000);
+    } else {
+      target.setHours(23, 59, 59, 999);
+    }
     return target.getTime() < now.getTime();
   };
 
@@ -539,11 +545,10 @@ const Dashboard = () => {
         description: ev.description,
         hasAssignment: false,
         time: ev.time,
-        // Multi-day event (sin hora) — se atenúa cuando ya pasó su ÚLTIMO
-        // día, no el primero, para no atenuar un evento que sigue en curso.
-        isPast: ev.time
-          ? isDateTimePast(ev.date, ev.time, now)
-          : ev.endDate.getTime() < now.getTime(),
+        // Los eventos sí guardan su hora de fin real (event_data.end), así
+        // que se atenúan cuando esa hora pasa, no la de inicio — y para los
+        // de varios días, cuando pasa el ÚLTIMO día, no el primero.
+        isPast: ev.endDate.getTime() < now.getTime(),
         decoration: ev.decoration,
         onClick: () => navigate('/activities/upcoming-events'),
       });
