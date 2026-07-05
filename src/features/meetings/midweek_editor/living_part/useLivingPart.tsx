@@ -69,10 +69,10 @@ const useLivingPart = ({ part, selectedWeek }: LivingPartProps) => {
     const currentTime = lcPartTime.find((record) => record.type === dataView);
 
     if (!currentTime) {
-      lcPartTime.push({ type: dataView, updatedAt: '', value: undefined });
+      lcPartTime.push({ type: dataView, updatedAt: '', value: null });
     } else {
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = undefined;
+      currentTime.value = null;
     }
 
     fieldName = `midweek_meeting.${type}.time.override`;

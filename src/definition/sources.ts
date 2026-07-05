@@ -45,7 +45,10 @@ export type CongregationStringType = {
 
 export type CongregationNumberType = {
   type: string;
-  value: number;
+  /** null = sin valor (p. ej. volver a la duración por defecto). Se usa null
+   *  y no undefined porque los undefined desaparecen en el JSON.stringify del
+   *  cifrado E2E y el cambio nunca llegaría a los demás dispositivos. */
+  value: number | null;
   updatedAt: string;
 };
 

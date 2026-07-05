@@ -121,7 +121,11 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
   const handleCloseCatalog = () => setOpenCatalog(false);
 
   const handleTalkChange = async (talk: PublicTalkOptionType) => {
-    const value = talk?.talk_number;
+    // Al quitar el discurso se guarda '' (el mismo vacío que usa el schema),
+    // NUNCA undefined: los campos undefined desaparecen en el JSON.stringify
+    // del cifrado E2E, así que el "borrado" no viajaba a los demás
+    // dispositivos y el discurso viejo reaparecía al sincronizar.
+    const value = talk?.talk_number ?? '';
 
     if (!schedule_id) {
       const talkData = structuredClone(source.weekend_meeting.public_talk);
@@ -154,7 +158,7 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
       );
 
       outgoingSchedule.updatedAt = new Date().toISOString();
-      outgoingSchedule.public_talk = value;
+      outgoingSchedule.public_talk = value === '' ? null : value;
 
       await dbSchedUpdate(week, {
         'weekend_meeting.outgoing_talks': outgoingTalks,

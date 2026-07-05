@@ -45,6 +45,9 @@ const useLivingContainer = ({ selectedWeek }: LivingContainerProps) => {
     return createNumbersArray(count);
   }, [count]);
 
+  // Los borrados se guardan como null (nunca undefined): los undefined
+  // desaparecen en el JSON.stringify del cifrado E2E y la eliminación de la
+  // parte personalizada no llegaría a los demás dispositivos.
   const handleDeleteCustomLCPart = async () => {
     const lcCountOverride = structuredClone(
       source.midweek_meeting.lc_count.override
@@ -55,7 +58,7 @@ const useLivingContainer = ({ selectedWeek }: LivingContainerProps) => {
     );
 
     currentCount.updatedAt = new Date().toISOString();
-    currentCount.value = undefined;
+    currentCount.value = null;
 
     const lcPartTitle = structuredClone(source.midweek_meeting.lc_part3.title);
     const currentTitle = lcPartTitle.find((record) => record.type === dataView);
@@ -70,7 +73,7 @@ const useLivingContainer = ({ selectedWeek }: LivingContainerProps) => {
     const lcPartTime = structuredClone(source.midweek_meeting.lc_part3.time);
     const currentTime = lcPartTime.find((record) => record.type === dataView);
     currentTime.updatedAt = new Date().toISOString();
-    currentTime.value = undefined;
+    currentTime.value = null;
 
     await dbSourcesUpdate(selectedWeek, {
       'midweek_meeting.lc_count.override': lcCountOverride,
@@ -86,7 +89,7 @@ const useLivingContainer = ({ selectedWeek }: LivingContainerProps) => {
 
     let current = lcCountOverride.find((record) => record.type === dataView);
     if (!current) {
-      lcCountOverride.push({ type: dataView, updatedAt: '', value: undefined });
+      lcCountOverride.push({ type: dataView, updatedAt: '', value: null });
       current = lcCountOverride.find((record) => record.type === dataView);
     }
 
@@ -111,7 +114,7 @@ const useLivingContainer = ({ selectedWeek }: LivingContainerProps) => {
     const currentTime = lcPartTime.find((record) => record.type === dataView);
 
     if (!currentTime) {
-      lcPartTime.push({ type: dataView, updatedAt: '', value: undefined });
+      lcPartTime.push({ type: dataView, updatedAt: '', value: null });
     }
 
     await dbSourcesUpdate(selectedWeek, {

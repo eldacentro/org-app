@@ -61,7 +61,10 @@ export type OutgoingTalkScheduleType = {
   id: string;
   synced: boolean;
   opening_song: string;
-  public_talk: number;
+  /** null = sin discurso asignado. Se usa null y no undefined porque los
+   *  undefined desaparecen en el JSON.stringify del cifrado E2E y el
+   *  "borrado" nunca llegaría a los demás dispositivos. */
+  public_talk: number | null;
   value: string;
   /** Nombre desnormalizado del orador (`value`) al momento de asignarlo —
    *  igual que ya hace el resto de asignaciones (ver `assigned.name` en

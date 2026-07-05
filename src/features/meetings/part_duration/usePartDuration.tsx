@@ -30,12 +30,12 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = timeDefault === value ? undefined : value;
+      currentTime.value = timeDefault === value ? null : value;
 
       await dbSourcesUpdate(week, {
         'midweek_meeting.tgw_talk.time.override': timeOverride,
@@ -51,12 +51,12 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = timeDefault === value ? undefined : value;
+      currentTime.value = timeDefault === value ? null : value;
 
       await dbSourcesUpdate(week, {
         'midweek_meeting.tgw_gems.time.override': timeOverride,
@@ -72,12 +72,12 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = timeDefault === value ? undefined : value;
+      currentTime.value = timeDefault === value ? null : value;
 
       await dbSourcesUpdate(week, {
         'midweek_meeting.lc_part1.time.override': timeOverride,
@@ -93,12 +93,12 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = timeDefault === value ? undefined : value;
+      currentTime.value = timeDefault === value ? null : value;
 
       await dbSourcesUpdate(week, {
         'midweek_meeting.lc_part2.time.override': timeOverride,
@@ -111,7 +111,7 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
@@ -132,12 +132,12 @@ const usePartDuration = ({ length, type, week }: PartDurationType) => {
       let currentTime = timeOverride.find((record) => record.type === dataView);
 
       if (!currentTime) {
-        timeOverride.push({ value: undefined, type: dataView, updatedAt: '' });
+        timeOverride.push({ value: null, type: dataView, updatedAt: '' });
         currentTime = timeOverride.find((record) => record.type === dataView);
       }
 
       currentTime.updatedAt = new Date().toISOString();
-      currentTime.value = timeDefault === value ? undefined : value;
+      currentTime.value = timeDefault === value ? null : value;
 
       await dbSourcesUpdate(week, {
         'midweek_meeting.lc_cbs.time.override': timeOverride,
