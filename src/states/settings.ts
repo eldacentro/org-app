@@ -29,7 +29,11 @@ export const congNumberState = atom((get) => {
 export const congNameState = atom((get) => {
   const settings = get(settingsState);
 
-  return settings.cong_settings.cong_name;
+  // El nombre sincronizado desde el registro oficial de la congregación
+  // puede traer guiones como separador de palabras (p. ej. "Elda - Centro").
+  // Se normaliza aquí, en el origen, para que se muestre igual en toda la
+  // app (PDFs, invitaciones, navbar, etc.) sin tener que tocar el dato real.
+  return settings.cong_settings.cong_name.replace(/\s*-\s*/g, ' ').trim();
 });
 
 export const congFullnameState = atom((get) => {
