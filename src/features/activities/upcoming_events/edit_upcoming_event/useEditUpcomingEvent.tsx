@@ -178,6 +178,51 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     []
   );
 
+  const handleChangeEventAddress = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            address: event.target.value,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleChangeEventMapsUrl = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            mapsUrl: event.target.value,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleChangeEventTimeUnset = useCallback(
+    (_: unknown, checked: boolean) => {
+      setLocalEvent((prev) => {
+        return {
+          ...prev,
+          event_data: {
+            ...prev.event_data,
+            timeUnset: checked,
+          },
+        };
+      });
+    },
+    []
+  );
+
   const handleUploadCoverPhoto = useCallback(
     async (file?: File) => {
       if (!file) return;
@@ -448,6 +493,9 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     handleChangeEventTopic,
     handleChangeAssemblyRepresentative,
     handleChangeJwLibraryUrl,
+    handleChangeEventAddress,
+    handleChangeEventMapsUrl,
+    handleChangeEventTimeUnset,
     uploadingCoverPhoto,
     handleUploadCoverPhoto,
     handleDeleteCoverPhoto,

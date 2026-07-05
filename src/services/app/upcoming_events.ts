@@ -51,6 +51,10 @@ export const upcomingEventData = (event: UpcomingEventType) => {
   const formatTime = (value: Date) =>
     formatDate(value, hour24 ? 'HH:mm' : 'hh:mmaaa');
 
+  // Solo aplica a la Conmemoración — si aún no se sabe la hora exacta, no
+  // se muestra ninguna (ver comentario de timeUnset en la definición).
+  const timeUnset = !!event.event_data.timeUnset;
+
   result.dates = eventDates.map((date) => {
     const dayIndex = date.getDay();
     const dateV = date.getDate();
@@ -66,17 +70,19 @@ export const upcomingEventData = (event: UpcomingEventType) => {
       (record) => record.date === dateStr
     );
 
-    const dayTime = getTranslation({
-      key: 'tr_dateRangeNoYear',
-      params: {
-        startDate: formatTime(
-          new Date(override ? override.start : event.event_data.start)
-        ),
-        endDate: formatTime(
-          new Date(override ? override.end : event.event_data.end)
-        ),
-      },
-    });
+    const dayTime = timeUnset
+      ? ''
+      : getTranslation({
+          key: 'tr_dateRangeNoYear',
+          params: {
+            startDate: formatTime(
+              new Date(override ? override.start : event.event_data.start)
+            ),
+            endDate: formatTime(
+              new Date(override ? override.end : event.event_data.end)
+            ),
+          },
+        });
 
     return {
       date: dateStr,
@@ -145,13 +151,15 @@ export const upcomingEventData = (event: UpcomingEventType) => {
     }
   }
 
-  result.time = getTranslation({
-    key: 'tr_dateRangeNoYear',
-    params: {
-      startDate: formatTime(new Date(event.event_data.start)),
-      endDate: formatTime(new Date(event.event_data.end)),
-    },
-  });
+  result.time = timeUnset
+    ? ''
+    : getTranslation({
+        key: 'tr_dateRangeNoYear',
+        params: {
+          startDate: formatTime(new Date(event.event_data.start)),
+          endDate: formatTime(new Date(event.event_data.end)),
+        },
+      });
 
   return result;
 };

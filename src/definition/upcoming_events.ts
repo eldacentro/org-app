@@ -56,6 +56,18 @@ export type UpcomingEventType = {
     // de la asamblea. El archivo en sí vive en Storage, aquí solo se
     // guarda la URL (mismo patrón que Documentos/Territorios).
     coverPhotoUrl?: string;
+    // Dirección/enlace de Google Maps del evento — aplica a cualquier
+    // categoría, no solo asambleas (p. ej. la dirección de un Salón de
+    // Asambleas o del lugar de la Conmemoración).
+    address?: string;
+    mapsUrl?: string;
+    // Solo aplica cuando category === MemorialWeek — la fecha de la
+    // Conmemoración suele saberse con meses de anticipación, pero la hora
+    // exacta a veces se define después. Si esto es true, `start`/`end`
+    // siguen guardando una hora (00:00 por defecto) para no romper el
+    // ordenamiento por fecha, pero la hora no se muestra en la tarjeta
+    // hasta que se desmarque y se guarde una hora real.
+    timeUnset?: boolean;
   };
 };
 

@@ -11,6 +11,7 @@ import { ASSEMBLY_CATEGORIES, decorationsForEvent } from '../decorations_for_eve
 import { EditUpcomingEventProps } from './index.types';
 import useEditUpcomingEvent from './useEditUpcomingEvent';
 import Button from '@components/button';
+import Checkbox from '@components/checkbox';
 import DatePicker from '@components/date_picker';
 import Divider from '@components/divider';
 import IconButton from '@components/icon_button';
@@ -49,6 +50,9 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     handleChangeEventTopic,
     handleChangeAssemblyRepresentative,
     handleChangeJwLibraryUrl,
+    handleChangeEventAddress,
+    handleChangeEventMapsUrl,
+    handleChangeEventTimeUnset,
     uploadingCoverPhoto,
     handleUploadCoverPhoto,
     handleDeleteCoverPhoto,
@@ -280,20 +284,28 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                 onChange={handleChangeEventStartDate}
                 value={new Date(localEvent.event_data.start)}
               />
-              <TimePicker
-                onChange={handleChangeEventStartTime}
-                label={t('tr_startTime')}
-                ampm={!hour24}
-                sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                value={new Date(localEvent.event_data.start)}
-              />
-              <TimePicker
-                onChange={handleChangeEventEndTime}
-                label={t('tr_endTime')}
-                ampm={!hour24}
-                sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                value={new Date(localEvent.event_data.end)}
-              />
+              {!(
+                localEvent.event_data.category ===
+                  UpcomingEventCategory.MemorialWeek &&
+                localEvent.event_data.timeUnset
+              ) && (
+                <>
+                  <TimePicker
+                    onChange={handleChangeEventStartTime}
+                    label={t('tr_startTime')}
+                    ampm={!hour24}
+                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                    value={new Date(localEvent.event_data.start)}
+                  />
+                  <TimePicker
+                    onChange={handleChangeEventEndTime}
+                    label={t('tr_endTime')}
+                    ampm={!hour24}
+                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                    value={new Date(localEvent.event_data.end)}
+                  />
+                </>
+              )}
             </>
           ) : (
             <>
@@ -310,6 +322,15 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             </>
           )}
         </Box>
+
+        {localEvent.event_data.category ===
+          UpcomingEventCategory.MemorialWeek && (
+          <Checkbox
+            label={t('tr_eventTimeUnset')}
+            checked={!!localEvent.event_data.timeUnset}
+            onChange={handleChangeEventTimeUnset}
+          />
+        )}
 
         {localEvent.event_data.duration === UpcomingEventDuration.MultipleDays &&
           dailyTimesList.length > 0 && (
@@ -365,6 +386,33 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
               ))}
             </Box>
           )}
+
+        <Divider color="var(--line)" />
+
+        <Typography className="h4">{t('tr_eventLocation')}</Typography>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '16px',
+            flexWrap: !desktopUp ? 'wrap' : 'nowrap',
+            '& > *': { flex: !desktopUp ? 'none' : '1' },
+          }}
+        >
+          <TextField
+            label={t('tr_eventAddress')}
+            value={localEvent.event_data.address ?? ''}
+            onChange={handleChangeEventAddress}
+          />
+
+          <TextField
+            label={t('tr_googleMapsUrl')}
+            value={localEvent.event_data.mapsUrl ?? ''}
+            onChange={handleChangeEventMapsUrl}
+            placeholder="https://maps.app.goo.gl/..."
+          />
+        </Box>
 
         {isAssemblyCategory && (
           <>

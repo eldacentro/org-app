@@ -1,6 +1,6 @@
 import { cloneElement, Fragment } from 'react';
 import { Box, IconButton } from '@mui/material';
-import { IconEdit } from '@components/icons';
+import { IconEdit, IconLocation } from '@components/icons';
 import {
   useAppTranslation,
   useBreakpoints,
@@ -240,34 +240,93 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
           </Fragment>
         ))}
 
-      {isAssemblyCategory && props.data.event_data.jwLibraryUrl && (
+      {props.data.event_data.address && (
         <Box
-          component="a"
-          href={props.data.event_data.jwLibraryUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           sx={{
-            alignSelf: 'flex-start',
-            display: 'inline-flex',
+            display: 'flex',
+            flexDirection: 'row',
             alignItems: 'center',
-            gap: '3px',
-            px: '8px',
-            py: '4px',
-            borderRadius: 'var(--r-sm)',
-            textDecoration: 'none',
-            border: '1px solid var(--line)',
-            opacity: 0.7,
-            transition: 'opacity 0.2s ease',
-            '&:hover': { opacity: 1 },
+            gap: '6px',
           }}
         >
-          <Typography
-            component="span"
-            className="body-small-semibold"
-            color="var(--grey-400)"
-          >
-            JW Library ↗
+          <IconLocation width={18} height={18} color="var(--grey-400)" />
+          <Typography className="body-small-regular" color="var(--grey-400)">
+            {props.data.event_data.address}
           </Typography>
+        </Box>
+      )}
+
+      {((isAssemblyCategory && props.data.event_data.jwLibraryUrl) ||
+        props.data.event_data.mapsUrl) && (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          {isAssemblyCategory && props.data.event_data.jwLibraryUrl && (
+            <Box
+              component="a"
+              href={props.data.event_data.jwLibraryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                px: '8px',
+                py: '4px',
+                borderRadius: 'var(--r-sm)',
+                textDecoration: 'none',
+                border: '1px solid var(--line)',
+                opacity: 0.7,
+                transition: 'opacity 0.2s ease',
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <Typography
+                component="span"
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
+                JW Library ↗
+              </Typography>
+            </Box>
+          )}
+
+          {props.data.event_data.mapsUrl && (
+            <Box
+              component="a"
+              href={props.data.event_data.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                px: '8px',
+                py: '4px',
+                borderRadius: 'var(--r-sm)',
+                textDecoration: 'none',
+                border: '1px solid var(--line)',
+                opacity: 0.7,
+                transition: 'opacity 0.2s ease',
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <Typography
+                component="span"
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
+                Google Maps ↗
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
     </Box>
