@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4.5,
+    marginBottom: 2,
   },
   topBarBrand: {
     display: 'flex',
@@ -52,19 +52,19 @@ const styles = StyleSheet.create({
     fontSize: 17.5,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 3,
+    marginBottom: 1.5,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
-    marginBottom: 10.5,
+    marginBottom: 3,
   },
 
   // ─── Banner del grupo (uno por página) ───────────────────────────────────────
   groupBanner: {
     backgroundColor: '#306CB4',
     borderRadius: 10,
-    padding: '9 14',
-    marginBottom: 12,
+    padding: '4.5 9',
+    marginBottom: 3,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -100,16 +100,16 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 9,
-    rowGap: 9,
+    columnGap: 6,
+    rowGap: 5,
   },
 
   // ─── Tarjeta de miembro ──────────────────────────────────────────────────────
   memberCard: {
-    width: '48.7%',
+    width: '49%',
     border: '1 solid #dde3f0',
-    borderRadius: 8,
-    padding: '7 9',
+    borderRadius: 7,
+    padding: '4 5',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -117,18 +117,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 700,
     color: '#1a1a2e',
-    marginBottom: 3,
+    marginBottom: 1,
   },
   memberInfoRow: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 2,
+    gap: 0.3,
   },
   memberInfoItem: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 4,
+    gap: 3,
   },
   memberInfoLabel: {
     fontSize: 7.5,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     color: '#306CB4',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
-    width: 30,
+    width: 26,
     paddingTop: 0.6,
   },
   memberInfoValue: {
@@ -145,21 +145,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   emergencyBlock: {
-    marginTop: 4,
+    marginTop: 1.5,
     backgroundColor: '#fff7e6',
     borderRadius: 4,
-    paddingVertical: 3,
-    paddingHorizontal: 6,
+    paddingVertical: 1,
+    paddingHorizontal: 3,
     display: 'flex',
     flexDirection: 'column',
-    gap: 1.5,
+    gap: 0.3,
   },
   emergencyLabel: {
-    fontSize: 7.5,
+    fontSize: 7.3,
     fontWeight: 700,
     color: '#b8860b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   emergencyValue: {
     fontSize: 10,
@@ -170,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 8.2,
     color: '#c0392b',
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: 3,
   },
 });
 

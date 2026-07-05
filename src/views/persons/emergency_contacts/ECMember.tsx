@@ -20,9 +20,9 @@ const ECMember = ({ member }: ECMemberProps) => {
 
       {member.emergencyContacts.length > 0 ? (
         <View style={styles.emergencyBlock}>
-          <Text style={styles.emergencyLabel}>Contacto de emergencia</Text>
           {member.emergencyContacts.map((contact, i) => (
             <Text key={i} style={styles.emergencyValue}>
+              <Text style={styles.emergencyLabel}>EMERG. </Text>
               {contact.name} — {contact.contact}
             </Text>
           ))}
