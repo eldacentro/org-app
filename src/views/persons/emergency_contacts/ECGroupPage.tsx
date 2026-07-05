@@ -37,7 +37,11 @@ const ECGroupPage = ({
   generatedAt,
   coContact,
 }: ECGroupPageProps) => {
-  const showCoContact = !!(coContact?.phone || coContact?.email);
+  // El nombre del CO ya existe en Ajustes desde hace tiempo (se usa en los
+  // programas de reunión), así que se muestra en cuanto haya un nombre —
+  // no hace falta esperar a que también se rellenen teléfono/correo, que
+  // son los campos nuevos y opcionales.
+  const showCoContact = !!coContact?.name;
 
   return (
     <Page>
