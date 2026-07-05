@@ -139,6 +139,18 @@ export const importDummyPersons = async (showLoading?: boolean) => {
       return obj;
     });
 
+    formattedData.forEach((person, index) => {
+      const contact = PERSON_MOCK[(index + 3) % PERSON_MOCK.length];
+
+      person.person_data.emergency_contacts.push({
+        id: crypto.randomUUID(),
+        _deleted: false,
+        updatedAt: new Date().toISOString(),
+        name: generateDisplayName(contact.lastName, contact.firstName),
+        contact: contact.phone,
+      });
+    });
+
     const cnFemaleMidweek = 5;
     const cnFemaleUnbaptized = 10;
     const cnFemaleAP = 2;

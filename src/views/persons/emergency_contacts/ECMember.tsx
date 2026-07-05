@@ -9,11 +9,11 @@ const ECMember = ({ member }: ECMemberProps) => {
 
       <View style={styles.memberInfoRow}>
         <View style={styles.memberInfoItem}>
-          <Text style={styles.memberInfoLabel}>TEL.</Text>
+          <Text style={styles.memberInfoLabel}>Teléfono</Text>
           <Text style={styles.memberInfoValue}>{member.phone || '—'}</Text>
         </View>
         <View style={styles.memberInfoItem}>
-          <Text style={styles.memberInfoLabel}>DIR.</Text>
+          <Text style={styles.memberInfoLabel}>Dirección</Text>
           <Text style={styles.memberInfoValue}>{member.address || '—'}</Text>
         </View>
       </View>
@@ -21,10 +21,16 @@ const ECMember = ({ member }: ECMemberProps) => {
       {member.emergencyContacts.length > 0 ? (
         <View style={styles.emergencyBlock}>
           {member.emergencyContacts.map((contact, i) => (
-            <Text key={i} style={styles.emergencyValue}>
-              <Text style={styles.emergencyLabel}>EMERG. </Text>
-              {contact.name} — {contact.contact}
-            </Text>
+            <View key={i} style={styles.emergencyContactRow}>
+              <Text style={styles.emergencyValue}>
+                <Text style={styles.emergencyLabel}>Emergencia: </Text>
+                {contact.name}
+              </Text>
+              <Text style={styles.emergencyPhone}>
+                <Text style={styles.emergencyLabel}>Teléfono: </Text>
+                {contact.contact}
+              </Text>
+            </View>
           ))}
         </View>
       ) : (

@@ -74,10 +74,10 @@ const ECGroupPage = ({
 
         <View style={styles.headerDivider} />
 
-        <Text style={styles.pageTitle}>Contactos de emergencia</Text>
-
         <View style={styles.groupBanner}>
-          <Text style={styles.groupBannerTitle}>{group.group_name}</Text>
+          <Text style={styles.groupBannerTitle}>
+            {group.group_name} - Contactos de emergencia
+          </Text>
           <View style={styles.membersCountBadge}>
             <Text style={styles.membersCount}>{group.members.length}</Text>
           </View>
