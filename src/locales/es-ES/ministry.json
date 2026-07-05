@@ -41,7 +41,7 @@
   "tr_currentMonthlyGoal": "Meta mensual actual",
   "tr_hoursBalance": "Saldo de horas",
   "tr_pioneersHoursBalance": "Saldo de precursores",
-  "tr_pioneersHoursBalanceDesc": "Saldo de horas de los precursores regulares en el año de servicio {{ year }}. Los que van por debajo de la meta aparecen primero.",
+  "tr_pioneersHoursBalanceDesc": "Diferencia acumulada entre las horas informadas y la meta mensual (50 horas) de los precursores regulares en el año de servicio {{ year }}. Los que van por debajo de la meta aparecen primero.",
   "tr_applicationAuxiliaryPioneer": "Solicitud de precursor auxiliar",
   "tr_submitApplication": "Enviar la solicitud",
   "tr_serviceOverseer": "Superintendente de servicio",

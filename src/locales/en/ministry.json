@@ -41,7 +41,7 @@
   "tr_currentMonthlyGoal": "Current monthly goal",
   "tr_hoursBalance": "Hours balance",
   "tr_pioneersHoursBalance": "Pioneers hours balance",
-  "tr_pioneersHoursBalanceDesc": "Hours balance of regular pioneers in the {{ year }} service year. Those below the goal appear first.",
+  "tr_pioneersHoursBalanceDesc": "Cumulative difference between reported hours and the monthly goal (50 hours) for regular pioneers in the {{ year }} service year. Those below the goal appear first.",
   "tr_applicationAuxiliaryPioneer": "Auxiliary pioneer application",
   "tr_submitApplication": "Submit the application",
   "tr_serviceOverseer": "Service overseer",
