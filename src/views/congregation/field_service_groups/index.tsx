@@ -99,7 +99,7 @@ const TemplateFieldServiceGroups = ({
 
         {/* ── Footer: fixed at A4 bottom on every page ── */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerLeft}>eldacentro.com</Text>
+          <Text style={styles.footerLeft}>Elda - Centro</Text>
           {footerDate ? (
             <Text style={styles.footerRight}>
               Última actualización · {footerDate}
