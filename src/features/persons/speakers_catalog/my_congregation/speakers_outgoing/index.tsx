@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { IconAdd } from '@components/icons';
+import { IconAdd, IconSync } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { SpeakersOutgoingProps } from './index.types';
 import useSpeakersOutgoing from './useSpeakersOutgoing';
@@ -11,7 +11,8 @@ import SpeakerRowView from '../../speaker_row_view';
 const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
   const { t } = useAppTranslation();
 
-  const { handleSpeakerAdd, speakers } = useSpeakersOutgoing();
+  const { handleSpeakerAdd, speakers, hasBrokenLinks, handleReconcileLinks } =
+    useSpeakersOutgoing();
 
   return (
     <Box
@@ -67,6 +68,17 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
             />
           ))}
         </Box>
+      )}
+
+      {isEditMode && hasBrokenLinks && (
+        <Button
+          variant="tertiary"
+          color="red"
+          startIcon={<IconSync />}
+          onClick={handleReconcileLinks}
+        >
+          {t('tr_speakersReconcileLinks')}
+        </Button>
       )}
 
       {isEditMode && (

@@ -10,6 +10,7 @@ import { decryptData } from '@services/encryption';
 import appDb from '@db/appDb';
 import { AssignmentCode } from '@definition/assignment';
 import { generateDisplayName } from '@utils/common';
+import { reconcileOutgoingSpeakerLinks } from '@services/app/visiting_speakers';
 
 const dbUpdateVisitingSpeakersMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -577,6 +578,52 @@ export const dbDeduplicateSpeakers = async () => {
     await appDb.visiting_speakers.bulkPut(speakersToUpdate);
     await dbUpdateVisitingSpeakersMetadata();
   }
+};
+
+/**
+ * Repara ahora mismo los oradores salientes ya importados cuyo person_uid
+ * no corresponde a ninguna Persona real (ver reconcileOutgoingSpeakerLinks).
+ * Complementa la reconciliación automática que corre en cada importación —
+ * esto es para arreglar de una vez lo que ya quedó desconectado antes de
+ * que existiera esa reconciliación.
+ */
+export const dbVisitingSpeakersReconcileLinks = async () => {
+  const speakers = await appDb.visiting_speakers.toArray();
+  const persons = await appDb.persons.toArray();
+
+  const activePersons = persons.filter((person) => {
+    if (person._deleted.value) return false;
+    return !(person.person_data.archived?.value ?? false);
+  });
+
+  const { reconciledUids } = reconcileOutgoingSpeakerLinks(
+    speakers.filter((record) => !record._deleted.value),
+    activePersons
+  );
+
+  for (const { oldUid, newUid } of reconciledUids) {
+    const matchedPerson = activePersons.find(
+      (record) => record.person_uid === newUid
+    );
+
+    await appDb.visiting_speakers.update(oldUid, {
+      person_uid: newUid,
+      'speaker_data.person_firstname': {
+        value: matchedPerson.person_data.person_firstname.value,
+        updatedAt: new Date().toISOString(),
+      },
+      'speaker_data.person_lastname': {
+        value: matchedPerson.person_data.person_lastname.value,
+        updatedAt: new Date().toISOString(),
+      },
+    } as UpdateSpec<VisitingSpeakerType>);
+  }
+
+  if (reconciledUids.length > 0) {
+    await dbUpdateVisitingSpeakersMetadata();
+  }
+
+  return reconciledUids.length;
 };
 
 export const dbDeduplicateCongregations = async () => {

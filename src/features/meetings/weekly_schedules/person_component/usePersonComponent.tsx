@@ -15,6 +15,7 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { AssignmentCongregation } from '@definition/schedules';
+import { Week } from '@definition/week_type';
 import { personsState } from '@states/persons';
 import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
 import { incomingSpeakersState, visitingSpeakersState } from '@states/visiting_speakers';
@@ -277,7 +278,23 @@ const usePersonComponent = ({
                 result.active = coAssigned?.value === userUID;
               }
 
-              if (!coPerson && coAssigned?.value === '') {
+              // Solo se asume que la oración final es del superintendente de
+              // circuito cuando la semana está realmente marcada como
+              // visita del CO — si no, esto se mostraba igual con
+              // cualquier semana normal sin discursante ni CO asignados.
+              const weekType =
+                schedule.weekend_meeting?.week_type.find(
+                  (record) => record.type === dataView
+                )?.value ??
+                schedule.weekend_meeting?.week_type.find(
+                  (record) => record.type === 'main'
+                )?.value;
+
+              if (
+                !coPerson &&
+                coAssigned?.value === '' &&
+                weekType === Week.CO_VISIT
+              ) {
                 result.name = displayNameEnabled ? coDisplayName : coFullname;
                 result.female = false;
                 result.active = false;

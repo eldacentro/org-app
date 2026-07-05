@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { SpeakerEditViewType } from './index.types';
 import { personsByViewState } from '@states/persons';
 import { AssignmentCode } from '@definition/assignment';
+import { PersonType } from '@definition/person';
 import {
   dbVisitingSpeakersUpdate,
   dbVisitingSpeakersDelete,
@@ -26,14 +27,47 @@ const useEdit = ({ speaker, outgoing }: SpeakerEditViewType) => {
   const [openSpeakerDetails, setOpenSpeakerDetails] = useState(false);
 
   const speakers = useMemo(() => {
-    return activePersons.filter((record) => {
+    const eligible = activePersons.filter((record) => {
       const assignments =
         record.person_data.assignments.find((a) => a.type === dataView)
           ?.values ?? [];
 
       return assignments.includes(AssignmentCode.WM_Speaker);
     });
-  }, [activePersons, dataView]);
+
+    // Los oradores importados (p. ej. desde la hoja de cálculo del
+    // circuito) quedan enlazados a su Persona real, pero esa Persona no
+    // necesariamente tiene marcada la casilla de discursante — el import
+    // solo toca el registro de orador, no el perfil. Sin esto, el
+    // desplegable no encontraba coincidencia para el valor actual y se
+    // mostraba en blanco aunque el orador sí estuviera enlazado.
+    if (!eligible.some((record) => record.person_uid === speaker.person_uid)) {
+      const linkedPerson = activePersons.find(
+        (record) => record.person_uid === speaker.person_uid
+      );
+
+      if (linkedPerson) {
+        eligible.push(linkedPerson);
+      } else if (speaker.person_uid) {
+        // Enlace roto: el registro apunta a un person_uid que no existe en
+        // Personas — típico de una importación externa (p. ej. el script
+        // del circuito) que generó su propio identificador en vez de
+        // reutilizar el de la Persona real. Se muestra el nombre que ya
+        // trae el propio registro para no dejar el desplegable en blanco;
+        // el usuario puede entonces elegir manualmente la Persona correcta
+        // para corregir el enlace.
+        eligible.push({
+          person_uid: speaker.person_uid,
+          person_data: {
+            person_firstname: speaker.speaker_data.person_firstname,
+            person_lastname: speaker.speaker_data.person_lastname,
+          },
+        } as PersonType);
+      }
+    }
+
+    return eligible;
+  }, [activePersons, dataView, speaker]);
 
   const speakersOnRecord = useMemo(() => {
     return speakers.filter(
