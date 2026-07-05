@@ -5,8 +5,9 @@ import {
 } from '@definition/upcoming_events';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
 import {
-  generateMonthShortNames,
+  generateMonthNames,
   generateWeekday,
+  getCurrentLanguage,
   getTranslation,
 } from '@services/i18n/translation';
 import { store } from '@states/index';
@@ -15,8 +16,17 @@ import { hour24FormatState } from '@states/settings';
 export const upcomingEventData = (event: UpcomingEventType) => {
   const hour24 = store.get(hour24FormatState);
 
-  const months = generateMonthShortNames();
+  const months = generateMonthNames();
   const weekdays = generateWeekday();
+
+  // El español no capitaliza los nombres de mes en medio de una oración
+  // ("6 de diciembre", no "6 de Diciembre") — el resto del año en cambio
+  // sí lo usa como encabezado propio, así que solo se ajusta aquí. El
+  // idioma se guarda con el código ISO 639-2 de 3 letras (p. ej. "spa"),
+  // no "es" — ver threeLettersCode en states/settings.ts.
+  const isSpanish = getCurrentLanguage() === 'spa';
+  const monthCase = (value: string) =>
+    isSpanish ? value.charAt(0).toLowerCase() + value.slice(1) : value;
 
   const result = {} as UpcomingEventDataType;
 
@@ -36,8 +46,8 @@ export const upcomingEventData = (event: UpcomingEventType) => {
 
   result.start = formatDate(start, 'yyyy/MM/dd');
   result.date = getTranslation({
-    key: 'tr_longDateNoYearLocale',
-    params: { month, date },
+    key: 'tr_longDateFullMonthNoYearLocale',
+    params: { month: monthCase(month), date },
   });
 
   const todayIndex = start.getDay();
@@ -88,8 +98,8 @@ export const upcomingEventData = (event: UpcomingEventType) => {
       date: dateStr,
       day: weekdays[dayIndex === 0 ? 6 : dayIndex - 1],
       dateFormatted: getTranslation({
-        key: 'tr_longDateNoYearLocale',
-        params: { month, date: dateV },
+        key: 'tr_longDateFullMonthNoYearLocale',
+        params: { month: monthCase(month), date: dateV },
       }),
       time: dayTime,
     };
@@ -108,17 +118,17 @@ export const upcomingEventData = (event: UpcomingEventType) => {
 
     if (startMonthIndex !== endMonthIndex) {
       const startDateFormatted = getTranslation({
-        key: 'tr_longDateNoYearLocale',
+        key: 'tr_longDateFullMonthNoYearLocale',
         params: {
-          month: startMonth,
+          month: monthCase(startMonth),
           date: startDateV,
         },
       });
 
       const endDateFormatted = getTranslation({
-        key: 'tr_longDateNoYearLocale',
+        key: 'tr_longDateFullMonthNoYearLocale',
         params: {
-          month: endMonth,
+          month: monthCase(endMonth),
           date: endDateV,
         },
       });
@@ -142,9 +152,9 @@ export const upcomingEventData = (event: UpcomingEventType) => {
       });
 
       result.datesRange = getTranslation({
-        key: 'tr_longDateNoYearLocale',
+        key: 'tr_longDateFullMonthNoYearLocale',
         params: {
-          month: startMonth,
+          month: monthCase(startMonth),
           date: dateRanges,
         },
       });

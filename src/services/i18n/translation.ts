@@ -1,5 +1,7 @@
 import { getI18n } from 'react-i18next';
 
+export const getCurrentLanguage = () => getI18n()?.language;
+
 export const getTranslation = ({
   key,
   language,

@@ -18,7 +18,10 @@ import AddToCalendar from '../add_to_calendar';
 import Typography from '@components/typography';
 import UpcomingEventDate from '../upcoming_event_date';
 import CircuitVisitWeekAgenda from '@features/circuit_visit/shared/CircuitVisitWeekAgenda';
-import { ASSEMBLY_CATEGORIES } from '../decorations_for_event';
+import {
+  ASSEMBLY_CATEGORIES,
+  COVER_PHOTO_CATEGORIES,
+} from '../decorations_for_event';
 
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -56,6 +59,10 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
     props.data.event_data.category
   );
 
+  const isCoverPhotoCategory = COVER_PHOTO_CATEGORIES.includes(
+    props.data.event_data.category
+  );
+
   return (
     <Box
       sx={{
@@ -87,7 +94,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {isAssemblyCategory && props.data.event_data.coverPhotoUrl && (
+      {isCoverPhotoCategory && props.data.event_data.coverPhotoUrl && (
         <Box
           component="img"
           src={props.data.event_data.coverPhotoUrl}
@@ -102,12 +109,11 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             aspectRatio: '16 / 9',
             objectFit: 'cover',
             objectPosition: 'center',
-            // Para que la curva de la portada se vea "combinada" con la de
-            // la tarjeta (concéntrica) en vez de descuadrada, el radio no
-            // puede ser el mismo que el de la tarjeta — tiene que ser el
-            // radio de la tarjeta (26px, var(--r-lg)) menos el padding que
-            // la separa del borde real (16px en móvil, 24px en desktop).
-            borderRadius: tabletUp ? '2px' : '10px',
+            // Radio fijo en vez de "tarjeta menos padding": con el padding
+            // de escritorio (24px) esa resta da apenas 2px, que en una foto
+            // de este tamaño se ve completamente cuadrada en vez de con
+            // esquinas curvas.
+            borderRadius: 'var(--r-sm)',
           }}
         />
       )}

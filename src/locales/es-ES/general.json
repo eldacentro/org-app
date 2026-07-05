@@ -98,6 +98,7 @@
   "tr_currentCode": "Código de acceso actual de la congregación",
   "tr_newCode": "Nuevo código de acceso de la congregación\n",
   "tr_longDateNoYearLocale": "{{ month }} {{ date }}",
+  "tr_longDateFullMonthNoYearLocale": "{{ date }} de {{ month }}",
   "tr_brother": "Hermano",
   "tr_brothers": "Hermanos",
   "tr_editingFinished": "Edición completada",

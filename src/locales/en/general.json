@@ -87,6 +87,7 @@
   "tr_currentCode": "Current congregation access code",
   "tr_newCode": "New congregation access code",
   "tr_longDateNoYearLocale": "{{ month }} {{ date }}",
+  "tr_longDateFullMonthNoYearLocale": "{{ month }} {{ date }}",
   "tr_brother": "Brother",
   "tr_brothers": "Brothers",
   "tr_editingFinished": "Editing completed",

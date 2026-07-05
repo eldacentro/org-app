@@ -22,12 +22,19 @@ import {
 } from '@definition/upcoming_events';
 
 // Las 3 categorías que en español se llaman "Asamblea ___" — solo para
-// ellas aplica el enlace de JW Library y la foto de portada (no hay
-// programa de JW Library ni portada oficial para el resto de eventos).
+// ellas aplica el enlace de JW Library (no hay programa de JW Library para
+// el resto de eventos).
 export const ASSEMBLY_CATEGORIES = [
   UpcomingEventCategory.AssemblyWeek,
   UpcomingEventCategory.ConventionWeek,
   UpcomingEventCategory.InternationalConventionWeek,
+];
+
+// Las categorías de asamblea además de la Conmemoración pueden llevar foto
+// de portada (p. ej. la imagen oficial del año de la Conmemoración).
+export const COVER_PHOTO_CATEGORIES = [
+  ...ASSEMBLY_CATEGORIES,
+  UpcomingEventCategory.MemorialWeek,
 ];
 
 export const decorationsForEvent = [

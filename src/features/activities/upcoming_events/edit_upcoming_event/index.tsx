@@ -7,7 +7,11 @@ import {
   UpcomingEventDuration,
 } from '@definition/upcoming_events';
 import { formatDate } from '@utils/date';
-import { ASSEMBLY_CATEGORIES, decorationsForEvent } from '../decorations_for_event';
+import {
+  ASSEMBLY_CATEGORIES,
+  COVER_PHOTO_CATEGORIES,
+  decorationsForEvent,
+} from '../decorations_for_event';
 import { EditUpcomingEventProps } from './index.types';
 import useEditUpcomingEvent from './useEditUpcomingEvent';
 import Button from '@components/button';
@@ -68,6 +72,10 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
   } = useEditUpcomingEvent(props);
 
   const isAssemblyCategory = ASSEMBLY_CATEGORIES.includes(
+    localEvent.event_data.category
+  );
+
+  const isCoverPhotoCategory = COVER_PHOTO_CATEGORIES.includes(
     localEvent.event_data.category
   );
 
@@ -426,6 +434,12 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
               onChange={handleChangeJwLibraryUrl}
               placeholder="https://www.jw.org/finder?..."
             />
+          </>
+        )}
+
+        {isCoverPhotoCategory && (
+          <>
+            <Divider color="var(--line)" />
 
             <Box
               sx={{
@@ -501,10 +515,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                     aspectRatio: '16 / 9',
                     objectFit: 'cover',
                     objectPosition: 'center',
-                    // Radio concéntrico con el del formulario (26px,
-                    // var(--r-lg)) menos su padding fijo de 16px — ver la
-                    // misma nota en upcoming_event/index.tsx.
-                    borderRadius: '10px',
+                    borderRadius: 'var(--r-sm)',
                   }}
                 />
               )}
