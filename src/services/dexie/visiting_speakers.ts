@@ -11,9 +11,11 @@ import appDb from '@db/appDb';
 import { AssignmentCode } from '@definition/assignment';
 import { generateDisplayName } from '@utils/common';
 import {
+  diagnoseUnmatchedSpeakers,
   reconcileOutgoingSpeakerLinks,
   remapOutgoingTalkAssignments,
   resolveLocalCongId,
+  SpeakerMatchDiagnostic,
 } from '@services/app/visiting_speakers_reconcile';
 import { dbUpdateSchedulesMetadata } from './schedules';
 
@@ -615,21 +617,16 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
     localCongId
   );
 
+  // Solo se corrige el enlace (person_uid) — el nombre denormalizado del
+  // orador se deja tal cual lo trae el Sheet. La vista siempre resuelve el
+  // nombre en vivo desde la Persona real vía person_uid, así que nunca se
+  // muestra; pero el backend sí lo usa al día siguiente para reconocer "es
+  // el mismo discursante de ayer" — sobreescribirlo aquí con el nombre
+  // abreviado de la app rompía ese reconocimiento y deshacía la
+  // reconciliación en el siguiente sync (bug real confirmado 2026-07-06).
   for (const { oldUid, newUid } of reconciledUids) {
-    const matchedPerson = activePersons.find(
-      (record) => record.person_uid === newUid
-    );
-
     await appDb.visiting_speakers.update(oldUid, {
       person_uid: newUid,
-      'speaker_data.person_firstname': {
-        value: matchedPerson.person_data.person_firstname.value,
-        updatedAt: new Date().toISOString(),
-      },
-      'speaker_data.person_lastname': {
-        value: matchedPerson.person_data.person_lastname.value,
-        updatedAt: new Date().toISOString(),
-      },
     } as UpdateSpec<VisitingSpeakerType>);
   }
 
@@ -650,6 +647,38 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
   }
 
   return reconciledUids.length;
+};
+
+/**
+ * Explica por qué un orador saliente sigue sin reconectarse tras pulsar
+ * "Reconectar oradores" — sin esto, un caso que no se resuelve solo falla
+ * en silencio y no hay forma de saber si es de verdad ambiguo, si ya está
+ * enlazado a la persona equivocada, o si su cong_id no coincide.
+ */
+export const dbVisitingSpeakersDiagnose = async (): Promise<
+  SpeakerMatchDiagnostic[]
+> => {
+  const speakers = await appDb.visiting_speakers.toArray();
+  const persons = await appDb.persons.toArray();
+  const congregations = await appDb.speakers_congregations.toArray();
+  const settings = await appDb.app_settings.get(1);
+
+  const activePersons = persons.filter((person) => {
+    if (person._deleted.value) return false;
+    return !(person.person_data.archived?.value ?? false);
+  });
+
+  const localCongId = resolveLocalCongId(
+    congregations,
+    settings?.cong_settings.cong_name ?? '',
+    settings?.cong_settings.cong_number.value ?? ''
+  );
+
+  return diagnoseUnmatchedSpeakers(
+    speakers.filter((record) => !record._deleted.value),
+    activePersons,
+    localCongId
+  );
 };
 
 export const dbDeduplicateCongregations = async () => {

@@ -4,6 +4,8 @@ import { useAppTranslation } from '@hooks/index';
 import { SpeakersOutgoingProps } from './index.types';
 import useSpeakersOutgoing from './useSpeakersOutgoing';
 import Button from '@components/button';
+import Dialog from '@components/dialog';
+import Typography from '@components/typography';
 import NoSpeakers from '../no_speakers';
 import SpeakerEditView from '../speaker_edit';
 import SpeakerRowView from '../../speaker_row_view';
@@ -11,8 +13,34 @@ import SpeakerRowView from '../../speaker_row_view';
 const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
   const { t } = useAppTranslation();
 
-  const { handleSpeakerAdd, speakers, hasBrokenLinks, handleReconcileLinks } =
-    useSpeakersOutgoing();
+  const {
+    handleSpeakerAdd,
+    speakers,
+    hasBrokenLinks,
+    handleReconcileLinks,
+    diagnostics,
+    isDiagnosticsOpen,
+    handleCloseDiagnostics,
+  } = useSpeakersOutgoing();
+
+  const getDiagnosticReasonText = (diagnostic: (typeof diagnostics)[number]) => {
+    switch (diagnostic.reason) {
+      case 'wrong-congregation':
+        return t('tr_speakersDiagnosticReasonWrongCongregation');
+      case 'already-linked':
+        return t('tr_speakersDiagnosticReasonAlreadyLinked', {
+          linkedName: diagnostic.linkedPersonName,
+        });
+      case 'no-candidates':
+        return t('tr_speakersDiagnosticReasonNoCandidates');
+      case 'ambiguous':
+        return t('tr_speakersDiagnosticReasonAmbiguous', {
+          candidates: (diagnostic.candidateNames ?? []).join(', '),
+        });
+      default:
+        return '';
+    }
+  };
 
   return (
     <Box
@@ -90,6 +118,44 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
           {t('tr_speakersAdd')}
         </Button>
       )}
+
+      <Dialog
+        onClose={handleCloseDiagnostics}
+        open={isDiagnosticsOpen}
+        sx={{ padding: '24px' }}
+      >
+        <Typography className="h2">
+          {t('tr_speakersDiagnosticTitle')}
+        </Typography>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            width: '100%',
+          }}
+        >
+          {diagnostics.map((diagnostic, index) => (
+            <Box key={`${diagnostic.speakerName}-${index}`}>
+              <Typography className="body-small-semibold">
+                {diagnostic.speakerName}
+              </Typography>
+              <Typography className="body-small-regular" color="var(--grey-400)">
+                {getDiagnosticReasonText(diagnostic)}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        <Button
+          variant="main"
+          onClick={handleCloseDiagnostics}
+          sx={{ width: '100%' }}
+        >
+          {t('tr_speakersDiagnosticClose')}
+        </Button>
+      </Dialog>
     </Box>
   );
 };

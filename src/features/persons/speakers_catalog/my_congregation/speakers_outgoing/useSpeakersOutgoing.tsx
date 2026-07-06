@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 
 import {
+  dbVisitingSpeakersDiagnose,
   dbVisitingSpeakersLocalCongSpeakerAdd,
   dbVisitingSpeakersReconcileLinks,
 } from '@services/dexie/visiting_speakers';
@@ -11,6 +12,7 @@ import { personsActiveState, personsByViewState } from '@states/persons';
 import { displaySnackNotification } from '@services/states/app';
 import { useAppTranslation } from '@hooks/index';
 import { IconCheckCircle, IconInfo } from '@components/icons';
+import { SpeakerMatchDiagnostic } from '@services/app/visiting_speakers_reconcile';
 
 const useSpeakersOutgoing = () => {
   const { t } = useAppTranslation();
@@ -52,6 +54,9 @@ const useSpeakersOutgoing = () => {
     await dbVisitingSpeakersLocalCongSpeakerAdd(false);
   };
 
+  const [diagnostics, setDiagnostics] = useState<SpeakerMatchDiagnostic[]>([]);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
+
   const handleReconcileLinks = async () => {
     const reconciledCount = await dbVisitingSpeakersReconcileLinks();
 
@@ -69,7 +74,15 @@ const useSpeakersOutgoing = () => {
         icon: <IconInfo color="var(--card)" />,
       });
     }
+
+    // Después de reconectar lo que se pudo solo, se explica por qué el
+    // resto (si queda algo) no se resolvió — en vez de dejarlo en silencio.
+    const remaining = await dbVisitingSpeakersDiagnose();
+    setDiagnostics(remaining);
+    if (remaining.length > 0) setIsDiagnosticsOpen(true);
   };
+
+  const handleCloseDiagnostics = () => setIsDiagnosticsOpen(false);
 
   useEffect(() => {
     setSpeakers((prev) => {
@@ -101,6 +114,9 @@ const useSpeakersOutgoing = () => {
     setSpeakers,
     hasBrokenLinks,
     handleReconcileLinks,
+    diagnostics,
+    isDiagnosticsOpen,
+    handleCloseDiagnostics,
   };
 };
 

@@ -144,6 +144,103 @@ export type SpeakerReconcileResult = {
   reconciledUids: { oldUid: string; newUid: string }[];
 };
 
+export type SpeakerMatchDiagnosticReason =
+  | 'not-outgoing'
+  | 'wrong-congregation'
+  | 'already-linked'
+  | 'no-candidates'
+  | 'ambiguous';
+
+export type SpeakerMatchDiagnostic = {
+  speakerName: string;
+  reason: SpeakerMatchDiagnosticReason;
+  linkedPersonName?: string;
+  candidateNames?: string[];
+};
+
+/**
+ * Explica, para cada orador saliente que NO se pudo reconectar solo, por
+ * qué — sin adivinar más allá de lo que ya intenta reconcileOutgoingSpeakerLinks,
+ * solo hace visible la razón exacta en vez de fallar en silencio. Pensado
+ * para diagnosticar casos reales que "deberían" reconectarse y no lo hacen.
+ */
+export const diagnoseUnmatchedSpeakers = (
+  speakers: VisitingSpeakerType[],
+  persons: PersonType[],
+  localCongId: string | undefined
+): SpeakerMatchDiagnostic[] => {
+  const activePersonUids = new Set(persons.map((p) => p.person_uid));
+  const results: SpeakerMatchDiagnostic[] = [];
+
+  for (const speaker of speakers) {
+    const speakerName =
+      `${speaker.speaker_data.person_firstname.value} ${speaker.speaker_data.person_lastname.value}`.trim();
+
+    if (speaker.speaker_data.local.value) continue;
+
+    if (!localCongId || speaker.speaker_data.cong_id !== localCongId) {
+      results.push({ speakerName, reason: 'wrong-congregation' });
+      continue;
+    }
+
+    if (activePersonUids.has(speaker.person_uid)) {
+      const linked = persons.find((p) => p.person_uid === speaker.person_uid);
+      const linkedPersonName = linked
+        ? `${linked.person_data.person_firstname.value} ${linked.person_data.person_lastname.value}`.trim()
+        : undefined;
+
+      // Ya enlazado a una Persona real — no se reporta como problema salvo
+      // que el nombre enlazado sea claramente distinto al del Sheet (indicio
+      // de un enlace incorrecto hecho antes de que existiera esta lógica).
+      if (linkedPersonName && normalizeForMatch(linkedPersonName) !== normalizeForMatch(speakerName)) {
+        results.push({ speakerName, reason: 'already-linked', linkedPersonName });
+      }
+      continue;
+    }
+
+    const speakerTokens = tokenize(speakerName);
+    if (speakerTokens.length === 0) continue;
+    const speakerTokenSet = new Set(speakerTokens);
+
+    const candidates = persons.filter((person) => {
+      const firstnameTokens = tokenize(person.person_data.person_firstname.value);
+      const lastnameTokens = tokenize(person.person_data.person_lastname.value);
+      if (firstnameTokens.length === 0 || lastnameTokens.length === 0) return false;
+
+      return (
+        firstnameTokens.every((token) => speakerTokenSet.has(token)) &&
+        speakerTokenSet.has(lastnameTokens[0])
+      );
+    });
+
+    if (candidates.length === 0) {
+      results.push({ speakerName, reason: 'no-candidates' });
+      continue;
+    }
+
+    if (candidates.length === 1) continue; // se reconecta solo, no es un problema
+
+    const fullNameMatches = candidates.filter((person) => {
+      const fullNameTokens = tokenize(person.person_data.person_fullname?.value ?? '');
+      if (fullNameTokens.length === 0) return false;
+      const fullNameTokenSet = new Set(fullNameTokens);
+      return speakerTokens.every((token) => fullNameTokenSet.has(token));
+    });
+
+    if (fullNameMatches.length === 1) continue; // el desempate ya lo resuelve
+
+    results.push({
+      speakerName,
+      reason: 'ambiguous',
+      candidateNames: candidates.map((p) =>
+        `${p.person_data.person_firstname.value} ${p.person_data.person_lastname.value}`.trim()
+      ),
+    });
+  }
+
+  return results;
+};
+
 /**
  * Repara el enlace de los oradores salientes (nuestros propios publicadores)
  * cuyo person_uid no corresponde a ninguna Persona real de la congregación
@@ -198,21 +295,16 @@ export const reconcileOutgoingSpeakerLinks = (
       newUid: matchedPerson.person_uid,
     });
 
-    return {
-      ...speaker,
-      person_uid: matchedPerson.person_uid,
-      speaker_data: {
-        ...speaker.speaker_data,
-        person_firstname: {
-          value: matchedPerson.person_data.person_firstname.value,
-          updatedAt: new Date().toISOString(),
-        },
-        person_lastname: {
-          value: matchedPerson.person_data.person_lastname.value,
-          updatedAt: new Date().toISOString(),
-        },
-      },
-    };
+    // Solo se corrige el enlace (person_uid) — el nombre denormalizado del
+    // orador se deja TAL CUAL lo trae el Sheet. Nunca se muestra en pantalla
+    // (la vista siempre resuelve el nombre en vivo desde la Persona real vía
+    // person_uid), pero el backend SÍ lo usa al día siguiente para reconocer
+    // "es el mismo discursante de ayer" cuando llega el nuevo sync — si aquí
+    // se sobreescribe con el nombre abreviado de la app, el sync de mañana
+    // ya no reconoce el nombre y crea un huérfano nuevo, deshaciendo esta
+    // misma reconciliación (bug real confirmado: "Alejandro Amorós López",
+    // "Carlos Saca Miranda", etc. volvían a quedar sin enlazar cada día).
+    return { ...speaker, person_uid: matchedPerson.person_uid };
   });
 
   return { speakers: result, reconciledUids };
