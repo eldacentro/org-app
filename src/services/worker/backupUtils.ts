@@ -42,6 +42,7 @@ import { formatDate } from '@utils/date';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 import {
   reconcileOutgoingSpeakerLinks,
+  remapOutgoingTalkAssignments,
   resolveLocalCongId,
 } from '@services/app/visiting_speakers_reconcile';
 
@@ -928,7 +929,7 @@ const dbRestoreVisitingSpeakers = async (
   masterKey?: string
 ) => {
   try {
-    if (!backupData.visiting_speakers) return;
+    if (!backupData.visiting_speakers) return [];
 
     const decryptedSpeakers = (backupData.visiting_speakers as object[]).map(
       (speaker: VisitingSpeakerType) => {
@@ -1012,6 +1013,8 @@ const dbRestoreVisitingSpeakers = async (
     if (oldUidsToDelete.length > 0) {
       await appDb.visiting_speakers.bulkDelete(oldUidsToDelete);
     }
+
+    return reconciledUids;
   } catch (error) {
     throw new Error(`visiting_speakers: ${error.message}`);
   }
@@ -1958,6 +1961,7 @@ const dbDeduplicateSpeakers = async () => {
   }
 
   const speakersToUpdate: VisitingSpeakerType[] = [];
+  const dedupedUids: { oldUid: string; newUid: string }[] = [];
 
   for (const group of groups.values()) {
     if (group.length <= 1) continue;
@@ -2012,6 +2016,11 @@ const dbDeduplicateSpeakers = async () => {
 
     for (let i = 1; i < group.length; i++) {
       const speaker = group[i];
+      // Los programas que ya tenían asignado a este duplicado en Discursos
+      // salientes deben reapuntar al sobreviviente — si no, la asignación
+      // queda huérfana en cuanto el duplicado se marca borrado.
+      dedupedUids.push({ oldUid: speaker.person_uid, newUid: survivor.person_uid });
+
       speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
       speakersToUpdate.push(speaker);
     }
@@ -2029,6 +2038,8 @@ const dbDeduplicateSpeakers = async () => {
       await appDb.metadata.put(metadata);
     }
   }
+
+  return dedupedUids;
 };
 
 const dbDeduplicateCongregations = async () => {
@@ -2284,7 +2295,7 @@ const dbRestoreFromBackup = async (
 
       await dbRestoreSpeakersCongregations(backupData, accessCode, masterKey);
 
-      await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
+      const reconciledFromRestore = await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
 
       // Las congregaciones se desduplican (y los discursantes huérfanos se
       // reapuntan) ANTES de desduplicar discursantes — si no, un discursante
@@ -2292,7 +2303,8 @@ const dbRestoreFromBackup = async (
       // real, porque sus cong_id siguen siendo distintos.
       await dbDeduplicateCongregations();
 
-      await dbDeduplicateSpeakers();
+      const reconciledFromDedup = await dbDeduplicateSpeakers();
+      const allReconciledUids = [...(reconciledFromRestore ?? []), ...(reconciledFromDedup ?? [])];
 
       const failedCategories = new Set<string>();
       const safe = (name: string, fn: () => Promise<void>) =>
@@ -2311,6 +2323,19 @@ const dbRestoreFromBackup = async (
       await safe('sources', () => dbRestoreSources(backupData, accessCode));
 
       await safe('schedules', () => dbRestoreSchedules(backupData, accessCode));
+
+      // Se reapuntan las asignaciones de Discursos salientes DESPUÉS de
+      // fusionar los programas remotos de este ciclo — si se hiciera antes,
+      // un merge remoto posterior (de otro dispositivo, con el uid viejo
+      // todavía sin reconciliar) podría deshacer el reapunte.
+      if (allReconciledUids.length > 0) {
+        const schedules = await appDb.sched.toArray();
+        const changedSchedules = remapOutgoingTalkAssignments(schedules, allReconciledUids);
+
+        if (changedSchedules.length > 0) {
+          await appDb.sched.bulkPut(changedSchedules);
+        }
+      }
 
       await safe('departments_schedule', () => dbRestoreDepartmentsSchedule(backupData, accessCode));
 

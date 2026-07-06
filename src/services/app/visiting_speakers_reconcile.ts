@@ -1,6 +1,7 @@
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { PersonType } from '@definition/person';
+import { SchedWeekType } from '@definition/schedules';
 
 // Módulo sin dependencias de Jotai/estado de React a propósito: lo importa
 // tanto el hilo principal (importación manual) como el web worker de
@@ -159,4 +160,49 @@ export const reconcileOutgoingSpeakerLinks = (
   });
 
   return { speakers: result, reconciledUids };
+};
+
+/**
+ * Cuando reconcileOutgoingSpeakerLinks corrige el person_uid de un orador
+ * saliente, los programas que ya lo tenían asignado a Discursos salientes
+ * (weekend_meeting.outgoing_talks) siguen guardando el uid VIEJO — sin esto,
+ * el enlace del catálogo queda arreglado pero el historial de asignaciones
+ * ya hechas se queda huérfano (el nombre se ve por el respaldo denormalizado,
+ * pero deja de ser el mismo registro enlazado).
+ *
+ * Devuelve solo las semanas que realmente cambiaron, listas para
+ * appDb.sched.bulkPut — no toca las demás.
+ */
+export const remapOutgoingTalkAssignments = (
+  schedules: SchedWeekType[],
+  reconciledUids: { oldUid: string; newUid: string }[]
+): SchedWeekType[] => {
+  if (reconciledUids.length === 0) return [];
+
+  const uidMap = new Map(reconciledUids.map(({ oldUid, newUid }) => [oldUid, newUid]));
+  const changed: SchedWeekType[] = [];
+
+  for (const schedule of schedules) {
+    const talks = schedule.weekend_meeting?.outgoing_talks;
+    if (!talks || talks.length === 0) continue;
+
+    let didChange = false;
+
+    const newTalks = talks.map((talk) => {
+      const newUid = uidMap.get(talk.value);
+      if (!newUid) return talk;
+
+      didChange = true;
+      return { ...talk, value: newUid };
+    });
+
+    if (didChange) {
+      changed.push({
+        ...schedule,
+        weekend_meeting: { ...schedule.weekend_meeting, outgoing_talks: newTalks },
+      });
+    }
+  }
+
+  return changed;
 };

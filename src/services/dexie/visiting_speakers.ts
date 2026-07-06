@@ -12,8 +12,10 @@ import { AssignmentCode } from '@definition/assignment';
 import { generateDisplayName } from '@utils/common';
 import {
   reconcileOutgoingSpeakerLinks,
+  remapOutgoingTalkAssignments,
   resolveLocalCongId,
 } from '@services/app/visiting_speakers_reconcile';
+import { dbUpdateSchedulesMetadata } from './schedules';
 
 const dbUpdateVisitingSpeakersMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -633,6 +635,18 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
 
   if (reconciledUids.length > 0) {
     await dbUpdateVisitingSpeakersMetadata();
+
+    // Los programas que ya tenían asignado al orador bajo el uid viejo
+    // (en Discursos salientes) se reapuntan al uid real recién enlazado —
+    // si no, el catálogo queda arreglado pero esas asignaciones quedan
+    // huérfanas.
+    const schedules = await appDb.sched.toArray();
+    const changedSchedules = remapOutgoingTalkAssignments(schedules, reconciledUids);
+
+    if (changedSchedules.length > 0) {
+      await appDb.sched.bulkPut(changedSchedules);
+      await dbUpdateSchedulesMetadata();
+    }
   }
 
   return reconciledUids.length;

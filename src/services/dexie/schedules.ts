@@ -6,7 +6,7 @@ import { store } from '@states/index';
 import { fullnameState } from '@states/settings';
 import { scheduleSchema } from './schema';
 
-const dbUpdateSchedulesMetadata = async () => {
+export const dbUpdateSchedulesMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
 
   if (!metadata) return;
