@@ -180,6 +180,25 @@ export const remapOutgoingTalkAssignments = (
   if (reconciledUids.length === 0) return [];
 
   const uidMap = new Map(reconciledUids.map(({ oldUid, newUid }) => [oldUid, newUid]));
+
+  // Resolución transitiva: si en el mismo ciclo un huérfano A se reconcilia
+  // con la Persona B (reconcileOutgoingSpeakerLinks) y ese mismo B resulta
+  // ser además un duplicado que se fusiona con el superviviente C
+  // (dbDeduplicateSpeakers), un programa que todavía apuntaba a A debe
+  // terminar en C — un solo salto por el mapa lo dejaría a medio camino en
+  // B, que para entonces ya no es un registro vivo.
+  const resolveFinalUid = (uid: string): string => {
+    let current = uid;
+    const seen = new Set<string>([current]);
+    let next = uidMap.get(current);
+    while (next && !seen.has(next)) {
+      current = next;
+      seen.add(current);
+      next = uidMap.get(current);
+    }
+    return current;
+  };
+
   const changed: SchedWeekType[] = [];
 
   for (const schedule of schedules) {
@@ -189,8 +208,10 @@ export const remapOutgoingTalkAssignments = (
     let didChange = false;
 
     const newTalks = talks.map((talk) => {
-      const newUid = uidMap.get(talk.value);
-      if (!newUid) return talk;
+      if (!uidMap.has(talk.value)) return talk;
+
+      const newUid = resolveFinalUid(talk.value);
+      if (newUid === talk.value) return talk;
 
       didChange = true;
       return { ...talk, value: newUid };
