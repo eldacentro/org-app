@@ -2047,9 +2047,20 @@ const dbDeduplicateSpeakers = async () => {
     for (let i = 1; i < group.length; i++) {
       for (const talk of group[i].speaker_data.talks) {
         const existing = mergedTalks.get(talk.talk_number);
-        if (!existing || talk.updatedAt > existing.updatedAt) {
+
+        if (!existing) {
           mergedTalks.set(talk.talk_number, talk);
+          continue;
         }
+
+        // El Sheet del circuito nunca aporta canciones — tomar "el más
+        // reciente" a ciegas podría borrar talk_songs ya puestas a mano si
+        // el duplicado más reciente viene sin ellas.
+        const winner = talk.updatedAt > existing.updatedAt ? talk : existing;
+        const talk_songs =
+          existing.talk_songs.length > 0 ? existing.talk_songs : talk.talk_songs;
+
+        mergedTalks.set(talk.talk_number, { ...winner, talk_songs });
       }
     }
 

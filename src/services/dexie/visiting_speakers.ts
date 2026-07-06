@@ -624,10 +624,61 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
   // el mismo discursante de ayer" — sobreescribirlo aquí con el nombre
   // abreviado de la app rompía ese reconocimiento y deshacía la
   // reconciliación en el siguiente sync (bug real confirmado 2026-07-06).
+  //
+  // person_uid es la clave primaria de la tabla — renombrarla vía .update()
+  // funciona (Dexie borra la fila vieja e inserta una nueva), PERO si YA
+  // existe una fila con esa clave (residuo de un intento de reconciliación
+  // anterior a estos arreglos, o cualquier otra causa), Dexie rechaza el
+  // renombrado entero con un ConstraintError y NINGÚN orador se reconecta
+  // (bug real confirmado 2026-07-06: "Key already exists in the object
+  // store"). Por eso se comprueba antes: si ya hay algo en newUid, se
+  // fusionan los bosquejos ahí y se borra el huérfano, en vez de intentar
+  // renombrarlo encima.
+  const speakersByUid = new Map(speakers.map((s) => [s.person_uid, s]));
+  const oldUidsToDelete: string[] = [];
+
   for (const { oldUid, newUid } of reconciledUids) {
-    await appDb.visiting_speakers.update(oldUid, {
-      person_uid: newUid,
-    } as UpdateSpec<VisitingSpeakerType>);
+    const orphan = speakersByUid.get(oldUid);
+    const existingAtTarget = speakersByUid.get(newUid);
+
+    if (existingAtTarget) {
+      const mergedTalks = new Map(
+        existingAtTarget.speaker_data.talks.map((talk) => [talk.talk_number, talk])
+      );
+
+      for (const talk of orphan?.speaker_data.talks ?? []) {
+        const current = mergedTalks.get(talk.talk_number);
+
+        if (!current) {
+          mergedTalks.set(talk.talk_number, talk);
+          continue;
+        }
+
+        // El Sheet del circuito nunca aporta canciones — si el huérfano
+        // trae este bosquejo con un updatedAt más reciente pero sin
+        // talk_songs, tomar "el más reciente" a ciegas borraría las
+        // canciones que ya se hubieran puesto a mano en el existente.
+        const winner = talk.updatedAt > current.updatedAt ? talk : current;
+        const talk_songs =
+          current.talk_songs.length > 0 ? current.talk_songs : talk.talk_songs;
+
+        mergedTalks.set(talk.talk_number, { ...winner, talk_songs });
+      }
+
+      await appDb.visiting_speakers.update(newUid, {
+        'speaker_data.talks': Array.from(mergedTalks.values()),
+      } as UpdateSpec<VisitingSpeakerType>);
+
+      oldUidsToDelete.push(oldUid);
+    } else {
+      await appDb.visiting_speakers.update(oldUid, {
+        person_uid: newUid,
+      } as UpdateSpec<VisitingSpeakerType>);
+    }
+  }
+
+  if (oldUidsToDelete.length > 0) {
+    await appDb.visiting_speakers.bulkDelete(oldUidsToDelete);
   }
 
   if (reconciledUids.length > 0) {
