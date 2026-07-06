@@ -21,7 +21,7 @@ const normalizeForMatch = (str: string) => {
 // Igual que normalizeForMatch, pero conserva las palabras por separado en
 // vez de aplastarlas en una sola cadena \u2014 lo necesita matchSpeakerToPerson
 // para comparar por palabras sueltas en vez de exigir la cadena completa.
-const tokenize = (str: string): string[] => {
+export const tokenize = (str: string): string[] => {
   if (!str) return [];
   return str
     .toLowerCase()

@@ -44,6 +44,7 @@ import {
   reconcileOutgoingSpeakerLinks,
   remapOutgoingTalkAssignments,
   resolveLocalCongId,
+  tokenize,
 } from '@services/app/visiting_speakers_reconcile';
 
 
@@ -1928,12 +1929,33 @@ const dbDeduplicateSpeakers = async () => {
       )
       .map((cong) => cong.id)
   );
-  const normalize = (str: string) =>
-    str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
+
+  // Un mismo orador puede quedar duplicado con nombres que NO calzan
+  // carácter por carácter — el Sheet trae el nombre legal completo
+  // ("Carlos Saca Miranda") mientras la app guarda uno abreviado para
+  // mostrar ("Carlos Saca M."). Agrupar por la cadena completa normalizada
+  // no detectaba estos pares como duplicados; ahora se agrupa por la
+  // primera palabra del nombre y la primera palabra del apellido (el
+  // paterno) — mismo criterio que matchSpeakerToPerson.
+  const groupKey = (firstNameVal: string, lastNameVal: string) => {
+    const firstTokens = tokenize(firstNameVal);
+    const lastTokens = tokenize(lastNameVal);
+    if (firstTokens.length === 0 || lastTokens.length === 0) return null;
+    return `${firstTokens[0]}|${lastTokens[0]}`;
+  };
+
+  // Necesario para dos cosas más abajo: (1) nunca fusionar a ciegas dos
+  // registros que ya están enlazados a dos Personas reales distintas, y
+  // (2) preferir como sobreviviente al que sí tiene un enlace real.
+  const persons = await appDb.persons.toArray();
+  const activePersonUids = new Set(
+    persons
+      .filter((person) => {
+        if (person._deleted.value) return false;
+        return !(person.person_data.archived?.value ?? false);
+      })
+      .map((person) => person.person_uid)
+  );
 
   const groups = new Map<string, VisitingSpeakerType[]>();
 
@@ -1950,9 +1972,8 @@ const dbDeduplicateSpeakers = async () => {
     const firstNameVal = speaker.speaker_data.person_firstname?.value || '';
     const lastNameVal = speaker.speaker_data.person_lastname?.value || '';
 
-    const firstName = normalize(firstNameVal);
-    const lastName = normalize(lastNameVal);
-    const key = `${firstName}|${lastName}`;
+    const key = groupKey(firstNameVal, lastNameVal);
+    if (!key) continue;
 
     if (!groups.has(key)) {
       groups.set(key, []);
@@ -1977,7 +1998,28 @@ const dbDeduplicateSpeakers = async () => {
     // duplicados — no se fusionan a ciegas para no mezclar a dos hermanos.
     if (distinctValidCongIds.size > 1) continue;
 
+    // 2+ personas reales y activas distintas ya enlazadas dentro del mismo
+    // grupo: agrupar solo por la primera palabra de nombre y apellido es
+    // más permisivo que una coincidencia exacta, así que puede juntar a dos
+    // hermanos de verdad distintos (p. ej. "Carlos Saca M." y "Carlos Saca
+    // Jr.", cada uno ya enlazado a su propia Persona) — nunca se fusionan a
+    // ciegas en ese caso.
+    const distinctLinkedPersonUids = new Set(
+      group
+        .map((speaker) => speaker.person_uid)
+        .filter((uid) => activePersonUids.has(uid))
+    );
+    if (distinctLinkedPersonUids.size > 1) continue;
+
     group.sort((a, b) => {
+      // El que ya está enlazado a una Persona real va primero — preservar
+      // ese enlace es más importante que la fecha, porque si se pierde no
+      // se recupera solo (bug real confirmado: la reconciliación no vuelve
+      // a tocar un registro huérfano recién fusionado con el enlace bueno).
+      const aLinked = activePersonUids.has(a.person_uid) ? 1 : 0;
+      const bLinked = activePersonUids.has(b.person_uid) ? 1 : 0;
+      if (aLinked !== bLinked) return bLinked - aLinked;
+
       // El que tiene un cong_id que sí resuelve a una congregación real va
       // primero — preferirlo como sobreviviente es lo que corrige el caso
       // reportado (una copia sin congregación visible, las demás con ella).
@@ -1990,13 +2032,13 @@ const dbDeduplicateSpeakers = async () => {
       return dateB.localeCompare(dateA);
     });
 
-    // El sobreviviente es el más reciente (y con congregación válida si la
-    // hay), pero sus bosquejos (talks) no necesariamente son el conjunto
-    // completo — la sync con el catálogo externo de oradores a veces crea
-    // un duplicado en vez de añadir un bosquejo nuevo al existente, y cada
-    // copia termina con bosquejos distintos. Antes esto se descartaba sin
-    // más al borrar el duplicado; ahora se fusionan los bosquejos de todas
-    // las copias en el sobreviviente antes de borrar el resto.
+    // El sobreviviente es el enlazado a la Persona real (si lo hay), pero
+    // sus bosquejos (talks) no necesariamente son el conjunto completo — la
+    // sync con el catálogo externo de oradores a veces crea un duplicado en
+    // vez de añadir un bosquejo nuevo al existente, y cada copia termina
+    // con bosquejos distintos. Antes esto se descartaba sin más al borrar
+    // el duplicado; ahora se fusionan los bosquejos de todas las copias en
+    // el sobreviviente antes de borrar el resto.
     const survivor = group[0];
     const mergedTalks = new Map(
       survivor.speaker_data.talks.map((talk) => [talk.talk_number, talk])
@@ -2012,6 +2054,26 @@ const dbDeduplicateSpeakers = async () => {
     }
 
     survivor.speaker_data.talks = Array.from(mergedTalks.values());
+
+    // El nombre denormalizado del sobreviviente se actualiza al del
+    // duplicado cuyo nombre se tocó más recientemente (normalmente el que
+    // acaba de traer el sync del Sheet) — si el sobreviviente se queda con
+    // la forma abreviada de la app mientras el Sheet sigue mandando la
+    // forma completa, el próximo sync no lo reconoce y vuelve a duplicarlo
+    // (bug real confirmado 2026-07-06: el mismo ciclo se repetía cada día).
+    const nameDonor = group.reduce((freshest, speaker) => {
+      const speakerNameUpdatedAt =
+        speaker.speaker_data.person_lastname?.updatedAt ?? '';
+      const freshestNameUpdatedAt =
+        freshest.speaker_data.person_lastname?.updatedAt ?? '';
+      return speakerNameUpdatedAt > freshestNameUpdatedAt ? speaker : freshest;
+    }, group[0]);
+
+    if (nameDonor !== survivor) {
+      survivor.speaker_data.person_firstname = nameDonor.speaker_data.person_firstname;
+      survivor.speaker_data.person_lastname = nameDonor.speaker_data.person_lastname;
+    }
+
     speakersToUpdate.push(survivor);
 
     for (let i = 1; i < group.length; i++) {
