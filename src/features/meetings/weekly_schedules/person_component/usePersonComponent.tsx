@@ -18,7 +18,11 @@ import { AssignmentCongregation } from '@definition/schedules';
 import { Week } from '@definition/week_type';
 import { personsState } from '@states/persons';
 import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
-import { incomingSpeakersState, visitingSpeakersState } from '@states/visiting_speakers';
+import {
+  incomingSpeakersState,
+  visitingSpeakersActiveState,
+  visitingSpeakersState,
+} from '@states/visiting_speakers';
 import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 
 const usePersonComponent = ({
@@ -38,6 +42,7 @@ const usePersonComponent = ({
   const coFullname = useAtomValue(COFullnameState);
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
   const visitingSpeakers = useAtomValue(visitingSpeakersState);
+  const visitingSpeakersActive = useAtomValue(visitingSpeakersActiveState);
   const settings = useAtomValue(settingsState);
   const congName = useAtomValue(congNameState);
   const congregations = useAtomValue(speakersCongregationsActiveState);
@@ -135,10 +140,14 @@ const usePersonComponent = ({
       // Fallback: check incomingSpeakers when not found in local persons.
       // Covers visitingSpeaker talk type and cases where talkType is missing
       // or out of sync with the stored speaker UID (e.g. after a talk-type change).
+      // Si no aparece ahí (p. ej. su congregación de origen ya se eliminó
+      // del circuito), se busca igual en el catálogo completo — un discurso
+      // ya programado no debe perder el nombre solo porque la congregación
+      // del orador dejó de existir después.
       if (!result.name && assigned?.value?.length > 0) {
-        const speaker = incomingSpeakers.find(
-          (record) => record.person_uid === assigned?.value
-        );
+        const speaker =
+          incomingSpeakers.find((record) => record.person_uid === assigned?.value) ??
+          visitingSpeakersActive.find((record) => record.person_uid === assigned?.value);
 
         if (speaker) {
           result.name = speakerGetDisplayName(
@@ -303,9 +312,9 @@ const usePersonComponent = ({
           }
 
           if (speakerIsVisiting) {
-            const speaker = incomingSpeakers.find(
-              (record) => record.person_uid === speakerAssigned?.value
-            );
+            const speaker =
+              incomingSpeakers.find((record) => record.person_uid === speakerAssigned?.value) ??
+              visitingSpeakersActive.find((record) => record.person_uid === speakerAssigned?.value);
 
             if (speaker) {
               result.name = `${speakerGetDisplayName(
@@ -382,6 +391,7 @@ const usePersonComponent = ({
     wsConductor,
     incomingSpeakers,
     visitingSpeakers,
+    visitingSpeakersActive,
     mmAuxCounselorDefaultEnabled,
     mmAuxCounselorDefault,
     schedule_id,

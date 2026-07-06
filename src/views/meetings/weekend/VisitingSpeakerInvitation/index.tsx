@@ -90,7 +90,9 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
               <Text style={styles.addressTitle}>Dirección del Salón del Reino</Text>
               <Text style={styles.addressValue}>{props.congregationAddress}</Text>
               {props.congregationAddress && (
-                <Link src="https://maps.app.goo.gl/hjSEV7LLEMm7vcDK9">
+                <Link
+                  src={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(props.congregationAddress)}`}
+                >
                   <Text style={{ ...styles.addressValue, color: '#306CB4', fontSize: 10, marginTop: 2, textDecoration: 'underline' }}>
                     Ver en Google Maps
                   </Text>
@@ -100,14 +102,16 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           </View>
 
           {/* Media Info */}
-          <View style={styles.mediaSection}>
-            <Text style={styles.mediaText}>
-              <Text style={styles.boldText}>Contenido multimedia:</Text> Si utilizas imágenes o videos en tu discurso, puedes traerlos en un pendrive o enviarlos con antelación a nuestro correo (preferiblemente en el formato de lista de reproducción de JW Library). Por favor, envíanos también el número de la canción de inicio a:
-            </Text>
-            <Text style={{ ...styles.mediaText, fontWeight: 700, color: '#306CB4', marginTop: 4 }}>
-              {props.mediaEmail || 'discursos@eldacentro.com'}
-            </Text>
-          </View>
+          {props.mediaEmail && (
+            <View style={styles.mediaSection}>
+              <Text style={styles.mediaText}>
+                <Text style={styles.boldText}>Contenido multimedia:</Text> Si utilizas imágenes o videos en tu discurso, puedes traerlos en un pendrive o enviarlos con antelación a nuestro correo (preferiblemente en el formato de lista de reproducción de JW Library). Por favor, envíanos también el número de la canción de inicio a:
+              </Text>
+              <Text style={{ ...styles.mediaText, fontWeight: 700, color: '#306CB4', marginTop: 4 }}>
+                {props.mediaEmail}
+              </Text>
+            </View>
+          )}
 
           {/* Coordinators Contact Info */}
           <View style={styles.coordinatorsContainer}>

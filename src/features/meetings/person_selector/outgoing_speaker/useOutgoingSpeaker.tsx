@@ -35,12 +35,27 @@ const useOutgoingSpeaker = ({
     return schedules.find((record) => record.weekOf === week);
   }, [schedules, week]);
 
+  // Se calcula antes que `options` para poder incluir siempre al orador ya
+  // asignado, aunque el bosquejo se haya cambiado después de asignarlo y ya
+  // no aparezca entre los que tienen ese bosquejo preparado — si no, el
+  // selector se mostraba vacío pese a tener una asignación real.
+  const assignedUid = useMemo(() => {
+    if (week.length === 0 || !schedule) return '';
+
+    const outgoingSchedule = schedule.weekend_meeting.outgoing_talks.find(
+      (record) => record.id === schedule_id
+    );
+
+    return outgoingSchedule?.value ?? '';
+  }, [week, schedule, schedule_id]);
+
   const options = useMemo(() => {
     const result: PersonOptionsType[] = [];
 
     for (const speaker of outgoingSpeakers) {
-      // If a talk filter is set, only include speakers who have that talk prepared
-      if (talk !== undefined && talk !== null) {
+      // If a talk filter is set, only include speakers who have that talk
+      // prepared — salvo el ya asignado, que siempre se muestra.
+      if (talk !== undefined && talk !== null && speaker.person_uid !== assignedUid) {
         const hasTalk = speaker.speaker_data.talks.some(
           (record) =>
             record._deleted === false &&
@@ -88,7 +103,7 @@ const useOutgoingSpeaker = ({
     return result.sort((a, b) =>
       (a.person_name ?? '').localeCompare(b.person_name ?? '')
     );
-  }, [persons, displayNameEnabled, fullnameOption, talk, outgoingSpeakers]);
+  }, [persons, displayNameEnabled, fullnameOption, talk, outgoingSpeakers, assignedUid]);
 
   const value = useMemo(() => {
     if (week.length === 0) return null;

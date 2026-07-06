@@ -11,7 +11,7 @@ import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
 } from '@states/settings';
-import { speakerGetDisplayName } from '@utils/common';
+import { normalizeForSearch, speakerGetDisplayName } from '@utils/common';
 import { personsState } from '@states/persons';
 import { schedulesSaveAssignment } from '@services/app/schedules';
 import {
@@ -61,12 +61,18 @@ const useSpeakersCatalog = ({
 
         const newSpeaker = structuredClone(speaker);
 
-        newSpeaker.speaker_data.person_display_name =
-          person.person_data.person_display_name;
-        newSpeaker.speaker_data.person_firstname =
-          person.person_data.person_firstname;
-        newSpeaker.speaker_data.person_lastname =
-          person.person_data.person_lastname;
+        // Si el enlace con la Persona está roto (p. ej. un discursante
+        // importado cuyo person_uid no corresponde a nadie), se conserva el
+        // nombre ya denormalizado en el propio registro en vez de reventar
+        // el diálogo entero.
+        if (person) {
+          newSpeaker.speaker_data.person_display_name =
+            person.person_data.person_display_name;
+          newSpeaker.speaker_data.person_firstname =
+            person.person_data.person_firstname;
+          newSpeaker.speaker_data.person_lastname =
+            person.person_data.person_lastname;
+        }
 
         return newSpeaker;
       });
@@ -101,22 +107,26 @@ const useSpeakersCatalog = ({
 
   const talks = useMemo(() => {
     const options: TalkOptionType[] = [];
+    const normalizedSearch = normalizeForSearch(search);
 
     for (const talk of talksData) {
       const talkSpeakers = speakers.filter(
         (record) =>
-          (talk.talk_title.toLowerCase().includes(search.toLowerCase()) ||
-            record.speaker_data.person_display_name.value
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            record.speaker_data.person_lastname.value
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            record.speaker_data.person_firstname.value
-              .toLowerCase()
-              .includes(search.toLowerCase())) &&
+          (normalizeForSearch(talk.talk_title).includes(normalizedSearch) ||
+            normalizeForSearch(
+              record.speaker_data.person_display_name.value
+            ).includes(normalizedSearch) ||
+            normalizeForSearch(
+              record.speaker_data.person_lastname.value
+            ).includes(normalizedSearch) ||
+            normalizeForSearch(
+              record.speaker_data.person_firstname.value
+            ).includes(normalizedSearch)) &&
+          // Un bosquejo que ya se le quitó (_deleted) no debe seguir
+          // apareciendo como si el orador todavía lo tuviera preparado.
           record.speaker_data.talks.find(
-            (item) => item.talk_number === talk.talk_number
+            (item) =>
+              item.talk_number === talk.talk_number && item._deleted === false
           )
       );
 

@@ -132,13 +132,29 @@ export const dbSchedUpdateOutgoingTalksFields = async () => {
     const talks = sched.weekend_meeting.outgoing_talks ?? [];
 
     const outgoing_talks = talks.map((talk) => {
-      if (talk.value) return talk;
+      const fixed = talk.value
+        ? talk
+        : {
+            ...talk,
+            value: talk['speaker'] || '',
+            type: talk.type || 'main',
+          };
 
-      return {
-        ...talk,
-        value: talk['speaker'] || '',
-        type: talk.type || 'main',
-      };
+      // Migración de tipo (no de valor): registros legados guardaron
+      // public_talk como string ('42') en vez de number — las comparaciones
+      // en la app usan === estricto en unos sitios y Number() en otros, así
+      // que un string legado podía no coincidir en los primeros.
+      if (
+        fixed.public_talk !== null &&
+        fixed.public_talk !== undefined &&
+        typeof fixed.public_talk === 'string' &&
+        (fixed.public_talk as string).trim() !== '' &&
+        !Number.isNaN(Number(fixed.public_talk))
+      ) {
+        fixed.public_talk = Number(fixed.public_talk);
+      }
+
+      return fixed;
     });
 
     sched.weekend_meeting.outgoing_talks = outgoing_talks;

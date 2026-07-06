@@ -315,3 +315,16 @@ export const escapeHTML = (str: string) => {
     .replace(/'/g, '&#039;');
 };
 
+/**
+ * Normaliza texto para comparar/buscar sin importar mayúsculas ni acentos —
+ * "perez" debe encontrar "Pérez". Úsalo en ambos lados de una comparación de
+ * búsqueda (`normalizeForSearch(haystack).includes(normalizeForSearch(needle))`).
+ */
+export const normalizeForSearch = (str: string) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+};
+

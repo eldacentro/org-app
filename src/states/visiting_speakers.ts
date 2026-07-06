@@ -8,6 +8,7 @@ import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { speakersCongregationsActiveState } from './speakers_congregations';
 import { personsState } from './persons';
 import { personIsElder, personIsMS } from '@services/app/persons';
+import { resolveLocalCongId } from '@services/app/visiting_speakers_reconcile';
 
 export const visitingSpeakersState = atom<VisitingSpeakerType[]>([]);
 
@@ -32,37 +33,7 @@ export const myCongSpeakersState = atom((get) => {
   const congName = get(congNameState);
   const congNumber = get(congNumberState);
 
-  const normalize = (str: unknown) => {
-    if (!str || typeof str !== 'string') return '';
-    return str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, '')
-      .trim();
-  };
-
-  const normalizedHomeName = normalize(congName);
-
-  const localCong = congregations.find((record) => {
-    if (!record.cong_data) return false;
-    const nameVal = typeof record.cong_data.cong_name === 'object'
-      ? record.cong_data.cong_name?.value
-      : record.cong_data.cong_name;
-    const numVal = typeof record.cong_data.cong_number === 'object'
-      ? record.cong_data.cong_number?.value
-      : record.cong_data.cong_number;
-
-    const recordName = normalize(nameVal);
-    const recordNumber = String(numVal || '').trim();
-
-    return (
-      (recordName !== '' && recordName === normalizedHomeName) ||
-      (recordNumber !== '' && recordNumber === congNumber)
-    );
-  });
-
-  const congId = localCong?.id;
+  const congId = resolveLocalCongId(congregations, congName, congNumber);
 
   const outgoingSpeakers = speakers.filter(
     (record) => record.speaker_data.cong_id === congId
@@ -214,11 +185,14 @@ export const localSpeakersState = atom((get) => {
 export const incomingSpeakersState = atom((get) => {
   const speakers = get(visitingSpeakersActiveState);
   const congregations = get(speakersCongregationsActiveState);
+  const congName = get(congNameState);
   const congNumber = get(congNumberState);
 
-  const localId = congregations.find(
-    (record) => record.cong_data.cong_number.value === congNumber
-  )?.id;
+  // Misma resolución (nombre normalizado o número) que myCongSpeakersState —
+  // antes esta usaba solo el número, así que si el número no calzaba pero
+  // el nombre sí, un orador saliente propio podía colarse aquí como si fuera
+  // un orador visitante de otra congregación.
+  const localId = resolveLocalCongId(congregations, congName, congNumber);
 
   const incomingSpeakers =
     speakers.filter((record) => {
