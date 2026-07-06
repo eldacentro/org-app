@@ -40,6 +40,10 @@ import { DelegatedFieldServiceReportType } from '@definition/delegated_field_ser
 import { UpcomingEventType } from '@definition/upcoming_events';
 import { formatDate } from '@utils/date';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
+import {
+  reconcileOutgoingSpeakerLinks,
+  resolveLocalCongId,
+} from '@services/app/visiting_speakers_reconcile';
 
 
 const personIsMS = (person: PersonType) => {
@@ -926,7 +930,7 @@ const dbRestoreVisitingSpeakers = async (
   try {
     if (!backupData.visiting_speakers) return;
 
-    const remoteSpeakers = (backupData.visiting_speakers as object[]).map(
+    const decryptedSpeakers = (backupData.visiting_speakers as object[]).map(
       (speaker: VisitingSpeakerType) => {
         decryptObject({
           data: speaker,
@@ -939,7 +943,47 @@ const dbRestoreVisitingSpeakers = async (
       }
     );
 
+    // La sincronización diaria del circuito (Google Sheets → API → esta
+    // restauración) no conoce el person_uid interno de la app y genera el
+    // suyo propio para nuestros discursantes salientes. Se reconecta aquí,
+    // en cada restauración, con su Persona real por nombre — es el punto de
+    // entrada real de esos datos (a diferencia de la importación manual de
+    // un backup JSON, que es otro camino distinto y mucho menos frecuente).
+    const persons = await appDb.persons.toArray();
+    const activePersons = persons.filter((person) => {
+      if (person._deleted.value) return false;
+      return !(person.person_data.archived?.value ?? false);
+    });
+
+    const congregations = await appDb.speakers_congregations.toArray();
+    const settings = await appDb.app_settings.get(1);
+    const localCongId = resolveLocalCongId(
+      congregations,
+      settings?.cong_settings.cong_name ?? '',
+      settings?.cong_settings.cong_number.value ?? ''
+    );
+
+    const { speakers: remoteSpeakers, reconciledUids } =
+      reconcileOutgoingSpeakerLinks(decryptedSpeakers, activePersons, localCongId);
+
     const speakers = await appDb.visiting_speakers.toArray();
+
+    // Si ya existía localmente un registro huérfano bajo el person_uid
+    // antiguo (de una sincronización previa a esta reconciliación), se
+    // renombra al uid real en vez de dejarlo tal cual — si no, quedarían
+    // dos copias del mismo discursante: la huérfana y la recién enlazada.
+    const oldUidsToDelete: string[] = [];
+
+    for (const { oldUid, newUid } of reconciledUids) {
+      const staleIndex = speakers.findIndex(
+        (record) => record.person_uid === oldUid
+      );
+
+      if (staleIndex !== -1) {
+        speakers[staleIndex] = { ...speakers[staleIndex], person_uid: newUid };
+        oldUidsToDelete.push(oldUid);
+      }
+    }
 
     const speakersToUpdate: VisitingSpeakerType[] = [];
 
@@ -963,6 +1007,10 @@ const dbRestoreVisitingSpeakers = async (
 
     if (speakersToUpdate.length > 0) {
       await appDb.visiting_speakers.bulkPut(speakersToUpdate);
+    }
+
+    if (oldUidsToDelete.length > 0) {
+      await appDb.visiting_speakers.bulkDelete(oldUidsToDelete);
     }
   } catch (error) {
     throw new Error(`visiting_speakers: ${error.message}`);

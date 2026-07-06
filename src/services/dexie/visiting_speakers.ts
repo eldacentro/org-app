@@ -10,7 +10,10 @@ import { decryptData } from '@services/encryption';
 import appDb from '@db/appDb';
 import { AssignmentCode } from '@definition/assignment';
 import { generateDisplayName } from '@utils/common';
-import { reconcileOutgoingSpeakerLinks } from '@services/app/visiting_speakers';
+import {
+  reconcileOutgoingSpeakerLinks,
+  resolveLocalCongId,
+} from '@services/app/visiting_speakers_reconcile';
 
 const dbUpdateVisitingSpeakersMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -590,15 +593,24 @@ export const dbDeduplicateSpeakers = async () => {
 export const dbVisitingSpeakersReconcileLinks = async () => {
   const speakers = await appDb.visiting_speakers.toArray();
   const persons = await appDb.persons.toArray();
+  const congregations = await appDb.speakers_congregations.toArray();
+  const settings = await appDb.app_settings.get(1);
 
   const activePersons = persons.filter((person) => {
     if (person._deleted.value) return false;
     return !(person.person_data.archived?.value ?? false);
   });
 
+  const localCongId = resolveLocalCongId(
+    congregations,
+    settings?.cong_settings.cong_name ?? '',
+    settings?.cong_settings.cong_number.value ?? ''
+  );
+
   const { reconciledUids } = reconcileOutgoingSpeakerLinks(
     speakers.filter((record) => !record._deleted.value),
-    activePersons
+    activePersons,
+    localCongId
   );
 
   for (const { oldUid, newUid } of reconciledUids) {

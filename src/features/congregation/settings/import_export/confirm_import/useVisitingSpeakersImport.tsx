@@ -1,7 +1,10 @@
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { updatedAtOverride } from '@utils/common';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
-import { reconcileOutgoingSpeakerLinks } from '@services/app/visiting_speakers';
+import {
+  reconcileOutgoingSpeakerLinks,
+  resolveLocalCongId,
+} from '@services/app/visiting_speakers';
 import appDb from '@db/appDb';
 
 const useVisitingSpeakersImport = () => {
@@ -11,16 +14,27 @@ const useVisitingSpeakersImport = () => {
     // identificador propio para cada orador saliente. Antes de nada, se
     // intenta reconectar esos registros con su Persona real por nombre —
     // así el enlace queda correcto de verdad en cada sincronización diaria,
-    // no solo el nombre mostrado.
+    // no solo el nombre mostrado. Solo se aplica a discursantes de ESTA
+    // congregación (localCongId) — nunca a los del circuito, para no
+    // enlazar por error con un publicador local homónimo.
     const persons = await appDb.persons.toArray();
     const activePersons = persons.filter((person) => {
       if (person._deleted.value) return false;
       return !(person.person_data.archived?.value ?? false);
     });
 
+    const settings = await appDb.app_settings.get(1);
+    const congregations = await appDb.speakers_congregations.toArray();
+    const localCongId = resolveLocalCongId(
+      congregations,
+      settings?.cong_settings.cong_name ?? '',
+      settings?.cong_settings.cong_number.value ?? ''
+    );
+
     const { speakers: reconciledSpeakers } = reconcileOutgoingSpeakerLinks(
       speakers,
-      activePersons
+      activePersons,
+      localCongId
     );
 
     const result: VisitingSpeakerType[] = [];
