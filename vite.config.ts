@@ -16,9 +16,21 @@ try {
   // fuera de un repo git (p.ej. build aislado): se queda como 'dev'
 }
 
+// Número de build: total de commits en el historial. A diferencia del
+// campo "version" de package.json (que hay que subir a mano en cada
+// release), este número sube solo con cada commit — nunca requiere editar
+// ningún archivo para que "Acerca de" muestre un build distinto.
+let buildNumber = '0';
+try {
+  buildNumber = execSync('git rev-list --count HEAD').toString().trim();
+} catch {
+  // fuera de un repo git (p.ej. build aislado): se queda como '0'
+}
+
 export default defineConfig({
   define: {
     __BUILD_SHA__: JSON.stringify(buildSha),
+    __BUILD_NUMBER__: JSON.stringify(buildNumber),
   },
   plugins: [react(), comlink(), eslint(), loadVersion(), svgx()],
   resolve: {

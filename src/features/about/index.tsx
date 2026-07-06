@@ -64,7 +64,8 @@ const About = (props: AboutProps) => {
           <Box>
             <Typography className="h3">Elda Centro</Typography>
             <Typography className="body-regular" color="var(--grey-350)">
-              {import.meta.env.PACKAGE_VERSION} · {__BUILD_SHA__}
+              {import.meta.env.PACKAGE_VERSION} (#{__BUILD_NUMBER__}) ·{' '}
+              {__BUILD_SHA__}
             </Typography>
           </Box>
         </Box>
