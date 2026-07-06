@@ -18,6 +18,19 @@ const normalizeForMatch = (str: string) => {
     .trim();
 };
 
+// Igual que normalizeForMatch, pero conserva las palabras por separado en
+// vez de aplastarlas en una sola cadena \u2014 lo necesita matchSpeakerToPerson
+// para comparar por palabras sueltas en vez de exigir la cadena completa.
+const tokenize = (str: string): string[] => {
+  if (!str) return [];
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+};
+
 /**
  * Resuelve el id de "mi congregación" dentro de la tabla speakers_congregations
  * — misma lógica de emparejamiento (nombre normalizado o número) que usa
@@ -57,30 +70,73 @@ export const resolveLocalCongId = (
 };
 
 /**
- * Busca la Persona real cuyo nombre coincide exactamente (normalizado) con
- * el nombre denormalizado guardado en el registro de orador. Solo devuelve
- * una coincidencia cuando es única — con nombre y apellido repetidos, o sin
- * ninguna coincidencia, no arriesga a enlazar con la persona equivocada.
+ * Busca la Persona real cuyo nombre "encaja" con el nombre denormalizado
+ * guardado en el registro de orador. El Sheet suele traer el nombre legal
+ * completo (segundo nombre, segundo apellido) mientras que la app guarda a
+ * propósito una forma abreviada para mostrar (p. ej. "Saca M.") — exigir
+ * coincidencia exacta de la cadena completa dejaba huérfano para siempre a
+ * cualquier discursante cuyo nombre en el Sheet no calzara carácter por
+ * carácter con el de la app (caso real: "Alejandro Amorós López" en el
+ * Sheet vs. "Alejandro" / "Amorós" en la app).
+ *
+ * En su lugar, se compara por palabras sueltas: hay coincidencia si el
+ * nombre completo de la Persona aparece entre las palabras del Sheet, y su
+ * apellido paterno (la primera palabra del apellido guardado) también
+ * aparece ahí — sin exigir que el resto (segundo nombre, segundo apellido,
+ * iniciales) calce.
+ *
+ * Si esto arroja más de un candidato (dos personas con el mismo nombre y
+ * apellido paterno, p. ej. "Carlos Saca M." y "Carlos Saca Jr."), se usa el
+ * campo "Nombre completo" como desempate: solo si exactamente una de ellas
+ * lo tiene lleno y contiene TODAS las palabras que trae el Sheet, se usa
+ * esa. Si sigue habiendo empate, o ninguna lo tiene lleno, no se arriesga a
+ * enlazar con la persona equivocada — se deja para resolver a mano, igual
+ * que si no hubiera ninguna coincidencia.
  */
 const matchSpeakerToPerson = (
   speaker: VisitingSpeakerType,
   persons: PersonType[]
 ): PersonType | null => {
-  const speakerName = normalizeForMatch(
-    `${speaker.speaker_data.person_firstname.value}${speaker.speaker_data.person_lastname.value}`
+  const speakerTokens = tokenize(
+    `${speaker.speaker_data.person_firstname.value} ${speaker.speaker_data.person_lastname.value}`
   );
 
-  if (!speakerName) return null;
+  if (speakerTokens.length === 0) return null;
+
+  const speakerTokenSet = new Set(speakerTokens);
 
   const matches = persons.filter((person) => {
-    const personName = normalizeForMatch(
-      `${person.person_data.person_firstname.value}${person.person_data.person_lastname.value}`
-    );
+    const firstnameTokens = tokenize(person.person_data.person_firstname.value);
+    const lastnameTokens = tokenize(person.person_data.person_lastname.value);
 
-    return personName === speakerName;
+    // Nombre o apellido vacíos no deben calzar por vacío (every() de un
+    // array vacío da true) — sin esto, una Persona sin nombre guardado
+    // "coincidiría" con cualquier discursante por accidente.
+    if (firstnameTokens.length === 0 || lastnameTokens.length === 0) return false;
+
+    const firstnameMatches = firstnameTokens.every((token) =>
+      speakerTokenSet.has(token)
+    );
+    const paternalSurnameMatches = speakerTokenSet.has(lastnameTokens[0]);
+
+    return firstnameMatches && paternalSurnameMatches;
   });
 
-  return matches.length === 1 ? matches[0] : null;
+  if (matches.length === 1) return matches[0];
+  if (matches.length === 0) return null;
+
+  // Desempate con "Nombre completo": el Sheet puede omitir un segundo
+  // nombre que sí esté ahí (por eso se compara en este sentido — todas las
+  // palabras del Sheet deben estar en el nombre completo, no al revés).
+  const fullNameMatches = matches.filter((person) => {
+    const fullNameTokens = tokenize(person.person_data.person_fullname?.value ?? '');
+    if (fullNameTokens.length === 0) return false;
+
+    const fullNameTokenSet = new Set(fullNameTokens);
+    return speakerTokens.every((token) => fullNameTokenSet.has(token));
+  });
+
+  return fullNameMatches.length === 1 ? fullNameMatches[0] : null;
 };
 
 export type SpeakerReconcileResult = {
