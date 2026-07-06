@@ -23,6 +23,18 @@ import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
 import { WeekendMeetingProps } from './index.types';
 
+// Duraciones estándar del programa de fin de semana (en minutos), según el
+// formato S-89/S-140: introducción antes del discurso, discurso público,
+// canción intermedia antes del Estudio de La Atalaya, Estudio de La Atalaya
+// completo (semana normal) o acortado (semana de visita del CO, para dejar
+// sitio al discurso de servicio del CO que sigue).
+const WM_INTRO_BEFORE_TALK_MIN = 5;
+const WM_PUBLIC_TALK_MIN = 30;
+const WM_TRANSITION_TO_WTSTUDY_MIN = 5;
+const WM_WTSTUDY_MIN = 60;
+const WM_WTSTUDY_SHORTENED_CO_VISIT_MIN = 30;
+const WM_CO_SERVICE_TALK_MIN = 30;
+
 const useWeekendMeeting = ({
   week,
   dataView,
@@ -206,17 +218,32 @@ const useWeekendMeeting = ({
     }
 
     timings.pgm_start = timeAddMinutes(meetingStart, 0);
-    timings.public_talk = timeAddMinutes(timings.pgm_start, 5);
-    timings.middle_song = timeAddMinutes(timings.public_talk, 30);
-    timings.w_study = timeAddMinutes(timings.middle_song, 5);
+    timings.public_talk = timeAddMinutes(
+      timings.pgm_start,
+      WM_INTRO_BEFORE_TALK_MIN
+    );
+    timings.middle_song = timeAddMinutes(
+      timings.public_talk,
+      WM_PUBLIC_TALK_MIN
+    );
+    timings.w_study = timeAddMinutes(
+      timings.middle_song,
+      WM_TRANSITION_TO_WTSTUDY_MIN
+    );
 
     if (weekType === Week.CO_VISIT) {
-      timings.service_talk = timeAddMinutes(timings.w_study, 30);
-      timings.pgm_end = timeAddMinutes(timings.service_talk, 30);
+      timings.service_talk = timeAddMinutes(
+        timings.w_study,
+        WM_WTSTUDY_SHORTENED_CO_VISIT_MIN
+      );
+      timings.pgm_end = timeAddMinutes(
+        timings.service_talk,
+        WM_CO_SERVICE_TALK_MIN
+      );
     }
 
     if (weekType === Week.NORMAL) {
-      timings.pgm_end = timeAddMinutes(timings.w_study, 60);
+      timings.pgm_end = timeAddMinutes(timings.w_study, WM_WTSTUDY_MIN);
     }
 
     return timings;
