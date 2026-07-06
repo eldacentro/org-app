@@ -98,7 +98,12 @@ const useEdit = ({ speaker, outgoing }: SpeakerEditViewType) => {
           (item) => item.talk_number === record.talk_number
         );
         return talk;
-      });
+      })
+      // Un talk_number que ya no existe en el bosquejo local (p. ej.
+      // importado del Sheet del circuito con un número descontinuado o de
+      // otro idioma) no debe reventar el selector — se omite en vez de
+      // colar un `undefined` que rompe el renderValue.
+      .filter((talk): talk is PublicTalkLocaleType => talk !== undefined);
   }, [outgoingSpeakers, publicTalks, speaker]);
 
   const handleChangeSpeaker = async (value: string) => {

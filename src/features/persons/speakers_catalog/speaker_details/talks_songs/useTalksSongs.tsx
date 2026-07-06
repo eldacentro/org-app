@@ -5,6 +5,7 @@ import { publicTalksLocaleState } from '@states/public_talks';
 import { dbVisitingSpeakersUpdate } from '@services/dexie/visiting_speakers';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 import { SongType } from '@definition/songs';
+import { PublicTalkLocaleType } from '@definition/public_talks';
 
 const useTalksSongs = (speaker: VisitingSpeakerType) => {
   const publicTalks = useAtomValue(publicTalksLocaleState);
@@ -28,7 +29,15 @@ const useTalksSongs = (speaker: VisitingSpeakerType) => {
       );
 
       return { talk, songs };
-    });
+    })
+    // Un talk_number que ya no existe en el bosquejo local (p. ej.
+    // importado del Sheet del circuito con un número descontinuado o de
+    // otro idioma) no debe reventar la lista — se omite en vez de colar un
+    // `talk: undefined`.
+    .filter(
+      (record): record is { talk: PublicTalkLocaleType; songs: number[] } =>
+        record.talk !== undefined
+    );
 
   const handleToggleEdit = () => setIsEdit((prev) => !prev);
 

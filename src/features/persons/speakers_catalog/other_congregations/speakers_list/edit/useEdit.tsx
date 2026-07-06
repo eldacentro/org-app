@@ -11,7 +11,7 @@ import {
 } from '@services/dexie/visiting_speakers';
 import { generateDisplayName } from '@utils/common';
 import { publicTalksLocaleState } from '@states/public_talks';
-import { PublicTalkType } from '@definition/public_talks';
+import { PublicTalkLocaleType, PublicTalkType } from '@definition/public_talks';
 import { SongType } from '@definition/songs';
 
 const useEdit = (speaker: VisitingSpeakerType) => {
@@ -51,7 +51,12 @@ const useEdit = (speaker: VisitingSpeakerType) => {
         );
 
         return talk;
-      }) || [];
+      })
+      // Un talk_number que ya no existe en el bosquejo local (p. ej.
+      // importado del Sheet del circuito con un número descontinuado o de
+      // otro idioma) no debe reventar el selector — se omite en vez de
+      // colar un `undefined`.
+      .filter((talk): talk is PublicTalkLocaleType => talk !== undefined) || [];
 
   const handleFirstnameChange = async (value: string) => {
     setFirstname(value);
