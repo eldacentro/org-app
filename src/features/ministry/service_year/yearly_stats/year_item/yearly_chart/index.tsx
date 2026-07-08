@@ -1,6 +1,5 @@
 import { useId } from 'react';
 import { Box } from '@mui/material';
-import { CardContainer } from '@features/ministry/shared_styles';
 import Typography from '@components/typography';
 import { useAppTranslation } from '@hooks/index';
 import useYearlyChart, { YearlyChartMonth } from './useYearlyChart';
@@ -50,7 +49,7 @@ const YearlyChart = ({ year }: { year: string }) => {
   };
 
   return (
-    <CardContainer sx={{ padding: '16px' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <Typography className="body-small-semibold" color="var(--grey-400)">
         {t('tr_yearlyChartTitle', 'Horas por mes')}
       </Typography>
@@ -132,7 +131,7 @@ const YearlyChart = ({ year }: { year: string }) => {
           })}
         </svg>
       </Box>
-    </CardContainer>
+    </Box>
   );
 };
 
