@@ -1018,3 +1018,25 @@ export const apiCongregationScheduleLockSet = async (locked: boolean) => {
 
   return { status: res.status, data };
 };
+
+export const apiCongregationScheduleForceResync = async () => {
+  const { apiHost, appVersion: appversion, congID, idToken } = await apiDefault();
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/congregations/${congID}/schedules-force-resync`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};

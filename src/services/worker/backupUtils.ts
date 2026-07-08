@@ -1668,7 +1668,8 @@ const dbRestoreExhibitors = async (
 
 const dbRestoreSchedules = async (
   backupData: BackupDataType,
-  accessCode: string
+  accessCode: string,
+  forceReplace = false
 ) => {
   try {
     if (!backupData.sched) return;
@@ -1698,6 +1699,15 @@ const dbRestoreSchedules = async (
 
       if (typeof remoteItem.midweek_meeting?.aux_fsg === 'string') {
         delete remoteItem.midweek_meeting.aux_fsg;
+      }
+
+      // Reemplazo forzado (admin pulsó "forzar re-descarga de programas"):
+      // se toma la versión del servidor TAL CUAL, sin fusionar ni mirar
+      // fechas. Es la garantía anti-bucle: descarta cualquier copia local
+      // mala de esa semana, gane o no en fecha. Solo afecta a programas.
+      if (forceReplace) {
+        dataToUpdate.push(remoteItem);
+        continue;
       }
 
       if (!localItem) {
@@ -2395,7 +2405,31 @@ const dbRestoreFromBackup = async (
 
       await safe('sources', () => dbRestoreSources(backupData, accessCode));
 
-      await safe('schedules', () => dbRestoreSchedules(backupData, accessCode));
+      // "Forzar re-descarga de programas": si el servidor trae una marca de
+      // reset más nueva que la que este dispositivo ya aplicó, se reemplaza la
+      // copia local de programas por la del servidor SIN fusionar (garantía
+      // anti-bucle — descarta cualquier copia local mala). Solo programas.
+      const serverResetAt = backupData.schedules_reset_at ?? '';
+      const metadataRecord = await appDb.metadata.get(1);
+      const appliedResetAt = metadataRecord?.schedules_reset_applied ?? '';
+      const forceReplaceSchedules =
+        serverResetAt !== '' && serverResetAt > appliedResetAt;
+
+      await safe('schedules', () =>
+        dbRestoreSchedules(backupData, accessCode, forceReplaceSchedules)
+      );
+
+      // Se registra la marca aplicada solo si la restauración de programas no
+      // falló (no está en failedCategories) — si falló, se reintentará en el
+      // siguiente ciclo en vez de darla por aplicada.
+      if (
+        forceReplaceSchedules &&
+        metadataRecord &&
+        !failedCategories.has('schedules')
+      ) {
+        metadataRecord.schedules_reset_applied = serverResetAt;
+        await appDb.metadata.put(metadataRecord);
+      }
 
       // Se reapuntan las asignaciones de Discursos salientes DESPUÉS de
       // fusionar los programas remotos de este ciclo — si se hiciera antes,

@@ -15,16 +15,29 @@ const ServerSnapshotsTab = () => {
     isLoading,
     isRestoring,
     isLocking,
+    isForcing,
     scheduleLocked,
     handleToggleLock,
+    handleForceResync,
     tableOptions,
     availableDates,
     selectedTable,
     setSelectedTable,
     selectedDate,
     setSelectedDate,
+    previewForDate,
     handleRestore,
   } = useServerSnapshots();
+
+  // Etiqueta de fecha con info estructural (solo programas): "2026-07-08 ·
+  // 117 sem · jul/ago ✓". Ayuda a elegir un snapshot completo vs. truncado.
+  const dateLabel = (date: string) => {
+    if (selectedTable !== 'schedules') return date;
+    const p = previewForDate(date);
+    if (!p || p.weeks < 0) return date;
+    const julAug = p.julyAugust > 0 ? '✓' : '✗';
+    return `${date} · ${p.weeks} sem · jul/ago ${julAug}`;
+  };
 
   return (
     <Box
@@ -101,7 +114,7 @@ const ServerSnapshotsTab = () => {
               >
                 {availableDates.map((date) => (
                   <MenuItem key={date} value={date}>
-                    {date}
+                    {dateLabel(date)}
                   </MenuItem>
                 ))}
               </Select>
@@ -124,6 +137,31 @@ const ServerSnapshotsTab = () => {
               </Typography>
             </>
           )}
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              paddingTop: '8px',
+              borderTop: '1px solid var(--line)',
+            }}
+          >
+            <Typography className="body-small-semibold">
+              {t('tr_forceResyncTitle')}
+            </Typography>
+            <Typography color="var(--grey-400)" className="body-small-regular">
+              {t('tr_forceResyncHint')}
+            </Typography>
+            <Button
+              variant="secondary"
+              startIcon={<IconSync />}
+              disabled={isForcing}
+              onClick={handleForceResync}
+            >
+              {t('tr_forceResyncButton')}
+            </Button>
+          </Box>
         </>
       )}
     </Box>

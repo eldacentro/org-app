@@ -4,6 +4,7 @@ import {
   apiCongregationSnapshotsGet,
   apiCongregationSnapshotRestore,
   apiCongregationScheduleLockSet,
+  apiCongregationScheduleForceResync,
 } from '@services/api/congregation';
 import { displaySnackNotification } from '@services/states/app';
 import { IconCheckCircle, IconInfo } from '@components/icons';
@@ -24,8 +25,12 @@ const useServerSnapshots = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isLocking, setIsLocking] = useState(false);
+  const [isForcing, setIsForcing] = useState(false);
   const [scheduleLocked, setScheduleLocked] = useState(false);
   const [snapshots, setSnapshots] = useState<Record<string, string[]>>({});
+  const [schedulesPreview, setSchedulesPreview] = useState<
+    { date: string; weeks: number; julyAugust: number }[]
+  >([]);
 
   const [selectedTable, setSelectedTable] = useState('schedules');
   const [selectedDate, setSelectedDate] = useState('');
@@ -38,6 +43,7 @@ const useServerSnapshots = () => {
 
       if (status === 200 && data?.snapshots) {
         setSnapshots(data.snapshots);
+        setSchedulesPreview(data.schedulesPreview ?? []);
         setScheduleLocked(Boolean(data.scheduleLock?.locked));
       } else {
         displaySnackNotification({
@@ -158,18 +164,61 @@ const useServerSnapshots = () => {
     }
   };
 
+  const handleForceResync = async () => {
+    if (isForcing) return;
+
+    setIsForcing(true);
+
+    try {
+      const { status } = await apiCongregationScheduleForceResync();
+
+      if (status === 200) {
+        displaySnackNotification({
+          header: t('tr_forceResyncDone'),
+          message: t('tr_forceResyncDoneDesc'),
+          icon: <IconCheckCircle color="var(--card)" />,
+          severity: 'success',
+        });
+      } else {
+        displaySnackNotification({
+          header: t('tr_forceResyncError'),
+          message: t('tr_snapshotsLoadErrorDesc'),
+          icon: <IconInfo color="var(--card)" />,
+          severity: 'error',
+        });
+      }
+    } catch {
+      displaySnackNotification({
+        header: t('tr_forceResyncError'),
+        message: t('tr_snapshotsLoadErrorDesc'),
+        icon: <IconInfo color="var(--card)" />,
+        severity: 'error',
+      });
+    } finally {
+      setIsForcing(false);
+    }
+  };
+
+  // Info estructural del snapshot de programas de una fecha (para mostrar
+  // cuántas semanas tiene y si julio/agosto están, y así elegir uno bueno).
+  const previewForDate = (date: string) =>
+    schedulesPreview.find((p) => p.date === date);
+
   return {
     isLoading,
     isRestoring,
     isLocking,
+    isForcing,
     scheduleLocked,
     handleToggleLock,
+    handleForceResync,
     tableOptions,
     availableDates,
     selectedTable,
     setSelectedTable,
     selectedDate,
     setSelectedDate,
+    previewForDate,
     handleRestore,
     loadSnapshots,
   };

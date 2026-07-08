@@ -52,4 +52,8 @@ export type BackupDataType = {
   territory_settings?: object;
   circuit_overseer_visits?: object;
   affected_uids?: string[];
+  // Marca de "forzar re-descarga de programas": si es más nueva que la que el
+  // cliente ya aplicó, se reemplaza la copia local de programas por la del
+  // servidor sin fusionar. Solo afecta a programas.
+  schedules_reset_at?: string;
 };
