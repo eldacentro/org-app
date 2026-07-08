@@ -6,6 +6,7 @@ import Export from './export';
 import ManualTab from './manual_tab';
 import LocalBackupsTab from './local_backups_tab';
 import GoogleDriveTab from './google_drive_tab';
+import ServerSnapshotsTab from './server_snapshots';
 
 const useImportExport = ({ onClose }: ImportExportType) => {
   const { t } = useAppTranslation();
@@ -32,6 +33,10 @@ const useImportExport = ({ onClose }: ImportExportType) => {
         {
           label: 'Google Drive',
           Component: <GoogleDriveTab />,
+        },
+        {
+          label: 'Servidor',
+          Component: <ServerSnapshotsTab />,
         },
       ];
     }

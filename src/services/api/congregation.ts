@@ -947,3 +947,51 @@ export const apiCongregationJoinRequestAccept = async ({
     throw new Error((error as Error).message);
   }
 };
+
+export const apiCongregationSnapshotsGet = async () => {
+  const { apiHost, appVersion: appversion, congID, idToken } = await apiDefault();
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/congregations/${congID}/snapshots`,
+    {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};
+
+export const apiCongregationSnapshotRestore = async (
+  table: string,
+  date: string
+) => {
+  const { apiHost, appVersion: appversion, congID, idToken } = await apiDefault();
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/congregations/${congID}/snapshots/restore`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion,
+      },
+      body: JSON.stringify({ table, date }),
+    }
+  );
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};
