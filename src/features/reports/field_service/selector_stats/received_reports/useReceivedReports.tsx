@@ -10,8 +10,13 @@ import { userDataViewState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
 
 const useReceivedReports = () => {
-  const { isSecretary, isGroupOverseer, isLanguageGroupOverseer, my_group } =
-    useCurrentUser();
+  const {
+    isSecretary,
+    isElder,
+    isGroupOverseer,
+    isLanguageGroupOverseer,
+    my_group,
+  } = useCurrentUser();
 
   const { getPublishersActive } = usePersons();
 
@@ -35,7 +40,10 @@ const useReceivedReports = () => {
       });
     }
 
-    if (!isSecretary && (isGroupOverseer || isLanguageGroupOverseer)) {
+    // Los ancianos ven los informes de TODA la congregación. Solo se limita a
+    // su grupo al auxiliar de grupo (siervo ministerial con acceso a informes),
+    // que no es anciano — por eso la exención por !isElder.
+    if (!isSecretary && !isElder && isGroupOverseer) {
       const members = my_group.group_data.members.filter((member) => {
         const isActive = data.find(
           (record) => record.person_uid === member.person_uid
@@ -54,6 +62,7 @@ const useReceivedReports = () => {
     currentMonth,
     dataView,
     getPublishersActive,
+    isElder,
     isGroupOverseer,
     isSecretary,
     my_group,

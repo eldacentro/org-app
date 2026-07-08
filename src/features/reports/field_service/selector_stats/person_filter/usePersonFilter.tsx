@@ -17,6 +17,7 @@ const usePersonFilter = () => {
   const { t } = useAppTranslation();
 
   const {
+    isElder,
     isGroupOverseer,
     isSecretary,
     my_group,
@@ -63,11 +64,11 @@ const usePersonFilter = () => {
       (record) => record.group_data.members.length > 0
     );
 
-    if (isSecretary) {
+    // Los ancianos ven todos los grupos (como el secretario). Solo el auxiliar
+    // de grupo (no anciano, con acceso a informes) se limita a su propio grupo.
+    if (isSecretary || isElder) {
       validGroups.push(...allGroups);
-    }
-
-    if (!isSecretary && isGroupOverseer) {
+    } else if (isGroupOverseer) {
       const valid = allGroups.find(
         (record) => record.group_id === my_group.group_id
       );
@@ -129,6 +130,7 @@ const usePersonFilter = () => {
   }, [
     t,
     groups,
+    isElder,
     isSecretary,
     isGroupOverseer,
     my_group,
@@ -155,7 +157,9 @@ const usePersonFilter = () => {
   };
 
   useEffect(() => {
-    if (!isSecretary && isGroupOverseer) {
+    // El auxiliar de grupo (no anciano) arranca con su grupo preseleccionado.
+    // El anciano NO se autofiltra a un grupo — ve todos por defecto.
+    if (!isSecretary && !isElder && isGroupOverseer) {
       setFilter('');
 
       const groups = filters.find((record) => record.key === 'groups');
@@ -182,7 +186,7 @@ const usePersonFilter = () => {
         }
       }
     }
-  }, [filters, isGroupOverseer, isSecretary, setFilter, isGroup]);
+  }, [filters, isElder, isGroupOverseer, isSecretary, setFilter, isGroup]);
 
   return {
     filters,

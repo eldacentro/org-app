@@ -13,7 +13,7 @@ import usePerson from '@features/persons/hooks/usePerson';
 const useMonthItem = ({ month, person }: MonthItemProps) => {
   const { laptopDown } = useBreakpoints();
 
-  const { isAdmin, my_group, isGroupOverseer, isLanguageGroupOverseer } =
+  const { isAdmin, isElder, my_group, isGroupOverseer, isLanguageGroupOverseer } =
     useCurrentUser();
 
   const {
@@ -117,6 +117,11 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
   const isRoleEditor = useMemo(() => {
     if (isAdmin) return true;
 
+    // Los ancianos pueden editar el informe de cualquier hermano (acceso a
+    // toda la congregación). El auxiliar de grupo (no anciano) solo el de su
+    // grupo — de ahí la comprobación de grupo que sigue.
+    if (isElder) return true;
+
     if (!isGroupOverseer && !isLanguageGroupOverseer) return false;
 
     if (!person) return false;
@@ -132,6 +137,7 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
     return my_group.group_id === publisherGroup.group_id;
   }, [
     isAdmin,
+    isElder,
     groups,
     person,
     my_group,
