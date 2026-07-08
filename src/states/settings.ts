@@ -72,13 +72,19 @@ export const territoriesEnabledPublishersState = atom((get) => {
 export const congMasterKeyState = atom((get) => {
   const settings = get(settingsState);
 
-  return settings.cong_settings.cong_master_key;
+  // Nunca devolver undefined: el arranque VIP lee `.length` directamente
+  // (useCongregationEncryption) y un undefined aquí tumbaba TODA la app con
+  // "Cannot read properties of undefined (reading 'length')". Cadena vacía =
+  // "sin clave" = necesita configurarse, que es justo la semántica correcta.
+  return settings.cong_settings.cong_master_key ?? '';
 });
 
 export const congAccessCodeState = atom((get) => {
   const settings = get(settingsState);
 
-  return settings.cong_settings.cong_access_code;
+  // Ver nota en congMasterKeyState: '' en vez de undefined para no reventar
+  // el `.length` del arranque.
+  return settings.cong_settings.cong_access_code ?? '';
 });
 
 export const congNewState = atom((get) => {
