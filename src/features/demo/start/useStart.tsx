@@ -31,6 +31,18 @@ const useStart = () => {
     document.title = 'Test Organized app (sws2apps)';
 
     const handlePrepareTest = async () => {
+      // Defensa en profundidad (incidente 2026-07): esta función BORRA la
+      // base de datos local (dbAppDelete) y la rellena con datos de mentira.
+      // Nunca debe ejecutarse sobre el dominio real — el guardián de isTest
+      // ya lo impide, pero se comprueba también aquí por si acaso: si el
+      // host es eldacentro.com, se aborta sin tocar absolutamente nada.
+      if (/(^|\.)eldacentro\.com$/i.test(window.location.hostname)) {
+        console.error(
+          '[demo] Abortado: el modo de prueba no puede ejecutarse en el dominio de producción.'
+        );
+        return;
+      }
+
       localStorage.removeItem(TIMER_KEY);
 
       await dbAppDelete();

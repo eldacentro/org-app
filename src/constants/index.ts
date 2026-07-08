@@ -140,7 +140,20 @@ export const FORCED_UI_LANG: string | null = 'spa';
 
 export const APP_ENVIRONMENT = import.meta.env.VITE_APP_MODE;
 
-export const isTest = APP_ENVIRONMENT === 'TEST';
+// SEGURIDAD (incidente 2026-07): el modo de prueba (isTest) BORRA la base de
+// datos local y siembra datos falsos (congregación demo, personas y
+// programas de mentira). Si por un error de configuración un build con
+// VITE_APP_MODE=TEST llegara a servirse en el dominio real, arrasaría los
+// datos de la congregación y los propagaría al backend — que es exactamente
+// lo que provocó la pérdida de programas de julio/agosto. Este guardián lo
+// hace IMPOSIBLE: en el dominio de producción isTest es SIEMPRE false, pase
+// lo que pase con la variable de entorno. El modo de prueba solo puede vivir
+// en localhost o en dominios de preview (*.vercel.app), nunca en eldacentro.com.
+const isProductionHost =
+  typeof window !== 'undefined' &&
+  /(^|\.)eldacentro\.com$/i.test(window.location.hostname);
+
+export const isTest = APP_ENVIRONMENT === 'TEST' && !isProductionHost;
 
 export const isStaging = APP_ENVIRONMENT === 'STAGING';
 
