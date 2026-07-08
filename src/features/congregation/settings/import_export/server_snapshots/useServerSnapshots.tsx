@@ -3,6 +3,7 @@ import { useAppTranslation } from '@hooks/index';
 import {
   apiCongregationSnapshotsGet,
   apiCongregationSnapshotRestore,
+  apiCongregationScheduleLockSet,
 } from '@services/api/congregation';
 import { displaySnackNotification } from '@services/states/app';
 import { IconCheckCircle, IconInfo } from '@components/icons';
@@ -22,6 +23,8 @@ const useServerSnapshots = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
+  const [scheduleLocked, setScheduleLocked] = useState(false);
   const [snapshots, setSnapshots] = useState<Record<string, string[]>>({});
 
   const [selectedTable, setSelectedTable] = useState('schedules');
@@ -35,6 +38,7 @@ const useServerSnapshots = () => {
 
       if (status === 200 && data?.snapshots) {
         setSnapshots(data.snapshots);
+        setScheduleLocked(Boolean(data.scheduleLock?.locked));
       } else {
         displaySnackNotification({
           header: t('tr_snapshotsLoadError'),
@@ -115,9 +119,51 @@ const useServerSnapshots = () => {
     }
   };
 
+  const handleToggleLock = async () => {
+    if (isLocking) return;
+
+    const next = !scheduleLocked;
+    setIsLocking(true);
+
+    try {
+      const { status } = await apiCongregationScheduleLockSet(next);
+
+      if (status === 200) {
+        setScheduleLocked(next);
+        displaySnackNotification({
+          header: next ? t('tr_scheduleLockOn') : t('tr_scheduleLockOff'),
+          message: next
+            ? t('tr_scheduleLockOnDesc')
+            : t('tr_scheduleLockOffDesc'),
+          icon: <IconCheckCircle color="var(--card)" />,
+          severity: 'success',
+        });
+      } else {
+        displaySnackNotification({
+          header: t('tr_scheduleLockError'),
+          message: t('tr_snapshotsLoadErrorDesc'),
+          icon: <IconInfo color="var(--card)" />,
+          severity: 'error',
+        });
+      }
+    } catch {
+      displaySnackNotification({
+        header: t('tr_scheduleLockError'),
+        message: t('tr_snapshotsLoadErrorDesc'),
+        icon: <IconInfo color="var(--card)" />,
+        severity: 'error',
+      });
+    } finally {
+      setIsLocking(false);
+    }
+  };
+
   return {
     isLoading,
     isRestoring,
+    isLocking,
+    scheduleLocked,
+    handleToggleLock,
     tableOptions,
     availableDates,
     selectedTable,

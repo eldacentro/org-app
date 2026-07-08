@@ -14,6 +14,9 @@ const ServerSnapshotsTab = () => {
   const {
     isLoading,
     isRestoring,
+    isLocking,
+    scheduleLocked,
+    handleToggleLock,
     tableOptions,
     availableDates,
     selectedTable,
@@ -32,6 +35,37 @@ const ServerSnapshotsTab = () => {
         paddingTop: '8px',
       }}
     >
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          padding: '12px',
+          borderRadius: 'var(--radius-l)',
+          border: `1px solid ${scheduleLocked ? 'var(--red-main)' : 'var(--accent-200)'}`,
+          backgroundColor: 'var(--accent-100)',
+        }}
+      >
+        <Typography className="body-small-semibold">
+          {scheduleLocked
+            ? t('tr_scheduleLockActiveTitle')
+            : t('tr_scheduleLockTitle')}
+        </Typography>
+        <Typography color="var(--grey-400)" className="body-small-regular">
+          {t('tr_scheduleLockHint')}
+        </Typography>
+        <Button
+          variant="main"
+          color={scheduleLocked ? 'red' : 'main'}
+          disabled={isLocking}
+          onClick={handleToggleLock}
+        >
+          {scheduleLocked
+            ? t('tr_scheduleLockDisable')
+            : t('tr_scheduleLockEnable')}
+        </Button>
+      </Box>
+
       <Typography color="var(--grey-400)" className="body-small-regular">
         {t('tr_snapshotsDesc')}
       </Typography>

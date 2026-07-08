@@ -995,3 +995,26 @@ export const apiCongregationSnapshotRestore = async (
 
   return { status: res.status, data };
 };
+
+export const apiCongregationScheduleLockSet = async (locked: boolean) => {
+  const { apiHost, appVersion: appversion, congID, idToken } = await apiDefault();
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/congregations/${congID}/schedules-lock`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion,
+      },
+      body: JSON.stringify({ locked }),
+    }
+  );
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};
