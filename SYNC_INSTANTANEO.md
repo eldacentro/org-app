@@ -197,9 +197,19 @@ Archivos: `src/components/account_header_icon/index.tsx`,
 
 Nota: la DURACIÓN del circulito azul es la duración real de un ciclo completo
 (GET → merge → POST). La señal acelera cuándo ARRANCA el ciclo, no cuánto dura.
-El worker cronometra cada ciclo en consola (`[backup] sync completo en Xms`) —
-punto de partida si algún día se quiere optimizar la duración en sí (principal
-sospechoso: `dbExportDataBackup` lee todas las tablas locales en cada ciclo).
+El worker cronometra cada ciclo en consola (`[backup] sync completo en Xms`).
+
+Perfilado real (2026-07-11): un ciclo limpio son 0,4–1,3 s; la fusión local son
+solo 100–200 ms. Los dos ladrones de tiempo encontrados y corregidos:
+
+- **`error_api_sync-conflict` con espera fija de 10 s** (choque con la subida
+  simultánea de otro dispositivo — normal con el sync instantáneo). Desde
+  `9b81639bc` (frontend) el conflicto reintenta a los 2–4 s con jitter, hasta
+  5 intentos; los 10 s quedan solo para errores reales.
+- **GETs de 3–5 s en el backend**: `getPersons()` descargaba ~100 archivos de
+  Cloud Storage en secuencia. Desde `695f79b` (backend) las descargas van en
+  paralelo (`Promise.all`) en `Congregation.getPersons`, `getCongPersons` y
+  `getApplications`.
 
 ## 8. Actualizaciones PWA (el chequeo activo)
 
