@@ -41,14 +41,12 @@ const useManualSync = () => {
     return '';
   };
 
-  const handleManualSync = async () => {
+  const triggerSync = async () => {
     // Optimistic feedback — show "Sincronizando" immediately without waiting
     // for the worker's 3-second debounce to fire.
     setIsSyncing(true);
 
     try {
-      await dbMetadataReset();
-
       if (accountType === 'vip' && user) {
         const idToken = await user.getIdToken(true);
         worker.postMessage({ field: 'idToken', value: idToken });
@@ -58,6 +56,28 @@ const useManualSync = () => {
     }
 
     worker.postMessage('startWorker');
+  };
+
+  // Sincronización normal (el botón "Sincronizar datos"): sube lo pendiente y
+  // baja lo nuevo, en un ciclo ligero de segundos. NO resetea el índice de
+  // versiones, así que no re-descarga toda la congregación — que es justo lo
+  // que la gente NO necesita cuando pulsa "por si acaso". Con el sync
+  // instantáneo, sus cambios ya se suben solos; esto es la confirmación
+  // manual rápida.
+  const handleManualSync = () => triggerSync();
+
+  // Re-descarga completa (herramienta de recuperación, en "Acerca de"): borra
+  // el índice de versiones para que el servidor reenvíe TODA la información y
+  // se vuelva a fusionar con lo local. Pesado (puede tardar) — solo para
+  // cuando algo no se ve bien. Ver dbMetadataReset.
+  const handleFullResync = async () => {
+    try {
+      await dbMetadataReset();
+    } catch {
+      // si falla el reset, el ciclo normal de abajo aún sincroniza lo pendiente
+    }
+
+    await triggerSync();
   };
 
   // "al día" confirmado: acaba de sincronizar (≤1 min) y sin ciclo en curso —
@@ -71,6 +91,7 @@ const useManualSync = () => {
     isUpToDate,
     secondaryText: getSecondaryText(),
     handleManualSync,
+    handleFullResync,
   };
 };
 

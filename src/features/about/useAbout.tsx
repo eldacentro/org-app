@@ -3,6 +3,8 @@ import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { isAboutOpenState } from '@states/app';
 import { setIsAboutOpen, setIsSupportOpen } from '@services/states/app';
+import { useConfirm } from '@components/confirm_dialog';
+import useManualSync from '@hooks/useManualSync';
 import { AboutProps } from './index.types';
 
 const parser = new DOMParser();
@@ -13,6 +15,9 @@ const useAbout = ({ updatePwa }: AboutProps) => {
   const { t } = useAppTranslation();
 
   const isOpen = useAtomValue(isAboutOpenState);
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
+  const { isConnected, handleFullResync } = useManualSync();
 
   const privacyText = useMemo(() => {
     const htmlString = t('tr_privacySecurityDesc');
@@ -34,6 +39,19 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     }
   };
 
+  const handleFullReDownload = async () => {
+    const ok = await confirm({
+      title: t('tr_reDownloadDataTitle'),
+      message: t('tr_reDownloadDataConfirm'),
+      confirmLabel: t('tr_reDownloadDataAction'),
+    });
+
+    if (!ok) return;
+
+    setIsAboutOpen(false);
+    await handleFullResync();
+  };
+
   const handleClose = () => setIsAboutOpen(false);
 
   const handleOpenSupport = () => {
@@ -52,6 +70,9 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     handleOpenDoc,
     handleOpenSupport,
     handleForceReload,
+    handleFullReDownload,
+    isConnected,
+    ConfirmDialogNode,
     privacyText,
   };
 };
