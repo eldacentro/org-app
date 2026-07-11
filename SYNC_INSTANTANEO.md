@@ -221,6 +221,31 @@ solo 100–200 ms. Los dos ladrones de tiempo encontrados y corregidos:
   (que hace `dbMetadataReset`) o el primer login. En operación normal los GET
   son ~7 KB.
 
+## 7c. "Sincronizar datos" vs. "Volver a descargar los datos" (commit `be1c6540f`)
+
+Hay TRES niveles de sincronización, y es importante no confundirlos:
+
+| Acción | Qué hace | Coste | Dónde |
+|---|---|---|---|
+| **Sync instantáneo automático** | Sube tus cambios ~4 s tras editarlos; baja lo de otros al recibir señal. Silencioso. | ~7 KB | Automático, siempre |
+| **"Sincronizar datos"** (botón manual) | Un ciclo normal: sube lo pendiente (`send_local`) + baja lo nuevo. NO resetea versiones. | ~7 KB, 1-2 s | Menú de perfil + tarjeta del panel |
+| **"Volver a descargar los datos"** | `dbMetadataReset()` → versiones a `''` → el servidor reenvía TODO y se re-fusiona. Recuperación cuando algo no se ve bien. | varios MB, ~30 s | "Acerca de la aplicación", con confirmación |
+
+Antes (hasta `be1c6540f`), el botón "Sincronizar datos" hacía lo que hoy
+hace "Volver a descargar" — un reset completo. La gente lo pulsaba por
+costumbre "para asegurarse de subir sus datos", disparando re-descargas
+completas innecesarias (con el sync instantáneo, sus cambios ya se suben
+solos). Ahora el botón de uso diario es ligero y el reset pesado queda como
+herramienta de recuperación aparte.
+
+**Clave para diagnóstico**: el primer login de un dispositivo SÍ baja todo
+—eso lo hace `dbMetadataDefault()` en `src/services/app/index.ts` al
+arrancar (inicializa versiones vacías solo `if (!metadata)`)— y es
+totalmente independiente de estos botones. Código de los tres: sync
+instantáneo en `useInstantSync.tsx`; botones en `src/hooks/useManualSync.tsx`
+(`handleManualSync` = ligero, `handleFullResync` = reset); UI de recuperación
+en `src/features/about/`.
+
 ## 8. Actualizaciones PWA (el chequeo activo)
 
 Problema que había: el navegador solo busca un `service-worker.js` nuevo al
