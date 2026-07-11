@@ -8,4 +8,5 @@ export type MeetingItemProps = {
 export type LanguageGroup = {
   id: string;
   name: string;
+  weeksCount: number[];
 };

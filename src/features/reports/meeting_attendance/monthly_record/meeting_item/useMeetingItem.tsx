@@ -4,6 +4,7 @@ import { useCurrentUser } from '@hooks/index';
 import { createNumbersArray } from '@utils/common';
 import { languageGroupEnabledState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
+import { attendanceWeeksForMonth } from '../../hooks/attendanceWeeks';
 import { LanguageGroup, MeetingItemProps } from './index.types';
 
 const useMeetingItem = ({ month, type }: MeetingItemProps) => {
@@ -13,34 +14,13 @@ const useMeetingItem = ({ month, type }: MeetingItemProps) => {
   const languageGroupEnabled = useAtomValue(languageGroupEnabledState);
 
   const weeksCount = useMemo(() => {
-    const [year, monthValue] = month.split('/').map(Number);
+    // Mes NATURAL: una columna por cada reunión de este tipo cuya FECHA cae
+    // dentro del mes (criterio de la sucursal para el S-88, igual que TsWin y
+    // que el histórico migrado) — no por cada semana cuyo lunes cae en el mes.
+    const weeks = attendanceWeeksForMonth(month, type);
 
-    // Get the first day of the month
-    const firstDay = new Date(year, monthValue - 1, 1);
-
-    // Find the first Monday
-    const firstMonday =
-      firstDay.getDay() === 1
-        ? firstDay
-        : new Date(
-            year,
-            monthValue - 1,
-            firstDay.getDate() + ((8 - firstDay.getDay()) % 7)
-          );
-
-    // Get the number of days in the month
-    const daysInMonth = new Date(year, +monthValue, 0).getDate();
-
-    // Calculate the number of days from the first Monday to the end of the month
-    const daysFromFirstMonday = daysInMonth - (firstMonday.getDate() - 1);
-
-    // Calculate the number of weeks
-    const weeksFromFirstMonday = Math.ceil(daysFromFirstMonday / 7);
-
-    const result = createNumbersArray(weeksFromFirstMonday);
-
-    return result;
-  }, [month]);
+    return createNumbersArray(weeks.length);
+  }, [month, type]);
 
   const groups = useMemo(() => {
     const result: LanguageGroup[] = [];
@@ -51,13 +31,21 @@ const useMeetingItem = ({ month, type }: MeetingItemProps) => {
           (type === 'midweek' && group.group_data.midweek_meeting) ||
           (type === 'weekend' && group.group_data.weekend_meeting)
         ) {
-          result.push({ id: group.group_id, name: group.group_data.name });
+          // cada grupo puede reunirse otro día, así que su nº de reuniones en
+          // el mes natural puede diferir del de la congregación (4 vs 5)
+          const weeks = attendanceWeeksForMonth(month, type, group.group_id);
+
+          result.push({
+            id: group.group_id,
+            name: group.group_data.name,
+            weeksCount: createNumbersArray(weeks.length),
+          });
         }
       }
     }
 
     return result;
-  }, [isGroup, languageGroups, type, languageGroupEnabled]);
+  }, [isGroup, languageGroups, month, type, languageGroupEnabled]);
 
   return { weeksCount, groups };
 };

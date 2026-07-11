@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildServiceYearsList, getWeekDate } from '@utils/date';
+import { buildServiceYearsList } from '@utils/date';
 import useSharedHook from '../useSharedHook';
 
 const useMonthlyRecord = () => {
@@ -29,9 +29,11 @@ const useMonthlyRecord = () => {
   };
 
   useEffect(() => {
-    const currentWeek = getWeekDate();
-    let year = currentWeek.getFullYear().toString();
-    const month = (currentWeek.getMonth() + 1).toString().padStart(2, '0');
+    // mes NATURAL de hoy (no el del lunes de la semana): el 1 de julio debe
+    // abrir julio aunque la semana empiece el 29 de junio
+    const today = new Date();
+    let year = today.getFullYear().toString();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
 
     const monthValue = `${year}/${month}`;
 

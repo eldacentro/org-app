@@ -6,13 +6,8 @@ import {
   WEEK_TYPE_NO_MEETING,
 } from '@constants/index';
 import { useAppTranslation } from '@hooks/index';
-import {
-  addWeeks,
-  firstWeekMonth,
-  formatDate,
-  getWeekDate,
-  weeksInMonth,
-} from '@utils/date';
+import { formatDate, getWeekDate } from '@utils/date';
+import { attendanceWeeksForMonth } from '../../hooks/attendanceWeeks';
 import { WeekBoxProps } from './index.types';
 import { meetingAttendanceState } from '@states/meeting_attendance';
 import {
@@ -26,7 +21,6 @@ import {
 import { meetingAttendancePresentSave } from '@services/app/meeting_attendance';
 import { monthShortNamesState } from '@states/app';
 import { schedulesState } from '@states/schedules';
-import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
   const { t } = useAppTranslation();
@@ -37,12 +31,18 @@ const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
   const months = useAtomValue(monthShortNamesState);
   const schedules = useAtomValue(schedulesState);
 
-  const schedule = useMemo(() => {
-    const weeks = schedules.filter((record) => record.weekOf.includes(month));
-    const week = weeks.at(index - 1);
+  // Semanas del mes por MES NATURAL de la reunión (ver attendanceWeeksForMonth):
+  // la posición index-1 identifica la reunión de esta casilla.
+  const monthWeeks = useMemo(() => {
+    return attendanceWeeksForMonth(month, type, view);
+  }, [month, type, view]);
 
-    return week;
-  }, [schedules, month, index]);
+  const schedule = useMemo(() => {
+    const weekOf = monthWeeks.at(index - 1)?.weekOf;
+    if (!weekOf) return undefined;
+
+    return schedules.find((record) => record.weekOf === weekOf);
+  }, [schedules, monthWeeks, index]);
 
   const presentInitial = useMemo(() => {
     const attendance = attendances.find(
@@ -119,11 +119,6 @@ const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
     return cnTotal;
   }, [present, online]);
 
-  const weeksList = useMemo(() => {
-    const weeks = weeksInMonth(month);
-    return weeks;
-  }, [month]);
-
   const isMidweek = useMemo(() => {
     const today = new Date().getDay();
 
@@ -138,7 +133,9 @@ const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
 
   const isCurrent = useMemo(() => {
     const thisWeek = formatDate(getWeekDate(), 'yyyy/MM/dd');
-    const findIndex = weeksList.findIndex((record) => record === thisWeek);
+    const findIndex = monthWeeks.findIndex(
+      (record) => record.weekOf === thisWeek
+    );
 
     if (type === 'midweek' && isMidweek) {
       return findIndex === index - 1;
@@ -147,7 +144,7 @@ const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
     if (type === 'weekend' && isWeekend) {
       return findIndex === index - 1;
     }
-  }, [weeksList, index, type, isMidweek, isWeekend]);
+  }, [monthWeeks, index, type, isMidweek, isWeekend]);
 
   const noMeeting = useMemo(() => {
     let weekType = Week.NORMAL;
@@ -175,30 +172,18 @@ const useWeekBox = ({ month, index, type, view }: WeekBoxProps) => {
   }, [type, schedule, view, dataView]);
 
   const box_label = useMemo(() => {
-    const [year, monthValue] = month.split('/').map(Number);
+    const meetingDate = monthWeeks.at(index - 1)?.date;
+    if (!meetingDate) return '';
 
-    const firstWeek = firstWeekMonth(year, monthValue);
-
-    const week = formatDate(firstWeek, 'yyyy/MM/dd');
-
-    const meetingDateInit = schedulesGetMeetingDate({
-      week,
-      meeting: type,
-      dataView: view,
-    });
-
-    const meetingDate = addWeeks(meetingDateInit.date, index - 1);
-
-    const monthIndex = meetingDate.getMonth();
-    const date = meetingDate.getDate();
+    const [, monthValue, date] = meetingDate.split('/').map(Number);
 
     const dateLabel = t('tr_longDateNoYearLocale', {
-      month: months[monthIndex],
+      month: months[monthValue - 1],
       date,
     });
 
     return dateLabel;
-  }, [month, type, index, t, months, view]);
+  }, [monthWeeks, index, t, months]);
 
   useEffect(() => setPresent(presentInitial), [presentInitial]);
 

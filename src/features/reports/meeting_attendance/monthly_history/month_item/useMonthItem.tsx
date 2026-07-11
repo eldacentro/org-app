@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getWeekDate } from '@utils/date';
 import useSharedHook from '../../useSharedHook';
 
 const useMonthItem = (value: string) => {
@@ -10,9 +9,10 @@ const useMonthItem = (value: string) => {
   const handleToggleExpanded = () => setExpanded((prev) => !prev);
 
   useEffect(() => {
-    const currentWeek = getWeekDate();
-    const year = currentWeek.getFullYear().toString();
-    const month = (currentWeek.getMonth() + 1).toString().padStart(2, '0');
+    // mes NATURAL de hoy, coherente con el registro mensual
+    const today = new Date();
+    const year = today.getFullYear().toString();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
 
     const monthValue = `${year}/${month}`;
 

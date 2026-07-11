@@ -67,7 +67,7 @@ const MeetingItem = (props: MeetingItemProps) => {
                   spacing="16px"
                   direction={tablet600Up ? 'row' : 'column'}
                 >
-                  {weeksCount.map((week) => (
+                  {group.weeksCount.map((week) => (
                     <WeekBox
                       key={`language-group-${week.toString()}`}
                       index={week}
