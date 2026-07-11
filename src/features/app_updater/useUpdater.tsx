@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { showReloadState } from '@states/app';
 
@@ -7,8 +8,48 @@ import { showReloadState } from '@states/app';
 // recuperación dura en vez de dejar a la persona viendo el logo para siempre.
 const UPDATE_FLAG = 'pwa-update-pending';
 
+// El navegador solo busca un service-worker.js nuevo al registrar/navegar
+// (como mucho cada 24 h por su cuenta) — quien deja la app abierta días no se
+// entera de que hay versión nueva y nunca ve el botón "Actualizar". Este
+// chequeo activo pide la comprobación cada 30 min y también al volver la app
+// a primer plano (con un mínimo de 5 min entre chequeos para no abusar).
+const UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000;
+const UPDATE_CHECK_MIN_GAP_MS = 5 * 60 * 1000;
+
 const useUpdater = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   const [showReload, setShowReload] = useAtom(showReloadState);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    let lastCheck = Date.now();
+
+    const checkForUpdate = async () => {
+      lastCheck = Date.now();
+
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        await registration?.update();
+      } catch {
+        // sin red o registro no disponible: el próximo chequeo lo reintenta
+      }
+    };
+
+    const timer = setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
+
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastCheck < UPDATE_CHECK_MIN_GAP_MS) return;
+      checkForUpdate();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
 
   const handleAppUpdated = () => {
     setShowReload(false);

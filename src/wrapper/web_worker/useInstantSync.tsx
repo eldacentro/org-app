@@ -3,7 +3,7 @@ import { useLocation } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { isTest } from '@constants/index';
-import { congAccountConnectedState, isAppDataSyncingState, isOnlineState } from '@states/app';
+import { congAccountConnectedState, isOnlineState } from '@states/app';
 import { backupAutoState, congIDState } from '@states/settings';
 import { useFirebaseAuth } from '@hooks/index';
 import { subscribeSyncSignal, SyncSignal } from '@services/firebase/sync_signal';
@@ -12,13 +12,12 @@ import logger from '@services/logger';
 import appDb from '@db/appDb';
 
 /**
- * Sync casi-instantáneo (fase de prueba, tras el flag local
- * `elda_sync_instant = '1'`):
+ * Sync casi-instantáneo (activo por defecto; ver kill-switches en `enabled`):
  *
  * 1. TIMBRE (bajada): escucha la señal de Firestore que emite el backend tras
  *    cada subida de otro dispositivo; si alguna tabla remota es más nueva que
  *    la local, adelanta el ciclo de sync normal con un retraso aleatorio de
- *    1–8 s (para que 30 dispositivos no golpeen el servidor a la vez).
+ *    2–12 s (para que 30 dispositivos no golpeen el servidor a la vez).
  * 2. SUBIDA INMEDIATA: cuando algo local queda pendiente de enviar
  *    (send_local), dispara el sync a los ~4 s en vez de esperar al intervalo
  *    (el debounce agrupa ráfagas de edición en una sola subida).
@@ -30,8 +29,8 @@ import appDb from '@db/appDb';
  * documento, así que no re-sincroniza (anti-bucle por construcción).
  */
 
-const SIGNAL_DEBOUNCE_MIN_MS = 1000;
-const SIGNAL_DEBOUNCE_MAX_MS = 8000;
+const SIGNAL_DEBOUNCE_MIN_MS = 2000;
+const SIGNAL_DEBOUNCE_MAX_MS = 12000;
 const PENDING_UPLOAD_DEBOUNCE_MS = 4000;
 
 const useInstantSync = () => {
@@ -42,27 +41,29 @@ const useInstantSync = () => {
   const isOnline = useAtomValue(isOnlineState);
   const isConnected = useAtomValue(congAccountConnectedState);
   const backupAuto = useAtomValue(backupAutoState);
-  const isSyncing = useAtomValue(isAppDataSyncingState);
   const congId = useAtomValue(congIDState);
 
-  // flag local de fase de prueba: sin él, este hook no hace absolutamente nada
+  // activo por defecto para todos (fase de prueba superada). Se puede apagar
+  // en un dispositivo concreto con localStorage.elda_sync_instant = '0' (para
+  // depurar), y para toda la congregación con enabled:false en el documento
+  // de señal de Firestore (kill-switch remoto, sin redesplegar).
   const [enabled] = useState(
-    () => localStorage.getItem('elda_sync_instant') === '1'
+    () => localStorage.getItem('elda_sync_instant') !== '0'
   );
 
   const backupEnabled = !isTest && isOnline && isConnected && backupAuto;
 
   // refs para que los timers lean siempre el estado más reciente
-  const stateRef = useRef({ backupEnabled, isSyncing, user, pathname: location.pathname });
-  stateRef.current = { backupEnabled, isSyncing, user, pathname: location.pathname };
+  const stateRef = useRef({ backupEnabled, user, pathname: location.pathname });
+  stateRef.current = { backupEnabled, user, pathname: location.pathname };
 
   const signalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const uploadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerSync = async (reason: string) => {
-    const { backupEnabled, isSyncing, user, pathname } = stateRef.current;
+    const { backupEnabled, user, pathname } = stateRef.current;
 
-    if (!backupEnabled || isSyncing) return;
+    if (!backupEnabled) return;
 
     // misma pausa que el ciclo periódico: nunca con una ficha de persona abierta
     if (/\/persons\/.+/.test(pathname)) {
@@ -70,10 +71,16 @@ const useInstantSync = () => {
       return;
     }
 
+    // Si hay un sync en curso no hace falta guardarlo aquí: el worker ya
+    // coalesce (pendingBackup) y ejecutará un ciclo más al terminar.
     logger.info('app', `instant sync triggered - ${reason}`);
 
     if (user) {
-      const idToken = await user.getIdToken(true);
+      // sin forzar refresco: el SDK devuelve el token cacheado (y lo renueva
+      // solo si está por caducar). Forzarlo haría que 30 dispositivos pidan
+      // token nuevo a Google a la vez tras cada edición — el mismo patrón de
+      // ráfaga que aprendimos a evitar en el ciclo periódico.
+      const idToken = await user.getIdToken();
       if (idToken?.length > 0) {
         worker.postMessage({ field: 'idToken', value: idToken });
       }
