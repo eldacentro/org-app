@@ -178,6 +178,29 @@ Las reglas de Firestore (`firestore.rules`) deniegan TODA escritura de clientes
 en `congregation/{congId}/sync/{docId}` — solo escribe el Admin SDK del backend
 (que se salta las reglas). Nadie puede falsificar señales.
 
+## 7b. Indicadores de estado en la interfaz (commit `5c8855a76`)
+
+Con el sync instantáneo, cada edición de cualquier hermano dispara una descarga
+silenciosa en todos los dispositivos. Para que la app no parezca "siempre
+ocupada", cada indicador tiene un significado preciso:
+
+| Indicador | Dónde | Significado |
+|---|---|---|
+| Aro **naranja** alrededor del avatar | Botón de perfil (arriba dcha.) | Tienes cambios locales pendientes de subir (`send_local`). Se subirán en segundos. |
+| Circulito **azul** girando | Botón de perfil | Subiendo TUS cambios ahora mismo (`isSyncing && isPendingSync` en `account_header_icon`). Las descargas de cambios ajenos NO lo activan. |
+| **Check verde** pequeño (~4 s) | Botón de perfil | Acaba de completarse una sincronización (propia o descarga silenciosa) sin error — confirmación transitoria de "acabas de recibir lo último". |
+| Texto "**Todo actualizado · …**" + icono verde | Menú de perfil → Sincronizar datos | Último sync hace <1 min y sin ciclo en curso (`isUpToDate` en `useManualSync`). Con más minutos vuelve al texto neutro "Sincronizado hace N minutos". |
+
+Archivos: `src/components/account_header_icon/index.tsx`,
+`src/hooks/useManualSync.tsx`, `src/layouts/navbar/index.tsx`, strings
+`tr_lastSyncAppDataNow/Recently` en `src/locales/*/dashboard.json`.
+
+Nota: la DURACIÓN del circulito azul es la duración real de un ciclo completo
+(GET → merge → POST). La señal acelera cuándo ARRANCA el ciclo, no cuánto dura.
+El worker cronometra cada ciclo en consola (`[backup] sync completo en Xms`) —
+punto de partida si algún día se quiere optimizar la duración en sí (principal
+sospechoso: `dbExportDataBackup` lee todas las tablas locales en cada ciclo).
+
 ## 8. Actualizaciones PWA (el chequeo activo)
 
 Problema que había: el navegador solo busca un `service-worker.js` nuevo al
