@@ -210,6 +210,16 @@ solo 100–200 ms. Los dos ladrones de tiempo encontrados y corregidos:
   Cloud Storage en secuencia. Desde `695f79b` (backend) las descargas van en
   paralelo (`Promise.all`) en `Congregation.getPersons`, `getCongPersons` y
   `getApplications`.
+- **POST vacío que fallaba con conflicto** (`0f9c16014`, frontend): un ciclo
+  disparado por la señal de otro dispositivo es SOLO de descarga; el GET ya
+  trae lo nuevo y el export produce `{}`. Antes se hacía igualmente un POST
+  vacío que, con otro dispositivo subiendo a la vez, devolvía
+  `error_api_sync-conflict` y tras 5 reintentos mostraba un falso
+  `BACKUP_FAILED`. Ahora, si el payload está vacío, se omite el POST y el
+  ciclo se completa. **Nota**: un GET/POST grande (varios MB, decenas de
+  segundos) solo ocurre en un sync COMPLETO — tras pulsar "Sincronizar datos"
+  (que hace `dbMetadataReset`) o el primer login. En operación normal los GET
+  son ~7 KB.
 
 ## 8. Actualizaciones PWA (el chequeo activo)
 
