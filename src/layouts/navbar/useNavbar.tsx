@@ -38,6 +38,7 @@ const useNavbar = () => {
 
   const {
     isSyncing,
+    isUpToDate,
     secondaryText: syncSecondaryText,
     handleManualSync: triggerManualSync,
   } = useManualSync();
@@ -142,6 +143,7 @@ const useNavbar = () => {
     handleOpenMyProfile,
     handleManualSync,
     isSyncing,
+    isUpToDate,
     syncSecondaryText,
     handleGoDashboard,
     isAppLoad,

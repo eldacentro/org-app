@@ -60,9 +60,15 @@ const useManualSync = () => {
     worker.postMessage('startWorker');
   };
 
+  // "al día" confirmado: acaba de sincronizar (≤1 min) y sin ciclo en curso —
+  // lo usa el menú para pintar el icono en verde como confirmación visual
+  const isUpToDate =
+    !isSyncing && (lastSync === 'now' || lastSync === 'recently');
+
   return {
     isSyncing,
     isConnected,
+    isUpToDate,
     secondaryText: getSecondaryText(),
     handleManualSync,
   };

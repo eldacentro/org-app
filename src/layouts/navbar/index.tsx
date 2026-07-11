@@ -78,6 +78,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleOpenMyProfile,
     handleManualSync,
     isSyncing,
+    isUpToDate,
     syncSecondaryText,
     handleGoDashboard,
     isAppLoad,
@@ -378,7 +379,11 @@ const NavBar = ({ isSupported }: NavBarType) => {
                               }}
                             >
                               <IconSynced
-                                color="var(--black)"
+                                color={
+                                  isUpToDate
+                                    ? 'var(--green-main)'
+                                    : 'var(--black)'
+                                }
                                 sx={{
                                   animation: isSyncing
                                     ? 'rotate 2s linear infinite'
