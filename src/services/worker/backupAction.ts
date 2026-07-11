@@ -91,6 +91,18 @@ const runBackup = async () => {
         const reqPayload = await dbExportDataBackup(backupData);
         console.log(`[backup] export/merge local en ${Math.round(performance.now() - exportStart)}ms`);
 
+        // Nada local que subir (payload {}): este ciclo fue SOLO de descarga
+        // — lo disparó la señal de otro dispositivo. El GET de arriba ya trajo
+        // y fusionó lo nuevo, así que el POST sobra. Evitarlo es lo correcto y
+        // además esquiva el conflicto inútil (y el falso BACKUP_FAILED) cuando
+        // otro está subiendo a la vez: no tenemos nada que aportar, así que un
+        // 409 no significa nada para nosotros.
+        if (Object.keys(reqPayload).length === 0) {
+          console.log('[backup] nada que subir — ciclo solo de descarga, completado');
+          backup = 'completed';
+          break;
+        }
+
         const metadataUpdate = await dbGetMetadata();
 
         const data = await apiSendCongregationBackup({
@@ -166,6 +178,12 @@ const runBackup = async () => {
         });
 
         const reqPayload = await dbExportDataBackup(backupData);
+
+        // ciclo solo de descarga: nada que subir → sin POST (ver bucle VIP)
+        if (Object.keys(reqPayload).length === 0) {
+          backup = 'completed';
+          break;
+        }
 
         const metadataUpdate = await dbGetMetadata();
 
