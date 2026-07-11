@@ -188,7 +188,7 @@ ocupada", cada indicador tiene un significado preciso:
 |---|---|---|
 | Aro **naranja** alrededor del avatar | Botón de perfil (arriba dcha.) | Tienes cambios locales pendientes de subir (`send_local`). Se subirán en segundos. |
 | Circulito **azul** girando | Botón de perfil | Subiendo TUS cambios ahora mismo (`isSyncing && isPendingSync` en `account_header_icon`). Las descargas de cambios ajenos NO lo activan. |
-| **Check verde** pequeño (~4 s) | Botón de perfil | Acaba de completarse una sincronización (propia o descarga silenciosa) sin error — confirmación transitoria de "acabas de recibir lo último". |
+| **Puntito verde** (~4 s) | Botón de perfil (esquina inf. dcha. del avatar) | Acaba de completarse una sincronización (propia o descarga silenciosa) sin error — confirmación transitoria de "acabas de recibir lo último". |
 | Texto "**Todo actualizado · …**" + icono verde | Menú de perfil → Sincronizar datos | Último sync hace <1 min y sin ciclo en curso (`isUpToDate` en `useManualSync`). Con más minutos vuelve al texto neutro "Sincronizado hace N minutos". |
 
 Archivos: `src/components/account_header_icon/index.tsx`,
