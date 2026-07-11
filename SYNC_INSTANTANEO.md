@@ -263,6 +263,17 @@ Nota: la PRIMERA adopción de la versión que trae este chequeo aún requiere un
 recarga manual en dispositivos con la app abierta desde antes. A partir de ahí,
 todas las versiones futuras les llegarán solas en ≤30 min.
 
+**Botón "Actualizar la aplicación"** (en "Acerca de", `useAbout.handleForceReload`,
+arreglado en `f4ecae708`): antes había que pulsarlo varias veces. Causa: el
+`updatePwa()` de `@sws2apps/react-sw-helper` lanza `registration.update()` pero
+NO lo espera — mira `registration.waiting` en el mismo instante, antes de que la
+comprobación haya instalado el SW nuevo, así que el primer toque no activaba
+nada; y recargaba a los 2 s fijos. Ahora se hace `await registration.update()`,
+se escucha `controllerchange` para recargar justo cuando el SW nuevo toma el
+control (con `skipWaiting: true` se autoactiva; además se le manda
+`SKIP_WAITING` por si quedara a la espera), y hay red de seguridad por
+temporizador. Un solo toque funciona; si ya está al día, recarga en seco a 1,2 s.
+
 ## 9. Playbook de diagnóstico
 
 ### "No se sincroniza rápido"
