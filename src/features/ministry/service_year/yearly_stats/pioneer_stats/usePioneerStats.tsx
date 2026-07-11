@@ -200,12 +200,27 @@ const usePioneerStats = (year: string) => {
     return convertMinutesToLongTime(value);
   }, [end_month, reports, minutes_left, isCurrentSY]);
 
+  // Último mes con informe enviado dentro del año de servicio — para aclarar
+  // junto al saldo qué meses incluye (el mes en curso, aún sin informar, no
+  // cuenta; sin esta pista el precursor puede creer que va peor de lo que va).
+  const last_reported_month = useMemo(() => {
+    const dates = [
+      ...yearlyCongReports.map((r) => r.report_data.report_date),
+      ...yearlyReports
+        .filter((r) => r.report_data.status !== 'pending')
+        .map((r) => r.report_date),
+    ].sort();
+
+    return dates.at(-1) ?? '';
+  }, [yearlyCongReports, yearlyReports]);
+
   return {
     goal,
     hours_left,
     isCurrentSY,
     hours_balance,
     monthly_goal,
+    last_reported_month,
   };
 };
 

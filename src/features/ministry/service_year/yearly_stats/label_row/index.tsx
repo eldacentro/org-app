@@ -5,6 +5,7 @@ import Typography from '@components/typography';
 const LabelRow = ({
   name,
   value,
+  hint,
   className = 'body-regular',
   color = 'var(--black)',
   sx,
@@ -21,9 +22,16 @@ const LabelRow = ({
         ...sx,
       }}
     >
-      <Typography className={className} color={color}>
-        {name}
-      </Typography>
+      <Box>
+        <Typography className={className} color={color}>
+          {name}
+        </Typography>
+        {hint && (
+          <Typography className="label-small-regular" color="var(--grey-350)">
+            {hint}
+          </Typography>
+        )}
+      </Box>
       <Typography className={valueClassName} color={color}>
         {value}
       </Typography>
