@@ -55,6 +55,16 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // ── Señal de sincronización casi-instantánea ──
+    // Solo contiene nombres de tabla + timestamps de versión (cero datos,
+    // el E2E sigue intacto). La escribe únicamente el backend con Admin SDK
+    // (que ignora estas reglas); ningún cliente puede escribirla, así nadie
+    // puede falsificar señales ni provocar tormentas de sync.
+    match /congregation/{congId}/sync/{docId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     // ── Colección para Trigger Email from Firestore ──
     match /mail/{id} {
       // Cualquier usuario autenticado puede enviar correos creando un documento
