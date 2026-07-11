@@ -27,15 +27,66 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     return privacyLink?.textContent || '';
   }, [t]);
 
-  const handleForceReload = () => {
+  // El updatePwa() de la librería lanza registration.update() pero NO lo espera:
+  // comprueba `waiting` en el mismo instante, antes de que la comprobación haya
+  // encontrado e instalado nada. Por eso el primer toque a menudo no hacía nada
+  // y había que pulsar varias veces (y encima recargaba a los 2 s fijos,
+  // compitiendo con la activación). Aquí esperamos la comprobación de verdad y
+  // recargamos justo cuando el service worker nuevo toma el control.
+  const handleForceReload = async () => {
+    let reloaded = false;
+    const reloadOnce = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+
+    if (!('serviceWorker' in navigator)) {
+      reloadOnce();
+      return;
+    }
+
     try {
+      const registration = await navigator.serviceWorker.getRegistration();
+
+      if (!registration) {
+        reloadOnce();
+        return;
+      }
+
+      // Con skipWaiting, el SW nuevo se activa solo en cuanto se instala y
+      // dispara 'controllerchange' — ese es el momento correcto de recargar.
+      navigator.serviceWorker.addEventListener('controllerchange', reloadOnce, {
+        once: true,
+      });
+
+      // ESPERAR a que la comprobación termine (lo que la librería se salta).
+      await registration.update();
+
+      // Por si el SW nuevo quedara a la espera en vez de autoactivarse.
+      const activateWaiting = () =>
+        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+
+      if (registration.waiting) {
+        activateWaiting();
+      } else if (registration.installing) {
+        registration.installing.addEventListener('statechange', activateWaiting);
+      }
+
+      // trigger extra de la librería (idempotente)
       updatePwa();
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      const hasUpdate = Boolean(
+        registration.installing || registration.waiting
+      );
+
+      // Con actualización, controllerchange dispara la recarga; el temporizador
+      // es solo la red de seguridad. Sin actualización (ya al día), recarga en
+      // seco enseguida para dar respuesta inmediata.
+      setTimeout(reloadOnce, hasUpdate ? 6000 : 1200);
     } catch (error) {
-      console.error(error.message);
+      console.error(error);
+      reloadOnce();
     }
   };
 
