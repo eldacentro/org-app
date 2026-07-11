@@ -5,7 +5,6 @@ import { isAppDataSyncingState, lastAppDataSyncState } from '@states/app';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import {
-  IconCheckCircle,
   IconExpand,
   IconHeaderAccount,
   IconNoConnection,
@@ -181,24 +180,16 @@ const AccountHeaderIcon = ({
           <Box
             sx={{
               position: 'absolute',
-              bottom: -3,
-              right: -3,
-              width: '14px',
-              height: '14px',
+              bottom: -1,
+              right: -1,
+              width: '9px',
+              height: '9px',
               borderRadius: '50%',
-              backgroundColor: 'var(--white)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              backgroundColor: 'var(--green-main)',
+              border: '1.5px solid var(--white)',
               zIndex: 1,
             }}
-          >
-            <IconCheckCircle
-              width={13}
-              height={13}
-              color="var(--green-main)"
-            />
-          </Box>
+          />
         ) : null}
       </Box>
       <IconExpand
