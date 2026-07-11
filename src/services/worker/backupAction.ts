@@ -122,14 +122,28 @@ const runBackup = async () => {
           backup = 'completed';
         }
 
-        if (retry < 3 && backup !== 'completed') {
-          console.log('[backup] reintentando en 10s — respuesta inesperada:', data.message);
-          await delay(10000);
-        }
+        // Un sync-conflict solo significa "otro dispositivo acaba de subir o
+        // está subiendo ahora mismo" — con el sync instantáneo estos choques
+        // son normales (todos reaccionan a la vez a la señal). El ciclo
+        // siguiente re-descarga y fusiona lo del otro, así que reintentar
+        // PRONTO es seguro y correcto: 2-4 s con jitter (para no chocar de
+        // nuevo en el mismo instante), hasta 5 intentos. Los 10 s solo quedan
+        // para errores de verdad (fallo del servidor, etc.).
+        if (backup === 'started') {
+          const isConflict = data.message === 'error_api_sync-conflict';
+          const maxRetries = isConflict ? 5 : 3;
 
-        if (retry === 3 && backup !== 'completed') {
-          backup = 'failed';
-          self.postMessage({ error: 'BACKUP_FAILED', details: data.message });
+          if (retry < maxRetries) {
+            const wait = isConflict ? 2000 + Math.random() * 2000 : 10000;
+            console.log(
+              `[backup] reintentando en ${Math.round(wait / 1000)}s — respuesta:`,
+              data.message
+            );
+            await delay(wait);
+          } else {
+            backup = 'failed';
+            self.postMessage({ error: 'BACKUP_FAILED', details: data.message });
+          }
         }
 
         retry++;
@@ -178,13 +192,17 @@ const runBackup = async () => {
           backup = 'completed';
         }
 
-        if (retry < 3 && backup !== 'completed') {
-          await delay(10000);
-        }
+        // misma política que el bucle VIP: conflictos = reintento corto
+        if (backup === 'started') {
+          const isConflict = data.message === 'error_api_sync-conflict';
+          const maxRetries = isConflict ? 5 : 3;
 
-        if (retry === 3 && backup !== 'completed') {
-          backup = 'failed';
-          self.postMessage({ error: 'BACKUP_FAILED', details: data.message });
+          if (retry < maxRetries) {
+            await delay(isConflict ? 2000 + Math.random() * 2000 : 10000);
+          } else {
+            backup = 'failed';
+            self.postMessage({ error: 'BACKUP_FAILED', details: data.message });
+          }
         }
 
         retry++;
