@@ -161,11 +161,106 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'informes',
     title: 'Informes y asistencia',
-    description: 'Recibir y verificar informes, registros de publicadores, asistencia y S-88.',
+    description: 'Recibir y verificar informes, registrar la asistencia, S-1, S-21 y S-88.',
     icon: <IconPublishersReports color="var(--accent-main)" />,
     visible: (r) => r.isSecretary || r.isAttendanceEditor,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'flujo-informes',
+        title: 'Cómo llegan los informes de los hermanos',
+        blocks: [
+          { type: 'p', text: 'Cuando un hermano envía su informe desde su aplicación, te llega al momento — sin papeles ni mensajes. Todo se gestiona en Informes → "Informes de predicación":' },
+          { type: 'steps', items: [
+            'Elige el mes arriba. Verás a todos los publicadores con el estado de su informe: recibido, pendiente de verificación o sin enviar.',
+            'Abre un informe recibido para revisarlo (horas si es precursor, estudios, comentarios).',
+            'Si está correcto, toca "Marcar como verificado". Los verificados son los que cuentan para el S-1 y el S-21.',
+            'Para quien no usa la aplicación (o se le olvidó), abre su nombre y rellena tú el informe a mano — queda igual que si lo hubiera enviado él.',
+          ] },
+          { type: 'tip', text: 'Los contadores de arriba ("Informes recibidos", "Informes pendientes de verificación") te dicen de un vistazo cuánto falta por hacer del mes.' },
+          { type: 'faq', q: 'Un hermano me avisa de que se equivocó en su informe ya enviado.', a: 'Puede corregirlo él y reenviarlo, o puedes abrirlo tú y corregirlo directamente. Si ya estaba verificado, revísalo y vuelve a marcarlo.' },
+          { type: 'faq', q: '¿Qué es "Informe atrasado"?', a: 'Un informe de un mes anterior que llegó después del envío del S-1. Queda marcado para que sepas que ese mes se informó tarde a la sucursal.' },
+        ],
+      },
+      {
+        id: 'creditos-horas',
+        title: 'Créditos de horas (LDC, Betel, escuelas…)',
+        blocks: [
+          { type: 'p', text: 'Los precursores con privilegios especiales de servicio (construcción/LDC, Betel, escuelas teocráticas…) pueden anotar horas de crédito además de las de predicación. En su informe aparecen separadas: horas de predicación por un lado y crédito por otro, normalmente con un comentario del tipo "40 Hrs. LDC".' },
+          { type: 'steps', items: [
+            'Abre el informe del precursor en el mes correspondiente.',
+            'Revisa las horas de crédito indicadas (o añádelas tú con su comentario).',
+            'Al aprobarlas, el crédito se suma automáticamente donde corresponde: su tarjeta S-21, su saldo de precursor y los totales.',
+          ] },
+          { type: 'tip', text: 'El crédito cuenta para el requisito del precursor, pero recuerda que en el S-1 las horas de la congregación se informan según las instrucciones de la sucursal — la aplicación ya lo separa correctamente por ti.' },
+        ],
+      },
+      {
+        id: 'registrar-asistencia',
+        title: 'Registrar la asistencia a las reuniones',
+        blocks: [
+          { type: 'p', text: 'En Informes → "Registros de asistencia" está el registro mensual. Cada mes tiene una casilla por cada reunión: las de entre semana arriba y las de fin de semana debajo, con la fecha de cada una.' },
+          { type: 'steps', items: [
+            'Elige el año de servicio y el mes.',
+            'Escribe el número de presentes en la casilla de cada reunión (la reunión de esta semana aparece marcada con "Ahora").',
+            'Si la congregación registra asistencia en línea por separado, activa "Registrar asistencia a reuniones en línea" en los ajustes rápidos y tendrás una casilla extra por reunión.',
+            'Los totales y promedios del mes se calculan solos, y todo se guarda y sincroniza automáticamente.',
+          ] },
+          { type: 'warn', text: 'Importante: la asistencia va por MES NATURAL, como la pide la sucursal. Cada reunión cuenta en el mes de su FECHA. Por ejemplo, si el miércoles 1 de julio hay reunión, esa asistencia va en la primera casilla de JULIO — aunque esa semana empezara en junio. La aplicación ya te enseña las casillas correctas de cada mes; solo apunta cada reunión en su fecha.' },
+          { type: 'faq', q: '¿Por qué un mes tiene 4 casillas y otro 5?', a: 'Porque tiene tantas casillas como reuniones de ese tipo caen dentro del mes. Un mes con cinco miércoles tendrá cinco casillas de entre semana.' },
+        ],
+      },
+      {
+        id: 'exportar-s88',
+        title: 'El S-88 y el historial mensual',
+        blocks: [
+          { type: 'p', text: 'Debajo del registro mensual está el "Registro de asistencia a reunión de congregación (S-88)": el historial por años de servicio con número de reuniones, asistencia total y promedio de cada mes — calculado solo a partir de lo que registras.' },
+          { type: 'steps', items: [
+            'Toca "Exportar" arriba de la página.',
+            'Elige "Exportar S-88" y el año o años de servicio.',
+            'Se genera el PDF oficial listo para archivar o enviar.',
+          ] },
+          { type: 'p', text: 'También puedes exportar el "Informe de asistencia a las reuniones (S-3)" del mes desde la misma pantalla.' },
+        ],
+      },
+      {
+        id: 's1-sucursal',
+        title: 'El informe a la sucursal (S-1)',
+        blocks: [
+          { type: 'p', text: 'En Informes → "Informes a la sucursal" preparas el informe mensual "Predicación y asistencia a las reuniones (S-1)". La aplicación lo rellena sola con los informes verificados del mes: publicadores que informaron, precursores auxiliares y regulares con sus horas y estudios, y la asistencia media.' },
+          { type: 'steps', items: [
+            'Elige el mes y toca "Crear informe S-1".',
+            'Revisa las cifras (puedes compararlas con los contadores de Informes de predicación).',
+            'Cópialas o expórtalas para enviarlas por jw.org como siempre.',
+          ] },
+          { type: 'tip', text: 'Verifica los informes ANTES de crear el S-1: solo los verificados entran en las cifras. Si después llega uno tardío, quedará como "Informe atrasado" y se suma al mes siguiente según las instrucciones.' },
+          { type: 'p', text: 'En la misma zona tienes el "Análisis de la congregación (S-10)" con la evolución anual.' },
+        ],
+      },
+      {
+        id: 's21-registros',
+        title: 'Registros de publicadores (S-21)',
+        blocks: [
+          { type: 'p', text: 'En Informes → "Registros de publicadores" está la tarjeta de cada hermano: sus informes mes a mes del año de servicio, con totales — el equivalente digital del S-21, siempre al día.' },
+          { type: 'steps', items: [
+            'Busca al hermano en la lista y abre su registro.',
+            'Para imprimir o archivar: toca "Exportar S-21" en su tarjeta, o usa "Exportar múltiples registros de publicadores (S-21)" para generar varios de golpe (por grupos, precursores, todos…).',
+          ] },
+          { type: 'p', text: 'Arriba verás también el "Saldo de precursores": el acumulado de horas de cada precursor regular respecto a su objetivo, para animar o ayudar a quien lo necesite.' },
+        ],
+      },
+      {
+        id: 'solicitudes-precursor',
+        title: 'Solicitudes de precursor auxiliar',
+        blocks: [
+          { type: 'p', text: 'Cuando un hermano solicita ser precursor auxiliar desde su aplicación, la solicitud llega a "Solicitudes de precursor" (en Congregación). El comité de servicio la revisa ahí mismo:' },
+          { type: 'steps', items: [
+            'Abre la solicitud para ver el mes (o si es de continuo).',
+            'Apruébala o recházala. El hermano recibe la respuesta en su aplicación.',
+            'Al aprobarla, el nombramiento queda registrado automáticamente en su ficha con sus fechas — y su informe de ese mes ya pedirá horas.',
+          ] },
+        ],
+      },
+    ],
   },
   {
     id: 'entre-semana',
