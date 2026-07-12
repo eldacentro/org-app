@@ -256,18 +256,14 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                 </Typography>
               )}
 
+              {/* Texto secundario descriptivo — MISMO estilo para las tres
+                  variantes (material/src, descripción/desc y las líneas de
+                  descItems de abajo): regular, grey-400, 12px. Antes el src
+                  salía en negrita y a 13px (y cambiaba de color según hubiera
+                  estudiante o no), lo que hacía que unas tarjetas se vieran
+                  distintas de otras sin motivo. */}
               {history.assignment.src && (
-                <Typography
-                  className={
-                    history.assignment.ayf
-                      ? 'body-small-regular'
-                      : 'body-small-semibold'
-                  }
-                  color={
-                    history.assignment.ayf ? 'var(--grey-350)' : 'var(--grey-400)'
-                  }
-                  sx={{ fontSize: '13px', marginTop: '1px' }}
-                >
+                <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
                   {history.assignment.src}
                 </Typography>
               )}
