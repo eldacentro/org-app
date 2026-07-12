@@ -39,6 +39,7 @@ const Territorios = lazy(() => import('@pages/congregation/territories'));
 const CircuitVisit = lazy(() => import('@pages/congregation/circuit_visit'));
 
 const MyProfile = lazy(() => import('@pages/my_profile'));
+const AyudaPage = lazy(() => import('@pages/ayuda'));
 const PersonsAll = lazy(() => import('@pages/persons/all_persons'));
 const PersonDetails = lazy(() => import('@pages/persons/person_details'));
 const PublicTalksList = lazy(
@@ -226,6 +227,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               { path: '/dashboard/settings', element: <SettingsDashboard /> },
               
               { path: '/user-profile', element: <MyProfile /> },
+              { path: '/ayuda', element: <AyudaPage /> },
               { path: '/weekly-schedules', element: <WeeklySchedules /> },
               {
                 path: '/activities/upcoming-events',

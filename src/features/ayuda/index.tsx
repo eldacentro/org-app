@@ -1,0 +1,209 @@
+import { useState } from 'react';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Chip,
+  InputAdornment,
+  Stack,
+  TextField,
+} from '@mui/material';
+import { IconCollapse, IconSearch } from '@icons/index';
+import { AyudaBlock, AyudaSection } from '@definition/ayuda';
+import PageTitle from '@components/page_title';
+import Typography from '@components/typography';
+import useAyuda from './useAyuda';
+
+// ── Bloques de artículo ───────────────────────────────────────────────────────
+
+const BlockView = ({ block }: { block: AyudaBlock }) => {
+  if (block.type === 'p') {
+    return (
+      <Typography className="body-regular" color="var(--grey-400)">
+        {block.text}
+      </Typography>
+    );
+  }
+
+  if (block.type === 'steps') {
+    return (
+      <Box>
+        {block.title && (
+          <Typography className="body-small-semibold" sx={{ marginBottom: '4px' }}>
+            {block.title}
+          </Typography>
+        )}
+        <Box component="ol" sx={{ margin: 0, paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {block.items.map((item, i) => (
+            <Typography key={i} component="li" className="body-regular" color="var(--grey-400)">
+              {item}
+            </Typography>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
+  if (block.type === 'tip' || block.type === 'warn') {
+    const isTip = block.type === 'tip';
+    return (
+      <Box
+        sx={{
+          borderRadius: 'var(--radius-m)',
+          padding: '10px 12px',
+          backgroundColor: isTip ? 'var(--green-secondary)' : 'var(--orange-secondary)',
+          borderLeft: `3px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
+        }}
+      >
+        <Typography className="body-small-regular">
+          {isTip ? '💡 ' : '⚠️ '}
+          {block.text}
+        </Typography>
+      </Box>
+    );
+  }
+
+  // faq
+  return (
+    <Box>
+      <Typography className="body-small-semibold">{block.q}</Typography>
+      <Typography className="body-regular" color="var(--grey-400)">
+        {block.a}
+      </Typography>
+    </Box>
+  );
+};
+
+// ── Sección con sus artículos ────────────────────────────────────────────────
+
+const SectionView = ({
+  section,
+  forceExpand,
+}: {
+  section: AyudaSection;
+  forceExpand: boolean;
+}) => {
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  return (
+    <Box
+      sx={{
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--accent-200)',
+        backgroundColor: 'var(--white)',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {section.icon}
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Typography className="h3">{section.title}</Typography>
+            {section.comingSoon && (
+              <Chip
+                label="En preparación"
+                size="small"
+                sx={{
+                  backgroundColor: 'var(--orange-secondary)',
+                  color: 'var(--orange-dark)',
+                  fontSize: '11px',
+                  height: '20px',
+                }}
+              />
+            )}
+          </Box>
+          <Typography className="body-small-regular" color="var(--grey-350)">
+            {section.description}
+          </Typography>
+        </Box>
+      </Box>
+
+      {section.articles.length > 0 && (
+        <Box>
+          {section.articles.map((article) => {
+            const isOpen = forceExpand || expanded === article.id;
+
+            return (
+              <Accordion
+                key={article.id}
+                expanded={isOpen}
+                onChange={(_, open) => setExpanded(open ? article.id : false)}
+                disableGutters
+                elevation={0}
+                sx={{
+                  backgroundColor: 'transparent',
+                  '&::before': { display: 'none' },
+                  borderTop: '1px solid var(--accent-150)',
+                }}
+              >
+                <AccordionSummary expandIcon={<IconCollapse color="var(--accent-350)" />}>
+                  <Typography className="body-regular-semibold">{article.title}</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ paddingTop: 0 }}>
+                  <Stack spacing="12px">
+                    {article.blocks.map((block, i) => (
+                      <BlockView key={i} block={block} />
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+// ── Página ───────────────────────────────────────────────────────────────────
+
+const Ayuda = () => {
+  const { sections, search, setSearch, isSearching } = useAyuda();
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <PageTitle
+        title="Ayuda"
+        secondaryTitle="Guía de uso de la aplicación — verás la guía general y las secciones de tus responsabilidades"
+      />
+
+      <TextField
+        fullWidth
+        placeholder="Buscar en la ayuda… (p. ej. «informe», «actualizar»)"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <IconSearch color="var(--accent-350)" />
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={{
+          '.MuiOutlinedInput-root': {
+            borderRadius: 'var(--radius-l)',
+            backgroundColor: 'var(--white)',
+          },
+        }}
+      />
+
+      {sections.length === 0 && (
+        <Typography className="body-regular" color="var(--grey-350)" sx={{ textAlign: 'center', padding: '24px' }}>
+          No se encontró nada con esa búsqueda.
+        </Typography>
+      )}
+
+      {sections.map((section) => (
+        <SectionView key={section.id} section={section} forceExpand={isSearching} />
+      ))}
+    </Box>
+  );
+};
+
+export default Ayuda;

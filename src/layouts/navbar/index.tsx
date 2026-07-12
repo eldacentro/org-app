@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import {
   IconAccount,
+  IconHelp,
   IconInfo,
   IconLogin,
   IconLogo,
@@ -72,6 +73,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleOpenMoreMenu,
     openMore,
     handleOpenAbout,
+    handleOpenAyuda,
     tabletUp,
     tabletDown,
     isCongAccountConnected,
@@ -406,6 +408,28 @@ const NavBar = ({ isSupported }: NavBarType) => {
                             </ListItemText>
                           </MenuItem>
                         )}
+
+                        <MenuItem
+                          disableRipple
+                          sx={menuStyle}
+                          onClick={handleOpenAyuda}
+                        >
+                          <ListItemIcon
+                            sx={{
+                              '&.MuiListItemIcon-root': {
+                                width: '24px',
+                                minWidth: '24px !important',
+                              },
+                            }}
+                          >
+                            <IconHelp color="var(--black)" />
+                          </ListItemIcon>
+                          <ListItemText>
+                            <Typography className="body-regular">
+                              Ayuda
+                            </Typography>
+                          </ListItemText>
+                        </MenuItem>
 
                         <MenuItem
                           disableRipple

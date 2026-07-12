@@ -101,6 +101,11 @@ const useNavbar = () => {
     setIsAboutOpen(true);
   };
 
+  const handleOpenAyuda = () => {
+    handleCloseMore();
+    navigate('/ayuda');
+  };
+
   const handleOpenSupport = () => {
     handleCloseMore();
     setIsSupportOpen(true);
@@ -132,6 +137,7 @@ const useNavbar = () => {
     anchorEl,
     handleOpenContact,
     handleOpenAbout,
+    handleOpenAyuda,
     handleOpenSupport,
     handleOpenDoc,
     fullname,
