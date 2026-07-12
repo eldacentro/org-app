@@ -1,19 +1,10 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Chip,
-  CircularProgress,
-  InputAdornment,
-  Stack,
-  TextField,
-} from '@mui/material';
-import { IconArrowLink, IconCollapse, IconSearch } from '@icons/index';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Chip, CircularProgress, Stack } from '@mui/material';
+import { IconArrowLink, IconCollapse } from '@icons/index';
 import { AyudaBlock, AyudaSection } from '@definition/ayuda';
 import PageTitle from '@components/page_title';
+import SearchBar from '@components/search_bar';
 import Typography from '@components/typography';
 import useAyuda from './useAyuda';
 
@@ -78,7 +69,10 @@ const SyncDiagram = () => {
               height: '10px',
               borderRadius: '50%',
               backgroundColor: 'var(--green-main)',
-              border: '1.5px solid var(--white)',
+              // el borde debe fundirse con el fondo de SU PROPIO contenedor
+              // (el círculo SyncDot), no con el de la página: así el punto
+              // se ve "recortado" correctamente sobre cualquier tema/color.
+              border: '1.5px solid var(--accent-150)',
             }}
           />
         </SyncDot>
@@ -256,8 +250,8 @@ const SectionView = ({
     <Box
       sx={{
         borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--accent-200)',
-        backgroundColor: 'var(--white)',
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--card)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -303,7 +297,7 @@ const SectionView = ({
                 sx={{
                   backgroundColor: 'transparent',
                   '&::before': { display: 'none' },
-                  borderTop: '1px solid var(--accent-150)',
+                  borderTop: '1px solid var(--line)',
                 }}
               >
                 <AccordionSummary expandIcon={<IconCollapse color="var(--accent-350)" />}>
@@ -337,26 +331,10 @@ const Ayuda = () => {
         secondaryTitle="Guía de uso de la aplicación: verás la guía general y las secciones de tus responsabilidades"
       />
 
-      <TextField
-        fullWidth
+      <SearchBar
         placeholder="Buscar en la ayuda… (p. ej. «informe», «actualizar»)"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <IconSearch color="var(--accent-350)" />
-              </InputAdornment>
-            ),
-          },
-        }}
-        sx={{
-          '.MuiOutlinedInput-root': {
-            borderRadius: 'var(--radius-l)',
-            backgroundColor: 'var(--white)',
-          },
-        }}
+        onSearch={setSearch}
       />
 
       {sections.length === 0 && (
