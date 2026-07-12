@@ -293,8 +293,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           { type: 'p', text: 'La aplicación descarga sola de jw.org el contenido de la guía Vida y Ministerio: las secciones de cada semana (Tesoros de la Biblia, Seamos mejores maestros, Nuestra vida cristiana), los temas, los tiempos y las canciones. Tú no tienes que copiar nada.' },
           { type: 'steps', title: 'Si una semana aún no aparece o quieres forzar la descarga:', items: [
-            'Ve a Reuniones → "Materiales de reunión".',
-            'Toca "Importar desde jw.org" (o "Importar desde archivo .jwpub" si lo tienes descargado).',
+            'Entra en "Configuración" desde el panel.',
+            'Toca "Importar desde jw.org" (o "Importar desde archivo" si tienes el .jwpub descargado).',
             'Espera a que termine y las semanas nuevas aparecerán en el programa.',
           ] },
           { type: 'tip', text: 'Mejor con .jwpub: si importas la Guía de actividades desde el archivo .jwpub, el botón "JW Library" que ven los hermanos en sus asignaciones los lleva a la SEMANA exacta de su parte. Si solo se importa desde jw.org, ese botón los deja en la Guía de actividades del bimestre, sin ir a la semana concreta. Merece la pena el .jwpub.' },
@@ -376,14 +376,14 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         title: 'Oradores visitantes y semanas sin orador',
         blocks: [
           { type: 'p', text: 'Los oradores visitantes salen del catálogo de congregaciones y oradores (ver la sección "Discursos y oradores" si también coordinas eso). Aquí solo los eliges; si el hermano que esperabas falla, usa "Orador sustituto" para dejar constancia del cambio.' },
-          { type: 'faq', q: '¿Y si una semana no hay discurso público?', a: 'Marca el tipo de semana correspondiente (asamblea, visita del superintendente, "Discurso público solamente", "Sin reunión"…) y la aplicación ajusta las partes.' },
+          { type: 'faq', q: '¿Y si una semana no hay discurso público?', a: 'Marca el tipo de semana correspondiente (asamblea, visita del superintendente, "Sin reunión"…) y la aplicación ajusta las partes.' },
         ],
       },
       {
         id: 'fs-publicar',
         title: 'Publicar e imprimir',
         blocks: [
-          { type: 'warn', text: 'Igual que en la reunión de entre semana: hasta que no tocas "Publicar", nadie ve el programa. Publica cuando esté listo y a cada hermano le llegará su parte.' },
+          { type: 'warn', text: 'Hasta que no PUBLICAS, los hermanos no ven nada: las asignaciones que preparas son un borrador privado tuyo. Publicar es lo que las hace llegar a todos. Publica cuando el programa esté listo y a cada hermano le llegará su parte.' },
           { type: 'steps', items: [
             'Toca "Publicar" y elige las semanas.',
             'Para el tablón o el archivo: "Exportar" → "Programa de la reunión del fin de semana" en PDF.',
@@ -395,11 +395,54 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'discursos',
     title: 'Discursos y oradores',
-    description: 'Coordinar discursantes salientes, oradores visitantes y el catálogo.',
+    description: 'El catálogo de oradores, los discursos salientes y el intercambio con otras congregaciones.',
     icon: <IconTalk color="var(--accent-main)" />,
     visible: (r) => r.isPublicTalkCoordinator,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'disc-catalogo',
+        title: 'El catálogo de oradores',
+        blocks: [
+          { type: 'p', text: 'En Discursos → "Catálogo de oradores" mantienes la agenda de oradores: los de nuestra congregación (con los discursos que cada uno tiene preparados) y las congregaciones vecinas con los suyos.' },
+          { type: 'steps', items: [
+            'Para una congregación nueva: toca "Añadir congregación" y rellena sus datos.',
+            'Dentro de cada congregación, "Añadir orador" para registrar a sus discursantes, con sus números de discurso preparados.',
+            'Los oradores de este catálogo son los que luego aparecen para elegir al programar la reunión de fin de semana.',
+          ] },
+          { type: 'tip', text: 'Mantén al día los discursos que tiene preparados cada orador: la aplicación te avisa al programar si un tema se dio hace poco en la congregación, y así evitas repeticiones.' },
+        ],
+      },
+      {
+        id: 'disc-salientes',
+        title: 'Discursos salientes (nuestros oradores fuera)',
+        blocks: [
+          { type: 'p', text: 'Cuando un orador nuestro va a dar un discurso a otra congregación, se registra como discurso saliente. Así queda en el programa, el hermano lo ve en sus asignaciones y toda la congregación sabe quién está fuera cada fin de semana.' },
+          { type: 'steps', items: [
+            'En la semana correspondiente del programa de fin de semana, toca "Añadir discurso saliente".',
+            'Con "Seleccionar orador y discurso" eliges al hermano, su tema y la congregación de destino.',
+            'El "Programa de oradores salientes" recoge todos los envíos y se puede imprimir para repartir o archivar.',
+          ] },
+        ],
+      },
+      {
+        id: 'disc-lista',
+        title: 'La lista de discursos públicos',
+        blocks: [
+          { type: 'p', text: 'En Discursos → "Lista de discursos públicos" tienes los temas oficiales numerados. Al abrir uno ves su historial: cuándo se dio por última vez aquí y quién lo dio. Es la mejor manera de repartir bien los temas a lo largo del año.' },
+        ],
+      },
+      {
+        id: 'disc-reconectar',
+        title: 'Si los oradores aparecen desvinculados',
+        blocks: [
+          { type: 'p', text: 'Los oradores locales del catálogo están enlazados a su ficha de Personas. Si tras algún cambio de datos ves oradores duplicados o que no encuentran a su persona, hay un arreglo de un toque:' },
+          { type: 'steps', items: [
+            'En el catálogo, toca "Reconectar oradores".',
+            'La aplicación re-empareja cada orador con su ficha por el nombre y te dice cuántos quedaron reconectados.',
+          ] },
+        ],
+      },
+    ],
   },
   {
     id: 'departamentos',
@@ -407,26 +450,97 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     description: 'La programación de asignaciones de departamentos.',
     icon: <IconAssignment color="var(--accent-main)" />,
     visible: (r) => r.isDepartmentsEditor,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'dept-programar',
+        title: 'Preparar el programa de departamentos',
+        blocks: [
+          { type: 'p', text: 'La programación de departamentos reparte las asignaciones de servicio de cada reunión (acomodadores, micrófonos, audio y vídeo, plataforma y demás) semana a semana.' },
+          { type: 'steps', items: [
+            'Entra en Reuniones → "Programación de departamentos" y elige la semana.',
+            'Asigna a los hermanos de cada departamento tocando cada puesto.',
+            'Con "Autocompletar" puedes rellenar varias semanas de golpe, repartiendo según el historial; después repasa y ajusta a mano lo que quieras.',
+            'Cuando publiques, a cada hermano le aparece su asignación en "MIS ASIGNACIONES", como cualquier otra parte.',
+          ] },
+          { type: 'tip', text: 'Los hermanos disponibles para cada departamento se configuran en su ficha de Personas (apartado de departamentos). Si alguien no te aparece para asignar, revisa que tenga marcado ese departamento.' },
+        ],
+      },
+      {
+        id: 'dept-imprimir',
+        title: 'Exportar el programa',
+        blocks: [
+          { type: 'p', text: 'Si necesitas el programa en papel, actívate la exportación (Configuración → "Ajustes de congregación" → "Materiales de reunión, formularios y programas" → "Habilitar la exportación de programas e informes a PDF") y usa el botón de exportar de la propia pantalla.' },
+        ],
+      },
+    ],
   },
   {
     id: 'grupos',
     title: 'Grupos de predicación',
-    description: 'Para superintendentes y auxiliares de grupo: informes y salidas de su grupo.',
+    description: 'Para superintendentes y auxiliares de grupo: tu grupo y sus informes.',
     icon: <IconGroups color="var(--accent-main)" />,
     visible: (r) => r.isGroupOverseer,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'grupo-ver',
+        title: 'Tu grupo',
+        blocks: [
+          { type: 'p', text: 'En Congregación → "Grupos de predicación" ves tu grupo con todos sus miembros. Los precursores aparecen con el nombre en negrita, y el superintendente y el auxiliar quedan indicados en la cabecera del grupo.' },
+        ],
+      },
+      {
+        id: 'grupo-informes',
+        title: 'Los informes de tu grupo',
+        blocks: [
+          { type: 'p', text: 'Como responsable de grupo puedes ver los informes de predicación de los hermanos de tu grupo en Informes → "Informes de predicación": quién ha enviado ya el suyo y quién no. Así puedes recordárselo con cariño a quien se le pase, o echarle una mano a quien le cueste la aplicación (su informe también se puede apuntar en papel y pasarlo al secretario, como siempre).' },
+          { type: 'p', text: 'Un matiz según tu responsabilidad: los superintendentes de grupo que son ancianos ven los informes de toda la congregación; los auxiliares ven los de su propio grupo.' },
+        ],
+      },
+      {
+        id: 'grupo-limpieza',
+        title: 'La limpieza del salón de tu grupo',
+        blocks: [
+          { type: 'p', text: 'El programa de limpieza va por grupos (Congregación → Limpieza del Salón). Cuando le toca al tuyo, a cada miembro del grupo le aparece en "MIS ASIGNACIONES", así que no hace falta que persigas a nadie: la aplicación avisa sola.' },
+        ],
+      },
+    ],
   },
   {
     id: 'personas',
     title: 'Personas y emergencias',
-    description: 'Fichas de personas, datos de contacto y lista de emergencias.',
+    description: 'Fichas de personas, datos de contacto y la lista de emergencias.',
     icon: <IconPerson color="var(--accent-main)" />,
     visible: (r) => r.isPersonViewer,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'pers-fichas',
+        title: 'Las fichas de Personas',
+        blocks: [
+          { type: 'p', text: 'En Congregación → Personas está la ficha de cada hermano: sus datos, su condición (publicador bautizado o no bautizado, precursor…), nombramientos, asignaciones que puede recibir, grupo, familia y datos de contacto. Casi todo lo demás de la aplicación bebe de aquí: si algo sale mal en un programa o un informe, muchas veces la causa está en la ficha.' },
+          { type: 'steps', items: [
+            'Para crear una: "Añadir persona" y rellena al menos nombre y condición.',
+            'Para editar: abre la ficha, cambia lo que toque y guarda. Los cambios se sincronizan a todos en segundos.',
+            'Usa el filtro (el embudo) para buscar por condición, nombramiento o grupo.',
+          ] },
+          { type: 'warn', text: 'Cuidado con eliminar o archivar: si un hermano deja de estar activo, lo correcto es ARCHIVARLO (su historial de informes se conserva). Los archivados no salen en las listas normales; para verlos, activa "Archivado" en el filtro.' },
+        ],
+      },
+      {
+        id: 'pers-emergencias',
+        title: 'Datos de contacto y lista de emergencias',
+        blocks: [
+          { type: 'p', text: 'Cada ficha tiene dirección, teléfono y "Contactos de emergencia" (a quién avisar si le pasa algo). Con eso, la aplicación genera el PDF de datos de contacto por grupos, listo para los responsables.' },
+          { type: 'tip', text: 'Los familiares sin ficha propia de publicador también pueden salir en la lista de emergencias: basta con que estén enlazados como familia de alguien con grupo, y el PDF los coloca en el grupo de su familia automáticamente.' },
+        ],
+      },
+      {
+        id: 'pers-ausencias',
+        title: 'Ausencias y disponibilidad',
+        blocks: [
+          { type: 'p', text: 'Las ausencias que cada hermano apunta en su cuenta (o que tú apuntes en su ficha) se tienen en cuenta al asignar: quien está de viaje no aparece disponible esas fechas. Si un hermano se queja de que le asignaron estando fuera, lo primero es mirar si su ausencia estaba apuntada.' },
+        ],
+      },
+    ],
   },
   {
     id: 'territorios',
@@ -434,25 +548,104 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     description: 'Para responsables: zonas, asignaciones, campañas y tarjetas.',
     icon: <IconMap color="var(--accent-main)" />,
     visible: (r) => r.isElder || r.isServiceCommittee,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'terr-panel',
+        title: 'El panel de responsables',
+        blocks: [
+          { type: 'p', text: 'En Congregación → Territorios, los responsables tienen su panel con pestañas: los territorios por zonas, los "Asignados" y "Sin asignar", las "Campañas" y las estadísticas (con vistas por "Año servicio" o "12 meses"). Los cambios se sincronizan al instante entre todos los responsables.' },
+          { type: 'steps', items: [
+            'Para asignar un territorio: ábrelo y asígnalo al hermano; quedará registrado con su fecha.',
+            'Al devolverlo, márcalo como completado y vuelve al montón de disponibles.',
+            'Las campañas te dejan agrupar una cobertura especial (por ejemplo, una campaña del Memorial) y seguir su avance aparte.',
+          ] },
+        ],
+      },
+      {
+        id: 'terr-s13',
+        title: 'El registro S-13',
+        blocks: [
+          { type: 'p', text: 'El "Registro de asignación de territorios (S-13)" se genera desde el propio módulo con el historial de asignaciones de cada territorio, listo para imprimir o archivar. Sale solo de lo que ya registras al asignar y devolver: no hay que llevarlo aparte.' },
+        ],
+      },
+    ],
   },
   {
     id: 'limpieza',
     title: 'Limpieza y actividades',
-    description: 'Programas de limpieza del salón y actividades de la congregación.',
+    description: 'Configurar la rotación de limpieza y los próximos eventos.',
     icon: <IconClean color="var(--accent-main)" />,
     visible: (r) => r.isElder || r.isServiceCommittee,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'limp-config',
+        title: 'Configurar la limpieza del salón',
+        blocks: [
+          { type: 'p', text: 'En Congregación → Limpieza del Salón, los responsables configuran la rotación: qué grupos participan y desde qué fecha arranca el ciclo. A partir de ahí, la aplicación calcula sola qué grupo toca cada semana, todos pueden consultarlo, y a los miembros del grupo que toca les aparece en "MIS ASIGNACIONES".' },
+          { type: 'steps', items: [
+            'Abre la configuración (el icono de ajustes de la pantalla de Limpieza).',
+            'Elige los grupos que entran en la rotación y el punto de partida.',
+            'Guarda. El calendario completo se rellena solo, saltando las semanas sin reunión.',
+          ] },
+        ],
+      },
+      {
+        id: 'limp-eventos',
+        title: 'Próximos eventos',
+        blocks: [
+          { type: 'p', text: 'En Congregación → Próximos eventos, los responsables crean y editan los eventos que ve toda la congregación: asambleas, la visita del superintendente, la Conmemoración, campañas y cualquier evento personalizado.' },
+          { type: 'steps', items: [
+            'Añade el evento con su tipo, fechas y horarios (los de varios días pueden tener horario propio por jornada).',
+            'Según el tipo, puedes añadir el lugar (saldrá el botón de Google Maps) y el enlace del programa (saldrá el botón de JW Library).',
+            'Al guardar, aparece para todos en Próximos eventos.',
+          ] },
+        ],
+      },
+    ],
   },
   {
     id: 'administracion',
     title: 'Administración',
-    description: 'Copias de seguridad, restauración, accesos y mantenimiento.',
+    description: 'Cuentas de usuario, copias de seguridad y herramientas de recuperación.',
     icon: <IconAdmin color="var(--accent-main)" />,
     visible: (r) => r.isAdmin || r.isSettingsEditor,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'admin-cuentas',
+        title: 'Cuentas de usuario e invitaciones',
+        blocks: [
+          { type: 'p', text: 'En Configuración → "Cuentas de usuario" gestionas quién tiene acceso a la aplicación y con qué rol. Desde la ficha de cada persona puedes invitarla, y cada rol abre exactamente lo que le corresponde (los programas al que hace programas, los informes al secretario, y así con todo).' },
+          { type: 'warn', text: 'Da a cada uno el rol mínimo que necesita. Siempre se puede ampliar después; lo contrario (retirar accesos) es más incómodo.' },
+        ],
+      },
+      {
+        id: 'admin-copias',
+        title: 'Copias de seguridad',
+        blocks: [
+          { type: 'p', text: 'La aplicación tiene varias redes de seguridad que funcionan solas: copias locales automáticas en el dispositivo del administrador (diarias, semanales y mensuales), copia a Google Drive si está activada, y copias diarias en el servidor de las tablas más delicadas (los programas de reuniones, entre otras) con 30 días de historial.' },
+          { type: 'p', text: 'Además, en Configuración → "Ajustes de congregación" → "Importar o exportar datos de congregación" puedes exportar a mano una copia completa en un archivo cuando quieras (por ejemplo, antes de un cambio grande), y volver a importarla si hiciera falta.' },
+        ],
+      },
+      {
+        id: 'admin-recuperacion',
+        title: 'Herramientas de recuperación (pestaña Servidor)',
+        blocks: [
+          { type: 'p', text: 'En "Importar o exportar datos de congregación" → pestaña "Servidor" están las herramientas para emergencias:' },
+          { type: 'steps', items: [
+            'Las copias diarias del servidor, con "Restaurar esta copia" para recuperar una tabla concreta (por ejemplo, solo los programas) sin tocar lo demás.',
+            'El candado de programas: congela las subidas de programas de otros dispositivos mientras restauras una versión buena, para que nadie la pise.',
+            'Forzar la re-descarga en todos los dispositivos: obliga a que todos vuelvan a bajar los programas del servidor. Solo para emergencias.',
+          ] },
+          { type: 'warn', text: 'Estas herramientas son potentes. Antes de usarlas en una emergencia real, respira: exporta una copia manual primero, restaura solo la tabla afectada, y usa el candado si otros dispositivos siguen subiendo datos malos.' },
+        ],
+      },
+      {
+        id: 'admin-mantenimiento',
+        title: 'Buenas prácticas de administrador',
+        blocks: [
+          { type: 'p', text: 'Tres hábitos que evitan sustos: revisa de vez en cuando que la versión de todos va al día (el aviso de actualizar llega solo, pero un vistazo no cuesta), exporta una copia manual antes de cualquier cambio grande (importaciones, reorganizar grupos…), y si algo se ve raro en un dispositivo concreto, primero "Sincronizar datos" y después "Volver a descargar los datos" desde Acerca de la aplicación.' },
+        ],
+      },
+    ],
   },
 ];
