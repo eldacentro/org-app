@@ -265,20 +265,113 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'entre-semana',
     title: 'Reunión de entre semana',
-    description: 'Preparar, asignar y publicar el programa Vida y Ministerio.',
+    description: 'Preparar, asignar y publicar el programa Vida y Ministerio Cristianos.',
     icon: <IconCalendarWeek color="var(--accent-main)" />,
     visible: (r) => r.isMidweekEditor,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'ms-materiales',
+        title: 'El material llega solo (y cómo traerlo a mano)',
+        blocks: [
+          { type: 'p', text: 'La aplicación descarga sola de jw.org el contenido de la guía Vida y Ministerio: las secciones de cada semana (Tesoros de la Biblia, Seamos mejores maestros, Nuestra vida cristiana), los temas, los tiempos y las canciones. Tú no tienes que copiar nada.' },
+          { type: 'steps', title: 'Si una semana aún no aparece o quieres forzar la descarga:', items: [
+            'Ve a Reuniones → "Materiales de reunión".',
+            'Toca "Importar desde jw.org" (o "Importar desde archivo .jwpub" si lo tienes descargado).',
+            'Espera a que termine y las semanas nuevas aparecerán en el programa.',
+          ] },
+        ],
+      },
+      {
+        id: 'ms-asignar',
+        title: 'Asignar las partes de cada semana',
+        blocks: [
+          { type: 'steps', items: [
+            'Entra en Reuniones → "Reunión de entre semana" y elige la semana.',
+            'Toca cada parte (presidente, oraciones, Tesoros, asignaciones estudiantiles, Nuestra vida cristiana…) y elige al hermano de la lista.',
+            'Al elegir, la lista te muestra el historial de cada uno (cuándo tuvo su última asignación de ese tipo) para repartir con equilibrio.',
+            'Si hay clase auxiliar, verás columnas para la sala principal y la clase auxiliar.',
+          ] },
+          { type: 'tip', text: '¿Prisa? El botón "Autocompletar" rellena las asignaciones de un rango de semanas repartiendo según el historial. Después solo repasa y ajusta lo que quieras a mano.' },
+          { type: 'faq', q: '¿Puedo quitar o cambiar una asignación ya hecha?', a: 'Sí: toca la parte y elige a otro hermano, o déjala vacía. Si el programa ya estaba publicado, vuelve a publicar para que el cambio les llegue a todos.' },
+        ],
+      },
+      {
+        id: 'ms-especiales',
+        title: 'Semanas especiales (visita del superintendente, asambleas…)',
+        blocks: [
+          { type: 'p', text: 'Cada semana tiene un tipo. Además de la semana normal, puedes marcarla como "Visita del superintendente de circuito", "Asamblea de circuito", "Asamblea regional", "Conmemoración" o "Sin reunión" — y la aplicación ajusta sola las partes que tocan (por ejemplo, en la visita del superintendente cambia el día de la reunión y añade su discurso de servicio).' },
+          { type: 'steps', items: [
+            'En la semana correspondiente, abre el selector del tipo de semana.',
+            'Elige el tipo. Las partes que no aplican desaparecen y aparecen las especiales.',
+          ] },
+        ],
+      },
+      {
+        id: 'ms-publicar',
+        title: 'Publicar el programa (el paso que lo hace visible)',
+        blocks: [
+          { type: 'warn', text: 'Hasta que no PUBLICAS, los hermanos no ven nada: las asignaciones que preparas son un borrador privado tuyo. Publicar es lo que las hace llegar a todos.' },
+          { type: 'steps', items: [
+            'Cuando el programa esté listo, toca "Publicar".',
+            'Elige las semanas que quieres publicar y confirma.',
+            'A cada hermano con asignación le aparece en "MIS ASIGNACIONES" (y recibe su notificación).',
+          ] },
+        ],
+      },
+      {
+        id: 'ms-imprimir',
+        title: 'Imprimir y exportar (S-140 y S-89)',
+        blocks: [
+          { type: 'steps', items: [
+            'En la pantalla del programa, toca "Exportar".',
+            'Elige el rango de semanas y el formato: el programa en PDF (plantilla S-140) para el tablón, o las tarjetas S-89 para las asignaciones estudiantiles.',
+          ] },
+          { type: 'tip', text: 'Con la app, muchos hermanos ya no necesitan papel: ven su asignación en su teléfono en cuanto publicas. El S-89 impreso queda para quien lo prefiera.' },
+        ],
+      },
+    ],
   },
   {
     id: 'fin-semana',
     title: 'Reunión de fin de semana',
-    description: 'Discursos públicos locales, presidencias y Atalaya.',
+    description: 'Discursos públicos, presidencias, Atalaya y oradores.',
     icon: <IconCalendarMonth color="var(--accent-main)" />,
     visible: (r) => r.isWeekendEditor,
-    comingSoon: true,
-    articles: [],
+    articles: [
+      {
+        id: 'fs-programar',
+        title: 'Programar cada fin de semana',
+        blocks: [
+          { type: 'steps', items: [
+            'Entra en Reuniones → "Reunión de fin de semana" y elige la semana.',
+            'Asigna el presidente y, si corresponde, las oraciones.',
+            'En "Discurso público", elige el orador: "Orador local" (de la congregación) u "Orador visitante" (de otra congregación, del catálogo).',
+            'Al elegir orador, selecciona su discurso — la aplicación te muestra los que tiene preparados y te avisa si un tema se dio hace poco.',
+            'Completa el Estudio de La Atalaya: conductor y lector.',
+          ] },
+          { type: 'tip', text: 'También aquí funciona "Autocompletar" para presidencias y lectores; los oradores conviene elegirlos a mano, porque dependen de acuerdos con otras congregaciones.' },
+        ],
+      },
+      {
+        id: 'fs-visitantes',
+        title: 'Oradores visitantes y semanas sin orador',
+        blocks: [
+          { type: 'p', text: 'Los oradores visitantes salen del catálogo de congregaciones y oradores (ver la sección "Discursos y oradores" si también coordinas eso). Aquí solo los eliges; si el hermano que esperabas falla, usa "Orador sustituto" para dejar constancia del cambio.' },
+          { type: 'faq', q: '¿Y si una semana no hay discurso público?', a: 'Marca el tipo de semana correspondiente (asamblea, visita del superintendente, "Discurso público solamente", "Sin reunión"…) y la aplicación ajusta las partes.' },
+        ],
+      },
+      {
+        id: 'fs-publicar',
+        title: 'Publicar e imprimir',
+        blocks: [
+          { type: 'warn', text: 'Igual que en la reunión de entre semana: hasta que no tocas "Publicar", nadie ve el programa. Publica cuando esté listo y a cada hermano le llegará su parte.' },
+          { type: 'steps', items: [
+            'Toca "Publicar" y elige las semanas.',
+            'Para el tablón o el archivo: "Exportar" → "Programa de la reunión del fin de semana" en PDF.',
+          ] },
+        ],
+      },
+    ],
   },
   {
     id: 'discursos',
