@@ -33,23 +33,16 @@ const IconArrowLink = ({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <mask
-          id="mask0_2976_38562"
-          style={{ maskType: 'alpha' }}
-          maskUnits="userSpaceOnUse"
-          x="0"
-          y="0"
-          width="24"
-          height="25"
-        >
-          <rect y="0.000488281" width="24" height="24" fill="#D9D9D9" />
-        </mask>
-        <g mask="url(#mask0_2976_38562)">
-          <path
-            d="M6.2942 17.6447L5.25 16.6005L15.0904 6.75044H6.14422V5.25049H17.6442V16.7504H16.1442V7.80426L6.2942 17.6447Z"
-            fill={color}
-          />
-        </g>
+        {/* Sin <mask>: el rect original era opaco y cubría exactamente el
+            viewBox (no recortaba nada), y su id fijo se duplicaba cada vez
+            que este icono se repetía en una misma página (p. ej. varios
+            botones "Llévame allí" en Ayuda) — con id repetido, url(#id)
+            puede no resolver en las copias siguientes y la flecha
+            desaparece en algunas de ellas. */}
+        <path
+          d="M6.2942 17.6447L5.25 16.6005L15.0904 6.75044H6.14422V5.25049H17.6442V16.7504H16.1442V7.80426L6.2942 17.6447Z"
+          fill={color}
+        />
       </svg>
     </SvgIcon>
   );

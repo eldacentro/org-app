@@ -7,10 +7,12 @@ import {
   IconCloudDownload,
   IconGroups,
   IconHelp,
+  IconLocation,
   IconMap,
   IconPerson,
   IconPublishersReports,
   IconRestart,
+  IconShoppingCart,
   IconTalk,
 } from '@icons/index';
 import { AyudaSection } from '@definition/ayuda';
@@ -61,6 +63,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             'Tus partes aparecen destacadas con tu nombre.',
           ] },
           { type: 'link', to: '/weekly-schedules', label: 'Ver los programas semanales' },
+          { type: 'p', text: '"Programas semanales" no es solo la reunión: en la misma pantalla, según cada semana, también salen el programa de departamentos, el de exhibidores y el de salidas de predicación. Es el sitio único donde consultar cualquier programa de la congregación.' },
           { type: 'p', text: 'Si te asignan una parte, te llegará también como notificación (si las tienes activadas) y aparecerá en "MIS ASIGNACIONES" del panel. Ahí sale todo lo tuyo: partes de las reuniones, acomodadores, micrófonos, salidas de predicación y también la limpieza del salón cuando le toca a tu grupo.' },
           { type: 'p', text: 'En algunas asignaciones de la reunión de entre semana verás un botón "JW Library": te abre la aplicación JW Library para repasar el contenido de tu parte al momento. Normalmente te lleva a la semana exacta de tu asignación; si en algún caso te abre la Guía de actividades del bimestre en general (sin ir a la semana concreta), es simplemente porque el material de ese mes se importó de otra forma, no es un fallo de tu aplicación.' },
           { type: 'tip', text: 'Si activas "Añadir al calendario" en Mi cuenta, en cada asignación te aparecerá un botón para guardarla en el calendario de tu teléfono, y otro de "Añadir todo al calendario" para meterlas todas de golpe. Así te avisará tu propio calendario.' },
@@ -125,6 +128,35 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           { type: 'p', text: 'LIMPIEZA DEL SALÓN. El programa de limpieza por grupos. Todos pueden consultarlo, y cuando le toca a tu grupo también te aparece en "MIS ASIGNACIONES" del panel.' },
           { type: 'p', text: 'PLAN DE EVACUACIÓN. El plan de emergencia del Salón del Reino: la estructura de mando, los equipos y lo que hay que saber por si alguna vez hay que desalojar. Merece una lectura tranquila una vez, para que el día que haga falta no sea la primera.' },
           { type: 'p', text: 'VISITA DEL SUPERINTENDENTE. Cuando se acerca una visita del superintendente de circuito (desde unas tres semanas antes y mientras dura), aquí verás el resumen con lo que necesitas saber: fechas, horarios y detalles del programa. Los ancianos ven información más completa, y los responsables la preparan desde aquí mismo.' },
+        ],
+      },
+      {
+        id: 'territorios-hermanos',
+        title: 'Territorios: pedir, devolver y consultar el mapa',
+        blocks: [
+          { type: 'p', text: 'Cualquier publicador puede pedir un territorio desde la propia aplicación, sin tener que hablar antes con nadie. En Congregación → Territorios verás la sección "Mis territorios" con lo que tengas asignado ahora mismo.' },
+          { type: 'link', to: '/congregation/territories', label: 'Abrir Territorios' },
+          { type: 'steps', title: 'Para pedir uno nuevo:', items: [
+            'Toca "Solicitar territorio" (arriba de la pantalla).',
+            'Añade una nota si quieres (por ejemplo, si prefieres una zona) y envía.',
+            'Espera: la solicitud le llega a los responsables, y ellos son quienes eligen y te asignan el territorio. Tú no eliges el número ni la zona directamente.',
+          ] },
+          { type: 'tip', text: 'Solo puedes tener una solicitud pendiente a la vez. Si ya pediste uno y aún no te lo han asignado, espera a que se resuelva antes de pedir otro.' },
+          { type: 'p', text: 'Cada territorio asignado aparece como una tarjeta con su zona y número, la fecha en que te lo entregaron y la fecha en que vence. Si es un territorio de campaña especial, lleva la etiqueta "Campaña"; si llevas mucho tiempo con él, puede aparecer marcado como "Atrasado".' },
+          { type: 'steps', title: 'Para devolverlo cuando termines:', items: [
+            'Toca "Entregar" en la tarjeta del territorio.',
+            'Elige "Entregar (trabajado)" si lo terminaste, o "Devolver sin trabajar" si no pudiste avanzar.',
+            'Añade una nota si quieres y confirma.',
+          ] },
+          { type: 'warn', text: 'En algunas congregaciones esta opción está reservada a los responsables. Si al tocar "Entregar" ves que el botón está desactivado con el aviso "Solo un responsable puede marcar este territorio como entregado", avísale a quien lleve Territorios para que lo complete él.' },
+          { type: 'p', text: 'Si tu congregación lo tiene activado, también puedes ver (sin poder editar) los territorios que llevan tus compañeros de grupo, en la sección "Territorios del grupo".' },
+          { type: 'steps', title: 'Ver el territorio (mapa, imagen y direcciones):', items: [
+            'Toca "Ver territorio" en cualquier tarjeta.',
+            'En la pestaña del mapa puedes alternar entre vista "Mapa" y vista "Satélite" con el botón flotante.',
+            'La pestaña "Direcciones" lista las viviendas marcadas como "NO VISITAR" dentro de ese territorio, con un chip rojo bien visible.',
+          ] },
+          { type: 'tip', text: 'Si tu congregación lo permite, puedes añadir tú mismo una dirección nueva a "No visitar" desde esa misma pestaña. Según cómo esté configurado, puede quedar pendiente de aprobación por un responsable antes de aparecer como definitiva.' },
+          { type: 'faq', q: '¿Puedo elegir qué territorio quiero?', a: 'No directamente: pides uno con "Solicitar territorio" y el responsable decide cuál te da, aunque puedes indicar tu preferencia en la nota de la solicitud.' },
         ],
       },
       {
@@ -428,7 +460,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         id: 'disc-salientes',
         title: 'Discursos salientes (nuestros oradores fuera)',
         blocks: [
-          { type: 'p', text: 'Cuando un orador nuestro va a dar un discurso a otra congregación, se registra como discurso saliente. Así queda en el programa, el hermano lo ve en sus asignaciones y toda la congregación sabe quién está fuera cada fin de semana.' },
+          { type: 'p', text: 'Cuando un orador nuestro va a dar un discurso a otra congregación, se registra como discurso saliente. Así queda en el programa, el hermano lo ve en sus asignaciones y los ancianos saben quién está fuera cada fin de semana.' },
           { type: 'steps', items: [
             'En la semana correspondiente del programa de fin de semana, toca "Añadir discurso saliente".',
             'Con "Seleccionar orador y discurso" eliges al hermano, su tema y la congregación de destino.',
@@ -484,6 +516,115 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         title: 'Exportar el programa',
         blocks: [
           { type: 'p', text: 'Si necesitas el programa en papel, actívate la exportación (Configuración → "Ajustes de congregación" → "Materiales de reunión, formularios y programas" → "Habilitar la exportación de programas e informes a PDF") y usa el botón de exportar de la propia pantalla.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'exhibidores',
+    title: 'Exhibidores',
+    description: 'Para el comité de servicio: ubicaciones, turnos, asignaciones fijas y el programa mensual.',
+    icon: <IconShoppingCart color="var(--accent-main)" />,
+    visible: (r) => r.isServiceCommittee,
+    articles: [
+      {
+        id: 'exh-configurar',
+        title: 'Configurar ubicaciones, turnos y responsables',
+        blocks: [
+          { type: 'p', text: 'En Predicación → Exhibidores → "Configuración" se prepara todo antes de programar ningún mes:' },
+          { type: 'steps', items: [
+            'UBICACIONES: la lista de sitios donde se pone el carrito o la mesa (solo el nombre; no hace falta dirección).',
+            'TURNOS: cada turno define en qué días de la semana aparece, su hora de inicio y fin, qué ubicaciones puede usar y cuál es la ubicación por defecto.',
+            'RESPONSABLES: marca qué hermanos (de los que tienen activado "Exhibidores" en su ficha de Personas) pueden ser Responsable de turno.',
+            'ASIGNACIONES FIJAS: la plantilla que se repite cada semana, con hasta 3 posiciones por turno, hasta 3 posiciones, donde la Posición 1 tiene que ser uno de los responsables marcados.',
+            'DISPONIBILIDAD: qué turnos prefiere cada hermano; no bloquea nada, solo hace que aparezca recomendado al asignar.',
+          ] },
+          { type: 'link', to: '/exhibitors', label: 'Abrir Exhibidores' },
+        ],
+      },
+      {
+        id: 'exh-programar',
+        title: 'El programa del mes',
+        blocks: [
+          { type: 'p', text: 'Con la configuración lista, cada turno de cada semana se rellena solo con lo que hayas puesto en "Asignaciones fijas". Solo hace falta tocar un turno cuando ese día en concreto sea distinto de lo habitual.' },
+          { type: 'steps', items: [
+            'Toca "Autocompletar" para generar de golpe todo el mes según las asignaciones fijas.',
+            'Toca un turno concreto para cambiar a los hermanos, cambiar la ubicación de ese día, o "Suspender turno para esta semana".',
+            '"Restaurar Fijos" borra el cambio puntual y vuelve a heredar de la plantilla fija.',
+            'Cuando esté listo, toca "Publicar".',
+          ] },
+          { type: 'tip', text: 'Si alguno de los hermanos elegidos tiene una ausencia registrada ese día, la aplicación te avisa al momento de asignar.' },
+        ],
+      },
+      {
+        id: 'exh-ajustes-mes',
+        title: '"Ajustes del mes": vacaciones, asambleas y excepciones',
+        blocks: [
+          { type: 'p', text: 'El botón "Ajustes del mes" (junto al título del programa) sirve para los meses que se salen de lo normal, sin tocar la configuración de siempre:' },
+          { type: 'steps', items: [
+            '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero (por ejemplo, por una asamblea). Puedes añadir un texto explicando el motivo.',
+            '"Personalizar turnos para este mes": crea una copia de los turnos solo para ese mes, que puedes editar libremente (añadir, quitar, cambiar horas) sin afectar a los demás meses.',
+            '"Restaurar al Global" deshace la personalización y ese mes vuelve a usar la configuración normal.',
+          ] },
+        ],
+      },
+      {
+        id: 'exh-vista-publicador',
+        title: 'Lo que ve un publicador normal',
+        blocks: [
+          { type: 'p', text: 'Un publicador no entra a la pantalla de gestión de Exhibidores, pero sí ve su propio turno en "MIS ASIGNACIONES" (con el aviso de "Responsable de turno" si le toca serlo), y puede consultar el programa completo del mes, de solo lectura, en "Programas semanales" → pestaña Exhibidores.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'salidas-predicacion',
+    title: 'Salidas de predicación',
+    description: 'Para el comité de servicio: ubicaciones, horarios, disponibilidad y el programa mensual.',
+    icon: <IconLocation color="var(--accent-main)" />,
+    visible: (r) => r.isServiceCommittee,
+    articles: [
+      {
+        id: 'sal-configurar',
+        title: 'Configurar ubicaciones, horarios y disponibilidad',
+        blocks: [
+          { type: 'p', text: 'En Predicación → Salidas de predicación → "Configuración" hay cuatro apartados:' },
+          { type: 'steps', items: [
+            'UBICACIONES: los puntos de salida (por ejemplo, el Salón del Reino).',
+            'HORARIOS: cada día de la semana tiene un turno de mañana y otro de tarde, cada uno con su hora de salida y un interruptor para activarlo o desactivarlo de forma permanente.',
+            'DISPONIBILIDAD DE HERMANOS: qué turnos suele poder cada hermano; se usa para recomendarlo al asignar y para el autocompletado, pero no asigna nada por sí sola.',
+            'SALIDAS COMPARTIDAS: si algún turno se comparte con una congregación vecina (por ejemplo, un sábado en un territorio conjunto), se registra aquí.',
+          ] },
+          { type: 'link', to: '/predicacion-salidas', label: 'Abrir Salidas de predicación' },
+        ],
+      },
+      {
+        id: 'sal-programar',
+        title: 'El programa del mes',
+        blocks: [
+          { type: 'p', text: 'A diferencia de Exhibidores, aquí no hay una plantilla fija que se repite sola: cada salida se asigna a mano (o con autocompletar) usando como pista la disponibilidad que hayas configurado.' },
+          { type: 'steps', items: [
+            'Toca un turno para asignarle un conductor: verás primero los hermanos "RECOMENDADOS (DISPONIBLES HOY)" según su disponibilidad, y debajo el resto.',
+            'Elige también el lugar de reunión de esa salida.',
+            'Usa "Suspender salida" si ese turno concreto no va a haber salida.',
+            '"Autocompletar" (arriba, para todo el mes, o dentro de los ajustes de una semana, solo para esa semana) reparte los turnos entre quienes los tengan marcados como disponibles, procurando no repetir al mismo hermano semana tras semana y dando prioridad a quien lleva más tiempo sin salir.',
+          ] },
+          { type: 'tip', text: 'Si un turno no tiene a nadie marcado como disponible, el autocompletado lo deja vacío a propósito: tendrás que asignarlo a mano.' },
+        ],
+      },
+      {
+        id: 'sal-ajustes-mes-semana',
+        title: '"Ajustes del mes" y ajustes de una semana concreta',
+        blocks: [
+          { type: 'p', text: 'El botón "Ajustes del mes" funciona igual que en Exhibidores: puedes "Suspender salidas todo el mes" o "Personalizar horarios para este mes" (por ejemplo, para adelantar la salida de la tarde en verano por el calor), con "Restaurar a Global" para deshacerlo.' },
+          { type: 'p', text: 'Además, cada semana tiene su propio icono de ajustes, con dos cosas exclusivas de esa semana: marcarla como "Semana del superintendente de circuito" (para poder asignarle su propia salida) y, si hace falta, un horario especial solo para esa semana concreta.' },
+        ],
+      },
+      {
+        id: 'sal-vista-publicador',
+        title: 'Lo que ve un publicador normal',
+        blocks: [
+          { type: 'p', text: 'Un publicador no puede asignar ni editar salidas, pero sí ve su propia salida en "MIS ASIGNACIONES" con el día, la hora y el lugar. No existe la opción de que un publicador se apunte él mismo a una salida: siempre las asigna el comité de servicio.' },
         ],
       },
     ],
@@ -561,28 +702,121 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'territorios',
     title: 'Territorios',
-    description: 'Para responsables: zonas, asignaciones, campañas y tarjetas.',
+    description: 'Para responsables: asignaciones, solicitudes, campañas, mapa, S-13 y configuración.',
     icon: <IconMap color="var(--accent-main)" />,
-    visible: (r) => r.isElder || r.isServiceCommittee,
+    visible: (r) => r.isElder || r.isServiceCommittee || r.isAdmin,
     articles: [
       {
-        id: 'terr-panel',
-        title: 'El panel de responsables',
+        id: 'terr-acceso',
+        title: 'Quién es "responsable" de Territorios',
         blocks: [
-          { type: 'p', text: 'En Congregación → Territorios, los responsables tienen su panel con pestañas: los territorios por zonas, los "Asignados" y "Sin asignar", las "Campañas" y las estadísticas (con vistas por "Año servicio" o "12 meses"). Los cambios se sincronizan al instante entre todos los responsables.' },
-          { type: 'steps', items: [
-            'Para asignar un territorio: ábrelo y asígnalo al hermano; quedará registrado con su fecha.',
-            'Al devolverlo, márcalo como completado y vuelve al montón de disponibles.',
-            'Las campañas te dejan agrupar una cobertura especial (por ejemplo, una campaña del Memorial) y seguir su avance aparte.',
-          ] },
+          { type: 'p', text: 'Cualquier anciano o miembro del cuerpo de gobierno de la aplicación (admin, secretario, coordinador) ya tiene acceso de gestión de Territorios de forma automática. Además, cualquier hermano que figure como responsable, auxiliar o miembro del departamento "Territorios" en Responsabilidades también lo tiene, aunque no sea anciano.' },
+          { type: 'p', text: 'Al entrar a Congregación → Territorios, quien tiene gestión ve dos pestañas arriba: "Mis territorios" (lo suyo propio, igual que cualquier publicador) y "Responsables" (el panel completo que se explica en los artículos siguientes).' },
           { type: 'link', to: '/congregation/territories', label: 'Abrir Territorios' },
+          { type: 'tip', text: 'No todos los responsables reciben avisos de solicitudes nuevas: eso solo llega al superintendente de servicio, al admin y a los miembros del departamento Territorios. El resto de ancianos con acceso puede gestionar todo igualmente, pero tendrá que entrar a mirar la pestaña "Solicitudes" en vez de esperar un aviso.' },
         ],
       },
       {
-        id: 'terr-s13',
-        title: 'El registro S-13',
+        id: 'terr-estadisticas',
+        title: 'Estadísticas',
         blocks: [
-          { type: 'p', text: 'El "Registro de asignación de territorios (S-13)" se genera desde el propio módulo con el historial de asignaciones de cada territorio, listo para imprimir o archivar. Sale solo de lo que ya registras al asignar y devolver: no hay que llevarlo aparte.' },
+          { type: 'p', text: 'La primera pestaña del panel de Responsables. De un vistazo: cuántos territorios están "Asignados" (con su barra de progreso sobre el total), cuántos "Trabajados" en el periodo, cuántos "Atrasados" y cuántos "Vencidos".' },
+          { type: 'p', text: 'Debajo, tres listas útiles: los territorios atrasados (con botón "Notificar", que avisa al hermano por notificación con el mensaje que hayas configurado, y "Entregar"), los vencidos, y los que llevan más tiempo sin asignarse a nadie (agrupables por zona, con botón "Asignar" directo en cada fila).' },
+        ],
+      },
+      {
+        id: 'terr-asignaciones',
+        title: 'Asignaciones',
+        blocks: [
+          { type: 'p', text: 'La lista de trabajo del día a día: todos los territorios con su estado, filtrables por "Todos", "Asignados" o "Sin asignar", y con un buscador por territorio o por nombre de publicador.' },
+          { type: 'steps', items: [
+            'Para asignar uno libre: búscalo y toca "Asignar", elige al publicador (y añade una nota si quieres).',
+            'Para devolverlo: toca "Entregar" en su tarjeta.',
+            'Puedes editar la nota o borrar una asignación puntual si te equivocaste.',
+          ] },
+        ],
+      },
+      {
+        id: 'terr-solicitudes',
+        title: 'Solicitudes',
+        blocks: [
+          { type: 'p', text: 'Aquí llegan las peticiones que los publicadores envían con "Solicitar territorio" desde su propia pantalla, con su nombre, la fecha y su nota si escribió alguna.' },
+          { type: 'steps', items: [
+            'Toca "Asignar territorio" en la solicitud: se abre el diálogo de asignación con el solicitante ya seleccionado, listo para elegir el territorio y confirmar.',
+            'Si no procede (ya se resolvió de otra forma, por ejemplo), usa "Descartar".',
+          ] },
+          { type: 'tip', text: 'Un número en esta pestaña (y en la pestaña "Responsables" de arriba) te avisa de cuántas solicitudes están pendientes de resolver.' },
+        ],
+      },
+      {
+        id: 'terr-historial',
+        title: 'Historial',
+        blocks: [
+          { type: 'p', text: 'El registro de todas las asignaciones ya cerradas: quién tuvo cada territorio, cuándo lo devolvió, si lo marcó como trabajado o no, y su nota si la hay. Con buscador por publicador o por territorio, y "Cargar más" para ir viendo el histórico completo.' },
+        ],
+      },
+      {
+        id: 'terr-territorios-tab',
+        title: 'La pestaña Territorios: zonas, etiquetas e importar',
+        blocks: [
+          { type: 'p', text: 'Aquí están todos los territorios agrupados por zona, cada uno con su estado (Asignado o Libre) y sus etiquetas de color.' },
+          { type: 'steps', title: 'Botones de arriba:', items: [
+            '"Zonas": crear, renombrar, borrar y reordenar las zonas, y elegir su color.',
+            '"Etiquetas": crear y gestionar las etiquetas que se pueden poner a cada territorio (con su color).',
+            '"Importar KML": trae los límites de territorios desde un archivo KML/KMZ (de Google Earth u otra fuente), eligiendo a qué zona van.',
+            '"Seleccionar": activa el modo de selección múltiple, con acciones en bloque "Asignar (N)" y "Eliminar (N)".',
+          ] },
+          { type: 'warn', text: 'Eliminar territorios en bloque es una acción destructiva con confirmación aparte; los que ya estén asignados no se tocan aunque los incluyas en la selección.' },
+        ],
+      },
+      {
+        id: 'terr-mapa-general',
+        title: 'El mapa general',
+        blocks: [
+          { type: 'p', text: 'Un único mapa con todos los territorios de la congregación agrupados visualmente: puntos verdes para los libres y naranjas para los asignados, con leyenda. Al acercarte, los grupos se separan solos; toca cualquier punto para abrir el detalle de ese territorio.' },
+          { type: 'p', text: 'Esta vista de conjunto no tiene vista satélite (solo el mapa de calles); la vista satélite está disponible al abrir un territorio individual, igual que la ven los publicadores.' },
+        ],
+      },
+      {
+        id: 'terr-campanas',
+        title: 'Campañas',
+        blocks: [
+          { type: 'p', text: 'Para organizar una cobertura especial de un grupo de territorios (por ejemplo, antes de una fecha señalada) por separado del reparto normal.' },
+          { type: 'steps', items: [
+            'Toca "Crear campaña", ponle un nombre y sus fechas de inicio y fin.',
+            'Dentro de la campaña, usa "Añadir territorios" para meter los que quieras cubrir.',
+            'Asigna y controla esos territorios exactamente igual que los normales, con sus botones "Asignar" / "Quitar" propios dentro de la campaña.',
+            'Cuando termine, toca "Finalizar": devuelve automáticamente todos los territorios de la campaña que sigan abiertos.',
+          ] },
+          { type: 'tip', text: 'Si no la finalizas a mano, una campaña vencida por fecha se cierra sola y devuelve sus territorios abiertos como trabajados.' },
+          { type: 'warn', text: 'Borrar una campaña borra también sus registros de asignación del S-13. No lo hagas sin el visto bueno del superintendente de servicio.' },
+        ],
+      },
+      {
+        id: 'terr-importar-exportar',
+        title: 'Importar/Exportar y el S-13',
+        blocks: [
+          { type: 'p', text: 'El "Registro de asignación de territorios (S-13)" se genera aquí mismo, con el historial que ya llevas registrado al asignar y devolver: no hay que anotarlo aparte en ningún otro sitio.' },
+          { type: 'steps', title: 'Exportar S-13:', items: [
+            'Elige el año de servicio (de los últimos 5).',
+            'Marca "Incluir asignaciones de campaña" si quieres que también salgan.',
+            'Toca "Exportar S-13": genera el PDF con el formato oficial.',
+          ] },
+          { type: 'tip', text: 'Si un territorio tuvo más de 4 asignaciones en el año, el formulario S-13 solo tiene sitio para las 4 más recientes de ese territorio (así es el formulario oficial); la aplicación te avisa cuando pasa.' },
+          { type: 'p', text: 'También puedes exportar toda la lista a "Excel (.xlsx)" o "CSV (.csv)" (filtrando por todos, asignados, sin asignar o de campaña), y exportar la geometría de los mapas a "Exportar KML" o "Exportar GeoJSON". Para traer territorios nuevos, la importación es solo por KML/KMZ, desde el botón "Importar KML" de la pestaña Territorios.' },
+        ],
+      },
+      {
+        id: 'terr-configuracion',
+        title: 'Configuración',
+        blocks: [
+          { type: 'p', text: 'Cinco bloques de ajustes del módulo:' },
+          { type: 'p', text: 'AJUSTES DE ASIGNACIÓN: formato de fecha a usar en toda la pantalla, si las campañas cuentan en las estadísticas, y si "asignado" ya cuenta como "trabajado".' },
+          { type: 'p', text: 'DASHBOARD Y ESTADÍSTICAS: a partir de cuántos días un territorio se considera atrasado o vencido, el mensaje que se envía al notificar un atraso, el rango de las estadísticas (año de servicio, 12 meses o todo) y si se agrupan por zona.' },
+          { type: 'p', text: 'VISTA DEL TERRITORIO: qué pestaña aparece abierta por defecto al ver un territorio (información, mapa, imagen o direcciones).' },
+          { type: 'p', text: 'CONFIGURACIÓN DE PUBLICADOR: si los publicadores pueden devolver sus propios territorios, si pueden ver los territorios de su grupo, y si pueden añadir direcciones a "No visitar" ellos mismos.' },
+          { type: 'p', text: 'CONFIGURACIÓN DE UBICACIONES: si las direcciones que añaden los publicadores necesitan tu aprobación antes de quedar definitivas.' },
+          { type: 'tip', text: 'Los cambios no se guardan solos aquí: hay una barra abajo que te dice si tienes "Cambios sin guardar": toca "Guardar" antes de salir.' },
         ],
       },
     ],
@@ -636,6 +870,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           { type: 'p', text: 'En Configuración → "Cuentas de usuario" gestionas quién tiene acceso a la aplicación y con qué rol. Desde la ficha de cada persona puedes invitarla, y cada rol abre exactamente lo que le corresponde (los programas al que hace programas, los informes al secretario, y así con todo).' },
           { type: 'link', to: '/manage-access', label: 'Abrir Cuentas de usuario' },
           { type: 'warn', text: 'Da a cada uno el rol mínimo que necesita. Siempre se puede ampliar después; lo contrario (retirar accesos) es más incómodo.' },
+        ],
+      },
+      {
+        id: 'admin-nuevo-usuario',
+        title: 'Dar de alta a un hermano nuevo en la aplicación',
+        blocks: [
+          { type: 'p', text: 'La forma más sencilla es desde su propia ficha de Personas, en dos pasos:' },
+          { type: 'steps', items: [
+            'Si el hermano no tiene ficha todavía, créala primero ("Añadir persona") con su condición correcta (publicador bautizado, no bautizado, anciano, etc.), porque de ahí sale automáticamente lo que va a poder ver.',
+            'Abre su ficha y rellena el campo "Correo electrónico" con el correo que usa en su cuenta de Google.',
+            'Guarda. Con eso queda todo listo: no hace falta ningún paso más ni pasarle un código de acceso a mano.',
+          ] },
+          { type: 'tip', text: 'Al guardar el correo, la aplicación prepara automáticamente su entrada: cuando ese hermano entre por primera vez e inicie sesión con Google usando ese mismo correo, entrará directo a la congregación, sin tener que pedirte ni escribir el código de acceso. Si algún día quieres retirarle el acceso, basta con borrar el correo de su ficha y guardar.' },
+          { type: 'faq', q: '¿Y si el hermano ya tiene ficha pero no le funciona la entrada automática?', a: 'Revisa que el correo de su ficha esté escrito exactamente igual que el de su cuenta de Google (mayúsculas/minúsculas no importan, pero sí erratas) y que haya guardado los cambios.' },
         ],
       },
       {
