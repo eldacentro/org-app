@@ -54,6 +54,9 @@ const useAyuda = () => {
           ...article.blocks.map((b) => {
             if (b.type === 'faq') return `${b.q} ${b.a}`;
             if (b.type === 'steps') return `${b.title ?? ''} ${b.items.join(' ')}`;
+            if (b.type === 'link') return b.label;
+            if (b.type === 'iconrow') return b.items.map((i) => i.text).join(' ');
+            if (b.type === 'diagram') return '';
             return b.text;
           }),
         ]

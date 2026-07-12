@@ -30,7 +30,15 @@ export type AyudaBlock =
   | { type: 'steps'; title?: string; items: string[] }
   | { type: 'tip'; text: string }
   | { type: 'warn'; text: string }
-  | { type: 'faq'; q: string; a: string };
+  | { type: 'faq'; q: string; a: string }
+  // "Llévame allí": botón que navega a una ruta real de la app (nunca se
+  // queda desactualizado, es una ruta). `to` es el path de react-router.
+  | { type: 'link'; to: string; label: string }
+  // Leyenda de iconos REALES de la app (los mismos componentes que ve el
+  // usuario en pantalla): así "cuál botón" queda claro sin capturas.
+  | { type: 'iconrow'; items: { icon: ReactElement; text: string }[] }
+  // Diagrama conceptual dibujado (SVG/CSS), no una captura. `kind` elige cuál.
+  | { type: 'diagram'; kind: 'sync' };
 
 export type AyudaArticle = {
   id: string;
