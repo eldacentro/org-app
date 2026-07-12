@@ -274,6 +274,30 @@ control (con `skipWaiting: true` se autoactiva; además se le manda
 `SKIP_WAITING` por si quedara a la espera), y hay red de seguridad por
 temporizador. Un solo toque funciona; si ya está al día, recarga en seco a 1,2 s.
 
+La lógica robusta vive ahora en `src/services/app/pwa_update.ts` (`forceAppUpdate`),
+compartida por el botón y por la oleada forzada.
+
+## 8b. Oleada de actualización forzada (commit `ec880e102`)
+
+Para empujar la última versión a TODOS los dispositivos de una vez (que a partir
+de ahí vayan con los arreglos aplicados), en vez de esperar al chequeo de 30 min.
+
+- **Cliente**: `useForceUpdate` (montado en `web_worker/index.tsx`) escucha
+  `congregation/{congId}/sync/force_update`. Si `target_build > __BUILD_NUMBER__`
+  del dispositivo, llama a `forceAppUpdate()` — pero **esperando a que la persona
+  no esté escribiendo** (input/textarea/contenteditable; re-chequea cada 5 s) y
+  con retraso aleatorio 3–20 s (no recargar 30 dispositivos a la vez). Inerte
+  para quien ya está al día (build ≥ target) → sin bucle. Apagable en un
+  dispositivo con `localStorage.elda_force_update='0'`.
+- **Disparo (admin)**: `sws2apps-api/scripts/force_update_wave.mjs`:
+  `node scripts/force_update_wave.mjs <build>` (lanzar), `status`, `cancel`.
+  Escribe el doc con el Admin SDK (las reglas de Firestore deniegan escritura a
+  clientes; el doc está bajo `congregation/{congId}/sync/{docId}`, ya cubierto).
+- **LÍMITE DE ARRANQUE (importante)**: una oleada solo llega a dispositivos que
+  YA tienen el listener (build ≥ 5945, el commit que lo introdujo). La primera
+  adopción de 5945 sigue dependiendo del chequeo de 30 min / reapertura. A partir
+  de que todos estén en 5945+, cualquier oleada futura les llega en segundos.
+
 ## 9. Playbook de diagnóstico
 
 ### "No se sincroniza rápido"
