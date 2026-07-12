@@ -168,7 +168,7 @@ const Ayuda = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <PageTitle
         title="Ayuda"
-        secondaryTitle="Guía de uso de la aplicación — verás la guía general y las secciones de tus responsabilidades"
+        secondaryTitle="Guía de uso de la aplicación: verás la guía general y las secciones de tus responsabilidades"
       />
 
       <TextField
