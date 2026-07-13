@@ -627,7 +627,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
       const isWeekend = selected.weekend_history;
 
       if (isMidweek || isWeekend) {
-        data.sched = getSchedules(schedules, isMidweek, isWeekend);
+        data.sched = await getSchedules(schedules, isMidweek, isWeekend);
 
         if (backupFileType === 'Organized') {
           const sources = backup.data['sources'] as SourceWeekType[];
