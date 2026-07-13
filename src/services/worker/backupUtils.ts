@@ -881,18 +881,28 @@ const dbRestoreSpeakersCongregations = async (
   try {
     if (!backupData.speakers_congregations) return;
 
-    const remoteCongregations = (
-      backupData.speakers_congregations as object[]
-    ).map((congregation: SpeakersCongregationsType) => {
-      decryptObject({
-        data: congregation,
-        table: 'speakers_congregations',
-        accessCode,
-        masterKey,
-      });
+    // Misma tolerancia por registro que en visiting_speakers: un registro
+    // indescifrable no puede abortar la restauración entera (decryptData
+    // lanza al fallar). Se omite y el resto continúa.
+    const remoteCongregations: SpeakersCongregationsType[] = [];
 
-      return congregation;
-    });
+    for (const congregation of backupData.speakers_congregations as SpeakersCongregationsType[]) {
+      try {
+        decryptObject({
+          data: congregation,
+          table: 'speakers_congregations',
+          accessCode,
+          masterKey,
+        });
+
+        remoteCongregations.push(congregation);
+      } catch (err) {
+        console.error(
+          '[backup] speakers_congregations: registro indescifrable, se omite:',
+          err
+        );
+      }
+    }
 
     const congregations = await appDb.speakers_congregations.toArray();
 
@@ -932,8 +942,18 @@ const dbRestoreVisitingSpeakers = async (
   try {
     if (!backupData.visiting_speakers) return [];
 
-    const decryptedSpeakers = (backupData.visiting_speakers as object[]).map(
-      (speaker: VisitingSpeakerType) => {
+    // Tolerancia por registro: el blob del servidor puede traer registros
+    // indescifrables (el propio backend los reconoce y preserva — ver
+    // circuit_sync_controller, "undecryptableSpeakersRaw"). decryptData
+    // LANZA al fallar, y sin este try/catch un solo registro corrupto
+    // abortaba la transacción ENTERA de dbRestoreFromBackup en cada sync,
+    // en silencio: ninguna tabla se restauraba y la reconciliación de
+    // oradores nunca llegaba a ejecutarse (los huérfanos del Sheet quedaban
+    // huérfanos para siempre). El registro malo se omite y el resto sigue.
+    const decryptedSpeakers: VisitingSpeakerType[] = [];
+
+    for (const speaker of backupData.visiting_speakers as VisitingSpeakerType[]) {
+      try {
         decryptObject({
           data: speaker,
           table: 'visiting_speakers',
@@ -941,9 +961,14 @@ const dbRestoreVisitingSpeakers = async (
           masterKey,
         });
 
-        return speaker;
+        decryptedSpeakers.push(speaker);
+      } catch (err) {
+        console.error(
+          '[backup] visiting_speakers: registro indescifrable, se omite:',
+          err
+        );
       }
-    );
+    }
 
     // La sincronización diaria del circuito (Google Sheets → API → esta
     // restauración) no conoce el person_uid interno de la app y genera el
@@ -970,24 +995,27 @@ const dbRestoreVisitingSpeakers = async (
 
     const speakers = await appDb.visiting_speakers.toArray();
 
+    const speakersToUpdate: VisitingSpeakerType[] = [];
+
     // Si ya existía localmente un registro huérfano bajo el person_uid
-    // antiguo (de una sincronización previa a esta reconciliación), se
-    // renombra al uid real en vez de dejarlo tal cual — si no, quedarían
-    // dos copias del mismo discursante: la huérfana y la recién enlazada.
-    const oldUidsToDelete: string[] = [];
+    // antiguo (de una sincronización previa a esta reconciliación), se le
+    // pone LÁPIDA (_deleted) en vez de borrarlo en duro. Con el borrado
+    // duro, la eliminación no viajaba nunca al servidor: su copia del
+    // huérfano seguía viva y volvía a bajar en la siguiente descarga,
+    // resucitándolo una y otra vez (y la deduplicación por nombre, al ver
+    // huérfano fresco + enlazado con el mismo nombre, a veces mataba al
+    // enlazado — "borra a ciertos hermanos"). La lápida sube con la tabla
+    // y mata la copia del servidor de una vez.
+    for (const { oldUid } of reconciledUids) {
+      const stale = speakers.find((record) => record.person_uid === oldUid);
 
-    for (const { oldUid, newUid } of reconciledUids) {
-      const staleIndex = speakers.findIndex(
-        (record) => record.person_uid === oldUid
-      );
-
-      if (staleIndex !== -1) {
-        speakers[staleIndex] = { ...speakers[staleIndex], person_uid: newUid };
-        oldUidsToDelete.push(oldUid);
+      if (stale && !stale._deleted.value) {
+        speakersToUpdate.push({
+          ...stale,
+          _deleted: { value: true, updatedAt: new Date().toISOString() },
+        });
       }
     }
-
-    const speakersToUpdate: VisitingSpeakerType[] = [];
 
     for (const remoteSpeaker of remoteSpeakers) {
       if (!remoteSpeaker || !remoteSpeaker.person_uid) continue;
@@ -1009,10 +1037,6 @@ const dbRestoreVisitingSpeakers = async (
 
     if (speakersToUpdate.length > 0) {
       await appDb.visiting_speakers.bulkPut(speakersToUpdate);
-    }
-
-    if (oldUidsToDelete.length > 0) {
-      await appDb.visiting_speakers.bulkDelete(oldUidsToDelete);
     }
 
     return reconciledUids;
