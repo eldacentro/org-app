@@ -6,13 +6,13 @@ import {
   IconClean,
   IconCloudDownload,
   IconGroups,
+  IconCart,
+  IconGroupMeetingsSchedules,
   IconHelp,
-  IconLocation,
   IconMap,
   IconPerson,
   IconPublishersReports,
   IconRestart,
-  IconShoppingCart,
   IconTalk,
 } from '@icons/index';
 import { AyudaSection } from '@definition/ayuda';
@@ -523,8 +523,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'exhibidores',
     title: 'Exhibidores',
-    description: 'Para el comité de servicio: ubicaciones, turnos, asignaciones fijas y el programa mensual.',
-    icon: <IconShoppingCart color="var(--accent-main)" />,
+    description: 'Para el superintendente de servicio: ubicaciones, turnos, asignaciones fijas y el programa mensual.',
+    icon: <IconCart color="var(--accent-main)" />,
     visible: (r) => r.isServiceCommittee,
     articles: [
       {
@@ -558,11 +558,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
       },
       {
         id: 'exh-ajustes-mes',
-        title: '"Ajustes del mes": vacaciones, asambleas y excepciones',
+        title: '"Ajustes del mes": verano y cambios que afectan a todo el mes',
         blocks: [
-          { type: 'p', text: 'El botón "Ajustes del mes" (junto al título del programa) sirve para los meses que se salen de lo normal, sin tocar la configuración de siempre:' },
+          { type: 'p', text: 'El botón "Ajustes del mes" (junto al título del programa) sirve para cuando hace falta cambiar algo para un mes entero (por ejemplo, en verano, para adaptar los horarios al calor), sin tocar la configuración de siempre:' },
           { type: 'steps', items: [
-            '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero (por ejemplo, por una asamblea). Puedes añadir un texto explicando el motivo.',
+            '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero. Puedes añadir un texto explicando el motivo.',
             '"Personalizar turnos para este mes": crea una copia de los turnos solo para ese mes, que puedes editar libremente (añadir, quitar, cambiar horas) sin afectar a los demás meses.',
             '"Restaurar al Global" deshace la personalización y ese mes vuelve a usar la configuración normal.',
           ] },
@@ -580,8 +580,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'salidas-predicacion',
     title: 'Salidas de predicación',
-    description: 'Para el comité de servicio: ubicaciones, horarios, disponibilidad y el programa mensual.',
-    icon: <IconLocation color="var(--accent-main)" />,
+    description: 'Para el superintendente de servicio: ubicaciones, horarios, disponibilidad y el programa mensual.',
+    icon: <IconGroupMeetingsSchedules color="var(--accent-main)" />,
     visible: (r) => r.isServiceCommittee,
     articles: [
       {

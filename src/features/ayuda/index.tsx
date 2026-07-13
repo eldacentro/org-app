@@ -328,7 +328,11 @@ const Ayuda = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <PageTitle
         title="Ayuda"
-        secondaryTitle="Guía de uso de la aplicación: verás la guía general y las secciones de tus responsabilidades"
+        // Corto a propósito: el subtítulo de la cabecera es de una sola
+        // línea con recorte (whiteSpace: nowrap + ellipsis, en el navbar
+        // global), y en móvil un texto largo se veía cortado a media
+        // palabra.
+        secondaryTitle="Guía general y las secciones de tus responsabilidades"
       />
 
       <SearchBar
