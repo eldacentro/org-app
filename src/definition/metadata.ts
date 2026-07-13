@@ -11,4 +11,8 @@ export type MetadataRecordType = {
   // dispositivo. Campo suelto del registro (NO dentro de metadata) para no
   // interferir con la sincronización por tablas. Ver dbRestoreSchedules.
   schedules_reset_applied?: string;
+  // Lo mismo para la restauración de snapshots de oradores (ver
+  // dbRestoreVisitingSpeakers / dbRestoreSpeakersCongregations).
+  visiting_speakers_reset_applied?: string;
+  speakers_congregations_reset_applied?: string;
 };

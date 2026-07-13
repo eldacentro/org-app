@@ -31,10 +31,15 @@ const useVisitingSpeakersImport = () => {
       settings?.cong_settings.cong_number.value ?? ''
     );
 
+    // Ids de las congregaciones que existen como registro: lo que no esté aquí
+    // es un cong_id phantom que reconcile sanea a la congregación de casa.
+    const validCongIds = new Set(congregations.map((record) => record.id));
+
     const { speakers: reconciledSpeakers } = reconcileOutgoingSpeakerLinks(
       speakers,
       activePersons,
-      localCongId
+      localCongId,
+      validCongIds
     );
 
     const result: VisitingSpeakerType[] = [];

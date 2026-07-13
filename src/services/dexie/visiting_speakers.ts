@@ -542,11 +542,18 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
     settings?.cong_settings.cong_number.value ?? ''
   );
 
-  const { reconciledUids } = reconcileOutgoingSpeakerLinks(
+  // Todos los cong_id que existen como registro (con o sin lápida): lo que no
+  // esté aquí es un cong_id "phantom" que hay que sanar (ver reconcile).
+  const validCongIds = new Set(congregations.map((record) => record.id));
+
+  const { reconciledUids, healedCongUids } = reconcileOutgoingSpeakerLinks(
     speakers.filter((record) => !record._deleted.value),
     activePersons,
-    localCongId
+    localCongId,
+    validCongIds
   );
+
+  const healedCongSet = new Set(healedCongUids);
 
   // Solo se corrige el enlace (person_uid) — el nombre denormalizado del
   // orador se deja tal cual lo trae el Sheet. La vista siempre resuelve el
@@ -609,15 +616,25 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
         ? { _deleted: { value: false, updatedAt: new Date().toISOString() } }
         : {};
 
+      // Si el orador venía con cong_id phantom, se sana al de la propia
+      // congregación al mismo tiempo (ver reconcile / healedCongUids).
+      const healCong = healedCongSet.has(newUid)
+        ? { 'speaker_data.cong_id': localCongId }
+        : {};
+
       await appDb.visiting_speakers.update(newUid, {
         'speaker_data.talks': Array.from(mergedTalks.values()),
+        ...healCong,
         ...revive,
       } as UpdateSpec<VisitingSpeakerType>);
     } else {
-      await appDb.visiting_speakers.put({
-        ...structuredClone(orphan),
-        person_uid: newUid,
-      });
+      const linked = structuredClone(orphan);
+      linked.person_uid = newUid;
+      if (localCongId && healedCongSet.has(newUid)) {
+        linked.speaker_data.cong_id = localCongId;
+      }
+
+      await appDb.visiting_speakers.put(linked);
     }
 
     await appDb.visiting_speakers.update(oldUid, {
@@ -625,7 +642,18 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
     } as UpdateSpec<VisitingSpeakerType>);
   }
 
-  if (reconciledUids.length > 0) {
+  // Oradores que ya estaban bien enlazados a su Persona (no pasan por el bucle
+  // de reconciledUids) pero arrastraban un cong_id phantom: solo hay que
+  // devolverlos a la congregación de casa para que reaparezcan en el catálogo.
+  const reconciledNewUids = new Set(reconciledUids.map((r) => r.newUid));
+  for (const uid of healedCongUids) {
+    if (reconciledNewUids.has(uid)) continue; // ya sanado dentro del bucle
+    await appDb.visiting_speakers.update(uid, {
+      'speaker_data.cong_id': localCongId,
+    } as UpdateSpec<VisitingSpeakerType>);
+  }
+
+  if (reconciledUids.length > 0 || healedCongUids.length > 0) {
     await dbUpdateVisitingSpeakersMetadata();
 
     // Los programas que ya tenían asignado al orador bajo el uid viejo
@@ -641,7 +669,12 @@ export const dbVisitingSpeakersReconcileLinks = async () => {
     }
   }
 
-  return reconciledUids.length;
+  // Ambas correcciones cuentan como "orador arreglado": las de person_uid
+  // (reconciledUids) y las de solo cong_id ya enlazado (el resto de
+  // healedCongUids). Se descuentan los que están en las dos listas para no
+  // contarlos dos veces.
+  const healOnly = healedCongUids.filter((uid) => !reconciledNewUids.has(uid));
+  return reconciledUids.length + healOnly.length;
 };
 
 /**

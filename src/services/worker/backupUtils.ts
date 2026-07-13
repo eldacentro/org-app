@@ -876,7 +876,8 @@ const dbRestoreUpcomingEvents = async (
 const dbRestoreSpeakersCongregations = async (
   backupData: BackupDataType,
   accessCode: string,
-  masterKey?: string
+  masterKey?: string,
+  forceReplace = false
 ) => {
   try {
     if (!backupData.speakers_congregations) return;
@@ -910,6 +911,17 @@ const dbRestoreSpeakersCongregations = async (
 
     for (const remoteCongregation of remoteCongregations) {
       if (!remoteCongregation || !remoteCongregation.id) continue;
+
+      // Reemplazo forzado (admin restauró un snapshot de servidor): se toma la
+      // versión del servidor TAL CUAL, sin fusionar ni mirar fechas. Es lo que
+      // hace que la restauración AGUANTE: sin esto, una lápida local más nueva
+      // ganaba el merge por "último updatedAt" y volvía a borrar el registro
+      // recién restaurado en el siguiente ciclo (incidente 2026-07-13).
+      if (forceReplace) {
+        congsToUpdate.push(remoteCongregation);
+        continue;
+      }
+
       const localCongregation = congregations.find(
         (record) => record.id === remoteCongregation.id
       );
@@ -937,7 +949,8 @@ const dbRestoreSpeakersCongregations = async (
 const dbRestoreVisitingSpeakers = async (
   backupData: BackupDataType,
   accessCode: string,
-  masterKey?: string
+  masterKey?: string,
+  forceReplace = false
 ) => {
   try {
     if (!backupData.visiting_speakers) return [];
@@ -990,8 +1003,21 @@ const dbRestoreVisitingSpeakers = async (
       settings?.cong_settings.cong_number.value ?? ''
     );
 
-    const { speakers: remoteSpeakers, reconciledUids } =
-      reconcileOutgoingSpeakerLinks(decryptedSpeakers, activePersons, localCongId);
+    // Ids de las congregaciones que existen como registro: lo que no esté aquí
+    // es un cong_id phantom que reconcile sanea a la congregación de casa (así
+    // un orador saliente nuestro que quedó apuntando a una congregación
+    // inexistente vuelve a aparecer en el catálogo en la restauración diaria).
+    const validCongIds = new Set(congregations.map((record) => record.id));
+
+    const { speakers: remoteSpeakers, reconciledUids, healedCongUids } =
+      reconcileOutgoingSpeakerLinks(
+        decryptedSpeakers,
+        activePersons,
+        localCongId,
+        validCongIds
+      );
+
+    const healedCongSet = new Set(healedCongUids);
 
     const speakers = await appDb.visiting_speakers.toArray();
 
@@ -1019,6 +1045,18 @@ const dbRestoreVisitingSpeakers = async (
 
     for (const remoteSpeaker of remoteSpeakers) {
       if (!remoteSpeaker || !remoteSpeaker.person_uid) continue;
+
+      // Reemplazo forzado (admin restauró un snapshot de servidor): se toma la
+      // versión del servidor TAL CUAL (ya reconciliada arriba), sin fusionar ni
+      // mirar fechas. Es lo que hace que la restauración AGUANTE: sin esto, una
+      // lápida local más nueva ganaba el merge por "último updatedAt" y volvía
+      // a borrar al orador recién restaurado en el siguiente ciclo (que es
+      // exactamente lo que Carlos vio: "no sirvió el respaldo del servidor").
+      if (forceReplace) {
+        speakersToUpdate.push(remoteSpeaker);
+        continue;
+      }
+
       const localSpeaker = speakers.find(
         (record) => record.person_uid === remoteSpeaker.person_uid
       );
@@ -1030,6 +1068,14 @@ const dbRestoreVisitingSpeakers = async (
       if (localSpeaker) {
         const newSpeaker = structuredClone(localSpeaker);
         syncFromRemote(newSpeaker, remoteSpeaker);
+
+        // El cong_id es un campo denormalizado plano (sin updatedAt), así que
+        // syncFromRemote podría no arrastrar el sanado; se fuerza aquí para el
+        // que reconcile marcó como phantom, garantizando que vuelva a la
+        // congregación de casa.
+        if (localCongId && healedCongSet.has(remoteSpeaker.person_uid)) {
+          newSpeaker.speaker_data.cong_id = localCongId;
+        }
 
         speakersToUpdate.push(newSpeaker);
       }
@@ -2400,9 +2446,49 @@ const dbRestoreFromBackup = async (
 
       await dbRestorePersons(backupData, accessCode, masterKey);
 
-      await dbRestoreSpeakersCongregations(backupData, accessCode, masterKey);
+      // "Restaurar snapshot de servidor": igual que con programas, si el
+      // servidor trae una marca de reset más nueva que la ya aplicada por este
+      // dispositivo, se reemplaza la copia local por la del servidor SIN
+      // fusionar — así la restauración aguanta contra las lápidas locales más
+      // nuevas (antes las lápidas ganaban el merge y re-borraban lo restaurado:
+      // "no sirvió el respaldo del servidor", 2026-07-13).
+      const resetMetadata = await appDb.metadata.get(1);
 
-      const reconciledFromRestore = await dbRestoreVisitingSpeakers(backupData, accessCode, masterKey);
+      const vsResetAt = backupData.visiting_speakers_reset_at ?? '';
+      const forceReplaceSpeakers =
+        vsResetAt !== '' &&
+        vsResetAt > (resetMetadata?.visiting_speakers_reset_applied ?? '');
+
+      const scResetAt = backupData.speakers_congregations_reset_at ?? '';
+      const forceReplaceSpeakersCongs =
+        scResetAt !== '' &&
+        scResetAt > (resetMetadata?.speakers_congregations_reset_applied ?? '');
+
+      await dbRestoreSpeakersCongregations(
+        backupData,
+        accessCode,
+        masterKey,
+        forceReplaceSpeakersCongs
+      );
+
+      const reconciledFromRestore = await dbRestoreVisitingSpeakers(
+        backupData,
+        accessCode,
+        masterKey,
+        forceReplaceSpeakers
+      );
+
+      // Se registra la marca aplicada dentro de la misma transacción: si algo
+      // más abajo lanza, todo revierte junto y se reintentará el próximo ciclo.
+      if (resetMetadata && (forceReplaceSpeakers || forceReplaceSpeakersCongs)) {
+        if (forceReplaceSpeakers) {
+          resetMetadata.visiting_speakers_reset_applied = vsResetAt;
+        }
+        if (forceReplaceSpeakersCongs) {
+          resetMetadata.speakers_congregations_reset_applied = scResetAt;
+        }
+        await appDb.metadata.put(resetMetadata);
+      }
 
       // Las congregaciones se desduplican (y los discursantes huérfanos se
       // reapuntan) ANTES de desduplicar discursantes — si no, un discursante

@@ -56,4 +56,9 @@ export type BackupDataType = {
   // cliente ya aplicó, se reemplaza la copia local de programas por la del
   // servidor sin fusionar. Solo afecta a programas.
   schedules_reset_at?: string;
+  // Mismas marcas para la restauración de snapshots de oradores: el backend las
+  // fija al restaurar un snapshot, para que la restauración aguante contra las
+  // lápidas locales más nuevas (ver dbRestoreVisitingSpeakers / _Congregations).
+  visiting_speakers_reset_at?: string;
+  speakers_congregations_reset_at?: string;
 };

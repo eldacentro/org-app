@@ -142,6 +142,11 @@ const matchSpeakerToPerson = (
 export type SpeakerReconcileResult = {
   speakers: VisitingSpeakerType[];
   reconciledUids: { oldUid: string; newUid: string }[];
+  // person_uids (ya finales, tras reconciliar) cuyo cong_id se saneó de un
+  // valor "phantom" (una congregación inexistente) al de la propia
+  // congregación. El llamador debe persistir ese cong_id en la BD además
+  // del person_uid — ver reconcileOutgoingSpeakerLinks.
+  healedCongUids: string[];
 };
 
 export type SpeakerMatchDiagnosticReason =
@@ -264,9 +269,15 @@ export const diagnoseUnmatchedSpeakers = (
 export const reconcileOutgoingSpeakerLinks = (
   speakers: VisitingSpeakerType[],
   persons: PersonType[],
-  localCongId: string | undefined
+  localCongId: string | undefined,
+  // Ids de las congregaciones que existen de verdad en speakers_congregations
+  // (con o sin lápida). Es OPCIONAL a propósito: sin él, la función se comporta
+  // exactamente igual que antes (no sanea ningún cong_id) — así ningún llamador
+  // que no lo pase cambia de comportamiento. Cuando se pasa, permite detectar y
+  // sanar los cong_id "phantom" (ver más abajo).
+  validCongIds?: Set<string>
 ): SpeakerReconcileResult => {
-  if (!localCongId) return { speakers, reconciledUids: [] };
+  if (!localCongId) return { speakers, reconciledUids: [], healedCongUids: [] };
 
   const activePersonUids = new Set(persons.map((p) => p.person_uid));
 
@@ -277,11 +288,48 @@ export const reconcileOutgoingSpeakerLinks = (
   );
 
   const reconciledUids: { oldUid: string; newUid: string }[] = [];
+  const healedCongUids: string[] = [];
 
   const result = speakers.map((speaker) => {
     if (speaker.speaker_data.local.value) return speaker;
-    if (speaker.speaker_data.cong_id !== localCongId) return speaker;
-    if (activePersonUids.has(speaker.person_uid)) return speaker;
+
+    const congId = speaker.speaker_data.cong_id;
+    const isLocalCong = congId === localCongId;
+
+    // Un cong_id "phantom" es el que no es el de la propia congregación y
+    // TAMPOCO corresponde a ninguna congregación real de speakers_congregations
+    // — el síntoma de una corrupción de sync que movió a un orador saliente
+    // nuestro a una congregación inexistente, dejándolo invisible en el
+    // catálogo (que filtra por cong_id) aunque siguiera vivo y enlazado
+    // (incidente real 2026-07-13: cuatro oradores acabaron en un cong_id que
+    // no existía como registro). Solo se considera si se pasó la lista de
+    // cong_ids válidos; un visitante legítimo de otra congregación tiene un
+    // cong_id que SÍ resuelve, así que jamás cae aquí.
+    const isPhantomCong =
+      !isLocalCong &&
+      !!validCongIds &&
+      congId !== '' &&
+      !validCongIds.has(congId);
+
+    // Solo se tocan oradores de la propia congregación o con cong_id phantom;
+    // los visitantes reales de otras congregaciones se dejan intactos.
+    if (!isLocalCong && !isPhantomCong) return speaker;
+
+    // Ya enlazado a una Persona real y activa de la congregación.
+    if (activePersonUids.has(speaker.person_uid)) {
+      // Si además arrastraba un cong_id phantom, se sana al de la propia
+      // congregación (un orador saliente nuestro pertenece por definición a
+      // la congregación de casa). Sin esto seguiría fuera del catálogo pese a
+      // estar perfectamente enlazado.
+      if (isPhantomCong) {
+        healedCongUids.push(speaker.person_uid);
+        return {
+          ...speaker,
+          speaker_data: { ...speaker.speaker_data, cong_id: localCongId },
+        };
+      }
+      return speaker;
+    }
 
     const matchedPerson = matchSpeakerToPerson(speaker, persons);
 
@@ -295,19 +343,28 @@ export const reconcileOutgoingSpeakerLinks = (
       newUid: matchedPerson.person_uid,
     });
 
-    // Solo se corrige el enlace (person_uid) — el nombre denormalizado del
-    // orador se deja TAL CUAL lo trae el Sheet. Nunca se muestra en pantalla
-    // (la vista siempre resuelve el nombre en vivo desde la Persona real vía
-    // person_uid), pero el backend SÍ lo usa al día siguiente para reconocer
-    // "es el mismo discursante de ayer" cuando llega el nuevo sync — si aquí
-    // se sobreescribe con el nombre abreviado de la app, el sync de mañana
-    // ya no reconoce el nombre y crea un huérfano nuevo, deshaciendo esta
-    // misma reconciliación (bug real confirmado: "Alejandro Amorós López",
-    // "Carlos Saca Miranda", etc. volvían a quedar sin enlazar cada día).
-    return { ...speaker, person_uid: matchedPerson.person_uid };
+    if (isPhantomCong) healedCongUids.push(matchedPerson.person_uid);
+
+    // Solo se corrige el enlace (person_uid) y, si venía phantom, el cong_id
+    // — el nombre denormalizado del orador se deja TAL CUAL lo trae el Sheet.
+    // Nunca se muestra en pantalla (la vista siempre resuelve el nombre en
+    // vivo desde la Persona real vía person_uid), pero el backend SÍ lo usa al
+    // día siguiente para reconocer "es el mismo discursante de ayer" cuando
+    // llega el nuevo sync — si aquí se sobreescribe con el nombre abreviado de
+    // la app, el sync de mañana ya no reconoce el nombre y crea un huérfano
+    // nuevo, deshaciendo esta misma reconciliación (bug real confirmado:
+    // "Alejandro Amorós López", "Carlos Saca Miranda", etc. volvían a quedar
+    // sin enlazar cada día).
+    return {
+      ...speaker,
+      person_uid: matchedPerson.person_uid,
+      speaker_data: isPhantomCong
+        ? { ...speaker.speaker_data, cong_id: localCongId }
+        : speaker.speaker_data,
+    };
   });
 
-  return { speakers: result, reconciledUids };
+  return { speakers: result, reconciledUids, healedCongUids };
 };
 
 /**
