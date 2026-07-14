@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { IconE911Emergency, IconClock } from '@components/icons';
 import { COLORES } from './data';
 import TogglePlano, { ModoPlano } from './TogglePlano';
 
@@ -39,7 +40,8 @@ const PlanHeader = ({ tiempoMaximo, modo, onChangeModo }: Props) => {
               backgroundColor: COLORES.emergencia,
             }}
           >
-            🚨 Emergencia
+            <IconE911Emergency width={14} height={14} color="#fff" />
+            Emergencia
           </Box>
           <Box
             sx={{
@@ -55,7 +57,8 @@ const PlanHeader = ({ tiempoMaximo, modo, onChangeModo }: Props) => {
               border: '1px solid var(--accent-200, #E2E8F0)',
             }}
           >
-            ⏱ {tiempoMaximo} min máx.
+            <IconClock width={14} height={14} color="var(--grey-400)" />
+            {tiempoMaximo} min máx.
           </Box>
         </Box>
       </Box>

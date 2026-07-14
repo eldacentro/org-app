@@ -42,6 +42,8 @@ import { displaySnackNotification } from '@services/states/app';
 import {
   IconSettings,
   IconGroups,
+  IconSortDown,
+  IconClose,
 } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
@@ -359,8 +361,12 @@ const Limpieza = () => {
                 <Typography className="h4" style={{ fontWeight: '700', color: 'var(--accent-dark)' }}>
                   {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
-                <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
-                  {monthsExpanded ? 'Cerrar selector ✕' : 'Cambiar mes ▾'}
+                <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {monthsExpanded ? (
+                    <>Cerrar selector <IconClose width={12} height={12} color="var(--accent-main)" /></>
+                  ) : (
+                    <>Cambiar mes <IconSortDown width={12} height={12} color="var(--accent-main)" /></>
+                  )}
                 </Typography>
               </ListItemButton>
               {monthsExpanded && (

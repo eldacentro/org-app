@@ -19,7 +19,7 @@ export const SectionCard = ({
   iconBg,
   children,
 }: {
-  icon: string;
+  icon: ReactNode;
   title: string;
   subtitle?: string;
   iconBg: string;
@@ -55,7 +55,6 @@ export const SectionCard = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '18px',
           flexShrink: 0,
         }}
       >

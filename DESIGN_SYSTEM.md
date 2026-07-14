@@ -381,3 +381,19 @@ caso que se coló — corregirlo a `tertiary`.
 - ~~"Plan de Evacuación" en Title Case~~ — **corregido**: título de página,
   tile del dashboard de Congregación y `PageTitle` pasados a "Plan de
   evacuación" (sentence case).
+
+- ~~Emojis usados como iconos (📄📊🗺💡⚠️🚨✅✓✕▾🎉📂🧯) en vez de
+  `@components/icons`~~ — **corregido** (2026-07-14): ~20 ocurrencias en 15
+  archivos sustituidas por el icono real más cercano semánticamente
+  (`IconLightbulb`, `IconError`, `IconE911Emergency`, `IconCheckCircle`,
+  `IconCheck`, `IconClose`, `IconSortDown`, `IconMapOverview`/`IconMapView`,
+  `IconStats`, `IconSpreadsheet`, `IconS21Page`, `IconAssignment`,
+  `IconPerson`, `IconLocation`, `IconInfo`). `SectionCard` (usado por
+  `ImportExportTab`/`ConfiguracionTab` de Territorios) cambió su prop
+  `icon` de `string` a `ReactNode` para aceptar componentes de icono en
+  vez de un carácter de texto. Dos excepciones documentadas y deliberadas:
+  el 👋 de saludo en `pages/dashboard/index.tsx` (decorativo, con su propia
+  animación CSS `.waving-hand`, el usuario pidió explícitamente
+  conservarlo) y los `✓`/`✗` de `server_snapshots/index.tsx` (van dentro
+  de un `string` plano usado como `label` de una opción de `<Select>`, no
+  admiten JSX sin reestructurar el componente).

@@ -4,7 +4,7 @@ import { Box, Typography, Grid, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
-import { IconAdd, IconSettings } from '@components/icons';
+import { IconAdd, IconSettings, IconInfo } from '@components/icons';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { useCurrentUser, useBreakpoints } from '@hooks/index';
 import DialogSubirDocumento from '@features/documentos/DialogSubirDocumento';
@@ -130,7 +130,9 @@ const DocumentosPage = () => {
             boxShadow: 'var(--shadow-sm)',
           }}
         >
-          <Box sx={{ fontSize: '48px', mb: 1, lineHeight: 1 }}>📂</Box>
+          <Box sx={{ mb: 1 }}>
+            <IconInfo width={48} height={48} color="var(--grey-400)" />
+          </Box>
           <Typography color="var(--ink-2)" className="body-regular">
             No hay documentos en esta categoría
           </Typography>

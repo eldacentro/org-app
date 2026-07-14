@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Chip, CircularProgress, Stack } from '@mui/material';
-import { IconArrowLink, IconCollapse } from '@icons/index';
+import { IconArrowLink, IconCollapse, IconLightbulb, IconError } from '@icons/index';
 import { AyudaBlock, AyudaSection } from '@definition/ayuda';
 import PageTitle from '@components/page_title';
 import SearchBar from '@components/search_bar';
@@ -179,12 +179,17 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
           padding: '10px 12px',
           backgroundColor: isTip ? 'var(--green-secondary)' : 'var(--orange-secondary)',
           borderLeft: `3px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '8px',
         }}
       >
-        <Typography className="body-small-regular">
-          {isTip ? '💡 ' : '⚠️ '}
-          {block.text}
-        </Typography>
+        {isTip ? (
+          <IconLightbulb width={16} height={16} color="var(--green-main)" sx={{ flexShrink: 0, mt: '1px' }} />
+        ) : (
+          <IconError width={16} height={16} color="var(--orange-main)" sx={{ flexShrink: 0, mt: '1px' }} />
+        )}
+        <Typography className="body-small-regular">{block.text}</Typography>
       </Box>
     );
   }

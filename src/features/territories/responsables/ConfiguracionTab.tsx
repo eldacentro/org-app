@@ -5,6 +5,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
+import { IconAssignment, IconStats, IconMapView, IconPerson, IconLocation, IconCheck } from '@components/icons';
 import { congIDState } from '@states/settings';
 import { territorySettingsState } from '@states/territories';
 import { TerritorySettings } from '@definition/territories';
@@ -205,7 +206,7 @@ const ConfiguracionTab = () => {
       <Stack spacing={2.5}>
         {/* ── 1 · Asignaciones ──────────────────────────────────────────────── */}
         <SectionCard
-          icon="📋"
+          icon={<IconAssignment width={20} height={20} color="var(--accent-main)" />}
           title="Ajustes de asignación"
           iconBg="rgba(var(--accent-main-base), 0.1)"
         >
@@ -242,7 +243,7 @@ const ConfiguracionTab = () => {
 
         {/* ── 2 · Dashboard ─────────────────────────────────────────────────── */}
         <SectionCard
-          icon="📊"
+          icon={<IconStats width={20} height={20} color="var(--green-main)" />}
           title="Dashboard y estadísticas"
           iconBg="rgba(var(--green-main-base), 0.1)"
         >
@@ -314,7 +315,7 @@ const ConfiguracionTab = () => {
 
         {/* ── 3 · Vista del territorio ──────────────────────────────────────── */}
         <SectionCard
-          icon="🗺"
+          icon={<IconMapView width={20} height={20} color="var(--orange-main)" />}
           title="Vista del territorio"
           subtitle="Secciones expandidas por defecto al abrir un territorio"
           iconBg="rgba(var(--orange-main-base), 0.1)"
@@ -344,7 +345,7 @@ const ConfiguracionTab = () => {
 
         {/* ── 4 · Publicador ────────────────────────────────────────────────── */}
         <SectionCard
-          icon="👤"
+          icon={<IconPerson width={20} height={20} color="#3FA9D9" />}
           title="Configuración de publicador"
           iconBg="rgba(90, 200, 250, 0.15)"
         >
@@ -371,7 +372,7 @@ const ConfiguracionTab = () => {
 
         {/* ── 5 · Ubicaciones ───────────────────────────────────────────────── */}
         <SectionCard
-          icon="📍"
+          icon={<IconLocation width={20} height={20} color="var(--red-main)" />}
           title="Configuración de ubicaciones"
           iconBg="rgba(var(--red-main-base), 0.1)"
         >
@@ -422,9 +423,12 @@ const ConfiguracionTab = () => {
               </>
             )}
             {saved && (
-              <Typography className="body-small-semibold" sx={{ color: 'var(--green-main)' }}>
-                ✓ Guardado
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <IconCheck width={16} height={16} color="var(--green-main)" />
+                <Typography className="body-small-semibold" sx={{ color: 'var(--green-main)' }}>
+                  Guardado
+                </Typography>
+              </Box>
             )}
             {!hasChanges && !saved && (
               <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>

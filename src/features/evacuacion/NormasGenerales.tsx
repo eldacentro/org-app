@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { IconCheckCircle } from '@components/icons';
 import { COLORES } from './data';
 
 type Props = {
@@ -21,15 +22,8 @@ const NormasGenerales = ({ normas }: Props) => {
             border: '1px solid var(--accent-200, #E2E8F0)',
           }}
         >
-          <Box
-            aria-hidden
-            sx={{
-              flexShrink: 0,
-              fontSize: '16px',
-              lineHeight: '20px',
-            }}
-          >
-            ✅
+          <Box aria-hidden sx={{ flexShrink: 0, display: 'flex' }}>
+            <IconCheckCircle width={16} height={16} color="var(--green-main)" />
           </Box>
           <Typography sx={{ fontSize: '14px', color: 'var(--grey-400, #475569)' }}>
             {norma}

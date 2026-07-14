@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Stack, CircularProgress } from '@mui/material';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import { IconS21Page, IconSpreadsheet, IconMapOverview, IconLightbulb } from '@components/icons';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 import { displaySnackNotification } from '@services/states/app';
@@ -65,7 +66,7 @@ const ImportExportTab = () => {
     <Stack spacing={2.5}>
       {/* ── S-13 ────────────────────────────────────────────────────────────── */}
       <SectionCard
-        icon="📄"
+        icon={<IconS21Page width={20} height={20} color="var(--accent-main)" />}
         title="Formulario S-13 (PDF)"
         subtitle="Registro oficial para el superintendente de circuito"
         iconBg="rgba(var(--accent-main-base), 0.1)"
@@ -119,7 +120,7 @@ const ImportExportTab = () => {
 
       {/* ── Hoja de cálculo ──────────────────────────────────────────────────── */}
       <SectionCard
-        icon="📊"
+        icon={<IconSpreadsheet width={20} height={20} color="var(--green-main)" />}
         title="Hoja de cálculo"
         subtitle="Datos de asignaciones en formato Excel o CSV"
         iconBg="rgba(var(--green-main-base), 0.1)"
@@ -158,7 +159,7 @@ const ImportExportTab = () => {
 
       {/* ── Geometría ───────────────────────────────────────────────────────── */}
       <SectionCard
-        icon="🗺"
+        icon={<IconMapOverview width={20} height={20} color="var(--orange-main)" />}
         title="Geometría (mapas)"
         subtitle="Coordenadas y polígonos de los territorios"
         iconBg="rgba(var(--orange-main-base), 0.1)"
@@ -194,7 +195,7 @@ const ImportExportTab = () => {
               py: 1.25,
             }}
           >
-            <Typography sx={{ fontSize: '14px', flexShrink: 0, mt: '-1px' }}>💡</Typography>
+            <IconLightbulb width={16} height={16} color="var(--ink-2)" />
             <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
               Para importar desde KML/KMZ, usa el botón{' '}
               <strong>&quot;Importar KML&quot;</strong> en la pestaña{' '}

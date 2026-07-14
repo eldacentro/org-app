@@ -10,7 +10,7 @@ import {
 } from '@services/app/googleDriveBackup';
 import { generateBackupPayload } from '@services/app/backupScheduler';
 import { displaySnackNotification } from '@services/states/app';
-import { IconBackupOrganized } from '@components/icons';
+import { IconBackupOrganized, IconError } from '@components/icons';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import SwitchWithLabel from '@components/switch_with_label';
@@ -183,7 +183,8 @@ const GoogleDriveTab = () => {
           }}
         >
           <Typography className="h4" color="var(--orange-main)" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-            ⚠️ Sesión de Google Drive expirada
+            <IconError width={18} height={18} color="var(--orange-main)" />
+            Sesión de Google Drive expirada
           </Typography>
           <Typography className="body-regular" color="var(--grey-400)">
             Por políticas de seguridad de Google, la sesión local de acceso a archivos caduca después de 1 hora.

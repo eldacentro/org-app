@@ -5,6 +5,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import { IconCheckCircle } from '@components/icons';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -415,9 +416,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           Territorios atrasados ({stats.atrasados.length})
         </Typography>
         {stats.atrasados.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <IconCheckCircle width={24} height={24} color="var(--green-main)" />
             <Typography variant="body2" color="var(--ink-2)">
-              No hay territorios atrasados. ¡Gran trabajo! 🎉
+              No hay territorios atrasados. ¡Gran trabajo!
             </Typography>
           </Box>
         ) : (

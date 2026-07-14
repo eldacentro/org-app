@@ -47,6 +47,8 @@ import {
   IconGenerate,
   IconLocation,
   IconInfo,
+  IconSortDown,
+  IconClose,
 } from '@components/icons';
 import { outingsStartAutofill } from '@services/app/outingsAutofill';
 import { pdf } from '@react-pdf/renderer';
@@ -1291,8 +1293,12 @@ const PredicacionSalidas = () => {
                 <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
                   {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
-                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700' }}>
-                  {monthsExpanded ? 'Cerrar selector ✕' : 'Cambiar Mes ▾'}
+                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {monthsExpanded ? (
+                    <>Cerrar selector <IconClose width={12} height={12} color="var(--accent-main)" /></>
+                  ) : (
+                    <>Cambiar mes <IconSortDown width={12} height={12} color="var(--accent-main)" /></>
+                  )}
                 </Typography>
               </ListItemButton>
 

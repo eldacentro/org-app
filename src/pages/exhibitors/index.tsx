@@ -46,6 +46,9 @@ import {
   IconInfo,
   IconCancelFilled,
   IconLocation,
+  IconCheck,
+  IconSortDown,
+  IconClose,
 } from '@components/icons';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
@@ -1219,8 +1222,12 @@ const Exhibitors = () => {
                 <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
                   {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
-                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700' }}>
-                  {monthsExpanded ? 'Cerrar selector ✕' : 'Cambiar mes ▾'}
+                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {monthsExpanded ? (
+                    <>Cerrar selector <IconClose width={12} height={12} color="var(--accent-main)" /></>
+                  ) : (
+                    <>Cambiar mes <IconSortDown width={12} height={12} color="var(--accent-main)" /></>
+                  )}
                 </Typography>
               </ListItemButton>
 
@@ -2855,7 +2862,7 @@ const Exhibitors = () => {
                                       }}
                                     >
                                       {isChecked ? (
-                                        <span style={{ fontSize: '11px', color: 'var(--accent-main)', fontWeight: '800' }}>✓</span>
+                                        <IconCheck width={11} height={11} color="var(--accent-main)" />
                                       ) : (
                                         <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--grey-400)' }} />
                                       )}

@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { IconClose, IconError } from '@components/icons';
 import { PlanEvacuacion } from '@definition/evacuacion';
 
 export type Seleccion =
@@ -25,9 +26,6 @@ const CloseButton = ({ onClose }: { onClose: () => void }) => (
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'rgba(0,0,0,0.04)',
-      color: '#475569',
-      fontSize: '15px',
-      lineHeight: 1,
       flexShrink: 0,
       transition: 'background-color 0.2s',
       '&:hover': {
@@ -35,7 +33,7 @@ const CloseButton = ({ onClose }: { onClose: () => void }) => (
       },
     }}
   >
-    ✕
+    <IconClose width={14} height={14} color="#475569" />
   </Box>
 );
 
@@ -92,7 +90,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
       <Box sx={wrapperSx}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography sx={{ fontWeight: 800, fontSize: '20px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '24px' }}>🧯</span> Extintor {seleccion.id}
+            <IconError width={22} height={22} color="var(--red-main)" /> Extintor {seleccion.id}
           </Typography>
           <CloseButton onClose={onClose} />
         </Box>

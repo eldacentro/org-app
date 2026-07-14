@@ -14,7 +14,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconEdit, IconClose } from '@components/icons';
+import { IconEdit, IconClose, IconMapOverview } from '@components/icons';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import SegmentedControl from '@components/segmented_control';
@@ -737,7 +737,7 @@ const DialogVerTerritorio = ({
                     gap: 1,
                   }}
                 >
-                  <Typography sx={{ fontSize: 32 }}>🗺️</Typography>
+                  <IconMapOverview width={32} height={32} color="var(--ink-2)" />
                   <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                     Sin imagen adjunta
                   </Typography>

@@ -12,6 +12,7 @@ import type { LatLngBoundsExpression } from 'leaflet';
 import type { MultiPolygon, Polygon } from 'geojson';
 import { Box } from '@mui/material';
 import DirectionsIcon from '@mui/icons-material/Directions';
+import { IconMapView, IconGlobe } from '@components/icons';
 import { geometryBounds, geometryCenter } from '@services/app/territories';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
@@ -348,7 +349,11 @@ const TerritoryMap = ({
             gap: '6px',
           }}
         >
-          <span aria-hidden="true" style={{ fontSize: 15 }}>{isSatellite ? '🗺' : '🛰'}</span>
+          {isSatellite ? (
+            <IconMapView width={16} height={16} color="rgba(0,0,0,0.78)" />
+          ) : (
+            <IconGlobe width={16} height={16} color="rgba(0,0,0,0.78)" />
+          )}
           {isSatellite ? 'Mapa' : 'Satélite'}
         </Box>
 
