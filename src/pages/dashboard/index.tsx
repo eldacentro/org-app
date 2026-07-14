@@ -740,7 +740,7 @@ const Dashboard = () => {
                   padding: '32px 16px',
                   textAlign: 'center',
                   background: 'rgba(59, 114, 196, 0.03)',
-                  borderRadius: '16px',
+                  borderRadius: 'var(--radius-xxl)',
                   margin: '12px',
                   border: '1px dashed rgba(59, 114, 196, 0.15)',
                 }}

@@ -158,7 +158,7 @@ const DialogSeleccionarTerritorios = ({
                     justifyContent: 'space-between',
                     px: 1,
                     py: 0.5,
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-l)',
                     '&:hover': { backgroundColor: 'var(--accent-100)' },
                     cursor: 'pointer',
                   }}

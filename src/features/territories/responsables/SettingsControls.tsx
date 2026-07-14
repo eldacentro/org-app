@@ -27,7 +27,7 @@ export const SectionCard = ({
 }) => (
   <Box
     sx={{
-      borderRadius: '16px',
+      borderRadius: 'var(--radius-xxl)',
       border: '1px solid var(--line)',
       backgroundColor: 'var(--card)',
       boxShadow: 'var(--small-card-shadow)',
@@ -109,7 +109,7 @@ export const PillGroup = ({
             font: 'inherit',
             px: '12px',
             py: '6px',
-            borderRadius: '999px',
+            borderRadius: 'var(--radius-max)',
             borderWidth: '1.5px',
             borderStyle: 'solid',
             borderColor: active ? accent : 'var(--line)',
@@ -183,7 +183,7 @@ export const ToggleRow = ({
       },
       mx: -0.5,
       px: 0.5,
-      borderRadius: '8px',
+      borderRadius: 'var(--radius-l)',
       transition: 'background 0.1s ease',
     }}
   >

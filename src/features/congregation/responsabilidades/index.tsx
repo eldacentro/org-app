@@ -242,7 +242,7 @@ const ReadDepartamentos = ({
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               transform: 'translateY(-4px)',
-              boxShadow: '0 12px 24px -10px rgba(0,0,0,0.1)',
+              boxShadow: 'var(--hover-shadow)',
               borderColor: 'var(--accent-main)',
             },
             '&::before': {

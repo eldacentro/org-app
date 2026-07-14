@@ -14,7 +14,7 @@ const EstructuraMando = ({ estructuraMando }: Props) => {
           key={rol.rol}
           sx={{
             border: '1px solid var(--accent-200, #E2E8F0)',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-xl)',
             padding: '14px 16px',
             backgroundColor: 'var(--white, #fff)',
             borderLeft: `4px solid ${COLORES.emergencia}`,

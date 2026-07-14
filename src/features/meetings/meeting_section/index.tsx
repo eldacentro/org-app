@@ -22,11 +22,11 @@ const MeetingSection = ({
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
         borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+        boxShadow: 'var(--small-card-shadow)',
         overflow: 'hidden',
         transition: 'box-shadow 0.3s ease',
         '&:hover': {
-          boxShadow: onToggle ? '0 4px 16px rgba(0,0,0,0.06)' : '0 2px 10px rgba(0,0,0,0.03)',
+          boxShadow: onToggle ? 'var(--hover-shadow)' : 'var(--small-card-shadow)',
         },
       }}
     >

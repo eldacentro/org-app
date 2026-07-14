@@ -147,7 +147,7 @@ const DialogZonas = ({ open, onClose }: Props) => {
                   spacing={1.5}
                   sx={{
                     p: 1,
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-xl)',
                     border: '1px solid var(--line)',
                   }}
                 >

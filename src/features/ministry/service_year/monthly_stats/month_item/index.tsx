@@ -59,7 +59,7 @@ const MonthItem = (props: MonthItemProps) => {
               className="label-small-medium"
               size="big"
               color="orange"
-              sx={{ borderRadius: '2px', padding: '2px 6px' }}
+              sx={{ borderRadius: 'var(--radius-xs)', padding: '2px 6px' }}
               text={t('tr_AP')}
             />
           )}

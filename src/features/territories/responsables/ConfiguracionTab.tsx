@@ -97,7 +97,7 @@ const NumberStepper = ({
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-xl)',
         border: '1.5px solid var(--line)',
         backgroundColor: 'var(--accent-100)',
         overflow: 'hidden',
@@ -390,10 +390,10 @@ const ConfiguracionTab = () => {
             position: 'sticky',
             bottom: 16,
             zIndex: 10,
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-xxl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--big-card-shadow)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             px: { mobile: 2, tablet600: 2.5 },
@@ -438,7 +438,7 @@ const ConfiguracionTab = () => {
             onClick={handleSave}
             disabled={saving || !hasChanges}
             disableAutoStretch
-            sx={{ borderRadius: '999px', px: 3, flexShrink: 0 }}
+            sx={{ borderRadius: 'var(--radius-max)', px: 3, flexShrink: 0 }}
           >
             {saving ? 'Guardando…' : 'Guardar'}
           </Button>

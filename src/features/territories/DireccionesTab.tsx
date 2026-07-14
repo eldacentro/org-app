@@ -115,7 +115,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       direction="row"
       alignItems="center"
       spacing={1}
-      sx={{ p: 1, borderRadius: '12px', border: '1px solid var(--line)' }}
+      sx={{ p: 1, borderRadius: 'var(--radius-xl)', border: '1px solid var(--line)' }}
     >
       <Chip
         label="No visitar"

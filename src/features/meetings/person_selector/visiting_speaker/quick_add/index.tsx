@@ -1,6 +1,7 @@
-import { Box, Checkbox, FormControlLabel } from '@mui/material';
+import { Box } from '@mui/material';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
+import Checkbox from '@components/checkbox';
 import TextField from '@components/textfield';
 import AutoComplete from '@components/autocomplete';
 import Typography from '@components/typography';
@@ -97,23 +98,15 @@ const QuickAddSpeaker = (props: QuickAddSpeakerType) => {
             />
 
             <Box sx={{ display: 'flex', gap: '16px' }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isElder}
-                    onChange={(e) => setIsElder(e.target.checked)}
-                  />
-                }
+              <Checkbox
+                checked={isElder}
                 label="Anciano"
+                onChange={(_e, checked) => setIsElder(checked)}
               />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isMinisterialServant}
-                    onChange={(e) => setIsMinisterialServant(e.target.checked)}
-                  />
-                }
+              <Checkbox
+                checked={isMinisterialServant}
                 label="Siervo ministerial"
+                onChange={(_e, checked) => setIsMinisterialServant(checked)}
               />
             </Box>
 

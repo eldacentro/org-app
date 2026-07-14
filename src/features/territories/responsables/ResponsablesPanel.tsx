@@ -117,7 +117,7 @@ const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedId
                     className="active-press"
                     sx={{
                       p: 2,
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-xl)',
                       border: '1px solid var(--line)',
                       borderLeft: `5px solid ${zone.color}`,
                       cursor: 'pointer',
@@ -148,7 +148,7 @@ const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedId
                         sx={{
                           px: 1,
                           py: 0.25,
-                          borderRadius: '12px',
+                          borderRadius: 'var(--radius-xl)',
                           backgroundColor: assigned ? 'var(--orange-secondary)' : 'var(--green-secondary)',
                           color: assigned ? 'var(--orange-dark)' : 'var(--green-main)',
                           fontWeight: 600,

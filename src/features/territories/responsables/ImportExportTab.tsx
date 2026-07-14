@@ -108,7 +108,7 @@ const ImportExportTab = () => {
                   });
                 }
               }}
-              sx={{ borderRadius: '999px', px: 3, gap: 1 }}
+              sx={{ borderRadius: 'var(--radius-max)', px: 3, gap: 1 }}
             >
               {busy ? <CircularProgress size={16} color="inherit" /> : null}
               {busy ? 'Generando…' : '⬇ Exportar S-13'}
@@ -140,7 +140,7 @@ const ImportExportTab = () => {
               variant="secondary"
               disabled={busy}
               onClick={() => run(() => exportExcel(filter), 'Archivo Excel generado correctamente.')}
-              sx={{ borderRadius: '999px' }}
+              sx={{ borderRadius: 'var(--radius-max)' }}
             >
               Excel (.xlsx)
             </Button>
@@ -148,7 +148,7 @@ const ImportExportTab = () => {
               variant="tertiary"
               disabled={busy}
               onClick={() => run(() => exportCsv(filter), 'Archivo CSV generado correctamente.')}
-              sx={{ borderRadius: '999px' }}
+              sx={{ borderRadius: 'var(--radius-max)' }}
             >
               CSV (.csv)
             </Button>
@@ -169,7 +169,7 @@ const ImportExportTab = () => {
               variant="secondary"
               disabled={busy}
               onClick={() => run(exportKml, 'KML generado correctamente.')}
-              sx={{ borderRadius: '999px' }}
+              sx={{ borderRadius: 'var(--radius-max)' }}
             >
               Exportar KML
             </Button>
@@ -177,7 +177,7 @@ const ImportExportTab = () => {
               variant="tertiary"
               disabled={busy}
               onClick={() => run(exportGeoJson, 'GeoJSON generado correctamente.')}
-              sx={{ borderRadius: '999px' }}
+              sx={{ borderRadius: 'var(--radius-max)' }}
             >
               Exportar GeoJSON
             </Button>

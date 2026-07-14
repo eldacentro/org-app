@@ -98,7 +98,7 @@ const ImportExport = (props: ImportExportType) => {
                 width: '100%',
                 maxWidth: '452px',
                 backgroundColor: 'var(--grey-100)',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-s)',
               }}
             >
               {/* Clickable Header */}

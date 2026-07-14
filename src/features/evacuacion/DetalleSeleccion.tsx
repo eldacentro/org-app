@@ -99,7 +99,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
         <Box
           sx={{
             border: `1px solid rgba(0,0,0,0.05)`,
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-xxl)',
             padding: '18px',
             backgroundColor: `rgba(0,0,0,0.02)`,
             boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)',
@@ -149,7 +149,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {equipo.miembros.map((m, i) => (
-            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.03)' }}>
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-xl)', border: '1px solid rgba(0,0,0,0.03)' }}>
               {m.posicion && (
                 <Box
                   sx={{
@@ -158,7 +158,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-l)',
                     backgroundColor: equipo.color,
                     boxShadow: `0 4px 12px ${equipo.color}40`,
                     color: '#fff',

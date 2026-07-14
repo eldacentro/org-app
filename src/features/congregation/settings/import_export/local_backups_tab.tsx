@@ -256,7 +256,7 @@ const LocalBackupsTab = () => {
                         display: 'inline-block',
                         px: 1,
                         py: 0.2,
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-s)',
                         bgcolor:
                           snapshot.type === 'monthly'
                             ? 'var(--accent-250)'

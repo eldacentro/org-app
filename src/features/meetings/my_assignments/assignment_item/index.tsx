@@ -162,7 +162,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               right: '-6px',
               minWidth: '18px',
               height: '18px',
-              borderRadius: '999px',
+              borderRadius: 'var(--radius-max)',
               backgroundColor: isPreaching
                 ? 'var(--preaching-color)'
                 : 'var(--brand)',
@@ -312,7 +312,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                     px: '6px',
                     py: '2px',
                     marginTop: '4px',
-                    borderRadius: '4px',
+                    borderRadius: 'var(--radius-s)',
                     textDecoration: 'none',
                     border: '1px solid var(--line)',
                     opacity: 0.55,

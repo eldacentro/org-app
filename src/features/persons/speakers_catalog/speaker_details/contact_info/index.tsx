@@ -79,7 +79,7 @@ const ContactPhoneRow = ({
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',
               transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--hover-shadow)',
             },
             '&:active': {
               transform: 'translateY(0) scale(0.95)',
@@ -109,7 +109,7 @@ const ContactPhoneRow = ({
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',
               transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--hover-shadow)',
             },
             '&:active': {
               transform: 'translateY(0) scale(0.95)',
@@ -185,7 +185,7 @@ const ContactEmailRow = ({
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',
               transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--hover-shadow)',
             },
             '&:active': {
               transform: 'translateY(0) scale(0.95)',

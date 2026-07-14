@@ -47,10 +47,10 @@ const UnverifiedReportItem = ({ entry }: { entry: UnverifiedReportEntry }) => {
       sx={{
         mt: '12px',
         p: '16px',
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-xl)',
         border: '1px solid var(--accent-200)',
         backgroundColor: 'var(--white)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+        boxShadow: 'var(--small-card-shadow)',
       }}
     >
       <Stack spacing={1.5}>
@@ -71,15 +71,15 @@ const UnverifiedReportItem = ({ entry }: { entry: UnverifiedReportEntry }) => {
               height: '38px',
               minHeight: '38px',
               px: '20px',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-l)',
               fontWeight: 600,
               fontSize: '14px',
               letterSpacing: '0.01em',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              boxShadow: 'var(--btn-shadow)',
               transition: 'all 0.2s ease',
               '&:hover': {
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                boxShadow: 'var(--hover-shadow)',
               },
             }}
           >

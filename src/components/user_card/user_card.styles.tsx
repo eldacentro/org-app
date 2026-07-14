@@ -5,7 +5,7 @@ export const StyledCardBox = styled(Box)({
   width: '100%',
   height: '100%',
   '.MuiCard-root': {
-    borderRadius: '8px',
+    borderRadius: 'var(--radius-l)',
     boxShadow: 'none',
     height: '100%',
     border: '1px solid var(--accent-300)',

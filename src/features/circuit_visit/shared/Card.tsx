@@ -16,7 +16,7 @@ const Card = ({
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
       borderRadius: 'var(--radius-l)',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+      boxShadow: 'var(--big-card-shadow)',
       padding: '18px 20px',
     }}
   >

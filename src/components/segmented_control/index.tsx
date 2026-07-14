@@ -24,7 +24,7 @@ const SegmentedControl = ({ tabs, active, onChange }: Props) => (
           flex: 1,
           textAlign: 'center',
           py: '6px',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-l)',
           backgroundColor: active === i ? '#fff' : 'transparent',
           boxShadow:
             active === i

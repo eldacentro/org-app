@@ -41,7 +41,7 @@ const S89TemplateItem = ({ item, onChange, selected }: S89TemplateItemType) => {
                 selected === item.id
                   ? '2px solid var(--accent-main)'
                   : '2px solid var(--line)',
-              boxShadow: '0px 1.48px 5.94px 0px #1C1C1C1F',
+              boxShadow: 'var(--small-card-shadow)',
             }}
           />
           <FullscreenButton show={s89TemplateItemHovered} />

@@ -42,7 +42,7 @@ const CampanaBadge = () => (
     sx={{
       px: 1,
       py: 0.25,
-      borderRadius: '12px',
+      borderRadius: 'var(--radius-xl)',
       backgroundColor: 'rgba(var(--blue-main-base), 0.1)',
       color: 'var(--blue-main)',
       fontWeight: 600,
@@ -185,7 +185,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
               key={assignment.id}
               sx={{
                 p: 2,
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--line)',
                 borderLeft: `5px solid ${color}`,
                 backgroundColor: 'var(--card)',
@@ -214,7 +214,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                           sx={{
                             px: 1,
                             py: 0.25,
-                            borderRadius: '12px',
+                            borderRadius: 'var(--radius-xl)',
                             backgroundColor: 'rgba(var(--red-main-base), 0.1)',
                             color: 'var(--red-main)',
                             fontWeight: 600,
@@ -271,7 +271,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   key={assignment.id}
                   sx={{
                     p: 2,
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-xl)',
                     border: '1px solid var(--line)',
                     borderLeft: `5px solid ${color}`,
                     backgroundColor: 'var(--card)',

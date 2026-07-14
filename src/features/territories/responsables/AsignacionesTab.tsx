@@ -75,7 +75,7 @@ const TerritoryAssignmentCard = ({
     <Box
       sx={{
         p: 2,
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-xl)',
         border: '1px solid var(--line)',
         borderLeft: `5px solid ${zone.color}`,
         backgroundColor: 'var(--card)',
@@ -95,7 +95,7 @@ const TerritoryAssignmentCard = ({
             sx={{
               px: 1,
               py: 0.25,
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-xl)',
               backgroundColor: open ? 'var(--orange-secondary)' : 'var(--green-secondary)',
               color: open ? 'var(--orange-dark)' : 'var(--green-main)',
               fontWeight: 600,
@@ -132,7 +132,7 @@ const TerritoryAssignmentCard = ({
             sx={{
               py: 1,
               px: 1.5,
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-l)',
               backgroundColor: open ? 'var(--orange-secondary)' : 'var(--accent-100)',
               border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.2)' : 'var(--line)'}`,
             }}

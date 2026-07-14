@@ -231,7 +231,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
             key={c.id}
             sx={{
               p: 2,
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-xl)',
               border: '1px solid var(--line)',
               borderLeft: `5px solid ${estadoColor[c.estado]}`,
               backgroundColor: 'var(--card)',
@@ -252,7 +252,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                     sx={{
                       px: 1,
                       py: 0.25,
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-xl)',
                       backgroundColor: `${estadoColor[c.estado]}1A`,
                       color: estadoColor[c.estado],
                       fontWeight: 600,
@@ -331,7 +331,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                           spacing={1}
                           sx={{
                             p: 1.5,
-                            borderRadius: '8px',
+                            borderRadius: 'var(--radius-l)',
                             border: '1px solid var(--line)',
                             backgroundColor: open ? 'var(--orange-secondary)' : 'transparent',
                           }}

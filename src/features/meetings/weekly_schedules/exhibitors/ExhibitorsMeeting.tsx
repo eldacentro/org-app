@@ -404,7 +404,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                                         color: 'var(--always-white)',
                                         px: '4px',
                                         ml: '4px',
-                                        borderRadius: '4px'
+                                        borderRadius: 'var(--radius-s)'
                                       }}
                                     />
                                   )}

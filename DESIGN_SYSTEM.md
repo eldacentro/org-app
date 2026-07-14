@@ -353,12 +353,25 @@ canónica ya fijada. Si en el futuro aparece un `variant="secondary"` sin
 `color="red"` en un botón que solo cierra/cancela sin guardar nada, es un
 caso que se coló — corregirlo a `tertiary`.
 
-## 11. Pendiente de baja prioridad (no bloqueante)
+## 11. Pendientes
 
-- **Radios de borde como píxeles sueltos en vez de `var(--radius-*)`:**
-  ~33 archivos usan `borderRadius: '12px'`/`'8px'`/`'6px'`/`'16px'`/`'999px'`
-  etc. en vez del token equivalente. El valor numérico YA coincide con la
-  escala real (`12px = --radius-xl`, `999px = --radius-max`, etc.), así que
-  no es un bug visual — el render es idéntico — solo higiene de código
-  (evitar que un cambio futuro de la escala no los alcance). Corregir de
-  forma oportunista al tocar cada archivo, no amerita una pasada dedicada.
+- ~~Radios de borde como píxeles sueltos en vez de `var(--radius-*)`~~ —
+  **corregido** (2026-07-14): 74 ocurrencias en 52 archivos, sustitución
+  1:1 exacta (`12px` → `var(--radius-xl)`, etc.) por toda la app, sin
+  riesgo visual porque el valor renderizado es idéntico al del token.
+
+- **2 usos de `<Tabs>`/`<Tab>` de MUI en crudo** (candidatos a
+  `@components/scrollable_tabs`) deliberadamente NO migrados por riesgo de
+  regresión sin poder verlos en pantalla:
+  - `src/features/territories/responsables/ResponsablesPanel.tsx` — 8
+    pestañas, una con `label` compuesto por un `Badge` + texto (no un
+    string simple); la migración de `predicacion_salidas`/
+    `outgoing_speakers` solo cubrió el caso trivial de 2 pestañas de texto
+    plano.
+  - `src/features/evacuacion/PanelInformacion.tsx` — mismo patrón
+    `variant="scrollable"` con `sx` propio ya funcional.
+  
+  Ambos están bien estilados tal cual (no es un bug visible, solo dos
+  implementaciones paralelas del mismo componente) — migrar requiere
+  verificación en navegador antes de tocarlos, dado que uno de los dos
+  tiene un `label` no trivial.

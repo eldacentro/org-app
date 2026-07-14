@@ -76,7 +76,7 @@ const NotificationItem = ({
       className="notif-card"
       sx={{
         position: 'relative',
-        borderRadius: '16px',
+        borderRadius: 'var(--radius-xxl)',
         p: '16px',
         mb: '12px',
         backgroundColor: notification.read ? 'var(--white)' : 'var(--accent-100)',
@@ -85,12 +85,12 @@ const NotificationItem = ({
         // leída" no se aplicaba nunca. var(--accent-300) es el tono real más
         // próximo a la intención (borde algo más marcado que el de "leída").
         borderColor: notification.read ? 'var(--accent-200)' : 'var(--accent-300)',
-        boxShadow: notification.read ? 'none' : '0 4px 12px rgba(0,0,0,0.03)',
+        boxShadow: notification.read ? 'none' : 'var(--small-card-shadow)',
         transition: 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
         cursor: 'default',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: '0 8px 16px rgba(0,0,0,0.06)',
+          boxShadow: 'var(--hover-shadow)',
           borderColor: 'var(--accent-300)',
         },
       }}

@@ -105,7 +105,7 @@ const PersonBasicInfo = () => {
             sx={{
               padding: '4px 8px',
               backgroundColor: 'var(--line)',
-              borderRadius: '2px',
+              borderRadius: 'var(--radius-xs)',
               display: 'flex',
               alignItems: 'center',
               width: 'fit-content',

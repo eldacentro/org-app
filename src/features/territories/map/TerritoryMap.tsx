@@ -333,7 +333,7 @@ const TerritoryMap = ({
           sx={{
             ...mapButtonReset,
             ...glass,
-            borderRadius: '999px',
+            borderRadius: 'var(--radius-max)',
             px: '16px',
             py: '10px',
             cursor: 'pointer',
@@ -358,7 +358,7 @@ const TerritoryMap = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-xl)',
             overflow: 'hidden',
             ...glass,
           }}
@@ -439,7 +439,7 @@ const TerritoryMap = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-xl)',
             overflow: 'hidden',
             ...glass,
           }}
@@ -507,7 +507,7 @@ const TerritoryMap = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-xl)',
               overflow: 'hidden',
               color: 'rgba(0,0,0,0.75)',
               ...glass,

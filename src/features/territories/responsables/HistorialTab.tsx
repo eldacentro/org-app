@@ -71,7 +71,7 @@ const HistorialTab = () => {
                 key={a.id}
                 sx={{
                   p: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-xl)',
                   border: '1px solid var(--line)',
                   borderLeft: `5px solid ${color}`,
                   backgroundColor: 'var(--card)',

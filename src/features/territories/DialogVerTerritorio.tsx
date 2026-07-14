@@ -161,7 +161,7 @@ const ActionButton = ({
         ...buttonReset,
         width: '100%',
         py: '15px',
-        borderRadius: '16px',
+        borderRadius: 'var(--radius-xxl)',
         textAlign: 'center',
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -485,7 +485,7 @@ const DialogVerTerritorio = ({
             sx={{
               width: 40,
               height: 4,
-              borderRadius: '2px',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'rgba(0,0,0,0.13)',
             }}
           />
@@ -712,7 +712,7 @@ const DialogVerTerritorio = ({
                       alt={label}
                       sx={{
                         width: '100%',
-                        borderRadius: '16px',
+                        borderRadius: 'var(--radius-xxl)',
                         cursor: 'zoom-in',
                         display: 'block',
                         // Limitar altura para que no sea interminable en scroll
@@ -727,7 +727,7 @@ const DialogVerTerritorio = ({
                 <Box
                   sx={{
                     height: 200,
-                    borderRadius: '16px',
+                    borderRadius: 'var(--radius-xxl)',
                     border: '1.5px dashed rgba(0,0,0,0.12)',
                     backgroundColor: 'rgba(0,0,0,0.02)',
                     display: 'flex',
@@ -753,7 +753,7 @@ const DialogVerTerritorio = ({
                         sx={{
                           width: '100%',
                           py: '11px',
-                          borderRadius: '12px',
+                          borderRadius: 'var(--radius-xl)',
                           border: `1.5px solid ${color}`,
                           color: color,
                           fontWeight: 600,
@@ -796,7 +796,7 @@ const DialogVerTerritorio = ({
                         width: 'auto',
                         px: 2,
                         py: '11px',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-xl)',
                         backgroundColor: 'rgba(var(--red-main-base), 0.1)',
                         color: 'var(--red-main)',
                         fontWeight: 600,
@@ -1057,7 +1057,7 @@ const DialogVerTerritorio = ({
           ) : null}
 
           {editingTags && canManage && (
-            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
+            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: 'var(--radius-xl)' }}>
               {allTags.length === 0 ? (
                 <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   No hay etiquetas creadas.
@@ -1112,7 +1112,7 @@ const DialogVerTerritorio = ({
           {tab === 0 && (
             <Box>
               {liveTerritory.notas ? (
-                <Box sx={{ p: 2, backgroundColor: 'rgba(var(--orange-main-base), 0.1)', borderRadius: '12px', border: '1px solid rgba(var(--orange-main-base), 0.3)', mb: 2 }}>
+                <Box sx={{ p: 2, backgroundColor: 'rgba(var(--orange-main-base), 0.1)', borderRadius: 'var(--radius-xl)', border: '1px solid rgba(var(--orange-main-base), 0.3)', mb: 2 }}>
                   <Typography
                     sx={{
                       fontWeight: 700,
@@ -1149,7 +1149,7 @@ const DialogVerTerritorio = ({
                       alt={label}
                       sx={{
                         width: '100%',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-xl)',
                         cursor: 'zoom-in',
                         boxShadow: 'var(--small-card-shadow)',
                         mb: 1.5,
@@ -1161,7 +1161,7 @@ const DialogVerTerritorio = ({
                 <Box
                   sx={{
                     height: 160,
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-xl)',
                     backgroundColor: 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1274,7 +1274,7 @@ const DialogVerTerritorio = ({
               borderRadius: '24px',
               overflow: 'hidden',
               backgroundColor: 'transparent',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.22), 0 0 0 0.5px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--pop-up-shadow), 0 0 0 0.5px rgba(0,0,0,0.06)',
             },
       }}
     >

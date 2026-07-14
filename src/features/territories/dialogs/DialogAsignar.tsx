@@ -410,7 +410,7 @@ const DialogAsignar = ({
             <Box
               sx={{
                 p: 1.5,
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-xl)',
                 backgroundColor: 'var(--accent-100)',
                 maxHeight: 140,
                 overflowY: 'auto',

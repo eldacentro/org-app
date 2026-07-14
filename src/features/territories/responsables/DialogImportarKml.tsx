@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Stack, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Select from '@components/select';
+import MenuItem from '@components/menuitem';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { territoryZonesSortedState, territoriesState } from '@states/territories';
 import { parseKmlFile, ParsedTerritory } from '@utils/kml';
@@ -118,21 +120,17 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
               Primero crea al menos una zona.
             </Typography>
           ) : (
-            <FormControl fullWidth size="small">
-              <InputLabel id="zona-import">Zona destino</InputLabel>
-              <Select
-                labelId="zona-import"
-                label="Zona destino"
-                value={zoneId}
-                onChange={(e) => setZoneId(e.target.value)}
-              >
-                {zones.map((z) => (
-                  <MenuItem key={z.id} value={z.id}>
-                    {z.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Select
+              label="Zona destino"
+              value={zoneId}
+              onChange={(e) => setZoneId(e.target.value as string)}
+            >
+              {zones.map((z) => (
+                <MenuItem key={z.id} value={z.id}>
+                  {z.nombre}
+                </MenuItem>
+              ))}
+            </Select>
           )}
 
           <Button variant="tertiary" disableAutoStretch>

@@ -17,7 +17,7 @@ const TogglePlano = ({ modo, onChange }: Props) => {
       sx={{
         display: 'inline-flex',
         padding: '3px',
-        borderRadius: '999px',
+        borderRadius: 'var(--radius-max)',
         backgroundColor: 'var(--accent-150, #F1F5F9)',
         border: '1px solid var(--accent-200, #E2E8F0)',
         gap: '2px',
@@ -35,7 +35,7 @@ const TogglePlano = ({ modo, onChange }: Props) => {
               cursor: 'pointer',
               userSelect: 'none',
               padding: '6px 18px',
-              borderRadius: '999px',
+              borderRadius: 'var(--radius-max)',
               fontSize: '13px',
               fontWeight: 700,
               transition: 'all 0.15s ease',

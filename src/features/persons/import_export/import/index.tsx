@@ -20,7 +20,7 @@ const Import = (props: ImportType) => {
           {...getRootProps()}
           sx={{
             border: '1px dashed var(--accent-dark)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-m)',
             height: '160px',
             display: 'flex',
             alignItems: 'center',

@@ -1859,7 +1859,7 @@ const PredicacionSalidas = () => {
                                     boxShadow: 'none',
                                     '&:hover': {
                                       borderColor: 'var(--line)',
-                                      boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                                      boxShadow: 'var(--hover-shadow)',
                                     }
                                   }}>
                                     <Typography style={{
@@ -1930,10 +1930,10 @@ const PredicacionSalidas = () => {
                                                  alignItems: 'center',
                                                  gap: '6px',
                                                  transition: 'all 0.2s ease-in-out',
-                                                 boxShadow: '0 1px 3px rgba(0,0,0,0.01)',
+                                                 boxShadow: 'var(--small-card-shadow)',
                                                  '&:hover': isServiceCommittee ? {
                                                    transform: 'translateY(-1px)',
-                                                   boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                                                   boxShadow: 'var(--hover-shadow)',
                                                    backgroundColor: hoverBgColor,
                                                  } : {}
                                                }}

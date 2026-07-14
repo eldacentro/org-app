@@ -50,7 +50,7 @@ const KpiCard = ({
       flex: 1,
       minWidth: { mobile: '100%', tablet600: 200 },
       p: 2.5,
-      borderRadius: '16px',
+      borderRadius: 'var(--radius-xxl)',
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
       boxShadow: 'var(--small-card-shadow)',
@@ -127,7 +127,7 @@ const NoAsignadoRow = ({
     justifyContent="space-between"
     sx={{
       p: 2,
-      borderRadius: '12px',
+      borderRadius: 'var(--radius-xl)',
       border: '1px solid var(--line)',
       backgroundColor: 'var(--card)',
       transition: 'border-color 0.15s ease',
@@ -415,7 +415,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           Territorios atrasados ({stats.atrasados.length})
         </Typography>
         {stats.atrasados.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
             <Typography variant="body2" color="var(--ink-2)">
               No hay territorios atrasados. ¡Gran trabajo! 🎉
             </Typography>
@@ -433,7 +433,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   spacing={1}
                   sx={{
                     p: 2,
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-xl)',
                     border: '1px solid var(--line)',
                     borderLeft: '4px solid var(--red-main)',
                     backgroundColor: 'var(--card)',
@@ -472,7 +472,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           Territorios vencidos ({stats.vencidos.length})
         </Typography>
         {stats.vencidos.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
             <Typography variant="body2" color="var(--ink-2)">
               No hay territorios vencidos.
             </Typography>
@@ -490,7 +490,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   spacing={1}
                   sx={{
                     p: 2,
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-xl)',
                     border: '1px solid var(--line)',
                     borderLeft: '4px solid var(--orange-main)',
                     backgroundColor: 'var(--card)',
@@ -526,7 +526,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         </Typography>
 
         {stats.noAsignadosLista.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: '12px', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
             <Typography variant="body2" color="var(--ink-2)">
               Todos los territorios están asignados actualmente.
             </Typography>

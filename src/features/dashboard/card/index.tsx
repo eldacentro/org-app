@@ -34,11 +34,11 @@ const DashboardCard = ({
           ? `1px solid ${color}`
           : `1px solid ${isGroup ? 'var(--red-secondary)' : 'var(--line)'}`,
         background: 'var(--card)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+        boxShadow: 'var(--big-card-shadow)',
         overflow: 'hidden',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--hover-shadow)',
           transform: 'translateY(-2px)',
         },
         ...sx,

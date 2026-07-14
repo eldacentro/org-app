@@ -115,7 +115,7 @@ const MyAssignments = () => {
           width: '4px',
         },
         '&::-webkit-scrollbar-thumb': {
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-l)',
           background: 'var(--line-2)',
         },
         pr: '2px',

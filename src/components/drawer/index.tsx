@@ -112,7 +112,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
               width: '40px',
               height: '4px',
               backgroundColor: 'var(--grey-300)',
-              borderRadius: '2px',
+              borderRadius: 'var(--radius-xs)',
               alignSelf: 'center',
               mb: '16px',
               mt: '-8px',

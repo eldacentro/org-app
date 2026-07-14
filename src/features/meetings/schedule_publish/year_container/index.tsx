@@ -14,7 +14,7 @@ const YearContainer = ({ data, onChange }: YearContainerProps) => {
         sx={{
           padding: '8px',
           backgroundColor: 'var(--accent-150)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-l)',
           width: '100%',
         }}
       >

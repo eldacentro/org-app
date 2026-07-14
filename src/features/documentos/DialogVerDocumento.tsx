@@ -320,7 +320,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     px: 2,
                     py: 0.8,
                     lineHeight: 1,
-                    borderRadius: '999px',
+                    borderRadius: 'var(--radius-max)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',

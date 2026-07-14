@@ -15,7 +15,7 @@ const VipInfoTip = (props: VipInfoTipProps) => {
       {messageShown && (
         <Box
           sx={{
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-xl)',
             width: '100%',
             maxWidth: '800px',
             border: '1px solid var(--line)',

@@ -141,7 +141,7 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
                   flex: 1,
                   height: '1px',
                   background: 'var(--line)',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--radius-xs)',
                 }}
               />
               <Typography
@@ -163,7 +163,7 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
                   flex: 1,
                   height: '1px',
                   background: 'var(--line)',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--radius-xs)',
                 }}
               />
             </Box>
