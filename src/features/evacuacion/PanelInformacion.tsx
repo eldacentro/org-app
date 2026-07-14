@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box } from '@mui/material';
+import ScrollableTabs from '@components/scrollable_tabs';
 import { PlanEvacuacion } from '@definition/evacuacion';
 import EstructuraMando from './EstructuraMando';
 import EquiposCard from './EquiposCard';
@@ -16,52 +17,46 @@ const PanelInformacion = ({ plan }: Props) => {
   return (
     <Box
       sx={{
-        border: '1px solid var(--accent-200, #E2E8F0)',
+        border: '1px solid var(--accent-200)',
         borderRadius: 'var(--radius-xxl)',
-        backgroundColor: 'var(--white, #fff)',
+        backgroundColor: 'var(--white)',
         overflow: 'hidden',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        padding: '0 16px',
       }}
     >
-      <Tabs
+      <ScrollableTabs
         value={tab}
-        onChange={(_, v) => setTab(v)}
-        variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        sx={{
-          borderBottom: '1px solid var(--accent-200, #E2E8F0)',
-          minHeight: '44px',
-          '& .MuiTab-root': {
-            textTransform: 'none',
-            fontWeight: 600,
-            fontSize: '13px',
-            minHeight: '44px',
-            padding: '8px 14px',
+        onChange={setTab}
+        indicatorMode
+        tabs={[
+          {
+            label: 'Estructura de mando',
+            Component: (
+              <EstructuraMando estructuraMando={plan.estructuraMando} />
+            ),
           },
-        }}
-      >
-        <Tab label="Estructura de mando" />
-        <Tab label="Equipos" />
-        <Tab label="Procedimientos" />
-        <Tab label="Normas generales" />
-      </Tabs>
-
-      <Box sx={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
-        {tab === 0 && (
-          <EstructuraMando estructuraMando={plan.estructuraMando} />
-        )}
-        {tab === 1 && <EquiposCard equipos={plan.equipos} />}
-        {tab === 2 && (
-          <Procedimientos
-            estructuraMando={plan.estructuraMando}
-            equipos={plan.equipos}
-          />
-        )}
-        {tab === 3 && <NormasGenerales normas={plan.normasGenerales} />}
-      </Box>
+          {
+            label: 'Equipos',
+            Component: <EquiposCard equipos={plan.equipos} />,
+          },
+          {
+            label: 'Procedimientos',
+            Component: (
+              <Procedimientos
+                estructuraMando={plan.estructuraMando}
+                equipos={plan.equipos}
+              />
+            ),
+          },
+          {
+            label: 'Normas generales',
+            Component: <NormasGenerales normas={plan.normasGenerales} />,
+          },
+        ]}
+      />
     </Box>
   );
 };

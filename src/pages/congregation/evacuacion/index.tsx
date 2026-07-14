@@ -50,7 +50,7 @@ const EvacuacionPage = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '100%' }}>
       <PageTitle
-        title="Plan de Evacuación"
+        title="Plan de evacuación"
         buttons={
           <>
             {isManager && (

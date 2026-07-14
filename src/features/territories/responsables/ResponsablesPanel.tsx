@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Box, Stack, Grid, Tabs, Tab, Badge } from '@mui/material';
+import { Box, Stack, Grid, Badge } from '@mui/material';
+import ScrollableTabs from '@components/scrollable_tabs';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -316,140 +317,135 @@ const ResponsablesPanel = ({
 
   return (
     <Box>
-      <Tabs
+      {ConfirmDialogNode}
+      <ScrollableTabs
         value={tab}
-        onChange={(_, v) => setTab(v)}
-        variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        sx={{
-          borderBottom: '1px solid var(--line)',
-          mb: 3,
-          '& .MuiTabs-indicator': {
-            borderRadius: '2px 2px 0 0',
-            backgroundColor: 'var(--accent-main)',
+        onChange={setTab}
+        indicatorMode
+        tabs={[
+          {
+            label: 'Estadísticas',
+            Component: (
+              <EstadisticasTab onAsignar={onAsignar} onEntregar={onEntregar} />
+            ),
           },
-          '& .MuiTab-root': {
-            minHeight: '48px',
-            textTransform: 'none',
-            fontWeight: 500,
-            fontSize: '15px',
-            transition: 'color 0.2s ease-in-out',
+          {
+            label: 'Asignaciones',
+            Component: (
+              <AsignacionesTab onView={onView} onAsignar={onAsignar} onEntregar={onEntregar} />
+            ),
           },
-          '& .MuiTab-root.Mui-selected': {
-            color: 'var(--accent-main)',
+          {
+            label: (
+              <Badge badgeContent={pending.length} color="primary">
+                <span style={{ paddingRight: pending.length ? 12 : 0 }}>Solicitudes</span>
+              </Badge>
+            ),
+            Component: (
+              <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
+            ),
           },
-        }}
-      >
-        <Tab label="Estadísticas" />
-        <Tab label="Asignaciones" />
-        <Tab
-          label={
-            <Badge badgeContent={pending.length} color="primary">
-              <span style={{ paddingRight: pending.length ? 12 : 0 }}>Solicitudes</span>
-            </Badge>
-          }
-        />
-        <Tab label="Historial" />
-        <Tab label="Territorios" />
-        <Tab label="Mapa" />
-        <Tab label="Campañas" />
-        <Tab label="Importar/Exportar" />
-        <Tab label="Configuración" />
-      </Tabs>
+          {
+            label: 'Historial',
+            Component: <HistorialTab />,
+          },
+          {
+            label: 'Territorios',
+            Component: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+                  <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+                    <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <IconMapOverview width={18} height={18} /> Zonas
+                      </Box>
+                    </Button>
+                    <Button variant="tertiary" onClick={onOpenEtiquetas} disableAutoStretch>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <IconCustom width={18} height={18} /> Etiquetas
+                      </Box>
+                    </Button>
+                    <Button variant="main" onClick={onOpenImport} disableAutoStretch>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <IconAdd width={18} height={18} /> Importar KML
+                      </Box>
+                    </Button>
+                  </Stack>
 
-      {tab === 0 && <EstadisticasTab onAsignar={onAsignar} onEntregar={onEntregar} />}
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    {selectionMode && selectedIds.size > 0 && (
+                      <Button
+                        variant="main"
+                        disableAutoStretch
+                        onClick={handleBulkAsignar}
+                        disabled={deleting}
+                      >
+                        Asignar ({selectedIds.size})
+                      </Button>
+                    )}
+                    {selectionMode && selectedIds.size > 0 && (
+                      <Button
+                        variant="tertiary"
+                        disableAutoStretch
+                        onClick={handleBulkDelete}
+                        disabled={deleting}
+                        sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.1)' } }}
+                      >
+                        Eliminar ({selectedIds.size})
+                      </Button>
+                    )}
+                    <Button
+                      variant={selectionMode ? 'main' : 'tertiary'}
+                      onClick={() => {
+                        setSelectionMode(!selectionMode);
+                        if (selectionMode) setSelectedIds(new Set());
+                      }}
+                    >
+                      {selectionMode ? 'Hecho' : 'Seleccionar'}
+                    </Button>
+                  </Stack>
+                </Stack>
 
-      {tab === 1 && (
-        <AsignacionesTab onView={onView} onAsignar={onAsignar} onEntregar={onEntregar} />
-      )}
-      {tab === 2 && (
-        <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
-      )}
-      {tab === 3 && <HistorialTab />}
+                {territories.length === 0 && (
+                  <Typography variant="body2" color="var(--ink-2)">
+                    Aún no hay territorios. Crea una zona e importa tu archivo KML.
+                  </Typography>
+                )}
 
-      {tab === 4 && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {ConfirmDialogNode}
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-            <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-              <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <IconMapOverview width={18} height={18} /> Zonas
-                </Box>
-              </Button>
-              <Button variant="tertiary" onClick={onOpenEtiquetas} disableAutoStretch>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <IconCustom width={18} height={18} /> Etiquetas
-                </Box>
-              </Button>
-              <Button variant="main" onClick={onOpenImport} disableAutoStretch>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <IconAdd width={18} height={18} /> Importar KML
-                </Box>
-              </Button>
-            </Stack>
-
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-              {selectionMode && selectedIds.size > 0 && (
-                <Button
-                  variant="main"
-                  disableAutoStretch
-                  onClick={handleBulkAsignar}
-                  disabled={deleting}
-                >
-                  Asignar ({selectedIds.size})
-                </Button>
-              )}
-              {selectionMode && selectedIds.size > 0 && (
-                <Button
-                  variant="tertiary"
-                  disableAutoStretch
-                  onClick={handleBulkDelete}
-                  disabled={deleting}
-                  sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.1)' } }}
-                >
-                  Eliminar ({selectedIds.size})
-                </Button>
-              )}
-              <Button
-                variant={selectionMode ? 'main' : 'tertiary'}
-                onClick={() => {
-                  setSelectionMode(!selectionMode);
-                  if (selectionMode) setSelectedIds(new Set());
-                }}
-              >
-                {selectionMode ? 'Hecho' : 'Seleccionar'}
-              </Button>
-            </Stack>
-          </Stack>
-
-          {territories.length === 0 && (
-            <Typography variant="body2" color="var(--ink-2)">
-              Aún no hay territorios. Crea una zona e importa tu archivo KML.
-            </Typography>
-          )}
-
-          {byZone.map(({ zone, items }) => (
-            <ZoneSection
-              key={zone.id}
-              zone={zone}
-              items={items}
-              assignedIds={assignedIds}
-              tags={tags}
-              selectionMode={selectionMode}
-              selectedIds={selectedIds}
-              onToggleSelect={handleToggleSelect}
-              onView={onView}
-            />
-          ))}
-        </Box>
-      )}
-
-      {tab === 5 && <TerritoriesOverviewMap onViewTerritory={onView} />}
-      {tab === 6 && <CampanasTab onAsignarCampana={onAsignarCampana} />}
-      {tab === 7 && <ImportExportTab />}
-      {tab === 8 && <ConfiguracionTab />}
+                {byZone.map(({ zone, items }) => (
+                  <ZoneSection
+                    key={zone.id}
+                    zone={zone}
+                    items={items}
+                    assignedIds={assignedIds}
+                    tags={tags}
+                    selectionMode={selectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={handleToggleSelect}
+                    onView={onView}
+                  />
+                ))}
+              </Box>
+            ),
+          },
+          {
+            label: 'Mapa',
+            Component: <TerritoriesOverviewMap onViewTerritory={onView} />,
+          },
+          {
+            label: 'Campañas',
+            Component: <CampanasTab onAsignarCampana={onAsignarCampana} />,
+          },
+          {
+            label: 'Importar/Exportar',
+            Component: <ImportExportTab />,
+          },
+          {
+            label: 'Configuración',
+            Component: <ConfiguracionTab />,
+          },
+        ]}
+      />
     </Box>
   );
 };

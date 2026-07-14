@@ -360,18 +360,24 @@ caso que se coló — corregirlo a `tertiary`.
   1:1 exacta (`12px` → `var(--radius-xl)`, etc.) por toda la app, sin
   riesgo visual porque el valor renderizado es idéntico al del token.
 
-- **2 usos de `<Tabs>`/`<Tab>` de MUI en crudo** (candidatos a
-  `@components/scrollable_tabs`) deliberadamente NO migrados por riesgo de
-  regresión sin poder verlos en pantalla:
-  - `src/features/territories/responsables/ResponsablesPanel.tsx` — 8
-    pestañas, una con `label` compuesto por un `Badge` + texto (no un
-    string simple); la migración de `predicacion_salidas`/
-    `outgoing_speakers` solo cubrió el caso trivial de 2 pestañas de texto
-    plano.
-  - `src/features/evacuacion/PanelInformacion.tsx` — mismo patrón
-    `variant="scrollable"` con `sx` propio ya funcional.
-  
-  Ambos están bien estilados tal cual (no es un bug visible, solo dos
-  implementaciones paralelas del mismo componente) — migrar requiere
-  verificación en navegador antes de tocarlos, dado que uno de los dos
-  tiene un `label` no trivial.
+- ~~2 usos de `<Tabs>`/`<Tab>` de MUI en crudo en `ResponsablesPanel.tsx`
+  (9 pestañas, una con `label` compuesto por un `Badge`) y
+  `PanelInformacion.tsx` (4 pestañas)~~ — **migrados a
+  `@components/scrollable_tabs`** (2026-07-14), verificados en navegador
+  (modo de prueba) pestaña por pestaña, incluida la vista compleja
+  "Territorios" con selección múltiple y la barra sticky de
+  `ConfiguracionTab`. `ScrollableTabs` acepta `label: ReactNode`, así que el
+  `Badge` de "Solicitudes" se conservó sin cambios.
+
+- ~~30 `boxShadow` hardcodeados que no se adaptaban a modo oscuro~~ —
+  **corregido** (2026-07-14): 15 archivos migrados a
+  `var(--small-card-shadow)` / `var(--big-card-shadow)` / `var(--hover-shadow)`
+  / `var(--btn-shadow)` / `var(--pop-up-shadow)` según el caso. Se dejaron
+  intactos los brillos con tinte de color/marca, las sombras `inset` y los
+  overlays de "glassmorphism" fijos y documentados de `evacuacion/` (su
+  propio código ya explica que son un estilo claro deliberado, no
+  theme-aware por diseño).
+
+- ~~"Plan de Evacuación" en Title Case~~ — **corregido**: título de página,
+  tile del dashboard de Congregación y `PageTitle` pasados a "Plan de
+  evacuación" (sentence case).

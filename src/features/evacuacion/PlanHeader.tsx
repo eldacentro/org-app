@@ -23,7 +23,7 @@ const PlanHeader = ({ tiempoMaximo, modo, onChangeModo }: Props) => {
         <Typography
           sx={{ fontSize: '22px', fontWeight: 800, lineHeight: 1.1 }}
         >
-          Plan de Evacuación
+          Plan de evacuación
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           <Box

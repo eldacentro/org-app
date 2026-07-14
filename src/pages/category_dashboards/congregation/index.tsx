@@ -87,7 +87,7 @@ const CongregationDashboard = () => {
             <IconMapOverview color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
-            <div className="tile-name">Plan de Evacuación</div>
+            <div className="tile-name">Plan de evacuación</div>
           </div>
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
