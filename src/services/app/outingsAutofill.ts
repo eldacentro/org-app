@@ -2,7 +2,7 @@ import { store } from '@states/index';
 import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/service_outings';
 import { personsState } from '@states/persons';
 import { dbServiceOutingsSaveWeek } from '@services/dexie/service_outings';
-import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
+import { getEffectiveHoursForMonth, isOutingSlotSuppressedByMonth } from '@utils/service_outings';
 
 
 const formatToDbDate = (date: Date): string => {
@@ -15,7 +15,9 @@ export const outingsStartAutofill = async (weekOf: string): Promise<number> => {
   const allPersons = store.get(personsState);
 
   if (!weekOf || !settings) return 0;
-  if (isOutingsMonthCancelled(settings, weekOf.slice(0, 7))) return 0;
+  // No se corta por mes suspendido aquí: la supresión se decide turno a turno
+  // más abajo (usando el mes de CADA día), para respetar tanto las excepciones
+  // mantenidas activas como las semanas que cruzan dos meses.
 
   // 1. Filtrar hermanos habilitados
   const eligibleBrothers = allPersons.filter(
@@ -85,8 +87,10 @@ export const outingsStartAutofill = async (weekOf: string): Promise<number> => {
     for (const turn of turns) {
       const slotKey = `${dayLabel}_${turn}`;
       
-      // A. Omitir si el slot está inhabilitado globalmente
+      // A. Omitir si el slot está inhabilitado globalmente, o si el mes de
+      // ESTE día está suspendido y el turno no es una excepción mantenida.
       if (disabledSlots.includes(slotKey) || disabledSlots.includes(dayLabel)) continue;
+      if (isOutingSlotSuppressedByMonth(settings, dateStr.slice(0, 7), slotKey)) continue;
 
       // Determinar hora del slot
       const time = overrideHours[slotKey] || defaultHours[slotKey] || (turn === 'morning' ? '10:00' : '17:00');

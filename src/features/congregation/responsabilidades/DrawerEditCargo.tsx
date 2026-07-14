@@ -47,7 +47,7 @@ const DrawerEditCargo = ({
       open={open}
       onClose={onClose}
       anchor={tabletDown ? 'bottom' : 'right'}
-      title="Editar Cargo"
+      title="Editar cargo"
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, p: '8px 0' }}>
         <TextField
@@ -85,7 +85,7 @@ const DrawerEditCargo = ({
             color: 'var(--red-main)',
             borderColor: 'var(--red-main)',
             '&:hover': {
-              backgroundColor: 'var(--red-100)',
+              backgroundColor: 'var(--red-secondary)',
               borderColor: 'var(--red-main)',
             }
           }}

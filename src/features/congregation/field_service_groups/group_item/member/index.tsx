@@ -91,10 +91,12 @@ const GroupMember = (props: GroupMemberProps) => {
         </Box>
 
         <Stack>
+          {/* 'body-medium-semibold'/'body-medium-regular' no existían en el
+              sistema tipográfico (ninguna clase "body-medium" real) — el
+              nombre y peso reales más cercanos son body-small-*. */}
           <Typography
-            className={isPioneer ? 'body-medium-semibold' : 'body-medium-regular'}
+            className={isPioneer ? 'body-small-semibold' : 'body-small-regular'}
             color="var(--black)"
-            sx={{ fontWeight: isPioneer ? 600 : 400 }}
           >
             {member_name}
           </Typography>

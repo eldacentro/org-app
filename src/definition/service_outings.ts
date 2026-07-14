@@ -25,7 +25,16 @@ export type ServiceOutingSettingsType = {
   // por el calor). Clave "YYYY/MM". Mismo patrón que monthlyOverrides en
   // Exhibitors — reemplaza defaultHours por completo para ese mes, o marca
   // el mes entero como suspendido.
-  monthlyOverrides?: Record<string, Record<string, string> | { isCancelledMonth: boolean }>;
+  //
+  // Un mes suspendido puede llevar EXCEPCIONES en `keepActiveSlots`: una lista
+  // de turnos (ej. ["saturday_morning"]) o días completos (ej. ["saturday"])
+  // que siguen activos pese a la suspensión — permite "suspender agosto pero
+  // mantener la salida del sábado". Sin la lista (o vacía) = suspensión total,
+  // igual que antes.
+  monthlyOverrides?: Record<
+    string,
+    Record<string, string> | { isCancelledMonth: boolean; keepActiveSlots?: string[] }
+  >;
   locations: string[];
   availability: {
     [person_uid: string]: string[]; // array de slots en los que está disponible (ej: ["tue_morning", "sat"])

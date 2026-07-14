@@ -147,7 +147,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
       onClose={onClose}
       PaperProps={{
         sx: {
-          borderRadius: '20px',
+          borderRadius: 'var(--radius-xl)',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
           boxShadow: 'var(--pop-up-shadow)',
@@ -161,8 +161,10 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         },
       }}
     >
-      <DialogTitle sx={{ color: 'var(--ink)', fontWeight: 700 }}>
-        Configuración de Evacuación
+      <DialogTitle>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Configuración de evacuación
+        </Typography>
       </DialogTitle>
       
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
@@ -181,7 +183,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--r-lg)', position: 'relative' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <TextField
-                    label="Puesto / Título del Rol"
+                    label="Puesto / título del rol"
                     value={rol.rol}
                     onChange={(e) => handleMandoChange(i, 'rol', e.target.value)}
                     sx={{ flex: 1, mr: 2 }}
@@ -209,7 +211,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               </Box>
             ))}
             <Button variant="tertiary" onClick={handleAddRol} startIcon={<IconAdd />}>
-              Añadir Rol
+              Añadir rol
             </Button>
           </Box>
         )}
@@ -220,7 +222,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               <Box key={i} sx={{ border: '1px solid var(--line)', p: 2, borderRadius: 'var(--r-lg)' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <TextField
-                    label="Nombre del Equipo"
+                    label="Nombre del equipo"
                     value={equipo.nombre}
                     onChange={(e) => handleEquipoChange(i, 'nombre', e.target.value)}
                     sx={{ flex: 1, mr: 2 }}
@@ -232,13 +234,13 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
                 
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                   <TextField
-                    label="Color (Hex)"
+                    label="Color (hex)"
                     value={equipo.color}
                     onChange={(e) => handleEquipoChange(i, 'color', e.target.value)}
                     sx={{ width: '150px' }}
                   />
                   <TextField
-                    label="Zona Asignada (opcional)"
+                    label="Zona asignada (opcional)"
                     value={equipo.zona || ''}
                     onChange={(e) => handleEquipoChange(i, 'zona', e.target.value)}
                     sx={{ flex: 1 }}
@@ -246,7 +248,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
                 </Box>
 
                 <TextField
-                  label="Miembros (Nombres separados por comas)"
+                  label="Miembros (nombres separados por comas)"
                   value={equipo.miembros.map(m => m.nombre).join(', ')}
                   onChange={(e) => {
                     const nombres = e.target.value.split(',').map(n => n.trim()).filter(n => n !== '');
@@ -270,7 +272,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               </Box>
             ))}
             <Button variant="tertiary" onClick={handleAddEquipo} startIcon={<IconAdd />}>
-              Añadir Equipo
+              Añadir equipo
             </Button>
           </Box>
         )}
@@ -291,16 +293,16 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
               </Box>
             ))}
             <Button variant="tertiary" onClick={handleAddNorma} startIcon={<IconAdd />}>
-              Añadir Norma
+              Añadir norma
             </Button>
           </Box>
         )}
 
         {tab === 3 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="h6">Configuración General</Typography>
+            <Typography className="h3" sx={{ color: 'var(--ink)' }}>Configuración general</Typography>
             <TextField
-              label="Tiempo Máximo de Evacuación (minutos)"
+              label="Tiempo máximo de evacuación (minutos)"
               type="number"
               value={plan.tiempoMaximo?.toString() || ''}
               onChange={(e) => {
@@ -324,7 +326,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
           <Button onClick={handleSave} variant="main" disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+            {isSaving ? 'Guardando…' : 'Guardar cambios'}
           </Button>
         </Box>
       </DialogActions>

@@ -896,6 +896,21 @@
   text-transform: none;
 }
 
+/* Añadida: se usaba en decenas de archivos sin tener NUNCA una definición
+   (ni aquí ni en index.css) — el texto renderizaba sin ningún estilo propio.
+   Mismo tamaño/interlineado que label-small-medium, un peso más marcado. */
+.label-small-semibold {
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-style: normal;
+  font-stretch: normal;
+  letter-spacing: -0.12px;
+  line-height: 14px;
+  text-indent: 0px;
+  text-transform: none;
+}
+
 .label-small-regular {
   font-size: 12px;
   text-decoration: none;
@@ -994,10 +1009,38 @@
     text-transform: none;
   }
 
+  /* Añadida: usada en decenas de archivos sin definición previa — mismo
+     tamaño/interlineado que body-regular, con un peso más marcado. */
+  .body-regular-semibold {
+    font-size: 15px;
+    text-decoration: none;
+    font-weight: 600;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: -0.15px;
+    line-height: 20px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
   .body-small-semibold {
     font-size: 13px;
     text-decoration: none;
     font-weight: 450;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0.065px;
+    line-height: 16px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
+  /* Añadida: usada en decenas de archivos sin definición previa — peso
+     intermedio entre body-small-regular (400) y body-small-semibold (450). */
+  .body-small-medium {
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 500;
     font-style: normal;
     font-stretch: normal;
     letter-spacing: 0.065px;
@@ -1105,10 +1148,38 @@
     text-transform: none;
   }
 
+  /* Añadida: usada en decenas de archivos sin definición previa — mismo
+     tamaño/interlineado que body-regular, con un peso más marcado. */
+  .body-regular-semibold {
+    font-size: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0px;
+    line-height: 20px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
   .body-small-semibold {
     font-size: 14px;
     text-decoration: none;
     font-weight: 520;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0px;
+    line-height: 18px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
+  /* Añadida: usada en decenas de archivos sin definición previa — peso
+     intermedio entre body-small-regular (400) y body-small-semibold (520). */
+  .body-small-medium {
+    font-size: 14px;
+    text-decoration: none;
+    font-weight: 500;
     font-style: normal;
     font-stretch: normal;
     letter-spacing: 0px;

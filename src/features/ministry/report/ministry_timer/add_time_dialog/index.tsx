@@ -46,7 +46,7 @@ const AddTimeDialog = (props: AddTimeDialogProps) => {
           justifyContent: 'space-between',
         }}
       >
-        <Button variant="secondary" onClick={props.onClose}>
+        <Button variant="tertiary" onClick={props.onClose}>
           {t('tr_cancel')}
         </Button>
         <Button variant="main" onClick={handleAddTime}>

@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
-import { Box, Stack, Alert } from '@mui/material';
+import { useMemo, useState } from 'react';
+import { Box, Stack, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import InfoTip from '@components/info_tip';
+import { IconClose } from '@components/icons';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { fieldGroupsState } from '@states/field_service_groups';
 import { markNoticeRead } from '@services/firebase/territories';
@@ -65,6 +67,34 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const fieldGroups = useAtomValue(fieldGroupsState);
   const resolveName = usePersonName();
 
+  // Ocultar de inmediato el aviso al descartarlo, sin esperar a que el
+  // cambio de `leido` en Firestore se propague de vuelta al estado local.
+  const [dismissedNoticeIds, setDismissedNoticeIds] = useState<Set<string>>(new Set());
+
+  const visibleNotices = useMemo(
+    () => notices.filter((n) => !dismissedNoticeIds.has(n.id)),
+    [notices, dismissedNoticeIds]
+  );
+
+  const handleDismissNotice = (noticeId: string) => {
+    setDismissedNoticeIds((prev) => new Set(prev).add(noticeId));
+    markNoticeRead(congId, noticeId).catch((err) => {
+      console.error(err);
+      // Sin esto, al fallar el aviso simplemente no desaparecía y
+      // quien hizo clic en la X no tenía forma de saber por qué.
+      displaySnackNotification({
+        header: 'Error',
+        message: 'No se pudo descartar el aviso. Inténtalo de nuevo.',
+        severity: 'error',
+      });
+      setDismissedNoticeIds((prev) => {
+        const next = new Set(prev);
+        next.delete(noticeId);
+        return next;
+      });
+    });
+  };
+
   const rows = useMemo(
     () =>
       myAssignments
@@ -103,27 +133,25 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
       );
   }, [settings.publishersCanSeeGroup, uid, fieldGroups, openAssignments, territories]);
 
-  const noticesBanner = notices.length > 0 && (
+  const noticesBanner = visibleNotices.length > 0 && (
     <Stack spacing={1} sx={{ mb: 2 }}>
-      {notices.map((n) => (
-        <Alert
-          key={n.id}
-          severity="warning"
-          onClose={() =>
-            markNoticeRead(congId, n.id).catch((err) => {
-              console.error(err);
-              // Sin esto, al fallar el aviso simplemente no desaparecía y
-              // quien hizo clic en la X no tenía forma de saber por qué.
-              displaySnackNotification({
-                header: 'Error',
-                message: 'No se pudo descartar el aviso. Inténtalo de nuevo.',
-                severity: 'error',
-              });
-            })
-          }
-        >
-          {n.mensaje}
-        </Alert>
+      {visibleNotices.map((n) => (
+        <Box key={n.id} sx={{ position: 'relative' }}>
+          <InfoTip
+            color="warning"
+            isBig={false}
+            text={n.mensaje}
+            sx={{ pr: 5 }}
+          />
+          <IconButton
+            onClick={() => handleDismissNotice(n.id)}
+            size="small"
+            sx={{ position: 'absolute', top: 8, right: 8 }}
+            aria-label="Descartar aviso"
+          >
+            <IconClose color="var(--ink-2)" width={16} height={16} />
+          </IconButton>
+        </Box>
       ))}
     </Stack>
   );

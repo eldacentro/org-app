@@ -72,7 +72,7 @@ const GroupInfo = (props: GroupInfoProps) => {
         >
           {t('tr_save')}
         </Button>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button variant="tertiary" onClick={handleClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

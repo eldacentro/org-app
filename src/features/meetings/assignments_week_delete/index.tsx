@@ -51,7 +51,7 @@ const AssignmentsWeekDelete = ({
         >
           {t('tr_clear')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

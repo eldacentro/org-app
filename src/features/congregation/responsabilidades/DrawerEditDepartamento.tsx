@@ -68,7 +68,7 @@ const DrawerEditDepartamento = ({
       open={open}
       onClose={onClose}
       anchor={tabletDown ? 'bottom' : 'right'}
-      title="Editar Departamento"
+      title="Editar departamento"
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, p: '8px 0' }}>
         <TextField
@@ -88,7 +88,7 @@ const DrawerEditDepartamento = ({
             onClick={toggleType}
             sx={{
               background: isExtended ? 'var(--accent-main)' : 'var(--line)',
-              color: isExtended ? 'var(--always-white)' : 'var(--text-secondary)',
+              color: isExtended ? 'var(--always-white)' : 'var(--ink-2)',
               fontWeight: 600,
               height: '32px',
               px: '8px',
@@ -140,7 +140,7 @@ const DrawerEditDepartamento = ({
             color: 'var(--red-main)',
             borderColor: 'var(--red-main)',
             '&:hover': {
-              backgroundColor: 'var(--red-100)',
+              backgroundColor: 'var(--red-secondary)',
               borderColor: 'var(--red-main)',
             }
           }}

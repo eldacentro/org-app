@@ -51,7 +51,7 @@ const InactivePublishers = (props: InactivePublishersProps) => {
           {btnLabel}
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
           disabled={isProcessing}
           onClick={props.onClose}
         >

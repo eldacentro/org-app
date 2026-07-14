@@ -90,7 +90,7 @@ const DepartmentEditor = () => {
           <Button variant="main" color="red" onClick={handleClearAll}>
             {t('tr_clear')}
           </Button>
-          <Button variant="secondary" onClick={handleCloseClearAll}>
+          <Button variant="tertiary" onClick={handleCloseClearAll}>
             {t('tr_cancel')}
           </Button>
         </Box>

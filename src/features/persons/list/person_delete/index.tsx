@@ -29,7 +29,7 @@ const DeletePersonConfirm = ({
         <Button variant="main" onClick={onConfirm} color="red">
           {t('tr_delete')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

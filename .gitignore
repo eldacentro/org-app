@@ -39,3 +39,6 @@ replit.nix
 .vercel
 
 /api/
+
+# ShipStudio metadata
+.shipstudio/

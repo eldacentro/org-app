@@ -36,7 +36,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             color: hoverTextColor,
           },
           '& .menu-icon-box': {
-            background: isGroup ? 'var(--red-200)' : 'var(--line)',
+            background: isGroup ? 'var(--red-secondary)' : 'var(--line)',
           },
           '& svg, & svg g, & svg g path': {
             fill: hoverTextColor,
@@ -48,7 +48,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
         '&:active': {
           background: activeBgColor,
           '& .menu-icon-box': {
-            background: isGroup ? 'var(--red-300)' : 'var(--line)',
+            background: isGroup ? 'var(--red-secondary)' : 'var(--line)',
           },
           '& .menu-secondary': {
             background: activeMenuSecondaryBg,
@@ -74,7 +74,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             width: '44px',
             height: '44px',
             borderRadius: 'var(--radius-m)',
-            background: isGroup ? 'var(--red-100)' : 'var(--accent-100)',
+            background: isGroup ? 'var(--red-secondary)' : 'var(--accent-100)',
             marginRight: '12px',
             transition: 'background 0.2s ease',
             '& svg, & svg g, & svg g path': {

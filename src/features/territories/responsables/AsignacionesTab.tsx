@@ -445,17 +445,20 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         onClose={closeNoteDialog}
         PaperProps={{
           sx: {
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-xl)',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
+            boxShadow: 'var(--pop-up-shadow)',
             maxWidth: '444px',
             width: '100%',
             mx: 2,
           },
         }}
       >
-        <DialogTitle sx={{ color: 'var(--ink)', fontWeight: 700 }}>
-          Editar nota
+        <DialogTitle sx={{ p: 2, pb: 0 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Editar nota
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <TextField

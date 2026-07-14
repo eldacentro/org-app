@@ -159,7 +159,7 @@ const DialogSeleccionarTerritorios = ({
                     px: 1,
                     py: 0.5,
                     borderRadius: '8px',
-                    '&:hover': { backgroundColor: 'var(--bg-hover)' },
+                    '&:hover': { backgroundColor: 'var(--accent-100)' },
                     cursor: 'pointer',
                   }}
                   onClick={() => toggleOne(t.id)}

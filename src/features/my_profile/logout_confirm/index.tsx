@@ -28,7 +28,7 @@ const LogoutConfirm = ({ open, onClose }: LogoutConfirmType) => {
         <Button variant="main" color="red" onClick={handleLogout}>
           {t('tr_logOut')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

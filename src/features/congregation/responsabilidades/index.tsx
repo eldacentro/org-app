@@ -353,7 +353,9 @@ const EditSummaryCard = ({
       <Typography className="body-regular-semibold" color="var(--black)">
         {title || '(Sin título)'}
       </Typography>
-      <Typography className="body-small" color="var(--grey-400)">
+      {/* 'body-small' (sin sufijo) no existe en el sistema tipográfico —
+          huérfana, sin ningún estilo. La real más cercana es la regular. */}
+      <Typography className="body-small-regular" color="var(--grey-400)">
         {subtitle || 'Sin asignar'}
       </Typography>
     </Box>
@@ -398,7 +400,7 @@ const ReorderDialog = ({
     <Dialog open={open} onClose={onClose} PaperProps={{ sx: { maxWidth: '600px', width: '100%', p: '24px' } }}>
       <SectionHeader
         icon={IconReorder}
-        title="Reordenar Departamentos"
+        title="Reordenar departamentos"
       />
 
       <Box
@@ -455,7 +457,7 @@ const ReorderDialog = ({
       </Box>
 
       <Stack direction="row" spacing="12px" width="100%" justifyContent="flex-end">
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           Cerrar
         </Button>
         <Button
@@ -508,7 +510,7 @@ const ResponsabilidadesFeature = ({
     return (
       <Box
         sx={{
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           fontSize: '14px',
           padding: '32px',
           textAlign: 'center',

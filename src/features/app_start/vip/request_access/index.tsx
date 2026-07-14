@@ -100,14 +100,14 @@ const RequestAccess = () => {
           sx={{
             padding: '16px',
             borderRadius: 'var(--radius-l)',
-            background: 'var(--red-100)',
-            border: '1px solid var(--red-300)',
+            background: 'var(--red-secondary)',
+            border: '1px solid var(--red-secondary)',
           }}
         >
-          <Typography className="body-regular" sx={{ color: 'var(--red-900)', fontWeight: 600 }}>
+          <Typography className="body-regular" sx={{ color: 'var(--red-dark)', fontWeight: 600 }}>
             {t('tr_requestErrorConnect')}
           </Typography>
-          <Typography className="body-small-regular" sx={{ color: 'var(--red-800)', marginTop: '4px' }}>
+          <Typography className="body-small-regular" sx={{ color: 'var(--red-dark)', marginTop: '4px' }}>
             {loadError}
           </Typography>
         </Box>
@@ -118,14 +118,14 @@ const RequestAccess = () => {
           sx={{
             padding: '16px',
             borderRadius: 'var(--radius-l)',
-            background: 'var(--red-100)',
-            border: '1px solid var(--red-300)',
+            background: 'var(--red-secondary)',
+            border: '1px solid var(--red-secondary)',
           }}
         >
-          <Typography className="body-regular" sx={{ color: 'var(--red-900)', fontWeight: 600 }}>
+          <Typography className="body-regular" sx={{ color: 'var(--red-dark)', fontWeight: 600 }}>
             {t('tr_requestErrorSubmit')}
           </Typography>
-          <Typography className="body-small-regular" sx={{ color: 'var(--red-800)', marginTop: '4px' }}>
+          <Typography className="body-small-regular" sx={{ color: 'var(--red-dark)', marginTop: '4px' }}>
             {submitError}
           </Typography>
         </Box>

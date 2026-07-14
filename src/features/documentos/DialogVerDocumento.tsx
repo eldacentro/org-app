@@ -189,12 +189,11 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.25 }}>
                       {categoria && (
                         <Typography
-                          variant="caption"
+                          className="label-small-medium"
                           sx={{
                             color: accentColor,
                             fontWeight: 700,
                             textTransform: 'uppercase',
-                            fontSize: '10px',
                             letterSpacing: '0.02em',
                           }}
                         >
@@ -311,6 +310,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
             <Box sx={{ mt: 2 }}>
               {categoria && (
                 <Box
+                  className="label-small-medium"
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -321,7 +321,6 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     py: 0.8,
                     lineHeight: 1,
                     borderRadius: '999px',
-                    fontSize: '11px',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -389,7 +388,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   <Typography
                     className="label-small-regular"
                     color="var(--ink-3)"
-                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}
+                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}
                   >
                     TAMAÑO
                   </Typography>
@@ -402,7 +401,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   <Typography
                     className="label-small-regular"
                     color="var(--ink-3)"
-                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', fontSize: '9px' }}
+                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}
                   >
                     FECHA
                   </Typography>
@@ -421,7 +420,6 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 sx={{
                   height: '46px',
                   borderRadius: 'var(--r-sm)',
-                  fontSize: '14px',
                   fontWeight: 700,
                   backgroundColor: accentColor,
                   color: 'var(--always-white) !important',
@@ -438,7 +436,6 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 sx={{
                   height: '46px',
                   borderRadius: 'var(--r-sm)',
-                  fontSize: '14px',
                   fontWeight: 600,
                   borderColor: `color-mix(in srgb, ${accentColor} 50%, transparent) !important`,
                   color: `${accentColor} !important`,

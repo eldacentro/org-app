@@ -13,16 +13,11 @@ const MyCongregation = () => {
   } = useMyCongregation();
 
   return (
-    <Box
-      sx={{
-        flexGrow: 1,
-        backgroundColor: 'var(--card)',
-        border: '1px solid var(--line)',
-        padding: '16px',
-        borderRadius: 'var(--r-lg)',
-        width: '100%',
-      }}
-    >
+    // Sin tarjeta propia: la página (SpeakersCatalog) ya envuelve este
+    // componente y OtherCongregations en UNA tarjeta compartida. Repetir aquí
+    // el mismo fondo/borde/radio creaba un recuadro dentro de otro recuadro
+    // idéntico ("Tu congregación" doblemente enmarcado).
+    <Box sx={{ flexGrow: 1, width: '100%' }}>
       <OutgoingSpeakersHeader
         expanded={isExpanded}
         onExpandChange={handleToggleExpanded}

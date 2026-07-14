@@ -37,7 +37,7 @@ const Export = (props: ExportType) => {
           {t('tr_download')}
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
           disabled={isProcessing}
           onClick={props.onClose}
         >

@@ -34,6 +34,10 @@ import { buildPersonFullname } from '@utils/common';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
+// Alias porque esta página todavía usa el Button de MUI en crudo para el
+// selector de mes/vista (fuera del alcance de esta migración); el pie del
+// diálogo de excepciones sí migra al botón del sistema de diseño.
+import AppButton from '@components/button';
 import { displaySnackNotification } from '@services/states/app';
 import {
   IconSettings,
@@ -352,17 +356,17 @@ const Limpieza = () => {
                 onClick={() => setMonthsExpanded(!monthsExpanded)}
                 sx={{ backgroundColor: 'var(--accent-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '12px', px: '16px' }}
               >
-                <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
+                <Typography className="h4" style={{ fontWeight: '700', color: 'var(--accent-dark)' }}>
                   {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
-                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700' }}>
+                <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
                   {monthsExpanded ? 'Cerrar selector ✕' : 'Cambiar mes ▾'}
                 </Typography>
               </ListItemButton>
               {monthsExpanded && (
                 <Box sx={{ p: '16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)' }}>
+                    <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
                       Seleccionar año
                     </Typography>
                     <Select
@@ -378,7 +382,7 @@ const Limpieza = () => {
                   </Box>
                   <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)' }}>
+                    <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
                       Seleccionar mes
                     </Typography>
                     <Grid container spacing={1}>
@@ -413,7 +417,7 @@ const Limpieza = () => {
             
             {/* Título y Selector de Vista */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '16px' }}>
-              <Typography style={{ fontWeight: '800', fontSize: '20px', color: 'var(--black)' }}>
+              <Typography className="h1" style={{ color: 'var(--black)' }}>
                 {MONTH_NAMES[selectedMonth]}
               </Typography>
               <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--line)' }}>
@@ -466,16 +470,22 @@ const Limpieza = () => {
               </Box>
             </Box>
 
-            {/* VISTA CUADRÍCULA */}
+            {/* VISTA CUADRÍCULA.
+                Este Box exterior es solo un envoltorio de layout (padding),
+                sin fondo/borde propios: las celdas de día de abajo ya son
+                cada una su propia tarjeta (var(--card)/var(--line)), así que
+                el contenedor no debe repetir el mismo marco alrededor de
+                todas — ver DESIGN_SYSTEM.md §8 (anti-patrón de doble
+                anidado). */}
             {viewMode === 'grid' && (
-              <Box sx={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--line)', backgroundColor: 'var(--card)', p: { mobile: '12px', tablet: '20px' } }}>
+              <Box sx={{ p: { mobile: '12px', tablet: '20px' } }}>
                 <Grid container spacing={1} columns={weekdaysToShowFinal.length} sx={{ width: '100%', margin: 0 }}>
                   
                   {/* Headers */}
                   {weekdaysToShowFinal.map((dayInfo) => (
                     <Grid size={{ mobile: 1 }} key={dayInfo.label} sx={{ p: 0.5 }}>
                       <Box sx={{ textAlign: 'center', py: '6px', borderBottom: '2px solid var(--line)', mb: '8px' }}>
-                        <Typography style={{ fontWeight: '700', fontSize: '12px', color: 'var(--accent-main)', textTransform: 'none' }}>
+                        <Typography className="label-small-semibold" style={{ color: 'var(--accent-main)' }}>
                           {dayInfo.label}
                         </Typography>
                       </Box>
@@ -500,7 +510,7 @@ const Limpieza = () => {
                             <Box sx={{
                               aspectRatio: desktopUp ? 'auto' : '1',
                               minHeight: desktopUp ? '110px' : 'auto',
-                              backgroundColor: 'var(--accent-50)',
+                              backgroundColor: 'var(--accent-100)',
                               border: '1px solid var(--line)',
                               borderRadius: 'var(--radius-m)',
                               opacity: 0.3
@@ -533,7 +543,7 @@ const Limpieza = () => {
                               }
                             }}
                           >
-                            <Typography style={{ fontWeight: '800', fontSize: '14px', color: 'var(--black)' }}>
+                            <Typography className="body-small-semibold" style={{ color: 'var(--black)' }}>
                               {cellDate.getDate()}
                             </Typography>
                             <Box sx={{
@@ -548,7 +558,7 @@ const Limpieza = () => {
                               flexGrow: 1,
                             }}>
                               <IconGroups color="var(--always-white)" />
-                              <Typography style={{ fontWeight: '600', fontSize: '12px', color: 'var(--always-white)' }}>
+                              <Typography className="label-small-semibold" style={{ color: 'var(--always-white)' }}>
                                 {getGroupName(m.group)}
                               </Typography>
                             </Box>
@@ -598,10 +608,10 @@ const Limpieza = () => {
                             }}
                           >
                             <Box>
-                              <Typography style={{ fontWeight: '700', color: 'var(--black)', fontSize: '16px' }}>
+                              <Typography className="body-regular-semibold" style={{ color: 'var(--black)' }}>
                                 {m.date.getDate()} {MONTH_NAMES[m.date.getMonth()]}
                               </Typography>
-                              <Typography style={{ color: 'var(--grey-400)', fontSize: '14px' }}>
+                              <Typography className="body-small-regular" style={{ color: 'var(--grey-400)' }}>
                                 {m.reunionDia === 'midweek' ? 'Reunión de entre semana' : 'Reunión de fin de semana'}
                               </Typography>
                             </Box>
@@ -639,7 +649,21 @@ const Limpieza = () => {
       )}
 
       {/* Modal para Ver/Modificar Excepciones */}
-      <Dialog open={editModal.open} onClose={() => setEditModal({ ...editModal, open: false })} PaperProps={{ sx: { maxWidth: '444px', width: '100%', mx: 2 } }}>
+      <Dialog
+        open={editModal.open}
+        onClose={() => setEditModal({ ...editModal, open: false })}
+        PaperProps={{
+          sx: {
+            maxWidth: '444px',
+            width: '100%',
+            mx: 2,
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+            borderRadius: 'var(--radius-xl)',
+          },
+        }}
+      >
         <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '24px' }}>
           <Typography className="h2">Asignación del {editModal.date?.getDate()}</Typography>
           {isManager && (
@@ -649,7 +673,7 @@ const Limpieza = () => {
           )}
         </DialogTitle>
         <DialogContent sx={{ p: '24px', pt: 0 }}>
-          <Typography className="h4" sx={{ mb: 1, color: 'var(--accent-dark)' }}>Grupo Asignado</Typography>
+          <Typography className="h4" sx={{ mb: 1, color: 'var(--accent-dark)' }}>Grupo asignado</Typography>
           {isManager ? (
             <Select
               value={selectedOverrideGroup}
@@ -688,20 +712,20 @@ const Limpieza = () => {
             </>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: '24px' }}>
+        <DialogActions sx={{ p: '24px', gap: '8px' }}>
           {isManager ? (
             <>
-              <Button onClick={() => setEditModal({ ...editModal, open: false })} color="inherit">
+              <AppButton variant="tertiary" disableAutoStretch onClick={() => setEditModal({ ...editModal, open: false })}>
                 Cancelar
-              </Button>
-              <Button onClick={handleSaveOverride} variant="contained" color="primary" disabled={isSavingOverride}>
+              </AppButton>
+              <AppButton variant="main" disableAutoStretch disabled={isSavingOverride} onClick={handleSaveOverride}>
                 Guardar
-              </Button>
+              </AppButton>
             </>
           ) : (
-            <Button onClick={() => setEditModal({ ...editModal, open: false })} variant="contained" color="primary">
+            <AppButton variant="main" disableAutoStretch onClick={() => setEditModal({ ...editModal, open: false })}>
               Cerrar
-            </Button>
+            </AppButton>
           )}
         </DialogActions>
       </Dialog>

@@ -68,7 +68,7 @@ const ScheduleAutofillDialog = ({
         >
           {t('tr_autofill')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

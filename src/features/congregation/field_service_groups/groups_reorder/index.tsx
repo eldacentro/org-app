@@ -35,7 +35,7 @@ const GroupsReorder = (props: GroupsReorderProps) => {
         <Button variant="main" onClick={handleSaveChanges}>
           {t('tr_save')}
         </Button>
-        <Button variant="secondary" onClick={props.onClose}>
+        <Button variant="tertiary" onClick={props.onClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

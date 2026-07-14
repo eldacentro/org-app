@@ -6,13 +6,12 @@ import {
   Stack,
   Autocomplete,
   TextField as MuiTextField,
-  Checkbox,
-  FormControlLabel,
   MenuItem,
 } from '@mui/material';
 import PageTitle from '@components/page_title';
 import Typography from '@components/typography';
 import Button from '@components/button';
+import Checkbox from '@components/checkbox';
 import TextField from '@components/textfield';
 import CustomDatePicker from '@components/date_picker';
 import TimeField from '@components/timefield';
@@ -314,21 +313,17 @@ const PreachingSection = ({
                       {/* Solo muestra "con esposa" si el CO no es soltero
                           (hay nombre de esposa configurado en Ajustes). */}
                       {coSpouseName && (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={companion.withWife}
-                              onChange={(e) =>
-                                onUpsertCompanion(outing.outingKey, {
-                                  withWife: e.target.checked,
-                                  spouse_companions: e.target.checked
-                                    ? companion.spouse_companions ?? []
-                                    : [],
-                                })
-                              }
-                            />
-                          }
+                        <Checkbox
+                          checked={companion.withWife}
                           label={`Con ${coSpouseName}`}
+                          onChange={(e, checked) =>
+                            onUpsertCompanion(outing.outingKey, {
+                              withWife: checked,
+                              spouse_companions: checked
+                                ? companion.spouse_companions ?? []
+                                : [],
+                            })
+                          }
                         />
                       )}
                     </>
@@ -684,16 +679,10 @@ const CircuitVisitDashboard = () => {
             subtitle="El CO titular se muestra en Ajustes. Activa el sustituto si viene uno distinto."
           >
             <Stack spacing="12px">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={working.is_substitute ?? false}
-                    onChange={(e) =>
-                      patch({ is_substitute: e.target.checked })
-                    }
-                  />
-                }
+              <Checkbox
+                checked={working.is_substitute ?? false}
                 label="Superintendente sustituto"
+                onChange={(_e, checked) => patch({ is_substitute: checked })}
               />
               {working.is_substitute && (
                 <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>

@@ -13,11 +13,8 @@ import {
   Tabs,
   Tab,
   IconButton,
-  Alert,
   MenuItem,
   Select,
-  Checkbox,
-  FormGroup,
   ListSubheader,
   Grid,
   Chip,
@@ -30,6 +27,14 @@ import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index'
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
+// Botón del sistema de diseño (variantes main/secondary/tertiary), alineado
+// con el resto de la app. Se importa con alias porque esta página todavía
+// usa el Button de MUI en el cuerpo; los pies de diálogo ya migran al del
+// sistema (mismo tratamiento que predicacion_salidas).
+import AppButton from '@components/button';
+import Checkbox from '@components/checkbox';
+import SwitchWithLabel from '@components/switch_with_label';
+import InfoTip from '@components/info_tip';
 import {
   IconSettings,
   IconAdd,
@@ -2188,7 +2193,7 @@ const Exhibitors = () => {
                         alignItems: 'center',
                         gap: '12px',
                         padding: '16px',
-                        backgroundColor: 'var(--accent-50)',
+                        backgroundColor: 'var(--accent-100)',
                         border: '1px dashed var(--line)',
                         borderRadius: 'var(--radius-l)',
                       }}
@@ -2240,7 +2245,7 @@ const Exhibitors = () => {
                             onClick={() => handleDeleteExhibitorLocation(loc)}
                             sx={{
                               color: 'var(--error-main)',
-                              '&:hover': { backgroundColor: 'var(--error-light)' },
+                              '&:hover': { backgroundColor: 'var(--error-150)' },
                             }}
                             size="small"
                           >
@@ -2293,7 +2298,7 @@ const Exhibitors = () => {
                         alignItems: 'center',
                         gap: '12px',
                         padding: '16px',
-                        backgroundColor: 'var(--accent-50)',
+                        backgroundColor: 'var(--accent-100)',
                         border: '1px dashed var(--line)',
                         borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
@@ -2428,7 +2433,7 @@ const Exhibitors = () => {
                                   textTransform: 'none',
                                   fontWeight: '700',
                                   color: 'var(--error-main)',
-                                  '&:hover': { backgroundColor: 'var(--error-light)' },
+                                  '&:hover': { backgroundColor: 'var(--error-150)' },
                                   borderRadius: 'var(--radius-l)',
                                 }}
                               >
@@ -2462,7 +2467,7 @@ const Exhibitors = () => {
                         alignItems: 'center',
                         gap: '12px',
                         padding: '16px',
-                        backgroundColor: 'var(--accent-50)',
+                        backgroundColor: 'var(--accent-100)',
                         border: '1px dashed var(--line)',
                         borderRadius: 'var(--radius-xl)',
                         justifyContent: 'center',
@@ -2656,7 +2661,7 @@ const Exhibitors = () => {
                                           : enabledExhibitorBrothers;
 
                                         return (
-                                          <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '8px', p: '12px', border: '1px solid var(--accent-150)', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-50)' }}>
+                                          <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '8px', p: '12px', border: '1px solid var(--accent-150)', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-100)' }}>
                                             <Typography style={{ fontWeight: '800', fontSize: '11px', color: 'var(--accent-main)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                               {labelText}
                                             </Typography>
@@ -2838,7 +2843,7 @@ const Exhibitors = () => {
                                             transform: 'translateY(-1px)',
                                           }
                                         } : {
-                                          backgroundColor: 'var(--accent-50)',
+                                          backgroundColor: 'var(--accent-100)',
                                           color: 'var(--grey-600)',
                                           border: '1px solid var(--line)',
                                           '&:hover': {
@@ -2884,28 +2889,34 @@ const Exhibitors = () => {
         onClose={() => setEditDialog({ ...editDialog, open: false })}
         maxWidth={false}
         fullWidth
-        PaperProps={{ style: { borderRadius: 'var(--radius-xl)', maxWidth: '480px', width: '100%' } }}
+        sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+          },
+        }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: '800', borderBottom: '1px solid var(--line)', pb: '12px' }}>
-          Asignar Turno de Exhibidor
+        <DialogTitle sx={{ borderBottom: '1px solid var(--line)', pb: '12px' }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Asignar turno de exhibidor
+          </Typography>
         </DialogTitle>
         <DialogContent sx={{ mt: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {dialogWarnings.map((warning, wIdx) => (
-            <Alert key={wIdx} severity="warning" sx={{ borderRadius: 'var(--radius-l)', fontWeight: '600' }}>
-              {warning}
-            </Alert>
+            <InfoTip key={wIdx} isBig={false} color="warning" text={warning} />
           ))}
 
           {/* Toggle de Suspensión */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={editDialog.cancelled}
-                onChange={(e) => setEditDialog({ ...editDialog, cancelled: e.target.checked })}
-                color="error"
-              />
-            }
-            label={<strong>Suspender turno para esta semana</strong>}
+          <SwitchWithLabel
+            label="Suspender turno para esta semana"
+            checked={editDialog.cancelled}
+            onChange={(checked) => setEditDialog({ ...editDialog, cancelled: checked })}
           />
 
           {!editDialog.cancelled && (
@@ -2944,7 +2955,7 @@ const Exhibitors = () => {
 
                 return (
                   <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: '6px', borderBottom: '1px solid var(--accent-150)', pb: '12px' }}>
-                    <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--grey-600)' }}>
+                    <Typography className="body-small-semibold" sx={{ color: 'var(--ink-2)' }}>
                       {labelText}
                     </Typography>
 
@@ -2959,8 +2970,10 @@ const Exhibitors = () => {
                         <em>Ninguno / Sin asignar</em>
                       </MenuItem>
                       {recommended.length > 0 && (
-                        <ListSubheader sx={{ fontWeight: '800', lineHeight: '30px', color: 'var(--accent-dark)' }}>
-                          RECOMENDADOS (Tienen este turno de preferencia)
+                        <ListSubheader sx={{ fontWeight: '800', lineHeight: '30px', color: 'var(--accent-dark)', textTransform: 'uppercase' }}>
+                          {/* Mayúsculas por CSS (textTransform), no en el texto
+                              fuente — ver DESIGN_SYSTEM.md §5. */}
+                          Recomendados (tienen este turno de preferencia)
                         </ListSubheader>
                       )}
                       {recommended.map((bro) => {
@@ -2972,8 +2985,8 @@ const Exhibitors = () => {
                         );
                       })}
                       {others.length > 0 && (
-                        <ListSubheader sx={{ fontWeight: '800', lineHeight: '30px', color: 'var(--grey-600)' }}>
-                          OTROS HERMANOS HABILITADOS
+                        <ListSubheader sx={{ fontWeight: '800', lineHeight: '30px', color: 'var(--grey-600)', textTransform: 'uppercase' }}>
+                          Otros hermanos habilitados
                         </ListSubheader>
                       )}
                       {others.map((bro) => {
@@ -3007,76 +3020,79 @@ const Exhibitors = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          {/* Botón para desvincular el override manual */}
+          {/* Botón para desvincular el override manual (destructivo/reset,
+              separado a la izquierda — ver DESIGN_SYSTEM.md §6.1) */}
           {exhibitorsList.some(w => w.weekOf === editDialog.weekOf && w.turns?.some(t => t.turnId === editDialog.turnId && t.date === editDialog.date)) && (
-            <Button
+            <AppButton
+              variant="secondary"
+              color="red"
+              disableAutoStretch
               onClick={handleResetWeekTurn}
-              sx={{ color: 'var(--error-main)', fontWeight: '600', textTransform: 'none', marginRight: 'auto' }}
+              sx={{ marginRight: 'auto' }}
             >
-              Restaurar Fijos
-            </Button>
+              Restaurar fijos
+            </AppButton>
           )}
-          <Button
+          <AppButton
+            variant="tertiary"
+            disableAutoStretch
             onClick={() => setEditDialog({ ...editDialog, open: false })}
-            sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}
           >
             Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveWeekTurn}
+          </AppButton>
+          <AppButton
+            variant="main"
+            disableAutoStretch
             disabled={isSavingTurn}
-            variant="contained"
-            sx={{
-              backgroundColor: 'var(--accent-main)',
-              fontWeight: '700',
-              textTransform: 'none',
-              borderRadius: 'var(--radius-l)',
-            }}
+            onClick={handleSaveWeekTurn}
           >
-            Guardar Cambios
-          </Button>
+            Guardar cambios
+          </AppButton>
         </DialogActions>
       </Dialog>
 
-      {/* DIÁLOGO: Ajustes Mensuales */}
+      {/* DIÁLOGO: Ajustes Mensuales (excepciones de horario/turnos). Mismo
+          tratamiento que "Ajustes del mes" en predicacion_salidas — ver
+          DESIGN_SYSTEM.md §6/§9. */}
       <Dialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}
         maxWidth="mobile"
         fullWidth
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+          },
+        }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: '700', paddingBottom: '8px' }}>
-          Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+          </Typography>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
-          {isCurrentlyOverridden ? (
-            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)' }}>
-              Este mes tiene una configuración personalizada que sobreescribe la Global.
-            </Alert>
-          ) : (
-            <Alert severity="info" sx={{ borderRadius: 'var(--radius-l)' }}>
-              Usando Configuración Global. Si necesitas horarios diferentes este mes, personalízalos aquí.
-            </Alert>
-          )}
+          <InfoTip
+            isBig={false}
+            color={isCurrentlyOverridden ? 'warning' : 'info'}
+            text={
+              isCurrentlyOverridden
+                ? 'Este mes tiene una configuración personalizada que sobrescribe la global.'
+                : 'Usando configuración global. Si necesitas horarios diferentes este mes, personalízalos aquí.'
+            }
+          />
 
-          <FormGroup sx={{ mt: '8px' }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={monthCancelled}
-                  onChange={handleToggleCancelMonth}
-                  color="error"
-                />
-              }
-              label={
-                <Typography sx={{ fontWeight: '600', color: monthCancelled ? 'var(--error-main)' : 'var(--black)' }}>
-                  Suspender exhibidores todo el mes
-                </Typography>
-              }
-            />
-          </FormGroup>
+          <SwitchWithLabel
+            label="Suspender exhibidores todo el mes"
+            checked={monthCancelled}
+            onChange={handleToggleCancelMonth}
+          />
 
           {monthCancelled && (
             <TextField
@@ -3099,12 +3115,12 @@ const Exhibitors = () => {
 
           {!monthCancelled && (
             <Box sx={{ mt: '8px' }}>
-              <Typography sx={{ fontWeight: '700', fontSize: '14px', mb: '12px' }}>
+              <Typography className="h4" sx={{ color: 'var(--ink)', mb: '12px' }}>
                 Turnos activos este mes
               </Typography>
-              
+
               {effectiveTurns.length === 0 ? (
-                <Typography sx={{ color: 'var(--grey-500)', fontSize: '14px' }}>No hay turnos.</Typography>
+                <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>No hay turnos.</Typography>
               ) : (
                 <List sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {effectiveTurns.map((turn) => (
@@ -3122,10 +3138,10 @@ const Exhibitors = () => {
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontWeight: '700', fontSize: '15px' }}>
+                        <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                           {turn.startTime} - {turn.endTime}
                         </Typography>
-                        <Typography sx={{ fontSize: '13px', color: 'var(--grey-500)' }}>
+                        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                           {turn.days.map((d) => {
                             const idx = weekdaysOrder.indexOf(d);
                             return weekdaysSpanish[idx];
@@ -3168,18 +3184,16 @@ const Exhibitors = () => {
               )}
 
               {!isCurrentlyOverridden ? (
-                <Button
-                  variant="contained"
-                  fullWidth
+                <AppButton
+                  variant="main"
                   onClick={handleCreateOverride}
-                  sx={{ mt: '16px', borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold' }}
+                  sx={{ mt: '16px', width: '100%' }}
                 >
                   Personalizar turnos para este mes
-                </Button>
+                </AppButton>
               ) : (
-                <Button
-                  variant="outlined"
-                  fullWidth
+                <AppButton
+                  variant="tertiary"
                   startIcon={<IconAdd />}
                   onClick={() => {
                     setTurnConfigDialog({
@@ -3194,40 +3208,39 @@ const Exhibitors = () => {
                       isMonthlyOverride: true,
                     });
                   }}
-                  sx={{ mt: '16px', borderRadius: 'var(--radius-l)', textTransform: 'none', fontWeight: 'bold', borderStyle: 'dashed' }}
+                  sx={{ mt: '16px', width: '100%', borderStyle: 'dashed' }}
                 >
                   Añadir turno excepcional
-                </Button>
+                </AppButton>
               )}
             </Box>
           )}
 
         </DialogContent>
+        {/* "Restaurar al Global" es la acción de reset (destructiva), separada
+            a la izquierda; "Cerrar" es la única acción de confirmación — no
+            hay un borrador pendiente que requiera un "Guardar" aparte aquí
+            (los cambios de este diálogo se aplican al instante). */}
         <DialogActions sx={{ padding: '16px', justifyContent: 'space-between' }}>
           {isCurrentlyOverridden ? (
-            <Button
-              color="error"
+            <AppButton
+              variant="secondary"
+              color="red"
+              disableAutoStretch
               onClick={handleRestoreGlobal}
-              sx={{ fontWeight: '600', textTransform: 'none' }}
             >
-              Restaurar al Global
-            </Button>
+              Restaurar al global
+            </AppButton>
           ) : (
             <Box /> // Spacer
           )}
-          <Button
+          <AppButton
+            variant="main"
+            disableAutoStretch
             onClick={() => setMonthlySettingsDialog(false)}
-            variant="contained"
-            sx={{
-              backgroundColor: 'var(--accent-main)',
-              color: 'var(--always-white)',
-              fontWeight: '700',
-              textTransform: 'none',
-              borderRadius: 'var(--radius-l)',
-            }}
           >
             Cerrar
-          </Button>
+          </AppButton>
         </DialogActions>
       </Dialog>
 
@@ -3238,50 +3251,57 @@ const Exhibitors = () => {
         maxWidth={false}
         fullWidth
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{ style: { borderRadius: 'var(--radius-xl)' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+          },
+        }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: '700', paddingBottom: '8px' }}>
-          {turnConfigDialog.id ? 'Editar turno' : 'Crear turno'}
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            {turnConfigDialog.id ? 'Editar turno' : 'Crear turno'}
+          </Typography>
           {turnConfigDialog.isMonthlyOverride && (
-            <Typography variant="body2" sx={{ color: 'var(--accent-main)', fontWeight: 'bold' }}>
-              (Excepción para este mes)
+            <Typography className="body-small-regular" sx={{ color: 'var(--accent-main)' }}>
+              (excepción para este mes)
             </Typography>
           )}
         </DialogTitle>
         <DialogContent sx={{ mt: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Días de la semana */}
-          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Días aplicables</Typography>
-          <FormGroup sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+          <Typography className="body-small-semibold" sx={{ color: 'var(--ink)' }}>Días aplicables</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
             {weekdaysOrder.map((day) => {
               const idx = weekdaysOrder.indexOf(day);
               const label = weekdaysSpanish[idx];
               const isChecked = turnConfigDialog.days.includes(day);
 
               return (
-                <FormControlLabel
+                <Checkbox
                   key={day}
-                  control={
-                    <Checkbox
-                      checked={isChecked}
-                      onChange={(e) => {
-                        const updated = e.target.checked
-                          ? [...turnConfigDialog.days, day]
-                          : turnConfigDialog.days.filter((d) => d !== day);
-                        setTurnConfigDialog({ ...turnConfigDialog, days: updated });
-                      }}
-                    />
-                  }
+                  checked={isChecked}
+                  onChange={(_e, checked) => {
+                    const updated = checked
+                      ? [...turnConfigDialog.days, day]
+                      : turnConfigDialog.days.filter((d) => d !== day);
+                    setTurnConfigDialog({ ...turnConfigDialog, days: updated });
+                  }}
                   label={label}
-                  sx={{ '& .MuiFormControlLabel-label': { fontSize: '13px', fontWeight: '500' } }}
                 />
               );
             })}
-          </FormGroup>
+          </Box>
 
           {/* Horarios */}
           <Box sx={{ display: 'flex', gap: '16px' }}>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora de inicio</Typography>
+              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '4px' }}>Hora de inicio</Typography>
               <TextField
                 type="time"
                 value={turnConfigDialog.startTime}
@@ -3296,7 +3316,7 @@ const Exhibitors = () => {
               />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>Hora de finalización</Typography>
+              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '4px' }}>Hora de finalización</Typography>
               <TextField
                 type="time"
                 value={turnConfigDialog.endTime}
@@ -3313,47 +3333,44 @@ const Exhibitors = () => {
           </Box>
 
           {/* Ubicaciones del Turno (Checkboxes de Ubicaciones Globales) */}
-          <Typography style={{ fontWeight: '700', fontSize: '13.5px' }}>Ubicaciones habilitadas para el turno</Typography>
+          <Typography className="body-small-semibold" sx={{ color: 'var(--ink)' }}>Ubicaciones habilitadas para el turno</Typography>
           {(!settings?.locations || settings.locations.length === 0) ? (
-            <Alert severity="warning" sx={{ borderRadius: 'var(--radius-l)', fontWeight: '600', mb: '8px' }}>
-              No hay ubicaciones configuradas globales. Añade una rápidamente con el formulario inferior.
-            </Alert>
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text="No hay ubicaciones configuradas globales. Añade una rápidamente con el formulario inferior."
+            />
           ) : (
-            <FormGroup sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', mb: '8px' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', mb: '8px' }}>
               {settings.locations.map((loc) => {
                 const isChecked = turnConfigDialog.locations.includes(loc);
                 return (
-                  <FormControlLabel
+                  <Checkbox
                     key={loc}
-                    control={
-                      <Checkbox
-                        checked={isChecked}
-                        onChange={(e) => {
-                          const updated = e.target.checked
-                            ? [...turnConfigDialog.locations, loc]
-                            : turnConfigDialog.locations.filter((l) => l !== loc);
-                          
-                          let defLoc = turnConfigDialog.defaultLocation;
-                          if (!e.target.checked && defLoc === loc) {
-                            defLoc = updated[0] || '';
-                          } else if (e.target.checked && !defLoc) {
-                            defLoc = loc;
-                          }
+                    checked={isChecked}
+                    onChange={(_e, checked) => {
+                      const updated = checked
+                        ? [...turnConfigDialog.locations, loc]
+                        : turnConfigDialog.locations.filter((l) => l !== loc);
 
-                          setTurnConfigDialog({
-                            ...turnConfigDialog,
-                            locations: updated,
-                            defaultLocation: defLoc,
-                          });
-                        }}
-                      />
-                    }
+                      let defLoc = turnConfigDialog.defaultLocation;
+                      if (!checked && defLoc === loc) {
+                        defLoc = updated[0] || '';
+                      } else if (checked && !defLoc) {
+                        defLoc = loc;
+                      }
+
+                      setTurnConfigDialog({
+                        ...turnConfigDialog,
+                        locations: updated,
+                        defaultLocation: defLoc,
+                      });
+                    }}
                     label={loc}
-                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '13px', fontWeight: '500' } }}
                   />
                 );
               })}
-            </FormGroup>
+            </Box>
           )}
 
           {/* Añadir ubicación rápida */}
@@ -3376,31 +3393,20 @@ const Exhibitors = () => {
                 }
               }}
             />
-            <Button
-              variant="outlined"
+            <AppButton
+              variant="tertiary"
+              disableAutoStretch
               onClick={handleQuickAddLocation}
-              size="small"
               startIcon={<IconAdd color="var(--accent-main)" />}
-              sx={{
-                borderRadius: 'var(--radius-l)',
-                textTransform: 'none',
-                fontWeight: '700',
-                borderColor: 'var(--accent-main)',
-                color: 'var(--accent-main)',
-                '&:hover': {
-                  borderColor: 'var(--accent-dark)',
-                  backgroundColor: 'var(--accent-50)',
-                }
-              }}
             >
               Añadir
-            </Button>
+            </AppButton>
           </Box>
 
           {/* Ubicación por Defecto */}
           {turnConfigDialog.locations.length > 0 && (
             <Box>
-              <Typography sx={{ fontWeight: '700', fontSize: '12px', color: 'var(--grey-600)', mb: '4px' }}>
+              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '4px' }}>
                 Ubicación por defecto
               </Typography>
               <Select
@@ -3419,26 +3425,21 @@ const Exhibitors = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          <Button
+          <AppButton
+            variant="tertiary"
+            disableAutoStretch
             onClick={() => setTurnConfigDialog({ ...turnConfigDialog, open: false })}
-            sx={{ color: 'var(--grey-600)', fontWeight: '600', textTransform: 'none' }}
           >
             Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveGlobalTurn}
+          </AppButton>
+          <AppButton
+            variant="main"
+            disableAutoStretch
             disabled={isSavingTurn}
-            variant="contained"
-            sx={{
-              backgroundColor: 'var(--accent-main)',
-              color: 'var(--always-white)',
-              fontWeight: '700',
-              textTransform: 'none',
-              borderRadius: 'var(--radius-l)',
-            }}
+            onClick={handleSaveGlobalTurn}
           >
             Guardar turno
-          </Button>
+          </AppButton>
         </DialogActions>
       </Dialog>
     </Box>

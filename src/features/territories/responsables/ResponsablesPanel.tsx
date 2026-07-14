@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Box, Stack, Grid, Tabs, Tab, Badge, Checkbox } from '@mui/material';
+import { Box, Stack, Grid, Tabs, Tab, Badge } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Checkbox from '@components/checkbox';
 import { IconAdd, IconMapOverview, IconCustom } from '@components/icons';
 import Accordion from '@components/accordion';
 import {
@@ -134,7 +135,7 @@ const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedId
                       <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                         <Checkbox
                           checked={selected}
-                          size="small"
+                          readOnly
                           sx={{ p: 0.5 }}
                         />
                       </Box>

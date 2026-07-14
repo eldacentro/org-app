@@ -188,14 +188,14 @@ const ImportExportTab = () => {
               display: 'flex',
               alignItems: 'flex-start',
               gap: 1,
-              backgroundColor: 'var(--bg-hover)',
+              backgroundColor: 'var(--accent-100)',
               borderRadius: '10px',
               px: 1.5,
               py: 1.25,
             }}
           >
             <Typography sx={{ fontSize: '14px', flexShrink: 0, mt: '-1px' }}>💡</Typography>
-            <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', lineHeight: 1.5 }}>
+            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
               Para importar desde KML/KMZ, usa el botón{' '}
               <strong>&quot;Importar KML&quot;</strong> en la pestaña{' '}
               <strong>Territorios</strong>.

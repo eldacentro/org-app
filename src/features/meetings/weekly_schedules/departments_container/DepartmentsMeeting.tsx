@@ -48,10 +48,9 @@ const DeptPersonComponent = ({
       <Typography
         className="body-small-semibold"
         color="var(--grey-500)"
-        sx={{ 
-          flexShrink: 0, 
-          minWidth: '95px', 
-          fontSize: '13.5px',
+        sx={{
+          flexShrink: 0,
+          minWidth: '95px',
           fontWeight: 600,
           letterSpacing: '0.2px'
         }}
@@ -99,7 +98,6 @@ const DeptPersonComponent = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontWeight: 700,
-              fontSize: '13.5px',
               color: active ? 'var(--brand-deep)' : 'var(--ink)',
               letterSpacing: '0.1px'
             }}
@@ -127,13 +125,12 @@ const DeptPersonComponent = ({
             }
           }}
         >
-          <Typography 
-            className="body-small-medium" 
-            color="var(--grey-350)" 
-            sx={{ 
-              fontSize: '13px', 
+          <Typography
+            className="body-small-regular"
+            color="var(--grey-350)"
+            sx={{
               fontWeight: 500,
-              letterSpacing: '0.5px' 
+              letterSpacing: '0.5px'
             }}
           >
             —

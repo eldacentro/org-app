@@ -159,7 +159,7 @@ const ServiceTime = (props: ServiceTimeProps) => {
           justifyContent: 'space-between',
         }}
       >
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
 

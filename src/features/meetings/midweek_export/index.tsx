@@ -132,7 +132,7 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
         >
           {t('tr_export')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

@@ -31,7 +31,7 @@ const GroupDetails = (props: GroupDetailsProps) => {
         <Button variant="main" onClick={props.onAction}>
           {t('tr_next')}
         </Button>
-        <Button variant="secondary" onClick={props.onClose}>
+        <Button variant="tertiary" onClick={props.onClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

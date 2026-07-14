@@ -85,7 +85,7 @@ const MasterKeyChange = ({ open, onClose }: MasterKeyChangeType) => {
         >
           {t('tr_save')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

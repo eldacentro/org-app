@@ -4,6 +4,7 @@ import MenuItem from '@components/menuitem';
 import Select from '@components/select';
 import Switch from '@components/switch';
 import SwitcherContainer from '@components/switcher_container';
+import SwitchWithLabel from '@components/switch_with_label';
 import Typography from '@components/typography';
 import {
   ProfileItemContainer,
@@ -74,37 +75,23 @@ const AppSettings = () => {
           </Box>
         </SwitcherContainer>
 
-        <SwitcherContainer>
-          <Switch
-            checked={syncTheme}
-            onChange={(e) => handleUpdateSyncTheme(e.target.checked)}
-          />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography>{t('tr_autoThemeChange')}</Typography>
-            <Typography className="label-small-regular" color="var(--grey-350)">
-              {t('tr_autoThemeChangeDesc')}
-            </Typography>
-          </Box>
-        </SwitcherContainer>
+        <SwitchWithLabel
+          label={t('tr_autoThemeChange')}
+          helper={t('tr_autoThemeChangeDesc')}
+          checked={syncTheme}
+          onChange={handleUpdateSyncTheme}
+        />
 
         {showPdfExportPersonal && (
-          <SwitcherContainer>
-            <Switch
-              checked={pdfExportPersonalEnabled}
-              onChange={(e) => handleSwitchPdfExportPersonal(e.target.checked)}
-            />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Typography>
-                {t('tr_pdfExportPersonalEnabled', 'Habilitar exportación a PDF para mi cuenta')}
-              </Typography>
-              <Typography className="label-small-regular" color="var(--grey-350)">
-                {t(
-                  'tr_pdfExportPersonalEnabledDesc',
-                  'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
-                )}
-              </Typography>
-            </Box>
-          </SwitcherContainer>
+          <SwitchWithLabel
+            label={t('tr_pdfExportPersonalEnabled', 'Habilitar exportación a PDF para mi cuenta')}
+            helper={t(
+              'tr_pdfExportPersonalEnabledDesc',
+              'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
+            )}
+            checked={pdfExportPersonalEnabled}
+            onChange={handleSwitchPdfExportPersonal}
+          />
         )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

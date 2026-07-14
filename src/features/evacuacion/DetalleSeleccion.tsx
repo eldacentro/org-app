@@ -112,7 +112,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
             {ext?.tipo ?? 'Desconocido'}
           </Typography>
         </Box>
-        <Typography sx={{ fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
+        <Typography className="body-small-regular" sx={{ color: '#475569', lineHeight: 1.5 }}>
           Ubicación estratégica señalada en el plano para uso inmediato en caso de conato de incendio.
         </Typography>
       </Box>
@@ -201,7 +201,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
               >
                 {i + 1}
               </Box>
-              <Typography sx={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, paddingTop: '1px', fontWeight: 500 }}>
+              <Typography className="body-small-medium" sx={{ color: '#475569', lineHeight: 1.6, paddingTop: '1px' }}>
                 {paso}
               </Typography>
             </Box>

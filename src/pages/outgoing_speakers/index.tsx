@@ -8,8 +8,6 @@ import {
   ListItem,
   Tooltip,
   Collapse,
-  Tabs,
-  Tab,
   TextField,
   InputAdornment,
   MenuItem,
@@ -568,15 +566,15 @@ const OutgoingSpeakersPage = () => {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', mt: 3 }}>
+          <Button variant="tertiary" onClick={() => setIsExportOpen(false)}>
+            {t('tr_cancel', 'Cancelar')}
+          </Button>
           <Button
             variant="main"
             disabled={isProcessing}
             onClick={handleExportPDF}
           >
             {t('tr_export', 'Exportar')}
-          </Button>
-          <Button variant="secondary" onClick={() => setIsExportOpen(false)}>
-            {t('tr_cancel', 'Cancelar')}
           </Button>
         </Box>
       </Dialog>
@@ -600,29 +598,12 @@ const OutgoingSpeakersPage = () => {
         }
       />
 
-      <Box sx={{ borderBottom: 1, borderColor: 'var(--line)', mt: 1 }}>
-        <Tabs
-          value={activeTab}
-          onChange={(e, val) => setActiveTab(val)}
-          sx={{
-            '& .MuiTab-root': {
-              fontWeight: '600',
-              textTransform: 'none',
-              fontSize: '15px',
-              color: 'var(--grey-500)',
-            },
-            '& .Mui-selected': {
-              color: 'var(--accent-main) !important',
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: 'var(--accent-main)',
-            },
-          }}
-        >
-          <Tab label="Oradores" />
-          <Tab label="Programa" />
-        </Tabs>
-      </Box>
+      <ScrollableTabs
+        tabs={[{ label: 'Oradores' }, { label: 'Programa' }]}
+        value={activeTab}
+        onChange={(idx) => setActiveTab(idx)}
+        sx={{ mt: 1 }}
+      />
 
       {activeTab === 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -652,7 +633,7 @@ const OutgoingSpeakersPage = () => {
             />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Typography sx={{ fontSize: '14px', color: 'var(--grey-500)', fontWeight: '500' }}>
+              <Typography className="body-small-medium" color="var(--grey-500)">
                 Ordenar por:
               </Typography>
               <Select
@@ -721,12 +702,12 @@ const OutgoingSpeakersPage = () => {
                       {/* Header: Name and badges */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
                         <Box>
-                          <Typography className="h2" sx={{ fontWeight: '600' }}>
+                          <Typography className="h2">
                             {displayName}
                           </Typography>
                           <Box sx={{ display: 'flex', gap: '8px', mt: 0.5, flexWrap: 'wrap' }}>
                             {isElder && <MiniChip label="Anciano" />}
-                            {isMS && <MiniChip label="Siervo Ministerial" />}
+                            {isMS && <MiniChip label="Siervo ministerial" />}
                             {!isElder && !isMS && <MiniChip label="Orador" />}
                           </Box>
                         </Box>
@@ -817,14 +798,14 @@ const OutgoingSpeakersPage = () => {
                                   }}
                                 >
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                                    <Typography className="h4" sx={{ fontWeight: '500' }}>
+                                    <Typography className="h4">
                                       {assignment.congregationName}
                                     </Typography>
-                                    <Typography color="var(--grey-400)" sx={{ fontSize: '12px' }}>
+                                    <Typography className="label-small-regular" color="var(--grey-400)">
                                       {assignment.formattedDate}
                                     </Typography>
                                   </Box>
-                                  <Typography color="var(--grey-500)" sx={{ fontSize: '13px', mt: 0.5 }}>
+                                  <Typography className="body-small-regular" color="var(--grey-500)" sx={{ mt: 0.5 }}>
                                     Tema {assignment.talkNumber}: {assignment.talkTitle || 'Cántico ' + assignment.songNumber}
                                   </Typography>
                                 </ListItem>
@@ -851,8 +832,6 @@ const OutgoingSpeakersPage = () => {
                             height: '38px',
                             minHeight: '38px',
                             borderRadius: 'var(--radius-l)',
-                            fontSize: '13px',
-                            fontWeight: '600',
                           }}
                           onClick={() => navigate('/speakers-catalog')}
                         >
@@ -865,8 +844,6 @@ const OutgoingSpeakersPage = () => {
                             height: '38px',
                             minHeight: '38px',
                             borderRadius: 'var(--radius-l)',
-                            fontSize: '13px',
-                            fontWeight: '600',
                           }}
                           onClick={() => {
                             const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
@@ -972,7 +949,7 @@ const OutgoingSpeakersPage = () => {
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <Typography className="h2" sx={{ fontWeight: '600' }}>
+                <Typography className="h2">
                   Programa
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1034,13 +1011,12 @@ const OutgoingSpeakersPage = () => {
                             py: 1,
                             px: 1,
                             borderRadius: 'var(--radius-m)',
-                            '&:hover': { backgroundColor: 'var(--accent-50)' },
+                            '&:hover': { backgroundColor: 'var(--accent-100)' },
                           }}
                         >
                           <Typography
+                            className="label-small-semibold"
                             sx={{
-                              fontSize: '13px',
-                              fontWeight: '600',
                               color: 'var(--grey-600)',
                               textTransform: 'uppercase',
                               letterSpacing: '0.5px',
@@ -1101,7 +1077,7 @@ const OutgoingSpeakersPage = () => {
                                     '&:hover': {
                                       backgroundColor: isSelected
                                         ? 'var(--accent-100)'
-                                        : 'var(--accent-50)',
+                                        : 'var(--accent-100)',
                                     },
                                   }}
                                 >
@@ -1116,13 +1092,8 @@ const OutgoingSpeakersPage = () => {
                                     }}
                                   >
                                     <Typography
-                                      sx={{
-                                        fontSize: '14px',
-                                        fontWeight: isSelected ? '600' : '400',
-                                        color: isSelected
-                                          ? 'var(--accent-main)'
-                                          : 'var(--black)',
-                                      }}
+                                      className={isSelected ? 'body-small-semibold' : 'body-small-regular'}
+                                      color={isSelected ? 'var(--accent-main)' : 'var(--black)'}
                                     >
                                       {weekLabel}
                                     </Typography>
@@ -1175,13 +1146,7 @@ const OutgoingSpeakersPage = () => {
                     border: '1px solid var(--line)',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      color: 'var(--accent-main)',
-                    }}
-                  >
+                  <Typography className="body-regular-semibold" color="var(--accent-main)">
                     {selectedWeekLabel}
                   </Typography>
                 </Box>

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, cloneElement, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
+import Typography from '@components/typography';
 import {
   IconCheckCircle,
   IconInTerritory,
@@ -763,25 +764,12 @@ const Dashboard = () => {
                   <rect x="3" y="4" width="18" height="18" rx="2" />
                   <path d="m14 14-4 4M10 14l4 4" />
                 </svg>
-                <Box
-                  sx={{
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    marginBottom: '4px',
-                  }}
-                >
+                <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)', marginBottom: '4px' }}>
                   {t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
-                </Box>
-                <Box
-                  sx={{
-                    fontSize: '13px',
-                    color: 'var(--slate-500)',
-                    maxWidth: '300px',
-                  }}
-                >
+                </Typography>
+                <Typography className="body-small-regular" sx={{ color: 'var(--grey-400)', maxWidth: '300px' }}>
                   {t('tr_noMeetingsScheduledDesc', 'Esta semana no hay reuniones debido a eventos especiales o asambleas.')}
-                </Box>
+                </Typography>
               </Box>
             ) : (
               <>

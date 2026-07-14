@@ -1,5 +1,5 @@
-import { useState, ChangeEvent } from 'react';
-import { Box, Stack, Switch, FormControlLabel, CircularProgress } from '@mui/material';
+import { useState } from 'react';
+import { Box, Stack, CircularProgress } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { settingsState } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
@@ -13,6 +13,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { IconBackupOrganized } from '@components/icons';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import SwitchWithLabel from '@components/switch_with_label';
 
 const GoogleDriveTab = () => {
   const settings = useAtomValue(settingsState);
@@ -60,8 +61,7 @@ const GoogleDriveTab = () => {
     });
   };
 
-  const handleToggleAutoBackup = async (e: ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
+  const handleToggleAutoBackup = async (checked: boolean) => {
     await dbAppSettingsUpdate({
       'user_settings.backup_automatic.google_drive_auto_enabled': {
         value: checked,
@@ -123,7 +123,7 @@ const GoogleDriveTab = () => {
           p: 3,
           border: '1px solid var(--line)',
           borderRadius: 'var(--radius-m)',
-          bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.03)' : 'var(--accent-100)') : 'var(--accent-50)',
+          bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.03)' : 'var(--accent-100)') : 'var(--accent-100)',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -199,31 +199,17 @@ const GoogleDriveTab = () => {
           {/* Auto Backup Toggle */}
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
               p: 2,
               border: '1px solid var(--line)',
               borderRadius: 'var(--radius-m)',
-              bgcolor: 'var(--accent-50)',
+              bgcolor: 'var(--accent-100)',
             }}
           >
-            <Stack>
-              <Typography className="h4">Copia Automática Diaria</Typography>
-              <Typography className="label-small-regular" color="var(--grey-400)">
-                Sube silenciosamente una copia diaria cuando abres la aplicación.
-              </Typography>
-            </Stack>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isAutoEnabled}
-                  onChange={handleToggleAutoBackup}
-                  color="primary"
-                />
-              }
-              label=""
-              sx={{ mr: 0 }}
+            <SwitchWithLabel
+              label="Copia automática diaria"
+              helper="Sube silenciosamente una copia diaria cuando abres la aplicación."
+              checked={isAutoEnabled}
+              onChange={handleToggleAutoBackup}
             />
           </Box>
 
@@ -236,7 +222,7 @@ const GoogleDriveTab = () => {
               p: 2,
               border: '1px solid var(--line)',
               borderRadius: 'var(--radius-m)',
-              bgcolor: 'var(--accent-50)',
+              bgcolor: 'var(--accent-100)',
             }}
           >
             <Stack>
@@ -258,7 +244,7 @@ const GoogleDriveTab = () => {
         <Box
           sx={{
             p: 3,
-            bgcolor: 'var(--accent-50)',
+            bgcolor: 'var(--accent-100)',
             borderRadius: 'var(--radius-m)',
             border: '1px solid var(--line)',
           }}

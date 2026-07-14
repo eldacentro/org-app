@@ -47,7 +47,7 @@ const FieldServiceGroups = (props: FieldServiceGroupsProps) => {
           {btnLabel}
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
           disabled={isProcessing}
           onClick={props.onClose}
         >

@@ -45,7 +45,10 @@ const DeptWeekItem = ({
         onWeekSelect?.();
       }}
     >
-      <Typography className={isSelected ? 'body-semibold' : 'body-regular'}>
+      {/* 'body-semibold' no existía en el sistema tipográfico (sin definición
+          CSS) — la semana seleccionada se veía con el mismo peso que el
+          resto, sin ningún énfasis visual. */}
+      <Typography className={isSelected ? 'body-regular-semibold' : 'body-regular'}>
         {label}
       </Typography>
       {noMeeting && (

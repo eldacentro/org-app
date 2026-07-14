@@ -35,9 +35,7 @@ export type CustomClassName =
   | 'body-regular-semibold'
   | 'body-small-semibold'
   | 'body-small-regular'
-  | 'body-small-medium'
-  | 'body-medium-semibold'
-  | 'body-semibold';
+  | 'body-small-medium';
 
 export type AssignmentCheckListColors =
   | 'midweek-meeting'

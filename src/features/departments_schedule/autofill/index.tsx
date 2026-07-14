@@ -126,7 +126,7 @@ const DeptAutofillDialog = ({
         >
           {t('tr_autofill', 'Autocompletar')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel', 'Cancelar')}
         </Button>
       </Box>

@@ -239,7 +239,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                       padding: '5px',
                       borderRadius: 'var(--r-sm)',
                       ml: 1,
-                      '&:hover': { color: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                      '&:hover': { color: 'var(--red-main)', backgroundColor: 'var(--red-secondary)' },
                     }}
                   >
                     <IconDelete color="currentColor" width={16} height={16} />

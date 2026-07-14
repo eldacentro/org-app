@@ -7,13 +7,12 @@ import {
   DialogActions,
   FormControl,
   FormGroup,
-  FormControlLabel,
-  Checkbox,
   Box,
   MenuItem,
-  Typography,
 } from '@mui/material';
+import { Typography } from '@components/index';
 import Button from '@components/button';
+import Checkbox from '@components/checkbox';
 import TextField from '@components/textfield';
 import DatePicker from '@components/date_picker';
 import { useAtomValue } from 'jotai';
@@ -162,8 +161,25 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { maxWidth: '600px', width: '100%' } }}>
-      <DialogTitle>Configuración de Limpieza</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          maxWidth: '600px',
+          width: '100%',
+          border: '1px solid var(--line)',
+          backgroundColor: 'var(--card)',
+          boxShadow: 'var(--pop-up-shadow)',
+          borderRadius: 'var(--radius-xl)',
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Configuración de limpieza
+        </Typography>
+      </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
           <DatePicker
@@ -187,20 +203,16 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
           </TextField>
 
           <FormControl component="fieldset">
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography className="body-small-semibold" sx={{ color: 'var(--ink-2)', mb: 1 }}>
               Grupos que participan en la rotación
             </Typography>
             <FormGroup>
               {activeGroups.map((g) => (
-                <FormControlLabel
+                <Checkbox
                   key={g.group_id}
-                  control={
-                    <Checkbox
-                      checked={gruposParticipantes.includes(g.group_id)}
-                      onChange={() => toggleGroup(g.group_id)}
-                    />
-                  }
                   label={getGroupName(g)}
+                  checked={gruposParticipantes.includes(g.group_id)}
+                  onChange={() => toggleGroup(g.group_id)}
                 />
               ))}
             </FormGroup>
@@ -217,7 +229,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="secondary">
+        <Button onClick={onClose} variant="tertiary">
           Cancelar
         </Button>
         <Button onClick={handleSave} variant="main" disabled={isSaving}>

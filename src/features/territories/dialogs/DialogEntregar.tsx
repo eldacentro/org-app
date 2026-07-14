@@ -174,7 +174,7 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           >
             Devolver sin trabajar
           </Button>
-          <Button variant="secondary" onClick={onClose} disabled={saving}>
+          <Button variant="tertiary" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
         </Stack>

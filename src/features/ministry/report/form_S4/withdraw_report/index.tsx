@@ -30,7 +30,7 @@ const WithdrawReport = (props: WithdrawReportProps) => {
           {t('tr_yes')}
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
           onClick={props.onClose}
           disabled={isProcessing}
         >

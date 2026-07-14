@@ -34,7 +34,7 @@ const VisibilityOffConfirm = ({
         <Button variant="main" onClick={onConfirm}>
           {t('tr_hide')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

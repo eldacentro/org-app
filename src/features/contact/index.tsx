@@ -93,7 +93,7 @@ const Contact = () => {
           {t('tr_sendFeedback')}
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
           disabled={isProcessing}
           onClick={handleClose}
         >

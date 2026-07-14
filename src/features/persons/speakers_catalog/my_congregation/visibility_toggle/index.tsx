@@ -1,8 +1,6 @@
 import { Box } from '@mui/material';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
-import Switch from '@components/switch';
-import SwitcherContainer from '@components/switcher_container';
-import Typography from '@components/typography';
+import SwitchWithLabel from '@components/switch_with_label';
 import VisibilityOffConfirm from './visibility_off';
 import useVisibilityToggle from './useVisibilityToggle';
 
@@ -34,19 +32,13 @@ const VisibilityToggle = () => {
         />
       )}
 
-      <SwitcherContainer>
-        <Switch
-          checked={isVisible}
-          onChange={(e) => handleToggleVisibility(e.target.checked)}
-          readOnly={!isPublicTalkCoordinator}
-        />
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Typography>{t('tr_discoverableSetting')}</Typography>
-          <Typography className="label-small-regular" color="var(--grey-350)">
-            {t('tr_discoverableSettingDesc')}
-          </Typography>
-        </Box>
-      </SwitcherContainer>
+      <SwitchWithLabel
+        label={t('tr_discoverableSetting')}
+        helper={t('tr_discoverableSettingDesc')}
+        checked={isVisible}
+        onChange={handleToggleVisibility}
+        readOnly={!isPublicTalkCoordinator}
+      />
     </Box>
   );
 };

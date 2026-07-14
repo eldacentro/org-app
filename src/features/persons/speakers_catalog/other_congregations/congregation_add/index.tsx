@@ -58,7 +58,7 @@ const CongregationAdd = ({ onClose, open }: CongregationAddType) => {
             >
               {t('tr_continue')}
             </Button>
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="tertiary" onClick={onClose}>
               {t('tr_cancel')}
             </Button>
           </Box>

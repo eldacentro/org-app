@@ -30,12 +30,13 @@ const FieldRow = ({
     }}
   >
     <Typography
-      sx={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3, mb: '4px' }}
+      className="body-small-semibold"
+      sx={{ color: 'var(--ink)', lineHeight: 1.3, mb: '4px' }}
     >
       {label}
     </Typography>
     {description && (
-      <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', mb: '10px', lineHeight: 1.4 }}>
+      <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', mb: '10px', lineHeight: 1.4 }}>
         {description}
       </Typography>
     )}
@@ -98,7 +99,7 @@ const NumberStepper = ({
         alignItems: 'center',
         borderRadius: '12px',
         border: '1.5px solid var(--line)',
-        backgroundColor: 'var(--bg-hover)',
+        backgroundColor: 'var(--accent-100)',
         overflow: 'hidden',
       }}
     >
@@ -147,7 +148,7 @@ const NumberStepper = ({
           } as CSSProperties}
         />
         {suffix && (
-          <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
+          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
             {suffix}
           </Typography>
         )}
@@ -415,18 +416,18 @@ const ConfiguracionTab = () => {
                     flexShrink: 0,
                   }}
                 />
-                <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+                <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   Cambios sin guardar
                 </Typography>
               </>
             )}
             {saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--green-main)', fontWeight: 600 }}>
+              <Typography className="body-small-semibold" sx={{ color: 'var(--green-main)' }}>
                 ✓ Guardado
               </Typography>
             )}
             {!hasChanges && !saved && (
-              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                 Todo al día
               </Typography>
             )}

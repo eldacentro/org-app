@@ -118,9 +118,13 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       sx={{ p: 1, borderRadius: '12px', border: '1px solid var(--line)' }}
     >
       <Chip
-        label="NO VISITAR"
+        label="No visitar"
         size="small"
-        sx={{ backgroundColor: 'var(--red-main)', color: 'var(--always-white)' }}
+        sx={{
+          backgroundColor: 'var(--red-main)',
+          color: 'var(--always-white)',
+          textTransform: 'uppercase',
+        }}
       />
       <Box sx={{ flex: 1 }}>
         <Typography variant="body2" sx={{ color: 'var(--ink)' }}>

@@ -51,7 +51,7 @@ const AllRecords = (props: AllRecordsProps) => {
         >
           {type === 'all' ? t('tr_export') : t('tr_next')}
         </Button>
-        <Button variant="secondary" disabled={isProcessing} onClick={onClose}>
+        <Button variant="tertiary" disabled={isProcessing} onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

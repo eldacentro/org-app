@@ -1,7 +1,4 @@
-import { Box } from '@mui/material';
-import Switch from '@components/switch';
-import SwitcherContainer from '@components/switcher_container';
-import Typography from '@components/typography';
+import SwitchWithLabel from '@components/switch_with_label';
 import {
   ProfileItemContainer,
   SettingWithBorderContainer,
@@ -17,18 +14,12 @@ const CalendarExport = () => {
   return (
     <ProfileItemContainer>
       <SettingWithBorderContainer>
-        <SwitcherContainer>
-          <Switch
-            checked={enabled}
-            onChange={(e) => handleToggle(e.target.checked)}
-          />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography>{t('tr_calendarExportPreference')}</Typography>
-            <Typography className="label-small-regular" color="var(--grey-350)">
-              {t('tr_calendarExportPreferenceDesc')}
-            </Typography>
-          </Box>
-        </SwitcherContainer>
+        <SwitchWithLabel
+          label={t('tr_calendarExportPreference')}
+          helper={t('tr_calendarExportPreferenceDesc')}
+          checked={enabled}
+          onChange={handleToggle}
+        />
       </SettingWithBorderContainer>
     </ProfileItemContainer>
   );

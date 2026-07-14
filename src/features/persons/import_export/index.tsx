@@ -97,7 +97,7 @@ const ImportExport = (props: ImportExportType) => {
               sx={{
                 width: '100%',
                 maxWidth: '452px',
-                backgroundColor: 'var(--grey-50)',
+                backgroundColor: 'var(--grey-100)',
                 borderRadius: '4px',
               }}
             >
@@ -146,7 +146,7 @@ const ImportExport = (props: ImportExportType) => {
                   sx={{
                     width: '24px',
                     height: '24px',
-                    color: '#505050',
+                    color: 'var(--grey-600)',
                     flex: 'none',
                     order: 1,
                     flexGrow: 0,

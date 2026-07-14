@@ -318,7 +318,7 @@ const LocalBackupsTab = () => {
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
             <Button
-              variant="secondary"
+              variant="tertiary"
               onClick={() => setConfirmRestore(null)}
               disabled={isRestoring}
             >

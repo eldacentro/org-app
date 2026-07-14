@@ -28,7 +28,7 @@ const bgColorView = {
 };
 
 const hoverColorView = {
-  orange: 'var(--orange-tertiary)',
+  orange: 'var(--orange-secondary)',
   dashed: 'transparent',
   silver: 'transparent',
   disabled: 'transparent',

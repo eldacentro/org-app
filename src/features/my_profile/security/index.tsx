@@ -1,3 +1,4 @@
+import { ChangeEvent } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { IconDelete } from '@components/icons';
@@ -10,8 +11,7 @@ import Divider from '@components/divider';
 import MFAEnable from './mfaEnable';
 import MFADisable from './mfaDisable';
 import Button from '@components/button';
-import Switch from '@components/switch';
-import SwitcherContainer from '@components/switcher_container';
+import SwitchWithLabel from '@components/switch_with_label';
 import Typography from '@components/typography';
 import DeleteAccount from './delete_account';
 
@@ -49,20 +49,16 @@ const Security = () => {
       <Stack spacing="16px" divider={<Divider color="var(--line)" />}>
         {accountType === 'vip' && (
           <SettingWithBorderContainer>
-            <SwitcherContainer>
-              <Switch checked={isMFAEnabled} onChange={handleToggleMFA} />
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
-              >
-                <Typography>{t('tr_2FA')}</Typography>
-                <Typography
-                  className="label-small-regular"
-                  color="var(--grey-350)"
-                >
-                  {t('tr_2FADesc')}
-                </Typography>
-              </Box>
-            </SwitcherContainer>
+            <SwitchWithLabel
+              label={t('tr_2FA')}
+              helper={t('tr_2FADesc')}
+              checked={isMFAEnabled}
+              onChange={() =>
+                handleToggleMFA({
+                  preventDefault: () => undefined,
+                } as unknown as ChangeEvent<HTMLInputElement>)
+              }
+            />
           </SettingWithBorderContainer>
         )}
 

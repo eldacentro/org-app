@@ -193,8 +193,8 @@ const ActionButton = ({
     </Box>
     {disabled && disabledReason && (
       <Typography
+        className="label-small-regular"
         sx={{
-          fontSize: '12px',
           color: 'var(--ink-2)',
           textAlign: 'center',
           mt: '6px',
@@ -593,7 +593,7 @@ const DialogVerTerritorio = ({
               }}
             >
               {allTags.length === 0 ? (
-                <Typography sx={{ fontSize: 12, color: 'var(--ink-2)' }}>
+                <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   No hay etiquetas creadas.
                 </Typography>
               ) : (
@@ -681,14 +681,14 @@ const DialogVerTerritorio = ({
                   >
                     Notas
                   </Typography>
-                  <Typography sx={{ fontSize: 14, color: 'var(--orange-dark)', lineHeight: 1.5 }}>
+                  <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)', lineHeight: 1.5 }}>
                     {liveTerritory.notas}
                   </Typography>
                 </Box>
               ) : (
                 <Typography
+                  className="body-small-regular"
                   sx={{
-                    fontSize: 13,
                     color: 'rgba(0,0,0,0.35)',
                     textAlign: 'center',
                     py: 1,
@@ -738,7 +738,7 @@ const DialogVerTerritorio = ({
                   }}
                 >
                   <Typography sx={{ fontSize: 32 }}>🗺️</Typography>
-                  <Typography sx={{ fontSize: 13, color: 'var(--ink-2)' }}>
+                  <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                     Sin imagen adjunta
                   </Typography>
                 </Box>
@@ -989,7 +989,7 @@ const DialogVerTerritorio = ({
                   size="small"
                   onClick={onEdit}
                   aria-label="Editar territorio"
-                  sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--bg-hover)' } }}
+                  sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--accent-100)' } }}
                 >
                   <IconEdit width={15} height={15} />
                 </IconButton>
@@ -998,7 +998,7 @@ const DialogVerTerritorio = ({
                 size="small"
                 onClick={onClose}
                 aria-label="Cerrar"
-                sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--bg-hover)' } }}
+                sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--accent-100)' } }}
               >
                 <IconClose width={15} height={15} />
               </IconButton>
@@ -1059,7 +1059,7 @@ const DialogVerTerritorio = ({
           {editingTags && canManage && (
             <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
               {allTags.length === 0 ? (
-                <Typography sx={{ fontSize: 12, color: 'var(--ink-2)' }}>
+                <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   No hay etiquetas creadas.
                 </Typography>
               ) : (
@@ -1162,7 +1162,7 @@ const DialogVerTerritorio = ({
                   sx={{
                     height: 160,
                     borderRadius: '12px',
-                    backgroundColor: 'var(--bg-hover)',
+                    backgroundColor: 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1191,7 +1191,7 @@ const DialogVerTerritorio = ({
                           cursor: uploading ? 'default' : 'pointer',
                           opacity: uploading ? 0.6 : 1,
                           transition: 'background 0.15s ease',
-                          '&:active': uploading ? undefined : { backgroundColor: 'var(--bg-hover)' },
+                          '&:active': uploading ? undefined : { backgroundColor: 'var(--accent-100)' },
                         }}
                       >
                         {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
@@ -1225,7 +1225,7 @@ const DialogVerTerritorio = ({
         <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="flex-end">
             {relevantAssignment && onEntregar && !canManage && !settings.publishersCanReturn && (
-              <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)' }}>
+              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                 Solo un responsable puede marcar este territorio como entregado.
               </Typography>
             )}

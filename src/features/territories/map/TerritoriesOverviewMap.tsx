@@ -243,11 +243,11 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
         <Stack direction="row" spacing={2}>
           <Stack direction="row" spacing={0.75} alignItems="center">
             <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: ASSIGNED_COLOR }} />
-            <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)' }}>Asignado</Typography>
+            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Asignado</Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center">
             <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: FREE_COLOR }} />
-            <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)' }}>Libre</Typography>
+            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Libre</Typography>
           </Stack>
         </Stack>
       </Box>
@@ -270,10 +270,10 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: '15px', color: 'var(--ink)' }}>
+              <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                 {selected.nombre ? `${selected.numero} — ${selected.nombre}` : selected.numero}
               </Typography>
-              <Typography sx={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
                 {getZoneName(selected.zoneId, zones)}
               </Typography>
             </Box>
@@ -302,12 +302,12 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
 
           <Box sx={{ mt: '10px' }}>
             {selectedAssignment ? (
-              <Typography sx={{ fontSize: '13px', color: 'var(--ink)' }}>
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
                 <strong>{resolveName(selectedAssignment.personUid)}</strong> · desde{' '}
                 {formatTerritoryDate(selectedAssignment.assignedAt, settings.dateFormat)}
               </Typography>
             ) : (
-              <Typography sx={{ fontSize: '13px', color: FREE_COLOR, fontWeight: 600 }}>
+              <Typography className="body-small-semibold" sx={{ color: FREE_COLOR }}>
                 Libre — sin asignar
               </Typography>
             )}

@@ -138,11 +138,20 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     <>
       {ConfirmDialogNode}
       <Dialog open={open} onClose={onClose} maxWidth={false} fullWidth scroll="paper"
-        PaperProps={{ sx: { maxWidth: '1100px', width: 'calc(100% - 32px)' } }}
+        PaperProps={{
+          sx: {
+            maxWidth: '1100px',
+            width: 'calc(100% - 32px)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+            borderRadius: 'var(--radius-xl)',
+          },
+        }}
     >
       <DialogTitle sx={{ p: 0 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
-          <Typography className="h2">Editar territorio</Typography>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>Editar territorio</Typography>
           <IconButton onClick={onClose}>
             <IconClose color="var(--black)" />
           </IconButton>
@@ -253,7 +262,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                 pointerEvents: 'none'
               }}>
                 <Typography variant="caption" color="var(--ink-2)" sx={{ fontWeight: 600 }}>
-                  Modo Edición: Activo
+                  Modo edición: activo
                 </Typography>
               </Box>
             </Box>
@@ -261,7 +270,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
         </Grid>
 
         <Stack direction="row" justifyContent="flex-end" spacing={1} sx={{ mt: 3, pt: 2, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
-          <Button variant="secondary" disableAutoStretch onClick={onClose} disabled={saving}>
+          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
           <Button variant="main" disableAutoStretch onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>

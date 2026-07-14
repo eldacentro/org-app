@@ -206,7 +206,7 @@ const MFAEnable = ({ open, onClose }: MFAEnableType) => {
             >
               {t('tr_verify')}
             </Button>
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="tertiary" onClick={onClose}>
               {t('tr_cancel')}
             </Button>
           </Box>

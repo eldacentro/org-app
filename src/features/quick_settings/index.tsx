@@ -37,9 +37,6 @@ const QuickSettings = ({
         <Button variant="main" onClick={onClose}>
           {t('tr_done')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
       </Box>
     </Dialog>
   );

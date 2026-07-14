@@ -66,7 +66,7 @@ const SpeakerTalksSongs = ({ speaker, onClose }: SpeakerTalksSongsType) => {
           <Button variant="main" onClick={handleToggleEdit}>
             {isEdit ? t('tr_done') : t('tr_songsEdit')}
           </Button>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="tertiary" onClick={onClose}>
             {t('tr_cancel')}
           </Button>
         </Box>

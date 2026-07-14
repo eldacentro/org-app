@@ -45,7 +45,7 @@ const MFADisable = ({ open, onClose }: MFADisableType) => {
         >
           {t('tr_disable')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

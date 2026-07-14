@@ -63,12 +63,13 @@ export const SectionCard = ({
       </Box>
       <Box>
         <Typography
-          sx={{ fontWeight: 700, fontSize: '14px', color: 'var(--ink)', lineHeight: 1.2 }}
+          className="body-small-semibold"
+          sx={{ color: 'var(--ink)', lineHeight: 1.2 }}
         >
           {title}
         </Typography>
         {subtitle && (
-          <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', lineHeight: 1.3 }}>
+          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', lineHeight: 1.3 }}>
             {subtitle}
           </Typography>
         )}
@@ -121,7 +122,7 @@ export const PillGroup = ({
             userSelect: 'none',
             '&:hover': {
               borderColor: active ? accent : 'var(--ink-3)',
-              backgroundColor: active ? `${accent}22` : 'var(--bg-hover)',
+              backgroundColor: active ? `${accent}22` : 'var(--accent-100)',
             },
             '&:active': { transform: 'scale(0.96)' },
             '&:focus-visible': {
@@ -188,12 +189,13 @@ export const ToggleRow = ({
   >
     <Box sx={{ flex: 1 }}>
       <Typography
-        sx={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink)', lineHeight: 1.3 }}
+        className="body-small-medium"
+        sx={{ color: 'var(--ink)', lineHeight: 1.3 }}
       >
         {label}
       </Typography>
       {description && (
-        <Typography sx={{ fontSize: '12px', color: 'var(--ink-2)', mt: '3px', lineHeight: 1.4 }}>
+        <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', mt: '3px', lineHeight: 1.4 }}>
           {description}
         </Typography>
       )}

@@ -221,12 +221,12 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 flexWrap: 'wrap',
                 p: 1.5,
                 borderRadius: 'var(--radius-l)',
-                backgroundColor: 'var(--accent-50)',
+                backgroundColor: 'var(--accent-100)',
                 border: '1px solid var(--line)',
               }}
             >
               {selectedCatalogCong.cong_data.cong_location.address.value && (
-                <Typography sx={{ fontSize: '13px', color: 'var(--grey-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Typography className="body-small-regular" sx={{ color: 'var(--grey-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <IconLocation width={16} height={16} color="currentColor" />
                   {selectedCatalogCong.cong_data.cong_location.address.value}
                 </Typography>
@@ -237,13 +237,13 @@ const ScheduleItem = (props: ScheduleItemType) => {
           {!schedule.synced && (
             <Box
               onClick={() => setIsManualInput(true)}
+              className="body-small-regular"
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
                 color: 'var(--accent-main)',
-                fontSize: '13px',
                 fontWeight: '500',
                 width: 'fit-content',
                 '&:hover': { textDecoration: 'underline' },
@@ -375,13 +375,13 @@ const ScheduleItem = (props: ScheduleItemType) => {
           {!schedule.synced && (
             <Box
               onClick={() => setIsManualInput(false)}
+              className="body-small-regular"
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
                 color: 'var(--grey-500)',
-                fontSize: '13px',
                 fontWeight: '500',
                 width: 'fit-content',
                 '&:hover': { color: 'var(--accent-main)', textDecoration: 'underline' },

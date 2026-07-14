@@ -59,7 +59,7 @@ const Export = (props: ExportType) => {
 
       <Stack spacing="8px">
         <Button
-          variant="secondary"
+          variant="tertiary"
           disabled={isProcessing || isProcessingEmergencyContacts}
           onClick={props.onClose}
         >

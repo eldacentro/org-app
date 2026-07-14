@@ -31,7 +31,7 @@ const PersonQualifyConfirm = ({
         <Button variant="main" onClick={onConfirm}>
           {t('tr_qualifyAgain')}
         </Button>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose}>
           {t('tr_cancel')}
         </Button>
       </Box>

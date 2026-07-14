@@ -26,7 +26,7 @@ const GroupDelete = (props: GroupDeleteProps) => {
         <Button variant="main" color="red" onClick={handleDeleteGroup}>
           {t('tr_delete')}
         </Button>
-        <Button variant="secondary" onClick={props.onClose}>
+        <Button variant="tertiary" onClick={props.onClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

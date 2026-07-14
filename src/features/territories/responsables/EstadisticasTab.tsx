@@ -187,9 +187,8 @@ const ZoneGroup = ({
           }}
         />
         <Typography
+          className="label-small-semibold"
           sx={{
-            fontSize: '12px',
-            fontWeight: 700,
             color: 'var(--ink-2)',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
@@ -198,10 +197,9 @@ const ZoneGroup = ({
           {zone.nombre}
         </Typography>
         <Typography
+          className="label-small-regular"
           sx={{
-            fontSize: '12px',
             color: 'var(--ink-2)',
-            fontWeight: 400,
           }}
         >
           · {territories.length} territorios

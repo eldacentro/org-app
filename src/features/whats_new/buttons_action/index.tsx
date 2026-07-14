@@ -27,7 +27,7 @@ const ButtonsAction = ({
           )}
 
           {current === 0 && (
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="tertiary" onClick={onClose}>
               {t('tr_skip')}
             </Button>
           )}

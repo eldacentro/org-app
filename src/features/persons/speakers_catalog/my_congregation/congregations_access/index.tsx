@@ -73,7 +73,7 @@ const OutgoingSpeakersAccess = ({ open, onClose }: CongregationAccessType) => {
             <Button variant="main" color="red" onClick={handleRevokeAccess}>
               {t('tr_delete')}
             </Button>
-            <Button variant="secondary" onClick={() => handleSetDelete(null)}>
+            <Button variant="tertiary" onClick={() => handleSetDelete(null)}>
               {t('tr_cancel')}
             </Button>
           </Box>

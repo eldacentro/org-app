@@ -46,9 +46,28 @@ export const getEffectiveHoursForMonth = (
   return override as Record<string, string>;
 };
 
+type CancelOverride = { isCancelledMonth: boolean; keepActiveSlots?: string[] };
+
 /**
- * Checks if a specific month is explicitly suspended (no outings at all)
- * in the overrides.
+ * Devuelve el override de suspensión del mes si está activo, o null. Uso
+ * interno para no repetir la comprobación 'isCancelledMonth' in override.
+ */
+const getMonthCancelOverride = (
+  settings: ServiceOutingSettingsType | null,
+  monthStr: string
+): CancelOverride | null => {
+  const override = settings?.monthlyOverrides?.[monthStr];
+  if (override && 'isCancelledMonth' in override && override.isCancelledMonth) {
+    return override as CancelOverride;
+  }
+  return null;
+};
+
+/**
+ * ¿El mes está marcado como suspendido? (con o sin excepciones). Se conserva
+ * para el estado de la UI ("este mes está suspendido") y la compatibilidad con
+ * quien ya lo usaba. Para saber si NO queda ninguna salida, usar
+ * isOutingsMonthFullyCancelled; para un turno concreto, isOutingSlotSuppressedByMonth.
  *
  * @param settings The global Service Outings settings
  * @param monthStr The month in "YYYY/MM" format
@@ -57,10 +76,42 @@ export const isOutingsMonthCancelled = (
   settings: ServiceOutingSettingsType | null,
   monthStr: string
 ): boolean => {
-  if (!settings?.monthlyOverrides || !settings.monthlyOverrides[monthStr]) {
-    return false;
-  }
+  return getMonthCancelOverride(settings, monthStr) !== null;
+};
 
-  const override = settings.monthlyOverrides[monthStr];
-  return 'isCancelledMonth' in override && override.isCancelledMonth === true;
+/**
+ * ¿El mes está suspendido SIN ninguna salida mantenida activa? Es la
+ * suspensión total (no hay absolutamente nada que planificar/exportar ese mes).
+ */
+export const isOutingsMonthFullyCancelled = (
+  settings: ServiceOutingSettingsType | null,
+  monthStr: string
+): boolean => {
+  const cancel = getMonthCancelOverride(settings, monthStr);
+  return cancel !== null && (cancel.keepActiveSlots?.length ?? 0) === 0;
+};
+
+/**
+ * ¿Este turno concreto queda suprimido por la suspensión del mes? Un mes
+ * suspendido suprime TODOS los turnos salvo los mantenidos activos en
+ * keepActiveSlots (por clave exacta de turno, ej. "saturday_morning", o por día
+ * completo, ej. "saturday"). Es el único punto que decide la excepción, y lo
+ * consultan por igual el planificador, "Programas semanales", el PDF y el
+ * autorrelleno, así que las cuatro vistas quedan siempre coherentes.
+ *
+ * @param slotType clave del turno, ej. "saturday_morning"
+ */
+export const isOutingSlotSuppressedByMonth = (
+  settings: ServiceOutingSettingsType | null,
+  monthStr: string,
+  slotType: string
+): boolean => {
+  const cancel = getMonthCancelOverride(settings, monthStr);
+  if (!cancel) return false;
+
+  const kept = cancel.keepActiveSlots ?? [];
+  if (kept.length === 0) return true; // suspensión total
+
+  const dayLabel = slotType.split('_')[0]; // "saturday_morning" -> "saturday"
+  return !(kept.includes(slotType) || kept.includes(dayLabel));
 };

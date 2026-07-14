@@ -207,7 +207,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           >
             <Stack justifyContent="center" spacing="2px" flex={1}>
               <Stack direction="row" spacing={1.2} alignItems="center" flexWrap="wrap">
-                <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700, fontSize: '15px' }}>
+                <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700 }}>
                   {history.assignment.title}
                 </Typography>
 
@@ -216,9 +216,9 @@ const AssignmentItem = (props: AssignmentItemProps) => {
 
               {rowIsDept && (
                 <Typography
-                  className="body-small-semibold"
+                  className="label-small-medium"
                   color="var(--grey-400)"
-                  sx={{ fontSize: '12px', fontStyle: 'italic' }}
+                  sx={{ fontStyle: 'italic' }}
                 >
                   Toda la semana
                 </Typography>
@@ -240,7 +240,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                 <Typography
                   className={'body-small-semibold'}
                   color={'var(--grey-400)'}
-                  sx={{ fontSize: '13px', marginTop: '2px' }}
+                  sx={{ marginTop: '2px' }}
                 >
                   {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
                 </Typography>
@@ -250,7 +250,6 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                 <Typography
                   className={'body-small-semibold'}
                   color={'var(--grey-400)'}
-                  sx={{ fontSize: '13px' }}
                 >
                   {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
                 </Typography>
@@ -263,13 +262,13 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                   estudiante o no), lo que hacía que unas tarjetas se vieran
                   distintas de otras sin motivo. */}
               {history.assignment.src && (
-                <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
+                <Typography className="label-small-regular" color="var(--grey-400)" sx={{ marginTop: '2px', lineHeight: 1.3 }}>
                   {history.assignment.src}
                 </Typography>
               )}
 
               {history.assignment.desc && (
-                <Typography className="body-small-regular" color="var(--grey-400)" sx={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.3 }}>
+                <Typography className="label-small-regular" color="var(--grey-400)" sx={{ marginTop: '2px', lineHeight: 1.3 }}>
                   {history.assignment.desc}
                 </Typography>
               )}
@@ -287,9 +286,9 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                       >
                         <DescIcon color="var(--grey-350)" width={13} height={13} />
                         <Typography
-                          className="body-small-regular"
+                          className="label-small-regular"
                           color="var(--grey-400)"
-                          sx={{ fontSize: '12px', lineHeight: 1.3 }}
+                          sx={{ lineHeight: 1.3 }}
                         >
                           {item.text}
                         </Typography>

@@ -170,7 +170,7 @@ const AcceptRequest = (props: AcceptRequestProps) => {
           <Button variant="main" onClick={handleConfirm}>
             {t('tr_continue')}
           </Button>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="tertiary" onClick={handleClose}>
             {t('tr_cancel')}
           </Button>
         </Box>

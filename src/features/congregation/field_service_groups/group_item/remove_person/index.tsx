@@ -30,7 +30,7 @@ const RemovePerson = (props: RemovePersonProps) => {
         <Button variant="main" color="red" onClick={props.action}>
           {t('tr_remove')}
         </Button>
-        <Button variant="secondary" onClick={props.onClose}>
+        <Button variant="tertiary" onClick={props.onClose}>
           {t('tr_cancel')}
         </Button>
       </Stack>

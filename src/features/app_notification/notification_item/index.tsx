@@ -38,9 +38,9 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; color: string; bg: strin
     bg: 'var(--accent-200)',
   },
   reports: {
-    icon: <IconPrepareReport color="#16a34a" />,
-    color: '#16a34a',
-    bg: 'rgba(22,163,74,0.10)',
+    icon: <IconPrepareReport color="var(--green-main)" />,
+    color: 'var(--green-main)',
+    bg: 'var(--green-secondary)',
   },
   'territory-requests': {
     icon: <IconTalk color="var(--brand)" />,
@@ -79,9 +79,12 @@ const NotificationItem = ({
         borderRadius: '16px',
         p: '16px',
         mb: '12px',
-        backgroundColor: notification.read ? 'var(--white)' : '#f8fafc',
+        backgroundColor: notification.read ? 'var(--white)' : 'var(--accent-100)',
         border: '1px solid',
-        borderColor: notification.read ? 'var(--accent-200)' : 'var(--brand-main-10)',
+        // 'var(--brand-main-10)' no existe (huérfano) — el borde de "no
+        // leída" no se aplicaba nunca. var(--accent-300) es el tono real más
+        // próximo a la intención (borde algo más marcado que el de "leída").
+        borderColor: notification.read ? 'var(--accent-200)' : 'var(--accent-300)',
         boxShadow: notification.read ? 'none' : '0 4px 12px rgba(0,0,0,0.03)',
         transition: 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
         cursor: 'default',

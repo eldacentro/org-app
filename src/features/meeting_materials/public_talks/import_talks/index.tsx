@@ -138,7 +138,7 @@ const ImportTalks = () => {
             >
               {t('tr_continue')}
             </Button>
-            <Button variant="secondary" onClick={handleCancel} disabled={isSaving}>
+            <Button variant="tertiary" onClick={handleCancel} disabled={isSaving}>
               {t('tr_cancel')}
             </Button>
           </Box>

@@ -66,7 +66,7 @@ const DeleteCongregation = () => {
               {t('tr_delete')}
             </Button>
             <Button
-              variant="secondary"
+              variant="tertiary"
               disabled={isProcessing}
               onClick={handleDeleteClose}
             >

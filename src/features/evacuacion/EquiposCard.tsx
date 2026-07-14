@@ -36,14 +36,13 @@ const EquiposCard = ({ equipos }: Props) => {
               gap: '8px',
             }}
           >
-            <Typography sx={{ fontWeight: 700, fontSize: '15px' }}>
+            <Typography className="h4" sx={{ fontWeight: 700 }}>
               {equipo.nombre}
             </Typography>
             {equipo.zona && (
               <Box
+                className="label-small-semibold"
                 sx={{
-                  fontSize: '12px',
-                  fontWeight: 700,
                   color: '#fff',
                   backgroundColor: equipo.color,
                   borderRadius: '999px',
@@ -64,6 +63,7 @@ const EquiposCard = ({ equipos }: Props) => {
                 >
                   {m.posicion && (
                     <Box
+                      className="label-small-semibold"
                       sx={{
                         minWidth: '28px',
                         height: '24px',
@@ -73,18 +73,17 @@ const EquiposCard = ({ equipos }: Props) => {
                         borderRadius: '6px',
                         backgroundColor: equipo.color,
                         color: '#fff',
-                        fontSize: '12px',
-                        fontWeight: 700,
                         padding: '0 6px',
                       }}
                     >
                       {m.posicion}
                     </Box>
                   )}
-                  <Typography sx={{ fontSize: '14px' }}>{m.nombre}</Typography>
+                  <Typography className="body-small-regular">{m.nombre}</Typography>
                   {i === 0 && equipo.miembros.length > 1 && m.posicion && (
                     <Typography
-                      sx={{ fontSize: '12px', color: 'var(--grey-350, #64748B)' }}
+                      className="label-small-regular"
+                      sx={{ color: 'var(--grey-350, #64748B)' }}
                     >
                       · Responsable
                     </Typography>
@@ -95,9 +94,9 @@ const EquiposCard = ({ equipos }: Props) => {
 
             {areaPorEquipo[equipo.id] && (
               <Typography
+                className="body-small-regular"
                 sx={{
                   marginTop: '10px',
-                  fontSize: '13px',
                   color: 'var(--grey-400, #475569)',
                   fontStyle: 'italic',
                 }}

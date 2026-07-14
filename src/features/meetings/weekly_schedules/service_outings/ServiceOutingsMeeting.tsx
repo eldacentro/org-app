@@ -9,7 +9,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
-import { getEffectiveHoursForMonth, isOutingsMonthCancelled } from '@utils/service_outings';
+import { getEffectiveHoursForMonth, isOutingSlotSuppressedByMonth } from '@utils/service_outings';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
@@ -81,12 +81,17 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       // jueves de julio usa los ajustes de julio aunque la semana empiece
       // en junio.
       const dayMonthStr = dbDateStr.slice(0, 7);
-      if (isOutingsMonthCancelled(settings, dayMonthStr)) continue;
       const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
 
-      // Morning Turn
+      // Morning Turn — se omite si está inhabilitado globalmente o si el mes
+      // está suspendido y este turno no es una de las excepciones mantenidas
+      // activas (ver isOutingSlotSuppressedByMonth).
       const morningType = `${dayLabel}_morning`;
-      if (!disabledSlots.includes(morningType) && !disabledSlots.includes(dayLabel)) {
+      if (
+        !disabledSlots.includes(morningType) &&
+        !disabledSlots.includes(dayLabel) &&
+        !isOutingSlotSuppressedByMonth(settings, dayMonthStr, morningType)
+      ) {
         const time = overrideHours[morningType] || defaultHours[morningType as keyof typeof defaultHours] || '10:00';
         const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
 
@@ -102,9 +107,13 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
         });
       }
 
-      // Afternoon Turn
+      // Afternoon Turn — misma condición que el turno de mañana.
       const afternoonType = `${dayLabel}_afternoon`;
-      if (!disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayLabel)) {
+      if (
+        !disabledSlots.includes(afternoonType) &&
+        !disabledSlots.includes(dayLabel) &&
+        !isOutingSlotSuppressedByMonth(settings, dayMonthStr, afternoonType)
+      ) {
         const time = overrideHours[afternoonType] || defaultHours[afternoonType as keyof typeof defaultHours] || '17:00';
         const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
 
@@ -204,13 +213,18 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
           }}
         >
           <Chip
-            label="Semana del Superintendente"
+            label={
+              <Typography
+                className="label-small-regular"
+                sx={{ color: 'inherit', fontWeight: '700' }}
+              >
+                Semana del Superintendente
+              </Typography>
+            }
             size="small"
             sx={{
               backgroundColor: 'var(--accent-main)',
               color: 'var(--always-white)',
-              fontWeight: '700',
-              fontSize: '11px',
             }}
           />
           <Typography className="body-regular" color="var(--accent-dark)" style={{ fontWeight: '700', margin: 0 }}>
@@ -246,11 +260,10 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
             >
               <Typography
                 className="h2-caps"
-                sx={{ 
-                  fontWeight: '800', 
-                  color: 'var(--always-white)', 
+                sx={{
+                  fontWeight: '800',
+                  color: 'var(--always-white)',
                   letterSpacing: '0.6px',
-                  fontSize: '14px'
                 }}
               >
                 {dayLabel}
@@ -288,23 +301,23 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                     {/* Hora + Turno */}
                     <Box sx={{ minWidth: { mobile: '0px', laptop: '90px' }, flexShrink: 0 }}>
                       <Typography
-                        style={{
+                        className="h4"
+                        sx={{
                           fontWeight: '800',
-                          fontSize: '15px',
                           color: isCancelled ? 'var(--grey-500)' : accentColor,
-                          letterSpacing: '0.2px'
+                          letterSpacing: '0.2px',
                         }}
                       >
                         {slot.time}
                       </Typography>
                       {turnLabel && (
                         <Typography
-                          style={{ 
-                            fontSize: '12px', 
-                            color: 'var(--grey-500)', 
+                          className="label-small-medium"
+                          sx={{
+                            color: 'var(--grey-500)',
                             fontWeight: '600',
                             letterSpacing: '0.1px',
-                            marginTop: '2px'
+                            marginTop: '2px',
                           }}
                         >
                           {turnLabel}
@@ -370,7 +383,6 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   fontWeight: 700,
-                                  fontSize: '13.5px',
                                   color: isAssignedToMe ? 'var(--accent-dark)' : 'var(--ink)',
                                   letterSpacing: '0.1px'
                                 }}
@@ -390,11 +402,10 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                                 padding: '6px 12px',
                               }}
                             >
-                              <Typography 
-                                className="body-small-medium" 
-                                color="var(--grey-350)" 
-                                sx={{ 
-                                  fontSize: '13px',
+                              <Typography
+                                className="body-small-regular"
+                                color="var(--grey-350)"
+                                sx={{
                                   fontWeight: 500,
                                   letterSpacing: '0.2px'
                                 }}
@@ -419,8 +430,8 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                       }}
                     >
                       <Typography
+                        className="body-small-semibold"
                         sx={{
-                          fontSize: '13.5px',
                           fontWeight: 600,
                           color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
                           wordBreak: 'break-word',

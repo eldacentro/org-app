@@ -19,9 +19,13 @@ export type InfoTipProps = {
    */
   icon?: ReactElement;
   /**
-   * The color of the information tip.
+   * The color/severity of the information tip. 'white' and 'blue' are the
+   * original neutral/decorative tones; 'info'/'success'/'warning'/'error' are
+   * the semantic severities (added to replace raw MUI <Alert severity="...">
+   * across the app with a single banner component). 'blue' is kept as an
+   * alias of 'info' for backward compatibility.
    */
-  color?: string;
+  color?: 'white' | 'blue' | 'info' | 'success' | 'warning' | 'error';
   /**
    * Additional styles for the information tip container.
    */

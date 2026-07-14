@@ -24,6 +24,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
     if (documento.vigencia === 'indefinido') {
       return (
         <Box
+          className="label-small-medium"
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -34,7 +35,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             px: 1.2,
             py: 0.6,
             borderRadius: 'var(--r-sm)',
-            fontSize: '11px',
             fontWeight: 600,
             whiteSpace: 'nowrap',
             letterSpacing: '0.02em',
@@ -51,6 +51,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
       if (days <= 7) {
         return (
           <Box
+            className="label-small-medium"
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -61,7 +62,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
               px: 1.2,
               py: 0.6,
               borderRadius: 'var(--r-sm)',
-              fontSize: '11px',
               fontWeight: 600,
               whiteSpace: 'nowrap',
               letterSpacing: '0.02em',
@@ -74,6 +74,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
       }
       return (
         <Box
+          className="label-small-medium"
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -84,7 +85,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             px: 1.2,
             py: 0.6,
             borderRadius: 'var(--r-sm)',
-            fontSize: '11px',
             fontWeight: 600,
             whiteSpace: 'nowrap',
             letterSpacing: '0.02em',
@@ -176,6 +176,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px', mb: 1 }}>
             {categoria && (
               <Box
+                className="label-small-medium"
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -186,7 +187,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
                   px: 1.2,
                   py: 0.6,
                   borderRadius: 'var(--r-sm)',
-                  fontSize: '11px',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                   textTransform: 'uppercase',
@@ -210,7 +210,6 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
               overflow: 'hidden',
               lineHeight: 1.35,
               fontWeight: 700,
-              fontSize: '16px',
               letterSpacing: '-0.01em',
             }}
           >

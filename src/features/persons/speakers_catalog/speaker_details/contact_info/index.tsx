@@ -44,14 +44,14 @@ const ContactPhoneRow = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {icon}
         <Box>
-          <Typography className="body-small-regular" color="var(--grey-dark)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+          <Typography className="label-small-regular" color="var(--grey-600)">
             {label}
           </Typography>
           <Link underline="none" href={`tel:${phone}`}>
             <Typography
               className="body-small-semibold"
               color="var(--accent-dark)"
-              sx={{ wordBreak: 'break-all', marginTop: '2px', fontSize: '14px' }}
+              sx={{ wordBreak: 'break-all', marginTop: '2px' }}
             >
               {phone}
             </Typography>
@@ -150,14 +150,14 @@ const ContactEmailRow = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {icon}
         <Box>
-          <Typography className="body-small-regular" color="var(--grey-dark)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+          <Typography className="label-small-regular" color="var(--grey-600)">
             {label}
           </Typography>
           <Link underline="none" href={`mailto:${email}`}>
             <Typography
               className="body-small-semibold"
               color="var(--accent-dark)"
-              sx={{ wordBreak: 'break-all', marginTop: '2px', fontSize: '14px' }}
+              sx={{ wordBreak: 'break-all', marginTop: '2px' }}
             >
               {email}
             </Typography>
@@ -230,10 +230,10 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
         >
           <IconCall color="var(--accent-350)" />
           <Box>
-            <Typography className="body-small-regular" color="var(--accent-350)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+            <Typography className="label-small-regular" color="var(--accent-350)">
               {t('tr_phoneNumber')}
             </Typography>
-            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px', fontSize: '14px' }}>
+            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px' }}>
               —
             </Typography>
           </Box>
@@ -261,10 +261,10 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
         >
           <IconMail color="var(--accent-350)" />
           <Box>
-            <Typography className="body-small-regular" color="var(--accent-350)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+            <Typography className="label-small-regular" color="var(--accent-350)">
               {t('tr_emailAddress')}
             </Typography>
-            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px', fontSize: '14px' }}>
+            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px' }}>
               —
             </Typography>
           </Box>
@@ -304,13 +304,13 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <IconPerson color="var(--black)" />
                     <Box>
-                      <Typography className="body-small-regular" color="var(--grey-dark)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+                      <Typography className="label-small-regular" color="var(--grey-600)">
                         {t('tr_name')}
                       </Typography>
                       <Typography
                         className="body-small-semibold"
                         color="var(--accent-dark)"
-                        sx={{ marginTop: '2px', fontSize: '14px' }}
+                        sx={{ marginTop: '2px' }}
                       >
                         {speakerCong.cong_data.public_talk_coordinator.name.value}
                       </Typography>
@@ -366,13 +366,13 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <IconPerson color="var(--black)" />
                     <Box>
-                      <Typography className="body-small-regular" color="var(--grey-dark)" sx={{ fontSize: '11px', lineHeight: 1.2 }}>
+                      <Typography className="label-small-regular" color="var(--grey-600)">
                         {t('tr_name')}
                       </Typography>
                       <Typography
                         className="body-small-semibold"
                         color="var(--accent-dark)"
-                        sx={{ marginTop: '2px', fontSize: '14px' }}
+                        sx={{ marginTop: '2px' }}
                       >
                         {speakerCong.cong_data.coordinator.name.value}
                       </Typography>

@@ -72,7 +72,7 @@ const QuickAddSpeaker = (props: QuickAddSpeakerType) => {
               >
                 {selectedCong ? 'Continuar' : 'Crear congregación y continuar'}
               </Button>
-              <Button variant="secondary" onClick={handleClose}>
+              <Button variant="tertiary" onClick={handleClose}>
                 Cancelar
               </Button>
             </Box>
