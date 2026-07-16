@@ -55,6 +55,32 @@ const EnrollmentItem = ({
         onStartDateChange={onStartDateChange}
         onEndDateChange={onEndDateChange}
       />
+
+      {end_date === null && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            borderRadius: 'var(--radius-m)',
+            backgroundColor: 'var(--green-secondary)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          <Typography
+            className="label-small-semibold"
+            color="var(--green-main)"
+          >
+            De continuo
+          </Typography>
+          <Typography className="label-small-regular" color="var(--grey-400)">
+            {enrollment === 'AP'
+              ? '— precursor auxiliar cada mes (meta 30 h, o 15 h en meses especiales) hasta poner fecha de fin'
+              : '— vigente sin fecha de fin'}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
