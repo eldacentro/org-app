@@ -89,6 +89,13 @@ export type SettingsType = {
       _deleted: boolean;
     }[];
     time_away_public: { value: boolean; updatedAt: string };
+    // Si los ancianos ven en la página "Grupos de predicación" a los
+    // miembros que los publicadores NO ven (inactivos sin concesión).
+    // Desactivado (por defecto), los ancianos ven exactamente la misma
+    // vista pública que los publicadores. Solo afecta a esa página: los
+    // flujos administrativos (editar miembros, informes, S-21, PDF de
+    // contactos de emergencia) siguen viendo la pertenencia completa.
+    groups_inactive_visible_to_elders?: { value: boolean; updatedAt: string };
     source_material: {
       auto_import: {
         enabled: { value: boolean; updatedAt: string };

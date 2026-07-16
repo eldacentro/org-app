@@ -138,7 +138,9 @@ export const POCKET_ROLES: AppRoleType[] = [
 // only gated behind this flag — so re-enabling is a one-line revert.
 export const FORCED_UI_LANG: string | null = 'spa';
 
-export const APP_ENVIRONMENT = import.meta.env.VITE_APP_MODE;
+// El optional chaining permite importar este módulo fuera de Vite (p. ej.
+// scripts de verificación con tsx/node, donde import.meta.env no existe).
+export const APP_ENVIRONMENT = import.meta.env?.VITE_APP_MODE;
 
 // SEGURIDAD (incidente 2026-07): el modo de prueba (isTest) BORRA la base de
 // datos local y siembra datos falsos (congregación demo, personas y
@@ -157,7 +159,7 @@ export const isTest = APP_ENVIRONMENT === 'TEST' && !isProductionHost;
 
 export const isStaging = APP_ENVIRONMENT === 'STAGING';
 
-export const isDEV = isTest ? false : import.meta.env.DEV;
+export const isDEV = isTest ? false : (import.meta.env?.DEV ?? false);
 
 export const ASSIGNMENT_PATH = {
   MM_Chairman_A: 'midweek_meeting.chairman.main_hall',

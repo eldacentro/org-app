@@ -285,6 +285,7 @@ export const settingSchema: SettingsType = {
     ],
     cong_discoverable: { value: false, updatedAt: '' },
     time_away_public: { value: false, updatedAt: '' },
+    groups_inactive_visible_to_elders: { value: false, updatedAt: '' },
     format_24h_enabled: [
       { type: 'main', value: true, updatedAt: '', _deleted: false },
     ],

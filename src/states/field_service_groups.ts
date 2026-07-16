@@ -9,6 +9,7 @@ import {
   congNameState,
   isElderState,
   publishersSortState,
+  settingsState,
   userDataViewState,
   userLocalUIDState,
 } from './settings';
@@ -68,6 +69,18 @@ export const fieldWithLanguageGroupsState = atom((get) => {
 export const fieldWithLanguageGroupsNoStudentsState = atom((get) => {
   const groups = get(fieldWithLanguageGroupsState);
   const persons = get(personsActiveState);
+  const isElder = get(isElderState);
+  const settings = get(settingsState);
+
+  // Ajuste de congregación: por defecto los ancianos ven en la página de
+  // grupos la MISMA vista pública que los publicadores (así saben qué ve el
+  // resto). Solo si se activa este ajuste ven además a los miembros ocultos
+  // (inactivos sin concesión). Este atom alimenta ÚNICAMENTE la página
+  // "Grupos de predicación" — los flujos administrativos (editar miembros,
+  // informes, S-21, contactos de emergencia) usan los atoms de pertenencia
+  // completa y NO se ven afectados.
+  const inactiveVisibleToElders =
+    settings.cong_settings.groups_inactive_visible_to_elders?.value ?? false;
 
   const dataGroup = structuredClone(groups);
 
@@ -79,7 +92,17 @@ export const fieldWithLanguageGroupsNoStudentsState = atom((get) => {
 
       if (!person) return false;
 
-      return !personIsMidweekStudent(person);
+      if (personIsMidweekStudent(person)) return false;
+
+      if (isElder && !inactiveVisibleToElders) {
+        // Igualar la vista del anciano a la de un publicador: mismos
+        // criterios que el filtro de fieldWithLanguageGroupsState.
+        if (person.person_data.grupo_visible_inactivo?.value) return true;
+
+        return personIsPublisher(person);
+      }
+
+      return true;
     });
 
     return group;

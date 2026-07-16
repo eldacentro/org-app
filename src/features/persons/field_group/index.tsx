@@ -26,6 +26,7 @@ const PersonFieldGroup = () => {
     assignedGroupId,
     isInactive,
     hasConcession,
+    inactiveVisibleToElders,
     handleChangeAssignedGroup,
   } = useFieldGroup();
 
@@ -55,7 +56,11 @@ const PersonFieldGroup = () => {
             <InfoTip
               isBig={false}
               color="warning"
-              text="Al estar inactivo, en Grupos de predicación solo los ancianos lo ven dentro de su grupo. Si debe seguir siendo visible para todos, activa la concesión en Estado espiritual."
+              text={
+                inactiveVisibleToElders
+                  ? 'Al estar inactivo, en Grupos de predicación solo los ancianos lo ven dentro de su grupo. Si debe seguir siendo visible para todos, activa la concesión en Estado espiritual.'
+                  : 'Al estar inactivo no aparece en Grupos de predicación (la congregación tiene desactivada la visibilidad de inactivos también para los ancianos). Si debe seguir siendo visible, activa la concesión en Estado espiritual.'
+              }
             />
           )}
 

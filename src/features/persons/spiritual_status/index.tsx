@@ -111,8 +111,8 @@ const PersonSpiritualStatus = () => {
             color="var(--grey-350)"
             sx={{ paddingLeft: '34px' }}
           >
-            Al estar inactivo, normalmente solo los ancianos lo ven en su
-            grupo. Con esta concesión seguirá apareciendo para toda la
+            Al estar inactivo deja de aparecer en su grupo de Grupos de
+            predicación. Con esta concesión seguirá apareciendo para toda la
             congregación. No afecta a los informes: no contará como pendiente
             de informar.
           </Typography>

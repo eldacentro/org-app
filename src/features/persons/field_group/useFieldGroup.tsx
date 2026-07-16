@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { personCurrentDetailsState } from '@states/persons';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
+import { settingsState } from '@states/settings';
 import { setPersonCurrentDetails } from '@services/states/persons';
 import { personIsInactive } from '@services/app/persons';
 
@@ -16,10 +17,14 @@ import { personIsInactive } from '@services/app/persons';
  */
 const useFieldGroup = () => {
   const person = useAtomValue(personCurrentDetailsState);
+  const settings = useAtomValue(settingsState);
 
   // Atom crudo a propósito: los atoms derivados filtran miembros según el rol
   // del usuario, y aquí necesitamos la pertenencia real sin filtrar.
   const allGroups = useAtomValue(fieldServiceGroupsState);
+
+  const inactiveVisibleToElders =
+    settings.cong_settings.groups_inactive_visible_to_elders?.value ?? false;
 
   const groups = useMemo(() => {
     return allGroups
@@ -86,6 +91,7 @@ const useFieldGroup = () => {
     assignedGroupId,
     isInactive,
     hasConcession,
+    inactiveVisibleToElders,
     handleChangeAssignedGroup,
   };
 };

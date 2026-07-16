@@ -1,6 +1,7 @@
 import { Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { QuickSettingsFieldServiceGroupsProps } from './index.types';
+import GroupsInactiveVisibility from '@features/congregation/settings/congregation_privacy/groups_inactive_visibility';
 import PublishersSort from '@features/congregation/settings/congregation_privacy/publishers_sort';
 import QuickSettings from '@features/quick_settings';
 import TimeAwayVisibility from '@features/congregation/settings/congregation_privacy/time_away_visibility';
@@ -20,6 +21,7 @@ const QuickSettingsFieldServiceGroups = ({
       <Stack spacing="16px" width="100%">
         <Stack spacing="16px">
           <TimeAwayVisibility />
+          <GroupsInactiveVisibility />
           <PublishersSort />
         </Stack>
       </Stack>
