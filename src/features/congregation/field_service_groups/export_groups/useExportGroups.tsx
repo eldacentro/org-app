@@ -62,6 +62,11 @@ const useExportGroups = () => {
 
               if (!person) return false;
 
+              // Concesión para inactivos: si está marcada, sale también en
+              // el PDF de grupos (mismo criterio que la vista en pantalla).
+              if (person.person_data.grupo_visible_inactivo?.value)
+                return true;
+
               return personIsPublisher(person);
             })
             .map((record) => {

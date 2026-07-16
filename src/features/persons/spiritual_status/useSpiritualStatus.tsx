@@ -8,7 +8,11 @@ import { displaySnackNotification } from '@services/states/app';
 import { IconError } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { dateFirstDayMonth, formatDate } from '@utils/date';
-import { personArchive, personUnarchive } from '@services/app/persons';
+import {
+  personArchive,
+  personIsInactive,
+  personUnarchive,
+} from '@services/app/persons';
 
 const useSpiritualStatus = () => {
   const { t } = useAppTranslation();
@@ -38,6 +42,26 @@ const useSpiritualStatus = () => {
     if (!archived) {
       personArchive(newPerson, isAddPerson);
     }
+
+    setPersonCurrentDetails(newPerson);
+  };
+
+  // Concesión para inactivos: mantenerlo visible en "Grupos de predicación"
+  // para toda la congregación (sin esto, a un inactivo solo lo ven los
+  // ancianos en su grupo). No toca el historial de publicador, así que los
+  // informes del secretario no se ven afectados.
+  const isInactivePublisher =
+    (person.person_data.publisher_baptized.active.value ||
+      person.person_data.publisher_unbaptized.active.value) &&
+    personIsInactive(person);
+
+  const handleToggleVisibleInGroups = async (checked: boolean) => {
+    const newPerson: PersonType = structuredClone(person);
+
+    newPerson.person_data.grupo_visible_inactivo = {
+      value: checked,
+      updatedAt: new Date().toISOString(),
+    };
 
     setPersonCurrentDetails(newPerson);
   };
@@ -329,6 +353,8 @@ const useSpiritualStatus = () => {
     expandedStatus,
     handleToggleExpand,
     handleToggleArchive,
+    isInactivePublisher,
+    handleToggleVisibleInGroups,
   };
 };
 

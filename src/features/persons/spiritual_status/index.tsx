@@ -20,6 +20,8 @@ const PersonSpiritualStatus = () => {
     expandedStatus,
     handleToggleExpand,
     handleToggleArchive,
+    isInactivePublisher,
+    handleToggleVisibleInGroups,
   } = useSpiritualStatus();
 
   return (
@@ -85,6 +87,37 @@ const PersonSpiritualStatus = () => {
           onExpand={() => handleToggleExpand('midweek')}
         />
       </Box>
+
+      {isInactivePublisher && (
+        <Box
+          sx={{
+            borderTop: '1px solid var(--line)',
+            paddingTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          <Checkbox
+            label="Mantener visible en Grupos de predicación"
+            checked={
+              person.person_data.grupo_visible_inactivo?.value || false
+            }
+            onChange={(_, checked) => handleToggleVisibleInGroups(checked)}
+            readOnly={!isPersonEditor}
+          />
+          <Typography
+            className="label-small-regular"
+            color="var(--grey-350)"
+            sx={{ paddingLeft: '34px' }}
+          >
+            Al estar inactivo, normalmente solo los ancianos lo ven en su
+            grupo. Con esta concesión seguirá apareciendo para toda la
+            congregación. No afecta a los informes: no contará como pendiente
+            de informar.
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

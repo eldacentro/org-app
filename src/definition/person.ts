@@ -111,6 +111,18 @@ export type PersonType = {
     categories?: { value: string[]; updatedAt: string };
     predicacion_salidas?: { value: boolean; updatedAt: string };
     predicacion_exhibidores?: { value: boolean; updatedAt: string };
+    // Grupo al que pertenece a efectos de organización interna (PDF de
+    // contactos de emergencia, superintendente de grupo). Solo se usa cuando
+    // la persona NO es miembro real de ningún grupo en "Grupos de
+    // predicación" — si lo es, la pertenencia real manda y este campo se
+    // ignora. Valor = group_id; '' = sin asignar (nunca borrar la clave:
+    // escribir '' para limpiar, por el merge de sync por updatedAt).
+    grupo_asignado?: { value: string; updatedAt: string };
+    // Concesión para publicadores inactivos: si es true, la persona sigue
+    // siendo visible para TODOS en "Grupos de predicación" (no solo para
+    // ancianos) aunque esté inactiva. No afecta a los informes: el
+    // secretario sigue sin contarla como pendiente de informar.
+    grupo_visible_inactivo?: { value: boolean; updatedAt: string };
     family_members: {
       head: boolean;
       members: string[];

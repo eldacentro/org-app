@@ -58,9 +58,12 @@ const useExportEmergencyContacts = () => {
 
       const assignedUids = new Set<string>();
       const personUidToGroupIndex = new Map<string, number>();
+      const groupIdToIndex = new Map<string, number>();
 
       const formattedGroups: EmergencyContactsGroupType[] = groups.map(
         (record, groupIndex) => {
+          groupIdToIndex.set(record.group_id, groupIndex);
+
           const group_name =
             record.group_data.name.length > 0
               ? record.group_data.name
@@ -91,6 +94,26 @@ const useExportEmergencyContacts = () => {
           return { group_name, members: memberEntries };
         }
       );
+
+      // Grupo asignado manualmente en el perfil (organización interna):
+      // quien no sea miembro real de ningún grupo pero tenga un
+      // grupo_asignado sale en ese grupo. Va ANTES de la heurística familiar
+      // porque una asignación explícita manda sobre una deducción, y se
+      // registra en personUidToGroupIndex para que su familia también le
+      // siga a ese grupo.
+      for (const person of persons) {
+        if (assignedUids.has(person.person_uid)) continue;
+
+        const assignedGroupId = person.person_data.grupo_asignado?.value;
+        if (!assignedGroupId) continue;
+
+        const groupIndex = groupIdToIndex.get(assignedGroupId);
+        if (groupIndex === undefined) continue;
+
+        formattedGroups[groupIndex].members.push(buildEntry(person));
+        assignedUids.add(person.person_uid);
+        personUidToGroupIndex.set(person.person_uid, groupIndex);
+      }
 
       // Todos deben salir en el PDF, tengan o no grupo propio (estudiantes
       // de entre semana, archivados, etc.). Quien no tenga grupo propio

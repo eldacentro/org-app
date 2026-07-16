@@ -46,6 +46,10 @@ export const fieldWithLanguageGroupsState = atom((get) => {
 
         if (!person) return false;
 
+        // Concesión para inactivos: seguir visible en el grupo para toda la
+        // congregación aunque ya no cuente como publicador activo.
+        if (person.person_data.grupo_visible_inactivo?.value) return true;
+
         return personIsPublisher(person);
       });
 
