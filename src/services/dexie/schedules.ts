@@ -3,7 +3,8 @@ import { UpdateSpec } from 'dexie';
 import { SchedWeekType } from '@definition/schedules';
 type SchedChanges = UpdateSpec<SchedWeekType> & Record<string, unknown>;
 import { store } from '@states/index';
-import { fullnameState } from '@states/settings';
+import { fullnameState, settingsState } from '@states/settings';
+import { Week } from '@definition/week_type';
 import { scheduleSchema } from './schema';
 
 export const dbUpdateSchedulesMetadata = async () => {
@@ -43,6 +44,32 @@ export const dbSchedCheck = async (weekOf: string) => {
   if (!findSched) {
     const newSched = structuredClone(scheduleSchema);
     newSched.weekOf = weekOf;
+
+    // Si esta semana ya tiene programada una visita del superintendente de
+    // circuito (fijada en Configuración ANTES de que existiera el programa,
+    // que es lo habitual: la visita se anuncia con meses de antelación y el
+    // material llega después), la semana debe nacer marcada como CO_VISIT.
+    // Sin esto, useWeekItem solo marca la semana si el programa ya existía
+    // al fijar la fecha, y una visita fijada antes se perdía: la reunión no
+    // se movía al día de visita ni en el programa ni en la asistencia.
+    const settings = store.get(settingsState);
+    const hasCOVisit = settings.cong_settings.circuit_overseer.visits?.some(
+      (visit) => visit._deleted === false && visit.weekOf === weekOf
+    );
+
+    if (hasCOVisit) {
+      const updatedAt = new Date().toISOString();
+
+      for (const record of newSched.midweek_meeting.week_type) {
+        record.value = Week.CO_VISIT;
+        record.updatedAt = updatedAt;
+      }
+
+      for (const record of newSched.weekend_meeting.week_type) {
+        record.value = Week.CO_VISIT;
+        record.updatedAt = updatedAt;
+      }
+    }
 
     await appDb.sched.put(newSched);
     await dbUpdateSchedulesMetadata();

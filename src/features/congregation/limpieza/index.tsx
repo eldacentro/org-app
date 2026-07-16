@@ -23,7 +23,10 @@ import { dbLimpiezaGetConfig, dbLimpiezaSaveConfig } from '@services/dexie/limpi
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { Week } from '@definition/week_type';
-import { schedulesWeekNoMeeting } from '@services/app/schedules';
+import {
+  schedulesGetMeetingDate,
+  schedulesWeekNoMeeting,
+} from '@services/app/schedules';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import {
   midweekMeetingWeekdayState,
@@ -116,9 +119,7 @@ const Limpieza = () => {
   // Generate the monthly data
   const monthMeetings = useMemo(() => {
     if (!config) return [];
-    
-    const start = new Date(selectedYear, selectedMonth, 1);
-    const end = new Date(selectedYear, selectedMonth + 1, 0);
+
     const meetings: Array<{
       date: Date;
       weekOf: string;
@@ -126,49 +127,66 @@ const Limpieza = () => {
       group: FieldServiceGroupType | undefined;
     }> = [];
 
-    const date = new Date(start);
-    while (date <= end) {
-      const dayOfWeekNum = date.getDay() === 0 ? 7 : date.getDay();
-      const isMidweek = dayOfWeekNum === midweekWeekdayNum;
-      const isWeekend = dayOfWeekNum === weekendWeekdayNum;
+    const monthStr = `${selectedYear}/${String(selectedMonth + 1).padStart(2, '0')}`;
 
-      if (isMidweek || isWeekend) {
-        const d = new Date(date);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(d.setDate(diff));
-        const weekOfStr = `${monday.getFullYear()}/${String(monday.getMonth() + 1).padStart(2, '0')}/${String(monday.getDate()).padStart(2, '0')}`;
+    // Se itera por SEMANAS y se pregunta a schedulesGetMeetingDate la fecha
+    // REAL de cada reunión (en vez de asumir el día fijo de Configuración):
+    // así la semana de la visita del superintendente de circuito — donde la
+    // reunión de entre semana se mueve al día de visita, típicamente martes —
+    // pinta la limpieza en el día correcto, e incluso en el mes correcto si
+    // el cambio de día la saca del mes (mismo criterio que el registro de
+    // asistencia, ver attendanceWeeksForMonth).
+    // Lunes candidatos: desde 6 días antes del día 1 (una reunión del mes
+    // puede venir de una semana cuyo lunes quedó en el mes anterior) hasta
+    // fin de mes.
+    const first = new Date(selectedYear, selectedMonth, 1);
+    const monday = new Date(first);
+    monday.setDate(monday.getDate() - 6);
+    while (monday.getDay() !== 1) monday.setDate(monday.getDate() + 1);
 
-        const schedule = schedules.find(s => s.weekOf === weekOfStr);
+    const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
+
+    while (monday <= lastDay) {
+      const weekOfStr = `${monday.getFullYear()}/${String(monday.getMonth() + 1).padStart(2, '0')}/${String(monday.getDate()).padStart(2, '0')}`;
+      const schedule = schedules.find(s => s.weekOf === weekOfStr);
+
+      for (const reunionDia of ['midweek', 'weekend'] as const) {
+        const { date: meetingDate } = schedulesGetMeetingDate({
+          week: weekOfStr,
+          meeting: reunionDia,
+        });
+
+        if (!meetingDate || !meetingDate.startsWith(monthStr)) continue;
+
         let cancelled = false;
         if (schedule) {
-          if (isMidweek) {
-            const weekType = schedule.midweek_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
-            cancelled = schedulesWeekNoMeeting(weekType);
-          }
-          if (isWeekend) {
-            const weekType = schedule.weekend_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
-            cancelled = schedulesWeekNoMeeting(weekType);
-          }
+          const weekType =
+            (reunionDia === 'midweek'
+              ? schedule.midweek_meeting?.week_type
+              : schedule.weekend_meeting?.week_type
+            )?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
+          cancelled = schedulesWeekNoMeeting(weekType);
         }
+        if (cancelled) continue;
 
-        if (!cancelled) {
-          const reunionDia: 'midweek' | 'weekend' = isMidweek ? 'midweek' : 'weekend';
-          const assignedGroupId = calcularGrupoReunion(config, weekOfStr, reunionDia, groups, schedules);
-          const group = groups.find((g) => g.group_id === assignedGroupId);
+        const assignedGroupId = calcularGrupoReunion(config, weekOfStr, reunionDia, groups, schedules);
+        const group = groups.find((g) => g.group_id === assignedGroupId);
 
-          meetings.push({
-            date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-            weekOf: weekOfStr,
-            reunionDia,
-            group,
-          });
-        }
+        const [y, m, d] = meetingDate.split('/').map(Number);
+        meetings.push({
+          date: new Date(y, m - 1, d),
+          weekOf: weekOfStr,
+          reunionDia,
+          group,
+        });
       }
-      date.setDate(date.getDate() + 1);
+
+      monday.setDate(monday.getDate() + 7);
     }
+
+    meetings.sort((a, b) => a.date.getTime() - b.date.getTime());
     return meetings;
-  }, [config, selectedYear, selectedMonth, groups, midweekWeekdayNum, weekendWeekdayNum, schedules]);
+  }, [config, selectedYear, selectedMonth, groups, schedules]);
 
   const handleOpenEdit = (m: { date: Date; weekOf: string; reunionDia: 'midweek' | 'weekend'; group: FieldServiceGroupType | undefined }) => {
     if (!isManager) return;
@@ -238,8 +256,18 @@ const Limpieza = () => {
     { dayOfWeek: 7, label: 'Domingo' },
   ];
 
-  // Identificar qué columnas mostrar en base a los días de reunión seleccionados
-  const activeDays = new Set([midweekWeekdayNum, weekendWeekdayNum]);
+  // Columnas del grid: los días en que HAY reunión este mes según las fechas
+  // reales (así la semana de la visita del CO añade su columna — p. ej.
+  // martes — solo en los meses que la necesitan). Si el mes aún no tiene
+  // reuniones calculadas, se cae a los días configurados.
+  const activeDays =
+    monthMeetings.length > 0
+      ? new Set(
+          monthMeetings.map((m) =>
+            m.date.getDay() === 0 ? 7 : m.date.getDay()
+          )
+        )
+      : new Set([midweekWeekdayNum, weekendWeekdayNum]);
   const weekdaysToShowFinal = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
 
   const weekKeys = new Set<string>();
@@ -526,7 +554,25 @@ const Limpieza = () => {
                       }
 
                       const m = monthMeetings.find(x => x.date.getDate() === cellDate.getDate());
-                      if (!m) return null; // No debería pasar si es día de reunión, pero por seguridad
+
+                      // Sin reunión ese día esa semana (p. ej. el miércoles de
+                      // la semana de visita del CO, cuya reunión se movió al
+                      // martes): hueco atenuado, igual que los días de otro
+                      // mes, para no desalinear las columnas del grid.
+                      if (!m) {
+                        return (
+                          <Grid size={{ mobile: 1 }} key={`${weekKey}-${dayInfo.dayOfWeek}-empty`} sx={{ p: 0.5 }}>
+                            <Box sx={{
+                              aspectRatio: desktopUp ? 'auto' : '1',
+                              minHeight: desktopUp ? '110px' : 'auto',
+                              backgroundColor: 'var(--accent-100)',
+                              border: '1px solid var(--line)',
+                              borderRadius: 'var(--radius-m)',
+                              opacity: 0.3
+                            }} />
+                          </Grid>
+                        );
+                      }
                       
                       return (
                         <Grid size={{ mobile: 1 }} key={m.date.getTime()} sx={{ p: 0.5 }}>
