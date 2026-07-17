@@ -41,6 +41,14 @@ const handleUpdateRecord = ({
     attendance = structuredClone(dbAttendance);
   }
 
+  // INCIDENTE jul-2026: sellar SIEMPRE el _deleted a nivel de registro al
+  // guardar. El schema lo trae con updatedAt vacío, y un updatedAt vacío
+  // pierde contra CUALQUIER tombstone en el merge del sync — un dispositivo
+  // rezagado que aún llevara el tombstone de un import antiguo borraba
+  // silenciosamente, días después, el mes que un hermano acababa de
+  // rellenar. Con el sello, la entrada humana más reciente gana siempre.
+  attendance._deleted = { value: false, updatedAt: new Date().toISOString() };
+
   const weekRecord = attendance[`week_${index}`] as WeeklyAttendance;
   const meetingRecord = weekRecord[type];
 

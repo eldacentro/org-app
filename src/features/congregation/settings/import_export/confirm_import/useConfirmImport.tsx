@@ -13,6 +13,7 @@ import {
   backupFileTypeState,
   featureFlagsState,
 } from '@states/app';
+import { meetingAttendanceState } from '@states/meeting_attendance';
 import { BackupOrganizedType } from '@definition/backup';
 import { PersonType } from '@definition/person';
 import { displaySnackNotification } from '@services/states/app';
@@ -82,6 +83,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
   const backupFileType = useAtomValue(backupFileTypeState);
   const backupFileContents = useAtomValue(backupFileContentsState);
   const FEATURE_FLAGS = useAtomValue(featureFlagsState);
+  const localAttendances = useAtomValue(meetingAttendanceState);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selected, setSelected] = useState<ImportChoiceType>({
@@ -263,6 +265,27 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
       return [];
     }
   }, [backupFileType, backupContents, migrateHourglassAttendance, t]);
+
+  // INCIDENTE jul-2026: al importar asistencia, cualquier mes local que el
+  // archivo NO traiga se marca como borrado y el tombstone se propaga por
+  // sync a toda la congregación (así se perdió la asistencia de julio al
+  // importar archivos de migración que solo llegaban hasta junio). Esta
+  // lista alimenta una advertencia explícita en el diálogo para que nadie
+  // vuelva a borrar meses sin darse cuenta.
+  const attendanceMonthsToDelete = useMemo(() => {
+    if (!meeting_attendance || meeting_attendance.length === 0) return [];
+
+    const fileMonths = new Set(
+      meeting_attendance
+        .filter((record) => !record._deleted?.value)
+        .map((record) => record.month_date)
+    );
+
+    return localAttendances
+      .map((record) => record.month_date)
+      .filter((month) => !fileMonths.has(month))
+      .sort();
+  }, [meeting_attendance, localAttendances]);
 
   const schedules = useMemo(() => {
     try {
@@ -764,6 +787,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     user_field_service_reports,
     cong_field_service_reports,
     meeting_attendance,
+    attendanceMonthsToDelete,
     schedules,
     selectedAll,
     inderterminate,

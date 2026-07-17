@@ -7,6 +7,7 @@ import Button from '@components/button';
 import Checkbox from '@components/checkbox';
 import Divider from '@components/divider';
 import IconLoading from '@components/icon_loading';
+import InfoTip from '@components/info_tip';
 import Typography from '@components/typography';
 
 const ConfirmImport = (props: ConfirmImportProps) => {
@@ -26,6 +27,7 @@ const ConfirmImport = (props: ConfirmImportProps) => {
     user_field_service_reports,
     cong_field_service_reports,
     meeting_attendance,
+    attendanceMonthsToDelete,
     schedules,
     selectedAll,
     inderterminate,
@@ -171,6 +173,15 @@ const ConfirmImport = (props: ConfirmImportProps) => {
                   </Typography>
                 }
               />
+
+              {selected.meeting_attendance &&
+                attendanceMonthsToDelete.length > 0 && (
+                  <InfoTip
+                    isBig={false}
+                    color="error"
+                    text={`Cuidado: este archivo NO trae ${attendanceMonthsToDelete.length === 1 ? 'el mes' : 'los meses'} ${attendanceMonthsToDelete.join(', ')} de asistencia que sí existe${attendanceMonthsToDelete.length === 1 ? '' : 'n'} en la app. Si importas con esta casilla marcada, se BORRARÁN para toda la congregación.`}
+                  />
+                )}
             </Grid>
 
             <Grid size={{ mobile: 12, tablet: 6 }}>
