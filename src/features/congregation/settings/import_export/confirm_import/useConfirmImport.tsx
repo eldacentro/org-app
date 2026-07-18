@@ -14,6 +14,8 @@ import {
   featureFlagsState,
 } from '@states/app';
 import { meetingAttendanceState } from '@states/meeting_attendance';
+import { congFieldServiceReportsState } from '@states/field_service_reports';
+import { personsAllState } from '@states/persons';
 import { BackupOrganizedType } from '@definition/backup';
 import { PersonType } from '@definition/person';
 import { displaySnackNotification } from '@services/states/app';
@@ -84,6 +86,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
   const backupFileContents = useAtomValue(backupFileContentsState);
   const FEATURE_FLAGS = useAtomValue(featureFlagsState);
   const localAttendances = useAtomValue(meetingAttendanceState);
+  const localPersons = useAtomValue(personsAllState);
+  const localCongReports = useAtomValue(congFieldServiceReportsState);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selected, setSelected] = useState<ImportChoiceType>({
@@ -286,6 +290,45 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
       .filter((month) => !fileMonths.has(month))
       .sort();
   }, [meeting_attendance, localAttendances]);
+
+  // Misma advertencia para Personas: al importar, las personas locales que
+  // el archivo no traiga se marcan como borradas (usePersonsImport) — así se
+  // perdió a Isabel Poveda y otras al importar archivos desactualizados.
+  const personsToDelete = useMemo(() => {
+    if (!persons || persons.length === 0) return [];
+
+    const fileUids = new Set(
+      persons
+        .filter((record) => !record._deleted?.value)
+        .map((record) => record.person_uid)
+    );
+
+    return localPersons
+      .filter((record) => !fileUids.has(record.person_uid))
+      .map((record) =>
+        `${record.person_data.person_firstname.value} ${record.person_data.person_lastname.value}`.trim()
+      )
+      .sort();
+  }, [persons, localPersons]);
+
+  // Y para los informes de predicación de la congregación (clave report_id,
+  // ver useCongReportsImport): los informes locales ausentes del archivo se
+  // marcan como borrados al importar.
+  const congReportsToDelete = useMemo(() => {
+    if (!cong_field_service_reports || cong_field_service_reports.length === 0)
+      return [];
+
+    const fileIds = new Set(
+      cong_field_service_reports
+        .filter((record) => !record.report_data?._deleted)
+        .map((record) => record.report_id)
+    );
+
+    return localCongReports
+      .filter((record) => !fileIds.has(record.report_id))
+      .map((record) => record.report_data.report_date)
+      .sort();
+  }, [cong_field_service_reports, localCongReports]);
 
   const schedules = useMemo(() => {
     try {
@@ -788,6 +831,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     cong_field_service_reports,
     meeting_attendance,
     attendanceMonthsToDelete,
+    personsToDelete,
+    congReportsToDelete,
     schedules,
     selectedAll,
     inderterminate,

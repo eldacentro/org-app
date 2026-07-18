@@ -28,6 +28,8 @@ const ConfirmImport = (props: ConfirmImportProps) => {
     cong_field_service_reports,
     meeting_attendance,
     attendanceMonthsToDelete,
+    personsToDelete,
+    congReportsToDelete,
     schedules,
     selectedAll,
     inderterminate,
@@ -94,6 +96,14 @@ const ConfirmImport = (props: ConfirmImportProps) => {
                 }
               />
 
+              {selected.persons && personsToDelete.length > 0 && (
+                <InfoTip
+                  isBig={false}
+                  color="error"
+                  text={`Cuidado: este archivo NO trae a ${personsToDelete.slice(0, 8).join(', ')}${personsToDelete.length > 8 ? ` y ${personsToDelete.length - 8} más` : ''} (${personsToDelete.length === 1 ? 'existe' : 'existen'} en la app). Si importas con esta casilla marcada, se BORRARÁN para toda la congregación.`}
+                />
+              )}
+
               <Checkbox
                 checked={selected.field_service_groups}
                 disabled={field_service_groups.length === 0}
@@ -157,6 +167,15 @@ const ConfirmImport = (props: ConfirmImportProps) => {
                   </Typography>
                 }
               />
+
+              {selected.cong_field_service_reports &&
+                congReportsToDelete.length > 0 && (
+                  <InfoTip
+                    isBig={false}
+                    color="error"
+                    text={`Cuidado: este archivo NO trae ${congReportsToDelete.length} informe${congReportsToDelete.length === 1 ? '' : 's'} de predicación que ${congReportsToDelete.length === 1 ? 'existe' : 'existen'} en la app (meses ${congReportsToDelete[0]} a ${congReportsToDelete[congReportsToDelete.length - 1]}). Si importas con esta casilla marcada, se BORRARÁN para toda la congregación.`}
+                  />
+                )}
 
               <Checkbox
                 checked={selected.meeting_attendance}
