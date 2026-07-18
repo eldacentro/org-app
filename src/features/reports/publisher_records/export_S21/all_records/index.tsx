@@ -40,6 +40,22 @@ const AllRecords = (props: AllRecordsProps) => {
           label={<Typography>{t('tr_specificPublisherRecords')}</Typography>}
           control={<Radio />}
         />
+        <FormControlLabel
+          value="totals"
+          label={
+            <Stack>
+              <Typography>Tarjetas de totales de la congregación</Typography>
+              <Typography
+                className="label-small-regular"
+                color="var(--grey-350)"
+              >
+                Un solo PDF con los totales por mes: publicadores, precursores
+                auxiliares y siervos de tiempo completo
+              </Typography>
+            </Stack>
+          }
+          control={<Radio />}
+        />
       </RadioGroup>
 
       <Stack spacing="8px" width="100%">
@@ -49,7 +65,7 @@ const AllRecords = (props: AllRecordsProps) => {
           disabled={isProcessing}
           endIcon={isProcessing && <IconLoading />}
         >
-          {type === 'all' ? t('tr_export') : t('tr_next')}
+          {type === 'select' ? t('tr_next') : t('tr_export')}
         </Button>
         <Button variant="tertiary" disabled={isProcessing} onClick={onClose}>
           {t('tr_cancel')}

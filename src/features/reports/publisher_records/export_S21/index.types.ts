@@ -3,4 +3,4 @@ export type ExportS21Props = {
   onClose: VoidFunction;
 };
 
-export type ExportType = 'all' | 'select';
+export type ExportType = 'all' | 'select' | 'totals';

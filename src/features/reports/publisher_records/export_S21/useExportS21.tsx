@@ -442,6 +442,30 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
     }
   };
 
+  // S-21 de totales de la congregación: un único PDF con las tres tarjetas
+  // agregadas (siervos de tiempo completo, precursores auxiliares y
+  // publicadores) — las mismas que el ZIP de "exportar todas" incluye al
+  // final, pero exportables por sí solas.
+  const handleExportTotals = async () => {
+    const totals = [
+      getCongregationCardsData('FTS'),
+      getCongregationCardsData('AP'),
+      getCongregationCardsData('Publishers'),
+    ];
+
+    const blob = await pdf(
+      <TemplateS21DocMulti publishers={totals} lang={sourceLocale} />
+    ).toBlob();
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'EldaCentro_S-21_Totales.pdf';
+    link.click();
+
+    onClose?.();
+  };
+
   const handleAction = async () => {
     try {
       if (type === 'select') {
@@ -452,6 +476,10 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       if (type === 'all') {
         const selected = publishers_active.map((record) => record.person_uid);
         await handleExportCards(selected, 'all');
+      }
+
+      if (type === 'totals') {
+        await handleExportTotals();
       }
     } catch (error) {
       onClose?.();
