@@ -23,6 +23,7 @@ import { determineAppLocale } from '@services/app';
 import { firstDayWeekState, congIDState } from '@states/settings';
 import { LANGUAGE_LIST } from './constants';
 import { triggerAutoBackup } from '@services/app/backupScheduler';
+import { triggerRetentionPurge } from '@services/app/retention';
 
 // lazy loading
 const Dashboard = lazy(() => import('@pages/dashboard'));
@@ -462,6 +463,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   useEffect(() => {
     if (isAdmin) {
       triggerAutoBackup(isAdmin, congId || undefined);
+
+      // Norma de conservación: purga diaria de informes/asistencia/
+      // nombramientos fuera del período permitido (ver services/app/retention)
+      triggerRetentionPurge(isAdmin);
     }
   }, [isAdmin, congId]);
 
