@@ -56,7 +56,7 @@ const EnrollmentItem = ({
         onEndDateChange={onEndDateChange}
       />
 
-      {end_date === null && (
+      {end_date === null && enrollment === 'AP' && (
         <Box
           sx={{
             display: 'flex',
@@ -75,9 +75,8 @@ const EnrollmentItem = ({
             De continuo
           </Typography>
           <Typography className="label-small-regular" color="var(--grey-400)">
-            {enrollment === 'AP'
-              ? '— precursor auxiliar cada mes (meta 30 h, o 15 h en meses especiales) hasta poner fecha de fin'
-              : '— vigente sin fecha de fin'}
+            — precursor auxiliar cada mes (meta 30 h, o 15 h en meses
+            especiales) hasta poner fecha de fin
           </Typography>
         </Box>
       )}
