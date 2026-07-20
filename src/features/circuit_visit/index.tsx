@@ -54,11 +54,7 @@ import { useConfirm } from '@components/confirm_dialog';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
 import Card from './shared/Card';
 
-const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
-  predicacion: 'Predicación',
-  revisitas: 'Revisitas',
-  curso: 'Curso bíblico',
-};
+import { ACTIVITY_LABELS } from './shared/activityLabels';
 
 const DocRow = ({
   icon,

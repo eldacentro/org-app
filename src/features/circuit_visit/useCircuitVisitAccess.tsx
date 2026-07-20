@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { useCurrentUser } from '@hooks/index';
+import { userLocalUIDState } from '@states/settings';
 import { addDays, formatDate } from '@utils/date';
 import useIsCircuitVisitManager from './useIsCircuitVisitManager';
 
@@ -23,6 +24,7 @@ export const useCircuitVisitAccess = () => {
   const canManage = useIsCircuitVisitManager();
   const { isElder } = useCurrentUser();
   const visits = useAtomValue(circuitVisitsState);
+  const myUid = useAtomValue(userLocalUIDState);
 
   const relevantVisit = useMemo<CircuitVisitType | null>(() => {
     const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
@@ -33,14 +35,35 @@ export const useCircuitVisitAccess = () => {
     return upcoming[0] ?? null;
   }, [visits]);
 
+  // Un publicador con algo asignado en la visita (anfitrión de comida,
+  // acompañante del CO o de su esposa, visita de pastoreo) debe poder ver
+  // su asignación desde el momento en que existe — sin esperar a la ventana
+  // de 21 días que aplica al resto de publicadores.
+  const hasPersonalAssignment = useMemo(() => {
+    if (!relevantVisit || !myUid) return false;
+
+    return (
+      relevantVisit.meals.some((m) => m.host === myUid) ||
+      relevantVisit.co_companions.some(
+        (c) =>
+          c.brother === myUid ||
+          (c.spouse_companions ?? []).includes(myUid)
+      ) ||
+      (relevantVisit.shepherding_visits ?? []).some(
+        (s) => s.brother === myUid || s.elder === myUid
+      )
+    );
+  }, [relevantVisit, myUid]);
+
   const tier = useMemo<CircuitVisitAccessTier>(() => {
     if (canManage) return 'full';
     if (isElder) return 'elder';
     if (!relevantVisit) return 'none';
+    if (hasPersonalAssignment) return 'public';
 
     const unlockDate = addDays(new Date(relevantVisit.date_start), -PUBLIC_PREVIEW_DAYS);
     return new Date() >= unlockDate ? 'public' : 'none';
-  }, [canManage, isElder, relevantVisit]);
+  }, [canManage, isElder, relevantVisit, hasPersonalAssignment]);
 
   return { tier, visit: relevantVisit };
 };

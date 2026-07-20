@@ -69,6 +69,14 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
     const outings = weekRecord?.outings || [];
     const overrideHours = weekRecord?.weekOverrideHours || {};
 
+    // Semana de la visita del superintendente: las salidas de miércoles a
+    // domingo salen SIEMPRE (mañana y tarde), aunque el día esté
+    // deshabilitado en la configuración normal o el mes suspendido — con el
+    // CO se predica todos esos días. Una salida concreta que no proceda se
+    // puede suspender individualmente desde Salidas de predicación.
+    const CO_FORCED_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const isCoWeek = !!weekRecord?.isCircuitOverseerWeek;
+
     const slots = [];
     const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -83,14 +91,17 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       const dayMonthStr = dbDateStr.slice(0, 7);
       const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
 
+      const coForced = isCoWeek && CO_FORCED_DAYS.includes(dayLabel);
+
       // Morning Turn — se omite si está inhabilitado globalmente o si el mes
       // está suspendido y este turno no es una de las excepciones mantenidas
       // activas (ver isOutingSlotSuppressedByMonth).
       const morningType = `${dayLabel}_morning`;
       if (
-        !disabledSlots.includes(morningType) &&
-        !disabledSlots.includes(dayLabel) &&
-        !isOutingSlotSuppressedByMonth(settings, dayMonthStr, morningType)
+        coForced ||
+        (!disabledSlots.includes(morningType) &&
+          !disabledSlots.includes(dayLabel) &&
+          !isOutingSlotSuppressedByMonth(settings, dayMonthStr, morningType))
       ) {
         const time = overrideHours[morningType] || defaultHours[morningType as keyof typeof defaultHours] || '10:00';
         const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
@@ -110,9 +121,10 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
       // Afternoon Turn — misma condición que el turno de mañana.
       const afternoonType = `${dayLabel}_afternoon`;
       if (
-        !disabledSlots.includes(afternoonType) &&
-        !disabledSlots.includes(dayLabel) &&
-        !isOutingSlotSuppressedByMonth(settings, dayMonthStr, afternoonType)
+        coForced ||
+        (!disabledSlots.includes(afternoonType) &&
+          !disabledSlots.includes(dayLabel) &&
+          !isOutingSlotSuppressedByMonth(settings, dayMonthStr, afternoonType))
       ) {
         const time = overrideHours[afternoonType] || defaultHours[afternoonType as keyof typeof defaultHours] || '17:00';
         const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);

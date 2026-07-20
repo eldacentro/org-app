@@ -189,14 +189,14 @@ const softDeleteVisitEvents = async (visitId: string) => {
 const markServiceOutingsWeek = async (weekOf: string) => {
   const existing = await dbServiceOutingsGetWeek(weekOf);
 
-  // Semana sin registro de salidas todavía: se omite. La pestaña de
-  // predicación de la Visita crea el registro al guardar la primera
-  // salida, y reconcile() reaplicará la marca después.
-  if (!existing) return;
-  if (existing.isCircuitOverseerWeek) return;
+  if (existing?.isCircuitOverseerWeek) return;
 
+  // Si la semana aún no tiene registro de salidas, se CREA ya marcado —
+  // antes se omitía en silencio y, hasta que alguien tocara Salidas de esa
+  // semana, ni salía el banner "Semana del Superintendente" ni se forzaban
+  // las salidas de miércoles a domingo.
   await dbServiceOutingsSaveWeek({
-    ...existing,
+    ...(existing ?? { weekOf, outings: [] }),
     isCircuitOverseerWeek: true,
   });
 };

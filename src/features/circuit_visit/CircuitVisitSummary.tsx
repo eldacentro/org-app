@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import PageTitle from '@components/page_title';
@@ -9,7 +10,9 @@ import {
   congFullnameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  userLocalUIDState,
 } from '@states/settings';
+import { ACTIVITY_LABELS } from './shared/activityLabels';
 import { personsState } from '@states/persons';
 import { serviceOutingsListState } from '@states/service_outings';
 import { sourcesState } from '@states/sources';
@@ -88,6 +91,71 @@ const CircuitVisitSummary = ({
     return person ? personGetDisplayName(person, displayNameEnabled, fullnameOption) : '';
   };
 
+  // Asignaciones personales del usuario en ESTA visita. Se muestran en ambos
+  // niveles (anciano y publicador): un anfitrión de comida o un acompañante
+  // del CO que no es anciano no tiene otra forma de ver lo suyo.
+  const myUid = useAtomValue(userLocalUIDState);
+
+  const myAssignments = useMemo(() => {
+    const items: { key: string; primary: string; secondary: string }[] = [];
+    if (!myUid) return items;
+
+    for (const meal of visit.meals) {
+      if (meal.host === myUid) {
+        items.push({
+          key: `meal_${meal.id}`,
+          primary: 'Anfitrión de comida para el superintendente',
+          secondary: `${fmtDay(meal.date)}${meal.note ? `  •  ${meal.note}` : ''}`,
+        });
+      }
+    }
+
+    for (const c of visit.co_companions) {
+      const [date, time] = c.outingKey.split('_');
+      const when = `${fmtDay(date)} · ${time}`;
+
+      if (c.brother === myUid) {
+        items.push({
+          key: `comp_${c.outingKey}`,
+          primary: 'Acompañas al superintendente en la predicación',
+          secondary: `${when}  •  ${ACTIVITY_LABELS[c.activity] ?? ''}`,
+        });
+      }
+
+      if ((c.spouse_companions ?? []).includes(myUid)) {
+        items.push({
+          key: `spouse_${c.outingKey}`,
+          primary: `Acompañas a ${effectiveCoSpouseName || 'la esposa del superintendente'} en la predicación`,
+          secondary: when,
+        });
+      }
+    }
+
+    for (const sv of visit.shepherding_visits ?? []) {
+      const when = `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`;
+
+      if (sv.brother === myUid) {
+        items.push({
+          key: `shep_${sv.id}`,
+          primary: 'El superintendente te hará una visita de pastoreo',
+          secondary: when,
+        });
+      }
+
+      if (sv.elder === myUid && sv.brother !== myUid) {
+        items.push({
+          key: `shep_elder_${sv.id}`,
+          primary: `Acompañas al superintendente en la visita de pastoreo a ${findPersonName(sv.brother) || '—'}`,
+          secondary: when,
+        });
+      }
+    }
+
+    return items;
+    // findPersonName depende de persons/displayNameEnabled/fullnameOption.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visit, myUid, effectiveCoSpouseName, persons, displayNameEnabled, fullnameOption]);
+
   return (
     <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
       <PageTitle title="Visita del Superintendente de Circuito" />
@@ -103,6 +171,29 @@ const CircuitVisitSummary = ({
             </Typography>
           )}
         </Card>
+
+        {myAssignments.length > 0 && (
+          <Card
+            title="Tus asignaciones"
+            subtitle="Lo que tienes asignado durante esta visita."
+          >
+            <Stack spacing="10px">
+              {myAssignments.map((item) => (
+                <Stack key={item.key} spacing="1px">
+                  <Typography className="body-regular-semibold">
+                    {item.primary}
+                  </Typography>
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--grey-400)"
+                  >
+                    {item.secondary}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Card>
+        )}
 
         <Card
           title="Salidas de predicación"
@@ -151,13 +242,17 @@ const CircuitVisitSummary = ({
           </Stack>
         </Card>
 
-        {(visit.meeting_pioneers || visit.meeting_elders) && (
+        {/* La reunión con precursores es de interés general (los precursores
+            son publicadores); la de ancianos y SM solo se muestra a ancianos. */}
+        {(visit.meeting_pioneers || (tier === 'elder' && visit.meeting_elders)) && (
           <Card title="Reuniones especiales">
             <SpecialMeetingRow label="Reunión con precursores" when={visit.meeting_pioneers} />
-            <SpecialMeetingRow
-              label="Reunión con ancianos y siervos ministeriales"
-              when={visit.meeting_elders}
-            />
+            {tier === 'elder' && (
+              <SpecialMeetingRow
+                label="Reunión con ancianos y siervos ministeriales"
+                when={visit.meeting_elders}
+              />
+            )}
           </Card>
         )}
 
