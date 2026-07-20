@@ -10,7 +10,11 @@ import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
 } from '@states/settings';
-import { serviceOutingsListState } from '@states/service_outings';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
+import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
 import { displaySnackNotification } from '@services/states/app';
@@ -41,6 +45,7 @@ const useCircuitVisitDashboard = () => {
   const congName = useAtomValue(congFullnameState);
   const jwLang = useAtomValue(JWLangState);
   const outingsList = useAtomValue(serviceOutingsListState);
+  const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
@@ -337,10 +342,11 @@ const useCircuitVisitDashboard = () => {
 
     const weekRecord = outingsList.find((r) => r.weekOf === working.weekOf);
 
-    const preachingRows = (weekRecord?.outings ?? [])
-      // El lunes es anterior a que el CO llegue (la visita empieza el
-      // martes) — no debe salir en el programa de predicación.
-      .filter((o) => !o.cancelled && o.person && o.date >= working.date_start)
+    // Mismos turnos derivados que muestra la sección de predicación de la
+    // página (configuración de la congregación, sin exigir hermano
+    // asignado). El lunes es anterior a que el CO llegue.
+    const preachingRows = deriveWeekOutingSlots(outingsSettings, weekRecord, working.weekOf)
+      .filter((o) => !o.cancelled && o.date >= working.date_start)
       .map((o) => {
         const outingKey = `${o.date}_${o.time}`;
         const companion = working.co_companions.find(
@@ -423,7 +429,7 @@ const useCircuitVisitDashboard = () => {
     link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [working, coName, coSpouseName, congName, jwLang, outingsList, displayNameEnabled, fullnameOption]);
+  }, [working, coName, coSpouseName, congName, jwLang, outingsList, outingsSettings, displayNameEnabled, fullnameOption]);
 
   return {
     visits: sortedVisits,

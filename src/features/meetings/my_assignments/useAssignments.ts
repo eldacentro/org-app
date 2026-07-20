@@ -518,7 +518,7 @@ const useMyAssignments = () => {
                 dataView: 'main',
                 title: 'Visita de pastoreo (CO)',
                 descItems: [
-                  { icon: 'clock', text: sv.time || '—' },
+                  ...(sv.time ? [{ icon: 'clock', text: sv.time } as AssignmentDescItem] : []),
                   { icon: 'person', text: brotherName },
                 ],
                 startTime: sv.time || undefined,

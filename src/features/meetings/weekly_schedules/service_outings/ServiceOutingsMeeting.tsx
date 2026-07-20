@@ -359,7 +359,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
                           lineHeight: '1.4'
                         }}
                       >
-                        {isCancelled ? '—' : slot.location}
+                        {isCancelled ? '' : slot.location}
                       </Typography>
                     </Box>
                   </Box>

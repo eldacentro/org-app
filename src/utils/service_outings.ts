@@ -129,8 +129,10 @@ export type DerivedOutingSlot = {
  * Deriva los turnos efectivos de UNA semana (lunes a domingo) a partir de la
  * configuración global + el registro de la semana, con las mismas reglas que
  * el planificador y "Programas semanales": horas por mes de CADA día,
- * inhabilitados, suspensión mensual con excepciones y — si la semana es la de
- * la visita del superintendente — los turnos de miércoles a domingo forzados.
+ * inhabilitados y suspensión mensual con excepciones. Solo salen los turnos
+ * que la congregación TIENE configurados — la semana del superintendente no
+ * inventa turnos nuevos; lo que hace es que los turnos de miércoles a
+ * domingo sin hermano asignado muestren al propio superintendente.
  * Único punto de verdad para cualquier vista que necesite "qué salidas hay
  * esta semana" sin duplicar esta lógica.
  */
@@ -161,7 +163,10 @@ export const deriveWeekOutingSlots = (
   const outings = weekRecord?.outings || [];
   const overrideHours = weekRecord?.weekOverrideHours || {};
 
-  const CO_FORCED_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  // Semana del CO: los turnos EXISTENTES de miércoles a domingo sin hermano
+  // asignado se muestran con el superintendente (él sale a predicar esos
+  // días). El martes es su llegada + reunión de entre semana.
+  const CO_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const isCoWeek = !!weekRecord?.isCircuitOverseerWeek;
 
   const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -175,7 +180,6 @@ export const deriveWeekOutingSlots = (
     const dbDateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
     const dayMonthStr = dbDateStr.slice(0, 7);
     const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
-    const coForced = isCoWeek && CO_FORCED_DAYS.includes(dayLabel);
 
     for (const turn of ['morning', 'afternoon'] as const) {
       const slotType = `${dayLabel}_${turn}`;
@@ -184,7 +188,7 @@ export const deriveWeekOutingSlots = (
         !disabledSlots.includes(dayLabel) &&
         !isOutingSlotSuppressedByMonth(settings, dayMonthStr, slotType);
 
-      if (!enabled && !coForced) continue;
+      if (!enabled) continue;
 
       const time =
         overrideHours[slotType] ||
@@ -192,11 +196,13 @@ export const deriveWeekOutingSlots = (
         (turn === 'morning' ? '10:00' : '17:00');
       const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
 
+      const coHere = isCoWeek && CO_DAYS.includes(dayLabel);
+
       slots.push({
         date: dbDateStr,
         time,
         slotType,
-        person: assigned?.person || '',
+        person: assigned?.person || (coHere ? 'CIRCUIT_OVERSEER' : ''),
         location: assigned?.location || defaultLocation,
         cancelled: assigned?.cancelled || false,
       });

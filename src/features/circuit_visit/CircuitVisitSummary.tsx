@@ -145,9 +145,12 @@ const CircuitVisitSummary = ({
       }
 
       if (sv.elder === myUid && sv.brother !== myUid) {
+        const broName = findPersonName(sv.brother);
         items.push({
           key: `shep_elder_${sv.id}`,
-          primary: `Acompañas al superintendente en la visita de pastoreo a ${findPersonName(sv.brother) || '—'}`,
+          primary: broName
+            ? `Acompañas al superintendente en la visita de pastoreo a ${broName}`
+            : 'Acompañas al superintendente en una visita de pastoreo',
           secondary: when,
         });
       }
@@ -213,7 +216,7 @@ const CircuitVisitSummary = ({
                   <Stack key={d.dateStr} spacing="2px">
                     <Typography className="body-regular-semibold">{fmtDay(d.dateStr)}</Typography>
                     <Typography className="body-small-regular" color="var(--grey-400)">
-                      {d.slots.map((s) => `${s.time} — ${s.location || 'Salón del Reino'}`).join('  •  ')}
+                      {d.slots.map((s) => `${s.time} · ${s.location || 'Salón del Reino'}`).join('  •  ')}
                     </Typography>
                   </Stack>
                 ))
@@ -271,7 +274,9 @@ const CircuitVisitSummary = ({
                 <Stack spacing="6px">
                   {visit.meals.map((meal) => (
                     <Typography key={meal.id} className="body-small-regular">
-                      {fmtDay(meal.date)} — {findPersonName(meal.host) || '—'}
+                      {[fmtDay(meal.date), findPersonName(meal.host) || 'Anfitrión pendiente']
+                        .filter(Boolean)
+                        .join(' · ')}
                     </Typography>
                   ))}
                 </Stack>
@@ -286,10 +291,14 @@ const CircuitVisitSummary = ({
               ) : (
                 <Stack spacing="6px">
                   {visit.co_companions.map((c) => {
-                    const [date] = c.outingKey.split('_');
+                    const [date, time] = c.outingKey.split('_');
+                    const parts = [
+                      `${fmtDay(date)}${time ? ` · ${time}` : ''}`,
+                      findPersonName(c.brother) || 'Pendiente',
+                    ];
                     return (
                       <Typography key={c.outingKey} className="body-small-regular">
-                        {fmtDay(date)} — {findPersonName(c.brother) || '—'}
+                        {parts.join(' · ')}
                         {c.withWife && effectiveCoSpouseName ? `  •  Con ${effectiveCoSpouseName}` : ''}
                       </Typography>
                     );
@@ -307,7 +316,10 @@ const CircuitVisitSummary = ({
                 <Stack spacing="6px">
                   {(visit.shepherding_visits ?? []).map((sv) => (
                     <Typography key={sv.id} className="body-small-regular">
-                      {fmtDay(sv.date)} · {sv.time || '—'} — {findPersonName(sv.brother) || '—'}
+                      {[
+                        `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`,
+                        findPersonName(sv.brother) || 'Pendiente',
+                      ].join(' · ')}
                       {sv.elder ? ` (con ${findPersonName(sv.elder)})` : ''}
                     </Typography>
                   ))}

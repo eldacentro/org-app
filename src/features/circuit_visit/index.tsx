@@ -46,7 +46,11 @@ import {
   COSpouseNameState,
 } from '@states/settings';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
-import { serviceOutingsListState } from '@states/service_outings';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
+import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { buildPersonFullname } from '@utils/common';
 import { personIsElder } from '@services/app/persons';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
@@ -232,17 +236,18 @@ const PreachingSection = ({
     [persons, fullnameOption]
   );
 
-  // Solo tiene sentido elegir compañía para una salida ya asignada a alguien,
-  // y solo dentro de la semana de la visita — weekRecord trae la semana
-  // completa (de lunes a domingo), pero el lunes es anterior a que el CO
-  // llegue (la visita empieza el martes), así que no debe salir aquí.
+  const outingsSettings = useAtomValue(serviceOutingsSettingsState);
+
+  // Turnos de la semana en los que sale el superintendente (los configurados
+  // de miércoles a domingo, más cualquier otro de su semana que exista) —
+  // para cada uno se puede elegir quién le acompaña. Derivados de la
+  // configuración: no hace falta que el turno tenga hermano asignado.
   const assignedOutings = useMemo(() => {
-    const outings = weekRecord?.outings ?? [];
-    return outings
-      .filter((o) => !o.cancelled && o.person && o.date >= visit.date_start)
-      .map((o) => ({ ...o, outingKey: `${o.date}_${o.time}` }))
+    return deriveWeekOutingSlots(outingsSettings, weekRecord, visit.weekOf)
+      .filter((s) => !s.cancelled && s.date >= visit.date_start)
+      .map((s) => ({ ...s, outingKey: `${s.date}_${s.time}` }))
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  }, [weekRecord, visit.date_start]);
+  }, [outingsSettings, weekRecord, visit.weekOf, visit.date_start]);
 
   return (
     <Card
@@ -654,7 +659,7 @@ const CircuitVisitDashboard = () => {
         <DocRow
           icon={<IconWallet color="var(--accent-main)" width={20} height={20} />}
           title="Estado de la contabilidad"
-          subtitle="Gestionado aparte — revisar con el siervo de cuentas."
+          subtitle="Gestionado aparte: revisar con el siervo de cuentas."
         />
       </Stack>
     </Card>
@@ -977,7 +982,7 @@ const CircuitVisitDashboard = () => {
           {/* Reuniones especiales */}
           <Card
             title="Reuniones especiales"
-            subtitle="Se anuncian a la congregación cuando tienen fecha, hora y lugar — mientras falte algo, solo las ves tú aquí."
+            subtitle="Se anuncian a la congregación cuando tienen fecha, hora y lugar; mientras falte algo, solo las ves tú aquí."
           >
             <Stack spacing="18px">
               <SpecialMeetingEditor
@@ -1001,7 +1006,7 @@ const CircuitVisitDashboard = () => {
           {/* Contabilidad: gestionado aparte */}
           <Card
             title="Contabilidad"
-            subtitle="Gestionado aparte — recordatorio para la visita."
+            subtitle="Gestionado aparte: recordatorio para la visita."
           >
             <TextField
               label="Nota (opcional)"
@@ -1076,10 +1081,12 @@ const CircuitVisitDashboard = () => {
                                 host.person_data.person_firstname.value,
                                 fullnameOption
                               )
-                            : meal.host || '—';
+                            : '';
                           return (
                             <Typography key={meal.id} className="body-small-regular">
-                              {meal.date ? fmtDayEs(meal.date) : '—'} — {hostName}
+                              {[meal.date ? fmtDayEs(meal.date) : '', hostName]
+                                .filter(Boolean)
+                                .join(' · ')}
                             </Typography>
                           );
                         })}
@@ -1100,10 +1107,16 @@ const CircuitVisitDashboard = () => {
                                 bro.person_data.person_firstname.value,
                                 fullnameOption
                               )
-                            : '—';
+                            : '';
                           return (
                             <Typography key={sv.id} className="body-small-regular">
-                              {sv.date ? fmtDayEs(sv.date) : '—'} · {sv.time || '—'} — {broName}
+                              {[
+                                sv.date ? fmtDayEs(sv.date) : '',
+                                sv.time,
+                                broName,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
                             </Typography>
                           );
                         })}
@@ -1118,12 +1131,24 @@ const CircuitVisitDashboard = () => {
                         </Typography>
                         {visit.meeting_pioneers && (
                           <Typography className="body-small-regular">
-                            Precursores — {visit.meeting_pioneers.date ? fmtDayEs(visit.meeting_pioneers.date) : '—'} {visit.meeting_pioneers.time}
+                            {[
+                              'Precursores',
+                              visit.meeting_pioneers.date ? fmtDayEs(visit.meeting_pioneers.date) : '',
+                              visit.meeting_pioneers.time,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           </Typography>
                         )}
                         {visit.meeting_elders && (
                           <Typography className="body-small-regular">
-                            Ancianos y SM — {visit.meeting_elders.date ? fmtDayEs(visit.meeting_elders.date) : '—'} {visit.meeting_elders.time}
+                            {[
+                              'Ancianos y siervos ministeriales',
+                              visit.meeting_elders.date ? fmtDayEs(visit.meeting_elders.date) : '',
+                              visit.meeting_elders.time,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           </Typography>
                         )}
                       </Stack>

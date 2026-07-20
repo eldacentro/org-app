@@ -353,35 +353,11 @@ const PredicacionSalidas = () => {
   // Generar dinámicamente todos los slots de salidas del mes/año seleccionado
   const outingsSlotsInMonth = useMemo(() => {
     // Ya NO se corta en seco cuando el mes está suspendido: si la suspensión
-    // lleva excepciones (keepActiveSlots, ej. sábados) o hay una semana del
-    // superintendente en el mes, esos turnos deben seguir apareciendo. La
-    // supresión se decide turno a turno más abajo.
-    if (!settings) {
+    // lleva excepciones (keepActiveSlots, ej. sábados), esos turnos deben
+    // seguir apareciendo. La supresión se decide turno a turno más abajo.
+    if (!settings || isOutingsMonthFullyCancelled(settings, currentMonthStr)) {
       return [];
     }
-
-    const monthFullyCancelled = isOutingsMonthFullyCancelled(settings, currentMonthStr);
-    // Una semana del CO "toca" este mes si algún día suyo (lunes a domingo)
-    // cae dentro — cuenta también la que empieza a final del mes anterior.
-    const monthStart = new Date(selectedYear, selectedMonth, 1);
-    const monthEnd = new Date(selectedYear, selectedMonth + 1, 0);
-    const hasCoWeekInMonth = outingsWeeks.some((w) => {
-      if (!w.isCircuitOverseerWeek) return false;
-      const monday = new Date(w.weekOf);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      return monday <= monthEnd && sunday >= monthStart;
-    });
-
-    if (monthFullyCancelled && !hasCoWeekInMonth) {
-      return [];
-    }
-
-    // Semana de la visita del superintendente: las salidas de miércoles a
-    // domingo salen SIEMPRE (mañana y tarde), aunque el día esté
-    // deshabilitado o el mes suspendido — con el CO se predica todos esos
-    // días. Una salida concreta se puede suspender individualmente.
-    const CO_FORCED_DAYS = new Set([0, 3, 4, 5, 6]); // Dom, Mié, Jue, Vie, Sáb
 
     const defaultHours = effectiveHours;
 
@@ -406,8 +382,6 @@ const PredicacionSalidas = () => {
         const weekOfRecord = getWeekOfDate(date);
         const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
         const overrideHours = weekRecord?.weekOverrideHours || {};
-        const coForced =
-          !!weekRecord?.isCircuitOverseerWeek && CO_FORCED_DAYS.has(dayOfWeek);
 
         // Turno Mañana
         const morningType = `${dayLabel}_morning`;
@@ -415,10 +389,9 @@ const PredicacionSalidas = () => {
         // Además se omite si el mes está suspendido y este turno no es una de
         // las excepciones mantenidas activas (ver isOutingSlotSuppressedByMonth).
         if (
-          coForced ||
-          (!disabledSlots.includes(morningType) &&
-            !disabledSlots.includes(dayLabel) &&
-            !isOutingSlotSuppressedByMonth(settings, currentMonthStr, morningType))
+          !disabledSlots.includes(morningType) &&
+          !disabledSlots.includes(dayLabel) &&
+          !isOutingSlotSuppressedByMonth(settings, currentMonthStr, morningType)
         ) {
           slots.push({
             date: new Date(date),
@@ -431,10 +404,9 @@ const PredicacionSalidas = () => {
         // Turno Tarde
         const afternoonType = `${dayLabel}_afternoon`;
         if (
-          coForced ||
-          (!disabledSlots.includes(afternoonType) &&
-            !disabledSlots.includes(dayLabel) &&
-            !isOutingSlotSuppressedByMonth(settings, currentMonthStr, afternoonType))
+          !disabledSlots.includes(afternoonType) &&
+          !disabledSlots.includes(dayLabel) &&
+          !isOutingSlotSuppressedByMonth(settings, currentMonthStr, afternoonType)
         ) {
           slots.push({
             date: new Date(date),
