@@ -3,6 +3,8 @@ import appDb from '@db/appDb';
 import { dbSchedUpdate } from '@services/dexie/schedules';
 import { Week } from '@definition/week_type';
 import { WeekTypeCongregation, SchedWeekType } from '@definition/schedules';
+import { CircuitVisitType } from '@definition/circuit_visit';
+import { addDays, formatDate, getWeekDate } from '@utils/date';
 
 // El auto-marcado de la semana de la visita escribe en el MISMO sitio que el
 // selector manual de tipo de semana (schedule.<meeting>.week_type), para que
@@ -91,4 +93,30 @@ export const circuitVisitUnmarkWeek = async (weekOf: string) => {
       schedule.weekend_meeting?.week_type
     ),
   } as unknown as UpdateSpec<SchedWeekType>);
+};
+
+// ── Constructor de una visita nueva (compartido por la página de Visita y
+// por Ajustes → Superintendente de circuito, para que ambos caminos creen
+// exactamente la misma entidad). Movido aquí desde useCircuitVisitDashboard.
+export const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
+  const monday = getWeekDate(new Date(anyDateInWeek));
+  const weekOf = formatDate(monday, 'yyyy/MM/dd');
+
+  return {
+    id: crypto.randomUUID(),
+    _deleted: false,
+    updatedAt: '',
+    weekOf,
+    date_start: formatDate(addDays(monday, 1), 'yyyy/MM/dd'), // martes
+    date_end: formatDate(addDays(monday, 6), 'yyyy/MM/dd'), // domingo
+    is_substitute: false,
+    substitute_name: '',
+    substitute_spouse_name: '',
+    meals: [],
+    co_companions: [],
+    shepherding_visits: [],
+    meeting_pioneers: null,
+    meeting_elders: null,
+    accounting_note: '',
+  };
 };

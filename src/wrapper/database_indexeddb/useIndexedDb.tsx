@@ -303,10 +303,10 @@ const useIndexedDb = () => {
 
       // Re-aplica los marcadores derivados (semana del horario, Salidas de
       // predicación, Próximos eventos) por si algún destino no existía la
-      // última vez (p. ej. una semana futura sin schedule todavía, o una
-      // visita recién sincronizada desde otro dispositivo). Es idempotente:
-      // si ya está todo aplicado, no escribe nada.
-      reconcileAllVisits(active);
+      // última vez, y DES-proyecta las visitas borradas (auto-curación de
+      // eventos resucitados por la carrera del sync). Lee la tabla fresca
+      // por dentro y se auto-serializa — no se le pasa la instantánea.
+      reconcileAllVisits();
     }
   }, [dbCircuitVisits, setCircuitVisits]);
 

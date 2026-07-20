@@ -1,3 +1,4 @@
+import appDb from '@db/appDb';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { UpcomingEventCategory, UpcomingEventDuration } from '@definition/upcoming_events';
 import {
@@ -50,6 +51,20 @@ const upsertWeekEvent = async (visit: CircuitVisitType) => {
     return;
   }
 
+  // ANTI-RESURRECCIÓN (bug real, 2026-07-18): si el evento está tombstoneado
+  // con fecha MÁS NUEVA que el último cambio de la visita, la baja vino de
+  // otro dispositivo (borraron la visita allí y este dispositivo aún no ha
+  // recibido esa baja por sync). Re-crear el evento aquí lo "resucitaría"
+  // con updatedAt fresco, ganaría el merge y volvería para toda la
+  // congregación. Solo se re-crea si la visita se ha vuelto a guardar
+  // DESPUÉS del tombstone (restauración deliberada).
+  if (
+    existing?.event_data._deleted &&
+    existing.event_data.updatedAt > visit.updatedAt
+  ) {
+    return;
+  }
+
   await dbUpcomingEventsSave({
     event_uid: id,
     _deleted: existing?._deleted ?? false,
@@ -76,6 +91,15 @@ const upsertSpecialMeetingEvent = async (
   const all = await dbUpcomingEventGetAll();
   const id = eventId(visit.id, suffix);
   const existing = all.find((e) => e.event_uid === id);
+
+  // Anti-resurrección: mismo criterio que upsertWeekEvent — un tombstone
+  // más nuevo que la visita manda (la baja vino de otro dispositivo).
+  if (
+    existing?.event_data._deleted &&
+    existing.event_data.updatedAt > visit.updatedAt
+  ) {
+    return;
+  }
 
   // Sin esta reunión programada: si existía un evento previo (se quitó),
   // se borra lógicamente. Si nunca existió, no hay nada que hacer.
@@ -214,16 +238,81 @@ export const unprojectVisit = async (visit: CircuitVisitType) => {
 };
 
 /**
- * Re-aplica la proyección de todas las visitas activas. Pensado para
- * llamarse tras cargar los datos locales (useIndexedDb), porque
- * projectVisit() omite en silencio los destinos que aún no existen (p. ej.
- * una semana futura sin schedule todavía); reconcile() les da otra
- * oportunidad cuando ya existen. Es idempotente, así que llamarlo de más
- * no tiene efecto secundario.
+ * Re-aplica la proyección de TODAS las visitas (activas y borradas). Se
+ * llama tras cargar los datos locales y en cada cambio de la tabla por sync
+ * (useIndexedDb), porque projectVisit() omite en silencio los destinos que
+ * aún no existen (p. ej. una semana futura sin schedule todavía);
+ * reconcile() les da otra oportunidad cuando ya existen.
+ *
+ * AUTO-CURACIÓN (bug real, 2026-07-18): también des-proyecta las visitas
+ * BORRADAS. Sin esto, un dispositivo que re-proyectó una visita en la
+ * ventana entre el borrado en otro dispositivo y la llegada de la baja por
+ * sync dejaba el evento/semana "resucitados" para siempre. Con esto, en
+ * cuanto la baja llega (liveQuery → reconcile), este mismo código limpia
+ * los restos y el estado converge en todos los dispositivos.
+ *
+ * Orden importante: primero las borradas (des-proyectar), después las
+ * activas (proyectar) — así, si una semana tuviera una visita borrada y
+ * otra activa, la activa re-marca lo suyo al final. Es idempotente.
  */
-export const reconcileAllVisits = async (visits: CircuitVisitType[]) => {
+const reconcilePass = async () => {
+  // SIEMPRE se lee fresco de la BD (no una lista pasada por el llamante):
+  // dos emisiones de liveQuery pueden solaparse, y un reconcile con una
+  // instantánea VIEJA que termina después re-proyectaría un estado obsoleto
+  // (bug real, 2026-07-20: al mover una visita de semana, un reconcile
+  // rezagado volvía a marcar la semana ANTIGUA como CO_VISIT).
+  const visits = await appDb.circuit_overseer_visits.toArray();
+
+  const activeWeeks = new Set(
+    visits.filter((v) => !v._deleted).map((v) => v.weekOf)
+  );
+
   for (const visit of visits) {
-    if (visit._deleted) continue;
-    await projectVisit(visit);
+    if (!visit._deleted) continue;
+
+    await softDeleteVisitEvents(visit.id);
+
+    // La semana/salidas solo se des-marcan si NINGUNA visita activa cubre
+    // esa misma semana — si no, cada reconcile des-marcaría y re-marcaría
+    // en bucle (escrituras + sync en cada arranque).
+    if (!activeWeeks.has(visit.weekOf)) {
+      await circuitVisitUnmarkWeek(visit.weekOf);
+      await unmarkServiceOutingsWeek(visit.weekOf);
+    }
   }
+
+  for (const visit of visits) {
+    if (!visit._deleted) {
+      await projectVisit(visit);
+    }
+  }
+};
+
+// ── Candado global de operaciones sobre visitas ──────────────────────────
+// Serializa guardar/mover/borrar (servicio dexie) Y el reconcile. Sin esto,
+// un reconcile disparado por otra emisión (settings, sched...) podía colarse
+// EN MEDIO de un movimiento de semana (entre des-proyectar la semana vieja y
+// escribir el registro nuevo), leer la visita todavía en la semana antigua y
+// volver a marcarla como CO_VISIT (bug real, 2026-07-20, visto en pruebas:
+// la semana vieja quedaba marcada para siempre tras mover la visita).
+let visitOpChain: Promise<unknown> = Promise.resolve();
+
+export const runExclusiveVisitOp = <T,>(fn: () => Promise<T>): Promise<T> => {
+  const next = visitOpChain.then(fn, fn);
+  visitOpChain = next.catch(() => undefined);
+  return next;
+};
+
+// Coalescencia: si ya hay un reconcile esperando el candado, no se encola
+// otro (cada pasada lee fresco, así que una sola pasada final basta).
+let reconcileQueued = false;
+
+export const reconcileAllVisits = async () => {
+  if (reconcileQueued) return;
+  reconcileQueued = true;
+
+  return runExclusiveVisitOp(async () => {
+    reconcileQueued = false;
+    await reconcilePass();
+  });
 };

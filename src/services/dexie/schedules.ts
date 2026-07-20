@@ -53,9 +53,21 @@ export const dbSchedCheck = async (weekOf: string) => {
     // al fijar la fecha, y una visita fijada antes se perdía: la reunión no
     // se movía al día de visita ni en el programa ni en la asistencia.
     const settings = store.get(settingsState);
-    const hasCOVisit = settings.cong_settings.circuit_overseer.visits?.some(
-      (visit) => visit._deleted === false && visit.weekOf === weekOf
-    );
+    const hasCOVisitSettings =
+      settings.cong_settings.circuit_overseer.visits?.some(
+        (visit) => visit._deleted === false && visit.weekOf === weekOf
+      );
+
+    // La visita también puede existir solo como entidad completa (creada en
+    // la página "Visita del superintendente") — ambas fuentes cuentan.
+    const entityVisits = await appDb.circuit_overseer_visits
+      .where('weekOf')
+      .equals(weekOf)
+      .toArray()
+      .catch(() => []);
+    const hasCOVisitEntity = entityVisits.some((visit) => !visit._deleted);
+
+    const hasCOVisit = hasCOVisitSettings || hasCOVisitEntity;
 
     if (hasCOVisit) {
       const updatedAt = new Date().toISOString();

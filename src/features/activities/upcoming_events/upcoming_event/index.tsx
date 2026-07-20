@@ -1,4 +1,5 @@
-import { cloneElement, Fragment } from 'react';
+import { cloneElement, Fragment, useMemo } from 'react';
+import { useAtomValue } from 'jotai';
 import { Box, IconButton } from '@mui/material';
 import { IconEdit, IconLocation } from '@components/icons';
 import {
@@ -18,6 +19,7 @@ import AddToCalendar from '../add_to_calendar';
 import Typography from '@components/typography';
 import UpcomingEventDate from '../upcoming_event_date';
 import CircuitVisitWeekAgenda from '@features/circuit_visit/shared/CircuitVisitWeekAgenda';
+import { circuitVisitsState } from '@states/circuit_visit';
 import {
   ASSEMBLY_CATEGORIES,
   COVER_PHOTO_CATEGORIES,
@@ -29,6 +31,27 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
   const { isAdmin, isElder } = useCurrentUser();
   const canManageEvents = isAdmin || isElder;
   const { desktopUp, tabletUp } = useBreakpoints();
+
+  const circuitVisits = useAtomValue(circuitVisitsState);
+
+  // ¿Este evento de semana del CO tiene su visita vinculada? Si no (evento
+  // creado a mano, o visita borrada/desincronizada), la agenda no puede
+  // pintarse y la tarjeta debe caer al listado genérico de fechas — antes
+  // quedaba SIN fecha alguna (bug real).
+  const hasVisitAgenda = useMemo(() => {
+    if (
+      props.data.event_data.category !==
+      UpcomingEventCategory.CircuitOverseerWeek
+    ) {
+      return false;
+    }
+
+    const visitId = props.data.event_uid
+      .replace(/^covisit_/, '')
+      .replace(/_week$/, '');
+
+    return circuitVisits.some((v) => v.id === visitId && !v._deleted);
+  }, [props.data, circuitVisits]);
 
   const {
     eventDecoration,
@@ -216,16 +239,14 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       )}
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
-        props.data.event_data.category ===
-          UpcomingEventCategory.CircuitOverseerWeek && (
+        hasVisitAgenda && (
           <CircuitVisitWeekAgenda event={props.data} previousDay={previousDay} />
         )}
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
         props.data.event_data.category !==
           UpcomingEventCategory.SpecialCampaignWeek &&
-        props.data.event_data.category !==
-          UpcomingEventCategory.CircuitOverseerWeek &&
+        !hasVisitAgenda &&
         eventFormatted.dates.map((eventDate, eventDateIndex) => (
           <Fragment key={eventDate.date}>
             <UpcomingEventDate

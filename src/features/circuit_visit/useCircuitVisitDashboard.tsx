@@ -9,7 +9,6 @@ import {
   congFullnameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
-  settingsState,
 } from '@states/settings';
 import { serviceOutingsListState } from '@states/service_outings';
 import { personsStateFind } from '@services/states/persons';
@@ -27,36 +26,13 @@ import {
   dbCircuitVisitSave,
   dbCircuitVisitDelete,
 } from '@services/dexie/circuit_visit';
-import { dbAppSettingsUpdate } from '@services/dexie/settings';
-import { addDays, formatDate, getWeekDate } from '@utils/date';
+import { buildVisitForWeek } from '@services/app/circuit_visit';
+import { addDays, formatDate } from '@utils/date';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
 
 export type CircuitVisitSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 const AUTOSAVE_MS = 800;
-
-const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
-  const monday = getWeekDate(new Date(anyDateInWeek));
-  const weekOf = formatDate(monday, 'yyyy/MM/dd');
-
-  return {
-    id: crypto.randomUUID(),
-    _deleted: false,
-    updatedAt: '',
-    weekOf,
-    date_start: formatDate(addDays(monday, 1), 'yyyy/MM/dd'), // martes
-    date_end: formatDate(addDays(monday, 6), 'yyyy/MM/dd'), // domingo
-    is_substitute: false,
-    substitute_name: '',
-    substitute_spouse_name: '',
-    meals: [],
-    co_companions: [],
-    shepherding_visits: [],
-    meeting_pioneers: null,
-    meeting_elders: null,
-    accounting_note: '',
-  };
-};
 
 const useCircuitVisitDashboard = () => {
   const visits = useAtomValue(circuitVisitsState);
@@ -67,7 +43,6 @@ const useCircuitVisitDashboard = () => {
   const outingsList = useAtomValue(serviceOutingsListState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
-  const settings = useAtomValue(settingsState);
 
   // Más recientes primero.
   const sortedVisits = useMemo(
@@ -135,61 +110,44 @@ const useCircuitVisitDashboard = () => {
   // dbCircuitVisitSave/dbCircuitVisitDelete ya proyectan (y revierten) los
   // marcadores derivados — semana del horario, Salidas de predicación y
   // Próximos eventos — así que aquí solo hace falta guardar/borrar.
-  const handleCreateVisit = useCallback(async (anyDateInWeek: Date) => {
-    const visit = buildVisitForWeek(anyDateInWeek);
-    const saved = await dbCircuitVisitSave(visit);
-    setSelectedId(saved.id);
-    setWorking(saved);
-    return saved;
-  }, []);
+  const handleCreateVisit = useCallback(
+    async (anyDateInWeek: Date) => {
+      const visit = buildVisitForWeek(anyDateInWeek);
 
-  // Además de la entidad completa, limpia cualquier entrada suelta con la
-  // misma semana en la lista ligera de Ajustes (settings.circuit_overseer.
-  // visits) — es una fuente de datos aparte que puede quedar desincronizada
-  // si esa semana también se había planificado desde ahí. El tipo de semana
-  // en el horario ya lo revierte dbCircuitVisitDelete/unprojectVisit.
-  const cleanupSettingsVisitEntry = useCallback(
-    async (weekOf: string) => {
-      if (!weekOf) return;
-
-      const coVisits = structuredClone(
-        settings.cong_settings.circuit_overseer.visits
-      );
-
-      let changed = false;
-      for (const record of coVisits) {
-        if (record._deleted === false && record.weekOf === weekOf) {
-          record._deleted = true;
-          record.updatedAt = new Date().toISOString();
-          changed = true;
-        }
+      // Esa semana ya tiene visita activa: se selecciona en vez de duplicar
+      // (dos entidades con el mismo weekOf = eventos y marcas por partida
+      // doble en Próximos eventos y Ajustes).
+      const existing = sortedVisits.find((v) => v.weekOf === visit.weekOf);
+      if (existing) {
+        setSelectedId(existing.id);
+        displaySnackNotification({
+          header: 'Visita ya activa',
+          message: 'Esa semana ya tiene una visita activa. Se ha seleccionado.',
+          severity: 'success',
+        });
+        return existing;
       }
 
-      if (!changed) return;
-
-      await dbAppSettingsUpdate({
-        'cong_settings.circuit_overseer.visits': coVisits,
-      });
+      const saved = await dbCircuitVisitSave(visit);
+      setSelectedId(saved.id);
+      setWorking(saved);
+      return saved;
     },
-    [settings]
+    [sortedVisits]
   );
 
+  // dbCircuitVisitDelete ya limpia también la entrada ligera de Ajustes
+  // (settings.circuit_overseer.visits) además de revertir los marcadores.
   const handleDeleteVisit = useCallback(
     async (id: string) => {
-      const target = sortedVisits.find((v) => v.id === id);
-
       await dbCircuitVisitDelete(id);
-
-      if (target) {
-        await cleanupSettingsVisitEntry(target.weekOf);
-      }
 
       if (selectedId === id) {
         setSelectedId(null);
         setWorking(null);
       }
     },
-    [selectedId, sortedVisits, cleanupSettingsVisitEntry]
+    [selectedId]
   );
 
   // ── Comidas ──────────────────────────────────────────────────────────
