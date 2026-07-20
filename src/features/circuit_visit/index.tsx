@@ -40,7 +40,12 @@ import {
   CircuitVisitCompanionActivity,
 } from '@definition/circuit_visit';
 import { personsActiveState } from '@states/persons';
-import { fullnameOptionState, COSpouseNameState } from '@states/settings';
+import {
+  fullnameOptionState,
+  COFullnameState,
+  COSpouseNameState,
+} from '@states/settings';
+import { getEffectiveCoName } from './shared/getEffectiveCoName';
 import { serviceOutingsListState } from '@states/service_outings';
 import { buildPersonFullname } from '@utils/common';
 import { personIsElder } from '@services/app/persons';
@@ -463,7 +468,13 @@ const CircuitVisitDashboard = () => {
   const navigate = useNavigate();
   const [newWeek, setNewWeek] = useState<Date | null>(null);
   const [showPast, setShowPast] = useState(false);
+  // La tarjeta de activación solo se despliega sola cuando no hay ninguna
+  // visita activa; con visitas en marcha queda plegada tras "Activar otra".
+  const [showNewVisit, setShowNewVisit] = useState(false);
   const { confirm, ConfirmDialogNode } = useConfirm();
+
+  const coName = useAtomValue(COFullnameState);
+  const coSpouseName = useAtomValue(COSpouseNameState);
 
   const handleDeleteVisitClick = async () => {
     if (!working) return;
@@ -539,86 +550,126 @@ const CircuitVisitDashboard = () => {
     ? `Disponible 10 días antes (${fmtDateShortEs(formatDate(addDays(new Date(working.date_start), -10), 'yyyy/MM/dd'))})`
     : '';
 
+  // Estado temporal de la visita seleccionada, para el chip de la cabecera.
+  const visitStatus = useMemo(() => {
+    if (!working) return null;
+
+    if (working.date_start <= todayStr && todayStr <= working.date_end) {
+      return { label: 'En curso', bg: 'var(--green-secondary)', fg: 'var(--green-main)' };
+    }
+
+    const start = new Date(working.date_start);
+    start.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((start.getTime() - today.getTime()) / 86400000);
+
+    const label =
+      days === 0
+        ? 'Empieza hoy'
+        : days === 1
+        ? 'Empieza mañana'
+        : `Faltan ${days} días`;
+
+    return { label, bg: 'var(--accent-150)', fg: 'var(--accent-dark)' };
+  }, [working, todayStr]);
+
+  const { effectiveCoName, effectiveCoSpouseName } = working
+    ? getEffectiveCoName(working, coName, coSpouseName)
+    : { effectiveCoName: '', effectiveCoSpouseName: '' };
+
+  const coLabel = effectiveCoName
+    ? `${working?.is_substitute ? 'Superintendente sustituto' : 'Superintendente'}: ${effectiveCoName}${effectiveCoSpouseName ? ` y ${effectiveCoSpouseName}` : ''}`
+    : 'Configura el nombre del superintendente en Ajustes de congregación.';
+
+  const newVisitCard = (
+    <Box sx={{ mb: '20px' }}>
+      <Card
+        title="Activar nueva visita"
+        subtitle="Elige el martes en que empieza la visita."
+      >
+        <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end" flexWrap="wrap" useFlexGap>
+          <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+            <CustomDatePicker
+              label="Semana de la visita"
+              view="input"
+              value={newWeek}
+              onChange={(d) => setNewWeek(d)}
+              shouldDisableDate={(date) => date.getDay() !== 2}
+            />
+          </Box>
+          <Button
+            variant="main"
+            startIcon={<IconAdd color="var(--always-white)" />}
+            disabled={!newWeek}
+            onClick={async () => {
+              if (!newWeek) return;
+              await handleCreateVisit(newWeek);
+              setNewWeek(null);
+              setShowNewVisit(false);
+            }}
+          >
+            Activar visita
+          </Button>
+        </Stack>
+      </Card>
+    </Box>
+  );
+
+  const documentationCard = (
+    <Card
+      title="Documentación para la visita"
+      subtitle={
+        exportLockedMsg
+          ? `Exportación directa: ${exportLockedMsg}`
+          : 'Exporta directamente o abre la página para revisar.'
+      }
+    >
+      <Stack divider={<Box sx={{ height: '1px', background: 'var(--line)' }} />}>
+        <DocRow
+          icon={<IconPerson color="var(--accent-main)" width={20} height={20} />}
+          title="Registro de publicadores (S-21)"
+          subtitle="Tarjetas de informe de cada publicador."
+          onClick={() => navigate('/publisher-records')}
+          exportButton={<S21DirectExportButton disabled={!exportUnlocked} />}
+        />
+        <DocRow
+          icon={<IconAssignment color="var(--accent-main)" width={20} height={20} />}
+          title="Asistencia a las reuniones (S-88)"
+          subtitle="Registros de asistencia entre semana y fin de semana."
+          onClick={() => navigate('/reports/meeting-attendance')}
+          exportButton={<S88DirectExportButton disabled={!exportUnlocked} />}
+        />
+        <DocRow
+          icon={<IconMapOverview color="var(--accent-main)" width={20} height={20} />}
+          title="Territorios (S-13)"
+          subtitle="Registro y estado actual de los territorios."
+          onClick={() => navigate('/congregation/territories')}
+          exportButton={<S13DirectExportButton disabled={!exportUnlocked} />}
+        />
+        <DocRow
+          icon={<IconWallet color="var(--accent-main)" width={20} height={20} />}
+          title="Estado de la contabilidad"
+          subtitle="Gestionado aparte — revisar con el siervo de cuentas."
+        />
+      </Stack>
+    </Card>
+  );
+
   return (
     <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
-      <PageTitle title="Visita del Superintendente de Circuito" />
+      <PageTitle title="Visita del superintendente de circuito" />
 
-      {/* Activar nueva visita */}
-      <Box sx={{ mt: '12px', mb: '20px' }}>
-        <Card
-          title="Activar nueva visita"
-          subtitle="Elige el martes en que empieza la visita."
-        >
-          <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end" flexWrap="wrap" useFlexGap>
-            <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
-              <CustomDatePicker
-                label="Semana de la visita"
-                view="input"
-                value={newWeek}
-                onChange={(d) => setNewWeek(d)}
-                shouldDisableDate={(date) => date.getDay() !== 2}
-              />
-            </Box>
-            <Button
-              variant="main"
-              startIcon={<IconAdd color="var(--always-white)" />}
-              disabled={!newWeek}
-              onClick={async () => {
-                if (!newWeek) return;
-                await handleCreateVisit(newWeek);
-                setNewWeek(null);
-              }}
-            >
-              Activar visita
-            </Button>
-          </Stack>
-        </Card>
-      </Box>
-
-      {/* Documentación para la Visita */}
-      <Box sx={{ mb: '20px' }}>
-        <Card
-          title="Documentación para la Visita"
-          subtitle={
-            exportLockedMsg
-              ? `Exportación directa: ${exportLockedMsg}`
-              : 'Exporta directamente o abre la página para revisar.'
-          }
-        >
-          <Stack divider={<Box sx={{ height: '1px', background: 'var(--line)' }} />}>
-            <DocRow
-              icon={<IconPerson color="var(--accent-main)" width={20} height={20} />}
-              title="Registro de publicadores (S-21)"
-              subtitle="Tarjetas de informe de cada publicador."
-              onClick={() => navigate('/publisher-records')}
-              exportButton={<S21DirectExportButton disabled={!exportUnlocked} />}
-            />
-            <DocRow
-              icon={<IconAssignment color="var(--accent-main)" width={20} height={20} />}
-              title="Asistencia a las reuniones (S-88)"
-              subtitle="Registros de asistencia entre semana y fin de semana."
-              onClick={() => navigate('/reports/meeting-attendance')}
-              exportButton={<S88DirectExportButton disabled={!exportUnlocked} />}
-            />
-            <DocRow
-              icon={<IconMapOverview color="var(--accent-main)" width={20} height={20} />}
-              title="Territorios (S-13)"
-              subtitle="Registro y estado actual de los territorios."
-              onClick={() => navigate('/congregation/territories')}
-              exportButton={<S13DirectExportButton disabled={!exportUnlocked} />}
-            />
-            <DocRow
-              icon={<IconWallet color="var(--accent-main)" width={20} height={20} />}
-              title="Estado de la contabilidad"
-              subtitle="Gestionado aparte — revisar con el siervo de cuentas."
-            />
-          </Stack>
-        </Card>
-      </Box>
-
-      {/* Selector de visitas activas */}
+      {/* Selector de visitas activas + activar otra (plegada) */}
       {activeVisits.length > 0 && (
-        <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap mb="16px">
+        <Stack
+          direction="row"
+          spacing="8px"
+          flexWrap="wrap"
+          useFlexGap
+          alignItems="center"
+          sx={{ mt: '12px', mb: '16px' }}
+        >
           {activeVisits.map((visit) => (
             <Button
               key={visit.id}
@@ -628,50 +679,123 @@ const CircuitVisitDashboard = () => {
               {formatRange(visit)}
             </Button>
           ))}
+          <Button
+            variant="small"
+            startIcon={<IconAdd color="var(--accent-main)" />}
+            onClick={() => setShowNewVisit((p) => !p)}
+          >
+            Activar otra
+          </Button>
         </Stack>
       )}
 
+      {/* Sin visitas activas la tarjeta de activación se muestra sola;
+          con visitas queda plegada tras el botón "Activar otra". */}
+      {activeVisits.length === 0 && <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>}
+      {activeVisits.length > 0 && showNewVisit && newVisitCard}
+
       {!working && (
-        <Typography className="body-regular" color="var(--grey-400)">
-          {activeVisits.length > 0
-            ? 'Selecciona una visita para ver y editar su programa.'
-            : 'Aún no hay visitas activas. Activa una nueva visita arriba para empezar.'}
-        </Typography>
+        <Stack spacing="20px">
+          {activeVisits.length > 0 ? (
+            <Typography className="body-regular" color="var(--grey-400)">
+              Selecciona una visita para ver y editar su programa.
+            </Typography>
+          ) : (
+            <Typography className="body-regular" color="var(--grey-400)">
+              Aún no hay visitas activas. Activa una nueva visita arriba para
+              empezar.
+            </Typography>
+          )}
+          {documentationCard}
+        </Stack>
       )}
 
       {working && (
         <Stack spacing="20px">
-          {/* Cabecera de la visita */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
+          {/* Cabecera de la visita: fechas + estado + superintendente + acciones */}
+          <Box
+            sx={{
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--r-md)',
+              padding: { mobile: '16px', tablet: '20px 24px' },
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing="10px">
-              <Typography className="h2">{formatRange(working)}</Typography>
-              {saveStatusLabel && (
-                <Typography className="body-small-regular" color="var(--grey-400)">
-                  {saveStatusLabel}
+            <Stack
+              direction={{ mobile: 'column', tablet: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ tablet: 'center' }}
+              spacing="16px"
+              useFlexGap
+            >
+              <Stack spacing="4px">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing="8px"
+                  flexWrap="wrap"
+                  useFlexGap
+                >
+                  <Typography className="h2">{formatRange(working)}</Typography>
+                  {visitStatus && (
+                    <Box
+                      sx={{
+                        backgroundColor: visitStatus.bg,
+                        borderRadius: 'var(--radius-max)',
+                        padding: '2px 10px',
+                      }}
+                    >
+                      <Typography
+                        className="label-small-medium"
+                        color={visitStatus.fg}
+                      >
+                        {visitStatus.label}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+                <Typography
+                  className="body-small-regular"
+                  color="var(--grey-400)"
+                >
+                  {coLabel}
                 </Typography>
-              )}
-            </Stack>
-            <Stack direction="row" spacing="8px">
-              <Button
-                variant="main"
-                startIcon={<IconExport color="var(--always-white)" />}
-                onClick={handleExportPdf}
+                {saveStatusLabel && (
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--grey-350)"
+                  >
+                    {saveStatusLabel}
+                  </Typography>
+                )}
+              </Stack>
+              <Stack
+                direction="row"
+                spacing="8px"
+                flexShrink={0}
+                flexWrap="wrap"
+                useFlexGap
               >
-                Generar PDF
-              </Button>
-              <Button
-                variant="tertiary"
-                startIcon={<IconDelete color="var(--red-main)" />}
-                onClick={handleDeleteVisitClick}
-              >
-                Eliminar visita
-              </Button>
+                <Button
+                  variant="main"
+                  startIcon={<IconExport color="var(--always-white)" />}
+                  onClick={handleExportPdf}
+                >
+                  Generar PDF
+                </Button>
+                <Button
+                  variant="tertiary"
+                  startIcon={<IconDelete color="var(--red-main)" />}
+                  onClick={handleDeleteVisitClick}
+                >
+                  Eliminar visita
+                </Button>
+              </Stack>
             </Stack>
-          </Stack>
+          </Box>
+
+          {/* Documentación de esta visita */}
+          {documentationCard}
 
           {/* Superintendente sustituto */}
           <Card
