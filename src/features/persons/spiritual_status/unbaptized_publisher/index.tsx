@@ -5,6 +5,7 @@ import useUnbaptizedPublisher from './useUnbaptizedPublisher';
 import DateHistory from '../../date_history';
 import FirstReport from '../first_report';
 import GroupSelector from '@features/congregation/field_service_groups/group_selector';
+import GroupVisibilityNote from '../group_visibility_note';
 import SpiritualStatusTitle from '../title';
 import StatusHistory from '../history';
 
@@ -62,6 +63,8 @@ const UnbaptizedPublisher = ({
             helperText={group_overseer}
             readOnly={!isPersonEditor}
           />
+
+          <GroupVisibilityNote group={group} />
 
           <StatusHistory
             active={isActive}

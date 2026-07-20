@@ -37,6 +37,14 @@ const useBaptizedPublisher = () => {
 
     let value = found?.group_id ?? '';
 
+    // Unificación de grupo: si no es miembro real de ningún grupo pero tiene
+    // el grupo interno de la migración (grupo_asignado), se muestra aquí —
+    // al guardar, handleSaveGroup la convierte en miembro real y el campo
+    // interno se limpia (useButtonActions).
+    if (value === '') {
+      value = person?.person_data.grupo_asignado?.value ?? '';
+    }
+
     if (value === '' && isAddPerson && dataView !== 'main') {
       value = dataView;
     }

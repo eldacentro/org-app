@@ -108,7 +108,29 @@ const useButtonActions = () => {
 
   const handleSavePerson = async () => {
     try {
-      await dbPersonsSave(person, isNewPerson);
+      // Unificación de grupo: la pertenencia real al grupo es la única
+      // fuente. Si el selector tiene grupo y la persona todavía arrastra el
+      // grupo interno de la migración (grupo_asignado), se limpia aquí —
+      // handleSaveGroup la convierte justo después en miembro real del
+      // grupo (nunca escribir undefined: se limpia con '' y updatedAt
+      // fresco para que el borrado se propague por el sync).
+      const groupSelectorValue = document
+        .querySelector('.service-group-selector')
+        ?.querySelector('input')?.value;
+
+      const personToSave = structuredClone(person);
+
+      if (
+        groupSelectorValue &&
+        personToSave.person_data.grupo_asignado?.value
+      ) {
+        personToSave.person_data.grupo_asignado = {
+          value: '',
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      await dbPersonsSave(personToSave, isNewPerson);
 
       await handleSaveGroup();
 

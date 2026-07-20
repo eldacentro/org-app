@@ -10,6 +10,7 @@ import DateHistory from '../../date_history';
 import DatePicker from '@components/date_picker';
 import FirstReport from '../first_report';
 import GroupSelector from '@features/congregation/field_service_groups/group_selector';
+import GroupVisibilityNote from '../group_visibility_note';
 import Radio from '@components/radio';
 import SpiritualStatusTitle from '../title';
 import StatusHistory from '../history';
@@ -160,6 +161,8 @@ const BaptizedPublisher = ({
             helperText={group_overseer}
             readOnly={!isPersonEditor}
           />
+
+          <GroupVisibilityNote group={group} />
 
           <StatusHistory
             active={isActive}

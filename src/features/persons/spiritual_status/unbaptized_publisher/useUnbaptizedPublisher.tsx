@@ -36,6 +36,13 @@ const useUnbaptizedPublisher = () => {
 
     let value = group?.group_id ?? '';
 
+    // Unificación de grupo: si no es miembro real pero tiene el grupo
+    // interno de la migración (grupo_asignado), se muestra aquí — al
+    // guardar se convierte en miembro real (ver useButtonActions).
+    if (value === '') {
+      value = person?.person_data.grupo_asignado?.value ?? '';
+    }
+
     if (value === '' && isAddPerson && dataView !== 'main') {
       value = dataView;
     }

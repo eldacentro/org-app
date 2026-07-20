@@ -16,7 +16,6 @@ import PersonSpecialCircumstances from '@features/persons/special_circumstances'
 import PersonPrivileges from '@features/persons/privileges';
 import PersonTimeAway from '@features/persons/time_away';
 import PersonEmergencyContacts from '@features/persons/emergency_contacts';
-import PersonFieldGroup from '@features/persons/field_group';
 import PersonAssignmentsHistory from '@features/persons/assignments_history';
 import PersonAssignments from '@features/persons/assignments';
 import FamilyMembers from '@features/persons/family_members';
@@ -105,7 +104,6 @@ const PersonDetails = () => {
           {!isNewPerson && <PersonAssignmentsHistory />}
 
           <PersonTimeAway />
-          <PersonFieldGroup />
           <PersonEmergencyContacts />
         </Box>
       </Box>
