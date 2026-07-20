@@ -13,6 +13,7 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { ACTIVITY_LABELS } from './shared/activityLabels';
+import { isSpecialMeetingComplete } from '@services/app/circuit_visit';
 import { personsState } from '@states/persons';
 import { serviceOutingsListState } from '@states/service_outings';
 import { sourcesState } from '@states/sources';
@@ -32,7 +33,8 @@ const SpecialMeetingRow = ({
   label: string;
   when: { date: string; time: string; place: string } | null;
 }) => {
-  if (!when || !when.date) return null;
+  // Una reunión a medias (sin hora o sin lugar) todavía no se anuncia.
+  if (!isSpecialMeetingComplete(when)) return null;
 
   const parts = [fmtDay(when.date), when.time, when.place].filter(Boolean);
 
@@ -243,8 +245,10 @@ const CircuitVisitSummary = ({
         </Card>
 
         {/* La reunión con precursores es de interés general (los precursores
-            son publicadores); la de ancianos y SM solo se muestra a ancianos. */}
-        {(visit.meeting_pioneers || (tier === 'elder' && visit.meeting_elders)) && (
+            son publicadores); la de ancianos y siervos ministeriales solo se
+            muestra a ancianos. Las reuniones a medias no se anuncian. */}
+        {(isSpecialMeetingComplete(visit.meeting_pioneers) ||
+          (tier === 'elder' && isSpecialMeetingComplete(visit.meeting_elders))) && (
           <Card title="Reuniones especiales">
             <SpecialMeetingRow label="Reunión con precursores" when={visit.meeting_pioneers} />
             {tier === 'elder' && (

@@ -9,7 +9,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
-import { getEffectiveHoursForMonth, isOutingSlotSuppressedByMonth } from '@utils/service_outings';
+import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
@@ -21,32 +21,6 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
   const fullnameOption = useAtomValue(fullnameOptionState);
   const userUID = useAtomValue(userLocalUIDState);
   const monthNames = useAtomValue(monthNamesState);
-
-  // "Ajustes del mes" (excepciones de horario, ej. verano) son por mes, no
-  // por semana — una semana que empieza en un mes y termina en otro (ej.
-  // lunes 29 de junio a domingo 5 de julio) debe usar el mes de CADA día,
-  // no el mes del lunes para toda la semana entera. defaultSettings ya no
-  // depende de un único mes; locations/disabledSlots sí son globales.
-  const defaultSettings = useMemo(() => {
-    return {
-      locations: settings?.locations || ['Salón del Reino'],
-      disabledSlots: settings?.disabledSlots || [],
-    };
-  }, [settings]);
-
-  const weekDays = useMemo(() => {
-    if (!week) return [];
-    const days = [];
-    const parts = week.split('/');
-    const monday = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(monday);
-      day.setDate(monday.getDate() + i);
-      days.push(day);
-    }
-    return days;
-  }, [week]);
 
   const formatLegibleDate = (date: Date): string => {
     const weekdays = [
@@ -62,88 +36,21 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
     return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
+  // Derivación compartida (mismas reglas que el planificador y la agenda de
+  // Próximos eventos): horas por mes de cada día, inhabilitados, suspensión
+  // mensual con excepciones y turnos mié–dom forzados en la semana del CO.
   const generatedSlots = useMemo(() => {
-    if (!week || weekDays.length === 0) return [];
+    if (!week) return [];
 
-    const disabledSlots = defaultSettings.disabledSlots || [];
-    const outings = weekRecord?.outings || [];
-    const overrideHours = weekRecord?.weekOverrideHours || {};
-
-    // Semana de la visita del superintendente: las salidas de miércoles a
-    // domingo salen SIEMPRE (mañana y tarde), aunque el día esté
-    // deshabilitado en la configuración normal o el mes suspendido — con el
-    // CO se predica todos esos días. Una salida concreta que no proceda se
-    // puede suspender individualmente desde Salidas de predicación.
-    const CO_FORCED_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const isCoWeek = !!weekRecord?.isCircuitOverseerWeek;
-
-    const slots = [];
-    const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-    for (let i = 0; i < 7; i++) {
-      const date = weekDays[i];
-      const dayLabel = dayKeys[i];
-      const dbDateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
-
-      // El mes de ESTE día concreto, no el del lunes de la semana — así un
-      // jueves de julio usa los ajustes de julio aunque la semana empiece
-      // en junio.
-      const dayMonthStr = dbDateStr.slice(0, 7);
-      const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
-
-      const coForced = isCoWeek && CO_FORCED_DAYS.includes(dayLabel);
-
-      // Morning Turn — se omite si está inhabilitado globalmente o si el mes
-      // está suspendido y este turno no es una de las excepciones mantenidas
-      // activas (ver isOutingSlotSuppressedByMonth).
-      const morningType = `${dayLabel}_morning`;
-      if (
-        coForced ||
-        (!disabledSlots.includes(morningType) &&
-          !disabledSlots.includes(dayLabel) &&
-          !isOutingSlotSuppressedByMonth(settings, dayMonthStr, morningType))
-      ) {
-        const time = overrideHours[morningType] || defaultHours[morningType as keyof typeof defaultHours] || '10:00';
-        const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
-
-        slots.push({
-          id: assigned?.id || crypto.randomUUID(),
-          date: dbDateStr,
-          rawDate: date,
-          time,
-          person: assigned?.person || '',
-          location: assigned?.location || defaultSettings.locations?.[0] || 'Salón del Reino',
-          cancelled: assigned?.cancelled || false,
-          slotType: morningType,
-        });
-      }
-
-      // Afternoon Turn — misma condición que el turno de mañana.
-      const afternoonType = `${dayLabel}_afternoon`;
-      if (
-        coForced ||
-        (!disabledSlots.includes(afternoonType) &&
-          !disabledSlots.includes(dayLabel) &&
-          !isOutingSlotSuppressedByMonth(settings, dayMonthStr, afternoonType))
-      ) {
-        const time = overrideHours[afternoonType] || defaultHours[afternoonType as keyof typeof defaultHours] || '17:00';
-        const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
-
-        slots.push({
-          id: assigned?.id || crypto.randomUUID(),
-          date: dbDateStr,
-          rawDate: date,
-          time,
-          person: assigned?.person || '',
-          location: assigned?.location || defaultSettings.locations?.[0] || 'Salón del Reino',
-          cancelled: assigned?.cancelled || false,
-          slotType: afternoonType,
-        });
-      }
-    }
-
-    return slots;
-  }, [week, weekDays, defaultSettings, weekRecord, settings]);
+    return deriveWeekOutingSlots(settings, weekRecord, week).map((slot) => {
+      const [y, m, d] = slot.date.split('/').map(Number);
+      return {
+        ...slot,
+        id: `${slot.date}_${slot.slotType}`,
+        rawDate: new Date(y, m - 1, d),
+      };
+    });
+  }, [week, weekRecord, settings]);
 
   const groupedOutings = useMemo(() => {
     if (generatedSlots.length === 0) return [];

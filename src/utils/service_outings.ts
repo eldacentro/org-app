@@ -115,3 +115,93 @@ export const isOutingSlotSuppressedByMonth = (
   const dayLabel = slotType.split('_')[0]; // "saturday_morning" -> "saturday"
   return !(kept.includes(slotType) || kept.includes(dayLabel));
 };
+
+export type DerivedOutingSlot = {
+  date: string; // "YYYY/MM/DD"
+  time: string;
+  slotType: string; // ej. "wednesday_morning"
+  person: string;
+  location: string;
+  cancelled: boolean;
+};
+
+/**
+ * Deriva los turnos efectivos de UNA semana (lunes a domingo) a partir de la
+ * configuración global + el registro de la semana, con las mismas reglas que
+ * el planificador y "Programas semanales": horas por mes de CADA día,
+ * inhabilitados, suspensión mensual con excepciones y — si la semana es la de
+ * la visita del superintendente — los turnos de miércoles a domingo forzados.
+ * Único punto de verdad para cualquier vista que necesite "qué salidas hay
+ * esta semana" sin duplicar esta lógica.
+ */
+export const deriveWeekOutingSlots = (
+  settings: ServiceOutingSettingsType | null,
+  weekRecord:
+    | {
+        isCircuitOverseerWeek?: boolean;
+        weekOverrideHours?: Record<string, string>;
+        outings?: {
+          date: string;
+          time: string;
+          person: string;
+          location: string;
+          cancelled: boolean;
+        }[];
+      }
+    | undefined,
+  weekOf: string
+): DerivedOutingSlot[] => {
+  if (!weekOf) return [];
+
+  const parts = weekOf.split('/');
+  const monday = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+
+  const disabledSlots = settings?.disabledSlots || [];
+  const defaultLocation = settings?.locations?.[0] || 'Salón del Reino';
+  const outings = weekRecord?.outings || [];
+  const overrideHours = weekRecord?.weekOverrideHours || {};
+
+  const CO_FORCED_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const isCoWeek = !!weekRecord?.isCircuitOverseerWeek;
+
+  const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const slots: DerivedOutingSlot[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+
+    const dayLabel = dayKeys[i];
+    const dbDateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    const dayMonthStr = dbDateStr.slice(0, 7);
+    const defaultHours = getEffectiveHoursForMonth(settings, dayMonthStr);
+    const coForced = isCoWeek && CO_FORCED_DAYS.includes(dayLabel);
+
+    for (const turn of ['morning', 'afternoon'] as const) {
+      const slotType = `${dayLabel}_${turn}`;
+      const enabled =
+        !disabledSlots.includes(slotType) &&
+        !disabledSlots.includes(dayLabel) &&
+        !isOutingSlotSuppressedByMonth(settings, dayMonthStr, slotType);
+
+      if (!enabled && !coForced) continue;
+
+      const time =
+        overrideHours[slotType] ||
+        defaultHours[slotType] ||
+        (turn === 'morning' ? '10:00' : '17:00');
+      const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
+
+      slots.push({
+        date: dbDateStr,
+        time,
+        slotType,
+        person: assigned?.person || '',
+        location: assigned?.location || defaultLocation,
+        cancelled: assigned?.cancelled || false,
+      });
+    }
+  }
+
+  return slots;
+};

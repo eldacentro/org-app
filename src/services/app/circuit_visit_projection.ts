@@ -12,6 +12,7 @@ import {
 import {
   circuitVisitMarkWeek,
   circuitVisitUnmarkWeek,
+  isSpecialMeetingComplete,
 } from './circuit_visit';
 import { addHours } from '@utils/date';
 
@@ -101,9 +102,10 @@ const upsertSpecialMeetingEvent = async (
     return;
   }
 
-  // Sin esta reunión programada: si existía un evento previo (se quitó),
+  // Sin reunión, o reunión aún a medias (falta fecha, hora o lugar): no se
+  // anuncia. Si existía un evento previo (se quitó o se dejó incompleta),
   // se borra lógicamente. Si nunca existió, no hay nada que hacer.
-  if (!meeting || !meeting.date) {
+  if (!isSpecialMeetingComplete(meeting)) {
     if (existing && !existing.event_data._deleted) {
       await dbUpcomingEventsSave({
         ...existing,
@@ -118,9 +120,7 @@ const upsertSpecialMeetingEvent = async (
     return;
   }
 
-  const custom = meeting.place
-    ? `${label} — ${meeting.place}`
-    : label;
+  const custom = `${label} — ${meeting.place}`;
 
   // start/end incluyen la hora real (antes solo guardaban la fecha, con
   // hora 00:00) — así "Añadir al calendario" exporta la hora correcta en
@@ -128,7 +128,16 @@ const upsertSpecialMeetingEvent = async (
   // dashboard la calcula aparte a partir de start/end y la muestra en su
   // propio recuadro, así que ponerla también en la descripción quedaba
   // duplicada en la tarjeta.
-  const startDate = new Date(`${meeting.date.replace(/\//g, '-')}T${meeting.time || '00:00'}:00`);
+  // Construcción por componentes numéricos, NO parseando un string ISO: una
+  // hora de un solo dígito ("9:30", o el "0:00" del TimeField) producía
+  // "...T0:00:00" → Invalid Date → toISOString() lanzaba RangeError en cada
+  // guardado y en cada reconcile (bug real, 2026-07-20).
+  const [y, mo, d] = meeting.date.split('/').map(Number);
+  const [hh, mm] = meeting.time.split(':').map(Number);
+  const startDate = new Date(y, (mo || 1) - 1, d || 1, hh || 0, mm || 0, 0);
+
+  if (isNaN(startDate.getTime())) return;
+
   const endDate = addHours(1, startDate);
   const start = startDate.toISOString();
   const end = endDate.toISOString();

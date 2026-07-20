@@ -113,6 +113,13 @@ const DocRow = ({
 
 const formatRange = (visit: CircuitVisitType) => fmtRangeEs(visit.date_start, visit.date_end);
 
+// Al TECLEAR una fecha, MUI emite un cambio por pulsación con años parciales
+// (2 → 0002 → 0020...). Confirmarlos persistía fechas basura ("0020/02/07")
+// vía el autosave. Mientras se teclea, no se toca el borrador; el valor final
+// llega cuando el año está completo. (Mismo criterio que useWeekItem.)
+const isPartialTypedDate = (d: Date | null): boolean =>
+  d !== null && (isNaN(d.getTime()) || d.getFullYear() < 2000);
+
 const SpecialMeetingEditor = ({
   label,
   value,
@@ -154,12 +161,13 @@ const SpecialMeetingEditor = ({
               label="Fecha"
               view="input"
               value={value.date ? new Date(value.date) : null}
-              onChange={(d) =>
+              onChange={(d) => {
+                if (isPartialTypedDate(d)) return;
                 onChange({
                   ...value,
                   date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                })
-              }
+                });
+              }}
               minDate={minDate}
               maxDate={maxDate}
             />
@@ -575,7 +583,7 @@ const CircuitVisitDashboard = () => {
     : { effectiveCoName: '', effectiveCoSpouseName: '' };
 
   const coLabel = effectiveCoName
-    ? `${working?.is_substitute ? 'Superintendente sustituto' : 'Superintendente'}: ${effectiveCoName}${effectiveCoSpouseName ? ` y ${effectiveCoSpouseName}` : ''}`
+    ? `${working?.is_substitute && working.substitute_name ? 'Superintendente sustituto' : 'Superintendente'}: ${effectiveCoName}${effectiveCoSpouseName ? ` y ${effectiveCoSpouseName}` : ''}`
     : 'Configura el nombre del superintendente en Ajustes de congregación.';
 
   const newVisitCard = (
@@ -708,125 +716,125 @@ const CircuitVisitDashboard = () => {
 
       {working && (
         <Stack spacing="20px">
-          {/* Cabecera de la visita: fechas + estado + superintendente + acciones */}
+          {/* Cabecera de la visita: fechas + estado + superintendente (con
+              sustituto integrado) + acciones. Mismo estilo de tarjeta que el
+              resto de la página (Card compartida). */}
           <Box
             sx={{
               backgroundColor: 'var(--card)',
               border: '1px solid var(--line)',
-              borderRadius: 'var(--r-md)',
-              padding: { mobile: '16px', tablet: '20px 24px' },
+              borderRadius: 'var(--radius-l)',
+              boxShadow: 'var(--big-card-shadow)',
+              padding: '18px 20px',
             }}
           >
-            <Stack
-              direction={{ mobile: 'column', tablet: 'row' }}
-              justifyContent="space-between"
-              alignItems={{ tablet: 'center' }}
-              spacing="16px"
-              useFlexGap
-            >
-              <Stack spacing="4px">
+            <Stack spacing="14px">
+              <Stack
+                direction={{ mobile: 'column', tablet: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ tablet: 'flex-start' }}
+                spacing="16px"
+                useFlexGap
+              >
+                <Stack spacing="4px">
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing="8px"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    <Typography className="h2">{formatRange(working)}</Typography>
+                    {visitStatus && (
+                      <Box
+                        sx={{
+                          backgroundColor: visitStatus.bg,
+                          borderRadius: 'var(--radius-max)',
+                          padding: '2px 10px',
+                        }}
+                      >
+                        <Typography
+                          className="label-small-medium"
+                          color={visitStatus.fg}
+                        >
+                          {visitStatus.label}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--grey-400)"
+                  >
+                    {coLabel}
+                  </Typography>
+                  {saveStatusLabel && (
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--grey-350)"
+                    >
+                      {saveStatusLabel}
+                    </Typography>
+                  )}
+                </Stack>
                 <Stack
                   direction="row"
-                  alignItems="center"
                   spacing="8px"
+                  flexShrink={0}
                   flexWrap="wrap"
                   useFlexGap
                 >
-                  <Typography className="h2">{formatRange(working)}</Typography>
-                  {visitStatus && (
-                    <Box
-                      sx={{
-                        backgroundColor: visitStatus.bg,
-                        borderRadius: 'var(--radius-max)',
-                        padding: '2px 10px',
-                      }}
-                    >
-                      <Typography
-                        className="label-small-medium"
-                        color={visitStatus.fg}
-                      >
-                        {visitStatus.label}
-                      </Typography>
-                    </Box>
-                  )}
-                </Stack>
-                <Typography
-                  className="body-small-regular"
-                  color="var(--grey-400)"
-                >
-                  {coLabel}
-                </Typography>
-                {saveStatusLabel && (
-                  <Typography
-                    className="label-small-regular"
-                    color="var(--grey-350)"
+                  <Button
+                    variant="main"
+                    startIcon={<IconExport color="var(--always-white)" />}
+                    onClick={handleExportPdf}
                   >
-                    {saveStatusLabel}
-                  </Typography>
-                )}
+                    Generar PDF
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    startIcon={<IconDelete color="var(--red-main)" />}
+                    onClick={handleDeleteVisitClick}
+                  >
+                    Eliminar visita
+                  </Button>
+                </Stack>
               </Stack>
-              <Stack
-                direction="row"
-                spacing="8px"
-                flexShrink={0}
-                flexWrap="wrap"
-                useFlexGap
-              >
-                <Button
-                  variant="main"
-                  startIcon={<IconExport color="var(--always-white)" />}
-                  onClick={handleExportPdf}
-                >
-                  Generar PDF
-                </Button>
-                <Button
-                  variant="tertiary"
-                  startIcon={<IconDelete color="var(--red-main)" />}
-                  onClick={handleDeleteVisitClick}
-                >
-                  Eliminar visita
-                </Button>
+
+              <Box sx={{ height: '1px', background: 'var(--line)' }} />
+
+              <Stack spacing="12px">
+                <Checkbox
+                  checked={working.is_substitute ?? false}
+                  label="Viene un superintendente sustituto"
+                  onChange={(_e, checked) => patch({ is_substitute: checked })}
+                />
+                {working.is_substitute && (
+                  <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
+                    {/* TextField es fullWidth fijo y descarta cualquier sx que
+                        se le pase — por eso hace falta envolverlo. */}
+                    <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                      <TextField
+                        label="Nombre del sustituto"
+                        value={working.substitute_name ?? ''}
+                        onChange={(e) => patch({ substitute_name: e.target.value })}
+                      />
+                    </Box>
+                    <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                      <TextField
+                        label="Nombre de su esposa (vacío si soltero)"
+                        value={working.substitute_spouse_name ?? ''}
+                        onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
+                      />
+                    </Box>
+                  </Stack>
+                )}
               </Stack>
             </Stack>
           </Box>
 
           {/* Documentación de esta visita */}
           {documentationCard}
-
-          {/* Superintendente sustituto */}
-          <Card
-            title="Superintendente"
-            subtitle="El CO titular se muestra en Ajustes. Activa el sustituto si viene uno distinto."
-          >
-            <Stack spacing="12px">
-              <Checkbox
-                checked={working.is_substitute ?? false}
-                label="Superintendente sustituto"
-                onChange={(_e, checked) => patch({ is_substitute: checked })}
-              />
-              {working.is_substitute && (
-                <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
-                  {/* TextField es fullWidth fijo y descarta cualquier sx que
-                      se le pase (lo reemplaza por el suyo propio) — por eso
-                      el flex:1 de aquí no bastaba; hace falta envolverlo. */}
-                  <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
-                    <TextField
-                      label="Nombre del sustituto"
-                      value={working.substitute_name ?? ''}
-                      onChange={(e) => patch({ substitute_name: e.target.value })}
-                    />
-                  </Box>
-                  <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
-                    <TextField
-                      label="Nombre de su esposa (vacío si soltero)"
-                      value={working.substitute_spouse_name ?? ''}
-                      onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
-                    />
-                  </Box>
-                </Stack>
-              )}
-            </Stack>
-          </Card>
 
           {/* Programa de comidas */}
           <Card title="Programa de comidas" subtitle="Anfitriones por día.">
@@ -860,11 +868,12 @@ const CircuitVisitDashboard = () => {
                         label="Día"
                         view="input"
                         value={meal.date ? new Date(meal.date) : null}
-                        onChange={(d) =>
+                        onChange={(d) => {
+                          if (isPartialTypedDate(d)) return;
                           updateMeal(meal.id, {
                             date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                          })
-                        }
+                          });
+                        }}
                       />
                     </Box>
                     <PersonPicker
@@ -929,11 +938,12 @@ const CircuitVisitDashboard = () => {
                         label="Fecha"
                         view="input"
                         value={sv.date ? new Date(sv.date) : null}
-                        onChange={(d) =>
+                        onChange={(d) => {
+                          if (isPartialTypedDate(d)) return;
                           updateShepherding(sv.id, {
                             date: d ? formatDate(d, 'yyyy/MM/dd') : '',
-                          })
-                        }
+                          });
+                        }}
                       />
                     </Box>
                     <Box sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}>
@@ -967,7 +977,7 @@ const CircuitVisitDashboard = () => {
           {/* Reuniones especiales */}
           <Card
             title="Reuniones especiales"
-            subtitle="Reunión con precursores y reunión con ancianos y siervos ministeriales."
+            subtitle="Se anuncian a la congregación cuando tienen fecha, hora y lugar — mientras falte algo, solo las ves tú aquí."
           >
             <Stack spacing="18px">
               <SpecialMeetingEditor
@@ -979,7 +989,7 @@ const CircuitVisitDashboard = () => {
               />
               <Box sx={{ height: '1px', background: 'var(--line)' }} />
               <SpecialMeetingEditor
-                label="Reunión con ancianos y SM"
+                label="Reunión con ancianos y siervos ministeriales"
                 value={working.meeting_elders}
                 onChange={(v) => updateSpecialMeeting('meeting_elders', v)}
                 minDate={new Date(working.date_start)}

@@ -35,11 +35,32 @@ const TimeField = (props: TimeFieldProps) => {
       }}
       sx={{
         ...props.sx,
+        // OJO: el TextField base hace `...props.sx` al FINAL de su propio sx,
+        // así que estas claves REEMPLAZAN (no fusionan) las suyas. Hay que
+        // re-declarar aquí el radio, el borde y el padding del input — sin
+        // ellos, el campo de hora salía con el radio y el color de borde por
+        // defecto de MUI, distinto a Fecha/Lugar (bug visual real).
         '.MuiInputBase-input': {
           textAlign: props.label ? 'left' : 'center',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          paddingTop: 'calc(14.5px - 6px)',
+          paddingBottom: 'calc(14.5px - 6px)',
+          flex: '1 0 0',
         },
         '.MuiOutlinedInput-root': {
           paddingRight: 'unset !important',
+          borderRadius: 'var(--radius-l)',
+          color: 'var(--black)',
+          '& fieldset': {
+            border: '1px solid var(--accent-350)',
+          },
+          '&:hover fieldset': {
+            border: '1px solid var(--accent-main)',
+          },
+          '&.Mui-focused fieldset': {
+            border: '1px solid var(--accent-main)',
+          },
         },
         ...(props.label ? {} : { '& fieldset': { border: 'none' } }),
       }}

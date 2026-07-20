@@ -11,10 +11,11 @@ import { DisplayRange } from './indextypes';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
-import { addDays, addWeeks, formatDate, getWeekDate } from '@utils/date';
+import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentDescItem, AssignmentHistoryType } from '@definition/schedules';
 import { serviceOutingsListState } from '@states/service_outings';
 import { circuitVisitsState } from '@states/circuit_visit';
+import { ACTIVITY_LABELS } from '@features/circuit_visit/shared/activityLabels';
 import { personsStateFind } from '@services/states/persons';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
@@ -412,12 +413,6 @@ const useMyAssignments = () => {
       for (const visit of circuitVisits) {
         if (visit._deleted) continue;
 
-        // No se avisa al anfitrión/anciano de pastoreo hasta 21 días antes
-        // de que empiece la visita, aunque el coordinador la haya programado
-        // con más antelación — evita notificar con meses de adelanto.
-        const visibleFromStr = formatDate(addDays(new Date(visit.date_start), -21), 'yyyy/MM/dd');
-        if (currentDayStr < visibleFromStr) continue;
-
         // Comidas: aparece al anfitrión (host = person_uid)
         for (const meal of visit.meals ?? []) {
           if (
@@ -452,6 +447,54 @@ const useMyAssignments = () => {
             });
           }
         }
+        // Compañía del superintendente en la predicación: aparece al hermano
+        // que le acompaña, y a las hermanas que acompañan a su esposa.
+        for (const companion of visit.co_companions ?? []) {
+          const [outingDate, outingTime] = companion.outingKey.split('_');
+          if (outingDate < currentDayStr || outingDate > maxDateStr) continue;
+
+          const activityLabel = ACTIVITY_LABELS[companion.activity] ?? '';
+
+          if (companion.brother === uid) {
+            results.push({
+              id: `COVISIT_COMPANION_${visit.id}_${companion.outingKey}`,
+              weekOf: visit.weekOf,
+              weekOfFormatted: formatDate(new Date(outingDate), shortDateFormat),
+              actualDate: outingDate,
+              assignment: {
+                code: 0 as AssignmentHistoryType['assignment']['code'],
+                person: uid,
+                key: `COVISIT_COMPANION_${companion.outingKey}` as AssignmentHistoryType['assignment']['key'],
+                dataView: 'main',
+                title: 'Acompañar al superintendente en la predicación',
+                descItems: [
+                  { icon: 'clock', text: outingTime },
+                  ...(activityLabel ? [{ icon: 'person', text: activityLabel } as AssignmentDescItem] : []),
+                ],
+                startTime: outingTime || undefined,
+              },
+            });
+          }
+
+          if ((companion.spouse_companions ?? []).includes(uid)) {
+            results.push({
+              id: `COVISIT_SPOUSE_${visit.id}_${companion.outingKey}`,
+              weekOf: visit.weekOf,
+              weekOfFormatted: formatDate(new Date(outingDate), shortDateFormat),
+              actualDate: outingDate,
+              assignment: {
+                code: 0 as AssignmentHistoryType['assignment']['code'],
+                person: uid,
+                key: `COVISIT_SPOUSE_${companion.outingKey}` as AssignmentHistoryType['assignment']['key'],
+                dataView: 'main',
+                title: 'Acompañar a la esposa del superintendente',
+                descItems: [{ icon: 'clock', text: outingTime }],
+                startTime: outingTime || undefined,
+              },
+            });
+          }
+        }
+
         // Pastoreo: aparece al anciano acompañante
         for (const sv of visit.shepherding_visits ?? []) {
           if (

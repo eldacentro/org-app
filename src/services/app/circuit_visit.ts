@@ -95,6 +95,23 @@ export const circuitVisitUnmarkWeek = async (weekOf: string) => {
   } as unknown as UpdateSpec<SchedWeekType>);
 };
 
+// ── Reunión especial "completa" ──────────────────────────────────────────
+// Una reunión especial (precursores / ancianos y siervos ministeriales) solo
+// se anuncia — Próximos eventos, agenda de la semana, resumen para ancianos
+// y publicadores — cuando tiene fecha, hora Y lugar. Mientras el coordinador
+// la está rellenando ("0:00", "Por definir"...), solo la ve él en su panel.
+export const isSpecialMeetingComplete = (
+  meeting: { date: string; time: string; place: string } | null
+): meeting is { date: string; time: string; place: string } => {
+  return (
+    !!meeting &&
+    !!meeting.date &&
+    !!meeting.time &&
+    meeting.time !== '0:00' &&
+    !!meeting.place.trim()
+  );
+};
+
 // ── Constructor de una visita nueva (compartido por la página de Visita y
 // por Ajustes → Superintendente de circuito, para que ambos caminos creen
 // exactamente la misma entidad). Movido aquí desde useCircuitVisitDashboard.
