@@ -218,7 +218,16 @@ const PreachingSection = ({
   const outingsList = useAtomValue(serviceOutingsListState);
   const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
+
+  // Nombres reales para las etiquetas ("Acompañante de Unai", "Acompañante
+  // de Carol") — con sustituto activo, los del sustituto y su esposa.
+  const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
+    visit,
+    coName,
+    coSpouseName
+  );
 
   const weekRecord = useMemo(
     () => outingsList.find((r) => r.weekOf === visit.weekOf),
@@ -280,7 +289,9 @@ const PreachingSection = ({
             <Stack spacing="2px">
               <Typography className="h4">Compañía del superintendente</Typography>
               <Typography className="body-small-regular" color="var(--grey-400)">
-                Quién sale con él{coSpouseName ? ` y con ${coSpouseName}` : ''} en cada salida.
+                {effectiveCoSpouseName
+                  ? `Quién acompaña a ${effectiveCoName} y a ${effectiveCoSpouseName} en cada salida. Sin acompañante = no sale.`
+                  : `Quién acompaña a ${effectiveCoName} en cada salida. Sin acompañante = no sale.`}
               </Typography>
             </Stack>
             {assignedOutings.map((outing) => {
@@ -347,10 +358,10 @@ const PreachingSection = ({
                             onUpsertCompanion(outing.outingKey, { brother: v.uid });
                             return;
                           }
-                          // Al quitar al hermano: si la esposa sigue saliendo
-                          // en este turno, se conserva el registro; si no,
-                          // se elimina entero.
-                          if (companion?.withWife) {
+                          // Al quitar al hermano: si la esposa sigue teniendo
+                          // acompañante en este turno, se conserva el
+                          // registro; si no, se elimina entero.
+                          if ((companion?.spouse_companions ?? []).length > 0) {
                             onUpsertCompanion(outing.outingKey, { brother: '' });
                           } else {
                             onRemoveCompanion(outing.outingKey);
@@ -359,7 +370,11 @@ const PreachingSection = ({
                         getOptionLabel={(o) => o.label}
                         isOptionEqualToValue={(o, v) => o.uid === v.uid}
                         renderInput={(params) => (
-                          <MuiTextField {...params} label="Hermano que acompaña" size="small" />
+                          <MuiTextField
+                            {...params}
+                            label={`Acompañante de ${effectiveCoName || 'superintendente'}`}
+                            size="small"
+                          />
                         )}
                       />
                       {companion?.brother && (
@@ -381,60 +396,39 @@ const PreachingSection = ({
                       )}
                     </Stack>
 
-                    {/* La esposa del CO sale a predicar en paralelo — visible
-                        siempre que tenga nombre en Ajustes, sin depender de
-                        que ya haya hermano elegido. */}
-                    {coSpouseName && (
-                      <Stack
-                        direction={{ mobile: 'column', tablet: 'row' }}
-                        spacing="10px"
-                        alignItems={{ tablet: 'center' }}
-                        flexWrap="wrap"
-                        useFlexGap
-                      >
-                        <Checkbox
-                          checked={companion?.withWife ?? false}
-                          label={`Sale también ${coSpouseName}`}
-                          onChange={(_e, checked) => {
-                            if (!checked && companion && !companion.brother) {
-                              // Sin hermano y sin esposa no queda nada que
-                              // guardar para este turno.
-                              onRemoveCompanion(outing.outingKey);
-                              return;
-                            }
-                            onUpsertCompanion(outing.outingKey, {
-                              withWife: checked,
-                              spouse_companions: checked
-                                ? companion?.spouse_companions ?? []
-                                : [],
-                            });
-                          }}
-                        />
-                        {companion?.withWife && (
-                          <Autocomplete
-                            sx={{ flex: '1 1 220px', minWidth: '200px' }}
-                            multiple
-                            options={personOptions}
-                            value={personOptions.filter((o) =>
-                              (companion.spouse_companions ?? []).includes(o.uid)
-                            )}
-                            onChange={(_, selected) =>
-                              onUpsertCompanion(outing.outingKey, {
-                                spouse_companions: selected.map((s) => s.uid),
-                              })
-                            }
-                            getOptionLabel={(o) => o.label}
-                            isOptionEqualToValue={(o, v) => o.uid === v.uid}
-                            renderInput={(params) => (
-                              <MuiTextField
-                                {...params}
-                                label={`Hermanas con ${coSpouseName}`}
-                                size="small"
-                              />
-                            )}
+                    {/* La esposa del CO sale en paralelo: su selector está
+                        SIEMPRE visible (si tiene nombre en Ajustes). Vacío =
+                        no sale ese turno — sin casillas que marcar. */}
+                    {effectiveCoSpouseName && (
+                      <Autocomplete
+                        sx={{ flex: '1 1 220px', minWidth: '200px' }}
+                        multiple
+                        options={personOptions}
+                        value={personOptions.filter((o) =>
+                          (companion?.spouse_companions ?? []).includes(o.uid)
+                        )}
+                        onChange={(_, selected) => {
+                          if (selected.length === 0 && !companion?.brother) {
+                            // Sin acompañantes de nadie: no queda nada que
+                            // guardar para este turno.
+                            if (companion) onRemoveCompanion(outing.outingKey);
+                            return;
+                          }
+                          onUpsertCompanion(outing.outingKey, {
+                            spouse_companions: selected.map((s) => s.uid),
+                            withWife: selected.length > 0,
+                          });
+                        }}
+                        getOptionLabel={(o) => o.label}
+                        isOptionEqualToValue={(o, v) => o.uid === v.uid}
+                        renderInput={(params) => (
+                          <MuiTextField
+                            {...params}
+                            label={`Acompañante de ${effectiveCoSpouseName}`}
+                            size="small"
                           />
                         )}
-                      </Stack>
+                      />
                     )}
                   </Stack>
                 </Box>
@@ -737,10 +731,36 @@ const CircuitVisitDashboard = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
-      <PageTitle title="Visita del superintendente de circuito" />
+      <PageTitle
+        title="Visita del superintendente de circuito"
+        buttons={
+          <Stack direction="row" spacing="8px" alignItems="center">
+            {/* Activar otra visita casi nunca hace falta — vive discreto en
+                la barra, como los botones principales de otras páginas. */}
+            {activeVisits.length > 0 && (
+              <Button
+                variant="small"
+                startIcon={<IconAdd color="var(--accent-main)" />}
+                onClick={() => setShowNewVisit((p) => !p)}
+              >
+                Nueva visita
+              </Button>
+            )}
+            {working && (
+              <Button
+                variant="main"
+                startIcon={<IconExport color="var(--always-white)" />}
+                onClick={handleExportPdf}
+              >
+                Generar PDF
+              </Button>
+            )}
+          </Stack>
+        }
+      />
 
-      {/* Selector de visitas activas + activar otra (plegada) */}
-      {activeVisits.length > 0 && (
+      {/* Selector de visitas: solo cuando hay más de una activa (raro). */}
+      {activeVisits.length > 1 && (
         <Stack
           direction="row"
           spacing="8px"
@@ -758,20 +778,15 @@ const CircuitVisitDashboard = () => {
               {formatRange(visit)}
             </Button>
           ))}
-          <Button
-            variant="small"
-            startIcon={<IconAdd color="var(--accent-main)" />}
-            onClick={() => setShowNewVisit((p) => !p)}
-          >
-            Activar otra
-          </Button>
         </Stack>
       )}
 
       {/* Sin visitas activas la tarjeta de activación se muestra sola;
-          con visitas queda plegada tras el botón "Activar otra". */}
+          con visitas queda plegada tras "Nueva visita" en la barra. */}
       {activeVisits.length === 0 && <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>}
-      {activeVisits.length > 0 && showNewVisit && newVisitCard}
+      {activeVisits.length > 0 && showNewVisit && (
+        <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>
+      )}
 
       {!working && (
         <Stack spacing="20px">
@@ -790,10 +805,11 @@ const CircuitVisitDashboard = () => {
       )}
 
       {working && (
-        <Stack spacing="20px">
+        <Stack spacing="20px" sx={{ mt: '12px' }}>
           {/* Cabecera de la visita: fechas + estado + superintendente (con
-              sustituto integrado) + acciones. Mismo estilo de tarjeta que el
-              resto de la página (Card compartida). */}
+              sustituto integrado). Mismo estilo de tarjeta que el resto de
+              la página; el borrado es un icono discreto (casi nunca se usa)
+              y el PDF vive en la barra superior. */}
           <Box
             sx={{
               backgroundColor: 'var(--card)',
@@ -805,9 +821,9 @@ const CircuitVisitDashboard = () => {
           >
             <Stack spacing="14px">
               <Stack
-                direction={{ mobile: 'column', tablet: 'row' }}
+                direction="row"
                 justifyContent="space-between"
-                alignItems={{ tablet: 'flex-start' }}
+                alignItems="flex-start"
                 spacing="16px"
                 useFlexGap
               >
@@ -852,28 +868,13 @@ const CircuitVisitDashboard = () => {
                     </Typography>
                   )}
                 </Stack>
-                <Stack
-                  direction="row"
-                  spacing="8px"
-                  flexShrink={0}
-                  flexWrap="wrap"
-                  useFlexGap
+                <IconButton
+                  onClick={handleDeleteVisitClick}
+                  title="Eliminar visita"
+                  sx={{ flexShrink: 0, marginTop: '-4px', marginRight: '-6px' }}
                 >
-                  <Button
-                    variant="main"
-                    startIcon={<IconExport color="var(--always-white)" />}
-                    onClick={handleExportPdf}
-                  >
-                    Generar PDF
-                  </Button>
-                  <Button
-                    variant="tertiary"
-                    startIcon={<IconDelete color="var(--red-main)" />}
-                    onClick={handleDeleteVisitClick}
-                  >
-                    Eliminar visita
-                  </Button>
-                </Stack>
+                  <IconDelete color="var(--grey-350)" width={20} height={20} />
+                </IconButton>
               </Stack>
 
               <Box sx={{ height: '1px', background: 'var(--line)' }} />

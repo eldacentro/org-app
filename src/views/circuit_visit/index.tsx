@@ -172,7 +172,7 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
                     Punto de salida
                   </Text>
                   <Text style={[styles.headCell, { width: '20%' }]}>
-                    Hno. del CO
+                    Con {coName}
                   </Text>
                   {coSpouseName ? (
                     <Text style={[styles.headCell, { width: '20%' }]}>
