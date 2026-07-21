@@ -401,7 +401,10 @@ const PreachingSection = ({
                         no sale ese turno — sin casillas que marcar. */}
                     {effectiveCoSpouseName && (
                       <Autocomplete
-                        sx={{ flex: '1 1 220px', minWidth: '200px' }}
+                        // OJO: este selector es hijo directo de un Stack en
+                        // COLUMNA — un flex-basis aquí reservaría 220px de
+                        // ALTO vacío (bug visual real).
+                        sx={{ width: '100%' }}
                         multiple
                         options={personOptions}
                         value={personOptions.filter((o) =>
