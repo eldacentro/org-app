@@ -160,7 +160,10 @@ export const deriveWeekOutingSlots = (
 
   const disabledSlots = settings?.disabledSlots || [];
   const defaultLocation = settings?.locations?.[0] || 'Salón del Reino';
-  const outings = weekRecord?.outings || [];
+  // filter(Boolean): un registro sincronizado desde otro dispositivo puede
+  // traer huecos/nulls en el array — un elemento null aquí tumbaba el render
+  // ("undefined is not an object (evaluating 'o.date')").
+  const outings = (weekRecord?.outings || []).filter(Boolean);
   const overrideHours = weekRecord?.weekOverrideHours || {};
 
   // Semana del CO: los turnos EXISTENTES de miércoles a domingo sin hermano

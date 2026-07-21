@@ -16,7 +16,7 @@ const OSScheduleSpeakBox = ({ data }: OSScheduleSpeakBoxProps) => {
       <View style={styles.grid}>
         {data.map((speak, index) => (
           <View
-            key={`${index}_${speak.speaker}_${speak.date.date.getTime()}`}
+            key={`${index}_${speak.speaker}_${speak.date?.date?.getTime?.() ?? index}`}
             style={
               index === data.length - 1
                 ? styles.speakerRowLast

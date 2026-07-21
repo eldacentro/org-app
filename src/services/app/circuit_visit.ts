@@ -108,7 +108,9 @@ export const isSpecialMeetingComplete = (
     !!meeting.date &&
     !!meeting.time &&
     meeting.time !== '0:00' &&
-    !!meeting.place.trim()
+    // (?? ''): una visita sincronizada desde una versión antigua puede traer
+    // la reunión sin el campo place — no debe tumbar el render.
+    !!(meeting.place ?? '').trim()
   );
 };
 

@@ -53,6 +53,23 @@ const ErrorBoundary = (props: ErrorBoundaryProps) => {
           <Typography color="var(--grey-400)">
             {error.message || error.data}
           </Typography>
+          {/* Primeras líneas del stack: imprescindible para diagnosticar
+              crashes reportados desde móviles (sin devtools remotos). */}
+          {error?.stack && (
+            <Typography
+              className="label-small-regular"
+              color="var(--grey-350)"
+              sx={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+                fontFamily: 'monospace',
+                maxHeight: '120px',
+                overflow: 'hidden',
+              }}
+            >
+              {String(error.stack).split('\n').slice(0, 4).join('\n')}
+            </Typography>
+          )}
           <Typography className="body-regular" color="var(--grey-400)">
             {getMessageByCode('error_app_generic-desc')}
           </Typography>

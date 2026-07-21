@@ -230,6 +230,7 @@ const useMyAssignments = () => {
 
         for (const outing of week.outings) {
           if (
+            outing &&
             outing.person === uid &&
             !outing.cancelled &&
             outing.date >= currentDayStr &&
@@ -414,7 +415,7 @@ const useMyAssignments = () => {
         if (visit._deleted) continue;
 
         // Comidas: aparece al anfitrión (host = person_uid)
-        for (const meal of visit.meals ?? []) {
+        for (const meal of (visit.meals ?? []).filter(Boolean)) {
           if (
             meal.host === uid &&
             meal.date >= currentDayStr &&
@@ -449,8 +450,8 @@ const useMyAssignments = () => {
         }
         // Compañía del superintendente en la predicación: aparece al hermano
         // que le acompaña, y a las hermanas que acompañan a su esposa.
-        for (const companion of visit.co_companions ?? []) {
-          const [outingDate, outingTime] = companion.outingKey.split('_');
+        for (const companion of (visit.co_companions ?? []).filter(Boolean)) {
+          const [outingDate, outingTime] = (companion.outingKey ?? '').split('_');
           if (outingDate < currentDayStr || outingDate > maxDateStr) continue;
 
           const activityLabel = ACTIVITY_LABELS[companion.activity] ?? '';
@@ -496,7 +497,7 @@ const useMyAssignments = () => {
         }
 
         // Pastoreo: aparece al anciano acompañante
-        for (const sv of visit.shepherding_visits ?? []) {
+        for (const sv of (visit.shepherding_visits ?? []).filter(Boolean)) {
           if (
             sv.elder === uid &&
             sv.date >= currentDayStr &&

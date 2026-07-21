@@ -3,9 +3,18 @@ import { TalksTableViewType, TalkTableItemType } from './index.types';
 
 const useTableView = ({ talks }: TalksTableViewType) => {
   const yearslist = useMemo(() => {
-    const history = talks.flatMap((talk) => talk.history);
+    // filter(Boolean) + ?? []: un historial con huecos o un registro sin
+    // fecha (datos sincronizados de versiones antiguas) no debe tumbar la
+    // página entera de discursos.
+    const history = talks.flatMap((talk) => talk.history ?? []).filter(Boolean);
 
-    const years = [...new Set(history.map((item) => item.date.split('/')[0]))];
+    const years = [
+      ...new Set(
+        history
+          .filter((item) => typeof item.date === 'string' && item.date)
+          .map((item) => item.date.split('/')[0])
+      ),
+    ];
 
     return years;
   }, [talks]);

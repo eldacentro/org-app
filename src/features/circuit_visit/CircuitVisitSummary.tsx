@@ -77,7 +77,7 @@ const CircuitVisitSummary = ({
   const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end).map((date) => {
     const dateStr = formatDate(date, 'yyyy/MM/dd');
     const slots = (weekRecord?.outings ?? [])
-      .filter((o) => o.date === dateStr && !o.cancelled)
+      .filter((o) => o && o.date === dateStr && !o.cancelled)
       .toSorted((a, b) => a.time.localeCompare(b.time));
 
     return { dateStr, slots };
@@ -102,7 +102,10 @@ const CircuitVisitSummary = ({
     const items: { key: string; primary: string; secondary: string }[] = [];
     if (!myUid) return items;
 
-    for (const meal of visit.meals) {
+    // (?? []) y filter(Boolean) en todas las colecciones: una visita
+    // sincronizada desde una versión antigua puede traer campos ausentes o
+    // huecos, y este resumen lo ve TODA la congregación — no puede tumbarse.
+    for (const meal of (visit.meals ?? []).filter(Boolean)) {
       if (meal.host === myUid) {
         items.push({
           key: `meal_${meal.id}`,
@@ -112,9 +115,9 @@ const CircuitVisitSummary = ({
       }
     }
 
-    for (const c of visit.co_companions) {
-      const [date, time] = c.outingKey.split('_');
-      const when = `${fmtDay(date)} · ${time}`;
+    for (const c of (visit.co_companions ?? []).filter(Boolean)) {
+      const [date, time] = (c.outingKey ?? '').split('_');
+      const when = `${fmtDay(date)}${time ? ` · ${time}` : ''}`;
 
       if (c.brother === myUid) {
         items.push({
@@ -133,7 +136,7 @@ const CircuitVisitSummary = ({
       }
     }
 
-    for (const sv of visit.shepherding_visits ?? []) {
+    for (const sv of (visit.shepherding_visits ?? []).filter(Boolean)) {
       const when = `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`;
 
       if (sv.brother === myUid) {
@@ -266,13 +269,13 @@ const CircuitVisitSummary = ({
         {tier === 'elder' && (
           <>
             <Card title="Programa de comidas" subtitle="Anfitriones por día.">
-              {visit.meals.length === 0 ? (
+              {(visit.meals ?? []).length === 0 ? (
                 <Typography className="body-regular" color="var(--grey-400)">
                   Sin comidas asignadas.
                 </Typography>
               ) : (
                 <Stack spacing="6px">
-                  {visit.meals.map((meal) => (
+                  {(visit.meals ?? []).filter(Boolean).map((meal) => (
                     <Typography key={meal.id} className="body-small-regular">
                       {[fmtDay(meal.date), findPersonName(meal.host) || 'Anfitrión pendiente']
                         .filter(Boolean)
@@ -284,14 +287,14 @@ const CircuitVisitSummary = ({
             </Card>
 
             <Card title="Compañía del superintendente" subtitle="En las salidas de predicación.">
-              {visit.co_companions.length === 0 ? (
+              {(visit.co_companions ?? []).length === 0 ? (
                 <Typography className="body-regular" color="var(--grey-400)">
                   Sin compañía asignada todavía.
                 </Typography>
               ) : (
                 <Stack spacing="6px">
-                  {visit.co_companions.map((c) => {
-                    const [date, time] = c.outingKey.split('_');
+                  {(visit.co_companions ?? []).filter(Boolean).map((c) => {
+                    const [date, time] = (c.outingKey ?? '').split('_');
                     const parts = [
                       `${fmtDay(date)}${time ? ` · ${time}` : ''}`,
                       findPersonName(c.brother) || 'Pendiente',
@@ -314,7 +317,7 @@ const CircuitVisitSummary = ({
                 </Typography>
               ) : (
                 <Stack spacing="6px">
-                  {(visit.shepherding_visits ?? []).map((sv) => (
+                  {(visit.shepherding_visits ?? []).filter(Boolean).map((sv) => (
                     <Typography key={sv.id} className="body-small-regular">
                       {[
                         `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`,

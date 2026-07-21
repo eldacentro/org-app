@@ -16,7 +16,8 @@ import { ErrorBoundaryProps } from './index.types';
  * }} Object containing functions and error data.
  */
 const useError = ({ updatePwa }: ErrorBoundaryProps) => {
-  const error: { message?: string; data?: string } = useRouteError();
+  const error: { message?: string; data?: string; stack?: string } =
+    useRouteError();
 
   const { t } = useAppTranslation();
 
