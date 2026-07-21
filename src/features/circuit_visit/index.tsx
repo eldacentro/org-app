@@ -137,7 +137,11 @@ const SpecialMeetingEditor = ({
   minDate?: Date;
   maxDate?: Date;
 }) => {
-  const enabled = value !== null;
+  // `!= null` (doble): una visita sincronizada puede traer la reunión como
+  // undefined en vez de null — con `!== null` eso contaba como "programada"
+  // y el render de los campos reventaba en value.date (crash real en móvil,
+  // 2026-07-21: "undefined is not an object (evaluating 'n.date')").
+  const enabled = value != null;
 
   return (
     <Stack spacing="10px">
