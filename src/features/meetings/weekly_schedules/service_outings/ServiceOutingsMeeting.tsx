@@ -13,7 +13,20 @@ import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
-const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?: ServiceOutingWeekType }) => {
+const ServiceOutingsMeeting = ({
+  week,
+  weekRecord,
+  fromDate,
+  showCoBanner = true,
+}: {
+  week: string;
+  weekRecord?: ServiceOutingWeekType;
+  /** Solo mostrar días desde esta fecha ("YYYY/MM/DD"). La página de la
+   * Visita lo usa para empezar en miércoles (el programa del CO). */
+  fromDate?: string;
+  /** La página de la Visita lo oculta: allí es obvio de qué semana se trata. */
+  showCoBanner?: boolean;
+}) => {
   const { t } = useAppTranslation();
 
   const settings = useAtomValue(serviceOutingsSettingsState);
@@ -58,6 +71,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
     const groups: Record<string, typeof generatedSlots> = {};
 
     for (const slot of generatedSlots) {
+      if (fromDate && slot.date < fromDate) continue;
       if (!groups[slot.date]) {
         groups[slot.date] = [];
       }
@@ -71,7 +85,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
         dayDate: groups[date][0].rawDate,
         outings: groups[date],
       }));
-  }, [generatedSlots]);
+  }, [generatedSlots, fromDate]);
 
   const getSlotLabel = (slotType: string): string => {
     if (slotType.endsWith('_morning')) return 'Mañana';
@@ -117,7 +131,7 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
 
   return (
     <Stack spacing="16px" sx={{ mt: 1 }}>
-      {weekRecord?.isCircuitOverseerWeek && (
+      {showCoBanner && weekRecord?.isCircuitOverseerWeek && (
         <Card
           sx={{
             border: '1px solid var(--line)',
@@ -131,21 +145,6 @@ const ServiceOutingsMeeting = ({ week, weekRecord }: { week: string; weekRecord?
             boxShadow: 'none',
           }}
         >
-          <Chip
-            label={
-              <Typography
-                className="label-small-regular"
-                sx={{ color: 'inherit', fontWeight: '700' }}
-              >
-                Semana del Superintendente
-              </Typography>
-            }
-            size="small"
-            sx={{
-              backgroundColor: 'var(--accent-main)',
-              color: 'var(--always-white)',
-            }}
-          />
           <Typography className="body-regular" color="var(--accent-dark)" style={{ fontWeight: '700', margin: 0 }}>
             Semana de la visita del superintendente de circuito
           </Typography>

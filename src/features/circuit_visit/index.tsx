@@ -242,24 +242,34 @@ const PreachingSection = ({
 
   const outingsSettings = useAtomValue(serviceOutingsSettingsState);
 
-  // Turnos de la semana en los que sale el superintendente (los configurados
-  // de miércoles a domingo, más cualquier otro de su semana que exista) —
-  // para cada uno se puede elegir quién le acompaña. Derivados de la
-  // configuración: no hace falta que el turno tenga hermano asignado.
+  // El programa de predicación del CO va de MIÉRCOLES a domingo: el martes
+  // es su llegada y la reunión de entre semana.
+  const wednesdayStr = useMemo(
+    () => formatDate(addDays(new Date(visit.weekOf), 2), 'yyyy/MM/dd'),
+    [visit.weekOf]
+  );
+
+  // Turnos configurados de su semana (desde el miércoles) — para cada uno se
+  // elige quién le acompaña, sin exigir que el turno tenga hermano asignado.
   const assignedOutings = useMemo(() => {
     return deriveWeekOutingSlots(outingsSettings, weekRecord, visit.weekOf)
-      .filter((s) => !s.cancelled && s.date >= visit.date_start)
+      .filter((s) => !s.cancelled && s.date >= wednesdayStr)
       .map((s) => ({ ...s, outingKey: `${s.date}_${s.time}` }))
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  }, [outingsSettings, weekRecord, visit.weekOf, visit.date_start]);
+  }, [outingsSettings, weekRecord, visit.weekOf, wednesdayStr]);
 
   return (
     <Card
       title="Programa de predicación"
-      subtitle="Mismas salidas de “Salidas de predicación” de esta semana."
+      subtitle="Semana de la visita: de miércoles a domingo, con las mismas salidas de “Salidas de predicación”."
     >
       <Stack spacing="16px">
-        <ServiceOutingsMeeting week={visit.weekOf} weekRecord={weekRecord} />
+        <ServiceOutingsMeeting
+          week={visit.weekOf}
+          weekRecord={weekRecord}
+          fromDate={wednesdayStr}
+          showCoBanner={false}
+        />
 
         <Button variant="secondary" onClick={() => navigate('/predicacion-salidas')}>
           Editar en Salidas de predicación
@@ -267,9 +277,12 @@ const PreachingSection = ({
 
         {assignedOutings.length > 0 && (
           <Stack spacing="12px">
-            <Typography className="body-regular-semibold">
-              Compañía del superintendente
-            </Typography>
+            <Stack spacing="2px">
+              <Typography className="h4">Compañía del superintendente</Typography>
+              <Typography className="body-small-regular" color="var(--grey-400)">
+                Quién sale con él{coSpouseName ? ` y con ${coSpouseName}` : ''} en cada salida.
+              </Typography>
+            </Stack>
             {assignedOutings.map((outing) => {
               const companion = companions.find(
                 (c) => c.outingKey === outing.outingKey
@@ -278,100 +291,153 @@ const PreachingSection = ({
                 personOptions.find((o) => o.uid === companion?.brother) ?? null;
 
               return (
-                <Stack
+                <Box
                   key={outing.outingKey}
-                  direction={{ mobile: 'column', tablet: 'row' }}
-                  spacing="10px"
-                  alignItems={{ tablet: 'center' }}
-                  flexWrap="wrap" useFlexGap
                   sx={{
-                    padding: '10px 12px',
                     borderRadius: 'var(--radius-l)',
                     border: '1px solid var(--line)',
+                    overflow: 'hidden',
                   }}
                 >
-                  <Typography
-                    className="body-small-semibold"
-                    sx={{ minWidth: '140px' }}
+                  {/* Cabecera del turno: día + hora, mismo lenguaje visual
+                      que la agenda de Próximos eventos. */}
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing="8px"
+                    sx={{
+                      padding: '8px 12px',
+                      backgroundColor: 'var(--accent-100)',
+                      borderBottom: '1px solid var(--line)',
+                    }}
                   >
-                    {fmtDayEs(outing.date)} · {outing.time}
-                  </Typography>
-                  <Autocomplete
-                    sx={{ flex: 1, minWidth: '200px' }}
-                    options={personOptions}
-                    value={selectedPerson}
-                    onChange={(_, v) =>
-                      v
-                        ? onUpsertCompanion(outing.outingKey, { brother: v.uid })
-                        : onRemoveCompanion(outing.outingKey)
-                    }
-                    getOptionLabel={(o) => o.label}
-                    isOptionEqualToValue={(o, v) => o.uid === v.uid}
-                    renderInput={(params) => (
-                      <MuiTextField {...params} label="Hermano que acompaña" size="small" />
-                    )}
-                  />
-                  {companion && (
-                    <>
-                      <Select
-                        sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}
-                        value={companion.activity}
-                        onChange={(e) =>
-                          onUpsertCompanion(outing.outingKey, {
-                            activity: e.target.value as CircuitVisitCompanionActivity,
-                          })
-                        }
+                    <Box
+                      sx={{
+                        backgroundColor: 'var(--accent-150)',
+                        borderRadius: 'var(--radius-s)',
+                        padding: '2px 10px',
+                      }}
+                    >
+                      <Typography className="h4" color="var(--accent-dark)">
+                        {fmtDayEs(outing.date)} · {outing.time}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      className="body-small-regular"
+                      color="var(--grey-400)"
+                      sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {outing.location}
+                    </Typography>
+                  </Stack>
+
+                  <Stack spacing="10px" sx={{ padding: '12px' }}>
+                    <Stack
+                      direction={{ mobile: 'column', tablet: 'row' }}
+                      spacing="10px"
+                      flexWrap="wrap"
+                      useFlexGap
+                    >
+                      <Autocomplete
+                        sx={{ flex: '1 1 220px', minWidth: '200px' }}
+                        options={personOptions}
+                        value={selectedPerson}
+                        onChange={(_, v) => {
+                          if (v) {
+                            onUpsertCompanion(outing.outingKey, { brother: v.uid });
+                            return;
+                          }
+                          // Al quitar al hermano: si la esposa sigue saliendo
+                          // en este turno, se conserva el registro; si no,
+                          // se elimina entero.
+                          if (companion?.withWife) {
+                            onUpsertCompanion(outing.outingKey, { brother: '' });
+                          } else {
+                            onRemoveCompanion(outing.outingKey);
+                          }
+                        }}
+                        getOptionLabel={(o) => o.label}
+                        isOptionEqualToValue={(o, v) => o.uid === v.uid}
+                        renderInput={(params) => (
+                          <MuiTextField {...params} label="Hermano que acompaña" size="small" />
+                        )}
+                      />
+                      {companion?.brother && (
+                        <Select
+                          sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}
+                          value={companion.activity}
+                          onChange={(e) =>
+                            onUpsertCompanion(outing.outingKey, {
+                              activity: e.target.value as CircuitVisitCompanionActivity,
+                            })
+                          }
+                        >
+                          {Object.entries(ACTIVITY_LABELS).map(([value, label]) => (
+                            <MenuItem key={value} value={value}>
+                              {label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    </Stack>
+
+                    {/* La esposa del CO sale a predicar en paralelo — visible
+                        siempre que tenga nombre en Ajustes, sin depender de
+                        que ya haya hermano elegido. */}
+                    {coSpouseName && (
+                      <Stack
+                        direction={{ mobile: 'column', tablet: 'row' }}
+                        spacing="10px"
+                        alignItems={{ tablet: 'center' }}
+                        flexWrap="wrap"
+                        useFlexGap
                       >
-                        {Object.entries(ACTIVITY_LABELS).map(([value, label]) => (
-                          <MenuItem key={value} value={value}>
-                            {label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {/* Solo muestra "con esposa" si el CO no es soltero
-                          (hay nombre de esposa configurado en Ajustes). */}
-                      {coSpouseName && (
                         <Checkbox
-                          checked={companion.withWife}
-                          label={`Con ${coSpouseName}`}
-                          onChange={(e, checked) =>
+                          checked={companion?.withWife ?? false}
+                          label={`Sale también ${coSpouseName}`}
+                          onChange={(_e, checked) => {
+                            if (!checked && companion && !companion.brother) {
+                              // Sin hermano y sin esposa no queda nada que
+                              // guardar para este turno.
+                              onRemoveCompanion(outing.outingKey);
+                              return;
+                            }
                             onUpsertCompanion(outing.outingKey, {
                               withWife: checked,
                               spouse_companions: checked
-                                ? companion.spouse_companions ?? []
+                                ? companion?.spouse_companions ?? []
                                 : [],
-                            })
-                          }
+                            });
+                          }}
                         />
-                      )}
-                    </>
-                  )}
-                  {/* Hermanas que acompañan a la esposa del CO en paralelo */}
-                  {companion?.withWife && coSpouseName && (
-                    <Autocomplete
-                      sx={{ flex: 1, minWidth: '200px' }}
-                      multiple
-                      options={personOptions}
-                      value={personOptions.filter((o) =>
-                        (companion.spouse_companions ?? []).includes(o.uid)
-                      )}
-                      onChange={(_, selected) =>
-                        onUpsertCompanion(outing.outingKey, {
-                          spouse_companions: selected.map((s) => s.uid),
-                        })
-                      }
-                      getOptionLabel={(o) => o.label}
-                      isOptionEqualToValue={(o, v) => o.uid === v.uid}
-                      renderInput={(params) => (
-                        <MuiTextField
-                          {...params}
-                          label={`Hermanas con ${coSpouseName}`}
-                          size="small"
-                        />
-                      )}
-                    />
-                  )}
-                </Stack>
+                        {companion?.withWife && (
+                          <Autocomplete
+                            sx={{ flex: '1 1 220px', minWidth: '200px' }}
+                            multiple
+                            options={personOptions}
+                            value={personOptions.filter((o) =>
+                              (companion.spouse_companions ?? []).includes(o.uid)
+                            )}
+                            onChange={(_, selected) =>
+                              onUpsertCompanion(outing.outingKey, {
+                                spouse_companions: selected.map((s) => s.uid),
+                              })
+                            }
+                            getOptionLabel={(o) => o.label}
+                            isOptionEqualToValue={(o, v) => o.uid === v.uid}
+                            renderInput={(params) => (
+                              <MuiTextField
+                                {...params}
+                                label={`Hermanas con ${coSpouseName}`}
+                                size="small"
+                              />
+                            )}
+                          />
+                        )}
+                      </Stack>
+                    )}
+                  </Stack>
+                </Box>
               );
             })}
           </Stack>

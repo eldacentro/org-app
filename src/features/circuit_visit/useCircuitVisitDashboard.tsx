@@ -344,9 +344,11 @@ const useCircuitVisitDashboard = () => {
 
     // Mismos turnos derivados que muestra la sección de predicación de la
     // página (configuración de la congregación, sin exigir hermano
-    // asignado). El lunes es anterior a que el CO llegue.
+    // asignado). El programa del CO va de MIÉRCOLES a domingo: el martes es
+    // su llegada y la reunión de entre semana.
+    const wednesdayStr = formatDate(addDays(new Date(working.weekOf), 2), 'yyyy/MM/dd');
     const preachingRows = deriveWeekOutingSlots(outingsSettings, weekRecord, working.weekOf)
-      .filter((o) => !o.cancelled && o.date >= working.date_start)
+      .filter((o) => !o.cancelled && o.date >= wednesdayStr)
       .map((o) => {
         const outingKey = `${o.date}_${o.time}`;
         const companion = working.co_companions.find(

@@ -295,14 +295,26 @@ const CircuitVisitSummary = ({
                 <Stack spacing="6px">
                   {(visit.co_companions ?? []).filter(Boolean).map((c) => {
                     const [date, time] = (c.outingKey ?? '').split('_');
+                    const brotherName = findPersonName(c.brother);
+
+                    const sisterNames = (c.spouse_companions ?? [])
+                      .map((uid) => findPersonName(uid))
+                      .filter(Boolean)
+                      .join(', ');
+                    const wifePart =
+                      c.withWife && effectiveCoSpouseName
+                        ? `Con ${effectiveCoSpouseName}${sisterNames ? ` (${sisterNames})` : ''}`
+                        : '';
+
                     const parts = [
                       `${fmtDay(date)}${time ? ` · ${time}` : ''}`,
-                      findPersonName(c.brother) || 'Pendiente',
-                    ];
+                      brotherName || (wifePart ? '' : 'Pendiente'),
+                    ].filter(Boolean);
+
                     return (
                       <Typography key={c.outingKey} className="body-small-regular">
                         {parts.join(' · ')}
-                        {c.withWife && effectiveCoSpouseName ? `  •  Con ${effectiveCoSpouseName}` : ''}
+                        {wifePart ? `  •  ${wifePart}` : ''}
                       </Typography>
                     );
                   })}
