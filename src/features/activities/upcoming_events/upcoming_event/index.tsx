@@ -20,6 +20,11 @@ import Typography from '@components/typography';
 import UpcomingEventDate from '../upcoming_event_date';
 import CircuitVisitWeekAgenda from '@features/circuit_visit/shared/CircuitVisitWeekAgenda';
 import { circuitVisitsState } from '@states/circuit_visit';
+import { COFullnameState, COSpouseNameState } from '@states/settings';
+import {
+  buildVisitGreeting,
+  getEffectiveCoName,
+} from '@features/circuit_visit/shared/getEffectiveCoName';
 import {
   ASSEMBLY_CATEGORIES,
   COVER_PHOTO_CATEGORIES,
@@ -33,25 +38,46 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
   const { desktopUp, tabletUp } = useBreakpoints();
 
   const circuitVisits = useAtomValue(circuitVisitsState);
+  const coName = useAtomValue(COFullnameState);
+  const coSpouseName = useAtomValue(COSpouseNameState);
 
   // ¿Este evento de semana del CO tiene su visita vinculada? Si no (evento
   // creado a mano, o visita borrada/desincronizada), la agenda no puede
   // pintarse y la tarjeta debe caer al listado genérico de fechas — antes
   // quedaba SIN fecha alguna (bug real).
-  const hasVisitAgenda = useMemo(() => {
+  const linkedVisit = useMemo(() => {
     if (
       props.data.event_data.category !==
       UpcomingEventCategory.CircuitOverseerWeek
     ) {
-      return false;
+      return undefined;
     }
 
     const visitId = props.data.event_uid
       .replace(/^covisit_/, '')
       .replace(/_week$/, '');
 
-    return circuitVisits.some((v) => v.id === visitId && !v._deleted);
+    return circuitVisits.find((v) => v.id === visitId && !v._deleted);
   }, [props.data, circuitVisits]);
+
+  const hasVisitAgenda = !!linkedVisit;
+
+  // "Nos visitan Unai y Carol Korkóstegui." — contexto de la visita, en el
+  // hueco de la descripción (encima del divisor, como en cualquier evento).
+  const visitGreeting = useMemo(() => {
+    if (!linkedVisit) return '';
+    const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
+      linkedVisit,
+      coName,
+      coSpouseName
+    );
+    return buildVisitGreeting(effectiveCoName, effectiveCoSpouseName);
+  }, [linkedVisit, coName, coSpouseName]);
+
+  // Los eventos derivados de la visita (covisit_*) se gestionan desde su
+  // página — el formulario genérico de edición no los entiende (salía en
+  // blanco) y cualquier cambio sería pisado por la re-proyección.
+  const isDerivedEvent = props.data.event_uid.startsWith('covisit_');
 
   const {
     eventDecoration,
@@ -194,7 +220,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
           >
             <AddToCalendar event={props.data} />
 
-            {canManageEvents && (!desktopUp || showEditIcon) && (
+            {canManageEvents && !isDerivedEvent && (!desktopUp || showEditIcon) && (
               <IconButton sx={{ padding: 0 }} onClick={handleTurnEditMode}>
                 <IconEdit color="var(--accent-main)" />
               </IconButton>
@@ -213,7 +239,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
         )}
 
         <Typography className="body-regular" color="var(--grey-400)">
-          {props.data.event_data.description}
+          {visitGreeting || props.data.event_data.description}
         </Typography>
       </Box>
 

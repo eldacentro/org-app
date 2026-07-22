@@ -449,3 +449,8 @@ export const devAuthOTPState = atom('');
 export const congPrefixState = atom('');
 
 export const countriesState = atom<CountryResponseType[]>([]);
+
+// Número de asignaciones futuras del usuario principal, publicado por
+// useMyAssignments (el diálogo vive montado en el layout raíz) y leído por
+// el contador del inicio — una sola fuente, imposible que diverjan.
+export const myAssignmentsBadgeState = atom(0);

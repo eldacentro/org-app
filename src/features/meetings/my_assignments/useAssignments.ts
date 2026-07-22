@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAtom, useAtomValue } from 'jotai';
-import { isMyAssignmentOpenState } from '@states/app';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { isMyAssignmentOpenState, myAssignmentsBadgeState } from '@states/app';
 import {
   shortDateFormatState,
   userLocalUIDState,
@@ -95,7 +95,7 @@ const useMyAssignments = () => {
     return userUID.length === 0;
   }, [userUID]);
 
-  const personAssignments = useMemo(() => {
+  const { personAssignments, badgeCount } = useMemo(() => {
     const now = new Date();
     // getWeekDate muta el Date que recibe (setDate en su interior), así que
     // hay que pasarle una copia — si no, `now` deja de ser "hoy" y pasa a ser
@@ -531,9 +531,9 @@ const useMyAssignments = () => {
       return results;
     };
 
-    const filterAssignments = (uid: string) => {
+    const filterAssignments = (uid: string, type = filterType) => {
       const meetingAssignments =
-        filterType === 'preaching'
+        type === 'preaching'
           ? []
           : remapAssignmentsDate.filter(
               (record) =>
@@ -542,17 +542,19 @@ const useMyAssignments = () => {
                 record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
             );
 
-      const deptAssignments = filterType === 'preaching' || filterType === 'limpieza' ? [] : getDeptAssignments(uid);
-      const outingAssignments = filterType === 'meetings' || filterType === 'limpieza' ? [] : getServiceOutingsAssignments(uid);
-      const exhibitorAssignments = filterType === 'meetings' || filterType === 'limpieza' ? [] : getExhibitorsAssignments(uid);
-      const limpiezaAssign = filterType === 'meetings' || filterType === 'preaching' ? [] : getLimpiezaAssignments(uid);
+      const deptAssignments = type === 'preaching' || type === 'limpieza' ? [] : getDeptAssignments(uid);
+      const outingAssignments = type === 'meetings' || type === 'limpieza' ? [] : getServiceOutingsAssignments(uid);
+      const exhibitorAssignments = type === 'meetings' || type === 'limpieza' ? [] : getExhibitorsAssignments(uid);
+      const limpiezaAssign = type === 'meetings' || type === 'preaching' ? [] : getLimpiezaAssignments(uid);
 
       const circuitAssignments = getCircuitVisitAssignments(uid);
       return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments, ...limpiezaAssign, ...circuitAssignments];
     };
 
     const ownAssignments = filterAssignments(userUID);
-    const delegateAssignments = delegateMembers.flatMap(filterAssignments);
+    const delegateAssignments = delegateMembers.flatMap((uid) =>
+      filterAssignments(uid)
+    );
 
     const groupAndSortAssignments = (assignments: AssignmentHistoryType[]) => {
       const groupedByMonth = assignments.reduce<
@@ -587,9 +589,19 @@ const useMyAssignments = () => {
       total: delegateAssignments.length,
     };
 
+    // Para el contador del inicio: SIEMPRE el total sin filtro de pestaña,
+    // aunque el usuario esté filtrando dentro del diálogo.
+    const badgeCount =
+      filterType === 'all'
+        ? ownAssignments.length
+        : filterAssignments(userUID, 'all').length;
+
     return {
-      ownAssignments: sortedOwnAssignments,
-      delegateAssignments: sortedDelegateAssignments,
+      personAssignments: {
+        ownAssignments: sortedOwnAssignments,
+        delegateAssignments: sortedDelegateAssignments,
+      },
+      badgeCount,
     };
   }, [
     assignmentsHistory,
@@ -608,6 +620,12 @@ const useMyAssignments = () => {
     circuitVisits,
     dayTick,
   ]);
+
+  const setBadge = useSetAtom(myAssignmentsBadgeState);
+
+  useEffect(() => {
+    setBadge(badgeCount);
+  }, [badgeCount, setBadge]);
 
   const handleClose = () => setOpen(false);
 
