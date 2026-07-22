@@ -755,7 +755,7 @@ const CircuitVisitDashboard = () => {
                 startIcon={<IconExport color="var(--always-white)" />}
                 onClick={handleExportPdf}
               >
-                Generar PDF
+                Exportar
               </Button>
             )}
           </Stack>
