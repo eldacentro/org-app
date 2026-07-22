@@ -6,7 +6,7 @@ import {
   congAccountConnectedState,
   isDarkThemeState,
 } from '@states/app';
-import { disconnectCongAccount, setIsOnline } from '@services/states/app';
+import { setIsOnline } from '@services/states/app';
 import {
   adminRoleState,
   coordinatorRoleState,
@@ -41,11 +41,13 @@ const useGlobal = () => {
   const [isSupported, setIsSupported] = useState(true);
 
   useEffect(() => {
+    // Un bache de red NO desconecta la cuenta: antes se llamaba a
+    // disconnectCongAccount() aquí y, como al volver la red nadie restauraba
+    // el estado, la cuenta quedaba "desconectada" hasta pulsar Reconectar —
+    // un lío para quien no sabe qué significa eso (requisito explícito:
+    // la cuenta solo se desconecta a propósito). La red ya está modelada por
+    // isOnline; el worker de sync tolera fallos y reintenta solo.
     setIsOnline(isNavigatorOnline);
-
-    if (!isNavigatorOnline) {
-      disconnectCongAccount();
-    }
   }, [isNavigatorOnline]);
 
   useEffect(() => {

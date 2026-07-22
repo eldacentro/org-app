@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtom, useAtomValue } from 'jotai';
 import {
-  disconnectCongAccount,
+  displaySnackNotification,
+  setCongAccountConnected,
   setIsAboutOpen,
   setIsContactOpen,
   setIsSupportOpen,
 } from '@services/states/app';
+import { apiValidateMe } from '@services/api/user';
 import { useBreakpoints, useManualSync } from '@hooks/index';
 import {
   congAccountConnectedState,
@@ -18,7 +21,7 @@ import {
   congNameState,
   fullnameState,
 } from '@states/settings';
-import { currentAuthUser, userSignOut } from '@services/firebase/auth';
+import { currentAuthUser } from '@services/firebase/auth';
 
 const useNavbar = () => {
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ const useNavbar = () => {
     useBreakpoints();
 
   const [anchorEl, setAnchorEl] = useAtom(navBarAnchorElState);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const fullname = useAtomValue(fullnameState);
   const congName = useAtomValue(congNameState);
@@ -79,15 +83,55 @@ const useNavbar = () => {
   const handleReconnectAccount = async () => {
     handleCloseMore();
 
+    // Reconexión REAL, sin recargar a ciegas: refrescar token → revalidar
+    // contra el servidor → marcar conectado y sincronizar. La recarga queda
+    // solo como último recurso (p. ej. token revocado, que necesita el
+    // flujo de arranque/login).
     const user = currentAuthUser();
-    if (user) {
-      try {
-        await user.getIdToken(true);
-      } catch (error) {
-        console.error('Error refreshing token on reconnect:', error);
-      }
+
+    if (!user) {
+      globalThis.location.reload();
+      return;
     }
-    
+
+    try {
+      await user.getIdToken(true);
+    } catch (error) {
+      console.error('Error refreshing token on reconnect:', error);
+      // Sin red no hay nada que reconectar todavía — avisar en vez de
+      // recargar en bucle.
+      if (!navigator.onLine || (error as Error)?.message?.includes('network')) {
+        displaySnackNotification({
+          header: 'Sin conexión',
+          message:
+            'No hay internet ahora mismo. La cuenta se reconectará al volver la conexión.',
+          severity: 'error',
+        });
+        return;
+      }
+      globalThis.location.reload();
+      return;
+    }
+
+    try {
+      const { status } = await apiValidateMe();
+
+      if (status === 200) {
+        setCongAccountConnected(true);
+        displaySnackNotification({
+          header: 'Cuenta reconectada',
+          message: 'Sincronizando los últimos cambios…',
+          severity: 'success',
+        });
+        await triggerManualSync();
+        return;
+      }
+    } catch (error) {
+      console.error('Error validating on reconnect:', error);
+    }
+
+    // Validación fallida (sesión caducada de verdad, etc.): el arranque
+    // completo sabe gestionarlo.
     globalThis.location.reload();
   };
 
@@ -121,14 +165,16 @@ const useNavbar = () => {
     window.open(`https://organized-app.com`, '_blank');
   };
 
-  const handleDisonnectAccount = async () => {
+  // "Cerrar sesión" del menú: MISMO flujo que el de Mi cuenta (diálogo de
+  // confirmación + logout completo). Antes hacía un sign-out ligero que
+  // dejaba datos, claves y push intactos — dos botones con el mismo texto y
+  // efectos distintos.
+  const handleOpenLogoutConfirm = () => {
     handleCloseMore();
-
-    await userSignOut();
-    disconnectCongAccount();
-
-    globalThis.location.reload();
+    setLogoutConfirmOpen(true);
   };
+
+  const handleCloseLogoutConfirm = () => setLogoutConfirmOpen(false);
 
   return {
     openMore,
@@ -156,7 +202,9 @@ const useNavbar = () => {
     handleReconnectAccount,
     handleOpenRealApp,
     accountType,
-    handleDisonnectAccount,
+    logoutConfirmOpen,
+    handleOpenLogoutConfirm,
+    handleCloseLogoutConfirm,
     navBarOptions,
     handleBack,
     desktopUp,

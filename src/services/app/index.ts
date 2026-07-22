@@ -3,7 +3,6 @@ import { store } from '@states/index';
 import {
   generateDayCapitalNames,
   generateMonthNames,
-  getTranslation,
   handleAppChangeLanguage,
 } from '@services/i18n/translation';
 import {
@@ -15,11 +14,7 @@ import {
   offlineOverrideState,
 } from '@states/app';
 import { userSignOut } from '@services/firebase/auth';
-import {
-  disconnectCongAccount,
-  displaySnackNotification,
-  setRootModalOpen,
-} from '@services/states/app';
+import { setRootModalOpen } from '@services/states/app';
 import { dbWeekTypeUpdate } from '@services/dexie/weekType';
 import { dbAssignmentUpdate } from '@services/dexie/assignment';
 import { dbAppDelete } from '@services/dexie/app';
@@ -143,15 +138,6 @@ export const runUpdater = async () => {
   ]);
 };
 
-export const userLogoutSuccess = async () => {
-  await userSignOut();
-  disconnectCongAccount();
-  displaySnackNotification({
-    header: getTranslation({ key: 'tr_errorTitle' }),
-    message: getTranslation({ key: 'logoutSuccess' }),
-    severity: 'success',
-  });
-};
 
 export const handleDeleteDatabase = async () => {
   setRootModalOpen(true);

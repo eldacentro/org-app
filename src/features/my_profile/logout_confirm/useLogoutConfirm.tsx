@@ -1,5 +1,5 @@
 import { handleDeleteDatabase } from '@services/app';
-import { apiDeletePushToken } from '@services/api/user';
+import { apiDeletePushToken, apiUserLogout } from '@services/api/user';
 import { revokePushToken } from '@services/firebase/messaging';
 import { currentAuthUser } from '@services/firebase/auth';
 import { clearKeysSecurely } from '@services/secure_storage';
@@ -24,6 +24,15 @@ const useLogoutConfirm = () => {
       if (uid) await clearKeysSecurely(uid);
     } catch (error) {
       logger.error('app', `failed to clear saved keys on logout: ${error}`);
+    }
+
+    // Revocar también la sesión del BACKEND (cookie de sesión) — hasta ahora
+    // ningún logout lo hacía y quedaban sesiones fantasma en la lista.
+    // Best-effort: nunca bloquear el logout local por esto.
+    try {
+      await apiUserLogout();
+    } catch (error) {
+      logger.error('app', `failed to revoke backend session on logout: ${error}`);
     }
 
     await handleDeleteDatabase();

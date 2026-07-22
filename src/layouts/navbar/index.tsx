@@ -29,6 +29,7 @@ import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
 
 import { NavBarType } from './index.types';
 import useNavbar from './useNavbar';
+import LogoutConfirm from '@features/my_profile/logout_confirm';
 import AccountHeaderIcon from '@components/account_header_icon';
 import AppNotification from '@features/app_notification';
 import Button from '@components/button';
@@ -89,7 +90,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleBack,
     accountType,
     tablet688Up,
-    handleDisonnectAccount,
+    logoutConfirmOpen,
+    handleOpenLogoutConfirm,
+    handleCloseLogoutConfirm,
     congName,
     fullname,
     navBarOptions,
@@ -504,7 +507,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           <MenuItem
                             disableRipple
                             sx={menuStyle}
-                            onClick={handleDisonnectAccount}
+                            onClick={handleOpenLogoutConfirm}
                           >
                             <ListItemIcon
                               sx={{
@@ -524,6 +527,11 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           </MenuItem>
                         )}
                       </Menu>
+
+                      <LogoutConfirm
+                        open={logoutConfirmOpen}
+                        onClose={handleCloseLogoutConfirm}
+                      />
                     </>
                   )}
                 </Box>

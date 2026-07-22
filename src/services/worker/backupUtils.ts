@@ -17,6 +17,7 @@ import {
 } from '@definition/schedules';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
+import { mergeCircuitVisits } from './circuitVisitMerge';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
@@ -1928,20 +1929,14 @@ const dbRestoreCircuitVisits = async (
       return data;
     });
 
+    // NO usar syncFromRemote aquí: la visita es una entidad PLANA (updatedAt
+    // hermano de los datos) y syncFromRemote solo protege payloads anidados
+    // con updatedAt propio — la copia del servidor pisaba SIEMPRE la edición
+    // local recién guardada, y como este restore corre ANTES de construir la
+    // subida, la revertía y re-subía la vieja (bug real, 2026-07-21).
+    // mergeCircuitVisits aplica last-write-wins por registro entero.
     const localData = await appDb.circuit_overseer_visits.toArray();
-    const dataToUpdate: CircuitVisitType[] = [];
-
-    for (const remoteItem of remoteData) {
-      const localItem = localData.find((record) => record.id === remoteItem.id);
-
-      if (!localItem) {
-        dataToUpdate.push(remoteItem);
-      } else {
-        const newItem = structuredClone(localItem);
-        syncFromRemote(newItem, remoteItem);
-        dataToUpdate.push(newItem);
-      }
-    }
+    const dataToUpdate = mergeCircuitVisits(localData, remoteData);
 
     if (dataToUpdate.length > 0) {
       await appDb.circuit_overseer_visits.bulkPut(dataToUpdate);

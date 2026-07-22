@@ -896,18 +896,23 @@ export const refreshReadOnlyRoles = (
 export const personsFilterActiveTimeAway = (records: TimeAwayType[]) => {
   const cutoffDays = 3;
 
-  return records.filter((record) => {
-    if (record._deleted === true) return false;
-    if (!record.end_date) return true;
+  return records
+    .filter((record) => {
+      if (record._deleted === true) return false;
+      if (!record.end_date) return true;
 
-    const limitDate = formatDate(new Date(), 'yyyy/MM/dd');
+      const limitDate = formatDate(new Date(), 'yyyy/MM/dd');
 
-    const endDatePlusCutoff = addDays(record.end_date, cutoffDays);
-    const date = formatDate(endDatePlusCutoff, 'yyyy/MM/dd');
+      const endDatePlusCutoff = addDays(record.end_date, cutoffDays);
+      const date = formatDate(endDatePlusCutoff, 'yyyy/MM/dd');
 
-    // Show if today is before or equal to endDatePlusCutoff
-    return date >= limitDate;
-  });
+      // Show if today is before or equal to endDatePlusCutoff
+      return date >= limitDate;
+    })
+    // Orden cronológico por inicio (el array subyacente guarda en orden de
+    // creación). "yyyy/MM/dd" ordena bien como string; mismo patrón que
+    // enrollments/privileges.
+    .toSorted((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
 };
 
 export const personGetScheduleName = (person: PersonType) => {
