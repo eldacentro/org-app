@@ -38,6 +38,9 @@ const Documentos = lazy(() => import('@pages/congregation/documentos'));
 const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
 const Territorios = lazy(() => import('@pages/congregation/territories'));
 const CircuitVisit = lazy(() => import('@pages/congregation/circuit_visit'));
+const PublicationsEditor = lazy(
+  () => import('@pages/congregation/publications_editor')
+);
 
 const MyProfile = lazy(() => import('@pages/my_profile'));
 const AyudaPage = lazy(() => import('@pages/ayuda'));
@@ -239,6 +242,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               { path: '/congregation/documentos', element: <Documentos /> },
               { path: '/congregation/territories', element: <Territorios /> },
               { path: '/congregation/circuit-visit', element: <CircuitVisit /> },
+              { path: '/publications-editor', element: <PublicationsEditor /> },
 
               // publisher routes
               {

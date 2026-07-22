@@ -21,6 +21,8 @@ const UserAdditionalRights = () => {
     handleToggleWeekend,
     isDepartments,
     handleToggleDepartments,
+    isPublications,
+    handleTogglePublications,
   } = useUserAdditionalRights();
 
   return (
@@ -67,6 +69,19 @@ const UserAdditionalRights = () => {
           readOnly={isProcessing}
           checked={isDepartments}
           onChange={handleToggleDepartments}
+        />
+      </SwitchContainer>
+
+      <Typography className="body-small-semibold" color="var(--grey-400)">
+        {t('tr_toolsSection')}
+      </Typography>
+
+      <SwitchContainer>
+        <SwitchWithLabel
+          label={t('tr_publicationsEditor')}
+          readOnly={isProcessing}
+          checked={isPublications}
+          onChange={handleTogglePublications}
         />
       </SwitchContainer>
     </>

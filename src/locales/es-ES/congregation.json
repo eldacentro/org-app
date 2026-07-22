@@ -595,5 +595,7 @@
   "tr_publisherDetails": "Detalles del publicador",
   "tr_publisherDetailsDesc": "Ver y gestionar la condición espiritual y la fecha del primer informe de este publicador.",
   "tr_branchOfficeReportDesc": "Gestionar y enviar informes de la congregación a la sucursal.",
-  "tr_serviceYearHistory": "Historial de informes de servicio para el año de servicio."
+  "tr_serviceYearHistory": "Historial de informes de servicio para el año de servicio.",
+  "tr_toolsSection": "Herramientas",
+  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
 }

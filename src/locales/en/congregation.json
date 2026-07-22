@@ -595,5 +595,7 @@
   "tr_publisherDetails": "Publisher details",
   "tr_publisherDetailsDesc": "View and manage the spiritual status and first report date for this publisher.",
   "tr_branchOfficeReportDesc": "Manage and submit congregation reports to the branch office.",
-  "tr_serviceYearHistory": "History of service reports for the service year."
+  "tr_serviceYearHistory": "History of service reports for the service year.",
+  "tr_toolsSection": "Tools",
+  "tr_publicationsEditor": "Publications editor (JWPUB)"
 }

@@ -523,5 +523,7 @@
   "tr_maximumAmountOfGroupsIs10": "הכמות המקסימלית של קבוצות שירות שדה היא 10",
   "tr_personAwayNotice": "אדם זה אינו זמין: {{ date }}",
   "tr_weekendTemplateShowSongs": "הצג שירים בתוכניות אסיפת סוף שבוע",
-  "tr_personalDetails": "פרטים אישיים"
+  "tr_personalDetails": "פרטים אישיים",
+  "tr_toolsSection": "Herramientas",
+  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
 }

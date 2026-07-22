@@ -11,6 +11,7 @@ const useUserAdditionalRights = () => {
   const [isPublicTalk, setIsPublicTalk] = useState(false);
   const [isAttendance, setIsAttendance] = useState(false);
   const [isDepartments, setIsDepartments] = useState(false);
+  const [isPublications, setIsPublications] = useState(false);
 
   const handleToggleMidweek = async (value: boolean) => {
     try {
@@ -162,6 +163,36 @@ const useUserAdditionalRights = () => {
     }
   };
 
+  const handleTogglePublications = async (value: boolean) => {
+    try {
+      setIsPublications(value);
+
+      const newUser = structuredClone(currentUser);
+
+      newUser.profile.cong_role = newUser.profile.cong_role || [];
+
+      if (value) {
+        newUser.profile.cong_role.push('publications_editor');
+      }
+
+      if (!value) {
+        newUser.profile.cong_role = newUser.profile.cong_role.filter(
+          (role) => role !== 'publications_editor'
+        );
+      }
+
+      await handleSaveDetails(newUser);
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(error.message),
+        severity: 'error',
+      });
+    }
+  };
+
   useEffect(() => {
     const isMidweek =
       currentUser.profile.cong_role?.includes('midweek_schedule') ?? false;
@@ -182,6 +213,10 @@ const useUserAdditionalRights = () => {
     const isDepartments =
       currentUser.profile.cong_role?.includes('departments_schedule') ?? false;
     setIsDepartments(isDepartments);
+
+    const isPublications =
+      currentUser.profile.cong_role?.includes('publications_editor') ?? false;
+    setIsPublications(isPublications);
   }, [currentUser]);
 
   return {
@@ -195,6 +230,8 @@ const useUserAdditionalRights = () => {
     handleToggleAttendance,
     isDepartments,
     handleToggleDepartments,
+    isPublications,
+    handleTogglePublications,
   };
 };
 

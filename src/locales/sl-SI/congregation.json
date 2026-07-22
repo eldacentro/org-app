@@ -523,5 +523,7 @@
   "tr_maximumAmountOfGroupsIs10": "Največje število oznanjevalskih skupin je 10.",
   "tr_personAwayNotice": "Ta oseba je odsotna: {{ date }}",
   "tr_weekendTemplateShowSongs": "Na razporedu shodov ob koncu tedna prikaži pesmi",
-  "tr_personalDetails": "Osebni podatki"
+  "tr_personalDetails": "Osebni podatki",
+  "tr_toolsSection": "Herramientas",
+  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
 }
