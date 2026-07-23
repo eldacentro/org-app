@@ -40,8 +40,9 @@ export const buildDatabase = async (
         Variation, Year, MepsLanguageIndex, PublicationType,
         PublicationCategorySymbol, BibleVersionForCitations,
         HasPublicationChapterNumbers, HasPublicationSectionNumbers,
+        VolumeNumber, FirstDatedTextDateOffset, LastDatedTextDateOffset,
         MepsBuildNumber
-      ) VALUES (1, 9, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', 0, '', ?, ?, 'Book', 'bk', 'NWTR', 0, 0, 14074)`,
+      ) VALUES (1, 9, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', 0, '', ?, ?, 'Book', 'bk', 'NWTR', 0, 0, 0, 19691231, 19691231, 14074)`,
       [
         title,
         symbol,
@@ -76,6 +77,20 @@ export const buildDatabase = async (
       "INSERT INTO PublicationViewSchema (PublicationViewSchemaId, SchemaType, DataType) VALUES (1, 0, 'name')"
     );
 
+    // Índice de navegación con la estructura de los oficiales: un ítem raíz
+    // (padre -1, sin documento) y un hijo por capítulo apuntando a su Document.
+    db.run(
+      `INSERT INTO PublicationViewItem (
+        PublicationViewItemId, PublicationViewId, ParentPublicationViewItemId,
+        Title, SchemaType, ChildTemplateSchemaType, DefaultDocumentId
+      ) VALUES (1, 1, -1, ?, 0, 0, -1)`,
+      [title]
+    );
+    db.run(
+      "INSERT INTO PublicationViewItemField (PublicationViewItemFieldId, PublicationViewItemId, Value, Type) VALUES (1, 1, ?, 'name')",
+      [title]
+    );
+
     // sql.js es síncrono pero encryptContent es async, así que recorremos los
     // capítulos con await. Cada capítulo: ítem del índice + Document + párrafos.
     for (let i = 0; i < input.chapters.length; i++) {
@@ -83,13 +98,12 @@ export const buildDatabase = async (
       const documentId = i; // 0-based, como los archivos oficiales
       const built = buildChapterHtml(chapter);
 
-      // Índice de navegación: un ítem por capítulo, hijo de la raíz (-1).
-      const viewItemId = i + 1;
+      const viewItemId = i + 2; // 1 es la raíz
       db.run(
         `INSERT INTO PublicationViewItem (
           PublicationViewItemId, PublicationViewId, ParentPublicationViewItemId,
           Title, SchemaType, DefaultDocumentId
-        ) VALUES (?, 1, -1, ?, 0, ?)`,
+        ) VALUES (?, 1, 1, ?, 0, ?)`,
         [viewItemId, chapter.title, documentId]
       );
       db.run(
@@ -98,7 +112,7 @@ export const buildDatabase = async (
       );
       db.run(
         'INSERT INTO PublicationViewItemDocument (PublicationViewItemDocumentId, PublicationViewItemId, DocumentId) VALUES (?, ?, ?)',
-        [viewItemId, viewItemId, documentId]
+        [i + 1, viewItemId, documentId]
       );
 
       db.run('INSERT INTO TextUnit (TextUnitId, Type, Id) VALUES (?, ?, ?)', [
@@ -113,15 +127,22 @@ export const buildDatabase = async (
         year,
       });
 
+      // Convenciones de los oficiales: Class 13 (capítulo de libro), campos
+      // numéricos a 0 en vez de NULL, y páginas 1-1 (sin paginación real).
       db.run(
         `INSERT INTO Document (
           DocumentId, PublicationId, MepsDocumentId, MepsLanguageIndex, Class,
-          Type, Title, Content, ParagraphCount, ContentLength, PreferredPresentation
-        ) VALUES (?, 1, ?, ?, '40', 0, ?, ?, ?, ?, 'text')`,
+          Type, SectionNumber, Title, TocTitle, ContextTitle, Content,
+          ParagraphCount, HasMediaLinks, HasLinks, FirstPageNumber,
+          LastPageNumber, ContentLength, PreferredPresentation,
+          HasPronunciationGuide
+        ) VALUES (?, 1, ?, ?, '13', 0, 0, ?, ?, ?, ?, ?, 0, 0, 1, 1, ?, '', 0)`,
         [
           documentId,
           1000000001 + i,
           languageIndex,
+          chapter.title,
+          chapter.title,
           chapter.title,
           blob,
           built.paragraphs.length,
@@ -145,6 +166,9 @@ export const buildDatabase = async (
         );
       }
     }
+
+    // Los oficiales traen sqlite_stat1 (estadísticas de ANALYZE).
+    db.run('ANALYZE');
 
     return db.export();
   } finally {

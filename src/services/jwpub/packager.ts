@@ -21,7 +21,7 @@ export const packageJwpub = async (
   input: JwpubInput,
   dbBytes: Uint8Array
 ): Promise<Blob> => {
-  const { symbol, year, languageIndex, title, chapters } = input;
+  const { symbol, year, languageIndex, title } = input;
   const dbFileName = `${symbol}_S.db`;
 
   // 1) contents = ZIP con el .db. DEFLATE para el .db (comprime bien).
@@ -56,6 +56,10 @@ export const packageJwpub = async (
       displayTitle: title,
       referenceTitle: title,
       undatedReferenceTitle: title,
+      titleRich: title,
+      displayTitleRich: title,
+      referenceTitleRich: title,
+      undatedReferenceTitleRich: title,
       symbol,
       uniqueEnglishSymbol: symbol,
       uniqueSymbol: symbol,
@@ -88,7 +92,6 @@ export const packageJwpub = async (
         symbol: '',
         undatedSymbol: '',
       },
-      documentCount: chapters.length,
     },
   };
 

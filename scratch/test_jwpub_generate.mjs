@@ -121,9 +121,19 @@ check('offset p1 rodea el <h1>', p1.startsWith('<h1') && p1.trimEnd().endsWith('
 
 // (4) índice de navegación
 const items = db.exec('SELECT PublicationViewItemId, Title, DefaultDocumentId FROM PublicationViewItem ORDER BY PublicationViewItemId')[0].values;
-check('2 ítems de índice', items.length === 2);
-check('ítem 1 → doc 0', items[0][2] === 0 && items[0][1] === 'Introducción');
-check('ítem 2 → doc 1', items[1][2] === 1);
+// estructura oficial: ítem raíz (doc -1) + un hijo por capítulo
+check('3 ítems de índice (raíz + 2 capítulos)', items.length === 3);
+check('raíz sin documento (-1)', items[0][2] === -1);
+check('hijo 1 → doc 0', items[1][2] === 0 && items[1][1] === 'Introducción');
+check('hijo 2 → doc 1', items[2][2] === 1);
+const childDocs = db.exec('SELECT PublicationViewItemId, DocumentId FROM PublicationViewItemDocument ORDER BY PublicationViewItemDocumentId')[0].values;
+check('ViewItemDocument solo para hijos', childDocs.length === 2 && childDocs[0][0] === 2 && childDocs[0][1] === 0 && childDocs[1][0] === 3 && childDocs[1][1] === 1);
+const tableCount = db.exec("SELECT count(*) FROM sqlite_master WHERE type='table'")[0].values[0][0];
+const indexCount = db.exec("SELECT count(*) FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'")[0].values[0][0];
+check('52 tablas como un oficial schemaVersion 9', tableCount === 52);
+check('22 índices como un oficial', indexCount === 22);
+const docRow = db.exec('SELECT Class, SectionNumber, HasMediaLinks, HasLinks, FirstPageNumber, LastPageNumber, HasPronunciationGuide FROM Document LIMIT 1')[0].values[0];
+check('Document sin NULLs (convención oficial)', String(docRow[0]) === '13' && docRow[1] === 0 && docRow[2] === 0 && docRow[3] === 0 && docRow[4] === 1 && docRow[5] === 1 && docRow[6] === 0);
 
 const vid = db.exec("SELECT DataType FROM PublicationViewSchema")[0].values[0][0];
 check('PublicationViewSchema name', vid === 'name');
