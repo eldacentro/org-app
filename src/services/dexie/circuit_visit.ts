@@ -133,11 +133,46 @@ export const dbCircuitVisitMoveWeek = async (
     await unprojectVisit(existing);
     await tombstoneSettingsVisitEntries(existing.weekOf);
 
+    const dateStart = formatDate(addDays(monday, 1), 'yyyy/MM/dd'); // martes
+    const dateEnd = formatDate(addDays(monday, 6), 'yyyy/MM/dd'); // domingo
+
+    // Al mover la visita a otra semana hay que ARRASTRAR con ella todo lo que
+    // cuelga de un día concreto (reuniones especiales, comidas, pastoreo y las
+    // salidas de acompañamiento). Si no, esas fechas se quedan en la semana
+    // vieja, caen fuera del nuevo rango martes–domingo y desaparecen de la
+    // agenda de Próximos eventos (aunque sigan viéndose en la página de la
+    // visita, que no filtra por rango) — bug real (2026-07-23). El
+    // desplazamiento es un número entero de semanas, así que cada fecha
+    // conserva su día de la semana (un miércoles sigue siendo miércoles).
+    const dayDelta = Math.round(
+      (new Date(dateStart).getTime() - new Date(existing.date_start).getTime()) /
+        86_400_000
+    );
+    const shiftDate = (d: string) =>
+      d ? formatDate(addDays(new Date(d), dayDelta), 'yyyy/MM/dd') : d;
+    const shiftMeeting = (m: CircuitVisitType['meeting_pioneers']) =>
+      m ? { ...m, date: shiftDate(m.date) } : m;
+
     const record: CircuitVisitType = {
       ...existing,
       weekOf,
-      date_start: formatDate(addDays(monday, 1), 'yyyy/MM/dd'), // martes
-      date_end: formatDate(addDays(monday, 6), 'yyyy/MM/dd'), // domingo
+      date_start: dateStart,
+      date_end: dateEnd,
+      meals: existing.meals.map((m) => ({ ...m, date: shiftDate(m.date) })),
+      shepherding_visits: (existing.shepherding_visits ?? []).map((s) => ({
+        ...s,
+        date: shiftDate(s.date),
+      })),
+      // outingKey = `${date}_${time}`: la fecha embebida también se desplaza
+      // para seguir apuntando a la salida del mismo día en la semana nueva.
+      co_companions: (existing.co_companions ?? []).map((c) => {
+        const sep = c.outingKey.indexOf('_');
+        if (sep < 0) return c;
+        const time = c.outingKey.slice(sep + 1);
+        return { ...c, outingKey: `${shiftDate(c.outingKey.slice(0, sep))}_${time}` };
+      }),
+      meeting_pioneers: shiftMeeting(existing.meeting_pioneers),
+      meeting_elders: shiftMeeting(existing.meeting_elders),
       updatedAt: new Date().toISOString(),
     };
 
