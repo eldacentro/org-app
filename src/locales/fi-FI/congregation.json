@@ -523,7 +523,5 @@
   "tr_maximumAmountOfGroupsIs10": "Kenttäryhmien enimmäismäärä on 10",
   "tr_personAwayNotice": "Tämä henkilö on poissa: {{ date }}",
   "tr_weekendTemplateShowSongs": "Näytä laulut viikonlopun kokouksen aikatauluissa",
-  "tr_personalDetails": "Henkilötiedot",
-  "tr_toolsSection": "Herramientas",
-  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
+  "tr_personalDetails": "Henkilötiedot"
 }

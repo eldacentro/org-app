@@ -9,7 +9,6 @@ import {
   IconJwOrg,
   IconImportFile,
   IconSynced,
-  IconLocalLibrary,
 } from '@icons/index';
 import useCongregation from '@pages/dashboard/congregation/useCongregation';
 import useMeetingMaterials from '@pages/dashboard/meeting_materials/useMeetingMaterials';
@@ -22,7 +21,6 @@ const SettingsDashboard = () => {
     isAdmin,
     isElder,
     isMeetingEditor,
-    isPublicationsEditor,
   } = useCurrentUser();
 
   const {
@@ -131,22 +129,6 @@ const SettingsDashboard = () => {
               }}
               onChange={handleFileSelected}
             />
-          </div>
-        )}
-
-        {/* Editor de publicaciones (JWPUB Studio) — admin o rol activado */}
-        {isPublicationsEditor && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/publications-editor')}>
-            <div className="ti">
-              <IconLocalLibrary color="var(--brand)" width={22} height={22} />
-            </div>
-            <div className="tile-body">
-              <div className="tile-name">{t('tr_publicationsEditor', 'Editor de publicaciones (JWPUB)')}</div>
-              <div className="tile-meta">{t('tr_publicationsEditorDesc', 'Crea archivos .jwpub para JW Library')}</div>
-            </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
           </div>
         )}
 

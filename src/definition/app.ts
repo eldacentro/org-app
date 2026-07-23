@@ -71,8 +71,7 @@ export type AppRoleType =
   | 'elder'
   | 'ms'
   | 'group_overseers'
-  | 'language_group_overseers'
-  | 'publications_editor';
+  | 'language_group_overseers';
 
 export type ReleaseNoteType = {
   [version: string]: {

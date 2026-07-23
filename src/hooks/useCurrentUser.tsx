@@ -140,13 +140,6 @@ const useCurrentUser = () => {
     return userRole.includes('service_overseer');
   }, [isAdmin, userRole]);
 
-  // Editor de publicaciones (JWPUB Studio): admin siempre, o cualquier
-  // usuario a quien un admin se lo active en "Derechos adicionales".
-  const isPublicationsEditor = useMemo(() => {
-    if (isAdmin) return true;
-    return userRole.includes('publications_editor');
-  }, [isAdmin, userRole]);
-
   const my_group = useMemo(() => {
     const findGroup = fieldGroups.find((record) =>
       record.group_data.members.some((member) => member.person_uid === userUID)
@@ -335,7 +328,6 @@ const useCurrentUser = () => {
     languageGroup,
     isLanguageGroupOverseer,
     isSettingsEditor,
-    isPublicationsEditor,
   };
 };
 

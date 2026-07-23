@@ -523,7 +523,5 @@
   "tr_maximumAmountOfGroupsIs10": "O número máximo de grupos de serviço de campo são 10",
   "tr_personAwayNotice": "Esta pessoa está ausente: {{ date }}",
   "tr_weekendTemplateShowSongs": "Mostrar os cânticos na escala da reunião de fim de semana",
-  "tr_personalDetails": "Dados pessoais",
-  "tr_toolsSection": "Herramientas",
-  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
+  "tr_personalDetails": "Dados pessoais"
 }

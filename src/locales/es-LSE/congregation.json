@@ -523,7 +523,5 @@
   "tr_maximumAmountOfGroupsIs10": "La cantidad máxima de grupos de predicación es 10",
   "tr_personAwayNotice": "Esta persona está de ausencia: {{ date }}",
   "tr_weekendTemplateShowSongs": "Mostrar canciones en los programas de reuniones de fin de semana",
-  "tr_personalDetails": "Datos personales",
-  "tr_toolsSection": "Herramientas",
-  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
+  "tr_personalDetails": "Datos personales"
 }

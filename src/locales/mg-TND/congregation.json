@@ -523,7 +523,5 @@
   "tr_maximumAmountOfGroupsIs10": "10 ny isa ambony indrindra azo ampidirina",
   "tr_personAwayNotice": "Tsy eo: {{ date }}",
   "tr_weekendTemplateShowSongs": "Hampiseho ny hira amin’ny fandaharana faran’ny herinandro",
-  "tr_personalDetails": "Personal details",
-  "tr_toolsSection": "Herramientas",
-  "tr_publicationsEditor": "Editor de publicaciones (JWPUB)"
+  "tr_personalDetails": "Personal details"
 }
