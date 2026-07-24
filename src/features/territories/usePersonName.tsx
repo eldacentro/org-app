@@ -16,7 +16,11 @@ export const usePersonName = () => {
   return useCallback(
     (uid: string): string => {
       const person = persons.find((p) => p.person_uid === uid);
-      if (!person) return '—';
+      // Un guion suelto no dice nada: el registro histórico de territorios
+      // conserva asignaciones de hermanos que ya se borraron de la lista de
+      // personas (mudanza, etc.), y en el S-13 y el historial hay que poder
+      // distinguir "persona borrada" de "campo vacío".
+      if (!person) return '[Eliminado]';
       return buildPersonFullname(
         person.person_data.person_lastname.value,
         person.person_data.person_firstname.value,

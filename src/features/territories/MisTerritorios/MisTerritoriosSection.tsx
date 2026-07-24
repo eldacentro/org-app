@@ -139,12 +139,11 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         // Antes el aviso solo se podía descartar — si de verdad trataba de
         // uno de mis territorios (ej. "territorio atrasado"), había que
         // bajar a buscarlo en la lista para poder entregarlo. Con este botón
-        // se puede hacer directo desde el propio aviso. Las de campaña se
-        // excluyen a propósito: deben cerrarse todas juntas desde "Campañas"
-        // (con la fecha de fin de la campaña), no una por una desde aquí.
-        const matchingRow = rows.find(
-          (r) => r.territory.id === n.territoryId && !r.assignment.isCampaign
-        );
+        // se puede hacer directo desde el propio aviso. Incluye las de
+        // campaña: entregar individualmente un territorio de campaña es un
+        // caso válido (queda registrado con SU fecha de entrega); el cierre
+        // de la campaña solo auto-entrega las que sigan abiertas.
+        const matchingRow = rows.find((r) => r.territory.id === n.territoryId);
         return (
           <Box key={n.id} sx={{ position: 'relative' }}>
             <InfoTip
@@ -184,6 +183,58 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
     </Stack>
   );
 
+  // ── Territorios del grupo de predicación ─────────────────────────────
+  // Se define aquí arriba (y no dentro del return final) porque también
+  // debe verse cuando uno NO tiene ningún territorio propio — que es
+  // justo cuando más sentido tiene mirar qué lleva el grupo. Antes el
+  // return temprano de abajo se lo comía por completo.
+  const groupSection = groupRows.length > 0 && (
+    <Box sx={{ mt: 3 }}>
+      <Typography className="h2" sx={{ color: 'var(--ink)', mb: 1 }}>
+        Territorios del grupo ({groupRows.length})
+      </Typography>
+      <Stack spacing={1.5}>
+        {groupRows.map(({ assignment, territory }) => {
+          const color = getZoneColor(territory.zoneId, zones);
+          return (
+            <Box
+              key={assignment.id}
+              sx={{
+                p: 2,
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--line)',
+                borderLeft: `5px solid ${color}`,
+                backgroundColor: 'var(--card)',
+                boxShadow: 'var(--small-card-shadow)',
+                opacity: 0.85,
+              }}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                <Box sx={{ flex: 1 }}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                      {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
+                      <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                        {resolveName(assignment.personUid)}
+                      </span>
+                    </Typography>
+                    {assignment.isCampaign && <CampanaBadge />}
+                  </Stack>
+                  <Typography variant="caption" color="var(--ink-2)">
+                    Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                  </Typography>
+                </Box>
+                <Button variant="tertiary" onClick={() => onView(territory)}>
+                  Ver
+                </Button>
+              </Stack>
+            </Box>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+
   if (rows.length === 0) {
     return (
       <Box>
@@ -194,6 +245,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         <Typography variant="body2" color="var(--ink-2)">
           No tienes territorios asignados ahora mismo. Puedes solicitar uno.
         </Typography>
+        {groupSection}
       </Box>
     );
   }
@@ -296,53 +348,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         })}
       </Stack>
 
-      {/* ── Territorios del grupo de predicación ───────────────────────── */}
-      {groupRows.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)', mb: 1 }}>
-            Territorios del grupo ({groupRows.length})
-          </Typography>
-          <Stack spacing={1.5}>
-            {groupRows.map(({ assignment, territory }) => {
-              const color = getZoneColor(territory.zoneId, zones);
-              return (
-                <Box
-                  key={assignment.id}
-                  sx={{
-                    p: 2,
-                    borderRadius: 'var(--radius-xl)',
-                    border: '1px solid var(--line)',
-                    borderLeft: `5px solid ${color}`,
-                    backgroundColor: 'var(--card)',
-                    boxShadow: 'var(--small-card-shadow)',
-                    opacity: 0.85,
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                    <Box sx={{ flex: 1 }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
-                          {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
-                          <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
-                            {resolveName(assignment.personUid)}
-                          </span>
-                        </Typography>
-                        {assignment.isCampaign && <CampanaBadge />}
-                      </Stack>
-                      <Typography variant="caption" color="var(--ink-2)">
-                        Entregado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
-                      </Typography>
-                    </Box>
-                    <Button variant="tertiary" onClick={() => onView(territory)}>
-                      Ver
-                    </Button>
-                  </Stack>
-                </Box>
-              );
-            })}
-          </Stack>
-        </Box>
-      )}
+      {groupSection}
     </Box>
   );
 };

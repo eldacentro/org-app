@@ -45,6 +45,29 @@ export const isInCooldown = (
   return addDays(new Date(territory.lastWorkedAt), daysUntilReassignable) > now;
 };
 
+/**
+ * ¿Ya terminó la campaña? `fechaFin` se guarda como el INSTANTE que devuelve
+ * el selector de fecha (medianoche del día elegido), así que comparar
+ * directamente `fechaFin < ahora` daba la campaña por terminada al empezar
+ * su último día — se perdía esa jornada completa de predicación. Aquí se
+ * compara contra el FINAL de ese día.
+ */
+export const isCampaignOver = (
+  fechaFin: string,
+  now: Date = new Date()
+): boolean => {
+  const end = new Date(fechaFin);
+  end.setHours(23, 59, 59, 999);
+  return end < now;
+};
+
+/** ¿La campaña está en curso ahora mismo (ya empezó y aún no ha terminado)? */
+export const isCampaignRunning = (
+  fechaInicio: string,
+  fechaFin: string,
+  now: Date = new Date()
+): boolean => new Date(fechaInicio) <= now && !isCampaignOver(fechaFin, now);
+
 /** Días transcurridos desde una fecha ISO. */
 export const daysSince = (iso: string, now: Date = new Date()): number => {
   return Math.floor(

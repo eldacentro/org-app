@@ -30,6 +30,7 @@ import {
 import {
   congIDState,
   congMasterKeyState,
+  userLocalUIDState,
 } from '@states/settings';
 import {
   uploadTerritoryImage,
@@ -316,6 +317,7 @@ const DialogVerTerritorio = ({
 
   const congID = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
+  const currentUid = useAtomValue(userLocalUIDState);
   const settings = useAtomValue(territorySettingsState);
 
   // Refs para leer en el efecto sin incluirlos como dependencias
@@ -345,16 +347,24 @@ const DialogVerTerritorio = ({
     setEditingTags(false);
   }, [territory?.id]);
 
-  // Solo asignaciones normales — igual que TerritoriesOverviewMap. Las de
-  // campaña se gestionan aparte (pestaña Campañas) y mostrarlas aquí podía
-  // hacer que un territorio en campaña apareciera como "Asignado" a un
-  // publicador distinto, o que "Entregar" actuara sobre la asignación
-  // equivocada si el territorio tenía ambas a la vez.
+  // Móvil tiene 3 pestañas y escritorio 2. Al girar el móvil o ensanchar la
+  // ventana con la pestaña "Info" (índice 2) abierta, escritorio se quedaba
+  // sin nada que pintar: contenido en blanco y ninguna pestaña marcada.
+  useEffect(() => {
+    const maxTab = tabletDown ? 2 : 1;
+    setTab((current) => (current > maxTab ? 0 : current));
+  }, [tabletDown]);
+
+  // La asignación abierta del territorio, sea normal o de campaña. Antes se
+  // excluían las de campaña por miedo a que un territorio tuviera dos
+  // abiertas a la vez y "Entregar" actuara sobre la equivocada; eso ya no
+  // puede pasar (`openAssignmentId` actúa de candado dentro de una
+  // transacción, y solo puede haber UNA abierta). Excluirlas hacía que un
+  // territorio ocupado por campaña se viera como "Libre" y no se pudiera
+  // entregar desde aquí.
   const relevantAssignment = useMemo(() => {
     if (!liveTerritory) return null;
-    return openAssignments.find(
-      (a) => a.territoryId === liveTerritory.id && !a.isCampaign
-    );
+    return openAssignments.find((a) => a.territoryId === liveTerritory.id);
   }, [liveTerritory, openAssignments]);
 
   if (!liveTerritory) return null;
@@ -368,6 +378,17 @@ const DialogVerTerritorio = ({
     : isInCooldown(liveTerritory, settings.daysUntilReassignable)
     ? 'descanso'
     : 'libre';
+
+  // ¿Puede QUIEN ESTÁ MIRANDO entregar este territorio? Un responsable
+  // siempre; un publicador solo SU PROPIO territorio (y si la congregación
+  // se lo permite). Antes solo se comprobaba el ajuste, no de quién era la
+  // asignación: con "ver territorios del grupo" activado, o entrando por un
+  // enlace directo a un territorio ajeno, el botón salía activo y un
+  // publicador podía cerrar la asignación de otro hermano.
+  const isMine = Boolean(
+    relevantAssignment && currentUid && relevantAssignment.personUid === currentUid
+  );
+  const canReturnThis = canManage || (settings.publishersCanReturn && isMine);
 
   // Un responsable sí saca partido de ver la etiqueta de tamaño junto a la
   // cantidad de viviendas (gestión); a un publicador le sale la misma
@@ -847,7 +868,11 @@ const DialogVerTerritorio = ({
                         type="file"
                         accept="image/png,image/jpeg"
                         disabled={uploading}
-                        onChange={(e) => handleUploadImage(e.target.files?.[0])}
+                        // Resetear el value (igual que en escritorio): sin
+                        // esto, si la subida falla, volver a elegir EL MISMO
+                        // fichero no dispara 'change' y parece que la app
+                        // ignora el intento.
+                        onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }}
                         sx={visuallyHidden}
                       />
                     </label>
@@ -905,7 +930,7 @@ const DialogVerTerritorio = ({
             gap: '8px',
           }}
         >
-          {relevantAssignment && onEntregar && (canManage || settings.publishersCanReturn) && (
+          {relevantAssignment && onEntregar && canReturnThis && (
             <ActionButton
               label="Entregar territorio"
               onClick={() => onEntregar(relevantAssignment)}
@@ -915,12 +940,16 @@ const DialogVerTerritorio = ({
           )}
           {/* Antes este botón solo desaparecía sin explicar nada cuando un
               publicador no podía entregar por sí mismo. */}
-          {relevantAssignment && onEntregar && !canManage && !settings.publishersCanReturn && (
+          {relevantAssignment && onEntregar && !canReturnThis && (
             <ActionButton
               label="Entregar territorio"
               onClick={() => {}}
               disabled
-              disabledReason="Solo un responsable puede marcar este territorio como entregado"
+              disabledReason={
+                isMine
+                  ? 'Solo un responsable puede marcar este territorio como entregado'
+                  : 'Este territorio lo tiene asignado otro publicador'
+              }
             />
           )}
           {canManage && !relevantAssignment && onAsignar && (
@@ -1266,16 +1295,18 @@ const DialogVerTerritorio = ({
         {/* Acciones inferiores */}
         <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="flex-end">
-            {relevantAssignment && onEntregar && !canManage && !settings.publishersCanReturn && (
+            {relevantAssignment && onEntregar && !canReturnThis && (
               <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
-                Solo un responsable puede marcar este territorio como entregado.
+                {isMine
+                  ? 'Solo un responsable puede marcar este territorio como entregado.'
+                  : 'Este territorio lo tiene asignado otro publicador.'}
               </Typography>
             )}
             {relevantAssignment && onEntregar && (
               <Button
                 variant="main"
                 onClick={() => onEntregar(relevantAssignment)}
-                disabled={!canManage && !settings.publishersCanReturn}
+                disabled={!canReturnThis}
               >
                 Entregar
               </Button>

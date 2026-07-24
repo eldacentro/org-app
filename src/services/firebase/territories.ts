@@ -87,6 +87,12 @@ const stripUndefined = <T extends object>(obj: T): T =>
     Object.entries(obj).filter(([, v]) => v !== undefined)
   ) as T;
 
+/** ¿`candidate` es posterior a la fecha de último trabajo que ya hay?
+ *  (sin fecha previa = siempre sí). Las fechas son ISO 8601 en UTC, así que
+ *  se pueden comparar como cadenas sin construir Date. */
+const isNewerWorkDate = (candidate: string, current?: string): boolean =>
+  !current || candidate > current;
+
 // ─── Geometría ──────────────────────────────────────────────────────────────
 // Firestore no admite arrays anidados (los polígonos GeoJSON lo son), así que
 // la geometría se guarda serializada como string JSON y se parsea al leer.
@@ -464,7 +470,18 @@ export const finalizeAssignmentBatch = async (
     if (territory.openAssignmentId === assignment.id) {
       territoryUpdate.openAssignmentId = null;
     }
-    if (assignment.status === 'trabajado') {
+    // Solo AVANZA la fecha, nunca la retrocede: `lastWorkedAt` significa
+    // "la última vez que este territorio se trabajó de verdad". Cuando hay
+    // dos asignaciones solapadas del mismo territorio y se cierran en orden
+    // distinto al cronológico (o se cierra tarde una vieja), escribirla sin
+    // comparar la hacía retroceder y el territorio parecía menos trabajado
+    // de lo que estaba — con eso, "En descanso" y el S-13 mostraban datos
+    // incorrectos. Ver también `recomputeLastWorkedAt`.
+    if (
+      assignment.status === 'trabajado' &&
+      assignment.returnedAt &&
+      isNewerWorkDate(assignment.returnedAt, territory.lastWorkedAt)
+    ) {
       territoryUpdate.lastWorkedAt = assignment.returnedAt;
       territoryUpdate.updatedAt = assignment.updatedAt;
     }
@@ -643,42 +660,69 @@ export const closeCampaign = async (
   congId: string,
   campaign: TerritoryCampaign,
   assignments: TerritoryAssignment[],
-  territories: Territory[],
-  key: string
+  territories: Territory[]
 ): Promise<void> => {
   const now = new Date().toISOString();
   const open = assignments.filter(
     (a) => a.campaignId === campaign.id && !a.returnedAt
   );
 
-  // Escribir todas las asignaciones y territorios en paralelo para evitar
-  // fallos parciales por tiempo de espera y límites de escritura por segundo.
-  await Promise.all(
-    open.flatMap((a) => {
-      const ops: Promise<void>[] = [
-        saveAssignment(
-          congId,
-          { ...a, returnedAt: campaign.fechaFin, status: 'trabajado', updatedAt: now },
-          key
-        ),
-      ];
-      const t = territories.find((x) => x.id === a.territoryId);
-      if (t) {
-        // Actualización parcial (no saveTerritory completo) — así no se pisa
-        // una edición concurrente de nombre/notas/geometría que el snapshot
-        // local todavía no reflejara.
-        const fields: Partial<Territory> = { lastWorkedAt: campaign.fechaFin, updatedAt: now };
-        // Libera el candado si esta era la asignación de campaña que lo
-        // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
-        // como ocupado para siempre.
-        if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
-        ops.push(updateTerritoryFields(congId, t.id, fields));
-      }
-      return ops;
-    })
-  );
+  // Un único writeBatch atómico (máx. 500 ops; una campaña real no se
+  // acerca a ese límite) — todo o nada. Antes eran escrituras independientes
+  // en paralelo (Promise.all de sets/updates sueltos): si algo interrumpía
+  // el proceso a medio camino (recarga de página, corte de red), la campaña
+  // podía quedar marcada 'pasada' con solo ALGUNAS asignaciones/territorios
+  // realmente actualizados — un estado a medias que además nunca se
+  // reintentaba, porque este código deja de fijarse en una campaña ya
+  // 'pasada'. Con batch, o se aplica todo o no se aplica nada; si falla, la
+  // campaña sigue 'activa' y el siguiente intento (automático o manual) lo
+  // completa de verdad.
+  const batch = writeBatch(firestore);
 
-  await saveCampaign(congId, { ...campaign, estado: 'pasada', updatedAt: now });
+  open.forEach((a) => {
+    // `update` de solo los 3 campos que cambian, NUNCA `set` del documento
+    // entero. Dos motivos, ambos serios:
+    //  1. `set` reescribía también `notas`, que va cifrada. Si este cierre
+    //     corría antes de que la master key estuviera descifrada en memoria
+    //     (arranque de la app), la nota se guardaba VACÍA — pérdida de datos
+    //     silenciosa e irreversible.
+    //  2. `set` parte del snapshot local de la asignación. Con la caché
+    //     persistente de Firestore ese snapshot puede estar retrasado, así
+    //     que se pisaba lo que otro dispositivo acabara de escribir (p. ej.
+    //     una entrega individual registrada como "no trabajado").
+    batch.update(fsDoc(assignmentsCol(congId), a.id), {
+      returnedAt: campaign.fechaFin,
+      status: 'trabajado',
+      updatedAt: now,
+    });
+    const t = territories.find((x) => x.id === a.territoryId);
+    if (t) {
+      // Actualización parcial (no saveTerritory completo) — así no se pisa
+      // una edición concurrente de nombre/notas/geometría que el snapshot
+      // local todavía no reflejara.
+      const fields: Partial<Territory> = { updatedAt: now };
+      // Igual que en finalizeAssignmentBatch: la fecha de último trabajo
+      // solo avanza. Sin esta comprobación, cerrar una campaña antigua
+      // (o una a la que se añadió un territorio por error después de su
+      // fecha de fin) pisaba una fecha de trabajo MÁS RECIENTE con la
+      // fecha de fin de la campaña, y el territorio parecía sin trabajar
+      // desde hacía meses.
+      if (isNewerWorkDate(campaign.fechaFin, t.lastWorkedAt)) {
+        fields.lastWorkedAt = campaign.fechaFin;
+      }
+      // Libera el candado si esta era la asignación de campaña que lo
+      // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
+      // como ocupado para siempre.
+      if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
+      batch.update(fsDoc(territoriesCol(congId), t.id), fields);
+    }
+  });
+
+  // Igual: solo los campos que cambian, para no pisar `territoryIds` si
+  // otro responsable acaba de añadir territorios a la campaña.
+  batch.update(fsDoc(campaignsCol(congId), campaign.id), { estado: 'pasada', updatedAt: now });
+
+  await batch.commit();
 };
 
 /**
@@ -688,7 +732,14 @@ export const closeCampaign = async (
  */
 export const deleteCampaign = async (
   congId: string,
-  campaignId: string
+  campaignId: string,
+  /** Territorios actuales — para liberar el candado de los que estuvieran
+   *  ocupados por una asignación de esta campaña. Sin esto, borrar una
+   *  campaña con territorios asignados los dejaba con `openAssignmentId`
+   *  apuntando a una asignación recién borrada: la lista los mostraba
+   *  libres, pero asignarlos fallaba con "Este territorio ya está
+   *  asignado" para siempre, sin forma de repararlo desde la app. */
+  territories: Territory[] = []
 ): Promise<void> => {
   // 1. Obtener todas las asignaciones de esta campaña
   const q = query(
@@ -697,11 +748,31 @@ export const deleteCampaign = async (
   );
   const snap = await getDocs(q);
 
-  // 2. Borrar en batch (máx. 500 ops; las campañas rara vez tienen más)
-  const batch = writeBatch(firestore);
-  snap.docs.forEach((d) => batch.delete(d.ref));
-  batch.delete(fsDoc(campaignsCol(congId), campaignId));
-  await batch.commit();
+  const deletedIds = new Set(snap.docs.map((d) => d.id));
+  const lockedTerritories = territories.filter(
+    (t) => t.openAssignmentId && deletedIds.has(t.openAssignmentId)
+  );
+
+  // 2. Borrar y liberar candados, troceando por el límite de 500 ops por
+  //    batch (una campaña muy antigua puede acumular mucho historial).
+  const ops: Array<(b: ReturnType<typeof writeBatch>) => void> = [
+    ...snap.docs.map((d) => (b: ReturnType<typeof writeBatch>) => b.delete(d.ref)),
+    ...lockedTerritories.map(
+      (t) => (b: ReturnType<typeof writeBatch>) =>
+        b.update(fsDoc(territoriesCol(congId), t.id), {
+          openAssignmentId: null,
+          updatedAt: new Date().toISOString(),
+        })
+    ),
+    (b: ReturnType<typeof writeBatch>) =>
+      b.delete(fsDoc(campaignsCol(congId), campaignId)),
+  ];
+
+  for (let i = 0; i < ops.length; i += 450) {
+    const batch = writeBatch(firestore);
+    ops.slice(i, i + 450).forEach((op) => op(batch));
+    await batch.commit();
+  }
 };
 
 export const saveRequest = (congId: string, r: TerritoryRequest) =>

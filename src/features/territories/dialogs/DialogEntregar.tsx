@@ -14,8 +14,10 @@ import { responsabilidadesState } from '@states/responsabilidades';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
+import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 import { territoryLabel } from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
+import { userLocalUIDState } from '@states/settings';
 
 type Props = {
   assignment: TerritoryAssignment | null;
@@ -39,6 +41,8 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
   const territories = useAtomValue(territoriesState);
   const responsabilidades = useAtomValue(responsabilidadesState);
   const settings = useAtomValue(territorySettingsState);
+  const currentUid = useAtomValue(userLocalUIDState);
+  const canManage = useIsTerritoryManager();
   const resolveName = usePersonName();
 
   const [nota, setNota] = useState('');
@@ -51,6 +55,27 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
   if (!assignment) return null;
 
   const finalizar = async (status: 'trabajado' | 'no_trabajado') => {
+    if (saving) return;
+
+    // Última comprobación de permiso antes de escribir. Los botones que
+    // llevan aquí ya la hacen, pero se repite en el punto de guardado por
+    // dos motivos reales: (1) los ajustes se inicializan con los valores
+    // por defecto (publishersCanReturn = true) hasta que llega el primer
+    // snapshot, así que durante ese instante — o si esa suscripción falla —
+    // los botones salen activos aunque la congregación lo tenga desactivado;
+    // (2) un publicador nunca debe poder cerrar la asignación de otro.
+    const isMine = Boolean(currentUid && assignment.personUid === currentUid);
+    if (!canManage && (!settings.publishersCanReturn || !isMine)) {
+      displaySnackNotification({
+        header: 'No se puede entregar',
+        message: !isMine
+          ? 'Este territorio lo tiene asignado otro publicador.'
+          : 'Solo un responsable puede marcar este territorio como entregado.',
+        severity: 'error',
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const now = new Date().toISOString();

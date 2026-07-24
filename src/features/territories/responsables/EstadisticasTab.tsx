@@ -297,30 +297,32 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
     const total = territories.length;
     const rangeStart = statsRangeStart(settings.statsRange);
 
+    // El ajuste "campañas en estadísticas" filtra las MÉTRICAS de trabajo
+    // (atrasados), pero NUNCA la ocupación: un territorio ocupado por una
+    // campaña está ocupado de verdad y no se puede asignar a nadie más.
+    // Antes se filtraba también aquí, así que con el ajuste desactivado la
+    // tarjeta decía "0 asignados / 130 libres" en plena campaña, y los
+    // territorios de campaña salían en "No asignados" con un botón
+    // "Asignar" que siempre daba error.
     const relevant = settings.statsIncludeCampaigns
       ? assignments
       : assignments.filter((a) => !a.isCampaign);
 
     const openByTerritory = new Set(
-      relevant.filter((a) => !a.returnedAt).map((a) => a.territoryId)
+      assignments.filter((a) => !a.returnedAt).map((a) => a.territoryId)
     );
 
     const asignados = openByTerritory.size;
     const noAsignados = total - asignados;
 
     let trabajados = 0;
-    let asignadoActual = 0;
-    let noTrabajados = 0;
     territories.forEach((t) => {
       const workedThisYear = t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart;
 
       if (workedThisYear) {
         trabajados += 1;
-      } else if (openByTerritory.has(t.id)) {
-        asignadoActual += 1;
-        if (settings.assignedCountsAsWorked) trabajados += 1;
-      } else {
-        noTrabajados += 1;
+      } else if (openByTerritory.has(t.id) && settings.assignedCountsAsWorked) {
+        trabajados += 1;
       }
     });
 
@@ -363,8 +365,6 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       asignados,
       noAsignados,
       trabajados,
-      asignadoActual,
-      noTrabajados,
       atrasados,
       enDescanso,
       noAsignadosLista,

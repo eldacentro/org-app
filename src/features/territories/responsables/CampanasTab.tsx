@@ -5,7 +5,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { IconDelete } from '@components/icons';
-import { congIDState, congMasterKeyState } from '@states/settings';
+import { congIDState } from '@states/settings';
 import {
   territoriesState,
   territoryCampaignsState,
@@ -36,7 +36,6 @@ const estadoColor: Record<string, string> = {
 
 const CampanasTab = ({ onAsignarCampana }: Props) => {
   const congId = useAtomValue(congIDState);
-  const masterKey = useAtomValue(congMasterKeyState);
   const campaigns = useAtomValue(territoryCampaignsState);
   const territories = useAtomValue(territoriesState);
   const assignments = useAtomValue(territoryAssignmentsState);
@@ -101,6 +100,22 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
   };
 
   const handleRemoveTerritory = async (c: TerritoryCampaign, territoryId: string) => {
+    // Si el territorio está asignado dentro de esta campaña, quitarlo de la
+    // lista lo dejaría asignado pero fuera de la campaña: nadie lo vería
+    // aquí y el cierre de la campaña ya no lo devolvería. Hay que avisar.
+    const openHere = assignments.some(
+      (a) => a.campaignId === c.id && a.territoryId === territoryId && !a.returnedAt
+    );
+    if (openHere) {
+      const t = territories.find((x) => x.id === territoryId);
+      const ok = await confirm({
+        title: 'Quitar territorio asignado',
+        message: `${t ? territoryLabel(t) : 'Este territorio'} está asignado ahora mismo dentro de esta campaña. Si lo quitas, seguirá asignado pero ya no se devolverá al finalizar la campaña: tendrás que entregarlo a mano desde "Asignaciones". ¿Quitarlo igualmente?`,
+        confirmLabel: 'Quitar',
+        destructive: true,
+      });
+      if (!ok) return;
+    }
     try {
       await saveCampaign(congId, {
         ...c,
@@ -122,7 +137,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     });
     if (!ok) return;
     try {
-      await closeCampaign(congId, c, assignments, territories, masterKey ?? '');
+      await closeCampaign(congId, c, assignments, territories);
     } catch (err) {
       console.error(err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo finalizar la campaña.' });
@@ -138,7 +153,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     });
     if (!ok) return;
     try {
-      await deleteCampaign(congId, c.id);
+      await deleteCampaign(congId, c.id, territories);
       displaySnackNotification({ severity: 'success', header: 'Campaña eliminada', message: `La campaña "${c.nombre}" ha sido eliminada.` });
     } catch (err) {
       console.error(err);
@@ -220,7 +235,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                 >
                   {isOpen ? 'Cerrar' : 'Gestionar'}
                 </Button>
-                {c.estado === 'activa' && (
+                {/* También para las 'planificada': una campaña creada por
+                    adelantado puede necesitar cerrarse antes de tiempo, y
+                    antes el botón solo salía en las 'activa'. */}
+                {c.estado !== 'pasada' && (
                   <Button variant="small" color="orange" disableAutoStretch onClick={() => handleFinalizeCampaign(c)}>
                     Finalizar
                   </Button>
@@ -305,7 +323,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                                 ? `Entregado el ${formatTerritoryDate(latest.returnedAt, settings.dateFormat)} (${
                                     latest.status === 'trabajado' ? 'trabajado' : 'sin trabajar'
                                   })`
-                                : 'Libre en campaña · nunca trabajado'}
+                                : 'Sin asignar en esta campaña'}
                             </Typography>
                           </Box>
                           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>

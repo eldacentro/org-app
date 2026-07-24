@@ -35,7 +35,9 @@ import {
   backfillOpenAssignmentLocks,
   backfillDueAtFormula,
   closeCampaign,
+  saveCampaign,
 } from '@services/firebase/territories';
+import { isCampaignOver, isCampaignRunning } from '@services/app/territories';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
 // Singletons de módulo — evitan suscripciones duplicadas cuando varios
@@ -245,20 +247,47 @@ export const useTerritories = () => {
   // para cualquier responsable con la app de Territorios abierta.
   const closingCampaignsRef = useRef(new Set<string>());
   useEffect(() => {
-    if (!congId || !canManage) return;
+    // `territories.length === 0` incluye el caso en que la suscripción a
+    // territorios TODAVÍA no ha traído su primer snapshot (ej. justo al
+    // cargar la app) — sin esta guarda, closeCampaign podía correr con un
+    // array de territorios vacío, y `territories.find(...)` no encontraba
+    // ninguno: la asignación se cerraba bien (returnedAt/status), pero
+    // `lastWorkedAt`/`openAssignmentId` del territorio NUNCA se actualizaban.
+    // Como la campaña ya quedaba marcada 'pasada' en ese mismo intento, no
+    // había una segunda oportunidad de reintentarlo correctamente.
+    if (!congId || !canManage || territories.length === 0) return;
     const now = new Date();
+
+    // 1. Campañas terminadas -> cerrarlas (se comparan contra el FINAL del
+    //    día de fechaFin, no su medianoche: antes se cerraban al empezar su
+    //    último día y se perdía esa jornada).
     campaigns
       .filter(
         (c) =>
           c.estado !== 'pasada' &&
-          new Date(c.fechaFin) < now &&
+          isCampaignOver(c.fechaFin, now) &&
           !closingCampaignsRef.current.has(c.id)
       )
       .forEach((c) => {
         closingCampaignsRef.current.add(c.id);
-        closeCampaign(congId, c, assignments, territories, masterKey ?? '')
+        closeCampaign(congId, c, assignments, territories)
           .catch((err) => console.error('Failed to auto-close campaign:', err))
           .finally(() => closingCampaignsRef.current.delete(c.id));
       });
-  }, [congId, canManage, campaigns, assignments, territories, masterKey]);
+
+    // 2. Campañas 'planificada' que ya empezaron -> pasar a 'activa'. Sin
+    //    esto, una campaña creada por adelantado se quedaba "planificada"
+    //    para siempre, y como el botón "Finalizar" solo aparece en las
+    //    activas, no había forma de cerrarla a mano antes de su fecha fin.
+    campaigns
+      .filter(
+        (c) =>
+          c.estado === 'planificada' &&
+          isCampaignRunning(c.fechaInicio, c.fechaFin, now)
+      )
+      .forEach((c) => {
+        saveCampaign(congId, { ...c, estado: 'activa', updatedAt: new Date().toISOString() })
+          .catch((err) => console.error('Failed to activate campaign:', err));
+      });
+  }, [congId, canManage, campaigns, assignments, territories]);
 };

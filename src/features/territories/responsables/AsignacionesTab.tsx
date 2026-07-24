@@ -322,10 +322,12 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     return map;
   }, [assignments]);
 
+  // Incluye las de campaña: un territorio ocupado por una campaña ESTÁ
+  // ocupado (el candado openAssignmentId lo bloquea igual). Al excluirlas,
+  // la tarjeta lo mostraba "Libre" con botón "Asignar", y al pulsarlo
+  // saltaba siempre el error "Este territorio ya está asignado".
   const isOpenAssigned = (territoryId: string) =>
-    (assignmentsByTerritory.get(territoryId) ?? []).some(
-      (a) => !a.returnedAt && !a.isCampaign
-    );
+    (assignmentsByTerritory.get(territoryId) ?? []).some((a) => !a.returnedAt);
 
   const handleDelete = async (a: TerritoryAssignment) => {
     const ok = await confirm({
