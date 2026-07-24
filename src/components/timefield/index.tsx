@@ -52,17 +52,27 @@ const TimeField = (props: TimeFieldProps) => {
           paddingRight: 'unset !important',
           borderRadius: 'var(--radius-l)',
           color: 'var(--black)',
+          // Con label (Fecha/Lugar de Reuniones especiales, pastoreo): caja
+          // con borde. Sin label (uso inline +/- de HoursEditor): SIN borde,
+          // igual que StandardEditor — `!important` porque, sin él, esta
+          // regla pierde por especificidad contra la de arriba y el borde
+          // queda siempre puesto (bug visual real, 2026-07-24).
           '& fieldset': {
-            border: '1px solid var(--accent-350)',
+            border: props.label
+              ? '1px solid var(--accent-350)'
+              : 'none !important',
           },
           '&:hover fieldset': {
-            border: '1px solid var(--accent-main)',
+            border: props.label
+              ? '1px solid var(--accent-main)'
+              : 'none !important',
           },
           '&.Mui-focused fieldset': {
-            border: '1px solid var(--accent-main)',
+            border: props.label
+              ? '1px solid var(--accent-main)'
+              : 'none !important',
           },
         },
-        ...(props.label ? {} : { '& fieldset': { border: 'none' } }),
       }}
     />
   );
