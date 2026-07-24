@@ -42,6 +42,9 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   const [numero, setNumero] = useState(territory.numero);
   const [nombre, setNombre] = useState(territory.nombre || '');
   const [notas, setNotas] = useState(territory.notas || '');
+  const [numeroViviendas, setNumeroViviendas] = useState(
+    territory.numeroViviendas != null ? String(territory.numeroViviendas) : ''
+  );
   const [zoneId, setZoneId] = useState(territory.zoneId);
   const [tagIds, setTagIds] = useState<string[]>(territory.tags || []);
   const [geometry, setGeometry] = useState<Polygon | MultiPolygon | null>(territory.geometry);
@@ -56,6 +59,9 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     setNumero(territory.numero);
     setNombre(territory.nombre || '');
     setNotas(territory.notas || '');
+    setNumeroViviendas(
+      territory.numeroViviendas != null ? String(territory.numeroViviendas) : ''
+    );
     setZoneId(territory.zoneId);
     setTagIds(territory.tags || []);
     setGeometry(territory.geometry);
@@ -66,16 +72,21 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       numero !== territory.numero ||
       nombre !== (territory.nombre || '') ||
       notas !== (territory.notas || '') ||
+      numeroViviendas !==
+        (territory.numeroViviendas != null ? String(territory.numeroViviendas) : '') ||
       zoneId !== territory.zoneId ||
       JSON.stringify(tagIds) !== JSON.stringify(territory.tags || []) ||
       JSON.stringify(geometry) !== JSON.stringify(territory.geometry)
     );
-  }, [numero, nombre, notas, zoneId, tagIds, geometry, territory]);
+  }, [numero, nombre, notas, numeroViviendas, zoneId, tagIds, geometry, territory]);
 
   const handleSave = async () => {
     if (!numero.trim() || !zoneId) return;
     setSaving(true);
     try {
+      const parsedViviendas = numeroViviendas.trim()
+        ? Number(numeroViviendas)
+        : undefined;
       await updateTerritoryEditableFields(
         congId,
         territory.id,
@@ -83,6 +94,10 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           numero: numero.trim(),
           nombre: nombre.trim() || undefined,
           notas: notas.trim() || undefined,
+          numeroViviendas:
+            parsedViviendas !== undefined && !Number.isNaN(parsedViviendas)
+              ? parsedViviendas
+              : undefined,
           zoneId,
           tags: tagIds,
           geometry,
@@ -208,6 +223,18 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                   placeholder="Añadir etiqueta..."
                 />
               </Box>
+
+              <TextField
+                label="Número de viviendas (aprox.)"
+                value={numeroViviendas}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === '' || /^\d+$/.test(v)) setNumeroViviendas(v);
+                }}
+                fullWidth
+                size="small"
+                inputMode="numeric"
+              />
 
               <TextField
                 label="Notas internas (cifradas)"

@@ -14,7 +14,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconEdit, IconClose, IconMapOverview } from '@components/icons';
+import { IconEdit, IconClose, IconMapOverview, IconHousehold } from '@components/icons';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import SegmentedControl from '@components/segmented_control';
@@ -129,6 +129,78 @@ const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
     >
       {open ? 'Asignado' : 'Libre'}
     </Typography>
+  </Box>
+);
+
+// ─── Tag de número de viviendas ───────────────────────────────────────────
+const ViviendasTag = ({ count }: { count: number }) => (
+  <Box
+    sx={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      px: '10px',
+      py: '4px',
+      borderRadius: '20px',
+      backgroundColor: 'var(--accent-100)',
+      border: '1px solid var(--line)',
+    }}
+  >
+    <IconHousehold width={14} height={14} color="var(--accent-main)" />
+    <Typography
+      component="span"
+      sx={{ fontSize: '12px', fontWeight: 600, lineHeight: 1, color: 'var(--ink)' }}
+    >
+      {count} {count === 1 ? 'vivienda' : 'viviendas'}
+    </Typography>
+  </Box>
+);
+
+// ─── Pestaña combinada "Info": viviendas + notas + Direcciones (No visitar) ──
+// Antes eran 2 pestañas separadas ("Info" solo con notas, y "Direcciones");
+// se unieron para no obligar a cambiar de pestaña para ver todo el panorama
+// del territorio de un vistazo.
+const InfoTabContent = ({
+  territory,
+  canManage,
+}: {
+  territory: Territory;
+  canManage: boolean;
+}) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    {territory.numeroViviendas != null && (
+      <Box>
+        <ViviendasTag count={territory.numeroViviendas} />
+      </Box>
+    )}
+    {territory.notas && (
+      <Box
+        sx={{
+          p: '14px 16px',
+          backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
+          borderRadius: '14px',
+          border: '1px solid rgba(var(--orange-main-base), 0.3)',
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase',
+            color: 'var(--orange-dark)',
+            mb: '6px',
+            display: 'block',
+          }}
+        >
+          Notas internas
+        </Typography>
+        <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)', lineHeight: 1.5 }}>
+          {territory.notas}
+        </Typography>
+      </Box>
+    )}
+    <DireccionesTab territoryId={territory.id} canManage={canManage} />
   </Box>
 );
 
@@ -253,14 +325,16 @@ const DialogVerTerritorio = ({
     if (!territory?.id) return;
     const s = settingsRef.current;
     const mobile = tabletDownRef.current;
+    // "Info" (que ahora incluye Direcciones) es la última pestaña en móvil
+    // (tras Mapa e Imagen) pero la primera en escritorio (no hay pestaña Mapa
+    // aparte: el mapa siempre está visible en la columna izquierda).
     const defaultTab = mobile
-      ? s.expandMap    ? 0
-      : s.expandImage  ? 1
-      : s.expandLocations ? 2
+      ? s.expandMap  ? 0
+      : s.expandImage ? 1
+      : s.expandInfo ? 2
       : 0
-      : s.expandInfo   ? 0
-      : s.expandImage  ? 1
-      : s.expandLocations ? 2
+      : s.expandInfo  ? 0
+      : s.expandImage ? 1
       : 0;
     setTab(defaultTab);
     setEditingTags(false);
@@ -359,13 +433,12 @@ const DialogVerTerritorio = ({
   };
 
   // ── Alturas del sheet por tab ──────────────────────────────────────────────
-  // tab 0 (Mapa):      sheet corto → mapa muy visible sobre el sheet. Más
-  //                    corto aún si no hay notas que mostrar (si no, queda
-  //                    un hueco vacío bajo el aviso de una sola línea).
-  // tab 1 (Imagen):    sheet alto → la imagen se muestra DENTRO del sheet
-  // tab 2 (Direcciones): sheet medio
-  const mapTabHeight = liveTerritory.notas ? '44vh' : '30vh';
-  const SHEET_HEIGHTS = [mapTabHeight, '90vh', '72vh'];
+  // tab 0 (Mapa):   sheet corto siempre → mapa muy visible sobre el sheet
+  //                 (las notas/viviendas ahora viven en la pestaña Info, no
+  //                 aquí, así que este sheet ya no necesita crecer por eso).
+  // tab 1 (Imagen): sheet alto → la imagen se muestra DENTRO del sheet.
+  // tab 2 (Info):   sheet medio-alto (notas + viviendas + Direcciones).
+  const SHEET_HEIGHTS = ['30vh', '90vh', '76vh'];
   const sheetHeight = SHEET_HEIGHTS[tab];
 
   // En vh para animar (consistente con SHEET_HEIGHTS) y en px para pasarle a
@@ -635,7 +708,7 @@ const DialogVerTerritorio = ({
         {/* SEGMENTED CONTROL */}
         <Box sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
           <SegmentedControl
-            tabs={['Mapa', 'Imagen', 'Direcciones']}
+            tabs={['Mapa', 'Imagen', 'Info']}
             active={tab}
             onChange={(i) => {
               setTab(i);
@@ -656,47 +729,19 @@ const DialogVerTerritorio = ({
             '&::-webkit-scrollbar': { display: 'none' },
           }}
         >
-          {/* TAB 0: Mapa — notas del territorio */}
+          {/* TAB 0: Mapa — el mapa cubre todo el fondo; aquí solo un aviso */}
           {tab === 0 && (
             <Box>
-              {liveTerritory.notas ? (
-                <Box
-                  sx={{
-                    p: '14px 16px',
-                    backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
-                    borderRadius: '14px',
-                    border: '1px solid rgba(var(--orange-main-base), 0.3)',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      letterSpacing: '0.6px',
-                      textTransform: 'uppercase',
-                      color: 'var(--orange-dark)',
-                      mb: '6px',
-                      display: 'block',
-                    }}
-                  >
-                    Notas
-                  </Typography>
-                  <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)', lineHeight: 1.5 }}>
-                    {liveTerritory.notas}
-                  </Typography>
-                </Box>
-              ) : (
-                <Typography
-                  className="body-small-regular"
-                  sx={{
-                    color: 'rgba(0,0,0,0.35)',
-                    textAlign: 'center',
-                    py: 1,
-                  }}
-                >
-                  El mapa está detrás. Úsalo para navegar el territorio.
-                </Typography>
-              )}
+              <Typography
+                className="body-small-regular"
+                sx={{
+                  color: 'rgba(0,0,0,0.35)',
+                  textAlign: 'center',
+                  py: 1,
+                }}
+              >
+                El mapa está detrás. Úsalo para navegar el territorio.
+              </Typography>
             </Box>
           )}
 
@@ -818,9 +863,9 @@ const DialogVerTerritorio = ({
             </Box>
           )}
 
-          {/* TAB 2: Direcciones */}
+          {/* TAB 2: Info (viviendas + notas + Direcciones) */}
           {tab === 2 && (
-            <DireccionesTab territoryId={liveTerritory.id} canManage={canManage} />
+            <InfoTabContent territory={liveTerritory} canManage={canManage} />
           )}
         </Box>
 
@@ -1101,7 +1146,7 @@ const DialogVerTerritorio = ({
         {/* Tabs */}
         <Box sx={{ px: 3, py: 1.5, flexShrink: 0 }}>
           <SegmentedControl
-            tabs={['Info', 'Imagen', 'Direcciones']}
+            tabs={['Info', 'Imagen']}
             active={tab}
             onChange={(i) => { setTab(i); setEditingTags(false); }}
           />
@@ -1110,32 +1155,7 @@ const DialogVerTerritorio = ({
         {/* Contenido scrollable */}
         <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 1 }}>
           {tab === 0 && (
-            <Box>
-              {liveTerritory.notas ? (
-                <Box sx={{ p: 2, backgroundColor: 'rgba(var(--orange-main-base), 0.1)', borderRadius: 'var(--radius-xl)', border: '1px solid rgba(var(--orange-main-base), 0.3)', mb: 2 }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 700,
-                      color: 'var(--orange-dark)',
-                      fontSize: '11px',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase',
-                      mb: '6px',
-                      display: 'block',
-                    }}
-                  >
-                    Notas internas
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'var(--orange-dark)' }}>
-                    {liveTerritory.notas}
-                  </Typography>
-                </Box>
-              ) : (
-                <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 2 }}>
-                  Sin notas adicionales.
-                </Typography>
-              )}
-            </Box>
+            <InfoTabContent territory={liveTerritory} canManage={canManage} />
           )}
 
           {tab === 1 && (
@@ -1214,10 +1234,6 @@ const DialogVerTerritorio = ({
                 </Stack>
               )}
             </Box>
-          )}
-
-          {tab === 2 && (
-            <DireccionesTab territoryId={liveTerritory.id} canManage={canManage} />
           )}
         </Box>
 

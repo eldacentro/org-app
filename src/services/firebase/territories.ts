@@ -287,10 +287,10 @@ export const updateTerritoryFields = (
 
 /**
  * Actualiza los campos que edita el diálogo "Editar territorio" (número,
- * nombre, etiquetas, zona, notas y geometría) cifrando notas y serializando
- * la geometría igual que `saveTerritory`, pero vía `updateDoc` — así una
- * edición concurrente en otro campo (p. ej. `openAssignmentId` al asignar
- * el territorio desde otro dispositivo) no se pierde al guardar.
+ * nombre, etiquetas, zona, notas, viviendas y geometría) cifrando notas y
+ * serializando la geometría igual que `saveTerritory`, pero vía `updateDoc`
+ * — así una edición concurrente en otro campo (p. ej. `openAssignmentId` al
+ * asignar el territorio desde otro dispositivo) no se pierde al guardar.
  */
 export const updateTerritoryEditableFields = (
   congId: string,
@@ -299,6 +299,7 @@ export const updateTerritoryEditableFields = (
     numero: string;
     nombre?: string;
     notas?: string;
+    numeroViviendas?: number;
     zoneId: string;
     tags: string[];
     geometry: Territory['geometry'];
@@ -310,6 +311,7 @@ export const updateTerritoryEditableFields = (
     numero: fields.numero,
     nombre: fields.nombre || null,
     notas: enc(fields.notas, key) ?? null,
+    numeroViviendas: fields.numeroViviendas ?? null,
     zoneId: fields.zoneId,
     tags: fields.tags,
     geometry: serializeGeometry(fields.geometry),

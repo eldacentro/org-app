@@ -321,7 +321,7 @@ const ConfiguracionTab = () => {
           iconBg="rgba(var(--orange-main-base), 0.1)"
         >
           <ToggleRow
-            label="Información del territorio"
+            label="Información del territorio (incluye direcciones)"
             checked={draft.expandInfo}
             onChange={(v) => set('expandInfo', v)}
           />
@@ -334,11 +334,6 @@ const ConfiguracionTab = () => {
             label="Imagen del territorio"
             checked={draft.expandImage}
             onChange={(v) => set('expandImage', v)}
-          />
-          <ToggleRow
-            label="Ubicaciones del territorio"
-            checked={draft.expandLocations}
-            onChange={(v) => set('expandLocations', v)}
             divider="none"
           />
         </SectionCard>

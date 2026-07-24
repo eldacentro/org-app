@@ -38,6 +38,8 @@ export type Territory = {
   kmlURL?: string;
   /** Notas del territorio — cifrado en Firestore, descifrado en cliente. */
   notas?: string;
+  /** Número aproximado de viviendas del territorio (dato informativo). */
+  numeroViviendas?: number;
   /** ids de TerritoryTag. */
   tags: string[];
   /** Última fecha en que el territorio fue devuelto como trabajado (ISO). */
@@ -172,10 +174,10 @@ export type TerritorySettings = {
   statsRange: TerritoryStatsRange;
   statsGrouping: TerritoryStatsGrouping;
   // ── Vista del territorio (qué se expande por defecto) ──
+  // "expandInfo" cubre la pestaña combinada Info + Direcciones.
   expandInfo: boolean;
   expandMap: boolean;
   expandImage: boolean;
-  expandLocations: boolean;
   // ── Vencimiento ──
   daysUntilExpiration: number; // def. 90
   // ── Configuración de publicador ──
@@ -202,7 +204,6 @@ export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> = 
   expandInfo: false,
   expandMap: true,
   expandImage: true,
-  expandLocations: true,
   daysUntilExpiration: 90,
   publishersCanReturn: true,
   publishersCanSeeGroup: false,
