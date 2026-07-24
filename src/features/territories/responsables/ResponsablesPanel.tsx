@@ -204,6 +204,7 @@ const ResponsablesPanel = ({
   onOpenImport,
 }: Props) => {
   const congId = useAtomValue(congIDState);
+
   const zones = useAtomValue(territoryZonesSortedState);
   const tags = useAtomValue(territoryTagsState);
   const territories = useAtomValue(territoriesState);

@@ -83,15 +83,15 @@ export const useTerritoryExport = () => {
         if (zoneTerritories.length === 0) return;
 
         const rows = zoneTerritories.map((t) => {
-          const yearAssignments = assignments
+          const allAssignmentsSorted = assignments
             .filter((a) => a.territoryId === t.id)
             .filter((a) => includeCampaigns || !a.isCampaign)
-            .filter(inServiceYear)
             .sort(
               (x, y) =>
                 new Date(x.assignedAt).getTime() -
                 new Date(y.assignedAt).getTime()
             );
+          const yearAssignments = allAssignmentsSorted.filter(inServiceYear);
 
           // La plantilla física solo tiene 4 columnas: si hay más de 4
           // asignaciones en el año, nos quedamos con las 4 MÁS RECIENTES
@@ -100,10 +100,27 @@ export const useTerritoryExport = () => {
           if (yearAssignments.length > 4) truncatedTerritories += 1;
           const shown = yearAssignments.slice(-4);
 
+          // "Última fecha en que se completó": la propia plantilla indica
+          // que es la fecha de la asignación ANTERIOR a las que se ven en
+          // esta hoja (continuidad con historial fuera de las 4 columnas),
+          // no la de una asignación ya visible — antes se usaba
+          // t.lastWorkedAt (la última vez que se trabajó, sea cual sea),
+          // que casi siempre coincidía con la última asignación ya
+          // mostrada y no aportaba nada nuevo.
+          const anchorIndex = shown[0]
+            ? allAssignmentsSorted.findIndex((a) => a.id === shown[0].id)
+            : -1;
+          const previous =
+            anchorIndex > 0
+              ? allAssignmentsSorted[anchorIndex - 1]
+              : shown.length === 0
+                ? allAssignmentsSorted[allAssignmentsSorted.length - 1]
+                : undefined;
+
           return {
             numero: t.numero,
-            lastCompleted: t.lastWorkedAt
-              ? formatTerritoryDate(t.lastWorkedAt, S13_DATE)
+            lastCompleted: previous?.returnedAt
+              ? formatTerritoryDate(previous.returnedAt, S13_DATE)
               : '',
             assignments: shown.map((a) => ({
               name: resolveName(a.personUid) + (a.isCampaign ? ' (C)' : ''),

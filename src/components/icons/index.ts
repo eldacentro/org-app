@@ -121,6 +121,7 @@ export { default as IconHelp } from './IconHelp';
 export { default as IconHide } from './IconHide';
 export { default as IconHistory } from './IconHistory';
 export { default as IconHome } from './IconHome';
+export { default as IconHousehold } from './IconHousehold';
 export { default as IconIcon } from './IconIcon';
 export { default as IconImage } from './IconImage';
 export { default as IconImgAdd } from './IconImgAdd';

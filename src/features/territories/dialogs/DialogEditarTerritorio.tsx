@@ -17,7 +17,7 @@ import {
   territoryTagsState,
 } from '@states/territories';
 import { congIDState, congMasterKeyState } from '@states/settings';
-import { saveTerritory, deleteTerritoryCompleto } from '@services/firebase/territories';
+import { updateTerritoryEditableFields, deleteTerritoryCompleto } from '@services/firebase/territories';
 import { Territory, TerritoryTag } from '@definition/territories';
 import Typography from '@components/typography';
 import Button from '@components/button';
@@ -76,17 +76,20 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     if (!numero.trim() || !zoneId) return;
     setSaving(true);
     try {
-      const updated: Territory = {
-        ...territory,
-        numero: numero.trim(),
-        nombre: nombre.trim() || undefined,
-        notas: notas.trim() || undefined,
-        zoneId,
-        tags: tagIds,
-        geometry,
-        updatedAt: new Date().toISOString(),
-      };
-      await saveTerritory(congId, updated, masterKey ?? '');
+      await updateTerritoryEditableFields(
+        congId,
+        territory.id,
+        {
+          numero: numero.trim(),
+          nombre: nombre.trim() || undefined,
+          notas: notas.trim() || undefined,
+          zoneId,
+          tags: tagIds,
+          geometry,
+          updatedAt: new Date().toISOString(),
+        },
+        masterKey ?? ''
+      );
       onClose();
     } catch (e) {
       console.error(e);

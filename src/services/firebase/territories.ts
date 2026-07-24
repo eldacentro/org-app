@@ -285,6 +285,37 @@ export const updateTerritoryFields = (
   fields: Partial<Territory>
 ) => updateDoc(fsDoc(territoriesCol(congId), territoryId), fields);
 
+/**
+ * Actualiza los campos que edita el diálogo "Editar territorio" (número,
+ * nombre, etiquetas, zona, notas y geometría) cifrando notas y serializando
+ * la geometría igual que `saveTerritory`, pero vía `updateDoc` — así una
+ * edición concurrente en otro campo (p. ej. `openAssignmentId` al asignar
+ * el territorio desde otro dispositivo) no se pierde al guardar.
+ */
+export const updateTerritoryEditableFields = (
+  congId: string,
+  territoryId: string,
+  fields: {
+    numero: string;
+    nombre?: string;
+    notas?: string;
+    zoneId: string;
+    tags: string[];
+    geometry: Territory['geometry'];
+    updatedAt: string;
+  },
+  key: string
+) =>
+  updateDoc(fsDoc(territoriesCol(congId), territoryId), {
+    numero: fields.numero,
+    nombre: fields.nombre || null,
+    notas: enc(fields.notas, key) ?? null,
+    zoneId: fields.zoneId,
+    tags: fields.tags,
+    geometry: serializeGeometry(fields.geometry),
+    updatedAt: fields.updatedAt,
+  });
+
 /** Guarda muchos territorios de una vez (importación KML). */
 export const saveTerritoriesBatch = async (
   congId: string,
