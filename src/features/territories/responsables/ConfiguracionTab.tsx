@@ -261,14 +261,14 @@ const ConfiguracionTab = () => {
           </FieldRow>
 
           <FieldRow
-            label="Días hasta el vencimiento"
-            description="El territorio puede reasignarse cuando lleve este tiempo asignado"
+            label="Días de descanso antes de reasignar"
+            description="Tras devolverse trabajado, el territorio no se ofrece para reasignar hasta que pase este tiempo"
           >
             <NumberStepper
-              value={draft.daysUntilExpiration}
-              onChange={(v) => set('daysUntilExpiration', v)}
-              min={30}
-              max={730}
+              value={draft.daysUntilReassignable}
+              onChange={(v) => set('daysUntilReassignable', v)}
+              min={0}
+              max={365}
               suffix="días"
             />
           </FieldRow>

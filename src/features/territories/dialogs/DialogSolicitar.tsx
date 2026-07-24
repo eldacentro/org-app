@@ -147,8 +147,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         </Typography>
         <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 2 }}>
           Tu solicitud llegará a los responsables del departamento de Territorios.
-          Si prefieres algún tipo de territorio (rural, con escaleras…), indícalo
-          en la nota.
+          Si tienes alguna preferencia (por ejemplo: rural, con casas bajas,
+          con ascensores…), escríbela en la nota.
         </Typography>
 
         {pendingRequests.some(r => r.personUid === uid) ? (

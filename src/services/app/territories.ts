@@ -10,12 +10,15 @@ import {
   TerritoryZone,
 } from '@definition/territories';
 
-/** Fecha de vencimiento (ISO) a partir de la entrega y los días configurados. */
+/** Fecha de "Vence" (ISO) a partir de la entrega y los días de "atrasado" —
+ *  mismo umbral que isOverdue, para que al pasar "Vence" la asignación
+ *  quede directamente como "Atrasada" (antes había un umbral intermedio
+ *  "Vencido" separado y más corto, que solo generaba confusión). */
 export const computeDueAt = (
   assignedAt: string,
-  daysUntilExpiration: number
+  daysUntilOverdue: number
 ): string => {
-  return addDays(new Date(assignedAt), daysUntilExpiration).toISOString();
+  return addDays(new Date(assignedAt), daysUntilOverdue).toISOString();
 };
 
 /** ¿Está atrasada una asignación abierta? (según días de "atrasado"). */
@@ -28,20 +31,18 @@ export const isOverdue = (
 };
 
 /**
- * Configuración promete "el territorio puede reasignarse cuando lleve este
- * tiempo asignado" (daysUntilExpiration), pero antes solo se usaba para
- * mostrar "Vence: …" al publicador — ninguna pestaña de Responsables
- * señalaba territorios vencidos (solo "Atrasados", un umbral distinto y
- * mayor). Mismo cálculo que ya usa MisTerritoriosSection.tsx.
+ * ¿Está un territorio libre "en descanso" tras devolverse trabajado? Es
+ * decir: no tiene asignación abierta, y no ha pasado todavía el tiempo de
+ * descanso configurado desde su último trabajo (lastWorkedAt). Un
+ * territorio sin lastWorkedAt (nunca trabajado) nunca está en descanso.
  */
-export const isPastDue = (
-  assignedAt: string,
-  daysUntilExpiration: number,
-  dueAt?: string,
+export const isInCooldown = (
+  territory: Territory,
+  daysUntilReassignable: number,
   now: Date = new Date()
 ): boolean => {
-  const due = dueAt ? new Date(dueAt) : new Date(computeDueAt(assignedAt, daysUntilExpiration));
-  return due < now;
+  if (territory.openAssignmentId || !territory.lastWorkedAt) return false;
+  return addDays(new Date(territory.lastWorkedAt), daysUntilReassignable) > now;
 };
 
 /** Días transcurridos desde una fecha ISO. */

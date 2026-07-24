@@ -98,5 +98,8 @@ export type NavBarOptionsType = {
   title?: string;
   secondaryTitle?: string;
   quickSettings?: VoidFunction;
+  /** Puntito de aviso sobre el icono de quickSettings (ej. solicitudes
+   *  pendientes) — opcional, no afecta a páginas que no lo pasen. */
+  quickSettingsBadge?: boolean;
   buttons?: ReactElement;
 };

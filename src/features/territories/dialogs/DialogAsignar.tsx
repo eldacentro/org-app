@@ -165,7 +165,7 @@ const DialogAsignar = ({
               territoryId: t.id,
               personUid,
               assignedAt: now,
-              dueAt: computeDueAt(now, settings.daysUntilExpiration),
+              dueAt: computeDueAt(now, settings.daysUntilOverdue),
               returnedAt: null,
               status: 'asignado',
               isCampaign,
@@ -284,7 +284,7 @@ const DialogAsignar = ({
         territoryId: effectiveTerritory.id,
         personUid,
         assignedAt: now,
-        dueAt: computeDueAt(now, settings.daysUntilExpiration),
+        dueAt: computeDueAt(now, settings.daysUntilOverdue),
         // Explicit null (not omitted) so a future where('returnedAt','==',null)
         // query can find open assignments — Firestore equality filters don't
         // match documents where the field is simply absent.
@@ -336,7 +336,8 @@ const DialogAsignar = ({
         await apiSendTerritoryPush(
           [personUid],
           'Nuevo territorio asignado',
-          `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`
+          `Se te ha asignado el territorio ${territoryLabel(effectiveTerritory)}.`,
+          effectiveTerritory.id
         ).catch((err) => {
           console.error('Failed to send push', err);
           notificationFailed = true;

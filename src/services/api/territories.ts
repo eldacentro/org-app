@@ -3,7 +3,11 @@ import { apiDefault, apiFetch } from './common';
 export const apiSendTerritoryPush = async (
   target_person_uids: string[],
   title: string,
-  body: string
+  body: string,
+  /** Si se pasa, el backend arma un enlace directo al territorio (en vez de
+   *  a la página general de Territorios) para que tocar la notificación
+   *  lleve un paso más cerca de "Entregar territorio". */
+  territoryId?: string
 ) => {
   const {
     apiHost,
@@ -31,6 +35,7 @@ export const apiSendTerritoryPush = async (
         target_person_uids,
         title,
         body,
+        ...(territoryId ? { territory_id: territoryId } : {}),
       }),
     }
   );

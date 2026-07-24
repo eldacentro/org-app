@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAtomValue } from 'jotai';
-import { Box, Badge } from '@mui/material';
+import { Box } from '@mui/material';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
-import ScrollableTabs from '@components/scrollable_tabs';
-import { IconAdd } from '@components/icons';
+import { IconAdd, IconArrowBack } from '@components/icons';
 import { useBreakpoints } from '@hooks/index';
 import { useTerritories } from '@features/territories/useTerritories';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
@@ -51,7 +50,12 @@ const TerritoriesPage = () => {
   const [editing, setEditing] = useState<Territory | null>(null);
   const [asignar, setAsignar] = useState<AsignarState>(CLOSED_ASIGNAR);
   const [entregando, setEntregando] = useState<TerritoryAssignment | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+  // "Responsables" ya no es una pestaña siempre visible — vive detrás del
+  // icono de engranaje (quickSettings, el mismo mecanismo compartido del
+  // nav bar que ya usa "Reunión de entre semana"), para que un publicador
+  // normal entre directo a sus territorios sin ver un sistema de pestañas
+  // que no necesita.
+  const [showResponsables, setShowResponsables] = useState(false);
 
   useEffect(() => {
     const viewId = searchParams.get('view');
@@ -67,83 +71,70 @@ const TerritoriesPage = () => {
     }
   }, [searchParams, territories, viewing, setSearchParams]);
 
-  const buttons = (
-    <NavBarButton
-      text={tablet688Up ? 'Solicitar territorio' : 'Solicitar'}
-      icon={<IconAdd />}
-      onClick={() => setOpenSolicitar(true)}
-      main
-    />
-  );
-
-  const misTerritorios = (
-    <MisTerritoriosSection
-      onView={(t) => setViewing(t)}
-      onEntregar={(a) => setEntregando(a)}
-    />
-  );
-
-  const responsables = canManage ? (
-    <ResponsablesPanel
-      onView={(t) => setViewing(t)}
-      onAsignar={(t) => setAsignar({ open: true, territory: t })}
-      onEntregar={(a) => setEntregando(a)}
-      onAsignarParaSolicitud={(req) =>
-        setAsignar({
-          open: true,
-          territory: null,
-          defaultPersonUid: req.personUid,
-          requestId: req.id,
-        })
-      }
-      onAsignarCampana={(t, campaignId) =>
-        setAsignar({
-          open: true,
-          territory: t,
-          isCampaign: true,
-          campaignId,
-        })
-      }
-      onAsignarBulk={(ts) =>
-        setAsignar({ open: true, territory: null, bulkTerritories: ts })
-      }
-      onOpenZonas={() => setOpenZonas(true)}
-      onOpenEtiquetas={() => setOpenEtiquetas(true)}
-      onOpenImport={() => setOpenImport(true)}
-    />
-  ) : null;
+  const showingResponsables = canManage && showResponsables;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <PageTitle title="Territorios" buttons={buttons} />
-
-      {/* Los publicadores normales solo tienen "Mis territorios" — sin
-          pestañas. Los responsables ven dos secciones separadas para que
-          el panel de gestión no quede empujado debajo de sus propias
-          asignaciones personales. */}
-      {canManage ? (
-        <Box sx={{ marginBottom: '-24px' }}>
-          <ScrollableTabs
-            indicatorMode
-            tabs={[
-              { label: 'Mis territorios', Component: misTerritorios },
-              {
-                label: pendingRequestsCount > 0 ? (
-                  <Badge badgeContent={pendingRequestsCount} color="primary" sx={{ pr: '6px' }}>
-                    Responsables
-                  </Badge>
-                ) : (
-                  'Responsables'
-                ),
-                Component: responsables,
-              },
-            ]}
-            value={activeTab}
-            onChange={setActiveTab}
-          />
-        </Box>
+      {showingResponsables ? (
+        <PageTitle
+          title="Responsables"
+          buttons={
+            <NavBarButton
+              text="Volver"
+              icon={<IconArrowBack />}
+              onClick={() => setShowResponsables(false)}
+            />
+          }
+        />
       ) : (
-        misTerritorios
+        <PageTitle
+          title="Territorios"
+          buttons={
+            <NavBarButton
+              text={tablet688Up ? 'Solicitar territorio' : 'Solicitar'}
+              icon={<IconAdd />}
+              onClick={() => setOpenSolicitar(true)}
+              main
+            />
+          }
+          quickSettings={canManage ? () => setShowResponsables(true) : undefined}
+          quickSettingsBadge={canManage && pendingRequestsCount > 0}
+        />
+      )}
+
+      {showingResponsables ? (
+        <ResponsablesPanel
+          onView={(t) => setViewing(t)}
+          onAsignar={(t) => setAsignar({ open: true, territory: t })}
+          onEntregar={(a) => setEntregando(a)}
+          onAsignarParaSolicitud={(req) =>
+            setAsignar({
+              open: true,
+              territory: null,
+              defaultPersonUid: req.personUid,
+              requestId: req.id,
+            })
+          }
+          onAsignarCampana={(t, campaignId) =>
+            setAsignar({
+              open: true,
+              territory: t,
+              isCampaign: true,
+              campaignId,
+            })
+          }
+          onAsignarBulk={(ts) =>
+            setAsignar({ open: true, territory: null, bulkTerritories: ts })
+          }
+          onOpenZonas={() => setOpenZonas(true)}
+          onOpenEtiquetas={() => setOpenEtiquetas(true)}
+          onOpenImport={() => setOpenImport(true)}
+        />
+      ) : (
+        <MisTerritoriosSection
+          onView={(t) => setViewing(t)}
+          onEntregar={(a) => setEntregando(a)}
+        />
       )}
 
       {/* Diálogos */}
@@ -160,10 +151,7 @@ const TerritoriesPage = () => {
         onClose={() => setViewing(null)}
         canManage={canManage}
         showLiveLocation
-        onEntregar={(a) => {
-          setViewing(null);
-          setEntregando(a);
-        }}
+        onEntregar={(a) => setEntregando(a)}
         onAsignar={(t) => {
           setViewing(null);
           setAsignar({ open: true, territory: t });
@@ -180,7 +168,17 @@ const TerritoriesPage = () => {
           onClose={() => setEditing(null)}
         />
       )}
-      <DialogEntregar assignment={entregando} onClose={() => setEntregando(null)} />
+      <DialogEntregar
+        assignment={entregando}
+        onClose={() => setEntregando(null)}
+        onSuccess={() => {
+          // Cierra también la vista de detalle si la entrega se disparó desde
+          // ahí; si venía de "Mis territorios" o "Estadísticas" (viewing ya
+          // es null), esto no hace nada.
+          setEntregando(null);
+          setViewing(null);
+        }}
+      />
       <DialogAsignar
         open={asignar.open}
         territory={asignar.territory}

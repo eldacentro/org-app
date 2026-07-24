@@ -12,6 +12,7 @@ import {
   territoryZonesSortedState,
   territoryAssignedIdsState,
   territoryPendingRequestsState,
+  territorySettingsState,
   territoryTagsState,
 } from '@states/territories';
 import { congIDState } from '@states/settings';
@@ -19,7 +20,7 @@ import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
 import { deleteTerritoryCompleto } from '@services/firebase/territories';
 import { Territory, TerritoryAssignment, TerritoryRequest, TerritoryZone, TerritoryTag } from '@definition/territories';
-import { territoryLabel } from '@services/app/territories';
+import { isInCooldown, territoryLabel } from '@services/app/territories';
 import AsignacionesTab from './AsignacionesTab';
 import SolicitudesTab from './SolicitudesTab';
 import HistorialTab from './HistorialTab';
@@ -48,6 +49,7 @@ type ZoneSectionProps = {
   zone: TerritoryZone;
   items: Territory[];
   assignedIds: Set<string>;
+  daysUntilReassignable: number;
   tags: TerritoryTag[];
   selectionMode: boolean;
   selectedIds: Set<string>;
@@ -55,7 +57,7 @@ type ZoneSectionProps = {
   onView: (t: Territory) => void;
 };
 
-const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedIds, onToggleSelect, onView }: ZoneSectionProps) => {
+const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, selectionMode, selectedIds, onToggleSelect, onView }: ZoneSectionProps) => {
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const label = (
@@ -110,6 +112,7 @@ const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedId
         <Grid container spacing={1.5}>
             {items.map((t: Territory) => {
               const assigned = assignedIds.has(t.id);
+              const resting = !assigned && isInCooldown(t, daysUntilReassignable);
               const selected = selectedIds.has(t.id);
               return (
                 <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
@@ -146,18 +149,31 @@ const ZoneSection = ({ zone, items, assignedIds, tags, selectionMode, selectedId
                     </Typography>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
                       <Box
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: 'var(--radius-xl)',
-                          backgroundColor: assigned ? 'var(--orange-secondary)' : 'var(--green-secondary)',
-                          color: assigned ? 'var(--orange-dark)' : 'var(--green-main)',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          border: `1px solid ${assigned ? 'var(--orange-main)' : 'var(--green-main)'}33`
-                        }}
+                        sx={
+                          resting
+                            ? {
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 'var(--radius-xl)',
+                                backgroundColor: 'var(--grey-100)',
+                                color: 'var(--grey-600)',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                border: '1px solid var(--line)',
+                              }
+                            : {
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 'var(--radius-xl)',
+                                backgroundColor: assigned ? 'var(--orange-secondary)' : 'var(--green-secondary)',
+                                color: assigned ? 'var(--orange-dark)' : 'var(--green-main)',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                border: `1px solid ${assigned ? 'var(--orange-main)' : 'var(--green-main)'}33`,
+                              }
+                        }
                       >
-                        {assigned ? 'Asignado' : 'Libre'}
+                        {resting ? 'En descanso' : assigned ? 'Asignado' : 'Libre'}
                       </Box>
                       
                       {/* Tags indicators */}
@@ -209,6 +225,7 @@ const ResponsablesPanel = ({
   const tags = useAtomValue(territoryTagsState);
   const territories = useAtomValue(territoriesState);
   const assignedIds = useAtomValue(territoryAssignedIdsState);
+  const settings = useAtomValue(territorySettingsState);
   const pending = useAtomValue(territoryPendingRequestsState);
   const [tab, setTab] = useState(0);
 
@@ -419,6 +436,7 @@ const ResponsablesPanel = ({
                     zone={zone}
                     items={items}
                     assignedIds={assignedIds}
+                    daysUntilReassignable={settings.daysUntilReassignable}
                     tags={tags}
                     selectionMode={selectionMode}
                     selectedIds={selectedIds}

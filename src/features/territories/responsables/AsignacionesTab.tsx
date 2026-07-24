@@ -29,7 +29,7 @@ import {
   deleteAssignment,
   saveAssignment,
 } from '@services/firebase/territories';
-import { formatTerritoryDate, isPastDue, territoryLabel } from '@services/app/territories';
+import { formatTerritoryDate, isInCooldown, territoryLabel } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
 
 type Filter = 'all' | 'assigned' | 'unassigned';
@@ -52,7 +52,7 @@ const TerritoryAssignmentCard = ({
   onDelete,
   resolveName,
   dateFormat,
-  daysUntilExpiration,
+  daysUntilReassignable,
 }: {
   t: Territory;
   zone: TerritoryZone;
@@ -65,11 +65,12 @@ const TerritoryAssignmentCard = ({
   onDelete: (a: TerritoryAssignment) => void;
   resolveName: (uid: string) => string;
   dateFormat: string;
-  daysUntilExpiration: number;
+  daysUntilReassignable: number;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const activeOrLatest = history[0];
   const pastHistory = history.length > 1 ? history.slice(1) : [];
+  const resting = !open && isInCooldown(t, daysUntilReassignable);
 
   return (
     <Box
@@ -92,18 +93,31 @@ const TerritoryAssignmentCard = ({
             {territoryLabel(t)}
           </Typography>
           <Box
-            sx={{
-              px: 1,
-              py: 0.25,
-              borderRadius: 'var(--radius-xl)',
-              backgroundColor: open ? 'var(--orange-secondary)' : 'var(--green-secondary)',
-              color: open ? 'var(--orange-dark)' : 'var(--green-main)',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              border: `1px solid rgba(var(--${open ? 'orange' : 'green'}-main-base), 0.2)`
-            }}
+            sx={
+              resting
+                ? {
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 'var(--radius-xl)',
+                    backgroundColor: 'var(--grey-100)',
+                    color: 'var(--grey-600)',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    border: '1px solid var(--line)',
+                  }
+                : {
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 'var(--radius-xl)',
+                    backgroundColor: open ? 'var(--orange-secondary)' : 'var(--green-secondary)',
+                    color: open ? 'var(--orange-dark)' : 'var(--green-main)',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    border: `1px solid rgba(var(--${open ? 'orange' : 'green'}-main-base), 0.2)`,
+                  }
+            }
           >
-            {open ? 'Asignado' : 'Libre'}
+            {resting ? 'En descanso' : open ? 'Asignado' : 'Libre'}
           </Box>
         </Stack>
         <Stack direction="row" spacing={1}>
@@ -144,10 +158,6 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.isCampaign && (
                   <span style={{ color: 'var(--blue-main)' }}> (Campaña)</span>
                 )}
-                {!activeOrLatest.returnedAt &&
-                  isPastDue(activeOrLatest.assignedAt, daysUntilExpiration, activeOrLatest.dueAt) && (
-                    <span style={{ color: 'var(--orange-main)' }}> (Vencido)</span>
-                  )}
               </Typography>
               <Typography variant="caption" color="var(--ink-2)">
                 {formatTerritoryDate(activeOrLatest.assignedAt, dateFormat)}
@@ -431,7 +441,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
                   onDelete={handleDelete}
                   resolveName={resolveName}
                   dateFormat={settings.dateFormat}
-                  daysUntilExpiration={settings.daysUntilExpiration}
+                  daysUntilReassignable={settings.daysUntilReassignable}
                 />
               );
             })}

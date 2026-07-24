@@ -183,10 +183,13 @@ try {
       self.navigator.clearAppBadge().catch(() => {});
     }
 
+    // Antes el botón de acción "Ver asignaciones" ignoraba data.url y
+    // siempre navegaba a /#/weekly-schedules, sin importar de qué trataba
+    // realmente la notificación (ej. un aviso de territorio abría la
+    // pantalla equivocada). Ahora el botón respeta el mismo destino que
+    // tocar el cuerpo de la notificación.
     const targetUrl =
-      event.action === 'view'
-        ? '/#/weekly-schedules'
-        : (event.notification.data && event.notification.data.url) || '/#/weekly-schedules';
+      (event.notification.data && event.notification.data.url) || '/#/weekly-schedules';
 
     event.waitUntil(
       self.clients

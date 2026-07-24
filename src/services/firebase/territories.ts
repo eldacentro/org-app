@@ -33,6 +33,7 @@ import {
   TerritoryZone,
 } from '@definition/territories';
 import { dbTerritoryDeleteFile } from '@services/dexie/territories';
+import { computeDueAt } from '@services/app/territories';
 
 // ─── Colección helpers ─────────────────────────────────────────────────────
 const zonesCol = (congId: string) =>
@@ -571,6 +572,42 @@ export const backfillOpenAssignmentLocks = async (
   );
 };
 
+/**
+ * Migración de un solo uso (idempotente por comparación, no por marca): antes
+ * "Vence"/dueAt se calculaba con daysUntilExpiration (90 días por defecto);
+ * ahora comparte el mismo umbral que "Atrasado" (daysUntilOverdue, 120 por
+ * defecto) para que al pasar "Vence" la asignación quede directamente como
+ * Atrasada. Las asignaciones ABIERTAS creadas antes de este cambio tienen un
+ * `dueAt` calculado con la fórmula vieja — se recalcula aquí con la nueva.
+ * Las CERRADAS no se tocan (su dueAt es histórico, ya no importa). Se puede
+ * llamar en cada carga: en cuanto el valor coincide con la fórmula nueva deja
+ * de aparecer en `stale`, así que no vuelve a escribirse.
+ */
+export const backfillDueAtFormula = async (
+  congId: string,
+  assignments: TerritoryAssignment[],
+  daysUntilOverdue: number
+): Promise<void> => {
+  const stale = assignments.filter(
+    (a) =>
+      !a.returnedAt &&
+      a.dueAt &&
+      a.dueAt !== computeDueAt(a.assignedAt, daysUntilOverdue)
+  );
+  if (stale.length === 0) return;
+
+  for (let i = 0; i < stale.length; i += 450) {
+    const slice = stale.slice(i, i + 450);
+    const batch = writeBatch(firestore);
+    slice.forEach((a) =>
+      batch.update(fsDoc(assignmentsCol(congId), a.id), {
+        dueAt: computeDueAt(a.assignedAt, daysUntilOverdue),
+      })
+    );
+    await batch.commit();
+  }
+};
+
 export const saveLocation = (
   congId: string,
   l: TerritoryLocation,
@@ -590,6 +627,59 @@ export const deleteLocation = (congId: string, locationId: string) =>
 
 export const saveCampaign = (congId: string, c: TerritoryCampaign) =>
   setDoc(fsDoc(campaignsCol(congId), c.id), c);
+
+/**
+ * Finaliza una campaña: devuelve como "trabajado" (con la fecha de fin de la
+ * campaña) todas sus asignaciones todavía abiertas, libera el candado de
+ * cada territorio si lo tenía, y marca la campaña como 'pasada'.
+ *
+ * Centralizado aquí (antes vivía como un useCallback local dentro de
+ * CampanasTab.tsx) para que tanto el botón "Finalizar" manual como el
+ * auto-cierre en segundo plano (useTerritories.tsx, que corre para
+ * cualquier responsable con la app abierta, no solo si tiene la pestaña
+ * Campañas abierta) usen exactamente la misma lógica.
+ */
+export const closeCampaign = async (
+  congId: string,
+  campaign: TerritoryCampaign,
+  assignments: TerritoryAssignment[],
+  territories: Territory[],
+  key: string
+): Promise<void> => {
+  const now = new Date().toISOString();
+  const open = assignments.filter(
+    (a) => a.campaignId === campaign.id && !a.returnedAt
+  );
+
+  // Escribir todas las asignaciones y territorios en paralelo para evitar
+  // fallos parciales por tiempo de espera y límites de escritura por segundo.
+  await Promise.all(
+    open.flatMap((a) => {
+      const ops: Promise<void>[] = [
+        saveAssignment(
+          congId,
+          { ...a, returnedAt: campaign.fechaFin, status: 'trabajado', updatedAt: now },
+          key
+        ),
+      ];
+      const t = territories.find((x) => x.id === a.territoryId);
+      if (t) {
+        // Actualización parcial (no saveTerritory completo) — así no se pisa
+        // una edición concurrente de nombre/notas/geometría que el snapshot
+        // local todavía no reflejara.
+        const fields: Partial<Territory> = { lastWorkedAt: campaign.fechaFin, updatedAt: now };
+        // Libera el candado si esta era la asignación de campaña que lo
+        // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
+        // como ocupado para siempre.
+        if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
+        ops.push(updateTerritoryFields(congId, t.id, fields));
+      }
+      return ops;
+    })
+  );
+
+  await saveCampaign(congId, { ...campaign, estado: 'pasada', updatedAt: now });
+};
 
 /**
  * Borra la campaña Y todas las asignaciones que le pertenecen.

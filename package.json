@@ -59,6 +59,7 @@
     "jotai": "^2.18.1",
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",
+    "leaflet-rotate": "^0.2.8",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^1.17.0",
     "meeting-schedules-parser": "^4.4.0",

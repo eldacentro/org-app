@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSetAtom } from 'jotai';
 import {
   AppBar,
+  Badge,
   Box,
   Container,
   ListItemIcon,
@@ -624,7 +625,14 @@ const NavBar = ({ isSupported }: NavBarType) => {
                         },
                       }}
                     >
-                      <IconSettings color="var(--black)" />
+                      <Badge
+                        variant="dot"
+                        invisible={!navBarOptions.quickSettingsBadge}
+                        color="error"
+                        sx={{ '& .MuiBadge-dot': { top: 3, right: 3 } }}
+                      >
+                        <IconSettings color="var(--black)" />
+                      </Badge>
                     </IconButton>
                   ) : (
                     !tablet688Up && (

@@ -12,11 +12,14 @@ import type { LatLngBoundsExpression } from 'leaflet';
 import type { MultiPolygon, Polygon } from 'geojson';
 import { Box } from '@mui/material';
 import DirectionsIcon from '@mui/icons-material/Directions';
-import { IconMapView, IconGlobe } from '@components/icons';
+import { IconMapView, IconGlobe, IconCompassOn } from '@components/icons';
 import { geometryBounds, geometryCenter } from '@services/app/territories';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+// Side-effect: parchea L.Map con soporte de rotación (bearing) y el gesto
+// táctil de dos dedos para rotar, igual que un mapa nativo.
+import 'leaflet-rotate';
 
 type TerritoryMapProps = {
   geometry: Polygon | MultiPolygon | null;
@@ -47,22 +50,29 @@ const FitBounds = ({
 }) => {
   const map = useMap();
 
-  const fit = useRef(() => {
-    if (bounds) {
-      map.fitBounds(bounds, {
-        paddingTopLeft: [24, 24],
-        paddingBottomRight: [24, 24 + bottomInset],
-      });
-    }
-  });
-  fit.current = () => {
-    if (bounds) {
-      map.fitBounds(bounds, {
-        paddingTopLeft: [24, 24],
-        paddingBottomRight: [24, 24 + bottomInset],
-      });
-    }
+  // fitBounds calcula el encuadre asumiendo el mapa "recto" (sin rotar), así
+  // que con el plugin de rotación activo hay que poner el norte arriba
+  // ANTES de encuadrar para que el cálculo sea correcto — pero esta función
+  // se dispara también automáticamente (ver el efecto de abajo, cuando
+  // cambia bottomInset por algo tan ajeno como cambiar de pestaña en el
+  // diálogo), así que resetear el bearing SIN RESTAURARLO después tiraría
+  // la rotación del usuario sin que él hiciera nada. Por eso se restaura el
+  // bearing original justo después — como los tres pasos son síncronos, no
+  // llega a pintarse el fotograma intermedio "norte arriba". Volver a
+  // "norte arriba" de verdad es cosa solo del botón de brújula.
+  const doFit = () => {
+    if (!bounds) return;
+    const startBearing = map.getBearing?.() ?? 0;
+    map.setBearing?.(0);
+    map.fitBounds(bounds, {
+      paddingTopLeft: [24, 24],
+      paddingBottomRight: [24, 24 + bottomInset],
+    });
+    if (startBearing) map.setBearing?.(startBearing);
   };
+
+  const fit = useRef(doFit);
+  fit.current = doFit;
 
   useEffect(() => {
     onReady(() => fit.current());
@@ -102,6 +112,23 @@ const MapInstanceCapture = ({ onReady }: { onReady: (m: L.Map) => void }) => {
   return null;
 };
 
+// ─── Seguimiento de rotación (bearing) ────────────────────────────────────────
+// Para saber cuándo mostrar el botón de brújula (solo si el mapa está
+// rotado) — separado de MapInstanceCapture para no tocar su efecto ya
+// existente (ResizeObserver) con una dependencia que cambia cada render.
+const BearingTracker = ({ onChange }: { onChange: (bearing: number) => void }) => {
+  const map = useMap();
+  useEffect(() => {
+    const handleRotate = () => onChange(map.getBearing?.() ?? 0);
+    map.on('rotate', handleRotate);
+    return () => {
+      map.off('rotate', handleRotate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+  return null;
+};
+
 // ─── Geolocalización en vivo ──────────────────────────────────────────────────
 const useLiveLocation = (enabled: boolean) => {
   const [pos, setPos] = useState<[number, number] | null>(null);
@@ -130,6 +157,13 @@ const GeomanControl = ({
   const map = useMap();
 
   useEffect(() => {
+    // Geoman calcula posiciones de vértices asumiendo un mapa sin rotar —
+    // con el mapa girado, arrastrar/editar un polígono se desalinea (issue
+    // conocido y sin soporte por parte de Geoman). Se bloquea la rotación
+    // mientras se edita, y se restaura al salir del modo editable.
+    map.setBearing?.(0);
+    map.touchRotate?.disable();
+
     map.pm.addControls({
       position: 'topleft',
       drawMarker: false,
@@ -184,6 +218,7 @@ const GeomanControl = ({
       map.off('pm:create');
       map.off('pm:remove');
       fg.remove();
+      map.touchRotate?.enable();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
@@ -242,10 +277,38 @@ const TerritoryMap = ({
   const center = (geometry && geometryCenter(geometry)) || [40.4168, -3.7038];
   const livePos = useLiveLocation(showLiveLocation);
   const [isSatellite, setIsSatellite] = useState(false);
+  // Ángulo actual de rotación — solo para decidir cuándo mostrar el botón de
+  // brújula (0 = norte arriba, igual que siempre). El mapa en sí no depende
+  // de este estado para rotar (eso lo hace leaflet-rotate internamente).
+  const [bearing, setBearing] = useState(0);
 
   // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
   const mapRef = useRef<L.Map | null>(null);
   const fitFnRef = useRef<() => void>(() => {});
+
+  // Vuelve suavemente a "norte arriba" — leaflet-rotate no anima setBearing
+  // por sí solo (salta de golpe), así que se interpola a mano por el camino
+  // más corto (evita dar una vuelta entera si el bearing es, p.ej., 350°).
+  const resetToNorth = () => {
+    const map = mapRef.current;
+    if (!map?.setBearing) return;
+    const start = map.getBearing?.() ?? 0;
+    if (start === 0) return;
+    let delta = -start % 360;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    const target = start + delta;
+    const duration = 250;
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      map.setBearing(start + (target - start) * eased);
+      if (t < 1) requestAnimationFrame(step);
+      else map.setBearing(0);
+    };
+    requestAnimationFrame(step);
+  };
 
   return (
     <Box
@@ -258,8 +321,21 @@ const TerritoryMap = ({
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
     >
-      {/* ─── Mapa Leaflet ─────────────────────────────────────────────────── */}
-      <MapContainer center={center} zoom={15} scrollWheelZoom zoomControl={false}>
+      {/* ─── Mapa Leaflet ───────────────────────────────────────────────────
+          rotate/touchRotate: gesto de dos dedos para rotar, como un mapa
+          nativo — rotateControl={false} porque se usa un botón de brújula
+          propio (más abajo) en vez del control nativo del plugin, para que
+          combine con el resto de controles flotantes de esta pantalla. */}
+      <MapContainer
+        center={center}
+        zoom={15}
+        scrollWheelZoom
+        zoomControl={false}
+        rotate
+        bearing={0}
+        rotateControl={false}
+        touchRotate
+      >
         {isSatellite ? (
           <TileLayer
             attribution="&copy; Esri World Imagery"
@@ -274,6 +350,7 @@ const TerritoryMap = ({
 
         {/* Captura la instancia del mapa para el zoom externo */}
         <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
+        <BearingTracker onChange={setBearing} />
 
         {editable && onGeometryChange ? (
           <GeomanControl geometry={geometry} color={color} onChange={onGeometryChange} />
@@ -356,6 +433,41 @@ const TerritoryMap = ({
           )}
           {isSatellite ? 'Mapa' : 'Satélite'}
         </Box>
+
+        {/* Brújula: solo aparece si el mapa está rotado (como en Google
+            Maps) — tocarla lo devuelve suavemente a "norte arriba". */}
+        {Math.round(bearing) !== 0 && (
+          <Box
+            component="button"
+            type="button"
+            onClick={resetToNorth}
+            title="Volver al norte"
+            aria-label="Volver al norte"
+            sx={{
+              ...mapButtonReset,
+              ...glass,
+              width: 44,
+              height: 44,
+              borderRadius: 'var(--radius-max)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'transform 0.1s ease, background 0.2s ease',
+              '&:active': { transform: 'scale(0.94)' },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                transform: `rotate(${-bearing}deg)`,
+                transition: 'transform 0.1s linear',
+              }}
+            >
+              <IconCompassOn width={22} height={22} color="var(--red-main)" />
+            </Box>
+          </Box>
+        )}
 
         {/* Recentrar territorio / Mi ubicación — agrupados como un solo
             bloque junto al zoom, en vez de 4 elementos flotantes sueltos. */}

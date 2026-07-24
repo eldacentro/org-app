@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Stack, Collapse } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -12,12 +12,11 @@ import {
   territoryAssignmentsState,
   territoryZonesState,
 } from '@states/territories';
-import { Territory, TerritoryCampaign } from '@definition/territories';
+import { Territory, TerritoryAssignment, TerritoryCampaign } from '@definition/territories';
 import {
   saveCampaign,
   deleteCampaign,
-  saveAssignment,
-  updateTerritoryFields,
+  closeCampaign,
 } from '@services/firebase/territories';
 import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
@@ -66,68 +65,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     return map;
   }, [territories, assignments]);
 
-  // IDs de campañas cuyo cierre automático ya está en vuelo — evita escrituras
-  // duplicadas cuando onSnapshot dispara en ráfaga antes de que el estado se
-  // actualice a 'pasada' en Firestore.
-  const closingRef = useRef(new Set<string>());
-
-  const closeCampaign = useCallback(
-    async (c: TerritoryCampaign) => {
-      const key = masterKey ?? '';
-      const now = new Date().toISOString();
-      const open = assignments.filter((a) => a.campaignId === c.id && !a.returnedAt);
-
-      // Escribir todas las asignaciones y territorios en paralelo para evitar
-      // fallos parciales por tiempo de espera y límites de escritura por segundo.
-      await Promise.all(
-        open.flatMap((a) => {
-          const ops: Promise<void>[] = [
-            saveAssignment(
-              congId,
-              { ...a, returnedAt: c.fechaFin, status: 'trabajado', updatedAt: now },
-              key
-            ),
-          ];
-          const t = territories.find((x) => x.id === a.territoryId);
-          if (t) {
-            // Actualización parcial (no saveTerritory completo) — así no se
-            // pisa una edición concurrente de nombre/notas/geometría que el
-            // snapshot local todavía no reflejara.
-            const fields: Partial<Territory> = { lastWorkedAt: c.fechaFin, updatedAt: now };
-            // Libera el candado si esta era la asignación de campaña que lo
-            // tenía — sin esto, cerrar una campaña dejaba el territorio
-            // marcado como ocupado para siempre.
-            if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
-            ops.push(updateTerritoryFields(congId, t.id, fields));
-          }
-          return ops;
-        })
-      );
-
-      await saveCampaign(congId, { ...c, estado: 'pasada', updatedAt: now });
-    },
-    [assignments, territories, congId, masterKey]
-  );
-
-  // Auto-cierre de campañas terminadas (fechaFin pasada y aún no 'pasada').
-  // El Set `closingRef` evita que un burst de snapshots lance el cierre varias
-  // veces sobre la misma campaña antes de que Firestore actualice el estado.
-  useEffect(() => {
-    const now = new Date();
-    campaigns
-      .filter(
-        (c) =>
-          c.estado !== 'pasada' &&
-          new Date(c.fechaFin) < now &&
-          !closingRef.current.has(c.id)
-      )
-      .forEach((c) => {
-        closingRef.current.add(c.id);
-        closeCampaign(c)
-          .catch(console.error)
-          .finally(() => closingRef.current.delete(c.id));
-      });
-  }, [campaigns, closeCampaign]);
+  // El cierre (manual o automático al pasar fechaFin) vive centralizado en
+  // services/firebase/territories.ts — el auto-cierre en sí corre en
+  // useTerritories.tsx, para cualquier responsable con la app abierta, no
+  // solo si tiene esta pestaña abierta. Aquí solo se usa para el botón
+  // "Finalizar" manual.
 
   const sorted = useMemo(() => {
     const order = { activa: 0, planificada: 1, pasada: 2 } as const;
@@ -180,7 +122,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     });
     if (!ok) return;
     try {
-      await closeCampaign(c);
+      await closeCampaign(congId, c, assignments, territories, masterKey ?? '');
     } catch (err) {
       console.error(err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo finalizar la campaña.' });
@@ -316,12 +258,21 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                     </Typography>
                   ) : (
                     campTerritories.map((t) => {
-                      const open = assignments.some(
-                        (a) =>
-                          a.campaignId === c.id &&
-                          a.territoryId === t.id &&
-                          !a.returnedAt
-                      );
+                      // Antes se usaba Territory.lastWorkedAt para mostrar la
+                      // fecha de entrega — pero ese campo es del territorio
+                      // (no de esta campaña en concreto) y no se actualiza si
+                      // se devuelve "sin trabajar", así que una entrega
+                      // individual dentro de la campaña podía no verse aquí
+                      // en absoluto. Se busca en su lugar la asignación de
+                      // ESTA campaña para ESTE territorio directamente.
+                      const campaignAssignments = assignments
+                        .filter((a) => a.campaignId === c.id && a.territoryId === t.id)
+                        .sort(
+                          (x, y) =>
+                            new Date(y.assignedAt).getTime() - new Date(x.assignedAt).getTime()
+                        );
+                      const latest: TerritoryAssignment | undefined = campaignAssignments[0];
+                      const open = Boolean(latest && !latest.returnedAt);
                       return (
                         <Stack
                           key={t.id}
@@ -348,10 +299,13 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                                   : 'var(--ink-2)',
                               }}
                             >
-                              {open ? 'Asignado (campaña)' : 'Libre en campaña'}
-                              {t.lastWorkedAt
-                                ? ` · últ. ${formatTerritoryDate(t.lastWorkedAt, settings.dateFormat)}`
-                                : ' · nunca trabajado'}
+                              {open
+                                ? 'Asignado (campaña)'
+                                : latest?.returnedAt
+                                ? `Entregado el ${formatTerritoryDate(latest.returnedAt, settings.dateFormat)} (${
+                                    latest.status === 'trabajado' ? 'trabajado' : 'sin trabajar'
+                                  })`
+                                : 'Libre en campaña · nunca trabajado'}
                             </Typography>
                           </Box>
                           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>

@@ -178,8 +178,14 @@ export type TerritorySettings = {
   expandInfo: boolean;
   expandMap: boolean;
   expandImage: boolean;
-  // ── Vencimiento ──
-  daysUntilExpiration: number; // def. 90
+  // ── Descanso antes de reasignar ──
+  // Tras devolverse un territorio como trabajado (Territory.lastWorkedAt),
+  // cuántos días debe "descansar" antes de ofrecerse para reasignar a otro
+  // publicador. Antes existía un campo "daysUntilExpiration" que generaba un
+  // estado "Vencido" separado de "Atrasado" (dos umbrales para lo mismo,
+  // confuso) — se retiró: "Vence"/dueAt ahora comparte el mismo umbral que
+  // "Atrasado" (daysUntilOverdue), y este campo pasa a significar solo esto.
+  daysUntilReassignable: number; // def. 30
   // ── Configuración de publicador ──
   publishersCanReturn: boolean;
   publishersCanSeeGroup: boolean;
@@ -204,7 +210,7 @@ export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> = 
   expandInfo: false,
   expandMap: true,
   expandImage: true,
-  daysUntilExpiration: 90,
+  daysUntilReassignable: 30,
   publishersCanReturn: true,
   publishersCanSeeGroup: false,
   publishersCanAddLocations: true,

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
+import { IconClose } from '@components/icons';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { territoriesState, territorySettingsState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
@@ -18,15 +19,21 @@ import { displaySnackNotification } from '@services/states/app';
 
 type Props = {
   assignment: TerritoryAssignment | null;
+  /** Cierra sin guardar nada (X, tecla Esc) — el territorio sigue como estaba. */
   onClose: () => void;
+  /** Se llama tras registrar la entrega/devolución con éxito — distinto de
+   *  `onClose` para que quien abrió este diálogo desde la vista de detalle
+   *  del territorio pueda decidir cerrar también esa vista solo cuando de
+   *  verdad hubo un cambio, no cuando el usuario cancela. */
+  onSuccess: () => void;
 };
 
 /**
- * Diálogo de entrega de territorio: Entregar (trabajado), Devolver sin trabajar,
- * o Cancelar. Permite añadir una nota. Al entregar como trabajado se actualiza
+ * Diálogo de entrega de territorio: Entregar (trabajado) o Devolver sin
+ * trabajar. Permite añadir una nota. Al entregar como trabajado se actualiza
  * también `lastWorkedAt` del territorio.
  */
-const DialogEntregar = ({ assignment, onClose }: Props) => {
+const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
   const congId = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
   const territories = useAtomValue(territoriesState);
@@ -104,14 +111,15 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           await apiSendTerritoryPush(
             targets,
             'Territorio devuelto sin trabajar',
-            msg
+            msg,
+            assignment.territoryId
           ).catch((err) => {
             console.error('Failed to send push', err);
             notifyManagersFailed = true;
           });
         }
       }
-      onClose();
+      onSuccess();
 
       if (notifyManagersFailed) {
         displaySnackNotification({
@@ -143,9 +151,27 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
-          Entregar territorio
-        </Typography>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Typography variant="h6" className="h2" sx={{ color: 'var(--ink)' }}>
+            Entregar territorio
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Cerrar"
+            sx={{
+              width: 32,
+              height: 32,
+              mt: '-4px',
+              mr: '-4px',
+              color: 'var(--ink-2)',
+              '&:hover': { backgroundColor: 'var(--accent-100)' },
+            }}
+          >
+            <IconClose width={15} height={15} />
+          </IconButton>
+        </Stack>
         <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 2 }}>
           Indica si el territorio fue trabajado o si lo devuelves sin trabajar.
           Puedes añadir una nota opcional.
@@ -159,6 +185,9 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
           minRows={2}
         />
 
+        {/* Mismo estilo (variant="main") en los dos — solo cambia el color
+            semántico — para que ninguno se vea como una opción "secundaria"
+            frente a la otra: ambos son desenlaces igual de válidos. */}
         <Stack spacing={1.5} sx={{ mt: 3 }}>
           <Button
             variant="main"
@@ -168,14 +197,12 @@ const DialogEntregar = ({ assignment, onClose }: Props) => {
             Entregar (trabajado)
           </Button>
           <Button
-            variant="tertiary"
+            variant="main"
+            color="orange"
             onClick={() => finalizar('no_trabajado')}
             disabled={saving}
           >
             Devolver sin trabajar
-          </Button>
-          <Button variant="tertiary" onClick={onClose} disabled={saving}>
-            Cancelar
           </Button>
         </Stack>
       </Box>

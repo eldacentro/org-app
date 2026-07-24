@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { congIDState, congMasterKeyState, fullnameOptionState } from '@states/settings';
 import { responsabilidadesState } from '@states/responsabilidades';
@@ -33,6 +33,8 @@ import {
   saveSettings,
   backfillMissingReturnedAt,
   backfillOpenAssignmentLocks,
+  backfillDueAtFormula,
+  closeCampaign,
 } from '@services/firebase/territories';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
@@ -76,6 +78,7 @@ export const useTerritories = () => {
   const canManage = useIsTerritoryManager();
   const assignments = useAtomValue(territoryAssignmentsState);
   const territories = useAtomValue(territoriesState);
+  const campaigns = useAtomValue(territoryCampaignsState);
 
   // Cierra las 9 suscripciones cuando el último componente que las usa se
   // desmonta (p.ej. el usuario navega fuera de Territorios), para no dejar
@@ -218,4 +221,44 @@ export const useTerritories = () => {
       console.error('Failed to backfill openAssignmentId:', err)
     );
   }, [congId, canManage, territories, assignments]);
+
+  // Recalcula dueAt de asignaciones abiertas creadas con la fórmula vieja
+  // (daysUntilExpiration) a la nueva (daysUntilOverdue), tras unificar
+  // "Vence" y "Atrasado" en un solo umbral. A diferencia de las migraciones
+  // de arriba, esto NO es de un solo uso: depende de daysUntilOverdue a
+  // propósito, así que si un responsable cambia ese ajuste más adelante,
+  // dueAt se recalcula para seguir en sincronía con "Atrasado" (que ya era
+  // reactivo a ese mismo ajuste). Solo responsables/admin, e idempotente
+  // por comparación de valores (no reescribe si ya coincide).
+  useEffect(() => {
+    if (!congId || !canManage || assignments.length === 0 || !settings.id) return;
+
+    backfillDueAtFormula(congId, assignments, settings.daysUntilOverdue).catch((err) =>
+      console.error('Failed to backfill dueAt formula:', err)
+    );
+  }, [congId, canManage, assignments, settings.id, settings.daysUntilOverdue]);
+
+  // Auto-cierre de campañas cuya fechaFin ya pasó. Antes esto solo corría
+  // dentro de CampanasTab.tsx, así que solo se disparaba si un responsable
+  // tenía esa pestaña abierta — una campaña con fechaFin pasada podía
+  // quedarse "activa" indefinidamente si nadie entraba ahí. Ahora corre aquí,
+  // para cualquier responsable con la app de Territorios abierta.
+  const closingCampaignsRef = useRef(new Set<string>());
+  useEffect(() => {
+    if (!congId || !canManage) return;
+    const now = new Date();
+    campaigns
+      .filter(
+        (c) =>
+          c.estado !== 'pasada' &&
+          new Date(c.fechaFin) < now &&
+          !closingCampaignsRef.current.has(c.id)
+      )
+      .forEach((c) => {
+        closingCampaignsRef.current.add(c.id);
+        closeCampaign(congId, c, assignments, territories, masterKey ?? '')
+          .catch((err) => console.error('Failed to auto-close campaign:', err))
+          .finally(() => closingCampaignsRef.current.delete(c.id));
+      });
+  }, [congId, canManage, campaigns, assignments, territories, masterKey]);
 };

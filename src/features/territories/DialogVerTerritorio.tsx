@@ -14,6 +14,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Tooltip from '@components/tooltip';
 import { IconEdit, IconClose, IconMapOverview, IconHousehold } from '@components/icons';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
@@ -35,7 +36,7 @@ import {
   deleteTerritoryImage,
   saveTerritory,
 } from '@services/firebase/territories';
-import { getZoneColor, getZoneName, territoryLabel } from '@services/app/territories';
+import { getZoneColor, getZoneName, isInCooldown, territoryLabel } from '@services/app/territories';
 import { useBreakpoints } from '@hooks/index';
 
 type Props = {
@@ -88,49 +89,53 @@ const visuallyHidden = {
   border: 0,
 } as const;
 
-// ─── Chip de estado animado ──────────────────────────────────────────────────
-const StatusChip = ({ open, color }: { open: boolean; color: string }) => (
-  <Box
-    sx={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '5px',
-      px: '10px',
-      py: '4px',
-      borderRadius: '20px',
-      backgroundColor: open ? 'rgba(var(--orange-main-base), 0.13)' : `${color}18`,
-      border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.3)' : color + '35'}`,
-    }}
-  >
+// ─── Indicador sutil de asignado/libre — solo para responsables ──────────
+// Antes el StatusChip grande (con texto "Asignado"/"Libre") lo veía
+// cualquier publicador, aunque no le aporta nada saber que SU territorio
+// está "asignado" — ya lo sabe. Ahora ese hueco lo ocupa la cantidad de
+// viviendas (útil para todos) y esto queda como un punto discreto con
+// tooltip, visible solo para quien gestiona territorios.
+type AssignedStatus = 'asignado' | 'descanso' | 'libre';
+
+const ASSIGNED_STATUS_LABEL: Record<AssignedStatus, string> = {
+  asignado: 'Asignado',
+  descanso: 'En descanso (recién trabajado)',
+  libre: 'Libre',
+};
+
+const ASSIGNED_STATUS_COLOR: Record<AssignedStatus, string> = {
+  asignado: 'var(--orange-main)',
+  descanso: 'var(--grey-400)',
+  libre: 'var(--green-main)',
+};
+
+const AssignedDot = ({ status }: { status: AssignedStatus }) => (
+  <Tooltip title={ASSIGNED_STATUS_LABEL[status]}>
     <Box
+      aria-label={ASSIGNED_STATUS_LABEL[status]}
       sx={{
-        width: 6,
-        height: 6,
+        width: 8,
+        height: 8,
         borderRadius: '50%',
-        backgroundColor: open ? 'var(--orange-main)' : color,
-        ...(open && {
+        flexShrink: 0,
+        backgroundColor: ASSIGNED_STATUS_COLOR[status],
+        ...(status === 'asignado' && {
           animation: 'pulse 2s ease-in-out infinite',
           '@keyframes pulse': {
-            '0%, 100%': { boxShadow: `0 0 0 0 rgba(var(--orange-main-base), 0.4)` },
-            '50%': { boxShadow: `0 0 0 4px rgba(var(--orange-main-base), 0)` },
+            '0%, 100%': { boxShadow: '0 0 0 0 rgba(var(--orange-main-base), 0.4)' },
+            '50%': { boxShadow: '0 0 0 4px rgba(var(--orange-main-base), 0)' },
           },
         }),
       }}
     />
-    <Typography
-      component="span"
-      sx={{
-        fontSize: '12px',
-        fontWeight: 600,
-        lineHeight: 1,
-        color: open ? 'var(--orange-dark)' : color,
-        letterSpacing: '-0.1px',
-      }}
-    >
-      {open ? 'Asignado' : 'Libre'}
-    </Typography>
-  </Box>
+  </Tooltip>
 );
+
+// Etiquetas de tamaño (creadas en la unificación de 2026) — para un
+// publicador, verlas junto a la cantidad de viviendas es redundante (misma
+// información dos veces); para un responsable sí aporta al gestionar, así
+// que solo se filtran de la vista de un publicador (ver `visibleHeaderTags`).
+const SIZE_TAG_NAMES = new Set(['Pequeño', 'Mediano', 'Grande', 'Extra grande']);
 
 // ─── Tag de número de viviendas ───────────────────────────────────────────
 const ViviendasTag = ({ count }: { count: number }) => (
@@ -358,6 +363,21 @@ const DialogVerTerritorio = ({
   const zoneName = getZoneName(liveTerritory.zoneId, zones);
   const label = territoryLabel(liveTerritory);
   const isOpen = Boolean(relevantAssignment);
+  const assignedStatus: AssignedStatus = isOpen
+    ? 'asignado'
+    : isInCooldown(liveTerritory, settings.daysUntilReassignable)
+    ? 'descanso'
+    : 'libre';
+
+  // Un responsable sí saca partido de ver la etiqueta de tamaño junto a la
+  // cantidad de viviendas (gestión); a un publicador le sale la misma
+  // información dos veces, así que se le filtra solo a él.
+  const visibleHeaderTags = canManage
+    ? liveTerritory.tags || []
+    : (liveTerritory.tags || []).filter((tagId) => {
+        const tag = allTags.find((t) => t.id === tagId);
+        return !tag || !SIZE_TAG_NAMES.has(tag.nombre);
+      });
 
   const handleNavigate = () => {
     if (!liveTerritory.geometry) return;
@@ -603,14 +623,17 @@ const DialogVerTerritorio = ({
                   >
                     {zoneName}
                   </Typography>
+                  {canManage && <AssignedDot status={assignedStatus} />}
                 </Stack>
-                <StatusChip open={isOpen} color={color} />
+                {liveTerritory.numeroViviendas != null && (
+                  <ViviendasTag count={liveTerritory.numeroViviendas} />
+                )}
               </Stack>
             </Box>
 
             {/* Tags dots + edit button */}
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: '2px', flexShrink: 0 }}>
-              {(liveTerritory.tags || []).slice(0, 4).map((tagId) => {
+              {visibleHeaderTags.slice(0, 4).map((tagId) => {
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
                 return (
@@ -984,9 +1007,12 @@ const DialogVerTerritorio = ({
                 <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'rgba(0,0,0,0.5)' }}>
                   {zoneName}
                 </Typography>
+                {canManage && <AssignedDot status={assignedStatus} />}
               </Stack>
             </Box>
-            <StatusChip open={isOpen} color={color} />
+            {liveTerritory.numeroViviendas != null && (
+              <ViviendasTag count={liveTerritory.numeroViviendas} />
+            )}
           </Stack>
         </Box>
       </Box>
@@ -1051,9 +1077,9 @@ const DialogVerTerritorio = ({
           </Stack>
 
           {/* Tags */}
-          {(liveTerritory.tags || []).length > 0 || canManage ? (
+          {visibleHeaderTags.length > 0 || canManage ? (
             <Stack direction="row" alignItems="center" sx={{ mt: 1.25, flexWrap: 'wrap', gap: 0.5 }}>
-              {(liveTerritory.tags || []).map((tagId) => {
+              {visibleHeaderTags.map((tagId) => {
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
                 return (
@@ -1245,7 +1271,6 @@ const DialogVerTerritorio = ({
                 Solo un responsable puede marcar este territorio como entregado.
               </Typography>
             )}
-            <Button variant="tertiary" onClick={onClose}>Cerrar</Button>
             {relevantAssignment && onEntregar && (
               <Button
                 variant="main"

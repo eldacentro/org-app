@@ -135,24 +135,52 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
 
   const noticesBanner = visibleNotices.length > 0 && (
     <Stack spacing={1} sx={{ mb: 2 }}>
-      {visibleNotices.map((n) => (
-        <Box key={n.id} sx={{ position: 'relative' }}>
-          <InfoTip
-            color="warning"
-            isBig={false}
-            text={n.mensaje}
-            sx={{ pr: 5 }}
-          />
-          <IconButton
-            onClick={() => handleDismissNotice(n.id)}
-            size="small"
-            sx={{ position: 'absolute', top: 8, right: 8 }}
-            aria-label="Descartar aviso"
-          >
-            <IconClose color="var(--ink-2)" width={16} height={16} />
-          </IconButton>
-        </Box>
-      ))}
+      {visibleNotices.map((n) => {
+        // Antes el aviso solo se podía descartar — si de verdad trataba de
+        // uno de mis territorios (ej. "territorio atrasado"), había que
+        // bajar a buscarlo en la lista para poder entregarlo. Con este botón
+        // se puede hacer directo desde el propio aviso. Las de campaña se
+        // excluyen a propósito: deben cerrarse todas juntas desde "Campañas"
+        // (con la fecha de fin de la campaña), no una por una desde aquí.
+        const matchingRow = rows.find(
+          (r) => r.territory.id === n.territoryId && !r.assignment.isCampaign
+        );
+        return (
+          <Box key={n.id} sx={{ position: 'relative' }}>
+            <InfoTip
+              color="warning"
+              isBig={false}
+              text={n.mensaje}
+              sx={{ pr: 5 }}
+            />
+            <IconButton
+              onClick={() => handleDismissNotice(n.id)}
+              size="small"
+              sx={{ position: 'absolute', top: 8, right: 8 }}
+              aria-label="Descartar aviso"
+            >
+              <IconClose color="var(--ink-2)" width={16} height={16} />
+            </IconButton>
+            {matchingRow && (
+              <Box sx={{ mt: 1 }}>
+                <Button
+                  variant="small"
+                  disableAutoStretch
+                  onClick={() => onEntregar(matchingRow.assignment)}
+                  disabled={!settings.publishersCanReturn}
+                >
+                  Entregar territorio
+                </Button>
+                {!settings.publishersCanReturn && (
+                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
+                    Solo un responsable puede marcar este territorio como entregado.
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+        );
+      })}
     </Stack>
   );
 
@@ -226,21 +254,32 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                         </Box>
                     )}
                   </Stack>
-                  <Typography variant="caption" color="var(--ink-2)">
-                    Entregado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)} ·
-                    Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilExpiration), settings.dateFormat)}
+                  {/* Antes iba todo corrido en una sola línea ("Entregado: ... ·
+                      Vence: ..."), que se leía como un bloque denso de texto.
+                      También decía "Entregado" — ese verbo se reserva para
+                      cuando el publicador devuelve el territorio, así que aquí
+                      (fecha en que se LE entregó a él) confundía. */}
+                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block' }}>
+                    Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                  </Typography>
+                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block' }}>
+                    Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilOverdue), settings.dateFormat)}
                   </Typography>
                 </Box>
               </Stack>
+              {/* "Ver territorio" es el botón principal (variant="main"): es
+                  el que más se usa, con diferencia — "Entregar" es una
+                  acción puntual, así que va como secundario aunque siga
+                  primero en el orden de lectura. */}
               <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
-                <Button variant="tertiary" onClick={() => onView(territory)}>
+                <Button variant="main" onClick={() => onView(territory)}>
                   Ver territorio
                 </Button>
                 {/* Antes este botón simplemente desaparecía si la opción
                     estaba desactivada, sin explicar por qué — ahora se ve
                     pero deshabilitado, con el motivo. */}
                 <Button
-                  variant="main"
+                  variant="tertiary"
                   onClick={() => onEntregar(assignment)}
                   disabled={!settings.publishersCanReturn}
                 >
