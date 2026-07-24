@@ -22,6 +22,8 @@ import { PDFDocument, rgb } from 'pdf-lib';
 
 const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
+/** Columnas de asignación que tiene físicamente cada fila del S-13. */
+const S13_SLOTS = 4;
 
 // Coordenadas y layout para la plantilla original — medidas directamente
 // del flujo de contenido del PDF original (public/pdf/S-13_S.pdf), no a
@@ -71,8 +73,8 @@ export const useTerritoryExport = () => {
       };
 
       // Preparar datos
-      const sheetsData: { zoneName: string; rows: { numero: string; lastCompleted: string; assignments: { name: string; dateAssigned: string; dateCompleted: string; }[] }[] }[] = [];
-      let truncatedTerritories = 0;
+      const sheetsData: { zoneName: string; continuation: boolean; rows: { numero: string; lastCompleted: string; assignments: { name: string; dateAssigned: string; dateCompleted: string; }[] }[] }[] = [];
+      let continuedTerritories = 0;
 
       zones.forEach((zone) => {
         const zoneTerritories = territories
@@ -82,7 +84,14 @@ export const useTerritoryExport = () => {
           );
         if (zoneTerritories.length === 0) return;
 
-        const rows = zoneTerritories.map((t) => {
+        // Cada territorio produce UNA O MÁS filas: la plantilla solo tiene 4
+        // columnas de asignación, y el propio formulario indica cómo
+        // continuar — "cuando comience una página nueva, anote en esta
+        // columna la última fecha en que se completó el territorio". Así
+        // que en vez de descartar lo que no cabe (antes se perdían las
+        // asignaciones más antiguas del año), se reparte en tandas de 4 y
+        // cada tanda arrastra la última fecha completada de lo anterior.
+        const rowsPerTerritory = zoneTerritories.map((t) => {
           const allAssignmentsSorted = assignments
             .filter((a) => a.territoryId === t.id)
             .filter((a) => includeCampaigns || !a.isCampaign)
@@ -93,50 +102,72 @@ export const useTerritoryExport = () => {
             );
           const yearAssignments = allAssignmentsSorted.filter(inServiceYear);
 
-          // La plantilla física solo tiene 4 columnas: si hay más de 4
-          // asignaciones en el año, nos quedamos con las 4 MÁS RECIENTES
-          // (antes se tomaban las 4 más antiguas con slice(0, 4), así que la
-          // asignación vigente/más reciente podía desaparecer del S-13).
-          if (yearAssignments.length > 4) truncatedTerritories += 1;
-          const shown = yearAssignments.slice(-4);
+          /**
+           * "Última fecha en que se completó" para una tanda: la fecha de
+           * finalización MÁS RECIENTE de todo lo anterior a esa tanda. Solo
+           * cuentan las devoluciones como trabajado — un territorio devuelto
+           * sin trabajar no se "completó". Si `firstOfChunk` es undefined se
+           * mira todo el historial (territorio sin asignaciones este año).
+           */
+          const lastCompletedBefore = (
+            firstOfChunk?: (typeof allAssignmentsSorted)[number]
+          ): string => {
+            const anchor = firstOfChunk
+              ? allAssignmentsSorted.findIndex((a) => a.id === firstOfChunk.id)
+              : allAssignmentsSorted.length;
+            const prior = allAssignmentsSorted
+              .slice(0, Math.max(anchor, 0))
+              .filter((a) => a.returnedAt && a.status === 'trabajado');
+            if (prior.length === 0) return '';
+            const last = prior.reduce((best, a) =>
+              new Date(a.returnedAt!) > new Date(best.returnedAt!) ? a : best
+            );
+            return formatTerritoryDate(last.returnedAt!, S13_DATE);
+          };
 
-          // "Última fecha en que se completó": la propia plantilla indica
-          // que es la fecha de la asignación ANTERIOR a las que se ven en
-          // esta hoja (continuidad con historial fuera de las 4 columnas),
-          // no la de una asignación ya visible — antes se usaba
-          // t.lastWorkedAt (la última vez que se trabajó, sea cual sea),
-          // que casi siempre coincidía con la última asignación ya
-          // mostrada y no aportaba nada nuevo.
-          const anchorIndex = shown[0]
-            ? allAssignmentsSorted.findIndex((a) => a.id === shown[0].id)
-            : -1;
-          const previous =
-            anchorIndex > 0
-              ? allAssignmentsSorted[anchorIndex - 1]
-              : shown.length === 0
-                ? allAssignmentsSorted[allAssignmentsSorted.length - 1]
-                : undefined;
-
-          return {
+          const toRow = (
+            chunk: typeof allAssignmentsSorted,
+            firstOfChunk?: (typeof allAssignmentsSorted)[number]
+          ) => ({
             numero: t.numero,
-            lastCompleted: previous?.returnedAt
-              ? formatTerritoryDate(previous.returnedAt, S13_DATE)
-              : '',
-            assignments: shown.map((a) => ({
+            lastCompleted: lastCompletedBefore(firstOfChunk),
+            assignments: chunk.map((a) => ({
               name: resolveName(a.personUid) + (a.isCampaign ? ' (C)' : ''),
               dateAssigned: formatTerritoryDate(a.assignedAt, S13_DATE),
               dateCompleted: a.returnedAt
                 ? formatTerritoryDate(a.returnedAt, S13_DATE)
                 : '',
             })),
-          };
+          });
+
+          // Sin asignaciones este año: la fila va vacía, pero conservando la
+          // última fecha en que se completó (que puede ser de años atrás).
+          if (yearAssignments.length === 0) return [toRow([], undefined)];
+
+          const chunks: (typeof allAssignmentsSorted)[] = [];
+          for (let i = 0; i < yearAssignments.length; i += S13_SLOTS) {
+            chunks.push(yearAssignments.slice(i, i + S13_SLOTS));
+          }
+          if (chunks.length > 1) continuedTerritories += 1;
+          return chunks.map((chunk) => toRow(chunk, chunk[0]));
         });
 
-        for (let i = 0; i < rows.length; i += ROWS_PER_SHEET) {
-          sheetsData.push({
-            zoneName: zone.nombre,
-            rows: rows.slice(i, i + ROWS_PER_SHEET),
-          });
+        // Primero una fila por territorio (la hoja normal); después, hojas
+        // de continuación solo con los territorios que necesitaron más de 4
+        // columnas. Así cada hoja mantiene "un territorio por fila", que es
+        // como está pensado el formulario para leerse.
+        const passes = Math.max(...rowsPerTerritory.map((r) => r.length), 1);
+        for (let pass = 0; pass < passes; pass++) {
+          const passRows = rowsPerTerritory
+            .map((rows) => rows[pass])
+            .filter((r): r is NonNullable<typeof r> => Boolean(r));
+          for (let i = 0; i < passRows.length; i += ROWS_PER_SHEET) {
+            sheetsData.push({
+              zoneName: zone.nombre,
+              continuation: pass > 0,
+              rows: passRows.slice(i, i + ROWS_PER_SHEET),
+            });
+          }
         }
       });
 
@@ -159,14 +190,19 @@ export const useTerritoryExport = () => {
 
         const textColor = rgb(0, 0, 0);
 
-        // Año de servicio y zona (arriba)
-        page.drawText(`${startYear} - ${sheet.zoneName}`, {
-          x: 135,
-          y: PAGE_HEIGHT - 94,
-          size: 11,
-          font: fontBold,
-          color: textColor,
-        });
+        // Año de servicio y zona (arriba). Las hojas de continuación se
+        // marcan para que quede claro que no repiten datos, sino que siguen
+        // donde la hoja anterior se quedó sin columnas.
+        page.drawText(
+          `${startYear} - ${sheet.zoneName}${sheet.continuation ? ' (continuación)' : ''}`,
+          {
+            x: 135,
+            y: PAGE_HEIGHT - 94,
+            size: 11,
+            font: fontBold,
+            color: textColor,
+          }
+        );
 
         // Dibujar cada fila
         sheet.rows.forEach((row, rowIndex) => {
@@ -236,7 +272,7 @@ export const useTerritoryExport = () => {
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       saveAs(blob, `S-13_${safeName}_${startYear}.pdf`);
 
-      return { truncatedTerritories };
+      return { continuedTerritories };
     },
     [zones, territories, assignments, resolveName, safeName]
   );

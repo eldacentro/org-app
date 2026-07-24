@@ -101,11 +101,11 @@ const ImportExportTab = () => {
                   () => exportS13(ref, includeCampaigns),
                   'S-13 generado correctamente.'
                 );
-                if (result && result.truncatedTerritories > 0) {
+                if (result && result.continuedTerritories > 0) {
                   displaySnackNotification({
                     severity: 'success',
-                    header: 'Algunos territorios tienen más de 4 asignaciones',
-                    message: `${result.truncatedTerritories} territorio(s) tuvieron más de 4 asignaciones este año de servicio; el S-13 solo tiene espacio para las 4 más recientes de cada uno.`,
+                    header: 'Se añadieron hojas de continuación',
+                    message: `${result.continuedTerritories} territorio(s) tuvieron más de 4 asignaciones este año. Como indica el propio formulario, siguen en una hoja de continuación con la última fecha en que se completaron.`,
                   });
                 }
               }}
