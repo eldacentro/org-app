@@ -9,7 +9,7 @@ import {
   restoreFromPayload,
 } from '@services/app/backupScheduler';
 import { googleDriveUploadBackup, googleDriveIsConnected } from '@services/app/googleDriveBackup';
-import { settingsState } from '@states/settings';
+import { congIDState, settingsState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import { IconBackupOrganized, IconDelete, IconAdd } from '@components/icons';
 import Button from '@components/button';
@@ -18,6 +18,7 @@ import IconButton from '@components/icon_button';
 import Dialog from '@components/dialog';
 
 const LocalBackupsTab = () => {
+  const congId = useAtomValue(congIDState);
   const settings = useAtomValue(settingsState);
   const [snapshots, setSnapshots] = useState<SnapshotType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,11 @@ const LocalBackupsTab = () => {
     if (isCreating) return;
     setIsCreating(true);
     try {
-      const payload = await generateBackupPayload();
+      // Con `congId`: sin él, `generateBackupPayload` se salta TODO lo de
+      // territorios (vive en Firestore, no en Dexie, y hay que ir a
+      // buscarlo). Solo la copia automática diaria lo pasaba, así que
+      // las copias hechas a mano y las de Drive salían sin territorios.
+      const payload = await generateBackupPayload(congId || undefined);
       const payloadString = JSON.stringify(payload);
       const sizeInBytes = new Blob([payloadString]).size;
       const now = new Date();

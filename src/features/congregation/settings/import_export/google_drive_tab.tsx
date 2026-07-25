@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Stack, CircularProgress } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import { settingsState } from '@states/settings';
+import { congIDState, settingsState } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import {
   googleDriveConnect,
@@ -16,6 +16,7 @@ import Typography from '@components/typography';
 import SwitchWithLabel from '@components/switch_with_label';
 
 const GoogleDriveTab = () => {
+  const congId = useAtomValue(congIDState);
   const settings = useAtomValue(settingsState);
   const backupAutomatic = settings.user_settings.backup_automatic;
 
@@ -81,7 +82,11 @@ const GoogleDriveTab = () => {
     if (isUploading) return;
     setIsUploading(true);
     try {
-      const payload = await generateBackupPayload();
+      // Con `congId`: sin él, `generateBackupPayload` se salta TODO lo de
+      // territorios (vive en Firestore, no en Dexie, y hay que ir a
+      // buscarlo). Solo la copia automática diaria lo pasaba, así que
+      // las copias hechas a mano y las de Drive salían sin territorios.
+      const payload = await generateBackupPayload(congId || undefined);
       const success = await googleDriveUploadBackup(payload);
       if (success) {
         displaySnackNotification({
