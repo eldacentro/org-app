@@ -55,12 +55,31 @@ document
 
 console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
 
+const container = document.getElementById('root');
+
+// ── Enlace público de territorio ────────────────────────────────────────────
+// Quien abre `#/t/...` es un invitado sin cuenta (p. ej. el superintendente de
+// circuito). Se le monta una raíz mínima y se sale ANTES de abrir la base de
+// datos local, registrar el service worker o pedir almacenamiento persistente:
+// nada de eso le sirve, y Dexie en navegación privada le plantaría encima la
+// pantalla de recuperación de base de datos.
+if (window.location.hash.startsWith('#/t/')) {
+  import('./PublicWrap').then(({ default: PublicWrap }) => {
+    createRoot(container).render(
+      <React.StrictMode>
+        <PublicWrap />
+      </React.StrictMode>
+    );
+  });
+} else {
+  bootstrapApp();
+}
+
+function bootstrapApp() {
 // Fire-and-forget: opens the local DB early so a fatal VersionError can
 // auto-recover (delete + reload) before it bricks startup. Not awaited so a
 // healthy DB never delays first paint — see initDbWithRecovery.
 initDbWithRecovery();
-
-const container = document.getElementById('root');
 
 const root = createRoot(container, {
   onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
@@ -106,3 +125,4 @@ root.render(
     <AppRoot />
   </React.StrictMode>
 );
+}

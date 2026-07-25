@@ -83,7 +83,10 @@ export const buildSharePayload = ({
 export const shareContentFingerprint = (
   payload: TerritorySharePayload
 ): string => {
-  const { generatedAt: _ignored, ...rest } = payload;
+  const rest: Omit<TerritorySharePayload, 'generatedAt'> & {
+    generatedAt?: string;
+  } = { ...payload };
+  delete rest.generatedAt;
 
   const canonical = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(canonical);
@@ -103,3 +106,39 @@ export const shareContentFingerprint = (
 
   return JSON.stringify(canonical(rest));
 };
+
+// ─── URL del enlace ─────────────────────────────────────────────────────────
+
+export type ParsedShareLink = {
+  congId: string;
+  token: string;
+  keyB64: string;
+} | null;
+
+/**
+ * Formato del enlace: `#/t/{congId}/{token}?k={clave}`.
+ *
+ * Todo va después de la almohadilla a propósito: el navegador nunca envía el
+ * fragmento al servidor, así que ni el token ni la clave aparecen en los logs
+ * del hosting ni en la cabecera `Referer`. Se parsea a mano para que la página
+ * pública no tenga que cargar react-router.
+ */
+export const parseShareHash = (hash: string): ParsedShareLink => {
+  const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+  const [path, search] = raw.split('?');
+  const parts = path.split('/').filter(Boolean); // ['t', congId, token]
+
+  if (parts.length < 3 || parts[0] !== 't') return null;
+
+  const keyB64 = new URLSearchParams(search ?? '').get('k') ?? '';
+
+  return { congId: parts[1], token: parts[2], keyB64 };
+};
+
+/** Compone la URL para compartir. */
+export const buildShareUrl = (
+  origin: string,
+  congId: string,
+  token: string,
+  keyB64: string
+): string => `${origin}/#/t/${congId}/${token}?k=${keyB64}`;

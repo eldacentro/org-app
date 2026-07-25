@@ -135,8 +135,8 @@ export const createShare = async ({
   const key = generateShareKey();
   const now = new Date().toISOString();
 
-  const record: TerritoryShare = {
-    token,
+  // El token es el ID del documento, así que no se repite dentro.
+  const fields: Omit<TerritoryShare, 'token'> = {
     assignmentId,
     territoryId,
     revoked: false,
@@ -148,8 +148,6 @@ export const createShare = async ({
     contentHash: await sha256Hex(shareContentFingerprint(payload)),
   };
 
-  // El token es el ID del documento; no hace falta repetirlo dentro.
-  const { token: _omit, ...fields } = record;
   await setDoc(shareDoc(congId, token), fields);
 
   return { token, keyB64: shareKeyToString(key) };
