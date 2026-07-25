@@ -94,12 +94,12 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
           Crear campaña
         </Typography>
         {errorMsg && (
           <Box sx={{ mb: 2, p: 1, backgroundColor: 'var(--red-secondary)', borderRadius: 'var(--r-sm)' }}>
-            <Typography variant="body2" sx={{ color: 'var(--red-main)' }}>
+            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
               {errorMsg}
             </Typography>
           </Box>

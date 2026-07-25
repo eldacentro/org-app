@@ -69,11 +69,11 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
       <Box
         sx={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: zone.color, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }}
       />
-      <Typography variant="h6" sx={{ color: 'var(--ink)', fontWeight: 600, fontSize: '1.1rem' }}>
+      <Typography className="h2" sx={{ color: 'var(--ink)', fontSize: '1.1rem' }}>
         {zone.nombre}
       </Typography>
       <Box sx={{ backgroundColor: 'var(--accent-150)', px: 1.5, py: 0.5, borderRadius: '24px' }}>
-        <Typography variant="caption" sx={{ color: 'var(--ink-2)', fontWeight: 600, fontSize: '0.85rem' }}>
+        <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', fontSize: '0.85rem' }}>
           {items.length} territorios
         </Typography>
       </Box>
@@ -167,7 +167,7 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
                         </Box>
                       </Box>
                     )}
-                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1, pr: selectionMode ? 3 : 0 }}>
+                    <Typography className="body-regular" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1, pr: selectionMode ? 3 : 0 }}>
                       {territoryLabel(t)}
                     </Typography>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
@@ -474,7 +474,7 @@ const ResponsablesPanel = ({
                 </Stack>
 
                 {territories.length === 0 && (
-                  <Typography variant="body2" color="var(--ink-2)">
+                  <Typography className="body-small-regular" color="var(--ink-2)">
                     {loading
                       ? 'Cargando territorios…'
                       : 'Aún no hay territorios. Crea una zona e importa tu archivo KML.'}

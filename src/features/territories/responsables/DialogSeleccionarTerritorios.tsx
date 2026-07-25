@@ -105,7 +105,7 @@ const DialogSeleccionarTerritorios = ({
       }}
     >
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1.5, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 1.5, color: 'var(--ink)' }}>
           Seleccionar territorios
         </Typography>
 
@@ -143,7 +143,7 @@ const DialogSeleccionarTerritorios = ({
 
         <Box sx={{ maxHeight: '50vh', overflowY: 'auto' }}>
           {filtered.length === 0 ? (
-            <Typography variant="body2" color="var(--ink-2)" sx={{ p: 2, textAlign: 'center' }}>
+            <Typography className="body-small-regular" color="var(--ink-2)" sx={{ p: 2, textAlign: 'center' }}>
               No hay territorios disponibles.
             </Typography>
           ) : (

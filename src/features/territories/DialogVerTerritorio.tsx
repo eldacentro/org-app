@@ -1284,7 +1284,7 @@ const DialogVerTerritorio = ({
                     mb: 1.5,
                   }}
                 >
-                  <Typography variant="body2" color="var(--ink-2)">Sin imagen</Typography>
+                  <Typography className="body-small-regular" color="var(--ink-2)">Sin imagen</Typography>
                 </Box>
               )}
               {canManage && (

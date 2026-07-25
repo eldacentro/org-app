@@ -203,7 +203,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
             <Stack spacing={2.5}>
               <Box>
-                <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
+                <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
                   Zona *
                 </Typography>
                 <Select
@@ -234,7 +234,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
               />
 
               <Box>
-                <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
+                <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
                   Etiquetas
                 </Typography>
                 <AutocompleteMultiple
@@ -319,7 +319,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                 zIndex: 1000,
                 pointerEvents: 'none'
               }}>
-                <Typography variant="caption" color="var(--ink-2)" sx={{ fontWeight: 600 }}>
+                <Typography className="label-small-semibold" color="var(--ink-2)" sx={{}}>
                   Modo edición: activo
                 </Typography>
               </Box>

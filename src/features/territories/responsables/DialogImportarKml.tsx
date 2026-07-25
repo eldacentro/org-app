@@ -106,17 +106,17 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Importar territorios (KML/KMZ)
         </Typography>
-        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
+        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 3 }}>
           Sube el archivo exportado desde Territory Helper o Google Earth. Cada
           polígono se importará como un territorio en la zona seleccionada.
         </Typography>
 
         <Stack spacing={2}>
           {zones.length === 0 ? (
-            <Typography variant="body2" color="var(--red-main)">
+            <Typography className="body-small-regular" color="var(--red-main)">
               Primero crea al menos una zona.
             </Typography>
           ) : (
@@ -146,12 +146,12 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
           </Button>
 
           {parsed.length > 0 && (
-            <Typography variant="body2" sx={{ color: 'var(--green-main)' }}>
+            <Typography className="body-small-regular" sx={{ color: 'var(--green-main)' }}>
               {parsed.length} territorio(s) detectado(s).
             </Typography>
           )}
           {duplicateNumeros.length > 0 && (
-            <Typography variant="body2" sx={{ color: 'var(--orange-main)' }}>
+            <Typography className="body-small-regular" sx={{ color: 'var(--orange-main)' }}>
               {duplicateNumeros.length} número(s) ya existen en esta zona o se repiten
               en el archivo ({duplicateNumeros.slice(0, 6).join(', ')}
               {duplicateNumeros.length > 6 ? '…' : ''}). Si importas, se crearán como
@@ -159,7 +159,7 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
             </Typography>
           )}
           {error && (
-            <Typography variant="body2" sx={{ color: 'var(--red-main)' }}>
+            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
               {error}
             </Typography>
           )}

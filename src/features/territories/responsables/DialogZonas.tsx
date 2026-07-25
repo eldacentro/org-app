@@ -123,17 +123,17 @@ const DialogZonas = ({ open, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Zonas y tipos de territorio
         </Typography>
-        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
+        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 3 }}>
           Agrupa tus territorios por zona (ej. Elda - Urbano, Elda - Rural). El
           color se aplica a todos los territorios de la zona.
         </Typography>
 
         <Stack spacing={1.5} sx={{ mb: 3, maxHeight: 280, overflowY: 'auto', pr: '4px' }}>
           {zones.length === 0 ? (
-            <Typography variant="body2" color="var(--ink-2)">
+            <Typography className="body-small-regular" color="var(--ink-2)">
               Aún no hay zonas. Crea la primera abajo.
             </Typography>
           ) : (
@@ -186,10 +186,10 @@ const DialogZonas = ({ open, onClose }: Props) => {
                       </Stack>
                     ) : (
                       <>
-                        <Typography variant="body1" sx={{ color: 'var(--ink)' }}>
+                        <Typography className="body-regular" sx={{ color: 'var(--ink)' }}>
                           {zone.nombre}
                         </Typography>
-                        <Typography variant="caption" color="var(--ink-2)">
+                        <Typography className="label-small-regular" color="var(--ink-2)">
                           {count} territorio(s)
                         </Typography>
                       </>

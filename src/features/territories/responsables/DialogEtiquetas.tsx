@@ -104,17 +104,17 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Etiquetas
         </Typography>
-        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
+        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 3 }}>
           Crea etiquetas para clasificar tus territorios (ej. Comercial, Escaleras, 
           Urbano denso). Luego podrás asignarlas a cada territorio.
         </Typography>
 
         <Stack spacing={1.5} sx={{ mb: 3, maxHeight: 280, overflowY: 'auto', pr: '4px' }}>
           {tags.length === 0 ? (
-            <Typography variant="body2" color="var(--ink-2)">
+            <Typography className="body-small-regular" color="var(--ink-2)">
               Aún no hay etiquetas. Crea la primera abajo.
             </Typography>
           ) : (
@@ -146,10 +146,10 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
                     }}
                   />
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ color: 'var(--ink)' }}>
+                    <Typography className="body-regular" sx={{ color: 'var(--ink)' }}>
                       {tag.nombre}
                     </Typography>
-                    <Typography variant="caption" color="var(--ink-2)">
+                    <Typography className="label-small-regular" color="var(--ink-2)">
                       {count} territorio(s)
                     </Typography>
                   </Box>

@@ -96,7 +96,7 @@ const TerritoryAssignmentCard = ({
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: history.length > 0 ? 1.5 : 0 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+          <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
             {territoryLabel(t)}
           </Typography>
           <Box
@@ -140,7 +140,7 @@ const TerritoryAssignmentCard = ({
       </Stack>
 
       {history.length === 0 ? (
-        <Typography variant="caption" color="var(--ink-2)" sx={{ mt: 1, display: 'block' }}>
+        <Typography className="label-small-regular" color="var(--ink-2)" sx={{ mt: 1, display: 'block' }}>
           Sin asignaciones registradas.
         </Typography>
       ) : (
@@ -160,13 +160,13 @@ const TerritoryAssignmentCard = ({
             spacing={1}
           >
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+              <Typography className="body-small-semibold" sx={{ color: 'var(--ink)' }}>
                 {resolveName(activeOrLatest.personUid)}
                 {activeOrLatest.isCampaign && (
                   <span style={{ color: 'var(--blue-main)' }}> (Campaña)</span>
                 )}
               </Typography>
-              <Typography variant="caption" color="var(--ink-2)">
+              <Typography className="label-small-regular" color="var(--ink-2)">
                 {formatTerritoryDate(activeOrLatest.assignedAt, dateFormat)}
                 {' → '}
                 {activeOrLatest.returnedAt
@@ -222,13 +222,13 @@ const TerritoryAssignmentCard = ({
                       spacing={1}
                     >
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
+                        <Typography className="body-small-regular" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
                           {resolveName(a.personUid)}
                           {a.isCampaign && (
                             <span style={{ color: 'var(--blue-main)' }}> (C)</span>
                           )}
                         </Typography>
-                        <Typography variant="caption" color="var(--ink-2)">
+                        <Typography className="label-small-regular" color="var(--ink-2)">
                           {formatTerritoryDate(a.assignedAt, dateFormat)}
                           {' → '}
                           {a.returnedAt
@@ -421,7 +421,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
       </Stack>
 
       {!loading && !hasAnyResults && (
-        <Typography variant="body2" color="var(--ink-2)">
+        <Typography className="body-small-regular" color="var(--ink-2)">
           {search.trim()
             ? 'No hay territorios que coincidan con tu búsqueda.'
             : filter === 'assigned'

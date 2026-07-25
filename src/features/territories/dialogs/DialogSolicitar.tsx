@@ -164,22 +164,22 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Solicitar territorio
         </Typography>
-        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 2 }}>
+        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 2 }}>
           Tu solicitud llegará a los responsables del departamento de Territorios.
           Si tienes alguna preferencia (por ejemplo: rural, con casas bajas,
           con ascensores…), escríbela en la nota.
         </Typography>
 
         {pendingRequests.some(r => r.personUid === uid) ? (
-          <Typography variant="body1" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
+          <Typography className="body-regular" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
             Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
           </Typography>
         ) : (
           <>
-            <Typography variant="body2" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
+            <Typography className="body-small-regular" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
               Nota (opcional)
             </Typography>
             <TextField

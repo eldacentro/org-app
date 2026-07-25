@@ -167,7 +167,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       </Box>
 
       {sorted.length === 0 && (
-        <Typography variant="body2" color="var(--ink-2)">
+        <Typography className="body-small-regular" color="var(--ink-2)">
           No hay campañas. Crea una para empezar.
         </Typography>
       )}
@@ -198,7 +198,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
             <Stack direction={{ mobile: 'column', tablet600: 'row' }} alignItems={{ mobile: 'flex-start', tablet600: 'center' }} justifyContent="space-between" spacing={1.5}>
               <Box>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-                  <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                  <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                     {c.nombre}
                   </Typography>
                   <Box
@@ -217,7 +217,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                     {c.estado}
                   </Box>
                 </Stack>
-                <Typography variant="caption" color="var(--ink-2)">
+                <Typography className="label-small-regular" color="var(--ink-2)">
                   {formatTerritoryDate(c.fechaInicio, settings.dateFormat)} →{' '}
                   {formatTerritoryDate(c.fechaFin, settings.dateFormat)} ·{' '}
                   <span style={{ color: 'var(--ink)' }}>{c.territoryIds.length} territorios</span>
@@ -267,7 +267,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
                 <Stack spacing={1}>
                   {campTerritories.length === 0 ? (
-                    <Typography variant="caption" color="var(--ink-2)">
+                    <Typography className="label-small-regular" color="var(--ink-2)">
                       Sin territorios en la campaña.
                     </Typography>
                   ) : (
@@ -302,11 +302,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                           }}
                         >
                           <Box>
-                            <Typography variant="body2" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
+                            <Typography className="body-small-regular" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
                               {territoryLabel(t)}
                             </Typography>
                             <Typography
-                              variant="caption"
+                              className="label-small-regular"
                               sx={{
                                 color: open
                                   ? 'var(--orange-dark)'

@@ -137,11 +137,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
         }}
       />
       <Box sx={{ flex: 1 }}>
-        <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
+        <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
           {displayText(l.direccion)}
         </Typography>
         {l.nota && (
-          <Typography variant="caption" color="var(--ink-2)">
+          <Typography className="label-small-regular" color="var(--ink-2)">
             {displayText(l.nota)}
           </Typography>
         )}
@@ -164,7 +164,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       {ConfirmDialogNode}
       <Stack spacing={1}>
         {approved.length === 0 && visiblePending.length === 0 && (
-          <Typography variant="body2" color="var(--ink-2)">
+          <Typography className="body-small-regular" color="var(--ink-2)">
             No hay direcciones de &quot;No visitar&quot; en este territorio.
           </Typography>
         )}
@@ -179,7 +179,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
           o tres veces más. */}
       {visiblePending.length > 0 && (
         <Box>
-          <Typography variant="caption" color="var(--orange-main)">
+          <Typography className="label-small-regular" color="var(--orange-main)">
             {canManage
               ? `Pendientes de aprobación (${visiblePending.length})`
               : 'Enviado — pendiente de que un responsable lo apruebe'}
@@ -211,12 +211,12 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
               Añadir
             </Button>
             {saveError && (
-              <Typography variant="caption" color="var(--red-main)">
+              <Typography className="label-small-regular" color="var(--red-main)">
                 {saveError}
               </Typography>
             )}
             {!canManage && settings.locationsRequireApproval && (
-              <Typography variant="caption" color="var(--ink-2)">
+              <Typography className="label-small-regular" color="var(--ink-2)">
                 La dirección quedará pendiente hasta que un responsable la apruebe.
               </Typography>
             )}

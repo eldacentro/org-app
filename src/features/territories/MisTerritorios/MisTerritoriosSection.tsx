@@ -173,7 +173,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   Entregar territorio
                 </Button>
                 {!settings.publishersCanReturn && (
-                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
+                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
                     Solo un responsable puede marcar este territorio como entregado.
                   </Typography>
                 )}
@@ -214,7 +214,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                 <Box sx={{ flex: 1 }}>
                   <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                       {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
                       <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
                         {resolveName(assignment.personUid)}
@@ -222,7 +222,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                     </Typography>
                     {assignment.isCampaign && <CampanaBadge />}
                   </Stack>
-                  <Typography variant="caption" color="var(--ink-2)">
+                  <Typography className="label-small-regular" color="var(--ink-2)">
                     Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
                   </Typography>
                 </Box>
@@ -244,7 +244,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
           Mis territorios
         </Typography>
         {noticesBanner}
-        <Typography variant="body2" color="var(--ink-2)">
+        <Typography className="body-small-regular" color="var(--ink-2)">
           {loading
             ? 'Cargando tus territorios…'
             : 'No tienes territorios asignados ahora mismo. Puedes solicitar uno.'}
@@ -289,7 +289,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 <TerritoryThumbnail geometry={territory.geometry} color={color} />
                 <Box sx={{ flex: 1 }}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                       {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
                     </Typography>
                     {assignment.isCampaign && <CampanaBadge />}
@@ -315,10 +315,10 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                       También decía "Entregado" — ese verbo se reserva para
                       cuando el publicador devuelve el territorio, así que aquí
                       (fecha en que se LE entregó a él) confundía. */}
-                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block' }}>
+                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block' }}>
                     Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
                   </Typography>
-                  <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block' }}>
+                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block' }}>
                     Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilOverdue), settings.dateFormat)}
                   </Typography>
                 </Box>
@@ -343,7 +343,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 </Button>
               </Stack>
               {!settings.publishersCanReturn && (
-                <Typography variant="caption" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
+                <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
                   Solo un responsable puede marcar este territorio como entregado.
                 </Typography>
               )}

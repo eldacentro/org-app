@@ -43,7 +43,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
 
   if (pending.length === 0) {
     return (
-      <Typography variant="body2" color="var(--ink-2)">
+      <Typography className="body-small-regular" color="var(--ink-2)">
         {loading ? 'Cargando solicitudes…' : 'No hay solicitudes de territorio pendientes.'}
       </Typography>
     );
@@ -69,14 +69,14 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                 borderLeft: '4px solid var(--blue-main)',
               }}
             >
-              <Typography variant="body1" sx={{ color: 'var(--ink)' }}>
+              <Typography className="body-regular" sx={{ color: 'var(--ink)' }}>
                 {resolveName(req.personUid)} pidió un territorio
               </Typography>
-              <Typography variant="caption" color="var(--ink-2)">
+              <Typography className="label-small-regular" color="var(--ink-2)">
                 {formatTerritoryDate(req.createdAt, settings.dateFormat)}
               </Typography>
               {req.nota && (
-                <Typography variant="body2" sx={{ mt: 0.5, color: 'var(--ink)' }}>
+                <Typography className="body-small-regular" sx={{ mt: 0.5, color: 'var(--ink)' }}>
                   &quot;{req.nota}&quot;
                 </Typography>
               )}

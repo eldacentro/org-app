@@ -162,7 +162,7 @@ const NoAsignadoRow = ({
     >
       <Box>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+          <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
             {territoryLabel(t)}
             {showZone && (
               <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
@@ -186,7 +186,7 @@ const NoAsignadoRow = ({
             </Box>
           )}
         </Stack>
-        <Typography variant="caption" color="var(--ink-2)">
+        <Typography className="label-small-regular" color="var(--ink-2)">
           {t.lastWorkedAt
             ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, dateFormat)}`
             : 'Nunca trabajado'}
@@ -436,7 +436,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
   if (stats.total === 0) {
     return (
-      <Typography variant="body2" color="var(--ink-2)">
+      <Typography className="body-small-regular" color="var(--ink-2)">
         {loading ? 'Cargando estadísticas…' : 'Aún no hay territorios para mostrar estadísticas.'}
       </Typography>
     );
@@ -497,7 +497,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         {stats.atrasados.length === 0 ? (
           <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <IconCheckCircle width={24} height={24} color="var(--green-main)" />
-            <Typography variant="body2" color="var(--ink-2)">
+            <Typography className="body-small-regular" color="var(--ink-2)">
               No hay territorios atrasados. ¡Gran trabajo!
             </Typography>
           </Box>
@@ -521,13 +521,13 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   }}
                 >
                   <Box>
-                    <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
                       {t ? territoryLabel(t) : '—'}
                       <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
                         {resolveName(a.personUid)}
                       </span>
                     </Typography>
-                    <Typography variant="caption" color="var(--ink-2)">
+                    <Typography className="label-small-regular" color="var(--ink-2)">
                       Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
                       Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
                     </Typography>
@@ -555,7 +555,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
         {stats.noAsignadosLista.length === 0 ? (
           <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
-            <Typography variant="body2" color="var(--ink-2)">
+            <Typography className="body-small-regular" color="var(--ink-2)">
               Todos los territorios están asignados actualmente.
             </Typography>
           </Box>

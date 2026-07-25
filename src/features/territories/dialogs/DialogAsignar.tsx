@@ -239,13 +239,24 @@ const DialogAsignar = ({
       // a quién avisar, así que se salta el aviso in-app, el push y el correo.
       if (personUid !== currentUid && !isCircuitOverseerUid(personUid)) {
         const labelsList = toAssign.map((t) => territoryLabel(t)).join(', ');
-        const mensaje = `Se te han asignado ${toAssign.length} territorios: ${labelsList}.`;
+        const mensaje =
+          toAssign.length === 1
+            ? `Se te ha asignado 1 territorio: ${labelsList}.`
+            : `Se te han asignado ${toAssign.length} territorios: ${labelsList}.`;
 
         await saveNotice(congId, {
           id: crypto.randomUUID(),
           personUid,
-          title: 'Nuevos territorios asignados',
+          title:
+            toAssign.length === 1
+              ? 'Nuevo territorio asignado'
+              : 'Nuevos territorios asignados',
           mensaje,
+          // Con varios territorios se apunta al PRIMERO. Sin `territoryId` el
+          // aviso se quedaba sin botón "Ver territorio" y, al no ser
+          // marcable como leído, se acumulaba en la campana para siempre sin
+          // forma de quitarlo; además lucía el icono de otro módulo.
+          territoryId: toAssign[0]?.id,
           sentBy: currentUid,
           createdAt: now,
         });
@@ -447,7 +458,7 @@ const DialogAsignar = ({
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
+        <Typography className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
           {isBulk
             ? `Asignar ${bulkTerritories!.length} territorios`
             : `Asignar territorio${isCampaign ? ' (campaña)' : ''}`}
@@ -464,12 +475,12 @@ const DialogAsignar = ({
                 overflowY: 'auto',
               }}
             >
-              <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
                 {bulkTerritories!.map((t) => territoryLabel(t)).join(', ')}
               </Typography>
             </Box>
           ) : territory ? (
-            <Typography variant="body2" color="var(--ink-2)">
+            <Typography className="body-small-regular" color="var(--ink-2)">
               {territoryLabel(territory)}
             </Typography>
           ) : (

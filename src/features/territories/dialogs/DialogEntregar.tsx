@@ -183,7 +183,7 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
     >
       <Box sx={{ width: '100%' }}>
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Typography variant="h6" className="h2" sx={{ color: 'var(--ink)' }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
             Entregar territorio
           </Typography>
           <IconButton
@@ -203,7 +203,7 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
             <IconClose width={15} height={15} />
           </IconButton>
         </Stack>
-        <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 2 }}>
+        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 2 }}>
           Indica si el territorio fue trabajado o si lo devuelves sin trabajar.
           Puedes añadir una nota opcional.
         </Typography>

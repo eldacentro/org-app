@@ -62,7 +62,7 @@ const HistorialTab = () => {
       </Box>
 
       {filtered.length === 0 ? (
-        <Typography variant="body2" color="var(--ink-2)">
+        <Typography className="body-small-regular" color="var(--ink-2)">
           {loading
             ? 'Cargando historial…'
             : search
@@ -95,7 +95,7 @@ const HistorialTab = () => {
                   spacing={1}
                 >
                   <Box>
-                    <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
+                    <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
                       <strong>{resolveName(a.personUid)}</strong>
                       {/* Misma marca "(C)" que usan el historial de
                           Asignaciones y el S-13: sin ella no había forma de
@@ -109,14 +109,14 @@ const HistorialTab = () => {
                       devolvió el <strong>{tName}</strong> como{' '}
                       <strong>{worked ? 'trabajado' : 'no trabajado'}</strong>
                     </Typography>
-                    <Typography variant="caption" color="var(--ink-2)">
+                    <Typography className="label-small-regular" color="var(--ink-2)">
                       Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} · Devuelto el{' '}
                       {formatTerritoryDate(a.returnedAt!, settings.dateFormat)}
                     </Typography>
                   </Box>
                   {a.notas && (
                     <Typography
-                      variant="caption"
+                      className="label-small-regular"
                       sx={{ color: 'var(--ink-2)', fontStyle: 'italic', maxWidth: '300px' }}
                     >
                       &quot;{displayText(a.notas)}&quot;
