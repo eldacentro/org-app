@@ -623,11 +623,11 @@ const TerritoryMap = ({
         center={center}
         zoom={15}
         // Leaflet corta en 18 por defecto, que en una calle estrecha se queda
-        // corto para distinguir portales. Las teselas de OpenStreetMap llegan
-        // a 19 y las de satélite a 19 también; a partir de ahí el navegador
-        // amplía la última tesela disponible (`maxNativeZoom`), que se ve algo
-        // borroso pero permite acercarse de verdad al portal.
-        maxZoom={21}
+        // corto para distinguir portales. Las teselas de OpenStreetMap y las de
+        // satélite llegan a 19; a partir de ahí el navegador amplía la última
+        // tesela disponible (`maxNativeZoom`). Un nivel de más (x2) todavía se
+        // lee bien; dos (x4) ya era papilla, así que el tope es 20.
+        maxZoom={20}
         scrollWheelZoom
         zoomControl={false}
         rotate
@@ -640,14 +640,14 @@ const TerritoryMap = ({
             attribution="&copy; Esri World Imagery"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             maxNativeZoom={19}
-            maxZoom={21}
+            maxZoom={20}
           />
         ) : (
           <TileLayer
             attribution="&copy; OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maxNativeZoom={19}
-            maxZoom={21}
+            maxZoom={20}
           />
         )}
 

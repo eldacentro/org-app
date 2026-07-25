@@ -18,7 +18,7 @@ import {
 } from '@services/app/territories';
 import { territoriesToKml } from '@utils/kml';
 import { usePersonName } from '@features/territories/usePersonName';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, PDFFont, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 
 const S13_DATE = 'dd-MM-yyyy';
@@ -45,6 +45,24 @@ const COL_DATE_X = 105; // Centro de Última fecha
 const COL_GROUPS_X = [135, 241.6, 348.2, 454.8]; // Borde izquierdo de cada grupo
 const GROUP_WIDTH = 106.6;
 const HALF_GROUP = GROUP_WIDTH / 2;
+
+/**
+ * ¿Se puede escribir este texto con las fuentes estándar del PDF?
+ *
+ * Las base-14 (Helvetica y compañía) solo hablan WinAnsi/cp1252: latín
+ * occidental completo — tildes, ñ, ü, ç…— pero nada de ł, ș, ț, ř o ě. Si se
+ * les pasa uno de esos, pdf-lib LANZA, así que hay que preguntarlo antes.
+ */
+const WIN_ANSI_EXTRA = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
+const isWinAnsi = (text: string) =>
+  [...text].every((ch) => {
+    const c = ch.codePointAt(0)!;
+    return (
+      (c >= 0x20 && c <= 0x7e) ||
+      (c >= 0xa0 && c <= 0xff) ||
+      WIN_ANSI_EXTRA.includes(ch)
+    );
+  });
 
 export type ExcelFilter = 'all' | 'assigned' | 'unassigned' | 'campaigns';
 
@@ -181,28 +199,61 @@ export const useTerritoryExport = () => {
       const doc = await PDFDocument.create();
       const baseDoc = await PDFDocument.load(templateBytes);
 
-      // Fuente TTF embebida en vez de las estándar de PDF (Helvetica), que
-      // solo admiten el juego WinAnsi/cp1252. Con Helvetica, un apellido con
-      // una letra fuera de ese juego (ł, ș, ț, ă, ć, ř…) hacía que pdf-lib
-      // lanzara y la exportación entera fallara con un error genérico: el
-      // formulario oficial no se podía generar por el nombre de un solo
-      // hermano, y reintentar nunca servía. Las tildes y la ñ sí entran en
-      // cp1252, por eso no se había notado.
-      doc.registerFontkit(fontkit);
-      const [regularBytes, semiBoldBytes] = await Promise.all([
-        fetch('/assets/fonts/NotoSans-Regular.ttf').then((r) => r.arrayBuffer()),
-        fetch('/assets/fonts/NotoSans-SemiBold.ttf').then((r) => r.arrayBuffer()),
-      ]);
-      // SIN `subset: true`. Recortar la fuente a los caracteres usados deja
-      // el PDF mucho más ligero, pero con estas páginas —copiadas de la
-      // plantilla y con cientos de textos— pdf-lib genera un subconjunto
-      // incompleto: en el S-13 salían nombres y fechas a los que les faltaba
-      // la mayoría de las letras ("He y A" en vez del nombre, "6" en vez de
-      // "25-06-2026"). Comprobado renderizando el PDF con las dos opciones.
-      // La fuente entera pesa más, pero el formulario es oficial: primero que
-      // se lea.
-      const font = await doc.embedFont(regularBytes);
-      const fontBold = await doc.embedFont(semiBoldBytes);
+      // ── Fuentes ────────────────────────────────────────────────────────
+      // El impreso oficial está compuesto en Arial, así que lo que se rellena
+      // encima tiene que ser Arial también: si no, el formulario sale con dos
+      // tipografías distintas y se nota a la legua. Helvetica es la base-14
+      // del PDF métricamente equivalente a Arial y no pesa NADA (no se
+      // embebe): el visor usa la del sistema, la misma que ya usa la
+      // plantilla. Es lo que hacía la primera versión y por eso se veía bien.
+      const font = await doc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+
+      // Pero Helvetica solo habla cp1252, y un apellido con ł, ș, ț, ă, ć o ř
+      // hacía que pdf-lib lanzara y se perdiera la exportación ENTERA por el
+      // nombre de un solo hermano. Por eso hay una fuente Unicode de
+      // repuesto — que solo se descarga y se embebe si de verdad hace falta,
+      // así que en el caso normal (todo latín occidental) el PDF sale ligero
+      // y con la letra del impreso, y en el caso raro el nombre se lee bien
+      // aunque cambie ligeramente de tipografía. Mejor eso que no salir.
+      const needsUnicode = sheetsData.some(
+        (s) =>
+          !isWinAnsi(s.zoneName) ||
+          s.rows.some(
+            (r) =>
+              !isWinAnsi(r.numero) ||
+              r.assignments.some((a) => !isWinAnsi(a.name))
+          )
+      );
+
+      let uniFont: PDFFont | null = null;
+      let uniFontBold: PDFFont | null = null;
+      if (needsUnicode) {
+        doc.registerFontkit(fontkit);
+        const [regularBytes, semiBoldBytes] = await Promise.all([
+          fetch('/assets/fonts/NotoSans-Regular.ttf').then((r) =>
+            r.arrayBuffer()
+          ),
+          fetch('/assets/fonts/NotoSans-SemiBold.ttf').then((r) =>
+            r.arrayBuffer()
+          ),
+        ]);
+        // SIN `subset: true`. Recortar la fuente a los caracteres usados deja
+        // el PDF mucho más ligero, pero con estas páginas —copiadas de la
+        // plantilla y con cientos de textos— pdf-lib genera un subconjunto
+        // incompleto: en el S-13 salían nombres y fechas a los que les
+        // faltaba la mayoría de las letras ("He y A" en vez del nombre, "6"
+        // en vez de "25-06-2026"). Comprobado renderizando el PDF con las dos
+        // opciones.
+        uniFont = await doc.embedFont(regularBytes);
+        uniFontBold = await doc.embedFont(semiBoldBytes);
+      }
+
+      /** Helvetica salvo que el texto tenga letras que no admite. */
+      const pickFont = (text: string, bold = false): PDFFont => {
+        if (uniFont && !isWinAnsi(text)) return bold ? uniFontBold! : uniFont;
+        return bold ? fontBold : font;
+      };
 
       for (const sheet of sheetsData) {
         // Por cada "sheet", creamos una página nueva clonando la base
@@ -214,24 +265,23 @@ export const useTerritoryExport = () => {
         // Año de servicio y zona (arriba). Las hojas de continuación se
         // marcan para que quede claro que no repiten datos, sino que siguen
         // donde la hoja anterior se quedó sin columnas.
-        page.drawText(
-          `${startYear} - ${sheet.zoneName}${sheet.continuation ? ' (continuación)' : ''}`,
-          {
-            x: 135,
-            y: PAGE_HEIGHT - 94,
-            size: 11,
-            font: fontBold,
-            color: textColor,
-          }
-        );
+        const heading = `${startYear} - ${sheet.zoneName}${sheet.continuation ? ' (continuación)' : ''}`;
+        page.drawText(heading, {
+          x: 135,
+          y: PAGE_HEIGHT - 94,
+          size: 11,
+          font: pickFont(heading, true),
+          color: textColor,
+        });
 
         // Dibujar cada fila
         sheet.rows.forEach((row, rowIndex) => {
           const rowY = ROW_START_Y - rowIndex * ROW_HEIGHT;
           
           // Centro del número y fecha
-          const drawCentered = (text: string, xPos: number, yPos: number, fontSize: number, fnt = font) => {
+          const drawCentered = (text: string, xPos: number, yPos: number, fontSize: number, bold = false) => {
             if (!text) return;
+            const fnt = pickFont(text, bold);
             const textWidth = fnt.widthOfTextAtSize(text, fontSize);
             page.drawText(text, {
               x: xPos - textWidth / 2,
@@ -243,15 +293,16 @@ export const useTerritoryExport = () => {
           };
 
           // Núm y Última fecha
-          drawCentered(row.numero, COL_NUM_X, rowY - BASELINE_TOP, 9, fontBold);
+          drawCentered(row.numero, COL_NUM_X, rowY - BASELINE_TOP, 9, true);
           drawCentered(row.lastCompleted, COL_DATE_X, rowY - BASELINE_TOP, 8);
 
           // Asignaciones
           row.assignments.forEach((assign, aIndex) => {
             const grpX = COL_GROUPS_X[aIndex];
-            
+            const nameFont = pickFont(assign.name);
+
             // Nombre (Top half)
-            const nameWidth = font.widthOfTextAtSize(assign.name, 8);
+            const nameWidth = nameFont.widthOfTextAtSize(assign.name, 8);
             // Centrado dentro del grupo o alineado a la izquierda si es muy largo
             let nameX = grpX + HALF_GROUP - nameWidth / 2;
             if (nameWidth > GROUP_WIDTH - 4) nameX = grpX + 2; // Si no cabe centrado, alinear a la izq
@@ -262,11 +313,12 @@ export const useTerritoryExport = () => {
             // así que nombres con letras anchas seguían desbordando la
             // columna y nombres con letras muy estrechas se recortaban de más).
             let displayName = assign.name;
-            if (font.widthOfTextAtSize(displayName, 8) > GROUP_WIDTH - 2) {
+            if (nameFont.widthOfTextAtSize(displayName, 8) > GROUP_WIDTH - 2) {
               let truncated = displayName;
               while (
                 truncated.length > 1 &&
-                font.widthOfTextAtSize(truncated + '...', 8) > GROUP_WIDTH - 2
+                nameFont.widthOfTextAtSize(truncated + '...', 8) >
+                  GROUP_WIDTH - 2
               ) {
                 truncated = truncated.slice(0, -1);
               }
@@ -277,7 +329,7 @@ export const useTerritoryExport = () => {
               x: nameX,
               y: rowY - BASELINE_TOP,
               size: 8,
-              font,
+              font: nameFont,
               color: textColor,
             });
 
