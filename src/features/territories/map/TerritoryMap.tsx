@@ -3,7 +3,7 @@ import {
   MapContainer,
   TileLayer,
   GeoJSON,
-  CircleMarker,
+  Marker,
   useMap,
   Tooltip,
 } from 'react-leaflet';
@@ -203,40 +203,76 @@ const TouchGestureRecovery = () => {
 // polígonos, no lleva rotación y no pasa por aquí.
 const VectorGestureSync = () => {
   const map = useMap();
+  /** Valor original de la animación de zoom, para restaurarlo al salir. */
+  const nativeZoomAnimated = useRef<boolean | null>(null);
 
   useEffect(() => {
-    let frame = 0;
-
-    const sync = () => {
-      // Como mucho una reproyección por fotograma, aunque el gesto dispare
-      // varios eventos seguidos.
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const renderers = new Set<{ _reset: () => void }>();
-        map.eachLayer((layer) => {
-          const r = (layer as unknown as { _renderer?: { _reset: () => void } })._renderer;
-          if (r) renderers.add(r);
-        });
-        renderers.forEach((r) => {
-          try {
-            r._reset();
-          } catch {
-            // Tocamos interiores de Leaflet: si una versión futura los
-            // cambia, el mapa debe seguir funcionando (solo se recupera el
-            // parpadeo de antes, no se rompe nada).
-          }
-        });
+    // Los renderizadores se cachean: recorrer todas las capas en cada
+    // fotograma del gesto era trabajo repetido para siempre el mismo
+    // resultado. Se recalcula solo cuando se añade o quita una capa.
+    let renderers: { _reset: () => void }[] = [];
+    const collect = () => {
+      const found = new Set<{ _reset: () => void }>();
+      map.eachLayer((layer) => {
+        const r = (layer as unknown as { _renderer?: { _reset: () => void } })._renderer;
+        if (r) found.add(r);
       });
+      renderers = [...found];
+    };
+    collect();
+
+    // SÍNCRONO, sin requestAnimationFrame propio. Leaflet ya agrupa el
+    // gesto en un frame (su manejador táctil llama a `_move` dentro de un
+    // requestAnimFrame), así que meter otro solo conseguía que el polígono
+    // se dibujara UN FOTOGRAMA POR DETRÁS de las calles: se veía "nadar"
+    // respecto al mapa durante todo el gesto.
+    const sync = () => {
+      for (const r of renderers) {
+        try {
+          r._reset();
+        } catch {
+          // Tocamos interiores de Leaflet: si una versión futura los
+          // cambia, el mapa debe seguir funcionando (solo se recupera el
+          // parpadeo de antes, no se rompe nada).
+        }
+      }
+    };
+
+    // Los botones +/− y el doble toque NO pasan por 'zoom' fotograma a
+    // fotograma: Leaflet los resuelve con una transición CSS de ~250 ms
+    // (`zoomanim`), y ahí vuelve a mandar la transformación defectuosa del
+    // plugin, así que el polígono también se deformaba durante esa
+    // animación. Con el mapa rotado se desactiva esa animación: el zoom pasa
+    // a ser instantáneo y correcto, que se ve mucho mejor que un cuarto de
+    // segundo de polígono descuadrado. Sin rotar (el caso normal) la
+    // animación se mantiene intacta, porque ahí Leaflet acierta.
+    const syncZoomAnimation = () => {
+      const rotated = Math.round(map.getBearing?.() ?? 0) !== 0;
+      const m = map as unknown as { _zoomAnimated: boolean };
+      if (nativeZoomAnimated.current === null) {
+        nativeZoomAnimated.current = m._zoomAnimated;
+      }
+      m._zoomAnimated = nativeZoomAnimated.current && !rotated;
     };
 
     map.on('zoom', sync);
     map.on('rotate', sync);
+    map.on('rotate', syncZoomAnimation);
+    map.on('layeradd', collect);
+    map.on('layerremove', collect);
+    syncZoomAnimation();
 
     return () => {
       map.off('zoom', sync);
       map.off('rotate', sync);
-      if (frame) cancelAnimationFrame(frame);
+      map.off('rotate', syncZoomAnimation);
+      map.off('layeradd', collect);
+      map.off('layerremove', collect);
+      // Dejar el mapa como estaba por si se reutiliza la instancia.
+      if (nativeZoomAnimated.current !== null) {
+        (map as unknown as { _zoomAnimated: boolean })._zoomAnimated =
+          nativeZoomAnimated.current;
+      }
     };
   }, [map]);
 
@@ -256,6 +292,122 @@ const useLiveLocation = (enabled: boolean) => {
     return () => navigator.geolocation.clearWatch(id);
   }, [enabled]);
   return pos;
+};
+
+/**
+ * Punto de "Tu ubicación" con cono de orientación, como en Google Maps.
+ *
+ * Es un `divIcon` en vez de un `CircleMarker` porque el cono hay que
+ * ROTARLO, y los vectores de Leaflet no admiten rotación; con HTML basta un
+ * `transform`. Cuando no se conoce el rumbo (dispositivo sin brújula o sin
+ * permiso), se pinta solo el punto: mejor eso que una flecha apuntando a
+ * cualquier sitio.
+ */
+const LocationMarker = ({
+  position,
+  color,
+  heading,
+}: {
+  position: [number, number];
+  color: string;
+  heading: number | null;
+}) => {
+  const icon = useMemo(() => {
+    const cono =
+      heading === null
+        ? ''
+        : `<div style="
+             position:absolute; left:50%; top:50%;
+             width:0; height:0;
+             transform: translate(-50%,-100%) rotate(${heading}deg);
+             transform-origin: 50% 100%;
+             border-left:11px solid transparent;
+             border-right:11px solid transparent;
+             border-bottom:20px solid ${color};
+             opacity:.35;
+           "></div>`;
+
+    return L.divIcon({
+      className: 'territory-location-marker',
+      html: `<div style="position:relative;width:34px;height:34px;">
+               ${cono}
+               <div style="
+                 position:absolute; left:50%; top:50%;
+                 width:16px; height:16px; margin:-8px 0 0 -8px;
+                 border-radius:50%;
+                 background:${color};
+                 border:3px solid #fff;
+                 box-shadow:0 0 0 1px rgba(0,0,0,.18);
+               "></div>
+             </div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
+  }, [color, heading]);
+
+  return (
+    <Marker position={position} icon={icon} keyboard={false}>
+      <Tooltip>Tu ubicación</Tooltip>
+    </Marker>
+  );
+};
+
+/**
+ * Hacia dónde está mirando el teléfono, en grados desde el norte.
+ *
+ * Devuelve `null` si el dispositivo no da brújula o si el usuario no ha dado
+ * permiso: en ese caso el punto de ubicación se pinta sin flecha, que es
+ * mejor que enseñar una flecha apuntando a cualquier sitio.
+ *
+ * En iOS 13+ hace falta pedir permiso explícitamente y SOLO desde un gesto
+ * del usuario, por eso `request` se expone para engancharlo al botón de
+ * "Mi ubicación".
+ */
+const useDeviceHeading = (enabled: boolean) => {
+  const [heading, setHeading] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setHeading(null);
+      return;
+    }
+
+    const onOrientation = (e: DeviceOrientationEvent) => {
+      // Safari da el rumbo ya corregido respecto al norte magnético.
+      const webkit = (e as unknown as { webkitCompassHeading?: number })
+        .webkitCompassHeading;
+      if (typeof webkit === 'number' && !Number.isNaN(webkit)) {
+        setHeading(webkit);
+        return;
+      }
+      // El resto: `alpha` va al revés (antihorario desde el norte).
+      if (e.absolute && typeof e.alpha === 'number') {
+        setHeading((360 - e.alpha) % 360);
+      }
+    };
+
+    window.addEventListener('deviceorientationabsolute', onOrientation as EventListener);
+    window.addEventListener('deviceorientation', onOrientation as EventListener);
+    return () => {
+      window.removeEventListener('deviceorientationabsolute', onOrientation as EventListener);
+      window.removeEventListener('deviceorientation', onOrientation as EventListener);
+    };
+  }, [enabled]);
+
+  return heading;
+};
+
+/** Pide permiso de brújula en iOS. Debe llamarse DENTRO de un gesto. */
+const requestHeadingPermission = async () => {
+  const D = window.DeviceOrientationEvent as unknown as {
+    requestPermission?: () => Promise<'granted' | 'denied'>;
+  };
+  if (typeof D?.requestPermission !== 'function') return; // no hace falta
+  try {
+    await D.requestPermission();
+  } catch {
+    // Si lo rechaza, simplemente no habrá flecha.
+  }
 };
 
 // ─── Editor de polígonos (Geoman) ─────────────────────────────────────────────
@@ -415,11 +567,13 @@ const TerritoryMap = ({
   const bounds = useMemo(() => (geometry ? geometryBounds(geometry) : null), [geometryKey]);
   const center = (geometry && geometryCenter(geometry)) || [40.4168, -3.7038];
   const livePos = useLiveLocation(showLiveLocation);
+  const heading = useDeviceHeading(showLiveLocation);
   const [isSatellite, setIsSatellite] = useState(false);
   // Ángulo actual de rotación — solo para decidir cuándo mostrar el botón de
   // brújula (0 = norte arriba, igual que siempre). El mapa en sí no depende
   // de este estado para rotar (eso lo hace leaflet-rotate internamente).
   const [bearing, setBearing] = useState(0);
+  const isRotated = Math.round(bearing) !== 0;
 
   // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
   const mapRef = useRef<L.Map | null>(null);
@@ -468,6 +622,12 @@ const TerritoryMap = ({
       <MapContainer
         center={center}
         zoom={15}
+        // Leaflet corta en 18 por defecto, que en una calle estrecha se queda
+        // corto para distinguir portales. Las teselas de OpenStreetMap llegan
+        // a 19 y las de satélite a 19 también; a partir de ahí el navegador
+        // amplía la última tesela disponible (`maxNativeZoom`), que se ve algo
+        // borroso pero permite acercarse de verdad al portal.
+        maxZoom={21}
         scrollWheelZoom
         zoomControl={false}
         rotate
@@ -479,11 +639,15 @@ const TerritoryMap = ({
           <TileLayer
             attribution="&copy; Esri World Imagery"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={19}
+            maxZoom={21}
           />
         ) : (
           <TileLayer
             attribution="&copy; OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxNativeZoom={19}
+            maxZoom={21}
           />
         )}
 
@@ -508,18 +672,14 @@ const TerritoryMap = ({
         ) : null}
 
         {livePos && (
-          <CircleMarker
-            center={livePos}
-            radius={8}
-            // El color se resuelve a un valor REAL antes de pasarlo: Leaflet
-            // lo escribe como atributo de presentación SVG (fill="…"), donde
-            // las variables CSS no se resuelven. Con `var(--accent-main)` el
-            // punto de "Tu ubicación" salía negro (el relleno por defecto),
-            // justo el indicador que se busca mientras se predica.
-            pathOptions={{ color: '#fff', weight: 3, fillColor: accentColor, fillOpacity: 1 }}
-          >
-            <Tooltip>Tu ubicación</Tooltip>
-          </CircleMarker>
+          <LocationMarker
+            position={livePos}
+            color={accentColor}
+            // El cono gira con el teléfono, pero el mapa también puede estar
+            // rotado: hay que restar el rumbo del mapa para que la flecha
+            // apunte al sitio real y no a "arriba de la pantalla".
+            heading={heading === null ? null : heading - bearing}
+          />
         )}
 
         <FitBounds
@@ -584,13 +744,47 @@ const TerritoryMap = ({
           {isSatellite ? 'Mapa' : 'Satélite'}
         </Box>
 
-        {/* Brújula: solo aparece si el mapa está rotado (como en Google
-            Maps) — tocarla lo devuelve suavemente a "norte arriba". */}
-        {Math.round(bearing) !== 0 && (
+        {/* Brújula: solo cuenta si el mapa está rotado (como en Google Maps)
+            — tocarla lo devuelve suavemente a "norte arriba".
+
+            NO se monta y desmonta: siempre está en el DOM y lo que se anima
+            es su alto, su opacidad y su escala. Apareciendo y desapareciendo
+            de golpe, los botones de abajo daban un salto seco cada vez que
+            empezabas o terminabas de rotar. Así el hueco se abre y se cierra
+            con la misma transición, y todo el grupo se desplaza suave. */}
+        <Box
+          aria-hidden={!isRotated}
+          sx={{
+            // 44 = alto del botón. Al ocultarlo no basta con poner el alto a
+            // cero: el contenedor usa `gap: 10px`, y ese hueco seguiría ahí.
+            // El margen negativo lo absorbe, así que el grupo de abajo sube
+            // exactamente lo que ocupaba la brújula, ni un píxel más.
+            height: isRotated ? 44 : 0,
+            marginBottom: isRotated ? 0 : '-10px',
+            opacity: isRotated ? 1 : 0,
+            transform: isRotated ? 'scale(1)' : 'scale(0.8)',
+            transformOrigin: 'center',
+            overflow: 'hidden',
+            // `visibility` (y no `pointerEvents`) porque el contenedor padre
+            // fuerza `pointerEvents: auto` en todos sus hijos directos y
+            // ganaría por especificidad. Además saca el botón del orden de
+            // tabulación mientras está oculto. Se retrasa hasta el final de
+            // la animación para que no desaparezca de golpe al empezar.
+            visibility: isRotated ? 'visible' : 'hidden',
+            transition: [
+              'height 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+              'margin-bottom 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+              'opacity 0.18s ease',
+              'transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1)',
+              `visibility 0s linear ${isRotated ? '0s' : '0.22s'}`,
+            ].join(', '),
+          }}
+        >
           <Box
             component="button"
             type="button"
             onClick={resetToNorth}
+            tabIndex={isRotated ? 0 : -1}
             title="Volver al norte"
             aria-label="Volver al norte"
             sx={{
@@ -617,7 +811,7 @@ const TerritoryMap = ({
               <IconCompassOn width={22} height={22} color="var(--red-main)" />
             </Box>
           </Box>
-        )}
+        </Box>
 
         {/* Recentrar territorio / Mi ubicación — agrupados como un solo
             bloque junto al zoom, en vez de 4 elementos flotantes sueltos. */}
@@ -664,6 +858,11 @@ const TerritoryMap = ({
             type="button"
             disabled={!livePos}
             onClick={() => {
+              // iOS solo concede la brújula si se pide DENTRO de un gesto:
+              // este toque es el momento natural para hacerlo, porque es
+              // justo cuando el usuario quiere saber dónde está y hacia
+              // dónde mira. Si la rechaza, el punto sale sin flecha.
+              void requestHeadingPermission();
               if (livePos) mapRef.current?.setView(livePos, 17);
             }}
             title="Mi ubicación"
