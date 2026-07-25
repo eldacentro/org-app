@@ -55,6 +55,50 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // ── Enlaces públicos de territorio ────────────────────────────────────
+    // ÚNICA colección del proyecto legible SIN estar autenticado: es lo que
+    // permite que un invitado (p. ej. el superintendente de circuito) abra un
+    // territorio compartido sin tener cuenta.
+    //
+    // Qué protege el contenido:
+    //  - El ID del documento es un token aleatorio de 192 bits: no se puede
+    //    adivinar, y `list` exige sesión, así que nadie puede enumerarlos.
+    //  - El campo `payload` va cifrado con AES-GCM y una clave que SOLO viaja
+    //    en el fragmento (#) de la URL. Ni Firestore ni nadie con acceso a la
+    //    base de datos puede leer el territorio.
+    //
+    // La CADUCIDAD la decide esta regla, no el código de la app: el enlace
+    // vale mientras su asignación siga abierta (`returnedAt` nulo). Así el
+    // mismo batch que entrega el territorio invalida el enlace de forma
+    // atómica, y no hay que acordarse de revocar en los cinco caminos que
+    // cierran o borran una asignación (entregar, borrar asignación, finalizar
+    // campaña, borrar campaña y borrar territorio). Si la asignación deja de
+    // existir, `exists()` es falso y también deniega.
+    //
+    // OJO: esto asume que el inicio de sesión ANÓNIMO está deshabilitado en la
+    // consola de Firebase. Si se habilitara, cualquiera podría autenticarse y
+    // leerlo todo — no solo esta colección, sino todas las de arriba.
+    match /congregation/{congId}/territory_shares/{token} {
+      function assignmentPath() {
+        return /databases/$(database)/documents/congregation/$(congId)/territory_assignments/$(resource.data.assignmentId);
+      }
+
+      function assignmentOpen() {
+        return exists(assignmentPath())
+          && get(assignmentPath()).data.get('returnedAt', null) == null;
+      }
+
+      // `.get('revoked', true)` falla en cerrado: si el campo faltara por lo
+      // que sea, el enlace se considera revocado en vez de abierto.
+      allow get: if request.auth != null
+        || (resource.data.get('revoked', true) == false && assignmentOpen());
+
+      // Enumerar exige sesión; el invitado nunca puede listar la colección.
+      allow list: if request.auth != null;
+
+      allow create, update, delete: if request.auth != null;
+    }
+
     // ── Señal de sincronización casi-instantánea ──
     // Solo contiene nombres de tabla + timestamps de versión (cero datos,
     // el E2E sigue intacto). La escribe únicamente el backend con Admin SDK
