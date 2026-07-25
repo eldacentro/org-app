@@ -64,13 +64,48 @@ const container = document.getElementById('root');
 // nada de eso le sirve, y Dexie en navegación privada le plantaría encima la
 // pantalla de recuperación de base de datos.
 if (window.location.hash.startsWith('#/t/')) {
-  import('./PublicWrap').then(({ default: PublicWrap }) => {
-    createRoot(container).render(
-      <React.StrictMode>
-        <PublicWrap />
-      </React.StrictMode>
-    );
-  });
+  import('./PublicWrap')
+    .then(({ default: PublicWrap }) => {
+      createRoot(container).render(
+        <React.StrictMode>
+          <PublicWrap />
+        </React.StrictMode>
+      );
+    })
+    .catch((error) => {
+      // Sin este catch, si falla la descarga del trozo (3G intermitente, o un
+      // service worker sirviendo un index.html viejo que apunta a un chunk
+      // que ya no existe tras un despliegue) la promesa se rechazaba, nunca
+      // se llamaba a render y el invitado se quedaba MIRANDO EL LOGOTIPO
+      // ANIMADO para siempre, sin error ni forma de reintentar. Es su primer
+      // contacto con la app.
+      console.error('No se pudo cargar la página del enlace público', error);
+      container.innerHTML = '';
+      const box = document.createElement('div');
+      box.setAttribute(
+        'style',
+        'min-height:100dvh;display:flex;flex-direction:column;align-items:center;' +
+          'justify-content:center;gap:16px;padding:24px;text-align:center;' +
+          'font-family:Inter,system-ui,sans-serif;color:#1b1b1f;background:#f5f6fa;'
+      );
+      const title = document.createElement('p');
+      title.textContent = 'No se ha podido abrir el enlace';
+      title.setAttribute('style', 'font-size:18px;font-weight:600;margin:0;');
+      const body = document.createElement('p');
+      body.textContent =
+        'Comprueba tu conexión y vuelve a intentarlo. Si acaba de actualizarse la aplicación, recargar suele bastar.';
+      body.setAttribute('style', 'font-size:15px;margin:0;max-width:34ch;line-height:1.5;');
+      const retry = document.createElement('button');
+      retry.textContent = 'Reintentar';
+      retry.setAttribute(
+        'style',
+        'font:inherit;font-weight:600;padding:10px 20px;border-radius:999px;' +
+          'border:none;background:#1f6fd0;color:#fff;cursor:pointer;'
+      );
+      retry.addEventListener('click', () => window.location.reload());
+      box.append(title, body, retry);
+      container.append(box);
+    });
 } else {
   bootstrapApp();
 }

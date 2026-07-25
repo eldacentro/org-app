@@ -55,6 +55,8 @@ const noticesCol = (congId: string) =>
   collection(firestore, 'congregation', congId, 'territory_notices');
 const tagsCol = (congId: string) =>
   collection(firestore, 'congregation', congId, 'territory_tags');
+const sharesCol = (congId: string) =>
+  collection(firestore, 'congregation', congId, 'territory_shares');
 const settingsDoc = (congId: string) =>
   fsDoc(firestore, 'congregation', congId, 'territory_settings', 'settings');
 
@@ -426,13 +428,20 @@ export const deleteTerritoryCompleto = async (
   // antes NO se borraban nunca: quedaban huérfanas en `territory_locations`
   // para siempre, invisibles desde la app y sin forma de purgarlas — datos
   // personales de vecinos que ya no tenían por qué seguir guardados.
-  const [assignSnap, locSnap, campSnap] = await Promise.all([
+  const [assignSnap, locSnap, shareSnap, campSnap] = await Promise.all([
     getDocs(query(assignmentsCol(congId), where('territoryId', '==', territoryId))),
     getDocs(query(locationsCol(congId), where('territoryId', '==', territoryId))),
+    // Los enlaces públicos guardan un snapshot CIFRADO del territorio, con
+    // sus direcciones "No visitar" dentro, y al lado la clave envuelta con
+    // la clave de la congregación. Si no se borran aquí, borrar un
+    // territorio precisamente para purgar datos personales dejaba una copia
+    // íntegra de esos datos viva para siempre, sin ninguna pantalla desde la
+    // que verla o eliminarla.
+    getDocs(query(sharesCol(congId), where('territoryId', '==', territoryId))),
     getDocs(query(campaignsCol(congId), where('territoryIds', 'array-contains', territoryId))),
   ]);
 
-  const refs = [...assignSnap.docs, ...locSnap.docs].map((d) => d.ref);
+  const refs = [...assignSnap.docs, ...locSnap.docs, ...shareSnap.docs].map((d) => d.ref);
   for (let i = 0; i < refs.length; i += 450) {
     const batch = writeBatch(firestore);
     refs.slice(i, i + 450).forEach((r) => batch.delete(r));

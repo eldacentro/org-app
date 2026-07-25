@@ -72,6 +72,17 @@ const PublicTerritoryPage = () => {
         parsed.keyB64
       );
 
+      // Con el contenido ya descifrado en memoria, la clave sobra en la
+      // barra de direcciones. Se borra del hash para que no aparezca en una
+      // captura de pantalla ni acabe sincronizada en el historial del
+      // navegador del invitado. `replaceState` no recarga ni añade entrada
+      // al historial, y `link.current` conserva lo necesario para reintentar.
+      try {
+        window.history.replaceState(null, '', window.location.pathname);
+      } catch {
+        // Si el navegador no lo permite, no es motivo para romper la página.
+      }
+
       setState({ status: 'ready', payload });
     } catch (error) {
       const code = (error as { code?: string; message?: string })?.code ?? '';
@@ -179,6 +190,7 @@ const PublicTerritoryView = ({
   payload: TerritorySharePayload;
 }) => {
   const geometry = (payload.geometry ?? null) as Polygon | MultiPolygon | null;
+  const [showLocation, setShowLocation] = useState(false);
 
   return (
     <Box
@@ -214,8 +226,19 @@ const PublicTerritoryView = ({
               geometry={geometry}
               color={payload.zoneColor}
               height={420}
-              showLiveLocation={true}
+              // Solo tras pulsarlo. Antes se pedía la ubicación en continuo y
+              // de alta precisión nada más abrir el enlace, sin explicación
+              // ni botón que la hubiera pedido — en un enlace que llega por
+              // mensajería, eso es justo lo que hace desconfiar.
+              showLiveLocation={showLocation}
             />
+            {!showLocation && (
+              <Box sx={{ mt: 1 }}>
+                <Button variant="secondary" disableAutoStretch onClick={() => setShowLocation(true)}>
+                  Ver mi ubicación en el mapa
+                </Button>
+              </Box>
+            )}
           </Box>
         )}
 
@@ -247,7 +270,8 @@ const PublicTerritoryView = ({
 
               {payload.numeroViviendas !== undefined && (
                 <Typography className="body-regular">
-                  {payload.numeroViviendas} viviendas
+                  {payload.numeroViviendas}{' '}
+                  {payload.numeroViviendas === 1 ? 'vivienda' : 'viviendas'}
                 </Typography>
               )}
 
@@ -297,7 +321,7 @@ const PublicTerritoryView = ({
                     sx={{
                       padding: '10px 12px',
                       borderRadius: 'var(--radius-m)',
-                      backgroundColor: 'var(--red-light)',
+                      backgroundColor: 'var(--red-secondary)',
                       border: '1px solid var(--red-main)',
                     }}
                   >

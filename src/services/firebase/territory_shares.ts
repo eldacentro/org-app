@@ -49,8 +49,21 @@ const shareDoc = (congId: string, token: string) =>
 // clave que ya protege las notas y las direcciones que van dentro, de modo que
 // no añade ninguna exposición nueva, y el servidor sigue sin poder abrir nada.
 
-const wrapKey = (key: Uint8Array, masterKey: string): string =>
-  ENC_PREFIX + encryptData(shareKeyToString(key), masterKey);
+const wrapKey = (key: Uint8Array, masterKey: string): string => {
+  // Sin esta comprobación, un publicador sin clave maestra (el botón de
+  // compartir también está disponible para el dueño del territorio) creaba
+  // el enlace con `keyWrapped = AES.encrypt(clave, '')`: cifrado con
+  // contraseña VACÍA. Como el documento se puede leer sin autenticar
+  // mientras la asignación siga abierta, cualquiera con el token podría
+  // desenvolver la clave sin tenerla y abrir el contenido — el cifrado del
+  // enlace quedaría anulado. Falla en cerrado y en voz alta.
+  if (!masterKey) {
+    throw new Error(
+      'No se puede crear el enlace: falta la clave de la congregación en este dispositivo.'
+    );
+  }
+  return ENC_PREFIX + encryptData(shareKeyToString(key), masterKey);
+};
 
 const unwrapKey = (wrapped: string, masterKey: string): Uint8Array => {
   if (!wrapped.startsWith(ENC_PREFIX)) {

@@ -6,6 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import { IconClose } from '@components/icons';
 import IconButton from '@components/icon_button';
+import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
 import {
   congIDState,
@@ -61,21 +62,30 @@ const DialogCompartir = ({
   const tags = useAtomValue(territoryTagsState);
   const locations = useAtomValue(territoryLocationsState);
   const resolveName = usePersonName();
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const [shares, setShares] = useState<TerritoryShare[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  /** La carga FALLÓ (distinto de "no hay ninguno"). Sin esta distinción, un
+   *  error de red pintaba "no hay enlaces" y el responsable creaba uno
+   *  nuevo: el anterior seguía vivo, funcionando y ya sin aparecer en la
+   *  lista, así que no había forma de anularlo. */
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const activeShares = shares.filter((s) => !s.revoked);
 
   const load = useCallback(async () => {
     setLoading(true);
 
+    setLoadFailed(false);
+
     try {
       setShares(await fetchSharesForAssignment(congId, assignment.id));
     } catch (error) {
       console.error('No se pudieron cargar los enlaces', error);
       setShares([]);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -85,14 +95,30 @@ const DialogCompartir = ({
     if (open) load();
   }, [open, load]);
 
-  /** La clave no se guarda en claro: se recompone al vuelo desde la envuelta. */
-  const urlFor = (share: TerritoryShare): string =>
-    buildShareUrl(
-      window.location.origin,
-      congId,
-      share.token,
-      recoverShareKey(share, masterKey)
-    );
+  /** La clave no se guarda en claro: se recompone al vuelo desde la envuelta.
+   *  Devuelve null si este dispositivo no tiene la clave de la congregación
+   *  con la que se envolvió — antes lanzaba una excepción SÍNCRONA dentro del
+   *  onClick, que React no captura, así que el botón simplemente no hacía
+   *  nada y el usuario lo pulsaba una y otra vez sin ninguna explicación. */
+  const urlFor = (share: TerritoryShare): string | null => {
+    try {
+      return buildShareUrl(
+        window.location.origin,
+        congId,
+        share.token,
+        recoverShareKey(share, masterKey)
+      );
+    } catch (error) {
+      console.error('No se pudo recomponer la clave del enlace', error);
+      displaySnackNotification({
+        header: 'No se puede recuperar este enlace',
+        message:
+          'Lo creó otro dispositivo y este no tiene la clave de la congregación. Anúlalo y crea uno nuevo desde aquí.',
+        severity: 'error',
+      });
+      return null;
+    }
+  };
 
   const copyUrl = async (url: string) => {
     try {
@@ -108,6 +134,25 @@ const DialogCompartir = ({
     }
   };
 
+  /**
+   * Firestore está configurado con caché persistente, así que una escritura
+   * se guarda en local al instante pero su promesa NO se resuelve hasta que
+   * el servidor la confirma. Sin cobertura eso dejaba el diálogo colgado
+   * para siempre: botón en "Creando…", X deshabilitada y cierre por Escape
+   * o fondo desactivado — sin más salida que recargar la app. Se le pone un
+   * tope y se informa de que quedó pendiente de sincronizar.
+   */
+  const withTimeout = <T,>(promise: Promise<T>, ms = 12000): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('SIN_CONFIRMACION_DEL_SERVIDOR')),
+          ms
+        )
+      ),
+    ]);
+
   const handleCreate = async () => {
     setWorking(true);
 
@@ -121,21 +166,26 @@ const DialogCompartir = ({
         now: new Date().toISOString(),
       });
 
-      const { token, keyB64 } = await createShare({
-        congId,
-        assignmentId: assignment.id,
-        territoryId: territory.id,
-        payload,
-        masterKey,
-        createdBy: currentUid,
-      });
+      const { token, keyB64 } = await withTimeout(
+        createShare({
+          congId,
+          assignmentId: assignment.id,
+          territoryId: territory.id,
+          payload,
+          masterKey,
+          createdBy: currentUid,
+        })
+      );
 
       await copyUrl(buildShareUrl(window.location.origin, congId, token, keyB64));
       await load();
     } catch (error) {
+      const timedOut = (error as Error)?.message === 'SIN_CONFIRMACION_DEL_SERVIDOR';
       displaySnackNotification({
         header: 'No se pudo crear el enlace',
-        message: (error as Error)?.message ?? 'Inténtalo de nuevo.',
+        message: timedOut
+          ? 'No hay conexión con el servidor. El enlace no funcionará hasta que se sincronice, así que no lo envíes todavía.'
+          : ((error as Error)?.message ?? 'Inténtalo de nuevo.'),
         severity: 'error',
       });
     } finally {
@@ -144,10 +194,22 @@ const DialogCompartir = ({
   };
 
   const handleRevoke = async (share: TerritoryShare) => {
+    // Anular es irreversible: hay que volver a crear el enlace y reenviarlo.
+    // Estaba a un solo toque, con el mismo tamaño y en la misma fila que
+    // "Copiar enlace".
+    const ok = await confirm({
+      title: 'Anular enlace',
+      message:
+        'Quien ya tenga este enlace dejará de poder abrirlo. No se puede deshacer: habría que crear uno nuevo y volver a enviarlo.',
+      confirmLabel: 'Anular',
+      destructive: true,
+    });
+    if (!ok) return;
+
     setWorking(true);
 
     try {
-      await revokeShare(congId, share.token);
+      await withTimeout(revokeShare(congId, share.token));
       await load();
       displaySnackNotification({
         header: 'Enlace anulado',
@@ -169,17 +231,32 @@ const DialogCompartir = ({
     <Dialog
       open={open}
       onClose={working ? undefined : onClose}
-      PaperProps={{ style: { maxWidth: '520px', width: '100%' } }}
+      // Al pasar PaperProps se SUSTITUYE por completo el del componente, y
+      // con él se perdía `backgroundColor: var(--card)`: MUI caía a su blanco
+      // por defecto, así que en los temas oscuros el diálogo quedaba con
+      // fondo blanco y el texto (var(--black), que ahí es casi blanco)
+      // prácticamente ilegible. Se replican los valores del componente.
+      PaperProps={{
+        style: {
+          maxWidth: '520px',
+          width: '100%',
+          borderRadius: 'var(--radius-xl)',
+          backgroundColor: 'var(--card)',
+        },
+      }}
     >
+      {ConfirmDialogNode}
       <Stack spacing="16px">
         <Stack
           direction="row"
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography className="h2">Compartir territorio</Typography>
-          <IconButton onClick={onClose} disabled={working}>
-            <IconClose color="var(--grey-400)" />
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Compartir territorio
+          </Typography>
+          <IconButton onClick={onClose} disabled={working} aria-label="Cerrar">
+            <IconClose color="var(--ink-2)" width={15} height={15} />
           </IconButton>
         </Stack>
 
@@ -193,7 +270,7 @@ const DialogCompartir = ({
           sx={{
             padding: '12px',
             borderRadius: 'var(--radius-l)',
-            backgroundColor: 'var(--orange-light)',
+            backgroundColor: 'var(--orange-secondary)',
             border: '1px solid var(--orange-dark)',
           }}
         >
@@ -209,13 +286,28 @@ const DialogCompartir = ({
           </Typography>
         )}
 
-        {!loading && activeShares.length === 0 && (
+        {/* Si la carga FALLÓ no se puede afirmar que no haya enlaces: puede
+            haber uno vivo que no se ha podido leer. Ofrecer "Crear" aquí
+            generaría un duplicado imposible de anular desde la interfaz. */}
+        {!loading && loadFailed && (
+          <Stack spacing="8px">
+            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
+              No se han podido cargar los enlaces de este territorio. Puede que
+              ya exista uno activo, así que no se ofrece crear otro.
+            </Typography>
+            <Button variant="secondary" onClick={load} disableAutoStretch>
+              Reintentar
+            </Button>
+          </Stack>
+        )}
+
+        {!loading && !loadFailed && activeShares.length === 0 && (
           <Button variant="main" onClick={handleCreate} disabled={working}>
             {working ? 'Creando…' : 'Crear enlace y copiarlo'}
           </Button>
         )}
 
-        {!loading &&
+        {!loading && !loadFailed &&
           activeShares.map((share) => (
             <Box
               key={share.token}
@@ -235,7 +327,10 @@ const DialogCompartir = ({
                   <Button
                     variant="secondary"
                     disabled={working}
-                    onClick={() => copyUrl(urlFor(share))}
+                    onClick={() => {
+                      const url = urlFor(share);
+                      if (url) copyUrl(url);
+                    }}
                   >
                     Copiar enlace
                   </Button>
@@ -244,14 +339,13 @@ const DialogCompartir = ({
                     <Button
                       variant="secondary"
                       disabled={working}
-                      onClick={() =>
+                      onClick={() => {
+                        const url = urlFor(share);
+                        if (!url) return;
                         navigator
-                          .share({
-                            title: territoryLabel(territory),
-                            url: urlFor(share),
-                          })
-                          .catch(() => undefined)
-                      }
+                          .share({ title: territoryLabel(territory), url })
+                          .catch(() => undefined);
+                      }}
                     >
                       Compartir
                     </Button>
