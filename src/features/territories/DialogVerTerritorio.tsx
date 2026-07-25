@@ -44,6 +44,7 @@ import {
   territoryLabel,
   displayText,
   isStillEncrypted,
+  isLightColor,
 } from '@services/app/territories';
 import { useBreakpoints } from '@hooks/index';
 
@@ -269,7 +270,13 @@ const ActionButton = ({
               background: color
                 ? `linear-gradient(135deg, ${color}ee 0%, ${color}bb 100%)`
                 : 'linear-gradient(135deg, var(--accent-main) 0%, var(--brand) 100%)',
-              color: 'var(--always-white)',
+              // El color de zona lo elige un responsable en un selector
+              // libre. Con un amarillo o un cian, el texto blanco sobre él
+              // quedaba por debajo de 2:1 de contraste — ilegible al sol o
+              // con vista cansada, y de forma permanente para TODOS los
+              // territorios de esa zona. Se calcula la luminancia y se pone
+              // texto oscuro cuando el fondo es claro.
+              color: color && isLightColor(color) ? 'var(--black)' : 'var(--always-white)',
               boxShadow: color
                 ? `0 4px 16px ${color}50`
                 : '0 4px 16px rgba(var(--accent-main-base), 0.35)',

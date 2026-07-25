@@ -57,6 +57,23 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   const [deleting, setDeleting] = useState(false);
   const { confirm, ConfirmDialogNode } = useConfirm();
 
+  // Redibujar un polígono con el editor de mapa es trabajo de varios
+  // minutos, y un toque fuera del diálogo (o la X) lo tiraba sin una
+  // palabra. Ahora se pregunta antes de descartar.
+  const handleRequestClose = async () => {
+    if (!hasChanges) {
+      onClose();
+      return;
+    }
+    const ok = await confirm({
+      title: 'Descartar cambios',
+      message: 'Tienes cambios sin guardar en este territorio. Si sales ahora se perderán.',
+      confirmLabel: 'Salir sin guardar',
+      destructive: true,
+    });
+    if (ok) onClose();
+  };
+
   // Sincronizar estado local si cambia el prop territory
   // (útil si el componente no se desmonta entre ediciones de distintos territorios)
   useEffect(() => {
@@ -160,7 +177,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   return (
     <>
       {ConfirmDialogNode}
-      <Dialog open={open} onClose={onClose} maxWidth={false} fullWidth scroll="paper"
+      <Dialog open={open} onClose={handleRequestClose} maxWidth={false} fullWidth scroll="paper"
         PaperProps={{
           sx: {
             maxWidth: '1100px',
@@ -175,7 +192,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       <DialogTitle sx={{ p: 0 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
           <Typography className="h2" sx={{ color: 'var(--ink)' }}>Editar territorio</Typography>
-          <IconButton onClick={onClose}>
+          <IconButton onClick={handleRequestClose}>
             <IconClose color="var(--black)" />
           </IconButton>
         </Stack>
@@ -311,7 +328,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
         </Grid>
 
         <Stack direction="row" justifyContent="flex-end" spacing={1} sx={{ mt: 3, pt: 2, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
-          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={saving}>
+          <Button variant="tertiary" disableAutoStretch onClick={handleRequestClose} disabled={saving}>
             Cancelar
           </Button>
           <Button variant="main" disableAutoStretch onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>

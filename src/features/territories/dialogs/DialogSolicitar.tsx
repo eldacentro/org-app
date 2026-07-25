@@ -39,7 +39,18 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   }, [open]);
 
   const handleSolicitar = async () => {
-    if (!uid) return;
+    // Sin `uid` la cuenta no está enlazada con su ficha de Persona. Antes
+    // esto era un `return` mudo: el botón respondía visualmente y no pasaba
+    // absolutamente nada, indefinidamente, sin ninguna pista del motivo.
+    if (!uid) {
+      displaySnackNotification({
+        header: 'No se puede enviar la solicitud',
+        message:
+          'Tu cuenta todavía no está enlazada con tu ficha de publicador. Pídele a un responsable que la vincule.',
+        severity: 'error',
+      });
+      return;
+    }
     setSaving(true);
     try {
       await saveRequest(congId, {
@@ -117,7 +128,18 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
               message: 'No se pudo avisar a los responsables por correo o notificación push. Tu solicitud ya quedó registrada, pero puede tardar más en que la vean.',
               severity: 'error',
             }
-          : { header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' }
+          : targets.length === 0
+            ? {
+                // No había a quién avisar (p. ej. ningún responsable ha
+                // abierto Territorios desde el último cambio de
+                // departamento). Antes se decía "enviada correctamente" y el
+                // hermano esperaba días a un aviso que nunca salió.
+                header: 'Solicitud registrada',
+                message:
+                  'No hay ningún responsable de territorios configurado, así que no se ha podido avisar a nadie. Tu solicitud queda guardada; coméntaselo a un responsable.',
+                severity: 'error',
+              }
+            : { header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' }
       );
     } catch (error) {
       console.error(error);

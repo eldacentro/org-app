@@ -203,3 +203,36 @@ export const ENCRYPTED_LABEL = 'No se puede mostrar en este dispositivo';
 /** Devuelve el texto si es legible; si no, el aviso. */
 export const displayText = (value?: string): string =>
   isStillEncrypted(value) ? ENCRYPTED_LABEL : (value ?? '');
+
+/**
+ * ¿Este color es lo bastante claro como para que el texto blanco encima no
+ * se lea? El color de zona lo elige un responsable en un selector libre, así
+ * que puede ser un amarillo o un cian: con texto blanco encima el contraste
+ * baja de 2:1 y el botón principal queda ilegible al sol, de forma
+ * permanente y para todos los territorios de esa zona.
+ *
+ * Usa la luminancia relativa de WCAG. Acepta #rgb y #rrggbb; ante cualquier
+ * otro formato devuelve false (se mantiene el texto blanco de siempre).
+ */
+export const isLightColor = (color: string): boolean => {
+  const hex = color.trim().replace('#', '');
+  const full =
+    hex.length === 3
+      ? hex.split('').map((c) => c + c).join('')
+      : hex.length === 6
+        ? hex
+        : null;
+  if (!full || !/^[0-9a-fA-F]{6}$/.test(full)) return false;
+
+  const toLinear = (v: number) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const r = toLinear(parseInt(full.slice(0, 2), 16));
+  const g = toLinear(parseInt(full.slice(2, 4), 16));
+  const b = toLinear(parseInt(full.slice(4, 6), 16));
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  // Umbral: por encima de esto, el blanco da menos de 3:1 de contraste.
+  return luminance > 0.4;
+};
