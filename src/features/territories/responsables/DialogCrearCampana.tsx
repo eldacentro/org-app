@@ -9,6 +9,7 @@ import DatePicker from '@components/date_picker';
 import { congIDState } from '@states/settings';
 import { TerritoryCampaign, TerritoryCampaignEstado } from '@definition/territories';
 import { saveCampaign } from '@services/firebase/territories';
+import { isCampaignOver } from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
 
 type Props = { open: boolean; onClose: () => void };
@@ -16,7 +17,12 @@ type Props = { open: boolean; onClose: () => void };
 const estadoFor = (inicio: string, fin: string): TerritoryCampaignEstado => {
   const now = new Date();
   if (new Date(inicio) > now) return 'planificada';
-  if (new Date(fin) < now) return 'pasada';
+  // `isCampaignOver` compara contra el FINAL del día de `fin`, igual que el
+  // auto-cierre. Comparando contra la medianoche (que es lo que devuelve el
+  // selector de fecha), una campaña que terminaba HOY nacía ya 'pasada': sin
+  // botón de finalizar, sin poder añadir territorios ni asignar, y sin
+  // diálogo de edición para arreglarlo. Había que borrarla y rehacerla.
+  if (isCampaignOver(fin, now)) return 'pasada';
   return 'activa';
 };
 
@@ -40,6 +46,14 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
 
   const handleCrear = async () => {
     if (!nombre.trim() || !inicio || !fin) return;
+    // El `minDate` del selector de fin no protege si se elige primero el fin
+    // y después un inicio posterior: sin esta comprobación se guardaba una
+    // campaña con el rango invertido, que además alimenta el cierre
+    // (returnedAt = fechaFin) con una fecha anterior a su propio inicio.
+    if (new Date(fin) < new Date(inicio)) {
+      setErrorMsg('La fecha de finalización no puede ser anterior a la de inicio.');
+      return;
+    }
     setSaving(true);
     setErrorMsg('');
     try {

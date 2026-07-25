@@ -137,7 +137,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     });
     if (!ok) return;
     try {
-      await closeCampaign(congId, c, assignments, territories);
+      await closeCampaign(congId, c);
     } catch (err) {
       console.error(err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo finalizar la campaña.' });

@@ -2,6 +2,7 @@ import {
   collection,
   doc as fsDoc,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -66,6 +67,13 @@ const enc = (text: string | undefined, key: string): string | undefined => {
   return ENC_PREFIX + encryptData(text, key);
 };
 
+/**
+ * ¿Este valor sigue cifrado porque no se pudo descifrar? La interfaz debe
+ * mostrar un aviso en vez del texto ilegible (ver `dec`).
+ */
+export const isStillEncrypted = (value?: string): boolean =>
+  !!value && value.startsWith(ENC_PREFIX);
+
 const dec = (
   value: string | undefined,
   key: string,
@@ -73,11 +81,19 @@ const dec = (
 ): string | undefined => {
   if (!value) return value;
   if (!value.startsWith(ENC_PREFIX)) return value; // texto plano heredado
-  if (!key) return '';
+  // NUNCA devolver '' cuando no se puede descifrar. Antes sí, y eso
+  // destruía el dato: el '' entraba en el estado de la app y el siguiente
+  // guardado de documento completo lo escribía de vuelta en Firestore,
+  // borrando para toda la congregación una nota o una dirección "No
+  // visitar" que estaba perfectamente guardada — solo porque en ESE
+  // dispositivo faltaba la master key. Devolviendo el texto cifrado tal
+  // cual, un guardado de ida y vuelta lo deja intacto. Es la misma
+  // invariante que ya respeta `decryptObject` en el resto de la app.
+  if (!key) return value;
   try {
     return decryptData(value.slice(ENC_PREFIX.length), key, field);
   } catch {
-    return '';
+    return value;
   }
 };
 
@@ -255,7 +271,22 @@ export const subscribeSettings = (
 ) =>
   onSnapshot(
     settingsDoc(congId),
-    (snap) => cb(snap.exists() ? (snap.data() as TerritorySettings) : null),
+    (snap) => {
+      // "No existe" solo se acepta como respuesta REAL del servidor. Con la
+      // caché persistente, un dispositivo recién instalado o sin cobertura
+      // recibe primero un snapshot vacío desde disco; quien escucha esto
+      // siembra entonces los ajustes por defecto y, al recuperar la red,
+      // ese guardado pisaba la configuración real de la congregación
+      // (días de atraso, mensajes, permisos de los publicadores...). Un
+      // dispositivo que solo estaba mirando reseteaba los ajustes de todos.
+      const fromCache = snap.metadata.fromCache;
+      if (!snap.exists()) {
+        if (fromCache) return;
+        cb(null);
+        return;
+      }
+      cb(snap.data() as TerritorySettings);
+    },
     (error) => console.error('Error en suscripción de ajustes:', error)
   );
 
@@ -299,6 +330,29 @@ export const updateTerritoryFields = (
  * — así una edición concurrente en otro campo (p. ej. `openAssignmentId` al
  * asignar el territorio desde otro dispositivo) no se pierde al guardar.
  */
+/**
+ * Actualización parcial y acotada de un territorio para flujos que NO tocan
+ * la asignación: subir/borrar la imagen, alternar una etiqueta.
+ *
+ * Existe porque `saveTerritory` es un `setDoc` del documento entero y esos
+ * flujos lo llamaban con una copia del territorio capturada en el render.
+ * Si entre medias otro responsable asignaba o entregaba ese territorio, al
+ * guardar la imagen se reescribían `openAssignmentId` y `lastWorkedAt` con
+ * los valores viejos: o se soltaba el candado de una asignación abierta
+ * (dos hermanos con el mismo territorio) o se revivía el candado de una ya
+ * cerrada (territorio inasignable para siempre).
+ */
+export const updateTerritoryPartial = (
+  congId: string,
+  territoryId: string,
+  // `imageURL: null` borra la imagen (Firestore no acepta `undefined`).
+  fields: { imageURL?: string | null; tags?: string[]; updatedAt?: string }
+) =>
+  updateDoc(
+    fsDoc(territoriesCol(congId), territoryId),
+    stripUndefined({ ...fields, updatedAt: fields.updatedAt ?? new Date().toISOString() })
+  );
+
 export const updateTerritoryEditableFields = (
   congId: string,
   territoryId: string,
@@ -370,6 +424,28 @@ export const deleteTerritoryCompleto = async (
     dbTerritoryDeleteFile(territoryId),
   ]);
 };
+
+/**
+ * Actualiza SOLO la nota de una asignación.
+ *
+ * Antes esto se hacía con `saveAssignment` (setDoc del documento entero)
+ * partiendo de la copia que el diálogo capturó al abrirse. Si mientras la
+ * nota estaba abierta el publicador entregaba el territorio desde su móvil,
+ * al guardar se reescribían `returnedAt: null` y `status: 'asignado'`: la
+ * entrega desaparecía del historial y el territorio quedaba con una
+ * asignación abierta pero sin candado, así que se podía asignar otra vez a
+ * un segundo hermano.
+ */
+export const updateAssignmentNote = (
+  congId: string,
+  assignmentId: string,
+  nota: string | undefined,
+  key: string
+) =>
+  updateDoc(fsDoc(assignmentsCol(congId), assignmentId), {
+    notas: enc(nota, key) ?? null,
+    updatedAt: new Date().toISOString(),
+  });
 
 export const saveAssignment = (
   congId: string,
@@ -658,71 +734,101 @@ export const saveCampaign = (congId: string, c: TerritoryCampaign) =>
  */
 export const closeCampaign = async (
   congId: string,
-  campaign: TerritoryCampaign,
-  assignments: TerritoryAssignment[],
-  territories: Territory[]
+  campaign: TerritoryCampaign
 ): Promise<void> => {
   const now = new Date().toISOString();
-  const open = assignments.filter(
-    (a) => a.campaignId === campaign.id && !a.returnedAt
+
+  // Qué asignaciones cerrar se decide con datos del SERVIDOR, nunca con el
+  // array que tiene la app en memoria. Firestore está configurado con caché
+  // persistente (ver services/firebase/index.ts), así que al abrir la app
+  // los listeners disparan primero con datos de disco que pueden llevar días
+  // desactualizados. Cerrando desde esa foto vieja se reescribían entregas
+  // individuales que ya se habían hecho: se perdía su fecha real y una
+  // devolución "sin trabajar" pasaba a figurar como "trabajado".
+  // Si no hay conexión, getDocsFromServer lanza y no se escribe nada — la
+  // campaña sigue abierta y el siguiente intento la cierra bien.
+  const [openSnap, terrSnap] = await Promise.all([
+    getDocsFromServer(
+      query(
+        assignmentsCol(congId),
+        where('campaignId', '==', campaign.id),
+        where('returnedAt', '==', null)
+      )
+    ),
+    getDocsFromServer(territoriesCol(congId)),
+  ]);
+  const open = openSnap.docs.map(
+    (d) => ({ id: d.id, ...d.data() }) as TerritoryAssignment
+  );
+  const territories = terrSnap.docs.map(
+    (d) => ({ id: d.id, ...d.data() }) as Territory
   );
 
-  // Un único writeBatch atómico (máx. 500 ops; una campaña real no se
-  // acerca a ese límite) — todo o nada. Antes eran escrituras independientes
-  // en paralelo (Promise.all de sets/updates sueltos): si algo interrumpía
-  // el proceso a medio camino (recarga de página, corte de red), la campaña
-  // podía quedar marcada 'pasada' con solo ALGUNAS asignaciones/territorios
-  // realmente actualizados — un estado a medias que además nunca se
-  // reintentaba, porque este código deja de fijarse en una campaña ya
-  // 'pasada'. Con batch, o se aplica todo o no se aplica nada; si falla, la
-  // campaña sigue 'activa' y el siguiente intento (automático o manual) lo
-  // completa de verdad.
-  const batch = writeBatch(firestore);
+  // Fecha de devolución: la de fin de la campaña, PERO nunca en el futuro.
+  // "Finalizar" se puede pulsar antes de tiempo (y en campañas todavía
+  // planificadas), y usar `fechaFin` a secas escribía fechas futuras en
+  // `returnedAt` y `lastWorkedAt`. Eso además se auto-blindaba: una
+  // `lastWorkedAt` futura hace que `isNewerWorkDate` rechace la fecha real
+  // de la siguiente entrega, así que el territorio se quedaba con la fecha
+  // falsa hasta que el calendario la alcanzaba.
+  const closedAt = campaign.fechaFin > now ? now : campaign.fechaFin;
+
+  // Siempre `update` de solo los campos que cambian, NUNCA `set` del
+  // documento entero: `set` reescribía también `notas`, que va cifrada, y si
+  // esto corría antes de que la master key estuviera en memoria la nota se
+  // guardaba VACÍA (pérdida silenciosa e irreversible).
+  //
+  // Se trocea en lotes de 450 porque Firestore no admite más de 500
+  // operaciones por batch y cada asignación genera 2 escrituras. Trocear
+  // rompe la atomicidad global, pero aquí es seguro y además preferible:
+  // como la lista de asignaciones a cerrar se relee del servidor en cada
+  // intento, un cierre interrumpido a medias se completa solo en el
+  // siguiente (solo quedan abiertas las que falten). Antes, con un único
+  // batch, una campaña de más de ~250 territorios fallaba entera y dejaba
+  // todos los territorios bloqueados sin forma de repararlo desde la app.
+  const ops: Array<(b: ReturnType<typeof writeBatch>) => void> = [];
 
   open.forEach((a) => {
-    // `update` de solo los 3 campos que cambian, NUNCA `set` del documento
-    // entero. Dos motivos, ambos serios:
-    //  1. `set` reescribía también `notas`, que va cifrada. Si este cierre
-    //     corría antes de que la master key estuviera descifrada en memoria
-    //     (arranque de la app), la nota se guardaba VACÍA — pérdida de datos
-    //     silenciosa e irreversible.
-    //  2. `set` parte del snapshot local de la asignación. Con la caché
-    //     persistente de Firestore ese snapshot puede estar retrasado, así
-    //     que se pisaba lo que otro dispositivo acabara de escribir (p. ej.
-    //     una entrega individual registrada como "no trabajado").
-    batch.update(fsDoc(assignmentsCol(congId), a.id), {
-      returnedAt: campaign.fechaFin,
-      status: 'trabajado',
-      updatedAt: now,
-    });
+    ops.push((b) =>
+      b.update(fsDoc(assignmentsCol(congId), a.id), {
+        returnedAt: closedAt,
+        status: 'trabajado',
+        updatedAt: now,
+      })
+    );
     const t = territories.find((x) => x.id === a.territoryId);
     if (t) {
       // Actualización parcial (no saveTerritory completo) — así no se pisa
-      // una edición concurrente de nombre/notas/geometría que el snapshot
-      // local todavía no reflejara.
+      // una edición concurrente de nombre/notas/geometría.
       const fields: Partial<Territory> = { updatedAt: now };
       // Igual que en finalizeAssignmentBatch: la fecha de último trabajo
-      // solo avanza. Sin esta comprobación, cerrar una campaña antigua
-      // (o una a la que se añadió un territorio por error después de su
-      // fecha de fin) pisaba una fecha de trabajo MÁS RECIENTE con la
-      // fecha de fin de la campaña, y el territorio parecía sin trabajar
-      // desde hacía meses.
-      if (isNewerWorkDate(campaign.fechaFin, t.lastWorkedAt)) {
-        fields.lastWorkedAt = campaign.fechaFin;
+      // solo avanza, para que cerrar una campaña antigua no pise una fecha
+      // de trabajo más reciente.
+      if (isNewerWorkDate(closedAt, t.lastWorkedAt)) {
+        fields.lastWorkedAt = closedAt;
       }
       // Libera el candado si esta era la asignación de campaña que lo
       // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
       // como ocupado para siempre.
       if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
-      batch.update(fsDoc(territoriesCol(congId), t.id), fields);
+      ops.push((b) => b.update(fsDoc(territoriesCol(congId), t.id), fields));
     }
   });
 
-  // Igual: solo los campos que cambian, para no pisar `territoryIds` si
-  // otro responsable acaba de añadir territorios a la campaña.
-  batch.update(fsDoc(campaignsCol(congId), campaign.id), { estado: 'pasada', updatedAt: now });
+  for (let i = 0; i < ops.length; i += 450) {
+    const batch = writeBatch(firestore);
+    ops.slice(i, i + 450).forEach((op) => op(batch));
+    await batch.commit();
+  }
 
-  await batch.commit();
+  // La campaña se marca 'pasada' AL FINAL y en su propia escritura: si algo
+  // falla antes, sigue sin cerrarse y se reintenta. Al revés (marcarla
+  // primero) el código dejaría de mirarla y las asignaciones que quedaran
+  // abiertas no se cerrarían nunca.
+  await updateDoc(fsDoc(campaignsCol(congId), campaign.id), {
+    estado: 'pasada',
+    updatedAt: now,
+  });
 };
 
 /**

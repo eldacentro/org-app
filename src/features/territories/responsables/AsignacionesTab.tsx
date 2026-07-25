@@ -27,7 +27,7 @@ import {
 import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
 import {
   deleteAssignment,
-  saveAssignment,
+  updateAssignmentNote,
 } from '@services/firebase/territories';
 import { formatTerritoryDate, isInCooldown, territoryLabel } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
@@ -286,13 +286,10 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     if (!editTarget) return;
     setSavingNote(true);
     try {
-      await saveAssignment(
+      await updateAssignmentNote(
         congId,
-        {
-          ...editTarget,
-          notas: noteValue.trim() || undefined,
-          updatedAt: new Date().toISOString(),
-        },
+        editTarget.id,
+        noteValue.trim() || undefined,
         masterKey ?? ''
       );
       displaySnackNotification({ severity: 'success', header: 'Nota guardada', message: 'La nota ha sido guardada correctamente.' });

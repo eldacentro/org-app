@@ -217,7 +217,22 @@ export const useTerritories = () => {
   // candado existiera. Mismo criterio que la migración de arriba (solo
   // responsables/admin, idempotente).
   useEffect(() => {
-    if (!congId || !canManage || territories.length === 0) return;
+    // `assignments.length === 0` es tan imprescindible como la guarda de
+    // territorios: las 9 suscripciones se crean a la vez pero cada una emite
+    // por su cuenta, y asignaciones es la colección más grande (cientos de
+    // documentos), así que suele llegar la última. Si esto corría en ese
+    // hueco, veía "ningún territorio tiene asignación abierta" y sellaba
+    // `openAssignmentId: null` en todos. Como la transacción de reparación
+    // solo actúa sobre los que valen `undefined`, ese `null` se daba después
+    // por migrado y NUNCA se corregía — y el candado es lo único que impide
+    // asignar el mismo territorio a dos hermanos a la vez.
+    if (
+      !congId ||
+      !canManage ||
+      territories.length === 0 ||
+      assignments.length === 0
+    )
+      return;
 
     backfillOpenAssignmentLocks(congId, territories, assignments).catch((err) =>
       console.error('Failed to backfill openAssignmentId:', err)
@@ -270,7 +285,7 @@ export const useTerritories = () => {
       )
       .forEach((c) => {
         closingCampaignsRef.current.add(c.id);
-        closeCampaign(congId, c, assignments, territories)
+        closeCampaign(congId, c)
           .catch((err) => console.error('Failed to auto-close campaign:', err))
           .finally(() => closingCampaignsRef.current.delete(c.id));
       });

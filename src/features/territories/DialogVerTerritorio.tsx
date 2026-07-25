@@ -29,13 +29,12 @@ import {
 } from '@states/territories';
 import {
   congIDState,
-  congMasterKeyState,
   userLocalUIDState,
 } from '@states/settings';
 import {
   uploadTerritoryImage,
   deleteTerritoryImage,
-  saveTerritory,
+  updateTerritoryPartial,
 } from '@services/firebase/territories';
 import { getZoneColor, getZoneName, isInCooldown, territoryLabel } from '@services/app/territories';
 import { useBreakpoints } from '@hooks/index';
@@ -316,7 +315,6 @@ const DialogVerTerritorio = ({
   }, [territories, territory]);
 
   const congID = useAtomValue(congIDState);
-  const masterKey = useAtomValue(congMasterKeyState);
   const currentUid = useAtomValue(userLocalUIDState);
   const settings = useAtomValue(territorySettingsState);
 
@@ -426,7 +424,13 @@ const DialogVerTerritorio = ({
     setUploading(true);
     try {
       const url = await uploadTerritoryImage(congID, liveTerritory.id, file);
-      await saveTerritory(congID, { ...liveTerritory, imageURL: url }, masterKey ?? '');
+      // Actualización parcial, NUNCA saveTerritory (setDoc del documento
+      // entero). La subida puede tardar minutos en 4G; guardando el
+      // documento completo desde la copia capturada en el render se
+      // reescribían `openAssignmentId` y `lastWorkedAt` con valores viejos,
+      // soltando el candado de una asignación abierta o resucitando el de
+      // una ya cerrada.
+      await updateTerritoryPartial(congID, liveTerritory.id, { imageURL: url });
     } catch (e) {
       console.error(e);
       displaySnackNotification({
@@ -449,10 +453,7 @@ const DialogVerTerritorio = ({
     setUploading(true);
     try {
       await deleteTerritoryImage(congID, liveTerritory.id);
-      // Usar undefined para que stripUndefined elimine el campo de Firestore
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { imageURL: _removed, ...territoryWithoutImage } = liveTerritory;
-      await saveTerritory(congID, { ...territoryWithoutImage }, masterKey ?? '');
+      await updateTerritoryPartial(congID, liveTerritory.id, { imageURL: null });
     } catch (e) {
       console.error(e);
       displaySnackNotification({
@@ -470,7 +471,7 @@ const DialogVerTerritorio = ({
     const updated = current.includes(tagId)
       ? current.filter((t) => t !== tagId)
       : [...current, tagId];
-    await saveTerritory(congID, { ...liveTerritory, tags: updated }, masterKey ?? '');
+    await updateTerritoryPartial(congID, liveTerritory.id, { tags: updated });
   };
 
   // ── Alturas del sheet por tab ──────────────────────────────────────────────
