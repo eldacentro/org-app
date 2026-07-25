@@ -112,7 +112,7 @@ const ImportExportTab = () => {
               sx={{ borderRadius: 'var(--radius-max)', px: 3, gap: 1 }}
             >
               {busy ? <CircularProgress size={16} color="inherit" /> : null}
-              {busy ? 'Generando…' : '⬇ Exportar S-13'}
+              {busy ? 'Generando…' : 'Exportar S-13'}
             </Button>
           </Box>
         </Stack>

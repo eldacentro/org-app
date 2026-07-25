@@ -193,8 +193,16 @@ export const useTerritoryExport = () => {
         fetch('/assets/fonts/NotoSans-Regular.ttf').then((r) => r.arrayBuffer()),
         fetch('/assets/fonts/NotoSans-SemiBold.ttf').then((r) => r.arrayBuffer()),
       ]);
-      const font = await doc.embedFont(regularBytes, { subset: true });
-      const fontBold = await doc.embedFont(semiBoldBytes, { subset: true });
+      // SIN `subset: true`. Recortar la fuente a los caracteres usados deja
+      // el PDF mucho más ligero, pero con estas páginas —copiadas de la
+      // plantilla y con cientos de textos— pdf-lib genera un subconjunto
+      // incompleto: en el S-13 salían nombres y fechas a los que les faltaba
+      // la mayoría de las letras ("He y A" en vez del nombre, "6" en vez de
+      // "25-06-2026"). Comprobado renderizando el PDF con las dos opciones.
+      // La fuente entera pesa más, pero el formulario es oficial: primero que
+      // se lea.
+      const font = await doc.embedFont(regularBytes);
+      const fontBold = await doc.embedFont(semiBoldBytes);
 
       for (const sheet of sheetsData) {
         // Por cada "sheet", creamos una página nueva clonando la base
