@@ -140,10 +140,13 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
   );
 
   const assignmentByTerritory = useMemo(() => {
+    // Incluye las de campaña: un territorio ocupado por una campaña ESTÁ
+    // ocupado. Excluyéndolas, el mapa los pintaba en verde como "Libre" en
+    // plena campaña y un responsable que repartiera desde aquí asignaba
+    // encima de otro hermano. Mismo arreglo que ya se hizo en Asignaciones
+    // y en Estadísticas.
     const map = new Map<string, (typeof openAssignments)[number]>();
-    for (const a of openAssignments) {
-      if (!a.isCampaign) map.set(a.territoryId, a);
-    }
+    for (const a of openAssignments) map.set(a.territoryId, a);
     return map;
   }, [openAssignments]);
 

@@ -16,6 +16,7 @@ import {
   territoryOpenAssignmentsState,
   territoryZonesState,
   territorySettingsState,
+  territoriesLoadingState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
@@ -57,6 +58,7 @@ const CampanaBadge = () => (
 /** Sección "Mis territorios": territorios actualmente asignados al usuario. */
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const myAssignments = useAtomValue(myTerritoryAssignmentsState);
+  const loading = useAtomValue(territoriesLoadingState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const notices = useAtomValue(myUnreadNoticesState);
   const territories = useAtomValue(territoriesState);
@@ -243,7 +245,9 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         </Typography>
         {noticesBanner}
         <Typography variant="body2" color="var(--ink-2)">
-          No tienes territorios asignados ahora mismo. Puedes solicitar uno.
+          {loading
+            ? 'Cargando tus territorios…'
+            : 'No tienes territorios asignados ahora mismo. Puedes solicitar uno.'}
         </Typography>
         {groupSection}
       </Box>

@@ -14,6 +14,7 @@ import {
   territoryPendingRequestsState,
   territorySettingsState,
   territoryTagsState,
+  territoriesLoadingState,
 } from '@states/territories';
 import { congIDState } from '@states/settings';
 import { useConfirm } from '@components/confirm_dialog';
@@ -220,6 +221,7 @@ const ResponsablesPanel = ({
   onOpenImport,
 }: Props) => {
   const congId = useAtomValue(congIDState);
+  const loading = useAtomValue(territoriesLoadingState);
 
   const zones = useAtomValue(territoryZonesSortedState);
   const tags = useAtomValue(territoryTagsState);
@@ -426,7 +428,9 @@ const ResponsablesPanel = ({
 
                 {territories.length === 0 && (
                   <Typography variant="body2" color="var(--ink-2)">
-                    Aún no hay territorios. Crea una zona e importa tu archivo KML.
+                    {loading
+                      ? 'Cargando territorios…'
+                      : 'Aún no hay territorios. Crea una zona e importa tu archivo KML.'}
                   </Typography>
                 )}
 

@@ -198,7 +198,7 @@ const InfoTabContent = ({
             display: 'block',
           }}
         >
-          Notas internas
+          Notas
         </Typography>
         <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)', lineHeight: 1.5 }}>
           {territory.notas}
@@ -255,10 +255,10 @@ const ActionButton = ({
               color: 'var(--always-white)',
               boxShadow: color
                 ? `0 4px 16px ${color}50`
-                : '0 4px 16px rgba(var(--accent-main-rgb, 59,130,246), 0.35)',
+                : '0 4px 16px rgba(var(--accent-main-base), 0.35)',
             }
           : {
-              backgroundColor: 'rgba(0,0,0,0.05)',
+              backgroundColor: 'var(--accent-100)',
               color: 'var(--ink-2)',
               fontSize: '14px',
               fontWeight: 500,
@@ -541,6 +541,8 @@ const DialogVerTerritorio = ({
             width: 44,
             height: 44,
             borderRadius: '50%',
+            // Negro literal a propósito: va SOBRE las teselas del mapa,
+            // que siempre son claras, no sobre el fondo del tema.
             backgroundColor: 'rgba(0,0,0,0.45)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
@@ -601,7 +603,7 @@ const DialogVerTerritorio = ({
               width: 40,
               height: 4,
               borderRadius: 'var(--radius-xs)',
-              backgroundColor: 'rgba(0,0,0,0.13)',
+              backgroundColor: 'var(--line)',
             }}
           />
         </Box>
@@ -684,7 +686,7 @@ const DialogVerTerritorio = ({
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
-                    backgroundColor: editingTags ? `${color}15` : 'rgba(0,0,0,0.06)',
+                    backgroundColor: editingTags ? `${color}15` : 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -706,7 +708,7 @@ const DialogVerTerritorio = ({
               sx={{
                 mt: 1.5,
                 p: '12px',
-                backgroundColor: 'rgba(0,0,0,0.04)',
+                backgroundColor: 'var(--accent-100)',
                 borderRadius: '14px',
               }}
             >
@@ -753,6 +755,7 @@ const DialogVerTerritorio = ({
         {/* SEGMENTED CONTROL */}
         <Box sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
           <SegmentedControl
+            ariaLabel="Vistas del territorio"
             tabs={['Mapa', 'Imagen', 'Info']}
             active={tab}
             onChange={(i) => {
@@ -780,7 +783,7 @@ const DialogVerTerritorio = ({
               <Typography
                 className="body-small-regular"
                 sx={{
-                  color: 'rgba(0,0,0,0.35)',
+                  color: 'var(--ink-3)',
                   textAlign: 'center',
                   py: 1,
                 }}
@@ -808,7 +811,7 @@ const DialogVerTerritorio = ({
                         // Limitar altura para que no sea interminable en scroll
                         maxHeight: '56vh',
                         objectFit: 'contain',
-                        backgroundColor: 'rgba(0,0,0,0.03)',
+                        backgroundColor: 'var(--accent-100)',
                       }}
                     />
                   </PhotoView>
@@ -818,8 +821,8 @@ const DialogVerTerritorio = ({
                   sx={{
                     height: 200,
                     borderRadius: 'var(--radius-xxl)',
-                    border: '1.5px dashed rgba(0,0,0,0.12)',
-                    backgroundColor: 'rgba(0,0,0,0.02)',
+                    border: '1.5px dashed var(--line)',
+                    backgroundColor: 'var(--accent-100)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -925,7 +928,7 @@ const DialogVerTerritorio = ({
             px: 3,
             pt: '12px',
             pb: 'max(20px, env(safe-area-inset-bottom))',
-            borderTop: '0.5px solid rgba(0,0,0,0.07)',
+            borderTop: '0.5px solid var(--line)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -982,7 +985,7 @@ const DialogVerTerritorio = ({
           width: '57%',
           flexShrink: 0,
           position: 'relative',
-          backgroundColor: '#1a1a2e',
+          backgroundColor: 'var(--accent-200)',
           borderRadius: '24px 0 0 24px',
           overflow: 'hidden',
         }}
@@ -1018,7 +1021,7 @@ const DialogVerTerritorio = ({
                 sx={{
                   fontSize: '19px',
                   fontWeight: 800,
-                  color: '#111',
+                  color: 'var(--ink)',
                   letterSpacing: '-0.4px',
                   lineHeight: 1.15,
                 }}
@@ -1034,7 +1037,7 @@ const DialogVerTerritorio = ({
                     backgroundColor: color,
                   }}
                 />
-                <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'rgba(0,0,0,0.5)' }}>
+                <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'var(--ink-2)' }}>
                   {zoneName}
                 </Typography>
                 {canManage && <AssignedDot status={assignedStatus} />}
@@ -1064,7 +1067,7 @@ const DialogVerTerritorio = ({
             px: 3,
             pt: 2.5,
             pb: 2,
-            borderBottom: '0.5px solid rgba(0,0,0,0.07)',
+            borderBottom: '0.5px solid var(--line)',
             flexShrink: 0,
           }}
         >
@@ -1142,8 +1145,8 @@ const DialogVerTerritorio = ({
                     px: '10px',
                     py: '3px',
                     borderRadius: '20px',
-                    backgroundColor: editingTags ? `${color}12` : 'rgba(0,0,0,0.05)',
-                    border: `1px solid ${editingTags ? color + '45' : 'rgba(0,0,0,0.1)'}`,
+                    backgroundColor: editingTags ? `${color}12` : 'var(--accent-100)',
+                    border: `1px solid ${editingTags ? color + '45' : 'var(--line)'}`,
                     color: editingTags ? color : 'var(--ink-2)',
                     fontSize: '11px',
                     fontWeight: 600,
@@ -1158,7 +1161,7 @@ const DialogVerTerritorio = ({
           ) : null}
 
           {editingTags && canManage && (
-            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: 'var(--radius-xl)' }}>
+            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'var(--accent-100)', borderRadius: 'var(--radius-xl)' }}>
               {allTags.length === 0 ? (
                 <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   No hay etiquetas creadas.
@@ -1202,6 +1205,7 @@ const DialogVerTerritorio = ({
         {/* Tabs */}
         <Box sx={{ px: 3, py: 1.5, flexShrink: 0 }}>
           <SegmentedControl
+            ariaLabel="Vistas del territorio"
             tabs={['Info', 'Imagen']}
             active={tab}
             onChange={(i) => { setTab(i); setEditingTags(false); }}
@@ -1294,7 +1298,7 @@ const DialogVerTerritorio = ({
         </Box>
 
         {/* Acciones inferiores */}
-        <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
+        <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid var(--line)', flexShrink: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="flex-end">
             {relevantAssignment && onEntregar && !canReturnThis && (
               <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>

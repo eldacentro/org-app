@@ -17,6 +17,7 @@ import {
   territoryNoticesState,
   territoryRequestsState,
   territorySettingsState,
+  territoriesLoadingState,
   territoryTagsState,
   territoryZonesState,
 } from '@states/territories';
@@ -72,6 +73,7 @@ export const useTerritories = () => {
   const setNotices = useSetAtom(territoryNoticesState);
   const setTags = useSetAtom(territoryTagsState);
   const setSettings = useSetAtom(territorySettingsState);
+  const setLoading = useSetAtom(territoriesLoadingState);
   const responsabilidades = useAtomValue(responsabilidadesState);
   const persons = useAtomValue(personsState);
   const settings = useAtomValue(territorySettingsState);
@@ -111,10 +113,28 @@ export const useTerritories = () => {
     _activeCongId = congId;
     _activeMasterKey = key;
 
+    // La carga termina cuando han llegado las DOS colecciones base
+    // (territorios y asignaciones). Las demás son pequeñas y no gobiernan
+    // ningún estado vacío importante.
+    setLoading(true);
+    let gotTerritories = false;
+    let gotAssignments = false;
+    const markLoaded = () => {
+      if (gotTerritories && gotAssignments) setLoading(false);
+    };
+
     _unsubs.push(
       subscribeZones(congId, setZones),
-      subscribeTerritories(congId, key, setTerritories),
-      subscribeAssignments(congId, key, setAssignments),
+      subscribeTerritories(congId, key, (rows) => {
+        setTerritories(rows);
+        gotTerritories = true;
+        markLoaded();
+      }),
+      subscribeAssignments(congId, key, (rows) => {
+        setAssignments(rows);
+        gotAssignments = true;
+        markLoaded();
+      }),
       subscribeLocations(congId, key, setLocations),
       subscribeCampaigns(congId, setCampaigns),
       subscribeRequests(congId, setRequests),
@@ -149,6 +169,7 @@ export const useTerritories = () => {
     setNotices,
     setTags,
     setSettings,
+    setLoading,
   ]);
 
   useEffect(() => {

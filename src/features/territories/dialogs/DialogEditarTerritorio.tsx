@@ -237,7 +237,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
               />
 
               <TextField
-                label="Notas internas (cifradas)"
+                label="Notas del territorio"
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
                 fullWidth

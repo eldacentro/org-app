@@ -27,6 +27,20 @@ export const territorySettingsState = atom<TerritorySettings>({
   updatedAt: '',
 });
 
+/**
+ * ¿Todavía no han llegado los datos base (territorios y asignaciones)?
+ *
+ * Sin esto, todas las pantallas del módulo interpretaban el array vacío
+ * inicial como "no hay nada" y mostraban su estado vacío mientras cargaba:
+ * al publicador le decían "No tienes territorios asignados. Puedes
+ * solicitar uno" (empujándole a pedir un segundo territorio) y al
+ * responsable "Aún no hay territorios. Crea una zona e importa tu archivo
+ * KML" (invitando a reimportar y duplicarlo todo). En una app que ya ha
+ * sufrido pérdidas de datos reales, ese mensaje es indistinguible de un
+ * borrado.
+ */
+export const territoriesLoadingState = atom(true);
+
 // ── Derivados ──
 
 /** Zonas ordenadas por su campo `orden`. */

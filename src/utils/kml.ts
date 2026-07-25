@@ -7,6 +7,7 @@ import JSZip from 'jszip';
 import type {
   Feature,
   FeatureCollection,
+  Geometry,
   MultiPolygon,
   Polygon,
 } from 'geojson';
@@ -16,6 +17,49 @@ export type ParsedTerritory = {
   name: string;
   geometry: Polygon | MultiPolygon;
 };
+
+/**
+ * Extrae los polígonos de CUALQUIER geometría de un Placemark.
+ *
+ * Un territorio partido en varias piezas (por una avenida o una vía) se
+ * escribe en KML como `<MultiGeometry>`, y togeojson lo devuelve como
+ * `GeometryCollection` — nunca como `MultiPolygon`. Como antes solo se
+ * aceptaban `Polygon`/`MultiPolygon`, esos territorios se perdían EN
+ * SILENCIO al importar: ni salían en la lista ni se avisaba de nada. Y era
+ * el propio KML que exporta esta app (y el de Territory Helper), así que
+ * exportar e importar de vuelta perdía datos.
+ *
+ * También ignora los puntos/líneas que algunas herramientas añaden dentro
+ * del mismo Placemark para colocar la etiqueta.
+ */
+const collectPolygons = (geometry: Geometry | null): number[][][][] => {
+  if (!geometry) return [];
+  if (geometry.type === 'Polygon') return [geometry.coordinates];
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates;
+  if (geometry.type === 'GeometryCollection') {
+    return geometry.geometries.flatMap((g) => collectPolygons(g));
+  }
+  return [];
+};
+
+/** Un anillo válido tiene al menos 4 posiciones (la última cierra) y
+ *  coordenadas dentro del rango geográfico. Un KML con coordenadas
+ *  proyectadas (UTM en metros) pasaba el parseo sin quejarse y creaba los
+ *  territorios en un punto absurdo del planeta. */
+const isValidRing = (ring: number[][]): boolean =>
+  Array.isArray(ring) &&
+  ring.length >= 4 &&
+  ring.every(
+    (p) =>
+      Array.isArray(p) &&
+      p.length >= 2 &&
+      Number.isFinite(p[0]) &&
+      Number.isFinite(p[1]) &&
+      p[0] >= -180 &&
+      p[0] <= 180 &&
+      p[1] >= -90 &&
+      p[1] <= 90
+  );
 
 const parseKmlString = (text: string): ParsedTerritory[] => {
   const dom = new DOMParser().parseFromString(text, 'text/xml');
@@ -32,15 +76,22 @@ const parseKmlString = (text: string): ParsedTerritory[] => {
   const geojson = kmlToGeoJson(dom) as FeatureCollection;
 
   return geojson.features
-    .filter(
-      (f): f is Feature<Polygon | MultiPolygon> =>
-        !!f.geometry &&
-        (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
-    )
-    .map((f) => ({
-      name: String(f.properties?.name ?? f.properties?.Name ?? '').trim(),
-      geometry: f.geometry,
-    }));
+    .map((f: Feature) => {
+      const polys = collectPolygons(f.geometry).filter((rings) =>
+        rings.every(isValidRing)
+      );
+      if (polys.length === 0) return null;
+      return {
+        name: String(f.properties?.name ?? f.properties?.Name ?? '').trim(),
+        // Una sola pieza sigue siendo Polygon (no cambia nada de lo que ya
+        // funcionaba); varias piezas se unen en un MultiPolygon.
+        geometry:
+          polys.length === 1
+            ? ({ type: 'Polygon', coordinates: polys[0] } as Polygon)
+            : ({ type: 'MultiPolygon', coordinates: polys } as MultiPolygon),
+      };
+    })
+    .filter((t): t is ParsedTerritory => t !== null);
 };
 
 /** Parsea un fichero KML o KMZ a una lista de territorios (nombre + geometría). */
@@ -86,8 +137,20 @@ const geometryKml = (geometry: Polygon | MultiPolygon) =>
     ? polygonKml(geometry.coordinates)
     : `<MultiGeometry>${geometry.coordinates.map((p) => polygonKml(p)).join('')}</MultiGeometry>`;
 
+/** Escapa el texto que va dentro de un nodo XML. Sin esto, un solo nombre
+ *  de territorio con "&" (p. ej. "12 — Barrio Nuevo & La Estación") producía
+ *  un KML inválido que Google Earth, Territory Helper y la propia app
+ *  rechazaban al abrirlo — y el error aparecía lejos de la causa. */
+const xmlEscape = (s: string) =>
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
 const placemark = (name: string, geometry: Polygon | MultiPolygon) =>
-  `<Placemark><name>${name}</name>${geometryKml(geometry)}</Placemark>`;
+  `<Placemark><name>${xmlEscape(name)}</name>${geometryKml(geometry)}</Placemark>`;
 
 /** Convierte una geometría de territorio a un documento KML (export). */
 export const geometryToKml = (

@@ -11,6 +11,7 @@ import {
   territoriesState,
   territoryAssignmentsState,
   territorySettingsState,
+  territoriesLoadingState,
   territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
@@ -283,6 +284,7 @@ const ZoneGroup = ({
 // ─── Tab principal ─────────────────────────────────────────────────────────────
 const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const territories = useAtomValue(territoriesState);
+  const loading = useAtomValue(territoriesLoadingState);
   const assignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
   const settings = useAtomValue(territorySettingsState);
@@ -407,7 +409,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   if (stats.total === 0) {
     return (
       <Typography variant="body2" color="var(--ink-2)">
-        Aún no hay territorios para mostrar estadísticas.
+        {loading ? 'Cargando estadísticas…' : 'Aún no hay territorios para mostrar estadísticas.'}
       </Typography>
     );
   }
@@ -498,7 +500,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                       </span>
                     </Typography>
                     <Typography variant="caption" color="var(--ink-2)">
-                      Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
+                      Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
                       Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
                     </Typography>
                   </Box>

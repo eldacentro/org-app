@@ -19,6 +19,7 @@ import {
 import { territoriesToKml } from '@utils/kml';
 import { usePersonName } from '@features/territories/usePersonName';
 import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 
 const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
@@ -179,9 +180,21 @@ export const useTerritoryExport = () => {
       
       const doc = await PDFDocument.create();
       const baseDoc = await PDFDocument.load(templateBytes);
-      
-      const font = await doc.embedFont('Helvetica');
-      const fontBold = await doc.embedFont('Helvetica-Bold');
+
+      // Fuente TTF embebida en vez de las estándar de PDF (Helvetica), que
+      // solo admiten el juego WinAnsi/cp1252. Con Helvetica, un apellido con
+      // una letra fuera de ese juego (ł, ș, ț, ă, ć, ř…) hacía que pdf-lib
+      // lanzara y la exportación entera fallara con un error genérico: el
+      // formulario oficial no se podía generar por el nombre de un solo
+      // hermano, y reintentar nunca servía. Las tildes y la ñ sí entran en
+      // cp1252, por eso no se había notado.
+      doc.registerFontkit(fontkit);
+      const [regularBytes, semiBoldBytes] = await Promise.all([
+        fetch('/assets/fonts/NotoSans-Regular.ttf').then((r) => r.arrayBuffer()),
+        fetch('/assets/fonts/NotoSans-SemiBold.ttf').then((r) => r.arrayBuffer()),
+      ]);
+      const font = await doc.embedFont(regularBytes, { subset: true });
+      const fontBold = await doc.embedFont(semiBoldBytes, { subset: true });
 
       for (const sheet of sheetsData) {
         // Por cada "sheet", creamos una página nueva clonando la base

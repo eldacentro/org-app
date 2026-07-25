@@ -7,7 +7,10 @@ import {
   congIDState,
   userLocalUIDState,
 } from '@states/settings';
-import { territoryPendingRequestsState } from '@states/territories';
+import {
+  territoryPendingRequestsState,
+  territoriesLoadingState,
+} from '@states/territories';
 import { TerritoryRequest } from '@definition/territories';
 import { atenderRequest } from '@services/firebase/territories';
 import { formatTerritoryDate } from '@services/app/territories';
@@ -22,6 +25,7 @@ type Props = {
 
 const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   const congId = useAtomValue(congIDState);
+  const loading = useAtomValue(territoriesLoadingState);
   const uid = useAtomValue(userLocalUIDState);
   const pending = useAtomValue(territoryPendingRequestsState);
   const settings = useAtomValue(territorySettingsState);
@@ -40,7 +44,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   if (pending.length === 0) {
     return (
       <Typography variant="body2" color="var(--ink-2)">
-        No hay solicitudes de territorio pendientes.
+        {loading ? 'Cargando solicitudes…' : 'No hay solicitudes de territorio pendientes.'}
       </Typography>
     );
   }

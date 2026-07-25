@@ -9,12 +9,14 @@ import {
   territoryAssignmentsState,
   territoryZonesState,
   territorySettingsState,
+  territoriesLoadingState,
 } from '@states/territories';
 import { territoryLabel, formatTerritoryDate, getZoneColor } from '@services/app/territories';
 import { usePersonName } from '../usePersonName';
 
 const HistorialTab = () => {
   const assignments = useAtomValue(territoryAssignmentsState);
+  const loading = useAtomValue(territoriesLoadingState);
   const territories = useAtomValue(territoriesState);
   const zones = useAtomValue(territoryZonesState);
   const settings = useAtomValue(territorySettingsState);
@@ -56,7 +58,11 @@ const HistorialTab = () => {
 
       {filtered.length === 0 ? (
         <Typography variant="body2" color="var(--ink-2)">
-          {search ? 'No hay resultados para tu búsqueda.' : 'No hay historial de asignaciones cerradas.'}
+          {loading
+            ? 'Cargando historial…'
+            : search
+              ? 'No hay resultados para tu búsqueda.'
+              : 'No hay historial de asignaciones cerradas.'}
         </Typography>
       ) : (
         <Stack spacing={1.5}>
