@@ -188,6 +188,61 @@ const TouchGestureRecovery = () => {
   return null;
 };
 
+// ─── El polígono, pegado al mapa durante el gesto ─────────────────────────
+// Mientras se hace pinza o se rota, Leaflet no vuelve a proyectar los
+// vectores: mueve y escala su contenedor SVG con una transformación CSS, que
+// es barato y va suave. Pero con el mapa ROTADO esa transformación se calcula
+// mal — el propio plugin lo admite en un `@FIXME` de su código, sobre
+// `_updateTransform` y `_topLeft` —, así que el polígono se estira o se
+// encoge respecto a las calles durante todo el gesto y solo cuadra al
+// soltar, cuando Leaflet reproyecta de verdad.
+//
+// Aquí se reproyecta en CADA fotograma del gesto en vez de confiar en esa
+// transformación. Es más trabajo, pero este mapa dibuja UN territorio (unas
+// pocas decenas de vértices): ni se nota. El mapa general, que sí tiene 130
+// polígonos, no lleva rotación y no pasa por aquí.
+const VectorGestureSync = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    let frame = 0;
+
+    const sync = () => {
+      // Como mucho una reproyección por fotograma, aunque el gesto dispare
+      // varios eventos seguidos.
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const renderers = new Set<{ _reset: () => void }>();
+        map.eachLayer((layer) => {
+          const r = (layer as unknown as { _renderer?: { _reset: () => void } })._renderer;
+          if (r) renderers.add(r);
+        });
+        renderers.forEach((r) => {
+          try {
+            r._reset();
+          } catch {
+            // Tocamos interiores de Leaflet: si una versión futura los
+            // cambia, el mapa debe seguir funcionando (solo se recupera el
+            // parpadeo de antes, no se rompe nada).
+          }
+        });
+      });
+    };
+
+    map.on('zoom', sync);
+    map.on('rotate', sync);
+
+    return () => {
+      map.off('zoom', sync);
+      map.off('rotate', sync);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [map]);
+
+  return null;
+};
+
 // ─── Geolocalización en vivo ──────────────────────────────────────────────────
 const useLiveLocation = (enabled: boolean) => {
   const [pos, setPos] = useState<[number, number] | null>(null);
@@ -436,6 +491,7 @@ const TerritoryMap = ({
         <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
         <BearingTracker onChange={setBearing} />
         <TouchGestureRecovery />
+        <VectorGestureSync />
 
         {editable && onGeometryChange ? (
           <GeomanControl geometry={geometry} color={color} onChange={onGeometryChange} />
