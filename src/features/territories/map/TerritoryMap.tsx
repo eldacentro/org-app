@@ -62,11 +62,20 @@ const FitBounds = ({
   // "norte arriba" de verdad es cosa solo del botón de brújula.
   const doFit = () => {
     if (!bounds) return;
+    // El relleno inferior lo marca el alto del panel deslizante, que puede
+    // llegar al 90% de la pantalla. Si relleno superior + inferior supera el
+    // alto útil, Leaflet calcula un tamaño NEGATIVO y el zoom sale NaN: el
+    // mapa se queda sin teselas. Se limita a dejar siempre al menos 80px de
+    // ventana visible (y en ese caso ya no tiene sentido tanto margen).
+    const usable = map.getSize().y;
+    const maxBottom = Math.max(0, usable - 24 - 80);
+    const safeBottom = Math.min(24 + bottomInset, maxBottom);
+
     const startBearing = map.getBearing?.() ?? 0;
     map.setBearing?.(0);
     map.fitBounds(bounds, {
       paddingTopLeft: [24, 24],
-      paddingBottomRight: [24, 24 + bottomInset],
+      paddingBottomRight: [24, safeBottom],
     });
     if (startBearing) map.setBearing?.(startBearing);
   };
@@ -91,24 +100,38 @@ const FitBounds = ({
 // controlar zoom desde los botones que están FUERA del MapContainer.
 const MapInstanceCapture = ({ onReady }: { onReady: (m: L.Map) => void }) => {
   const map = useMap();
+  // `onReady` llega como función inline desde el padre, así que cambia de
+  // identidad en CADA render. Estando en las dependencias del efecto, este
+  // se desmontaba y volvía a montar continuamente (el seguimiento de
+  // ubicación en vivo repinta ~1 vez por segundo mientras se predica),
+  // recreando el ResizeObserver y encolando dos temporizadores más cada vez.
+  // Con una ref, el efecto corre una sola vez por mapa.
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+
   useEffect(() => {
-    onReady(map);
+    onReadyRef.current(map);
     // Solución robusta para cuando el mapa está en un Dialog con transición o cambia de tamaño
     const observer = new ResizeObserver(() => {
       map.invalidateSize();
     });
     const container = map.getContainer();
     if (container) observer.observe(container);
-    
-    // Fallback: invalidate tras 200 y 400ms por si el observer no pilla el fin de una animación de MUI
-    setTimeout(() => map.invalidateSize(), 250);
-    setTimeout(() => map.invalidateSize(), 500);
+
+    // Fallback por si el observer no pilla el fin de una animación de MUI.
+    // Se guardan los ids para CANCELARLOS al desmontar: si el usuario cierra
+    // el territorio antes de que salten, `invalidateSize()` corría sobre un
+    // mapa ya destruido y lanzaba un TypeError sin capturar.
+    const t1 = setTimeout(() => map.invalidateSize(), 250);
+    const t2 = setTimeout(() => map.invalidateSize(), 500);
 
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
       if (container) observer.unobserve(container);
       observer.disconnect();
     };
-  }, [map, onReady]);
+  }, [map]);
   return null;
 };
 
@@ -125,6 +148,42 @@ const BearingTracker = ({ onChange }: { onChange: (bearing: number) => void }) =
       map.off('rotate', handleRotate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+  return null;
+};
+
+// ─── Saneado del gesto de dos dedos ───────────────────────────────────────
+// Parche defensivo para un fallo de leaflet-rotate: su `_onTouchEnd` sale
+// antes de tiempo cuando el gesto no llegó a moverse
+// (`if (!this._moved || ...) { this._zooming = false; return; }`), y en esa
+// rama NO limpia `_rotating` ni desengancha sus listeners de `document`.
+// Basta con posar dos dedos y levantarlos sin arrastrar — o que llegue un
+// `touchcancel` — para que `_rotating` se quede en `true`: a partir de ahí
+// `_onTouchStart` aborta siempre por su propia guarda y el mapa se queda SIN
+// pinch-zoom ni rotación hasta recargar la app, sin que el usuario pueda
+// hacer nada. Aquí se limpia el estado cuando ya no quedan dedos en pantalla.
+const TouchGestureRecovery = () => {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const handler = (e: TouchEvent) => {
+      if (e.touches.length > 0) return; // todavía hay dedos: gesto en curso
+      const gestures = (map as unknown as Record<string, unknown>).touchGestures as
+        | { _zooming?: boolean; _rotating?: boolean; _moved?: boolean }
+        | undefined;
+      if (!gestures) return;
+      if (gestures._rotating || gestures._zooming) {
+        gestures._rotating = false;
+        gestures._zooming = false;
+        gestures._moved = false;
+      }
+    };
+    container.addEventListener('touchend', handler);
+    container.addEventListener('touchcancel', handler);
+    return () => {
+      container.removeEventListener('touchend', handler);
+      container.removeEventListener('touchcancel', handler);
+    };
   }, [map]);
   return null;
 };
@@ -366,12 +425,17 @@ const TerritoryMap = ({
         {/* Captura la instancia del mapa para el zoom externo */}
         <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
         <BearingTracker onChange={setBearing} />
+        <TouchGestureRecovery />
 
         {editable && onGeometryChange ? (
           <GeomanControl geometry={geometry} color={color} onChange={onGeometryChange} />
         ) : geometry ? (
           <GeoJSON
-            key={JSON.stringify(bounds)}
+            // Por la geometría COMPLETA, no solo por el encuadre: `data` de
+            // react-leaflet no es reactiva, así que una edición que no cambie
+            // el rectángulo envolvente (mover un vértice hacia dentro, abrir
+            // un hueco) no se reflejaba hasta cerrar y volver a abrir.
+            key={geometryKey}
             data={geometry}
             style={{ color, weight: 3, fillOpacity: 0.13, interactive: false }}
           />

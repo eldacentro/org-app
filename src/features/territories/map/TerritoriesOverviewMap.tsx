@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
@@ -51,8 +51,16 @@ const dotIcon = (color: string) =>
 // ─── Encuadra el mapa para mostrar todos los territorios a la vez ───────────
 const FitAll = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   const map = useMap();
+  // Encuadra una sola vez, al tener geometría por primera vez. Antes se
+  // reencuadraba cada vez que cambiaba la identidad del array de bounds, y
+  // ese array se reconstruye con CADA snapshot de Firestore: bastaba con que
+  // otro responsable asignara un territorio para que el mapa saltara al
+  // encuadre general y te tirara el zoom y el desplazamiento que tenías.
+  const done = useRef(false);
   useEffect(() => {
-    if (bounds) map.fitBounds(bounds, { padding: [24, 24] });
+    if (!bounds || done.current) return;
+    done.current = true;
+    map.fitBounds(bounds, { padding: [24, 24] });
   }, [bounds, map]);
   return null;
 };
@@ -165,6 +173,25 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
     return any ? ([[south, west], [north, east]] as LatLngBoundsExpression) : null;
   }, [withGeometry]);
 
+  // Posición e icono se memorizan por territorio. Antes se creaban objetos
+  // nuevos en CADA render, y react-leaflet llama entonces setLatLng/setIcon
+  // en los 130 marcadores; dentro del agrupador, cada setLatLng provoca un
+  // quitar+añadir capa completo. Un simple toque en el mapa disparaba ~260
+  // operaciones de reagrupado y congelaba la interfaz en móviles normales.
+  const markers = useMemo(() => {
+    const out: { t: Territory; center: [number, number]; icon: L.DivIcon }[] = [];
+    for (const t of withGeometry) {
+      const center = t.geometry ? geometryCenter(t.geometry) : null;
+      if (!center) continue;
+      out.push({
+        t,
+        center,
+        icon: dotIcon(assignmentByTerritory.has(t.id) ? ASSIGNED_COLOR : FREE_COLOR),
+      });
+    }
+    return out;
+  }, [withGeometry, assignmentByTerritory]);
+
   const selectedAssignment = selected ? assignmentByTerritory.get(selected.id) : undefined;
 
   if (withGeometry.length === 0) {
@@ -194,7 +221,12 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
 
         {withGeometry.map((t) => (
           <GeoJSON
-            key={t.id}
+            // La prop `data` de react-leaflet NO es reactiva (su updateGeoJSON
+            // solo atiende `style`), así que con una key fija el mapa seguía
+            // pintando el polígono viejo tras editarlo, y el responsable creía
+            // que no se había guardado. Incluyendo la geometría en la key, el
+            // componente se remonta cuando de verdad cambia la forma.
+            key={`${t.id}-${JSON.stringify(t.geometry)}`}
             data={t.geometry!}
             style={{
               color: getZoneColor(t.zoneId, zones),
@@ -210,19 +242,14 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
           spiderfyOnMaxZoom
           showCoverageOnHover={false}
         >
-          {withGeometry.map((t) => {
-            const center = t.geometry ? geometryCenter(t.geometry) : null;
-            if (!center) return null;
-            const assigned = assignmentByTerritory.has(t.id);
-            return (
-              <Marker
-                key={`${t.id}-dot`}
-                position={center}
-                icon={dotIcon(assigned ? ASSIGNED_COLOR : FREE_COLOR)}
-                eventHandlers={{ click: () => setSelected(t) }}
-              />
-            );
-          })}
+          {markers.map(({ t, center, icon }) => (
+            <Marker
+              key={`${t.id}-dot`}
+              position={center}
+              icon={icon}
+              eventHandlers={{ click: () => setSelected(t) }}
+            />
+          ))}
         </MarkerClusterGroup>
 
         <FitAll bounds={overallBounds} />
