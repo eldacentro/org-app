@@ -23,7 +23,6 @@ import {
 import {
   accountTypeState,
   congAccessCodeState,
-  secretaryRoleState,
 } from '@states/settings';
 import { handleSaveFieldServiceReports } from '@services/app/cong_field_service_reports';
 import {
@@ -47,7 +46,13 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
 
   const dailyReports = useAtomValue(userFieldServiceDailyReportsState);
   const monthlyReports = useAtomValue(userFieldServiceMonthlyReportsState);
-  const secretary = useAtomValue(secretaryRoleState);
+  // OJO: aquí NO vale `secretaryRoleState`, que solo mira el rol literal
+  // 'secretary'. Quién guarda su informe directamente en la tabla de la
+  // congregación lo decide `isSecretary` (más abajo), que incluye también a
+  // admin y coordinador. Usar el átomo estricto dejaba el informe de un
+  // COORDINADOR escrito a mano pero con estado "recibido": como nadie más lo
+  // iba a recibir, se quedaba sin verificar para siempre y el S-1 lo ignoraba
+  // en silencio (el S-1 solo suma los verificados).
   const accountType = useAtomValue(accountTypeState);
   const localAccessCode = useAtomValue(congAccessCodeState);
 
@@ -183,12 +188,18 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
     creditHours = creditHours + (creditMinutes >= 30 ? 1 : 0);
 
     report.report_data.hours = {
-      credit: { value: creditHours, approved: 0 },
+      // `approved` es lo que el secretario dio por bueno; solo él lo toca.
+      // Ponerlo a 0 aquí borraba un crédito ya aprobado cada vez que se
+      // reenviaba el informe.
+      credit: {
+        value: creditHours,
+        approved: congReport?.report_data.hours.credit.approved ?? 0,
+      },
       field_service: fieldHours,
     };
 
     report.report_data.shared_ministry = shared_ministry;
-    report.report_data.status = secretary ? 'confirmed' : 'received';
+    report.report_data.status = isSecretary ? 'confirmed' : 'received';
     report.report_data.updatedAt = new Date().toISOString();
 
     await handleSaveFieldServiceReports(report);

@@ -7,7 +7,8 @@ import Typography from '@components/typography';
 const ReceivedReports = () => {
   const { t } = useAppTranslation();
 
-  const { publishers_active, received_reports } = useReceivedReports();
+  const { publishers_active, received_reports, unverified_reports } =
+    useReceivedReports();
 
   return (
     <Stack spacing="8px">
@@ -29,6 +30,17 @@ const ReceivedReports = () => {
       </Box>
 
       <ProgressBar value={received_reports} maxValue={publishers_active} />
+
+      {/* El S-1 solo cuenta los informes verificados, así que un informe
+          recibido y sin verificar no llega a la sucursal. Antes esto no se
+          decía en ninguna parte. */}
+      {unverified_reports > 0 && (
+        <Typography className="body-small-regular" color="var(--orange-dark)">
+          {unverified_reports === 1
+            ? 'Hay 1 informe sin verificar: no contará en el S-1 hasta que lo verifiques.'
+            : `Hay ${unverified_reports} informes sin verificar: no contarán en el S-1 hasta que los verifiques.`}
+        </Typography>
+      )}
     </Stack>
   );
 };

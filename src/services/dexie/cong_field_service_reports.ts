@@ -114,7 +114,10 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
       report.report_data.comments = record.comments;
       report.report_data.hours.field_service = record.hours;
       report.report_data.hours.credit = {
-        approved: 0,
+        // Se CONSERVA lo ya aprobado por el secretario: antes se ponía a 0 en
+        // cada entrada, así que si el publicador reenviaba su informe (o lo
+        // corregía) el crédito aprobado desaparecía sin dejar rastro.
+        approved: report.report_data.hours.credit?.approved ?? 0,
         value: record.hours_credits,
       };
       report.report_data.report_date = record.report_month;

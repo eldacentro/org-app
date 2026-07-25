@@ -276,7 +276,16 @@ const useMinistryMonthlyRecord = ({
   const hours_credits = useMemo(() => {
     if (!publisher) {
       if (congReport) {
-        return `${congReport.report_data.hours.credit.approved}:00`;
+        // Vista del secretario. Antes mostraba SOLO `approved`, que llega
+        // siempre a 0 desde el informe del publicador: el crédito que el
+        // hermano declaraba era invisible, así que nadie lo aprobaba y no
+        // contaba en ningún sitio. Ahora, mientras no haya nada aprobado, se
+        // muestra lo declarado para que el secretario pueda revisarlo y
+        // confirmarlo (al guardar, ese valor pasa a `approved`). Mismo
+        // criterio que ya usaban Registros de publicador y el balance de
+        // precursores.
+        const { approved, value } = congReport.report_data.hours.credit;
+        return `${approved > 0 ? approved : (value ?? 0)}:00`;
       }
 
       return '0:00';

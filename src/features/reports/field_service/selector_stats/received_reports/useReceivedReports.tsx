@@ -88,7 +88,24 @@ const useReceivedReports = () => {
     return filtered.length;
   }, [currentMonth, reports, publishers]);
 
-  return { publishers_active, received_reports };
+  // Informes que han llegado pero SIGUEN SIN VERIFICAR. Importa enseñarlo
+  // aquí porque el S-1 solo suma los verificados: sin este dato, el
+  // secretario veía "45 de 45 recibidos", generaba el S-1 y declaraba 35 sin
+  // que nada se lo advirtiera.
+  const unverified_reports = useMemo(() => {
+    const results = reports.filter(
+      (record) =>
+        record.report_data.report_date === currentMonth &&
+        record.report_data.shared_ministry &&
+        record.report_data.status !== 'confirmed'
+    );
+
+    return results.filter((record) =>
+      publishers.some((p) => p.person_uid === record.report_data.person_uid)
+    ).length;
+  }, [currentMonth, reports, publishers]);
+
+  return { publishers_active, received_reports, unverified_reports };
 };
 
 export default useReceivedReports;
