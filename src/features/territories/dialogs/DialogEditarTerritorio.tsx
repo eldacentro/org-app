@@ -19,6 +19,7 @@ import {
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { updateTerritoryEditableFields, deleteTerritoryCompleto } from '@services/firebase/territories';
 import { Territory, TerritoryTag } from '@definition/territories';
+import { isStillEncrypted } from '@services/app/territories';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import AutocompleteMultiple from '@components/autocomplete_multiple';
@@ -41,7 +42,10 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
 
   const [numero, setNumero] = useState(territory.numero);
   const [nombre, setNombre] = useState(territory.nombre || '');
-  const [notas, setNotas] = useState(territory.notas || '');
+  // Igual que en las notas de asignación: si el texto sigue cifrado, no
+  // se carga ni se deja editar (se cifraría dos veces).
+  const notasLocked = isStillEncrypted(territory.notas);
+  const [notas, setNotas] = useState(notasLocked ? '' : territory.notas || '');
   const [numeroViviendas, setNumeroViviendas] = useState(
     territory.numeroViviendas != null ? String(territory.numeroViviendas) : ''
   );
@@ -58,7 +62,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   useEffect(() => {
     setNumero(territory.numero);
     setNombre(territory.nombre || '');
-    setNotas(territory.notas || '');
+    setNotas(isStillEncrypted(territory.notas) ? '' : territory.notas || '');
     setNumeroViviendas(
       territory.numeroViviendas != null ? String(territory.numeroViviendas) : ''
     );
@@ -71,14 +75,14 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     return (
       numero !== territory.numero ||
       nombre !== (territory.nombre || '') ||
-      notas !== (territory.notas || '') ||
+      (!notasLocked && notas !== (territory.notas || '')) ||
       numeroViviendas !==
         (territory.numeroViviendas != null ? String(territory.numeroViviendas) : '') ||
       zoneId !== territory.zoneId ||
       JSON.stringify(tagIds) !== JSON.stringify(territory.tags || []) ||
       JSON.stringify(geometry) !== JSON.stringify(territory.geometry)
     );
-  }, [numero, nombre, notas, numeroViviendas, zoneId, tagIds, geometry, territory]);
+  }, [numero, nombre, notas, notasLocked, numeroViviendas, zoneId, tagIds, geometry, territory]);
 
   const handleSave = async () => {
     if (!numero.trim() || !zoneId) return;
@@ -94,6 +98,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           numero: numero.trim(),
           nombre: nombre.trim() || undefined,
           notas: notas.trim() || undefined,
+          keepNotas: notasLocked,
           numeroViviendas:
             parsedViviendas !== undefined && !Number.isNaN(parsedViviendas)
               ? parsedViviendas
@@ -240,6 +245,12 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                 label="Notas del territorio"
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
+                disabled={notasLocked}
+                helperText={
+                  notasLocked
+                    ? 'Las notas están cifradas y este dispositivo no puede leerlas, así que no se pueden editar desde aquí.'
+                    : undefined
+                }
                 fullWidth
                 multiline
                 rows={3}

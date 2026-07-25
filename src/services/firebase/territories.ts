@@ -11,6 +11,8 @@ import {
   updateDoc,
   where,
   writeBatch,
+  arrayUnion,
+  arrayRemove,
   type DocumentData,
 } from 'firebase/firestore';
 import {
@@ -34,7 +36,7 @@ import {
   TerritoryZone,
 } from '@definition/territories';
 import { dbTerritoryDeleteFile } from '@services/dexie/territories';
-import { computeDueAt } from '@services/app/territories';
+import { computeDueAt, ENC_PREFIX } from '@services/app/territories';
 
 // ─── Colección helpers ─────────────────────────────────────────────────────
 const zonesCol = (congId: string) =>
@@ -59,20 +61,14 @@ const settingsDoc = (congId: string) =>
 // ─── Cifrado de campos sensibles ───────────────────────────────────────────
 // Solo cifra texto no vacío; descifra tolerando fallos (devuelve '' si no se
 // puede). El prefijo permite distinguir texto cifrado de texto plano heredado.
-const ENC_PREFIX = 'enc::';
+// El prefijo y el detector viven en services/app/territories para que la
+// interfaz pueda usarlos sin importar la capa de Firebase.
 
 const enc = (text: string | undefined, key: string): string | undefined => {
   if (!text) return text;
   if (!key) return text; // sin clave: no romper (se guardará en claro)
   return ENC_PREFIX + encryptData(text, key);
 };
-
-/**
- * ¿Este valor sigue cifrado porque no se pudo descifrar? La interfaz debe
- * mostrar un aviso en vez del texto ilegible (ver `dec`).
- */
-export const isStillEncrypted = (value?: string): boolean =>
-  !!value && value.startsWith(ENC_PREFIX);
 
 const dec = (
   value: string | undefined,
@@ -365,19 +361,25 @@ export const updateTerritoryEditableFields = (
     tags: string[];
     geometry: Territory['geometry'];
     updatedAt: string;
+    /** `true` cuando este dispositivo no puede descifrar la nota actual: se
+     *  deja EXACTAMENTE como está. Sin esto, el editor mandaba la nota vacía
+     *  (porque el campo se bloquea y no se carga) y `?? null` la borraba. */
+    keepNotas?: boolean;
   },
   key: string
-) =>
-  updateDoc(fsDoc(territoriesCol(congId), territoryId), {
+) => {
+  const payload: Record<string, unknown> = {
     numero: fields.numero,
     nombre: fields.nombre || null,
-    notas: enc(fields.notas, key) ?? null,
     numeroViviendas: fields.numeroViviendas ?? null,
     zoneId: fields.zoneId,
     tags: fields.tags,
     geometry: serializeGeometry(fields.geometry),
     updatedAt: fields.updatedAt,
-  });
+  };
+  if (!fields.keepNotas) payload.notas = enc(fields.notas, key) ?? null;
+  return updateDoc(fsDoc(territoriesCol(congId), territoryId), payload);
+};
 
 /** Guarda muchos territorios de una vez (importación KML). */
 export const saveTerritoriesBatch = async (
@@ -407,22 +409,47 @@ export const deleteTerritoryCompleto = async (
   congId: string,
   territoryId: string
 ): Promise<void> => {
-  // 1. Borrar asignaciones huérfanas en batch (evita que queden en el S-13 para siempre)
-  const assignSnap = await getDocs(
-    query(assignmentsCol(congId), where('territoryId', '==', territoryId))
-  );
-  if (assignSnap.docs.length > 0) {
-    const batch = writeBatch(firestore);
-    assignSnap.docs.forEach((d) => batch.delete(d.ref));
-    await batch.commit();
-  }
-
-  // 2. Borrar el territorio, sus archivos en Storage y su caché Dexie en paralelo
+  // Orden importante: PRIMERO el territorio, DESPUÉS su historial.
+  //
+  // Antes era al revés y, si el segundo paso fallaba (permiso de Storage, un
+  // error al borrar el PNG…), quedaba un territorio vivo con su registro
+  // del S-13 completamente vaciado — lo peor de los dos mundos. Así, si algo
+  // se tuerce, lo que queda son asignaciones sin territorio: invisibles,
+  // inofensivas y recuperables volviendo a lanzar el borrado.
   await Promise.all([
     deleteDoc(fsDoc(territoriesCol(congId), territoryId)),
     deleteTerritoryFiles(congId, territoryId),
     dbTerritoryDeleteFile(territoryId),
   ]);
+
+  // Historial de asignaciones + direcciones "No visitar". Las direcciones
+  // antes NO se borraban nunca: quedaban huérfanas en `territory_locations`
+  // para siempre, invisibles desde la app y sin forma de purgarlas — datos
+  // personales de vecinos que ya no tenían por qué seguir guardados.
+  const [assignSnap, locSnap, campSnap] = await Promise.all([
+    getDocs(query(assignmentsCol(congId), where('territoryId', '==', territoryId))),
+    getDocs(query(locationsCol(congId), where('territoryId', '==', territoryId))),
+    getDocs(query(campaignsCol(congId), where('territoryIds', 'array-contains', territoryId))),
+  ]);
+
+  const refs = [...assignSnap.docs, ...locSnap.docs].map((d) => d.ref);
+  for (let i = 0; i < refs.length; i += 450) {
+    const batch = writeBatch(firestore);
+    refs.slice(i, i + 450).forEach((r) => batch.delete(r));
+    await batch.commit();
+  }
+
+  // Y quitarlo de las campañas que lo incluyeran: si no, el contador seguía
+  // diciendo "40 territorios" mientras la lista solo pintaba 39, para
+  // siempre y sin forma de limpiarlo desde la interfaz.
+  await Promise.all(
+    campSnap.docs.map((d) =>
+      updateDoc(d.ref, {
+        territoryIds: arrayRemove(territoryId),
+        updatedAt: new Date().toISOString(),
+      })
+    )
+  );
 };
 
 /**
@@ -537,9 +564,23 @@ export const finalizeAssignmentBatch = async (
   key: string
 ): Promise<void> => {
   const batch = writeBatch(firestore);
-  batch.set(
+  // `update` de solo los campos que cambia una entrega, NUNCA `set` del
+  // documento entero. Con `set` se reescribían también `dueAt`,
+  // `campaignId`, `assignedBy` e `isCampaign` desde el snapshot local de
+  // quien entrega, pisando cambios hechos a la vez desde otro dispositivo.
+  // Y peor con `notas`: el publicador no tiene la master key, así que el
+  // campo llegaba a su móvil sin descifrar y al guardar lo dejaba como
+  // estuviera — la nota que hubiera escrito el responsable se perdía.
+  batch.update(
     fsDoc(assignmentsCol(congId), assignment.id),
-    stripUndefined({ ...assignment, notas: enc(assignment.notas, key) })
+    stripUndefined({
+      returnedAt: assignment.returnedAt,
+      status: assignment.status,
+      // Solo se toca la nota si de verdad se está escribiendo una; si el
+      // publicador no escribió nada, la que ya hubiera se deja intacta.
+      notas: assignment.notas ? enc(assignment.notas, key) : undefined,
+      updatedAt: assignment.updatedAt,
+    })
   );
   if (territory) {
     const territoryUpdate: Record<string, unknown> = {};
@@ -578,16 +619,40 @@ export const deleteAssignment = async (
   assignmentId: string,
   territory?: Territory | null
 ): Promise<void> => {
-  if (territory && territory.openAssignmentId === assignmentId) {
-    const batch = writeBatch(firestore);
-    batch.delete(fsDoc(assignmentsCol(congId), assignmentId));
-    batch.update(fsDoc(territoriesCol(congId), territory.id), {
-      openAssignmentId: null,
-    });
-    await batch.commit();
-    return;
+  const batch = writeBatch(firestore);
+  batch.delete(fsDoc(assignmentsCol(congId), assignmentId));
+
+  if (territory) {
+    const fields: Record<string, unknown> = {};
+    if (territory.openAssignmentId === assignmentId) fields.openAssignmentId = null;
+
+    // Recalcular la fecha de último trabajo del territorio a partir de lo
+    // que QUEDA. Borrar una asignación es la única forma que tiene un
+    // responsable de corregir un registro equivocado, y antes el territorio
+    // se quedaba con la fecha de una devolución que ya no existe: seguía
+    // contando como trabajado, aparecía "En descanso" y bloqueaba el
+    // reparto, sin forma de arreglarlo desde ninguna pantalla.
+    //
+    // Se lee del SERVIDOR (no del array en memoria) porque esa lista puede
+    // venir de la caché de disco y estar desactualizada.
+    const restSnap = await getDocsFromServer(
+      query(assignmentsCol(congId), where('territoryId', '==', territory.id))
+    );
+    const worked = restSnap.docs
+      .filter((d) => d.id !== assignmentId)
+      .map((d) => d.data() as TerritoryAssignment)
+      .filter((a) => a.returnedAt && a.status === 'trabajado')
+      .sort((a, b) => (a.returnedAt! > b.returnedAt! ? -1 : 1));
+    const expected = worked[0]?.returnedAt ?? null;
+    if ((territory.lastWorkedAt ?? null) !== expected) fields.lastWorkedAt = expected;
+
+    if (Object.keys(fields).length > 0) {
+      fields.updatedAt = new Date().toISOString();
+      batch.update(fsDoc(territoriesCol(congId), territory.id), fields);
+    }
   }
-  await deleteDoc(fsDoc(assignmentsCol(congId), assignmentId));
+
+  await batch.commit();
 };
 
 /**
@@ -718,8 +783,62 @@ export const saveLocation = (
 export const deleteLocation = (congId: string, locationId: string) =>
   deleteDoc(fsDoc(locationsCol(congId), locationId));
 
+/** Crea una campaña nueva. Para modificar una que ya existe, usa las
+ *  funciones de abajo: `setDoc` del documento entero pisa lo que otro
+ *  responsable haya cambiado entretanto. */
 export const saveCampaign = (congId: string, c: TerritoryCampaign) =>
   setDoc(fsDoc(campaignsCol(congId), c.id), c);
+
+/**
+ * Añade o quita territorios de una campaña con `arrayUnion`/`arrayRemove`,
+ * que resuelve el servidor.
+ *
+ * Antes se leía `territoryIds`, se modificaba en memoria y se guardaba el
+ * documento entero. Con el diálogo de selección abierto un par de minutos,
+ * esa copia se quedaba vieja: si otro responsable añadía territorios
+ * mientras tanto, al confirmar desaparecían sin ningún error. Y si la
+ * campaña se había cerrado entretanto, ese mismo guardado la resucitaba
+ * como 'activa' con todas sus asignaciones ya devueltas.
+ */
+export const addCampaignTerritories = (
+  congId: string,
+  campaignId: string,
+  territoryIds: string[]
+) =>
+  updateDoc(fsDoc(campaignsCol(congId), campaignId), {
+    territoryIds: arrayUnion(...territoryIds),
+    updatedAt: new Date().toISOString(),
+  });
+
+export const removeCampaignTerritory = (
+  congId: string,
+  campaignId: string,
+  territoryId: string
+) =>
+  updateDoc(fsDoc(campaignsCol(congId), campaignId), {
+    territoryIds: arrayRemove(territoryId),
+    updatedAt: new Date().toISOString(),
+  });
+
+/**
+ * Pasa una campaña de 'planificada' a 'activa', pero SOLO si en el servidor
+ * sigue estando 'planificada'.
+ *
+ * La transacción es imprescindible: los listeners de campañas y de
+ * asignaciones son suscripciones independientes, así que un responsable
+ * puede tener la campaña todavía como 'planificada' en memoria justo cuando
+ * otro acaba de finalizarla. Sin esta comprobación, la auto-activación la
+ * devolvía a 'activa' con todas sus asignaciones ya cerradas y los candados
+ * liberados — un estado imposible que no se arreglaba solo.
+ */
+export const activateCampaignIfPlanned = (congId: string, campaignId: string) =>
+  runTransaction(firestore, async (tx) => {
+    const ref = fsDoc(campaignsCol(congId), campaignId);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return;
+    if ((snap.data() as TerritoryCampaign).estado !== 'planificada') return;
+    tx.update(ref, { estado: 'activa', updatedAt: new Date().toISOString() });
+  });
 
 /**
  * Finaliza una campaña: devuelve como "trabajado" (con la fecha de fin de la

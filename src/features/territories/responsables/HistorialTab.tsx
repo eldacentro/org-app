@@ -11,7 +11,12 @@ import {
   territorySettingsState,
   territoriesLoadingState,
 } from '@states/territories';
-import { territoryLabel, formatTerritoryDate, getZoneColor } from '@services/app/territories';
+import {
+  territoryLabel,
+  formatTerritoryDate,
+  getZoneColor,
+  displayText,
+} from '@services/app/territories';
 import { usePersonName } from '../usePersonName';
 
 const HistorialTab = () => {
@@ -114,7 +119,7 @@ const HistorialTab = () => {
                       variant="caption"
                       sx={{ color: 'var(--ink-2)', fontStyle: 'italic', maxWidth: '300px' }}
                     >
-                      &quot;{a.notas}&quot;
+                      &quot;{displayText(a.notas)}&quot;
                     </Typography>
                   )}
                 </Stack>

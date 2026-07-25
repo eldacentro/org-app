@@ -36,7 +36,7 @@ import {
   backfillOpenAssignmentLocks,
   backfillDueAtFormula,
   closeCampaign,
-  saveCampaign,
+  activateCampaignIfPlanned,
 } from '@services/firebase/territories';
 import { isCampaignOver, isCampaignRunning } from '@services/app/territories';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
@@ -322,7 +322,7 @@ export const useTerritories = () => {
           isCampaignRunning(c.fechaInicio, c.fechaFin, now)
       )
       .forEach((c) => {
-        saveCampaign(congId, { ...c, estado: 'activa', updatedAt: new Date().toISOString() })
+        activateCampaignIfPlanned(congId, c.id)
           .catch((err) => console.error('Failed to activate campaign:', err));
       });
   }, [congId, canManage, campaigns, assignments, territories]);

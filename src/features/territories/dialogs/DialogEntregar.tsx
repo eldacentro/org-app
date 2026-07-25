@@ -15,7 +15,7 @@ import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
-import { territoryLabel } from '@services/app/territories';
+import { territoryLabel, isStillEncrypted } from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
 import { userLocalUIDState } from '@states/settings';
 
@@ -49,7 +49,10 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (assignment) setNota(assignment.notas ?? '');
+    // No cargar una nota que este dispositivo no puede descifrar: al
+    // guardar se cifraría por segunda vez y quedaría ilegible.
+    if (assignment)
+      setNota(isStillEncrypted(assignment.notas) ? '' : (assignment.notas ?? ''));
   }, [assignment]);
 
   if (!assignment) return null;

@@ -1,9 +1,26 @@
-import { doc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, limit, query, writeBatch } from 'firebase/firestore';
 import { firestore as db } from './index';
 import { PersonType } from '@definition/persons';
 
 export const runMigrationDB = async (migrationData: Record<string, unknown>, persons: PersonType[], congId: string) => {
   if (!congId) throw new Error("No hay congregación activa");
+
+  // Candado de un solo uso. Esta migración se lanza a mano desde la consola
+  // y escribe territorios y asignaciones con `set` de documento completo:
+  // ejecutarla por segunda vez sobre una base ya migrada reescribiría cada
+  // territorio con el payload de origen, borrando de golpe TODOS los
+  // candados de asignación y las fechas de último trabajo. Este repo ya
+  // sufrió un incidente real (julio de 2026) por un script de consola
+  // lanzado dos veces, así que aquí se aborta explícitamente.
+  const existing = await getDocs(
+    query(collection(db, 'congregation', congId, 'territories'), limit(1))
+  );
+  if (!existing.empty) {
+    throw new Error(
+      'Ya hay territorios en esta congregación: la migración NO se ejecuta ' +
+      'para no sobrescribirlos. Bórralos primero si de verdad quieres migrar.'
+    );
+  }
 
   const stripUndefined = <T extends object>(obj: T): T =>
     Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;

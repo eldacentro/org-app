@@ -14,7 +14,8 @@ import {
 } from '@states/territories';
 import { Territory, TerritoryAssignment, TerritoryCampaign } from '@definition/territories';
 import {
-  saveCampaign,
+  addCampaignTerritories,
+  removeCampaignTerritory,
   deleteCampaign,
   closeCampaign,
 } from '@services/firebase/territories';
@@ -83,15 +84,14 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     const newIds = territoryIds.filter((id) => !c.territoryIds.includes(id));
     if (newIds.length === 0) return;
     try {
-      await saveCampaign(congId, {
-        ...c,
-        territoryIds: [...c.territoryIds, ...newIds],
-        updatedAt: new Date().toISOString(),
-      });
+      await addCampaignTerritories(congId, c.id, newIds);
       displaySnackNotification({
         severity: 'success',
         header: 'Territorios añadidos',
-        message: `${newIds.length} territorio(s) añadido(s) a "${c.nombre}".`,
+        message:
+          newIds.length === 1
+            ? `1 territorio añadido a "${c.nombre}".`
+            : `${newIds.length} territorios añadidos a "${c.nombre}".`,
       });
     } catch (err) {
       console.error(err);
@@ -117,11 +117,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       if (!ok) return;
     }
     try {
-      await saveCampaign(congId, {
-        ...c,
-        territoryIds: c.territoryIds.filter((id) => id !== territoryId),
-        updatedAt: new Date().toISOString(),
-      });
+      await removeCampaignTerritory(congId, c.id, territoryId);
     } catch (err) {
       console.error(err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo quitar el territorio de la campaña.' });

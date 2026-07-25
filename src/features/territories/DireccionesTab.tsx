@@ -14,6 +14,7 @@ import {
 } from '@states/settings';
 import { territoryLocationsState, territorySettingsState } from '@states/territories';
 import { TerritoryLocation } from '@definition/territories';
+import { displayText } from '@services/app/territories';
 import { saveLocation, deleteLocation } from '@services/firebase/territories';
 
 type Props = { territoryId: string; canManage: boolean };
@@ -128,11 +129,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       />
       <Box sx={{ flex: 1 }}>
         <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
-          {l.direccion}
+          {displayText(l.direccion)}
         </Typography>
         {l.nota && (
           <Typography variant="caption" color="var(--ink-2)">
-            {l.nota}
+            {displayText(l.nota)}
           </Typography>
         )}
       </Box>

@@ -36,7 +36,14 @@ import {
   deleteTerritoryImage,
   updateTerritoryPartial,
 } from '@services/firebase/territories';
-import { getZoneColor, getZoneName, isInCooldown, territoryLabel } from '@services/app/territories';
+import {
+  getZoneColor,
+  getZoneName,
+  isInCooldown,
+  territoryLabel,
+  displayText,
+  isStillEncrypted,
+} from '@services/app/territories';
 import { useBreakpoints } from '@hooks/index';
 
 type Props = {
@@ -200,8 +207,17 @@ const InfoTabContent = ({
         >
           Notas
         </Typography>
-        <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)', lineHeight: 1.5 }}>
-          {territory.notas}
+        <Typography
+          className="body-small-regular"
+          sx={{
+            color: 'var(--orange-dark)',
+            lineHeight: 1.5,
+            // Si este dispositivo no puede descifrar la nota, se avisa en
+            // vez de enseñar el texto cifrado en crudo.
+            ...(isStillEncrypted(territory.notas) && { fontStyle: 'italic', opacity: 0.75 }),
+          }}
+        >
+          {displayText(territory.notas)}
         </Typography>
       </Box>
     )}

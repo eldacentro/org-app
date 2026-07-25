@@ -182,3 +182,24 @@ export const serviceYearRange = (
     label: `${year}/${year + 1}`,
   };
 };
+
+// ─── Campos cifrados que no se pueden leer en este dispositivo ────────────
+/** Prefijo con el que se guardan los campos cifrados (notas, direcciones). */
+export const ENC_PREFIX = 'enc::';
+
+/**
+ * ¿Este valor sigue cifrado porque este dispositivo no tiene la clave (o no
+ * es la correcta)? `dec` conserva el texto cifrado en ese caso, en vez de
+ * devolver '' — así un guardado de ida y vuelta no destruye el dato. Pero
+ * entonces la interfaz NO debe mostrarlo en crudo ni dejar editarlo: al
+ * volver a cifrarlo con otra clave quedaría cifrado dos veces.
+ */
+export const isStillEncrypted = (value?: string): boolean =>
+  !!value && value.startsWith(ENC_PREFIX);
+
+/** Texto que se muestra en lugar de un campo cifrado ilegible. */
+export const ENCRYPTED_LABEL = 'No se puede mostrar en este dispositivo';
+
+/** Devuelve el texto si es legible; si no, el aviso. */
+export const displayText = (value?: string): string =>
+  isStillEncrypted(value) ? ENCRYPTED_LABEL : (value ?? '');

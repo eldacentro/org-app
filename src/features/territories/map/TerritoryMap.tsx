@@ -193,12 +193,27 @@ const GeomanControl = ({
     const handleChange = () => {
       const layers = fg.getLayers() as L.Polygon[];
       if (layers.length === 0) { onChange(null); return; }
-      if (layers.length === 1) {
-        onChange(layers[0].toGeoJSON().geometry as Polygon);
-      } else {
-        const coords = layers.map((l) => (l.toGeoJSON().geometry as Polygon).coordinates);
-        onChange({ type: 'MultiPolygon', coordinates: coords });
+
+      // Una capa de Leaflet puede ser Polygon O MultiPolygon (al reabrir un
+      // territorio de varias piezas, Leaflet lo carga como UNA sola capa).
+      // Antes se asumía que toda capa era Polygon y se cogían sus
+      // `coordinates` tal cual: al mezclar los dos niveles de anidamiento se
+      // guardaba una geometría malformada que dejaba el territorio sin
+      // dibujar y rompía el encuadre del mapa — y se sincronizaba así a
+      // todos los dispositivos de la congregación.
+      const polygons: number[][][][] = [];
+      for (const layer of layers) {
+        const g = layer.toGeoJSON().geometry as Polygon | MultiPolygon;
+        if (g.type === 'Polygon') polygons.push(g.coordinates);
+        else if (g.type === 'MultiPolygon') polygons.push(...g.coordinates);
       }
+      if (polygons.length === 0) { onChange(null); return; }
+
+      onChange(
+        polygons.length === 1
+          ? { type: 'Polygon', coordinates: polygons[0] }
+          : { type: 'MultiPolygon', coordinates: polygons }
+      );
     };
 
     map.on('pm:create', (e) => {

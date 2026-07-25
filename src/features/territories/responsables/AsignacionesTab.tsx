@@ -29,7 +29,13 @@ import {
   deleteAssignment,
   updateAssignmentNote,
 } from '@services/firebase/territories';
-import { formatTerritoryDate, isInCooldown, territoryLabel } from '@services/app/territories';
+import {
+  formatTerritoryDate,
+  isInCooldown,
+  territoryLabel,
+  displayText,
+  isStillEncrypted,
+} from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
 
 type Filter = 'all' | 'assigned' | 'unassigned';
@@ -165,7 +171,7 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.returnedAt
                   ? formatTerritoryDate(activeOrLatest.returnedAt, dateFormat)
                   : 'En curso'}
-                {activeOrLatest.notas ? ` · ${activeOrLatest.notas}` : ''}
+                {activeOrLatest.notas ? ` · ${displayText(activeOrLatest.notas)}` : ''}
               </Typography>
             </Box>
             <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
@@ -227,7 +233,7 @@ const TerritoryAssignmentCard = ({
                           {a.returnedAt
                             ? formatTerritoryDate(a.returnedAt, dateFormat)
                             : 'en curso'}
-                          {a.notas ? ` · ${a.notas}` : ''}
+                          {a.notas ? ` · ${displayText(a.notas)}` : ''}
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={0.5}>
@@ -275,12 +281,18 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
 
   const openNoteDialog = (a: TerritoryAssignment) => {
     setEditTarget(a);
-    setNoteValue(a.notas ?? '');
+    // Si la nota vino cifrada y aquí no se puede descifrar, NO se carga
+    // en el campo: volver a guardarla la cifraría por segunda vez y
+    // quedaría ilegible para todos.
+    setNoteValue(isStillEncrypted(a.notas) ? '' : (a.notas ?? ''));
   };
 
   const closeNoteDialog = () => setEditTarget(null);
 
   const [savingNote, setSavingNote] = useState(false);
+  /** La nota actual está cifrada y no se puede leer aquí: se bloquea la
+   *  edición para no sobrescribirla ni cifrarla dos veces. */
+  const noteLocked = isStillEncrypted(editTarget?.notas);
 
   const saveNote = async () => {
     if (!editTarget) return;
@@ -480,12 +492,15 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
             label="Nota de la asignación"
             value={noteValue}
             onChange={(e) => setNoteValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                saveNote();
-              }
-            }}
+            // Sin atajo de Enter: el campo es multilínea (minRows=2), así
+            // que Enter tiene que hacer salto de línea. Antes guardaba y
+            // cerraba, y era imposible escribir una nota de dos líneas.
+            disabled={noteLocked}
+            helperText={
+              noteLocked
+                ? 'La nota existente está cifrada y este dispositivo no puede leerla, así que no se puede editar desde aquí.'
+                : undefined
+            }
             sx={{ mt: 1 }}
           />
         </DialogContent>
@@ -493,7 +508,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           <Button variant="tertiary" disableAutoStretch onClick={closeNoteDialog} disabled={savingNote}>
             Cancelar
           </Button>
-          <Button variant="main" disableAutoStretch onClick={saveNote} disabled={savingNote}>
+          <Button variant="main" disableAutoStretch onClick={saveNote} disabled={savingNote || noteLocked}>
             {savingNote ? 'Guardando…' : 'Guardar'}
           </Button>
         </DialogActions>
