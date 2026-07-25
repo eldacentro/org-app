@@ -12,6 +12,7 @@ import {
   ParsedShareLink,
   parseShareHash,
 } from '@services/app/territory_share';
+import { FORCED_UI_LANG, LANGUAGE_LIST } from '@constants/index';
 
 /**
  * Página que ve quien abre un enlace compartido de territorio SIN tener cuenta.
@@ -196,11 +197,26 @@ const Card = ({ children }: { children: ReactNode }) => (
   </Box>
 );
 
-/** Fecha legible para el invitado. No hay ajustes de congregación en la ruta
- *  pública (no hay sesión), así que se usa el formato local del navegador. */
+/**
+ * Idioma con el que se escribe la fecha para el invitado.
+ *
+ * Aquí no hay sesión ni ajustes de congregación, así que antes se dejaba al
+ * navegador (`undefined`). Pero la app está BLOQUEADA a un idioma con
+ * `FORCED_UI_LANG` precisamente porque la detección por navegador dejaba a
+ * algunos dispositivos en inglés; esta ruta se saltaba ese bloqueo y el
+ * enlace salía con «22 July 2026» en medio de una página en español.
+ *
+ * Si algún día se quita el bloqueo (`FORCED_UI_LANG = null`), esto vuelve a
+ * ser `undefined` y manda el navegador, como antes.
+ */
+const LOCALE_FECHA = LANGUAGE_LIST.find(
+  (idioma) => idioma.threeLettersCode === FORCED_UI_LANG
+)?.locale;
+
+/** Fecha legible para el invitado. */
 const formatDate = (iso: string): string => {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(LOCALE_FECHA, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
