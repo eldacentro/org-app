@@ -123,6 +123,9 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
                   personUid: targetUid,
                   title: 'Territorio devuelto',
                   mensaje: msg,
+                  // Sin esto el responsable recibía el aviso pero sin botón
+                  // para ir al territorio (ver useTerritoryAssignedNotifications).
+                  territoryId: assignment.territoryId,
                   sentBy: assignment.personUid,
                   createdAt: now,
                 })

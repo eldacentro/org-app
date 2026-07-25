@@ -85,8 +85,18 @@ const HistorialTab = () => {
                 >
                   <Box>
                     <Typography variant="body2" sx={{ color: 'var(--ink)' }}>
-                      <strong>{resolveName(a.personUid)}</strong> devolvió el{' '}
-                      <strong>{tName}</strong> como <strong>{worked ? 'trabajado' : 'no trabajado'}</strong>
+                      <strong>{resolveName(a.personUid)}</strong>
+                      {/* Misma marca "(C)" que usan el historial de
+                          Asignaciones y el S-13: sin ella no había forma de
+                          distinguir aquí una entrega normal de una de
+                          campaña. */}
+                      {a.isCampaign && (
+                        <span style={{ color: 'var(--blue-main)' }} title="Asignación de campaña">
+                          {' '}(C)
+                        </span>
+                      )}{' '}
+                      devolvió el <strong>{tName}</strong> como{' '}
+                      <strong>{worked ? 'trabajado' : 'no trabajado'}</strong>
                     </Typography>
                     <Typography variant="caption" color="var(--ink-2)">
                       Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} · Devuelto el{' '}
