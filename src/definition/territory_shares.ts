@@ -12,6 +12,35 @@
  * la regla de seguridad y la lista de enlaces activos.
  */
 
+/**
+ * Qué secciones incluye un enlace. Se elige al crearlo: por defecto solo el
+ * mapa, porque las notas y sobre todo las direcciones "No visitar" son datos
+ * personales de vecinos y el enlace se reenvía con un toque.
+ */
+export type TerritoryShareIncludes = {
+  /** Plano, etiquetas y número de viviendas. */
+  mapa: boolean;
+  /** Notas del territorio. */
+  notas: boolean;
+  /** Direcciones "No visitar" (datos de terceros). */
+  noVisitar: boolean;
+};
+
+export const DEFAULT_SHARE_INCLUDES: TerritoryShareIncludes = {
+  mapa: true,
+  notas: false,
+  noVisitar: false,
+};
+
+/** Opciones de caducidad ofrecidas al crear el enlace. */
+export const SHARE_DURATIONS = [
+  { days: 7, label: '7 días' },
+  { days: 30, label: '30 días' },
+  { days: 90, label: '90 días' },
+] as const;
+
+export const DEFAULT_SHARE_DAYS = 30;
+
 /** Lo que ve quien abre el enlace. Sin datos personales de terceros. */
 export type TerritorySharePayload = {
   /** Versión del formato, para poder evolucionarlo sin romper enlaces vivos. */
@@ -37,18 +66,36 @@ export type TerritorySharePayload = {
 export type TerritoryShare = {
   /** Token aleatorio de 192 bits; es también el ID del documento. */
   token: string;
-  /** La regla de seguridad lo usa para comprobar que la asignación sigue abierta. */
-  assignmentId: string;
+  /**
+   * Asignación a la que va atado, si la hay. Cuando existe, la regla de
+   * seguridad corta el enlace en cuanto se entrega el territorio.
+   *
+   * Es `null` cuando un responsable comparte un territorio que NO está
+   * asignado (p. ej. para dárselo por WhatsApp a alguien sin cuenta): en ese
+   * caso solo lo limitan la fecha de caducidad y la revocación manual.
+   */
+  assignmentId: string | null;
   territoryId: string;
-  /** Solo revocación manual: la caducidad por cierre la decide la regla. */
+  /** Caduca aquí pase lo que pase. Lo comprueba la regla de seguridad, no el
+   *  cliente. Es un Timestamp de Firestore para poder compararlo con
+   *  `request.time`. */
+  expiresAt: import('firebase/firestore').Timestamp;
+  /** Qué secciones se compartieron (para poder mostrarlo en la lista). */
+  includes: TerritoryShareIncludes;
+  /** Revocación manual. */
   revoked: boolean;
   createdAt: string;
   createdBy: string;
   updatedAt: string;
   /** `"v1." + base64url(iv‖ciphertext)`. */
   payload: string;
-  /** La clave del enlace, envuelta con la clave maestra de la congregación. */
-  keyWrapped: string;
+  /**
+   * La clave del enlace, envuelta con la clave de la congregación, para poder
+   * volver a copiar la URL. Es `null` si quien lo creó no tenía esa clave
+   * (un publicador): el enlace funciona igual, pero solo se puede copiar en
+   * el momento de crearlo.
+   */
+  keyWrapped: string | null;
   /** Huella del contenido en claro, para detectar que el snapshot quedó viejo. */
   contentHash: string;
 };

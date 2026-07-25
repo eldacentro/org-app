@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -6,6 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import { IconClose } from '@components/icons';
 import IconButton from '@components/icon_button';
+import SwitchWithLabel from '@components/switch_with_label';
 import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
 import {
@@ -21,10 +22,17 @@ import {
   territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
-import { TerritoryShare } from '@definition/territory_shares';
+import {
+  DEFAULT_SHARE_DAYS,
+  DEFAULT_SHARE_INCLUDES,
+  SHARE_DURATIONS,
+  TerritoryShare,
+  TerritoryShareIncludes,
+} from '@definition/territory_shares';
 import {
   createShare,
-  fetchSharesForAssignment,
+  fetchSharesForTerritory,
+  isShareLive,
   recoverShareKey,
   revokeShare,
 } from '@services/firebase/territory_shares';
@@ -42,6 +50,18 @@ import { usePersonName } from '@features/territories/usePersonName';
  * encarga la regla de Firestore, no este diálogo. Aquí solo se crea, se copia y,
  * si hace falta, se anula a mano.
  */
+/** "el mapa y las notas", "el mapa", "las direcciones de No visitar"… */
+const describeIncludes = (inc?: TerritoryShareIncludes): string => {
+  if (!inc) return 'el territorio';
+  const parts: string[] = [];
+  if (inc.mapa) parts.push('el mapa');
+  if (inc.notas) parts.push('las notas');
+  if (inc.noVisitar) parts.push('las direcciones de "No visitar"');
+  if (parts.length === 0) return 'nada';
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(0, -1).join(', ')} y ${parts[parts.length - 1]}`;
+};
+
 const DialogCompartir = ({
   open,
   onClose,
@@ -51,7 +71,11 @@ const DialogCompartir = ({
   open: boolean;
   onClose: VoidFunction;
   territory: Territory;
-  assignment: TerritoryAssignment;
+  /** Asignación abierta, si la hay. Cuando falta (territorio libre), el
+   *  enlace solo lo limitan la caducidad y la revocación — es el caso de un
+   *  responsable que quiere mandar un territorio por WhatsApp a alguien sin
+   *  cuenta. */
+  assignment?: TerritoryAssignment | null;
 }) => {
   const congId = useAtomValue(congIDState);
   const congName = useAtomValue(congNameState);
@@ -72,8 +96,23 @@ const DialogCompartir = ({
    *  nuevo: el anterior seguía vivo, funcionando y ya sin aparecer en la
    *  lista, así que no había forma de anularlo. */
   const [loadFailed, setLoadFailed] = useState(false);
+  const [includes, setIncludes] = useState<TerritoryShareIncludes>(DEFAULT_SHARE_INCLUDES);
+  const [days, setDays] = useState<number>(DEFAULT_SHARE_DAYS);
 
-  const activeShares = shares.filter((s) => !s.revoked);
+  // "Activo" = lo mismo que comprueba la regla de seguridad: ni anulado, ni
+  // caducado, y con su asignación todavía abierta si va atado a una.
+  const assignmentIsOpen = Boolean(assignment && !assignment.returnedAt);
+  const activeShares = shares.filter((s) => isShareLive(s, assignmentIsOpen));
+
+  /** Al menos una sección marcada: un enlace vacío no tendría sentido. */
+  const hasAnySection = includes.mapa || includes.notas || includes.noVisitar;
+
+  /** Fecha exacta de caducidad, para decirla en vez de "en 30 días". */
+  const expiryPreview = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return formatTerritoryDate(d.toISOString(), dateFormat);
+  }, [days, dateFormat]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,7 +120,7 @@ const DialogCompartir = ({
     setLoadFailed(false);
 
     try {
-      setShares(await fetchSharesForAssignment(congId, assignment.id));
+      setShares(await fetchSharesForTerritory(congId, territory.id));
     } catch (error) {
       console.error('No se pudieron cargar los enlaces', error);
       setShares([]);
@@ -89,10 +128,13 @@ const DialogCompartir = ({
     } finally {
       setLoading(false);
     }
-  }, [congId, assignment.id]);
+  }, [congId, territory.id]);
 
   useEffect(() => {
-    if (open) load();
+    if (!open) return;
+    setIncludes(DEFAULT_SHARE_INCLUDES);
+    setDays(DEFAULT_SHARE_DAYS);
+    load();
   }, [open, load]);
 
   /** La clave no se guarda en claro: se recompone al vuelo desde la envuelta.
@@ -109,11 +151,14 @@ const DialogCompartir = ({
         recoverShareKey(share, masterKey)
       );
     } catch (error) {
+      const reason = (error as Error)?.message;
       console.error('No se pudo recomponer la clave del enlace', error);
       displaySnackNotification({
-        header: 'No se puede recuperar este enlace',
+        header: 'No se puede volver a copiar este enlace',
         message:
-          'Lo creó otro dispositivo y este no tiene la clave de la congregación. Anúlalo y crea uno nuevo desde aquí.',
+          reason === 'SIN_CLAVE_GUARDADA'
+            ? 'Este enlace solo se podía copiar al crearlo. Anúlalo y crea uno nuevo para tener una URL que puedas reenviar.'
+            : 'Lo creó otro dispositivo con la clave de la congregación, y este no la tiene. Anúlalo y crea uno nuevo desde aquí.',
         severity: 'error',
       });
       return null;
@@ -164,20 +209,33 @@ const DialogCompartir = ({
         locations,
         congName,
         now: new Date().toISOString(),
+        includes,
       });
 
       const { token, keyB64 } = await withTimeout(
         createShare({
           congId,
-          assignmentId: assignment.id,
+          assignmentId: assignment?.id ?? null,
           territoryId: territory.id,
           payload,
+          includes,
+          days,
           masterKey,
           createdBy: currentUid,
         })
       );
 
       await copyUrl(buildShareUrl(window.location.origin, congId, token, keyB64));
+      // Sin clave de congregación no se guarda la clave envuelta, así que
+      // esta es la ÚNICA vez que se puede copiar la URL. Hay que decirlo.
+      if (!masterKey) {
+        displaySnackNotification({
+          header: 'Pégalo ahora',
+          message:
+            'Este enlace solo se puede copiar en este momento. Si lo pierdes, tendrás que anularlo y crear otro.',
+          severity: 'error',
+        });
+      }
       await load();
     } catch (error) {
       const timedOut = (error as Error)?.message === 'SIN_CONFIRMACION_DEL_SERVIDOR';
@@ -260,25 +318,11 @@ const DialogCompartir = ({
           </IconButton>
         </Stack>
 
-        <Typography className="body-regular" color="var(--grey-400)">
-          Genera un enlace para que alguien sin cuenta —por ejemplo el
-          superintendente de circuito— pueda ver{' '}
-          <strong>{territoryLabel(territory)}</strong>.
+        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+          Crea un enlace para enviar{' '}
+          <strong>{territoryLabel(territory)}</strong> por WhatsApp o correo. Quien
+          lo reciba no necesita cuenta ni instalar nada.
         </Typography>
-
-        <Box
-          sx={{
-            padding: '12px',
-            borderRadius: 'var(--radius-l)',
-            backgroundColor: 'var(--orange-secondary)',
-            border: '1px solid var(--orange-dark)',
-          }}
-        >
-          <Typography className="body-small-regular">
-            Cualquiera que reciba el enlace verá el territorio con sus notas y
-            direcciones. Deja de funcionar solo cuando se entregue el territorio.
-          </Typography>
-        </Box>
 
         {loading && (
           <Typography className="body-regular" color="var(--grey-400)">
@@ -302,9 +346,83 @@ const DialogCompartir = ({
         )}
 
         {!loading && !loadFailed && activeShares.length === 0 && (
-          <Button variant="main" onClick={handleCreate} disabled={working}>
-            {working ? 'Creando…' : 'Crear enlace y copiarlo'}
-          </Button>
+          <Stack spacing="16px">
+            {/* ── Qué compartir ─────────────────────────────────────────── */}
+            <Box>
+              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '8px' }}>
+                Qué se va a ver
+              </Typography>
+              <Stack spacing="4px">
+                <SwitchWithLabel
+                  label="Mapa del territorio"
+                  helper="El plano, las etiquetas y el número de viviendas."
+                  checked={includes.mapa}
+                  onChange={(v) => setIncludes((prev) => ({ ...prev, mapa: v }))}
+                />
+                <SwitchWithLabel
+                  label="Notas del territorio"
+                  helper="Las indicaciones que escriben los responsables."
+                  checked={includes.notas}
+                  onChange={(v) => setIncludes((prev) => ({ ...prev, notas: v }))}
+                />
+                <SwitchWithLabel
+                  label={'Direcciones de "No visitar"'}
+                  helper="Son datos de vecinos. Compártelas solo si de verdad hacen falta."
+                  checked={includes.noVisitar}
+                  onChange={(v) => setIncludes((prev) => ({ ...prev, noVisitar: v }))}
+                />
+              </Stack>
+            </Box>
+
+            {/* ── Cuánto tiempo ─────────────────────────────────────────── */}
+            <Box>
+              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '8px' }}>
+                Cuánto tiempo estará disponible
+              </Typography>
+              <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap>
+                {SHARE_DURATIONS.map((d) => (
+                  <Button
+                    key={d.days}
+                    variant={days === d.days ? 'main' : 'secondary'}
+                    disableAutoStretch
+                    onClick={() => setDays(d.days)}
+                  >
+                    {d.label}
+                  </Button>
+                ))}
+              </Stack>
+            </Box>
+
+            <Box
+              sx={{
+                padding: '12px',
+                borderRadius: 'var(--radius-l)',
+                backgroundColor: 'var(--accent-100)',
+                border: '1px solid var(--line)',
+              }}
+            >
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                El enlace caducará el <strong>{expiryPreview}</strong>.
+                {assignment
+                  ? ' Y si el territorio se entrega antes de esa fecha, dejará de funcionar en ese mismo momento.'
+                  : ' Este territorio no está asignado a nadie, así que solo lo limita esa fecha.'}{' '}
+                Puedes anularlo cuando quieras desde aquí.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="main"
+              onClick={handleCreate}
+              disabled={working || !hasAnySection}
+            >
+              {working ? 'Creando…' : 'Crear enlace y copiarlo'}
+            </Button>
+            {!hasAnySection && (
+              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                Marca al menos una cosa para poder crear el enlace.
+              </Typography>
+            )}
+          </Stack>
         )}
 
         {!loading && !loadFailed &&
@@ -318,10 +436,21 @@ const DialogCompartir = ({
               }}
             >
               <Stack spacing="10px">
-                <Typography className="body-small-regular" color="var(--grey-400)">
-                  Creado el {formatTerritoryDate(share.createdAt, dateFormat)} por{' '}
-                  {resolveName(share.createdBy)}
-                </Typography>
+                <Stack spacing="4px">
+                  <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
+                    Caduca el {formatTerritoryDate(share.expiresAt.toDate().toISOString(), dateFormat)}
+                  </Typography>
+                  <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                    Se ve: {describeIncludes(share.includes)}
+                  </Typography>
+                  <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                    Creado el {formatTerritoryDate(share.createdAt, dateFormat)} por{' '}
+                    {resolveName(share.createdBy)}
+                    {share.assignmentId
+                      ? ' · deja de funcionar al entregar el territorio'
+                      : ' · no atado a ninguna asignación'}
+                  </Typography>
+                </Stack>
 
                 <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap>
                   <Button

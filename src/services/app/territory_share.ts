@@ -4,7 +4,10 @@ import {
   TerritoryTag,
   TerritoryZone,
 } from '@definition/territories';
-import { TerritorySharePayload } from '@definition/territory_shares';
+import {
+  TerritoryShareIncludes,
+  TerritorySharePayload,
+} from '@definition/territory_shares';
 import {
   getZoneColor,
   getZoneName,
@@ -27,6 +30,12 @@ import {
  *    administradores. Si quien comparte no la tiene, esos campos siguen
  *    cifrados en su dispositivo, y aquí se OMITEN en vez de colarse como
  *    `enc::U2FsdGVkX1…` en la pantalla del invitado.
+ *
+ * 3. **Solo se incluye lo que se ha marcado.** Antes el enlace llevaba
+ *    SIEMPRE las notas y todas las direcciones "No visitar", sin forma de
+ *    excluirlas: datos personales de vecinos (a veces con el motivo) en una
+ *    URL que se reenvía con un toque y que cualquiera de la cadena abre sin
+ *    identificarse. Ahora se eligen al crearlo y vienen desmarcadas.
  */
 export const buildSharePayload = ({
   territory,
@@ -35,6 +44,7 @@ export const buildSharePayload = ({
   locations,
   congName,
   now,
+  includes,
 }: {
   territory: Territory;
   zones: TerritoryZone[];
@@ -42,13 +52,15 @@ export const buildSharePayload = ({
   locations: TerritoryLocation[];
   congName: string;
   now: string;
+  /** Qué secciones incluir. Lo elige quien comparte; por defecto solo el mapa. */
+  includes: TerritoryShareIncludes;
 }): TerritorySharePayload => {
   const territoryTags = (territory.tags ?? [])
     .map((tagId) => tags.find((t) => t.id === tagId))
     .filter((t): t is TerritoryTag => Boolean(t))
     .map((t) => ({ nombre: t.nombre, color: t.color }));
 
-  const visibleLocations = locations
+  const visibleLocations = (includes.noVisitar ? locations : [])
     .filter((l) => l.territoryId === territory.id && l.aprobada)
     // Sin clave maestra la dirección seguiría cifrada: mejor no enseñar nada
     // que enseñar un blob ilegible.
@@ -65,11 +77,14 @@ export const buildSharePayload = ({
     congName,
     zoneName: getZoneName(territory.zoneId, zones),
     zoneColor: getZoneColor(territory.zoneId, zones),
-    geometry: territory.geometry ?? null,
-    imageURL: territory.imageURL,
-    numeroViviendas: territory.numeroViviendas,
-    notas: isStillEncrypted(territory.notas) ? undefined : territory.notas,
-    tags: territoryTags,
+    geometry: includes.mapa ? (territory.geometry ?? null) : null,
+    imageURL: includes.mapa ? territory.imageURL : undefined,
+    numeroViviendas: includes.mapa ? territory.numeroViviendas : undefined,
+    notas:
+      includes.notas && !isStillEncrypted(territory.notas)
+        ? territory.notas
+        : undefined,
+    tags: includes.mapa ? territoryTags : [],
     locations: visibleLocations,
   };
 };

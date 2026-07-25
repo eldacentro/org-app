@@ -8,6 +8,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  Timestamp,
 } from 'firebase/firestore';
 import { firestore } from './index';
 import { decryptData, encryptData } from '@services/encryption';
@@ -22,6 +23,7 @@ import {
 } from '@services/encryption/share';
 import {
   TerritoryShare,
+  TerritoryShareIncludes,
   TerritorySharePayload,
 } from '@definition/territory_shares';
 import { ENC_PREFIX } from '@services/app/territories';
@@ -49,23 +51,28 @@ const shareDoc = (congId: string, token: string) =>
 // clave que ya protege las notas y las direcciones que van dentro, de modo que
 // no añade ninguna exposición nueva, y el servidor sigue sin poder abrir nada.
 
-const wrapKey = (key: Uint8Array, masterKey: string): string => {
-  // Sin esta comprobación, un publicador sin clave maestra (el botón de
-  // compartir también está disponible para el dueño del territorio) creaba
-  // el enlace con `keyWrapped = AES.encrypt(clave, '')`: cifrado con
-  // contraseña VACÍA. Como el documento se puede leer sin autenticar
-  // mientras la asignación siga abierta, cualquiera con el token podría
-  // desenvolver la clave sin tenerla y abrir el contenido — el cifrado del
-  // enlace quedaría anulado. Falla en cerrado y en voz alta.
-  if (!masterKey) {
-    throw new Error(
-      'No se puede crear el enlace: falta la clave de la congregación en este dispositivo.'
-    );
-  }
-  return ENC_PREFIX + encryptData(shareKeyToString(key), masterKey);
-};
+/**
+ * Envuelve la clave del enlace con la clave de la congregación, para poder
+ * volver a copiar la URL más adelante.
+ *
+ * Devuelve `null` cuando este dispositivo no tiene esa clave (el caso normal
+ * de un publicador). Antes se cifraba igualmente con `masterKey = ''`, es
+ * decir con contraseña VACÍA: como el documento se puede leer sin
+ * autenticar, cualquiera con el token habría podido desenvolverla sin
+ * tenerla y abrir el contenido. Guardar `null` es lo correcto: el enlace
+ * funciona igual (su clave viaja en la URL), simplemente no se puede volver
+ * a copiar desde la app — hay que anularlo y crear otro.
+ */
+const wrapKey = (key: Uint8Array, masterKey: string): string | null =>
+  masterKey ? ENC_PREFIX + encryptData(shareKeyToString(key), masterKey) : null;
 
-const unwrapKey = (wrapped: string, masterKey: string): Uint8Array => {
+const unwrapKey = (wrapped: string | null, masterKey: string): Uint8Array => {
+  if (!wrapped) {
+    throw new Error('SIN_CLAVE_GUARDADA');
+  }
+  if (!masterKey) {
+    throw new Error('SIN_CLAVE_DE_CONGREGACION');
+  }
   if (!wrapped.startsWith(ENC_PREFIX)) {
     throw new Error('La clave del enlace no está en el formato esperado');
   }
@@ -134,13 +141,19 @@ export const createShare = async ({
   assignmentId,
   territoryId,
   payload,
+  includes,
+  days,
   masterKey,
   createdBy,
 }: {
   congId: string;
-  assignmentId: string;
+  /** `null` para un territorio sin asignar (lo comparte un responsable). */
+  assignmentId: string | null;
   territoryId: string;
   payload: TerritorySharePayload;
+  includes: TerritoryShareIncludes;
+  /** Días de vida del enlace. */
+  days: number;
   masterKey: string;
   createdBy: string;
 }): Promise<{ token: string; keyB64: string }> => {
@@ -148,10 +161,15 @@ export const createShare = async ({
   const key = generateShareKey();
   const now = new Date().toISOString();
 
+  const expires = new Date();
+  expires.setDate(expires.getDate() + days);
+
   // El token es el ID del documento, así que no se repite dentro.
   const fields: Omit<TerritoryShare, 'token'> = {
     assignmentId,
     territoryId,
+    expiresAt: Timestamp.fromDate(expires),
+    includes,
     revoked: false,
     createdAt: now,
     createdBy,
@@ -205,16 +223,30 @@ export const recoverShareKey = (
 ): string => shareKeyToString(unwrapKey(share.keyWrapped, masterKey));
 
 /**
- * Enlaces de una asignación, leídos del servidor. Se usa al abrir el diálogo de
- * compartir para no fiarse de la caché y ofrecer "crear otro" cuando ya hay uno.
+ * Enlaces de un TERRITORIO, leídos del servidor (no de la caché). Se listan
+ * por territorio y no por asignación porque un responsable puede compartir un
+ * territorio que no está asignado a nadie.
  */
-export const fetchSharesForAssignment = async (
+export const fetchSharesForTerritory = async (
   congId: string,
-  assignmentId: string
+  territoryId: string
 ): Promise<TerritoryShare[]> => {
   const snap = await getDocsFromServer(
-    query(sharesCol(congId), where('assignmentId', '==', assignmentId))
+    query(sharesCol(congId), where('territoryId', '==', territoryId))
   );
 
   return snap.docs.map((d) => ({ ...d.data(), token: d.id }) as TerritoryShare);
+};
+
+/** ¿Este enlace sigue sirviendo? Mismo criterio que la regla de seguridad,
+ *  para poder mostrarlo en la lista sin tener que preguntarle al servidor. */
+export const isShareLive = (
+  share: TerritoryShare,
+  assignmentIsOpen: boolean,
+  now: Date = new Date()
+): boolean => {
+  if (share.revoked) return false;
+  if (share.expiresAt.toDate() <= now) return false;
+  if (share.assignmentId && !assignmentIsOpen) return false;
+  return true;
 };

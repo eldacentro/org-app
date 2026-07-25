@@ -967,9 +967,11 @@ const DialogVerTerritorio = ({
               variant="primary"
             />
           )}
-          {/* Compartir: el responsable siempre, y el propio publicador que lo
-              tiene asignado — el enlace muere al entregar el territorio. */}
-          {relevantAssignment && (canManage || isMine) && (
+          {/* Compartir: un responsable puede mandar CUALQUIER territorio, esté
+              asignado o no (p. ej. para dárselo por WhatsApp a alguien sin
+              cuenta); un publicador, solo el suyo. Cuando va atado a una
+              asignación, el enlace muere al entregar el territorio. */}
+          {(canManage || (relevantAssignment && isMine)) && (
             <ActionButton
               label="Compartir enlace"
               onClick={() => setShareOpen(true)}
@@ -1341,7 +1343,7 @@ const DialogVerTerritorio = ({
                   : 'Este territorio lo tiene asignado otro publicador.'}
               </Typography>
             )}
-            {relevantAssignment && (canManage || isMine) && (
+            {(canManage || (relevantAssignment && isMine)) && (
               <Button variant="secondary" onClick={() => setShareOpen(true)}>
                 Compartir enlace
               </Button>
@@ -1397,12 +1399,13 @@ const DialogVerTerritorio = ({
         {tabletDown ? mobileContent : desktopContent}
       </MUIDialog>
 
-      {relevantAssignment && shareOpen && (
+      {shareOpen && (
         <DialogCompartir
           open={shareOpen}
           onClose={() => setShareOpen(false)}
           territory={liveTerritory}
-          assignment={relevantAssignment}
+          // Puede no haberla: un responsable comparte territorios libres.
+          assignment={relevantAssignment ?? null}
         />
       )}
     </>

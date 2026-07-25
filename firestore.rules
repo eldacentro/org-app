@@ -88,10 +88,29 @@ service cloud.firestore {
           && get(assignmentPath()).data.get('returnedAt', null) == null;
       }
 
+      // Un enlace puede no estar atado a ninguna asignación: es el caso de un
+      // responsable que comparte un territorio sin asignar (para dárselo por
+      // WhatsApp a alguien sin cuenta). Entonces solo lo limitan la caducidad
+      // y la revocación.
+      function assignmentStillValid() {
+        return resource.data.get('assignmentId', null) == null
+          || assignmentOpen();
+      }
+
+      // Tope de vida DURO, comprobado en el servidor. Antes no existía: un
+      // enlace atado a una asignación que nadie llegaba a entregar seguía
+      // vivo indefinidamente. `.get('expiresAt', ...)` con una fecha ya
+      // pasada falla en cerrado si el campo faltara (enlaces antiguos).
+      function notExpired() {
+        return request.time < resource.data.get('expiresAt', timestamp.date(2000, 1, 1));
+      }
+
       // `.get('revoked', true)` falla en cerrado: si el campo faltara por lo
       // que sea, el enlace se considera revocado en vez de abierto.
       allow get: if request.auth != null
-        || (resource.data.get('revoked', true) == false && assignmentOpen());
+        || (resource.data.get('revoked', true) == false
+            && notExpired()
+            && assignmentStillValid());
 
       // Enumerar exige sesión; el invitado nunca puede listar la colección.
       allow list: if request.auth != null;
