@@ -15,7 +15,18 @@ import {
 import { territoryLocationsState, territorySettingsState } from '@states/territories';
 import { TerritoryLocation } from '@definition/territories';
 import { displayText } from '@services/app/territories';
-import { saveLocation, approveLocation, deleteLocation } from '@services/firebase/territories';
+import {
+  saveLocation,
+  approveLocation,
+  deleteLocation,
+  saveNotice,
+} from '@services/firebase/territories';
+import { apiSendTerritoryPush } from '@services/api/territories';
+import { responsabilidadesState } from '@states/responsabilidades';
+import { territoriesState } from '@states/territories';
+import { getTerritoryManagersUids } from './utils/managers';
+import { usePersonName } from '@features/territories/usePersonName';
+import { territoryLabel } from '@services/app/territories';
 
 type Props = { territoryId: string; canManage: boolean };
 
@@ -26,6 +37,9 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   const uid = useAtomValue(userLocalUIDState);
   const settings = useAtomValue(territorySettingsState);
   const allLocations = useAtomValue(territoryLocationsState);
+  const territories = useAtomValue(territoriesState);
+  const responsabilidades = useAtomValue(responsabilidadesState);
+  const resolveName = usePersonName();
 
   const locations = useMemo(
     () => allLocations.filter((l) => l.territoryId === territoryId),
@@ -71,12 +85,56 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       );
       setDireccion('');
       setNota('');
+
+      // Si queda pendiente de aprobación, hay que AVISAR a los responsables.
+      // Sin esto la dirección se quedaba esperando indefinidamente: no había
+      // aviso, ni push, ni indicador en ningún sitio (el estado derivado
+      // `territoryPendingLocationsState` existía pero no lo leía nadie), así
+      // que solo se enteraban si por casualidad abrían la pestaña
+      // "Direcciones" de ESE territorio concreto. Y al publicador se le decía
+      // "queda pendiente de que un responsable la apruebe".
+      if (!aprobada) {
+        const destinatarios =
+          settings?.managers && settings.managers.length > 0
+            ? settings.managers.map((m) => m.uid)
+            : responsabilidades
+              ? getTerritoryManagersUids(responsabilidades)
+              : [];
+
+        if (destinatarios.length > 0) {
+          const t = territories.find((x) => x.id === territoryId);
+          const donde = t ? territoryLabel(t) : 'un territorio';
+          const mensaje = `${resolveName(uid)} ha añadido una dirección de "No visitar" en ${donde}. Queda pendiente de aprobación.`;
+
+          await Promise.all(
+            destinatarios.map((destino) =>
+              saveNotice(congId, {
+                id: crypto.randomUUID(),
+                personUid: destino,
+                title: 'Dirección pendiente de aprobar',
+                mensaje,
+                territoryId,
+                sentBy: uid,
+                createdAt: now,
+              })
+            )
+          ).catch((err) => console.error('No se pudo avisar del alta', err));
+
+          await apiSendTerritoryPush(
+            destinatarios,
+            'Dirección pendiente de aprobar',
+            mensaje,
+            territoryId
+          ).catch((err) => console.error('Failed to send push', err));
+        }
+      }
+
       displaySnackNotification({
         severity: 'success',
         header: 'Dirección añadida',
         message: aprobada
           ? 'Se ha añadido a "No visitar" de este territorio.'
-          : 'Queda pendiente de que un responsable la apruebe.',
+          : 'Queda pendiente de que un responsable la apruebe. Ya se les ha avisado.',
       });
     } catch (err) {
       console.error('Error al guardar dirección:', err);

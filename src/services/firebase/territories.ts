@@ -483,15 +483,11 @@ export const updateAssignmentNote = (
     updatedAt: new Date().toISOString(),
   });
 
-export const saveAssignment = (
-  congId: string,
-  a: TerritoryAssignment,
-  key: string
-) =>
-  setDoc(
-    fsDoc(assignmentsCol(congId), a.id),
-    stripUndefined({ ...a, notas: enc(a.notas, key) })
-  );
+// `saveAssignment` (un `setDoc` directo, sin candado) se ha eliminado a
+// propósito: ya no lo llamaba nadie, pero seguía exportado y era la forma más
+// fácil de reintroducir sin querer el error de las asignaciones duplicadas —
+// basta con que alguien lo autocomplete en un flujo nuevo. Para abrir una
+// asignación, usa siempre `saveAssignmentTransactional`.
 
 /** Mensaje mostrado cuando dos responsables intentan asignar el mismo
  *  territorio casi a la vez — el segundo pierde la carrera y ve este error
@@ -1036,6 +1032,16 @@ export const atenderRequest = (
     atendidaPor: personUid,
     atendidaAt: new Date().toISOString(),
   });
+
+/**
+ * Retira una solicitud que aún no ha atendido nadie.
+ *
+ * Se borra en vez de marcarse: una solicitud retirada por quien la hizo no
+ * es un registro que interese guardar, y dejarla con `atendidaPor` la haría
+ * indistinguible de una que un responsable sí atendió.
+ */
+export const deleteRequest = (congId: string, requestId: string) =>
+  deleteDoc(fsDoc(requestsCol(congId), requestId));
 
 export const saveNotice = (congId: string, notice: TerritoryNotice) =>
   setDoc(fsDoc(noticesCol(congId), notice.id), stripUndefined(notice));

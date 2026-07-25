@@ -28,11 +28,13 @@ import {
   territoriesState,
   territoryAssignedIdsState,
   territoryAssignmentsState,
+  territoryPendingRequestsState,
   territorySettingsState,
   territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
+  atenderRequest,
   saveAssignmentAndAttendRequest,
   saveAssignmentTransactional,
   saveNotice,
@@ -86,6 +88,7 @@ const DialogAsignar = ({
   const resolveName = usePersonName();
   const assignedIds = useAtomValue(territoryAssignedIdsState);
   const allAssignments = useAtomValue(territoryAssignmentsState);
+  const pendingRequests = useAtomValue(territoryPendingRequestsState);
   const zones = useAtomValue(territoryZonesState);
 
   const personOptions = useMemo(() => {
@@ -164,6 +167,23 @@ const DialogAsignar = ({
   const effectiveTerritory =
     territory ?? territories.find((t) => t.id === territoryId) ?? null;
 
+  /**
+   * Solicitud pendiente que esta asignación deja atendida.
+   *
+   * `requestId` solo llega cuando se entra desde el botón «Asignar
+   * territorio» de la propia solicitud. Pero lo habitual es lo otro: el
+   * responsable ve la solicitud, se va a la cuadrícula de Territorios, elige
+   * uno bueno y lo asigna desde ahí. Así la solicitud se quedaba pendiente
+   * para siempre — el publicador no podía volver a pedir («ya tienes una
+   * solicitud pendiente»), el puntito del engranaje no se apagaba nunca, y
+   * otro responsable podía darle un SEGUNDO territorio creyendo que nadie
+   * la había atendido. Si la persona a la que se asigna tiene una pendiente,
+   * se cierra con la misma asignación.
+   */
+  const requestIdEfectivo =
+    requestId ??
+    pendingRequests.find((r) => r.personUid === personUid)?.id;
+
   /** Asigna varios territorios a la vez al mismo publicador. Los que ya
    *  tengan una asignación abierta se omiten (igual que en el flujo de
    *  borrado masivo de la pestaña Territorios) en vez de bloquear todo el
@@ -231,6 +251,17 @@ const DialogAsignar = ({
           severity: 'error',
         });
         return;
+      }
+
+      // Igual que en la asignación individual: si esta persona tenía una
+      // solicitud pendiente, darle territorios la deja atendida. Aquí va
+      // suelta y no dentro de la transacción porque son varias asignaciones
+      // independientes; si falla, lo peor que pasa es que la solicitud siga
+      // pendiente, que es exactamente el estado de antes.
+      if (requestIdEfectivo) {
+        await atenderRequest(congId, requestIdEfectivo, currentUid).catch((err) =>
+          console.error('No se pudo marcar la solicitud como atendida', err)
+        );
       }
 
       let notificationFailed = false;
@@ -352,12 +383,12 @@ const DialogAsignar = ({
       // escrituras sueltas, y si la conexión se cortaba entre medias la
       // solicitud quedaba "pendiente" para siempre aunque el territorio ya
       // se había asignado.
-      if (requestId) {
+      if (requestIdEfectivo) {
         await saveAssignmentAndAttendRequest(
           congId,
           assignment,
           masterKey ?? '',
-          requestId,
+          requestIdEfectivo,
           currentUid
         );
       } else {

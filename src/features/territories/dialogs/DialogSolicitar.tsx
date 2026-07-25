@@ -6,7 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { congIDState, userLocalUIDState } from '@states/settings';
-import { saveRequest } from '@services/firebase/territories';
+import { deleteRequest, saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { territoryPendingRequestsState, territorySettingsState } from '@states/territories';
@@ -37,6 +37,32 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
       setNota('');
     }
   }, [open]);
+
+  /** La solicitud pendiente de quien está mirando, si tiene alguna. */
+  const miSolicitud = pendingRequests.find((r) => r.personUid === uid);
+
+  const handleRetirar = async () => {
+    if (!miSolicitud) return;
+    setSaving(true);
+    try {
+      await deleteRequest(congId, miSolicitud.id);
+      onClose();
+      displaySnackNotification({
+        header: 'Solicitud retirada',
+        message: 'Ya no consta ninguna solicitud tuya. Puedes volver a pedir un territorio cuando quieras.',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+      displaySnackNotification({
+        header: 'No se pudo retirar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSolicitar = async () => {
     // Sin `uid` la cuenta no está enlazada con su ficha de Persona. Antes
@@ -173,10 +199,41 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           con ascensores…), escríbela en la nota.
         </Typography>
 
-        {pendingRequests.some(r => r.personUid === uid) ? (
-          <Typography className="body-regular" sx={{ color: 'var(--red-main)', py: 2, textAlign: 'center', fontWeight: 500 }}>
-            Ya tienes una solicitud de territorio pendiente. Por favor, espera a que los responsables la atiendan.
-          </Typography>
+        {miSolicitud ? (
+          // Antes esto era solo un aviso sin salida: quien pedía un territorio
+          // por error, o lo conseguía hablando con un responsable en el salón,
+          // se quedaba con la solicitud pendiente PARA SIEMPRE. No podía
+          // volver a pedir ("ya tienes una pendiente") y a los responsables
+          // les quedaba en la lista sin que nadie tuviera que hacer nada.
+          <>
+            <Typography
+              className="body-regular"
+              sx={{ color: 'var(--ink)', py: 1, textAlign: 'center' }}
+            >
+              Ya tienes una solicitud de territorio pendiente. Los responsables
+              la verán en cuanto puedan.
+            </Typography>
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--ink-2)', textAlign: 'center', mb: 1 }}
+            >
+              Si ya no la necesitas —porque te han dado un territorio o porque
+              la enviaste sin querer— puedes retirarla.
+            </Typography>
+            <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 2 }}>
+              <Button variant="tertiary" onClick={onClose} disabled={saving}>
+                Cerrar
+              </Button>
+              <Button
+                variant="secondary"
+                color="red"
+                onClick={handleRetirar}
+                disabled={saving}
+              >
+                {saving ? 'Retirando…' : 'Retirar solicitud'}
+              </Button>
+            </Stack>
+          </>
         ) : (
           <>
             <Typography className="body-small-regular" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
