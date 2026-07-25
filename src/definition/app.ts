@@ -98,6 +98,11 @@ export type NavBarOptionsType = {
   title?: string;
   secondaryTitle?: string;
   quickSettings?: VoidFunction;
+  /** Etiqueta accesible del icono de quickSettings. Por defecto es "Ajustes
+   *  rápidos", pero hay pantallas donde ese icono abre algo que no son
+   *  ajustes (p. ej. el panel de responsables de Territorios) y anunciarlo
+   *  como "ajustes" despista, sobre todo con lector de pantalla. */
+  quickSettingsLabel?: string;
   /** Puntito de aviso sobre el icono de quickSettings (ej. solicitudes
    *  pendientes) — opcional, no afecta a páginas que no lo pasen. */
   quickSettingsBadge?: boolean;

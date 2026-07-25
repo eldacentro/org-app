@@ -780,6 +780,21 @@ export const saveLocation = (
     })
   );
 
+/** Aprueba una dirección "No visitar" tocando SOLO los campos de aprobación.
+ *  `saveLocation` reescribe el documento entero, incluida la dirección
+ *  cifrada: si el dispositivo que aprueba no puede descifrarla, ese guardado
+ *  la habría dejado mal. */
+export const approveLocation = (
+  congId: string,
+  locationId: string,
+  approvedBy: string
+) =>
+  updateDoc(fsDoc(locationsCol(congId), locationId), {
+    aprobada: true,
+    approvedBy,
+    updatedAt: new Date().toISOString(),
+  });
+
 export const deleteLocation = (congId: string, locationId: string) =>
   deleteDoc(fsDoc(locationsCol(congId), locationId));
 

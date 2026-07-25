@@ -23,6 +23,7 @@ import {
   territoryAssignmentsState,
   territoryZonesSortedState,
   territorySettingsState,
+  territoriesLoadingState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
 import {
@@ -268,6 +269,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const territories = useAtomValue(territoriesState);
   const assignments = useAtomValue(territoryAssignmentsState);
   const settings = useAtomValue(territorySettingsState);
+  const loading = useAtomValue(territoriesLoadingState);
   const resolveName = usePersonName();
 
   const [filter, setFilter] = useState<Filter>('all');
@@ -378,10 +380,11 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
             a.numero.localeCompare(b.numero, undefined, { numeric: true })
           ),
       }))
-      // Sin búsqueda, se mantienen todas las zonas (aunque estén vacías,
-      // como ya hacía antes). Buscando, ocultar las que no tengan resultados
-      // en vez de mostrar encabezados de zona vacíos.
-      .filter(({ items }) => !lower || items.length > 0);
+      // Ocultar zonas sin resultados, tanto al buscar como al filtrar por
+      // chip. Antes solo se ocultaban al buscar: pulsar "Asignados" un día
+      // sin ninguno dejaba los títulos "Elda - Urbano" y "Elda - Rural" con
+      // nada debajo y ningún texto — parecía un fallo de carga.
+      .filter(({ items }) => items.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zones, territories, filter, search, assignmentsByTerritory, resolveName]);
 
@@ -417,9 +420,15 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         />
       </Stack>
 
-      {search.trim().length > 0 && !hasAnyResults && (
+      {!loading && !hasAnyResults && (
         <Typography variant="body2" color="var(--ink-2)">
-          No hay territorios que coincidan con tu búsqueda.
+          {search.trim()
+            ? 'No hay territorios que coincidan con tu búsqueda.'
+            : filter === 'assigned'
+              ? 'Ahora mismo no hay ningún territorio asignado.'
+              : filter === 'unassigned'
+                ? 'Todos los territorios están asignados ahora mismo.'
+                : 'Todavía no hay territorios.'}
         </Typography>
       )}
 

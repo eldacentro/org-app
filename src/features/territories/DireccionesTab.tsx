@@ -15,7 +15,7 @@ import {
 import { territoryLocationsState, territorySettingsState } from '@states/territories';
 import { TerritoryLocation } from '@definition/territories';
 import { displayText } from '@services/app/territories';
-import { saveLocation, deleteLocation } from '@services/firebase/territories';
+import { saveLocation, approveLocation, deleteLocation } from '@services/firebase/territories';
 
 type Props = { territoryId: string; canManage: boolean };
 
@@ -33,6 +33,8 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   );
   const approved = locations.filter((l) => l.aprobada);
   const pending = locations.filter((l) => !l.aprobada);
+  // Un responsable ve todas las pendientes; un publicador, solo las suyas.
+  const visiblePending = canManage ? pending : pending.filter((l) => l.addedBy === uid);
 
   const { confirm, ConfirmDialogNode } = useConfirm();
 
@@ -69,6 +71,13 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       );
       setDireccion('');
       setNota('');
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Dirección añadida',
+        message: aprobada
+          ? 'Se ha añadido a "No visitar" de este territorio.'
+          : 'Queda pendiente de que un responsable la apruebe.',
+      });
     } catch (err) {
       console.error('Error al guardar dirección:', err);
       setSaveError('No se pudo guardar la dirección. Comprueba tu conexión e inténtalo de nuevo.');
@@ -82,11 +91,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   const handleApprove = async (l: TerritoryLocation) => {
     setApprovingId(l.id);
     try {
-      await saveLocation(
-        congId,
-        { ...l, aprobada: true, approvedBy: uid, updatedAt: new Date().toISOString() },
-        masterKey ?? ''
-      );
+      // Actualización parcial: `saveLocation` reescribe el documento entero,
+      // incluida la dirección cifrada. Si este dispositivo no puede
+      // descifrarla, aprobar la habría guardado tal cual venía o, peor,
+      // vacía. Aprobar solo cambia dos campos.
+      await approveLocation(congId, l.id, uid);
     } catch (err) {
       console.error(err);
       displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo aprobar la dirección.' });
@@ -154,7 +163,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
       {ConfirmDialogNode}
       <Stack spacing={1}>
-        {approved.length === 0 && pending.length === 0 && (
+        {approved.length === 0 && visiblePending.length === 0 && (
           <Typography variant="body2" color="var(--ink-2)">
             No hay direcciones de &quot;No visitar&quot; en este territorio.
           </Typography>
@@ -162,13 +171,21 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
         {approved.map((l) => renderRow(l))}
       </Stack>
 
-      {canManage && pending.length > 0 && (
+      {/* Los pendientes también los ve quien los añadió. Antes este bloque
+          era solo para responsables, así que un publicador que reportaba una
+          dirección no veía absolutamente nada: ni en la lista (solo pinta
+          las aprobadas) ni el texto de "no hay direcciones" (se oculta si
+          hay pendientes). Concluía que no se había guardado y la añadía dos
+          o tres veces más. */}
+      {visiblePending.length > 0 && (
         <Box>
           <Typography variant="caption" color="var(--orange-main)">
-            Pendientes de aprobación ({pending.length})
+            {canManage
+              ? `Pendientes de aprobación (${visiblePending.length})`
+              : 'Enviado — pendiente de que un responsable lo apruebe'}
           </Typography>
           <Stack spacing={1} sx={{ mt: 0.5 }}>
-            {pending.map((l) => renderRow(l, true))}
+            {visiblePending.map((l) => renderRow(l, true))}
           </Stack>
         </Box>
       )}

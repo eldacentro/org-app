@@ -616,7 +616,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                   {navBarOptions.quickSettings ? (
                     <IconButton
                       onClick={handleQuickSettings}
-                      aria-label={t('tr_quickSettings')}
+                      aria-label={navBarOptions.quickSettingsLabel || t('tr_quickSettings')}
                       sx={{
                         marginRight: '-8px',
                         transition: 'background-color 50ms ease-in-out',

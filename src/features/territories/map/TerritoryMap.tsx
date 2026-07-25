@@ -345,6 +345,16 @@ const TerritoryMap = ({
   // objeto nuevo en cada snapshot de Firestore aunque el polígono no haya
   // cambiado) — si no, FitBounds se vuelve a disparar y recentra el mapa
   // cada vez que CUALQUIER territorio de la congregación cambia, no solo este.
+  // Los tokens CSS hay que resolverlos a un color real para Leaflet (ver
+  // más abajo, en el marcador de ubicación). Se recalcula en cada render:
+  // es una lectura barata y así sigue el tema si el usuario lo cambia.
+  const accentColor =
+    typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement)
+          .getPropertyValue('--accent-main')
+          .trim() || '#1f6fd0'
+      : '#1f6fd0';
+
   const geometryKey = JSON.stringify(geometry);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const bounds = useMemo(() => (geometry ? geometryBounds(geometry) : null), [geometryKey]);
@@ -445,7 +455,12 @@ const TerritoryMap = ({
           <CircleMarker
             center={livePos}
             radius={8}
-            pathOptions={{ color: '#fff', weight: 3, fillColor: 'var(--accent-main)', fillOpacity: 1 }}
+            // El color se resuelve a un valor REAL antes de pasarlo: Leaflet
+            // lo escribe como atributo de presentación SVG (fill="…"), donde
+            // las variables CSS no se resuelven. Con `var(--accent-main)` el
+            // punto de "Tu ubicación" salía negro (el relleno por defecto),
+            // justo el indicador que se busca mientras se predica.
+            pathOptions={{ color: '#fff', weight: 3, fillColor: accentColor, fillOpacity: 1 }}
           >
             <Tooltip>Tu ubicación</Tooltip>
           </CircleMarker>

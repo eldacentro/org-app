@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { displaySnackNotification } from '@services/states/app';
 import type { ReactNode, CSSProperties } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -172,7 +173,16 @@ const ConfiguracionTab = () => {
   const [saved, setSaved] = useState(false);
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => setDraft(settings), [settings]);
+  // Solo se adopta lo que llega del servidor si NO hay cambios sin guardar.
+  // Antes se sobrescribía siempre: bastaba con que otro responsable guardara
+  // (o con que se autoguardaran los encargados) para que el texto que
+  // estabas escribiendo desapareciera, el aviso de "Cambios sin guardar" se
+  // apagara y dieras por aplicados ajustes que nunca se guardaron.
+  const hasChangesRef = useRef(false);
+  useEffect(() => {
+    if (hasChangesRef.current) return;
+    setDraft(settings);
+  }, [settings]);
 
   // Limpiar el timer al desmontar para evitar setState en componente desmontado
   useEffect(() => {
@@ -186,6 +196,7 @@ const ConfiguracionTab = () => {
     () => JSON.stringify(draft) !== JSON.stringify(settings),
     [draft, settings]
   );
+  hasChangesRef.current = hasChanges;
 
   const set = <K extends keyof TerritorySettings>(key: K, value: TerritorySettings[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -196,6 +207,16 @@ const ConfiguracionTab = () => {
       await saveSettings(congId, { ...draft, updatedAt: new Date().toISOString() });
       setSaved(true);
       savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      // Sin esto, un fallo de red o de permisos dejaba el botón como si nada
+      // hubiera pasado: ni "Guardado" ni error. El responsable se iba
+      // creyendo que había configurado el umbral de toda la congregación.
+      console.error('Error al guardar los ajustes de territorios:', err);
+      displaySnackNotification({
+        severity: 'error',
+        header: 'No se pudo guardar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.',
+      });
     } finally {
       setSaving(false);
     }

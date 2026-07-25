@@ -41,6 +41,9 @@ type Props = {
    *  la selección múltiple de la pestaña "Territorios", para no tener que
    *  asignar uno a uno durante una campaña grande. */
   onAsignarBulk: (territories: Territory[]) => void;
+  /** Pestaña inicial. Se usa para abrir en "Solicitudes" cuando se entra
+   *  desde la insignia roja del engranaje. */
+  initialTab?: number;
   onOpenZonas: () => void;
   onOpenEtiquetas: () => void;
   onOpenImport: () => void;
@@ -118,9 +121,28 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
               return (
                 <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
                   <Box
+                    // Botón real: antes era un Box con onClick, así que no se
+                    // podía abrir ningún territorio con el teclado y para un
+                    // lector de pantalla era un div mudo.
+                    component="button"
+                    type="button"
+                    aria-label={
+                      selectionMode
+                        ? `Seleccionar ${territoryLabel(t)}`
+                        : `Ver ${territoryLabel(t)}`
+                    }
+                    aria-pressed={selectionMode ? selected : undefined}
                     onClick={() => selectionMode ? onToggleSelect(t.id) : onView(t)}
                     className="active-press"
                     sx={{
+                      appearance: 'none',
+                      font: 'inherit',
+                      textAlign: 'left',
+                      width: '100%',
+                      '&:focus-visible': {
+                        outline: '2px solid var(--accent-main)',
+                        outlineOffset: '2px',
+                      },
                       p: 2,
                       borderRadius: 'var(--radius-xl)',
                       border: '1px solid var(--line)',
@@ -138,11 +160,11 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
                   >
                     {selectionMode && (
                       <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
-                        <Checkbox
-                          checked={selected}
-                          readOnly
-                          sx={{ p: 0.5 }}
-                        />
+                        {/* Decorativo: el estado real lo anuncia el
+                            aria-pressed del botón que lo contiene. */}
+                        <Box aria-hidden sx={{ pointerEvents: 'none' }}>
+                          <Checkbox checked={selected} readOnly sx={{ p: 0.5 }} />
+                        </Box>
                       </Box>
                     )}
                     <Typography variant="body1" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1, pr: selectionMode ? 3 : 0 }}>
@@ -216,6 +238,7 @@ const ResponsablesPanel = ({
   onAsignarParaSolicitud,
   onAsignarCampana,
   onAsignarBulk,
+  initialTab,
   onOpenZonas,
   onOpenEtiquetas,
   onOpenImport,
@@ -229,7 +252,11 @@ const ResponsablesPanel = ({
   const assignedIds = useAtomValue(territoryAssignedIdsState);
   const settings = useAtomValue(territorySettingsState);
   const pending = useAtomValue(territoryPendingRequestsState);
-  const [tab, setTab] = useState(0);
+  // Si se entra con solicitudes pendientes, abrir directamente en
+  // "Solicitudes" (pestaña 2). La insignia roja del engranaje solo se
+  // enciende por eso, y antes te dejaba en "Estadísticas": había que
+  // descubrir y deslizar hasta la tercera pestaña de nueve cada vez.
+  const [tab, setTab] = useState(() => (initialTab ?? 0));
 
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [selectionMode, setSelectionMode] = useState(false);
@@ -262,10 +289,16 @@ const ResponsablesPanel = ({
     }
 
     if (skipped > 0) {
+      // No 'success': la acción se completó SOLO A MEDIAS y en verde pasaba
+      // desapercibido. La app solo tiene 'success' y 'error', así que se usa
+      // 'error' — es lo que de verdad transmite "revisa esto".
       displaySnackNotification({
-        severity: 'success',
+        severity: 'error',
         header: 'Algunos territorios se omitieron',
-        message: `${skipped} territorio(s) ya estaban asignados y no se incluyeron.`,
+        message:
+          skipped === 1
+            ? '1 territorio ya estaba asignado y no se incluyó.'
+            : `${skipped} territorios ya estaban asignados y no se incluyeron.`,
       });
     }
 
@@ -291,9 +324,20 @@ const ResponsablesPanel = ({
       return;
     }
 
-    let msg = `¿Estás seguro de que deseas eliminar estos ${toDelete.length} territorios? Esta acción no se puede deshacer.`;
+    // La confirmación DEBE decir que se lleva el historial por delante:
+    // borrar un territorio borra todas sus asignaciones (el registro del
+    // S-13) y sus direcciones "No visitar". Antes solo hablaba del
+    // territorio, así que quien limpiaba territorios obsoletos destruía
+    // años de registro creyendo que solo borraba un polígono.
+    let msg =
+      toDelete.length === 1
+        ? '¿Eliminar este territorio? Se borrarán también todo su historial de asignaciones (el registro del S-13) y sus direcciones de "No visitar". No se puede deshacer.'
+        : `¿Eliminar estos ${toDelete.length} territorios? Se borrarán también todo su historial de asignaciones (el registro del S-13) y sus direcciones de "No visitar". No se puede deshacer.`;
     if (skipped > 0) {
-      msg += ` Se omitirán ${skipped} territorio(s) porque están asignados actualmente.`;
+      msg +=
+        skipped === 1
+          ? ' Se omitirá 1 territorio porque está asignado ahora mismo.'
+          : ` Se omitirán ${skipped} territorios porque están asignados ahora mismo.`;
     }
 
     const ok = await confirm({
@@ -310,7 +354,10 @@ const ResponsablesPanel = ({
       displaySnackNotification({
         severity: 'success',
         header: 'Territorios eliminados',
-        message: `Se han eliminado ${toDelete.length} territorios correctamente.`,
+        message:
+          toDelete.length === 1
+            ? 'Se ha eliminado 1 territorio correctamente.'
+            : `Se han eliminado ${toDelete.length} territorios correctamente.`,
       });
       setSelectionMode(false);
       setSelectedIds(new Set());

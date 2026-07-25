@@ -99,11 +99,13 @@ const TerritoriesPage = () => {
           }
           quickSettings={canManage ? () => setShowResponsables(true) : undefined}
           quickSettingsBadge={canManage && pendingRequestsCount > 0}
+          quickSettingsLabel="Panel de responsables de territorios"
         />
       )}
 
       {showingResponsables ? (
         <ResponsablesPanel
+          initialTab={pendingRequestsCount > 0 ? 2 : 0}
           onView={(t) => setViewing(t)}
           onAsignar={(t) => setAsignar({ open: true, territory: t })}
           onEntregar={(a) => setEntregando(a)}

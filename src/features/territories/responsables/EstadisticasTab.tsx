@@ -24,6 +24,7 @@ import {
   isInCooldown,
   isOverdue,
   statsRangeStart,
+  serviceYearRange,
   territoryLabel,
 } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
@@ -285,9 +286,22 @@ const ZoneGroup = ({
 const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const territories = useAtomValue(territoriesState);
   const loading = useAtomValue(territoriesLoadingState);
+
   const assignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
   const settings = useAtomValue(territorySettingsState);
+  // El número de "Trabajados" se lleva a la reunión del cuerpo de ancianos,
+  // así que la tarjeta debe decir DE QUÉ periodo es. Antes ponía "En el
+  // rango seleccionado" sin más, y el rango solo se veía entrando en
+  // Configuración.
+  const rangeLabel = useMemo(() => {
+    if (settings.statsRange === 'service_year') {
+      const { start, end } = serviceYearRange(new Date());
+      return `Año de servicio ${start.getFullYear()}-${end.getFullYear()}`;
+    }
+    if (settings.statsRange === 'one_year') return 'Últimos 12 meses';
+    return 'Todo el histórico';
+  }, [settings.statsRange]);
   const congId = useAtomValue(congIDState);
   const currentUid = useAtomValue(userLocalUIDState);
   const resolveName = usePersonName();
@@ -317,11 +331,25 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
     const asignados = openByTerritory.size;
     const noAsignados = total - asignados;
 
+    // "Trabajados" se calcula desde las asignaciones RELEVANTES, no desde
+    // `territory.lastWorkedAt`. Ese campo lo escribe también el cierre de
+    // campañas, así que con el ajuste "campañas en estadísticas" desactivado
+    // el trabajo de campaña seguía contando igual: el interruptor no hacía
+    // prácticamente nada y el porcentaje de cobertura estaba inflado.
+    const workedInRange = new Set(
+      relevant
+        .filter(
+          (a) =>
+            a.status === 'trabajado' &&
+            a.returnedAt &&
+            new Date(a.returnedAt) >= rangeStart
+        )
+        .map((a) => a.territoryId)
+    );
+
     let trabajados = 0;
     territories.forEach((t) => {
-      const workedThisYear = t.lastWorkedAt && new Date(t.lastWorkedAt) >= rangeStart;
-
-      if (workedThisYear) {
+      if (workedInRange.has(t.id)) {
         trabajados += 1;
       } else if (openByTerritory.has(t.id) && settings.assignedCountsAsWorked) {
         trabajados += 1;
@@ -443,7 +471,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           value={stats.trabajados}
           total={stats.total}
           color="var(--green-main)"
-          subtext="En el rango seleccionado"
+          subtext={rangeLabel}
         />
         <KpiCard
           title="Atrasados"
