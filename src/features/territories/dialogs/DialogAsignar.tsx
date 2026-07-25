@@ -9,11 +9,20 @@ import { personsActiveState } from '@states/persons';
 import { buildPersonFullname, escapeHTML } from '@utils/common';
 import { displaySnackNotification } from '@services/states/app';
 import {
+  COFullnameState,
+  COLastnameState,
+  COSpouseNameState,
   congIDState,
   congMasterKeyState,
   fullnameOptionState,
   userLocalUIDState,
 } from '@states/settings';
+import {
+  CO_SPOUSE_UID,
+  CO_UID,
+  buildCoSpouseFullname,
+  isCircuitOverseerUid,
+} from '@utils/circuit_overseer';
 import { usePersonName } from '@features/territories/usePersonName';
 import {
   territoriesState,
@@ -69,6 +78,9 @@ const DialogAsignar = ({
   const currentUid = useAtomValue(userLocalUIDState);
   const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const coFullname = useAtomValue(COFullnameState);
+  const coLastname = useAtomValue(COLastnameState);
+  const coSpouseName = useAtomValue(COSpouseNameState);
   const settings = useAtomValue(territorySettingsState);
   const territories = useAtomValue(territoriesState);
   const resolveName = usePersonName();
@@ -76,18 +88,44 @@ const DialogAsignar = ({
   const allAssignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
 
-  const personOptions = useMemo(
-    () =>
-      persons.map((p) => ({
-        uid: p.person_uid,
-        label: buildPersonFullname(
-          p.person_data.person_lastname.value,
-          p.person_data.person_firstname.value,
-          fullnameOption
-        ),
-      })),
-    [persons, fullnameOption]
-  );
+  const personOptions = useMemo(() => {
+    const real = persons.map((p) => ({
+      uid: p.person_uid,
+      label: buildPersonFullname(
+        p.person_data.person_lastname.value,
+        p.person_data.person_firstname.value,
+        fullnameOption
+      ),
+    }));
+
+    // El superintendente y su esposa se ofrecen aunque no estén en Personas
+    // (a propósito: meterlos ahí los arrastraría a informes, reuniones y
+    // estadísticas). Van los primeros y con su cargo, para que se distingan
+    // de un hermano de la congregación. Ver `@utils/circuit_overseer`.
+    const synthetic: { uid: string; label: string }[] = [];
+
+    if (coFullname.trim().length > 0) {
+      synthetic.push({
+        uid: CO_UID,
+        label: `${coFullname} · Superintendente de circuito`,
+      });
+
+      const spouse = buildCoSpouseFullname(
+        coSpouseName,
+        coLastname,
+        fullnameOption
+      );
+
+      if (spouse.length > 0) {
+        synthetic.push({
+          uid: CO_SPOUSE_UID,
+          label: `${spouse} · Esposa del superintendente`,
+        });
+      }
+    }
+
+    return [...synthetic, ...real];
+  }, [persons, fullnameOption, coFullname, coLastname, coSpouseName]);
 
   // Territorios libres (no asignados) para el selector, los asignados al final.
   const territoryOptions = useMemo(
@@ -197,7 +235,9 @@ const DialogAsignar = ({
 
       let notificationFailed = false;
 
-      if (personUid !== currentUid) {
+      // El superintendente y su esposa no tienen cuenta ni dispositivo: no hay
+      // a quién avisar, así que se salta el aviso in-app, el push y el correo.
+      if (personUid !== currentUid && !isCircuitOverseerUid(personUid)) {
         const labelsList = toAssign.map((t) => territoryLabel(t)).join(', ');
         const mensaje = `Se te han asignado ${toAssign.length} territorios: ${labelsList}.`;
 
@@ -320,7 +360,14 @@ const DialogAsignar = ({
       // el publicador no se entere por esa vía y conviene avisarle a mano.
       let notificationFailed = false;
 
-      if (personUid && personUid !== currentUid && effectiveTerritory) {
+      // Ver nota en el modo masivo: los centinelas del superintendente no
+      // tienen destinatario real al que notificar.
+      if (
+        personUid &&
+        personUid !== currentUid &&
+        !isCircuitOverseerUid(personUid) &&
+        effectiveTerritory
+      ) {
         // Notificación in-app (Notice)
         await saveNotice(congId, {
           id: crypto.randomUUID(),
