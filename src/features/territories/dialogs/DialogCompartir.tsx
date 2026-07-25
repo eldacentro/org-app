@@ -7,6 +7,7 @@ import Typography from '@components/typography';
 import { IconClose } from '@components/icons';
 import IconButton from '@components/icon_button';
 import SwitchWithLabel from '@components/switch_with_label';
+import FilterChip from '@components/filter_chip';
 import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
 import {
@@ -100,19 +101,41 @@ const DialogCompartir = ({
   const [days, setDays] = useState<number>(DEFAULT_SHARE_DAYS);
 
   // "Activo" = lo mismo que comprueba la regla de seguridad: ni anulado, ni
-  // caducado, y con su asignación todavía abierta si va atado a una.
-  const assignmentIsOpen = Boolean(assignment && !assignment.returnedAt);
-  const activeShares = shares.filter((s) => isShareLive(s, assignmentIsOpen));
+  // caducado, y con SU asignación todavía abierta si va atado a una.
+  //
+  // Ojo con el "su": hay que comparar contra la asignación DEL ENLACE, no
+  // contra la que el territorio tenga ahora. Un territorio se comparte a A,
+  // se entrega y se reasigna a B: el enlace viejo de A seguiría contando
+  // como activo (porque la asignación de B sí está abierta), el formulario
+  // no se pintaría —solo aparece cuando no hay ninguno activo— y no se
+  // podría crear el enlace para B. Encima, "Copiar enlace" mandaría una URL
+  // que el servidor rechaza.
+  const activeShares = shares.filter((s) =>
+    isShareLive(
+      s,
+      Boolean(assignment) &&
+        s.assignmentId === assignment?.id &&
+        !assignment?.returnedAt
+    )
+  );
 
-  /** Al menos una sección marcada: un enlace vacío no tendría sentido. */
-  const hasAnySection = includes.mapa || includes.notas || includes.noVisitar;
+  /** Las notas y las direcciones van cifradas con la contraseña de la
+   *  congregación: sin ella no se pueden incluir (saldrían ilegibles), así
+   *  que ni se ofrecen. */
+  const canShareEncrypted = Boolean(masterKey);
+
+  /** Al menos una sección REAL marcada: un enlace vacío no tendría sentido. */
+  const hasAnySection =
+    includes.mapa ||
+    (canShareEncrypted && (includes.notas || includes.noVisitar));
 
   /** Fecha exacta de caducidad, para decirla en vez de "en 30 días". */
-  const expiryPreview = useMemo(() => {
+  const expiryDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + days);
-    return formatTerritoryDate(d.toISOString(), dateFormat);
-  }, [days, dateFormat]);
+    return d;
+  }, [days]);
+  const expiryPreview = formatTerritoryDate(expiryDate.toISOString(), dateFormat);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,13 +165,14 @@ const DialogCompartir = ({
    *  con la que se envolvió — antes lanzaba una excepción SÍNCRONA dentro del
    *  onClick, que React no captura, así que el botón simplemente no hacía
    *  nada y el usuario lo pulsaba una y otra vez sin ninguna explicación. */
-  const urlFor = (share: TerritoryShare): string | null => {
+  const urlFor = async (share: TerritoryShare): Promise<string | null> => {
     try {
+      if (!share.hasWrappedKey) throw new Error('SIN_CLAVE_GUARDADA');
       return buildShareUrl(
         window.location.origin,
         congId,
         share.token,
-        recoverShareKey(share, masterKey)
+        await recoverShareKey(congId, share.token, masterKey)
       );
     } catch (error) {
       const reason = (error as Error)?.message;
@@ -210,7 +234,20 @@ const DialogCompartir = ({
         congName,
         now: new Date().toISOString(),
         includes,
+        expiresAt: expiryDate.toISOString(),
+        tiedToAssignment: Boolean(assignment),
       });
+
+      // Se guarda lo que el payload lleva DE VERDAD, no lo que se marcó: sin
+      // clave de congregación las notas y las direcciones se omiten, y la
+      // pestaña "Enlaces" habría afirmado que se compartieron datos de
+      // vecinos que en realidad no salieron (o al revés). Esa lista existe
+      // para poder auditar; tiene que decir la verdad.
+      const effectiveIncludes = {
+        mapa: includes.mapa,
+        notas: Boolean(payload.notas),
+        noVisitar: payload.locations.length > 0,
+      };
 
       const { token, keyB64 } = await withTimeout(
         createShare({
@@ -218,7 +255,7 @@ const DialogCompartir = ({
           assignmentId: assignment?.id ?? null,
           territoryId: territory.id,
           payload,
-          includes,
+          includes: effectiveIncludes,
           days,
           masterKey,
           createdBy: currentUid,
@@ -226,16 +263,6 @@ const DialogCompartir = ({
       );
 
       await copyUrl(buildShareUrl(window.location.origin, congId, token, keyB64));
-      // Sin clave de congregación no se guarda la clave envuelta, así que
-      // esta es la ÚNICA vez que se puede copiar la URL. Hay que decirlo.
-      if (!masterKey) {
-        displaySnackNotification({
-          header: 'Pégalo ahora',
-          message:
-            'Este enlace solo se puede copiar en este momento. Si lo pierdes, tendrás que anularlo y crear otro.',
-          severity: 'error',
-        });
-      }
       await load();
     } catch (error) {
       const timedOut = (error as Error)?.message === 'SIN_CONFIRMACION_DEL_SERVIDOR';
@@ -314,7 +341,7 @@ const DialogCompartir = ({
             Compartir territorio
           </Typography>
           <IconButton onClick={onClose} disabled={working} aria-label="Cerrar">
-            <IconClose color="var(--ink-2)" width={15} height={15} />
+            <IconClose color="var(--ink-2)" width={20} height={20} />
           </IconButton>
         </Stack>
 
@@ -325,7 +352,7 @@ const DialogCompartir = ({
         </Typography>
 
         {loading && (
-          <Typography className="body-regular" color="var(--grey-400)">
+          <Typography className="body-regular" color="var(--ink-2)">
             Cargando enlaces…
           </Typography>
         )}
@@ -361,14 +388,24 @@ const DialogCompartir = ({
                 />
                 <SwitchWithLabel
                   label="Notas del territorio"
-                  helper="Las indicaciones que escriben los responsables."
+                  helper={
+                    canShareEncrypted
+                      ? 'Las indicaciones que escriben los responsables.'
+                      : 'Solo un anciano puede compartir esto.'
+                  }
                   checked={includes.notas}
+                  readOnly={!canShareEncrypted}
                   onChange={(v) => setIncludes((prev) => ({ ...prev, notas: v }))}
                 />
                 <SwitchWithLabel
                   label={'Direcciones de "No visitar"'}
-                  helper="Son datos de vecinos. Compártelas solo si de verdad hacen falta."
+                  helper={
+                    canShareEncrypted
+                      ? 'Son datos de vecinos. Compártelas solo si de verdad hacen falta.'
+                      : 'Solo un anciano puede compartir esto.'
+                  }
                   checked={includes.noVisitar}
+                  readOnly={!canShareEncrypted}
                   onChange={(v) => setIncludes((prev) => ({ ...prev, noVisitar: v }))}
                 />
               </Stack>
@@ -379,16 +416,14 @@ const DialogCompartir = ({
               <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '8px' }}>
                 Cuánto tiempo estará disponible
               </Typography>
-              <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 {SHARE_DURATIONS.map((d) => (
-                  <Button
+                  <FilterChip
                     key={d.days}
-                    variant={days === d.days ? 'main' : 'secondary'}
-                    disableAutoStretch
+                    label={d.label}
+                    selected={days === d.days}
                     onClick={() => setDays(d.days)}
-                  >
-                    {d.label}
-                  </Button>
+                  />
                 ))}
               </Stack>
             </Box>
@@ -410,6 +445,30 @@ const DialogCompartir = ({
               </Typography>
             </Box>
 
+            {!canShareEncrypted && (
+              <Box
+                sx={{
+                  padding: '12px',
+                  borderRadius: 'var(--radius-l)',
+                  backgroundColor: 'var(--orange-secondary)',
+                  border: '1px solid var(--orange-dark)',
+                }}
+              >
+                <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)' }}>
+                  El enlace se copiará al crearlo y no se podrá volver a copiar
+                  desde aquí, así que pégalo donde vayas a enviarlo antes de
+                  cerrar. Si lo pierdes, tendrás que anularlo y crear otro.
+                </Typography>
+              </Box>
+            )}
+
+            {/* El motivo va ENCIMA del botón: debajo quedaba fuera de la
+                pantalla en el móvil, así que el botón parecía roto sin más. */}
+            {!hasAnySection && (
+              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                Marca al menos una cosa para poder crear el enlace.
+              </Typography>
+            )}
             <Button
               variant="main"
               onClick={handleCreate}
@@ -417,12 +476,14 @@ const DialogCompartir = ({
             >
               {working ? 'Creando…' : 'Crear enlace y copiarlo'}
             </Button>
-            {!hasAnySection && (
-              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
-                Marca al menos una cosa para poder crear el enlace.
-              </Typography>
-            )}
           </Stack>
+        )}
+
+        {!loading && !loadFailed && activeShares.length > 0 && (
+          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+            Solo puede haber un enlace activo por territorio. Para cambiar qué
+            se ve o cuánto dura, anula este y crea otro.
+          </Typography>
         )}
 
         {!loading && !loadFailed &&
@@ -430,7 +491,7 @@ const DialogCompartir = ({
             <Box
               key={share.token}
               sx={{
-                border: '1px solid var(--accent-200)',
+                border: '1px solid var(--line)',
                 borderRadius: 'var(--radius-l)',
                 padding: '12px',
               }}
@@ -455,9 +516,10 @@ const DialogCompartir = ({
                 <Stack direction="row" spacing="8px" flexWrap="wrap" useFlexGap>
                   <Button
                     variant="secondary"
+                    disableAutoStretch
                     disabled={working}
-                    onClick={() => {
-                      const url = urlFor(share);
+                    onClick={async () => {
+                      const url = await urlFor(share);
                       if (url) copyUrl(url);
                     }}
                   >
@@ -467,9 +529,10 @@ const DialogCompartir = ({
                   {typeof navigator.share === 'function' && (
                     <Button
                       variant="secondary"
+                      disableAutoStretch
                       disabled={working}
-                      onClick={() => {
-                        const url = urlFor(share);
+                      onClick={async () => {
+                        const url = await urlFor(share);
                         if (!url) return;
                         navigator
                           .share({ title: territoryLabel(territory), url })
@@ -483,6 +546,7 @@ const DialogCompartir = ({
                   <Button
                     variant="secondary"
                     color="red"
+                    disableAutoStretch
                     disabled={working}
                     onClick={() => handleRevoke(share)}
                   >

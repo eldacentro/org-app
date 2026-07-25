@@ -45,6 +45,8 @@ export const buildSharePayload = ({
   congName,
   now,
   includes,
+  expiresAt,
+  tiedToAssignment,
 }: {
   territory: Territory;
   zones: TerritoryZone[];
@@ -54,6 +56,10 @@ export const buildSharePayload = ({
   now: string;
   /** Qué secciones incluir. Lo elige quien comparte; por defecto solo el mapa. */
   includes: TerritoryShareIncludes;
+  /** Caducidad (ISO), para poder mostrársela al invitado. */
+  expiresAt?: string;
+  /** ¿Muere también al entregar el territorio? */
+  tiedToAssignment?: boolean;
 }): TerritorySharePayload => {
   const territoryTags = (territory.tags ?? [])
     .map((tagId) => tags.find((t) => t.id === tagId))
@@ -86,6 +92,8 @@ export const buildSharePayload = ({
         : undefined,
     tags: includes.mapa ? territoryTags : [],
     locations: visibleLocations,
+    expiresAt,
+    tiedToAssignment,
   };
 };
 

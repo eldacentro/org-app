@@ -115,7 +115,41 @@ service cloud.firestore {
       // Enumerar exige sesión; el invitado nunca puede listar la colección.
       allow list: if request.auth != null;
 
-      allow create, update, delete: if request.auth != null;
+      // Crear: la caducidad la pone el cliente, así que el servidor le pone
+      // un techo. Sin esto, un reloj adelantado (o un cliente manipulado)
+      // creaba enlaces de vida prácticamente eterna.
+      allow create: if request.auth != null
+        && request.resource.data.revoked == false
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt < request.time + duration.value(100, 'd');
+
+      // Actualizar: solo se permite ANULAR y refrescar el contenido. Antes
+      // valía cualquier cambio, así que cualquier cuenta podía poner
+      // `revoked: false`, estirar `expiresAt` y soltar `assignmentId` para
+      // resucitar un enlace anulado y dejarlo vivo para siempre — es decir,
+      // "anular" no anulaba nada frente a quien más motivos tenía para
+      // saltárselo. Estos campos quedan congelados de por vida:
+      allow update: if request.auth != null
+        && request.resource.data.territoryId == resource.data.territoryId
+        && request.resource.data.get('assignmentId', null) == resource.data.get('assignmentId', null)
+        && request.resource.data.expiresAt == resource.data.expiresAt
+        && request.resource.data.includes == resource.data.includes
+        // `revoked` solo puede ir de false a true, nunca al revés.
+        && (request.resource.data.revoked == resource.data.revoked
+            || request.resource.data.revoked == true);
+
+      allow delete: if request.auth != null;
+    }
+
+    // La clave del enlace, envuelta con la contraseña de la congregación.
+    // Vive en una subcolección aparte y EXIGE SESIÓN, porque el documento de
+    // arriba se lee sin autenticar: teniéndola allí, cualquiera que recibiera
+    // un enlace obtenía un criptograma hecho con esa contraseña y cuyo texto
+    // claro él ya conoce (su propia clave, que va en la URL). Eso permite
+    // atacarla por fuerza bruta sin conexión, y esa contraseña abre TODO el
+    // cifrado de la congregación.
+    match /congregation/{congId}/territory_shares/{token}/secret/{docId} {
+      allow read, write: if request.auth != null;
     }
 
     // ── Señal de sincronización casi-instantánea ──

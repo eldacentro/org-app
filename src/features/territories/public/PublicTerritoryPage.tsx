@@ -36,7 +36,7 @@ const MESSAGES: Record<
   },
   gone: {
     title: 'Este enlace ya no está activo',
-    body: 'El territorio se ha entregado o el enlace se ha anulado. Pide uno nuevo si aún lo necesitas.',
+    body: 'Puede que haya caducado, que se haya entregado el territorio o que se haya anulado el enlace. Pide uno nuevo si todavía lo necesitas.',
   },
   offline: {
     title: 'Sin conexión',
@@ -78,7 +78,18 @@ const PublicTerritoryPage = () => {
       // navegador del invitado. `replaceState` no recarga ni añade entrada
       // al historial, y `link.current` conserva lo necesario para reintentar.
       try {
-        window.history.replaceState(null, '', window.location.pathname);
+        // Se quita SOLO la clave (?k=), conservando `#/t/{congId}/{token}`.
+        // Borrando el hash entero, una recarga o un "tirar para refrescar"
+        // dejaba de coincidir con la rama pública de main.tsx y al invitado
+        // se le montaba la aplicación completa: base de datos local, service
+        // worker y una pantalla de acceso de una app en la que no tiene
+        // cuenta, sin forma de volver al territorio. Ahora recargar muestra
+        // "Enlace incompleto", que es lo correcto y le dice qué hacer.
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}#/t/${parsed.congId}/${parsed.token}`
+        );
       } catch {
         // Si el navegador no lo permite, no es motivo para romper la página.
       }
@@ -120,7 +131,7 @@ const PublicTerritoryPage = () => {
   if (state.status === 'loading') {
     return (
       <Centered>
-        <Typography className="h4" color="var(--grey-400)">
+        <Typography className="h4" color="var(--ink-2)">
           Cargando territorio…
         </Typography>
       </Centered>
@@ -138,12 +149,12 @@ const PublicTerritoryPage = () => {
           </Typography>
           <Typography
             className="body-regular"
-            color="var(--grey-400)"
+            color="var(--ink-2)"
             sx={{ textAlign: 'center' }}
           >
             {body}
           </Typography>
-          {state.kind === 'offline' && (
+          {(state.kind === 'offline' || state.kind === 'unknown') && (
             <Button variant="main" onClick={load} sx={{ marginTop: '8px' }}>
               Reintentar
             </Button>
@@ -175,7 +186,7 @@ const Card = ({ children }: { children: ReactNode }) => (
   <Box
     sx={{
       backgroundColor: 'var(--white)',
-      border: '1px solid var(--accent-200)',
+      border: '1px solid var(--line)',
       borderRadius: 'var(--radius-l)',
       padding: '16px',
     }}
@@ -183,6 +194,20 @@ const Card = ({ children }: { children: ReactNode }) => (
     {children}
   </Box>
 );
+
+/** Fecha legible para el invitado. No hay ajustes de congregación en la ruta
+ *  pública (no hay sesión), así que se usa el formato local del navegador. */
+const formatDate = (iso: string): string => {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return iso.slice(0, 10);
+  }
+};
 
 const PublicTerritoryView = ({
   payload,
@@ -205,11 +230,11 @@ const PublicTerritoryView = ({
         sx={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}
       >
         <Stack spacing="2px">
-          <Typography className="body-small-semibold" color="var(--grey-400)">
+          <Typography className="body-small-semibold" color="var(--ink-2)">
             {payload.congName}
           </Typography>
           <Typography className="h1">{payload.label}</Typography>
-          <Typography className="body-regular" color="var(--grey-400)">
+          <Typography className="body-regular" color="var(--ink-2)">
             {payload.zoneName}
           </Typography>
         </Stack>
@@ -219,7 +244,7 @@ const PublicTerritoryView = ({
             sx={{
               borderRadius: 'var(--radius-l)',
               overflow: 'hidden',
-              border: '1px solid var(--accent-200)',
+              border: '1px solid var(--line)',
             }}
           >
             <TerritoryMap
@@ -232,14 +257,19 @@ const PublicTerritoryView = ({
               // mensajería, eso es justo lo que hace desconfiar.
               showLiveLocation={showLocation}
             />
-            {!showLocation && (
-              <Box sx={{ mt: 1 }}>
-                <Button variant="secondary" disableAutoStretch onClick={() => setShowLocation(true)}>
-                  Ver mi ubicación en el mapa
-                </Button>
-              </Box>
-            )}
           </Box>
+        )}
+
+        {/* Fuera del contenedor del mapa a propósito: ahí dentro, el borde
+            redondeado y el `overflow: hidden` le comían el pie en móvil. */}
+        {geometry && !showLocation && (
+          <Button
+            variant="secondary"
+            disableAutoStretch
+            onClick={() => setShowLocation(true)}
+          >
+            Ver mi ubicación en el mapa
+          </Button>
         )}
 
         {payload.imageURL && (
@@ -297,7 +327,7 @@ const PublicTerritoryView = ({
               {payload.notas && (
                 <Typography
                   className="body-regular"
-                  color="var(--grey-400)"
+                  color="var(--ink-2)"
                   sx={{ whiteSpace: 'pre-wrap' }}
                 >
                   {payload.notas}
@@ -311,7 +341,7 @@ const PublicTerritoryView = ({
           <Card>
             <Stack spacing="10px">
               <Typography className="h4">No visitar</Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography className="body-small-regular" color="var(--ink-2)">
                 No llames en estas direcciones.
               </Typography>
               <Stack spacing="8px">
@@ -331,7 +361,7 @@ const PublicTerritoryView = ({
                     {location.nota && (
                       <Typography
                         className="body-small-regular"
-                        color="var(--grey-400)"
+                        color="var(--ink-2)"
                       >
                         {location.nota}
                       </Typography>
@@ -345,11 +375,16 @@ const PublicTerritoryView = ({
 
         <Typography
           className="label-small-regular"
-          color="var(--grey-350)"
+          color="var(--ink-2)"
           sx={{ textAlign: 'center', paddingBottom: '8px' }}
         >
-          Enlace compartido por {payload.congName}. Deja de funcionar cuando se
-          entrega el territorio.
+          Enlace compartido por {payload.congName}.
+          {payload.expiresAt
+            ? ` Válido hasta el ${formatDate(payload.expiresAt)}.`
+            : ''}
+          {payload.tiedToAssignment
+            ? ' Si el territorio se entrega antes, dejará de funcionar en ese momento.'
+            : ''}
         </Typography>
       </Stack>
     </Box>

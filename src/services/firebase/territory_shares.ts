@@ -44,6 +44,30 @@ const sharesCol = (congId: string) =>
 const shareDoc = (congId: string, token: string) =>
   fsDoc(firestore, 'congregation', congId, 'territory_shares', token);
 
+/**
+ * Documento HERMANO donde vive la clave envuelta, en una subcolección que las
+ * reglas cierran a usuarios con sesión.
+ *
+ * NUNCA en el documento principal: ese se lee SIN autenticar (es lo que hace
+ * funcionar el enlace) y Firestore no sabe ocultar campos sueltos. Teniendo
+ * `keyWrapped` ahí, cualquiera que recibiera un enlace obtenía un criptograma
+ * cifrado con la CONTRASEÑA MAESTRA de la congregación cuyo texto claro él ya
+ * conoce (la clave del enlace viaja en su propia URL). Con eso se puede
+ * atacar la contraseña por fuerza bruta sin conexión —crypto-es deriva con
+ * MD5 y UNA sola iteración—, y esa contraseña abre todo el cifrado de la
+ * congregación: fechas de nacimiento, notas, direcciones, todo.
+ */
+const shareKeyDoc = (congId: string, token: string) =>
+  fsDoc(
+    firestore,
+    'congregation',
+    congId,
+    'territory_shares',
+    token,
+    'secret',
+    'key'
+  );
+
 // ─── Clave del enlace, envuelta con la clave maestra ────────────────────────
 // La clave que abre el contenido viaja solo en la URL, así que la app no la
 // tendría para poder refrescar el snapshot ni volver a copiar el enlace. Se
@@ -90,12 +114,16 @@ const unwrapKey = (wrapped: string | null, masterKey: string): Uint8Array => {
 
 export const subscribeShares = (
   congId: string,
-  cb: (rows: TerritoryShare[]) => void
+  cb: (rows: TerritoryShare[]) => void,
+  onError?: (error: unknown) => void
 ) =>
   onSnapshot(
     sharesCol(congId),
     (snap) => cb(snap.docs.map((d) => ({ ...d.data(), token: d.id }) as TerritoryShare)),
-    (error) => console.error('Error al escuchar enlaces de territorio', error)
+    (error) => {
+      console.error('Error al escuchar enlaces de territorio', error);
+      onError?.(error);
+    }
   );
 
 /**
@@ -175,11 +203,18 @@ export const createShare = async ({
     createdBy,
     updatedAt: now,
     payload: await encryptSharePayload(payload, key, congId, token),
-    keyWrapped: wrapKey(key, masterKey),
+    // `hasWrappedKey` sí puede ir en claro: es solo un booleano que dice si
+    // se puede volver a copiar la URL. La clave va aparte (ver `shareKeyDoc`).
+    hasWrappedKey: Boolean(masterKey),
     contentHash: await sha256Hex(shareContentFingerprint(payload)),
   };
 
   await setDoc(shareDoc(congId, token), fields);
+
+  const wrapped = wrapKey(key, masterKey);
+  if (wrapped) {
+    await setDoc(shareKeyDoc(congId, token), { keyWrapped: wrapped });
+  }
 
   return { token, keyB64: shareKeyToString(key) };
 };
@@ -207,7 +242,9 @@ export const refreshShare = async ({
   payload: TerritorySharePayload;
   masterKey: string;
 }): Promise<void> => {
-  const key = unwrapKey(share.keyWrapped, masterKey);
+  const snap = await getDocFromServer(shareKeyDoc(congId, share.token));
+  const wrapped = snap.exists() ? (snap.data().keyWrapped as string) : null;
+  const key = unwrapKey(wrapped, masterKey);
 
   await updateDoc(shareDoc(congId, share.token), {
     payload: await encryptSharePayload(payload, key, congId, share.token),
@@ -216,11 +253,17 @@ export const refreshShare = async ({
   });
 };
 
-/** Recupera la clave de un enlace ya creado, para volver a copiar la URL. */
-export const recoverShareKey = (
-  share: TerritoryShare,
+/** Recupera la clave de un enlace ya creado, para volver a copiar la URL.
+ *  Lee el documento privado (exige sesión), no el público. */
+export const recoverShareKey = async (
+  congId: string,
+  token: string,
   masterKey: string
-): string => shareKeyToString(unwrapKey(share.keyWrapped, masterKey));
+): Promise<string> => {
+  const snap = await getDocFromServer(shareKeyDoc(congId, token));
+  const wrapped = snap.exists() ? (snap.data().keyWrapped as string) : null;
+  return shareKeyToString(unwrapKey(wrapped, masterKey));
+};
 
 /**
  * Enlaces de un TERRITORIO, leídos del servidor (no de la caché). Se listan

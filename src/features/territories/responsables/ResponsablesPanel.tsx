@@ -28,6 +28,7 @@ import HistorialTab from './HistorialTab';
 import EstadisticasTab from './EstadisticasTab';
 import ConfiguracionTab from './ConfiguracionTab';
 import CampanasTab from './CampanasTab';
+import EnlacesTab from './EnlacesTab';
 import ImportExportTab from './ImportExportTab';
 import TerritoriesOverviewMap from '../map/TerritoriesOverviewMap';
 
@@ -501,6 +502,10 @@ const ResponsablesPanel = ({
           {
             label: 'Mapa',
             Component: <TerritoriesOverviewMap onViewTerritory={onView} />,
+          },
+          {
+            label: 'Enlaces',
+            Component: <EnlacesTab onView={onView} />,
           },
           {
             label: 'Campañas',

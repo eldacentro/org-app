@@ -11,6 +11,7 @@ import {
   TerritoryZone,
   DEFAULT_TERRITORY_SETTINGS,
 } from '@definition/territories';
+import { TerritoryShare } from '@definition/territory_shares';
 import { userLocalUIDState } from './settings';
 
 // ── Fuentes de la verdad (alimentadas por las suscripciones onSnapshot) ──
@@ -40,6 +41,22 @@ export const territorySettingsState = atom<TerritorySettings>({
  * borrado.
  */
 export const territoriesLoadingState = atom(true);
+
+/**
+ * Enlaces públicos de territorio de toda la congregación. Solo se llena en
+ * el dispositivo de un responsable (la lista completa no le hace falta a un
+ * publicador, y la regla de Firestore exige sesión para enumerarla).
+ */
+export const territorySharesState = atom<TerritoryShare[]>([]);
+
+/** Estado de la suscripción a enlaces. Es SEPARADO de
+ *  `territoriesLoadingState`: ese se apaga en cuanto llegan territorios y
+ *  asignaciones, y no dice nada de los enlaces. Sin distinguirlo, un fallo de
+ *  la escucha hacía que la pestaña afirmara "no hay ningún enlace activo"
+ *  habiendo enlaces vivos que nadie podría anular. */
+export const territorySharesStatusState = atom<'loading' | 'ready' | 'error'>(
+  'loading'
+);
 
 // ── Derivados ──
 

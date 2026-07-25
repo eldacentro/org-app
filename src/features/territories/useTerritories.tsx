@@ -1,6 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { congIDState, congMasterKeyState, fullnameOptionState } from '@states/settings';
+import {
+  congIDState,
+  congMasterKeyState,
+  congNameState,
+  fullnameOptionState,
+} from '@states/settings';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
@@ -18,6 +23,8 @@ import {
   territoryRequestsState,
   territorySettingsState,
   territoriesLoadingState,
+  territorySharesState,
+  territorySharesStatusState,
   territoryTagsState,
   territoryZonesState,
 } from '@states/territories';
@@ -39,6 +46,13 @@ import {
   activateCampaignIfPlanned,
 } from '@services/firebase/territories';
 import { isCampaignOver, isCampaignRunning } from '@services/app/territories';
+import { refreshShare, subscribeShares } from '@services/firebase/territory_shares';
+import {
+  buildSharePayload,
+  shareContentFingerprint,
+} from '@services/app/territory_share';
+import { sha256Hex } from '@services/encryption/share';
+import { DEFAULT_SHARE_INCLUDES } from '@definition/territory_shares';
 import { DEFAULT_TERRITORY_SETTINGS } from '@definition/territories';
 
 // Singletons de módulo — evitan suscripciones duplicadas cuando varios
@@ -74,6 +88,15 @@ export const useTerritories = () => {
   const setTags = useSetAtom(territoryTagsState);
   const setSettings = useSetAtom(territorySettingsState);
   const setLoading = useSetAtom(territoriesLoadingState);
+  const setShares = useSetAtom(territorySharesState);
+  const setSharesStatus = useSetAtom(territorySharesStatusState);
+  const sharesStatus = useAtomValue(territorySharesStatusState);
+  const [locationsReady, setLocationsReady] = useState(false);
+  const shares = useAtomValue(territorySharesState);
+  const locations = useAtomValue(territoryLocationsState);
+  const tags = useAtomValue(territoryTagsState);
+  const zones = useAtomValue(territoryZonesState);
+  const congName = useAtomValue(congNameState);
   const responsabilidades = useAtomValue(responsabilidadesState);
   const persons = useAtomValue(personsState);
   const settings = useAtomValue(territorySettingsState);
@@ -117,6 +140,7 @@ export const useTerritories = () => {
     // (territorios y asignaciones). Las demás son pequeñas y no gobiernan
     // ningún estado vacío importante.
     setLoading(true);
+    setLocationsReady(false);
     let gotTerritories = false;
     let gotAssignments = false;
     const markLoaded = () => {
@@ -135,7 +159,10 @@ export const useTerritories = () => {
         gotAssignments = true;
         markLoaded();
       }),
-      subscribeLocations(congId, key, setLocations),
+      subscribeLocations(congId, key, (rows) => {
+        setLocations(rows);
+        setLocationsReady(true);
+      }),
       subscribeCampaigns(congId, setCampaigns),
       subscribeRequests(congId, setRequests),
       subscribeNotices(congId, setNotices),
@@ -275,6 +302,96 @@ export const useTerritories = () => {
       console.error('Failed to backfill dueAt formula:', err)
     );
   }, [congId, canManage, assignments, settings.id, settings.daysUntilOverdue]);
+
+  // ─── Enlaces públicos ───────────────────────────────────────────────────
+  // Solo un responsable los necesita (y solo él puede enumerarlos según la
+  // regla de seguridad). Alimenta la pestaña "Enlaces" del panel y el
+  // refresco automático de abajo.
+  useEffect(() => {
+    if (!congId || !canManage) return;
+    setSharesStatus('loading');
+    const unsub = subscribeShares(
+      congId,
+      (rows) => {
+        setShares(rows);
+        setSharesStatus('ready');
+      },
+      () => setSharesStatus('error')
+    );
+    return () => unsub();
+  }, [congId, canManage, setShares, setSharesStatus]);
+
+  // Mantiene al día el contenido de los enlaces vivos.
+  //
+  // El enlace guarda una FOTO FIJA cifrada del territorio en el momento de
+  // crearlo. Sin esto, borrar una dirección de "No visitar" a petición del
+  // vecino no llegaba nunca al enlace ya enviado: el invitado seguía viendo
+  // esa dirección, que es justo el caso en que el borrado tiene que ser
+  // efectivo. Se recalcula la huella del contenido y, si cambió, se
+  // reescribe el snapshot (con la MISMA clave, así que la URL sigue valiendo).
+  const refreshingRef = useRef(new Set<string>());
+  useEffect(() => {
+    if (!congId || !canManage || !masterKey) return;
+    // Esperar a que hayan llegado TODAS las colecciones de las que se
+    // construye el contenido. Las 9 suscripciones se crean juntas pero emiten
+    // por separado: corriendo en ese hueco se reescribía el enlace con la
+    // zona en "—", sin etiquetas y sin las direcciones "No visitar", y ese
+    // snapshot degradado se publicaba a un tercero hasta la siguiente pasada.
+    // Es el mismo patrón que ya causó el incidente de los candados.
+    if (territories.length === 0 || zones.length === 0) return;
+    if (sharesStatus !== 'ready' || !locationsReady) return;
+
+    const now = new Date();
+
+    shares.forEach((share) => {
+      if (share.revoked) return;
+      if (share.expiresAt?.toDate?.() && share.expiresAt.toDate() <= now) return;
+      // Sin clave envuelta no se puede —ni se debe— reescribir. Lo creó
+      // alguien sin la contraseña de la congregación (un publicador), y su
+      // enlace no incluye notas ni direcciones porque él no podía
+      // descifrarlas. Si un anciano lo refrescara, le estaría metiendo esos
+      // datos a un enlace cuya clave el publicador ya tiene en su URL: le
+      // daría por la puerta de atrás justo lo que no puede ver.
+      if (!share.hasWrappedKey) return;
+      if (refreshingRef.current.has(share.token)) return;
+
+      const territory = territories.find((t) => t.id === share.territoryId);
+      if (!territory) return;
+
+      const payload = buildSharePayload({
+        territory,
+        zones,
+        tags,
+        locations,
+        congName,
+        now: new Date().toISOString(),
+        includes: share.includes ?? DEFAULT_SHARE_INCLUDES,
+        expiresAt: share.expiresAt?.toDate?.()?.toISOString(),
+        tiedToAssignment: Boolean(share.assignmentId),
+      });
+
+      refreshingRef.current.add(share.token);
+      sha256Hex(shareContentFingerprint(payload))
+        .then((hash) => {
+          if (hash === share.contentHash) return;
+          return refreshShare({ congId, share, payload, masterKey });
+        })
+        .catch((err) => console.error('No se pudo refrescar el enlace', err))
+        .finally(() => refreshingRef.current.delete(share.token));
+    });
+  }, [
+    congId,
+    canManage,
+    masterKey,
+    shares,
+    sharesStatus,
+    locationsReady,
+    territories,
+    zones,
+    tags,
+    locations,
+    congName,
+  ]);
 
   // Auto-cierre de campañas cuya fechaFin ya pasó. Antes esto solo corría
   // dentro de CampanasTab.tsx, así que solo se disparaba si un responsable

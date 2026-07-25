@@ -61,6 +61,12 @@ export type TerritorySharePayload = {
   tags: { nombre: string; color?: string }[];
   /** Solo las aprobadas, ya descifradas. */
   locations: { direccion: string; nota?: string }[];
+  /** Hasta cuándo vale (ISO). Va DENTRO del contenido cifrado para poder
+   *  decírselo al invitado: el documento en claro solo lo puede leer quien
+   *  tenga sesión. */
+  expiresAt?: string;
+  /** `true` si además muere al entregar el territorio. */
+  tiedToAssignment?: boolean;
 };
 
 export type TerritoryShare = {
@@ -90,12 +96,15 @@ export type TerritoryShare = {
   /** `"v1." + base64url(iv‖ciphertext)`. */
   payload: string;
   /**
-   * La clave del enlace, envuelta con la clave de la congregación, para poder
-   * volver a copiar la URL. Es `null` si quien lo creó no tenía esa clave
-   * (un publicador): el enlace funciona igual, pero solo se puede copiar en
-   * el momento de crearlo.
+   * ¿Se guardó la clave envuelta? Solo un booleano: la clave EN SÍ vive en un
+   * documento aparte que exige sesión, porque este documento se lee sin
+   * autenticar y servir ahí un criptograma hecho con la contraseña maestra
+   * de la congregación permitía atacarla por fuerza bruta sin conexión.
+   *
+   * `false` cuando quien lo creó no tenía esa contraseña (un publicador): el
+   * enlace funciona igual, pero solo se puede copiar al crearlo.
    */
-  keyWrapped: string | null;
+  hasWrappedKey: boolean;
   /** Huella del contenido en claro, para detectar que el snapshot quedó viejo. */
   contentHash: string;
 };
