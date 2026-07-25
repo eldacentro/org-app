@@ -24,6 +24,7 @@ const describeIncludes = (inc?: TerritoryShare['includes']): string => {
   if (!inc) return 'el territorio';
   const parts: string[] = [];
   if (inc.mapa) parts.push('el mapa');
+  if (inc.imagen) parts.push('la imagen');
   if (inc.notas) parts.push('las notas');
   if (inc.noVisitar) parts.push('las direcciones de "No visitar"');
   if (parts.length === 0) return 'nada';

@@ -1,9 +1,10 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { MultiPolygon, Polygon } from 'geojson';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TerritoryMap from '@features/territories/map/TerritoryMap';
+import SegmentedControl from '@components/segmented_control';
 import { TerritorySharePayload } from '@definition/territory_shares';
 import { fetchPublicShare } from '@services/firebase/territory_shares';
 import { SHARE_KEY_LENGTH } from '@services/encryption/share';
@@ -216,6 +217,27 @@ const PublicTerritoryView = ({
 }) => {
   const geometry = (payload.geometry ?? null) as Polygon | MultiPolygon | null;
   const [showLocation, setShowLocation] = useState(false);
+  const [tab, setTab] = useState(0);
+
+  /** Solo se ofrecen las secciones que este enlace trae de verdad. Quien
+   *  comparte elige qué incluir, así que un enlace puede ser solo el mapa,
+   *  solo la tarjeta, o cualquier combinación. */
+  const secciones = useMemo(() => {
+    const out: { key: 'mapa' | 'imagen' | 'info'; label: string }[] = [];
+    if (geometry) out.push({ key: 'mapa', label: 'Mapa' });
+    if (payload.imageURL) out.push({ key: 'imagen', label: 'Imagen' });
+    if (
+      payload.numeroViviendas !== undefined ||
+      payload.notas ||
+      payload.tags.length > 0 ||
+      payload.locations.length > 0
+    ) {
+      out.push({ key: 'info', label: 'Info' });
+    }
+    return out;
+  }, [geometry, payload]);
+
+  const activa = secciones[tab]?.key ?? secciones[0]?.key;
 
   return (
     <Box
@@ -239,61 +261,84 @@ const PublicTerritoryView = ({
           </Typography>
         </Stack>
 
-        {geometry && (
-          <Box
-            sx={{
-              borderRadius: 'var(--radius-l)',
-              overflow: 'hidden',
-              border: '1px solid var(--line)',
-            }}
-          >
-            <TerritoryMap
-              geometry={geometry}
-              color={payload.zoneColor}
-              height={420}
-              // Solo tras pulsarlo. Antes se pedía la ubicación en continuo y
-              // de alta precisión nada más abrir el enlace, sin explicación
-              // ni botón que la hubiera pedido — en un enlace que llega por
-              // mensajería, eso es justo lo que hace desconfiar.
-              showLiveLocation={showLocation}
-            />
-          </Box>
-        )}
-
-        {/* Fuera del contenedor del mapa a propósito: ahí dentro, el borde
-            redondeado y el `overflow: hidden` le comían el pie en móvil. */}
-        {geometry && !showLocation && (
-          <Button
-            variant="secondary"
-            disableAutoStretch
-            onClick={() => setShowLocation(true)}
-          >
-            Ver mi ubicación en el mapa
-          </Button>
-        )}
-
-        {payload.imageURL && (
+        {/* Un enlace puede quedarse sin nada que enseñar: territorio sin
+            plano ni imagen, o creado por alguien que no podía compartir las
+            notas. Antes la página se quedaba con el título y el pie, y el
+            invitado no sabía si el enlace estaba roto. */}
+        {secciones.length === 0 && (
           <Card>
-            <Stack spacing="10px">
-              <Typography className="h4">Imagen del territorio</Typography>
-              <Box
-                component="img"
-                src={payload.imageURL}
-                alt={`Territorio ${payload.label}`}
-                sx={{
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: 'var(--radius-m)',
-                  display: 'block',
-                }}
-              />
-            </Stack>
+            <Typography className="body-regular" color="var(--ink-2)">
+              Este territorio todavía no tiene mapa ni imagen que mostrar.
+              Pídele a quien te lo envió que lo revise.
+            </Typography>
           </Card>
         )}
 
-        {(payload.numeroViviendas !== undefined ||
-          payload.notas ||
-          payload.tags.length > 0) && (
+        {/* Pestañas solo cuando hay más de una cosa que enseñar. Con una
+            sola, un selector de una pestaña es ruido. Mismo patrón que la
+            vista de territorio dentro de la app. */}
+        {secciones.length > 1 && (
+          <SegmentedControl
+            ariaLabel="Vistas del territorio"
+            tabs={secciones.map((s) => s.label)}
+            active={tab}
+            onChange={setTab}
+          />
+        )}
+
+        {activa === 'mapa' && geometry && (
+          <>
+            <Box
+              sx={{
+                borderRadius: 'var(--radius-l)',
+                overflow: 'hidden',
+                border: '1px solid var(--line)',
+              }}
+            >
+              <TerritoryMap
+                geometry={geometry}
+                color={payload.zoneColor}
+                height={420}
+                // Solo tras pulsarlo. Antes se pedía la ubicación en continuo
+                // y de alta precisión nada más abrir el enlace, sin
+                // explicación ni botón que la hubiera pedido — en un enlace
+                // que llega por mensajería, eso es justo lo que hace
+                // desconfiar.
+                showLiveLocation={showLocation}
+              />
+            </Box>
+
+            {/* Fuera del contenedor del mapa a propósito: ahí dentro, el
+                borde redondeado y el `overflow: hidden` le comían el pie. */}
+            {!showLocation && (
+              <Button
+                variant="secondary"
+                disableAutoStretch
+                onClick={() => setShowLocation(true)}
+              >
+                Ver mi ubicación en el mapa
+              </Button>
+            )}
+          </>
+        )}
+
+        {activa === 'imagen' && payload.imageURL && (
+          <Box
+            component="img"
+            src={payload.imageURL}
+            alt={`Tarjeta del territorio ${payload.label}`}
+            sx={{
+              width: '100%',
+              height: 'auto',
+              borderRadius: 'var(--radius-l)',
+              border: '1px solid var(--line)',
+              backgroundColor: 'var(--card)',
+              display: 'block',
+            }}
+          />
+        )}
+
+        {activa === 'info' && (
           <Card>
             <Stack spacing="10px">
               <Typography className="h4">Información</Typography>
@@ -337,7 +382,7 @@ const PublicTerritoryView = ({
           </Card>
         )}
 
-        {payload.locations.length > 0 && (
+        {activa === 'info' && payload.locations.length > 0 && (
           <Card>
             <Stack spacing="10px">
               <Typography className="h4">No visitar</Typography>

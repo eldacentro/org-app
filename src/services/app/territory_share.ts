@@ -84,7 +84,7 @@ export const buildSharePayload = ({
     zoneName: getZoneName(territory.zoneId, zones),
     zoneColor: getZoneColor(territory.zoneId, zones),
     geometry: includes.mapa ? (territory.geometry ?? null) : null,
-    imageURL: includes.mapa ? territory.imageURL : undefined,
+    imageURL: includes.imagen ? territory.imageURL : undefined,
     numeroViviendas: includes.mapa ? territory.numeroViviendas : undefined,
     notas:
       includes.notas && !isStillEncrypted(territory.notas)

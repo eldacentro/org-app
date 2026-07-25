@@ -18,8 +18,14 @@
  * personales de vecinos y el enlace se reenvía con un toque.
  */
 export type TerritoryShareIncludes = {
-  /** Plano, etiquetas y número de viviendas. */
+  /** El plano dibujado, con sus etiquetas y el número de viviendas. */
   mapa: boolean;
+  /**
+   * La foto de la tarjeta del territorio (el S-12 escaneado). Va SEPARADA
+   * del mapa a propósito: hay hermanos que se guían por el plano, otros por
+   * la tarjeta de siempre, y otros por las dos.
+   */
+  imagen: boolean;
   /** Notas del territorio. */
   notas: boolean;
   /** Direcciones "No visitar" (datos de terceros). */
@@ -28,6 +34,7 @@ export type TerritoryShareIncludes = {
 
 export const DEFAULT_SHARE_INCLUDES: TerritoryShareIncludes = {
   mapa: true,
+  imagen: true,
   notas: false,
   noVisitar: false,
 };

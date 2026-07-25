@@ -56,6 +56,7 @@ const describeIncludes = (inc?: TerritoryShareIncludes): string => {
   if (!inc) return 'el territorio';
   const parts: string[] = [];
   if (inc.mapa) parts.push('el mapa');
+  if (inc.imagen) parts.push('la imagen');
   if (inc.notas) parts.push('las notas');
   if (inc.noVisitar) parts.push('las direcciones de "No visitar"');
   if (parts.length === 0) return 'nada';
@@ -124,9 +125,14 @@ const DialogCompartir = ({
    *  que ni se ofrecen. */
   const canShareEncrypted = Boolean(masterKey);
 
+  /** Lo que este territorio puede ofrecer de verdad. */
+  const hasGeometry = Boolean(territory.geometry);
+  const hasImage = Boolean(territory.imageURL);
+
   /** Al menos una sección REAL marcada: un enlace vacío no tendría sentido. */
   const hasAnySection =
-    includes.mapa ||
+    (includes.mapa && hasGeometry) ||
+    (includes.imagen && hasImage) ||
     (canShareEncrypted && (includes.notas || includes.noVisitar));
 
   /** Fecha exacta de caducidad, para decirla en vez de "en 30 días". */
@@ -244,7 +250,8 @@ const DialogCompartir = ({
       // vecinos que en realidad no salieron (o al revés). Esa lista existe
       // para poder auditar; tiene que decir la verdad.
       const effectiveIncludes = {
-        mapa: includes.mapa,
+        mapa: includes.mapa && Boolean(payload.geometry),
+        imagen: Boolean(payload.imageURL),
         notas: Boolean(payload.notas),
         noVisitar: payload.locations.length > 0,
       };
@@ -382,9 +389,25 @@ const DialogCompartir = ({
               <Stack spacing="4px">
                 <SwitchWithLabel
                   label="Mapa del territorio"
-                  helper="El plano, las etiquetas y el número de viviendas."
-                  checked={includes.mapa}
+                  helper={
+                    hasGeometry
+                      ? 'El plano dibujado, con etiquetas y número de viviendas.'
+                      : 'Este territorio todavía no tiene plano.'
+                  }
+                  checked={includes.mapa && hasGeometry}
+                  readOnly={!hasGeometry}
                   onChange={(v) => setIncludes((prev) => ({ ...prev, mapa: v }))}
+                />
+                <SwitchWithLabel
+                  label="Imagen de la tarjeta"
+                  helper={
+                    hasImage
+                      ? 'La foto de la tarjeta del territorio.'
+                      : 'Este territorio todavía no tiene imagen subida.'
+                  }
+                  checked={includes.imagen && hasImage}
+                  readOnly={!hasImage}
+                  onChange={(v) => setIncludes((prev) => ({ ...prev, imagen: v }))}
                 />
                 <SwitchWithLabel
                   label="Notas del territorio"
