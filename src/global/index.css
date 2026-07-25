@@ -240,6 +240,12 @@ body iframe {
   --r-md: 20px;
   --r-sm: 15px;
 
+  /* Ancho máximo de la columna de contenido del panel principal y de los
+     menús de categoría. Es una variable y no un 600px suelto repetido en
+     siete ficheros porque el escalón de tablet (al final de este fichero)
+     la sube: así hay un único mando y no siete literales que se olvidan. */
+  --dash-measure: 600px;
+
   --shadow-sm: var(--small-card-shadow);
   --shadow-md: var(--big-card-shadow);
 }
@@ -1099,4 +1105,173 @@ body {
   --preaching-color: #fbbf24 !important;
   --preaching-tint: rgba(251, 191, 36, 0.12) !important;
   --preaching-border: rgba(251, 191, 36, 0.25) !important;
+}
+/* ══════════════════════════════════════════════════════════════════════════
+   ESCALÓN DE TABLET  ·  táctil grande (iPad, plegable abierto)
+   ══════════════════════════════════════════════════════════════════════════
+
+   En una tablet se dibujaba EXACTAMENTE la misma interfaz que en el móvil,
+   con las mismas medidas al píxel —fila de 81px, icono de 24, etiqueta de
+   16— sobre un lienzo dos veces más grande. Por eso se veía pequeña y vacía,
+   "de escritorio". Aquí la app crece un escalón, como hace iPadOS frente a
+   iOS: no es otro diseño, son las mismas piezas a su tamaño.
+
+   La condición está elegida para que NO PUEDA alcanzar ni al teléfono ni al
+   escritorio, y eso es comprobable, no una esperanza:
+
+     · `pointer: coarse` = se señala con el dedo. Ningún portátil ni
+       sobremesa entra, ni siquiera con pantalla táctil: su puntero
+       principal sigue siendo el ratón, que es `fine`.
+     · `min-height: 600px` echa fuera a los móviles. Un teléfono solo pasa
+       de 700px de ancho girándolo, y ahí su altura se desploma: un iPhone
+       16 Pro Max apaisado mide 956x440 y se cae por la altura.
+     · Entran iPad mini (744x1133), iPad (820x1180), cualquier iPad
+       apaisado y un plegable abierto tipo Pixel Fold (841x701).
+     · Un iPad con la app en Split View a 507px se queda fuera y recibe la
+       interfaz de móvil, que es lo correcto.
+
+   Es decir: el CSS que se aplica en un teléfono y en un portátil no cambia
+   ni un byte. Todo lo de aquí vive dentro de una llave que ellos no abren.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
+  :root {
+    /* Medida de la columna de contenido. La usan el panel principal y los
+       menús de categoría; subirla es lo que evita que la columna parezca
+       una tira de móvil perdida en medio de la pantalla. */
+    --dash-measure: 720px;
+  }
+
+  /* ---------- Barra superior ---------- */
+  .logo-container svg { width: 38px; height: 38px; }
+  .cong-name { font-size: 19px; }
+  .cong-sub { font-size: 13.5px; margin-top: 4px; }
+  .icon-btn { width: 48px; height: 48px; border-radius: 16px; }
+  .icon-btn svg { width: 23px; height: 23px; }
+  .dot { top: 11px; right: 11px; width: 9px; height: 9px; }
+  .avatar-circle { width: 48px; height: 48px; font-size: 18px; }
+
+  /* ---------- Saludo ---------- */
+  .hello-greeting { margin-bottom: 26px; }
+  .hello-greeting h1 { font-size: 38px; }
+  .hello-greeting .date-string { font-size: 15.5px; margin-top: 8px; }
+
+  /* ---------- Acceso a asignaciones ---------- */
+  .assign-card { gap: 18px; padding: 20px 22px; margin-bottom: 28px; }
+  .assign-card .ic { width: 52px; height: 52px; border-radius: 16px; }
+  .assign-card .ic svg { width: 27px; height: 27px; }
+  .assign-card .txt .lab { font-size: 12.5px; }
+  .assign-card .txt .big { font-size: 20px; margin-top: 3px; }
+  .assign-card .count-val { font-size: 42px; }
+  .assign-card .chev-icon { width: 24px; height: 24px; }
+
+  /* ---------- Rótulo de sección ---------- */
+  .section-label { margin: 0 6px 16px; }
+  .section-label .t { font-size: 14.5px; }
+
+  /* ---------- Programa de la semana ---------- */
+  .week-card { padding: 9px; margin-bottom: 34px; }
+  .week-head-section { padding: 18px 18px 14px; }
+  .week-head-section .ttl { font-size: 25px; }
+  .count-pill { font-size: 14px; padding: 9px 14px; gap: 8px; }
+  .count-pill .pulse-indicator { width: 8px; height: 8px; }
+  .assignment-dot { width: 8px; height: 8px; }
+  .meeting-row { gap: 18px; padding: 18px; border-radius: 22px; }
+  .meeting-row .day-badge { width: 64px; height: 68px; border-radius: 18px; }
+  .meeting-row .day-badge .d { font-size: 26px; }
+  .meeting-row .day-badge .m { font-size: 12.5px; }
+  .meeting-row .meeting-info .nm { font-size: 18px; }
+  .meeting-row .meeting-info .sub { font-size: 14.5px; margin-top: 4px; }
+  .meeting-row .meeting-time {
+    font-size: 16px;
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+  .week-cta-btn {
+    margin: 8px;
+    padding: 18px;
+    border-radius: 21px;
+    font-size: 17.5px;
+    width: calc(100% - 16px);
+  }
+  .week-cta-btn svg { width: 21px; height: 21px; }
+
+  /* ---------- Mosaicos ---------- */
+  .tile-grid { gap: 16px; margin-bottom: 20px; }
+  .tile-item {
+    padding: 22px 22px 20px;
+    min-height: 150px;
+    border-radius: 24px;
+  }
+  .tile-item .ti {
+    width: 56px;
+    height: 56px;
+    border-radius: 17px;
+    margin-bottom: 18px;
+  }
+  .tile-item .ti svg { width: 29px; height: 29px; }
+  .tile-item .tile-name { font-size: 19px; }
+  .tile-item .tile-meta { font-size: 14px; margin-top: 4px; }
+  .tile-item .badge-count {
+    top: 18px;
+    right: 18px;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    font-size: 13.5px;
+  }
+  .tile-item.full-width { gap: 18px; padding: 20px 22px; }
+  .tile-item.full-width .chev-icon { width: 24px; height: 24px; }
+
+  /* ---------- Controles compartidos de MUI ----------
+     El resto de la app se dibuja con componentes de MUI y estilos en `sx`,
+     que son clases de emotion inyectadas al final del <head>: con la misma
+     especificidad ganarían ellas. Por eso el selector se dobla
+     (`.X.X`) — sube la especificidad sin recurrir a `!important`, que
+     dejaría a los componentes sin poder ajustarse cuando de verdad lo
+     necesiten.
+
+     Solo se toca el TAMAÑO DEL BLANCO TÁCTIL, que es lo que se queda corto
+     en una tablet; ni colores, ni bordes, ni nada que cambie el aspecto. */
+  .MuiIconButton-root.MuiIconButton-root {
+    width: 48px;
+    height: 48px;
+  }
+  .MuiIconButton-root .MuiSvgIcon-root {
+    font-size: 26px;
+  }
+  .MuiButton-root.MuiButton-root {
+    min-height: 48px;
+  }
+
+  /* ---------- Tipografía ----------
+     Un escalón (x1,15) sobre los tamaños de escritorio. Es lo que hace que
+     el escalón llegue también a las pantallas construidas con MUI y `sx`:
+     ahí los estilos son de emotion y el CSS no los alcanza, pero el TEXTO
+     sí usa estas clases de token, así que crece igual.
+
+     Va aquí a mano y no en `converter/css/convert.js` a propósito: ese
+     generador reescribe `global.css` entero, y ese fichero lleva trabajo
+     hecho a mano encima (el refactor de modo oscuro de 2026-06). Volver a
+     generarlo se lo lleva por delante. Si algún día se rehace la escala en
+     Figma, hay que tocar también estos valores — por eso quedan a la vista
+     y en un solo sitio.
+
+     Gana por orden de carga: `global.css` se importa antes que este fichero
+     en RootWrap y PublicWrap, así que a igual especificidad manda este. */
+  .h1 { font-size: 27.5px; line-height: 32px; }
+  .h2 { font-size: 23px; line-height: 27.5px; }
+  .h2-caps { font-size: 23px; line-height: 27.5px; }
+  .h3 { font-size: 20.5px; line-height: 27.5px; }
+  .h4 { font-size: 18.5px; line-height: 23px; }
+  .button-caps { font-size: 16px; line-height: 20.5px; }
+  .body-regular { font-size: 18.5px; line-height: 23px; }
+  .body-regular-semibold { font-size: 18.5px; line-height: 23px; }
+  .body-small-semibold { font-size: 16px; line-height: 20.5px; }
+  .body-small-medium { font-size: 16px; line-height: 20.5px; }
+  .body-small-regular { font-size: 16px; line-height: 20.5px; }
+  .label-small-medium { font-size: 13.5px; }
+  .label-small-regular { font-size: 13.5px; }
+  .huge-numbers { font-size: 73.5px; }
+  .big-numbers { font-size: 55px; }
 }

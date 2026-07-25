@@ -2,7 +2,7 @@ import { Box, Skeleton } from '@mui/material';
 
 const DashboardSkeletonLoader = () => {
   return (
-    <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto', paddingTop: '16px' }}>
+    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
       {/* GREETING SKELETON */}
       <div className="hello-greeting" style={{ animation: 'none' }}>
         <Skeleton variant="text" width="60%" height={40} sx={{ borderRadius: 'var(--radius-l)' }} />

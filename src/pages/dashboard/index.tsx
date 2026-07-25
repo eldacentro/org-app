@@ -681,7 +681,7 @@ const Dashboard = () => {
   ]);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto', paddingTop: '16px' }}>
+    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
       <PageTitle />
 
       {/* GREETING */}

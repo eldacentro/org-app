@@ -19,7 +19,7 @@ const TalksDashboard = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto', paddingTop: '16px' }}>
+    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
       <PageTitle title={t('tr_publicTalks', 'Discursos')} />
       <div className="section-label">
         <div className="t">{t('tr_publicTalks', 'Discursos')}</div>
