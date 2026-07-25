@@ -18,6 +18,7 @@ import Tooltip from '@components/tooltip';
 import { IconEdit, IconClose, IconMapOverview, IconHousehold } from '@components/icons';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
+import DialogCompartir from './dialogs/DialogCompartir';
 import SegmentedControl from '@components/segmented_control';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
@@ -318,6 +319,7 @@ const DialogVerTerritorio = ({
   const [tab, setTab] = useState(0);
   const [editingTags, setEditingTags] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const zones = useAtomValue(territoryZonesState);
   const allTags = useAtomValue(territoryTagsState);
@@ -958,6 +960,15 @@ const DialogVerTerritorio = ({
               variant="primary"
             />
           )}
+          {/* Compartir: el responsable siempre, y el propio publicador que lo
+              tiene asignado — el enlace muere al entregar el territorio. */}
+          {relevantAssignment && (canManage || isMine) && (
+            <ActionButton
+              label="Compartir enlace"
+              onClick={() => setShareOpen(true)}
+              variant="secondary"
+            />
+          )}
           {/* Antes este botón solo desaparecía sin explicar nada cuando un
               publicador no podía entregar por sí mismo. */}
           {relevantAssignment && onEntregar && !canReturnThis && (
@@ -1323,6 +1334,11 @@ const DialogVerTerritorio = ({
                   : 'Este territorio lo tiene asignado otro publicador.'}
               </Typography>
             )}
+            {relevantAssignment && (canManage || isMine) && (
+              <Button variant="secondary" onClick={() => setShareOpen(true)}>
+                Compartir enlace
+              </Button>
+            )}
             {relevantAssignment && onEntregar && (
               <Button
                 variant="main"
@@ -1373,6 +1389,15 @@ const DialogVerTerritorio = ({
     >
         {tabletDown ? mobileContent : desktopContent}
       </MUIDialog>
+
+      {relevantAssignment && shareOpen && (
+        <DialogCompartir
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          territory={liveTerritory}
+          assignment={relevantAssignment}
+        />
+      )}
     </>
   );
 };
