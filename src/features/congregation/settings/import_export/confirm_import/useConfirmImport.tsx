@@ -112,7 +112,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data['persons'] as PersonType[];
+        const backupData = (backup.data['persons'] ?? []) as PersonType[];
         return backupData.filter((record) => !record._deleted.value);
       }
 
@@ -136,9 +136,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'field_service_groups'
-        ] as FieldServiceGroupType[];
+        const backupData = (backup.data['field_service_groups'] ??
+          []) as FieldServiceGroupType[];
         return backupData.filter((record) => !record.group_data._deleted);
       }
 
@@ -166,9 +165,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'visiting_speakers'
-        ] as VisitingSpeakerType[];
+        const backupData = (backup.data['visiting_speakers'] ??
+          []) as VisitingSpeakerType[];
         return backupData.filter((record) => !record._deleted.value);
       }
 
@@ -190,9 +188,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'user_field_service_reports'
-        ] as UserFieldServiceReportType[];
+        const backupData = (backup.data['user_field_service_reports'] ??
+          []) as UserFieldServiceReportType[];
         return backupData.filter((record) => !record.report_data._deleted);
       }
 
@@ -214,9 +211,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'cong_field_service_reports'
-        ] as CongFieldServiceReportType[];
+        const backupData = (backup.data['cong_field_service_reports'] ??
+          []) as CongFieldServiceReportType[];
         return backupData.filter((record) => !record.report_data._deleted);
       }
 
@@ -244,9 +240,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'meeting_attendance'
-        ] as MeetingAttendanceType[];
+        const backupData = (backup.data['meeting_attendance'] ??
+          []) as MeetingAttendanceType[];
         return backupData;
       }
 
@@ -334,7 +329,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data['sched'] as SchedWeekType[];
+        const backupData = (backup.data['sched'] ?? []) as SchedWeekType[];
         return backupData;
       }
 
@@ -394,9 +389,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     try {
       if (backupFileType === 'Organized') {
         const backup = backupContents as BackupOrganizedType;
-        const backupData = backup.data[
-          'upcoming_events'
-        ] as UpcomingEventType[];
+        const backupData = (backup.data['upcoming_events'] ??
+          []) as UpcomingEventType[];
         return backupData ?? [];
       }
 
@@ -606,9 +600,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
 
       if (selected.visiting_speakers) {
         if (backupFileType === 'Organized') {
-          const backupData = backup.data[
-            'speakers_congregations'
-          ] as SpeakersCongregationsType[];
+          const backupData = (backup.data['speakers_congregations'] ??
+            []) as SpeakersCongregationsType[];
 
           const speakers_congregations = backupData.filter(
             (record) => !record._deleted.value
@@ -623,9 +616,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
       }
 
       if (selected.user_field_service_reports) {
-        const backupData = backup.data[
-          'user_bible_studies'
-        ] as UserBibleStudyType[];
+        const backupData = (backup.data['user_bible_studies'] ??
+          []) as UserBibleStudyType[];
 
         const user_bible_studies = backupData.filter(
           (record) => !record.person_data._deleted
@@ -707,7 +699,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
         data.sched = await getSchedules(schedules, isMidweek, isWeekend);
 
         if (backupFileType === 'Organized') {
-          const sources = backup.data['sources'] as SourceWeekType[];
+          const sources = (backup.data['sources'] ?? []) as SourceWeekType[];
           data.sources = getSources(sources);
         }
       }
