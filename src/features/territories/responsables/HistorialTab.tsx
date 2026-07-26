@@ -127,6 +127,19 @@ const HistorialTab = () => {
             const tName = t ? territoryLabel(t) : 'Territorio desconocido';
             const color = t ? getZoneColor(t.zoneId, zones) : 'var(--ink-2)';
             const trabajado = a.status === 'trabajado';
+            // Quién lo asignó. Todos los registros lo llevan, pero si algún
+            // día llega uno importado sin el dato, se cae con elegancia a la
+            // frase de antes en vez de dejar un hueco raro.
+            const quienAsigno = a.assignedBy ? resolveName(a.assignedBy) : null;
+            const seLoDioASiMismo = Boolean(a.assignedBy && a.assignedBy === a.personUid);
+            // Misma marca "(C)" que usan el historial de Asignaciones y el
+            // S-13: sin ella no habría forma de distinguir aquí una entrega
+            // normal de una de campaña.
+            const marcaCampana = a.isCampaign ? (
+              <span style={{ color: 'var(--blue-main)' }} title="Asignación de campaña">
+                {' '}(C)
+              </span>
+            ) : null;
 
             return (
               <Box
@@ -147,36 +160,43 @@ const HistorialTab = () => {
                 >
                   <Box>
                     <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
-                      <strong>{resolveName(a.personUid)}</strong>
-                      {/* Misma marca "(C)" que usan el historial de
-                          Asignaciones y el S-13: sin ella no había forma de
-                          distinguir aquí una entrega normal de una de
-                          campaña. */}
-                      {a.isCampaign && (
-                        <span style={{ color: 'var(--blue-main)' }} title="Asignación de campaña">
-                          {' '}(C)
-                        </span>
-                      )}{' '}
                       {abierta ? (
-                        <>
-                          tiene el <strong>{tName}</strong>
-                        </>
+                        quienAsigno ? (
+                          seLoDioASiMismo ? (
+                            <>
+                              <strong>{quienAsigno}</strong>
+                              {marcaCampana} tomó el <strong>{tName}</strong>
+                            </>
+                          ) : (
+                            <>
+                              <strong>{quienAsigno}</strong> le asignó el{' '}
+                              <strong>{tName}</strong> a{' '}
+                              <strong>{resolveName(a.personUid)}</strong>
+                              {marcaCampana}
+                            </>
+                          )
+                        ) : (
+                          <>
+                            <strong>{resolveName(a.personUid)}</strong>
+                            {marcaCampana} tiene el <strong>{tName}</strong>
+                          </>
+                        )
                       ) : (
                         <>
-                          devolvió el <strong>{tName}</strong> como{' '}
+                          <strong>{resolveName(a.personUid)}</strong>
+                          {marcaCampana} devolvió el <strong>{tName}</strong> como{' '}
                           <strong>{trabajado ? 'trabajado' : 'no trabajado'}</strong>
                         </>
                       )}
                     </Typography>
                     <Typography className="label-small-regular" color="var(--ink-2)">
                       {abierta ? (
-                        <>
-                          Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)}
-                        </>
+                        <>Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)}</>
                       ) : (
                         <>
-                          Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
-                          Devuelto el {formatTerritoryDate(a.returnedAt!, settings.dateFormat)}
+                          {quienAsigno ? `Se lo asignó ${quienAsigno} el ` : 'Asignado el '}
+                          {formatTerritoryDate(a.assignedAt, settings.dateFormat)} · Devuelto el{' '}
+                          {formatTerritoryDate(a.returnedAt!, settings.dateFormat)}
                         </>
                       )}
                     </Typography>
