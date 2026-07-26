@@ -4,6 +4,7 @@ import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useAllUsers from './useAllUsers';
 import CongregationPersons from '@features/congregation/app_access/congregation_persons';
 import CongregationVIP from '@features/congregation/app_access/congregation_vip';
+import DevicesStatus from '@features/congregation/app_access/devices_status';
 import PageTitle from '@components/page_title';
 import UserAdd from '@features/congregation/app_access/user_add';
 import NavBarButton from '@components/nav_bar_button';
@@ -40,6 +41,8 @@ const UsersAll = () => {
       {userAddOpen && (
         <UserAdd open={userAddOpen} onClose={handleCloseUserAdd} />
       )}
+
+      {!isLoading && <DevicesStatus />}
 
       <Box
         sx={{

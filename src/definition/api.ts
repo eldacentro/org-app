@@ -29,6 +29,12 @@ export type SessionResponseType = {
     isMobile: boolean;
   };
   last_seen: string;
+  /** Versión de la app que corre ese dispositivo (la informa el servidor). */
+  app_version?: string;
+  /** Número de build (total de commits): lo que de verdad distingue una app vieja. */
+  app_build?: string;
+  /** Última vez que ese dispositivo sincronizó de verdad, no solo abrió la app. */
+  last_backup?: string;
 };
 
 export type CongregationCreateResponseType = {

@@ -12,6 +12,10 @@ import { currentAuthUser } from '@services/firebase/auth';
 export const apiDefault = async (user?: User) => {
   const apiHost = store.get(apiHostState);
   const appVersion = '3.37.1';
+  // Número de build (total de commits, se inyecta al compilar). A diferencia de
+  // appVersion —una constante que casi nunca cambia— este sí distingue a quien
+  // lleva una app de hace semanas, que es lo que el administrador necesita ver.
+  const appBuild = typeof __BUILD_NUMBER__ === 'string' ? __BUILD_NUMBER__ : '';
   const appLang = store.get(appLangState);
   const congID = store.get(congIDState);
   const isOnline = store.get(isOnlineState);
@@ -34,6 +38,7 @@ export const apiDefault = async (user?: User) => {
     userID,
     idToken,
     roles,
+    appBuild,
   };
 };
 

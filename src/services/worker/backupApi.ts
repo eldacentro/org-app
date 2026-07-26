@@ -145,6 +145,7 @@ export const apiGetCongregationBackup = async ({
         Authorization: `Bearer ${idToken}`,
         appclient: 'organized',
         appversion: '3.37.1',
+        appbuild: typeof __BUILD_NUMBER__ === 'string' ? __BUILD_NUMBER__ : '',
         metadata,
       },
     })
@@ -208,6 +209,7 @@ export const apiGetPocketBackup = async ({
       'Cache-Control': 'no-cache',
       appclient: 'organized',
       appversion: '3.37.1',
+      appbuild: typeof __BUILD_NUMBER__ === 'string' ? __BUILD_NUMBER__ : '',
       metadata,
     },
   });

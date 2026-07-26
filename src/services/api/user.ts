@@ -102,7 +102,12 @@ export const apiHandleVerifyOTP = async (userOTP: string) => {
 };
 
 export const apiValidateMe = async (): Promise<ValidateMeResponseType> => {
-  const { apiHost, appVersion: appversion, idToken } = await apiDefault();
+  const {
+    apiHost,
+    appVersion: appversion,
+    appBuild: appbuild,
+    idToken,
+  } = await apiDefault();
 
   const res = await apiFetch(`${apiHost}api/v3/users/validate-me`, {
     method: 'GET',
@@ -112,6 +117,7 @@ export const apiValidateMe = async (): Promise<ValidateMeResponseType> => {
       Authorization: `Bearer ${idToken}`,
       appclient: 'organized',
       appversion,
+      appbuild,
     },
   });
 
