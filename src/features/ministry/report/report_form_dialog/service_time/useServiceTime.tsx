@@ -10,7 +10,7 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { ServiceTimeProps } from './index.types';
 import { personIsEnrollmentActive } from '@services/app/persons';
 import { handleSaveDailyFieldServiceReport } from '@services/app/user_field_service_reports';
-import { hoursCreditsEnabledState, userDataViewState } from '@states/settings';
+import { userDataViewState } from '@states/settings';
 import { UserBibleStudyType } from '@definition/user_bible_studies';
 import { AssignmentCode } from '@definition/assignment';
 import useMinistryDailyRecord from '@features/ministry/hooks/useMinistryDailyRecord';
@@ -28,7 +28,6 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
 
   const dailyReports = useAtomValue(userFieldServiceDailyReportsState);
 
-  const hoursCreditEnabled = useAtomValue(hoursCreditsEnabledState);
   const dataView = useAtomValue(userDataViewState);
 
   const { bibleStudies, hours_credit, hours_field } =
@@ -60,8 +59,13 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
         .find((a) => a.type === dataView)
         ?.values.includes(AssignmentCode.MINISTRY_HOURS_CREDIT) ?? false;
 
-    return hoursCreditEnabled ? hasAssignment : false;
-  }, [person, hoursCreditEnabled, dataView]);
+    // El permiso lo concede un anciano en la ficha de la persona; eso es lo
+    // único que decide. Antes había ADEMÁS un interruptor personal en "Mi
+    // cuenta" que había que activar a mano: un ajuste escondido que solo podían
+    // usar quienes ya tenían el permiso, o sea que no protegía nada y solo
+    // sembraba la duda de "¿esto es para mí?".
+    return hasAssignment;
+  }, [person, dataView]);
 
   // El borrador siempre está "listo" para guardar visualmente, pero no hay
   // nada nuevo que guardar si coincide con lo que ya está persistido (o si

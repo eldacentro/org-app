@@ -6,7 +6,6 @@ import useMyProfile from './useMyProfile';
 import AppSettings from '@features/my_profile/app_settings';
 import CalendarExport from '@features/my_profile/calendar_export';
 import LogoutConfirm from '@features/my_profile/logout_confirm';
-import MinistryPreferences from '@features/my_profile/ministry_preferences';
 import Notifications from '@features/my_profile/notifications';
 import Security from '@features/my_profile/security';
 import UserProfileDetails from '@features/my_profile/user_profile_details';
@@ -24,7 +23,6 @@ const MyProfile = () => {
     handleCloseConfirm,
     handleOpenLogoutConfirm,
     isConnected,
-    hoursCreditEnabled,
     showTimeAway,
   } = useMyProfile();
 
@@ -73,8 +71,6 @@ const MyProfile = () => {
           }}
         >
           <UserProfileDetails />
-
-          {hoursCreditEnabled && <MinistryPreferences />}
 
           {showTimeAway && <UserTimeAway />}
         </Box>

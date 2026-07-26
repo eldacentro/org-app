@@ -3,11 +3,7 @@ import { useAtomValue } from 'jotai';
 import { userFieldServiceMonthlyReportsState } from '@states/user_field_service_reports';
 import { monthNamesState } from '@states/app';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
-import {
-  hoursCreditsEnabledState,
-  userDataViewState,
-  userLocalUIDState,
-} from '@states/settings';
+import { userDataViewState, userLocalUIDState } from '@states/settings';
 import { MinistryMonthlyRecord } from './index.types';
 import { delegatedFieldServiceReportsState } from '@states/delegated_field_service_reports';
 import { userBibleStudiesState } from '@states/user_bible_studies';
@@ -31,7 +27,6 @@ const useMinistryMonthlyRecord = ({
   const monthNames = useAtomValue(monthNamesState);
   const bibleStudiesRecords = useAtomValue(userBibleStudiesState);
   const persons = useAtomValue(personsActiveState);
-  const hoursCreditEnabled = useAtomValue(hoursCreditsEnabledState);
   const branchReports = useAtomValue(branchFieldReportsState);
   const dataView = useAtomValue(userDataViewState);
 
@@ -370,13 +365,17 @@ const useMinistryMonthlyRecord = ({
       return hours_credits !== '0:00';
     }
 
-    return hoursCreditEnabled ? hasAssignment : false;
+    // El permiso lo concede un anciano en la ficha de la persona; eso es lo
+    // único que decide. Antes había ADEMÁS un interruptor personal en "Mi
+    // cuenta" que había que activar a mano: un ajuste escondido que solo podían
+    // usar quienes ya tenían el permiso, o sea que no protegía nada y solo
+    // sembraba la duda de "¿esto es para mí?".
+    return hasAssignment;
   }, [
     dataView,
     hours_credits,
     person,
     isSelf,
-    hoursCreditEnabled,
     month,
     publisher,
     read_only,

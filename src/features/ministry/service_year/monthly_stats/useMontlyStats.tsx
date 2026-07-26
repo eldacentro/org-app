@@ -14,7 +14,10 @@ const useMonthlyStats = () => {
 
     if (!first_report) return [];
 
-    const years = buildServiceYearsList();
+    // Solo el año en curso y el anterior: es lo que la norma de
+    // conservación permite guardar, así que cualquier año más antiguo
+    // saldría siempre vacío.
+    const years = buildServiceYearsList(2);
     const validYears = years.find((record) => record.year === selectedYear);
 
     const result = validYears.months.filter(

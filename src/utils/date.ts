@@ -242,7 +242,16 @@ export const currentReportMonth = () => {
   return `${reportYear}/${monthValue}`;
 };
 
-export const buildServiceYearsList = () => {
+/**
+ * Años de servicio que se ofrecen para elegir.
+ *
+ * `count` existe porque no todo el mundo necesita los mismos: al publicador,
+ * la norma de conservación solo le deja el año en curso y el anterior, así que
+ * ofrecerle 2023 y 2024 es enseñarle pestañas vacías. Al secretario sí le
+ * pueden hacer falta más, porque a un publicador inactivo se le conserva el
+ * año en que se quedó inactivo, que puede ser más antiguo.
+ */
+export const buildServiceYearsList = (count = 4) => {
   const monthNames = generateMonthNames();
   const currentSY = currentServiceYear();
 
@@ -255,7 +264,7 @@ export const buildServiceYearsList = () => {
     year = year - 1;
 
     years.push(year.toString());
-  } while (years.length < 4);
+  } while (years.length < Math.max(1, count));
 
   years.sort();
 
