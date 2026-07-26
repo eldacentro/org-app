@@ -1,6 +1,7 @@
 // to minimize the size of the worker file, we recreate all its needed functions in this file
 
 import appDb from '@db/appDb';
+import { syncFromRemote, getObjectLatestUpdate } from './merge';
 import { BackupDataType, CongUserType } from './backupType';
 import {
   decryptData,
@@ -148,100 +149,6 @@ const personIsPrivilegeActive = (
   });
 
   return isActive;
-};
-
-const syncFromRemote = <T extends object>(local: T, remote: T): T => {
-  const arrayKeys = Object.keys(remote).filter(
-    (key) => remote[key] !== null && Array.isArray(remote[key])
-  );
-
-  // 'id' must win when present: it's the only key guaranteed unique for
-  // dynamic, repeatable lists like weekend_meeting.outgoing_talks (multiple
-  // records can legitimately share the same 'type', e.g. the same dataView).
-  // Fixed-slot records (chairman, opening_prayer, etc.) have no 'id' and
-  // fall through to 'type' as before.
-  const lockKeys = ['id', 'type', 'talk_number'];
-
-  for (const key of arrayKeys) {
-    if (!local[key]) {
-      local[key] = remote[key];
-      continue;
-    }
-
-    if (!Array.isArray(local[key])) {
-      local[key] = remote[key];
-      continue;
-    }
-
-    for (const remoteValue of remote[key]) {
-      if (typeof remoteValue !== 'object') {
-        continue;
-      }
-
-      for (const lockKey of lockKeys) {
-        if (lockKey in remoteValue) {
-          const localValue = local[key].find(
-            (r) => r[lockKey] === remoteValue[lockKey]
-          );
-
-          if (!localValue) {
-            local[key].push(remoteValue);
-          } else {
-            if ('updatedAt' in localValue) {
-              if (
-                !localValue.updatedAt ||
-                remoteValue.updatedAt > localValue.updatedAt
-              ) {
-                Object.assign(localValue, remoteValue);
-              }
-            } else if ('updatedAt' in remoteValue) {
-              Object.assign(localValue, remoteValue);
-            }
-
-            if (!('updatedAt' in localValue)) {
-              syncFromRemote(localValue, remoteValue);
-            }
-          }
-
-          break;
-        }
-      }
-    }
-  }
-
-  const objectKeys = Object.keys(remote).filter(
-    (key) =>
-      remote[key] !== null &&
-      !Array.isArray(remote[key]) &&
-      typeof remote[key] === 'object'
-  );
-
-  for (const key of objectKeys) {
-    if (local[key]) {
-      if ('updatedAt' in remote[key]) {
-        if (
-          !local[key].updatedAt ||
-          remote[key].updatedAt > local[key].updatedAt
-        ) {
-          local[key] = remote[key];
-        }
-      } else {
-        syncFromRemote(local[key], remote[key]);
-      }
-    } else {
-      local[key] = remote[key];
-    }
-  }
-
-  const primitiveKeys = Object.keys(remote).filter(
-    (key) => typeof remote[key] !== 'object'
-  );
-
-  for (const key of primitiveKeys) {
-    local[key] = remote[key];
-  }
-
-  return local;
 };
 
 export const dbGetSettings = async () => {
@@ -1961,28 +1868,6 @@ const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const toSave = { id: oldMetadata?.id || 1, metadata: result };
 
   await appDb.metadata.put(toSave);
-};
-
-const getObjectLatestUpdate = (obj: unknown) => {
-  let latest = '';
-
-  const traverse = (current: unknown) => {
-    if (!current || typeof current !== 'object') return;
-    const record = current as Record<string, unknown>;
-    for (const key in record) {
-      const val = record[key];
-      if (key === 'updatedAt' && typeof val === 'string') {
-        if (val > latest) {
-          latest = val;
-        }
-      } else if (val !== null && typeof val === 'object') {
-        traverse(val);
-      }
-    }
-  };
-
-  traverse(obj);
-  return latest;
 };
 
 const dbDeduplicateSpeakers = async () => {

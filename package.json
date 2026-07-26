@@ -18,7 +18,9 @@
     "generate:css": "node converter/css/convert.js && prettier  converter/css/tokens.json src/global/global.css src/global/global.ts --write",
     "generate:icons": "node converter/svg/convert.js && prettier src/components/icons --write",
     "locales:unused": "tsx unused-i18n-keys.ts",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test:unit": "vitest run",
+    "test:watch": "vitest"
   },
   "eslintConfig": {
     "extends": [
@@ -138,6 +140,7 @@
     "typescript-eslint": "^8.56.1",
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-package-version": "^1.1.0",
+    "vitest": "^3.2.7",
     "workbox-build": "^7.4.0"
   },
   "engines": {
