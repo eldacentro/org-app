@@ -935,47 +935,74 @@ export const personGetScheduleName = (person: PersonType) => {
   return result;
 };
 
-export const personIsAway = (person: PersonType, date: string) => {
-  const timeAwaysActive =
-    person.person_data.timeAway
-      ?.filter((record) => {
-        if (record._deleted) return false;
-        if (!record.start_date) return false;
+/**
+ * Normaliza cualquier fecha a 'yyyy/MM/dd' para poder compararlas como texto.
+ *
+ * Hace falta porque quien llama a personIsAway pasa la fecha en formatos
+ * distintos según de dónde venga (la reunión, un turno de exhibidores, una
+ * salida de predicación). Comparar '2026-09-27' con '2026/09/24' como texto da
+ * un resultado ABSURDO —el guion y la barra no ordenan igual— y el aviso de
+ * ausencia salía o dejaba de salir sin ninguna lógica aparente.
+ */
+const toComparableDate = (value: string | Date | undefined) => {
+  if (!value) return '';
 
-        return true;
-      })
-      .sort((a, b) => {
-        return a.start_date.localeCompare(b.start_date);
-      }) ?? [];
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? '' : formatDate(value, 'yyyy/MM/dd');
+  }
 
-  const timeAway = timeAwaysActive.find((record) => {
-    if (record._deleted) return false;
-    if (!record.start_date) return false;
+  // 'yyyy/MM/dd' o 'yyyy-MM-dd' (con hora o sin ella): basta con normalizar el
+  // separador y quedarse con la parte de la fecha.
+  const plain = value.slice(0, 10).replace(/-/g, '/');
 
-    const startDate = formatDate(new Date(record.start_date), 'yyyy/MM/dd');
-    const endDate = record.end_date
-      ? formatDate(new Date(record.end_date), 'yyyy/MM/dd')
-      : date;
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(plain)) return plain;
 
-    return startDate <= date && endDate >= date;
-  });
+  const parsed = new Date(value);
+
+  return Number.isNaN(parsed.getTime()) ? '' : formatDate(parsed, 'yyyy/MM/dd');
+};
+
+export const personIsAway = (person: PersonType, date: string | Date) => {
+  const target = toComparableDate(date);
+
+  if (!target) return;
+
+  const timeAway = (person?.person_data?.timeAway ?? [])
+    .filter((record) => !record._deleted && record.start_date)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .find((record) => {
+      const startDate = toComparableDate(record.start_date);
+
+      if (!startDate || startDate > target) return false;
+
+      // Sin fecha de vuelta = sigue de ausencia (así lo entiende quien lo
+      // apunta: "me voy y ya diré cuándo vuelvo"). Antes se comparaba contra
+      // la propia fecha consultada, lo que daba lo mismo pero por accidente y
+      // hacía imposible entender la condición.
+      const endDate = toComparableDate(record.end_date);
+
+      return !endDate || endDate >= target;
+    });
 
   if (!timeAway) return;
 
   const startDate = formatDateShortMonth(timeAway.start_date);
 
-  let endDate = '';
-
-  if (timeAway.end_date) {
-    endDate = formatDateShortMonth(timeAway.end_date);
+  // Sin fecha de vuelta hay que DECIRLO. Antes salía "Esta persona está de
+  // ausencia: 24 jul" al programar una reunión de septiembre, y eso no hay
+  // quien lo entienda: parece un error de la app cuando en realidad significa
+  // que esa persona sigue ausente desde julio porque nadie cerró el periodo.
+  if (!timeAway.end_date) {
+    return getTranslation({
+      key: 'tr_personAwayOpenNotice',
+      params: { date: startDate },
+    });
   }
 
-  const rangeValue = endDate
-    ? getTranslation({
-        key: 'tr_dateRangeNoYear',
-        params: { startDate, endDate },
-      })
-    : startDate;
+  const rangeValue = getTranslation({
+    key: 'tr_dateRangeNoYear',
+    params: { startDate, endDate: formatDateShortMonth(timeAway.end_date) },
+  });
 
   return getTranslation({
     key: 'tr_personAwayNotice',
