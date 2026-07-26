@@ -66,9 +66,22 @@ const settingsDoc = (congId: string) =>
 // El prefijo y el detector viven en services/app/territories para que la
 // interfaz pueda usarlos sin importar la capa de Firebase.
 
+/** Mensaje del error que se lanza al intentar guardar texto sensible sin clave. */
+export const TERRITORY_NO_KEY_MESSAGE =
+  'No se puede guardar: falta la llave maestra en este dispositivo';
+
 const enc = (text: string | undefined, key: string): string | undefined => {
   if (!text) return text;
-  if (!key) return text; // sin clave: no romper (se guardará en claro)
+
+  // Sin clave NO se guarda en claro. Antes sí —"para no romper"— y el efecto
+  // era que las notas y direcciones escritas por quien no tiene la llave
+  // maestra (un miembro del departamento de Territorios que no sea anciano,
+  // que es un caso previsto por la app) acababan en el servidor legibles,
+  // rompiendo justo la promesa de que ahí nadie puede leerlas. Y en silencio:
+  // como no llevan el prefijo, nadie las distingue de las cifradas. Mejor
+  // fallar y decirlo.
+  if (!key) throw new Error(TERRITORY_NO_KEY_MESSAGE);
+
   return ENC_PREFIX + encryptData(text, key);
 };
 

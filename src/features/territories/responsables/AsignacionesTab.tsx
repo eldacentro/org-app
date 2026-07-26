@@ -29,6 +29,7 @@ import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/terri
 import {
   deleteAssignment,
   updateAssignmentNote,
+  TERRITORY_NO_KEY_MESSAGE,
 } from '@services/firebase/territories';
 import {
   formatTerritoryDate,
@@ -310,7 +311,14 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
       closeNoteDialog();
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar la nota.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message:
+          (err as Error)?.message === TERRITORY_NO_KEY_MESSAGE
+            ? 'Esa nota se guarda cifrada y en este dispositivo falta la llave maestra. Pídesela a un anciano y vuelve a entrar.'
+            : 'No se pudo guardar la nota.',
+      });
     } finally {
       setSavingNote(false);
     }

@@ -20,6 +20,7 @@ import {
   approveLocation,
   deleteLocation,
   saveNotice,
+  TERRITORY_NO_KEY_MESSAGE,
 } from '@services/firebase/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
@@ -138,7 +139,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       });
     } catch (err) {
       console.error('Error al guardar dirección:', err);
-      setSaveError('No se pudo guardar la dirección. Comprueba tu conexión e inténtalo de nuevo.');
+      setSaveError(
+        (err as Error)?.message === TERRITORY_NO_KEY_MESSAGE
+          ? 'Las direcciones se guardan cifradas y en este dispositivo falta la llave maestra. Pídesela a un anciano y vuelve a entrar.'
+          : 'No se pudo guardar la dirección. Comprueba tu conexión e inténtalo de nuevo.'
+      );
     } finally {
       setSaving(false);
     }
