@@ -1040,3 +1040,40 @@ export const apiCongregationScheduleForceResync = async () => {
 
   return { status: res.status, data };
 };
+
+/**
+ * Oleada de actualización: empuja a todos los dispositivos de la congregación
+ * a ponerse en el build indicado. Los que tengan la app abierta se actualizan
+ * en unos segundos (esperando a que nadie esté escribiendo); los demás, la
+ * próxima vez que la abran. Es inerte para quien ya está al día.
+ *
+ * El documento de Firestore que lo dispara solo lo puede escribir el servidor
+ * — de ahí que haya que pasar por aquí.
+ */
+export const apiSetForceUpdate = async (target_build: number) => {
+  const {
+    apiHost,
+    appVersion: appversion,
+    congID,
+    idToken,
+  } = await apiDefault();
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/congregations/admin/${congID}/force-update`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        appclient: 'organized',
+        appversion,
+      },
+      body: JSON.stringify({ target_build }),
+    }
+  );
+
+  const data = await res.json();
+
+  return { status: res.status, data };
+};

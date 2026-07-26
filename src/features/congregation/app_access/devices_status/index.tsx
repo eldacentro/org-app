@@ -72,6 +72,8 @@ const DevicesStatus = () => {
     currentBuild,
     showAll,
     setShowAll,
+    handleForceUpdate,
+    isPushing,
   } = useDevicesStatus();
 
   if (rows.length === 0) return null;
@@ -116,10 +118,27 @@ const DevicesStatus = () => {
             : `Versión actual publicada: ${currentBuild}`}
         </Typography>
 
-        <Button variant="small" onClick={() => setShowAll(!showAll)}>
-          {showAll ? 'Ver solo los pendientes' : `Ver todos (${rows.length})`}
-        </Button>
+        <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Button variant="small" onClick={() => setShowAll(!showAll)}>
+            {showAll ? 'Ver solo los pendientes' : `Ver todos (${rows.length})`}
+          </Button>
+
+          <Button
+            variant="secondary"
+            disabled={currentBuild === null || isPushing}
+            onClick={handleForceUpdate}
+          >
+            {isPushing ? 'Enviando…' : 'Actualizar a todos'}
+          </Button>
+        </Box>
       </Box>
+
+      <Typography className="body-small-regular" color="var(--grey-400)">
+        «Actualizar a todos» empuja esta versión a toda la congregación: quien
+        tenga la app abierta se actualiza en unos segundos —esperando a que no
+        esté escribiendo— y el resto, la próxima vez que la abra. A quien ya
+        esté al día no le pasa nada.
+      </Typography>
     </UsersContainer>
   );
 };

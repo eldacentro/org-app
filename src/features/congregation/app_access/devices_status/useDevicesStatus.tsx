@@ -3,6 +3,8 @@ import { useAtomValue } from 'jotai';
 import { congregationUsersState } from '@states/congregation';
 import { CongregationUserType } from '@definition/api';
 import { formatSyncAge } from '@utils/sync_age';
+import { apiSetForceUpdate } from '@services/api/congregation';
+import { displaySnackNotification } from '@services/states/app';
 
 /**
  * Estado de los dispositivos de la congregación, para el administrador.
@@ -55,6 +57,7 @@ const useDevicesStatus = () => {
   const users = useAtomValue(congregationUsersState);
 
   const [showAll, setShowAll] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
 
   const currentBuild = useMemo(() => {
     const value = Number(__BUILD_NUMBER__);
@@ -141,6 +144,40 @@ const useDevicesStatus = () => {
 
   const visibleRows = showAll ? rows : needAttention;
 
+  // Empujar la actualización a todos: los que tengan la app abierta se
+  // actualizan en unos segundos, y los demás la próxima vez que la abran.
+  // Inerte para quien ya está al día.
+  const handleForceUpdate = async () => {
+    if (currentBuild === null || isPushing) return;
+
+    try {
+      setIsPushing(true);
+
+      const { status, data } = await apiSetForceUpdate(currentBuild);
+
+      if (status !== 200) {
+        throw new Error(data?.message || 'error_app_generic-desc');
+      }
+
+      displaySnackNotification({
+        header: 'Actualización enviada',
+        message:
+          'Los dispositivos que tengan la app abierta se actualizarán en unos segundos; el resto, la próxima vez que la abran.',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: 'No se pudo enviar',
+        message: 'Inténtalo de nuevo en un momento.',
+        severity: 'error',
+      });
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
   return {
     rows,
     visibleRows,
@@ -149,6 +186,8 @@ const useDevicesStatus = () => {
     currentBuild,
     showAll,
     setShowAll,
+    handleForceUpdate,
+    isPushing,
   };
 };
 
