@@ -89,7 +89,6 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleReconnectAccount,
     handleOpenRealApp,
     handleBack,
-    accountType,
     tablet688Up,
     logoutConfirmOpen,
     handleOpenLogoutConfirm,
@@ -477,10 +476,13 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           </MenuItem>
                         )}
 
+                        {/* También para cuentas pocket: antes solo lo veían las
+                            VIP, así que un publicador con la cuenta
+                            desconectada no tenía absolutamente ninguna forma
+                            de reconectar. */}
                         {!isTest &&
                           !isAppLoad &&
-                          !isCongAccountConnected &&
-                          accountType === 'vip' && (
+                          !isCongAccountConnected && (
                             <MenuItem
                               disableRipple
                               sx={menuStyle}

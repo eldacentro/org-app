@@ -66,9 +66,15 @@ export const handleSWOnUpdated = () => {
   );
 };
 
-export const disconnectCongAccount = () => {
-  store.set(congAccountConnectedState, false);
-};
+// disconnectCongAccount() se eliminó a propósito. Solo la llamaba el detector
+// de red al perder la conexión, y como nadie restauraba el estado al
+// recuperarla, un simple bache dejaba la cuenta "desconectada" —y por tanto
+// sin sincronizar— hasta que alguien encontrara el botón de reconectar.
+// Regla: la cuenta solo se desconecta a propósito (cerrar sesión) o porque el
+// servidor diga que la sesión ya no vale (useUserAutoLogin); la falta de red
+// la modela isOnlineState, no este estado. Si vuelve a hacer falta apagar la
+// conexión desde algún sitio, usa setCongAccountConnected(false) y asegúrate
+// de que algo la vuelve a encender: useAutoReconnect lo hace solo.
 
 export const displaySnackNotification = ({
   header,

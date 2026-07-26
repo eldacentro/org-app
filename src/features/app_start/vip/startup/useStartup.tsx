@@ -10,6 +10,7 @@ import {
   vipOnboardingStepState,
 } from '@states/app';
 import {
+  setCongAccountConnected,
   setIsAppLoad,
   setIsSetup,
   setOfflineOverride,
@@ -123,6 +124,26 @@ const useStartup = () => {
         (!masterKeyNeeded && currentCongAccessCode.length > 0);
 
       if (allowOpen) {
+        // La cuenta ESTÁ configurada en este dispositivo: hay congregación,
+        // rol aprobado y claves locales. Este atajo abre la app sin contactar
+        // con el servidor (es lo que permite entrar al instante y sin red),
+        // pero antes se saltaba también el único sitio que marcaba la cuenta
+        // como conectada — y sin eso `backupEnabled` (isOnline && isConnected
+        // && backupAuto) queda apagado, así que NO se sincroniza nada. Quien
+        // entraba por aquí dependía de que la revalidación de fondo
+        // respondiera; si fallaba (sin red, servidor caído), se quedaba con la
+        // sincronización apagada indefinidamente y sin enterarse.
+        // La revalidación de fondo (useUserAutoLogin) sigue corriendo y
+        // corrige el estado si la sesión ya no vale.
+        //
+        // Solo con sesión de Firebase viva: sin ella no hay token, así que ni
+        // el worker puede subir nada ni la escucha instantánea de Firestore
+        // tiene permiso. Marcarlo conectado ahí sería mentir y además apagaría
+        // el aviso y el botón de reconectar, que es justo lo que esa persona
+        // necesita ver.
+        if (isAuthenticated) {
+          setCongAccountConnected(true);
+        }
         setIsSetup(false);
         await runUpdater();
         loadApp();

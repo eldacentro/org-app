@@ -33,10 +33,47 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { processPendingPublisherReports } from '@services/app/pending_publisher_reports';
 
+// Marca de la última sincronización COMPLETADA, guardada en el dispositivo.
+// Sin esto, al recargar la app el contador volvía a cero y la interfaz no
+// podía decir la verdad ("llevas dos días sin sincronizar"): parecía recién
+// sincronizada aunque llevara días sin subir nada.
+export const LAST_SYNC_STORAGE_KEY = 'organized_last_sync_at';
+
+const readStoredLastSync = () => {
+  try {
+    return localStorage.getItem(LAST_SYNC_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+};
+
+// Errores del ciclo de sincronización que un token nuevo arregla. El worker no
+// sabe pedirse uno por su cuenta (depende de que se lo mande el hilo
+// principal), así que antes se quedaba fallando con el token rancio y el
+// hermano solo veía un error genérico. Los revocados de verdad
+// (DEVICE_REVOKED, SESSION_REVOKED, ACCOUNT_NOT_FOUND) no están aquí: esos no
+// se arreglan con un token nuevo.
+const TOKEN_RECOVERABLE_ERRORS = [
+  'UNAUTHORIZED_ACCESS',
+  'LOGIN_FIRST',
+  'INPUT_INVALID',
+];
+
+// Un solo reintento silencioso por minuto: si el token nuevo tampoco vale, se
+// muestra el error en vez de entrar en bucle.
+const TOKEN_RETRY_COOLDOWN_MS = 60_000;
+
 const useWebWorker = () => {
   const location = useLocation();
 
   const { user } = useFirebaseAuth();
+
+  // El manejador de mensajes del worker se registra una sola vez; sin esta
+  // referencia se quedaría con el `user` de la primera renderización.
+  const userRef = useRef(user);
+  userRef.current = user;
+
+  const lastTokenRetryRef = useRef(0);
 
   const { isMeetingEditor } = useCurrentUser();
 
@@ -67,7 +104,7 @@ const useWebWorker = () => {
   const backupInterval = useAtomValue(backupIntervalState);
   const jwLang = useAtomValue(JWLangState);
 
-  const [lastBackup, setLastBackup] = useState('');
+  const [lastBackup, setLastBackup] = useState(readStoredLastSync);
   const prevPathRef = useRef('');
 
   const backupEnabled = isOnline && isConnected && backupAuto;
@@ -120,6 +157,31 @@ const useWebWorker = () => {
           const details = event.data.details ?? '';
           console.error('[sync] BACKUP_FAILED —', details || '(sin detalles)');
 
+          // Token caducado: pedir uno nuevo y reintentar en silencio, sin
+          // molestar con un error que se arregla solo.
+          const currentUser = userRef.current;
+          const canRetryToken =
+            TOKEN_RECOVERABLE_ERRORS.includes(details) &&
+            currentUser &&
+            Date.now() - lastTokenRetryRef.current > TOKEN_RETRY_COOLDOWN_MS;
+
+          if (canRetryToken) {
+            lastTokenRetryRef.current = Date.now();
+
+            try {
+              const idToken = await currentUser.getIdToken(true);
+
+              if (idToken?.length > 0) {
+                worker.postMessage({ field: 'idToken', value: idToken });
+                worker.postMessage('startWorker');
+                console.log('[sync] token renovado — reintentando el ciclo');
+                return;
+              }
+            } catch (error) {
+              console.error('[sync] no se pudo renovar el token:', error);
+            }
+          }
+
           // Always show an error so the user knows sync failed.
           // Use the translated message when available, otherwise show raw details.
           const translated = details.length > 0 ? getMessageByCode(details) : '';
@@ -136,6 +198,15 @@ const useWebWorker = () => {
 
         if (event.data.lastBackup) {
           setLastBackup(event.data.lastBackup);
+
+          try {
+            localStorage.setItem(
+              LAST_SYNC_STORAGE_KEY,
+              event.data.lastBackup as string
+            );
+          } catch {
+            // Almacenamiento lleno o bloqueado: se pierde solo el contador.
+          }
         }
       };
     }

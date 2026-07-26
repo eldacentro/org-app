@@ -9,6 +9,7 @@ import {
   setIsSupportOpen,
 } from '@services/states/app';
 import { apiValidateMe } from '@services/api/user';
+import { apiPocketValidateMe } from '@services/api/pocket';
 import { useBreakpoints, useManualSync } from '@hooks/index';
 import {
   congAccountConnectedState,
@@ -87,6 +88,40 @@ const useNavbar = () => {
     // contra el servidor → marcar conectado y sincronizar. La recarga queda
     // solo como último recurso (p. ej. token revocado, que necesita el
     // flujo de arranque/login).
+    if (!navigator.onLine) {
+      displaySnackNotification({
+        header: 'Sin conexión',
+        message:
+          'No hay internet ahora mismo. La cuenta se reconectará al volver la conexión.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    // Las cuentas pocket no tienen sesión de Firebase: su sesión es la cookie
+    // del dispositivo, así que se revalida directamente.
+    if (accountType === 'pocket') {
+      try {
+        const { status } = await apiPocketValidateMe();
+
+        if (status === 200) {
+          setCongAccountConnected(true);
+          displaySnackNotification({
+            header: 'Cuenta reconectada',
+            message: 'Sincronizando los últimos cambios…',
+            severity: 'success',
+          });
+          await triggerManualSync();
+          return;
+        }
+      } catch (error) {
+        console.error('Error validating pocket on reconnect:', error);
+      }
+
+      globalThis.location.reload();
+      return;
+    }
+
     const user = currentAuthUser();
 
     if (!user) {

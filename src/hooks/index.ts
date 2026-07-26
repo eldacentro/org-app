@@ -1,4 +1,5 @@
 export { default as useAppTranslation } from './useAppTranslation';
+export { default as useAutoReconnect } from './useAutoReconnect';
 export { default as useBreakpoints } from './useBreakpoints';
 export { default as useFirebaseAuth } from './useFirebaseAuth';
 export { default as useGlobal } from './useGlobal';

@@ -15,7 +15,11 @@ import {
   userConfirmationOpenState,
 } from '@states/app';
 import { useEffect, useMemo } from 'react';
-import { useBreakpoints, useUserAutoLogin } from '@hooks/index';
+import {
+  useAutoReconnect,
+  useBreakpoints,
+  useUserAutoLogin,
+} from '@hooks/index';
 import { isImportEPUBState, isImportJWOrgState } from '@states/sources';
 import { settingsState } from '@states/settings';
 import { checkPwaUpdate } from '@services/app';
@@ -27,6 +31,11 @@ const useRootLayout = () => {
   const { installPwa, isLoading } = usePwa2();
 
   const { autoLoginStatus } = useUserAutoLogin();
+
+  // Vigilante que reconecta la cuenta solo si se queda desconectada, sin que
+  // nadie tenga que pulsar nada. Va aquí, junto a la revalidación de fondo,
+  // porque este hook se monta siempre (también durante la carga inicial).
+  useAutoReconnect();
 
   const isAppLoad = useAtomValue(isAppLoadState);
   const isOpenContact = useAtomValue(isContactOpenState);

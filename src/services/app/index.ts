@@ -410,6 +410,12 @@ export const pocketStartup = async () => {
       congName.length > 0 && congNumber.length > 0 && accessCode.length > 0;
 
     if (allowOpen) {
+      // Mismo criterio que el arranque VIP: si la cuenta está configurada en
+      // este dispositivo, se marca conectada aquí también. Sin esto, el atajo
+      // sin red dejaba `backupEnabled` apagado y el dispositivo no
+      // sincronizaba hasta que la revalidación de fondo respondiera — y si no
+      // respondía, nunca.
+      store.set(congAccountConnectedState, true);
       await handleLoadApp();
       return;
     }

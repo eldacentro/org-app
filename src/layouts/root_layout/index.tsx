@@ -26,6 +26,7 @@ import MyAssignments from '@features/meetings/my_assignments';
 import NavBar from '@layouts/navbar';
 import PageTransition from './PageTransition';
 import Support from '@features/support';
+import SyncStatusNotice from '@features/sync_status_notice';
 import UnsupportedBrowser from '@features/app_start/shared/unsupported_browser';
 import WaitingLoader from '@components/waiting_loader';
 
@@ -100,6 +101,8 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 {isOpenContact && <Contact />}
                 {isOpenAbout && <About updatePwa={updatePwa} />}
                 {isOpenSupport && <Support />}
+
+                <SyncStatusNotice />
 
                 <Suspense
                   fallback={

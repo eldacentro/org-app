@@ -9,7 +9,13 @@ const useStartup = () => {
 
   useEffect(() => {
     logger.info('app', 'pocket signup check ran');
-    pocketStartup();
+    // pocketStartup relanza el error para quien quiera tratarlo; aquí nadie lo
+    // hacía y quedaba como promesa rechazada sin manejar (la pantalla se
+    // quedaba a medias, sin explicación). El propio pocketStartup ya deja la
+    // interfaz en el estado correcto antes de lanzar.
+    pocketStartup().catch((error) => {
+      logger.error('app', `pocket startup failed: ${error?.message}`);
+    });
   }, []);
 
   return { isSignUp };

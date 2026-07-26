@@ -76,13 +76,33 @@ const fetchWithTimeout = async (
   }
 };
 
+// El servidor no responde 401 cuando el token de Firebase ha caducado o no
+// decodifica: responde 403 con el mensaje LOGIN_FIRST (ver visitor_checker en
+// sws2apps-api). Como aquí solo se reintentaba ante un 401, el refresco
+// automático del token NO se activaba nunca en el caso más común — y ese 403
+// acababa tratándose como "sesión revocada": cierre de sesión silencioso o
+// cuenta desconectada. Se distingue por el mensaje: LOGIN_FIRST se arregla con
+// un token nuevo; DEVICE_REVOKED / SESSION_REVOKED / ACCOUNT_NOT_FOUND no.
+const isStaleTokenResponse = async (res: Response) => {
+  if (res.status === 401) return true;
+  if (res.status !== 403) return false;
+
+  try {
+    const data = await res.clone().json();
+    return data?.message === 'LOGIN_FIRST';
+  } catch {
+    // Respuesta sin cuerpo JSON: no hay nada que indique token rancio.
+    return false;
+  }
+};
+
 export const apiFetch = async (
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> => {
   let res = await fetchWithTimeout(input, init);
 
-  if (res.status === 401) {
+  if (await isStaleTokenResponse(res)) {
     const authUser = currentAuthUser();
     if (authUser) {
       if (!isRefreshing) {

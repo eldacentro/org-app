@@ -6,6 +6,7 @@ import {
 } from '@states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { dbMetadataReset } from '@services/dexie/metadata';
+import { formatSyncAge } from '@utils/sync_age';
 import worker from '@services/worker/backupWorker';
 import useAppTranslation from './useAppTranslation';
 import useCurrentUser from './useCurrentUser';
@@ -34,7 +35,14 @@ const useManualSync = () => {
     if (lastSync === 'recently') return t('tr_lastSyncAppDataRecently');
     if (lastSync === 'error') return getMessageByCode('error_app_generic-title');
     if (typeof lastSync === 'number' && lastSync >= 1) {
-      return t('tr_lastSyncAppData', { duration: lastSync });
+      // Hasta una hora, la traducción de siempre ("hace N minutos"). A partir
+      // de ahí no sirve: la marca ahora se conserva entre recargas, así que
+      // puede llevar días y "hace 4320 minutos" no lo lee nadie.
+      if (lastSync < 60) {
+        return t('tr_lastSyncAppData', { duration: lastSync });
+      }
+
+      return `Sincronizado hace ${formatSyncAge(lastSync)}`;
     }
 
     // lastSync === 0 or '' means no sync has completed yet — show nothing
