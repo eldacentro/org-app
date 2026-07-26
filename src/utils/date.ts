@@ -279,8 +279,18 @@ export const buildServiceYearsList = (count = 4) => {
     if (!isCurrent) {
       maxIndex = 13;
     } else {
+      // Meses transcurridos del año de servicio en curso, el actual incluido.
+      // El año empieza en SEPTIEMBRE, que con getMonth() (0 = enero) es el 8.
+      //
+      // La cuenta anterior usaba 9 como frontera y sumaba uno de más, así que
+      // ofrecía un mes que todavía no ha ocurrido: en julio se podía elegir
+      // agosto, y en septiembre salía el año entero. Elegir un mes futuro no
+      // rompe nada, pero deja al secretario mirando un informe que no existe y
+      // preguntándose si falta algo.
       const currentMonth = new Date().getMonth();
-      maxIndex = currentMonth < 9 ? currentMonth + 7 : currentMonth - 5;
+      const elapsed = currentMonth >= 8 ? currentMonth - 7 : currentMonth + 5;
+
+      maxIndex = elapsed + 1;
 
       if (maxIndex > 13) maxIndex = 13;
     }
