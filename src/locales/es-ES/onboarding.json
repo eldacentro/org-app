@@ -141,5 +141,7 @@
   "tr_loginWithEmailDesc": "Usa Google u otro correo electrónico para crear y usar tu cuenta en cualquier momento, en cualquier dispositivo",
   "tr_loginWithCode": "Iniciar sesión con código de invitación",
   "tr_loginWithCodeDesc": "Accede con un código de un solo uso solo en este navegador. Necesitarás un nuevo código cada vez",
-  "tr_loginEmailCode": "Alternativamente, también puedes ingresar el código seguro que enviamos a tu correo electrónico."
+  "tr_loginEmailCode": "Alternativamente, también puedes ingresar el código seguro que enviamos a tu correo electrónico.",
+  "tr_eldaSessionExpiredTitle": "Sesión caducada",
+  "tr_eldaSessionExpiredDesc": "Vuelve a entrar con tu cuenta. No se ha borrado nada: tus claves y tus datos siguen en este dispositivo."
 }

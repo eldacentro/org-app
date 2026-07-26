@@ -57,6 +57,7 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { apiPocketValidateMe } from '@services/api/pocket';
+import { shouldResetLocalData } from './account_guard';
 import { UserLoginResponseType } from '@definition/api';
 import { settingSchema } from '@services/dexie/schema';
 import { dbUpcomingEventsCleanup } from '@services/dexie/upcoming_events';
@@ -381,6 +382,22 @@ const validatePocket = async () => {
   const { result, status } = await apiPocketValidateMe();
 
   if (status === 403 || status === 404) {
+    // Nunca borrar por una sola respuesta: en pocket la sesión es la cookie
+    // del dispositivo y Safari la purga sola (ver account_guard).
+    const confirmed = await shouldResetLocalData({
+      accountType: 'pocket',
+      reason: 'pocket startup validate',
+      message: result?.message,
+    });
+
+    if (!confirmed) {
+      // Sin confirmación no se destruye nada: se pide el código de invitación
+      // otra vez (mismo destino que cualquier otra respuesta que no sea 200),
+      // pero con los datos locales intactos.
+      store.set(isPocketSignUpState, true);
+      return;
+    }
+
     await handleDeleteDatabase();
     return;
   }

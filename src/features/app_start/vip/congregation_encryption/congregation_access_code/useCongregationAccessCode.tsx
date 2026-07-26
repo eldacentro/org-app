@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
 import { userSignOut } from '@services/firebase/auth';
@@ -85,12 +86,30 @@ const useCongregationAccessCode = () => {
 
       // congregation not found -> user not authorized and delete local data
       if (status === 404) {
-        await handleDeleteDatabase();
+        // Se vuelve a preguntar antes de borrar: un 404 aquí puede ser la
+        // carrera conocida justo después del handshake (ver account_guard).
+        const confirmed = await shouldResetLocalData({
+          accountType: 'vip',
+          reason: 'access code screen 404',
+          message: result?.message,
+        });
+
+        if (confirmed) {
+          await handleDeleteDatabase();
+          return;
+        }
+
+        setIsLoading(false);
         return;
       }
 
       if (status === 200) {
-        if (congID.length > 0 && result.cong_id !== congID) {
+        if (
+          congID.length > 0 &&
+          typeof result.cong_id === 'string' &&
+          result.cong_id.length > 0 &&
+          result.cong_id !== congID
+        ) {
           await handleDeleteDatabase();
           return;
         }

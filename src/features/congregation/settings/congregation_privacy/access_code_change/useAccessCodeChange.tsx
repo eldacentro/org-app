@@ -4,7 +4,9 @@ import { AccessCodeChangeType } from './index.types';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import {
+  apiGetAutoProvision,
   apiGetCongregationAccessCode,
+  apiSetAutoProvision,
   apiSetCongregationAccessCode,
 } from '@services/api/congregation';
 import { decryptData, encryptData } from '@services/encryption';
@@ -39,6 +41,21 @@ const useAccessCodeChange = (onClose: AccessCodeChangeType['onClose']) => {
 
     try {
       setIsProcessing(true);
+
+      // Se lee ANTES del cambio: al guardar el código nuevo, el servidor anula
+      // el acceso sin código (la copia en claro que tenía guardada ya no
+      // serviría para abrir nada). Si estaba activado, se vuelve a dejar
+      // activado abajo con el código nuevo, para que nadie tenga que volver a
+      // teclearlo ni el administrador tenga que acordarse.
+      let codelessWasEnabled = false;
+
+      try {
+        const provision = await apiGetAutoProvision();
+        codelessWasEnabled =
+          provision.status === 200 && !!provision.data?.enabled;
+      } catch (error) {
+        console.error('No se pudo leer el acceso sin código:', error);
+      }
 
       const { status, message } = await apiGetCongregationAccessCode();
 
@@ -75,6 +92,21 @@ const useAccessCodeChange = (onClose: AccessCodeChangeType['onClose']) => {
       await dbAppSettingsUpdate({
         'cong_settings.cong_access_code': confirmAccessCode,
       });
+
+      if (codelessWasEnabled) {
+        try {
+          await apiSetAutoProvision(true, confirmAccessCode);
+        } catch (error) {
+          console.error('No se pudo actualizar el acceso sin código:', error);
+
+          displaySnackNotification({
+            header: getMessageByCode('error_app_generic-title'),
+            message:
+              'El código se cambió, pero el acceso sin código quedó desactivado. Vuelve a activarlo en Privacidad.',
+            severity: 'error',
+          });
+        }
+      }
 
       setIsProcessing(false);
       onClose?.();

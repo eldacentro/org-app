@@ -10,11 +10,13 @@ import {
   vipOnboardingStepState,
 } from '@states/app';
 import {
+  displaySnackNotification,
   setCongAccountConnected,
   setIsAppLoad,
   setIsSetup,
   setOfflineOverride,
 } from '@services/states/app';
+import { getTranslation } from '@services/i18n/translation';
 import { dbAppSettingsGet } from '@services/dexie/settings';
 import { congIDState } from '@states/settings';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
@@ -163,6 +165,17 @@ const useStartup = () => {
       }
 
       if (status === 403 || status === 400) {
+        // Mismo criterio que en la revalidación de fondo: aquí ya no hay nada
+        // que reintentar (el token caducado se renueva solo en apiFetch), así
+        // que toca volver a entrar — pero diciéndolo, en vez de plantar la
+        // pantalla de acceso sin explicación. No se borra nada.
+        if (status === 403) {
+          displaySnackNotification({
+            header: getTranslation({ key: 'tr_eldaSessionExpiredTitle' }),
+            message: getTranslation({ key: 'tr_eldaSessionExpiredDesc' }),
+          });
+        }
+
         await userSignOut();
         setIsLoading(false);
         showSignin();
@@ -195,7 +208,14 @@ const useStartup = () => {
         }
       }
 
-      if (currentCongID.length > 0 && result.cong_id !== currentCongID) {
+      // Exigiendo un identificador de verdad: si un 200 llegara con el campo
+      // vacío, "distinto" se cumpliría y se borraría la base local por nada.
+      if (
+        currentCongID.length > 0 &&
+        typeof result.cong_id === 'string' &&
+        result.cong_id.length > 0 &&
+        result.cong_id !== currentCongID
+      ) {
         await handleDeleteDatabase();
         return;
       }

@@ -15,6 +15,7 @@ import {
 import { apiValidateMe } from '@services/api/user';
 import { userSignOut } from '@services/firebase/auth';
 import { handleDeleteDatabase } from '@services/app';
+import { shouldResetLocalData } from '@services/app/account_guard';
 import { APP_ROLES, isTest, VIP_ROLES } from '@constants/index';
 import { accountTypeState, congIDState } from '@states/settings';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
@@ -117,12 +118,43 @@ const useUserAutoLogin = () => {
         if (!dataVip) return;
 
         if (dataVip.status === 403) {
+          // Llegados aquí la sesión no se puede recuperar sola: el token
+          // caducado (LOGIN_FIRST) ya se reintentó con uno nuevo en apiFetch, y
+          // un DEVICE_REVOKED (cookie de sesión perdida — Safari la purga por
+          // su cuenta) solo se arregla volviendo a entrar. Antes esto pasaba en
+          // silencio: aparecía la pantalla de acceso sin ninguna explicación.
+          // No se borra nada: las claves siguen guardadas y los datos locales
+          // también, así que volver a entrar lo deja todo como estaba.
+          logger.error(
+            'app',
+            `vip session rejected: ${dataVip?.result?.message ?? '403'}`
+          );
+
+          displaySnackNotification({
+            header: t('tr_eldaSessionExpiredTitle'),
+            message: t('tr_eldaSessionExpiredDesc'),
+            icon: <IconInfo color="var(--white)" />,
+          });
+
           await userSignOut();
           return;
         }
 
         // congregation not found -> user not authorized and delete local data
         if (dataVip.status === 404) {
+          // Nunca por una sola respuesta: se vuelve a preguntar antes de
+          // destruir la base local (ver account_guard).
+          const confirmed = await shouldResetLocalData({
+            accountType: 'vip',
+            reason: 'vip validate-me 404',
+            message: dataVip?.result?.message,
+          });
+
+          if (!confirmed) {
+            setOfflineOverride(true);
+            return;
+          }
+
           await handleDeleteDatabase();
           return;
         }
@@ -137,12 +169,35 @@ const useUserAutoLogin = () => {
         if (dataVip && dataVip.status === 200) {
 
 
-          if (congID.length > 0 && dataVip.result.cong_id !== congID) {
+          // Cambio de congregación → se borra lo local, que es lo correcto.
+          // Pero exigiendo que el servidor haya mandado un identificador de
+          // verdad: si algún día un 200 llegara con el campo vacío o a medias,
+          // la comparación "distinto" se cumpliría y TODOS los dispositivos
+          // borrarían su base de datos a la vez.
+          const remoteCongID = dataVip.result.cong_id;
+
+          if (
+            congID.length > 0 &&
+            typeof remoteCongID === 'string' &&
+            remoteCongID.length > 0 &&
+            remoteCongID !== congID
+          ) {
             await handleDeleteDatabase();
             return;
           }
 
-          const approvedRole = dataVip.result.cong_role.some((role) =>
+          const remoteRoles = dataVip.result.cong_role;
+
+          // Igual aquí: sin lista de roles no se concluye nada. Que llegue
+          // vacía no es prueba de que a nadie le hayan quitado el acceso —
+          // cuando eso pasa de verdad, validate-me responde 404 y ese camino
+          // sí borra (con su confirmación).
+          if (!Array.isArray(remoteRoles) || remoteRoles.length === 0) {
+            logger.error('app', 'validate-me returned no roles: ignoring');
+            return;
+          }
+
+          const approvedRole = remoteRoles.some((role) =>
             APP_ROLES.includes(role)
           );
 
@@ -277,6 +332,21 @@ const useUserAutoLogin = () => {
 
         // congregation not found -> user not authorized and delete local data
         if (dataPocket.status === 403) {
+          // El caso peligroso: en una cuenta pocket la sesión ES la cookie del
+          // dispositivo, y Safari la purga por su cuenta (ITP). Eso devuelve
+          // DEVICE_REVOKED, que antes borraba la base local entera sin
+          // preguntar — perdiendo de paso lo que aún no se hubiera subido.
+          const confirmed = await shouldResetLocalData({
+            accountType: 'pocket',
+            reason: 'pocket validate-me 403',
+            message: dataPocket?.result?.message,
+          });
+
+          if (!confirmed) {
+            setOfflineOverride(true);
+            return;
+          }
+
           await handleDeleteDatabase();
           return;
         }
@@ -289,18 +359,35 @@ const useUserAutoLogin = () => {
         }
 
         if (dataPocket && dataPocket.status === 200) {
+          // Mismas cautelas que en el camino VIP: no se borra nada por un
+          // identificador vacío ni por una lista de roles que no ha llegado.
+          const remoteCongID =
+            dataPocket.result.app_settings?.cong_settings?.id;
+
           if (
             congID.length > 0 &&
-            dataPocket.result.app_settings.cong_settings.id !== congID
+            typeof remoteCongID === 'string' &&
+            remoteCongID.length > 0 &&
+            remoteCongID !== congID
           ) {
             await handleDeleteDatabase();
             return;
           }
 
-          const approvedRole =
-            dataPocket.result.app_settings.user_settings.cong_role.some(
-              (role) => APP_ROLES.includes(role)
+          const remoteRoles =
+            dataPocket.result.app_settings?.user_settings?.cong_role;
+
+          if (!Array.isArray(remoteRoles) || remoteRoles.length === 0) {
+            logger.error(
+              'app',
+              'pocket validate-me returned no roles: ignoring'
             );
+            return;
+          }
+
+          const approvedRole = remoteRoles.some((role) =>
+            APP_ROLES.includes(role)
+          );
 
           if (!approvedRole) {
             await handleDeleteDatabase();

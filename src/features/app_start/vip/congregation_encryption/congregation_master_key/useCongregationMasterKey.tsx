@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
+import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase } from '@services/app';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
 import { userSignOut } from '@services/firebase/auth';
@@ -64,12 +65,30 @@ const useCongregationMasterKey = () => {
 
       // congregation not found -> user not authorized and delete local data
       if (status === 404) {
-        await handleDeleteDatabase();
+        // Igual que en la pantalla del código: confirmar antes de destruir
+        // nada (ver account_guard).
+        const confirmed = await shouldResetLocalData({
+          accountType: 'vip',
+          reason: 'master key screen 404',
+          message: result?.message,
+        });
+
+        if (confirmed) {
+          await handleDeleteDatabase();
+          return;
+        }
+
+        setIsLoading(false);
         return;
       }
 
       if (status === 200) {
-        if (congID.length > 0 && result.cong_id !== congID) {
+        if (
+          congID.length > 0 &&
+          typeof result.cong_id === 'string' &&
+          result.cong_id.length > 0 &&
+          result.cong_id !== congID
+        ) {
           await handleDeleteDatabase();
           return;
         }

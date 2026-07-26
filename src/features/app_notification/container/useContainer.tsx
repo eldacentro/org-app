@@ -30,6 +30,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { dbSpeakersCongregationsUpdate } from '@services/dexie/speakers_congregations';
 import { applicationsState } from '@states/persons';
+import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase } from '@services/app';
 import { dbHandleIncomingReports } from '@services/dexie/cong_field_service_reports';
 import { apiUserGetUpdates } from '@services/api/user';
@@ -394,9 +395,22 @@ const useContainer = () => {
   const handleUnauthorized = useCallback(async () => {
     const status = data?.status;
 
-    if (status === 403) {
-      await handleDeleteDatabase();
-    }
+    if (status !== 403) return;
+
+    // Este 403 viene de la consulta de novedades de la congregación, que corre
+    // en bucle en segundo plano: bastaba UNA respuesta así —una cookie que
+    // Safari purgó, un token recién caducado— para borrar la base local
+    // entera. Ahora se confirma primero contra validate-me, y solo se borra si
+    // el servidor dice que la cuenta ya no existe (ver account_guard).
+    const confirmed = await shouldResetLocalData({
+      accountType: 'vip',
+      reason: 'congregation updates 403',
+      message: data?.result?.message,
+    });
+
+    if (!confirmed) return;
+
+    await handleDeleteDatabase();
   }, [data]);
 
   const handleIncomingReports = useCallback(async () => {

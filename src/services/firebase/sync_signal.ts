@@ -19,18 +19,56 @@ export type SyncSignal = {
   tables?: Record<string, string>;
 };
 
+// Firestore da por terminada la escucha cuando el callback de error salta
+// (permisos, sesión que aún no estaba lista al abrir la app, un corte largo).
+// Antes eso solo se escribía en la consola: la escucha se quedaba muerta y el
+// dispositivo perdía el sync instantáneo hasta la siguiente recarga, sin que
+// nadie lo notara. Se vuelve a suscribir sola, espaciando los intentos.
+const RESUBSCRIBE_DELAYS_MS = [5_000, 15_000, 60_000, 300_000];
+
 export const subscribeSyncSignal = (
   congId: string,
   onUpdate: (signal: SyncSignal) => void
 ): (() => void) => {
   const signalDoc = doc(firestore, 'congregation', congId, 'sync', 'signal');
 
-  return onSnapshot(
-    signalDoc,
-    (snapshot) => {
-      if (!snapshot.exists()) return;
-      onUpdate(snapshot.data() as SyncSignal);
-    },
-    (error) => console.error('Error en suscripción de señal de sync:', error)
-  );
+  let stopped = false;
+  let unsubscribe: (() => void) | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let attempt = 0;
+
+  const listen = () => {
+    if (stopped) return;
+
+    unsubscribe = onSnapshot(
+      signalDoc,
+      (snapshot) => {
+        attempt = 0;
+        if (!snapshot.exists()) return;
+        onUpdate(snapshot.data() as SyncSignal);
+      },
+      (error) => {
+        console.error('Error en suscripción de señal de sync:', error);
+
+        if (stopped) return;
+
+        const delay =
+          RESUBSCRIBE_DELAYS_MS[
+            Math.min(attempt, RESUBSCRIBE_DELAYS_MS.length - 1)
+          ];
+
+        attempt += 1;
+
+        retryTimer = setTimeout(listen, delay);
+      }
+    );
+  };
+
+  listen();
+
+  return () => {
+    stopped = true;
+    if (retryTimer) clearTimeout(retryTimer);
+    unsubscribe?.();
+  };
 };
