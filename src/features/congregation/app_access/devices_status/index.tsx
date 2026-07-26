@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
+import { IconExpand } from '@components/icons';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import UsersContainer from '../users_container';
@@ -81,6 +83,11 @@ const DevicesStatus = () => {
     isPushing,
   } = useDevicesStatus();
 
+  // Plegado por defecto: en una congregación entera la lista es larguísima y
+  // esto no es lo que se viene a hacer a esta pantalla. Lo que importa cabe en
+  // una línea; el detalle se abre cuando de verdad hace falta.
+  const [open, setOpen] = useState(false);
+
   if (rows.length === 0) return null;
 
   const summary =
@@ -90,6 +97,56 @@ const DevicesStatus = () => {
         (outdatedCount > 0
           ? ` · ${outdatedCount} con la app sin actualizar`
           : '');
+
+  if (!open) {
+    return (
+      <Box
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) =>
+          e.key === 'Enter' || e.key === ' ' ? setOpen(true) : null
+        }
+        sx={{
+          width: '100%',
+          padding: '12px 16px',
+          borderRadius: 'var(--r-lg)',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          cursor: 'pointer',
+          '&:hover': { borderColor: 'var(--accent-300)' },
+          '&:focus-visible': { outline: 'var(--accent-main) auto 1px' },
+        }}
+      >
+        <Box
+          sx={{
+            width: '8px',
+            height: '8px',
+            minWidth: '8px',
+            borderRadius: '50%',
+            backgroundColor:
+              needAttention.length === 0
+                ? 'var(--green-main)'
+                : 'var(--orange-dark)',
+          }}
+        />
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography className="body-small-semibold" color="var(--black)">
+            Estado de los dispositivos
+          </Typography>
+          <Typography className="body-small-regular" color="var(--grey-400)">
+            {summary}
+          </Typography>
+        </Box>
+
+        <IconExpand width={16} color="var(--accent-400)" />
+      </Box>
+    );
+  }
 
   return (
     <UsersContainer
@@ -124,6 +181,10 @@ const DevicesStatus = () => {
         </Typography>
 
         <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Button variant="small" onClick={() => setOpen(false)}>
+            Cerrar
+          </Button>
+
           <Button variant="small" onClick={() => setShowAll(!showAll)}>
             {showAll ? 'Ver solo los pendientes' : `Ver todos (${rows.length})`}
           </Button>
