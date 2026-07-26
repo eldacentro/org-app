@@ -643,28 +643,39 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
         );
 
         if (backupFileType === 'Organized') {
-          const backupAnalysisData = backup.data[
-            'branch_cong_analysis'
-          ] as BranchCongAnalysisType[];
+          // Los informes a la sucursal (S-1 y S-10) viajan con esta misma
+          // casilla. Si el archivo NO los trae, no se tocan: antes se leía la
+          // tabla a ciegas y un archivo parcial —una corrección que solo
+          // contiene informes de predicación, por ejemplo— o reventaba con un
+          // error o daba por BORRADOS todos los S-1 guardados. Es exactamente
+          // el patrón de "importar una cosa vacía la de al lado" que ya costó
+          // un disgusto en julio.
+          const backupAnalysisData = backup.data['branch_cong_analysis'] as
+            | BranchCongAnalysisType[]
+            | undefined;
 
-          const branch_cong_analysis = backupAnalysisData.filter(
-            (record) => !record.report_data._deleted
-          );
+          if (Array.isArray(backupAnalysisData)) {
+            const branch_cong_analysis = backupAnalysisData.filter(
+              (record) => !record.report_data._deleted
+            );
+
+            data.branch_cong_analysis =
+              await getBranchCongAnalysis(branch_cong_analysis);
+          }
 
           const backupBranchReportsData = backup.data[
             'branch_field_service_reports'
-          ] as BranchFieldServiceReportType[];
+          ] as BranchFieldServiceReportType[] | undefined;
 
-          const branch_field_service_reports = backupBranchReportsData.filter(
-            (record) => !record.report_data._deleted
-          );
+          if (Array.isArray(backupBranchReportsData)) {
+            const branch_field_service_reports = backupBranchReportsData.filter(
+              (record) => !record.report_data._deleted
+            );
 
-          data.branch_cong_analysis =
-            await getBranchCongAnalysis(branch_cong_analysis);
-
-          data.branch_field_service_reports = await getBranchFieldReports(
-            branch_field_service_reports
-          );
+            data.branch_field_service_reports = await getBranchFieldReports(
+              branch_field_service_reports
+            );
+          }
         }
 
         if (backupFileType === 'Hourglass') {
