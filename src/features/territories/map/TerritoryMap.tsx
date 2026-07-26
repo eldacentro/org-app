@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -20,6 +20,17 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 // Side-effect: parchea L.Map con soporte de rotación (bearing) y el gesto
 // táctil de dos dedos para rotar, igual que un mapa nativo.
 import 'leaflet-rotate';
+
+/**
+ * Opciones que añade `leaflet-rotate` y que sus tipos no declaran. Al
+ * ampliar `MarkerOptions`, react-leaflet las acepta como props sin castear.
+ */
+declare module 'leaflet' {
+  interface MarkerOptions {
+    /** Gira el marcador junto con el mapa (por defecto NO gira). */
+    rotateWithView?: boolean;
+  }
+}
 
 type TerritoryMapProps = {
   geometry: Polygon | MultiPolygon | null;
@@ -162,6 +173,97 @@ const BearingTracker = ({ onChange }: { onChange: (bearing: number) => void }) =
 // `_onTouchStart` aborta siempre por su propia guarda y el mapa se queda SIN
 // pinch-zoom ni rotación hasta recargar la app, sin que el usuario pueda
 // hacer nada. Aquí se limpia el estado cuando ya no quedan dedos en pantalla.
+/**
+ * Zona muerta para el giro de dos dedos.
+ *
+ * `leaflet-rotate` pone `_rotating = true` en cuanto se posan dos dedos y
+ * aplica el giro desde el primer milímetro. Como al hacer pellizco para
+ * acercar los dedos nunca quedan perfectamente alineados, CUALQUIER zoom
+ * giraba el mapa unos grados: de ahí la sensación de que el gesto baila y de
+ * que el norte se pierde sin haberlo pedido.
+ *
+ * Aquí el giro no engancha hasta que se supera un umbral. Y cuando engancha,
+ * el origen se recoloca en ese punto, para que no dé un salto de golpe: sigue
+ * al dedo desde donde estaba.
+ *
+ * Todo va envuelto en `try/catch` y llamando siempre al manejador original: si
+ * una versión futura del plugin cambia por dentro y algo aquí falla, lo peor
+ * que pasa es que se vuelva al comportamiento de siempre, no que el mapa deje
+ * de girar.
+ */
+const UMBRAL_GIRO_GRADOS = 10;
+
+const TwistDeadzone = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const gestos = (map as unknown as Record<string, unknown>).touchGestures as
+      | {
+          _onTouchMove?: (e: TouchEvent) => void;
+          _onTouchStart?: (e: TouchEvent) => void;
+          _rotating?: boolean;
+          _startTheta?: number;
+          _map?: L.Map;
+        }
+      | undefined;
+    if (!gestos?._onTouchMove || !gestos._onTouchStart) return;
+
+    const moverOriginal = gestos._onTouchMove;
+    const empezarOriginal = gestos._onTouchStart;
+    let enganchado = false;
+
+    gestos._onTouchStart = function (e: TouchEvent) {
+      enganchado = false;
+      return empezarOriginal.call(this, e);
+    };
+
+    gestos._onTouchMove = function (this: typeof gestos, e: TouchEvent) {
+      try {
+        if (!enganchado && this._rotating && e.touches?.length === 2 && this._map) {
+          const m = this._map;
+          const p1 = m.mouseEventToContainerPoint(
+            e.touches[0] as unknown as MouseEvent
+          );
+          const p2 = m.mouseEventToContainerPoint(
+            e.touches[1] as unknown as MouseEvent
+          );
+          const v = p1.subtract(p2);
+          const theta = Math.atan(v.x / v.y);
+          let giro = ((theta - (this._startTheta ?? 0)) * 180) / Math.PI;
+          if (v.y < 0) giro += 180;
+          // a [-180, 180], para que pasar por 180° no cuente como giro enorme
+          giro = ((((giro + 180) % 360) + 360) % 360) - 180;
+
+          if (Math.abs(giro) < UMBRAL_GIRO_GRADOS) {
+            // Aún no: se deja pasar el zoom pero no el giro.
+            const antes = this._rotating;
+            this._rotating = false;
+            moverOriginal.call(this, e);
+            this._rotating = antes;
+            return;
+          }
+
+          // Engancha. Se recoloca el origen en el umbral para que arranque
+          // desde donde está el dedo y no pegue un tirón de 10°.
+          this._startTheta =
+            theta - (Math.sign(giro) * UMBRAL_GIRO_GRADOS * Math.PI) / 180;
+          enganchado = true;
+        }
+      } catch {
+        // Que nunca impida girar: se sigue al manejador original.
+      }
+      return moverOriginal.call(this, e);
+    };
+
+    return () => {
+      gestos._onTouchMove = moverOriginal;
+      gestos._onTouchStart = empezarOriginal;
+    };
+  }, [map]);
+
+  return null;
+};
+
 const TouchGestureRecovery = () => {
   const map = useMap();
   useEffect(() => {
@@ -346,7 +448,22 @@ const LocationMarker = ({
   }, [color, heading]);
 
   return (
-    <Marker position={position} icon={icon} keyboard={false}>
+    <Marker
+      position={position}
+      icon={icon}
+      keyboard={false}
+      // `rotateWithView` hace que el plugin gire ESTE marcador junto con el
+      // mapa. Así el cono solo tiene que saber hacia dónde mira el teléfono
+      // (`heading`), y el giro del mapa lo pone el plugin por su cuenta.
+      //
+      // Antes se restaba el rumbo a mano al calcular el ángulo, y eso traía
+      // dos problemas: el signo estaba al revés —el panel se gira en sentido
+      // horario, así que había que SUMAR— y, sobre todo, el icono se volvía a
+      // construir en CADA fotograma del giro, porque su ángulo dependía del
+      // rumbo. Leaflet rehacía el HTML del marcador 60 veces por segundo
+      // mientras se rotaba con los dedos.
+      rotateWithView
+    >
       <Tooltip>Tu ubicación</Tooltip>
     </Marker>
   );
@@ -569,11 +686,29 @@ const TerritoryMap = ({
   const livePos = useLiveLocation(showLiveLocation);
   const heading = useDeviceHeading(showLiveLocation);
   const [isSatellite, setIsSatellite] = useState(false);
-  // Ángulo actual de rotación — solo para decidir cuándo mostrar el botón de
-  // brújula (0 = norte arriba, igual que siempre). El mapa en sí no depende
-  // de este estado para rotar (eso lo hace leaflet-rotate internamente).
-  const [bearing, setBearing] = useState(0);
-  const isRotated = Math.round(bearing) !== 0;
+  // El ángulo de rotación NO vive en el estado de React.
+  //
+  // El evento `rotate` se dispara en cada fotograma mientras se gira con los
+  // dedos. Teniéndolo en `useState`, cada uno de esos fotogramas volvía a
+  // renderizar todo el mapa —el GeoJSON, los marcadores, los controles— 60
+  // veces por segundo, y de ahí venía buena parte del tirón del gesto.
+  //
+  // Ahora el ángulo va en una ref y la aguja de la brújula se mueve tocando
+  // su `transform` directamente. Al estado solo sube un booleano, y solo
+  // cuando de verdad cambia: si el mapa está girado o no.
+  const bearingRef = useRef(0);
+  const compassNeedleRef = useRef<HTMLDivElement | null>(null);
+  const [isRotated, setIsRotated] = useState(false);
+
+  const handleBearingChange = useCallback((b: number) => {
+    bearingRef.current = b;
+    if (compassNeedleRef.current) {
+      compassNeedleRef.current.style.transform = `rotate(${-b}deg)`;
+    }
+    // React descarta el re-render si el valor no cambia, así que durante todo
+    // el giro esto no provoca ninguno.
+    setIsRotated(Math.round(b) !== 0);
+  }, []);
 
   // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
   const mapRef = useRef<L.Map | null>(null);
@@ -653,8 +788,9 @@ const TerritoryMap = ({
 
         {/* Captura la instancia del mapa para el zoom externo */}
         <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
-        <BearingTracker onChange={setBearing} />
+        <BearingTracker onChange={handleBearingChange} />
         <TouchGestureRecovery />
+        <TwistDeadzone />
         <VectorGestureSync />
 
         {editable && onGeometryChange ? (
@@ -675,10 +811,9 @@ const TerritoryMap = ({
           <LocationMarker
             position={livePos}
             color={accentColor}
-            // El cono gira con el teléfono, pero el mapa también puede estar
-            // rotado: hay que restar el rumbo del mapa para que la flecha
-            // apunte al sitio real y no a "arriba de la pantalla".
-            heading={heading === null ? null : heading - bearing}
+            // Solo el rumbo del teléfono. Del giro del mapa se encarga el
+            // plugin gracias a `rotateWithView` (ver LocationMarker).
+            heading={heading}
           />
         )}
 
@@ -801,12 +936,14 @@ const TerritoryMap = ({
               '&:active': { transform: 'scale(0.94)' },
             }}
           >
+            {/* La aguja se mueve tocando su `transform` desde
+                `handleBearingChange`, sin pasar por el estado de React: es lo
+                único que tiene que seguir al dedo mientras se gira. Sin
+                `transition`, porque el evento ya llega en cada fotograma y
+                una transición encima lo dejaba siempre un paso por detrás. */}
             <Box
-              sx={{
-                display: 'flex',
-                transform: `rotate(${-bearing}deg)`,
-                transition: 'transform 0.1s linear',
-              }}
+              ref={compassNeedleRef}
+              sx={{ display: 'flex', willChange: 'transform' }}
             >
               <IconCompassOn width={22} height={22} color="var(--red-main)" />
             </Box>
