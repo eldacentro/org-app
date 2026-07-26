@@ -22,5 +22,6 @@
   "error_api_bad-request": "No se pudo completar la operación. Actualiza la aplicación e inténtalo de nuevo.",
   "error_api_sync-conflict": "No se pudieron sincronizar los cambios del servidor. Actualiza la aplicación e inténtalo de nuevo, o sincroniza manualmente.",
   "error_app_congregation-search-error": "No se puede buscar una congregación. Reporta el problema si persiste.",
-  "error_app_country-search-error": "No se puede buscar un país. Reporta el problema si persiste."
+  "error_app_country-search-error": "No se puede buscar un país. Reporta el problema si persiste.",
+  "SCHEDULES_LOCKED": "La sincronización de programas está congelada por el administrador. Tus cambios se han guardado en este dispositivo y se enviarán en cuanto la descongele."
 }

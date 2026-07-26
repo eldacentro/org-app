@@ -45,14 +45,28 @@ export const apiDefault = async (user?: User) => {
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
-  refreshSubscribers.push(cb);
+const onTokenRefreshed = (token: string) => {
+  const subscribers = refreshSubscribers;
+  refreshSubscribers = [];
+  subscribers.forEach((cb) => cb(token));
 };
 
-const onTokenRefreshed = (token: string) => {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
-};
+// Tope de espera para quien esté aguardando a que OTRA petición termine de
+// renovar el token. Sin él, si esa otra petición muriera de una forma que no
+// llegara a avisar, quien esperaba se quedaba colgado para siempre — y una
+// petición colgada para siempre es peor que una que falla, porque no se
+// reintenta ni se ve.
+const REFRESH_WAIT_TIMEOUT_MS = 25000;
+
+const waitForTokenRefresh = () =>
+  new Promise<string>((resolve) => {
+    const timer = setTimeout(() => resolve(''), REFRESH_WAIT_TIMEOUT_MS);
+
+    refreshSubscribers.push((token) => {
+      clearTimeout(timer);
+      resolve(token);
+    });
+  });
 
 // Every API call in the app goes through this one function, and `fetch` has
 // no built-in timeout — on a flaky connection (the normal case for someone
@@ -110,23 +124,32 @@ export const apiFetch = async (
   if (await isStaleTokenResponse(res)) {
     const authUser = currentAuthUser();
     if (authUser) {
-      if (!isRefreshing) {
+      // OJO con el orden. Antes, quien renovaba el token avisaba a los que
+      // esperaban y ACTO SEGUIDO se ponía él mismo a esperar un aviso que ya
+      // había dado: se quedaba colgado para siempre. La petición nunca volvía,
+      // así que la app se quedaba "cargando" sin error, sin reintento y sin
+      // que nada la despertara. Ese camino solo se activa cuando el servidor
+      // rechaza el token, o sea justo cuando más falta hace que funcione.
+      let newToken: string;
+
+      if (isRefreshing) {
+        // otra petición ya está renovando: esperar SU resultado
+        newToken = await waitForTokenRefresh();
+      } else {
         isRefreshing = true;
+
         try {
-          const newToken = await authUser.getIdToken(true);
-          isRefreshing = false;
-          onTokenRefreshed(newToken);
+          newToken = await authUser.getIdToken(true);
         } catch (error) {
+          newToken = '';
+          console.error('Error refreshing token:', error);
+        } finally {
           isRefreshing = false;
-          onTokenRefreshed('');
-          console.error('Error refreshing token on 401:', error);
-          return res;
+          // el aviso sale siempre, también si la renovación falló, para que
+          // nadie se quede esperando
+          onTokenRefreshed(newToken!);
         }
       }
-
-      const newToken = await new Promise<string>((resolve) => {
-        subscribeTokenRefresh((token) => resolve(token));
-      });
 
       if (newToken) {
         const headers = new Headers(init?.headers);

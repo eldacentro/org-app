@@ -100,10 +100,20 @@ const useWhatsNew = () => {
   }, [i18n, version, releases]);
 
   useEffect(() => {
+    // Resuelve también si la imagen falla o tarda demasiado: si no, una sola
+    // imagen rota dejaba el `Promise.all` de abajo esperando para siempre y la
+    // novedad no llegaba a mostrarse nunca.
     const loadImage = (src: string) =>
       new Promise((resolve) => {
         const preImg = new Image();
-        preImg.onload = resolve;
+        const timer = setTimeout(resolve, 8000);
+        const done = () => {
+          clearTimeout(timer);
+          resolve(null);
+        };
+
+        preImg.onload = done;
+        preImg.onerror = done;
         preImg.src = src;
       });
 
