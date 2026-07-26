@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { TerritoryRequest } from '@definition/territories';
@@ -8,6 +8,29 @@ import { fullnameOptionState } from '@states/settings';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
+import { useTerritories } from '@features/territories/useTerritories';
+
+/**
+ * Envoltorio que ENCIENDE las suscripciones de Territorios mientras el
+ * diálogo está abierto.
+ *
+ * La campana puede aparecer en cualquier pantalla, y el hook que alimenta
+ * esta notificación solo se suscribe a las SOLICITUDES. Fuera de la página de
+ * Territorios, la lista de territorios, las zonas, las asignaciones y los
+ * ajustes estaban vacíos: al pulsar «Asignar territorio» el selector decía
+ * «no options», y la fecha de vencimiento se habría calculado con los ajustes
+ * por defecto en vez de con los de la congregación.
+ *
+ * `useTerritories` lleva un contador de referencias con suscripciones
+ * compartidas, así que montarlo aquí no duplica nada si ya se está en
+ * Territorios, y se cierra solo al cerrar el diálogo.
+ */
+const DialogAsignarConDatos = (
+  props: ComponentProps<typeof DialogAsignar>
+) => {
+  useTerritories();
+  return <DialogAsignar {...props} />;
+};
 
 const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
   const persons = useAtomValue(personsActiveState);
@@ -71,7 +94,7 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
       </Box>
 
       {openAssign && (
-        <DialogAsignar
+        <DialogAsignarConDatos
           open={openAssign}
           onClose={() => setOpenAssign(false)}
           defaultPersonUid={request.personUid}

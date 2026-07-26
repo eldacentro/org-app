@@ -24,13 +24,14 @@ import {
   isCircuitOverseerUid,
 } from '@utils/circuit_overseer';
 import { usePersonName } from '@features/territories/usePersonName';
+import SelectorTerritorio from './SelectorTerritorio';
+import Checkbox from '@components/checkbox';
 import {
   territoriesState,
-  territoryAssignedIdsState,
   territoryAssignmentsState,
+  territoriesLoadingState,
   territoryPendingRequestsState,
   territorySettingsState,
-  territoryZonesState,
 } from '@states/territories';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
@@ -41,11 +42,7 @@ import {
 } from '@services/firebase/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
-import {
-  computeDueAt,
-  getZoneName,
-  territoryLabel,
-} from '@services/app/territories';
+import { computeDueAt, territoryLabel } from '@services/app/territories';
 
 type Props = {
   open: boolean;
@@ -86,10 +83,10 @@ const DialogAsignar = ({
   const settings = useAtomValue(territorySettingsState);
   const territories = useAtomValue(territoriesState);
   const resolveName = usePersonName();
-  const assignedIds = useAtomValue(territoryAssignedIdsState);
   const allAssignments = useAtomValue(territoryAssignmentsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
-  const zones = useAtomValue(territoryZonesState);
+  const cargandoTerritorios = useAtomValue(territoriesLoadingState);
+  const [atenderSolicitud, setAtenderSolicitud] = useState(true);
 
   const personOptions = useMemo(() => {
     const real = persons.map((p) => ({
@@ -130,25 +127,6 @@ const DialogAsignar = ({
     return [...synthetic, ...real];
   }, [persons, fullnameOption, coFullname, coLastname, coSpouseName]);
 
-  // Territorios libres (no asignados) para el selector, los asignados al final.
-  const territoryOptions = useMemo(
-    () =>
-      [...territories]
-        .sort((a, b) => {
-          const aa = assignedIds.has(a.id) ? 1 : 0;
-          const bb = assignedIds.has(b.id) ? 1 : 0;
-          if (aa !== bb) return aa - bb;
-          return a.numero.localeCompare(b.numero, undefined, { numeric: true });
-        })
-        .map((t) => ({
-          id: t.id,
-          label: `${territoryLabel(t)} · ${getZoneName(t.zoneId, zones)}${
-            assignedIds.has(t.id) ? ' (asignado)' : ''
-          }`,
-        })),
-    [territories, assignedIds, zones]
-  );
-
   const [personUid, setPersonUid] = useState<string | null>(null);
   const [territoryId, setTerritoryId] = useState<string | null>(null);
   const [nota, setNota] = useState('');
@@ -159,6 +137,7 @@ const DialogAsignar = ({
       setPersonUid(defaultPersonUid ?? null);
       setTerritoryId(territory?.id ?? null);
       setNota('');
+      setAtenderSolicitud(true);
     }
   }, [open, defaultPersonUid, territory]);
 
@@ -180,9 +159,14 @@ const DialogAsignar = ({
    * la había atendido. Si la persona a la que se asigna tiene una pendiente,
    * se cierra con la misma asignación.
    */
-  const requestIdEfectivo =
-    requestId ??
-    pendingRequests.find((r) => r.personUid === personUid)?.id;
+  const solicitudPendiente =
+    pendingRequests.find((r) => r.personUid === personUid) ?? null;
+
+  const requestIdEfectivo = requestId
+    ? requestId
+    : atenderSolicitud
+      ? solicitudPendiente?.id
+      : undefined;
 
   /** Asigna varios territorios a la vez al mismo publicador. Los que ya
    *  tengan una asignación abierta se omiten (igual que en el flujo de
@@ -471,9 +455,6 @@ const DialogAsignar = ({
   };
 
   const selectedPerson = personOptions.find((o) => o.uid === personUid) ?? null;
-  const selectedTerritory =
-    territoryOptions.find((o) => o.id === territoryId) ?? null;
-
   return (
     <Dialog
       open={open}
@@ -515,16 +496,19 @@ const DialogAsignar = ({
               {territoryLabel(territory)}
             </Typography>
           ) : (
-            <Autocomplete
-              options={territoryOptions}
-              value={selectedTerritory}
-              onChange={(_, v) => setTerritoryId(v?.id ?? null)}
-              getOptionLabel={(o) => o.label}
-              isOptionEqualToValue={(o, v) => o.id === v.id}
-              renderInput={(params) => (
-                <MuiTextField {...params} label="Territorio" size="small" />
-              )}
-            />
+            <Box>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink-2)', mb: 0.75 }}
+              >
+                Territorio
+              </Typography>
+              <SelectorTerritorio
+                value={territoryId}
+                onChange={setTerritoryId}
+                cargando={cargandoTerritorios}
+              />
+            </Box>
           )}
 
           <Autocomplete
@@ -558,6 +542,36 @@ const DialogAsignar = ({
           >
             {isBulk ? `Asignar ${bulkTerritories!.length}` : 'Asignar'}
           </Button>
+
+          {/* Solicitud pendiente de esta persona.
+              Se avisa ANTES de asignar y no con un diálogo después: enterarse
+              de un efecto secundario cuando ya ha ocurrido desconcierta, y
+              así además se puede desmarcar si se prefiere dejarla abierta
+              (por ejemplo, si se le da un territorio pero seguía queriendo
+              otro distinto). Va marcado por defecto, que es lo que se quiere
+              casi siempre. */}
+          {solicitudPendiente && !requestId && (
+            <Box
+              sx={{
+                p: '12px 14px',
+                borderRadius: 'var(--radius-xl)',
+                backgroundColor: 'var(--accent-100)',
+                borderLeft: '3px solid var(--accent-main)',
+              }}
+            >
+              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
+                {resolveName(solicitudPendiente.personUid)} tiene una solicitud de
+                territorio pendiente.
+              </Typography>
+              <Box sx={{ mt: 0.5 }}>
+                <Checkbox
+                  checked={atenderSolicitud}
+                  onChange={() => setAtenderSolicitud((v) => !v)}
+                  label="Darla por atendida al asignar"
+                />
+              </Box>
+            </Box>
+          )}
         </Stack>
       </Box>
     </Dialog>
