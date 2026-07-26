@@ -6,7 +6,7 @@ import {
   showReloadState,
 } from '@states/app';
 import { store } from '@states/index';
-import appDb from '@db/appDb';
+import { allowUnload } from '@services/app/unload_guard';
 
 // Ver el watchdog correspondiente en index.html: se marca ANTES de recargar
 // para que, si la app nunca termina de arrancar tras esta recarga, ese script
@@ -61,18 +61,11 @@ const isBusy = async () => {
   // de la pantalla de claves deja a la persona sin saber qué ha pasado.
   if (store.get(isAppLoadState)) return true;
 
-  try {
-    const metadata = await appDb.metadata.get(1);
-
-    if (
-      metadata &&
-      Object.values(metadata.metadata).some((table) => table.send_local === true)
-    ) {
-      return true;
-    }
-  } catch {
-    // si no se puede leer, no bloqueamos la actualización por eso
-  }
+  // A propósito NO se mira si hay cambios sin subir. Un dispositivo que lleva
+  // días sin poder sincronizar los tiene pendientes de forma permanente, y es
+  // justo el que más necesita la versión nueva: bloquear ahí lo condenaría a
+  // no actualizarse nunca. No se pierde nada — lo pendiente está guardado en
+  // el dispositivo y se sube en cuanto la sincronización vuelva a funcionar.
 
   return false;
 };
@@ -120,6 +113,7 @@ const useUpdater = ({ updatePwa }: { updatePwa: VoidFunction }) => {
 
       autoReloadTimer = setTimeout(() => {
         sessionStorage.setItem(UPDATE_FLAG, '1');
+        allowUnload();
         window.location.reload();
       }, AUTO_RELOAD_DELAY_MS);
     };
@@ -166,6 +160,7 @@ const useUpdater = ({ updatePwa }: { updatePwa: VoidFunction }) => {
   const handleAppUpdated = () => {
     setShowReload(false);
     sessionStorage.setItem(UPDATE_FLAG, '1');
+    allowUnload();
 
     let reloaded = false;
     const reloadOnce = () => {

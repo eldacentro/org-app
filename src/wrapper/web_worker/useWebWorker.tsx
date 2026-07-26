@@ -32,6 +32,7 @@ import { runAssignmentPushDiffs } from '@services/push/diff';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { processPendingPublisherReports } from '@services/app/pending_publisher_reports';
+import { isUnloadAllowed } from '@services/app/unload_guard';
 
 // Marca de la última sincronización COMPLETADA, guardada en el dispositivo.
 // Sin esto, al recargar la app el contador volvía a cero y la interfaz no
@@ -88,6 +89,11 @@ const useWebWorker = () => {
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Si la recarga la ha decidido la propia app (aplicar una
+      // actualización), no hay que avisar de nada: nadie está cerrando y lo
+      // pendiente sigue guardado aquí.
+      if (isUnloadAllowed()) return;
+
       if (isPendingSync || isSyncing) {
         e.preventDefault();
         e.returnValue = '';

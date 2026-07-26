@@ -1,3 +1,5 @@
+import { allowUnload } from './unload_guard';
+
 /**
  * Actualización robusta del service worker: espera de verdad a que la
  * comprobación de versión termine y recarga justo cuando el SW nuevo toma el
@@ -13,6 +15,10 @@
  *                      librería) que se dispara además, por si acaso.
  */
 export const forceAppUpdate = async (extraTrigger?: () => void) => {
+  // Recarga decidida por la app: que no salte el aviso de "puede que no se
+  // guarden los cambios" (ver unload_guard).
+  allowUnload();
+
   let reloaded = false;
   const reloadOnce = () => {
     if (reloaded) return;
