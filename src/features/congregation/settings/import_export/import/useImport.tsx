@@ -35,8 +35,27 @@ const useImport = ({ onNext }: ImportType) => {
 
         const keys = Object.keys(data);
 
+        // Antes se exigía que `name` fuera literalmente "Organized". Cualquier
+        // archivo de la propia app con el nombre cambiado —una corrección
+        // preparada aparte, por ejemplo— se rechazaba entero con un "archivo no
+        // válido" genérico, sin pista de por qué. Ahora también vale por su
+        // forma: si trae `data` con tablas conocidas, es una copia de esta app.
+        const payload = data['data'];
+
+        const looksLikeBackup =
+          payload &&
+          typeof payload === 'object' &&
+          [
+            'persons',
+            'cong_field_service_reports',
+            'app_settings',
+            'sched',
+            'meeting_attendance',
+          ].some((table) => Array.isArray(payload[table]));
+
         const isOrganized =
-          keys.includes('name') && data['name'] === 'Organized';
+          (keys.includes('name') && data['name'] === 'Organized') ||
+          looksLikeBackup;
 
         const isHourglass =
           FEATURE_FLAGS['HOURGLASS_IMPORT'] &&
