@@ -33,6 +33,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
 import { processPendingPublisherReports } from '@services/app/pending_publisher_reports';
 import { isUnloadAllowed } from '@services/app/unload_guard';
+import { isPersonDetailInUse } from '@services/app/sync_pause';
 
 // Marca de la última sincronización COMPLETADA, guardada en el dispositivo.
 // Sin esto, al recargar la app el contador volvía a cero y la interfaz no
@@ -266,7 +267,11 @@ const useWebWorker = () => {
         // open for editing) to avoid overwriting unsaved changes. The persons LIST
         // page (/persons exactly) is allowed to sync so other devices receive
         // updates while browsing.
-        const onPersonDetail = /\/persons\/.+/.test(location.pathname);
+        //
+        // La pausa caduca si no hay nadie delante: ver sync_pause. Sin eso, un
+        // dispositivo con una ficha abierta olvidada dejaba de sincronizar
+        // indefinidamente.
+        const onPersonDetail = isPersonDetailInUse(location.pathname);
         if (onPersonDetail) {
           logger.info('app', 'synchronization paused - person detail open');
         } else if (backupEnabled) {

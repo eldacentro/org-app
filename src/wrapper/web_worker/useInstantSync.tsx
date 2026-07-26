@@ -9,6 +9,7 @@ import { useFirebaseAuth } from '@hooks/index';
 import { subscribeSyncSignal, SyncSignal } from '@services/firebase/sync_signal';
 import worker from '@services/worker/backupWorker';
 import logger from '@services/logger';
+import { isPersonDetailInUse } from '@services/app/sync_pause';
 import appDb from '@db/appDb';
 
 /**
@@ -65,8 +66,9 @@ const useInstantSync = () => {
 
     if (!backupEnabled) return;
 
-    // misma pausa que el ciclo periódico: nunca con una ficha de persona abierta
-    if (/\/persons\/.+/.test(pathname)) {
+    // misma pausa que el ciclo periódico: nunca con una ficha de persona
+    // abierta Y alguien delante (la pausa caduca sola, ver sync_pause)
+    if (isPersonDetailInUse(pathname)) {
       logger.info('app', `instant sync skipped (person detail open) - ${reason}`);
       return;
     }
