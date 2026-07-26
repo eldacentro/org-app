@@ -94,13 +94,17 @@ const useDevicesStatus = () => {
 
       let severity: DeviceStatusRow['severity'] = 'ok';
 
-      if (lastSync === null) {
+      if (isOutdated) {
+        // Una app vieja es accionable aunque no haya dato de sincronización:
+        // es exactamente a quien hay que abordar.
+        severity = 'warn';
+      } else if (lastSync === null) {
         // Sin dato de sincronización: o nunca ha sincronizado desde que esto
         // existe, o ese dispositivo no ha vuelto a abrirse desde entonces.
         severity = 'unknown';
       } else if (lastSync >= SYNC_BAD_MINUTES) {
         severity = 'bad';
-      } else if (lastSync >= SYNC_WARN_MINUTES || isOutdated) {
+      } else if (lastSync >= SYNC_WARN_MINUTES) {
         severity = 'warn';
       }
 
