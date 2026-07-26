@@ -17,6 +17,10 @@ export default defineConfig({
   },
   resolve: {
     alias: [
+      // La base de datos local no existe fuera del navegador. Los módulos que
+      // se prueban aquí NO la usan (son funciones puras), pero la importan por
+      // arriba, así que se sustituye por un doble vacío para poder cargarlos.
+      { find: '@db/appDb', replacement: resolve(__dirname, 'src/test/appDbStub.ts') },
       { find: '@constants', replacement: resolve(__dirname, 'src/constants') },
       { find: '@definition', replacement: resolve(__dirname, 'src/definition') },
       { find: '@services', replacement: resolve(__dirname, 'src/services') },

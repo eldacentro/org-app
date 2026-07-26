@@ -38,3 +38,23 @@ dispositivos de la congregación**, no solo al que lo introdujo.
 - Preview con datos de prueba: `npm run preview` sirve `dist/` en el puerto
   4050 con un modo de "sembrado" de datos ficticios para verificar cambios
   de UI sin tocar datos reales.
+
+## Pruebas automáticas
+
+`npm run test:unit` (vitest, corre en Node, ~1 s). Cubren a propósito solo
+donde un fallo se traduce en **datos perdidos o mal contados**, no la interfaz:
+
+- `src/services/worker/merge.test.ts` — el motor de fusión de la sincronización
+  (lo más nuevo gana, nunca se borra lo que solo está en un lado, marcas de
+  borrado en ambos sentidos) y los tres filos conocidos que el esquema evita.
+- `src/services/encryption/encryption.test.ts` — ida y vuelta del cifrado E2E,
+  que con la clave equivocada falle en vez de devolver basura, y el reparto
+  código de acceso / llave maestra.
+- `src/services/app/retention.test.ts` — la norma de conservación de informes
+  (activo, inactivo bautizado, sacado, no bautizado, nombramientos, asistencia).
+- `src/utils/build_info.test.ts` — identidad de versión y antigüedad del sync.
+
+**Si tocas cualquiera de esas cuatro cosas, ejecuta las pruebas.** Y si añades
+un campo nuevo al esquema sincronizado, mira antes los "filos conocidos" de
+merge.test.ts: una lista de valores sueltos o un registro sin `id`/`type` se
+pierden en la fusión sin decir nada.
