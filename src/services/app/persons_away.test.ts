@@ -142,3 +142,62 @@ describe('casos límite', () => {
     expect(personIsAway(persona, 'no es una fecha')).toBeUndefined();
   });
 });
+
+const { personIsInactive, personIsActive } = await import('./persons');
+
+/**
+ * Las DOS preguntas sobre "inactivo" que conviven en la app.
+ *
+ * Parecen lo mismo y no lo son, así que quedan fijadas aquí para que nadie las
+ * unifique creyendo que arregla una duplicidad:
+ *
+ *  - personIsInactive(persona) → ¿está inactivo AHORA? Es lo que se pinta en
+ *    la ficha, en los filtros y en el aviso de visibilidad de grupo.
+ *  - personIsPublisher(persona, mes) → ¿era publicador EN ESE MES? Es lo que
+ *    deciden los informes, porque un informe de marzo se juzga con el marzo de
+ *    esa persona, no con su situación de hoy.
+ *
+ * Unificarlas rompería una de las dos: o la ficha mentiría, o los informes de
+ * meses pasados contarían a quien ya causó baja.
+ */
+const buildPublisher = (history: { end_date: string | null }[]) =>
+  ({
+    person_uid: 'p1',
+    person_data: {
+      publisher_baptized: {
+        active: { value: true, updatedAt: '' },
+        history: history.map((h, i) => ({
+          id: `h${i}`,
+          _deleted: false,
+          start_date: '2020-01-01',
+          end_date: h.end_date,
+        })),
+      },
+      publisher_unbaptized: { active: { value: false, updatedAt: '' }, history: [] },
+    },
+  }) as never;
+
+describe('"inactivo ahora" (ficha, filtros, avisos)', () => {
+  it('con un periodo abierto NO está inactivo', () => {
+    const persona = buildPublisher([{ end_date: null }]);
+
+    expect(personIsInactive(persona)).toBe(false);
+    expect(personIsActive(persona)).toBe(true);
+  });
+
+  it('con todos los periodos cerrados SÍ está inactivo', () => {
+    const persona = buildPublisher([{ end_date: '2026-05-31' }]);
+
+    expect(personIsInactive(persona)).toBe(true);
+    expect(personIsActive(persona)).toBe(false);
+  });
+
+  it('quien volvió tras una baja vuelve a estar activo', () => {
+    const persona = buildPublisher([
+      { end_date: '2025-06-30' },
+      { end_date: null },
+    ]);
+
+    expect(personIsInactive(persona)).toBe(false);
+  });
+});

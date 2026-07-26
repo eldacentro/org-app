@@ -89,12 +89,18 @@ const useReportSection = () => {
   }, [report, fieldReport, analysisReport]);
 
   const handleFilterReports = () => {
-    // get all confirmed reports and unsubmitted late reports
+    // Informes verificados del mes, más los atrasados que aún no se han
+    // mandado (esos van en el S-1 siguiente, que es lo correcto).
+    //
+    // `shared_ministry` se exige SIEMPRE, también a los atrasados. Antes solo
+    // se comprobaba en los del mes, así que un informe atrasado de alguien que
+    // NO participó en la predicación se contaba igual: el número de
+    // publicadores que informan salía inflado, y ese número va a la sucursal.
     const reports = congReports.filter(
       (record) =>
         record.report_data.status === 'confirmed' &&
-        ((record.report_data.shared_ministry &&
-          record.report_data.report_date === month) ||
+        record.report_data.shared_ministry &&
+        (record.report_data.report_date === month ||
           (record.report_data.late.value &&
             record.report_data.late.submitted.length === 0))
     );

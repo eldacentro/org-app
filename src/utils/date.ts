@@ -251,6 +251,22 @@ export const currentReportMonth = () => {
  * pueden hacer falta más, porque a un publicador inactivo se le conserva el
  * año en que se quedó inactivo, que puede ser más antiguo.
  */
+/**
+ * Último día del mes que se está informando ('yyyy/MM' → fecha ISO).
+ *
+ * Se usa para cerrar el periodo de publicador de quien causa baja al enviar el
+ * S-1. La cuenta anterior (`new Date(año, mes - 1, 0)`) devolvía el último día
+ * del mes ANTERIOR: al enviar el S-1 de junio, la baja quedaba fechada el 31 de
+ * mayo. O sea que el mismo informe que declaraba a esa persona como publicador
+ * activo de junio la borraba de junio justo después de enviarlo.
+ */
+export const lastDayOfReportMonth = (month: string) => {
+  const [year, monthNumber] = month.split('/').map(Number);
+
+  // día 0 del mes SIGUIENTE = último día del mes indicado
+  return new Date(year, monthNumber, 0).toISOString();
+};
+
 export const buildServiceYearsList = (count = 4) => {
   const monthNames = generateMonthNames();
   const currentSY = currentServiceYear();

@@ -82,3 +82,38 @@ describe('cuántos años se ofrecen', () => {
     expect(buildServiceYearsList(4)).toHaveLength(4);
   });
 });
+
+const { lastDayOfReportMonth } = await import('./date');
+
+/**
+ * Fecha con la que se cierra el periodo de publicador al dar de baja a alguien
+ * en el S-1. Equivocarse aquí por un día cambia de mes: el mismo informe que
+ * declara a esa persona como publicador activo la borraría de ese mes justo
+ * después de enviarlo.
+ */
+describe('cierre del periodo al causar baja', () => {
+  const monthOf = (iso: string) => iso.slice(0, 7);
+
+  it('junio se cierra el 30 de junio, no el 31 de mayo', () => {
+    expect(monthOf(lastDayOfReportMonth('2026/06'))).toBe('2026-06');
+    expect(new Date(lastDayOfReportMonth('2026/06')).getDate()).toBe(30);
+  });
+
+  it('enero se cierra el 31 de enero (y no salta al año anterior)', () => {
+    expect(monthOf(lastDayOfReportMonth('2026/01'))).toBe('2026-01');
+    expect(new Date(lastDayOfReportMonth('2026/01')).getDate()).toBe(31);
+  });
+
+  it('diciembre se cierra el 31 de diciembre', () => {
+    expect(monthOf(lastDayOfReportMonth('2026/12'))).toBe('2026-12');
+    expect(new Date(lastDayOfReportMonth('2026/12')).getDate()).toBe(31);
+  });
+
+  it('febrero de un año bisiesto se cierra el 29', () => {
+    expect(new Date(lastDayOfReportMonth('2028/02')).getDate()).toBe(29);
+  });
+
+  it('febrero de un año normal se cierra el 28', () => {
+    expect(new Date(lastDayOfReportMonth('2026/02')).getDate()).toBe(28);
+  });
+});

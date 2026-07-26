@@ -14,6 +14,7 @@ import { dbBranchCongAnalysisSave } from '@services/dexie/branch_cong_analysis';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
 import { dbFieldServiceReportsBulkSave } from '@services/dexie/cong_field_service_reports';
 import { PersonType } from '@definition/person';
+import { lastDayOfReportMonth } from '@utils/date';
 import { dbPersonsBulkSave } from '@services/dexie/persons';
 import usePersons from '@features/persons/hooks/usePersons';
 import useReportMonthly from '@features/reports/hooks/useReportMonthly';
@@ -39,8 +40,10 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
 
       if (!isInactive) continue;
 
-      const [year, varMonth] = month.split('/');
-      const endDate = new Date(+year, +varMonth - 1, 0).toISOString();
+      // Se cierra al final del mes informado, no del anterior (ver
+      // lastDayOfReportMonth): quien aparece como publicador activo en este
+      // S-1 tiene que seguir contando en este mes.
+      const endDate = lastDayOfReportMonth(month);
 
       const newPerson = structuredClone(person);
 
