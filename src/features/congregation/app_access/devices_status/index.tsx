@@ -51,7 +51,11 @@ const StatusRow = ({ row }: { row: DeviceStatusRow }) => {
 
       <Box sx={{ textAlign: 'right' }}>
         <Typography className="body-small-regular" color="var(--grey-400)">
-          {row.build === null ? 'versión desconocida' : `versión ${row.build}`}
+          {row.buildLabel
+            ? `app del ${row.buildLabel}`
+            : row.build === null
+              ? 'versión desconocida'
+              : 'app muy antigua'}
         </Typography>
         <Typography className="body-small-regular" color="var(--grey-400)">
           {row.lastSeen === null
@@ -70,6 +74,7 @@ const DevicesStatus = () => {
     needAttention,
     outdatedCount,
     currentBuild,
+    currentBuildLabel,
     showAll,
     setShowAll,
     handleForceUpdate,
@@ -113,9 +118,9 @@ const DevicesStatus = () => {
         }}
       >
         <Typography className="body-small-regular" color="var(--grey-400)">
-          {currentBuild === null
-            ? 'Versión actual desconocida'
-            : `Versión actual publicada: ${currentBuild}`}
+          {currentBuildLabel
+            ? `Versión actual publicada: ${currentBuildLabel}`
+            : 'Versión actual desconocida'}
         </Typography>
 
         <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

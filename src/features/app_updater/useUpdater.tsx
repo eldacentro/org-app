@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { isAppDataSyncingState, showReloadState } from '@states/app';
+import {
+  isAppDataSyncingState,
+  isAppLoadState,
+  showReloadState,
+} from '@states/app';
 import { store } from '@states/index';
 import appDb from '@db/appDb';
 
@@ -52,6 +56,10 @@ const isBusy = async () => {
   // pone al cerrar la pestaña saltaría en mitad de una recarga que nadie ha
   // pedido, y eso asusta con razón.
   if (store.get(isAppDataSyncingState)) return true;
+
+  // Ni durante el arranque o el alta: recargar en mitad del inicio de sesión o
+  // de la pantalla de claves deja a la persona sin saber qué ha pasado.
+  if (store.get(isAppLoadState)) return true;
 
   try {
     const metadata = await appDb.metadata.get(1);

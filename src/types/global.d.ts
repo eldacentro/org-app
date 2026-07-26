@@ -10,6 +10,9 @@ declare const __BUILD_SHA__: string;
 // Número de build (total de commits), inyectado por vite.config.ts (define).
 declare const __BUILD_NUMBER__: string;
 
+/** Fecha ISO del momento en que se compiló esta versión. */
+declare const __BUILD_DATE__: string;
+
 interface MyWorkerGlobalScope extends DedicatedWorkerGlobalScope {
   setting: {
     apiHost: string | undefined;

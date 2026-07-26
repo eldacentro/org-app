@@ -16,21 +16,29 @@ try {
   // fuera de un repo git (p.ej. build aislado): se queda como 'dev'
 }
 
-// Número de build: total de commits en el historial. A diferencia del
-// campo "version" de package.json (que hay que subir a mano en cada
-// release), este número sube solo con cada commit — nunca requiere editar
-// ningún archivo para que "Acerca de" muestre un build distinto.
-let buildNumber = '0';
-try {
-  buildNumber = execSync('git rev-list --count HEAD').toString().trim();
-} catch {
-  // fuera de un repo git (p.ej. build aislado): se queda como '0'
-}
+// Número de build: MINUTOS transcurridos desde 1970 en el momento de compilar.
+//
+// Antes era el total de commits del historial, y eso resultó estar roto en
+// producción: Vercel clona en superficial (unos pocos commits), así que
+// `git rev-list --count HEAD` devolvía 10 en vez de 6038. Todos los
+// despliegues se anunciaban como el mismo build, de modo que ni "Acerca de"
+// decía la verdad ni podía funcionar nada que compare versiones — ni la
+// oleada de actualización ni el panel de "quién tiene la app vieja".
+//
+// La marca de tiempo no depende de git ni del entorno de compilación, siempre
+// crece y se puede comparar con un simple menor-que, que es todo lo que hace
+// falta. En minutos para que sea un número corto y legible.
+const buildNumber = String(Math.floor(Date.now() / 60000));
+
+// Fecha del build, para poder decirle a la gente "tu app es del 12 de julio"
+// en vez de soltarle un número.
+const buildDate = new Date().toISOString();
 
 export default defineConfig({
   define: {
     __BUILD_SHA__: JSON.stringify(buildSha),
     __BUILD_NUMBER__: JSON.stringify(buildNumber),
+    __BUILD_DATE__: JSON.stringify(buildDate),
   },
   plugins: [react(), comlink(), eslint(), loadVersion(), svgx()],
   resolve: {

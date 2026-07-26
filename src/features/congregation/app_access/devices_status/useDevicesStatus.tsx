@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { congregationUsersState } from '@states/congregation';
 import { CongregationUserType } from '@definition/api';
 import { formatSyncAge } from '@utils/sync_age';
+import { formatBuildDate } from '@utils/build_info';
 import { apiSetForceUpdate } from '@services/api/congregation';
 import { displaySnackNotification } from '@services/states/app';
 
@@ -20,6 +21,8 @@ export type DeviceStatusRow = {
   id: string;
   name: string;
   build: number | null;
+  /** "12 jul 2026", o null si ese dispositivo trae un build anterior al cambio. */
+  buildLabel: string | null;
   isOutdated: boolean;
   lastSync: number | null; // minutos
   lastSyncText: string;
@@ -105,6 +108,7 @@ const useDevicesStatus = () => {
         id: user.id,
         name: buildPersonName(user),
         build,
+        buildLabel: formatBuildDate(build),
         isOutdated,
         lastSync,
         lastSyncText: lastSync === null ? 'Sin datos' : formatSyncAge(lastSync),
@@ -184,6 +188,7 @@ const useDevicesStatus = () => {
     needAttention,
     outdatedCount,
     currentBuild,
+    currentBuildLabel: formatBuildDate(currentBuild),
     showAll,
     setShowAll,
     handleForceUpdate,

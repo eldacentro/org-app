@@ -13,6 +13,7 @@ import useAbout from './useAbout';
 import Dialog from '@components/dialog';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
+import { formatBuildDate } from '@utils/build_info';
 
 const About = (props: AboutProps) => {
   const {
@@ -26,6 +27,8 @@ const About = (props: AboutProps) => {
   } = useAbout(props);
 
   const { t } = useAppTranslation();
+
+  const buildDateLabel = formatBuildDate(Number(__BUILD_NUMBER__) || null);
 
   // Fila de mantenimiento: icono + (título + explicación), toda la fila
   // pulsable. Mismo lenguaje visual que los elementos de menú de la app.
@@ -125,8 +128,11 @@ const About = (props: AboutProps) => {
         <Box>
           <Typography className="h3">Elda Centro</Typography>
           <Typography className="body-regular" color="var(--grey-350)">
-            {import.meta.env.PACKAGE_VERSION} (#{__BUILD_NUMBER__}) ·{' '}
-            {__BUILD_SHA__}
+            {/* La fecha del build en vez del número: es lo que de verdad
+                entiende cualquiera cuando hay que comprobar si un dispositivo
+                está al día ("la tuya es del 12 de julio"). */}
+            {import.meta.env.PACKAGE_VERSION}
+            {buildDateLabel ? ` · ${buildDateLabel}` : ''} · {__BUILD_SHA__}
           </Typography>
         </Box>
       </Box>
