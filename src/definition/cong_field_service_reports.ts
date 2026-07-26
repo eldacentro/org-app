@@ -1,3 +1,4 @@
+import { CreditEntry } from '@services/app/credit_entries';
 export type PersonFixedFilterOption =
   | 'active'
   | 'inactive'
@@ -32,6 +33,12 @@ export type CongFieldServiceReportType = {
       credit: {
         value: number;
         approved: number;
+      /**
+       * Desglose del crédito por motivo (LDC, Escuela de Precursores, Otro…).
+       * Opcional: los informes anteriores a esto no lo llevan y se muestran
+       * con su total, sin inventarles un motivo.
+       */
+      entries?: CreditEntry[];
       };
     };
     bible_studies: number;

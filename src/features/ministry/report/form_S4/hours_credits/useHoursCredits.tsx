@@ -15,6 +15,12 @@ import { CongFieldServiceReportType } from '@definition/cong_field_service_repor
 import { dbFieldServiceReportsSave } from '@services/dexie/cong_field_service_reports';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthlyRecord';
+import {
+  CreditEntry,
+  CreditEntryType,
+  creditEntryAdd,
+  creditEntryRemove,
+} from '@services/app/credit_entries';
 
 const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
   const { t } = useAppTranslation();
@@ -77,7 +83,11 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
     return true;
   };
 
-  const handleHoursChange = async (value: string) => {
+  /**
+   * @param nextEntries si se pasa, sustituye el desglose (se usa al quitar una
+   * entrada, para que total y desglose no se queden desacompasados).
+   */
+  const handleHoursChange = async (value: string, nextEntries?: CreditEntry[]) => {
     setHours(value);
 
     try {
@@ -119,6 +129,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
           report.report_data.hours.credit.monthly = `${hours}:${String(remains).padStart(2, '0')}`;
 
+          if (nextEntries) report.report_data.hours.credit.entries = nextEntries;
+
           if (value !== '0:00') {
             report.report_data.shared_ministry = true;
           }
@@ -147,6 +159,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
           }
 
           report.report_data.hours.credit.monthly = value;
+
+          if (nextEntries) report.report_data.hours.credit.entries = nextEntries;
           report.report_data.updatedAt = new Date().toISOString();
 
           await dbDelegatedFieldServiceReportsSave(report);
@@ -169,6 +183,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
         report.report_data.shared_ministry = true;
         report.report_data.hours.credit.approved = +value.split(':').at(0);
+
+        if (nextEntries) report.report_data.hours.credit.entries = nextEntries;
         report.report_data.updatedAt = new Date().toISOString();
 
         await dbFieldServiceReportsSave(report);
@@ -182,7 +198,11 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
     }
   };
 
-  const handleSelectPreset = async (value: number, name: string) => {
+  const handleSelectPreset = async (
+    value: number,
+    name: string,
+    type: CreditEntryType
+  ) => {
     try {
       if (publisher) {
         if (isSelf) {
@@ -219,10 +239,13 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
           report.report_data.hours.credit.monthly = `${hours}:${String(remains).padStart(2, '0')}`;
 
-          let comments = report.report_data.comments;
-          comments = comments === '' ? '' : `${comments}; `;
-
-          report.report_data.comments = `${comments}${name}: ${value}`;
+          // El motivo se guarda como entrada del crédito, no pegado al final
+          // del comentario: así el secretario puede verlo desglosado y el
+          // comentario vuelve a ser lo que es, un sitio para explicarse.
+          report.report_data.hours.credit.entries = creditEntryAdd(
+            report.report_data.hours.credit.entries,
+            { type, hours: value, label: name }
+          );
           report.report_data.shared_ministry = true;
           report.report_data.updatedAt = new Date().toISOString();
 
@@ -251,10 +274,13 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
           report.report_data.hours.credit.monthly = `${finalValue}:00`;
 
-          let comments = report.report_data.comments;
-          comments = comments === '' ? '' : `${comments}; `;
-
-          report.report_data.comments = `${comments}${name}: ${value}`;
+          // El motivo se guarda como entrada del crédito, no pegado al final
+          // del comentario: así el secretario puede verlo desglosado y el
+          // comentario vuelve a ser lo que es, un sitio para explicarse.
+          report.report_data.hours.credit.entries = creditEntryAdd(
+            report.report_data.hours.credit.entries,
+            { type, hours: value, label: name }
+          );
           report.report_data.shared_ministry = true;
           report.report_data.updatedAt = new Date().toISOString();
 
@@ -284,10 +310,11 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
         report.report_data.hours.credit.approved += value;
 
-        let comments = report.report_data.comments;
-        comments = comments === '' ? '' : `${comments}; `;
-
-        report.report_data.comments = `${comments}${name}: ${value}h`;
+        // Igual que arriba: el motivo va como entrada del crédito.
+        report.report_data.hours.credit.entries = creditEntryAdd(
+          report.report_data.hours.credit.entries,
+          { type, hours: value, label: name }
+        );
         report.report_data.shared_ministry = true;
         report.report_data.updatedAt = new Date().toISOString();
 
@@ -306,6 +333,33 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
     setHours(hours_credits);
   }, [hours_credits]);
 
+  // Desglose actual del crédito. Se lee del informe que mande según el caso:
+  // el propio, el delegado o el de la congregación.
+  const entries = useMemo(() => {
+    if (publisher) {
+      if (isSelf) return userReport?.report_data.hours.credit?.entries ?? [];
+
+      return delegatedReport?.report_data.hours.credit?.entries ?? [];
+    }
+
+    return congReport?.report_data.hours.credit?.entries ?? [];
+  }, [publisher, isSelf, userReport, delegatedReport, congReport]);
+
+  /**
+   * Quitar una entrada resta también sus horas del total: la lista es la forma
+   * de construir ese total, así que dejarlos desacompasados sería mentir.
+   */
+  const handleRemoveEntry = async (id: string) => {
+    const entry = entries.find((record) => record.id === id);
+
+    if (!entry) return;
+
+    const current = +(hours.split(':').at(0) || 0);
+    const next = Math.max(0, current - entry.hours);
+
+    await handleHoursChange(`${next}:00`, creditEntryRemove(entries, id));
+  };
+
   return {
     locked,
     hours,
@@ -313,6 +367,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
     hoursValidator,
     fieldRef,
     handleSelectPreset,
+    handleRemoveEntry,
+    entries,
     isSelf,
   };
 };

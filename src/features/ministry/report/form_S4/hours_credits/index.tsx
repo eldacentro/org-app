@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import { FieldContainer } from '../shared_styles';
 import { FormS4Props } from '../index.types';
@@ -7,6 +7,7 @@ import HoursCreditPresets from '@features/ministry/report/hours_credit_presets';
 import HoursEditor from '@features/ministry/report/hours_editor';
 import StandardEditor from '../../standard_editor';
 import Typography from '@components/typography';
+import CreditBreakdown from './CreditBreakdown';
 
 const HoursCredits = (props: FormS4Props) => {
   const { tabletUp } = useBreakpoints();
@@ -20,11 +21,13 @@ const HoursCredits = (props: FormS4Props) => {
     hoursValidator,
     fieldRef,
     handleSelectPreset,
+    handleRemoveEntry,
+    entries,
     isSelf,
   } = useHoursCredits(props);
 
   return (
-    <>
+    <Stack spacing="8px" width="100%">
       {!locked && (
         <FieldContainer
           ref={fieldRef}
@@ -56,6 +59,13 @@ const HoursCredits = (props: FormS4Props) => {
         </FieldContainer>
       )}
 
+      {/* De qué se compone ese total */}
+      <CreditBreakdown
+        entries={entries}
+        onRemove={handleRemoveEntry}
+        readOnly={locked}
+      />
+
       {locked && (
         <Box
           sx={{
@@ -75,7 +85,7 @@ const HoursCredits = (props: FormS4Props) => {
           </Typography>
         </Box>
       )}
-    </>
+    </Stack>
   );
 };
 

@@ -147,7 +147,9 @@ const useServiceTime = ({ onClose }: ServiceTimeProps) => {
     const newReport = structuredClone(currentReport);
 
     newReport.report_data.hours.credit = `${value}:00`;
-    newReport.report_data.comments = `${name}: {{ hours }}`;
+    // Antes ponía literalmente "{{ hours }}" en el comentario: una plantilla
+    // que nunca se sustituía y acababa así, tal cual, en los datos.
+    newReport.report_data.comments = `${name}: ${value}`;
     newReport.report_data.updatedAt = new Date().toISOString();
     setCurrentReport(newReport);
 

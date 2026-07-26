@@ -1,4 +1,7 @@
 import { Box, Menu } from '@mui/material';
+import Button from '@components/button';
+import Dialog from '@components/dialog';
+import TextField from '@components/textfield';
 import { IconArrowDown } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { HoursCreditPresetsProps } from './index.types';
@@ -9,8 +12,20 @@ import PresetItem from './preset_item';
 const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
   const { t } = useAppTranslation();
 
-  const { presetsOpen, handleTogglePresets, presets, handleClosePreset } =
-    useHoursCreditPresets();
+  const {
+    presetsOpen,
+    handleTogglePresets,
+    presets,
+    handleClosePreset,
+    otherOpen,
+    otherLabel,
+    setOtherLabel,
+    otherHours,
+    setOtherHours,
+    handlePresetSelected,
+    handleConfirmOther,
+    handleCancelOther,
+  } = useHoursCreditPresets(props.onSelect);
 
   return (
     <>
@@ -84,11 +99,46 @@ const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
               key={preset.name}
               preset={preset}
               onClose={handleClosePreset}
-              onSelect={props.onSelect}
+              onSelect={handlePresetSelected}
             />
           ))}
         </Menu>
       )}
+
+      {/* "Otro": hay que preguntar el motivo y las horas */}
+      <Dialog open={otherOpen} onClose={handleCancelOther} sx={{ padding: '24px' }}>
+        <Typography className="h2">{t('tr_eldaCreditOther')}</Typography>
+
+        <Typography color="var(--grey-400)">
+          {t('tr_eldaCreditOtherDesc')}
+        </Typography>
+
+        <TextField
+          label={t('tr_eldaCreditOtherLabel')}
+          value={otherLabel}
+          onChange={(e) => setOtherLabel(e.target.value)}
+        />
+
+        <TextField
+          label={t('tr_hours')}
+          type="number"
+          value={otherHours}
+          onChange={(e) => setOtherHours(e.target.value)}
+        />
+
+        <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+          <Button variant="secondary" onClick={handleCancelOther}>
+            {t('tr_cancel')}
+          </Button>
+          <Button
+            variant="main"
+            disabled={!otherLabel.trim() || +otherHours <= 0}
+            onClick={handleConfirmOther}
+          >
+            {t('tr_add')}
+          </Button>
+        </Box>
+      </Dialog>
     </>
   );
 };

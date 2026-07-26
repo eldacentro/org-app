@@ -142,5 +142,8 @@
   "tr_hoursDecreaseError": "Cannot change hours",
   "tr_hoursDecreaseErrorDesc": "You cannot set the hours less than the total you have from your daily records",
   "tr_hoursLeftHint": "includes hours logged this month",
-  "tr_hoursBalanceHint": "through {{ month }} · reported months only"
+  "tr_hoursBalanceHint": "through {{ month }} · reported months only",
+  "tr_eldaCreditOther": "Other",
+  "tr_eldaCreditOtherDesc": "Say what it was and how many hours are credited.",
+  "tr_eldaCreditOtherLabel": "Reason"
 }

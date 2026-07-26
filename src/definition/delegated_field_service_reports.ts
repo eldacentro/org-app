@@ -1,3 +1,4 @@
+import { CreditEntry } from '@services/app/credit_entries';
 export type DelegatedFieldServiceReportType = {
   report_id: string;
   report_data: {
@@ -6,7 +7,7 @@ export type DelegatedFieldServiceReportType = {
     shared_ministry: boolean;
     hours: {
       field_service: { daily: string; monthly: string };
-      credit: { daily: string; monthly: string };
+      credit: { daily: string; monthly: string; entries?: CreditEntry[] };
     };
     bible_studies: { daily: number; monthly: number; records: string[] };
     comments: string;

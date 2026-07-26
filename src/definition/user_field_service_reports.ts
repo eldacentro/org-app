@@ -1,3 +1,4 @@
+import { CreditEntry } from '@services/app/credit_entries';
 export type TimerState = 'started' | 'not_started' | 'paused';
 
 export type TimerRecordType = {
@@ -30,7 +31,7 @@ export type UserFieldServiceMonthlyReportType = {
     shared_ministry: boolean;
     hours: {
       field_service: { daily: string; monthly: string };
-      credit: { daily: string; monthly: string };
+      credit: { daily: string; monthly: string; entries?: CreditEntry[] };
     };
     bible_studies: { daily: number; monthly: number; records: string[] };
     comments: string;

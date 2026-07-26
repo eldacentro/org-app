@@ -143,5 +143,8 @@
   "tr_hoursDecreaseError": "No se pueden cambiar las horas",
   "tr_hoursDecreaseErrorDesc": "No puedes establecer menos horas que el total que tienes de tus registros diarios",
   "tr_hoursLeftHint": "incluye lo registrado este mes",
-  "tr_hoursBalanceHint": "hasta {{ month }} · solo meses informados"
+  "tr_hoursBalanceHint": "hasta {{ month }} · solo meses informados",
+  "tr_eldaCreditOther": "Otro",
+  "tr_eldaCreditOtherDesc": "Indica qué fue y cuántas horas se acreditan.",
+  "tr_eldaCreditOtherLabel": "Motivo"
 }
