@@ -9,6 +9,7 @@ import IconButton from '@components/icon_button';
 import ProgressBarSmall from '@components/progress_bar_small';
 import Typography from '@components/typography';
 import SubmitButton from '@features/ministry/report/form_S4/submit_button';
+import Comments from '@features/ministry/report/form_S4/comments';
 import useMonthView from './useMonthView';
 import DayPanel from './day_panel';
 
@@ -158,6 +159,24 @@ const MonthView = () => {
           onClose={() => setSelectedDayStr(null)}
         />
       )}
+
+      {/* Un sitio donde escribir lo que los números no cuentan: que estuvo
+          enfermo, que se ausentó parte del mes, lo que sea. Lo lee el
+          secretario junto al informe. Existía en el formulario clásico pero
+          esta vista, que es la que usa todo el mundo, no lo tenía. */}
+      <CardContainer>
+        <Stack spacing="8px">
+          <Typography className="h4">{t('tr_comments')}</Typography>
+          <Typography className="body-small-regular" color="var(--grey-400)">
+            Opcional. Si quieres aclarar algo de este mes, escríbelo aquí.
+          </Typography>
+          <Comments
+            month={selectedMonth}
+            person_uid={person_uid}
+            publisher={true}
+          />
+        </Stack>
+      </CardContainer>
 
       <SubmitButton month={selectedMonth} person_uid={person_uid} publisher={true} />
     </Stack>

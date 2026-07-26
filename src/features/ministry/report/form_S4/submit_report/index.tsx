@@ -8,6 +8,7 @@ import Button from '@components/button';
 import Dialog from '@components/dialog';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
+import ReportSummary from './ReportSummary';
 
 const SubmitReport = (props: SubmitReportProps) => {
   const { t } = useAppTranslation();
@@ -48,6 +49,9 @@ const SubmitReport = (props: SubmitReportProps) => {
           ? t('tr_submitReportDesc')
           : t('tr_extraTimeDesc')}
       </Typography>
+
+      {/* Lo que se va a enviar, en el último momento en que se puede revisar */}
+      <ReportSummary month={props.month} person_uid={props.person_uid} />
 
       <Stack spacing="8px" width="100%">
         <Button
