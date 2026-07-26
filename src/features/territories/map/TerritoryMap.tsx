@@ -32,27 +32,6 @@ declare module 'leaflet' {
   }
 }
 
-/**
- * Nitidez en pantallas de alta densidad.
- *
- * Ni OpenStreetMap ni Esri sirven teselas @2x: son imágenes de 256px que en
- * un móvil o un iPad (2 o 3 píxeles reales por cada píxel CSS) se estiran al
- * doble o al triple. De ahí que el mapa se viera borroso incluso sin acercar.
- *
- * `detectRetina` lo resuelve sin cambiar de proveedor: Leaflet pide las
- * teselas un nivel de zoom más adentro y las dibuja a la mitad de tamaño, con
- * lo que caben cuatro donde antes había una y el detalle real se duplica.
- *
- * A cambio hay que bajar un nivel el tope de zoom NATIVO: como se pide un
- * nivel de más, con el tope en 19 se acabarían pidiendo teselas del 20, que
- * ninguno de los dos servidores tiene. Con 18 el nivel más profundo que se
- * pide sigue siendo el 19 — el mismo de antes, pero ahora al doble de
- * resolución.
- */
-const ES_ALTA_DENSIDAD =
-  typeof window !== 'undefined' && window.devicePixelRatio > 1;
-const MAX_ZOOM_NATIVO = ES_ALTA_DENSIDAD ? 18 : 19;
-
 type TerritoryMapProps = {
   geometry: Polygon | MultiPolygon | null;
   color?: string;
@@ -881,16 +860,14 @@ const TerritoryMap = ({
           <TileLayer
             attribution="&copy; Esri World Imagery"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            detectRetina
-            maxNativeZoom={MAX_ZOOM_NATIVO}
+            maxNativeZoom={19}
             maxZoom={20}
           />
         ) : (
           <TileLayer
             attribution="&copy; OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            detectRetina
-            maxNativeZoom={MAX_ZOOM_NATIVO}
+            maxNativeZoom={19}
             maxZoom={20}
           />
         )}
