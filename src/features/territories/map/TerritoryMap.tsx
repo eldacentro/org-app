@@ -87,6 +87,14 @@ const FitBounds = ({
     map.fitBounds(bounds, {
       paddingTopLeft: [24, 24],
       paddingBottomRight: [24, safeBottom],
+      // `animate: false` NO es un detalle. Sin él, Leaflet decide por su
+      // cuenta si anima según lo lejos que quede el destino: si anima, el
+      // `setBearing` de la línea siguiente se ejecuta A MITAD del movimiento,
+      // con el pivote equivocado y hacia un destino calculado antes de rotar.
+      // Por eso el mismo territorio unas veces quedaba centrado y otras
+      // desplazado a un lado. Los tres pasos tienen que ser síncronos, que es
+      // justo lo que da por hecho el comentario de arriba.
+      animate: false,
     });
     if (startBearing) map.setBearing?.(startBearing);
   };
@@ -122,23 +130,64 @@ const MapInstanceCapture = ({ onReady }: { onReady: (m: L.Map) => void }) => {
 
   useEffect(() => {
     onReadyRef.current(map);
-    // Solución robusta para cuando el mapa está en un Dialog con transición o cambia de tamaño
-    const observer = new ResizeObserver(() => {
-      map.invalidateSize();
-    });
+
+    // `invalidateSize` recoloca la vista, así que llamarlo a destiempo se ve
+    // como un salto. Antes se llamaba en CADA aviso del observer, y en el
+    // móvil eso pasa constantemente: al arrastrar, el navegador pliega y
+    // despliega su barra de herramientas, el contenedor cambia de alto y el
+    // mapa daba un tirón en mitad del gesto.
+    //
+    // Ahora se ignora si el tamaño no ha cambiado de verdad, y si hay un
+    // gesto en curso se aplaza hasta que termine.
     const container = map.getContainer();
+    let ultimo = container
+      ? { w: container.clientWidth, h: container.clientHeight }
+      : { w: 0, h: 0 };
+    let enGesto = false;
+    let pendiente = false;
+
+    const aplicar = () => {
+      pendiente = false;
+      // Sin animación: ese deslizamiento de recolocado ERA parte del problema.
+      map.invalidateSize({ animate: false });
+    };
+
+    const empezarGesto = () => {
+      enGesto = true;
+    };
+    const terminarGesto = () => {
+      enGesto = false;
+      if (pendiente) aplicar();
+    };
+    map.on('movestart zoomstart', empezarGesto);
+    map.on('moveend zoomend', terminarGesto);
+
+    const observer = new ResizeObserver(() => {
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (Math.abs(w - ultimo.w) < 2 && Math.abs(h - ultimo.h) < 2) return;
+      ultimo = { w, h };
+      if (enGesto) {
+        pendiente = true;
+        return;
+      }
+      aplicar();
+    });
     if (container) observer.observe(container);
 
     // Fallback por si el observer no pilla el fin de una animación de MUI.
     // Se guardan los ids para CANCELARLOS al desmontar: si el usuario cierra
     // el territorio antes de que salten, `invalidateSize()` corría sobre un
     // mapa ya destruido y lanzaba un TypeError sin capturar.
-    const t1 = setTimeout(() => map.invalidateSize(), 250);
-    const t2 = setTimeout(() => map.invalidateSize(), 500);
+    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 250);
+    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 500);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      map.off('movestart zoomstart', empezarGesto);
+      map.off('moveend zoomend', terminarGesto);
       if (container) observer.unobserve(container);
       observer.disconnect();
     };
