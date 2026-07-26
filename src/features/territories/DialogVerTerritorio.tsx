@@ -317,11 +317,18 @@ const DialogVerTerritorio = ({
   onAsignar,
   onEdit,
 }: Props) => {
-  // Antes usaba `tabletDown` (breakpoint 'tablet' = 480px), así que en
-  // tablets (480-768px) se mostraba el diálogo de escritorio en vez del
-  // mapa a pantalla completa. Con `laptopDown` (768px) la vista de mapa
-  // a pantalla completa cubre también las tablets, no solo el móvil.
-  const { laptopDown: tabletDown } = useBreakpoints();
+  // Vista de mapa a pantalla completa, o diálogo de escritorio.
+  //
+  // Esto se ha ido corrigiendo por ancho dos veces y las dos se quedó corto:
+  // primero 480px, luego 768px. Un iPad Pro de 11" mide 834pt en vertical y
+  // 1194 en horizontal, así que seguía viéndose como en un ordenador.
+  //
+  // El ancho nunca fue la pregunta correcta: lo que decide es si la pantalla
+  // se toca con el dedo. En cualquier tablet se quiere el mapa a pantalla
+  // completa, mida lo que mida. Se mantiene `laptopDown` para que un móvil
+  // siga entrando aunque el navegador no informe del tipo de puntero.
+  const { laptopDown, touchDevice } = useBreakpoints();
+  const tabletDown = laptopDown || touchDevice;
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [tab, setTab] = useState(0);
   const [editingTags, setEditingTags] = useState(false);

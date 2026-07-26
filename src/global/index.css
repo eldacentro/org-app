@@ -1119,9 +1119,14 @@ body {
    La condición está elegida para que NO PUEDA alcanzar ni al teléfono ni al
    escritorio, y eso es comprobable, no una esperanza:
 
-     · `pointer: coarse` = se señala con el dedo. Ningún portátil ni
-       sobremesa entra, ni siquiera con pantalla táctil: su puntero
-       principal sigue siendo el ratón, que es `fine`.
+     · `any-pointer: coarse` = hay algún dedo de por medio. Se usa este y
+       no `pointer` porque `pointer` describe el puntero PRINCIPAL, y un
+       iPad con teclado y trackpad puede decir que el suyo es fino — con lo
+       que se quedaba sin el escalón justo el dispositivo para el que se
+       hizo. Un sobremesa con ratón sigue sin entrar. Es la MISMA señal que
+       usa `touchDevice` en useBreakpoints: si el diseño lo decidiera una y
+       las medidas otra, un iPad podría acabar con el mapa a pantalla
+       completa y el texto de escritorio.
      · `min-height: 600px` echa fuera a los móviles. Un teléfono solo pasa
        de 700px de ancho girándolo, y ahí su altura se desploma: un iPhone
        16 Pro Max apaisado mide 956x440 y se cae por la altura.
@@ -1134,7 +1139,7 @@ body {
    ni un byte. Todo lo de aquí vive dentro de una llave que ellos no abren.
    ══════════════════════════════════════════════════════════════════════════ */
 
-@media (pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
+@media (any-pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
   :root {
     /* Medida de la columna de contenido. La usan el panel principal y los
        menús de categoría; subirla es lo que evita que la columna parezca
