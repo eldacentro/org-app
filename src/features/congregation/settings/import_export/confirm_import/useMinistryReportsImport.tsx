@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { updatedAtOverride } from '@utils/common';
 import { UserFieldServiceReportType } from '@definition/user_field_service_reports';
 import { UserBibleStudyType } from '@definition/user_bible_studies';
@@ -10,6 +11,10 @@ const useMinistryReportsImport = () => {
     result.push(...reports);
 
     const oldReports = await appDb.user_field_service_reports.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(reports, oldReports)) return [];
+
 
     for (const oldReport of oldReports) {
       const newReport = reports.find(
@@ -36,6 +41,10 @@ const useMinistryReportsImport = () => {
     result.push(...studies);
 
     const oldStudies = await appDb.user_bible_studies.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(studies, oldStudies)) return [];
+
 
     for (const oldStudy of oldStudies) {
       const newStudy = studies.find(

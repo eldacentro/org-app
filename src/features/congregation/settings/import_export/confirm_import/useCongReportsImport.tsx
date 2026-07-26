@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { updatedAtOverride } from '@utils/common';
 import { BranchCongAnalysisType } from '@definition/branch_cong_analysis';
 import { BranchFieldServiceReportType } from '@definition/branch_field_service_reports';
@@ -11,6 +12,10 @@ const useCongReportsImport = () => {
     result.push(...reports);
 
     const oldReports = await appDb.branch_cong_analysis.toArray();
+    // Una tabla que llega vacía significa "no viene en este archivo", nunca
+    // "bórralo todo". Ver import_guard.
+    if (importWouldWipeTable(reports, oldReports)) return [];
+
 
     for (const oldReport of oldReports) {
       const newReport = reports.find(
@@ -39,6 +44,10 @@ const useCongReportsImport = () => {
     result.push(...reports);
 
     const oldReports = await appDb.branch_field_service_reports.toArray();
+    // Una tabla que llega vacía significa "no viene en este archivo", nunca
+    // "bórralo todo". Ver import_guard.
+    if (importWouldWipeTable(reports, oldReports)) return [];
+
 
     for (const oldReport of oldReports) {
       const newReport = reports.find(
@@ -65,6 +74,10 @@ const useCongReportsImport = () => {
     result.push(...reports);
 
     const oldReports = await appDb.cong_field_service_reports.toArray();
+    // Una tabla que llega vacía significa "no viene en este archivo", nunca
+    // "bórralo todo". Ver import_guard.
+    if (importWouldWipeTable(reports, oldReports)) return [];
+
 
     for (const oldReport of oldReports) {
       const newReport = reports.find(

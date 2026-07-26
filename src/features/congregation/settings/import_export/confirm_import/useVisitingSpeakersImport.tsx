@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { updatedAtOverride } from '@utils/common';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
@@ -47,6 +48,10 @@ const useVisitingSpeakersImport = () => {
     result.push(...reconciledSpeakers);
 
     const oldSpeakers = await appDb.visiting_speakers.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(speakers, oldSpeakers)) return [];
+
 
     for (const oldSpeaker of oldSpeakers) {
       const newSpeaker = reconciledSpeakers.find(
@@ -77,6 +82,10 @@ const useVisitingSpeakersImport = () => {
     result.push(...congregations);
 
     const oldCongregations = await appDb.speakers_congregations.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(congregations, oldCongregations)) return [];
+
 
     for (const oldCongregation of oldCongregations) {
       const newCongregation = congregations.find(

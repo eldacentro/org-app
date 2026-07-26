@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { UpcomingEventType } from '@definition/upcoming_events';
 import { updatedAtOverride } from '@utils/common';
 import appDb from '@db/appDb';
@@ -9,6 +10,10 @@ const useUpcomingEventsImport = () => {
     result.push(...events);
 
     const oldEvents = await appDb.upcoming_events.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(events, oldEvents)) return [];
+
 
     for (const oldEvent of oldEvents) {
       const newEvent = events.find(

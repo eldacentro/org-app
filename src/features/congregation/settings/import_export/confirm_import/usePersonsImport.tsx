@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { PersonType } from '@definition/person';
 import { updatedAtOverride } from '@utils/common';
 import appDb from '@db/appDb';
@@ -9,6 +10,10 @@ const usePersonsImport = () => {
     result.push(...persons);
 
     const oldPersons = await appDb.persons.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(persons, oldPersons)) return [];
+
 
     for (const oldPerson of oldPersons) {
       const newPerson = persons.find(

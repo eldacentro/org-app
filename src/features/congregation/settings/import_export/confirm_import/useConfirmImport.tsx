@@ -569,7 +569,12 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
         'weekend_history',
       ];
 
-      if (needsPerson.includes(field) && checked) {
+      // Los informes, los grupos y los programas dependen de las personas, así
+      // que marcarlos marca también Personas... pero SOLO si el archivo trae
+      // personas. Sin esa condición, marcar "Informes de congregación" en un
+      // archivo que solo trae informes activaba Personas con una lista vacía y
+      // borraba la congregación entera. Pasó el 27 de julio: 96 personas.
+      if (needsPerson.includes(field) && checked && persons.length > 0) {
         data.persons = true;
       }
 

@@ -1,3 +1,4 @@
+import { importWouldWipeTable } from '@services/app/import_guard';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { updatedAtOverride } from '@utils/common';
 import appDb from '@db/appDb';
@@ -9,6 +10,10 @@ const useServiceGroups = () => {
     result.push(...groups);
 
     const oldGroups = await appDb.field_service_groups.toArray();
+    // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
+    // que no viene. Ver import_guard.
+    if (importWouldWipeTable(groups, oldGroups)) return [];
+
 
     for (const oldGroup of oldGroups) {
       const newGroup = groups.find(
