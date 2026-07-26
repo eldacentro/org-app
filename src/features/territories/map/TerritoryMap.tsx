@@ -511,6 +511,43 @@ const useDeviceHeading = (enabled: boolean) => {
     };
   }, [enabled]);
 
+  // ── El permiso, al primer toque ──────────────────────────────────────────
+  // En iOS no llega NI UN evento de brújula hasta que se concede el permiso,
+  // y solo se puede pedir desde un gesto del usuario. Antes solo se pedía al
+  // pulsar «Mi ubicación», que además está deshabilitado hasta que llega la
+  // posición GPS: quien nunca pulsaba ese botón concreto se quedaba con una
+  // flecha que no giraba nunca, sin ninguna pista del motivo.
+  //
+  // Se engancha al primer toque en cualquier parte, que es un gesto válido y
+  // ocurre solo con abrir el mapa y moverlo. Si ya se concedió en otra
+  // ocasión, `requestPermission` resuelve sin volver a preguntar.
+  useEffect(() => {
+    if (!enabled) return;
+
+    const D = window.DeviceOrientationEvent as unknown as {
+      requestPermission?: () => Promise<'granted' | 'denied'>;
+    };
+    if (typeof D?.requestPermission !== 'function') return; // no hace falta
+
+    let pedido = false;
+    const pedir = () => {
+      if (pedido) return;
+      pedido = true;
+      quitar();
+      D.requestPermission?.().catch(() => {
+        // Si lo rechaza, simplemente no habrá flecha.
+      });
+    };
+    const quitar = () => {
+      window.removeEventListener('touchend', pedir);
+      window.removeEventListener('pointerdown', pedir);
+    };
+
+    window.addEventListener('touchend', pedir);
+    window.addEventListener('pointerdown', pedir);
+    return quitar;
+  }, [enabled]);
+
   return heading;
 };
 
@@ -993,12 +1030,10 @@ const TerritoryMap = ({
           <Box
             component="button"
             type="button"
-            disabled={!livePos}
+            // NO se deshabilita aunque todavía no haya posición: pulsarlo es
+            // el momento natural para pedir la brújula, y exigir que el GPS
+            // haya respondido antes dejaba a mucha gente sin pedirla nunca.
             onClick={() => {
-              // iOS solo concede la brújula si se pide DENTRO de un gesto:
-              // este toque es el momento natural para hacerlo, porque es
-              // justo cuando el usuario quiere saber dónde está y hacia
-              // dónde mira. Si la rechaza, el punto sale sin flecha.
               void requestHeadingPermission();
               if (livePos) mapRef.current?.setView(livePos, 17);
             }}
