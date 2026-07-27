@@ -1,7 +1,7 @@
 import { memo, PointerEvent, useCallback, useRef, useState, WheelEvent } from 'react';
 import { Box } from '@mui/material';
 import Typography from '@components/typography';
-import { IconAdd } from '@components/icons';
+import { IconAdd, IconFullscreen } from '@components/icons';
 import { COLORES, EXTINTORES_GEO, PUESTOS, SALIDAS } from './data';
 import { PLANO_BASE_SVG, PLANO_TRANSFORM } from './plano_base';
 import { BLOQUES_ASIENTOS } from './asientos';
@@ -32,6 +32,8 @@ import { Seleccion } from './DetalleSeleccion';
 type Props = {
   seleccion: Seleccion;
   onSelect: (seleccion: Seleccion) => void;
+  /** Si se pasa, aparece el botón de pantalla completa junto al zoom. */
+  onPantallaCompleta?: () => void;
 };
 
 const TENUE = '#64748B';
@@ -152,7 +154,7 @@ const PlanoBase = memo(function PlanoBase() {
 const VISTA_COMPLETA = { x: -7, y: -6, w: 194, h: 92 };
 const ZOOM_MAX = 6;
 
-const Plano2D = ({ seleccion, onSelect }: Props) => {
+const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
   // Zoom y desplazamiento. Se hace moviendo el viewBox del SVG en vez de con
   // transformaciones CSS: el dibujo se rasteriza a la escala nueva, así que
   // ampliar deja los textos y las líneas NÍTIDOS en vez de pixelados, y no
@@ -534,6 +536,27 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
         >
           <IconAdd color="currentColor" width={16} height={16} />
         </Box>
+
+        {onPantallaCompleta && (
+          <>
+            <Box
+              sx={{
+                width: '1px',
+                height: '18px',
+                backgroundColor: 'var(--line)',
+                mx: '2px',
+              }}
+            />
+            <Box
+              component="button"
+              type="button"
+              aria-label="Ver a pantalla completa"
+              onClick={onPantallaCompleta}
+            >
+              <IconFullscreen color="currentColor" width={16} height={16} />
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );

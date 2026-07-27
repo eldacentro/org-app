@@ -8,6 +8,7 @@ import PlanHeader from '@features/evacuacion/PlanHeader';
 import Plano2D from '@features/evacuacion/Plano2D';
 import PanelInformacion from '@features/evacuacion/PanelInformacion';
 import DetalleSeleccion, { Seleccion } from '@features/evacuacion/DetalleSeleccion';
+import PlanoPantallaCompleta from '@features/evacuacion/PlanoPantallaCompleta';
 import { PLAN_EVACUACION } from '@features/evacuacion/data';
 import { dbEvacuacionGetConfig } from '@services/dexie/evacuacion';
 import { PlanEvacuacion } from '@definition/evacuacion';
@@ -20,6 +21,7 @@ const EvacuacionPage = () => {
   const [plan, setPlan] = useState<PlanEvacuacion>(PLAN_EVACUACION);
   const [seleccion, setSeleccion] = useState<Seleccion>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [pantallaCompleta, setPantallaCompleta] = useState(false);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -79,7 +81,11 @@ const EvacuacionPage = () => {
             gap: '12px',
           }}
         >
-          <Plano2D seleccion={seleccion} onSelect={setSeleccion} />
+          <Plano2D
+            seleccion={seleccion}
+            onSelect={setSeleccion}
+            onPantallaCompleta={() => setPantallaCompleta(true)}
+          />
 
           {seleccion && (
             <DetalleSeleccion
@@ -101,6 +107,15 @@ const EvacuacionPage = () => {
           <PanelInformacion plan={plan} />
         </Box>
       </Box>
+
+      {pantallaCompleta && (
+        <PlanoPantallaCompleta
+          plan={plan}
+          seleccion={seleccion}
+          onSelect={setSeleccion}
+          onClose={() => setPantallaCompleta(false)}
+        />
+      )}
 
       {isConfigOpen && (
         <EvacuacionConfigDialog
