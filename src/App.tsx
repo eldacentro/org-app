@@ -38,6 +38,7 @@ const Documentos = lazy(() => import('@pages/congregation/documentos'));
 const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
 const Territorios = lazy(() => import('@pages/congregation/territories'));
 const CircuitVisit = lazy(() => import('@pages/congregation/circuit_visit'));
+const Ausencias = lazy(() => import('@pages/congregation/ausencias'));
 
 const MyProfile = lazy(() => import('@pages/my_profile'));
 const AyudaPage = lazy(() => import('@pages/ayuda'));
@@ -310,6 +311,7 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 children: [
                   { path: '/persons', element: <PersonsAll /> },
                   { path: '/persons/:id', element: <PersonDetails /> },
+                  { path: '/congregation/ausencias', element: <Ausencias /> },
                   {
                     path: '/congregation-settings',
                     element: <CongregationSettings />,

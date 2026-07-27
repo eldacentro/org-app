@@ -13,6 +13,7 @@ import {
   IconInformationBoard,
   IconClean,
   IconCalendarWeek,
+  IconAirplaneTicket,
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
@@ -48,6 +49,22 @@ const CongregationDashboard = () => {
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_persons', 'Personas')}</div>
+            </div>
+            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+        )}
+
+        {/* Ausencias — solo ancianos: los periodos llevan comentarios
+            personales y hoy solo los ve quien puede abrir fichas. */}
+        {isElder && (
+          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/ausencias')}>
+            <div className="ti">
+              <IconAirplaneTicket color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Ausencias</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />

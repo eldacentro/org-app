@@ -108,6 +108,53 @@ export const addDays = (date: Date | string, value: number) => {
   return libAddDays(new Date(date), value);
 };
 
+/**
+ * Normaliza cualquier fecha a 'yyyy/MM/dd' para poder compararlas como texto.
+ *
+ * Hace falta porque las fechas llegan en formatos distintos según de dónde
+ * vengan (la reunión, un turno de exhibidores, una salida de predicación, un
+ * periodo de ausencia guardado con guiones). Comparar '2026-09-27' con
+ * '2026/09/24' como texto da un resultado ABSURDO —el guion y la barra no
+ * ordenan igual— y el aviso de ausencia salía o dejaba de salir sin ninguna
+ * lógica aparente.
+ *
+ * Devuelve '' si la fecha es ilegible: quien llama decide qué hacer con eso.
+ */
+export const toComparableDate = (value: string | Date | undefined) => {
+  if (!value) return '';
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? '' : formatDate(value, 'yyyy/MM/dd');
+  }
+
+  // 'yyyy/MM/dd' o 'yyyy-MM-dd' (con hora o sin ella): basta con normalizar el
+  // separador y quedarse con la parte de la fecha.
+  const plain = value.slice(0, 10).replace(/-/g, '/');
+
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(plain)) return plain;
+
+  const parsed = new Date(value);
+
+  return Number.isNaN(parsed.getTime()) ? '' : formatDate(parsed, 'yyyy/MM/dd');
+};
+
+/**
+ * Días de calendario entre dos fechas ya normalizadas ('yyyy/MM/dd').
+ *
+ * Se construyen a mediodía a propósito: así un cambio de hora (que mueve el
+ * día una hora arriba o abajo) no puede convertir "faltan 3 días" en 2.
+ */
+export const daysBetweenDates = (from: string, to: string) => {
+  const toNoon = (value: string) => {
+    const [year, month, day] = value.split('/').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0);
+  };
+
+  return Math.round(
+    (toNoon(to).getTime() - toNoon(from).getTime()) / (24 * 60 * 60 * 1000)
+  );
+};
+
 export const isAfter = (date: Date | string, dateToCompare: Date | string) => {
   return libIsAfter(new Date(date), new Date(dateToCompare));
 };

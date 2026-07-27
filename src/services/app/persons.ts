@@ -17,6 +17,7 @@ import {
   dateLastDatePreviousMonth,
   formatDate,
   formatDateShortMonth,
+  toComparableDate,
 } from '@utils/date';
 import { AppRoleType } from '@definition/app';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
@@ -933,33 +934,6 @@ export const personGetScheduleName = (person: PersonType) => {
   }
 
   return result;
-};
-
-/**
- * Normaliza cualquier fecha a 'yyyy/MM/dd' para poder compararlas como texto.
- *
- * Hace falta porque quien llama a personIsAway pasa la fecha en formatos
- * distintos según de dónde venga (la reunión, un turno de exhibidores, una
- * salida de predicación). Comparar '2026-09-27' con '2026/09/24' como texto da
- * un resultado ABSURDO —el guion y la barra no ordenan igual— y el aviso de
- * ausencia salía o dejaba de salir sin ninguna lógica aparente.
- */
-const toComparableDate = (value: string | Date | undefined) => {
-  if (!value) return '';
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? '' : formatDate(value, 'yyyy/MM/dd');
-  }
-
-  // 'yyyy/MM/dd' o 'yyyy-MM-dd' (con hora o sin ella): basta con normalizar el
-  // separador y quedarse con la parte de la fecha.
-  const plain = value.slice(0, 10).replace(/-/g, '/');
-
-  if (/^\d{4}\/\d{2}\/\d{2}$/.test(plain)) return plain;
-
-  const parsed = new Date(value);
-
-  return Number.isNaN(parsed.getTime()) ? '' : formatDate(parsed, 'yyyy/MM/dd');
 };
 
 export const personIsAway = (person: PersonType, date: string | Date) => {
