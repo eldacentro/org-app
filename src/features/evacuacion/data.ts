@@ -366,3 +366,61 @@ export const ASIENTOS = [
   { x: 175.17, y: 75.92 },
   { x: 179.15, y: 75.92 },
 ];
+
+/**
+ * Salidas del Salón, con la calle a la que dan.
+ *
+ * Que la etiqueta diga a qué calle sale no es decoración: en una emergencia,
+ * "salid por la de Cervantes" se entiende y "salid por la B3" no.
+ */
+export type SalidaGeo = {
+  id: string;
+  /** Puesto del plan que la atiende (A3, B3...). */
+  puesto: string;
+  equipoId: string;
+  nombre: string;
+  calle: string;
+  esEmergencia: boolean;
+  x: number;
+  y: number;
+};
+
+export const SALIDAS: SalidaGeo[] = [
+  {
+    id: 'principal',
+    puesto: 'A3',
+    equipoId: 'evacuacion-a',
+    nombre: 'Puerta principal',
+    calle: 'C. Hernán Cortés',
+    esEmergencia: false,
+    x: 0,
+    y: 50.1,
+  },
+  {
+    id: 'emergencia',
+    puesto: 'B3',
+    equipoId: 'evacuacion-b',
+    nombre: 'Salida de emergencia',
+    calle: 'C. Cervantes',
+    esEmergencia: true,
+    x: 180,
+    y: 53.15,
+  },
+];
+
+/** Dónde se coloca cada miembro de los equipos de evacuación. */
+export type PuestoGeo = {
+  posicion: string;
+  equipoId: string;
+  x: number;
+  y: number;
+};
+
+export const PUESTOS: PuestoGeo[] = [
+  { posicion: 'A1', equipoId: 'evacuacion-a', x: 57, y: 27 },
+  { posicion: 'A2', equipoId: 'evacuacion-a', x: 10.5, y: 13 },
+  { posicion: 'A3', equipoId: 'evacuacion-a', x: 4, y: 47 },
+  { posicion: 'B1', equipoId: 'evacuacion-b', x: 133, y: 50 },
+  { posicion: 'B2', equipoId: 'evacuacion-b', x: 90, y: 24 },
+  { posicion: 'B3', equipoId: 'evacuacion-b', x: 175, y: 49 },
+];

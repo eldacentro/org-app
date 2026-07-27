@@ -1,9 +1,22 @@
-import { Box, Typography } from '@mui/material';
-import { IconClose, IconError } from '@components/icons';
+import { Box, Stack } from '@mui/material';
+import { IconClose } from '@components/icons';
+import Typography from '@components/typography';
 import { PlanEvacuacion } from '@definition/evacuacion';
+import { SALIDAS } from './data';
+import { BLOQUES_ASIENTOS } from './asientos';
+
+/**
+ * Lo que sale al tocar algo del plano.
+ *
+ * La regla: no basta con decir QUÉ es lo que se ha tocado, hay que decir qué
+ * pasa con ello en una evacuación —quién se encarga, en qué orden, por dónde
+ * se sale—. Un plano que solo etiqueta cosas no ayuda a nadie con prisa.
+ */
 
 export type Seleccion =
-  | { tipo: 'zona'; equipoId: string }
+  | { tipo: 'puesto'; equipoId: string; posicion: string }
+  | { tipo: 'bloque'; bloqueId: string }
+  | { tipo: 'salida'; salidaId: string }
   | { tipo: 'extintor'; id: number }
   | null;
 
@@ -13,199 +26,198 @@ type Props = {
   onClose: () => void;
 };
 
-const CloseButton = ({ onClose }: { onClose: () => void }) => (
-  <Box
-    onClick={onClose}
-    aria-label="Cerrar"
-    sx={{
-      cursor: 'pointer',
-      width: '28px',
-      height: '28px',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.04)',
-      flexShrink: 0,
-      transition: 'background-color 0.2s',
-      '&:hover': {
-        backgroundColor: 'rgba(0,0,0,0.08)',
-      },
-    }}
-  >
-    <IconClose width={14} height={14} color="#475569" />
-  </Box>
-);
+type Contenido = {
+  etiqueta: string;
+  titulo: string;
+  color: string;
+  lineas: string[];
+  lista?: string[];
+  /** Los pasos de un procedimiento van numerados; una lista de nombres, no. */
+  numerada?: boolean;
+};
 
-/**
- * Panel lateral/inferior que muestra el detalle del objeto seleccionado.
- * En móvil se comporta como un Bottom Sheet y en desktop como Sidebar interactiva.
- * Presenta una UI Light "Apple/Glassmorphism".
- */
+const construir = (
+  plan: PlanEvacuacion,
+  seleccion: NonNullable<Seleccion>
+): Contenido | null => {
+  if (seleccion.tipo === 'puesto') {
+    const equipo = plan.equipos.find((e) => e.id === seleccion.equipoId);
+    const miembro = equipo?.miembros.find(
+      (m) => m.posicion === seleccion.posicion
+    );
+    if (!equipo) return null;
+
+    const salida = SALIDAS.find((s) => s.puesto === seleccion.posicion);
+
+    const lineas = [equipo.nombre];
+    if (miembro?.esResponsable) lineas.push('Responsable del equipo');
+    if (salida) lineas.push(`Atiende ${salida.nombre.toLowerCase()} (${salida.calle})`);
+
+    return {
+      etiqueta: `Puesto ${seleccion.posicion}`,
+      titulo: miembro?.nombre ?? 'Sin asignar',
+      color: equipo.color,
+      lineas,
+      lista: equipo.procedimiento,
+      numerada: true,
+    };
+  }
+
+  if (seleccion.tipo === 'bloque') {
+    const bloque = BLOQUES_ASIENTOS.find((b) => b.id === seleccion.bloqueId);
+    if (!bloque) return null;
+
+    const equipos =
+      bloque.zona === 'AB'
+        ? plan.equipos.filter((e) => e.zona)
+        : plan.equipos.filter((e) => e.zona === bloque.zona);
+
+    return {
+      etiqueta: `${bloque.asientos.length} asientos`,
+      titulo: bloque.nombre,
+      color: bloque.color,
+      lineas: [bloque.detalle],
+      lista: equipos.map(
+        (e) =>
+          `${e.nombre}: ${e.miembros.map((m) => `${m.posicion} ${m.nombre}`).join(', ')}`
+      ),
+    };
+  }
+
+  if (seleccion.tipo === 'salida') {
+    const salida = SALIDAS.find((s) => s.id === seleccion.salidaId);
+    if (!salida) return null;
+
+    const equipo = plan.equipos.find((e) => e.id === salida.equipoId);
+    const miembro = equipo?.miembros.find((m) => m.posicion === salida.puesto);
+
+    const regla = salida.esEmergencia
+      ? plan.reglasEspeciales.find((r) => r.includes('salida de emergencia'))
+      : plan.reglasEspeciales.find((r) => r.includes('puerta principal'));
+
+    return {
+      etiqueta: salida.esEmergencia ? 'Salida de emergencia' : 'Salida',
+      titulo: salida.calle,
+      color: salida.esEmergencia ? '#10B981' : '#3B82F6',
+      lineas: [
+        `${salida.nombre} · puesto ${salida.puesto}`,
+        miembro ? `Al cargo: ${miembro.nombre}` : '',
+        regla ? 'Si esta salida está bloqueada:' : '',
+      ].filter(Boolean),
+      lista: regla ? [regla] : undefined,
+    };
+  }
+
+  const extintor = plan.extintores.find((e) => e.id === seleccion.id);
+  if (!extintor) return null;
+
+  return {
+    etiqueta: `Extintor ${extintor.id}`,
+    titulo: extintor.tipo,
+    color: '#EF4444',
+    lineas: [
+      extintor.id <= 5
+        ? 'Entra en el procedimiento de intervención (extintores 1 a 5).'
+        : 'Fuera del procedimiento de intervención.',
+    ],
+    lista: plan.procedimientoIntervencion.pasos,
+    numerada: true,
+  };
+};
+
 const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
   if (!seleccion) return null;
 
-  const wrapperSx = {
-    position: 'absolute' as const,
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(24px)',
-    color: '#0F172A',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '16px',
-    padding: '24px 20px',
-    overflowY: 'auto' as const,
-    top: 'auto',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    width: '100%',
-    height: 'auto',
-    maxHeight: '65%',
-    borderTopLeftRadius: '24px',
-    borderTopRightRadius: '24px',
-    borderLeft: 'none',
-    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
-    boxShadow: '0 -10px 40px rgba(0,0,0,0.08)',
-    
-    '@media (min-width: 900px)': {
-      top: 0,
-      bottom: 'auto',
-      left: 'auto',
-      width: 'min(340px, 45%)',
-      height: '100%',
-      maxHeight: '100%',
-      borderTopLeftRadius: '0',
-      borderTopRightRadius: '0',
-      borderLeft: '1px solid rgba(0, 0, 0, 0.05)',
-      borderTop: 'none',
-      boxShadow: '-10px 0 40px rgba(0,0,0,0.08)',
-    },
-  };
-
-  if (seleccion.tipo === 'extintor') {
-    const ext = plan.extintores.find((e) => e.id === seleccion.id);
-    return (
-      <Box sx={wrapperSx}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '20px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IconError width={22} height={22} color="var(--red-main)" /> Extintor {seleccion.id}
-          </Typography>
-          <CloseButton onClose={onClose} />
-        </Box>
-        <Box
-          sx={{
-            border: `1px solid rgba(0,0,0,0.05)`,
-            borderRadius: 'var(--radius-xxl)',
-            padding: '18px',
-            backgroundColor: `rgba(0,0,0,0.02)`,
-            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)',
-          }}
-        >
-          <Typography sx={{ fontSize: '13px', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-            Tipo de Agente
-          </Typography>
-          <Typography sx={{ fontSize: '22px', fontWeight: 800, color: '#EF4444', marginTop: '4px' }}>
-            {ext?.tipo ?? 'Desconocido'}
-          </Typography>
-        </Box>
-        <Typography className="body-small-regular" sx={{ color: '#475569', lineHeight: 1.5 }}>
-          Ubicación estratégica señalada en el plano para uso inmediato en caso de conato de incendio.
-        </Typography>
-      </Box>
-    );
-  }
-
-  // tipo === 'zona'
-  const equipo = plan.equipos.find((e) => e.id === seleccion.equipoId);
-  if (!equipo) return null;
+  const contenido = construir(plan, seleccion);
+  if (!contenido) return null;
 
   return (
-    <Box sx={wrapperSx}>
-      {/* Cabecera */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-        <Box>
-          {equipo.zona && (
-            <Box sx={{ display: 'inline-block', padding: '4px 10px', borderRadius: '100px', backgroundColor: `${equipo.color}1A`, border: `1px solid ${equipo.color}33`, marginBottom: '8px' }}>
-              <Typography sx={{ fontSize: '11px', fontWeight: 800, color: equipo.color, letterSpacing: '1px' }}>
-                ZONA {equipo.zona}
-              </Typography>
-            </Box>
-          )}
-          <Typography sx={{ fontWeight: 800, fontSize: '20px', lineHeight: 1.2, color: '#0F172A' }}>
-            {equipo.nombre}
+    <Box
+      sx={{
+        // Debajo del plano, no encima: flotando tapaba justo lo que se acaba
+        // de tocar, y en un móvil el plano es apaisado y bajito.
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        // Superficie opaca a propósito: el `backdrop-filter: blur(24px)` de
+        // antes es de lo más caro que se le puede pedir a un móvil, y aquí
+        // solo servía para transparentar el plano de debajo.
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-lg)',
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'inline-block',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-max)',
+              backgroundColor: contenido.color,
+              marginBottom: '4px',
+            }}
+          >
+            <Typography className="label-small-semibold" color="var(--always-white)">
+              {contenido.etiqueta}
+            </Typography>
+          </Box>
+
+          <Typography className="h3" color="var(--ink)">
+            {contenido.titulo}
           </Typography>
         </Box>
-        <CloseButton onClose={onClose} />
-      </Box>
 
-      {/* Equipo */}
-      <Box sx={{ marginTop: '4px' }}>
-        <Typography sx={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-          Personal Asignado
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {equipo.miembros.map((m, i) => (
-            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-xl)', border: '1px solid rgba(0,0,0,0.03)' }}>
-              {m.posicion && (
-                <Box
-                  sx={{
-                    minWidth: '28px',
-                    height: '28px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 'var(--radius-l)',
-                    backgroundColor: equipo.color,
-                    boxShadow: `0 4px 12px ${equipo.color}40`,
-                    color: '#fff',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                  }}
-                >
-                  {m.posicion}
-                </Box>
-              )}
-              <Typography sx={{ fontSize: '15px', fontWeight: 600, color: '#334155' }}>{m.nombre}</Typography>
-            </Box>
-          ))}
+        <Box
+          component="button"
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          sx={{
+            appearance: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            flexShrink: 0,
+            width: '28px',
+            height: '28px',
+            borderRadius: 'var(--radius-max)',
+            backgroundColor: 'var(--accent-150)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <IconClose width={14} height={14} color="var(--ink-2)" />
         </Box>
       </Box>
 
-      {/* Procedimiento */}
-      <Box sx={{ marginTop: '8px' }}>
-        <Typography sx={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-          Protocolo de Acción
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {equipo.procedimiento.map((paso, i) => (
-            <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <Box
-                sx={{
-                  flexShrink: 0,
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(0,0,0,0.03)',
-                  color: equipo.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  border: `1px solid ${equipo.color}33`,
-                }}
+      <Stack spacing="4px">
+        {contenido.lineas.map((linea) => (
+          <Typography key={linea} className="body-small-regular" color="var(--ink-2)">
+            {linea}
+          </Typography>
+        ))}
+      </Stack>
+
+      {contenido.lista && contenido.lista.length > 0 && (
+        <Stack spacing="6px">
+          {contenido.lista.map((item, index) => (
+            <Box key={item} sx={{ display: 'flex', gap: '8px' }}>
+              <Typography
+                className="label-small-semibold"
+                color={contenido.color}
+                sx={{ minWidth: '14px', paddingTop: '2px' }}
               >
-                {i + 1}
-              </Box>
-              <Typography className="body-small-medium" sx={{ color: '#475569', lineHeight: 1.6, paddingTop: '1px' }}>
-                {paso}
+                {contenido.numerada ? index + 1 : '·'}
+              </Typography>
+              <Typography className="body-small-regular" color="var(--ink)">
+                {item}
               </Typography>
             </Box>
           ))}
-        </Box>
-      </Box>
+        </Stack>
+      )}
     </Box>
   );
 };

@@ -7,7 +7,7 @@ import PageTitle from '@components/page_title';
 import PlanHeader from '@features/evacuacion/PlanHeader';
 import Plano2D from '@features/evacuacion/Plano2D';
 import PanelInformacion from '@features/evacuacion/PanelInformacion';
-import { Seleccion } from '@features/evacuacion/DetalleSeleccion';
+import DetalleSeleccion, { Seleccion } from '@features/evacuacion/DetalleSeleccion';
 import { PLAN_EVACUACION } from '@features/evacuacion/data';
 import { dbEvacuacionGetConfig } from '@services/dexie/evacuacion';
 import { PlanEvacuacion } from '@definition/evacuacion';
@@ -71,12 +71,26 @@ const EvacuacionPage = () => {
           sx={{
             flex: { mobile: '0 0 auto', laptop: '0 0 65%' },
             width: '100%',
-            height: { mobile: '55vh', laptop: '600px' },
+            // El plano tiene una forma muy apaisada (194 x 92). Con una altura
+            // fija se dibujaba pequeñito en medio de una franja vacía enorme;
+            // atado a su propia proporción ocupa justo lo que necesita.
+            aspectRatio: '194 / 92',
+            maxHeight: { mobile: '60vh', laptop: '600px' },
             position: 'relative',
           }}
         >
-          <Plano2D plan={plan} seleccion={seleccion} onSelect={setSeleccion} />
+          <Plano2D seleccion={seleccion} onSelect={setSeleccion} />
         </Box>
+
+        {seleccion && (
+          <Box sx={{ width: '100%' }}>
+            <DetalleSeleccion
+              plan={plan}
+              seleccion={seleccion}
+              onClose={() => setSeleccion(null)}
+            />
+          </Box>
+        )}
 
         {/* Panel de información */}
         <Box
