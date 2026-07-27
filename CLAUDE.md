@@ -28,6 +28,14 @@ Cualquier cambio en `src/services/worker/backupUtils.ts`,
 extra cuidadosa antes de desplegar — un bug ahí se propaga a **todos los
 dispositivos de la congregación**, no solo al que lo introdujo.
 
+**Regla: la sincronización no escribe lo que no ha cambiado.** Cada
+`dbRestore*` compara el resultado de la fusión con lo que ya está en Dexie
+(`isSameRecord`, en `worker/merge.ts`) y solo guarda lo que difiere. No es
+solo ahorro de escrituras: guardar un registro idéntico despierta a
+`useLiveQuery`, que entrega un array nuevo y redibuja la pantalla entera —
+era el parpadeo que aparecía solo cada pocos minutos. Si añades un
+`bulkPut` nuevo en el ciclo de sync, pásalo por esa comparación.
+
 ## Comandos útiles
 
 - `npx tsc --noEmit -p tsconfig.json` — typecheck. El proyecto tiene un
