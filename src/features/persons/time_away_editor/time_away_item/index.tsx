@@ -1,5 +1,5 @@
 import { Box, Stack } from '@mui/material';
-import { IconAdd, IconDelete, IconInfo } from '@icons/index';
+import { IconDelete, IconInfo } from '@icons/index';
 import Button from '@components/button';
 import DatePicker from '@components/date_picker';
 import TextField from '@components/textfield';
@@ -49,8 +49,6 @@ const TimeAwayItem = ({
   id,
   onDatesChange,
   onCommentsChange,
-  isLast,
-  onAdd,
   onDelete,
   readOnly,
 }: TimeAwayItemType) => {
@@ -194,27 +192,8 @@ const TimeAwayItem = ({
         slotProps={{ input: { readOnly } }}
       />
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          justifyContent: isLast ? 'space-between' : 'flex-end',
-          flexDirection: tabletDown ? 'column-reverse' : 'row',
-        }}
-      >
-        {!readOnly && isLast && (
-          <Button
-            variant="small"
-            startIcon={<IconAdd />}
-            sx={{ height: '32px', minHeight: '32px !important' }}
-            onClick={onAdd}
-          >
-            {t('tr_add')}
-          </Button>
-        )}
-
-        {!readOnly && (
+      {!readOnly && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             variant="small"
             color="red"
@@ -224,8 +203,8 @@ const TimeAwayItem = ({
           >
             {t('tr_delete')}
           </Button>
-        )}
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };

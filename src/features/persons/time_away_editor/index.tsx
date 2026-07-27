@@ -3,6 +3,7 @@ import { IconAdd, IconInfo } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
 import { TimeAwayEditorProps } from './index.types';
 import Button from '@components/button';
+import Divider from '@components/divider';
 import Typography from '@components/typography';
 import TimeAwayItem from './time_away_item';
 
@@ -76,20 +77,51 @@ const TimeAwayEditor = ({
           }}
         >
           {items.map((timeAwayItem, index) => (
-            <TimeAwayItem
+            <Box
               key={timeAwayItem.id}
-              readOnly={readOnly}
-              id={timeAwayItem.id}
-              start_date={timeAwayItem.start_date}
-              end_date={timeAwayItem.end_date}
-              comments={timeAwayItem.comments}
-              isLast={index === items.length - 1}
-              onAdd={onAdd}
-              onCommentsChange={onCommentsChange}
-              onDelete={onDelete}
-              onDatesChange={onDatesChange}
-            />
+              sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              {/* Una línea entre periodos. Sin ella no se sabía de cuál de los
+                  dos era el botón de borrar que queda entre medias. */}
+              {index > 0 && <Divider color="var(--line)" />}
+
+              {items.length > 1 && (
+                <Typography
+                  className="label-small-semibold"
+                  color="var(--ink-3)"
+                >
+                  {`Periodo ${index + 1} de ${items.length}`}
+                </Typography>
+              )}
+
+              <TimeAwayItem
+                readOnly={readOnly}
+                id={timeAwayItem.id}
+                start_date={timeAwayItem.start_date}
+                end_date={timeAwayItem.end_date}
+                comments={timeAwayItem.comments}
+                onCommentsChange={onCommentsChange}
+                onDelete={onDelete}
+                onDatesChange={onDatesChange}
+              />
+            </Box>
           ))}
+
+          {/* "Añadir" vive fuera de los periodos, al final de la tarjeta:
+              dentro del último quedaba pegado a su "Eliminar" y parecía otra
+              acción de ese periodo en vez de "añadir uno nuevo". */}
+          {!readOnly && (
+            <Box>
+              <Button
+                variant="small"
+                startIcon={<IconAdd />}
+                sx={{ height: '32px', minHeight: '32px !important' }}
+                onClick={onAdd}
+              >
+                {t('tr_add')}
+              </Button>
+            </Box>
+          )}
         </Box>
       )}
     </Box>
