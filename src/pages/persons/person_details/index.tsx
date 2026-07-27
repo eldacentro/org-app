@@ -16,7 +16,7 @@ import PersonSpecialCircumstances from '@features/persons/special_circumstances'
 import PersonPrivileges from '@features/persons/privileges';
 import PersonTimeAway from '@features/persons/time_away';
 import PersonEmergencyContacts from '@features/persons/emergency_contacts';
-import PersonAssignmentsHistory from '@features/persons/assignments_history';
+import PersonActivity from '@features/persons/activity';
 import PersonAssignments from '@features/persons/assignments';
 import FamilyMembers from '@features/persons/family_members';
 import PersonDepartments from '@features/persons/departments';
@@ -101,7 +101,7 @@ const PersonDetails = () => {
         >
           <PersonAssignments />
 
-          {!isNewPerson && <PersonAssignmentsHistory />}
+          {!isNewPerson && <PersonActivity />}
 
           <PersonTimeAway />
           <PersonEmergencyContacts />

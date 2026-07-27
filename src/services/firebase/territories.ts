@@ -239,6 +239,52 @@ export const subscribeAssignments = (
     'asignaciones'
   );
 
+/**
+ * Los territorios que ha llevado UNA persona, de una sola consulta.
+ *
+ * La ficha de persona no puede montar `useTerritories()` solo para esto: ese
+ * hook abre nueve suscripciones en tiempo real a todo el módulo, y aquí basta
+ * con mirar una vez. Se consulta por `personUid` —que va en claro— y se piden
+ * también los territorios para poder poner el número de cada uno; son unos
+ * cien documentos pequeños y se leen una única vez al abrir la pestaña.
+ *
+ * Las notas de la asignación NO se descifran: no hacen falta para la ficha y
+ * así esto funciona igual sin la llave maestra.
+ */
+export const fetchPersonTerritoryHistory = async (
+  congId: string,
+  personUid: string
+): Promise<{ assignment: TerritoryAssignment; territoryLabel: string }[]> => {
+  const assignmentsSnap = await getDocs(
+    query(assignmentsCol(congId), where('personUid', '==', personUid))
+  );
+
+  // Sin asignaciones no hace falta leerse el listado entero de territorios
+  // solo para poner nombres a nada.
+  if (assignmentsSnap.empty) return [];
+
+  const territoriesSnap = await getDocs(territoriesCol(congId));
+
+  const labels = new Map<string, string>();
+
+  for (const doc of territoriesSnap.docs) {
+    const data = doc.data();
+    const numero = (data.numero as string) ?? '';
+    const nombre = (data.nombre as string) ?? '';
+
+    labels.set(doc.id, [numero, nombre].filter(Boolean).join(' · '));
+  }
+
+  return assignmentsSnap.docs.map((doc) => {
+    const assignment = { ...doc.data(), notas: undefined } as TerritoryAssignment;
+
+    return {
+      assignment,
+      territoryLabel: labels.get(assignment.territoryId) ?? '',
+    };
+  });
+};
+
 export const subscribeLocations = (
   congId: string,
   key: string,

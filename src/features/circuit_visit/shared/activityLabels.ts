@@ -1,9 +1,7 @@
-import { CircuitVisitCompanionActivity } from '@definition/circuit_visit';
-
 // Etiquetas de la actividad que hace el acompañante con el superintendente.
-// Compartidas por el panel del coordinador y el resumen de solo lectura.
-export const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
-  predicacion: 'Predicación',
-  revisitas: 'Revisitas',
-  curso: 'Curso bíblico',
-};
+//
+// La definición se mudó al servicio porque también las usa la actividad de la
+// ficha de persona (`@services/app/person_activity`), y un servicio no puede
+// depender de una feature. Aquí se reexporta para no tocar los sitios que ya
+// las importaban desde este camino.
+export { ACTIVITY_LABELS } from '@services/app/circuit_visit';

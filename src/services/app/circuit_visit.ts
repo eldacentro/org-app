@@ -3,8 +3,20 @@ import appDb from '@db/appDb';
 import { dbSchedUpdate } from '@services/dexie/schedules';
 import { Week } from '@definition/week_type';
 import { WeekTypeCongregation, SchedWeekType } from '@definition/schedules';
-import { CircuitVisitType } from '@definition/circuit_visit';
+import {
+  CircuitVisitCompanionActivity,
+  CircuitVisitType,
+} from '@definition/circuit_visit';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
+
+// Qué hace el acompañante con el superintendente. Lo usan el panel del
+// coordinador, el resumen de solo lectura y la actividad de la ficha de
+// persona — por eso vive aquí y no dentro de una feature.
+export const ACTIVITY_LABELS: Record<CircuitVisitCompanionActivity, string> = {
+  predicacion: 'Predicación',
+  revisitas: 'Revisitas',
+  curso: 'Curso bíblico',
+};
 
 // El auto-marcado de la semana de la visita escribe en el MISMO sitio que el
 // selector manual de tipo de semana (schedule.<meeting>.week_type), para que
