@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getObjectLatestUpdate, syncFromRemote } from './merge';
+import { getObjectLatestUpdate, isSameRecord, syncFromRemote } from './merge';
 
 /**
  * El motor de fusión: lo que llega del servidor se mezcla con lo que hay en el
@@ -266,5 +266,139 @@ describe('filos conocidos (el esquema los evita, no el motor)', () => {
     const remote = { comments: undefined } as never;
 
     expect(syncFromRemote(local, remote).comments).toBe('lo que escribí yo');
+  });
+});
+
+/**
+ * ¿Hace falta guardar lo que ha salido de la fusión?
+ *
+ * Guardar en Dexie un registro idéntico al que ya está allí no cambia el dato,
+ * pero sí despierta a los observadores de la tabla: la pantalla se redibuja
+ * entera. De ahí venía el parpadeo que aparecía solo cada pocos minutos, sin
+ * que nadie tocara nada, en las páginas densas (Reunión de entre semana).
+ *
+ * La regla es asimétrica a propósito: ante la duda, DISTINTO. Decir "igual"
+ * cuando no lo es se tragaría un cambio de verdad; decir "distinto" cuando sí
+ * lo es solo cuesta una escritura de más, que es lo que se hacía siempre.
+ */
+describe('¿hace falta guardar?', () => {
+  it('dos copias con el mismo contenido son el mismo registro', () => {
+    const a = {
+      weekOf: '2026-01-05',
+      midweek_meeting: {
+        chairman: { type: 'main', value: 'Hno. Pérez', updatedAt: '2026-01-01T00:00:00Z' },
+        ayf_part1: [{ type: 'main', value: '', updatedAt: '' }],
+      },
+    };
+
+    expect(isSameRecord(a, structuredClone(a))).toBe(true);
+  });
+
+  it('un solo campo distinto en el fondo del árbol ya es otro registro', () => {
+    const a = { midweek_meeting: { chairman: { value: 'Hno. Pérez' } } };
+    const b = { midweek_meeting: { chairman: { value: 'Hno. López' } } };
+
+    expect(isSameRecord(a, b)).toBe(false);
+  });
+
+  it('reordenar una lista es un cambio', () => {
+    expect(isSameRecord({ v: ['A', 'B'] }, { v: ['B', 'A'] })).toBe(false);
+  });
+
+  it('una lista con un elemento de más es un cambio', () => {
+    expect(isSameRecord({ v: ['A'] }, { v: ['A', 'B'] })).toBe(false);
+  });
+
+  it('una clave que sobra es un cambio, aunque valga undefined', () => {
+    expect(isSameRecord({ a: 1 }, { a: 1, b: undefined })).toBe(false);
+  });
+
+  it('no confunde vacíos: null, cadena vacía y ausente son distintos', () => {
+    expect(isSameRecord({ a: null }, { a: '' })).toBe(false);
+    expect(isSameRecord({ a: null }, {})).toBe(false);
+    expect(isSameRecord({ a: 1 }, { a: '1' })).toBe(false);
+  });
+
+  it('ante algo que no sabe comparar (una fecha), responde DISTINTO', () => {
+    const stamp = 1767225600000;
+
+    expect(isSameRecord({ d: new Date(stamp) }, { d: new Date(stamp) })).toBe(false);
+  });
+
+  it('no se atraganta con null ni con listas vacías', () => {
+    expect(isSameRecord(null, null)).toBe(true);
+    expect(isSameRecord(null, {})).toBe(false);
+    expect(isSameRecord({ v: [] }, { v: [] })).toBe(true);
+  });
+});
+
+/**
+ * Las dos frases del enunciado, contra el bucle REAL de la restauración: clonar
+ * lo local, fusionar lo del servidor encima y decidir si eso se guarda. Es
+ * exactamente lo que hace cada `dbRestore*` de backupUtils.ts.
+ */
+describe('el ciclo de sincronización solo escribe lo que ha cambiado', () => {
+  const restoreDecision = <T extends object>(local: T, remote: T) => {
+    const merged = syncFromRemote(structuredClone(local), remote);
+
+    return { merged, seEscribe: !isSameRecord(local, merged) };
+  };
+
+  const week = (chairman: string, updatedAt: string) => ({
+    weekOf: '2026-01-05',
+    midweek_meeting: {
+      chairman: { type: 'main', value: chairman, updatedAt },
+      opening_prayer: { type: 'main', value: 'Hno. Ruiz', updatedAt: '2026-01-01T00:00:00Z' },
+    },
+  });
+
+  it('si el registro entrante es igual al local, NO se escribe', () => {
+    const local = week('Hno. Pérez', '2026-01-02T00:00:00Z');
+    const remote = week('Hno. Pérez', '2026-01-02T00:00:00Z');
+
+    expect(restoreDecision(local, remote).seEscribe).toBe(false);
+  });
+
+  it('si cambia aunque sea un campo, SÍ se escribe', () => {
+    const local = week('Hno. Pérez', '2026-01-02T00:00:00Z');
+    const remote = week('Hno. López', '2026-01-03T00:00:00Z');
+
+    const { merged, seEscribe } = restoreDecision(local, remote);
+
+    expect(seEscribe).toBe(true);
+    expect(merged.midweek_meeting.chairman.value).toBe('Hno. López');
+  });
+
+  it('un registro que solo está en el servidor se escribe igual que siempre', () => {
+    // No hay copia local con la que comparar: el registro entra tal cual.
+    const remote = week('Hno. Pérez', '2026-01-02T00:00:00Z');
+
+    expect(isSameRecord(undefined, remote)).toBe(false);
+  });
+
+  it('si el servidor manda una versión más vieja, no se escribe nada', () => {
+    // La fusión ya conserva lo local (lo más nuevo gana); lo que se comprueba
+    // aquí es que además NO se guarda, que es lo que provocaba el parpadeo.
+    const local = week('Hno. Pérez', '2026-03-01T00:00:00Z');
+    const remote = week('Hno. López', '2026-02-01T00:00:00Z');
+
+    const { merged, seEscribe } = restoreDecision(local, remote);
+
+    expect(merged.midweek_meeting.chairman.value).toBe('Hno. Pérez');
+    expect(seEscribe).toBe(false);
+  });
+
+  it('una lista fusionada que gana el servidor sí se escribe', () => {
+    const local = { talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }] };
+    const remote = { talks: [{ id: 't1', value: 'B', updatedAt: '2026-02-01T00:00:00Z' }] };
+
+    expect(restoreDecision(local, remote).seEscribe).toBe(true);
+  });
+
+  it('una lista idéntica no se escribe aunque la referencia sea nueva', () => {
+    const local = { talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }] };
+    const remote = structuredClone(local);
+
+    expect(restoreDecision(local, remote).seEscribe).toBe(false);
   });
 });

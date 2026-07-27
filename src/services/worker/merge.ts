@@ -14,6 +14,9 @@
  *    marcas de borrado (`_deleted`), no de la fusión.
  *  - Sin `updatedAt` no hay forma de decidir, así que se fusiona campo a campo
  *    bajando un nivel.
+ *
+ * Aquí vive además `isSameRecord`, que responde a la otra pregunta del ciclo:
+ * una vez fusionado, ¿hace falta guardarlo? Ver su comentario más abajo.
  */
 
 export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
@@ -115,6 +118,72 @@ export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
   }
 
   return local;
+};
+
+// Un objeto "llano" es el que se sabe comparar campo a campo: lo que sale de
+// JSON.parse / structuredClone de datos sincronizados. Cualquier otra cosa
+// (Date, Map, Blob, ArrayBuffer…) se declara DISTINTA aunque quizá no lo sea:
+// equivocarse hacia "distinto" solo cuesta una escritura de más; equivocarse
+// hacia "igual" se tragaría un cambio real.
+const isPlainObject = (value: object) => {
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+};
+
+/**
+ * ¿Son el mismo dato, campo a campo?
+ *
+ * Sirve para NO escribir en la base local un registro que ya está guardado
+ * exactamente igual: la escritura no cambiaría nada, pero sí despierta a los
+ * observadores de la tabla (`useLiveQuery`), que entregan un array nuevo y
+ * redibujan la pantalla entera — el parpadeo "solo, cada pocos minutos".
+ *
+ * Es deliberadamente ESTRICTA: en cuanto hay la menor duda responde que son
+ * distintos, y entonces todo sigue como antes (se escribe).
+ *  - El orden de una lista cuenta: reordenar es un cambio real.
+ *  - Una clave que existe con valor `undefined` NO es lo mismo que no existir.
+ *  - Nada de conversiones: 1 y '1' son distintos.
+ */
+export const isSameRecord = (a: unknown, b: unknown): boolean => {
+  if (Object.is(a, b)) return true;
+
+  if (a === null || b === null) return false;
+  if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+  const aIsArray = Array.isArray(a);
+  const bIsArray = Array.isArray(b);
+
+  if (aIsArray !== bIsArray) return false;
+
+  if (aIsArray) {
+    const listA = a as unknown[];
+    const listB = b as unknown[];
+
+    if (listA.length !== listB.length) return false;
+
+    for (let i = 0; i < listA.length; i++) {
+      if (!isSameRecord(listA[i], listB[i])) return false;
+    }
+
+    return true;
+  }
+
+  if (!isPlainObject(a) || !isPlainObject(b)) return false;
+
+  const recordA = a as Record<string, unknown>;
+  const recordB = b as Record<string, unknown>;
+
+  const keysA = Object.keys(recordA);
+  const keysB = Object.keys(recordB);
+
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(recordB, key)) return false;
+    if (!isSameRecord(recordA[key], recordB[key])) return false;
+  }
+
+  return true;
 };
 
 export const getObjectLatestUpdate = (obj: unknown) => {

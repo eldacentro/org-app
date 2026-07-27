@@ -1,7 +1,7 @@
 // to minimize the size of the worker file, we recreate all its needed functions in this file
 
 import appDb from '@db/appDb';
-import { syncFromRemote, getObjectLatestUpdate } from './merge';
+import { syncFromRemote, getObjectLatestUpdate, isSameRecord } from './merge';
 import { BackupDataType, CongUserType } from './backupType';
 import {
   decryptData,
@@ -442,7 +442,10 @@ const dbInsertOutgoingTalks = async (
           }
         }
 
-        schedulesToUpdate.push(schedule);
+        // Solo se guarda si la semana ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(dbSchedule, schedule)) {
+          schedulesToUpdate.push(schedule);
+        }
       }
     }
 
@@ -620,7 +623,21 @@ const dbRestoreSettings = async (
       delete localSettings.cong_settings;
     }
 
-    await appDb.app_settings.update(1, localSettings);
+    // `update` es una mezcla por clave de primer nivel (las claves borradas
+    // arriba significan "no toques eso"), así que se compara exactamente lo
+    // que se iba a escribir. Si ninguna clave cambia, no se escribe: los
+    // ajustes los observa toda la app, y reescribirlos idénticos en cada
+    // vuelta del sync redibujaba la pantalla entera. Ver isSameRecord.
+    const savedSettings = settings as unknown as Record<string, unknown>;
+    const mergedSettings = localSettings as unknown as Record<string, unknown>;
+
+    const settingsChanged = Object.keys(mergedSettings).some(
+      (key) => !isSameRecord(savedSettings[key], mergedSettings[key])
+    );
+
+    if (settingsChanged) {
+      await appDb.app_settings.update(1, localSettings);
+    }
   } catch (error) {
     throw new Error(`settings: ${error.message}`);
   }
@@ -712,7 +729,14 @@ const dbRestorePersons = async (
         const newPerson = structuredClone(localPerson);
         syncFromRemote(newPerson, remotePerson);
 
-        personToUpdate.push(newPerson);
+        // Si la fusión no ha cambiado NADA, no se guarda. Escribir un registro
+        // idéntico al que ya está en Dexie no cambia el dato, pero despierta a
+        // los observadores de la tabla y redibuja la pantalla entera: es el
+        // parpadeo que aparecía solo cada pocos minutos (el ciclo de sync
+        // reescribía todas las tablas en cada vuelta). Ver isSameRecord.
+        if (!isSameRecord(localPerson, newPerson)) {
+          personToUpdate.push(newPerson);
+        }
       }
     }
 
@@ -769,7 +793,10 @@ const dbRestoreUpcomingEvents = async (
         const newEvent = structuredClone(localEvent);
         syncFromRemote(newEvent, remoteEvent);
 
-        eventToUpdate.push(newEvent);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localEvent, newEvent)) {
+          eventToUpdate.push(newEvent);
+        }
       }
     }
 
@@ -826,7 +853,16 @@ const dbRestoreSpeakersCongregations = async (
       // ganaba el merge por "último updatedAt" y volvía a borrar el registro
       // recién restaurado en el siguiente ciclo (incidente 2026-07-13).
       if (forceReplace) {
-        congsToUpdate.push(remoteCongregation);
+        // Sigue pisando lo local si difiere; solo se ahorra la reescritura de
+        // un registro ya idéntico al del servidor. Ver isSameRecord.
+        const sameAsLocal = congregations.find(
+          (record) => record.id === remoteCongregation.id
+        );
+
+        if (!isSameRecord(sameAsLocal, remoteCongregation)) {
+          congsToUpdate.push(remoteCongregation);
+        }
+
         continue;
       }
 
@@ -842,7 +878,10 @@ const dbRestoreSpeakersCongregations = async (
         const newCongregation = structuredClone(localCongregation);
         syncFromRemote(newCongregation, remoteCongregation);
 
-        congsToUpdate.push(newCongregation);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localCongregation, newCongregation)) {
+          congsToUpdate.push(newCongregation);
+        }
       }
     }
 
@@ -961,7 +1000,16 @@ const dbRestoreVisitingSpeakers = async (
       // a borrar al orador recién restaurado en el siguiente ciclo (que es
       // exactamente lo que Carlos vio: "no sirvió el respaldo del servidor").
       if (forceReplace) {
-        speakersToUpdate.push(remoteSpeaker);
+        // Sigue pisando lo local si difiere; solo se ahorra la reescritura de
+        // un registro ya idéntico al del servidor. Ver isSameRecord.
+        const sameAsLocal = speakers.find(
+          (record) => record.person_uid === remoteSpeaker.person_uid
+        );
+
+        if (!isSameRecord(sameAsLocal, remoteSpeaker)) {
+          speakersToUpdate.push(remoteSpeaker);
+        }
+
         continue;
       }
 
@@ -985,7 +1033,11 @@ const dbRestoreVisitingSpeakers = async (
           newSpeaker.speaker_data.cong_id = localCongId;
         }
 
-        speakersToUpdate.push(newSpeaker);
+        // Se compara DESPUÉS del sanado del cong_id, que también es un cambio
+        // que hay que guardar. Solo se escribe lo que ha cambiado de verdad.
+        if (!isSameRecord(localSpeaker, newSpeaker)) {
+          speakersToUpdate.push(newSpeaker);
+        }
       }
     }
 
@@ -1035,7 +1087,10 @@ const dbRestoreFieldGroups = async (
         const newGroup = structuredClone(localGroup);
         syncFromRemote(newGroup, remoteGroup);
 
-        groupsToUpdate.push(newGroup);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localGroup, newGroup)) {
+          groupsToUpdate.push(newGroup);
+        }
       }
     }
 
@@ -1083,7 +1138,10 @@ const dbRestoreUserStudies = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1131,7 +1189,10 @@ const dbRestoreUserReports = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1192,7 +1253,10 @@ const dbRestoreCongReports = async (
           const newItem = structuredClone(localItem);
           syncFromRemote(newItem, remoteItem);
 
-          dataToUpdate.push(newItem);
+          // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+          if (!isSameRecord(localItem, newItem)) {
+            dataToUpdate.push(newItem);
+          }
         }
       }
 
@@ -1241,7 +1305,10 @@ const dbRestoreBranchReports = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1289,7 +1356,10 @@ const dbRestoreBranchCongAnalysis = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1337,7 +1407,10 @@ const dbRestoreMeetingAttendance = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1425,7 +1498,13 @@ const dbRestoreSources = async (
         }
 
         syncFromRemote(newItem, remoteItem);
-        dataToUpdate.push(newItem);
+
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord. La
+        // comparación es contra el registro TAL CUAL está en la base, así que
+        // la limpieza de `event_name` de aquí arriba cuenta como cambio.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1485,7 +1564,11 @@ const dbRestoreDepartmentsSchedule = async (
         if (remoteUpdated > localUpdated) {
           const newItem = structuredClone(localItem);
           syncFromRemote(newItem, remoteItem);
-          dataToUpdate.push(newItem);
+
+          // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+          if (!isSameRecord(localItem, newItem)) {
+            dataToUpdate.push(newItem);
+          }
         }
       }
     }
@@ -1551,12 +1634,19 @@ const dbRestoreServiceOutings = async (
           // localmente. El registro 'settings' comparte un solo updatedAt
           // para todo, así que no hace falta fusionar campo por campo: si el
           // remoto es más nuevo, gana entero (igual que en exhibitors).
+          // En ambas ramas se guarda solo si el resultado difiere de lo que ya
+          // está en la base: ver isSameRecord.
           if (remoteItem.weekOf === 'settings') {
-            dataToUpdate.push(remoteItem);
+            if (!isSameRecord(localItem, remoteItem)) {
+              dataToUpdate.push(remoteItem);
+            }
           } else {
             const newItem = structuredClone(localItem);
             syncFromRemote(newItem, remoteItem);
-            dataToUpdate.push(newItem);
+
+            if (!isSameRecord(localItem, newItem)) {
+              dataToUpdate.push(newItem);
+            }
           }
         }
       }
@@ -1621,7 +1711,8 @@ const dbRestoreExhibitors = async (
         // updatedAt, aparentando que sí se sincronizó). Como todo el
         // registro de la semana comparte un solo updatedAt, no hace falta
         // fusionar campo por campo: si el remoto es más nuevo, gana entero.
-        if (remoteUpdated > localUpdated) {
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (remoteUpdated > localUpdated && !isSameRecord(localItem, remoteItem)) {
           dataToUpdate.push(remoteItem);
         }
       }
@@ -1684,7 +1775,16 @@ const dbRestoreSchedules = async (
       // fechas. Es la garantía anti-bucle: descarta cualquier copia local
       // mala de esa semana, gane o no en fecha. Solo afecta a programas.
       if (forceReplace) {
-        dataToUpdate.push(remoteItem);
+        // El reemplazo forzado sigue mandando: si la copia local difiere en
+        // algo, se pisa. Lo único que se evita es reescribir una semana que ya
+        // es idéntica a la del servidor (ver isSameRecord) — la marca de reset
+        // vive en el registro de metadata, que hoy se rehace en cada ciclo, así
+        // que sin esto una re-descarga forzada reescribiría TODOS los programas
+        // en cada vuelta del sync.
+        if (!isSameRecord(localItem, remoteItem)) {
+          dataToUpdate.push(remoteItem);
+        }
+
         continue;
       }
 
@@ -1750,7 +1850,14 @@ const dbRestoreSchedules = async (
           }
         }
 
-        dataToUpdate.push(newItem);
+        // Se compara DESPUÉS de las correcciones de aux_class de aquí arriba,
+        // que también son cambios que hay que guardar. Si la semana queda
+        // exactamente igual que en la base, no se escribe: ver isSameRecord.
+        // Es el caso más visible del parpadeo — la Reunión de entre semana
+        // depende de esta tabla y se redibujaba entera en cada sync.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1810,7 +1917,10 @@ const dbRestoreDelegatedReports = async (
         const newItem = structuredClone(localItem);
         syncFromRemote(newItem, remoteItem);
 
-        dataToUpdate.push(newItem);
+        // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
+        if (!isSameRecord(localItem, newItem)) {
+          dataToUpdate.push(newItem);
+        }
       }
     }
 
@@ -1856,7 +1966,10 @@ const dbRestoreCircuitVisits = async (
 const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const oldMetadata = await appDb.metadata.get(1);
 
-  const result = oldMetadata?.metadata || {};
+  // Copia en vez de mutar el registro leído: así se puede comparar el antes
+  // con el después y no escribir cuando el sync no ha traído ninguna versión
+  // nueva (el caso normal cuando nadie ha tocado nada).
+  const result = { ...(oldMetadata?.metadata || {}) };
 
   for (const [key, value] of Object.entries(metadata)) {
     result[key] = {
@@ -1866,6 +1979,8 @@ const dbInsertMetadata = async (metadata: Record<string, string>) => {
   }
 
   const toSave = { id: oldMetadata?.id || 1, metadata: result };
+
+  if (oldMetadata && isSameRecord(oldMetadata, toSave)) return;
 
   await appDb.metadata.put(toSave);
 };
