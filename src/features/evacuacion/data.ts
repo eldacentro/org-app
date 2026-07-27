@@ -416,11 +416,20 @@ export type PuestoGeo = {
   y: number;
 };
 
+/**
+ * Dónde se planta cada uno cuando suena la señal. Posiciones confirmadas por
+ * la congregación, no deducidas del plano en papel:
+ * - A2 fuera de los tres aseos, en medio, para verlos todos.
+ * - A1 pasada la puerta de la Sala B.
+ * - B2 a la altura de entre la 3ª y la 4ª fila del auditorio (contando desde
+ *   la plataforma, que es como las cuenta el procedimiento).
+ * - B1 entre la 1ª y la 2ª fila de la sección de la izquierda.
+ */
 export const PUESTOS: PuestoGeo[] = [
-  { posicion: 'A1', equipoId: 'evacuacion-a', x: 57, y: 27 },
-  { posicion: 'A2', equipoId: 'evacuacion-a', x: 10.5, y: 13 },
+  { posicion: 'A1', equipoId: 'evacuacion-a', x: 64, y: 40 },
+  { posicion: 'A2', equipoId: 'evacuacion-a', x: 24, y: 26 },
   { posicion: 'A3', equipoId: 'evacuacion-a', x: 4, y: 47 },
-  { posicion: 'B1', equipoId: 'evacuacion-b', x: 133, y: 50 },
-  { posicion: 'B2', equipoId: 'evacuacion-b', x: 90, y: 24 },
+  { posicion: 'B1', equipoId: 'evacuacion-b', x: 135, y: 65 },
+  { posicion: 'B2', equipoId: 'evacuacion-b', x: 118, y: 23 },
   { posicion: 'B3', equipoId: 'evacuacion-b', x: 175, y: 49 },
 ];

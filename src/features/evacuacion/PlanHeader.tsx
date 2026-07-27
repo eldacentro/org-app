@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { IconE911Emergency, IconClock } from '@components/icons';
 import { COLORES } from './data';
 
@@ -17,12 +17,10 @@ const PlanHeader = ({ tiempoMaximo }: Props) => {
         gap: '12px',
       }}
     >
+      {/* Sin título propio: la barra de navegación ya pone "Plan de
+          evacuación" justo encima, y repetirlo solo gastaba alto de pantalla
+          en un móvil. */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <Typography
-          sx={{ fontSize: '22px', fontWeight: 800, lineHeight: 1.1 }}
-        >
-          Plan de evacuación
-        </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           <Box
             sx={{
