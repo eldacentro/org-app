@@ -43,6 +43,15 @@ con `dbReplaceTableIfChanged` (`services/dexie/rebuild.ts`), que compara por
 clave primaria (`isSameTableContent`) y no toca la tabla si el contenido es
 el mismo. Nunca vuelvas a poner ahí un `clear()` + `bulkPut()` a pelo.
 
+**Regla: nada viaja en la subida sin `send_local`.** En `dbExportDataBackup`,
+el rol dice QUIÉN puede subir una tabla y `send_local`, CUÁNDO hay algo que
+subir: la condición se escribe `(rol) && send_local`, nunca con `||`. Si una
+tabla se cuela sin cambios pendientes, la subida no queda vacía nunca, cada
+ciclo hace POST, el servidor emite su señal de sync, la señal dispara otro
+ciclo — y la congregación entera se sincroniza cada pocos segundos sin que
+falle nada (pasó con las visitas del superintendente de circuito). Hay un
+aviso en consola que lo detecta: `warnAboutUnrequestedTables`.
+
 El registro de `metadata` lleva campos SUELTOS fuera de `metadata` (las
 marcas de "reemplazo forzado ya aplicado"). Se guarda con `put`, que
 reemplaza el registro entero, así que constrúyelo siempre con

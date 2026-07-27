@@ -2532,6 +2532,56 @@ const dbRestoreFromBackup = async (
   }
 };
 
+// La clave con la que viaja cada tabla no siempre se llama igual que su
+// entrada en metadata. Lo que no está aquí se busca por su propio nombre.
+const PAYLOAD_TO_METADATA_KEY: Record<string, string> = {
+  sched: 'schedules',
+};
+
+// Claves que NO son una tabla sincronizada y por tanto no llevan `send_local`:
+// datos derivados de la subida o cosas que solo viajan al arrancar.
+const PAYLOAD_KEYS_WITHOUT_FLAG = new Set([
+  'affected_uids',
+  'app_settings',
+  'cong_users',
+  'outgoing_speakers',
+  'speakers_key',
+]);
+
+/**
+ * Red de seguridad contra bucles de sincronización.
+ *
+ * Una tabla solo debería viajar si tiene algo pendiente de subir. Si alguna se
+ * cuela sin estarlo, la subida NUNCA queda vacía: cada ciclo hace POST, el
+ * servidor emite su señal, la señal dispara otro ciclo, y el sync se repite
+ * cada pocos segundos en todos los dispositivos de la congregación. Pasó de
+ * verdad con las visitas del superintendente de circuito, cuya condición usaba
+ * `||` en vez de `&&`, y nadie lo vio venir porque no falla nada: solo no para.
+ *
+ * No toca la subida — solo deja el aviso en la consola, que es justo lo que
+ * faltó la última vez.
+ */
+const warnAboutUnrequestedTables = (
+  payload: BackupDataType,
+  metadata: MetadataRecordType
+) => {
+  const unrequested = Object.keys(payload).filter((key) => {
+    if (PAYLOAD_KEYS_WITHOUT_FLAG.has(key)) return false;
+
+    const metadataKey = PAYLOAD_TO_METADATA_KEY[key] ?? key;
+
+    return metadata.metadata[metadataKey]?.send_local === false;
+  });
+
+  if (unrequested.length === 0) return;
+
+  console.warn(
+    '[backup] estas tablas se están subiendo sin tener cambios pendientes:',
+    unrequested.join(', '),
+    '— revisa su condición en dbExportDataBackup: es un bucle de sync en potencia'
+  );
+};
+
 export const dbExportDataBackup = async (backupData: BackupDataType) => {
   try {
     const obj: BackupDataType = {};
@@ -3120,9 +3170,17 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
         // include circuit overseer visits (gestionado por COBA/Admin; ancianos
         // pueden verlas). Cifrado por registro como las demás listas.
+        //
+        // El rol dice QUIÉN puede subirlas; `send_local`, CUÁNDO hay algo que
+        // subir. Aquí iban con `||`, así que para cualquier anciano o admin con
+        // una visita guardada la subida NUNCA quedaba vacía: cada ciclo hacía
+        // POST, el servidor emitía su señal de sync, la señal disparaba otro
+        // ciclo... y el sync se repetía cada pocos segundos, para siempre y en
+        // todos los dispositivos de la congregación. Las tres mutaciones de
+        // visitas (guardar, mover de semana, borrar) marcan `send_local`, así
+        // que con `&&` no se pierde nada.
         if (
-          adminRole ||
-          elderRole ||
+          (adminRole || elderRole) &&
           metadata.metadata.circuit_overseer_visits?.send_local
         ) {
           if (circuit_overseer_visits && circuit_overseer_visits.length > 0) {
@@ -3446,6 +3504,8 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         }
       }
     }
+
+    warnAboutUnrequestedTables(obj, metadata);
 
     return obj;
   } catch (error) {
