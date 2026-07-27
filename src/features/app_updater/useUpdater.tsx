@@ -7,6 +7,7 @@ import {
 } from '@states/app';
 import { store } from '@states/index';
 import { allowUnload } from '@services/app/unload_guard';
+import { canAutoReload } from '@services/app/pwa_update';
 
 // Ver el watchdog correspondiente en index.html: se marca ANTES de recargar
 // para que, si la app nunca termina de arrancar tras esta recarga, ese script
@@ -112,6 +113,10 @@ const useUpdater = ({ updatePwa }: { updatePwa: VoidFunction }) => {
       }
 
       autoReloadTimer = setTimeout(() => {
+        // Red de seguridad global compartida con la oleada de actualización:
+        // pase lo que pase, la app no se queda recargándose sola sin fin.
+        if (!canAutoReload()) return;
+
         sessionStorage.setItem(UPDATE_FLAG, '1');
         allowUnload();
         window.location.reload();
