@@ -17,7 +17,6 @@ import { PersonType } from '@definition/person';
 import { lastDayOfReportMonth } from '@utils/date';
 import { dbPersonsBulkSave } from '@services/dexie/persons';
 import usePersons from '@features/persons/hooks/usePersons';
-import useReportMonthly from '@features/reports/hooks/useReportMonthly';
 
 const useSubmitReport = ({ onClose }: SubmitReportProps) => {
   const report = useAtomValue(branchSelectedReportState);
@@ -27,24 +26,27 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
   const congAnalysis = useAtomValue(branchCongAnalysisState);
   const congReports = useAtomValue(congFieldServiceReportsState);
 
-  const { getPublishersActive } = usePersons();
-  const { personCheckInactivityState } = useReportMonthly();
+  const { getPublishersInactive } = usePersons();
 
+  /**
+   * Al enviar el S-1 se cierra en el historial el tramo de publicador de
+   * quien ya consta como inactivo (publisher_status.ts: 6 meses sin informar).
+   *
+   * Es solo el REGISTRO de hasta cuándo fue publicador — quién está activo o
+   * inactivo se decide siempre con los informes, así que si vuelve a informar
+   * vuelve a estar activo sin tener que tocar esto. Y a quien ya tiene el
+   * tramo cerrado no se le vuelve a guardar: escribir un registro idéntico
+   * despierta la sincronización de toda la congregación para nada.
+   */
   const handleUpdateInactiveState = async () => {
     const personsInactive: PersonType[] = [];
 
-    const active = getPublishersActive(month);
+    // Se cierra al final del mes informado, no del anterior (ver
+    // lastDayOfReportMonth): quien aparece como publicador activo en este
+    // S-1 tiene que seguir contando en este mes.
+    const endDate = lastDayOfReportMonth(month);
 
-    for (const person of active) {
-      const isInactive = personCheckInactivityState(person, month);
-
-      if (!isInactive) continue;
-
-      // Se cierra al final del mes informado, no del anterior (ver
-      // lastDayOfReportMonth): quien aparece como publicador activo en este
-      // S-1 tiene que seguir contando en este mes.
-      const endDate = lastDayOfReportMonth(month);
-
+    for (const person of getPublishersInactive(month)) {
       const newPerson = structuredClone(person);
 
       const baptizedActive =
@@ -66,6 +68,8 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
         unbaptizedActive.end_date = endDate;
         unbaptizedActive.updatedAt = new Date().toISOString();
       }
+
+      if (!baptizedActive && !unbaptizedActive) continue;
 
       personsInactive.push(newPerson);
     }

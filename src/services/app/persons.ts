@@ -20,6 +20,11 @@ import {
   toComparableDate,
 } from '@utils/date';
 import { AppRoleType } from '@definition/app';
+import {
+  MinistryMonthsIndex,
+  personIsActivePublisher,
+  personIsInactivePublisher,
+} from './publisher_status';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 import { getTranslation } from '@services/i18n/translation';
@@ -254,49 +259,12 @@ export const personArchive = (person: PersonType, isAddPerson: boolean) => {
   };
 };
 
-export const personIsInactive = (person: PersonType) => {
-  let isInactive = false;
-
-  const isBaptized = person.person_data.publisher_baptized.active.value;
-  const isUnbaptized = person.person_data.publisher_unbaptized.active.value;
-
-  if (isBaptized) {
-    isInactive =
-      person.person_data.publisher_baptized.history.filter(
-        (record) => record._deleted === false && record.end_date === null
-      ).length === 0;
-  }
-
-  if (isUnbaptized) {
-    isInactive =
-      person.person_data.publisher_unbaptized.history.filter(
-        (record) => record._deleted === false && record.end_date === null
-      ).length === 0;
-  }
-
-  return isInactive;
-};
-
-export const personIsActive = (person: PersonType) => {
-  let isActive = false;
-
-  const isBaptized = person.person_data.publisher_baptized.active.value;
-  const isUnbaptized = person.person_data.publisher_unbaptized.active.value;
-
-  if (isBaptized) {
-    isActive = person.person_data.publisher_baptized.history.some(
-      (record) => record._deleted === false && record.end_date === null
-    );
-  }
-
-  if (isUnbaptized) {
-    isActive = person.person_data.publisher_unbaptized.history.some(
-      (record) => record._deleted === false && record.end_date === null
-    );
-  }
-
-  return isActive;
-};
+/**
+ * Activo / inactivo se decide en un solo sitio, a partir de los informes de
+ * predicación: ver `publisher_status.ts`. Aquí ya no hay ninguna definición
+ * propia — la que había (¿tiene algún tramo abierto en el historial?) se
+ * contradecía con la de los filtros de informes.
+ */
 
 export const personIsElder = (person: PersonType) => {
   const hasActive = person.person_data.privileges.find(
@@ -511,8 +479,13 @@ export const applyAssignmentFilters = (
 
 export const applyGroupFilters = (
   persons: PersonType[],
-  filtersKey: string[]
+  filtersKey: string[],
+  // Los informes deciden quién está activo o inactivo (publisher_status.ts).
+  // Llega como parámetro —y no leyendo el estado desde aquí— para que el atom
+  // que llama a esto se entere cuando cambian y vuelva a filtrar.
+  ministryMonths: MinistryMonthsIndex = new Map()
 ) => {
+
   const groups = filtersKey.filter((item) => typeof item === 'string');
 
   const finalResult: PersonType[] = [];
@@ -551,8 +524,8 @@ export const applyGroupFilters = (
       const anointed = person.person_data.publisher_baptized.anointed.value;
       const isBaptized = person.person_data.publisher_baptized.active.value;
       const isUnbaptized = person.person_data.publisher_unbaptized.active.value;
-      const isInactive = personIsInactive(person);
-      const isActive = personIsActive(person);
+      const isInactive = personIsInactivePublisher(person, ministryMonths);
+      const isActive = personIsActivePublisher(person, ministryMonths);
       const isAP = personIsAP(person);
       const isFR = personIsFR(person);
       const isFS = personIsFS(person);
@@ -589,8 +562,7 @@ export const applyGroupFilters = (
       if (isPassed && isActiveFilter) isPassed = isActive;
 
       // inactive selected
-      if (isPassed && isInactiveFilter)
-        isPassed = (isBaptized || isUnbaptized) && isInactive;
+      if (isPassed && isInactiveFilter) isPassed = isInactive;
 
       // all pioneers selected
       if (isPassed && isPioneerAllFilter)

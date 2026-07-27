@@ -10,6 +10,11 @@ import { resolve } from 'path';
  * repo ya ha sangrado. Corren en Node, sin navegador, así que son rápidas y se
  * pueden ejecutar en cada cambio.
  */
+// Zona horaria fija. Media app interpreta las fechas en hora LOCAL a
+// propósito (ver `toComparableDate`), así que sin fijarla una prueba pasa aquí
+// y falla en una máquina en UTC, o al revés. Se usa la de la congregación.
+process.env.TZ = 'Europe/Madrid';
+
 export default defineConfig({
   test: {
     environment: 'node',

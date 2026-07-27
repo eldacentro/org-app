@@ -9,6 +9,7 @@ import {
   ReportStatusFilterOption,
 } from '@definition/cong_field_service_reports';
 import { congFieldServiceReportSchema } from '@services/dexie/schema';
+import { buildMinistryMonthsIndex } from '@services/app/publisher_status';
 
 export const fieldServiceReportsState = atom<CongFieldServiceReportType[]>([]);
 
@@ -21,6 +22,16 @@ export const congFieldServiceReportsState = atom((get) => {
 
   return results;
 });
+
+/**
+ * Meses con participación en la predicación, por persona. Es lo único que
+ * necesita la regla de publicador activo/inactivo (publisher_status.ts), y se
+ * calcula UNA vez por cambio de informes en lugar de una vez por cada tarjeta,
+ * filtro o grupo que pregunte.
+ */
+export const ministryMonthsState = atom((get) =>
+  buildMinistryMonthsIndex(get(congFieldServiceReportsState))
+);
 
 export const selectedMonthFieldServiceReportState = atom<string>();
 

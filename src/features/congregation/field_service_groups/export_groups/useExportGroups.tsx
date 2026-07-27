@@ -18,12 +18,15 @@ import { FieldServiceGroupExportType } from '@definition/field_service_groups';
 import { PublishersSortOption } from '@definition/settings';
 import usePerson from '@features/persons/hooks/usePerson';
 import { TemplateFieldServiceGroups } from '@views/index';
+import { ministryMonthsState } from '@states/field_service_reports';
+import { personIsActivePublisher } from '@services/app/publisher_status';
 
 const useExportGroups = () => {
   const { t } = useAppTranslation();
 
-  const { personIsPublisher, personIsEnrollmentActive } = usePerson();
+  const { personIsEnrollmentActive } = usePerson();
 
+  const ministryMonths = useAtomValue(ministryMonthsState);
   const groups_list = useAtomValue(fieldWithLanguageGroupsState);
   const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -67,7 +70,7 @@ const useExportGroups = () => {
               if (person.person_data.grupo_visible_inactivo?.value)
                 return true;
 
-              return personIsPublisher(person);
+              return personIsActivePublisher(person, ministryMonths);
             })
             .map((record) => {
               const person = persons.find(

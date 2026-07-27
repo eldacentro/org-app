@@ -13,10 +13,9 @@ import {
   userDataViewState,
   userLocalUIDState,
 } from './settings';
-import {
-  personIsMidweekStudent,
-  personIsPublisher,
-} from '@services/app/persons';
+import { personIsMidweekStudent } from '@services/app/persons';
+import { personIsActivePublisher } from '@services/app/publisher_status';
+import { ministryMonthsState } from './field_service_reports';
 import { PublishersSortOption } from '@definition/settings';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 
@@ -27,6 +26,7 @@ export const fieldWithLanguageGroupsState = atom((get) => {
   const persons = get(personsActiveState);
   const isElder = get(isElderState);
   const sortMethod = get(publishersSortState);
+  const ministryMonths = get(ministryMonthsState);
 
   const validGroups = groups
     .filter((record) => !record.group_data._deleted)
@@ -51,7 +51,7 @@ export const fieldWithLanguageGroupsState = atom((get) => {
         // congregación aunque ya no cuente como publicador activo.
         if (person.person_data.grupo_visible_inactivo?.value) return true;
 
-        return personIsPublisher(person);
+        return personIsActivePublisher(person, ministryMonths);
       });
 
     if (sortMethod === PublishersSortOption.ALPHABETICAL) {
@@ -71,6 +71,7 @@ export const fieldWithLanguageGroupsNoStudentsState = atom((get) => {
   const persons = get(personsActiveState);
   const isElder = get(isElderState);
   const settings = get(settingsState);
+  const ministryMonths = get(ministryMonthsState);
 
   // Ajuste de congregación: por defecto los ancianos ven en la página de
   // grupos la MISMA vista pública que los publicadores (así saben qué ve el
@@ -99,7 +100,7 @@ export const fieldWithLanguageGroupsNoStudentsState = atom((get) => {
         // criterios que el filtro de fieldWithLanguageGroupsState.
         if (person.person_data.grupo_visible_inactivo?.value) return true;
 
-        return personIsPublisher(person);
+        return personIsActivePublisher(person, ministryMonths);
       }
 
       return true;

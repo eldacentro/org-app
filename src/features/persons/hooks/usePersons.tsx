@@ -1,9 +1,14 @@
 import { useAtomValue } from 'jotai';
 import { personsActiveState } from '@states/persons';
-import { addMonths, formatDate } from '@utils/date';
+import { ministryMonthsState } from '@states/field_service_reports';
 import usePerson from './usePerson';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { useMemo } from 'react';
+import {
+  personBecameInactiveDuring,
+  personIsActivePublisher,
+  personIsInactivePublisher,
+} from '@services/app/publisher_status';
 
 const usePersons = (group?: string) => {
   const fieldGroups = useAtomValue(fieldWithLanguageGroupsState);
@@ -14,13 +19,14 @@ const usePersons = (group?: string) => {
     personIsUnbaptizedPublisher,
     personIsPrivilegeActive,
     personIsEnrollmentActive,
-    personIsMidweekStudent,
-    personGetFirstReport,
     personIsEnrollmentYearActive,
     personIsPublisherYear,
   } = usePerson();
 
   const allPersons = useAtomValue(personsActiveState);
+
+  // Activo/inactivo se decide con los informes: ver publisher_status.ts.
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const persons = useMemo(() => {
     if (!group || group === 'all') {
@@ -41,27 +47,15 @@ const usePersons = (group?: string) => {
   }, [allPersons, fieldGroups, group]);
 
   const getPublishersActive = (month: string) => {
-    const result = persons.filter((record) => {
-      const isPublisher = personIsPublisher(record, month);
-      return isPublisher;
-    });
-
-    return result;
+    return persons.filter((record) =>
+      personIsActivePublisher(record, ministryMonths, month)
+    );
   };
 
   const getPublishersInactive = (month: string) => {
-    const result = persons.filter((record) => {
-      const isMidweek = personIsMidweekStudent(record);
-      if (isMidweek) return false;
-
-      const firstReport = personGetFirstReport(record);
-      if (firstReport > month) return false;
-
-      const isPublisher = personIsPublisher(record, month);
-      return !isMidweek && !isPublisher;
-    });
-
-    return result;
+    return persons.filter((record) =>
+      personIsInactivePublisher(record, ministryMonths, month)
+    );
   };
 
   const getPublishersBaptized = (month: string) => {
@@ -112,42 +106,17 @@ const usePersons = (group?: string) => {
     return result;
   };
 
+  // Cuántos se quedaron inactivos DURANTE ese año de servicio (informe S-10).
+  // Antes se deducía de las fechas de fin del historial, que es justo lo que
+  // se contradecía con el resto: ahora se mira mes a mes con la misma regla
+  // de los 6 meses sin informar.
   const getPublishersInactiveYears = (year: string) => {
     const startMonth = `${+year - 1}/09`;
     const endMonth = `${year}/08`;
 
-    const result = persons.filter((person) => {
-      const isMidweek = personIsMidweekStudent(person);
-      if (isMidweek) return false;
-
-      // get all histories with end date
-      const history = [
-        ...person.person_data.publisher_baptized.history,
-        ...person.person_data.publisher_unbaptized.history,
-      ].filter((record) => !record._deleted && record.start_date?.length > 0);
-
-      const historyWithEndDate = history.filter(
-        (record) => record.end_date?.length > 0
-      );
-
-      const isInactive = historyWithEndDate.some((record) => {
-        const monthNext = formatDate(addMonths(record.end_date, 1), 'yyyy/MM');
-
-        const isActive = history.some((active) => {
-          const date = formatDate(new Date(active.start_date), 'yyyy/MM');
-
-          return date === monthNext;
-        });
-
-        if (isActive) return false;
-
-        return monthNext >= startMonth && monthNext <= endMonth;
-      });
-
-      return isInactive;
-    });
-
-    return result;
+    return persons.filter((person) =>
+      personBecameInactiveDuring(person, ministryMonths, startMonth, endMonth)
+    );
   };
 
   const getFTSYears = (year: string) => {

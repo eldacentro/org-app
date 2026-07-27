@@ -2,7 +2,8 @@ import { useAtomValue } from 'jotai';
 import InfoTip from '@components/info_tip';
 import { personCurrentDetailsState } from '@states/persons';
 import { settingsState } from '@states/settings';
-import { personIsInactive } from '@services/app/persons';
+import { ministryMonthsState } from '@states/field_service_reports';
+import { personIsInactivePublisher } from '@services/app/publisher_status';
 
 /**
  * Nota de visibilidad bajo el selector de grupo del perfil: cuando la
@@ -14,15 +15,13 @@ import { personIsInactive } from '@services/app/persons';
 const GroupVisibilityNote = ({ group }: { group: string }) => {
   const person = useAtomValue(personCurrentDetailsState);
   const settings = useAtomValue(settingsState);
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   if (!group) return null;
 
   const pd = person.person_data;
 
-  const isPublisherFlagged =
-    pd.publisher_baptized.active.value || pd.publisher_unbaptized.active.value;
-
-  if (!isPublisherFlagged || !personIsInactive(person)) return null;
+  if (!personIsInactivePublisher(person, ministryMonths)) return null;
 
   const hasConcession = pd.grupo_visible_inactivo?.value ?? false;
   const eldersSeeInactive =

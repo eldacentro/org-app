@@ -13,6 +13,7 @@ import { localStorageGetItem } from '@utils/common';
 import { userDataViewState } from './settings';
 import { APRecordType } from '@definition/ministry';
 import { fieldServiceGroupsState } from './field_service_groups';
+import { ministryMonthsState } from './field_service_reports';
 
 export const personsState = atom<PersonType[]>([]);
 
@@ -133,7 +134,8 @@ export const personsFilteredState = atom((get) => {
 
   const finalResult: PersonType[] = applyGroupFilters(
     filteredByAssignments,
-    filtersKey as string[]
+    filtersKey as string[],
+    get(ministryMonthsState)
   );
 
   return finalResult;

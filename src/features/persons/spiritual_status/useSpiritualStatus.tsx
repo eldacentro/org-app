@@ -8,11 +8,9 @@ import { displaySnackNotification } from '@services/states/app';
 import { IconError } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { dateFirstDayMonth, formatDate } from '@utils/date';
-import {
-  personArchive,
-  personIsInactive,
-  personUnarchive,
-} from '@services/app/persons';
+import { personArchive, personUnarchive } from '@services/app/persons';
+import { personIsInactivePublisher } from '@services/app/publisher_status';
+import { ministryMonthsState } from '@states/field_service_reports';
 
 const useSpiritualStatus = () => {
   const { t } = useAppTranslation();
@@ -21,6 +19,8 @@ const useSpiritualStatus = () => {
   const isAddPerson = id === undefined;
 
   const person = useAtomValue(personCurrentDetailsState);
+
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const [expandedStatus, setExpandedStatus] = useState({
     baptized: person.person_data.publisher_baptized.active.value,
@@ -48,12 +48,9 @@ const useSpiritualStatus = () => {
 
   // Concesión para inactivos: mantenerlo visible en "Grupos de predicación"
   // para toda la congregación (sin esto, a un inactivo solo lo ven los
-  // ancianos en su grupo). No toca el historial de publicador, así que los
-  // informes del secretario no se ven afectados.
-  const isInactivePublisher =
-    (person.person_data.publisher_baptized.active.value ||
-      person.person_data.publisher_unbaptized.active.value) &&
-    personIsInactive(person);
+  // ancianos en su grupo). Es lo ÚNICO que hace la casilla: no cambia su
+  // situación de publicador ni lo devuelve a los filtros de Informes.
+  const isInactivePublisher = personIsInactivePublisher(person, ministryMonths);
 
   const handleToggleVisibleInGroups = async (checked: boolean) => {
     const newPerson: PersonType = structuredClone(person);

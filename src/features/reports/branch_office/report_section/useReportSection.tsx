@@ -25,7 +25,6 @@ import usePersons from '@features/persons/hooks/usePersons';
 import useMeetingAttendance from '@features/reports/meeting_attendance/hooks/useMeetingAttendance';
 import useYearlyAttendance from '@features/reports/meeting_attendance/hooks/useYearlyAttendance';
 import useReportYearly from '@features/reports/hooks/useReportYearly';
-import useReportMonthly from '@features/reports/hooks/useReportMonthly';
 
 const useReportSection = () => {
   const { personIsEnrollmentActive } = usePerson();
@@ -33,8 +32,6 @@ const useReportSection = () => {
   const { getPublishersActive, getPublishersInactiveYears } = usePersons();
 
   const { getPublishersReactivatedYears } = useReportYearly();
-
-  const { getPublishersActiveForBranch } = useReportMonthly();
 
   const report = useAtomValue(branchSelectedReportState);
   const year = useAtomValue(branchSelectedYearState);
@@ -176,7 +173,7 @@ const useReportSection = () => {
     }
 
     branchReport.report_data.publishers_active =
-      getPublishersActiveForBranch(month).length;
+      getPublishersActive(month).length;
 
     branchReport.report_data.weekend_meeting_average = weekend.average;
 

@@ -13,10 +13,11 @@ import {
   personIsFMF,
   personIsFR,
   personIsFS,
-  personIsInactive,
   personIsMS,
   updateRecentPersons,
 } from '@services/app/persons';
+import { personIsInactivePublisher } from '@services/app/publisher_status';
+import { ministryMonthsState } from '@states/field_service_reports';
 import { personsFilterOpenState, personsRecentState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -30,6 +31,7 @@ const usePersonCard = (person: PersonType) => {
 
   const fullnameOption = useAtomValue(fullnameOptionState);
   const filterOpen = useAtomValue(personsFilterOpenState);
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -45,7 +47,7 @@ const usePersonCard = (person: PersonType) => {
     const isUnbaptized = person.person_data.publisher_unbaptized.active.value;
     const isMidweek = person.person_data.midweek_meeting_student.active.value;
     const disqualified = person.person_data.disqualified.value;
-    const isInactivePublisher = personIsInactive(person);
+    const isInactivePublisher = personIsInactivePublisher(person, ministryMonths);
     const isFamilyHead = person.person_data?.family_members?.head ?? false
 
     const badges: { name: string; color: BadgeColor }[] = [];
@@ -113,7 +115,7 @@ const usePersonCard = (person: PersonType) => {
     }
 
     return badges.sort((a, b) => a.name.localeCompare(b.name));
-  }, [t, person]);
+  }, [t, person, ministryMonths]);
 
   const handleDelete = () => setIsDeleting(true);
 

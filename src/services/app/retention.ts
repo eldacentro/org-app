@@ -25,6 +25,14 @@ import { displaySnackNotification } from '@services/states/app';
  * La purga es un TOMBSTONE (se propaga por sync a toda la congregación) y
  * corre automáticamente una vez al día en los dispositivos de administradores
  * (ver triggerRetentionPurge), avisando de lo eliminado.
+ *
+ * A PROPÓSITO: aquí "activo" se lee del HISTORIAL de publicador (¿tiene algún
+ * tramo abierto?), no de la regla de los 6 meses sin informar de
+ * `publisher_status.ts`. Son preguntas distintas: aquélla decide a quién se
+ * enseña como activo, y ésta CUÁNDO SE BORRAN sus informes. El tramo se cierra
+ * al enviar el S-1 del mes en que quedó inactivo, así que la ventana de
+ * conservación se estrecha cuando la congregación da por cerrado ese mes, y no
+ * antes: mientras tanto se conserva de más, que es el lado bueno del error.
  */
 
 const NEVER = '9999/99';

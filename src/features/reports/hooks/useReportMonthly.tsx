@@ -1,17 +1,14 @@
 import { useAtomValue } from 'jotai';
 import { PersonType } from '@definition/person';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
-import { addMonths, formatDate } from '@utils/date';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import { personsState } from '@states/persons';
 import usePerson from '@features/persons/hooks/usePerson';
-import usePersons from '@features/persons/hooks/usePersons';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { useMemo } from 'react';
 
 const useReportMonthly = (group?: string) => {
-  const { getPublishersActive } = usePersons(group);
-  const { personGetFirstReport, personIsEnrollmentActive } = usePerson();
+  const { personIsEnrollmentActive } = usePerson();
 
   const fieldGroups = useAtomValue(fieldWithLanguageGroupsState);
   const reports = useAtomValue(congFieldServiceReportsState);
@@ -36,66 +33,10 @@ const useReportMonthly = (group?: string) => {
     );
   }, [allPersons, fieldGroups, group]);
 
-  const personCheckInactivityState = (person: PersonType, month: string) => {
-    // default month to current month if undefined
-    if (!month) {
-      month = formatDate(new Date(), 'yyyy/MM');
-    }
-
-    const startDate = personGetFirstReport(person);
-    if (!startDate) return false;
-
-    let isInactive = true;
-    let countReport = 0;
-
-    const findReport = (toFind: string) => {
-      return reports.find(
-        (record) =>
-          record.report_data.person_uid === person.person_uid &&
-          record.report_data.report_date === toFind
-      );
-    };
-
-    do {
-      // exit and count reports if it reaches first month report
-      if (month === startDate) {
-        isInactive = countReport === 5;
-        break;
-      }
-
-      // find report and check shared_ministry
-      const report = findReport(month);
-
-      if (report?.report_data.shared_ministry) {
-        isInactive = false;
-        break;
-      }
-
-      // decrease month
-      const date = addMonths(`${month}/01`, -1);
-      month = formatDate(date, 'yyyy/MM');
-
-      countReport++;
-    } while (countReport <= 5);
-
-    return isInactive;
-  };
-
-  const getPublishersActiveForBranch = (month: string) => {
-    const personActive: PersonType[] = [];
-
-    const active = getPublishersActive(month);
-
-    for (const person of active) {
-      const isInactive = personCheckInactivityState(person, month);
-
-      if (!isInactive) {
-        personActive.push(person);
-      }
-    }
-
-    return personActive;
-  };
+  // La regla de los 6 meses vivía duplicada aquí (solo para el S-1) y en los
+  // filtros de informes. Ahora `getPublishersActive` ya la aplica, así que el
+  // recuento de la sucursal y lo que se ve en pantalla no pueden discrepar:
+  // ver services/app/publisher_status.ts.
 
   const personHasReport = (person: PersonType, month: string) => {
     const hasReport = reports.some((report) => {
@@ -220,8 +161,6 @@ const useReportMonthly = (group?: string) => {
   };
 
   return {
-    personCheckInactivityState,
-    getPublishersActiveForBranch,
     personHasReport,
     getFTSReportsMonth,
     getAPReportsMonth,
