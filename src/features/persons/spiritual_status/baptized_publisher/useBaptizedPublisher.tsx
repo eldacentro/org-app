@@ -10,6 +10,7 @@ import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { fullnameOptionState, userDataViewState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
 import useFirstReport from '../first_report/useFirstReport';
+import { findOpenPeriod, openPeriod } from '@utils/spiritual_status';
 
 const useBaptizedPublisher = () => {
   const { id } = useParams();
@@ -94,10 +95,9 @@ const useBaptizedPublisher = () => {
     const newPerson: PersonType = structuredClone(person);
 
     if (isActive) {
-      const activeRecord =
-        newPerson.person_data.publisher_baptized.history.find(
-          (record) => record.end_date === null
-        );
+      const activeRecord = findOpenPeriod(
+        newPerson.person_data.publisher_baptized.history
+      );
 
       const start_date = formatDate(
         new Date(activeRecord.start_date),
@@ -138,15 +138,7 @@ const useBaptizedPublisher = () => {
   const handleAddHistory = async () => {
     const newPerson = structuredClone(person);
 
-    const startMonth = dateFirstDayMonth().toISOString();
-
-    newPerson.person_data.publisher_baptized.history.push({
-      id: crypto.randomUUID(),
-      _deleted: false,
-      updatedAt: new Date().toISOString(),
-      start_date: startMonth,
-      end_date: null,
-    });
+    openPeriod(newPerson.person_data.publisher_baptized.history);
 
     updateFirstReport(newPerson);
 
@@ -257,13 +249,7 @@ const useBaptizedPublisher = () => {
     if (histories.length === 0 && value && firstReport.length === 0) {
       const startMonth = dateFirstDayMonth(value).toISOString();
 
-      newPerson.person_data.publisher_baptized.history.push({
-        _deleted: false,
-        end_date: null,
-        id: crypto.randomUUID(),
-        start_date: startMonth,
-        updatedAt: new Date().toISOString(),
-      });
+      openPeriod(newPerson.person_data.publisher_baptized.history, startMonth);
 
       updateFirstReport(newPerson);
     }

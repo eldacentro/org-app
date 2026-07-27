@@ -7,6 +7,7 @@ import { setPersonCurrentDetails } from '@services/states/persons';
 import { buildPersonFullname } from '@utils/common';
 import { fullnameOptionState, userDataViewState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
+import { openPeriod } from '@utils/spiritual_status';
 
 const useMidweekMeetingStudent = () => {
   const { id } = useParams();
@@ -80,13 +81,10 @@ const useMidweekMeetingStudent = () => {
   const handleAddHistory = async () => {
     const newPerson = structuredClone(person);
 
-    newPerson.person_data.midweek_meeting_student.history.push({
-      id: crypto.randomUUID(),
-      _deleted: false,
-      updatedAt: new Date().toISOString(),
-      start_date: new Date().toISOString(),
-      end_date: null,
-    });
+    openPeriod(
+      newPerson.person_data.midweek_meeting_student.history,
+      new Date().toISOString()
+    );
 
     setPersonCurrentDetails(newPerson);
   };

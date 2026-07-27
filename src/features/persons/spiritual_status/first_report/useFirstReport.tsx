@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { personCurrentDetailsState } from '@states/persons';
 import { PersonType } from '@definition/person';
 import { formatDate } from '@utils/date';
+import { openPeriod } from '@utils/spiritual_status';
 
 const useFirstReport = () => {
   const [person, setPerson] = useAtom(personCurrentDetailsState);
@@ -47,23 +48,17 @@ const useFirstReport = () => {
           newPerson.person_data.publisher_baptized.active.value;
 
         if (isBaptized) {
-          newPerson.person_data.publisher_baptized.history.push({
-            id: crypto.randomUUID(),
-            _deleted: false,
-            updatedAt: new Date().toISOString(),
-            start_date: finalValue,
-            end_date: null,
-          });
+          openPeriod(
+            newPerson.person_data.publisher_baptized.history,
+            finalValue
+          );
         }
 
         if (!isBaptized) {
-          newPerson.person_data.publisher_unbaptized.history.push({
-            id: crypto.randomUUID(),
-            _deleted: false,
-            updatedAt: new Date().toISOString(),
-            start_date: finalValue,
-            end_date: null,
-          });
+          openPeriod(
+            newPerson.person_data.publisher_unbaptized.history,
+            finalValue
+          );
         }
       }
 

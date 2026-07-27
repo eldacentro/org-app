@@ -11,6 +11,7 @@ import { dateFirstDayMonth, formatDate } from '@utils/date';
 import { personArchive, personUnarchive } from '@services/app/persons';
 import { personIsInactivePublisher } from '@services/app/publisher_status';
 import { ministryMonthsState } from '@states/field_service_reports';
+import { findOpenPeriod, openPeriod } from '@utils/spiritual_status';
 
 const useSpiritualStatus = () => {
   const { t } = useAppTranslation();
@@ -111,27 +112,15 @@ const useSpiritualStatus = () => {
       new Date().toISOString();
 
     if (checked) {
-      const current =
-        newPerson.person_data.midweek_meeting_student.history.find(
-          (record) => record.end_date === null
-        );
-
-      if (!current) {
-        newPerson.person_data.midweek_meeting_student.history.push({
-          id: crypto.randomUUID(),
-          _deleted: false,
-          updatedAt: new Date().toISOString(),
-          start_date: new Date().toISOString(),
-          end_date: null,
-        });
-      }
+      openPeriod(
+        newPerson.person_data.midweek_meeting_student.history,
+        new Date().toISOString()
+      );
     }
 
     if (!checked) {
       const current =
-        newPerson.person_data.midweek_meeting_student.history.find(
-          (record) => record.end_date === null
-        );
+        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
 
       if (current && isAddPerson) {
         newPerson.person_data.midweek_meeting_student.history =
@@ -166,9 +155,7 @@ const useSpiritualStatus = () => {
     // update meeting student status if checked is true
     if (checked) {
       const currentMidweek =
-        newPerson.person_data.midweek_meeting_student.history.find(
-          (record) => record.end_date === null
-        );
+        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
 
       if (currentMidweek) {
         const start_date = formatDate(
@@ -207,9 +194,7 @@ const useSpiritualStatus = () => {
       new Date().toISOString();
 
     if (!checked) {
-      const current = newPerson.person_data.publisher_unbaptized.history.find(
-        (record) => record.end_date === null
-      );
+      const current = findOpenPeriod(newPerson.person_data.publisher_unbaptized.history);
 
       if (current && isAddPerson) {
         newPerson.person_data.publisher_unbaptized.history =
@@ -233,9 +218,7 @@ const useSpiritualStatus = () => {
     // update previous status if checked is true
     if (checked) {
       const currentUnbaptized =
-        newPerson.person_data.publisher_unbaptized.history.find(
-          (record) => record.end_date === null
-        );
+        findOpenPeriod(newPerson.person_data.publisher_unbaptized.history);
 
       if (currentUnbaptized) {
         const start_date = formatDate(
@@ -271,9 +254,7 @@ const useSpiritualStatus = () => {
       }
 
       const currentMidweek =
-        newPerson.person_data.midweek_meeting_student.history.find(
-          (record) => record.end_date === null
-        );
+        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
 
       if (currentMidweek) {
         const start_date = formatDate(
@@ -314,9 +295,7 @@ const useSpiritualStatus = () => {
       new Date().toISOString();
 
     if (!checked) {
-      const current = newPerson.person_data.publisher_baptized.history.find(
-        (record) => record.end_date === null
-      );
+      const current = findOpenPeriod(newPerson.person_data.publisher_baptized.history);
 
       if (current && isAddPerson) {
         newPerson.person_data.publisher_baptized.history =

@@ -1,11 +1,83 @@
 import { PersonType, StatusHistoryType } from '@definition/person';
 import { formatDate, dateFirstDayMonth } from '@utils/date';
 
+/**
+ * Periodos de publicador (y de estudiante): abrirlos y cerrarlos.
+ *
+ * Los historiales se tocan desde ocho sitios distintos —la casilla de la
+ * ficha, el alta, el historial detallado, la fecha de primer informe, la
+ * pantalla de informes...— y cada uno se buscaba la vida. De ahí salieron dos
+ * defectos que dejaron historiales sucios en la congregación:
+ *
+ * - Al buscar "el periodo abierto" con `end_date === null` a secas se cogía
+ *   también uno BORRADO, así que se cerraba el equivocado y el de verdad
+ *   seguía abierto.
+ * - Al reabrir se ponía siempre el día 1 del mes en curso. Si el periodo
+ *   anterior se había cerrado el día 11 y se reabría el 16, el nuevo empezaba
+ *   el día 1: dos periodos solapados sobre las mismas fechas. Le pasó a cinco
+ *   personas, y a Antonio Bernabéu tres veces.
+ *
+ * Por eso todo pasa ahora por estas dos funciones, y ninguna hace un `push`
+ * a pelo.
+ */
+
+/** Milisegundos de una fecha guardada, en cualquiera de los formatos del repo. */
+const timeOf = (value: string | null | undefined) => {
+  if (!value) return null;
+
+  const time = new Date(value).getTime();
+
+  return Number.isNaN(time) ? null : time;
+};
+
+/** El periodo abierto DE VERDAD: sin marca de borrado y sin fecha de fin. */
+export const findOpenPeriod = (history: StatusHistoryType[] = []) =>
+  history.find((record) => !record._deleted && record.end_date === null);
+
+/**
+ * Abre un periodo. No hace nada si ya hay uno abierto, y nunca lo empieza
+ * antes de que termine el anterior.
+ *
+ * @param startDate cuándo empieza; por defecto, el día 1 del mes en curso.
+ */
+export const openPeriod = (
+  history: StatusHistoryType[],
+  startDate?: string
+) => {
+  if (findOpenPeriod(history)) return;
+
+  let start = startDate ?? dateFirstDayMonth().toISOString();
+
+  const latestEnd = history
+    .filter((record) => !record._deleted && record.end_date)
+    .reduce<string | null>((latest, record) => {
+      const time = timeOf(record.end_date);
+      if (time === null) return latest;
+
+      return latest === null || time > timeOf(latest) ? record.end_date : latest;
+    }, null);
+
+  const startTime = timeOf(start);
+  const latestEndTime = timeOf(latestEnd);
+
+  if (latestEndTime !== null && startTime !== null && latestEndTime > startTime) {
+    start = latestEnd;
+  }
+
+  history.push({
+    id: crypto.randomUUID(),
+    _deleted: false,
+    updatedAt: new Date().toISOString(),
+    start_date: start,
+    end_date: null,
+  });
+};
+
 export const closeOpenHistory = (
   history: StatusHistoryType[],
   isAddPerson: boolean
 ) => {
-  const current = history.find((record) => record.end_date === null);
+  const current = findOpenPeriod(history);
 
   if (current && isAddPerson) {
     const index = history.indexOf(current);
@@ -38,19 +110,7 @@ export const toggleMidweekMeetingStudent = (
     new Date().toISOString();
 
   if (checked) {
-    const current = newPerson.person_data.midweek_meeting_student.history.find(
-      (record) => record.end_date === null
-    );
-
-    if (!current) {
-      newPerson.person_data.midweek_meeting_student.history.push({
-        id: crypto.randomUUID(),
-        _deleted: false,
-        updatedAt: new Date().toISOString(),
-        start_date: dateFirstDayMonth().toISOString(),
-        end_date: null,
-      });
-    }
+    openPeriod(newPerson.person_data.midweek_meeting_student.history);
   }
 
   if (!checked) {
@@ -188,15 +248,10 @@ export const changeBaptismDate = (
   const firstReport = newPerson.person_data.first_report?.value || '';
 
   if (histories.length === 0 && value && firstReport.length === 0) {
-    const startMonth = dateFirstDayMonth(value).toISOString();
-
-    newPerson.person_data.publisher_baptized.history.push({
-      _deleted: false,
-      end_date: null,
-      id: crypto.randomUUID(),
-      start_date: startMonth,
-      updatedAt: new Date().toISOString(),
-    });
+    openPeriod(
+      newPerson.person_data.publisher_baptized.history,
+      dateFirstDayMonth(value).toISOString()
+    );
 
     updateFirstReport(newPerson);
   }
@@ -217,9 +272,7 @@ export const toggleActive = (
   const relevantStatus = newPerson.person_data.publisher_baptized.active.value
     ? newPerson.person_data.publisher_baptized
     : newPerson.person_data.publisher_unbaptized;
-  const activeHistoryExists = relevantStatus.history.some(
-    (record) => record.end_date === null
-  );
+  const activeHistoryExists = Boolean(findOpenPeriod(relevantStatus.history));
 
   if (
     isActive === relevantStatus.active.value &&
@@ -229,9 +282,7 @@ export const toggleActive = (
   }
 
   if (!isActive) {
-    const activeRecord = relevantStatus.history.find(
-      (record) => record.end_date === null
-    );
+    const activeRecord = findOpenPeriod(relevantStatus.history);
 
     if (!activeRecord) {
       if (process.env.NODE_ENV !== 'production') {
@@ -281,17 +332,7 @@ const addHistory = (newPerson: PersonType) => {
   const relevantStatus = newPerson.person_data.publisher_baptized.active.value
     ? newPerson.person_data.publisher_baptized
     : newPerson.person_data.publisher_unbaptized;
-  const hasOpen = relevantStatus.history.some(
-    (r) => !r._deleted && r.end_date === null
-  );
-  if (hasOpen) return;
-  relevantStatus.history.push({
-    id: crypto.randomUUID(),
-    _deleted: false,
-    updatedAt: new Date().toISOString(),
-    start_date: dateFirstDayMonth().toISOString(),
-    end_date: null,
-  });
+  openPeriod(relevantStatus.history);
 
   updateFirstReport(newPerson);
 };

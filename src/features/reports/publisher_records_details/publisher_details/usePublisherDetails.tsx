@@ -7,6 +7,7 @@ import { computeYearsDiff, formatDate } from '@utils/date';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { dbPersonsSave } from '@services/dexie/persons';
+import { openPeriod } from '@utils/spiritual_status';
 
 const usePublisherDetails = () => {
   const { id } = useParams();
@@ -128,23 +129,17 @@ const usePublisherDetails = () => {
             newPerson.person_data.publisher_baptized.active.value;
 
           if (isBaptized) {
-            newPerson.person_data.publisher_baptized.history.push({
-              id: crypto.randomUUID(),
-              _deleted: false,
-              updatedAt: new Date().toISOString(),
-              start_date: finalValue,
-              end_date: null,
-            });
+            openPeriod(
+              newPerson.person_data.publisher_baptized.history,
+              finalValue
+            );
           }
 
           if (!isBaptized) {
-            newPerson.person_data.publisher_unbaptized.history.push({
-              id: crypto.randomUUID(),
-              _deleted: false,
-              updatedAt: new Date().toISOString(),
-              start_date: finalValue,
-              end_date: null,
-            });
+            openPeriod(
+              newPerson.person_data.publisher_unbaptized.history,
+              finalValue
+            );
           }
         }
 

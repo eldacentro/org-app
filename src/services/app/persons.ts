@@ -28,58 +28,23 @@ import {
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 import { getTranslation } from '@services/i18n/translation';
+import { openPeriod } from '@utils/spiritual_status';
 
 const personUnarchiveMidweekMeeting = (person: PersonType) => {
   if (person.person_data.midweek_meeting_student.active.value) {
-    const current = person.person_data.midweek_meeting_student.history.find(
-      (record) => record._deleted === false && record.end_date === null
-    );
-
-    if (!current) {
-      person.person_data.midweek_meeting_student.history.push({
-        id: crypto.randomUUID(),
-        _deleted: false,
-        updatedAt: new Date().toISOString(),
-        start_date: new Date().toISOString(),
-        end_date: null,
-      });
-    }
+    openPeriod(person.person_data.midweek_meeting_student.history, new Date().toISOString());
   }
 };
 
 const personUnarchiveUnbaptizedPublisher = (person: PersonType) => {
   if (person.person_data.publisher_unbaptized.active.value) {
-    const current = person.person_data.publisher_unbaptized.history.find(
-      (record) => record._deleted === false && record.end_date === null
-    );
-
-    if (!current) {
-      person.person_data.publisher_unbaptized.history.push({
-        id: crypto.randomUUID(),
-        _deleted: false,
-        updatedAt: new Date().toISOString(),
-        start_date: dateFirstDayMonth().toISOString(),
-        end_date: null,
-      });
-    }
+    openPeriod(person.person_data.publisher_unbaptized.history, dateFirstDayMonth().toISOString());
   }
 };
 
 const personUnarchiveBaptizedPublisher = (person: PersonType) => {
   if (person.person_data.publisher_baptized.active.value) {
-    const current = person.person_data.publisher_baptized.history.find(
-      (record) => record._deleted === false && record.end_date === null
-    );
-
-    if (!current) {
-      person.person_data.publisher_baptized.history.push({
-        id: crypto.randomUUID(),
-        _deleted: false,
-        updatedAt: new Date().toISOString(),
-        start_date: dateFirstDayMonth().toISOString(),
-        end_date: null,
-      });
-    }
+    openPeriod(person.person_data.publisher_baptized.history, dateFirstDayMonth().toISOString());
   }
 };
 

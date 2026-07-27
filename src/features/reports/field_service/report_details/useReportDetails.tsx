@@ -14,6 +14,7 @@ import { dbFieldServiceReportsSave } from '@services/dexie/cong_field_service_re
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { formatDate } from '@utils/date';
 import usePerson from '@features/persons/hooks/usePerson';
+import { openPeriod } from '@utils/spiritual_status';
 
 const useReportDetails = () => {
   const { t } = useAppTranslation();
@@ -202,24 +203,17 @@ const useReportDetails = () => {
 
       const startDate = new Date(`${currentMonth}/01`).toISOString();
 
+      // openPeriod no hace nada si ya hay un periodo abierto: sin eso, marcar
+      // como activo a quien ya lo estaba dejaba dos periodos solapados.
       if (isBaptized) {
-        newPerson.person_data.publisher_baptized.history.push({
-          id: crypto.randomUUID(),
-          _deleted: false,
-          updatedAt: new Date().toISOString(),
-          start_date: startDate,
-          end_date: null,
-        });
+        openPeriod(newPerson.person_data.publisher_baptized.history, startDate);
       }
 
       if (isUnbaptized) {
-        newPerson.person_data.publisher_unbaptized.history.push({
-          id: crypto.randomUUID(),
-          _deleted: false,
-          updatedAt: new Date().toISOString(),
-          start_date: startDate,
-          end_date: null,
-        });
+        openPeriod(
+          newPerson.person_data.publisher_unbaptized.history,
+          startDate
+        );
       }
 
       await dbPersonsSave(newPerson);
