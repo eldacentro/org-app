@@ -1,7 +1,7 @@
 import { memo, PointerEvent, useCallback, useRef, useState, WheelEvent } from 'react';
 import { Box } from '@mui/material';
-import IconButton from '@components/icon_button';
-import { IconAdd, IconRestart } from '@components/icons';
+import Typography from '@components/typography';
+import { IconAdd } from '@components/icons';
 import { COLORES, EXTINTORES_GEO, PUESTOS, SALIDAS } from './data';
 import { PLANO_BASE_SVG, PLANO_TRANSFORM } from './plano_base';
 import { BLOQUES_ASIENTOS } from './asientos';
@@ -46,11 +46,14 @@ const PlanoBase = memo(function PlanoBase() {
 
       {/* El plano original, con su transformación a las coordenadas del plan.
           Va como marcado en bruto porque es un dibujo cerrado que no cambia. */}
+      {/* Cada elemento trae SU grosor (muro grueso, tabique medio, mobiliario
+          fino): esa es la jerarquía del plano. El grupo solo fija que el trazo
+          no engorde al ampliar. */}
       <g
         transform={PLANO_TRANSFORM}
-        strokeWidth="12"
         strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
+        strokeLinecap="round"
+        style={{ vectorEffect: 'non-scaling-stroke' }}
         dangerouslySetInnerHTML={{ __html: PLANO_BASE_SVG }}
       />
 
@@ -188,6 +191,16 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
         border: '1px solid var(--line)',
       }}
     >
+      <style>
+        {`
+          /* El navegador pinta un aro azul enorme alrededor de un <g> con
+             tabIndex en cuanto se pulsa. Se quita el de ratón y se conserva
+             uno discreto para quien navega con el teclado. */
+          .evac-hit:focus { outline: none; }
+          .evac-hit:focus-visible { outline: 2px solid var(--accent-main); outline-offset: 2px; }
+        `}
+      </style>
+
       <svg
         ref={svgRef}
         viewBox={`${vista.x} ${vista.y} ${vista.w} ${vista.h}`}
@@ -216,6 +229,7 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
           return (
             <g
               key={bloque.id}
+              className="evac-hit"
               role="button"
               tabIndex={0}
               aria-label={`${bloque.nombre}, ${bloque.asientos.length} asientos`}
@@ -252,6 +266,7 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
           return (
             <g
               key={salida.id}
+              className="evac-hit"
               role="button"
               tabIndex={0}
               aria-label={`${salida.nombre}, ${salida.calle}`}
@@ -306,6 +321,7 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
           return (
             <g
               key={puesto.posicion}
+              className="evac-hit"
               role="button"
               tabIndex={0}
               aria-label={`Puesto ${puesto.posicion}`}
@@ -344,6 +360,7 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
           return (
             <g
               key={ext.id}
+              className="evac-hit"
               role="button"
               tabIndex={0}
               aria-label={`Extintor ${ext.id}`}
@@ -380,36 +397,66 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
       <Box
         sx={{
           position: 'absolute',
-          // Abajo a la IZQUIERDA: a la derecha se comían la salida de
-          // emergencia y las últimas filas de asientos.
-          left: '8px',
-          bottom: '8px',
+          left: '10px',
+          bottom: '10px',
           display: 'flex',
-          flexDirection: 'row',
+          alignItems: 'center',
           gap: '2px',
+          padding: '3px',
+          borderRadius: 'var(--radius-max)',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--radius-max)',
-          padding: '2px',
-          opacity: 0.94,
+          boxShadow: 'var(--small-card-shadow)',
+          '& > button': {
+            width: '30px',
+            height: '30px',
+            borderRadius: 'var(--radius-max)',
+            border: 'none',
+            appearance: 'none',
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--ink-2)',
+            transition: 'background-color 0.15s, color 0.15s',
+            '&:hover': { backgroundColor: 'var(--accent-150)', color: 'var(--ink)' },
+            '&:disabled': { opacity: 0.35, cursor: 'default' },
+          },
         }}
       >
-        <IconButton aria-label="Acercar" onClick={() => zoom(1.5)}>
-          <IconAdd color="var(--ink)" width={18} height={18} />
-        </IconButton>
-        <IconButton aria-label="Alejar" onClick={() => zoom(1 / 1.5)}>
-          {/* No hay icono de "menos" en el juego de la app; una raya
-              horizontal dice lo mismo sin traer un icono de fuera. */}
-          <Box sx={{ width: 14, height: 2, borderRadius: 1, backgroundColor: 'var(--ink)' }} />
-        </IconButton>
-        {zoomActual > 1.01 && (
-          <IconButton
-            aria-label="Ver el plano entero"
-            onClick={() => setVista(VISTA_COMPLETA)}
-          >
-            <IconRestart color="var(--ink)" width={18} height={18} />
-          </IconButton>
-        )}
+        <Box
+          component="button"
+          type="button"
+          aria-label="Alejar"
+          disabled={zoomActual <= 1.01}
+          onClick={() => zoom(1 / 1.5)}
+        >
+          <Box sx={{ width: 13, height: 1.5, borderRadius: 1, backgroundColor: 'currentColor' }} />
+        </Box>
+
+        <Box
+          component="button"
+          type="button"
+          aria-label="Ver el plano entero"
+          disabled={zoomActual <= 1.01}
+          onClick={() => setVista(VISTA_COMPLETA)}
+          sx={{ minWidth: '40px' }}
+        >
+          <Typography className="label-small-semibold" color="inherit">
+            {Math.round(zoomActual * 100)}%
+          </Typography>
+        </Box>
+
+        <Box
+          component="button"
+          type="button"
+          aria-label="Acercar"
+          disabled={zoomActual >= ZOOM_MAX - 0.01}
+          onClick={() => zoom(1.5)}
+        >
+          <IconAdd color="currentColor" width={16} height={16} />
+        </Box>
       </Box>
     </Box>
   );
