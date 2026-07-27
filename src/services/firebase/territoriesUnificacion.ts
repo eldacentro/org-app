@@ -20,8 +20,6 @@ import {
   collection,
   doc as fsDoc,
   getDocs,
-  query,
-  where,
   writeBatch,
 } from 'firebase/firestore';
 import { firestore } from './index';
@@ -123,7 +121,7 @@ export const runUnificacion2026 = async (
   }
   campaignIds.CONMEMORACION = conmem.id;
 
-  let asamblea = findCampaign(data.campaigns.ASAMBLEA.nombre);
+  const asamblea = findCampaign(data.campaigns.ASAMBLEA.nombre);
   const asambleaId = asamblea?.id ?? crypto.randomUUID().replace(/-/g, '');
   campaignIds.ASAMBLEA = asambleaId;
 
