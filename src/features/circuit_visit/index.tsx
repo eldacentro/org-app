@@ -147,8 +147,14 @@ const SpecialMeetingEditor = ({
     <Stack spacing="10px">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography className="body-regular-semibold">{label}</Typography>
+        {/* Misma variante y mismo ancho mínimo en los dos estados. Antes una
+            reunión programada llevaba botón "secondary" y otra sin programar
+            "tertiary", con textos de distinta longitud: las dos reuniones de
+            esta tarjeta se veían con botones de tamaños distintos según en qué
+            estado estuviera cada una. */}
         <Button
-          variant={enabled ? 'secondary' : 'tertiary'}
+          variant="secondary"
+          sx={{ minWidth: '116px', flexShrink: 0 }}
           onClick={() =>
             onChange(enabled ? null : { date: '', time: '', place: '' })
           }
@@ -350,7 +356,17 @@ const PreachingSection = ({
                       useFlexGap
                     >
                       <Autocomplete
-                        sx={{ flex: '1 1 220px', minWidth: '200px' }}
+                        // El ancho base solo a partir de tablet, que es cuando
+                        // esta fila es realmente una FILA. En móvil el Stack va
+                        // en columna, y ahí `flex-basis: 220px` reserva 220px
+                        // de ALTO: ese era el hueco enorme entre este selector
+                        // y el de su esposa. Es el mismo fallo del que avisa el
+                        // comentario de abajo, que allí sí se había corregido.
+                        sx={{
+                          width: '100%',
+                          flex: { tablet: '1 1 220px' },
+                          minWidth: { tablet: '200px' },
+                        }}
                         options={personOptions}
                         value={selectedPerson}
                         onChange={(_, v) => {
@@ -379,7 +395,11 @@ const PreachingSection = ({
                       />
                       {companion?.brother && (
                         <Select
-                          sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}
+                          sx={{
+                            width: '100%',
+                            flex: { tablet: '0 1 170px' },
+                            minWidth: { tablet: '150px' },
+                          }}
                           value={companion.activity}
                           onChange={(e) =>
                             onUpsertCompanion(outing.outingKey, {
@@ -664,8 +684,17 @@ const CircuitVisitDashboard = () => {
         title="Activar nueva visita"
         subtitle="Elige el martes en que empieza la visita."
       >
-        <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="12px" alignItems="flex-end" flexWrap="wrap" useFlexGap>
-          <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+        {/* `flex-end` solo en fila: en columna alinea al eje horizontal, o sea
+            que en móvil encogía el campo y el botón a su ancho de contenido y
+            los pegaba a la derecha. */}
+        <Stack
+          direction={{ mobile: 'column', tablet: 'row' }}
+          spacing="12px"
+          alignItems={{ mobile: 'stretch', tablet: 'flex-end' }}
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <Box sx={{ width: '100%', flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
             <CustomDatePicker
               label="Semana de la visita"
               view="input"
