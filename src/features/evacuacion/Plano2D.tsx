@@ -36,6 +36,41 @@ type Props = {
 
 const TENUE = '#64748B';
 
+/**
+ * Pictograma de aseo, dibujado en las coordenadas del plano.
+ *
+ * La figura clásica de señalización: cabeza redonda y cuerpo — falda para el
+ * de mujeres, tronco y piernas para el de hombres. Dibujarla a mano en vez de
+ * traer un icono del catálogo permite que escale con el plano y no dependa de
+ * ninguna fuente ni traducción.
+ */
+const Pictograma = ({
+  tipo,
+  x,
+  y,
+}: {
+  tipo: 'mujeres' | 'hombres';
+  x: number;
+  y: number;
+}) => (
+  <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
+    <circle cx="0" cy="-2.6" r="1.05" />
+    {tipo === 'mujeres' ? (
+      <>
+        <path d="M0,-1.3 L2,2.5 L-2,2.5 Z" />
+        <rect x="-1.15" y="2.5" width="0.75" height="1.7" rx="0.3" />
+        <rect x="0.4" y="2.5" width="0.75" height="1.7" rx="0.3" />
+      </>
+    ) : (
+      <>
+        <rect x="-1.35" y="-1.3" width="2.7" height="3.3" rx="0.55" />
+        <rect x="-1.25" y="2" width="0.95" height="2.2" rx="0.35" />
+        <rect x="0.3" y="2" width="0.95" height="2.2" rx="0.35" />
+      </>
+    )}
+  </g>
+);
+
 /** Todo lo que no depende de la selección: se dibuja una vez y no se repinta. */
 const PlanoBase = memo(function PlanoBase() {
   return (
@@ -57,14 +92,15 @@ const PlanoBase = memo(function PlanoBase() {
         dangerouslySetInnerHTML={{ __html: PLANO_BASE_SVG }}
       />
 
-      {/* Rótulos de las dependencias.
-          Ojo: el espacio de la izquierda es el ASEO DE MUJERES, no un pasillo
-          — así estaba mal rotulado. De izquierda a derecha: mujeres,
-          minusválidos y hombres. Se escriben en vertical porque son huecos
-          estrechos y en horizontal se montaban unos sobre otros. */}
-      <text x="7.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 7.5,20)" fontWeight="600">Mujeres</text>
-      <text x="24" y="28" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 24,28)" fontWeight="600">Minusválidos</text>
-      <text x="41.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 41.5,20)" fontWeight="600">Hombres</text>
+      {/* Los aseos, con pictograma en vez de rótulo.
+          El texto se solapaba con el dibujo, dependía del zoom para leerse y
+          obligaba a escribirlo en vertical. Un pictograma se entiende de un
+          vistazo, ocupa lo mismo a cualquier escala y no hay que traducirlo.
+          Se dibujan aquí y no con un icono del catálogo porque tienen que
+          vivir dentro del plano, en sus coordenadas. */}
+      <Pictograma tipo="mujeres" x={7.6} y={9} />
+      <Pictograma tipo="hombres" x={41.5} y={9} />
+
       <text x="52" y="46" textAnchor="middle" fontSize="3.2" fill={TENUE} fontWeight="700">Sala B</text>
       <text x="168" y="18" textAnchor="middle" fontSize="4" fontWeight="700" fill="#94A3B8" transform="rotate(90 168,18)">PLATAFORMA</text>
     </>
