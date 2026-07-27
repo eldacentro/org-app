@@ -3,6 +3,11 @@ import { EnrollmentType, PersonType, PrivilegeType } from '@definition/person';
 import { useAppTranslation } from '@hooks/index';
 import { BadgeColor } from '@definition/app';
 import { fullnameOptionState } from '@states/settings';
+import { ministryMonthsState } from '@states/field_service_reports';
+import {
+  personIsActivePublisher,
+  personIsInactivePublisher,
+} from '@services/app/publisher_status';
 import { buildPersonFullname } from '@utils/common';
 import { formatDate } from '@utils/date';
 
@@ -10,6 +15,10 @@ const usePerson = () => {
   const { t } = useAppTranslation();
 
   const fullnameOption = useAtomValue(fullnameOptionState);
+
+  // Las etiquetas dicen quién está inactivo, así que necesitan los informes:
+  // ver services/app/publisher_status.ts.
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const getName = (person: PersonType) => {
     return buildPersonFullname(
@@ -194,11 +203,43 @@ const usePerson = () => {
     const isFR = personIsEnrollmentActive(person, 'FR', month);
     const isFS = personIsEnrollmentActive(person, 'FS', month);
 
-    const isBaptized = personIsBaptizedPublisher(person, month);
-    const isUnbaptized = personIsUnbaptizedPublisher(person, month);
     const isMidweek = person.person_data.midweek_meeting_student.active.value;
     const isDisqualified = person.person_data.disqualified.value;
-    const isInactivePublisher = !isMidweek && !isBaptized && !isUnbaptized;
+
+    /**
+     * Aquí vivía la CUARTA definición de "inactivo": no tener ningún tramo del
+     * historial que cubriera el mes. Se contradecía con las otras tres, y de la
+     * peor manera — al marcar a alguien inactivo se le cierra el tramo con
+     * fecha de este mes, así que el mes seguía "cubierto" y la etiqueta seguía
+     * diciendo "Publicador bautizado". En la lista de inactivos salían seis
+     * personas y solo una llevaba la etiqueta de inactivo.
+     *
+     * Ahora, como en todos los demás sitios, lo deciden los informes.
+     */
+    const isInactivePublisher = personIsInactivePublisher(
+      person,
+      ministryMonths,
+      month
+    );
+
+    /**
+     * De qué CLASE de publicador es, que es otra pregunta. Manda el historial,
+     * pero si el tramo está cerrado y la persona sigue activa —le pasa a quien
+     * tiene el historial mal cerrado— vale la casilla de la ficha: sin esto se
+     * quedaría sin ninguna etiqueta.
+     */
+    const isPublisherNow =
+      !isMidweek && personIsActivePublisher(person, ministryMonths, month);
+
+    const isBaptized =
+      personIsBaptizedPublisher(person, month) ||
+      (isPublisherNow && person.person_data.publisher_baptized.active.value);
+
+    const isUnbaptized =
+      personIsUnbaptizedPublisher(person, month) ||
+      (isPublisherNow &&
+        !person.person_data.publisher_baptized.active.value &&
+        person.person_data.publisher_unbaptized.active.value);
 
     if (isDisqualified) {
       badges.push({ name: t('tr_disqualified'), color: 'red' });

@@ -180,3 +180,23 @@ describe('la casilla «Es publicador actualmente», de punta a punta', () => {
     ).toHaveLength(1);
   });
 });
+
+describe('marcar la casilla de publicador deja fecha', () => {
+  it('encender «Publicador bautizado» abre el periodo, no solo la casilla', () => {
+    // Sin esto la persona quedaba señalada como publicadora sin una sola
+    // fecha, y entonces no había forma de saber si llevaba seis meses sin
+    // informar. Es como acabaron Rogelio Beltrán e Israel Angioli.
+    const person = buildPerson([]);
+    person.person_data.publisher_baptized.active.value = false;
+
+    toggleBaptizedPublisher(person, true, false);
+
+    const abierto = findOpenPeriod(
+      person.person_data.publisher_baptized.history
+    );
+
+    expect(abierto).toBeDefined();
+    expect(abierto.start_date).toBeTruthy();
+    expect(person.person_data.first_report.value).toBeTruthy();
+  });
+});

@@ -229,24 +229,27 @@ describe('quién entra en el reparto activos/inactivos', () => {
 });
 
 describe('alta de una persona nueva', () => {
-  // Al dar de alta a alguien se marca "Publicador bautizado" y el historial
-  // sigue VACÍO hasta que se le pone la fecha del primer informe o se toca el
-  // interruptor de activo. Si en ese hueco se le diera por inactivo,
-  // desaparecería de Informes de predicación y no habría dónde meterle su
-  // primer informe.
+  // Marcar "Publicador bautizado" ABRE el periodo en el historial (ver
+  // openPeriod, en utils/spiritual_status), así que un alta hecha desde la app
+  // siempre tiene fecha y le toca la cortesía del recién nombrado.
   const reports = [buildReport('otro', JULIO)];
 
-  it('recién marcado como publicador y sin ninguna fecha: activo', () => {
-    const nuevo = buildPerson([], { baptized: true });
+  it('marcado como publicador sin NINGUNA fecha: inactivo, no activo eterno', () => {
+    // Antes se daba por activo "en la duda", y la duda no caducaba nunca:
+    // Rogelio Beltrán e Israel Angioli llevaban tres años sin un solo informe
+    // y no había manera de que salieran como inactivos.
+    const sinFecha = buildPerson([], { baptized: true });
 
-    expect(personIsActivePublisher(nuevo, reports, JULIO)).toBe(true);
-    expect(personIsInactivePublisher(nuevo, reports, JULIO)).toBe(false);
+    expect(personIsActivePublisher(sinFecha, reports, JULIO)).toBe(false);
+    expect(personIsInactivePublisher(sinFecha, reports, JULIO)).toBe(true);
   });
 
-  it('sigue activo aunque pasen meses sin informar mientras no tenga fecha', () => {
-    const nuevo = buildPerson([], { baptized: true });
+  it('el alta de verdad sí trae fecha, y por eso cuenta como activo', () => {
+    const nuevo = buildPerson([{ start_date: '2026-07-01' }], {
+      baptized: true,
+    });
 
-    expect(personIsActivePublisher(nuevo, reports, '2027/06')).toBe(true);
+    expect(personIsActivePublisher(nuevo, reports, JULIO)).toBe(true);
   });
 
   it('en cuanto tiene fecha de primer informe, se le aplica la regla', () => {

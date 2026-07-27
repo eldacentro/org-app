@@ -269,11 +269,17 @@ export const personIsActivePublisher = (
   // activo hasta que se le cierre su primera ventana.
   if (startedPublishingBetween(person, from, month)) return true;
 
-  // Marcado como publicador pero sin ninguna fecha (alta a medio rellenar):
-  // no hay nada que permita afirmar que lleva seis meses sin informar, y
-  // declararlo inactivo lo sacaría de la lista donde hay que ponerle su
-  // primer informe. En la duda, activo.
-  return publisherStartMonths(person).length === 0;
+  // Aquí había una última salvaguarda: "marcado como publicador pero sin
+  // ninguna fecha → en la duda, activo". La duda no caducaba nunca, así que
+  // quien tuviera la casilla puesta y ninguna fecha se quedaba activo PARA
+  // SIEMPRE, informara o no. Rogelio Beltrán e Israel Angioli llevaban tres
+  // años sin un solo informe y salían como activos.
+  //
+  // Ya no hace falta: marcar la casilla abre el periodo (ver
+  // `openPeriod` en utils/spiritual_status), así que un alta hecha desde la
+  // app siempre tiene fecha. Sin fecha y sin informes, inactivo — que además
+  // es el estado donde se ve el problema y se puede arreglar.
+  return false;
 };
 
 export const personIsInactivePublisher = (

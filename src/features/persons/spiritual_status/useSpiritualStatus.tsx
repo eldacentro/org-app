@@ -11,7 +11,11 @@ import { dateFirstDayMonth, formatDate } from '@utils/date';
 import { personArchive, personUnarchive } from '@services/app/persons';
 import { personIsInactivePublisher } from '@services/app/publisher_status';
 import { ministryMonthsState } from '@states/field_service_reports';
-import { findOpenPeriod, openPeriod } from '@utils/spiritual_status';
+import {
+  findOpenPeriod,
+  openPeriod,
+  updateFirstReport,
+} from '@utils/spiritual_status';
 
 const useSpiritualStatus = () => {
   const { t } = useAppTranslation();
@@ -193,6 +197,15 @@ const useSpiritualStatus = () => {
     newPerson.person_data.publisher_unbaptized.active.updatedAt =
       new Date().toISOString();
 
+    // Marcar la casilla tiene que ABRIR el periodo, no solo encenderla. Sin
+    // esto la persona quedaba señalada como publicadora sin una sola fecha, y
+    // así no había forma de saber si llevaba seis meses sin informar: se
+    // quedaba activa para siempre. Le pasó a Rogelio Beltrán e Israel Angioli.
+    if (checked) {
+      openPeriod(newPerson.person_data.publisher_unbaptized.history);
+      updateFirstReport(newPerson);
+    }
+
     if (!checked) {
       const current = findOpenPeriod(newPerson.person_data.publisher_unbaptized.history);
 
@@ -293,6 +306,15 @@ const useSpiritualStatus = () => {
     newPerson.person_data.publisher_baptized.active.value = checked;
     newPerson.person_data.publisher_baptized.active.updatedAt =
       new Date().toISOString();
+
+    // Marcar la casilla tiene que ABRIR el periodo, no solo encenderla. Sin
+    // esto la persona quedaba señalada como publicadora sin una sola fecha, y
+    // así no había forma de saber si llevaba seis meses sin informar: se
+    // quedaba activa para siempre. Le pasó a Rogelio Beltrán e Israel Angioli.
+    if (checked) {
+      openPeriod(newPerson.person_data.publisher_baptized.history);
+      updateFirstReport(newPerson);
+    }
 
     if (!checked) {
       const current = findOpenPeriod(newPerson.person_data.publisher_baptized.history);
