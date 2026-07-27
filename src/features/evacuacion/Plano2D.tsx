@@ -2,16 +2,8 @@ import { memo, PointerEvent, useCallback, useRef, useState, WheelEvent } from 'r
 import { Box } from '@mui/material';
 import IconButton from '@components/icon_button';
 import { IconAdd, IconRestart } from '@components/icons';
-import {
-  COLORES,
-  EXTINTORES_GEO,
-  PILARES,
-  PUESTOS,
-  SALIDAS,
-  SALON_OUTLINE,
-  PAREDES_INTERNAS,
-  SALA_B_WALL,
-} from './data';
+import { COLORES, EXTINTORES_GEO, PUESTOS, SALIDAS } from './data';
+import { PLANO_BASE_SVG, PLANO_TRANSFORM } from './plano_base';
 import { BLOQUES_ASIENTOS } from './asientos';
 import { Seleccion } from './DetalleSeleccion';
 
@@ -42,91 +34,36 @@ type Props = {
   onSelect: (seleccion: Seleccion) => void;
 };
 
-const MURO = '#CBD5E1';
 const TENUE = '#64748B';
 
 /** Todo lo que no depende de la selección: se dibuja una vez y no se repinta. */
 const PlanoBase = memo(function PlanoBase() {
   return (
     <>
-      <polygon
-        points={SALON_OUTLINE.map((pt) => pt.join(',')).join(' ')}
-        fill="#FFFFFF"
-        stroke="#94A3B8"
-        strokeWidth="0.8"
-      />
+      {/* Fondo del salón, para que el dibujo no quede sobre el color de la
+          página en las zonas sin relleno. */}
+      <rect x="-1" y="-1" width="182" height="80.65" fill="#FFFFFF" rx="0.5" />
 
-      {PAREDES_INTERNAS.map((pared, idx) => (
-        <rect
-          key={`wall-${idx}`}
-          x={pared.x}
-          y={pared.y}
-          width={pared.w}
-          height={pared.h}
-          fill="#F8FAFC"
-          stroke={MURO}
-          strokeWidth="0.6"
-        />
-      ))}
-
-      {/* Tabique que separa la Sala B del auditorio principal. Se dibuja con
-          el grosor de una pared: como línea fina no se leía como separación
-          y la Sala B parecía abierta al auditorio. */}
-      <polyline
-        points={SALA_B_WALL.map((pt) => pt.join(',')).join(' ')}
-        fill="none"
-        stroke="#94A3B8"
-        strokeWidth="1.8"
+      {/* El plano original, con su transformación a las coordenadas del plan.
+          Va como marcado en bruto porque es un dibujo cerrado que no cambia. */}
+      <g
+        transform={PLANO_TRANSFORM}
+        strokeWidth="12"
         strokeLinejoin="round"
-        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+        dangerouslySetInnerHTML={{ __html: PLANO_BASE_SVG }}
       />
-
-      {/* Puertas interiores */}
-      <path d="M 56.5 34.07 A 5 5 0 0 1 51.5 34.07" fill="none" stroke={TENUE} strokeWidth="0.5" />
-      <line x1="56.5" y1="34.07" x2="51.5" y2="34.07" stroke={TENUE} strokeWidth="0.8" />
-      <path d="M 61.29 40.52 A 6 6 0 0 1 55.29 46.52" fill="none" stroke={TENUE} strokeWidth="0.5" />
-      <line x1="61.29" y1="40.52" x2="55.29" y2="46.52" stroke={TENUE} strokeWidth="0.8" />
-
-      {/* Plataforma */}
-      <polygon
-        points="157.18,30.72 157.18,0.0 180.0,0.0 180.0,37.36 162.66,37.36"
-        fill="#F1F5F9"
-        stroke="#E2E8F0"
-        strokeWidth="0.8"
-      />
-      <text
-        x="168"
-        y="18"
-        textAnchor="middle"
-        fontSize="4"
-        fontWeight="700"
-        fill="#94A3B8"
-        transform="rotate(90 168,18)"
-      >
-        PLATAFORMA
-      </text>
-
-      {PILARES.map((pilar) => (
-        <rect
-          key={pilar.id}
-          x={pilar.x}
-          y={pilar.y}
-          width={pilar.w}
-          height={pilar.h}
-          fill="#475569"
-          rx="0.3"
-        />
-      ))}
 
       {/* Rótulos de las dependencias.
           Ojo: el espacio de la izquierda es el ASEO DE MUJERES, no un pasillo
           — así estaba mal rotulado. De izquierda a derecha: mujeres,
-          minusválidos y hombres. Se escriben en vertical y separados porque
-          son huecos estrechos y los rótulos se montaban unos sobre otros. */}
+          minusválidos y hombres. Se escriben en vertical porque son huecos
+          estrechos y en horizontal se montaban unos sobre otros. */}
       <text x="7.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 7.5,20)" fontWeight="600">Mujeres</text>
       <text x="24" y="28" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 24,28)" fontWeight="600">Minusválidos</text>
       <text x="41.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 41.5,20)" fontWeight="600">Hombres</text>
       <text x="52" y="46" textAnchor="middle" fontSize="3.2" fill={TENUE} fontWeight="700">Sala B</text>
+      <text x="168" y="18" textAnchor="middle" fontSize="4" fontWeight="700" fill="#94A3B8" transform="rotate(90 168,18)">PLATAFORMA</text>
     </>
   );
 });
@@ -443,15 +380,18 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
       <Box
         sx={{
           position: 'absolute',
-          right: '8px',
+          // Abajo a la IZQUIERDA: a la derecha se comían la salida de
+          // emergencia y las últimas filas de asientos.
+          left: '8px',
           bottom: '8px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
+          flexDirection: 'row',
+          gap: '2px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '4px',
+          borderRadius: 'var(--radius-max)',
+          padding: '2px',
+          opacity: 0.94,
         }}
       >
         <IconButton aria-label="Acercar" onClick={() => zoom(1.5)}>
