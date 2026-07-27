@@ -7,12 +7,16 @@ import { useConfirm } from '@components/confirm_dialog';
 import { AppUpdateOutcome, forceAppUpdate } from '@services/app/pwa_update';
 import useManualSync from '@hooks/useManualSync';
 import { AboutProps } from './index.types';
+import { instantSyncStatusState } from '@states/app';
+import { formatSyncAge } from '@utils/sync_age';
 
 const parser = new DOMParser();
 
 const currentYear = new Date().getFullYear();
 
 const useAbout = ({ updatePwa }: AboutProps) => {
+  const instantSync = useAtomValue(instantSyncStatusState);
+
   const { t } = useAppTranslation();
 
   const isOpen = useAtomValue(isAboutOpenState);
@@ -79,7 +83,37 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     window.open(`https://guide.organized-app.com`, '_blank');
   };
 
+  /**
+   * Estado del sync instantáneo, en una línea.
+   *
+   * Es lo único que faltaba para poder responder "¿sigue funcionando?" sin
+   * abrir la consola: si el timbre se cae o alguien deja el kill-switch
+   * remoto puesto, la app sigue sincronizando cada pocos minutos y lo único
+   * que se nota es que "va lenta".
+   */
+  const instantSyncText = (() => {
+    if (instantSync.disabledRemotely) {
+      return 'Desactivado para toda la congregación. Se sincroniza por el intervalo normal.';
+    }
+
+    if (!instantSync.listening) {
+      return 'Sin conexión con el aviso. Se sincroniza por el intervalo normal.';
+    }
+
+    if (instantSync.lastSignalAt === null) {
+      return 'Conectado. Aún no ha llegado ningún aviso.';
+    }
+
+    const minutes = Math.max(
+      0,
+      Math.floor((Date.now() - instantSync.lastSignalAt) / 60000)
+    );
+
+    return `Conectado. Último aviso hace ${formatSyncAge(minutes)}.`;
+  })();
+
   return {
+    instantSyncText,
     isOpen,
     handleClose,
     currentYear,

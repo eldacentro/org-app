@@ -1,9 +1,13 @@
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useLiveQuery } from 'dexie-react-hooks';
+import appDb from '@db/appDb';
 import {
   congAccountConnectedState,
   isAppDataSyncingState,
+  isOnlineState,
   lastAppDataSyncState,
 } from '@states/app';
+import { LAST_SYNC_STORAGE_KEY } from '@wrapper/web_worker/useWebWorker';
 import { getMessageByCode } from '@services/i18n/translation';
 import { dbMetadataReset } from '@services/dexie/metadata';
 import { formatSyncAge } from '@utils/sync_age';
@@ -27,6 +31,54 @@ const useManualSync = () => {
   const setIsSyncing = useSetAtom(isAppDataSyncingState);
   const lastSync = useAtomValue(lastAppDataSyncState);
   const isConnected = useAtomValue(congAccountConnectedState);
+  const isOnline = useAtomValue(isOnlineState);
+
+  const isPendingSync = useLiveQuery(async () => {
+    const metadata = await appDb.metadata.get(1);
+    if (!metadata) return false;
+
+    return Object.values(metadata.metadata).some(
+      (table) => table.send_local === true
+    );
+  }, []);
+
+  /**
+   * Minutos desde la última sincronización COMPLETADA, leídos de la marca
+   * guardada en el dispositivo. El contador en memoria vuelve a cero al
+   * recargar, así que recién abierta la app decía "sin datos" aunque llevara
+   * dos días sin subir nada.
+   */
+  const storedMinutes = () => {
+    try {
+      const stored = localStorage.getItem(LAST_SYNC_STORAGE_KEY);
+      if (!stored) return null;
+
+      const time = new Date(stored).getTime();
+      if (Number.isNaN(time)) return null;
+
+      return Math.max(0, Math.floor((Date.now() - time) / 60000));
+    } catch {
+      return null;
+    }
+  };
+
+  /**
+   * Por qué puede estar sin sincronizar, si es que lo está.
+   *
+   * Esto vivía en un aviso grande arriba del todo, y era un error: alguien que
+   * abre la app por la mañana ve "llevas 9 horas sin sincronizar" justo
+   * mientras la app está sincronizando —el contador es de la sesión anterior—
+   * y se queda esperando a que el aviso desaparezca para hacer lo que iba a
+   * hacer. La información es útil, pero se busca; no tiene que salir al paso.
+   * Aquí está, debajo del botón de sincronizar, para quien la vaya a mirar.
+   */
+  const getReason = () => {
+    if (!isOnline) return 'Sin conexión: se enviará solo al recuperarla.';
+    if (!isConnected) return 'La cuenta se está reconectando.';
+    if (isPendingSync) return 'Con cambios pendientes de enviar.';
+
+    return '';
+  };
 
   const getSecondaryText = () => {
     if (isSyncing) return t('tr_syncAppDataInProgress');
@@ -45,8 +97,23 @@ const useManualSync = () => {
       return `Sincronizado hace ${formatSyncAge(lastSync)}`;
     }
 
-    // lastSync === 0 or '' means no sync has completed yet — show nothing
+    // Nada en memoria (app recién abierta): vale la marca guardada.
+    const stored = storedMinutes();
+    if (stored !== null) return `Sincronizado hace ${formatSyncAge(stored)}`;
+
     return '';
+  };
+
+  /** El texto de siempre y, solo si hace falta, el motivo. */
+  const buildSecondaryText = () => {
+    const base = getSecondaryText();
+
+    if (isSyncing) return base;
+
+    const reason = getReason();
+    if (!reason) return base;
+
+    return base.length > 0 ? `${base} · ${reason}` : reason;
   };
 
   const triggerSync = async () => {
@@ -97,7 +164,7 @@ const useManualSync = () => {
     isSyncing,
     isConnected,
     isUpToDate,
-    secondaryText: getSecondaryText(),
+    secondaryText: buildSecondaryText(),
     handleManualSync,
     handleFullResync,
   };

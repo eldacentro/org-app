@@ -22,6 +22,7 @@ const About = (props: AboutProps) => {
     handleClose,
     isOpen,
     handleForceReload,
+    instantSyncText,
     updateStatus,
     handleFullReDownload,
     isConnected,
@@ -165,6 +166,12 @@ const About = (props: AboutProps) => {
                 está al día ("la tuya es del 12 de julio"). */}
             {import.meta.env.PACKAGE_VERSION}
             {buildDateLabel ? ` · ${buildDateLabel}` : ''} · {__BUILD_SHA__}
+          </Typography>
+          {/* Sincronización al momento: sin esta línea no había forma de saber
+              si el aviso seguía llegando, y perderlo solo se nota en que la
+              app "va lenta". */}
+          <Typography className="label-small-regular" color="var(--grey-350)">
+            Sincronización al momento · {instantSyncText}
           </Typography>
         </Box>
       </Box>

@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { isTest } from '@constants/index';
-import { congAccountConnectedState, isOnlineState } from '@states/app';
+import {
+  congAccountConnectedState,
+  instantSyncStatusState,
+  isOnlineState,
+} from '@states/app';
 import { backupAutoState, congIDState } from '@states/settings';
 import { useFirebaseAuth } from '@hooks/index';
 import { subscribeSyncSignal, SyncSignal } from '@services/firebase/sync_signal';
@@ -43,6 +47,7 @@ const useInstantSync = () => {
   const isConnected = useAtomValue(congAccountConnectedState);
   const backupAuto = useAtomValue(backupAutoState);
   const congId = useAtomValue(congIDState);
+  const setInstantStatus = useSetAtom(instantSyncStatusState);
 
   // activo por defecto para todos (fase de prueba superada). Se puede apagar
   // en un dispositivo concreto con localStorage.elda_sync_instant = '0' (para
@@ -93,9 +98,18 @@ const useInstantSync = () => {
 
   // ── 1. TIMBRE: señal remota → sync adelantado ────────────────────────────
   useEffect(() => {
-    if (!enabled || isTest || !congId || !isConnected) return;
+    if (!enabled || isTest || !congId || !isConnected) {
+      setInstantStatus((prev) => ({ ...prev, listening: false }));
+      return;
+    }
 
     const handleSignal = async (signal: SyncSignal) => {
+      setInstantStatus((prev) => ({
+        ...prev,
+        disabledRemotely: signal.enabled === false,
+        lastSignalAt: Date.now(),
+      }));
+
       if (signal.enabled === false) return; // kill-switch remoto
       if (!signal.tables) return;
 
@@ -124,7 +138,9 @@ const useInstantSync = () => {
       }, delay);
     };
 
-    const unsubscribe = subscribeSyncSignal(congId, handleSignal);
+    const unsubscribe = subscribeSyncSignal(congId, handleSignal, (listening) =>
+      setInstantStatus((prev) => ({ ...prev, listening }))
+    );
 
     return () => {
       unsubscribe();
@@ -133,7 +149,7 @@ const useInstantSync = () => {
         signalTimerRef.current = null;
       }
     };
-  }, [enabled, congId, isConnected]);
+  }, [enabled, congId, isConnected, setInstantStatus]);
 
   // ── 2. SUBIDA INMEDIATA: cambios locales pendientes → sync a los ~4 s ────
   const isPendingSync = useLiveQuery(async () => {

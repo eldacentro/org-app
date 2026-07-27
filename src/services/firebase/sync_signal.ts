@@ -28,7 +28,9 @@ const RESUBSCRIBE_DELAYS_MS = [5_000, 15_000, 60_000, 300_000];
 
 export const subscribeSyncSignal = (
   congId: string,
-  onUpdate: (signal: SyncSignal) => void
+  onUpdate: (signal: SyncSignal) => void,
+  /** Si la escucha está viva. Sirve para poder DECIRLO en la interfaz. */
+  onStatus?: (listening: boolean) => void
 ): (() => void) => {
   const signalDoc = doc(firestore, 'congregation', congId, 'sync', 'signal');
 
@@ -44,11 +46,13 @@ export const subscribeSyncSignal = (
       signalDoc,
       (snapshot) => {
         attempt = 0;
+        onStatus?.(true);
         if (!snapshot.exists()) return;
         onUpdate(snapshot.data() as SyncSignal);
       },
       (error) => {
         console.error('Error en suscripción de señal de sync:', error);
+        onStatus?.(false);
 
         if (stopped) return;
 
@@ -68,6 +72,7 @@ export const subscribeSyncSignal = (
 
   return () => {
     stopped = true;
+    onStatus?.(false);
     if (retryTimer) clearTimeout(retryTimer);
     unsubscribe?.();
   };

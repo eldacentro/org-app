@@ -399,6 +399,29 @@ export const isAppDataSyncingState = atom(false);
 
 export const lastAppDataSyncState = atom<number | string>(0);
 
+/**
+ * Salud del "timbre" de sincronización instantánea.
+ *
+ * Sin esto no había forma de saber si el timbre seguía vivo: si la escucha de
+ * Firestore se cae (reglas, sesión, corte largo) o alguien deja puesto el
+ * kill-switch remoto, la app sigue sincronizando por el intervalo de siempre y
+ * nadie nota que ha perdido lo instantáneo — solo que "va lento". Se enseña en
+ * Acerca de la aplicación.
+ */
+export type InstantSyncStatus = {
+  listening: boolean;
+  /** Kill-switch remoto puesto (enabled:false en el documento de señal). */
+  disabledRemotely: boolean;
+  /** Marca de la última señal recibida, en milisegundos. */
+  lastSignalAt: number | null;
+};
+
+export const instantSyncStatusState = atom<InstantSyncStatus>({
+  listening: false,
+  disabledRemotely: false,
+  lastSignalAt: null,
+});
+
 export const isMFAEnabledState = atom(false);
 
 export const currentDrawerState = atom('');

@@ -232,7 +232,9 @@ const useWebWorker = () => {
     if (!enteringPersons || !backupEnabled || !user) return;
 
     const triggerSync = async () => {
-      const idToken = await user.getIdToken(true);
+      // Sin forzar, por lo mismo que el ciclo periódico: entrar en Personas no
+      // es motivo para ir a la red a por un token que ya tenemos.
+      const idToken = await user.getIdToken();
       if (idToken?.length > 0) {
         worker.postMessage({ field: 'idToken', value: idToken });
       }
@@ -276,7 +278,15 @@ const useWebWorker = () => {
           logger.info('app', 'synchronization paused - person detail open');
         } else if (backupEnabled) {
           if (user) {
-            const idToken = await user.getIdToken(true);
+            // SIN forzar. `getIdToken(true)` va a la red a por un token nuevo
+            // ANTES de cada ciclo: en un móvil con mala cobertura eso son
+            // segundos de espera cada cinco minutos, y con la congregación
+            // entera abriendo la app a la vez es la misma ráfaga de peticiones
+            // a Google que ya nos costó un disgusto. Sin forzar, el SDK
+            // devuelve el token cacheado y solo va a la red cuando de verdad
+            // está por caducar. Forzar se reserva para recuperarse de un error
+            // de autenticación, que es donde sí hace falta.
+            const idToken = await user.getIdToken();
 
             if (idToken?.length > 0) {
               worker.postMessage({
