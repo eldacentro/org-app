@@ -337,6 +337,35 @@ describe('¿hace falta guardar?', () => {
     expect(isSameRecord(null, {})).toBe(false);
     expect(isSameRecord({ v: [] }, { v: [] })).toBe(true);
   });
+
+  // La misma regla fuera de la base de datos: el historial de asignaciones se
+  // recalcula entero al terminar cada sincronización y se entrega a la
+  // interfaz. Si sale idéntico, entregarlo otra vez solo cambia la referencia
+  // y redibuja sin nada nuevo que enseñar (ver setAssignmentsHistory).
+  const historial = () => [
+    {
+      id: 'a1',
+      weekOf: '2026-01-05',
+      weekOfFormatted: '5 de enero',
+      assignment: {
+        code: 101,
+        title: 'Lectura de la Biblia',
+        person: 'uid-1',
+        dataView: 'main',
+      },
+    },
+  ];
+
+  it('un historial recalculado igual no se vuelve a entregar', () => {
+    expect(isSameRecord(historial(), historial())).toBe(true);
+  });
+
+  it('si cambia a quién le toca, sí se entrega', () => {
+    const nuevo = historial();
+    nuevo[0].assignment.person = 'uid-2';
+
+    expect(isSameRecord(historial(), nuevo)).toBe(false);
+  });
 });
 
 /**

@@ -18,6 +18,7 @@ import {
   MidweekMeetingDataType,
   S89DataType,
 } from '@definition/schedules';
+import { isSameRecord } from '@services/worker/merge';
 
 export const setPublishPocket = (value: boolean) => {
   store.set(isPublishOpenState, value);
@@ -56,5 +57,12 @@ export const setIsS140Download = (value: boolean) => {
 };
 
 export const setAssignmentsHistory = (value: AssignmentHistoryType[]) => {
+  // El historial se recalcula ENTERO al terminar cada sincronización (y cada
+  // vez que cambian los programas), y casi siempre sale idéntico. Entregar un
+  // array nuevo con el mismo contenido cambia la referencia y redibuja a quien
+  // lo lee sin que haya nada nuevo que enseñar — la misma regla que en la base
+  // de datos: no se escribe lo que no ha cambiado. Ver isSameRecord.
+  if (isSameRecord(store.get(assignmentsHistoryState), value)) return;
+
   store.set(assignmentsHistoryState, value);
 };
