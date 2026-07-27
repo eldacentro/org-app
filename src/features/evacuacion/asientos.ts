@@ -44,7 +44,6 @@ export const BLOQUES_ASIENTOS: BloqueAsientos[] = [
       [51.12, 12.29],
       [57.94, 12.29],
       // fila 4 (3 asientos)
-      [46.39, 15.7],
       [51.12, 16.3],
       [57.94, 16.3],
       // fila 5 (2 asientos)
@@ -134,7 +133,6 @@ export const BLOQUES_ASIENTOS: BloqueAsientos[] = [
       [130.13, 31.13],
       [138.27, 31.13],
       // fila 8 (9 asientos)
-      [68.8, 35.04],
       [73.15, 35.14],
       [81.29, 35.14],
       [105.71, 35.14],
@@ -150,7 +148,6 @@ export const BLOQUES_ASIENTOS: BloqueAsientos[] = [
       [121.99, 39.15],
       [130.13, 39.15],
       // fila 10 (1 asientos)
-      [123.78, 41.27],
     ],
   },
   {

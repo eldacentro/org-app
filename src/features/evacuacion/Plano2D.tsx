@@ -36,7 +36,6 @@ type Props = {
   onPantallaCompleta?: () => void;
 };
 
-const TENUE = '#64748B';
 // Los pictogramas de los aseos van en un gris más claro que el trazo del
 // plano: identifican la sala, no compiten con ella. A tamaño completo se
 // comían el dibujo del propio aseo.
@@ -144,7 +143,7 @@ const PlanoBase = memo(function PlanoBase() {
       <Pictograma tipo="adaptado" x={18.5} y={9} />
       <Pictograma tipo="hombres" x={40} y={9} />
 
-      <text x="52" y="46" textAnchor="middle" fontSize="3.2" fill={TENUE} fontWeight="700">Sala B</text>
+      <text x="62.5" y="17" textAnchor="middle" fontSize="3.6" fontWeight="700" fill="#94A3B8" transform="rotate(90 62.5,17)">SALA B</text>
       <text x="168" y="18" textAnchor="middle" fontSize="4" fontWeight="700" fill="#94A3B8" transform="rotate(90 168,18)">PLATAFORMA</text>
     </>
   );
@@ -261,15 +260,24 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
   return (
     <Box
       sx={{
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
         width: '100%',
         height: '100%',
-        borderRadius: 'var(--r-lg)',
-        overflow: 'hidden',
-        backgroundColor: COLORES.fondo2D,
-        border: '1px solid var(--line)',
       }}
     >
+      <Box
+        sx={{
+          position: 'relative',
+          flex: 1,
+          minHeight: 0,
+          borderRadius: 'var(--r-lg)',
+          overflow: 'hidden',
+          backgroundColor: COLORES.fondo2D,
+          border: '1px solid var(--line)',
+        }}
+      >
       <style>
         {`
           /* El navegador pinta un aro azul enorme alrededor de un <g> con
@@ -319,15 +327,15 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
               {bloque.asientos.map(([x, y], idx) => (
                 <rect
                   key={idx}
-                  x={x - 1.4}
-                  y={y - 1.2}
-                  width="2.8"
-                  height="2.4"
-                  rx="0.6"
-                  fill={activo ? bloque.color : '#E2E8F0'}
+                  x={x - 1.25}
+                  y={y - 1.05}
+                  width="2.5"
+                  height="2.1"
+                  rx="0.55"
+                  fill={activo ? bloque.color : '#E7EDF6'}
                   fillOpacity={activo ? 0.55 : 1}
-                  stroke={activo ? bloque.color : '#CBD5E1'}
-                  strokeWidth="0.3"
+                  stroke={activo ? bloque.color : '#C3CFE0'}
+                  strokeWidth="0.28"
                 />
               ))}
             </g>
@@ -470,14 +478,14 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
           );
         })}
       </svg>
+      </Box>
 
       {/* Controles de zoom. En un móvil el salón entero cabe en 300 px de
           ancho: sin poder acercarse, los rótulos y los números no se leen. */}
       <Box
         sx={{
-          position: 'absolute',
-          left: '10px',
-          bottom: '10px',
+          alignSelf: 'center',
+          flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           gap: '2px',
