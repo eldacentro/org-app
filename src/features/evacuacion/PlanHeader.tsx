@@ -1,15 +1,12 @@
 import { Box, Typography } from '@mui/material';
 import { IconE911Emergency, IconClock } from '@components/icons';
 import { COLORES } from './data';
-import TogglePlano, { ModoPlano } from './TogglePlano';
 
 type Props = {
   tiempoMaximo: number;
-  modo: ModoPlano;
-  onChangeModo: (modo: ModoPlano) => void;
 };
 
-const PlanHeader = ({ tiempoMaximo, modo, onChangeModo }: Props) => {
+const PlanHeader = ({ tiempoMaximo }: Props) => {
   return (
     <Box
       sx={{
@@ -62,8 +59,6 @@ const PlanHeader = ({ tiempoMaximo, modo, onChangeModo }: Props) => {
           </Box>
         </Box>
       </Box>
-
-      <TogglePlano modo={modo} onChange={onChangeModo} />
     </Box>
   );
 };

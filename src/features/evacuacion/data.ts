@@ -17,80 +17,70 @@ export const COLORES = {
 } as const;
 
 /**
- * Datos del Plan de Evacuación del Salón del Reino — Congregación Elda Centro.
- * Este plan es de SOLO LECTURA en la app; se gestiona directamente aquí en el código.
+ * Plan de Evacuación del Salón del Reino — Congregación Elda Centro.
+ *
+ * TEXTO LITERAL del documento oficial (PDF de 27-3-2025). No se resume ni se
+ * reescribe: ver el aviso en @definition/evacuacion.
  */
 export const PLAN_EVACUACION: PlanEvacuacion = {
-  updatedAt: '2026-06-03T00:00:00.000Z',
+  updatedAt: '2026-07-27T00:00:00.000Z',
+  anio: '2025',
+  fechaDocumento: '27-3-2025',
+  direccion: 'C. Hernán Cortés, 6, 03600 Elda, Alicante',
   tiempoMaximo: 4,
   estructuraMando: [
     {
       rol: 'Jefe de Emergencias',
       nombre: 'Fermín Amorós',
       responsabilidades: [
-        'Máxima autoridad durante la emergencia.',
-        'Da la orden de evacuación y coordina a todos los equipos.',
-        'Decide el fin de la emergencia y la vuelta a la normalidad.',
-        'Es el enlace con los servicios de emergencia externos (112).',
+        'Supervisión y análisis del protocolo y del equipo físico-humano',
+        'Aviso por micrófono para la evacuación (de acuerdo con el coordinador del Cuerpo de Ancianos)',
+        'Aviso a los servicios de emergencias',
       ],
     },
     {
       rol: 'Auxiliar de Emergencias',
       nombre: 'César Amorós',
       responsabilidades: [
-        'Apoya al Jefe de Emergencias y le sustituye en su ausencia.',
-        'Verifica que todos los equipos han recibido la orden.',
-        'Controla el recuento final en el punto de reunión.',
+        'Sustitución del Jefe de Emergencias en caso de ausencia.',
+        'Sustitución, en caso de ausencia, de uno de los Jefes de Evacuación.',
+        'Redactar informe de los simulacros y cada vez que actúe el equipo.',
       ],
     },
     {
       rol: 'Jefe de Intervención',
       nombre: 'Andrés Rico D.',
-      responsabilidades: [
-        'Dirige la primera intervención ante el conato (fuego, humo, etc.).',
-        'Coordina el uso de los extintores.',
-        'Informa al Jefe de Emergencias del estado del incidente.',
-      ],
+      responsabilidades: [],
     },
     {
       rol: 'Auxiliar de Intervención',
       nombre: 'Federico Ortega',
-      responsabilidades: [
-        'Apoya al Jefe de Intervención en la extinción.',
-        'Asegura el corte de suministros (luz, gas) si procede.',
-        'Mantiene despejadas las vías de salida.',
-      ],
+      responsabilidades: [],
     },
   ],
+  procedimientoIntervencion: {
+    aviso: 'Este protocolo sólo se activará en casos necesarios',
+    pasos: [
+      'Desconexión eléctrica del aparato o desconexión total de la corriente eléctrica.',
+      'Búsqueda y neutralización del peligro. Extinción del posible fuego* (extintores 1 a 5)',
+      'Análisis de la situación y comunicación al jefe de emergencias.',
+    ],
+    nota: '* En caso necesario.',
+  },
   equipos: [
-    {
-      id: 'sanitario',
-      nombre: 'Equipo Sanitario',
-      color: COLORES.emergencia,
-      miembros: [{ nombre: 'Carlos Saca M.' }, { nombre: 'Marcos Bochenek' }],
-      procedimiento: [
-        'Localizan el botiquín y el material de primeros auxilios.',
-        'Atienden a heridos o personas con dificultad para evacuar.',
-        'Priorizan el traslado de personas con movilidad reducida.',
-        'Informan al Jefe de Emergencias de cualquier herido.',
-      ],
-    },
     {
       id: 'evacuacion-a',
       nombre: 'Equipo de Evacuación A',
       color: COLORES.zonaA,
       zona: 'A',
       miembros: [
-        { posicion: 'A1', nombre: 'Jonathan Izquierdo' },
+        { posicion: 'A1', nombre: 'Jonathan Izquierdo', esResponsable: true },
         { posicion: 'A2', nombre: 'Samuel Lázaro' },
         { posicion: 'A3', nombre: 'Alejandro Amorós' },
       ],
       procedimiento: [
-        'A1 (responsable) dirige la evacuación de la Zona A.',
-        'Evacúan la Sala B, los aseos y el auditorio principal desde la última fila.',
-        'Guían a los presentes hacia la salida más cercana y segura.',
-        'Comprueban que no queda nadie en su zona antes de salir.',
-        'Confirman a la estructura de mando que la Zona A está despejada.',
+        'Se desaloja comenzando por la sala B y siguiendo por el auditorio principal desde la última fila.',
+        'Responsable verifica los aseos.',
       ],
     },
     {
@@ -99,28 +89,39 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
       color: COLORES.zonaB,
       zona: 'B',
       miembros: [
-        { posicion: 'B1', nombre: 'Rubén Santiago' },
+        { posicion: 'B1', nombre: 'Rubén Santiago', esResponsable: true },
         { posicion: 'B2', nombre: 'Pablo Albertos' },
         { posicion: 'B3', nombre: 'Carlos Saca Jr.' },
       ],
       procedimiento: [
-        'B1 (responsable) dirige la evacuación de la Zona B.',
-        'Evacúan el auditorio a la izquierda de la plataforma (de delante hacia atrás).',
-        'Evacúan la plataforma hasta la 3ª fila.',
-        'Guían a los presentes hacia la salida más cercana y segura.',
-        'Comprueban que no queda nadie en su zona antes de salir.',
-        'Confirman a la estructura de mando que la Zona B está despejada.',
+        'Se comienza con la sección del auditorio a la izquierda de la plataforma desde delante hacia atrás.',
+        'Se sigue con auditorio principal desde plataforma hasta la tercera fila.',
+      ],
+    },
+    {
+      id: 'sanitario',
+      nombre: 'Equipo Sanitario',
+      color: COLORES.emergencia,
+      miembros: [{ nombre: 'Carlos Saca M.' }, { nombre: 'Marcos Bochenek' }],
+      procedimiento: [
+        'Atención y evacuación de heridos.',
+        'Comunicar al Jefe de Emergencias la necesidad de avisar a servicios sanitarios.',
+        'Solicitar a los Jefes de Evacuación si uno de los evacuados necesita asistencia especial.',
+        'Custodia del botiquín de emergencias.',
       ],
     },
   ],
-  normasGenerales: [
-    'Mantenga la calma y no corra; camine con paso firme hacia la salida.',
-    'Siga en todo momento las indicaciones de los equipos de evacuación.',
-    'No se detenga a recoger objetos personales.',
-    'No use ascensores; utilice siempre las salidas designadas.',
-    'Ayude a las personas mayores, niños y personas con movilidad reducida.',
-    'Diríjase al punto de reunión exterior y no regrese al edificio.',
-    'No reingrese hasta que el Jefe de Emergencias lo autorice.',
+  normasEquipos: [
+    'Cada miembro debe ocupar su puesto tan pronto se dé la señal para la evacuación.',
+    'Cada miembro deberá de llevar y utilizar una pequeña linterna.',
+  ],
+  reglasEspeciales: [
+    'En caso de que la puerta principal esté bloqueada, se verificarán los aseos, se cerrará la puerta de acceso al auditorio y se procederá al desalojo de la zona B en primer lugar. A continuación el equipo A hará el desalojo de su zona sin intervenir los encargados de las puertas y con la salvedad del encargado de la sala B, que sólo evacua dicha sala.',
+    'En caso de que la salida de emergencia esté bloqueada, se hará el desalojo de la zona A primero y luego el equipo B desalojará su zona sin intervenir tráfico ni puerta y el orden será: 1º rincón 2ª plataforma hacia atrás.',
+    'Se ha de impedir la entrada en el Salón de nuevo (responsables de evacuación).',
+    'A medida de que cada uno acaba su cometido, debe abandonar el Salón.',
+    'Todos los responsables han de asegurarse de que cada miembro está en su puesto.',
+    'El tiempo máximo para la evacuación será de 4 minutos.',
   ],
   extintores: [
     { id: 1, tipo: 'Polvo ABC' },
@@ -128,7 +129,7 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
     { id: 3, tipo: 'Polvo ABC' },
     { id: 4, tipo: 'Polvo ABC' },
     { id: 5, tipo: 'Polvo ABC' },
-    { id: 6, tipo: 'CO₂' },
+    { id: 6, tipo: 'CO\u2082' },
   ],
 };
 

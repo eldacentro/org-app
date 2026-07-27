@@ -117,17 +117,17 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
 
   // ---- Normas ----
   const handleNormaChange = (index: number, value: string) => {
-    const newNormas = [...plan.normasGenerales];
+    const newNormas = [...plan.reglasEspeciales];
     newNormas[index] = value;
-    setPlan({ ...plan, normasGenerales: newNormas });
+    setPlan({ ...plan, reglasEspeciales: newNormas });
   };
 
   const handleAddNorma = () => {
-    setPlan({ ...plan, normasGenerales: [...plan.normasGenerales, ''] });
+    setPlan({ ...plan, reglasEspeciales: [...plan.reglasEspeciales, ''] });
   };
 
   const handleDeleteNorma = async (index: number) => {
-    const norma = plan.normasGenerales[index];
+    const norma = plan.reglasEspeciales[index];
     const ok = await confirm({
       title: 'Eliminar norma',
       message: `¿Eliminar la norma "${norma ? norma.slice(0, 60) : 'esta norma'}"?`,
@@ -135,8 +135,8 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
       destructive: true,
     });
     if (!ok) return;
-    const newNormas = plan.normasGenerales.filter((_, i) => i !== index);
-    setPlan({ ...plan, normasGenerales: newNormas });
+    const newNormas = plan.reglasEspeciales.filter((_, i) => i !== index);
+    setPlan({ ...plan, reglasEspeciales: newNormas });
   };
 
   return (
@@ -279,7 +279,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
 
         {tab === 2 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {plan.normasGenerales.map((norma, i) => (
+            {plan.reglasEspeciales.map((norma, i) => (
               <Box key={i} sx={{ display: 'flex', gap: 1 }}>
                 <TextField
                   value={norma}

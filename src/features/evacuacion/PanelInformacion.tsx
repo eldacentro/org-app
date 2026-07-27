@@ -52,8 +52,8 @@ const PanelInformacion = ({ plan }: Props) => {
             ),
           },
           {
-            label: 'Normas generales',
-            Component: <NormasGenerales normas={plan.normasGenerales} />,
+            label: 'Reglas del plan',
+            Component: <NormasGenerales normas={plan.reglasEspeciales} />,
           },
         ]}
       />

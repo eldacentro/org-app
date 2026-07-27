@@ -6,9 +6,7 @@ import { IconSettings } from '@components/icons';
 import PageTitle from '@components/page_title';
 import PlanHeader from '@features/evacuacion/PlanHeader';
 import Plano2D from '@features/evacuacion/Plano2D';
-import Plano3D from '@features/evacuacion/Plano3D';
 import PanelInformacion from '@features/evacuacion/PanelInformacion';
-import { ModoPlano } from '@features/evacuacion/TogglePlano';
 import { Seleccion } from '@features/evacuacion/DetalleSeleccion';
 import { PLAN_EVACUACION } from '@features/evacuacion/data';
 import { dbEvacuacionGetConfig } from '@services/dexie/evacuacion';
@@ -20,7 +18,6 @@ const EvacuacionPage = () => {
   const isManager = isElder || isAdmin;
 
   const [plan, setPlan] = useState<PlanEvacuacion>(PLAN_EVACUACION);
-  const [modo, setModo] = useState<ModoPlano>('2D');
   const [seleccion, setSeleccion] = useState<Seleccion>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
@@ -41,12 +38,6 @@ const EvacuacionPage = () => {
     loadConfig();
   }, []);
 
-  // Al cambiar de modo se limpia la selección para evitar estados desincronizados.
-  const handleModo = (m: ModoPlano) => {
-    setSeleccion(null);
-    setModo(m);
-  };
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '100%' }}>
       <PageTitle
@@ -64,11 +55,7 @@ const EvacuacionPage = () => {
         }
       />
 
-      <PlanHeader
-        tiempoMaximo={plan.tiempoMaximo}
-        modo={modo}
-        onChangeModo={handleModo}
-      />
+      <PlanHeader tiempoMaximo={plan.tiempoMaximo} />
 
       <Box
         sx={{
@@ -88,11 +75,7 @@ const EvacuacionPage = () => {
             position: 'relative',
           }}
         >
-          {modo === '2D' ? (
-            <Plano2D plan={plan} seleccion={seleccion} onSelect={setSeleccion} />
-          ) : (
-            <Plano3D plan={plan} seleccion={seleccion} onSelect={setSeleccion} />
-          )}
+          <Plano2D plan={plan} seleccion={seleccion} onSelect={setSeleccion} />
         </Box>
 
         {/* Panel de información */}
