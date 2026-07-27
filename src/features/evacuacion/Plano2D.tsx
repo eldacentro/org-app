@@ -35,6 +35,10 @@ type Props = {
 };
 
 const TENUE = '#64748B';
+// Los pictogramas de los aseos van en un gris más claro que el trazo del
+// plano: identifican la sala, no compiten con ella. A tamaño completo se
+// comían el dibujo del propio aseo.
+const SUAVE = '#A9B4C4';
 
 /**
  * Pictograma de aseo, dibujado en las coordenadas del plano.
@@ -55,7 +59,11 @@ const Pictograma = ({
 }) => {
   if (tipo === 'adaptado') {
     return (
-      <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
+      <g
+        transform={`translate(${x}, ${y}) scale(0.58)`}
+        fill={SUAVE}
+        aria-hidden
+      >
         <circle cx="-0.3" cy="-2.7" r="0.95" />
         {/* Tronco y brazo hacia el aro, y la rueda: la silueta de siempre. */}
         <path
@@ -66,7 +74,7 @@ const Pictograma = ({
           cy="2.1"
           r="2"
           fill="none"
-          stroke={TENUE}
+          stroke={SUAVE}
           strokeWidth="0.55"
         />
         <path d="M2.1,3.2 L3.4,3.2 L3.4,4.1 L1.9,4.1 Z" />
@@ -75,7 +83,11 @@ const Pictograma = ({
   }
 
   return (
-    <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
+    <g
+      transform={`translate(${x}, ${y}) scale(0.58)`}
+      fill={SUAVE}
+      aria-hidden
+    >
       <circle cx="0" cy="-2.6" r="1.05" />
       {tipo === 'mujeres' ? (
         <>
