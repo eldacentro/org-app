@@ -13,8 +13,8 @@ import { branchCongAnalysisState } from '@states/branch_cong_analysis';
 import { dbBranchCongAnalysisSave } from '@services/dexie/branch_cong_analysis';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
 import { dbFieldServiceReportsBulkSave } from '@services/dexie/cong_field_service_reports';
-import { PersonType } from '@definition/person';
-import { lastDayOfReportMonth } from '@utils/date';
+import { dateFirstDayMonth, lastDayOfReportMonth } from '@utils/date';
+import { buildPublisherHistoryUpdates } from '@services/app/publisher_status';
 import { dbPersonsBulkSave } from '@services/dexie/persons';
 import usePersons from '@features/persons/hooks/usePersons';
 
@@ -26,56 +26,41 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
   const congAnalysis = useAtomValue(branchCongAnalysisState);
   const congReports = useAtomValue(congFieldServiceReportsState);
 
-  const { getPublishersInactive } = usePersons();
+  const { getPublishersInactive, getPublishersActive } = usePersons();
 
   /**
-   * Al enviar el S-1 se cierra en el historial el tramo de publicador de
-   * quien ya consta como inactivo (publisher_status.ts: 6 meses sin informar).
+   * Al enviar el S-1 se pone al día el historial de publicador, en los DOS
+   * sentidos: se cierra el tramo de quien ya consta como inactivo, y se vuelve
+   * a abrir el de quien consta como activo y lo tenía cerrado.
    *
-   * Es solo el REGISTRO de hasta cuándo fue publicador — quién está activo o
-   * inactivo se decide siempre con los informes, así que si vuelve a informar
-   * vuelve a estar activo sin tener que tocar esto. Y a quien ya tiene el
-   * tramo cerrado no se le vuelve a guardar: escribir un registro idéntico
-   * despierta la sincronización de toda la congregación para nada.
+   * Antes solo cerraba. La consecuencia era que quien volvía a informar se
+   * quedaba con el historial diciendo que había dejado de ser publicador, y
+   * arreglarlo había que hacerlo a mano ficha por ficha — cuando la app ya
+   * sabía, por sus propios informes, que seguía siendo publicador. Le pasó a
+   * Andrés y Loli Argente.
+   *
+   * El historial es solo el REGISTRO de hasta cuándo fue publicador: quién
+   * está activo lo deciden siempre los informes (publisher_status.ts). Pero
+   * ese registro no es inofensivo — `retention.ts` lo usa para decidir cuándo
+   * se BORRAN los informes de alguien, así que dejarlo cerrado por error
+   * estrecha su ventana de conservación.
+   *
+   * A quien ya está como debe no se le vuelve a guardar: escribir un registro
+   * idéntico despierta la sincronización de toda la congregación para nada.
    */
   const handleUpdateInactiveState = async () => {
-    const personsInactive: PersonType[] = [];
+    const personsToSave = buildPublisherHistoryUpdates({
+      active: getPublishersActive(month),
+      inactive: getPublishersInactive(month),
+      // Se cierra al final del mes informado, no del anterior (ver
+      // lastDayOfReportMonth): quien aparece como publicador activo en este
+      // S-1 tiene que seguir contando en este mes.
+      endDate: lastDayOfReportMonth(month),
+      startDate: dateFirstDayMonth(new Date(`${month}/01`)).toISOString(),
+    });
 
-    // Se cierra al final del mes informado, no del anterior (ver
-    // lastDayOfReportMonth): quien aparece como publicador activo en este
-    // S-1 tiene que seguir contando en este mes.
-    const endDate = lastDayOfReportMonth(month);
-
-    for (const person of getPublishersInactive(month)) {
-      const newPerson = structuredClone(person);
-
-      const baptizedActive =
-        newPerson.person_data.publisher_baptized.history.find(
-          (record) => record._deleted === false && record.end_date === null
-        );
-
-      if (baptizedActive) {
-        baptizedActive.end_date = endDate;
-        baptizedActive.updatedAt = new Date().toISOString();
-      }
-
-      const unbaptizedActive =
-        newPerson.person_data.publisher_unbaptized.history.find(
-          (record) => record._deleted === false && record.end_date === null
-        );
-
-      if (unbaptizedActive) {
-        unbaptizedActive.end_date = endDate;
-        unbaptizedActive.updatedAt = new Date().toISOString();
-      }
-
-      if (!baptizedActive && !unbaptizedActive) continue;
-
-      personsInactive.push(newPerson);
-    }
-
-    if (personsInactive.length > 0) {
-      await dbPersonsBulkSave(personsInactive);
+    if (personsToSave.length > 0) {
+      await dbPersonsBulkSave(personsToSave);
     }
   };
 

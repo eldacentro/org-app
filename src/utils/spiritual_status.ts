@@ -21,6 +21,12 @@ import { formatDate, dateFirstDayMonth } from '@utils/date';
  * a pelo.
  */
 
+/** Los dos historiales de publicador, para recorrerlos sin repetirse. */
+export const ESTADOS_PUBLICADOR = [
+  'publisher_baptized',
+  'publisher_unbaptized',
+] as const;
+
 /** Milisegundos de una fecha guardada, en cualquiera de los formatos del repo. */
 const timeOf = (value: string | null | undefined) => {
   if (!value) return null;

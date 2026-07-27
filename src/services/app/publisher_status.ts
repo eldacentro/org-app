@@ -1,6 +1,11 @@
 import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import { toComparableDate } from '@utils/date';
+import {
+  ESTADOS_PUBLICADOR,
+  findOpenPeriod,
+  openPeriod,
+} from '@utils/spiritual_status';
 
 /**
  * Publicador ACTIVO o INACTIVO — fuente ÚNICA de verdad.
@@ -289,6 +294,85 @@ export const personIsInactivePublisher = (
 ) =>
   personWasPublisherBy(person, month) &&
   !personIsActivePublisher(person, source, month);
+
+/**
+ * Pone al día el historial de publicador al enviar el S-1, en los DOS
+ * sentidos: cierra el tramo de quien consta como inactivo y reabre el de quien
+ * consta como activo y lo tenía cerrado.
+ *
+ * Antes solo cerraba, y quien volvía a informar se quedaba con el historial
+ * diciendo que había dejado de ser publicador — había que arreglarlo a mano,
+ * ficha por ficha, cuando la app ya sabía por sus propios informes que seguía
+ * siéndolo.
+ *
+ * El historial no es decorativo aunque no decida quién está activo:
+ * `retention.ts` lo usa para saber cuándo se BORRAN los informes de alguien,
+ * así que un tramo cerrado por error le estrecha la ventana de conservación.
+ *
+ * Devuelve SOLO las personas que hay que guardar; a las que ya están como
+ * deben no se las toca, porque guardar un registro idéntico despierta la
+ * sincronización de toda la congregación para nada.
+ */
+export const buildPublisherHistoryUpdates = ({
+  active,
+  inactive,
+  endDate,
+  startDate,
+}: {
+  active: PersonType[];
+  inactive: PersonType[];
+  /** Cierre del tramo de los inactivos: último día del mes informado. */
+  endDate: string;
+  /** Apertura del tramo de los activos: primer día del mes informado. */
+  startDate: string;
+}) => {
+  const result: PersonType[] = [];
+
+  for (const person of inactive ?? []) {
+    const newPerson = structuredClone(person);
+
+    const abiertos = ESTADOS_PUBLICADOR.map((estado) =>
+      findOpenPeriod(newPerson.person_data[estado].history)
+    ).filter(Boolean);
+
+    if (abiertos.length === 0) continue;
+
+    for (const record of abiertos) {
+      record.end_date = endDate;
+      record.updatedAt = new Date().toISOString();
+    }
+
+    result.push(newPerson);
+  }
+
+  for (const person of active ?? []) {
+    const yaAbierto = ESTADOS_PUBLICADOR.some((estado) =>
+      findOpenPeriod(person.person_data[estado].history)
+    );
+
+    if (yaAbierto) continue;
+
+    // De qué clase es lo dice la casilla de la ficha. Si no hay ninguna
+    // puesta no se toca: no hay forma de saber qué tramo abrir.
+    const estado = person.person_data.publisher_baptized?.active?.value
+      ? 'publisher_baptized'
+      : person.person_data.publisher_unbaptized?.active?.value
+        ? 'publisher_unbaptized'
+        : null;
+
+    if (!estado) continue;
+
+    const newPerson = structuredClone(person);
+
+    // openPeriod nunca empieza antes de que acabe el tramo anterior, así que
+    // no puede solaparse con un cierre recién escrito.
+    openPeriod(newPerson.person_data[estado].history, startDate);
+
+    result.push(newPerson);
+  }
+
+  return result;
+};
 
 /**
  * ¿Pasó a inactivo en algún mes de [startMonth, endMonth]?

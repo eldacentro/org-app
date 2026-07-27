@@ -3,6 +3,7 @@ import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import {
   activityWindowStart,
+  buildPublisherHistoryUpdates,
   buildMinistryMonthsIndex,
   currentActivityMonth,
   monthAdd,
@@ -465,5 +466,78 @@ describe('el índice de meses con participación', () => {
 
     expect(personIsActivePublisher(veterano(), index, JULIO)).toBe(true);
     expect(personIsActivePublisher(veterano('p2'), index, JULIO)).toBe(false);
+  });
+});
+
+describe('el historial que deja el S-1 al enviarlo', () => {
+  const FIN = '2026-07-31T21:59:59.999Z';
+  const INICIO = '2026-06-30T22:00:00.000Z';
+
+  const actualizar = (active, inactive) =>
+    buildPublisherHistoryUpdates({
+      active,
+      inactive,
+      endDate: FIN,
+      startDate: INICIO,
+    });
+
+  it('cierra el tramo de quien consta como inactivo', () => {
+    const persona = buildPerson([{ start_date: '2015-03-01' }]);
+
+    const [guardada] = actualizar([], [persona]);
+
+    expect(
+      guardada.person_data.publisher_baptized.history[0].end_date
+    ).toBe(FIN);
+  });
+
+  it('REABRE el de quien consta como activo y lo tenía cerrado', () => {
+    // El caso de Andrés y Loli Argente: siguen informando, alguien les cerró
+    // el tramo, y arreglarlo había que hacerlo a mano ficha por ficha.
+    const persona = buildPerson([
+      { start_date: '2023-08-01', end_date: '2026-05-18' },
+    ]);
+
+    const [guardada] = actualizar([persona], []);
+
+    const history = guardada.person_data.publisher_baptized.history;
+
+    expect(history).toHaveLength(2);
+    expect(history[1].end_date).toBeNull();
+    expect(history[1].start_date).toBe(INICIO);
+  });
+
+  it('no toca a quien ya está como debe, en ninguno de los dos lados', () => {
+    const activaOk = buildPerson([{ start_date: '2015-03-01' }], { uid: 'a' });
+    const inactivaOk = buildPerson(
+      [{ start_date: '2015-03-01', end_date: '2026-01-31' }],
+      { uid: 'b' }
+    );
+
+    // Guardar un registro idéntico despierta la sincronización de toda la
+    // congregación para nada.
+    expect(actualizar([activaOk], [inactivaOk])).toHaveLength(0);
+  });
+
+  it('sin ninguna casilla puesta no se inventa un tramo', () => {
+    const sinCasilla = buildPerson(
+      [{ start_date: '2015-03-01', end_date: '2026-05-18' }],
+      { baptized: false }
+    );
+
+    expect(actualizar([sinCasilla], [])).toHaveLength(0);
+  });
+
+  it('el tramo reabierto nunca se solapa con el cierre anterior', () => {
+    const persona = buildPerson([
+      { start_date: '2023-08-01', end_date: '2026-07-20T10:00:00.000Z' },
+    ]);
+
+    const [guardada] = actualizar([persona], []);
+
+    const history = guardada.person_data.publisher_baptized.history;
+
+    // INICIO es el día 1 de julio, anterior al cierre del día 20.
+    expect(history[1].start_date).toBe('2026-07-20T10:00:00.000Z');
   });
 });
