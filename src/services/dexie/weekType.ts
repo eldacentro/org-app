@@ -1,7 +1,8 @@
 import { getTranslation } from '@services/i18n/translation';
 import { getListLanguages } from '@services/app';
-import { Week } from '@definition/week_type';
+import { Week, WeekType } from '@definition/week_type';
 import { LANGUAGE_LIST } from '@constants/index';
+import { dbReplaceTableIfChanged } from './rebuild';
 import appDb from '@db/appDb';
 
 export const dbWeekTypeUpdate = async () => {
@@ -48,9 +49,7 @@ export const dbWeekTypeUpdate = async () => {
     }
   }
 
-  await appDb.week_type.clear();
-
-  await appDb.week_type.bulkPut([
+  const rows: WeekType[] = [
     {
       id: Week.NORMAL,
       sort_index: 1,
@@ -158,5 +157,10 @@ export const dbWeekTypeUpdate = async () => {
       meeting: ['midweek', 'weekend'],
       week_type_name: { ...resultObjects.noMeetingWeekObj },
     },
-  ]);
+  ];
+
+  // Se rehace en cada sincronización, pero el contenido sale de las
+  // traducciones: solo cambia de verdad al cambiar de idioma o al actualizar
+  // la app. Ver dbReplaceTableIfChanged.
+  await dbReplaceTableIfChanged(appDb.week_type, rows, 'id');
 };

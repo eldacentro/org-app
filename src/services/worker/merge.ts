@@ -16,8 +16,12 @@
  *    bajando un nivel.
  *
  * Aquí vive además `isSameRecord`, que responde a la otra pregunta del ciclo:
- * una vez fusionado, ¿hace falta guardarlo? Ver su comentario más abajo.
+ * una vez fusionado, ¿hace falta guardarlo? Ver su comentario más abajo. Y
+ * `buildMetadataRecord`, que arma el registro de versiones con el que se cierra
+ * cada sincronización.
  */
+
+import { MetadataRecordType } from '@definition/metadata';
 
 export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
   const arrayKeys = Object.keys(remote).filter(
@@ -184,6 +188,86 @@ export const isSameRecord = (a: unknown, b: unknown): boolean => {
   }
 
   return true;
+};
+
+/**
+ * ¿Tiene una tabla exactamente este contenido?
+ *
+ * Para las tablas DERIVADAS, las que se reconstruyen enteras (`clear()` +
+ * `bulkPut()`) a partir de las traducciones: tipos de semana, asignaciones,
+ * discursos públicos y canciones. Se rehacían al terminar CADA
+ * sincronización, y aunque el resultado fuera idéntico letra por letra, el
+ * borrado y la reescritura despertaban a `useLiveQuery` y redibujaban las
+ * páginas densas — el mismo parpadeo, por otra puerta.
+ *
+ * El orden NO cuenta aquí (a diferencia de `isSameRecord`): se compara por
+ * clave primaria, porque una tabla no tiene orden propio — Dexie devuelve las
+ * filas ordenadas por su clave, y quien reconstruye la lista las genera en el
+ * orden que le sale. Comparar posición a posición diría "distinto" siempre.
+ *
+ * `next` se compara tal y como lo guardaría `bulkPut`: si una clave se
+ * repite, gana la última.
+ */
+export const isSameTableContent = <T extends object>(
+  current: T[],
+  next: T[],
+  keyField: keyof T & string
+): boolean => {
+  const nextByKey = new Map<unknown, T>();
+
+  for (const row of next) {
+    nextByKey.set(row[keyField], row);
+  }
+
+  // `current` sale de la base, así que sus claves son únicas: si hay tantas
+  // filas como claves distintas traería `bulkPut` y todas casan, el contenido
+  // es el mismo.
+  if (nextByKey.size !== current.length) return false;
+
+  for (const row of current) {
+    const candidate = nextByKey.get(row[keyField]);
+
+    if (!candidate) return false;
+    if (!isSameRecord(row, candidate)) return false;
+  }
+
+  return true;
+};
+
+/**
+ * El registro de versiones que cierra cada sincronización.
+ *
+ * Toma las versiones que acaba de confirmar el servidor y las mezcla sobre las
+ * que ya había, conservando el `send_local` de cada categoría (esa marca es
+ * local: dice que este dispositivo aún tiene algo pendiente de subir).
+ *
+ * CUIDADO con lo que devuelve: quien lo guarda usa `put`, que reemplaza el
+ * registro ENTERO. Por eso se arrastra `...oldMetadata`. El registro de
+ * metadata lleva además campos SUELTOS, fuera de `metadata` —las marcas de
+ * "reemplazo forzado ya aplicado" (`schedules_reset_applied` y hermanas)—, y
+ * devolver solo `{ id, metadata }` las borraba en cada ciclo. Como el servidor
+ * manda esas marcas de reset en TODAS sus respuestas (no solo la primera vez),
+ * borrarlas equivalía a no haberlas aplicado nunca: el reemplazo forzado se
+ * repetía en cada sincronización, pisando una y otra vez las ediciones locales
+ * de programas y oradores.
+ */
+export const buildMetadataRecord = (
+  oldMetadata: MetadataRecordType | undefined,
+  versions: Record<string, string>
+): MetadataRecordType => {
+  // Copia en vez de mutar el registro leído: así se puede comparar el antes con
+  // el después (isSameRecord) y no escribir cuando el sync no ha traído ninguna
+  // versión nueva — el caso normal cuando nadie ha tocado nada.
+  const metadata = { ...(oldMetadata?.metadata || {}) };
+
+  for (const [key, value] of Object.entries(versions)) {
+    metadata[key] = {
+      version: value,
+      send_local: metadata[key]?.send_local || false,
+    };
+  }
+
+  return { ...oldMetadata, id: oldMetadata?.id || 1, metadata };
 };
 
 export const getObjectLatestUpdate = (obj: unknown) => {

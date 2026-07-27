@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { getObjectLatestUpdate, isSameRecord, syncFromRemote } from './merge';
+import {
+  buildMetadataRecord,
+  getObjectLatestUpdate,
+  isSameRecord,
+  isSameTableContent,
+  syncFromRemote,
+} from './merge';
+import { MetadataRecordType } from '@definition/metadata';
 
 /**
  * El motor de fusión: lo que llega del servidor se mezcla con lo que hay en el
@@ -400,5 +407,214 @@ describe('el ciclo de sincronización solo escribe lo que ha cambiado', () => {
     const remote = structuredClone(local);
 
     expect(restoreDecision(local, remote).seEscribe).toBe(false);
+  });
+});
+
+/**
+ * Las tablas DERIVADAS: tipos de semana, asignaciones, discursos públicos y
+ * canciones. No vienen del servidor — se reconstruyen enteras a partir de las
+ * traducciones al terminar CADA sincronización, y casi siempre salen idénticas.
+ * Borrarlas y reescribirlas igual redibujaba las páginas densas exactamente
+ * igual que el ciclo de sync (la Reunión de entre semana lee las asignaciones
+ * enteras). Aquí se fija cuándo hay que rehacerlas de verdad.
+ */
+describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
+  type Cancion = { song_number: number; song_title: Record<string, string> };
+
+  const canciones = (): Cancion[] => [
+    { song_number: 1, song_title: { ES: 'Uno', EN: 'One' } },
+    { song_number: 2, song_title: { ES: 'Dos', EN: 'Two' } },
+    { song_number: 10, song_title: { ES: 'Diez', EN: 'Ten' } },
+  ];
+
+  it('mismo contenido, aunque venga en otro orden, no se rehace', () => {
+    // La base devuelve por clave (1, 2, 10) y quien reconstruye la lista la
+    // genera en el orden de las traducciones (1, 10, 2): una tabla no tiene
+    // orden propio, así que eso NO es un cambio.
+    const enLaBase = canciones();
+    const reconstruida = [enLaBase[0], enLaBase[2], enLaBase[1]];
+
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(true);
+  });
+
+  it('si cambia una sola traducción, sí se rehace', () => {
+    const enLaBase = canciones();
+    const reconstruida = canciones();
+    reconstruida[1].song_title.ES = 'Dos (revisada)';
+
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+  });
+
+  it('si aparece un idioma nuevo, sí se rehace', () => {
+    const enLaBase = canciones();
+    const reconstruida = canciones();
+    reconstruida[0].song_title['FR'] = 'Un';
+
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+  });
+
+  it('una fila de más o de menos es un cambio', () => {
+    const enLaBase = canciones();
+
+    expect(isSameTableContent(enLaBase, enLaBase.slice(0, 2), 'song_number')).toBe(false);
+    expect(
+      isSameTableContent(enLaBase, [...enLaBase, { song_number: 11, song_title: {} }], 'song_number')
+    ).toBe(false);
+  });
+
+  it('una fila con la misma clave pero otra fila distinta es un cambio', () => {
+    const enLaBase = canciones();
+    const reconstruida = canciones();
+    reconstruida[2] = { song_number: 11, song_title: { ES: 'Once' } };
+
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+  });
+
+  it('claves repetidas se comparan como las guardaría bulkPut: gana la última', () => {
+    const enLaBase = [{ code: 1, name: 'final' }];
+
+    expect(isSameTableContent(enLaBase, [{ code: 1, name: 'primera' }, { code: 1, name: 'final' }], 'code')).toBe(true);
+    expect(isSameTableContent(enLaBase, [{ code: 1, name: 'final' }, { code: 1, name: 'otra' }], 'code')).toBe(false);
+  });
+
+  it('una tabla vacía que sigue vacía no se rehace', () => {
+    expect(isSameTableContent([], [], 'code' as never)).toBe(true);
+  });
+});
+
+/**
+ * El registro de metadata, y las marcas de "reemplazo forzado ya aplicado".
+ *
+ * Un "reemplazo forzado" (el admin pulsa "forzar re-descarga de programas", o
+ * el servidor restaura un snapshot de oradores) descarta la copia local SIN
+ * fusionar. Tiene que pasar UNA vez: es una operación destructiva por diseño.
+ *
+ * Lo que evita repetirla es una marca guardada en el registro de metadata
+ * —`schedules_reset_applied` y hermanas— comparada con la que manda el
+ * servidor. Y el servidor manda la suya en TODAS las respuestas de sync, no
+ * solo la primera: la marca vive en un fichero de la congregación y se lee en
+ * cada petición. Así que si el cierre de la sincronización borra la marca
+ * aplicada, el reemplazo forzado se repite en cada ciclo y se come las
+ * ediciones locales una y otra vez. De ahí estas pruebas.
+ */
+describe('el cierre de la sincronización y las marcas de reemplazo forzado', () => {
+  const versions = (values: Record<string, string>) =>
+    Object.fromEntries(
+      Object.entries(values).map(([key, version]) => [key, { version, send_local: false }])
+    );
+
+  /**
+   * Una vuelta completa del ciclo, en el mismo orden que dbRestoreFromBackup:
+   * se decide el reemplazo forzado con lo que hay guardado, se anota la marca
+   * aplicada, y al final se confirman las versiones (dbInsertMetadata).
+   */
+  const syncCycle = (
+    guardado: MetadataRecordType | undefined,
+    servidor: { schedules_reset_at?: string; versions: Record<string, string> }
+  ) => {
+    const serverResetAt = servidor.schedules_reset_at ?? '';
+    const aplicada = guardado?.schedules_reset_applied ?? '';
+    const reemplazoForzado = serverResetAt !== '' && serverResetAt > aplicada;
+
+    let record = guardado;
+
+    if (reemplazoForzado && record) {
+      record = { ...record, schedules_reset_applied: serverResetAt };
+    }
+
+    const toSave = buildMetadataRecord(record, servidor.versions);
+    const seEscribe = !record || !isSameRecord(record, toSave);
+
+    return { reemplazoForzado, seEscribe, guardado: seEscribe ? toSave : record };
+  };
+
+  it('la marca de reemplazo ya aplicado sobrevive al cierre de la sincronización', () => {
+    const guardado: MetadataRecordType = {
+      id: 1,
+      metadata: versions({ schedules: 'v1' }),
+      schedules_reset_applied: '2026-07-20T10:00:00Z',
+      visiting_speakers_reset_applied: '2026-07-19T10:00:00Z',
+      speakers_congregations_reset_applied: '2026-07-18T10:00:00Z',
+    };
+
+    const toSave = buildMetadataRecord(guardado, { schedules: 'v2' });
+
+    expect(toSave.schedules_reset_applied).toBe('2026-07-20T10:00:00Z');
+    expect(toSave.visiting_speakers_reset_applied).toBe('2026-07-19T10:00:00Z');
+    expect(toSave.speakers_congregations_reset_applied).toBe('2026-07-18T10:00:00Z');
+    expect(toSave.metadata.schedules.version).toBe('v2');
+  });
+
+  it('el reemplazo forzado se aplica UNA vez, no en cada sincronización', () => {
+    const inicial: MetadataRecordType = { id: 1, metadata: versions({ schedules: 'v1' }) };
+    const marca = '2026-07-25T09:00:00Z';
+
+    // El servidor manda la MISMA marca de reset en las tres vueltas, porque es
+    // lo que hace de verdad: la lee de su fichero y la incluye siempre.
+    const primera = syncCycle(inicial, {
+      schedules_reset_at: marca,
+      versions: { schedules: 'v2' },
+    });
+    expect(primera.reemplazoForzado).toBe(true);
+
+    const segunda = syncCycle(primera.guardado, {
+      schedules_reset_at: marca,
+      versions: { schedules: 'v2' },
+    });
+    expect(segunda.reemplazoForzado).toBe(false);
+
+    const tercera = syncCycle(segunda.guardado, {
+      schedules_reset_at: marca,
+      versions: { schedules: 'v2' },
+    });
+    expect(tercera.reemplazoForzado).toBe(false);
+  });
+
+  it('una marca de reset MÁS NUEVA sí vuelve a disparar el reemplazo', () => {
+    const inicial: MetadataRecordType = {
+      id: 1,
+      metadata: versions({ schedules: 'v1' }),
+      schedules_reset_applied: '2026-07-25T09:00:00Z',
+    };
+
+    const ciclo = syncCycle(inicial, {
+      schedules_reset_at: '2026-07-26T09:00:00Z',
+      versions: { schedules: 'v2' },
+    });
+
+    expect(ciclo.reemplazoForzado).toBe(true);
+    expect(ciclo.guardado?.schedules_reset_applied).toBe('2026-07-26T09:00:00Z');
+  });
+
+  it('si el sync no trae ninguna versión nueva, el registro no se reescribe', () => {
+    const guardado: MetadataRecordType = {
+      id: 1,
+      metadata: versions({ schedules: 'v1', persons: 'p1' }),
+      schedules_reset_applied: '2026-07-25T09:00:00Z',
+    };
+
+    const ciclo = syncCycle(guardado, {
+      schedules_reset_at: '2026-07-25T09:00:00Z',
+      versions: { schedules: 'v1', persons: 'p1' },
+    });
+
+    expect(ciclo.seEscribe).toBe(false);
+  });
+
+  it('lo que este dispositivo tiene pendiente de subir (send_local) no se pierde', () => {
+    const guardado: MetadataRecordType = {
+      id: 1,
+      metadata: { schedules: { version: 'v1', send_local: true } },
+    };
+
+    const toSave = buildMetadataRecord(guardado, { schedules: 'v2' });
+
+    expect(toSave.metadata.schedules).toEqual({ version: 'v2', send_local: true });
+  });
+
+  it('la primera vez, sin registro previo, se crea el registro 1 y nada más', () => {
+    const toSave = buildMetadataRecord(undefined, { schedules: 'v1' });
+
+    expect(toSave).toEqual({ id: 1, metadata: versions({ schedules: 'v1' }) });
   });
 });

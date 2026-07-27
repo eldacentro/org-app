@@ -1,6 +1,7 @@
 import { getI18n } from 'react-i18next';
 import { getListLanguages } from '@services/app';
 import { SongType } from '@definition/songs';
+import { dbReplaceTableIfChanged } from './rebuild';
 import appDb from '@db/appDb';
 
 export const dbSongUpdate = async () => {
@@ -34,6 +35,8 @@ export const dbSongUpdate = async () => {
     }
   }
 
-  await appDb.songs.clear();
-  await appDb.songs.bulkPut(result);
+  // Se rehace en cada sincronización, pero el contenido sale de las
+  // traducciones: solo cambia de verdad al cambiar de idioma o al actualizar
+  // la app. Ver dbReplaceTableIfChanged.
+  await dbReplaceTableIfChanged(appDb.songs, result, 'song_number');
 };

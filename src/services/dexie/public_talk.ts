@@ -3,6 +3,7 @@ import { getListLanguages } from '@services/app';
 import { PublicTalkOverrideType, PublicTalkType } from '@definition/public_talks';
 import { LANGUAGE_LIST } from '@constants/index';
 import { applyPublicTalksOverride } from '@utils/public_talks';
+import { dbReplaceTableIfChanged } from './rebuild';
 import appDb from '@db/appDb';
 
 const triggerSync = () => {
@@ -63,8 +64,11 @@ export const dbPublicTalkUpdate = async () => {
   const override = await appDb.public_talks_override.get('1');
   applyPublicTalksOverride(result, override);
 
-  await appDb.public_talks.clear();
-  await appDb.public_talks.bulkPut(result);
+  // Se rehace en cada sincronización, pero el contenido sale de las
+  // traducciones (más los títulos importados): solo cambia de verdad al
+  // cambiar de idioma, al actualizar la app o al guardar un override. Ver
+  // dbReplaceTableIfChanged.
+  await dbReplaceTableIfChanged(appDb.public_talks, result, 'talk_number');
 };
 
 export const dbPublicTalkOverrideGet = async (): Promise<

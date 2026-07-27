@@ -1,7 +1,12 @@
 // to minimize the size of the worker file, we recreate all its needed functions in this file
 
 import appDb from '@db/appDb';
-import { syncFromRemote, getObjectLatestUpdate, isSameRecord } from './merge';
+import {
+  syncFromRemote,
+  getObjectLatestUpdate,
+  isSameRecord,
+  buildMetadataRecord,
+} from './merge';
 import { BackupDataType, CongUserType } from './backupType';
 import {
   decryptData,
@@ -13,12 +18,12 @@ import {
 import { PersonType, PrivilegeType } from '@definition/person';
 import {
   OutgoingTalkExportScheduleType,
-  OutgoingTalkScheduleType,
   SchedWeekType,
 } from '@definition/schedules';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { mergeCircuitVisits } from './circuitVisitMerge';
+import { mergeOutgoingTalks } from './outgoingTalksMerge';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
@@ -374,82 +379,12 @@ const dbInsertOutgoingTalks = async (
   if (!Array.isArray(talks)) return;
 
   try {
-    // get all records with synced data — semanas legadas/incompletas sin
-    // weekend_meeting.outgoing_talks ya no revientan esto (se omiten, ya
-    // que de todas formas no hay nada que actualizar en ellas)
+    // La reconciliación vive en outgoingTalksMerge (módulo puro, con pruebas):
+    // qué se quita, qué se añade, qué gana por fecha y qué semanas hay que
+    // escribir de verdad. Aquí solo se lee la tabla y se guarda el resultado.
     const schedules = await appDb.sched.toArray();
-    const syncedSchedules = schedules.filter((record) =>
-      record.weekend_meeting?.outgoing_talks?.some((talk) => talk.synced)
-    );
+    const schedulesToUpdate = mergeOutgoingTalks(schedules, talks);
 
-    const schedulesToUpdate: SchedWeekType[] = [];
-
-    // remove deleted schedules
-    for (const schedule of syncedSchedules) {
-      const originalCount = schedule.weekend_meeting.outgoing_talks.length;
-
-      schedule.weekend_meeting.outgoing_talks =
-        schedule.weekend_meeting.outgoing_talks.filter((localTalk) => {
-          if (!localTalk.synced) return true; // keep local manual talks
-
-          // keep synced talk only if it is still present in the incoming talks from the server
-          return talks.some((remoteTalk) => remoteTalk.id === localTalk.id);
-        });
-
-      if (schedule.weekend_meeting.outgoing_talks.length !== originalCount) {
-        schedulesToUpdate.push(schedule);
-      }
-    }
-
-    // add or update schedule
-    for (const talk of talks) {
-      const dbSchedule = await appDb.sched.get(talk.weekOf);
-
-      if (dbSchedule?.weekend_meeting) {
-        const tmpSched = talk;
-
-        delete tmpSched.recipient;
-        delete tmpSched.sender;
-        delete tmpSched.weekOf;
-
-        const addSched = tmpSched as OutgoingTalkScheduleType;
-
-        const schedule = structuredClone(dbSchedule);
-
-        if (!Array.isArray(schedule.weekend_meeting.outgoing_talks)) {
-          schedule.weekend_meeting.outgoing_talks = [];
-        }
-
-        const localSched = schedule.weekend_meeting.outgoing_talks.find(
-          (record) => record.id === talk.id
-        );
-
-        if (!localSched) {
-          schedule.weekend_meeting.outgoing_talks.push(addSched);
-        }
-
-        if (localSched) {
-          const remoteUpdated = addSched.updatedAt || '';
-          const localUpdated = localSched.updatedAt || '';
-
-          if (remoteUpdated > localUpdated) {
-            schedule.weekend_meeting.outgoing_talks =
-              schedule.weekend_meeting.outgoing_talks.filter(
-                (record) => record.id !== talk.id
-              );
-
-            schedule.weekend_meeting.outgoing_talks.push(addSched);
-          }
-        }
-
-        // Solo se guarda si la semana ha cambiado de verdad: ver isSameRecord.
-        if (!isSameRecord(dbSchedule, schedule)) {
-          schedulesToUpdate.push(schedule);
-        }
-      }
-    }
-
-    // save to db
     if (schedulesToUpdate.length > 0) {
       await appDb.sched.bulkPut(schedulesToUpdate);
     }
@@ -1777,10 +1712,8 @@ const dbRestoreSchedules = async (
       if (forceReplace) {
         // El reemplazo forzado sigue mandando: si la copia local difiere en
         // algo, se pisa. Lo único que se evita es reescribir una semana que ya
-        // es idéntica a la del servidor (ver isSameRecord) — la marca de reset
-        // vive en el registro de metadata, que hoy se rehace en cada ciclo, así
-        // que sin esto una re-descarga forzada reescribiría TODOS los programas
-        // en cada vuelta del sync.
+        // es idéntica a la del servidor (ver isSameRecord), que no cambiaría el
+        // dato pero sí redibujaría la pantalla entera.
         if (!isSameRecord(localItem, remoteItem)) {
           dataToUpdate.push(remoteItem);
         }
@@ -1966,19 +1899,11 @@ const dbRestoreCircuitVisits = async (
 const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const oldMetadata = await appDb.metadata.get(1);
 
-  // Copia en vez de mutar el registro leído: así se puede comparar el antes
-  // con el después y no escribir cuando el sync no ha traído ninguna versión
-  // nueva (el caso normal cuando nadie ha tocado nada).
-  const result = { ...(oldMetadata?.metadata || {}) };
-
-  for (const [key, value] of Object.entries(metadata)) {
-    result[key] = {
-      version: value,
-      send_local: result[key]?.send_local || false,
-    };
-  }
-
-  const toSave = { id: oldMetadata?.id || 1, metadata: result };
+  // buildMetadataRecord conserva los campos sueltos del registro (las marcas
+  // de reemplazo forzado ya aplicado) además de las versiones por categoría:
+  // `put` reemplaza el registro entero, y este insert es lo ÚLTIMO que corre
+  // en la transacción de restauración. Ver su comentario en merge.ts.
+  const toSave = buildMetadataRecord(oldMetadata, metadata);
 
   if (oldMetadata && isSameRecord(oldMetadata, toSave)) return;
 

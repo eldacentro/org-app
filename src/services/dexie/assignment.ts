@@ -1,7 +1,8 @@
-import { AssignmentCode } from '@definition/assignment';
+import { AssignmentCode, AssignmentType } from '@definition/assignment';
 import { getTranslation } from '@services/i18n/translation';
 import { getListLanguages } from '@services/app';
 import { LANGUAGE_LIST } from '@constants/index';
+import { dbReplaceTableIfChanged } from './rebuild';
 import appDb from '@db/appDb';
 
 export const dbAssignmentUpdate = async () => {
@@ -210,9 +211,9 @@ export const dbAssignmentUpdate = async () => {
     });
   }
 
-  await appDb.assignment.clear();
+  const records: AssignmentType[] = [];
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_BibleReading,
     maleOnly: true,
     assignable: true,
@@ -222,7 +223,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_InitialCall,
     maleOnly: false,
     assignable: true,
@@ -232,7 +233,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_ReturnVisit,
     maleOnly: false,
     assignable: true,
@@ -242,7 +243,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_BibleStudy,
     maleOnly: false,
     assignable: true,
@@ -252,7 +253,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Talk,
     maleOnly: true,
     assignable: true,
@@ -262,7 +263,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_InitialCallVideo,
     maleOnly: false,
     assignable: false,
@@ -272,7 +273,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_ReturnVisitVideo,
     maleOnly: false,
     assignable: false,
@@ -282,7 +283,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Other,
     maleOnly: false,
     assignable: false,
@@ -292,7 +293,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Memorial,
     maleOnly: false,
     linkTo: AssignmentCode.MM_InitialCall,
@@ -303,7 +304,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Chairman,
     maleOnly: true,
     assignable: true,
@@ -313,7 +314,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Prayer,
     maleOnly: true,
     assignable: true,
@@ -323,7 +324,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_TGWTalk,
     maleOnly: true,
     assignable: true,
@@ -333,7 +334,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_TGWGems,
     maleOnly: true,
     assignable: true,
@@ -343,7 +344,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_LCPart,
     maleOnly: true,
     assignable: true,
@@ -353,7 +354,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_CBSConductor,
     maleOnly: true,
     assignable: true,
@@ -363,7 +364,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_CBSReader,
     maleOnly: true,
     assignable: true,
@@ -373,7 +374,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_MemorialVideo,
     maleOnly: false,
     linkTo: AssignmentCode.MM_InitialCallVideo,
@@ -384,7 +385,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_Chairman,
     maleOnly: true,
     assignable: true,
@@ -393,7 +394,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_Prayer,
     maleOnly: true,
     assignable: true,
@@ -402,7 +403,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_Speaker,
     maleOnly: true,
     assignable: true,
@@ -411,7 +412,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_SpeakerSymposium,
     maleOnly: true,
     assignable: true,
@@ -420,7 +421,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_WTStudyReader,
     maleOnly: true,
     assignable: true,
@@ -429,7 +430,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.WM_WTStudyConductor,
     maleOnly: true,
     assignable: true,
@@ -438,7 +439,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_AuxiliaryCounselor,
     maleOnly: true,
     assignable: true,
@@ -447,7 +448,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_AssistantOnly,
     maleOnly: true,
     assignable: true,
@@ -457,7 +458,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_StartingConversation,
     maleOnly: false,
     assignable: true,
@@ -467,7 +468,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_FollowingUp,
     maleOnly: false,
     assignable: true,
@@ -477,7 +478,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_MakingDisciples,
     maleOnly: false,
     assignable: true,
@@ -487,7 +488,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_ExplainingBeliefs,
     maleOnly: false,
     assignable: true,
@@ -497,7 +498,7 @@ export const dbAssignmentUpdate = async () => {
     },
   });
 
-  await appDb.assignment.put({
+  records.push({
     code: AssignmentCode.MM_Discussion,
     maleOnly: false,
     assignable: true,
@@ -513,7 +514,7 @@ export const dbAssignmentUpdate = async () => {
     if (value && value !== '0' && codeIndice < 170) {
       const variations = value.split('|');
       for (const variation of variations) {
-        await appDb.assignment.put({
+        records.push({
           code: codeIndice,
           maleOnly: false,
           linkTo: AssignmentCode.MM_InitialCall,
@@ -535,7 +536,7 @@ export const dbAssignmentUpdate = async () => {
     if (value && value !== '0' && codeIndice < 200) {
       const variations = value.split('|');
       for (const variation of variations) {
-        await appDb.assignment.put({
+        records.push({
           code: codeIndice,
           maleOnly: false,
           linkTo: AssignmentCode.MM_ReturnVisit,
@@ -550,4 +551,11 @@ export const dbAssignmentUpdate = async () => {
       }
     }
   }
+
+  // Antes esto eran un `clear()` y treinta y dos `put()` sueltos, o sea más de
+  // treinta avisos a los observadores de la tabla en CADA sincronización, con
+  // el mismo contenido de siempre (sale de las traducciones). Las asignaciones
+  // las lee entera la Reunión de entre semana: era el parpadeo más ruidoso.
+  // Ahora se compara y, si hace falta escribir, se hace de una sola vez.
+  await dbReplaceTableIfChanged(appDb.assignment, records, 'code');
 };

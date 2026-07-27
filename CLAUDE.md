@@ -36,6 +36,19 @@ solo ahorro de escrituras: guardar un registro idéntico despierta a
 era el parpadeo que aparecía solo cada pocos minutos. Si añades un
 `bulkPut` nuevo en el ciclo de sync, pásalo por esa comparación.
 
+Lo mismo vale para las **tablas derivadas** —tipos de semana, asignaciones,
+discursos públicos y canciones—, que no vienen del servidor: se reconstruyen
+enteras desde las traducciones al terminar cada sincronización. Se rehacen
+con `dbReplaceTableIfChanged` (`services/dexie/rebuild.ts`), que compara por
+clave primaria (`isSameTableContent`) y no toca la tabla si el contenido es
+el mismo. Nunca vuelvas a poner ahí un `clear()` + `bulkPut()` a pelo.
+
+El registro de `metadata` lleva campos SUELTOS fuera de `metadata` (las
+marcas de "reemplazo forzado ya aplicado"). Se guarda con `put`, que
+reemplaza el registro entero, así que constrúyelo siempre con
+`buildMetadataRecord`: perder esas marcas hace que una re-descarga forzada se
+repita en cada ciclo y se coma las ediciones locales.
+
 ## Comandos útiles
 
 - `npx tsc --noEmit -p tsconfig.json` — typecheck. El proyecto tiene un
