@@ -1,5 +1,7 @@
-import { memo } from 'react';
+import { memo, PointerEvent, useCallback, useRef, useState, WheelEvent } from 'react';
 import { Box } from '@mui/material';
+import IconButton from '@components/icon_button';
+import { IconAdd, IconRestart } from '@components/icons';
 import {
   COLORES,
   EXTINTORES_GEO,
@@ -67,11 +69,16 @@ const PlanoBase = memo(function PlanoBase() {
         />
       ))}
 
+      {/* Tabique que separa la Sala B del auditorio principal. Se dibuja con
+          el grosor de una pared: como línea fina no se leía como separación
+          y la Sala B parecía abierta al auditorio. */}
       <polyline
         points={SALA_B_WALL.map((pt) => pt.join(',')).join(' ')}
         fill="none"
-        stroke={MURO}
-        strokeWidth="0.8"
+        stroke="#94A3B8"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
       />
 
       {/* Puertas interiores */}
@@ -111,17 +118,122 @@ const PlanoBase = memo(function PlanoBase() {
         />
       ))}
 
-      {/* Rótulos de las dependencias */}
-      <text x="8" y="25" textAnchor="middle" fontSize="3" fill={TENUE} transform="rotate(-90 8,25)" fontWeight="500">Pasillo</text>
-      <text x="21" y="8" textAnchor="middle" fontSize="2.5" fill={TENUE}>Mujeres</text>
-      <text x="28" y="8" textAnchor="middle" fontSize="2.5" fill={TENUE}>Minusv.</text>
-      <text x="41" y="8" textAnchor="middle" fontSize="2.5" fill={TENUE}>Hombres</text>
+      {/* Rótulos de las dependencias.
+          Ojo: el espacio de la izquierda es el ASEO DE MUJERES, no un pasillo
+          — así estaba mal rotulado. De izquierda a derecha: mujeres,
+          minusválidos y hombres. Se escriben en vertical y separados porque
+          son huecos estrechos y los rótulos se montaban unos sobre otros. */}
+      <text x="7.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 7.5,20)" fontWeight="600">Mujeres</text>
+      <text x="24" y="28" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 24,28)" fontWeight="600">Minusválidos</text>
+      <text x="41.5" y="20" textAnchor="middle" fontSize="2.6" fill={TENUE} transform="rotate(-90 41.5,20)" fontWeight="600">Hombres</text>
+      <text x="52" y="46" textAnchor="middle" fontSize="3.2" fill={TENUE} fontWeight="700">Sala B</text>
     </>
   );
 });
 
+/** Encuadre completo del plano. */
+const VISTA_COMPLETA = { x: -7, y: -6, w: 194, h: 92 };
+const ZOOM_MAX = 6;
+
 const Plano2D = ({ seleccion, onSelect }: Props) => {
-  const activar = (nueva: Seleccion) => onSelect(nueva);
+  // Zoom y desplazamiento. Se hace moviendo el viewBox del SVG en vez de con
+  // transformaciones CSS: el dibujo se rasteriza a la escala nueva, así que
+  // ampliar deja los textos y las líneas NÍTIDOS en vez de pixelados, y no
+  // cuesta nada — es el mismo dibujo, recortado.
+  const [vista, setVista] = useState(VISTA_COMPLETA);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const arrastre = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const movido = useRef(false);
+
+  const zoomActual = VISTA_COMPLETA.w / vista.w;
+
+  /** Amplía o reduce manteniendo fijo un punto (el del dedo o el centro). */
+  const zoom = useCallback((factor: number, foco?: { x: number; y: number }) => {
+    setVista((actual) => {
+      const nuevoAncho = Math.min(
+        VISTA_COMPLETA.w,
+        Math.max(VISTA_COMPLETA.w / ZOOM_MAX, actual.w / factor)
+      );
+      const escala = nuevoAncho / actual.w;
+      const nuevoAlto = actual.h * escala;
+
+      const fx = foco?.x ?? actual.x + actual.w / 2;
+      const fy = foco?.y ?? actual.y + actual.h / 2;
+
+      // Sin dejar que el plano se escape de la vista.
+      const x = Math.min(
+        Math.max(fx - (fx - actual.x) * escala, VISTA_COMPLETA.x),
+        VISTA_COMPLETA.x + VISTA_COMPLETA.w - nuevoAncho
+      );
+      const y = Math.min(
+        Math.max(fy - (fy - actual.y) * escala, VISTA_COMPLETA.y),
+        VISTA_COMPLETA.y + VISTA_COMPLETA.h - nuevoAlto
+      );
+
+      return { x, y, w: nuevoAncho, h: nuevoAlto };
+    });
+  }, []);
+
+  /** Coordenadas del plano bajo un punto de la pantalla. */
+  const aPlano = (clientX: number, clientY: number) => {
+    const caja = svgRef.current?.getBoundingClientRect();
+    if (!caja) return null;
+
+    return {
+      x: vista.x + ((clientX - caja.left) / caja.width) * vista.w,
+      y: vista.y + ((clientY - caja.top) / caja.height) * vista.h,
+    };
+  };
+
+  const onWheel = (event: WheelEvent) => {
+    event.preventDefault();
+    const foco = aPlano(event.clientX, event.clientY);
+    zoom(event.deltaY < 0 ? 1.2 : 1 / 1.2, foco ?? undefined);
+  };
+
+  const onPointerDown = (event: PointerEvent) => {
+    movido.current = false;
+    arrastre.current = { x: event.clientX, y: event.clientY, vx: vista.x, vy: vista.y };
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    const inicio = arrastre.current;
+    const caja = svgRef.current?.getBoundingClientRect();
+    if (!inicio || !caja) return;
+
+    const dx = ((event.clientX - inicio.x) / caja.width) * vista.w;
+    const dy = ((event.clientY - inicio.y) / caja.height) * vista.h;
+
+    // Un temblor de dos píxeles no es arrastrar: si no, tocar un extintor
+    // con el dedo se comería la selección.
+    if (Math.abs(event.clientX - inicio.x) > 3 || Math.abs(event.clientY - inicio.y) > 3) {
+      movido.current = true;
+    }
+    if (!movido.current) return;
+
+    setVista((actual) => ({
+      ...actual,
+      x: Math.min(
+        Math.max(inicio.vx - dx, VISTA_COMPLETA.x),
+        VISTA_COMPLETA.x + VISTA_COMPLETA.w - actual.w
+      ),
+      y: Math.min(
+        Math.max(inicio.vy - dy, VISTA_COMPLETA.y),
+        VISTA_COMPLETA.y + VISTA_COMPLETA.h - actual.h
+      ),
+    }));
+  };
+
+  const soltar = () => {
+    arrastre.current = null;
+  };
+
+  const activar = (nueva: Seleccion) => {
+    // Al terminar un arrastre no se selecciona nada: se estaba moviendo el
+    // plano, no señalando.
+    if (movido.current) return;
+    onSelect(nueva);
+  };
 
   const teclado = (nueva: Seleccion) => (event: { key: string }) => {
     if (event.key === 'Enter' || event.key === ' ') activar(nueva);
@@ -140,9 +252,21 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
       }}
     >
       <svg
-        viewBox="-7 -6 194 92"
+        ref={svgRef}
+        viewBox={`${vista.x} ${vista.y} ${vista.w} ${vista.h}`}
         preserveAspectRatio="xMidYMid meet"
-        style={{ width: '100%', height: '100%', display: 'block' }}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={soltar}
+        onPointerLeave={soltar}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          touchAction: 'none',
+          cursor: zoomActual > 1 ? 'grab' : 'default',
+        }}
       >
         <PlanoBase />
 
@@ -313,6 +437,40 @@ const Plano2D = ({ seleccion, onSelect }: Props) => {
           );
         })}
       </svg>
+
+      {/* Controles de zoom. En un móvil el salón entero cabe en 300 px de
+          ancho: sin poder acercarse, los rótulos y los números no se leen. */}
+      <Box
+        sx={{
+          position: 'absolute',
+          right: '8px',
+          bottom: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '4px',
+        }}
+      >
+        <IconButton aria-label="Acercar" onClick={() => zoom(1.5)}>
+          <IconAdd color="var(--ink)" width={18} height={18} />
+        </IconButton>
+        <IconButton aria-label="Alejar" onClick={() => zoom(1 / 1.5)}>
+          {/* No hay icono de "menos" en el juego de la app; una raya
+              horizontal dice lo mismo sin traer un icono de fuera. */}
+          <Box sx={{ width: 14, height: 2, borderRadius: 1, backgroundColor: 'var(--ink)' }} />
+        </IconButton>
+        {zoomActual > 1.01 && (
+          <IconButton
+            aria-label="Ver el plano entero"
+            onClick={() => setVista(VISTA_COMPLETA)}
+          >
+            <IconRestart color="var(--ink)" width={18} height={18} />
+          </IconButton>
+        )}
+      </Box>
     </Box>
   );
 };

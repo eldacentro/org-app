@@ -62,42 +62,40 @@ const EvacuacionPage = () => {
           display: 'flex',
           flexDirection: { mobile: 'column', laptop: 'row' },
           gap: '16px',
-          alignItems: 'stretch',
+          alignItems: 'flex-start',
           flex: 1,
         }}
       >
-        {/* Plano */}
+        {/* Columna del plano: el plano y, DEBAJO, el detalle de lo que se
+            toque. Antes el detalle era una tercera columna del mismo flex y
+            en escritorio quedaba estrujado en una tira de texto ilegible. */}
         <Box
           sx={{
-            flex: { mobile: '0 0 auto', laptop: '0 0 65%' },
+            flex: { mobile: '0 0 auto', laptop: '1 1 auto' },
+            minWidth: 0,
             width: '100%',
-            // El plano tiene una forma muy apaisada (194 x 92). Con una altura
-            // fija se dibujaba pequeñito en medio de una franja vacía enorme;
-            // atado a su propia proporción ocupa justo lo que necesita.
-            aspectRatio: '194 / 92',
-            maxHeight: { mobile: '60vh', laptop: '600px' },
-            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
           }}
         >
           <Plano2D seleccion={seleccion} onSelect={setSeleccion} />
-        </Box>
 
-        {seleccion && (
-          <Box sx={{ width: '100%' }}>
+          {seleccion && (
             <DetalleSeleccion
               plan={plan}
               seleccion={seleccion}
               onClose={() => setSeleccion(null)}
             />
-          </Box>
-        )}
+          )}
+        </Box>
 
         {/* Panel de información */}
         <Box
           sx={{
-            flex: { mobile: '0 0 auto', laptop: '1 1 35%' },
+            flex: { mobile: '0 0 auto', laptop: '0 0 360px' },
             width: '100%',
-            minHeight: { mobile: '450px', laptop: '600px' },
+            minWidth: 0,
           }}
         >
           <PanelInformacion plan={plan} />
