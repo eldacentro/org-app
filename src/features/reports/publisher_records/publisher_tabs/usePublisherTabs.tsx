@@ -3,14 +3,15 @@ import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { personsActiveState } from '@states/persons';
 import { PersonType } from '@definition/person';
-import usePerson from '@features/persons/hooks/usePerson';
 import ListByGroups from './list_by_groups';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
+import { personIsActivePublisher } from '@services/app/publisher_status';
+import { ministryMonthsState } from '@states/field_service_reports';
 
 const usePublisherTabs = () => {
   const { t } = useAppTranslation();
 
-  const { personIsPublisher } = usePerson();
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const persons = useAtomValue(personsActiveState);
 
@@ -24,20 +25,18 @@ const usePublisherTabs = () => {
         person.person_data.publisher_unbaptized.active.value
     );
 
+    // Aquí vivía otra definición propia de activo/inactivo (¿el tramo cubre
+    // este mes?). Ahora es la de siempre: los informes de los últimos 6 meses.
     for (const person of current) {
-      const isPublisher = personIsPublisher(person);
-
-      if (isPublisher) {
+      if (personIsActivePublisher(person, ministryMonths)) {
         active.push(person);
-      }
-
-      if (!isPublisher) {
+      } else {
         inactive.push(person);
       }
     }
 
     return { active: active.length, inactive: inactive.length };
-  }, [persons, personIsPublisher]);
+  }, [persons, ministryMonths]);
 
   const tabs = useMemo(() => {
     return [

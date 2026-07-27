@@ -10,15 +10,14 @@ import { userBibleStudiesState } from '@states/user_bible_studies';
 import { personsActiveState } from '@states/persons';
 import { AssignmentCode } from '@definition/assignment';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
-import usePerson from '@features/persons/hooks/usePerson';
 import { currentReportMonth } from '@utils/date';
+import { personWasPublisherBy } from '@services/app/publisher_status';
 
 const useMinistryMonthlyRecord = ({
   month,
   person_uid,
   publisher,
 }: MinistryMonthlyRecord) => {
-  const { personIsPublisher } = usePerson();
 
   const userReports = useAtomValue(userFieldServiceMonthlyReportsState);
   const delegatedReports = useAtomValue(delegatedFieldServiceReportsState);
@@ -43,13 +42,18 @@ const useMinistryMonthlyRecord = ({
     return persons.find((record) => record.person_uid === person_uid);
   }, [persons, person_uid]);
 
+  // Esto pone el informe en SOLO LECTURA. La pregunta correcta es "¿es
+  // publicador?", no "¿tiene un tramo abierto que cubra este mes?": un
+  // publicador inactivo tiene que poder entregar su informe, porque es
+  // exactamente lo que lo devuelve a activo. Con la pregunta anterior, a quien
+  // tenía el tramo cerrado se le quedaba el formulario bloqueado y no había
+  // manera de que volviera. Sigue en solo lectura quien no es publicador y los
+  // meses anteriores a serlo.
   const isInactive = useMemo(() => {
     if (!person) return true;
 
-    const active = personIsPublisher(person, month);
-
-    return !active;
-  }, [person, month, personIsPublisher]);
+    return !personWasPublisherBy(person, month);
+  }, [person, month]);
 
   const branchReport = useMemo(() => {
     return branchReports.find((record) => record.report_date === month);

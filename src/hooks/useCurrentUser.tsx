@@ -14,12 +14,15 @@ import {
   languageGroupsState,
 } from '@states/field_service_groups';
 import usePerson from '@features/persons/hooks/usePerson';
+import {
+  currentActivityMonth,
+  personWasPublisherBy,
+} from '@services/app/publisher_status';
 
 const useCurrentUser = () => {
   const {
     personIsEnrollmentActive,
     personIsBaptizedPublisher,
-    personIsPublisher,
   } = usePerson();
 
   const userUID = useAtomValue(userLocalUIDState);
@@ -81,8 +84,14 @@ const useCurrentUser = () => {
       return false;
     }
 
-    return personIsPublisher(person);
-  }, [person, personIsPublisher]);
+    // "¿Es publicador?" para darle o no la sección de Predicación. NO puede
+    // ser "¿tiene un tramo abierto que cubra este mes?": a quien se le cierra
+    // el tramo —porque lleva 6 meses sin informar, o porque se lo cerraron por
+    // error— le desaparecía la sección entera, y con ella la única forma de
+    // entregar un informe y volver a estar activo. Se quedaba fuera para
+    // siempre sin que nadie se enterara.
+    return personWasPublisherBy(person, currentActivityMonth());
+  }, [person]);
 
   const enable_AP_application = useMemo(() => {
     if (!connected) return false;

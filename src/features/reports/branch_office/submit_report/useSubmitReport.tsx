@@ -57,6 +57,7 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
       // S-1 tiene que seguir contando en este mes.
       endDate: lastDayOfReportMonth(month),
       startDate: dateFirstDayMonth(new Date(`${month}/01`)).toISOString(),
+      hasMinistryData: congReports.length > 0,
     });
 
     if (personsToSave.length > 0) {

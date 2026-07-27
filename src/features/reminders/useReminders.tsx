@@ -12,12 +12,11 @@ import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { secretaryRoleState } from '@states/settings';
 import useCurrentUser from '@hooks/useCurrentUser';
 import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthlyRecord';
-import usePerson from '@features/persons/hooks/usePerson';
+import { personWasPublisherBy } from '@services/app/publisher_status';
 
 const useReminders = () => {
   const { t } = useAppTranslation();
 
-  const { personIsPublisher } = usePerson();
 
   const currentReport = useMemo(() => currentReportMonth(), []);
 
@@ -37,7 +36,9 @@ const useReminders = () => {
   const checkPubReport = useMemo(() => {
     if (!person) return false;
 
-    const isPublisher = personIsPublisher(person, currentReport);
+    // Un publicador inactivo también tiene que recibir el aviso: entregar el
+    // informe es justo lo que lo devuelve a activo.
+    const isPublisher = personWasPublisherBy(person, currentReport);
 
     if (!isPublisher) return false;
 
@@ -52,7 +53,7 @@ const useReminders = () => {
     }
 
     return false;
-  }, [currentReport, person, personIsPublisher, status]);
+  }, [currentReport, person, status]);
 
   const checkBranchReport = useMemo(() => {
     if (!isSecretary) return false;

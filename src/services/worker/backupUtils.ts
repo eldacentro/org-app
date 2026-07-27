@@ -3269,7 +3269,15 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             const isMidweekStudent =
               person.person_data.midweek_meeting_student.active.value;
 
+            // Ser publicador, no "tener el tramo abierto este mes". Con lo
+            // segundo, a quien se le cierra el tramo —porque lleva 6 meses sin
+            // informar o porque se lo cerraron por error— se le quitaba el rol
+            // de ver los programas de las reuniones. Es la misma pregunta que
+            // responde `personWasPublisherBy`, escrita aquí a mano porque el
+            // worker no puede importar del resto de la app.
             const isPublisher =
+              person.person_data.publisher_baptized.active.value ||
+              person.person_data.publisher_unbaptized.active.value ||
               personIsBaptizedPublisher(person) ||
               personIsUnbaptizedPublisher(person);
 

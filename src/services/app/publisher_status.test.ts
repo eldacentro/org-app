@@ -446,6 +446,30 @@ describe('paso a inactivo durante un año de servicio (S-10)', () => {
   });
 });
 
+describe('el mes del informe se lee sin pasar por Date', () => {
+  it('un informe de 2026/07 entra en el índice', () => {
+    // `new Date('2026/07')` funciona en Chrome de casualidad y Safari puede
+    // devolver fecha inválida. Los 1.538 informes de la congregación llevan
+    // ese formato: si se colara un Date inválido, el índice quedaría VACÍO en
+    // los iPhone y la salvaguarda daría por activa a toda la congregación.
+    const index = buildMinistryMonthsIndex([buildReport('p1', '2026/07')]);
+
+    expect(index.get('p1')).toEqual(new Set(['2026/07']));
+  });
+
+  it('y también en el formato con guion', () => {
+    const index = buildMinistryMonthsIndex([buildReport('p1', '2026-07')]);
+
+    expect(index.get('p1')).toEqual(new Set(['2026/07']));
+  });
+
+  it('la regla completa funciona con ese formato', () => {
+    const reports = [buildReport('p1', '2026/07')];
+
+    expect(personIsActivePublisher(veterano(), reports, JULIO)).toBe(true);
+  });
+});
+
 describe('el índice de meses con participación', () => {
   it('agrupa por persona y descarta lo que no cuenta', () => {
     const index = buildMinistryMonthsIndex([
@@ -479,6 +503,7 @@ describe('el historial que deja el S-1 al enviarlo', () => {
       inactive,
       endDate: FIN,
       startDate: INICIO,
+      hasMinistryData: true,
     });
 
   it('cierra el tramo de quien consta como inactivo', () => {
@@ -517,6 +542,26 @@ describe('el historial que deja el S-1 al enviarlo', () => {
     // Guardar un registro idéntico despierta la sincronización de toda la
     // congregación para nada.
     expect(actualizar([activaOk], [inactivaOk])).toHaveLength(0);
+  });
+
+  it('sin informes cargados no se toca NINGÚN historial', () => {
+    // Con el índice vacío, personIsActivePublisher da a todos por activos: es
+    // una salvaguarda para pintar pantallas, no para escribir. Sin este freno,
+    // enviar el S-1 desde un dispositivo a medio sincronizar abriría un tramo
+    // a media congregación y se propagaría a todos.
+    const persona = buildPerson([
+      { start_date: '2023-08-01', end_date: '2026-05-18' },
+    ]);
+
+    expect(
+      buildPublisherHistoryUpdates({
+        active: [persona],
+        inactive: [],
+        endDate: FIN,
+        startDate: INICIO,
+        hasMinistryData: false,
+      })
+    ).toHaveLength(0);
   });
 
   it('sin ninguna casilla puesta no se inventa un tramo', () => {

@@ -14,7 +14,6 @@ const usePersons = (group?: string) => {
   const fieldGroups = useAtomValue(fieldWithLanguageGroupsState);
 
   const {
-    personIsPublisher,
     personIsBaptizedPublisher,
     personIsUnbaptizedPublisher,
     personIsPrivilegeActive,
@@ -187,8 +186,10 @@ const usePersons = (group?: string) => {
 
       if (isFMF || isFR || isFS || isAP) return false;
 
-      const isPublisher = personIsPublisher(person, month);
-      return isPublisher;
+      // La misma regla que el S-1 y que las listas. Con la de antes (¿el tramo
+      // cubre el mes?) la estadística de publicadores y el número enviado a la
+      // sucursal podían diferir hasta en 7 personas.
+      return personIsActivePublisher(person, ministryMonths, month);
     });
 
     return result;

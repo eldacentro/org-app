@@ -7,12 +7,13 @@ import { personsActiveState } from '@states/persons';
 import { formatDate } from '@utils/date';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import { GroupOption, ListByGroupsProps } from './index.types';
-import usePerson from '@features/persons/hooks/usePerson';
+import { personIsActivePublisher } from '@services/app/publisher_status';
+import { ministryMonthsState } from '@states/field_service_reports';
 
 const useListByGroups = ({ type }: ListByGroupsProps) => {
   const { t } = useAppTranslation();
 
-  const { personIsPublisher } = usePerson();
+  const ministryMonths = useAtomValue(ministryMonthsState);
 
   const fieldGroups = useAtomValue(fieldWithLanguageGroupsState);
   const persons = useAtomValue(personsActiveState);
@@ -33,19 +34,14 @@ const useListByGroups = ({ type }: ListByGroupsProps) => {
     );
 
     for (const person of current) {
-      const isPublisher = personIsPublisher(person);
+      const isActive = personIsActivePublisher(person, ministryMonths);
 
-      if (type === 'active' && isPublisher) {
-        result.push(person);
-      }
-
-      if (type === 'inactive' && !isPublisher) {
-        result.push(person);
-      }
+      if (type === 'active' && isActive) result.push(person);
+      if (type === 'inactive' && !isActive) result.push(person);
     }
 
     return result;
-  }, [persons, type, personIsPublisher]);
+  }, [persons, type, ministryMonths]);
 
   const groups = useMemo(() => {
     if (publishers.length === 0) return [];

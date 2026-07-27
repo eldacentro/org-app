@@ -4,10 +4,13 @@ import { useAppTranslation } from '@hooks/index';
 import {
   personIsFR,
   personIsFS,
-  personIsPublisher,
 } from '@services/app/persons';
 import { personCurrentDetailsState } from '@states/persons';
 import { userDataViewState } from '@states/settings';
+import {
+  currentActivityMonth,
+  personWasPublisherBy,
+} from '@services/app/publisher_status';
 
 const useAssignmentGroup = (male: boolean) => {
   const { t } = useAppTranslation();
@@ -26,8 +29,9 @@ const useAssignmentGroup = (male: boolean) => {
 
       if (isPioneer) return false;
 
-      const isPublisher = personIsPublisher(person);
-      return !isPublisher;
+      // Ser publicador, no "tener el tramo abierto este mes": un publicador
+      // inactivo, o con el tramo mal cerrado, sigue pudiendo llevar partes.
+      return !personWasPublisherBy(person, currentActivityMonth());
     }
 
     if (male) isDisabled = false;

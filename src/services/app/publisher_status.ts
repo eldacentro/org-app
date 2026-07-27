@@ -57,13 +57,23 @@ export type ReportsSource = CongFieldServiceReportType[] | MinistryMonthsIndex;
  * las fechas que la app guarda como día 1 local: en verano salen '…-30T22:00Z'
  * y el recorte las deja en el MES ANTERIOR. En la congregación había 20 así.
  *
- * El mes del informe ('2026/07') no lleva hora y pasa igual por los dos
- * caminos.
+ * El mes del informe ('2026/07') se resuelve ANTES, sin pasar por `Date`. No
+ * es un adorno: `new Date('2026/07')` funciona en Chrome de casualidad, no es
+ * un formato que la norma obligue a aceptar, y Safari es más estricto. Como
+ * los 1.538 informes de la congregación llevan justo ese formato, un `Date`
+ * inválido en iPhone dejaría el índice VACÍO — y con el índice vacío la
+ * salvaguarda da por ACTIVA a la congregación entera. Un fallo silencioso y
+ * total, solo en los iPhones. No se apuesta la regla a eso.
  */
 const monthOf = (date: string | null | undefined) => {
   if (typeof date !== 'string') return null;
 
-  const month = toComparableDate(date).slice(0, 7);
+  const plain = date.trim();
+
+  // Ya es un mes ('2026/07' o '2026-07'): no hay hora que interpretar.
+  if (/^\d{4}[/-]\d{2}$/.test(plain)) return plain.replace('-', '/');
+
+  const month = toComparableDate(plain).slice(0, 7);
 
   return /^\d{4}\/\d{2}$/.test(month) ? month : null;
 };
@@ -318,6 +328,7 @@ export const buildPublisherHistoryUpdates = ({
   inactive,
   endDate,
   startDate,
+  hasMinistryData,
 }: {
   active: PersonType[];
   inactive: PersonType[];
@@ -325,7 +336,16 @@ export const buildPublisherHistoryUpdates = ({
   endDate: string;
   /** Apertura del tramo de los activos: primer día del mes informado. */
   startDate: string;
+  /** ¿Hay informes cargados? Sin ellos no se toca ningún historial. */
+  hasMinistryData: boolean;
 }) => {
+  // Sin informes cargados, `personIsActivePublisher` da a TODOS por activos
+  // (salvaguarda para un dispositivo a medio sincronizar). Eso sirve para
+  // pintar una pantalla, pero no para escribir: aquí abriría un tramo a media
+  // congregación y el destrozo se sincronizaría a todos los dispositivos. En
+  // la duda no se escribe.
+  if (!hasMinistryData) return [];
+
   const result: PersonType[] = [];
 
   for (const person of inactive ?? []) {

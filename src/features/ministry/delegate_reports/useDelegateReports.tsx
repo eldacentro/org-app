@@ -4,10 +4,9 @@ import { PersonType } from '@definition/person';
 import { userMembersDelegateState } from '@states/settings';
 import { personsActiveState } from '@states/persons';
 import { reportUserSelectedMonthState } from '@states/user_field_service_reports';
-import usePerson from '@features/persons/hooks/usePerson';
+import { personWasPublisherBy } from '@services/app/publisher_status';
 
 const useDelegateReports = () => {
-  const { personIsPublisher } = usePerson();
 
   const persons = useAtomValue(personsActiveState);
   const delegatedPersons = useAtomValue(userMembersDelegateState);
@@ -23,7 +22,9 @@ const useDelegateReports = () => {
 
       if (!findPerson) continue;
 
-      const isPublisher = personIsPublisher(findPerson, month);
+      // Ser publicador, no "tener el tramo abierto este mes": si no, a quien
+      // tiene el tramo cerrado no se le puede entregar el informe delegado.
+      const isPublisher = personWasPublisherBy(findPerson, month);
 
       if (isPublisher) {
         result.push(findPerson);
@@ -35,7 +36,7 @@ const useDelegateReports = () => {
         b.person_data.person_firstname.value
       )
     );
-  }, [delegatedPersons, persons, month, personIsPublisher]);
+  }, [delegatedPersons, persons, month]);
 
   const handleToggleCollapse = () => setOpen((prev) => !prev);
 
