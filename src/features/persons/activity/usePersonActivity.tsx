@@ -19,7 +19,7 @@ import {
   groupActivityByMonth,
   sortActivity,
 } from '@services/app/person_activity';
-import { formatDate, toComparableDate } from '@utils/date';
+import { formatDateShortMonth, toComparableDate } from '@utils/date';
 
 const TERRITORY_STATUS_LABELS: Record<string, string> = {
   asignado: 'Sin devolver',
@@ -61,6 +61,12 @@ const usePersonActivity = (personUid: string) => {
   }, [schedules, setAssignmentsHistory]);
 
   useEffect(() => {
+    // Se vacía SIEMPRE al cambiar de persona: la ficha no se remonta al pasar
+    // de /persons/A a /persons/B, así que sin esto se verían los territorios
+    // de A en la ficha de B — y se quedarían ahí para siempre si la consulta
+    // de B falla.
+    setTerritoryItems([]);
+
     if (!personUid || !congId || !isConnected) return;
 
     let active = true;
@@ -74,8 +80,13 @@ const usePersonActivity = (personUid: string) => {
             const date = toComparableDate(assignment.assignedAt);
             if (!date) return items;
 
+            // Una sola fecha ilegible no puede llevarse por delante toda la
+            // categoría: `formatDate` lanza con una fecha inválida, y desde
+            // dentro del `.then` eso significaba quedarse sin territorios.
+            const returnedOn = toComparableDate(assignment.returnedAt);
+
             const returned = assignment.returnedAt
-              ? `devuelto el ${formatDate(new Date(assignment.returnedAt), 'dd/MM/yyyy')}`
+              ? `devuelto el ${returnedOn ? formatDateShortMonth(returnedOn) : '?'}`
               : TERRITORY_STATUS_LABELS.asignado;
 
             items.push({

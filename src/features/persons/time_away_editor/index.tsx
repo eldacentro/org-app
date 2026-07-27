@@ -12,8 +12,7 @@ const TimeAwayEditor = ({
   onAdd,
   onCommentsChange,
   onDelete,
-  onEndDateChange,
-  onStartDateChange,
+  onDatesChange,
   readOnly,
 }: TimeAwayEditorProps) => {
   const { t } = useAppTranslation();
@@ -88,8 +87,7 @@ const TimeAwayEditor = ({
               onAdd={onAdd}
               onCommentsChange={onCommentsChange}
               onDelete={onDelete}
-              onEndDateChange={onEndDateChange}
-              onStartDateChange={onStartDateChange}
+              onDatesChange={onDatesChange}
             />
           ))}
         </Box>

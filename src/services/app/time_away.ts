@@ -25,6 +25,51 @@ export const OPEN_STALE_DAYS = 60;
 /** Cuánto tiempo se sigue enseñando una ausencia ya terminada. */
 export const PAST_WINDOW_DAYS = 90;
 
+/**
+ * Cuánto dura una ausencia. No se guarda: se deduce de las fechas, para no
+ * añadir un campo nuevo a una tabla que se sincroniza con toda la
+ * congregación.
+ *
+ * - `single`: un solo día (la vuelta es el mismo día de la salida)
+ * - `until`: hasta una fecha concreta
+ * - `open`: sin fecha de vuelta
+ */
+export type TimeAwayDuration = 'single' | 'until' | 'open';
+
+export const getTimeAwayDuration = (
+  start_date: string,
+  end_date: string | null | undefined
+): TimeAwayDuration => {
+  if (!end_date) return 'open';
+
+  const start = toComparableDate(start_date);
+  const end = toComparableDate(end_date);
+
+  return start && start === end ? 'single' : 'until';
+};
+
+/**
+ * Cuántos días cubre la ausencia, contando los dos extremos: del 3 al 5 son
+ * TRES días, no dos. Es la cuenta que hace cualquiera de cabeza, y la que hay
+ * que enseñar al lado de las fechas para que se vea si están bien puestas.
+ *
+ * `null` si no hay vuelta o si las fechas están al revés — ahí no hay ninguna
+ * cuenta que dar.
+ */
+export const getTimeAwayDayCount = (
+  start_date: string,
+  end_date: string | null | undefined
+) => {
+  if (!end_date) return null;
+
+  const start = toComparableDate(start_date);
+  const end = toComparableDate(end_date);
+
+  if (!start || !end || end < start) return null;
+
+  return daysBetweenDates(start, end) + 1;
+};
+
 export type TimeAwayStatus = 'ongoing' | 'upcoming' | 'past';
 
 export type TimeAwayEntry = {
@@ -69,10 +114,18 @@ const buildEntry = (
 
   const end = toComparableDate(record.end_date);
 
-  // Una fila con la vuelta antes de la salida está mal metida; se enseña igual
-  // (esconderla sería peor: nadie podría corregirla) tratándola como cerrada.
+  // Una fila con la vuelta ANTES de la salida está mal metida. Se enseña igual
+  // —esconderla sería peor: nadie podría corregirla— pero como terminada, no
+  // como futura: "empieza en 36 días" sobre un rango imposible manda a buscar
+  // el problema al sitio equivocado.
+  const inverted = !!end && end < start;
+
   const status: TimeAwayStatus =
-    end && end < today ? 'past' : start > today ? 'upcoming' : 'ongoing';
+    inverted || (end && end < today)
+      ? 'past'
+      : start > today
+        ? 'upcoming'
+        : 'ongoing';
 
   let days: number | null = null;
   if (status === 'upcoming') days = daysBetweenDates(today, start);
@@ -119,15 +172,22 @@ const compareEntries = (a: TimeAwayEntry, b: TimeAwayEntry) => {
  * Todas las ausencias de la congregación, clasificadas y ordenadas.
  *
  * @param persons  personas con sus periodos (ya sin borradas ni archivadas)
- * @param today    fecha de referencia en 'yyyy/MM/dd'
+ * @param reference fecha de referencia (se normaliza sola)
  * @param pastWindowDays  cuánto atrás se siguen enseñando las terminadas
  */
 export const buildTimeAwayEntries = (
   persons: PersonTimeAway[],
-  today: string,
+  reference: string,
   pastWindowDays = PAST_WINDOW_DAYS
 ): TimeAwayEntry[] => {
   const entries: TimeAwayEntry[] = [];
+
+  // Todas las fechas de los registros se normalizan; la de referencia también,
+  // o una comparación de texto contra '2026-07-27' (con guiones) ordenaría al
+  // revés y TODAS las ausencias saldrían como futuras.
+  const today = toComparableDate(reference);
+
+  if (!today) return entries;
 
   for (const person of persons) {
     for (const record of person.timeAway ?? []) {

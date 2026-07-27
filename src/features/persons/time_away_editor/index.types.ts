@@ -4,8 +4,8 @@ export type TimeAwayEditorProps = {
   items: TimeAwayType[];
   desc?: string;
   onAdd: VoidFunction;
-  onStartDateChange: (id: string, value: Date) => void;
-  onEndDateChange: (id: string, value: Date) => void;
+  /** Las dos fechas juntas: guardarlas por separado pierde una de las dos. */
+  onDatesChange: (id: string, start: Date, end: Date | null) => void;
   onCommentsChange: (id: string, value: string) => void;
   onDelete: (id: string) => void;
   readOnly?: boolean;

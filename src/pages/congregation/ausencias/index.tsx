@@ -60,8 +60,16 @@ const AwayRow = ({ row }: { row: TimeAwayRow }) => {
 
   return (
     <Box
+      // Como <button> real: navegable con tabulador y activable con Enter, sin
+      // cambiar nada de cómo se ve (el reset de la app quita el estilo nativo).
+      component="button"
+      type="button"
       onClick={() => navigate(`/persons/${row.person_uid}`)}
       sx={{
+        appearance: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',

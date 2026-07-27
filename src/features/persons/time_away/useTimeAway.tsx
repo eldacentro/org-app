@@ -18,12 +18,18 @@ const useTimeAway = () => {
   const handleAddTimeAway = async () => {
     const newPerson = structuredClone(person);
 
+    const today = formatDate(new Date(), 'yyyy/MM/dd');
+
     newPerson.person_data.timeAway.push({
       id: crypto.randomUUID(),
       _deleted: false,
       updatedAt: new Date().toISOString(),
-      start_date: formatDate(new Date(), 'yyyy/MM/dd'),
-      end_date: null,
+      start_date: today,
+      // Nace como "un solo día", NO sin fecha de vuelta. Naciendo abierta,
+      // quien solo quería apuntar un día se dejaba la ausencia abierta para
+      // siempre sin enterarse, y esa persona salía como ausente en todos los
+      // programas futuros. Para dejarla indefinida ahora hay que elegirlo.
+      end_date: today,
       comments: '',
     });
 
@@ -51,8 +57,22 @@ const useTimeAway = () => {
     setPersonCurrentDetails(newPerson);
   };
 
-  const handleStartDateChange = async (id: string, value: Date) => {
-    if (value === null) return;
+  /**
+   * Las DOS fechas se guardan de una vez, nunca uno detrás de otro.
+   *
+   * Cada manejador clona `person` tal y como estaba en el render, así que dos
+   * llamadas seguidas en el mismo evento parten las dos del mismo punto: la
+   * segunda pisa a la primera y el primer cambio se pierde. Cambiar la fecha
+   * de salida de una ausencia de un día llegaba a guardar la vuelta nueva con
+   * la salida vieja — un periodo invertido que `personIsAway` no encuentra
+   * nunca, así que esa persona dejaba de salir como ausente sin avisar.
+   */
+  const handleDatesChange = async (
+    id: string,
+    start: Date,
+    end: Date | null
+  ) => {
+    if (!start || Number.isNaN(start.getTime())) return;
 
     const newPerson = structuredClone(person);
 
@@ -60,20 +80,10 @@ const useTimeAway = () => {
       (history) => history.id === id
     );
 
-    current.start_date = formatDate(value, 'yyyy/MM/dd');
-    current.updatedAt = new Date().toISOString();
+    if (!current) return;
 
-    setPersonCurrentDetails(newPerson);
-  };
-
-  const handleEndDateChange = async (id: string, value: Date | null) => {
-    const newPerson = structuredClone(person);
-
-    const current = newPerson.person_data.timeAway.find(
-      (history) => history.id === id
-    );
-
-    current.end_date = value === null ? null : formatDate(value, 'yyyy/MM/dd');
+    current.start_date = formatDate(start, 'yyyy/MM/dd');
+    current.end_date = end === null ? null : formatDate(end, 'yyyy/MM/dd');
     current.updatedAt = new Date().toISOString();
 
     setPersonCurrentDetails(newPerson);
@@ -96,8 +106,7 @@ const useTimeAway = () => {
     handleAddTimeAway,
     activeTimeAway,
     handleDeleteTimeAway,
-    handleStartDateChange,
-    handleEndDateChange,
+    handleDatesChange,
     handleCommentsChange,
   };
 };

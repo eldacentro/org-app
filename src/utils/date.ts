@@ -127,11 +127,16 @@ export const toComparableDate = (value: string | Date | undefined) => {
     return Number.isNaN(value.getTime()) ? '' : formatDate(value, 'yyyy/MM/dd');
   }
 
-  // 'yyyy/MM/dd' o 'yyyy-MM-dd' (con hora o sin ella): basta con normalizar el
-  // separador y quedarse con la parte de la fecha.
-  const plain = value.slice(0, 10).replace(/-/g, '/');
+  // Una marca de tiempo completa ('2026-07-27T22:30:00.000Z') hay que
+  // interpretarla en la hora LOCAL: recortarle los diez primeros caracteres
+  // deja la fecha en UTC, y a partir de las 22:00 en España eso es el día
+  // anterior. Una fecha a secas ('2026-07-27') no lleva hora que interpretar,
+  // así que ahí sí basta con normalizar el separador.
+  if (!value.includes('T')) {
+    const plain = value.slice(0, 10).replace(/-/g, '/');
 
-  if (/^\d{4}\/\d{2}\/\d{2}$/.test(plain)) return plain;
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(plain)) return plain;
+  }
 
   const parsed = new Date(value);
 

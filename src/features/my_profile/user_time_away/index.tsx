@@ -9,8 +9,7 @@ const UserTimeAway = () => {
     allRecords,
     handleAdd,
     handleCommentsChange,
-    handleEndDateChange,
-    handleStartDateChange,
+    handleDatesChange,
     handleDelete,
   } = useUserTimeAway();
 
@@ -21,8 +20,7 @@ const UserTimeAway = () => {
       onAdd={handleAdd}
       onCommentsChange={handleCommentsChange}
       onDelete={handleDelete}
-      onEndDateChange={handleEndDateChange}
-      onStartDateChange={handleStartDateChange}
+      onDatesChange={handleDatesChange}
     />
   );
 };

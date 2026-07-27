@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { personsActiveState } from '@states/persons';
+import { personsByViewState } from '@states/persons';
 import { fieldGroupsState } from '@states/field_service_groups';
 import {
   displayNameMeetingsEnableState,
@@ -33,14 +33,20 @@ export type TimeAwayRow = TimeAwayEntry & {
  * estado compartido de búsqueda de personas.
  */
 const useTimeAwayOverview = () => {
-  const persons = useAtomValue(personsActiveState);
+  // La misma vista que usa /persons: con un grupo de idioma seleccionado,
+  // Ausencias no puede enseñar la congregación entera.
+  const persons = useAtomValue(personsByViewState);
   const groups = useAtomValue(fieldGroupsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [search, setSearch] = useState('');
 
-  const today = useMemo(() => formatDate(new Date(), 'yyyy/MM/dd'), []);
+  // Sin memoizar a propósito: es una cadena, así que su valor solo cambia al
+  // cambiar el día y los `useMemo` de abajo no se recalculan por esto. Con
+  // `useMemo(..., [])` una app abierta toda la noche seguía clasificando
+  // contra el día anterior.
+  const today = formatDate(new Date(), 'yyyy/MM/dd');
 
   const groupByPerson = useMemo(() => {
     const result = new Map<string, string>();

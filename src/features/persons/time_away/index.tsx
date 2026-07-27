@@ -12,8 +12,7 @@ const PersonTimeAway = () => {
     activeTimeAway,
     handleCommentsChange,
     handleDeleteTimeAway,
-    handleEndDateChange,
-    handleStartDateChange,
+    handleDatesChange,
   } = useTimeAway();
 
   return (
@@ -24,8 +23,7 @@ const PersonTimeAway = () => {
       onAdd={handleAddTimeAway}
       onCommentsChange={handleCommentsChange}
       onDelete={handleDeleteTimeAway}
-      onEndDateChange={handleEndDateChange}
-      onStartDateChange={handleStartDateChange}
+      onDatesChange={handleDatesChange}
     />
   );
 };

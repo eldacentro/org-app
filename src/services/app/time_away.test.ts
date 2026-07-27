@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { TimeAwayType } from '@definition/person';
 import {
   buildTimeAwayEntries,
+  getTimeAwayDayCount,
+  getTimeAwayDuration,
   OPEN_STALE_DAYS,
   PersonTimeAway,
 } from './time_away';
@@ -36,6 +38,47 @@ const periodo = (
 const persona = (uid: string, timeAway: TimeAwayType[]): PersonTimeAway => ({
   person_uid: uid,
   timeAway,
+});
+
+describe('cuánto dura una ausencia', () => {
+  it('sin fecha de vuelta es indefinida', () => {
+    expect(getTimeAwayDuration('2026/07/20', null)).toBe('open');
+    expect(getTimeAwayDuration('2026/07/20', undefined)).toBe('open');
+    expect(getTimeAwayDuration('2026/07/20', '')).toBe('open');
+  });
+
+  it('con la vuelta el mismo día es un solo día', () => {
+    expect(getTimeAwayDuration('2026/07/20', '2026/07/20')).toBe('single');
+    // El mismo día escrito de otra forma sigue siendo el mismo día.
+    expect(getTimeAwayDuration('2026/07/20', '2026-07-20')).toBe('single');
+  });
+
+  it('con la vuelta otro día es un periodo', () => {
+    expect(getTimeAwayDuration('2026/07/20', '2026/07/21')).toBe('until');
+  });
+});
+
+describe('cuenta de días', () => {
+  it('cuenta los dos extremos: del 3 al 5 son tres días', () => {
+    expect(getTimeAwayDayCount('2026/08/03', '2026/08/05')).toBe(3);
+  });
+
+  it('un solo día es un día', () => {
+    expect(getTimeAwayDayCount('2026/08/03', '2026/08/03')).toBe(1);
+  });
+
+  it('cuenta bien cruzando de mes y de año', () => {
+    expect(getTimeAwayDayCount('2026/08/30', '2026/09/02')).toBe(4);
+    expect(getTimeAwayDayCount('2026/12/30', '2027/01/02')).toBe(4);
+  });
+
+  it('sin vuelta no hay cuenta que dar', () => {
+    expect(getTimeAwayDayCount('2026/08/03', null)).toBeNull();
+  });
+
+  it('con las fechas al revés tampoco: eso es un error, no una cuenta', () => {
+    expect(getTimeAwayDayCount('2026/08/10', '2026/08/03')).toBeNull();
+  });
 });
 
 describe('clasificación de una ausencia', () => {
@@ -138,6 +181,46 @@ describe('ausencias abiertas que nadie cerró', () => {
     );
 
     expect(entry.openStale).toBe(false);
+  });
+});
+
+describe('datos mal metidos', () => {
+  it('un periodo invertido sale como TERMINADO, no como futuro', () => {
+    // Con las dos fechas en el futuro y del revés, antes salía "empieza en 36
+    // días" sobre un rango imposible: mandaba a buscar el problema al sitio
+    // equivocado.
+    const [entry] = buildTimeAwayEntries(
+      [persona('p1', [periodo('a', '2026/09/01', '2026/08/15')])],
+      HOY
+    );
+
+    expect(entry.status).toBe('past');
+    expect(entry.days).toBeNull();
+  });
+
+  it('la fecha de referencia se normaliza como las demás', () => {
+    // Con guiones y sin normalizar, '-' ordena antes que '/' y TODAS las
+    // ausencias pasaban a futuras.
+    const conBarras = buildTimeAwayEntries(
+      [persona('p1', [periodo('a', '2026/07/20', '2026/08/05')])],
+      '2026/07/27'
+    );
+    const conGuiones = buildTimeAwayEntries(
+      [persona('p1', [periodo('a', '2026/07/20', '2026/08/05')])],
+      '2026-07-27'
+    );
+
+    expect(conGuiones).toEqual(conBarras);
+    expect(conGuiones[0].status).toBe('ongoing');
+  });
+
+  it('una fecha de referencia ilegible no inventa nada', () => {
+    expect(
+      buildTimeAwayEntries(
+        [persona('p1', [periodo('a', '2026/07/20', '2026/08/05')])],
+        'ayer'
+      )
+    ).toEqual([]);
   });
 });
 
