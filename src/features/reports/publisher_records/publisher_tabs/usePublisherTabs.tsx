@@ -2,10 +2,12 @@ import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { personsActiveState } from '@states/persons';
-import { PersonType } from '@definition/person';
 import ListByGroups from './list_by_groups';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
-import { personIsActivePublisher } from '@services/app/publisher_status';
+import {
+  personIsActivePublisher,
+  personIsInactivePublisher,
+} from '@services/app/publisher_status';
 import { ministryMonthsState } from '@states/field_service_reports';
 
 const usePublisherTabs = () => {
@@ -15,25 +17,27 @@ const usePublisherTabs = () => {
 
   const persons = useAtomValue(personsActiveState);
 
+  /**
+   * Aquí vivía otra definición propia de activo/inactivo (¿el tramo cubre este
+   * mes?). Se cambió por la regla de los informes, pero se dejó filtrando la
+   * POBLACIÓN por la casilla de la ficha, y eso es media definición propia que
+   * seguía viva: quien es publicador por su historial pero tiene la casilla
+   * apagada no salía en ninguna de las dos pestañas —desaparecía del recuento
+   * sin más— y un estudiante de entresemana con la casilla puesta se contaba
+   * como publicador inactivo, cuando el S-1 y los filtros de Personas no lo
+   * cuentan. Hoy no discrepan porque en la congregación no hay ninguno de esos
+   * dos casos, pero el número no puede depender de eso.
+   *
+   * La población es la de siempre: `personWasPublisherBy`, que es justo la
+   * unión de activo e inactivo.
+   */
   const publishers = useMemo(() => {
-    const active: PersonType[] = [];
-    const inactive: PersonType[] = [];
-
-    const current = persons.filter(
-      (person) =>
-        person.person_data.publisher_baptized.active.value ||
-        person.person_data.publisher_unbaptized.active.value
+    const active = persons.filter((person) =>
+      personIsActivePublisher(person, ministryMonths)
     );
-
-    // Aquí vivía otra definición propia de activo/inactivo (¿el tramo cubre
-    // este mes?). Ahora es la de siempre: los informes de los últimos 6 meses.
-    for (const person of current) {
-      if (personIsActivePublisher(person, ministryMonths)) {
-        active.push(person);
-      } else {
-        inactive.push(person);
-      }
-    }
+    const inactive = persons.filter((person) =>
+      personIsInactivePublisher(person, ministryMonths)
+    );
 
     return { active: active.length, inactive: inactive.length };
   }, [persons, ministryMonths]);

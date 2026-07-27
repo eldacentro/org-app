@@ -5,9 +5,11 @@ import usePerson from './usePerson';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { useMemo } from 'react';
 import {
+  activityWindowHasReports,
   personBecameInactiveDuring,
   personIsActivePublisher,
   personIsInactivePublisher,
+  personWasPublisherBy,
 } from '@services/app/publisher_status';
 
 const usePersons = (group?: string) => {
@@ -195,14 +197,32 @@ const usePersons = (group?: string) => {
     return result;
   };
 
+  /**
+   * Todos los que eran publicadores al cerrar el año de servicio.
+   *
+   * Antes se sacaba del historial (`personIsPublisherYear`), y por eso no
+   * cuadraba con nada: a quien tiene el tramo cerrado por error —Andrés y Loli
+   * Argente— lo dejaba fuera aunque estuviera informando, así que "activos"
+   * salía MAYOR que el total y restar uno de otro daba un número sin sentido.
+   *
+   * Con `personWasPublisherBy`, que es la puerta de entrada de la regla única,
+   * el total es exactamente activos + inactivos, por construcción.
+   */
   const getPublisherAllYears = (year: string) => {
-    const result = persons.filter((person) => {
-      const isPublisher = personIsPublisherYear(person, year);
-      return isPublisher;
-    });
-
-    return result;
+    return persons.filter((person) =>
+      personWasPublisherBy(person, `${year}/08`)
+    );
   };
+
+  /**
+   * ¿Se conserva algún informe de la ventana que termina en `month`?
+   *
+   * Sin esto, un año de servicio cuyos informes ya se borraron por la norma de
+   * conservación enseña "2 publicadores activos" de 74 con toda la seguridad
+   * del mundo. Ver `activityWindowHasReports`.
+   */
+  const hasReportsInWindow = (month: string) =>
+    activityWindowHasReports(ministryMonths, month);
 
   return {
     getPublishersActive,
@@ -220,6 +240,7 @@ const usePersons = (group?: string) => {
     getPublisherYears,
     getPublisherMonths,
     getPublisherAllYears,
+    hasReportsInWindow,
   };
 };
 

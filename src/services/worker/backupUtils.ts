@@ -46,6 +46,10 @@ import { MetadataRecordType } from '@definition/metadata';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import { UpcomingEventType } from '@definition/upcoming_events';
 import { formatDate } from '@utils/date';
+import {
+  currentActivityMonth,
+  personWasPublisherBy,
+} from '@services/app/publisher_status';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
 import {
   reconcileOutgoingSpeakerLinks,
@@ -64,58 +68,6 @@ const personIsMS = (person: PersonType) => {
   );
 
   return hasActive ? true : false;
-};
-
-const personIsBaptizedPublisher = (person: PersonType, month?: string) => {
-  // default month to current month if undefined
-  if (!month) {
-    month = formatDate(new Date(), 'yyyy/MM');
-  }
-
-  const isValid = person.person_data.publisher_baptized.history.some(
-    (record) => {
-      if (record._deleted) return false;
-      if (!record.start_date) return false;
-
-      const startDate = new Date(record.start_date);
-      const endDate = record.end_date
-        ? new Date(record.end_date)
-        : new Date(`${month}/01`);
-
-      const startMonth = formatDate(startDate, 'yyyy/MM');
-      const endMonth = formatDate(endDate, 'yyyy/MM');
-
-      return month >= startMonth && month <= endMonth;
-    }
-  );
-
-  return isValid;
-};
-
-const personIsUnbaptizedPublisher = (person: PersonType, month?: string) => {
-  // default month to current month if undefined
-  if (!month) {
-    month = formatDate(new Date(), 'yyyy/MM');
-  }
-
-  const isValid = person.person_data.publisher_unbaptized.history.some(
-    (record) => {
-      if (record._deleted) return false;
-      if (!record.start_date) return false;
-
-      const startDate = new Date(record.start_date);
-      const endDate = record.end_date
-        ? new Date(record.end_date)
-        : new Date(`${month}/01`);
-
-      const startMonth = formatDate(startDate, 'yyyy/MM');
-      const endMonth = formatDate(endDate, 'yyyy/MM');
-
-      return month >= startMonth && month <= endMonth;
-    }
-  );
-
-  return isValid;
 };
 
 const personIsPrivilegeActive = (
@@ -3272,14 +3224,18 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             // Ser publicador, no "tener el tramo abierto este mes". Con lo
             // segundo, a quien se le cierra el tramo —porque lleva 6 meses sin
             // informar o porque se lo cerraron por error— se le quitaba el rol
-            // de ver los programas de las reuniones. Es la misma pregunta que
-            // responde `personWasPublisherBy`, escrita aquí a mano porque el
-            // worker no puede importar del resto de la app.
-            const isPublisher =
-              person.person_data.publisher_baptized.active.value ||
-              person.person_data.publisher_unbaptized.active.value ||
-              personIsBaptizedPublisher(person) ||
-              personIsUnbaptizedPublisher(person);
+            // de ver los programas de las reuniones.
+            //
+            // Esto estuvo escrito aquí a mano, con la excusa de que el worker
+            // no puede importar del resto de la app. No es cierto: este mismo
+            // fichero ya importa `formatDate` de @utils/date, y
+            // `publisher_status` es igual de puro. La copia a mano ya se había
+            // separado del original —daba el rol de publicador a un estudiante
+            // de entresemana con un tramo abierto— así que se va.
+            const isPublisher = personWasPublisherBy(
+              person,
+              currentActivityMonth()
+            );
 
             const isElder = personIsPrivilegeActive(person, 'elder');
             const isMS = personIsPrivilegeActive(person, 'ms');

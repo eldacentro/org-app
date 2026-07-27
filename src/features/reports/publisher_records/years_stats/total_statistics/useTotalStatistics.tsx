@@ -14,8 +14,13 @@ const useTotalStatistics = ({
 }: TotalStatisticsProps) => {
   const { t } = useAppTranslation();
 
-  const { getPublisherAllYears, getPublishersActive, getAPMonths } =
-    usePersons(publishersGroup);
+  const {
+    getPublisherAllYears,
+    getPublishersActive,
+    getPublishersInactive,
+    getAPMonths,
+    hasReportsInWindow,
+  } = usePersons(publishersGroup);
 
   const {
     personIsPrivilegeYearActive,
@@ -43,16 +48,37 @@ const useTotalStatistics = ({
     return count;
   }, [publishers_list]);
 
+  /**
+   * De un año de servicio del que ya no se conserva ningún informe no se puede
+   * decir cuántos estaban activos. La norma de conservación los borra, y la
+   * regla de los 6 meses, sin informes que mirar, responde "nadie": el año 2024
+   * salía con 2 publicadores activos de 74. Se dice que no se sabe.
+   */
+  const hasData = useMemo(
+    () => hasReportsInWindow(`${year}/08`),
+    [year, hasReportsInWindow]
+  );
+
   const publishers_active = useMemo(() => {
-    const lastMonth = `${year}/08`;
-    const count = getPublishersActive(lastMonth).length;
+    if (!hasData) return null;
 
-    return count;
-  }, [year, getPublishersActive]);
+    return getPublishersActive(`${year}/08`).length;
+  }, [year, hasData, getPublishersActive]);
 
+  /**
+   * Se pregunta, no se resta.
+   *
+   * Restaba activos del total, y eran dos poblaciones distintas: el total salía
+   * del historial y los activos de los informes, así que había activos que no
+   * estaban en el total. Con los datos reales daba 1 inactivo donde la regla
+   * decía 7, y la misma pantalla se contradecía con las pestañas de Registros
+   * y con el S-1. La resta podía incluso salir negativa.
+   */
   const publishers_inactive = useMemo(() => {
-    return publishers_total - publishers_active;
-  }, [publishers_total, publishers_active]);
+    if (!hasData) return null;
+
+    return getPublishersInactive(`${year}/08`).length;
+  }, [year, hasData, getPublishersInactive]);
 
   const elders_count = useMemo(() => {
     const result = publishers_list.filter((person) => {
@@ -265,11 +291,11 @@ const useTotalStatistics = ({
       reports: [
         {
           label: t('tr_activePublishers'),
-          value: publishers_active,
+          value: publishers_active ?? t('tr_noReportsKept'),
         },
         {
           label: t('tr_inactivePublishers'),
-          value: publishers_inactive,
+          value: publishers_inactive ?? t('tr_noReportsKept'),
         },
         {
           label: t('tr_elders'),

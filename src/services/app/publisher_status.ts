@@ -237,6 +237,50 @@ export const personWasPublisherBy = (person: PersonType, month: string) => {
   return flagged;
 };
 
+/**
+ * ¿Queda ALGÚN informe dentro de la ventana que termina en `month`?
+ *
+ * Hace falta para las pantallas que miran años de servicio PASADOS. La norma de
+ * conservación (`retention.ts`) borra los informes antiguos, así que la ventana
+ * de un año viejo puede estar vacía; ahí `personIsActivePublisher` responde lo
+ * único que puede —nadie ha informado, luego nadie está activo— y el recuento
+ * sale un número inventado.
+ *
+ * En la congregación pasa de verdad: el informe más antiguo que se conserva es
+ * de 2024/09, y la ventana del año de servicio 2024 va de 2024/03 a 2024/08. La
+ * pantalla de estadísticas por año daba "2 publicadores activos" de 74. No es
+ * que 72 estuvieran inactivos: es que de ese periodo ya no se sabe nada.
+ *
+ * Distingue DOS cosas que no son la misma:
+ *
+ *  - No queda ningún informe de ESA ventana, pero sí de otras → se borraron por
+ *    la norma de conservación. De ese periodo no se sabe, y hay que decirlo.
+ *  - No hay ningún informe de NINGÚN mes → los informes todavía no han cargado,
+ *    o es un dispositivo recién instalado. Ahí se responde que sí, igual que
+ *    hace la salvaguarda de `personIsActivePublisher`, para que la pantalla
+ *    enseñe lo mismo que enseñaría esa. Si no, mientras cargan los informes
+ *    —que van por su cuenta— el recuento del año en curso parpadearía de "sin
+ *    informes" al número bueno en cada arranque.
+ */
+export const activityWindowHasReports = (
+  source: ReportsSource,
+  month = currentActivityMonth()
+) => {
+  const index = toIndex(source);
+
+  if (index.size === 0) return true;
+
+  const from = activityWindowStart(month);
+
+  for (const months of index.values()) {
+    for (const reported of months) {
+      if (reported >= from && reported <= month) return true;
+    }
+  }
+
+  return false;
+};
+
 /** ¿Consta participación en la predicación en algún mes de [from, to]? */
 export const personReportedBetween = (
   person: PersonType,

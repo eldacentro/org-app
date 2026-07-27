@@ -21,9 +21,11 @@ import {
 } from '@utils/date';
 import { AppRoleType } from '@definition/app';
 import {
+  currentActivityMonth,
   MinistryMonthsIndex,
   personIsActivePublisher,
   personIsInactivePublisher,
+  personWasPublisherBy,
 } from './publisher_status';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
@@ -785,8 +787,14 @@ export const refreshReadOnlyRoles = (
 
   const isMidweekStudent = personIsMidweekStudent(person);
 
-  const isPublisher =
-    personIsBaptizedPublisher(person) || personIsUnbaptizedPublisher(person);
+  // Ser publicador, no "tener un tramo que cubra este mes". Con lo segundo, a
+  // quien tiene el tramo cerrado —porque lleva 6 meses sin informar o porque
+  // se lo cerraron por error— se le quitaban los roles de publicador y de ver
+  // los programas. Y como el sincronizador (worker/backupUtils.ts) sí
+  // preguntaba lo correcto, los permisos se los quitaba la app y se los
+  // devolvía el siguiente ciclo de sincronización, en bucle. Con los datos
+  // reales discrepaban en cuatro personas.
+  const isPublisher = personWasPublisherBy(person, currentActivityMonth());
 
   const isElder = personIsPrivilegeActive(person, 'elder');
   const isMS = personIsPrivilegeActive(person, 'ms');

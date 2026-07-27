@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import { PersonType } from '@definition/person';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { personsActiveState } from '@states/persons';
 import { formatDate } from '@utils/date';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import { GroupOption, ListByGroupsProps } from './index.types';
-import { personIsActivePublisher } from '@services/app/publisher_status';
+import {
+  personIsActivePublisher,
+  personIsInactivePublisher,
+} from '@services/app/publisher_status';
 import { ministryMonthsState } from '@states/field_service_reports';
 
 const useListByGroups = ({ type }: ListByGroupsProps) => {
@@ -24,23 +26,16 @@ const useListByGroups = ({ type }: ListByGroupsProps) => {
     return formatDate(new Date(), 'yyyy/MM');
   }, []);
 
+  // La misma población que las pestañas de arriba y que el S-1: ver el
+  // comentario de `usePublisherTabs`. Filtrar por la casilla de la ficha dejaba
+  // fuera de las DOS listas a quien es publicador por su historial pero tiene
+  // la casilla apagada.
   const publishers = useMemo(() => {
-    const result: PersonType[] = [];
-
-    const current = persons.filter(
-      (person) =>
-        person.person_data.publisher_baptized.active.value ||
-        person.person_data.publisher_unbaptized.active.value
+    return persons.filter((person) =>
+      type === 'active'
+        ? personIsActivePublisher(person, ministryMonths)
+        : personIsInactivePublisher(person, ministryMonths)
     );
-
-    for (const person of current) {
-      const isActive = personIsActivePublisher(person, ministryMonths);
-
-      if (type === 'active' && isActive) result.push(person);
-      if (type === 'inactive' && !isActive) result.push(person);
-    }
-
-    return result;
   }, [persons, type, ministryMonths]);
 
   const groups = useMemo(() => {

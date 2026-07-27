@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import {
+  activityWindowHasReports,
   activityWindowStart,
   buildPublisherHistoryUpdates,
   buildMinistryMonthsIndex,
@@ -584,5 +585,98 @@ describe('el historial que deja el S-1 al enviarlo', () => {
 
     // INICIO es el día 1 de julio, anterior al cierre del día 20.
     expect(history[1].start_date).toBe('2026-07-20T10:00:00.000Z');
+  });
+});
+
+/**
+ * La ventana vacía, que es distinta de "nadie informó".
+ *
+ * Las pantallas de estadísticas por año dejan elegir cuatro años de servicio
+ * hacia atrás, pero la norma de conservación va borrando los informes viejos.
+ * Cuando ya no queda ninguno del periodo, "publicadores activos" no vale cero:
+ * vale "no se sabe", y hay que decirlo en vez de enseñar un número.
+ */
+describe('¿queda algo que contar en esa ventana?', () => {
+  const informes = [
+    buildReport('p1', '2024/09'),
+    buildReport('p1', '2025/01'),
+    buildReport('p2', '2025/06'),
+  ];
+
+  it('la ventana del año de servicio 2024 (2024/03-2024/08) está vacía', () => {
+    expect(activityWindowHasReports(informes, '2024/08')).toBe(false);
+  });
+
+  it('la del 2025 (2025/03-2025/08) sí tiene informes', () => {
+    expect(activityWindowHasReports(informes, '2025/08')).toBe(true);
+  });
+
+  it('el borde: la ventana que empieza justo en el informe más antiguo', () => {
+    // 2024/09 + 5 meses = 2025/02, la ventana va de 2024/09 a 2025/02.
+    expect(activityWindowHasReports(informes, '2025/02')).toBe(true);
+    // Un mes antes, la ventana acaba en 2024/08 y ya no lo alcanza.
+    expect(activityWindowHasReports(informes, '2024/08')).toBe(false);
+  });
+
+  it('sin NINGÚN informe cargado se responde que sí, como la otra salvaguarda', () => {
+    // No es lo mismo "de ese periodo ya no se conserva nada" que "los informes
+    // todavía no han cargado". Con lo segundo, `personIsActivePublisher` da a
+    // todos por activos; si aquí se dijera "sin datos", el recuento del año en
+    // curso parpadearía en cada arranque mientras cargan los informes.
+    expect(activityWindowHasReports([], '2026/07')).toBe(true);
+  });
+
+  it('pero con informes de OTROS meses, la ventana vacía sí se declara vacía', () => {
+    expect(activityWindowHasReports(informes, '2024/08')).toBe(false);
+  });
+
+  it('un informe sin participación no cuenta como dato de la ventana', () => {
+    // El informe de 2026/05 dice que no se predicó, así que no entra en el
+    // índice; el de 2024/09 sí, y es el que impide que se confunda con "los
+    // informes no han cargado todavía".
+    const mezcla = [
+      buildReport('p1', '2024/09'),
+      buildReport('p1', '2026/05', { shared: false }),
+    ];
+
+    expect(activityWindowHasReports(mezcla, '2026/07')).toBe(false);
+    expect(activityWindowHasReports(mezcla, '2025/02')).toBe(true);
+  });
+});
+
+/**
+ * La invariante en la que se apoyan los recuentos.
+ *
+ * Activo e inactivo parten en dos, sin solaparse y sin dejar a nadie fuera, el
+ * conjunto de los que SON publicadores. De ahí que en las estadísticas por año
+ * el total sea exactamente activos + inactivos, y que las pestañas de Registros
+ * puedan filtrar la población con la misma pregunta que el S-1.
+ *
+ * Mientras esto se cumpla, ningún recuento puede necesitar una resta.
+ */
+describe('activo e inactivo parten en dos a los publicadores', () => {
+  const informes = [buildReport('informa', '2026/06')];
+
+  const fichas: [string, PersonType][] = [
+    ['veterano que informa', buildPerson([{ start_date: '2015-03-01' }], { uid: 'informa' })],
+    ['veterano que no informa', buildPerson([{ start_date: '2015-03-01' }], { uid: 'callado' })],
+    ['tramo cerrado hace años', buildPerson([{ start_date: '2015-03-01', end_date: '2020-06-30' }], { uid: 'cerrado' })],
+    ['casilla puesta y ninguna fecha', buildPerson([], { uid: 'sinfecha' })],
+    ['nunca fue publicador', buildPerson([], { uid: 'nunca', baptized: false })],
+    ['estudiante de entresemana', buildPerson([], { uid: 'estudiante', baptized: false, midweek: true })],
+    ['estudiante con casilla de publicador', buildPerson([{ start_date: '2015-03-01' }], { uid: 'mixto', midweek: true })],
+    ['nombrado el mes que viene', buildPerson([{ start_date: '2026-09-01' }], { uid: 'futuro' })],
+    ['no bautizado', buildPerson([], { uid: 'nobautizado', baptized: false, unbaptized: true })],
+  ];
+
+  it.each(fichas)('%s', (_, person) => {
+    const activo = personIsActivePublisher(person, informes, JULIO);
+    const inactivo = personIsInactivePublisher(person, informes, JULIO);
+
+    // Nunca los dos a la vez.
+    expect(activo && inactivo).toBe(false);
+
+    // Y la unión es exactamente "es publicador".
+    expect(activo || inactivo).toBe(personWasPublisherBy(person, JULIO));
   });
 });
