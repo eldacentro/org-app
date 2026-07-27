@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { displaySnackNotification } from '@services/states/app';
 import { useConfirm } from '@components/confirm_dialog';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  IconButton,
-} from '@mui/material';
+import { Box } from '@mui/material';
+import Dialog from '@components/dialog';
+import Typography from '@components/typography';
+import ScrollableTabs from '@components/scrollable_tabs';
+import IconButton from '@components/icon_button';
+import InfoTip from '@components/info_tip';
 import Button from '@components/button';
 import TextField from '@components/textfield';
 import { PlanEvacuacion, RolEmergencia, EquipoEvacuacion, MiembroEquipo } from '@definition/evacuacion';
@@ -142,41 +137,37 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
   return (
     <>
     {ConfirmDialogNode}
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          borderRadius: 'var(--radius-xl)',
-          backgroundColor: 'var(--card)',
-          border: '1px solid var(--line)',
-          boxShadow: 'var(--pop-up-shadow)',
-          maxWidth: '900px',
-          width: '100%',
-        },
-      }}
-      slotProps={{
-        backdrop: {
-          style: { backgroundColor: 'var(--accent-dark-overlay)' },
-        },
-      }}
-    >
-      <DialogTitle>
-        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          Configuración de evacuación
-        </Typography>
-      </DialogTitle>
-      
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab label="Mando" />
-          <Tab label="Equipos" />
-          <Tab label="Normas" />
-          <Tab label="Ajustes" />
-        </Tabs>
-      </Box>
+    <Dialog open={open} onClose={onClose}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+        <Box>
+          <Typography className="h2" color="var(--ink)">
+            Editar el plan de evacuación
+          </Typography>
+          <Typography className="body-small-regular" color="var(--ink-2)">
+            Los textos de esta pantalla salen del documento oficial de la
+            congregación. Cámbialos solo cuando cambie el documento.
+          </Typography>
+        </Box>
 
-      <DialogContent sx={{ p: 3, minHeight: '300px', maxHeight: { mobile: '60vh', tablet: '500px' }, overflowY: 'auto' }}>
+        <ScrollableTabs
+          value={tab}
+          onChange={(value) => setTab(value)}
+          tabs={[
+            { label: 'Mando' },
+            { label: 'Equipos' },
+            { label: 'Reglas' },
+            { label: 'Ajustes' },
+          ]}
+        />
+
+        <Box
+          sx={{
+            minHeight: '280px',
+            maxHeight: { mobile: '55vh', tablet: '460px' },
+            overflowY: 'auto',
+            paddingRight: '4px',
+          }}
+        >
         {tab === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {plan.estructuraMando.map((rol, i) => (
@@ -188,8 +179,8 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
                     onChange={(e) => handleMandoChange(i, 'rol', e.target.value)}
                     sx={{ flex: 1, mr: 2 }}
                   />
-                  <IconButton onClick={() => handleDeleteRol(i)} color="error">
-                    <IconDelete />
+                  <IconButton onClick={() => handleDeleteRol(i)}>
+                    <IconDelete color="var(--red-main)" />
                   </IconButton>
                 </Box>
 
@@ -227,8 +218,8 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
                     onChange={(e) => handleEquipoChange(i, 'nombre', e.target.value)}
                     sx={{ flex: 1, mr: 2 }}
                   />
-                  <IconButton onClick={() => handleDeleteEquipo(i)} color="error">
-                    <IconDelete />
+                  <IconButton onClick={() => handleDeleteEquipo(i)}>
+                    <IconDelete color="var(--red-main)" />
                   </IconButton>
                 </Box>
                 
@@ -288,7 +279,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
                   size="small"
                 />
                 <IconButton onClick={() => handleDeleteNorma(i)}>
-                  <IconDelete />
+                  <IconDelete color="var(--red-main)" />
                 </IconButton>
               </Box>
             ))}
@@ -300,7 +291,7 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
 
         {tab === 3 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography className="h3" sx={{ color: 'var(--ink)' }}>Configuración general</Typography>
+            <Typography className="h3" color="var(--ink)">Configuración general</Typography>
             <TextField
               label="Tiempo máximo de evacuación (minutos)"
               type="number"
@@ -315,21 +306,19 @@ const EvacuacionConfigDialog = ({ open, onClose, currentPlan, onSave }: Props) =
             />
           </Box>
         )}
-      </DialogContent>
+        </Box>
 
-      <DialogActions sx={{ px: 3, pb: 3, flexDirection: 'column', alignItems: 'stretch', gap: 1 }}>
-        {saveError && (
-          <Typography variant="caption" sx={{ color: 'var(--red-main)', textAlign: 'center' }}>
-            {saveError}
-          </Typography>
-        )}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Button onClick={onClose} variant="secondary">Cancelar</Button>
+        {saveError && <InfoTip isBig={false} color="error" text={saveError} />}
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <Button onClick={onClose} variant="tertiary">
+            Cancelar
+          </Button>
           <Button onClick={handleSave} variant="main" disabled={isSaving}>
             {isSaving ? 'Guardando…' : 'Guardar cambios'}
           </Button>
         </Box>
-      </DialogActions>
+      </Box>
     </Dialog>
     </>
   );
