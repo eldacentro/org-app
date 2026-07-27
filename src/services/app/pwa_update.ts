@@ -47,34 +47,61 @@ export const canAutoReload = () => {
 };
 
 /**
- * Actualización robusta del service worker: espera de verdad a que la
- * comprobación de versión termine y recarga justo cuando el SW nuevo toma el
- * control (con skipWaiting se autoactiva; además se le manda SKIP_WAITING por
- * si quedara a la espera). Con red de seguridad por temporizador.
+ * Actualización de la app: busca una versión nueva, la instala y recarga.
  *
- * El `updatePwa()` de @sws2apps/react-sw-helper NO espera a registration.update()
- * y comprueba `waiting` en el mismo instante, por eso a veces "no hacía nada".
- * Esta función lo hace bien y la comparten el botón "Actualizar" de Acerca de y
- * la oleada de actualización forzada (useForceUpdate).
+ * El `updatePwa()` de @sws2apps/react-sw-helper NO espera a
+ * registration.update() y comprueba `waiting` en el mismo instante, por eso a
+ * veces "no hacía nada". Esta función lo hace bien y la comparten el botón
+ * "Actualizar la aplicación" de Acerca de y la oleada de actualización
+ * forzada (useForceUpdate).
+ *
+ * La comprobación va contra la red y puede tardar —o no volver nunca con una
+ * conexión mala—, así que tiene tope: pasado CHECK_TIMEOUT_MS se sigue
+ * adelante con lo que haya en vez de dejar a alguien mirando un botón que no
+ * hace nada. Ese era el motivo real de "le doy y se queda un buen rato sin
+ * hacer nada": `registration.update()` se esperaba sin límite.
  *
  * @param extraTrigger  callback opcional idempotente (p. ej. el updatePwa de la
  *                      librería) que se dispara además, por si acaso.
  * @param options.reloadWhenUpToDate
  *   Si NO hay ninguna versión nueva que instalar, ¿recargar igualmente?
- *   El botón "Actualizar" que pulsa una persona: sí — ha pedido recargar y
- *   verlo. La oleada automática: NO, jamás. Recargar sin nada nuevo que traer
- *   deja el dispositivo exactamente igual que estaba, así que la oleada
- *   volvería a dispararse al arrancar y la app se quedaría recargándose sola
- *   para siempre, sin forma de salir. Devuelve `true` si llegó a recargar.
+ *   El botón que pulsa una persona: sí — ha pedido actualizar y recargar es
+ *   parte de lo que arregla. La oleada automática: NO, jamás. Recargar sin
+ *   nada nuevo que traer deja el dispositivo exactamente igual, así que la
+ *   oleada volvería a dispararse al arrancar y la app se quedaría recargándose
+ *   sola para siempre.
+ * @param options.onStatus
+ *   Se llama en cuanto se sabe qué está pasando, ANTES de recargar, para poder
+ *   decírselo a quien está mirando.
+ * @param options.reloadDelayMs
+ *   Margen antes de recargar cuando ya se sabe el resultado: el tiempo de que
+ *   dé tiempo a leer el aviso.
+ *
+ * @returns qué ha pasado — ver AppUpdateOutcome.
  */
+export type AppUpdateOutcome =
+  /** Hay versión nueva: se está instalando y la app va a recargar. */
+  | 'updating'
+  /** Comprobado: ya se estaba en la última versión. */
+  | 'up-to-date'
+  /** No se ha podido comprobar (sin conexión, o la comprobación se agotó). */
+  | 'unavailable'
+  /** Aquí no hay service worker que comprobar; se recarga y ya está. */
+  | 'reloading';
+
+/** Tope de espera de la comprobación contra la red. */
+const CHECK_TIMEOUT_MS = 8000;
+
 export const forceAppUpdate = async (
   extraTrigger?: () => void,
-  options?: { reloadWhenUpToDate?: boolean }
-) => {
+  options?: {
+    reloadWhenUpToDate?: boolean;
+    onStatus?: (outcome: AppUpdateOutcome) => void;
+    reloadDelayMs?: number;
+  }
+): Promise<AppUpdateOutcome> => {
   const reloadWhenUpToDate = options?.reloadWhenUpToDate ?? true;
-  // Recarga decidida por la app: que no salte el aviso de "puede que no se
-  // guarden los cambios" (ver unload_guard).
-  allowUnload();
+  const reloadDelayMs = options?.reloadDelayMs ?? 0;
 
   let reloaded = false;
   const reloadOnce = () => {
@@ -83,24 +110,46 @@ export const forceAppUpdate = async (
     window.location.reload();
   };
 
+  const finish = (outcome: AppUpdateOutcome, shouldReload: boolean) => {
+    options?.onStatus?.(outcome);
+
+    if (shouldReload) setTimeout(reloadOnce, reloadDelayMs);
+
+    return outcome;
+  };
+
+  // Recarga decidida por la app: que no salte el aviso de "puede que no se
+  // guarden los cambios" (ver unload_guard).
+  allowUnload();
+
   if (!('serviceWorker' in navigator)) {
-    if (reloadWhenUpToDate) reloadOnce();
-    return reloadWhenUpToDate;
+    return finish('reloading', reloadWhenUpToDate);
   }
 
   try {
     const registration = await navigator.serviceWorker.getRegistration();
 
     if (!registration) {
-      if (reloadWhenUpToDate) reloadOnce();
-      return reloadWhenUpToDate;
+      return finish('reloading', reloadWhenUpToDate);
     }
 
     navigator.serviceWorker.addEventListener('controllerchange', reloadOnce, {
       once: true,
     });
 
-    await registration.update();
+    // Con tope: sin él, una conexión mala deja esta promesa sin resolver y el
+    // botón se queda sin hacer absolutamente nada, sin aviso ni error.
+    let timedOut = false;
+
+    await Promise.race([
+      registration.update(),
+      new Promise((resolve) =>
+        setTimeout(() => {
+          timedOut = true;
+          resolve(undefined);
+        }, CHECK_TIMEOUT_MS)
+      ),
+    ]);
 
     const activateWaiting = () =>
       registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
@@ -115,24 +164,28 @@ export const forceAppUpdate = async (
 
     const hasUpdate = Boolean(registration.installing || registration.waiting);
 
-    if (!hasUpdate && !reloadWhenUpToDate) {
-      navigator.serviceWorker.removeEventListener(
-        'controllerchange',
-        reloadOnce
-      );
-      return false;
+    if (hasUpdate) {
+      // controllerchange dispara la recarga en cuanto el service worker nuevo
+      // toma el control; el temporizador es solo la red de seguridad.
+      options?.onStatus?.('updating');
+      setTimeout(reloadOnce, 6000);
+
+      return 'updating';
     }
 
-    // Con actualización, controllerchange dispara la recarga; el temporizador es
-    // la red de seguridad. Sin actualización (ya al día), recarga en seco.
-    setTimeout(reloadOnce, hasUpdate ? 6000 : 1200);
+    navigator.serviceWorker.removeEventListener('controllerchange', reloadOnce);
 
-    return true;
+    // Si la comprobación se agotó, no se puede afirmar que esté al día: no lo
+    // sabemos, y decir "ya tienes la última versión" sin saberlo es peor que
+    // reconocer que no se ha podido comprobar.
+    if (timedOut) return finish('unavailable', false);
+
+    return finish('up-to-date', reloadWhenUpToDate);
   } catch (error) {
     console.error(error);
 
-    if (reloadWhenUpToDate) reloadOnce();
+    navigator.serviceWorker.removeEventListener('controllerchange', reloadOnce);
 
-    return reloadWhenUpToDate;
+    return finish('unavailable', false);
   }
 };

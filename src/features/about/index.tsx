@@ -11,6 +11,7 @@ import { useAppTranslation } from '@hooks/index';
 import { AboutProps } from './index.types';
 import useAbout from './useAbout';
 import Dialog from '@components/dialog';
+import IconLoading from '@components/icon_loading';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
 import { formatBuildDate } from '@utils/build_info';
@@ -21,6 +22,7 @@ const About = (props: AboutProps) => {
     handleClose,
     isOpen,
     handleForceReload,
+    updateStatus,
     handleFullReDownload,
     isConnected,
     ConfirmDialogNode,
@@ -30,25 +32,51 @@ const About = (props: AboutProps) => {
 
   const buildDateLabel = formatBuildDate(Number(__BUILD_NUMBER__) || null);
 
+  // Qué se lee debajo del título mientras se busca la actualización. Decir en
+  // qué punto va —y cómo acabó— es lo que faltaba: la comprobación tarda, y en
+  // silencio parecía que el botón no hacía nada.
+  const updateMessage = {
+    idle: { text: t('tr_forceRefreshDesc'), color: undefined },
+    checking: { text: 'Buscando una versión nueva…', color: undefined },
+    updating: {
+      text: 'Versión nueva encontrada. Instalando y recargando…',
+      color: 'var(--green-main)',
+    },
+    'up-to-date': {
+      text: 'Ya tienes la última versión. Recargando…',
+      color: 'var(--green-main)',
+    },
+    unavailable: {
+      text: 'No se ha podido comprobar. Revisa la conexión y vuelve a intentarlo.',
+      color: 'var(--orange-main)',
+    },
+    reloading: { text: 'Recargando la aplicación…', color: undefined },
+  }[updateStatus];
+
   // Fila de mantenimiento: icono + (título + explicación), toda la fila
   // pulsable. Mismo lenguaje visual que los elementos de menú de la app.
   const MaintenanceRow = ({
     icon,
     title,
     description,
+    descriptionColor,
     onClick,
+    busy,
   }: {
     icon: ReactNode;
     title: string;
     description: string;
+    descriptionColor?: string;
     onClick: () => void;
+    busy?: boolean;
   }) => (
     <Box
       role="button"
       tabIndex={0}
-      onClick={onClick}
+      aria-busy={busy}
+      onClick={busy ? undefined : onClick}
       onKeyDown={(e) =>
-        e.key === 'Enter' || e.key === ' ' ? onClick() : null
+        !busy && (e.key === 'Enter' || e.key === ' ') ? onClick() : null
       }
       sx={{
         display: 'flex',
@@ -58,8 +86,9 @@ const About = (props: AboutProps) => {
         borderRadius: 'var(--radius-l)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--accent-100)',
-        cursor: 'pointer',
-        transition: 'background-color 0.15s, border-color 0.15s',
+        cursor: busy ? 'default' : 'pointer',
+        opacity: busy ? 0.7 : 1,
+        transition: 'background-color 0.15s, border-color 0.15s, opacity 0.15s',
         '&:hover': {
           backgroundColor: 'var(--accent-150)',
           borderColor: 'var(--accent-300)',
@@ -81,7 +110,10 @@ const About = (props: AboutProps) => {
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <Typography className="body-small-semibold">{title}</Typography>
-        <Typography className="label-small-regular" color="var(--grey-350)">
+        <Typography
+          className="label-small-regular"
+          color={descriptionColor ?? 'var(--grey-350)'}
+        >
           {description}
         </Typography>
       </Box>
@@ -146,9 +178,17 @@ const About = (props: AboutProps) => {
         }}
       >
         <MaintenanceRow
-          icon={<IconRestart color="var(--black)" width={22} height={22} />}
+          icon={
+            updateStatus === 'checking' || updateStatus === 'updating' ? (
+              <IconLoading color="var(--black)" width={22} height={22} />
+            ) : (
+              <IconRestart color="var(--black)" width={22} height={22} />
+            )
+          }
           title={t('tr_forceRefreshTitle')}
-          description={t('tr_forceRefreshDesc')}
+          description={updateMessage.text}
+          descriptionColor={updateMessage.color}
+          busy={updateStatus === 'checking' || updateStatus === 'updating'}
           onClick={handleForceReload}
         />
 
