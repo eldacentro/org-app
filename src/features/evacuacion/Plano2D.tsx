@@ -49,27 +49,50 @@ const Pictograma = ({
   x,
   y,
 }: {
-  tipo: 'mujeres' | 'hombres';
+  tipo: 'mujeres' | 'hombres' | 'adaptado';
   x: number;
   y: number;
-}) => (
-  <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
-    <circle cx="0" cy="-2.6" r="1.05" />
-    {tipo === 'mujeres' ? (
-      <>
-        <path d="M0,-1.3 L2,2.5 L-2,2.5 Z" />
-        <rect x="-1.15" y="2.5" width="0.75" height="1.7" rx="0.3" />
-        <rect x="0.4" y="2.5" width="0.75" height="1.7" rx="0.3" />
-      </>
-    ) : (
-      <>
-        <rect x="-1.35" y="-1.3" width="2.7" height="3.3" rx="0.55" />
-        <rect x="-1.25" y="2" width="0.95" height="2.2" rx="0.35" />
-        <rect x="0.3" y="2" width="0.95" height="2.2" rx="0.35" />
-      </>
-    )}
-  </g>
-);
+}) => {
+  if (tipo === 'adaptado') {
+    return (
+      <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
+        <circle cx="-0.3" cy="-2.7" r="0.95" />
+        {/* Tronco y brazo hacia el aro, y la rueda: la silueta de siempre. */}
+        <path
+          d="M-0.9,-1.5 L0.1,-1.5 L0.1,0.9 L2,0.9 L2,1.9 L-0.9,1.9 Z"
+          />
+        <circle
+          cx="0.35"
+          cy="2.1"
+          r="2"
+          fill="none"
+          stroke={TENUE}
+          strokeWidth="0.55"
+        />
+        <path d="M2.1,3.2 L3.4,3.2 L3.4,4.1 L1.9,4.1 Z" />
+      </g>
+    );
+  }
+
+  return (
+    <g transform={`translate(${x}, ${y})`} fill={TENUE} aria-hidden>
+      <circle cx="0" cy="-2.6" r="1.05" />
+      {tipo === 'mujeres' ? (
+        <>
+          <path d="M0,-1.3 L2,2.5 L-2,2.5 Z" />
+          <rect x="-1.15" y="2.5" width="0.75" height="1.7" rx="0.3" />
+          <rect x="0.4" y="2.5" width="0.75" height="1.7" rx="0.3" />
+        </>
+      ) : (
+        <>
+          <rect x="-1.35" y="-1.3" width="2.7" height="3.3" rx="0.55" />
+          <rect x="-1.25" y="2" width="0.95" height="2.2" rx="0.35" />
+          <rect x="0.3" y="2" width="0.95" height="2.2" rx="0.35" />
+        </>
+      )}
+    </g>
+  );
+};
 
 /** Todo lo que no depende de la selección: se dibuja una vez y no se repinta. */
 const PlanoBase = memo(function PlanoBase() {
@@ -92,14 +115,20 @@ const PlanoBase = memo(function PlanoBase() {
         dangerouslySetInnerHTML={{ __html: PLANO_BASE_SVG }}
       />
 
-      {/* Los aseos, con pictograma en vez de rótulo.
-          El texto se solapaba con el dibujo, dependía del zoom para leerse y
-          obligaba a escribirlo en vertical. Un pictograma se entiende de un
-          vistazo, ocupa lo mismo a cualquier escala y no hay que traducirlo.
-          Se dibujan aquí y no con un icono del catálogo porque tienen que
-          vivir dentro del plano, en sus coordenadas. */}
-      <Pictograma tipo="mujeres" x={7.6} y={9} />
-      <Pictograma tipo="hombres" x={41.5} y={9} />
+      {/* Los tres aseos, con pictograma en vez de rótulo.
+          El texto se solapaba con el dibujo, obligaba a escribirlo en vertical
+          para que cupiera y solo se leía ampliando. Un pictograma se entiende
+          de un vistazo, ocupa lo mismo a cualquier escala y no hay que
+          traducirlo. Se dibujan aquí y no con un icono del catálogo porque
+          tienen que vivir dentro del plano, en sus coordenadas.
+
+          De izquierda a derecha, tal y como está el salón: mujeres (los dos
+          inodoros de la izquierda), el adaptado —el del cuartito de la
+          limpieza dentro— y hombres. La franja estrecha que los une es el
+          pasillo de acceso a los tres, no un aseo: por eso no lleva nada. */}
+      <Pictograma tipo="mujeres" x={7} y={9} />
+      <Pictograma tipo="adaptado" x={18.5} y={9} />
+      <Pictograma tipo="hombres" x={40} y={9} />
 
       <text x="52" y="46" textAnchor="middle" fontSize="3.2" fill={TENUE} fontWeight="700">Sala B</text>
       <text x="168" y="18" textAnchor="middle" fontSize="4" fontWeight="700" fill="#94A3B8" transform="rotate(90 168,18)">PLATAFORMA</text>
