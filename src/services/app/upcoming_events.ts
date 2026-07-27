@@ -1,5 +1,4 @@
 import {
-  UpcomingEventCategory,
   UpcomingEventDataType,
   UpcomingEventType,
 } from '@definition/upcoming_events';
@@ -12,6 +11,59 @@ import {
 } from '@services/i18n/translation';
 import { store } from '@states/index';
 import { hour24FormatState } from '@states/settings';
+
+// El español no capitaliza los nombres de mes en medio de una oración
+// ("6 de diciembre", no "6 de Diciembre") — el resto del año en cambio sí lo
+// usa como encabezado propio, así que solo se ajusta al escribir fechas. El
+// idioma se guarda con el código ISO 639-2 de 3 letras (p. ej. "spa"), no
+// "es" — ver threeLettersCode en states/settings.ts.
+const monthNameOf = (date: Date) => {
+  const month = generateMonthNames()[date.getMonth()];
+
+  return getCurrentLanguage() === 'spa'
+    ? month.charAt(0).toLowerCase() + month.slice(1)
+    : month;
+};
+
+/**
+ * Rango de fechas sin año: "12-17 de agosto", o "29 de septiembre-4 de
+ * octubre" cuando cruza de mes.
+ *
+ * Vive aquí y no pegado a la semana de campaña porque cualquier evento de
+ * varios días necesita decir de qué mes habla: la agenda de la semana del
+ * superintendente solo pintaba "Mié 12" y no había forma de saber el mes.
+ */
+export const formatDateRangeNoYear = (start: Date, end: Date) => {
+  const sameMonth =
+    start.getMonth() === end.getMonth() &&
+    start.getFullYear() === end.getFullYear();
+
+  if (sameMonth) {
+    const dayRange = getTranslation({
+      key: 'tr_dateRangeNoYear',
+      params: { startDate: start.getDate(), endDate: end.getDate() },
+    });
+
+    return getTranslation({
+      key: 'tr_longDateFullMonthNoYearLocale',
+      params: { month: monthNameOf(start), date: dayRange },
+    });
+  }
+
+  return getTranslation({
+    key: 'tr_dateRangeNoYear',
+    params: {
+      startDate: getTranslation({
+        key: 'tr_longDateFullMonthNoYearLocale',
+        params: { month: monthNameOf(start), date: start.getDate() },
+      }),
+      endDate: getTranslation({
+        key: 'tr_longDateFullMonthNoYearLocale',
+        params: { month: monthNameOf(end), date: end.getDate() },
+      }),
+    },
+  });
+};
 
 export const upcomingEventData = (event: UpcomingEventType) => {
   const hour24 = store.get(hour24FormatState);
@@ -105,60 +157,12 @@ export const upcomingEventData = (event: UpcomingEventType) => {
     };
   });
 
-  if (event.event_data.category === UpcomingEventCategory.SpecialCampaignWeek) {
-    const startDate = eventDates.at(0);
-    const startDateV = startDate.getDate();
-    const startMonthIndex = startDate.getMonth();
-    const startMonth = months[startMonthIndex];
-
-    const endDate = eventDates.at(-1);
-    const endDateV = endDate.getDate();
-    const endMonthIndex = endDate.getMonth();
-    const endMonth = months[endMonthIndex];
-
-    if (startMonthIndex !== endMonthIndex) {
-      const startDateFormatted = getTranslation({
-        key: 'tr_longDateFullMonthNoYearLocale',
-        params: {
-          month: monthCase(startMonth),
-          date: startDateV,
-        },
-      });
-
-      const endDateFormatted = getTranslation({
-        key: 'tr_longDateFullMonthNoYearLocale',
-        params: {
-          month: monthCase(endMonth),
-          date: endDateV,
-        },
-      });
-
-      result.datesRange = getTranslation({
-        key: 'tr_dateRangeNoYear',
-        params: {
-          startDate: startDateFormatted,
-          endDate: endDateFormatted,
-        },
-      });
-    }
-
-    if (startMonthIndex === endMonthIndex) {
-      const dateRanges = getTranslation({
-        key: 'tr_dateRangeNoYear',
-        params: {
-          startDate: startDateV,
-          endDate: endDateV,
-        },
-      });
-
-      result.datesRange = getTranslation({
-        key: 'tr_longDateFullMonthNoYearLocale',
-        params: {
-          month: monthCase(startMonth),
-          date: dateRanges,
-        },
-      });
-    }
+  // Los eventos de un solo día ya llevan su fecha completa en result.date.
+  if (eventDates.length > 1) {
+    result.datesRange = formatDateRangeNoYear(
+      eventDates.at(0),
+      eventDates.at(-1)
+    );
   }
 
   result.time = timeUnset

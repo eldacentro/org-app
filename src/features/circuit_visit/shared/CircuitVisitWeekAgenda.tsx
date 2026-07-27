@@ -15,6 +15,7 @@ import {
 } from '@states/settings';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 import { isSpecialMeetingComplete } from '@services/app/circuit_visit';
+import { formatDateRangeNoYear } from '@services/app/upcoming_events';
 import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
 
@@ -59,8 +60,24 @@ const CircuitVisitWeekAgenda = ({
   const days = getDatesBetweenDates(visit.date_start, visit.date_end);
   const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
 
+  // Las fichas de día solo dicen "Mié 12": sin esto no hay forma de saber de
+  // qué mes es la visita. Se calcula sobre los mismos días que se pintan,
+  // para que la cabecera nunca discrepe de la lista.
+  const datesRange =
+    days.length > 0 ? formatDateRangeNoYear(days.at(0), days.at(-1)) : '';
+
   return (
     <Stack spacing="0px">
+      {datesRange && (
+        <Typography
+          className="body-small-semibold"
+          color="var(--grey-400)"
+          sx={{ paddingBottom: '16px' }}
+        >
+          {datesRange}
+        </Typography>
+      )}
+
       {days.map((date, index) => {
         const dateStr = formatDate(date, 'yyyy/MM/dd');
         const disabled = dateStr <= previousDay && dateStr !== todayStr;
