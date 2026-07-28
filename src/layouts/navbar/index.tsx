@@ -50,6 +50,31 @@ const baseMenuStyle = {
   gap: '8px',
 };
 
+/**
+ * El de "Sincronizar datos" es el único con dos líneas: debajo lleva el estado
+ * ("Sincronizado hace 2 horas · Con cambios pendientes de enviar"). Con la
+ * altura fija de 40 px y el `nowrap` que MUI le pone a todo MenuItem, esa
+ * segunda línea no podía ni partirse ni crecer, y se salía por el lado del
+ * menú —que tiene un ancho fijo de 294 px—.
+ */
+const syncMenuStyle = {
+  ...baseMenuStyle,
+  height: 'auto',
+  paddingTop: '10px',
+  paddingBottom: '10px',
+  whiteSpace: 'normal',
+  '& p': { whiteSpace: 'normal' },
+  '&:hover': {
+    backgroundColor: 'var(--accent-100)',
+    '& p': {
+      color: 'var(--accent-main)',
+    },
+    '& svg, & svg g, & svg g path': {
+      fill: 'var(--accent-main)',
+    },
+  },
+};
+
 const menuStyle = {
   ...baseMenuStyle,
   '&:hover': {
@@ -377,7 +402,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                         {isCongAccountConnected && (
                           <MenuItem
                             disableRipple
-                            sx={menuStyle}
+                            sx={syncMenuStyle}
                             onClick={handleManualSync}
                           >
                             <ListItemIcon
