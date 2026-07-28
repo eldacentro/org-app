@@ -14,10 +14,12 @@ import { deptScheduleState, selectedDeptWeekState } from '@states/departments_sc
 import { pdfExportEnabledState } from '@states/settings';
 import LastModifiedInfo from '@components/last_modified_info';
 import {
-  deptWeekNeedsPublishing,
-  isDeptWeekPublished,
+  deptMonthNeedsPublishing,
+  deptWeeksOfMonth,
+  isDeptMonthPublished,
+  setDeptMonthPublished,
 } from '@services/app/departments_publish';
-import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
+import { dbDeptScheduleBulkSave } from '@services/dexie/departments_schedule';
 import DeptPublishDialog from '@features/departments_schedule/publish_dialog';
 
 const DepartmentsSchedule = () => {
@@ -36,47 +38,63 @@ const DepartmentsSchedule = () => {
   // verdad, y el sincronizado va incluido (guardar dispara el ciclo).
   const [publishDialog, setPublishDialog] = useState(false);
 
-  const weekIsPublished = isDeptWeekPublished(currentSched);
-  const weekIsHistoric = !deptWeekNeedsPublishing(selectedWeek);
+  // Se publica por MES, aunque los datos sean por semana: es la unidad con la
+  // que se piensa el programa. Publicar marca todas las semanas de ese mes.
+  const selectedMonth = selectedWeek?.substring(0, 7) ?? '';
 
-  // Puestos del programa sin nadie asignado. No impide publicar, pero se dice.
-  const emptyRolesInWeek = useMemo(() => {
-    if (!currentSched) return 0;
+  const monthIsPublished = isDeptMonthPublished(schedules, selectedMonth);
+  const monthIsHistoric = !deptMonthNeedsPublishing(selectedMonth);
 
-    const roles = [
-      currentSched.acomodadores?.exterior,
-      currentSched.acomodadores?.interior,
-      currentSched.microfonos?.micro1,
-      currentSched.microfonos?.micro2,
-      currentSched.multimedia?.video,
-      currentSched.multimedia?.audio,
-      currentSched.plataforma?.encargado,
-    ];
+  const weeksInMonth = useMemo(
+    () => deptWeeksOfMonth(schedules, selectedMonth),
+    [schedules, selectedMonth]
+  );
 
-    return roles.filter((role) => !role?.value).length;
-  }, [currentSched]);
+  // Puestos del mes sin nadie asignado. No impide publicar, pero se dice.
+  const emptyRolesInMonth = useMemo(() => {
+    let count = 0;
 
-  const handleTogglePublishWeek = async () => {
-    if (weekIsHistoric) return;
+    for (const week of weeksInMonth) {
+      const roles = [
+        week.acomodadores?.exterior,
+        week.acomodadores?.interior,
+        week.microfonos?.micro1,
+        week.microfonos?.micro2,
+        week.multimedia?.video,
+        week.multimedia?.audio,
+        week.plataforma?.encargado,
+      ];
 
-    // Sin registro no hay nada que publicar: una semana vacía no tiene
+      count += roles.filter((role) => !role?.value).length;
+    }
+
+    return count;
+  }, [weeksInMonth]);
+
+  const handleTogglePublishMonth = async () => {
+    if (monthIsHistoric) return;
+
+    const toSave = setDeptMonthPublished(
+      schedules,
+      selectedMonth,
+      !monthIsPublished
+    );
+
+    // Sin semanas guardadas no hay nada que publicar: un mes vacío no tiene
     // asignaciones que enseñar.
-    if (!currentSched) {
+    if (toSave.length === 0) {
       setPublishDialog(false);
       return;
     }
 
-    const updated = structuredClone(currentSched);
-    updated.published = !weekIsPublished;
-
-    await dbDeptScheduleSave(updated);
+    await dbDeptScheduleBulkSave(toSave);
     setPublishDialog(false);
 
     displaySnackNotification({
       header: t('tr_done', 'Hecho'),
-      message: updated.published
-        ? 'Semana publicada.'
-        : 'Semana retirada: vuelve a ser un borrador.',
+      message: monthIsPublished
+        ? 'Mes retirado: vuelve a ser un borrador.'
+        : 'Mes publicado.',
       severity: 'success',
     });
   };
@@ -91,11 +109,11 @@ const DepartmentsSchedule = () => {
       <DeptPublishDialog
         open={publishDialog}
         onClose={() => setPublishDialog(false)}
-        onConfirm={handleTogglePublishWeek}
-        isPublished={weekIsPublished}
-        weekOf={selectedWeek}
-        emptyRoles={emptyRolesInWeek}
-        hasSchedule={Boolean(currentSched)}
+        onConfirm={handleTogglePublishMonth}
+        isPublished={monthIsPublished}
+        month={selectedMonth}
+        emptyRoles={emptyRolesInMonth}
+        hasSchedule={weeksInMonth.length > 0}
       />
 
       {isAutofillOpen && (
@@ -121,10 +139,10 @@ const DepartmentsSchedule = () => {
               onClick={() => setIsAutofillOpen(true)}
               icon={<IconGenerate />}
             />
-            {!weekIsHistoric && (
+            {!monthIsHistoric && (
               <NavBarButton
-                text={weekIsPublished ? 'Publicada' : 'Publicar semana'}
-                main={!weekIsPublished}
+                text={monthIsPublished ? 'Publicado' : 'Publicar'}
+                main={!monthIsPublished}
                 onClick={() => setPublishDialog(true)}
                 icon={<IconPublish />}
               />

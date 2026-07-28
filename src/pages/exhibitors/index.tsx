@@ -1140,7 +1140,7 @@ const Exhibitors = () => {
             )}
             {isServiceCommittee && !monthIsHistoric && (
               <NavBarButton
-                text={monthIsPublished ? 'Publicado' : 'Publicar mes'}
+                text={monthIsPublished ? 'Publicado' : 'Publicar'}
                 main={!monthIsPublished}
                 onClick={() => setPublishDialog(true)}
                 icon={<IconGroups />}
@@ -3160,7 +3160,7 @@ const Exhibitors = () => {
             disableAutoStretch
             onClick={handleTogglePublishMonth}
           >
-            {monthIsPublished ? 'Retirar' : 'Publicar mes'}
+            {monthIsPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
         </DialogActions>
       </Dialog>

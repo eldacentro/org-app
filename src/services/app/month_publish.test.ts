@@ -8,8 +8,10 @@ import {
 import { isOutingsMonthPublished, OUTINGS_DRAFT_FROM } from './service_outings_publish';
 import {
   DEPTS_DRAFT_FROM,
-  deptWeekNeedsPublishing,
+  deptMonthNeedsPublishing,
+  isDeptMonthPublished,
   isDeptWeekPublished,
+  setDeptMonthPublished,
 } from './departments_publish';
 
 /**
@@ -90,28 +92,76 @@ describe('salidas de predicación', () => {
   });
 });
 
-describe('departamentos, donde la unidad es la SEMANA', () => {
-  it('las semanas anteriores al corte se dan por publicadas', () => {
+describe('departamentos: se publica por MES, pero los datos son por semana', () => {
+  const sept = [
+    { weekOf: '2026/09/07' },
+    { weekOf: '2026/09/14' },
+  ] as Parameters<typeof isDeptMonthPublished>[0];
+
+  it('lo anterior al corte se da por publicado', () => {
     expect(isDeptWeekPublished({ weekOf: '2026/07/27' })).toBe(true);
-    expect(deptWeekNeedsPublishing('2026/08/24')).toBe(false);
+    expect(deptMonthNeedsPublishing('2026/08')).toBe(false);
+    expect(isDeptMonthPublished([], '2026/08')).toBe(true);
   });
 
-  it('desde el corte hace falta la marca', () => {
-    expect(isDeptWeekPublished({ weekOf: DEPTS_DRAFT_FROM })).toBe(false);
+  it('desde el corte hace falta la marca en cada semana', () => {
+    expect(deptMonthNeedsPublishing(DEPTS_DRAFT_FROM)).toBe(true);
     expect(isDeptWeekPublished({ weekOf: '2026/09/07' })).toBe(false);
     expect(isDeptWeekPublished({ weekOf: '2026/09/07', published: true })).toBe(
       true
     );
-  });
-
-  it('una semana retirada vuelve a ser borrador', () => {
     expect(isDeptWeekPublished({ weekOf: '2026/09/07', published: false })).toBe(
       false
     );
   });
 
+  it('publicar el mes marca TODAS sus semanas', () => {
+    const toSave = setDeptMonthPublished(
+      sept as never,
+      '2026/09',
+      true
+    );
+
+    expect(toSave.map((w) => w.weekOf)).toEqual(['2026/09/07', '2026/09/14']);
+    expect(toSave.every((w) => w.published === true)).toBe(true);
+  });
+
+  it('no toca las semanas de otro mes', () => {
+    const mezcla = [
+      { weekOf: '2026/09/07' },
+      { weekOf: '2026/10/05' },
+    ] as never;
+
+    expect(
+      setDeptMonthPublished(mezcla, '2026/09', true).map((w) => w.weekOf)
+    ).toEqual(['2026/09/07']);
+  });
+
+  it('no vuelve a guardar lo que ya está como debe', () => {
+    // Guardar un registro idéntico despierta la sincronización de toda la
+    // congregación para nada.
+    const yaPublicadas = [
+      { weekOf: '2026/09/07', published: true },
+    ] as never;
+
+    expect(setDeptMonthPublished(yaPublicadas, '2026/09', true)).toEqual([]);
+  });
+
+  it('con una semana sin publicar, el mes NO está publicado', () => {
+    // Así el botón sigue ofreciendo publicar y se puede terminar el mes.
+    const aMedias = [
+      { weekOf: '2026/09/07', published: true },
+      { weekOf: '2026/09/14' },
+    ] as Parameters<typeof isDeptMonthPublished>[0];
+
+    expect(isDeptMonthPublished(aMedias, '2026/09')).toBe(false);
+  });
+
+  it('un mes sin ninguna semana guardada no está publicado', () => {
+    expect(isDeptMonthPublished([], '2026/09')).toBe(false);
+  });
+
   it('sin registro de semana no hay nada publicado', () => {
-    // Tampoco hay asignaciones que enseñar, así que da igual por dónde se mire.
     expect(isDeptWeekPublished(undefined)).toBe(false);
     expect(isDeptWeekPublished(null)).toBe(false);
   });

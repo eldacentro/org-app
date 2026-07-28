@@ -9,17 +9,17 @@ import InfoTip from '@components/info_tip';
 import AppButton from '@components/button';
 
 /**
- * Publicar o retirar una semana del programa de departamentos.
+ * Publicar o retirar un mes del programa de departamentos.
  *
- * La unidad es la semana y no el mes porque así funciona el módulo entero: se
- * edita por semana y el autocompletar pide semanas.
+ * Se publica por mes, como en Exhibidores y Salidas, aunque aquí los datos sean
+ * por semana: publicar marca todas las semanas de ese mes.
  */
 const DeptPublishDialog = ({
   open,
   onClose,
   onConfirm,
   isPublished,
-  weekOf,
+  month,
   emptyRoles,
   hasSchedule,
 }: {
@@ -27,10 +27,20 @@ const DeptPublishDialog = ({
   onClose: () => void;
   onConfirm: () => void;
   isPublished: boolean;
-  weekOf: string;
+  month: string;
   emptyRoles: number;
   hasSchedule: boolean;
 }) => {
+  const monthLabel = (() => {
+    const [year, monthNumber] = month.split('/');
+    const names = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    ];
+
+    return `${names[Number(monthNumber) - 1] ?? ''} ${year ?? ''}`.trim();
+  })();
+
   return (
     <Dialog
       open={open}
@@ -52,7 +62,7 @@ const DeptPublishDialog = ({
     >
       <DialogTitle sx={{ pb: 1 }}>
         <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          {isPublished ? 'Retirar' : 'Publicar'} la semana del {weekOf}
+          {isPublished ? 'Retirar' : 'Publicar'}: {monthLabel}
         </Typography>
       </DialogTitle>
 
@@ -63,7 +73,7 @@ const DeptPublishDialog = ({
           <InfoTip
             isBig={false}
             color="warning"
-            text="Esta semana no tiene todavía ningún programa que publicar."
+            text="Este mes no tiene todavía ningún programa que publicar."
           />
         ) : (
           <InfoTip
@@ -71,8 +81,8 @@ const DeptPublishDialog = ({
             color={isPublished ? 'warning' : 'info'}
             text={
               isPublished
-                ? 'Al retirarla, esta semana vuelve a ser un borrador: dejará de aparecer en las asignaciones de los hermanos y en el programa semanal.'
-                : 'Al publicarla, cada hermano verá su parte en "Mis asignaciones" y en el programa semanal, y recibirá el aviso correspondiente.'
+                ? 'Al retirarlo, este mes vuelve a ser un borrador: dejará de aparecer en las asignaciones de los hermanos y en el programa semanal.'
+                : 'Al publicarlo, cada hermano verá su parte de este mes en "Mis asignaciones" y en el programa semanal, y recibirá el aviso correspondiente.'
             }
           />
         )}
@@ -81,7 +91,7 @@ const DeptPublishDialog = ({
           <InfoTip
             isBig={false}
             color="warning"
-            text={`Hay ${emptyRoles} ${emptyRoles === 1 ? 'puesto sin nadie asignado' : 'puestos sin nadie asignado'}. Puedes publicarla igualmente si el resto ya está decidido.`}
+            text={`Hay ${emptyRoles} ${emptyRoles === 1 ? 'puesto sin nadie asignado' : 'puestos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
           />
         )}
       </DialogContent>
@@ -97,7 +107,7 @@ const DeptPublishDialog = ({
             disableAutoStretch
             onClick={onConfirm}
           >
-            {isPublished ? 'Retirar' : 'Publicar semana'}
+            {isPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
         )}
       </DialogActions>
