@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Typography, Grid, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -28,6 +29,23 @@ const DocumentosPage = () => {
   const [openCategorias, setOpenCategorias] = useState(false);
   const [docToView, setDocToView] = useState<DocumentoArchivo | null>(null);
   const [filtroCategoria, setFiltroCategoria] = useState<string>('all');
+
+  // Se puede llegar aquí con la categoría ya elegida (?categoria=Exhibidores),
+  // que es como enlaza el programa semanal. Se busca por NOMBRE y no por id:
+  // el id se genera al crear la categoría y no se puede escribir en un enlace.
+  const [searchParams] = useSearchParams();
+  const categoriaPedida = searchParams.get('categoria');
+
+  useEffect(() => {
+    if (!categoriaPedida || categorias.length === 0) return;
+
+    const encontrada = categorias.find(
+      (cat) =>
+        cat.nombre.trim().toLowerCase() === categoriaPedida.trim().toLowerCase()
+    );
+
+    if (encontrada) setFiltroCategoria(encontrada.id);
+  }, [categoriaPedida, categorias]);
   const { confirm, ConfirmDialogNode } = useConfirm();
 
   const docsFiltrados = useMemo(() => {
