@@ -1,5 +1,6 @@
 import appDb from '@db/appDb';
 import { ExhibitorWeekType, ExhibitorSettingsType } from '@definition/exhibitors';
+import { normalizeExhibitorSettings } from '@utils/exhibitors';
 
 const triggerSync = () => {
   import('@services/worker/backupWorker').then(
@@ -24,25 +25,7 @@ const dbUpdateExhibitorsMetadata = async () => {
 export const dbExhibitorsGetSettings = async (): Promise<ExhibitorSettingsType> => {
   const settings = await appDb.exhibitors.get('settings') as ExhibitorSettingsType;
   if (settings) {
-    if (!settings.turns) {
-      settings.turns = [];
-    }
-    if (!settings.locations) {
-      settings.locations = [];
-    }
-    if (!settings.responsibles) {
-      settings.responsibles = [];
-    }
-    if (!settings.fixedAssignments) {
-      settings.fixedAssignments = [];
-    }
-    if (!settings.availability) {
-      settings.availability = {};
-    }
-    if (!settings.publishedMonths) {
-      settings.publishedMonths = [];
-    }
-    return settings;
+    return normalizeExhibitorSettings(settings);
   }
 
   const defaultSettings: ExhibitorSettingsType = {

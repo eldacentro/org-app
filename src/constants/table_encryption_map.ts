@@ -251,6 +251,20 @@ export const TABLE_ENCRYPTION_MAP = {
   },
   exhibitors: {
     turns: 'shared',
+    // `locations` y `monthlyOverrides` faltaban aquí, así que viajaban SIN
+    // cifrar: los nombres de los sitios donde se pone el exhibidor y los
+    // horarios y motivos de suspensión de cada mes se guardaban en claro en el
+    // servidor. Un campo que no está en este mapa no se cifra ni se descifra,
+    // simplemente pasa de largo.
+    //
+    // Se puede añadir sin migrar nada porque el descifrado SOLO actúa sobre
+    // cadenas: un valor que ya esté guardado en claro es un array o un objeto,
+    // no una cadena, así que se deja intacto. Lo que sí hace falta es que la
+    // forma se normalice al leer (`normalizeExhibitorSettings`), para que a un
+    // dispositivo que aún no se haya actualizado no le llegue una cadena donde
+    // espera una lista.
+    locations: 'shared',
+    monthlyOverrides: 'shared',
     responsibles: 'shared',
     fixedAssignments: 'shared',
     availability: 'shared',

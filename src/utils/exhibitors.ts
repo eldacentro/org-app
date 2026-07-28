@@ -11,6 +11,46 @@ import { isExhibitorMonthPublished } from '@services/app/exhibitors_publish';
  * @param monthStr The month in "YYYY/MM" format
  * @returns Array of ExhibitorTurnType
  */
+/**
+ * Deja los ajustes con la FORMA correcta, venga como venga.
+ *
+ * `locations` y `monthlyOverrides` no estaban en el mapa de cifrado, así que
+ * viajaban en claro. Al añadirlos, un dispositivo que todavía tenga la versión
+ * anterior no sabe descifrarlos y se queda con la cadena cifrada tal cual: una
+ * lista de ubicaciones pasaría a ser un texto, y `.map` sobre un texto rompe la
+ * página. Aquí se normaliza una sola vez, al leer, en lugar de repartir
+ * `Array.isArray` por media aplicación.
+ *
+ * No es solo para la transición: cualquier dato que llegue con una forma que no
+ * toca —de una importación antigua, de un fallo de fusión— se queda en el valor
+ * vacío en vez de reventar la pantalla.
+ */
+export const normalizeExhibitorSettings = <T extends ExhibitorSettingsType>(
+  settings: T
+): T => {
+  if (!settings) return settings;
+
+  const isPlainObject = (value: unknown) =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+  if (!Array.isArray(settings.turns)) settings.turns = [];
+  if (!Array.isArray(settings.locations)) settings.locations = [];
+  if (!Array.isArray(settings.responsibles)) settings.responsibles = [];
+  if (!Array.isArray(settings.fixedAssignments)) settings.fixedAssignments = [];
+  if (!Array.isArray(settings.publishedMonths)) settings.publishedMonths = [];
+
+  if (!isPlainObject(settings.availability)) settings.availability = {};
+
+  if (
+    settings.monthlyOverrides !== undefined &&
+    !isPlainObject(settings.monthlyOverrides)
+  ) {
+    settings.monthlyOverrides = {};
+  }
+
+  return settings;
+};
+
 export const getEffectiveTurnsForMonth = (
   settings: ExhibitorSettingsType | null,
   monthStr: string

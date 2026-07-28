@@ -36,6 +36,7 @@ import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { reconcileAllVisits } from '@services/app/circuit_visit_projection';
+import { normalizeExhibitorSettings } from '@utils/exhibitors';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -281,7 +282,14 @@ const useIndexedDb = () => {
 
       setExhibitorsList(list as ExhibitorWeekType[]);
       if (settings) {
-        setExhibitorsSettings(settings as ExhibitorSettingsType);
+        // Por aquí entran los ajustes que usan el programa semanal, "Mis
+        // asignaciones" y las notificaciones — sin pasar por
+        // dbExhibitorsGetSettings. Se normaliza también aquí, o un campo con
+        // la forma equivocada (p. ej. cifrado por una versión más nueva)
+        // llegaría intacto hasta la pantalla.
+        setExhibitorsSettings(
+          normalizeExhibitorSettings(settings as ExhibitorSettingsType)
+        );
       }
     }
   }, [dbExhibitors, setExhibitorsList, setExhibitorsSettings]);
