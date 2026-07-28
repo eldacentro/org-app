@@ -3,8 +3,11 @@ import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import { useCurrentUser } from '@hooks/index';
-import { serviceOutingsListState } from '@states/service_outings';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
+import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { sourcesState } from '@states/sources';
 import { COFullnameState, COSpouseNameState } from '@states/settings';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
@@ -145,10 +148,10 @@ const CircuitVisitWeek = ({
 }) => {
   const visit = useUpcomingCircuitVisit();
 
-  const { isElder } = useCurrentUser();
   const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
   const outingsList = useAtomValue(serviceOutingsListState);
+  const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const sources = useAtomValue(sourcesState);
 
   if (!visit) return null;
@@ -158,15 +161,27 @@ const CircuitVisitWeek = ({
   const weekRecord = outingsList.find((r) => r.weekOf === visit.weekOf);
   const weekSource = sources.find((s) => s.weekOf === visit.weekOf);
 
+  // Los turnos NO son solo los guardados: la mayoría salen de la plantilla de
+  // ajustes y se derivan por semana. Leer únicamente `weekRecord.outings`
+  // hacía que esta pestaña dijera "sin salidas" mientras Próximos eventos las
+  // listaba — la misma semana contada de dos formas. Se usa la misma función
+  // que la agenda, que es la única fuente buena.
+  //
   // Solo horario y lugar — nunca quién va, que es gestión interna.
+  const weekSlots = deriveWeekOutingSlots(
+    outingsSettings,
+    weekRecord,
+    visit.weekOf
+  );
+
   const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end)
     .map((date) => {
       const dateStr = formatDate(date, 'yyyy/MM/dd');
 
       return {
         dateStr,
-        slots: (weekRecord?.outings ?? [])
-          .filter((o) => o && o.date === dateStr && !o.cancelled)
+        slots: weekSlots
+          .filter((slot) => slot.date === dateStr && !slot.cancelled)
           .toSorted((a, b) => a.time.localeCompare(b.time)),
       };
     })
@@ -180,9 +195,12 @@ const CircuitVisitWeek = ({
 
   // Las reuniones a medio rellenar no se anuncian: una fecha sin hora ni
   // lugar no es un aviso, es una duda.
+  //
+  // Las dos se enseñan a todo el mundo. No son secretas —ya salían así en
+  // Próximos eventos y en la agenda de Inicio— y esconderlas aquí solo dejaba
+  // este sitio contando algo distinto que el resto de la aplicación.
   const hayPrecursores = isSpecialMeetingComplete(visit.meeting_pioneers);
-  const hayAncianos =
-    isElder && isSpecialMeetingComplete(visit.meeting_elders);
+  const hayAncianos = isSpecialMeetingComplete(visit.meeting_elders);
 
   return (
     <Stack spacing="12px" sx={{ marginTop: '8px' }}>
