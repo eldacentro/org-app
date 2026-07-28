@@ -1,4 +1,10 @@
 import { ExhibitorSettingsType } from '@definition/exhibitors';
+import {
+  isMonthPublished,
+  monthNeedsPublishing as needsPublishing,
+  monthOfDate,
+  setMonthPublished,
+} from './month_publish';
 
 /**
  * Meses de exhibidores publicados.
@@ -29,14 +35,7 @@ import { ExhibitorSettingsType } from '@definition/exhibitors';
  */
 export const EXHIBITORS_DRAFT_FROM = '2026/09';
 
-/** 'YYYY/MM' de una fecha 'YYYY/MM/DD' (o de un mes ya recortado). */
-export const monthOfDate = (date: string) => {
-  if (typeof date !== 'string') return '';
-
-  const month = date.trim().slice(0, 7).replace('-', '/');
-
-  return /^\d{4}\/\d{2}$/.test(month) ? month : '';
-};
+export { monthOfDate };
 
 /**
  * ¿Está publicado ese mes?
@@ -47,43 +46,18 @@ export const monthOfDate = (date: string) => {
 export const isExhibitorMonthPublished = (
   settings: Pick<ExhibitorSettingsType, 'publishedMonths'> | null | undefined,
   month: string
-) => {
-  const normalized = monthOfDate(month);
-  if (!normalized) return false;
-
-  if (normalized < EXHIBITORS_DRAFT_FROM) return true;
-
-  return (settings?.publishedMonths ?? []).includes(normalized);
-};
+) => isMonthPublished(settings?.publishedMonths, month, EXHIBITORS_DRAFT_FROM);
 
 /** ¿Hace falta publicarlo a mano, o cae en el histórico? */
-export const monthNeedsPublishing = (month: string) => {
-  const normalized = monthOfDate(month);
-
-  return normalized !== '' && normalized >= EXHIBITORS_DRAFT_FROM;
-};
+export const monthNeedsPublishing = (month: string) =>
+  needsPublishing(month, EXHIBITORS_DRAFT_FROM);
 
 /**
  * Publica o retira un mes. Devuelve la lista nueva, ordenada y sin repetidos.
  *
  * No muta lo que recibe: quien llama decide cuándo guardar.
  */
-export const setExhibitorMonthPublished = (
-  publishedMonths: string[] | undefined,
-  month: string,
-  published: boolean
-) => {
-  const normalized = monthOfDate(month);
-  const current = publishedMonths ?? [];
-
-  if (!normalized) return [...current];
-
-  const without = current.filter((item) => item !== normalized);
-
-  if (!published) return without.sort();
-
-  return [...without, normalized].sort();
-};
+export const setExhibitorMonthPublished = setMonthPublished;
 
 export type ExhibitorMonthStatus = {
   month: string;

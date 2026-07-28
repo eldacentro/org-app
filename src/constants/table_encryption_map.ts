@@ -248,6 +248,7 @@ export const TABLE_ENCRYPTION_MAP = {
     defaultHours: 'shared',
     locations: 'shared',
     availability: 'shared',
+    publishedMonths: 'shared',
   },
   exhibitors: {
     turns: 'shared',

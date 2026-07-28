@@ -9,6 +9,8 @@ import { personGetDisplayName } from '@utils/common';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { PersonType } from '@definition/person';
 import MeetingSection from '@features/meetings/meeting_section';
+import { isDeptWeekPublished } from '@services/app/departments_publish';
+import { useCurrentUser } from '@hooks/index';
 
 const DeptPersonComponent = ({
   label,
@@ -144,8 +146,55 @@ const DeptPersonComponent = ({
 const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
   const { t } = useAppTranslation();
 
+  const { isServiceCommittee } = useCurrentUser();
+
+  const isDraft = !isDeptWeekPublished(schedule);
+
+  // Semana en BORRADOR: para el resto de la congregación no existe todavía.
+  // Lo que autocompletar propone no es una decisión hasta que se publica.
+  if (isDraft && !isServiceCommittee) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          padding: '24px',
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-lg)',
+          marginTop: '16px',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography className="body-regular" color="var(--grey-400)">
+          Todavía no hay programa de departamentos publicado para esta semana.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Stack spacing="20px" sx={{ mt: 1 }}>
+      {isDraft && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: 'var(--orange-secondary)',
+            border: '1px solid var(--orange-dark)',
+            borderRadius: 'var(--r-lg)',
+          }}
+        >
+          <Typography className="body-small-regular" color="var(--orange-dark)">
+            Semana sin publicar. Esto es un borrador: solo lo ves tú, y no le
+            aparece a nadie en sus asignaciones hasta que la publiques.
+          </Typography>
+        </Box>
+      )}
+
       {/* Acomodadores */}
       <MeetingSection
         part={t('tr_attendants', 'Acomodadores')}

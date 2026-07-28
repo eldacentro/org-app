@@ -13,7 +13,10 @@ import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { AssignmentDescItem, AssignmentHistoryType } from '@definition/schedules';
-import { serviceOutingsListState } from '@states/service_outings';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { ACTIVITY_LABELS } from '@features/circuit_visit/shared/activityLabels';
 import { personsStateFind } from '@services/states/persons';
@@ -29,6 +32,8 @@ import { personsState } from '@states/persons';
 import { useEffect } from 'react';
 import { schedulesGetMeetingDate, schedulesWeekNoMeeting } from '@services/app/schedules';
 import { Week } from '@definition/week_type';
+import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
+import { isDeptWeekPublished } from '@services/app/departments_publish';
 
 const useMyAssignments = () => {
   const navigate = useNavigate();
@@ -42,6 +47,7 @@ const useMyAssignments = () => {
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
   const serviceOutings = useAtomValue(serviceOutingsListState);
+  const serviceOutingsSettings = useAtomValue(serviceOutingsSettingsState);
   const exhibitors = useAtomValue(exhibitorsListState);
   const exhibitorsSettings = useAtomValue(exhibitorsSettingsState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
@@ -117,6 +123,11 @@ const useMyAssignments = () => {
 
       for (const week of deptSchedules) {
         if (!week) continue;
+
+        // Semana en BORRADOR: lo que autocompletar propone no es una decisión
+        // hasta que el responsable la publica.
+        if (!isDeptWeekPublished(week)) continue;
+
         const weekDate = week.weekOf;
         if (
           weekDate >= today &&
@@ -229,6 +240,17 @@ const useMyAssignments = () => {
         const weekDate = week.weekOf;
 
         for (const outing of week.outings) {
+          // Un mes en BORRADOR no le sale a nadie: lo que autocompletar
+          // propone no es una decisión hasta que el responsable lo publica.
+          // Se mira el mes de CADA salida, no el de la semana: una semana
+          // puede empezar en un mes y acabar en otro.
+          if (
+            outing &&
+            !isOutingsMonthPublished(serviceOutingsSettings, outing.date)
+          ) {
+            continue;
+          }
+
           if (
             outing &&
             outing.person === uid &&
@@ -607,6 +629,7 @@ const useMyAssignments = () => {
     assignmentsHistory,
     deptSchedules,
     serviceOutings,
+    serviceOutingsSettings,
     exhibitors,
     exhibitorsSettings,
     displayRange,

@@ -10,6 +10,8 @@ import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
 import { deriveWeekOutingSlots } from '@utils/service_outings';
+import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
+import { useCurrentUser } from '@hooks/index';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
@@ -28,6 +30,8 @@ const ServiceOutingsMeeting = ({
   showCoBanner?: boolean;
 }) => {
   const { t } = useAppTranslation();
+
+  const { isServiceCommittee } = useCurrentUser();
 
   const settings = useAtomValue(serviceOutingsSettingsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
@@ -72,6 +76,17 @@ const ServiceOutingsMeeting = ({
 
     for (const slot of generatedSlots) {
       if (fromDate && slot.date < fromDate) continue;
+
+      // Mes en BORRADOR: solo lo ve quien puede editarlo, y marcado como tal.
+      // Lo que autocompletar propone no es una decisión hasta que el
+      // responsable publica el mes. Se mira el mes de CADA día, no el de la
+      // semana: una semana puede empezar en un mes y acabar en otro.
+      if (
+        !isOutingsMonthPublished(settings, slot.date) &&
+        !isServiceCommittee
+      ) {
+        continue;
+      }
       if (!groups[slot.date]) {
         groups[slot.date] = [];
       }
@@ -85,7 +100,21 @@ const ServiceOutingsMeeting = ({
         dayDate: groups[date][0].rawDate,
         outings: groups[date],
       }));
-  }, [generatedSlots, fromDate]);
+  }, [generatedSlots, fromDate, settings, isServiceCommittee]);
+
+  // Solo llega aquí quien puede editar: al resto se le han saltado los días de
+  // un mes sin publicar.
+  const draftMonths = useMemo(() => {
+    const months = new Set<string>();
+
+    for (const group of groupedOutings) {
+      const month = group.date?.substring(0, 7);
+
+      if (month && !isOutingsMonthPublished(settings, month)) months.add(month);
+    }
+
+    return [...months];
+  }, [groupedOutings, settings]);
 
   const getSlotLabel = (slotType: string): string => {
     if (slotType.endsWith('_morning')) return 'Mañana';
@@ -129,8 +158,32 @@ const ServiceOutingsMeeting = ({
     );
   }
 
+
   return (
     <Stack spacing="16px" sx={{ mt: 1 }}>
+      {/* Solo llega aquí quien puede editar: al resto se le han saltado los
+          días de un mes sin publicar. Se avisa para que no confunda un
+          borrador con algo ya decidido. */}
+      {draftMonths.length > 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: 'var(--orange-secondary)',
+            border: '1px solid var(--orange-dark)',
+            borderRadius: 'var(--r-lg)',
+          }}
+        >
+          <IconInfo color="var(--orange-dark)" />
+          <Typography className="body-small-regular" color="var(--orange-dark)">
+            Mes sin publicar. Esto es un borrador: solo lo ves tú, y no le
+            aparece a nadie en sus asignaciones hasta que lo publiques.
+          </Typography>
+        </Box>
+      )}
+
       {showCoBanner && weekRecord?.isCircuitOverseerWeek && (
         <Card
           sx={{

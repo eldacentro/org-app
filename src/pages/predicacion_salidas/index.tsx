@@ -31,6 +31,11 @@ import { Typography } from '@components/index';
 // el resto de la app. Se importa con alias porque esta página todavía usa el
 // Button de MUI en el cuerpo; los pies de diálogo ya migran al del sistema.
 import AppButton from '@components/button';
+import {
+  isOutingsMonthPublished,
+  outingsMonthNeedsPublishing,
+  setOutingsMonthPublished,
+} from '@services/app/service_outings_publish';
 import Checkbox from '@components/checkbox';
 import SwitchWithLabel from '@components/switch_with_label';
 import Divider from '@components/divider';
@@ -69,7 +74,6 @@ import {
   dbServiceOutingsSaveSettings,
   dbServiceOutingsGetSettings,
 } from '@services/dexie/service_outings';
-import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
 import {
   getEffectiveHoursForMonth,
@@ -428,17 +432,62 @@ const PredicacionSalidas = () => {
     );
   };
 
-  // Forzar sincronización remota de datos
-  const handleForceSync = () => {
-    worker.postMessage('startWorker');
-    displaySnackNotification({
-      header: t('tr_done', 'Hecho'),
-      message: t('tr_syncInProgress', 'Sincronización en curso...'),
-      severity: 'success',
-    });
+  // Aquí había un botón rotulado "Publicar" que en realidad solo forzaba una
+  // sincronización — igual que en Exhibidores. Ahora publica de verdad, y el
+  // sincronizado va incluido (publicar guarda y dispara el ciclo).
+
+  // ── Publicación del mes ────────────────────────────────────────────────
+  // "Autocompletar" llena el mes ENTERO de una vez. Hasta que el responsable
+  // lo publica es un borrador: no sale en "Mis asignaciones", ni en el
+  // programa semanal de los demás, ni genera aviso. Una propuesta no es una
+  // decisión. Ver services/app/service_outings_publish.
+  const [publishDialog, setPublishDialog] = useState(false);
+
+  const monthIsPublished = useMemo(
+    () => isOutingsMonthPublished(settings, currentMonthStr),
+    [settings, currentMonthStr]
+  );
+
+  const monthIsHistoric = useMemo(
+    () => !outingsMonthNeedsPublishing(currentMonthStr),
+    [currentMonthStr]
+  );
+
+  // Turnos del mes sin nadie asignado. No impide publicar —a veces se quiere
+  // confirmar lo que ya está decidido— pero se dice.
+  const emptySlotsInMonth = useMemo(() => {
+    let count = 0;
+
+    for (const slot of outingsSlotsInMonth) {
+      const weekOf = getWeekOfDate(slot.date);
+      const dbDate = formatToDbDate(slot.date);
+      const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+      const outing = weekRecord?.outings?.find(
+        (o) => o.date === dbDate && o.time === slot.time
+      );
+
+      if (!outing?.cancelled && !outing?.person) count += 1;
+    }
+
+    return count;
+  }, [outingsSlotsInMonth, outingsWeeks]);
+
+  const handleTogglePublishMonth = async () => {
+    if (!settings || monthIsHistoric) return;
+
+    const localSettings = structuredClone(settings);
+    localSettings.publishedMonths = setOutingsMonthPublished(
+      localSettings.publishedMonths,
+      currentMonthStr,
+      !monthIsPublished
+    );
+
+    await dbServiceOutingsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+    setPublishDialog(false);
   };
 
-  // Abrir diálogo de edición de una salida específica
   const handleOpenEdit = (slot: typeof outingsSlotsInMonth[0]) => {
     if (!isServiceCommittee) return; // Solo el comité de servicio puede editar
 
@@ -1166,12 +1215,14 @@ const PredicacionSalidas = () => {
                 )}
               </>
             )}
-            <NavBarButton
-              text={t('tr_publish', 'Publicar')}
-              main
-              onClick={handleForceSync}
-              icon={<IconGroups />}
-            />
+            {isServiceCommittee && !monthIsHistoric && (
+              <NavBarButton
+                text={monthIsPublished ? 'Publicado' : 'Publicar mes'}
+                main={!monthIsPublished}
+                onClick={() => setPublishDialog(true)}
+                icon={<IconGroups />}
+              />
+            )}
           </>
         }
       />
@@ -2929,6 +2980,65 @@ const PredicacionSalidas = () => {
       </Box>
 
       {/* DIÁLOGO DE EDICIÓN DE SALIDA */}
+      <Dialog
+        open={publishDialog}
+        onClose={() => setPublishDialog(false)}
+        maxWidth="mobile"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+          },
+        }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            {monthIsPublished ? 'Retirar' : 'Publicar'}: {MONTH_NAMES[selectedMonth]} {selectedYear}
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+          <InfoTip
+            isBig={false}
+            color={monthIsPublished ? 'warning' : 'info'}
+            text={
+              monthIsPublished
+                ? 'Al retirarlo, este mes vuelve a ser un borrador: dejará de aparecer en las asignaciones de los hermanos y en el programa semanal.'
+                : 'Al publicarlo, cada hermano verá sus salidas de este mes en "Mis asignaciones" y en el programa semanal, y recibirá el aviso correspondiente.'
+            }
+          />
+
+          {!monthIsPublished && emptySlotsInMonth > 0 && (
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'salida sin nadie asignado' : 'salidas sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
+            />
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          <AppButton variant="secondary" disableAutoStretch onClick={() => setPublishDialog(false)}>
+            Cancelar
+          </AppButton>
+          <AppButton
+            variant="main"
+            color={monthIsPublished ? 'red' : 'primary'}
+            disableAutoStretch
+            onClick={handleTogglePublishMonth}
+          >
+            {monthIsPublished ? 'Retirar' : 'Publicar mes'}
+          </AppButton>
+        </DialogActions>
+      </Dialog>
+
       <Dialog
         open={editDialog.open}
         onClose={() => setEditDialog({ ...editDialog, open: false })}

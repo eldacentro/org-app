@@ -39,6 +39,12 @@ export type ServiceOutingSettingsType = {
   availability: {
     [person_uid: string]: string[]; // array de slots en los que está disponible (ej: ["tue_morning", "sat"])
   };
+  /**
+   * Meses ya publicados ('YYYY/MM'). Un mes que no esté aquí está en BORRADOR:
+   * lo que autocompletar propone no le llega a nadie hasta que el responsable
+   * lo publica. Ver `services/app/service_outings_publish`.
+   */
+  publishedMonths?: string[];
   disabledSlots?: string[];
   sharedSlots?: {
     id: string;
