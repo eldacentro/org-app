@@ -6,6 +6,8 @@ import NoSchedule from '../no_schedule';
 import SiblingAssignment from '../../sibling_assignments';
 import WeekScheduleHeader from '../week_schedule_header';
 import WeekSelector from '../week_selector';
+import JwLibraryLink from '@components/jw_library_link';
+import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
 
 const MidweekContainer = () => {
   const { views } = useSiblingAssignments();
@@ -20,6 +22,8 @@ const MidweekContainer = () => {
     noSchedule,
     dataView,
   } = useMidweekContainer();
+
+  const jwLibraryUrl = useWeekJwLibraryLink(week, 'midweek');
 
   return (
     <>
@@ -39,6 +43,14 @@ const MidweekContainer = () => {
             onCurrent={handleGoCurrent}
             lastUpdated={scheduleLastUpdated}
           />
+
+          {/* Uno por reunión, en la cabecera. Uno por parte sería ruido. */}
+          {jwLibraryUrl && (
+            <JwLibraryLink
+              href={jwLibraryUrl}
+              sx={{ marginBottom: '12px' }}
+            />
+          )}
 
           {week && (
             <Stack spacing="24px">

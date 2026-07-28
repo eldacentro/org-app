@@ -14,6 +14,7 @@ import { useAppTranslation } from '@hooks/index';
 import useAssignmentItem from './useAssignmentItem';
 import useAddAssignmentToCalendar from './useAddAssignmentToCalendar';
 import Badge from '@components/badge';
+import JwLibraryLink from '@components/jw_library_link';
 import IconButton from '@components/icon_button';
 import IconLoading from '@components/icon_loading';
 import Typography from '@components/typography';
@@ -299,44 +300,10 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               )}
 
               {rowJwLibraryUrl && (
-                <Box
-                  component="a"
+                <JwLibraryLink
                   href={rowJwLibraryUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    alignSelf: 'flex-start',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px',
-                    px: '10px',
-                    py: '4px',
-                    // Iba pegado al texto de la asignación y casi transparente
-                    // (opacidad 0,55 sobre gris): había que buscarlo para
-                    // verlo. Ahora respira y se lee como lo que es, un enlace.
-                    marginTop: '10px',
-                    borderRadius: 'var(--radius-max)',
-                    textDecoration: 'none',
-                    border: '1px solid var(--accent-200)',
-                    backgroundColor: 'var(--accent-100)',
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': { backgroundColor: 'var(--accent-200)' },
-                    '&:active': { backgroundColor: 'var(--accent-200)' },
-                  }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: 'var(--accent-main)',
-                      lineHeight: 1.2,
-                      letterSpacing: '0.2px',
-                    }}
-                  >
-                    JW Library ↗
-                  </Typography>
-                </Box>
+                  sx={{ marginTop: '10px' }}
+                />
               )}
             </Stack>
 

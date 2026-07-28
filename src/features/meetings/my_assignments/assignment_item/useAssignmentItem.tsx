@@ -12,6 +12,10 @@ import {
 import { sourcesState } from '@states/sources';
 import { dayNamesShortState } from '@states/app';
 import { formatDate, getWeekDate } from '@utils/date';
+import {
+  midweekJwLibraryLink,
+  watchtowerJwLibraryLink,
+} from '@services/app/jw_library_link';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { AssignmentItemProps } from './index.types';
 import Badge from '@components/badge';
@@ -129,7 +133,7 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     // El weekOf de una asignación es el día real de la reunión (p. ej. el
     // miércoles), pero las fuentes del .jwpub se guardan bajo el LUNES de la
     // semana. Normalizamos ambos al lunes para que coincidan; si no, la
-    // búsqueda falla y, peor, el fallback toma el mes del miércoles (que en la
+    // búsqueda falla y, peor, el respaldo toma el mes del miércoles (que en la
     // última semana del cuaderno cae en el mes siguiente → cuaderno erróneo).
     const toMonday = (week: string) =>
       formatDate(getWeekDate(new Date(week)), 'yyyy/MM/dd');
@@ -137,29 +141,11 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
 
     const source = sources.find((s) => toMonday(s.weekOf) === targetMonday);
 
-    if (isWatchtower) {
-      // Sin identificador no hay enlace: el número de La Atalaya de estudio se
-      // publica DOS O TRES meses antes que la semana en que se estudia, y ese
-      // desfase cambia dentro del propio cuaderno (la última semana ya cae en
-      // el mes siguiente). Deducirlo de la fecha acertaría casi siempre y
-      // mandaría al hermano al número equivocado el resto de las veces, así
-      // que se prefiere no enseñar nada antes que enseñar algo falso. Con el
-      // .jwpub importado, el identificador está y el enlace es exacto.
-      if (!source?.w_study_docid) return null;
-
-      return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.w_study_docid}`;
-    }
-
-    if (source?.mwb_week_docid) {
-      return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.mwb_week_docid}`;
-    }
-
-    const [year, month] = targetMonday.split('/');
-    // MWB is published bi-monthly: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec.
-    // The issue code uses the first month of each pair (always odd).
-    const monthNum = parseInt(month, 10);
-    const issueMonth = String(monthNum % 2 === 0 ? monthNum - 1 : monthNum).padStart(2, '0');
-    return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&pub=mwb&issue=${year}${issueMonth}`;
+    // La forma del enlace vive en services/app/jw_library_link, que es la
+    // misma que usa el programa semanal: dos copias acabarían separándose.
+    return isWatchtower
+      ? watchtowerJwLibraryLink(source, locale)
+      : midweekJwLibraryLink(source, targetMonday, locale);
   };
 
   const rows = useMemo(() => {

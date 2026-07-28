@@ -5,6 +5,8 @@ import NoSchedule from '../no_schedule';
 import SiblingAssignment from '../../sibling_assignments';
 import WeekScheduleHeader from '../week_schedule_header';
 import WeekSelector from '../week_selector';
+import JwLibraryLink from '@components/jw_library_link';
+import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
 import WeekendMeeting from '../weekend_meeting';
 
 const WeekendContainer = () => {
@@ -21,6 +23,8 @@ const WeekendContainer = () => {
     noSchedule,
     dataView,
   } = useWeekendContainer();
+
+  const jwLibraryUrl = useWeekJwLibraryLink(week, 'weekend');
 
   return (
     <>
@@ -44,6 +48,14 @@ const WeekendContainer = () => {
             onCurrent={handleGoCurrent}
             lastUpdated={scheduleLastUpdated}
           />
+
+          {/* Uno por reunión, en la cabecera. Uno por parte sería ruido. */}
+          {jwLibraryUrl && (
+            <JwLibraryLink
+              href={jwLibraryUrl}
+              sx={{ marginBottom: '12px' }}
+            />
+          )}
 
           {week && (
             <Stack spacing="24px">
