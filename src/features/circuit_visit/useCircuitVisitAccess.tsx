@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { circuitVisitsState } from '@states/circuit_visit';
-import { CircuitVisitType } from '@definition/circuit_visit';
 import { useCurrentUser } from '@hooks/index';
 import { userLocalUIDState } from '@states/settings';
-import { addDays, formatDate } from '@utils/date';
+import { addDays } from '@utils/date';
 import useIsCircuitVisitManager from './useIsCircuitVisitManager';
+import useUpcomingCircuitVisit from './shared/useUpcomingCircuitVisit';
 
 export type CircuitVisitAccessTier = 'full' | 'elder' | 'public' | 'none';
 
@@ -23,17 +22,9 @@ const PUBLIC_PREVIEW_DAYS = 21;
 export const useCircuitVisitAccess = () => {
   const canManage = useIsCircuitVisitManager();
   const { isElder } = useCurrentUser();
-  const visits = useAtomValue(circuitVisitsState);
   const myUid = useAtomValue(userLocalUIDState);
 
-  const relevantVisit = useMemo<CircuitVisitType | null>(() => {
-    const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
-    const upcoming = visits
-      .filter((v) => !v._deleted && v.date_end >= todayStr)
-      .toSorted((a, b) => a.date_start.localeCompare(b.date_start));
-
-    return upcoming[0] ?? null;
-  }, [visits]);
+  const relevantVisit = useUpcomingCircuitVisit();
 
   // Un publicador con algo asignado en la visita (anfitrión de comida,
   // acompañante del CO o de su esposa, visita de pastoreo) debe poder ver

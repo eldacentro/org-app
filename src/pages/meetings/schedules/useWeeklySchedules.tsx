@@ -8,6 +8,8 @@ import WeekendContainer from '@features/meetings/weekly_schedules/weekend_contai
 import DepartmentsContainer from '@features/meetings/weekly_schedules/departments_container';
 import ServiceOutingsContainer from '@features/meetings/weekly_schedules/service_outings';
 import ExhibitorsWeeklyContainer from '@features/meetings/weekly_schedules/exhibitors';
+import CircuitVisitWeek from '@features/meetings/weekly_schedules/circuit_visit';
+import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -20,21 +22,42 @@ const useWeeklySchedules = () => {
 
   const { isElder, isAdmin } = useCurrentUser();
 
+  // La visita solo tiene pestaña mientras haya una programada o en curso; el
+  // día después de terminar desaparece sola.
+  const upcomingVisit = useUpcomingCircuitVisit();
+
   const outgoingVisible = useMemo(() => {
     return isElder || isAdmin;
   }, [isElder, isAdmin]);
+
+  const handleGoToTab = (id: string) => {
+    localStorage.setItem(LOCALSTORAGE_KEY, id);
+    setScheduleType(id as WeeklySchedulesType);
+  };
 
   const tabs = useMemo(() => {
     const result = [
       {
         id: 'midweek',
         label: t('tr_midweekMeeting'),
-        Component: <MidweekContainer />,
+        Component: (
+          <MidweekContainer
+            onGoToVisit={
+              upcomingVisit ? () => handleGoToTab('circuit_visit') : undefined
+            }
+          />
+        ),
       },
       {
         id: 'weekend',
         label: t('tr_weekendMeeting'),
-        Component: <WeekendContainer />,
+        Component: (
+          <WeekendContainer
+            onGoToVisit={
+              upcomingVisit ? () => handleGoToTab('circuit_visit') : undefined
+            }
+          />
+        ),
       },
     ];
 
@@ -52,6 +75,15 @@ const useWeeklySchedules = () => {
       Component: <DepartmentsContainer />,
     });
 
+    // Delante de las salidas: cuando hay visita, es lo primero que se busca.
+    if (upcomingVisit) {
+      result.push({
+        id: 'circuit_visit',
+        label: 'Visita del superintendente',
+        Component: <CircuitVisitWeek onGoToTab={handleGoToTab} />,
+      });
+    }
+
     result.push({
       id: 'service_outings',
       label: t('tr_fieldServiceOutings', 'Salidas de predicación'),
@@ -65,7 +97,8 @@ const useWeeklySchedules = () => {
     });
 
     return result;
-  }, [outgoingVisible, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outgoingVisible, t, upcomingVisit]);
 
   const value = useMemo(() => {
     if (!scheduleType) return 0;
@@ -81,7 +114,7 @@ const useWeeklySchedules = () => {
     setScheduleType(type);
   };
 
-  return { value, handleScheduleChange, tabs };
+  return { value, handleScheduleChange, handleGoToTab, tabs };
 };
 
 export default useWeeklySchedules;

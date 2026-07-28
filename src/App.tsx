@@ -247,7 +247,6 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               { path: '/congregation/limpieza', element: <Limpieza /> },
               { path: '/congregation/documentos', element: <Documentos /> },
               { path: '/congregation/territories', element: <Territorios /> },
-              { path: '/congregation/circuit-visit', element: <CircuitVisit /> },
 
               // publisher routes
               {
@@ -369,6 +368,21 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <MidweekEditorRoute />,
                 children: [
                   { path: '/midweek-meeting', element: <MidweekMeeting /> },
+                ],
+              },
+
+              // La visita del superintendente pasa a ser SOLO para ancianos:
+              // es la herramienta de quien la organiza. Lo que los hermanos
+              // necesitan (reuniones, discursos, reuniones especiales y
+              // salidas) vive ahora en su pestaña de Programas semanales, que
+              // aparece sola mientras hay visita.
+              {
+                element: <ElderRoute />,
+                children: [
+                  {
+                    path: '/congregation/circuit-visit',
+                    element: <CircuitVisit />,
+                  },
                 ],
               },
 

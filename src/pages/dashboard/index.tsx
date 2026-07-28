@@ -32,6 +32,8 @@ import {
   deptSlotsForMeeting,
 } from '@services/app/departments_slots';
 import { ALL_DEPARTMENT_TYPES } from '@definition/person';
+import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
+import { fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
 import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
@@ -120,6 +122,9 @@ const Dashboard = () => {
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
   const departmentsConfig = useAtomValue(departmentsConfigState);
+
+  // La visita del superintendente, si cae en la semana que se está viendo.
+  const upcomingVisit = useUpcomingCircuitVisit();
 
   // App settings atoms
   const midweekMeetingWeekday = useAtomValue(midweekMeetingWeekdayState);
@@ -379,6 +384,13 @@ const Dashboard = () => {
   const handleTileClick = (path: string) => {
     navigate(path);
   };
+
+  const esSemanaDeVisita = !!upcomingVisit && upcomingVisit.weekOf === weekOf;
+
+  const handleVisitClick = useCallback(() => {
+    localStorage.setItem('organized_weekly_schedules', 'circuit_visit');
+    navigate('/weekly-schedules');
+  }, [navigate]);
 
   const handleMidweekClick = useCallback(() => {
     localStorage.setItem('organized_weekly_schedules', 'midweek');
@@ -736,6 +748,53 @@ const Dashboard = () => {
                 <span>{countdownText}</span>
               </div>
             </div>
+
+            {/* Semana de la visita del superintendente. Va DENTRO de la
+                tarjeta del programa, junto a las reuniones, porque es de lo
+                mismo: qué pasa esta semana. */}
+            {esSemanaDeVisita && (
+              <Box
+                onClick={handleVisitClick}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  margin: '12px',
+                  padding: '12px 14px',
+                  borderRadius: 'var(--radius-xxl)',
+                  background: 'rgba(59, 114, 196, 0.06)',
+                  border: '1px solid var(--accent-200)',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s ease',
+                  '&:hover': { background: 'rgba(59, 114, 196, 0.12)' },
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    className="body-regular-semibold"
+                    sx={{ color: 'var(--ink)' }}
+                  >
+                    Visita del superintendente de circuito
+                  </Typography>
+                  <Typography
+                    className="label-small-regular"
+                    sx={{ color: 'var(--ink-2)' }}
+                  >
+                    {fmtRangeEs(
+                      upcomingVisit.date_start,
+                      upcomingVisit.date_end
+                    )}
+                  </Typography>
+                </Box>
+
+                <Typography
+                  className="label-small-semibold"
+                  sx={{ color: 'var(--accent-main)', flexShrink: 0 }}
+                >
+                  Ver programa →
+                </Typography>
+              </Box>
+            )}
 
             {agendaItems.length === 0 ? (
               <Box

@@ -108,10 +108,11 @@ const CongregationDashboard = () => {
           </svg>
         </div>
 
-        {/* Visita del Superintendente de Circuito — COBA/Admin y ancianos en
-            cualquier momento; el resto de publicadores solo desde 21 días
-            antes de que empiece la visita (ver useCircuitVisitAccess). */}
-        {circuitVisitTier !== 'none' && (
+        {/* Visita del Superintendente de Circuito — SOLO ancianos: es la
+            herramienta de quien la organiza. Lo que los hermanos necesitan
+            está en su pestaña de Programas semanales, que sale sola mientras
+            hay visita. El tier sigue mandando dentro de la página. */}
+        {isElder && circuitVisitTier !== 'none' && (
           <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/circuit-visit')}>
             <div className="ti">
               <IconCalendarWeek color="var(--brand)" width={22} height={22} />

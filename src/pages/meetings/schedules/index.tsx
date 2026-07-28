@@ -12,6 +12,7 @@ import {
   IconCart,
   IconArrowDown,
   IconTreasuresPart,
+  IconCircuitOverseer,
 } from '@components/icons';
 
 const WeeklySchedules = () => {
@@ -50,6 +51,8 @@ const WeeklySchedules = () => {
         return <IconInTerritory color={color} width={22} height={22} />;
       case 'exhibitors':
         return <IconCart color={color} width={22} height={22} />;
+      case 'circuit_visit':
+        return <IconCircuitOverseer color={color} width={22} height={22} />;
       default:
         return <IconClock color={color} width={22} height={22} />;
     }
