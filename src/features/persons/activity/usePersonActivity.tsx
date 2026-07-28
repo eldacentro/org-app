@@ -5,7 +5,7 @@ import { deptScheduleState } from '@states/departments_schedule';
 import { serviceOutingsListState } from '@states/service_outings';
 import { exhibitorsListState } from '@states/exhibitors';
 import { circuitVisitsState } from '@states/circuit_visit';
-import { congIDState } from '@states/settings';
+import { congIDState, departmentsConfigState } from '@states/settings';
 import { congAccountConnectedState } from '@states/app';
 import { schedulesBuildHistoryList } from '@services/app/schedules';
 import { fetchPersonTerritoryHistory } from '@services/firebase/territories';
@@ -49,6 +49,7 @@ const usePersonActivity = (personUid: string) => {
   const exhibitors = useAtomValue(exhibitorsListState);
   const circuitVisits = useAtomValue(circuitVisitsState);
   const congId = useAtomValue(congIDState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
   const isConnected = useAtomValue(congAccountConnectedState);
 
   const [category, setCategory] = useState<ActivityCategory | 'all'>('all');
@@ -150,7 +151,7 @@ const usePersonActivity = (personUid: string) => {
 
     return sortActivity([
       ...meetings,
-      ...buildDepartmentActivity(deptSchedules, personUid),
+      ...buildDepartmentActivity(deptSchedules, personUid, departmentsConfig),
       ...buildOutingActivity(outings, personUid),
       ...buildExhibitorActivity(exhibitors, personUid),
       ...buildCircuitVisitActivity(circuitVisits, personUid),
@@ -159,6 +160,7 @@ const usePersonActivity = (personUid: string) => {
   }, [
     assignmentsHistory,
     deptSchedules,
+    departmentsConfig,
     outings,
     exhibitors,
     circuitVisits,

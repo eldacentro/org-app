@@ -2774,6 +2774,40 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           }
         }
 
+        // El responsable de departamentos NO es editor de ajustes: no puede
+        // subir los ajustes de la congregación, y con razón. Pero la
+        // configuración de SUS departamentos (por semana o por reunión, uno o
+        // dos turnos) vive en cong_settings, así que sin esto la cambiaría en
+        // su móvil, la app diría que se ha guardado y no llegaría a nadie —
+        // exactamente el mismo fallo que tenía el propio programa.
+        //
+        // Se sube ESE campo y nada más. El backend hace la misma distinción y
+        // descarta el resto aunque llegara.
+        if (
+          !settingEditor &&
+          departmentsEditor &&
+          metadata.metadata.cong_settings.send_local &&
+          settings.cong_settings.departments_config
+        ) {
+          const onlyDeptConfig = {
+            departments_config: structuredClone(
+              settings.cong_settings.departments_config
+            ),
+          };
+
+          encryptObject({
+            data: onlyDeptConfig,
+            table: 'app_settings',
+            masterKey,
+            accessCode,
+          });
+
+          obj.app_settings = {
+            ...obj.app_settings,
+            cong_settings: onlyDeptConfig,
+          } as typeof obj.app_settings;
+        }
+
         // include person data
         if (personEditor && metadata.metadata.persons.send_local) {
           const backupPersons = persons.map((person) => {

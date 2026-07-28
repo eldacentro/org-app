@@ -3,13 +3,26 @@ import { Document } from '@views/components';
 import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
 
+/**
+ * Los puestos ya no están escritos aquí: llegan hechos desde
+ * `services/app/departments_slots`, que es quien sabe si un departamento se
+ * asigna por semana o por reunión y con cuántos turnos. Este componente solo
+ * dibuja lo que le dan.
+ */
+export type DeptPDFRow = {
+  label: string;
+  name: string;
+};
+
+export type DeptPDFDepartment = {
+  title: string;
+  rows: DeptPDFRow[];
+};
+
 export type DeptPDFData = {
   weekOf: string;
   weekOfFormatted: string;
-  acomodadores: { exterior: string; interior: string };
-  microfonos: { micro1: string; micro2: string };
-  multimedia: { video: string; audio: string };
-  plataforma: { encargado: string };
+  departments: DeptPDFDepartment[];
   updatedAt?: string;
   lastModifiedBy?: string;
 };
@@ -35,7 +48,11 @@ const meses = [
   'diciembre',
 ];
 
-const DeptSchedulePDF = ({ data, monthName, cong_name }: DeptSchedulePDFProps) => {
+const DeptSchedulePDF = ({
+  data,
+  monthName,
+  cong_name,
+}: DeptSchedulePDFProps) => {
   const lastUpdate = data.reduce((acc, curr) => {
     if (
       !acc ||
@@ -76,67 +93,17 @@ const DeptSchedulePDF = ({ data, monthName, cong_name }: DeptSchedulePDFProps) =
               </View>
 
               <View style={styles.grid}>
-                {/* Acomodadores */}
-                <View style={styles.deptBox}>
-                  <Text style={styles.deptTitle}>Acomodadores</Text>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Exterior:</Text>
-                    <Text style={styles.personName}>
-                      {week.acomodadores.exterior}
-                    </Text>
+                {week.departments.map((dept) => (
+                  <View key={dept.title} style={styles.deptBox}>
+                    <Text style={styles.deptTitle}>{dept.title}</Text>
+                    {dept.rows.map((row) => (
+                      <View key={row.label} style={styles.roleRow}>
+                        <Text style={styles.roleLabel}>{row.label}:</Text>
+                        <Text style={styles.personName}>{row.name}</Text>
+                      </View>
+                    ))}
                   </View>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Interior:</Text>
-                    <Text style={styles.personName}>
-                      {week.acomodadores.interior}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Micrófonos */}
-                <View style={styles.deptBox}>
-                  <Text style={styles.deptTitle}>Micrófonos</Text>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Micro 1:</Text>
-                    <Text style={styles.personName}>
-                      {week.microfonos.micro1}
-                    </Text>
-                  </View>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Micro 2:</Text>
-                    <Text style={styles.personName}>
-                      {week.microfonos.micro2}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Multimedia */}
-                <View style={styles.deptBox}>
-                  <Text style={styles.deptTitle}>Multimedia</Text>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Vídeo:</Text>
-                    <Text style={styles.personName}>
-                      {week.multimedia.video}
-                    </Text>
-                  </View>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Audio:</Text>
-                    <Text style={styles.personName}>
-                      {week.multimedia.audio}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Plataforma */}
-                <View style={styles.deptBox}>
-                  <Text style={styles.deptTitle}>Plataforma</Text>
-                  <View style={styles.roleRow}>
-                    <Text style={styles.roleLabel}>Encargado:</Text>
-                    <Text style={styles.personName}>
-                      {week.plataforma.encargado}
-                    </Text>
-                  </View>
-                </View>
+                ))}
               </View>
             </View>
           );

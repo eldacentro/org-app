@@ -1,5 +1,12 @@
 import appDb from '@db/appDb';
 import { store } from '@states/index';
+import { departmentsConfigState } from '@states/settings';
+import { isDeptWeekPublished } from '@services/app/departments_publish';
+import {
+  buildDeptSlots,
+  DEPT_LABEL,
+} from '@services/app/departments_slots';
+import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 import { assignmentsHistoryState } from '@states/schedules';
 import { userLocalUIDState } from '@states/settings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
@@ -219,23 +226,28 @@ const computeNewAssignments = async (): Promise<NewAssignment[]> => {
       .aboveOrEqual(today)
       .toArray();
 
-    const DEPTS = ['acomodadores', 'microfonos', 'multimedia', 'plataforma'] as const;
-    const DEPT_LABELS: Record<string, string> = {
-      acomodadores: 'Acomodadores',
-      microfonos: 'Micrófonos',
-      multimedia: 'Multimedia',
-      plataforma: 'Plataforma',
-    };
+    const departmentsConfig = store.get(departmentsConfigState);
 
     for (const week of deptWeeks) {
-      for (const dept of DEPTS) {
+      // Semana en BORRADOR: lo que autocompletar propone no es una decisión
+      // hasta que el responsable la publica, así que no se avisa a nadie.
+      // Al publicarse, la huella aparece por primera vez y el aviso sale
+      // entonces, que es cuando toca.
+      if (!isDeptWeekPublished(week)) continue;
+
+      for (const dept of ALL_DEPARTMENT_TYPES) {
         const deptData = week[dept] as Record<string, { value: string }>;
         if (!deptData) continue;
-        for (const [role, data] of Object.entries(deptData)) {
-          if (data?.value !== userUID) continue;
+
+        // Los puestos salen de la configuración del departamento, no de una
+        // lista escrita a mano: así el aviso dice "Acomodadores (Exterior ·
+        // Entre semana)" y no la clave interna con sus sufijos.
+        for (const slot of buildDeptSlots(departmentsConfig, dept)) {
+          if (deptData[slot.key]?.value !== userUID) continue;
+
           mark(
-            `${week.weekOf}|DEPT_${dept}_${role}|${userUID}`,
-            `${DEPT_LABELS[dept]} (${role})`
+            `${week.weekOf}|DEPT_${dept}_${slot.key}|${userUID}`,
+            `${DEPT_LABEL[dept]} (${slot.label})`
           );
         }
       }

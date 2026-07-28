@@ -4,6 +4,11 @@ import { ExhibitorWeekType } from '@definition/exhibitors';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { ACTIVITY_LABELS } from '@services/app/circuit_visit';
 import { toComparableDate } from '@utils/date';
+import {
+  buildAllDeptSlots,
+  DEPT_LABEL,
+  DepartmentsConfig,
+} from '@services/app/departments_slots';
 
 /**
  * Todo lo que una persona tiene o ha tenido asignado, de todos los módulos.
@@ -53,26 +58,10 @@ export const CATEGORY_LABELS: Record<ActivityCategory, string> = {
   territory: 'Territorios',
 };
 
-const DEPARTMENT_ROLES: {
-  department: keyof Pick<
-    DeptWeekType,
-    'acomodadores' | 'microfonos' | 'multimedia' | 'plataforma'
-  >;
-  role: string;
-  label: string;
-}[] = [
-  { department: 'acomodadores', role: 'exterior', label: 'Acomodador (exterior)' },
-  { department: 'acomodadores', role: 'interior', label: 'Acomodador (interior)' },
-  { department: 'microfonos', role: 'micro1', label: 'Micrófono 1' },
-  { department: 'microfonos', role: 'micro2', label: 'Micrófono 2' },
-  { department: 'multimedia', role: 'video', label: 'Vídeo' },
-  { department: 'multimedia', role: 'audio', label: 'Audio' },
-  { department: 'plataforma', role: 'encargado', label: 'Plataforma' },
-];
-
 export const buildDepartmentActivity = (
   weeks: DeptWeekType[],
-  uid: string
+  uid: string,
+  config?: DepartmentsConfig | null
 ): ActivityItem[] => {
   const items: ActivityItem[] = [];
 
@@ -80,14 +69,16 @@ export const buildDepartmentActivity = (
     const date = toComparableDate(week?.weekOf);
     if (!date) continue;
 
-    for (const { department, role, label } of DEPARTMENT_ROLES) {
-      if (week[department]?.[role]?.value !== uid) continue;
+    // Los puestos salen de la configuración de cada departamento (por semana
+    // o por reunión, con uno o dos turnos), no de una lista escrita a mano.
+    for (const slot of buildAllDeptSlots(config)) {
+      if (week[slot.dept]?.[slot.key]?.value !== uid) continue;
 
       items.push({
-        key: `DEPT:${week.weekOf}:${department}.${role}`,
+        key: `DEPT:${week.weekOf}:${slot.dept}.${slot.key}`,
         date,
         category: 'department',
-        title: label,
+        title: `${DEPT_LABEL[slot.dept]} · ${slot.label}`,
         wholeWeek: true,
       });
     }

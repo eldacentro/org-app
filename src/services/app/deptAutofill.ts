@@ -6,11 +6,15 @@ import { dbDeptScheduleBulkSave } from '@services/dexie/departments_schedule';
 import { addWeeks, formatDate } from '@utils/date';
 import { schedulesState } from '@states/schedules';
 import { schedulesWeekHasNoMeetingAtAll } from '@services/app/schedules';
+import { departmentsConfigState } from '@states/settings';
+import { buildDeptSlots } from '@services/app/departments_slots';
+import { DepartmentType } from '@definition/person';
 
 export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
   const allSchedules = store.get(deptScheduleState);
   const allPersons = store.get(personsActiveState);
   const meetingSchedules = store.get(schedulesState);
+  const departmentsConfig = store.get(departmentsConfigState);
 
   if (startWeek.length === 0 || endWeek.length === 0) return;
 
@@ -82,16 +86,24 @@ export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
     return lastDate;
   };
 
-  type DeptKey = keyof Omit<DeptWeekType, 'weekOf' | 'updatedAt' | 'lastModifiedBy'>;
-  const rolesToFill: { dept: DeptKey; role: string }[] = [
-    { dept: 'plataforma', role: 'encargado' }, // Fill platform first as it's more restricted
-    { dept: 'multimedia', role: 'video' },
-    { dept: 'multimedia', role: 'audio' },
-    { dept: 'microfonos', role: 'micro1' },
-    { dept: 'microfonos', role: 'micro2' },
-    { dept: 'acomodadores', role: 'exterior' },
-    { dept: 'acomodadores', role: 'interior' },
+  // Los puestos ya no están escritos aquí: salen de la configuración de cada
+  // departamento, que puede asignar por semana o por reunión y con uno o dos
+  // turnos (ver services/app/departments_slots). Se conserva el ORDEN de
+  // siempre —plataforma primero, acomodadores al final—, que no es cosmético:
+  // se rellena antes lo más restringido, cuando aún queda gente elegible.
+  const DEPT_PRIORITY: DepartmentType[] = [
+    'plataforma',
+    'multimedia',
+    'microfonos',
+    'acomodadores',
   ];
+
+  const rolesToFill = DEPT_PRIORITY.flatMap((dept) =>
+    buildDeptSlots(departmentsConfig, dept).map((slot) => ({
+      dept,
+      role: slot.key,
+    }))
+  );
 
   for (const weekOf of rangeWeeks) {
     const weekSched = localSchedules.find((s) => s.weekOf === weekOf)!;
@@ -114,7 +126,10 @@ export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
         const isQualified = person.person_data.departments?.value?.includes(dept);
         if (!isQualified) return false;
 
-        // 2. Not already assigned this week
+        // 2. Not already assigned this week. Esto es lo que además impide que
+        // la misma persona caiga en los dos turnos de una reunión, o en la de
+        // entre semana y la de fin de semana cuando el departamento se asigna
+        // por reunión: sigue siendo una asignación por persona y semana.
         if (assignedThisWeek.includes(person.person_uid)) return false;
 
         // 3. Not assigned to this department last week

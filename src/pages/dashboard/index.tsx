@@ -24,7 +24,14 @@ import {
   userDataViewState,
   userLocalUIDState,
   shortDateFormatState,
+  departmentsConfigState,
 } from '@states/settings';
+import { isDeptWeekPublished } from '@services/app/departments_publish';
+import {
+  DEPT_LABEL,
+  deptSlotsForMeeting,
+} from '@services/app/departments_slots';
+import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 import { appLangState } from '@states/app';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
@@ -101,23 +108,6 @@ const isMeetingDaySuppressedByMemorial = (
   });
 };
 
-const DASHBOARD_DEPT_LABELS: Record<string, string> = {
-  acomodadores: 'Acomodadores',
-  microfonos: 'Micrófonos',
-  multimedia: 'Multimedia',
-  plataforma: 'Plataforma',
-};
-
-// Mismas etiquetas de rol que ya usa DepartmentsMeeting (weekly_schedules),
-// para que "Tienes: X" en el dashboard diga también el rol concreto (ej.
-// "Multimedia (Audio)"), no solo el departamento.
-const DASHBOARD_DEPT_ROLE_LABELS: Record<string, Record<string, string>> = {
-  acomodadores: { exterior: 'Exterior', interior: 'Interior' },
-  microfonos: { micro1: 'Micro 1', micro2: 'Micro 2' },
-  multimedia: { video: 'Vídeo', audio: 'Audio' },
-  plataforma: { encargado: 'Encargado' },
-};
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useAppTranslation();
@@ -129,6 +119,7 @@ const Dashboard = () => {
   const shortDateFormat = useAtomValue(shortDateFormatState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
 
   // App settings atoms
   const midweekMeetingWeekday = useAtomValue(midweekMeetingWeekdayState);
@@ -334,24 +325,39 @@ const Dashboard = () => {
         }
       }
 
-      // Los roles de departamento se guardan una vez por semana (no por
-      // reunión), y sirven en ambas reuniones de esa semana.
+      // Los puestos de departamento salen de la configuración: pueden cubrir
+      // toda la semana (lo de siempre, y entonces valen para las dos
+      // reuniones) o ser distintos en cada reunión. De eso se encarga
+      // deptSlotsForMeeting, así que aquí no hay claves escritas a mano.
       const deptWeek = deptSchedules.find((w) => w?.weekOf === weekOf);
-      if (deptWeek) {
-        const depts = ['acomodadores', 'microfonos', 'multimedia', 'plataforma'] as const;
-        for (const dept of depts) {
-          const deptData = deptWeek[dept] as Record<string, { value: string }> | undefined;
+
+      // Semana en BORRADOR: lo que autocompletar propone no es una decisión
+      // hasta que el responsable la publica.
+      if (deptWeek && isDeptWeekPublished(deptWeek)) {
+        const rows = [
+          { meeting: 'midweek' as const, titles: midweekTitles, show: showMidweekRow },
+          { meeting: 'weekend' as const, titles: weekendTitles, show: showWeekendRow },
+        ];
+
+        for (const dept of ALL_DEPARTMENT_TYPES) {
+          const deptData = deptWeek[dept] as
+            | Record<string, { value: string }>
+            | undefined;
           if (!deptData) continue;
-          const matchedRole = Object.entries(deptData).find(
-            ([, role]) => role?.value === userUID
-          )?.[0];
-          if (!matchedRole) continue;
-          const roleLabel = DASHBOARD_DEPT_ROLE_LABELS[dept]?.[matchedRole];
-          const label = roleLabel
-            ? `${DASHBOARD_DEPT_LABELS[dept]} (${roleLabel})`
-            : DASHBOARD_DEPT_LABELS[dept];
-          if (showMidweekRow) midweekTitles.push(label);
-          if (showWeekendRow) weekendTitles.push(label);
+
+          for (const { meeting, titles, show } of rows) {
+            if (!show) continue;
+
+            for (const slot of deptSlotsForMeeting(
+              departmentsConfig,
+              dept,
+              meeting
+            )) {
+              if (deptData[slot.key]?.value !== userUID) continue;
+
+              titles.push(`${DEPT_LABEL[dept]} (${slot.label})`);
+            }
+          }
         }
       }
     }
@@ -364,6 +370,7 @@ const Dashboard = () => {
     midweekMeetingDateStr,
     weekendMeetingDateStr,
     deptSchedules,
+    departmentsConfig,
     weekOf,
     showMidweekRow,
     showWeekendRow,

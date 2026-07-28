@@ -1,13 +1,15 @@
+import { ReactElement } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { useAtomValue } from 'jotai';
 import { IconFemale, IconMale, IconGroups, IconRecordVoiceOver, IconPlay, IconPodium } from '@components/icons';
 import Typography from '@components/typography';
 import { personsStateFind } from '@services/states/persons';
-import { displayNameMeetingsEnableState, fullnameOptionState, userLocalUIDState } from '@states/settings';
+import { departmentsConfigState, displayNameMeetingsEnableState, fullnameOptionState, userLocalUIDState } from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
 import { DeptWeekType } from '@definition/departments_schedule';
-import { PersonType } from '@definition/person';
+import { DepartmentType, PersonType } from '@definition/person';
+import { buildDeptSlots } from '@services/app/departments_slots';
 import MeetingSection from '@features/meetings/meeting_section';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import { useCurrentUser } from '@hooks/index';
@@ -143,8 +145,40 @@ const DeptPersonComponent = ({
   );
 };
 
+// Los puestos de cada departamento salen de la configuración
+// (services/app/departments_slots); aquí solo vive lo que es de esta
+// pantalla: el rótulo traducible y el icono.
+const DEPARTMENTS: {
+  dept: DepartmentType;
+  label: { key: string; fallback: string };
+  icon: ReactElement;
+}[] = [
+  {
+    dept: 'acomodadores',
+    label: { key: 'tr_attendants', fallback: 'Acomodadores' },
+    icon: <IconGroups color="var(--always-white)" />,
+  },
+  {
+    dept: 'microfonos',
+    label: { key: 'tr_microphones', fallback: 'Micrófonos' },
+    icon: <IconRecordVoiceOver color="var(--always-white)" />,
+  },
+  {
+    dept: 'multimedia',
+    label: { key: 'tr_multimedia', fallback: 'Multimedia' },
+    icon: <IconPlay color="var(--always-white)" />,
+  },
+  {
+    dept: 'plataforma',
+    label: { key: 'tr_platform', fallback: 'Plataforma' },
+    icon: <IconPodium color="var(--always-white)" />,
+  },
+];
+
 const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
   const { t } = useAppTranslation();
+
+  const departmentsConfig = useAtomValue(departmentsConfigState);
 
   const { isServiceCommittee } = useCurrentUser();
 
@@ -195,76 +229,24 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         </Box>
       )}
 
-      {/* Acomodadores */}
-      <MeetingSection
-        part={t('tr_attendants', 'Acomodadores')}
-        color="var(--brand)"
-        icon={<IconGroups color="var(--always-white)" />}
-        alwaysExpanded
-      >
-        <DeptPersonComponent
-          label="Exterior"
-          person={personsStateFind(schedule?.acomodadores?.exterior?.value)}
-          fallbackName={schedule?.acomodadores?.exterior?.name}
-        />
-        <DeptPersonComponent
-          label="Interior"
-          person={personsStateFind(schedule?.acomodadores?.interior?.value)}
-          fallbackName={schedule?.acomodadores?.interior?.name}
-        />
-      </MeetingSection>
-
-      {/* Micrófonos */}
-      <MeetingSection
-        part={t('tr_microphones', 'Micrófonos')}
-        color="var(--brand)"
-        icon={<IconRecordVoiceOver color="var(--always-white)" />}
-        alwaysExpanded
-      >
-        <DeptPersonComponent
-          label="Micro 1"
-          person={personsStateFind(schedule?.microfonos?.micro1?.value)}
-          fallbackName={schedule?.microfonos?.micro1?.name}
-        />
-        <DeptPersonComponent
-          label="Micro 2"
-          person={personsStateFind(schedule?.microfonos?.micro2?.value)}
-          fallbackName={schedule?.microfonos?.micro2?.name}
-        />
-      </MeetingSection>
-
-      {/* Multimedia */}
-      <MeetingSection
-        part={t('tr_multimedia', 'Multimedia')}
-        color="var(--brand)"
-        icon={<IconPlay color="var(--always-white)" />}
-        alwaysExpanded
-      >
-        <DeptPersonComponent
-          label="Vídeo"
-          person={personsStateFind(schedule?.multimedia?.video?.value)}
-          fallbackName={schedule?.multimedia?.video?.name}
-        />
-        <DeptPersonComponent
-          label="Audio"
-          person={personsStateFind(schedule?.multimedia?.audio?.value)}
-          fallbackName={schedule?.multimedia?.audio?.name}
-        />
-      </MeetingSection>
-
-      {/* Plataforma */}
-      <MeetingSection
-        part={t('tr_platform', 'Plataforma')}
-        color="var(--brand)"
-        icon={<IconPodium color="var(--always-white)" />}
-        alwaysExpanded
-      >
-        <DeptPersonComponent
-          label="Encargado"
-          person={personsStateFind(schedule?.plataforma?.encargado?.value)}
-          fallbackName={schedule?.plataforma?.encargado?.name}
-        />
-      </MeetingSection>
+      {DEPARTMENTS.map(({ dept, label, icon }) => (
+        <MeetingSection
+          key={dept}
+          part={t(label.key, label.fallback)}
+          color="var(--brand)"
+          icon={icon}
+          alwaysExpanded
+        >
+          {buildDeptSlots(departmentsConfig, dept).map((slot) => (
+            <DeptPersonComponent
+              key={slot.key}
+              label={slot.label}
+              person={personsStateFind(schedule?.[dept]?.[slot.key]?.value)}
+              fallbackName={schedule?.[dept]?.[slot.key]?.name}
+            />
+          ))}
+        </MeetingSection>
+      ))}
     </Stack>
   );
 };

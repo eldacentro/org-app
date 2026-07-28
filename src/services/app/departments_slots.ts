@@ -59,10 +59,18 @@ export const DEPT_ROLES: Record<
     { id: 'micro2', label: 'Micro 2' },
   ],
   multimedia: [
-    { id: 'video', label: 'Video' },
+    { id: 'video', label: 'Vídeo' },
     { id: 'audio', label: 'Audio' },
   ],
   plataforma: [{ id: 'encargado', label: 'Encargado' }],
+};
+
+/** Rótulo de cada departamento para donde no hay traducciones (el PDF). */
+export const DEPT_LABEL: Record<DepartmentType, string> = {
+  acomodadores: 'Acomodadores',
+  microfonos: 'Micrófonos',
+  multimedia: 'Multimedia',
+  plataforma: 'Plataforma',
 };
 
 export const readDeptConfig = (

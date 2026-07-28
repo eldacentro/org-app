@@ -48,9 +48,9 @@ describe('departamentos', () => {
     const items = buildDepartmentActivity(weeks, YO);
 
     expect(items.map((i) => i.title)).toEqual([
-      'Micrófono 1',
-      'Plataforma',
-      'Audio',
+      'Micrófonos · Micro 1',
+      'Plataforma · Encargado',
+      'Multimedia · Audio',
     ]);
   });
 

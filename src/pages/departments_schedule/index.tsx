@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Box } from '@mui/material';
-import { IconPrint, IconGenerate, IconPublish } from '@components/icons';
+import {
+  IconPrint,
+  IconGenerate,
+  IconPublish,
+  IconSettings,
+} from '@components/icons';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
@@ -11,7 +16,11 @@ import NavBarButton from '@components/nav_bar_button';
 import DeptAutofillDialog from '@features/departments_schedule/autofill';
 import { displaySnackNotification } from '@services/states/app';
 import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
-import { pdfExportEnabledState } from '@states/settings';
+import {
+  departmentsConfigState,
+  pdfExportEnabledState,
+} from '@states/settings';
+import { buildAllDeptSlots } from '@services/app/departments_slots';
 import LastModifiedInfo from '@components/last_modified_info';
 import {
   deptMonthNeedsPublishing,
@@ -21,10 +30,12 @@ import {
 } from '@services/app/departments_publish';
 import { dbDeptScheduleBulkSave } from '@services/dexie/departments_schedule';
 import DeptPublishDialog from '@features/departments_schedule/publish_dialog';
+import DeptConfigDialog from '@features/departments_schedule/config_dialog';
 
 const DepartmentsSchedule = () => {
   const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const selectedWeek = useAtomValue(selectedDeptWeekState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
   const schedules = useAtomValue(deptScheduleState);
   const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
   const { t } = useAppTranslation();
@@ -37,6 +48,10 @@ const DepartmentsSchedule = () => {
   // sincronización — igual que en Exhibidores y Salidas. Ahora publica de
   // verdad, y el sincronizado va incluido (guardar dispara el ciclo).
   const [publishDialog, setPublishDialog] = useState(false);
+
+  // La configuración vive aquí dentro, no en los ajustes de la congregación:
+  // quien lleva los departamentos no tiene por qué tener acceso a aquellos.
+  const [configDialog, setConfigDialog] = useState(false);
 
   // Se publica por MES, aunque los datos sean por semana: es la unidad con la
   // que se piensa el programa. Publicar marca todas las semanas de ese mes.
@@ -55,21 +70,17 @@ const DepartmentsSchedule = () => {
     let count = 0;
 
     for (const week of weeksInMonth) {
-      const roles = [
-        week.acomodadores?.exterior,
-        week.acomodadores?.interior,
-        week.microfonos?.micro1,
-        week.microfonos?.micro2,
-        week.multimedia?.video,
-        week.multimedia?.audio,
-        week.plataforma?.encargado,
-      ];
-
-      count += roles.filter((role) => !role?.value).length;
+      // Los puestos que hay que contar son los que la configuración de cada
+      // departamento define ahora mismo, no una lista escrita a mano: si
+      // alguien parte un departamento en dos turnos, los turnos vacíos también
+      // cuentan.
+      for (const slot of buildAllDeptSlots(departmentsConfig)) {
+        if (!week[slot.dept]?.[slot.key]?.value) count++;
+      }
     }
 
     return count;
-  }, [weeksInMonth]);
+  }, [weeksInMonth, departmentsConfig]);
 
   const handleTogglePublishMonth = async () => {
     if (monthIsHistoric) return;
@@ -116,6 +127,11 @@ const DepartmentsSchedule = () => {
         hasSchedule={weeksInMonth.length > 0}
       />
 
+      <DeptConfigDialog
+        open={configDialog}
+        onClose={() => setConfigDialog(false)}
+      />
+
       {isAutofillOpen && (
         <DeptAutofillDialog
           open={isAutofillOpen}
@@ -134,6 +150,11 @@ const DepartmentsSchedule = () => {
                 icon={<IconPrint />}
               />
             )}
+            <NavBarButton
+              text="Configuración"
+              onClick={() => setConfigDialog(true)}
+              icon={<IconSettings />}
+            />
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}
               onClick={() => setIsAutofillOpen(true)}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { isMyAssignmentOpenState, myAssignmentsBadgeState } from '@states/app';
 import {
+  departmentsConfigState,
   shortDateFormatState,
   userLocalUIDState,
   userMembersDelegateState,
@@ -22,7 +23,6 @@ import { ACTIVITY_LABELS } from '@features/circuit_visit/shared/activityLabels';
 import { personsStateFind } from '@services/states/persons';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
-import { DeptWeekType } from '@definition/departments_schedule';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
 import { LimpiezaConfig } from '@definition/limpieza';
@@ -34,6 +34,11 @@ import { schedulesGetMeetingDate, schedulesWeekNoMeeting } from '@services/app/s
 import { Week } from '@definition/week_type';
 import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
+import {
+  DEPT_LABEL,
+  deptSlotsForMeeting,
+} from '@services/app/departments_slots';
+import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 
 const useMyAssignments = () => {
   const navigate = useNavigate();
@@ -43,6 +48,7 @@ const useMyAssignments = () => {
   const [open, setOpen] = useAtom(isMyAssignmentOpenState);
 
   const userUID = useAtomValue(userLocalUIDState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
   const delegateMembers = useAtomValue(userMembersDelegateState);
   const assignmentsHistory = useAtomValue(assignmentsHistoryState);
   const deptSchedules = useAtomValue(deptScheduleState);
@@ -133,75 +139,78 @@ const useMyAssignments = () => {
           weekDate >= today &&
           weekDate <= formatDate(maxDate, 'yyyy/MM/dd')
         ) {
-          // Check each department and role
-          type DeptKey = keyof Omit<DeptWeekType, 'weekOf' | 'updatedAt' | 'lastModifiedBy'>;
-          const depts: DeptKey[] = [
-            'acomodadores',
-            'microfonos',
-            'multimedia',
-            'plataforma',
-          ];
-
-          // Un rol de departamento cubre toda la semana en un solo dato (así
-          // se organiza y edita en la página de Departamentos, sin cambios).
-          // Aquí, de cara al hermano, tiene más sentido verlo como DOS
-          // asignaciones separadas: una para el día real de la reunión de
-          // entre semana y otra para el de fin de semana — incluyendo el
-          // ajuste a martes durante una semana de visita del CO, porque
-          // ambas usan schedulesGetMeetingDate (misma fuente que "Programas
-          // semanales"). Se omite el día que no tenga reunión esa semana
-          // (asamblea, congreso, Memorial, etc.).
+          // Un puesto de departamento normalmente cubre toda la semana en
+          // un solo dato (así se organiza y edita en la página de
+          // Departamentos). Aquí, de cara al hermano, tiene más sentido verlo
+          // como DOS asignaciones separadas: una para el día real de la
+          // reunión de entre semana y otra para el de fin de semana —
+          // incluyendo el ajuste a martes durante una semana de visita del CO,
+          // porque ambas usan schedulesGetMeetingDate (misma fuente que
+          // "Programas semanales"). Se omite el día que no tenga reunión esa
+          // semana (asamblea, congreso, Memorial, etc.).
+          //
+          // Y si el departamento está configurado POR REUNIÓN, cada una tiene
+          // sus propios puestos: de eso se encarga deptSlotsForMeeting, así
+          // que aquí no hay que saber nada de claves ni de sufijos.
           const schedule = schedules.find((s) => s.weekOf === weekDate);
 
-          const meetingDays: Array<'midweek' | 'weekend'> = ['midweek', 'weekend'];
+          const meetingDays: Array<'midweek' | 'weekend'> = [
+            'midweek',
+            'weekend',
+          ];
 
-          for (const dept of depts) {
-            for (const [role, data] of Object.entries(week[dept])) {
-              if (data.value !== uid) continue;
+          for (const meeting of meetingDays) {
+            const weekType =
+              schedule?.[`${meeting}_meeting`]?.week_type?.find(
+                (r) => r.type === 'main'
+              )?.value ?? Week.NORMAL;
 
-              // El compañero de rol dentro del mismo departamento (p. ej.
-              // interior/exterior en Acomodadores). Plataforma solo tiene un
-              // rol, así que aquí simplemente no encuentra ninguno.
-              const companionName = Object.entries(week[dept])
-                .filter(
-                  ([otherRole, otherData]) =>
-                    otherRole !== role &&
-                    otherData.value &&
-                    otherData.value !== uid
-                )
-                .map(([, otherData]) => {
-                  const companion = personsStateFind(otherData.value);
-                  return companion
-                    ? `${companion.person_data.person_firstname.value} ${companion.person_data.person_lastname.value}`.trim()
-                    : '';
-                })
-                .filter((name) => name.length > 0)
-                .join(', ');
+            if (schedulesWeekNoMeeting(weekType)) continue;
 
-              for (const meeting of meetingDays) {
-                const weekType =
-                  schedule?.[`${meeting}_meeting`]?.week_type?.find(
-                    (r) => r.type === 'main'
-                  )?.value ?? Week.NORMAL;
+            const meetingDateStr = schedulesGetMeetingDate({
+              week: weekDate,
+              meeting,
+              dataView: 'main',
+            }).date;
+            const actualDate = meetingDateStr || weekDate;
 
-                if (schedulesWeekNoMeeting(weekType)) continue;
+            // El filtro grueso de arriba (weekDate >= today) solo evita
+            // recorrer semanas ya pasadas del todo; dentro de la semana
+            // actual, cada mitad (entre semana / fin de semana) debe
+            // desaparecer en cuanto pase SU día real, no esperar a que
+            // acabe la semana entera.
+            if (actualDate < currentDayStr) continue;
 
-                const meetingDateStr = schedulesGetMeetingDate({
-                  week: weekDate,
-                  meeting,
-                  dataView: 'main',
-                }).date;
-                const actualDate = meetingDateStr || weekDate;
+            for (const dept of ALL_DEPARTMENT_TYPES) {
+              const slots = deptSlotsForMeeting(
+                departmentsConfig,
+                dept,
+                meeting
+              );
 
-                // El filtro grueso de arriba (weekDate >= today) solo evita
-                // recorrer semanas ya pasadas del todo; dentro de la semana
-                // actual, cada mitad (entre semana / fin de semana) debe
-                // desaparecer en cuanto pase SU día real, no esperar a que
-                // acabe la semana entera.
-                if (actualDate < currentDayStr) continue;
+              const mySlots = slots.filter(
+                (slot) => week[dept]?.[slot.key]?.value === uid
+              );
+
+              for (const slot of mySlots) {
+                // El compañero de puesto dentro del mismo departamento y la
+                // misma reunión (p. ej. interior/exterior en Acomodadores).
+                // Plataforma solo tiene uno, así que no encuentra ninguno.
+                const companionName = slots
+                  .filter((other) => other.key !== slot.key)
+                  .map((other) => week[dept]?.[other.key]?.value)
+                  .filter((other) => other && other !== uid)
+                  .map((other) => {
+                    const companion = personsStateFind(other);
+                    return companion
+                      ? `${companion.person_data.person_firstname.value} ${companion.person_data.person_lastname.value}`.trim()
+                      : '';
+                  })
+                  .filter((name) => name.length > 0)
+                  .join(', ');
 
                 results.push({
-                  id: `DEPT_${weekDate}_${dept}_${role}_${meeting}`,
+                  id: `DEPT_${weekDate}_${dept}_${slot.key}_${meeting}`,
                   // weekOf = fecha real de la reunión (no el lunes), igual
                   // que resolveAssignmentDate hace para las asignaciones
                   // normales de reunión — así el agrupamiento por mes y por
@@ -215,9 +224,9 @@ const useMyAssignments = () => {
                   assignment: {
                     code: 0 as AssignmentHistoryType['assignment']['code'],
                     person: uid,
-                    key: `DEPT_${dept}_${role}` as AssignmentHistoryType['assignment']['key'],
+                    key: `DEPT_${dept}_${slot.key}` as AssignmentHistoryType['assignment']['key'],
                     dataView: 'main',
-                    title: `${dept.charAt(0).toUpperCase() + dept.slice(1)} (${role})`,
+                    title: `${DEPT_LABEL[dept]} (${slot.label})`,
                     descItems: companionName
                       ? [{ icon: 'people', text: `Con ${companionName}` }]
                       : undefined,
@@ -628,6 +637,7 @@ const useMyAssignments = () => {
   }, [
     assignmentsHistory,
     deptSchedules,
+    departmentsConfig,
     serviceOutings,
     serviceOutingsSettings,
     exhibitors,

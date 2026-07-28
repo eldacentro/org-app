@@ -3,6 +3,7 @@ import {
   buildAllDeptSlots,
   buildDeptSlots,
   DEFAULT_DEPT_CONFIG,
+  DEPT_LABEL,
   deptSlotKey,
   deptSlotsForMeeting,
   MAX_DEPT_TURNS,
@@ -173,6 +174,21 @@ describe('qué puestos le tocan a cada reunión', () => {
     ).toEqual(['exterior', 'interior']);
   });
 
+  it('con turnos, cada reunión se lleva los suyos y solo los suyos', () => {
+    // Es de lo que vive "Mis asignaciones": el turno del jueves no puede
+    // aparecer en la tarjeta del domingo.
+    const config = { acomodadores: { scope: 'meeting' as const, turns: 2 } };
+
+    expect(
+      deptSlotsForMeeting(config, 'acomodadores', 'midweek').map((s) => s.key)
+    ).toEqual([
+      'exterior__midweek',
+      'exterior__midweek__t2',
+      'interior__midweek',
+      'interior__midweek__t2',
+    ]);
+  });
+
   it('por reunión, cada una tiene los suyos', () => {
     const config = { acomodadores: { scope: 'meeting' as const, turns: 1 } };
 
@@ -182,6 +198,20 @@ describe('qué puestos le tocan a cada reunión', () => {
     expect(
       deptSlotsForMeeting(config, 'acomodadores', 'weekend').map((s) => s.key)
     ).toEqual(['exterior__weekend', 'interior__weekend']);
+  });
+});
+
+describe('rótulos de los departamentos', () => {
+  it('Multimedia lleva la tilde de siempre en Vídeo', () => {
+    // El editor decía "Vídeo" antes de que los puestos salieran de aquí.
+    expect(buildDeptSlots(null, 'multimedia')[0].label).toBe('Vídeo');
+  });
+
+  it('cada departamento tiene su nombre para el PDF y los avisos', () => {
+    expect(DEPT_LABEL.acomodadores).toBe('Acomodadores');
+    expect(DEPT_LABEL.microfonos).toBe('Micrófonos');
+    expect(DEPT_LABEL.multimedia).toBe('Multimedia');
+    expect(DEPT_LABEL.plataforma).toBe('Plataforma');
   });
 });
 

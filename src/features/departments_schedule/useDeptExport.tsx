@@ -4,7 +4,12 @@ import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
 import { personGetFullname } from '@services/states/persons';
-import { congNameState } from '@states/settings';
+import { congNameState, departmentsConfigState } from '@states/settings';
+import {
+  buildDeptSlots,
+  DEPT_LABEL,
+} from '@services/app/departments_slots';
+import { DepartmentType } from '@definition/person';
 import { formatDateShortMonth, weeksInMonth } from '@utils/date';
 import DeptSchedulePDF, { DeptPDFData } from '@views/departments';
 
@@ -12,6 +17,7 @@ const useDeptExport = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const deptSchedules = useAtomValue(deptScheduleState);
   const congName = useAtomValue(congNameState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
 
   const handleExportPDF = useCallback(async () => {
     if (selectedWeek === '') return;
@@ -30,50 +36,34 @@ const useDeptExport = () => {
 
       const weekLabel = `${formatDateShortMonth(monday)} - ${formatDateShortMonth(sunday)}`;
 
-      // Si la persona ya no existe (se borró), se usa el nombre que ya se
-      // guardó junto con el uid al momento de asignar, en vez de dejar la
-      // celda en blanco sin ningún rastro de quién estaba asignado.
+      // Los puestos salen de la configuración de cada departamento (por semana
+      // o por reunión, con uno o dos turnos), no de una lista escrita a mano.
+      const departments = (
+        Object.keys(DEPT_LABEL) as DepartmentType[]
+      ).map((dept) => ({
+        title: DEPT_LABEL[dept],
+        rows: buildDeptSlots(departmentsConfig, dept).map((slot) => {
+          const assignment = week?.[dept]?.[slot.key];
+
+          // Si la persona ya no existe (se borró), se usa el nombre que ya se
+          // guardó junto con el uid al momento de asignar, en vez de dejar la
+          // celda en blanco sin ningún rastro de quién estaba asignado.
+          return {
+            label: slot.label,
+            name:
+              personGetFullname(assignment?.value || '') ||
+              assignment?.name ||
+              '',
+          };
+        }),
+      }));
+
       return {
         weekOf,
         weekOfFormatted: weekLabel,
-        acomodadores: {
-          exterior:
-            personGetFullname(week?.acomodadores.exterior.value || '') ||
-            week?.acomodadores.exterior.name ||
-            '',
-          interior:
-            personGetFullname(week?.acomodadores.interior.value || '') ||
-            week?.acomodadores.interior.name ||
-            '',
-        },
-        microfonos: {
-          micro1:
-            personGetFullname(week?.microfonos.micro1.value || '') ||
-            week?.microfonos.micro1.name ||
-            '',
-          micro2:
-            personGetFullname(week?.microfonos.micro2.value || '') ||
-            week?.microfonos.micro2.name ||
-            '',
-        },
-        multimedia: {
-          video:
-            personGetFullname(week?.multimedia.video.value || '') ||
-            week?.multimedia.video.name ||
-            '',
-          audio:
-            personGetFullname(week?.multimedia.audio.value || '') ||
-            week?.multimedia.audio.name ||
-            '',
-        },
+        departments,
         updatedAt: week?.updatedAt,
         lastModifiedBy: week?.lastModifiedBy,
-        plataforma: {
-          encargado:
-            personGetFullname(week?.plataforma.encargado.value || '') ||
-            week?.plataforma.encargado.name ||
-            '',
-        },
       };
     });
 
@@ -109,7 +99,7 @@ const useDeptExport = () => {
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
-  }, [selectedWeek, deptSchedules, congName]);
+  }, [selectedWeek, deptSchedules, congName, departmentsConfig]);
 
   return { handleExportPDF };
 };
