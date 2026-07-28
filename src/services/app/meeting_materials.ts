@@ -3,16 +3,36 @@ import { SourceWeekType } from '@definition/sources';
 /**
  * Qué material de reunión hay, de dónde salió y qué falta.
  *
- * La Guía de actividades se publica por BIMESTRES (enero-febrero, marzo-abril,
- * …), así que es la unidad con la que se piensa: se descarga un cuaderno, no
- * una semana. Aquí se agrupan las semanas guardadas en esos bimestres.
+ * Son DOS publicaciones distintas y se importan por separado: la Guía de
+ * actividades (entre semana) y La Atalaya de estudio (fin de semana). Por eso
+ * aquí casi todo se pregunta POR REUNIÓN — decir "enero-febrero está
+ * importado" sin más manda a alguien al domingo sin material porque solo se
+ * bajó la Guía.
  *
- * Todo esto son funciones puras sobre la tabla de material: se pueden probar,
- * y no hay forma de que un `?.` de más se lleve media lista sin que nadie se
- * entere.
+ * Las dos se publican por temporadas que no coinciden (la Guía es bimestral y
+ * cada número de La Atalaya cubre unas cinco semanas a caballo entre meses),
+ * así que se agrupa por BIMESTRE de calendario, que es lo único común, y
+ * dentro se dice qué hay de cada reunión.
+ *
+ * Todo son funciones puras sobre la tabla de material: se pueden probar, y no
+ * hay forma de que un `?.` de más se lleve media lista sin que nadie se entere.
  */
 
+export type MeetingKind = 'midweek' | 'weekend';
+
 export type MaterialOrigen = 'jw' | 'jwpub' | 'desconocido';
+
+export type EstadoReunion = {
+  semanas: string[];
+  origen: MaterialOrigen;
+  /** Cuándo se importó, si consta. ISO. */
+  importadoEl?: string;
+  /**
+   * Si el enlace de JW Library puede abrir la semana exacta. Solo el .jwpub
+   * trae los identificadores; desde jw.org se abre la publicación y ya.
+   */
+  semanaExacta: boolean;
+};
 
 export type BimestreMateriales = {
   /** 'YYYY-N', con N el número de bimestre (1..6). Sirve de clave. */
@@ -22,16 +42,8 @@ export type BimestreMateriales = {
   bimestre: number;
   /** Mes inicial del bimestre (1, 3, 5, 7, 9, 11). */
   primerMes: number;
-  semanas: string[];
-  origen: MaterialOrigen;
-  /** Cuándo se importó, si se sabe. ISO. */
-  importadoEl?: string;
-  /**
-   * Si el enlace de JW Library puede llevar a la semana exacta. Solo el
-   * .jwpub trae los identificadores de semana; desde jw.org el enlace lleva
-   * al cuaderno del bimestre y ya.
-   */
-  semanaExacta: boolean;
+  midweek?: EstadoReunion;
+  weekend?: EstadoReunion;
 };
 
 /** El bimestre (1..6) al que pertenece un mes 1..12. */
@@ -54,60 +66,121 @@ const partesDeSemana = (weekOf: string) => {
   return { year, month };
 };
 
+/** El identificador de documento de esa reunión, si lo hay. */
+export const docidDeSemana = (week: SourceWeekType, meeting: MeetingKind) =>
+  meeting === 'midweek' ? week?.mwb_week_docid : week?.w_study_docid;
+
+const origenGuardado = (week: SourceWeekType, meeting: MeetingKind) => {
+  const guardado = week?.import_source;
+  if (!guardado) return undefined;
+
+  // Forma antigua, de las primeras horas de esta función: un solo origen para
+  // toda la semana. Se acepta para las dos reuniones y no se descarta nada.
+  const suelto = guardado as unknown as { type?: string; updatedAt?: string };
+  if (suelto.type === 'jw' || suelto.type === 'jwpub') {
+    return { type: suelto.type, updatedAt: suelto.updatedAt };
+  }
+
+  return guardado[meeting];
+};
+
 /**
- * El origen de UNA semana.
+ * De dónde salió el material de esa reunión, en esa semana.
  *
  * Lo importado antes de que se guardara el origen no lo lleva, así que se
- * deduce: solo la importación desde .jwpub guarda el identificador de semana.
- * No es infalible —si sobre un .jwpub se reimporta desde jw.org, el
- * identificador se conserva— pero es lo mejor que se puede decir del pasado, y
- * de aquí en adelante el dato es explícito.
+ * deduce: solo la importación desde .jwpub guarda el identificador de
+ * documento. No es infalible —si sobre un .jwpub se reimporta desde jw.org, el
+ * identificador se conserva— por eso lo explícito manda cuando existe.
  */
-export const origenDeSemana = (week: SourceWeekType): MaterialOrigen => {
-  if (week?.import_source?.type === 'jw') return 'jw';
-  if (week?.import_source?.type === 'jwpub') return 'jwpub';
+export const origenDeSemana = (
+  week: SourceWeekType,
+  meeting: MeetingKind
+): MaterialOrigen => {
+  const guardado = origenGuardado(week, meeting);
 
-  if (typeof week?.mwb_week_docid === 'number') return 'jwpub';
+  if (guardado?.type === 'jw') return 'jw';
+  if (guardado?.type === 'jwpub') return 'jwpub';
+
+  if (typeof docidDeSemana(week, meeting) === 'number') return 'jwpub';
 
   return 'desconocido';
 };
 
+const tieneTexto = (valor: object | undefined) =>
+  !!valor &&
+  Object.values(valor).some(
+    (texto) => typeof texto === 'string' && texto.trim().length > 0
+  );
+
 /**
- * ¿Tiene material de verdad esta semana?
+ * ¿Tiene material esa reunión de esa semana?
  *
  * Un registro puede existir vacío: la tabla se siembra al crear el programa de
  * una semana aunque no se haya importado nada. Lo que decide es que haya
- * llegado el texto de la reunión de entre semana o el estudio de La Atalaya.
+ * llegado el texto — la lectura de la Biblia para entre semana, el tema del
+ * estudio para el fin de semana.
  */
-export const semanaTieneMaterial = (week: SourceWeekType | undefined) => {
+export const tieneMaterial = (
+  week: SourceWeekType | undefined,
+  meeting: MeetingKind
+) => {
   if (!week) return false;
 
-  const midweek = week.midweek_meeting?.weekly_bible_reading;
-  const weekend = week.weekend_meeting?.w_study;
-
-  const tieneAlgo = (valor: object | undefined) =>
-    !!valor &&
-    Object.values(valor).some(
-      (texto) => typeof texto === 'string' && texto.trim().length > 0
-    );
-
-  return tieneAlgo(midweek) || tieneAlgo(weekend);
+  return meeting === 'midweek'
+    ? tieneTexto(week.midweek_meeting?.weekly_bible_reading)
+    : tieneTexto(week.weekend_meeting?.w_study);
 };
 
-/**
- * Agrupa el material guardado en bimestres, del más reciente al más antiguo.
- *
- * El origen del bimestre es el de sus semanas: si no coinciden todas —porque
- * se reimportó a medias— manda el de la MAYORÍA, que es lo que describe mejor
- * de dónde salió el cuaderno.
- */
+const construirEstado = (
+  semanas: SourceWeekType[],
+  meeting: MeetingKind
+): EstadoReunion | undefined => {
+  const conMaterial = semanas.filter((week) => tieneMaterial(week, meeting));
+  if (conMaterial.length === 0) return undefined;
+
+  const conteo = new Map<MaterialOrigen, number>();
+  let importadoEl: string | undefined;
+
+  for (const week of conMaterial) {
+    const origen = origenDeSemana(week, meeting);
+    conteo.set(origen, (conteo.get(origen) ?? 0) + 1);
+
+    const fecha = origenGuardado(week, meeting)?.updatedAt;
+    if (fecha && (!importadoEl || fecha > importadoEl)) importadoEl = fecha;
+  }
+
+  let origen: MaterialOrigen = 'desconocido';
+  let mejor = 0;
+
+  for (const [candidato, veces] of conteo) {
+    // Con empate gana lo que NO es "desconocido": decir de dónde vino es más
+    // útil que encogerse de hombros.
+    if (veces > mejor || (veces === mejor && candidato !== 'desconocido')) {
+      origen = candidato;
+      mejor = veces;
+    }
+  }
+
+  return {
+    semanas: conMaterial.map((week) => week.weekOf).sort(),
+    origen,
+    importadoEl,
+    semanaExacta: conMaterial.some(
+      (week) => typeof docidDeSemana(week, meeting) === 'number'
+    ),
+  };
+};
+
+/** Agrupa el material guardado en bimestres, del más reciente al más antiguo. */
 export const agruparPorBimestre = (
   sources: SourceWeekType[]
 ): BimestreMateriales[] => {
   const grupos = new Map<string, SourceWeekType[]>();
 
   for (const week of sources ?? []) {
-    if (!semanaTieneMaterial(week)) continue;
+    if (!tieneMaterial(week, 'midweek') && !tieneMaterial(week, 'weekend')) {
+      continue;
+    }
 
     const partes = partesDeSemana(week.weekOf);
     if (!partes) continue;
@@ -123,43 +196,15 @@ export const agruparPorBimestre = (
 
   for (const [id, semanas] of grupos) {
     const [yearStr, bimestreStr] = id.split('-');
-    const year = Number(yearStr);
     const bimestre = Number(bimestreStr);
-
-    const conteo = new Map<MaterialOrigen, number>();
-    let importadoEl: string | undefined;
-
-    for (const week of semanas) {
-      const origen = origenDeSemana(week);
-      conteo.set(origen, (conteo.get(origen) ?? 0) + 1);
-
-      const fecha = week.import_source?.updatedAt;
-      if (fecha && (!importadoEl || fecha > importadoEl)) importadoEl = fecha;
-    }
-
-    let origen: MaterialOrigen = 'desconocido';
-    let mejor = 0;
-
-    for (const [candidato, veces] of conteo) {
-      // Con empate gana lo que NO es "desconocido": decir de dónde vino es más
-      // útil que encogerse de hombros.
-      if (veces > mejor || (veces === mejor && candidato !== 'desconocido')) {
-        origen = candidato;
-        mejor = veces;
-      }
-    }
 
     resultado.push({
       id,
-      year,
+      year: Number(yearStr),
       bimestre,
       primerMes: bimestre * 2 - 1,
-      semanas: semanas.map((week) => week.weekOf).sort(),
-      origen,
-      importadoEl,
-      semanaExacta: semanas.some(
-        (week) => typeof week.mwb_week_docid === 'number'
-      ),
+      midweek: construirEstado(semanas, 'midweek'),
+      weekend: construirEstado(semanas, 'weekend'),
     });
   }
 
@@ -169,7 +214,7 @@ export const agruparPorBimestre = (
 };
 
 /**
- * Las semanas que vienen y todavía no tienen material.
+ * Las semanas que vienen y todavía no tienen material de esa reunión.
  *
  * Es el dato que de verdad muerde: no enterarse de que falta el cuaderno hasta
  * el martes. `semanasPrevistas` son los lunes que deberían existir (los genera
@@ -177,11 +222,12 @@ export const agruparPorBimestre = (
  */
 export const semanasSinMaterial = (
   sources: SourceWeekType[],
-  semanasPrevistas: string[]
+  semanasPrevistas: string[],
+  meeting: MeetingKind
 ) => {
   const conMaterial = new Set(
     (sources ?? [])
-      .filter((week) => semanaTieneMaterial(week))
+      .filter((week) => tieneMaterial(week, meeting))
       .map((week) => week.weekOf)
   );
 

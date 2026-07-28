@@ -6,24 +6,29 @@ import {
   origenDeSemana,
   primerMesDelBimestre,
   semanasSinMaterial,
-  semanaTieneMaterial,
+  tieneMaterial,
 } from './meeting_materials';
 
 /**
  * Materiales de reunión.
  *
- * Lo que importa aquí es no MENTIR sobre lo que hay: decir que un bimestre
- * está importado cuando su registro está vacío, o dar por bueno un origen que
- * no consta, manda a alguien a la reunión sin material.
+ * Lo que importa aquí es no MENTIR sobre lo que hay. Son dos publicaciones que
+ * se importan por separado, así que decir "enero-febrero está importado" sin
+ * mirar de qué reunión manda a alguien al domingo sin material porque solo se
+ * bajó la Guía.
  */
 
-const semana = (
-  weekOf: string,
-  extra: Partial<SourceWeekType> = {}
-): SourceWeekType =>
+const conGuia = (weekOf: string, extra: Partial<SourceWeekType> = {}) =>
   ({
     weekOf,
     midweek_meeting: { weekly_bible_reading: { S: 'Génesis 1-3' } },
+    ...extra,
+  }) as unknown as SourceWeekType;
+
+const conAtalaya = (weekOf: string, extra: Partial<SourceWeekType> = {}) =>
+  ({
+    weekOf,
+    weekend_meeting: { w_study: { S: 'Confiemos en Jehová' } },
     ...extra,
   }) as unknown as SourceWeekType;
 
@@ -31,6 +36,7 @@ const vacia = (weekOf: string) =>
   ({
     weekOf,
     midweek_meeting: { weekly_bible_reading: { S: '' } },
+    weekend_meeting: { w_study: { S: '' } },
   }) as unknown as SourceWeekType;
 
 describe('los bimestres de la Guía de actividades', () => {
@@ -48,124 +54,166 @@ describe('los bimestres de la Guía de actividades', () => {
   });
 });
 
-describe('un registro vacío no es material', () => {
-  it('una semana sembrada sin importar nada no cuenta', () => {
-    // La tabla se siembra al crear el programa de una semana. Si esto
-    // contara, la página diría que el cuaderno está y no está.
-    expect(semanaTieneMaterial(vacia('2026/01/05'))).toBe(false);
-    expect(semanaTieneMaterial(undefined)).toBe(false);
+describe('cada reunión tiene su material, por separado', () => {
+  it('la Guía no da por buena La Atalaya', () => {
+    // Este es el fallo que se quiere evitar: bajar solo la Guía y que la app
+    // diga que la semana está completa.
+    const semana = conGuia('2026/01/05');
+
+    expect(tieneMaterial(semana, 'midweek')).toBe(true);
+    expect(tieneMaterial(semana, 'weekend')).toBe(false);
   });
 
-  it('con lectura de la Biblia sí cuenta', () => {
-    expect(semanaTieneMaterial(semana('2026/01/05'))).toBe(true);
+  it('y La Atalaya tampoco da por buena la Guía', () => {
+    const semana = conAtalaya('2026/01/05');
+
+    expect(tieneMaterial(semana, 'midweek')).toBe(false);
+    expect(tieneMaterial(semana, 'weekend')).toBe(true);
   });
 
-  it('solo con el estudio de La Atalaya también', () => {
-    const soloFinDeSemana = {
-      weekOf: '2026/01/05',
-      weekend_meeting: { w_study: { S: 'Un tema' } },
-    } as unknown as SourceWeekType;
-
-    expect(semanaTieneMaterial(soloFinDeSemana)).toBe(true);
+  it('un registro sembrado y vacío no es material', () => {
+    expect(tieneMaterial(vacia('2026/01/05'), 'midweek')).toBe(false);
+    expect(tieneMaterial(vacia('2026/01/05'), 'weekend')).toBe(false);
+    expect(tieneMaterial(undefined, 'midweek')).toBe(false);
   });
 });
 
-describe('de dónde salió cada semana', () => {
-  it('lo guardado explícitamente manda', () => {
-    expect(
-      origenDeSemana(
-        semana('2026/01/05', {
-          import_source: { type: 'jw', updatedAt: '2026-01-01T00:00:00Z' },
-        })
-      )
-    ).toBe('jw');
+describe('de dónde salió cada reunión', () => {
+  it('lo guardado explícitamente manda, y es por reunión', () => {
+    const semana = conGuia('2026/01/05', {
+      import_source: {
+        midweek: { type: 'jwpub', updatedAt: '2026-01-01T00:00:00Z' },
+        weekend: { type: 'jw', updatedAt: '2026-01-02T00:00:00Z' },
+      },
+    });
+
+    expect(origenDeSemana(semana, 'midweek')).toBe('jwpub');
+    expect(origenDeSemana(semana, 'weekend')).toBe('jw');
   });
 
-  it('sin dato explícito, el identificador de semana delata al .jwpub', () => {
-    expect(origenDeSemana(semana('2026/01/05', { mwb_week_docid: 123 }))).toBe(
-      'jwpub'
+  it('sin dato explícito, el identificador delata al .jwpub', () => {
+    expect(
+      origenDeSemana(conGuia('2026/01/05', { mwb_week_docid: 123 }), 'midweek')
+    ).toBe('jwpub');
+
+    expect(
+      origenDeSemana(
+        conAtalaya('2026/01/05', { w_study_docid: 456 }),
+        'weekend'
+      )
+    ).toBe('jwpub');
+  });
+
+  it('el identificador de una reunión no dice nada de la otra', () => {
+    const semana = conGuia('2026/01/05', { mwb_week_docid: 123 });
+
+    expect(origenDeSemana(semana, 'weekend')).toBe('desconocido');
+  });
+
+  it('sin ninguna de las dos cosas, se dice que no se sabe', () => {
+    expect(origenDeSemana(conGuia('2026/01/05'), 'midweek')).toBe(
+      'desconocido'
     );
   });
 
-  it('y sin ninguna de las dos cosas, se dice que no se sabe', () => {
-    // Preferible a inventarse "jw.org": lo importado antes de esto no lo dice.
-    expect(origenDeSemana(semana('2026/01/05'))).toBe('desconocido');
-  });
-
   it('lo explícito gana al identificador antiguo', () => {
-    // Reimportar desde jw.org encima de un .jwpub conserva el identificador,
-    // así que sin esta preferencia la página seguiría diciendo ".jwpub".
+    // Reimportar desde jw.org encima de un .jwpub conserva el identificador.
     expect(
       origenDeSemana(
-        semana('2026/01/05', {
+        conGuia('2026/01/05', {
           mwb_week_docid: 123,
-          import_source: { type: 'jw', updatedAt: '2026-02-01T00:00:00Z' },
-        })
+          import_source: {
+            midweek: { type: 'jw', updatedAt: '2026-02-01T00:00:00Z' },
+          },
+        }),
+        'midweek'
       )
     ).toBe('jw');
+  });
+
+  it('la forma antigua (un origen por semana) se sigue entendiendo', () => {
+    // Se guardó así durante unas horas; no se descarta.
+    const antigua = conGuia('2026/01/05', {
+      import_source: {
+        type: 'jwpub',
+        updatedAt: '2026-01-01T00:00:00Z',
+      } as never,
+    });
+
+    expect(origenDeSemana(antigua, 'midweek')).toBe('jwpub');
+    expect(origenDeSemana(antigua, 'weekend')).toBe('jwpub');
   });
 });
 
 describe('agrupado por cuaderno', () => {
   const sources = [
-    semana('2026/01/05', { mwb_week_docid: 1 }),
-    semana('2026/02/02', { mwb_week_docid: 2 }),
-    semana('2026/03/02', {
-      import_source: { type: 'jw', updatedAt: '2026-02-20T10:00:00Z' },
+    conGuia('2026/01/05', { mwb_week_docid: 1 }),
+    conGuia('2026/02/02', { mwb_week_docid: 2 }),
+    conAtalaya('2026/01/05', {
+      w_study_docid: 9,
+      import_source: {
+        weekend: { type: 'jwpub', updatedAt: '2026-01-10T10:00:00Z' },
+      },
+    }),
+    conGuia('2026/03/02', {
+      import_source: { midweek: { type: 'jw', updatedAt: '2026-02-20T10:00:00Z' } },
     }),
     vacia('2026/05/04'),
   ];
 
   it('enero y febrero caen juntos y marzo aparte', () => {
-    const grupos = agruparPorBimestre(sources);
-
-    expect(grupos.map((g) => g.id)).toEqual(['2026-2', '2026-1']);
-    expect(grupos.find((g) => g.id === '2026-1')!.semanas).toEqual([
-      '2026/01/05',
-      '2026/02/02',
+    expect(agruparPorBimestre(sources).map((g) => g.id)).toEqual([
+      '2026-2',
+      '2026-1',
     ]);
   });
 
-  it('un bimestre sin material no aparece', () => {
+  it('un bimestre sin nada no aparece', () => {
     expect(agruparPorBimestre(sources).some((g) => g.id === '2026-3')).toBe(
       false
     );
   });
 
-  it('dice el origen y si el enlace lleva a la semana exacta', () => {
-    const grupos = agruparPorBimestre(sources);
+  it('dice lo de cada reunión por separado', () => {
+    const eneFeb = agruparPorBimestre(sources).find((g) => g.id === '2026-1')!;
 
-    const eneFeb = grupos.find((g) => g.id === '2026-1')!;
-    expect(eneFeb.origen).toBe('jwpub');
-    expect(eneFeb.semanaExacta).toBe(true);
-    expect(eneFeb.primerMes).toBe(1);
+    expect(eneFeb.midweek!.origen).toBe('jwpub');
+    expect(eneFeb.midweek!.semanas).toEqual(['2026/01/05', '2026/02/02']);
+    expect(eneFeb.midweek!.semanaExacta).toBe(true);
 
-    const marAbr = grupos.find((g) => g.id === '2026-2')!;
-    expect(marAbr.origen).toBe('jw');
-    expect(marAbr.semanaExacta).toBe(false);
-    expect(marAbr.importadoEl).toBe('2026-02-20T10:00:00Z');
+    expect(eneFeb.weekend!.origen).toBe('jwpub');
+    expect(eneFeb.weekend!.importadoEl).toBe('2026-01-10T10:00:00Z');
+  });
+
+  it('un bimestre con Guía pero sin Atalaya lo dice', () => {
+    const marAbr = agruparPorBimestre(sources).find((g) => g.id === '2026-2')!;
+
+    expect(marAbr.midweek!.origen).toBe('jw');
+    expect(marAbr.weekend).toBeUndefined();
   });
 
   it('con orígenes mezclados manda el de la mayoría', () => {
     const mezcla = [
-      semana('2026/01/05', { mwb_week_docid: 1 }),
-      semana('2026/01/12', { mwb_week_docid: 2 }),
-      semana('2026/01/19', {
-        import_source: { type: 'jw', updatedAt: '2026-01-01T00:00:00Z' },
+      conGuia('2026/01/05', { mwb_week_docid: 1 }),
+      conGuia('2026/01/12', { mwb_week_docid: 2 }),
+      conGuia('2026/01/19', {
+        import_source: {
+          midweek: { type: 'jw', updatedAt: '2026-01-01T00:00:00Z' },
+        },
       }),
     ];
 
-    expect(agruparPorBimestre(mezcla)[0].origen).toBe('jwpub');
+    expect(agruparPorBimestre(mezcla)[0].midweek!.origen).toBe('jwpub');
   });
 
   it('lo más reciente va primero', () => {
-    const grupos = agruparPorBimestre([
-      semana('2025/11/03'),
-      semana('2026/03/02'),
-      semana('2026/01/05'),
-    ]);
-
-    expect(grupos.map((g) => g.id)).toEqual(['2026-2', '2026-1', '2025-6']);
+    expect(
+      agruparPorBimestre([
+        conGuia('2025/11/03'),
+        conGuia('2026/03/02'),
+        conGuia('2026/01/05'),
+      ]).map((g) => g.id)
+    ).toEqual(['2026-2', '2026-1', '2025-6']);
   });
 
   it('una lista vacía no rompe nada', () => {
@@ -175,15 +223,21 @@ describe('agrupado por cuaderno', () => {
 });
 
 describe('qué falta', () => {
-  it('avisa de las semanas previstas que no tienen material', () => {
-    const sources = [semana('2026/01/05'), vacia('2026/01/12')];
+  it('avisa por reunión, no en bloque', () => {
+    const sources = [conGuia('2026/01/05'), conAtalaya('2026/01/12')];
+    const previstas = ['2026/01/05', '2026/01/12'];
 
-    expect(
-      semanasSinMaterial(sources, ['2026/01/05', '2026/01/12', '2026/01/19'])
-    ).toEqual(['2026/01/12', '2026/01/19']);
+    expect(semanasSinMaterial(sources, previstas, 'midweek')).toEqual([
+      '2026/01/12',
+    ]);
+    expect(semanasSinMaterial(sources, previstas, 'weekend')).toEqual([
+      '2026/01/05',
+    ]);
   });
 
   it('sin semanas previstas no hay nada que avisar', () => {
-    expect(semanasSinMaterial([semana('2026/01/05')], [])).toEqual([]);
+    expect(semanasSinMaterial([conGuia('2026/01/05')], [], 'midweek')).toEqual(
+      []
+    );
   });
 });

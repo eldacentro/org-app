@@ -7,7 +7,10 @@ import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
 import Badge from '@components/badge';
 import useMeetingMaterialsPage from './useMeetingMaterialsPage';
-import { BimestreMateriales } from '@services/app/meeting_materials';
+import {
+  BimestreMateriales,
+  EstadoReunion,
+} from '@services/app/meeting_materials';
 
 /**
  * Materiales de reunión.
@@ -76,6 +79,50 @@ const Tarjeta = ({ children }: { children: ReactNode }) => (
     }}
   >
     {children}
+  </Box>
+);
+
+const FilaReunion = ({
+  titulo,
+  estado,
+}: {
+  titulo: string;
+  estado?: EstadoReunion;
+}) => (
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '12px',
+      flexWrap: 'wrap',
+    }}
+  >
+    <Box>
+      <Typography className="body-small-semibold" color="var(--ink)">
+        {titulo}
+      </Typography>
+      <Typography className="label-small-regular" color="var(--ink-2)">
+        {estado
+          ? `${estado.semanas.length} ${
+              estado.semanas.length === 1 ? 'semana' : 'semanas'
+            }${
+              estado.importadoEl
+                ? ` · importado el ${fechaCorta(estado.importadoEl)}`
+                : ''
+            } · JW Library abre ${
+              estado.semanaExacta ? 'la semana exacta' : 'la publicación'
+            }`
+          : 'Sin importar'}
+      </Typography>
+    </Box>
+
+    <Badge
+      text={estado ? ORIGEN[estado.origen].texto : 'Falta'}
+      color={estado ? ORIGEN[estado.origen].color : 'red'}
+      size="small"
+      filled={false}
+    />
   </Box>
 );
 
@@ -157,23 +204,36 @@ const MeetingMaterials = () => {
       </Stack>
 
       {/* ── Lo que falta ────────────────────────────────────────────────── */}
-      {semanasQueFaltan.length > 0 && (
-        <InfoTip
-          isBig={false}
-          color="warning"
-          text={`Sin material: ${semanasQueFaltan
-            .map((week) => semanaCorta(week))
-            .join(', ')}. Importa el cuaderno correspondiente antes de repartir esas semanas.`}
-        />
-      )}
+      {(['midweek', 'weekend'] as const).map((meeting) => {
+        const faltan = semanasQueFaltan[meeting];
+        if (faltan.length === 0) return null;
 
-      {semanasQueFaltan.length === 0 && bimestres.length > 0 && (
-        <InfoTip
-          isBig={false}
-          color="success"
-          text={`Las próximas ${semanasVigiladas} semanas tienen material.`}
-        />
-      )}
+        const nombre =
+          meeting === 'midweek'
+            ? 'Guía de actividades (entre semana)'
+            : 'La Atalaya (fin de semana)';
+
+        return (
+          <InfoTip
+            key={meeting}
+            isBig={false}
+            color="warning"
+            text={`Falta ${nombre}: ${faltan
+              .map((week) => semanaCorta(week))
+              .join(', ')}.`}
+          />
+        );
+      })}
+
+      {semanasQueFaltan.midweek.length === 0 &&
+        semanasQueFaltan.weekend.length === 0 &&
+        bimestres.length > 0 && (
+          <InfoTip
+            isBig={false}
+            color="success"
+            text={`Las próximas ${semanasVigiladas} semanas tienen las dos publicaciones.`}
+          />
+        )}
 
       {/* ── Importación automática ──────────────────────────────────────── */}
       <Tarjeta>
@@ -205,44 +265,22 @@ const MeetingMaterials = () => {
       )}
 
       <Stack spacing="12px">
-        {bimestres.map((grupo) => {
-          const origen = ORIGEN[grupo.origen];
+        {bimestres.map((grupo) => (
+          <Tarjeta key={grupo.id}>
+            <Typography className="h4" color="var(--ink)">
+              {nombreBimestre(grupo)}
+            </Typography>
 
-          return (
-            <Tarjeta key={grupo.id}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <Typography className="h4" color="var(--ink)">
-                  {nombreBimestre(grupo)}
-                </Typography>
-                <Badge
-                  text={origen.texto}
-                  color={origen.color}
-                  size="small"
-                  filled={false}
-                />
-              </Box>
-
-              <Typography className="label-small-regular" color="var(--ink-2)">
-                {grupo.semanas.length}{' '}
-                {grupo.semanas.length === 1 ? 'semana' : 'semanas'}
-                {grupo.importadoEl
-                  ? ` · importado el ${fechaCorta(grupo.importadoEl)}`
-                  : ''}
-                {grupo.semanaExacta
-                  ? ' · JW Library abre la semana exacta'
-                  : ' · JW Library abre el cuaderno'}
-              </Typography>
-            </Tarjeta>
-          );
-        })}
+            <FilaReunion
+              titulo="Entre semana · Guía de actividades"
+              estado={grupo.midweek}
+            />
+            <FilaReunion
+              titulo="Fin de semana · La Atalaya"
+              estado={grupo.weekend}
+            />
+          </Tarjeta>
+        ))}
       </Stack>
     </Box>
   );

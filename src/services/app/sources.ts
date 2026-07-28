@@ -1,5 +1,8 @@
 import { loadPub } from 'meeting-schedules-parser';
-import { extractMwbDocids } from './mwb_docid_extractor';
+import {
+  extractJwpubDocids,
+  JwpubDocids,
+} from './jwpub_docid_extractor';
 import { store } from '@states/index';
 import {
   ApplyMinistryType,
@@ -26,7 +29,7 @@ import { STORAGE_KEY } from '@constants/index';
 export const sourcesImportEPUB = async (fileEPUB) => {
   const [data, docids] = await Promise.all([
     loadPub(fileEPUB),
-    extractMwbDocids(fileEPUB),
+    extractJwpubDocids(fileEPUB),
   ]);
   await sourcesFormatAndSaveData(data, docids);
 };
@@ -61,18 +64,27 @@ const remapAssignmentType = (week: string, type: number) => {
   }
 };
 
-const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[], docidsByIndex?: number[]) => {
+const sourcesFormatAndSaveData = async (
+  data: SourceWeekIncomingType[],
+  docids?: JwpubDocids
+) => {
   const source_lang = store.get(JWLangState);
   const assTypeList = store.get(assignmentTypeAYFOnlyState);
 
   // De dónde viene esta importación. Los identificadores de semana solo los
   // trae el .jwpub, así que su presencia distingue las dos vías.
-  const importSource: SourceWeekType['import_source'] = {
-    type: docidsByIndex ? 'jwpub' : 'jw',
+  const origen = {
+    type: (docids ? 'jwpub' : 'jw') as 'jw' | 'jwpub',
     updatedAt: new Date().toISOString(),
   };
 
-  for (const [index, src] of data.entries()) {
+  // Cada archivo trae una publicación: la Guía va por su cuenta y La Atalaya
+  // por la suya. Se lleva la cuenta por separado para que el índice de los
+  // identificadores cuadre con las semanas de ESA publicación.
+  let indiceMWB = 0;
+  let indiceW = 0;
+
+  for (const src of data) {
     const obj = {} as SourceWeekType;
 
     const isMWB = Object.keys(src).includes('mwb_week_date_locale');
@@ -258,11 +270,21 @@ const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[], docidsBy
         };
       }
 
-      if (isMWB && docidsByIndex?.[index] !== undefined) {
-        obj.mwb_week_docid = docidsByIndex[index];
+      if (isMWB) {
+        const docid = docids?.mwb?.[indiceMWB];
+        if (docid !== undefined) obj.mwb_week_docid = docid;
+
+        indiceMWB++;
+        obj.import_source = { midweek: origen };
       }
 
-      obj.import_source = importSource;
+      if (isW) {
+        const docid = docids?.w?.[indiceW];
+        if (docid !== undefined) obj.w_study_docid = docid;
+
+        indiceW++;
+        obj.import_source = { ...obj.import_source, weekend: origen };
+      }
 
       await dbSourcesSave(obj);
 

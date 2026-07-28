@@ -113,10 +113,16 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     if (isSpecial) return null;
 
     const code = history.assignment.code as number;
-    const EXCLUDED = new Set([111, 118, 119, 120, 121, 122, 130, 131]);
+
+    // Estudio de La Atalaya: lector y conductor. Van por su cuenta porque su
+    // enlace sale del artículo de estudio, no del cuaderno de entre semana.
+    const isWatchtower = code === 122 || code === 130;
+
+    const EXCLUDED = new Set([111, 118, 119, 120, 121, 131]);
     const isMidweek =
       (code >= 100 && code <= 117) || (code >= 123 && code <= 129);
-    if (!isMidweek || EXCLUDED.has(code)) return null;
+
+    if (!isWatchtower && (!isMidweek || EXCLUDED.has(code))) return null;
 
     const locale = jwLang || 'S';
 
@@ -130,6 +136,19 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     const targetMonday = toMonday(history.weekOf);
 
     const source = sources.find((s) => toMonday(s.weekOf) === targetMonday);
+
+    if (isWatchtower) {
+      // Sin identificador no hay enlace: el número de La Atalaya de estudio se
+      // publica DOS O TRES meses antes que la semana en que se estudia, y ese
+      // desfase cambia dentro del propio cuaderno (la última semana ya cae en
+      // el mes siguiente). Deducirlo de la fecha acertaría casi siempre y
+      // mandaría al hermano al número equivocado el resto de las veces, así
+      // que se prefiere no enseñar nada antes que enseñar algo falso. Con el
+      // .jwpub importado, el identificador está y el enlace es exacto.
+      if (!source?.w_study_docid) return null;
+
+      return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.w_study_docid}`;
+    }
 
     if (source?.mwb_week_docid) {
       return `https://www.jw.org/finder?srcid=jwlshare&wtlocale=${locale}&prefer=lang&docid=${source.mwb_week_docid}`;

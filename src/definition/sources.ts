@@ -104,14 +104,30 @@ export type COTalkTitleType = { src: string; updatedAt: string };
  * Lo anterior a esto no lo lleva, y se deduce: una semana con
  * `mwb_week_docid` vino de un .jwpub, porque solo esa importación lo guarda.
  */
-export type SourceImportType = {
+export type SourceImportOriginType = {
   type: 'jw' | 'jwpub';
   updatedAt: string;
+};
+
+/**
+ * Una semana puede tener el material de entre semana de un sitio y el de fin de
+ * semana de otro: son DOS publicaciones distintas (la Guía y La Atalaya) y se
+ * importan por separado. Por eso el origen va por reunión y no por semana.
+ *
+ * El objeto de fuera NO lleva `updatedAt` a propósito: así la fusión entra
+ * dentro y resuelve cada reunión por su cuenta, en vez de que la importación
+ * de una pise a la otra.
+ */
+export type SourceImportType = {
+  midweek?: SourceImportOriginType;
+  weekend?: SourceImportOriginType;
 };
 
 export type SourceWeekType = {
   weekOf: string;
   mwb_week_docid?: number;
+  /** Artículo de estudio de La Atalaya de esa semana (solo desde .jwpub). */
+  w_study_docid?: number;
   import_source?: SourceImportType;
   midweek_meeting: {
     event_name: EventNameType[];

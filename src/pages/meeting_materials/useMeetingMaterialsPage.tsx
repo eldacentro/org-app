@@ -45,7 +45,12 @@ const useMeetingMaterialsPage = () => {
       );
     }
 
-    return semanasSinMaterial(sources, previstas);
+    // Por reunión: faltar La Atalaya no es lo mismo que faltar la Guía, y
+    // avisarlo en bloque esconde justo la mitad que falta.
+    return {
+      midweek: semanasSinMaterial(sources, previstas, 'midweek'),
+      weekend: semanasSinMaterial(sources, previstas, 'weekend'),
+    };
   }, [sources]);
 
   /** Cuándo toca la próxima importación automática, si está puesta. */
