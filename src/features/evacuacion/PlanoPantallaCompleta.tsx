@@ -118,6 +118,16 @@ const PlanoPantallaCompleta = ({
         overscrollBehavior: 'contain',
         display: 'flex',
         flexDirection: 'column',
+        // El fondo va de borde a borde, pero el CONTENIDO se mete dentro de la
+        // zona segura. Sin esto, en un iPhone el título y el botón de salir
+        // quedaban debajo de la hora y la batería, y el aviso de abajo debajo
+        // de la barra de inicio. En apaisado —que es como se mira este plano—
+        // el notch se va a un LADO, así que hacen falta las cuatro y no solo
+        // arriba y abajo.
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
       <Box
