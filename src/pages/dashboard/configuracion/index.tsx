@@ -3,12 +3,10 @@ import {
   IconSettings,
   IconManageAccess,
   IconJwOrg,
-  IconImportFile,
   IconSynced,
 } from '@icons/index';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import useCongregation from '../congregation/useCongregation';
-import useMeetingMaterials from '../meeting_materials/useMeetingMaterials';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
 
@@ -30,9 +28,6 @@ const ConfiguracionCard = () => {
     isUserAdmin,
     requests_count,
   } = useCongregation();
-
-  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
-    useMeetingMaterials();
 
   // Determine if we should show congregation/group settings
   const showSettings = (!isGroup && (isAdmin || isElder)) || (isGroup && isLanguageGroupOverseer);
@@ -70,38 +65,13 @@ const ConfiguracionCard = () => {
         </ListItem>
       )}
 
-      {/* 3. Importar desde jw.org */}
-      {isMeetingEditor && isNavigatorOnline && (
+      {/* 3. Materiales de reunión */}
+      {isMeetingEditor && (
         <ListItem disablePadding>
           <DashboardMenu
             icon={<IconJwOrg color="var(--black)" />}
-            primaryText={t('tr_sourceImportJw')}
-            onClick={handleOpenJWImport}
-          />
-        </ListItem>
-      )}
-
-      {/* 4. Importar desde archivo .jwpub */}
-      {isMeetingEditor && (
-        <ListItem disablePadding sx={{ position: 'relative' }}>
-          <DashboardMenu
-            icon={<IconImportFile color="var(--black)" />}
-            primaryText={t('tr_sourceImportEPUB')}
-          />
-          {/* Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
-              (no es un UTI reconocido). La validación se hace en handleFileSelected. */}
-          <input
-            type="file"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              opacity: 0,
-              cursor: 'pointer',
-              zIndex: 2,
-            }}
-            onChange={handleFileSelected}
+            primaryText={t('tr_meetingMaterials', 'Materiales de reunión')}
+            path="/meeting-materials"
           />
         </ListItem>
       )}

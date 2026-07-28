@@ -93,9 +93,26 @@ export type EventNameType = {
 
 export type COTalkTitleType = { src: string; updatedAt: string };
 
+/**
+ * De dónde salió el material de esa semana.
+ *
+ * Objeto CON `updatedAt` a propósito: es la forma que el motor de fusión sabe
+ * resolver por sí solo (gana el más nuevo y se reemplaza entero). Un valor
+ * suelto se pierde en la fusión sin decir nada — ver los filos conocidos de
+ * worker/merge.test.ts.
+ *
+ * Lo anterior a esto no lo lleva, y se deduce: una semana con
+ * `mwb_week_docid` vino de un .jwpub, porque solo esa importación lo guarda.
+ */
+export type SourceImportType = {
+  type: 'jw' | 'jwpub';
+  updatedAt: string;
+};
+
 export type SourceWeekType = {
   weekOf: string;
   mwb_week_docid?: number;
+  import_source?: SourceImportType;
   midweek_meeting: {
     event_name: EventNameType[];
     week_date_locale: LanguageStringType;

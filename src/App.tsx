@@ -82,6 +82,7 @@ const ApplicationDetails = lazy(
   () => import('@pages/persons/application_details')
 );
 const UpcomingEvents = lazy(() => import('@pages/activities/upcoming_events'));
+const MeetingMaterials = lazy(() => import('@pages/meeting_materials'));
 const DepartmentsSchedule = lazy(
   () => import('@pages/departments_schedule')
 );
@@ -155,6 +156,13 @@ const AttendanceEditorRoute = () => {
 const MidweekEditorRoute = () => {
   const { isMidweekEditor } = useCurrentUser();
   return <RouteProtected allowed={isMidweekEditor} />;
+};
+
+// Los materiales los importa quien lleva cualquiera de las dos reuniones: el
+// cuaderno trae a la vez lo de entre semana y el estudio de La Atalaya.
+const MeetingMaterialsRoute = () => {
+  const { isMeetingEditor } = useCurrentUser();
+  return <RouteProtected allowed={isMeetingEditor} />;
 };
 
 const MidweekDepartmentsRoute = () => {
@@ -361,6 +369,17 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <MidweekEditorRoute />,
                 children: [
                   { path: '/midweek-meeting', element: <MidweekMeeting /> },
+                ],
+              },
+
+              // meeting materials
+              {
+                element: <MeetingMaterialsRoute />,
+                children: [
+                  {
+                    path: '/meeting-materials',
+                    element: <MeetingMaterials />,
+                  },
                 ],
               },
 

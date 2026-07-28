@@ -65,6 +65,13 @@ const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[], docidsBy
   const source_lang = store.get(JWLangState);
   const assTypeList = store.get(assignmentTypeAYFOnlyState);
 
+  // De dónde viene esta importación. Los identificadores de semana solo los
+  // trae el .jwpub, así que su presencia distingue las dos vías.
+  const importSource: SourceWeekType['import_source'] = {
+    type: docidsByIndex ? 'jwpub' : 'jw',
+    updatedAt: new Date().toISOString(),
+  };
+
   for (const [index, src] of data.entries()) {
     const obj = {} as SourceWeekType;
 
@@ -254,6 +261,8 @@ const sourcesFormatAndSaveData = async (data: SourceWeekIncomingType[], docidsBy
       if (isMWB && docidsByIndex?.[index] !== undefined) {
         obj.mwb_week_docid = docidsByIndex[index];
       }
+
+      obj.import_source = importSource;
 
       await dbSourcesSave(obj);
 

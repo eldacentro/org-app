@@ -1,7 +1,6 @@
 import { ListItem } from '@mui/material';
-import { IconImportFile, IconJwOrg } from '@icons/index';
+import { IconJwOrg } from '@icons/index';
 import { useAppTranslation } from '@hooks/index';
-import useMeetingMaterials from './useMeetingMaterials';
 import useSharedHook from '../useSharedHook';
 import DashboardCard from '@features/dashboard/card';
 import DashboardMenu from '@features/dashboard/menu';
@@ -11,43 +10,18 @@ const MeetingsMaterialsCard = () => {
 
   const { showMeetingCard } = useSharedHook();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
-    useMeetingMaterials();
-
   if (!showMeetingCard) return null;
 
   return (
     <DashboardCard header={t('tr_meetingMaterials')}>
 
-      {isNavigatorOnline && (
-        <ListItem disablePadding>
-          <DashboardMenu
-            icon={<IconJwOrg color="var(--black)" />}
-            primaryText={t('tr_sourceImportJw')}
-            onClick={handleOpenJWImport}
-          />
-        </ListItem>
-      )}
-
-      <ListItem disablePadding sx={{ position: 'relative' }}>
+      {/* Los dos importadores viven en su propia página, junto con lo que hay
+          importado y lo que falta. */}
+      <ListItem disablePadding>
         <DashboardMenu
-          icon={<IconImportFile color="var(--black)" />}
-          primaryText={t('tr_sourceImportEPUB')}
-        />
-        {/* Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
-            (no es un UTI reconocido). La validación se hace en handleFileSelected. */}
-        <input
-          type="file"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            opacity: 0,
-            cursor: 'pointer',
-            zIndex: 2,
-          }}
-          onChange={handleFileSelected}
+          icon={<IconJwOrg color="var(--black)" />}
+          primaryText={t('tr_meetingMaterials', 'Materiales de reunión')}
+          path="/meeting-materials"
         />
       </ListItem>
     </DashboardCard>

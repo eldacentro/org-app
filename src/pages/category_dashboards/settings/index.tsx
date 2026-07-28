@@ -7,11 +7,9 @@ import {
   IconSettings,
   IconManageAccess,
   IconJwOrg,
-  IconImportFile,
   IconSynced,
 } from '@icons/index';
 import useCongregation from '@pages/dashboard/congregation/useCongregation';
-import useMeetingMaterials from '@pages/dashboard/meeting_materials/useMeetingMaterials';
 
 const SettingsDashboard = () => {
   const { t } = useAppTranslation();
@@ -29,8 +27,9 @@ const SettingsDashboard = () => {
     isConnected,
   } = useCongregation();
 
-  const { handleOpenJWImport, isNavigatorOnline, handleFileSelected } =
-    useMeetingMaterials();
+  // Los dos importadores se fueron a su propia página: allí, además de los
+  // botones, se ve QUÉ hay importado, de dónde vino y qué semanas faltan.
+  const handleOpenMeetingMaterials = () => navigate('/meeting-materials');
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -84,48 +83,18 @@ const SettingsDashboard = () => {
           </div>
         )}
 
-        {/* Importar desde jw.org */}
-        {isMeetingEditor && isNavigatorOnline && (
-          <div className="tile-item c-blue active-press full-width" onClick={handleOpenJWImport}>
+        {/* Materiales de reunión */}
+        {isMeetingEditor && (
+          <div className="tile-item c-blue active-press full-width" onClick={handleOpenMeetingMaterials}>
             <div className="ti">
               <IconJwOrg color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_sourceImportJw', 'Importar desde jw.org')}</div>
+              <div className="tile-name">{t('tr_meetingMaterials', 'Materiales de reunión')}</div>
             </div>
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
-        )}
-
-        {/* Importar desde archivo .jwpub */}
-        {isMeetingEditor && (
-          <div className="tile-item c-blue full-width" style={{ position: 'relative' }}>
-            <div className="ti">
-              <IconImportFile color="var(--brand)" width={22} height={22} />
-            </div>
-            <div className="tile-body">
-              <div className="tile-name">{t('tr_sourceImportEPUB', 'Importar desde archivo .epub')}</div>
-            </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-            {/* Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
-                (no es un UTI reconocido). La validación se hace en handleFileSelected. */}
-            <input
-              type="file"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                zIndex: 2,
-              }}
-              onChange={handleFileSelected}
-            />
           </div>
         )}
 
