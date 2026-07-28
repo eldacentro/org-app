@@ -3,6 +3,7 @@ import { ExhibitorSettingsType } from '@definition/exhibitors';
 import {
   getEffectiveTurnsForMonth,
   getMonthCancelledMessage,
+  getMyExhibitorTurns,
   isMonthCancelled,
   normalizeExhibitorSettings,
 } from './exhibitors';
@@ -114,5 +115,96 @@ describe('los ajustes del mes aguantan una forma inesperada', () => {
 
     expect(isMonthCancelled(settings, '2026/09')).toBe(false);
     expect(getMonthCancelledMessage(settings, '2026/09')).toBe('');
+  });
+});
+
+/**
+ * Una semana que cruza dos meses.
+ *
+ * Esta función alimenta a la vez "Mis asignaciones", el contador del panel y
+ * las notificaciones. Decidía el mes por el LUNES de la semana y lo aplicaba a
+ * los siete días, así que del 31 de agosto al 6 de septiembre todo contaba
+ * como agosto. Eso se lleva por delante los tres estados que dependen del mes:
+ * si está suspendido, qué turnos rigen y si está publicado.
+ */
+describe('una semana que cae entre dos meses', () => {
+  // Lunes 31 de agosto de 2026 → domingo 6 de septiembre.
+  const LUNES = new Date(2026, 7, 31, 12, 0, 0);
+
+  const conTurnoDiario = (extra: Partial<ExhibitorSettingsType> = {}) =>
+    build({
+      turns: [
+        {
+          id: 't1',
+          days: [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday',
+          ],
+          startTime: '10:00',
+          endTime: '12:00',
+          locations: [],
+          defaultLocation: 'Mercado',
+        },
+      ],
+      fixedAssignments: [
+        { turnId: 't1', personUid: 'yo', isResponsible: false },
+      ],
+      ...extra,
+    });
+
+  const turnos = (settings: ExhibitorSettingsType) =>
+    getMyExhibitorTurns(
+      [],
+      settings,
+      'yo',
+      LUNES,
+      '2026/08/31',
+      '2026/09/06'
+    ).map((t) => t.date);
+
+  it('los días de un mes en borrador NO salen, aunque el lunes sea de otro mes', () => {
+    // Agosto es histórico (publicado); septiembre está en borrador.
+    const result = turnos(conTurnoDiario());
+
+    expect(result).toEqual(['2026/08/31']);
+  });
+
+  it('al publicar septiembre salen también sus días', () => {
+    const result = turnos(conTurnoDiario({ publishedMonths: ['2026/09'] }));
+
+    expect(result).toEqual([
+      '2026/08/31',
+      '2026/09/01',
+      '2026/09/02',
+      '2026/09/03',
+      '2026/09/04',
+      '2026/09/05',
+      '2026/09/06',
+    ]);
+  });
+
+  it('un mes suspendido no arrastra al mes siguiente', () => {
+    // Agosto está suspendido de verdad en la congregación. Con el lunes
+    // mandando, esta semana entera desaparecía — incluida la de septiembre.
+    const result = turnos(
+      conTurnoDiario({
+        publishedMonths: ['2026/09'],
+        monthlyOverrides: { '2026/08': { isCancelledMonth: true } },
+      })
+    );
+
+    expect(result).toEqual([
+      '2026/09/01',
+      '2026/09/02',
+      '2026/09/03',
+      '2026/09/04',
+      '2026/09/05',
+      '2026/09/06',
+    ]);
   });
 });

@@ -148,22 +148,28 @@ export const getMyExhibitorTurns = (
 
   while (formatDate(weekMonday, 'yyyy/MM/dd') <= toDateStr) {
     const weekOf = formatDate(weekMonday, 'yyyy/MM/dd');
-    const monthStr = weekOf.substring(0, 7);
 
-    // Un mes en BORRADOR no le sale a nadie: las asignaciones fijas son una
-    // plantilla, no una decisión, y hasta que el responsable publica el mes no
-    // hay nada confirmado. Esto vale para "Mis asignaciones", para el contador
-    // del panel y para las notificaciones, que usan todos esta función.
-    if (
-      !isMonthCancelled(settings, monthStr) &&
-      isExhibitorMonthPublished(settings, monthStr)
-    ) {
-      const effectiveTurns = getEffectiveTurnsForMonth(settings, monthStr);
+    {
       const weekRecord = exhibitors.find((w) => w?.weekOf === weekOf);
 
       for (let i = 0; i < 7; i++) {
         const currentDate = addDays(weekMonday, i);
         const dateStr = formatDate(currentDate, 'yyyy/MM/dd');
+
+        // El mes es el de CADA DÍA, no el del lunes. Una semana puede empezar
+        // en un mes y acabar en otro (31 de agosto a 6 de septiembre), y
+        // decidir por el lunes se lleva por delante los tres estados que
+        // dependen del mes: si está suspendido, qué turnos rigen y si está
+        // publicado. Con el lunes mandando, los turnos del 1 y 2 de agosto
+        // salían aunque agosto esté suspendido, y los del 1 al 6 de
+        // septiembre se colarían aunque septiembre siga en borrador.
+        // `ExhibitorsMeeting` ya lo hacía así; esto se había quedado atrás.
+        const monthStr = dateStr.substring(0, 7);
+
+        if (isMonthCancelled(settings, monthStr)) continue;
+        if (!isExhibitorMonthPublished(settings, monthStr)) continue;
+
+        const effectiveTurns = getEffectiveTurnsForMonth(settings, monthStr);
 
         if (dateStr >= fromDateStr && dateStr <= toDateStr) {
           const dayLabel = weekdaysOrder[i];

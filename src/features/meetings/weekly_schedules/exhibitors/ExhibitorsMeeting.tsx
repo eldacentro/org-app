@@ -46,13 +46,6 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
     return getMonthCancelledMessage(settings, weekMonthStr);
   }, [settings, weekMonthStr]);
 
-  // Sin publicar: quien puede editar lo ve igual, pero con el aviso delante
-  // para que no lo confunda con algo ya decidido.
-  const monthIsDraft = useMemo(() => {
-    if (!weekMonthStr) return false;
-
-    return !isExhibitorMonthPublished(settings, weekMonthStr);
-  }, [settings, weekMonthStr]);
 
   const formatLegibleDate = (date: Date): string => {
     const weekdays = [
@@ -171,6 +164,28 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
         };
       });
   }, [weekRecord, week, settings, isServiceCommittee]);
+
+  // Sin publicar: quien puede editar lo ve igual, pero con el aviso delante
+  // para que no lo confunda con algo ya decidido.
+  //
+  // Se mira el mes de CADA día que se está enseñando, no el del lunes: una
+  // semana del 31 de agosto al 6 de septiembre enseña días de los dos meses, y
+  // con el lunes mandando el editor vería los días de septiembre sin el aviso.
+  const draftMonths = useMemo(() => {
+    const months = new Set<string>();
+
+    for (const group of groupedTurns) {
+      const month = group.date?.substring(0, 7);
+
+      if (month && !isExhibitorMonthPublished(settings, month)) {
+        months.add(month);
+      }
+    }
+
+    return [...months];
+  }, [groupedTurns, settings]);
+
+  const monthIsDraft = draftMonths.length > 0;
 
   // Solo mostrar el aviso de "mes suspendido" si de verdad no queda ningún
   // turno que enseñar — una semana límite (ej. termina en un mes distinto
