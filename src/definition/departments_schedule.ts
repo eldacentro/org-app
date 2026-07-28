@@ -17,19 +17,15 @@ export type DeptWeekType = {
    * puede editarla. Ver `services/app/departments_publish`.
    */
   published?: boolean;
-  acomodadores: {
-    exterior: DepartmentAssignment;
-    interior: DepartmentAssignment;
-  };
-  microfonos: {
-    micro1: DepartmentAssignment;
-    micro2: DepartmentAssignment;
-  };
-  multimedia: {
-    video: DepartmentAssignment;
-    audio: DepartmentAssignment;
-  };
-  plataforma: {
-    encargado: DepartmentAssignment;
-  };
+  /**
+   * La clave de cada puesto la construye `services/app/departments_slots` a
+   * partir de la configuración del departamento: 'exterior' cuando se asigna
+   * por semana (lo de siempre), 'exterior__midweek' por reunión,
+   * 'exterior__t2' con dos turnos. Por eso son claves libres y no una lista
+   * fija: así activar una opción no obliga a migrar lo ya guardado.
+   */
+  acomodadores: Record<string, DepartmentAssignment>;
+  microfonos: Record<string, DepartmentAssignment>;
+  multimedia: Record<string, DepartmentAssignment>;
+  plataforma: Record<string, DepartmentAssignment>;
 };

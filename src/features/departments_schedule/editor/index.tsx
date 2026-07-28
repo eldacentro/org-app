@@ -6,6 +6,18 @@ import Badge from '@components/badge';
 import PersonSelector from '@features/meetings/person_selector';
 import { personsStateFind } from '@services/states/persons';
 import useDepartmentEditor from './useDepartmentEditor';
+import { buildDeptSlots } from '@services/app/departments_slots';
+import { DepartmentType } from '@definition/person';
+
+const DEPARTMENTS: {
+  dept: DepartmentType;
+  label: { key: string; fallback: string };
+}[] = [
+  { dept: 'acomodadores', label: { key: 'tr_attendants', fallback: 'Acomodadores' } },
+  { dept: 'microfonos', label: { key: 'tr_microphones', fallback: 'Micrófonos' } },
+  { dept: 'multimedia', label: { key: 'tr_multimedia', fallback: 'Multimedia' } },
+  { dept: 'plataforma', label: { key: 'tr_platform', fallback: 'Plataforma' } },
+];
 
 const DepartmentEditor = () => {
   const { t } = useAppTranslation();
@@ -19,6 +31,7 @@ const DepartmentEditor = () => {
     handleClearAll,
     weekName,
     isNoMeetingWeek,
+    departmentsConfig,
   } = useDepartmentEditor();
 
   if (selectedWeek.length === 0) return null;
@@ -96,158 +109,41 @@ const DepartmentEditor = () => {
         </Box>
       </Dialog>
 
+      {/* Las tarjetas y sus puestos salen de la configuración, no de una lista
+          escrita a mano: un departamento puede asignarse por semana o por
+          reunión, y con uno o dos turnos. Ver services/app/departments_slots. */}
       <Grid container spacing={2}>
-        {/* Acomodadores */}
-        <Grid size={{ mobile: 12, laptop: 6 }}>
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: 'var(--card)',
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-lg)',
-            }}
-          >
-            <Typography className="h3" sx={{ mb: 2 }}>
-              {t('tr_attendants', 'Acomodadores')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <PersonSelector
-                label="Exterior"
-                week={selectedWeek}
-                dept="acomodadores"
-                assignment="MM_Other"
-                personValue={personsStateFind(
-                  schedule?.acomodadores.exterior.value
-                )}
-                onSelect={(p) =>
-                  handleSaveAssignment('acomodadores', 'exterior', p)
-                }
-              />
-              <PersonSelector
-                label="Interior"
-                week={selectedWeek}
-                dept="acomodadores"
-                assignment="MM_Other"
-                personValue={personsStateFind(
-                  schedule?.acomodadores.interior.value
-                )}
-                onSelect={(p) =>
-                  handleSaveAssignment('acomodadores', 'interior', p)
-                }
-              />
+        {DEPARTMENTS.map(({ dept, label }) => (
+          <Grid key={dept} size={{ mobile: 12, laptop: 6 }}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--card)',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--r-lg)',
+              }}
+            >
+              <Typography className="h3" sx={{ mb: 2 }}>
+                {t(label.key, label.fallback)}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {buildDeptSlots(departmentsConfig, dept).map((slot) => (
+                  <PersonSelector
+                    key={slot.key}
+                    label={slot.label}
+                    week={selectedWeek}
+                    dept={dept}
+                    assignment="MM_Other"
+                    personValue={personsStateFind(
+                      schedule?.[dept]?.[slot.key]?.value
+                    )}
+                    onSelect={(p) => handleSaveAssignment(dept, slot.key, p)}
+                  />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        </Grid>
-
-        {/* Micrófonos */}
-        <Grid size={{ mobile: 12, laptop: 6 }}>
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: 'var(--card)',
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-lg)',
-            }}
-          >
-            <Typography className="h3" sx={{ mb: 2 }}>
-              {t('tr_microphones', 'Micrófonos')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <PersonSelector
-                label="Micro 1"
-                week={selectedWeek}
-                dept="microfonos"
-                assignment="MM_Other"
-                personValue={personsStateFind(
-                  schedule?.microfonos.micro1.value
-                )}
-                onSelect={(p) =>
-                  handleSaveAssignment('microfonos', 'micro1', p)
-                }
-              />
-              <PersonSelector
-                label="Micro 2"
-                week={selectedWeek}
-                dept="microfonos"
-                assignment="MM_Other"
-                personValue={personsStateFind(
-                  schedule?.microfonos.micro2.value
-                )}
-                onSelect={(p) =>
-                  handleSaveAssignment('microfonos', 'micro2', p)
-                }
-              />
-            </Box>
-          </Box>
-        </Grid>
-
-        {/* Multimedia */}
-        <Grid size={{ mobile: 12, laptop: 6 }}>
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: 'var(--card)',
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-lg)',
-            }}
-          >
-            <Typography className="h3" sx={{ mb: 2 }}>
-              {t('tr_multimedia', 'Multimedia')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <PersonSelector
-                label="Vídeo"
-                week={selectedWeek}
-                dept="multimedia"
-                assignment="MM_Other"
-                personValue={personsStateFind(schedule?.multimedia.video.value)}
-                onSelect={(p) =>
-                  handleSaveAssignment('multimedia', 'video', p)
-                }
-              />
-              <PersonSelector
-                label="Audio"
-                week={selectedWeek}
-                dept="multimedia"
-                assignment="MM_Other"
-                personValue={personsStateFind(schedule?.multimedia.audio.value)}
-                onSelect={(p) =>
-                  handleSaveAssignment('multimedia', 'audio', p)
-                }
-              />
-            </Box>
-          </Box>
-        </Grid>
-
-        {/* Plataforma */}
-        <Grid size={{ mobile: 12, laptop: 6 }}>
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: 'var(--card)',
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-lg)',
-            }}
-          >
-            <Typography className="h3" sx={{ mb: 2 }}>
-              {t('tr_platform', 'Plataforma')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <PersonSelector
-                label="Encargado"
-                week={selectedWeek}
-                dept="plataforma"
-                assignment="MM_Other"
-                personValue={personsStateFind(
-                  schedule?.plataforma.encargado.value
-                )}
-                onSelect={(p) =>
-                  handleSaveAssignment('plataforma', 'encargado', p)
-                }
-              />
-            </Box>
-          </Box>
-        </Grid>
+          </Grid>
+        ))}
       </Grid>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

@@ -151,6 +151,20 @@ export type SettingsType = {
       };
     }[];
     territories_enabled_publishers?: { value: boolean; updatedAt: string };
+    /**
+     * Cómo se organiza cada departamento: por semana o por reunión, y cuántos
+     * turnos. Sin definir = lo de siempre (por semana, un turno). Ver
+     * `services/app/departments_slots`.
+     */
+    departments_config?: {
+      value: Partial<
+        Record<
+          'acomodadores' | 'microfonos' | 'multimedia' | 'plataforma',
+          { scope: 'week' | 'meeting'; turns: number }
+        >
+      >;
+      updatedAt: string;
+    };
     // Correo al que los oradores públicos envían el contenido multimedia
     // (imágenes/videos) de su discurso. Se usa en la invitación al orador
     // en vez del correo del coordinador cuando está definido.

@@ -69,6 +69,16 @@ export const territoriesEnabledPublishersState = atom((get) => {
   return settings.cong_settings.territories_enabled_publishers?.value ?? false;
 });
 
+/**
+ * Cómo está organizado cada departamento (por semana o por reunión, y cuántos
+ * turnos). Sin configurar, lo de siempre. Ver `services/app/departments_slots`.
+ */
+export const departmentsConfigState = atom((get) => {
+  const settings = get(settingsState);
+
+  return settings.cong_settings.departments_config?.value ?? {};
+});
+
 export const congMasterKeyState = atom((get) => {
   const settings = get(settingsState);
 

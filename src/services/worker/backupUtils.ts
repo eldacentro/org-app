@@ -2713,6 +2713,16 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         (role) => role === 'midweek_schedule' || role === 'weekend_schedule'
       );
 
+    // El programa de departamentos tiene su PROPIO rol asignable
+    // ('departments_schedule') y no estaba en ninguna condición de subida:
+    // quien solo tuviera ese rol podía abrir la página y editar, la app le
+    // decía que había guardado, y su programa no salía nunca del dispositivo.
+    // Va aparte y no dentro de scheduleEditor, para no darle de paso permiso
+    // sobre los programas de las reuniones, las fuentes, las personas ni los
+    // ajustes. El backend hace la misma distinción.
+    const departmentsEditor =
+      scheduleEditor || userRole.includes('departments_schedule');
+
     const personEditor = serviceCommitteeRole || scheduleEditor;
 
     const settingEditor =
@@ -2930,19 +2940,6 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
             obj.sched = backupSched;
 
-            const backupDeptSchedule = departments_schedule.map((record) => {
-              const dept = structuredClone(record);
-
-              encryptObject({
-                data: dept,
-                table: 'departments_schedule',
-                accessCode,
-              });
-
-              return dept;
-            });
-
-            obj.departments_schedule = backupDeptSchedule;
           }
 
           if (metadata.metadata.sources.send_local) {
@@ -2958,6 +2955,24 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
             obj.sources = backupSources;
           }
+        }
+
+        // El programa de departamentos va FUERA del bloque de scheduleEditor,
+        // porque tiene su propio rol. Dentro, quien solo fuera responsable de
+        // departamentos no lo subía nunca: editaba, la app decía que había
+        // guardado, y el trabajo se quedaba en su dispositivo.
+        if (departmentsEditor && metadata.metadata.schedules.send_local) {
+          obj.departments_schedule = departments_schedule.map((record) => {
+            const dept = structuredClone(record);
+
+            encryptObject({
+              data: dept,
+              table: 'departments_schedule',
+              accessCode,
+            });
+
+            return dept;
+          });
         }
 
         // include meeting attendance

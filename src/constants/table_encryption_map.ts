@@ -40,6 +40,7 @@ export const TABLE_ENCRYPTION_MAP = {
     short_date_format: 'shared',
     display_name_enabled: 'shared',
     schedule_exact_date_enabled: 'shared',
+    departments_config: 'shared',
     time_away_public: 'public',
     source_material: 'shared',
     source_material_auto_import: 'shared',

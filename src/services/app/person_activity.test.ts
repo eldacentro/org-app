@@ -35,7 +35,7 @@ const dept = (
     multimedia: { video: { value: '' }, audio: { value: '' } },
     plataforma: { encargado: { value: '' } },
     ...overrides,
-  }) as DeptWeekType;
+  }) as unknown as DeptWeekType;
 
 describe('departamentos', () => {
   it('encuentra el turno en cualquiera de los cuatro departamentos', () => {

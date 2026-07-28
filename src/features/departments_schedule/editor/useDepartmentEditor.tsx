@@ -2,14 +2,18 @@ import { useMemo, useState } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
 import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
-import { DeptWeekType } from '@definition/departments_schedule';
-import { PersonType } from '@definition/person';
+import {
+  ALL_DEPARTMENT_TYPES,
+  DepartmentType,
+  PersonType,
+} from '@definition/person';
 import worker from '@services/worker/backupWorker';
 import {
   schedulesGetMeetingDate,
   schedulesWeekHasNoMeetingAtAll,
 } from '@services/app/schedules';
 import {
+  departmentsConfigState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
   userDataViewState,
@@ -23,6 +27,7 @@ const useDepartmentEditor = () => {
   const [schedules, setSchedules] = useAtom(deptScheduleState);
   const meetingSchedules = useAtomValue(schedulesState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [clearAll, setClearAll] = useState(false);
@@ -36,8 +41,10 @@ const useDepartmentEditor = () => {
     return schedulesWeekHasNoMeetingAtAll(selectedWeek, meetingSchedules);
   }, [selectedWeek, meetingSchedules]);
 
+  // `role` es ahora la CLAVE del puesto que da departments_slots: 'exterior',
+  // 'exterior__midweek', 'exterior__t2'… El resto del guardado no cambia.
   const handleSaveAssignment = async (
-    dept: keyof Omit<DeptWeekType, 'weekOf'>,
+    dept: DepartmentType,
     role: string,
     person: PersonType
   ) => {
@@ -86,21 +93,15 @@ const useDepartmentEditor = () => {
 
     if (currentSched) {
       const updatedAt = new Date().toISOString();
-      currentSched.acomodadores = {
-        exterior: { value: '', updatedAt },
-        interior: { value: '', updatedAt },
-      };
-      currentSched.microfonos = {
-        micro1: { value: '', updatedAt },
-        micro2: { value: '', updatedAt },
-      };
-      currentSched.multimedia = {
-        video: { value: '', updatedAt },
-        audio: { value: '', updatedAt },
-      };
-      currentSched.plataforma = {
-        encargado: { value: '', updatedAt },
-      };
+
+      // Se vacía TODO lo que haya guardado, no solo los puestos que la
+      // configuración de hoy enseña: si alguien cambió de "por reunión" a "por
+      // semana", las claves antiguas siguen ahí y hay que limpiarlas también.
+      for (const dept of ALL_DEPARTMENT_TYPES) {
+        for (const key of Object.keys(currentSched[dept] ?? {})) {
+          currentSched[dept][key] = { value: '', updatedAt };
+        }
+      }
 
       try {
         setSchedules(newSchedules);
@@ -131,6 +132,7 @@ const useDepartmentEditor = () => {
   return {
     selectedWeek,
     schedule,
+    departmentsConfig,
     handleSaveAssignment,
     clearAll,
     handleOpenClearAll,
