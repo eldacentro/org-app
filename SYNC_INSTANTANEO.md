@@ -16,7 +16,8 @@ escribe en Firestore *qué tablas* avanzaron de versión (solo nombres y
 timestamps), todos los demás dispositivos lo escuchan en tiempo real y
 **adelantan su ciclo de sincronización normal** — la subida, descarga, cifrado
 E2E y fusión son EXACTAMENTE las de siempre; lo único que cambia es *cuándo*
-arranca el ciclo. Resultado: de minutos a ~5–15 segundos de extremo a extremo.
+arranca el ciclo. Resultado: de minutos a unos segundos de extremo a extremo
+(el presupuesto real, tramo a tramo, está en la sección 3b).
 
 ## 2. Por qué está diseñado así
 
@@ -62,10 +63,57 @@ Dispositivos B..Z: onSnapshot recibe el doc al instante
   │
   │ (4) comparan cada versión del doc con la suya local (appDb.metadata)
   │     · solo si la remota es MÁS NUEVA → programan sync
-  │     · con retraso aleatorio de 2–12 s (30 dispositivos no golpean a la vez)
+  │     · con retraso aleatorio de 1–8 s (30 dispositivos no golpean a la vez)
   ▼
 Worker (B..Z): ciclo de sync normal → descargan, descifran, fusionan → dato visible
 ```
+
+## 3b. Cuánto tarda de verdad, tramo a tramo (medido 2026-07-28)
+
+La cifra que circulaba antes ("~5–15 s") estaba estimada a ojo y **se dejaba
+fuera dos tramos de 3 s**: el debounce del worker (`DEBOUNCE_MS` en
+`backupAction.ts`), que se aplica en el que sube Y en el que baja. Este es el
+recorrido completo, con los tramos constantes leídos del código y el tránsito
+de Firestore medido contra el proyecto real:
+
+| Tramo | Dónde está | Tiempo |
+|---|---|---|
+| Edición → se marca `send_local` | Dexie + `useLiveQuery` | ~0 s |
+| Arranque de la subida | ver abajo: 3,0 s o 4,0+3,0 s | 3,0 / 7,0 s |
+| Ciclo de subida (GET+merge+POST) | worker | 0,4–1,3 s |
+| Agrupado de la señal en el backend | `SIGNAL_BATCH_MS` (Congregation.ts) | 0,5 s |
+| Firestore → `onSnapshot` del receptor | medido | **0,15–0,35 s** |
+| Reparto aleatorio en el receptor | `SIGNAL_DELAY_*` (instant_sync.ts) | 1–8 s |
+| Debounce del worker (bajada) | `DEBOUNCE_MS` (backupAction) | 3,0 s |
+| Ciclo de bajada | worker | 0,4–1,3 s |
+| **Total, tablas con aviso directo** | | **8,5–17,5 s** |
+| **Total, el resto** | | **12,5–21,5 s** |
+
+**Por qué hay dos totales.** Unas diez tablas avisan al worker en el MISMO
+guardado, desde `services/dexie/*.ts` (`meeting_attendance`, `exhibitors`,
+`settings`, `upcoming_events`, `limpieza`, `evacuacion`, `responsabilidades`,
+`service_outings`, `public_talk`, `circuit_visit`): en esas, la subida arranca
+a los 3 s del debounce del worker y NO espera los 4 s de `useInstantSync`. Son
+justo las que se editan a diario, así que el caso normal es el total de
+arriba. Las que no tienen ese aviso directo dependen de `useInstantSync` y
+pagan los 4 s + 3 s.
+
+Cómo se midió el tránsito: con el service account del backend se escribió 8
+veces en un documento de diagnóstico aparte (`sync/_diag_latency`, que ningún
+cliente escucha, borrado al terminar) con una escucha `onSnapshot` puesta:
+129, 145, 153, 179, 209, 218, 229 y 257 ms — mediana 209 ms. Desde un navegador
+real contra el mismo proyecto, la respuesta llegó en 152 y 334 ms. Es decir: el
+timbre viaja en menos de medio segundo y **nunca ha sido el cuello de botella**;
+lo que costaba tiempo eran los agrupados del cliente.
+
+**El debounce de 3 s del worker NO se toca, y conviene dejar escrito por qué**,
+porque parece redundante con los 4 s de `useInstantSync` y no lo es. Se evaluó
+quitarlo para ganar ~2 s y se descartó al contar los llamantes: hay **37 sitios
+que hacen `postMessage('startWorker')`**, y unos diez son los `services/dexie/*`
+de arriba, que disparan **en cada guardado, uno por casilla de asistencia**. Ese
+debounce es lo único que impide un ciclo completo por pulsación, con los choques
+409 y los `BACKUP_FAILED` que describe su propio comentario. Antes de tocarlo
+habría que darle a cada llamante su propio agrupado.
 
 Además del backup, **el envío de informes de publicadores** (`REPORT_SENT`,
 cuentas normales y Pocket) también emite señal, porque avanza
@@ -86,8 +134,9 @@ cuentas normales y Pocket) también emite señal, porque avanza
 
 | Archivo | Qué hace |
 |---|---|
-| `src/wrapper/web_worker/useInstantSync.tsx` | El hook completo: escucha de señal + subida inmediata. Montado en `src/wrapper/web_worker/index.tsx` junto a `useWebWorker`. |
-| `src/services/firebase/sync_signal.ts` | `subscribeSyncSignal(congId, cb)` — onSnapshot del doc (mismo patrón que Documentos). |
+| `src/wrapper/web_worker/useInstantSync.tsx` | El hook: escucha de señal + subida inmediata. Montado en `src/wrapper/web_worker/index.tsx` junto a `useWebWorker`. |
+| `src/services/app/instant_sync.ts` | Las decisiones, fuera de React para poder probarlas: qué tablas traen algo nuevo, el reparto aleatorio y el agrupado de ráfagas. Pruebas en `instant_sync.test.ts`. |
+| `src/services/firebase/sync_signal.ts` | `subscribeSyncSignal(congId, cb)` — onSnapshot del doc (mismo patrón que Documentos). Marca la primera entrega como `initial`. |
 | `src/features/app_updater/useUpdater.tsx` | Chequeo activo de actualizaciones PWA (sección 8). |
 | `firestore.rules` | Regla de la ruta `congregation/{congId}/sync/{docId}`. |
 
@@ -139,8 +188,37 @@ más de 1 h con dispositivos sincronizando activamente. Sin churn.
 
 ## 6. Protecciones a escala (30 dispositivos)
 
-- **Retraso aleatorio 2–12 s** al recibir señal: las descargas se reparten, no
-  golpean Render en el mismo instante.
+- **Retraso aleatorio 1–8 s** al recibir señal: las descargas se reparten, no
+  golpean Render en el mismo instante. Era de 2–12 s, elegido antes de medir
+  nada; con el tránsito ya medido (sección 3b) resultaba ser el tramo más
+  grande de todo el recorrido.
+
+  **La ventana la fija el pico de carga, no la latencia**, y esto es fácil de
+  calcular mal: lo que se reparte NO son peticiones de ~7 KB (esa cifra vale
+  solo para los ciclos en los que no ha cambiado nada). Cuando la tabla que ha
+  cambiado es grande, cada dispositivo se baja la tabla entera, y eso son
+  1,53 MB de programas o 2,88 MB de informes. Con 30 dispositivos:
+
+  | Ventana | Dispositivos/s | Salida de Render |
+  |---|---|---|
+  | 10 s (2–12, la vieja) | 3,0 | ~4,6 MB/s |
+  | **7 s (1–8, la actual)** | **4,3** | **~6,6 MB/s** |
+  | 4 s (1–5) | 7,5 | ~11,5 MB/s |
+
+  Y Render además se trae el fichero de Storage en cada petición. Con 1–8 la
+  media del reparto baja de 7 s a 4,5 s —de ahí sale la mejora de latencia—
+  sin acercarse al doble de pico. **Estrechar más solo tiene sentido después
+  del sync incremental**, que es lo que quitaría los megas de la ecuación.
+  **El reparto aleatorio no se puede quitar**: es lo único que impide que los
+  30 lleguen en el mismo instante.
+- **Las señales en ráfaga se absorben en el disparo ya programado**, no lo
+  reprograman. Antes cada señal hacía `clearTimeout` y sorteaba un retraso
+  nuevo: con dos o tres hermanos editando a la vez (la noche de la asistencia,
+  una reunión de ancianos) las señales caían cada pocos segundos, el disparo se
+  posponía una y otra vez y el dispositivo se quedaba **sin sync instantáneo
+  justo cuando más movimiento había**, sin que nada fallara ni se notara. Está
+  cubierto por `instant_sync.test.ts` (una ráfaga de 60 s no llegaba a
+  sincronizar ni una vez).
 - **Debounce de ~4 s en la subida**: una ráfaga de ediciones (rellenar 5
   casillas) viaja en UNA subida. El worker añade su propio debounce de 3 s y
   coalescing (`pendingBackup`): señales durante un sync en curso ejecutan UN
@@ -157,6 +235,21 @@ más de 1 h con dispositivos sincronizando activamente. Sin churn.
 - **Consumo Firestore**: ~1 escritura por subida real + 1 lectura por
   dispositivo conectado por cambio. Decenas de escrituras y cientos de lecturas
   al día — irrelevante frente a la cuota gratuita (20k/50k diarias).
+
+### Por qué la escucha caída NO acorta el intervalo (decisión, 2026-07-28)
+
+Se valoró que un dispositivo con la escucha muerta compensara sincronizando más
+a menudo. **No se hace, a propósito.** El motivo es hacia dónde falla cada
+opción: la escucha se cae sobre todo por cosas globales (Firestore con
+problemas, un despliegue, un corte de red), así que acortar el intervalo
+significa que los ~30 dispositivos de la congregación **doblan su ritmo de
+peticiones contra Render justo en el momento en que algo va mal** — exactamente
+la ráfaga en bloque que ya costó un disgusto (ver el jitter de
+`useWebWorker.tsx`). El intervalo periódico existe precisamente para ser la red
+de seguridad de este caso, y la escalera de reconexión de `sync_signal.ts`
+(5 s → 15 s → 60 s → 300 s) ya termina en 5 minutos, que es el propio intervalo
+de sync. Lo que sí se hace es **decirlo**: "Sin conexión con el aviso" en
+"Acerca de la aplicación", para que se pueda diagnosticar en vez de adivinar.
 
 ## 7. Kill-switches (tres niveles, de menor a mayor alcance)
 
@@ -302,6 +395,21 @@ de ahí vayan con los arreglos aplicados), en vez de esperar al chequeo de 30 mi
 
 ### "No se sincroniza rápido"
 
+0. **¿Qué dice "Acerca de la aplicación"?** La línea "Sincronización al
+   momento" es lo primero que hay que mirar: dice si la escucha está viva,
+   cuántos avisos han sonado desde que se abrió la app, cuántos traían datos
+   nuevos y hace cuánto fue el último.
+
+   **Ojo con lo que decía antes**: ese indicador se ponía a "último aviso hace
+   0 minutos" en CADA arranque, hubiera sonado un timbre o no. La causa es que
+   `onSnapshot` entrega siempre el documento que ya existe en cuanto uno se
+   suscribe (comprobado contra el proyecto real: un callback a los 343 ms sin
+   que nadie escribiera nada), y esa primera entrega se contaba como aviso. Es
+   decir: el único instrumento que había para saber si la señal llegaba de
+   verdad no medía eso, y por eso nunca se comprobó. Desde `sync_signal.ts` se
+   marca esa entrega como `initial`: se REACCIONA a ella (es la que recupera lo
+   que cambió con la app cerrada) pero no se cuenta.
+
 1. **¿Versión correcta?** Configuración → Acerca de → build ≥ **5931**
    (el commit `e07940c90` o posterior). Si no: recargar dos veces.
 2. **¿Flag de apagado olvidado?** En consola:
@@ -312,8 +420,13 @@ de ahí vayan con los arreglos aplicados), en vez de esperar al chequeo de 30 mi
 4. **¿Qué dice la consola del dispositivo?** Mensajes esperados:
    - Al editar (en el que edita, ~4 s después):
      `instant sync triggered - local changes pending`
-   - Al llegar cambio de otro (2–12 s tras la señal):
+   - Al llegar una señal con algo nuevo:
+     `instant sync signal received - <tablas> (scheduled)` y, 1–8 s después,
      `instant sync triggered - remote signal`
+   - Al llegar una señal que no traía nada para este dispositivo:
+     `instant sync signal received - nothing newer (N tablas)`. **Este mensaje
+     es el que distingue "la señal no llega" de "llega y no me toca"**, que era
+     imposible de saber antes: la señal descartada se iba en un `return` mudo.
    - Si aparece `instant sync skipped (person detail open)`: tenía una ficha
      de persona abierta; es la pausa intencional, reintenta el intervalo.
    - Si no aparece NINGUNO: el hook no está armado → revisar puntos 1–3, y que
@@ -345,6 +458,77 @@ cp /tmp/check_signal.mjs . && node check_signal.mjs; rm check_signal.mjs
 node_modules.) Edita algo en la app y vuelve a leer: la tabla editada debe
 mostrar un timestamp nuevo a los pocos segundos. Si no avanza → problema en el
 backend (revisar logs de Render: buscar `sync signal emit failed`).
+
+### 9.2 Medir el tiempo real de extremo a extremo
+
+**La trampa que invalida la medición obvia**: dos pestañas del MISMO navegador
+comparten IndexedDB. Un cambio hecho en una aparece en la otra al instante por
+Dexie, sin pasar por el servidor — se mediría cero y no significaría nada. Hace
+falta **dos perfiles distintos** (una ventana normal y otra de incógnito, dos
+navegadores, o dos dispositivos), cada uno con su sesión.
+
+Sonda: pegar esto en la consola de LOS DOS. No importa módulos, así que también
+vale en producción (eldacentro.com), no solo en el servidor de desarrollo.
+
+```js
+(() => {
+  const real = console.log.bind(console);
+  const hora = (t = new Date()) => t.toISOString().slice(11, 23);
+  const marca = (txt) => real(`%c⏱ ${hora()}  ${txt}`, 'color:#0a7');
+
+  console.log = (...a) => {
+    const t = a.map(String).join(' ');
+    if (t.includes('instant sync')) marca('HOOK · ' + t.replace(/^\[app\]\s*/, ''));
+    real(...a);
+  };
+
+  let previo = null;
+  const leer = () => new Promise((r) => {
+    const req = indexedDB.open('organized');
+    req.onsuccess = () => {
+      const tx = req.result.transaction('metadata', 'readonly');
+      const get = tx.objectStore('metadata').get(1);
+      get.onsuccess = () => r(get.result?.metadata ?? {});
+      get.onerror = () => r({});
+    };
+    req.onerror = () => r({});
+  });
+
+  setInterval(async () => {
+    const actual = await leer();
+    if (previo) {
+      for (const [tabla, v] of Object.entries(actual)) {
+        const antes = previo[tabla];
+        if (!antes) continue;
+        if (!antes.send_local && v.send_local) marca(`EDICIÓN LOCAL · ${tabla}`);
+        if (antes.send_local && !v.send_local) marca(`SUBIDA HECHA · ${tabla}`);
+        if (antes.version !== v.version) marca(`DATO RECIBIDO · ${tabla}`);
+      }
+    }
+    previo = actual;
+  }, 250);
+
+  marca('sonda activa');
+})();
+```
+
+Cómo se lee: en el dispositivo que edita sale `EDICIÓN LOCAL` y luego
+`SUBIDA HECHA`; en el otro sale `HOOK · instant sync signal received - <tabla>`
+y después `DATO RECIBIDO · <tabla>`. **El número de extremo a extremo es de
+`EDICIÓN LOCAL` (dispositivo A) a `DATO RECIBIDO` (dispositivo B)**, con la
+misma tabla en ambos. Repetirlo 5 veces y quedarse con la mediana; el reparto
+aleatorio hace que una sola medición no diga gran cosa.
+
+Lo que revela cada tramo si sale mal:
+- No sale `EDICIÓN LOCAL` → el cambio no marcó `send_local`; el problema no es
+  el timbre, es el guardado.
+- Sale `EDICIÓN LOCAL` pero nunca `SUBIDA HECHA` → falla la subida (mirar
+  errores de red y `BACKUP_FAILED`).
+- El emisor sube pero el receptor no ve ningún `HOOK` → **ahí sí es el timbre**:
+  seguir por los puntos 1–5 de arriba y por la sección 9.1.
+- Llega `HOOK · ... nothing newer` → la señal SÍ llega y no traía nada para
+  este dispositivo (versiones ya al día, o una tabla que su rol no recibe).
+  Esto es información, no un fallo.
 
 ### "A alguien no le sale el botón Actualizar"
 

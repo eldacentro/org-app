@@ -19,6 +19,22 @@ export type SyncSignal = {
   tables?: Record<string, string>;
 };
 
+/**
+ * `initial: true` es la PRIMERA entrega tras engancharse (o tras reengancharse
+ * después de un corte), no un timbre.
+ *
+ * onSnapshot entrega siempre el documento que ya existe en cuanto se suscribe
+ * —comprobado contra el proyecto real: un callback a los 343 ms sin que nadie
+ * hubiera escrito nada—. Sin distinguirlo, el indicador de "Acerca de" ponía
+ * "último aviso hace 0 minutos" cada vez que se abría la aplicación, dijera lo
+ * que dijera la realidad: el único instrumento que teníamos para saber si la
+ * señal llegaba de verdad no podía distinguir un aviso de su propia conexión.
+ * Reaccionar SÍ hay que reaccionar (esa primera entrega es la que recupera lo
+ * que cambió mientras el dispositivo estaba cerrado); lo que no vale es
+ * CONTARLA como aviso.
+ */
+export type SyncSignalMeta = { initial: boolean };
+
 // Firestore da por terminada la escucha cuando el callback de error salta
 // (permisos, sesión que aún no estaba lista al abrir la app, un corte largo).
 // Antes eso solo se escribía en la consola: la escucha se quedaba muerta y el
@@ -28,7 +44,7 @@ const RESUBSCRIBE_DELAYS_MS = [5_000, 15_000, 60_000, 300_000];
 
 export const subscribeSyncSignal = (
   congId: string,
-  onUpdate: (signal: SyncSignal) => void,
+  onUpdate: (signal: SyncSignal, meta: SyncSignalMeta) => void,
   /** Si la escucha está viva. Sirve para poder DECIRLO en la interfaz. */
   onStatus?: (listening: boolean) => void
 ): (() => void) => {
@@ -38,9 +54,13 @@ export const subscribeSyncSignal = (
   let unsubscribe: (() => void) | null = null;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let attempt = 0;
+  // por suscripción: una reconexión vuelve a empezar por una entrega inicial
+  let delivered = 0;
 
   const listen = () => {
     if (stopped) return;
+
+    delivered = 0;
 
     unsubscribe = onSnapshot(
       signalDoc,
@@ -48,7 +68,9 @@ export const subscribeSyncSignal = (
         attempt = 0;
         onStatus?.(true);
         if (!snapshot.exists()) return;
-        onUpdate(snapshot.data() as SyncSignal);
+
+        delivered += 1;
+        onUpdate(snapshot.data() as SyncSignal, { initial: delivered === 1 });
       },
       (error) => {
         console.error('Error en suscripción de señal de sync:', error);

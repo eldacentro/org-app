@@ -412,14 +412,28 @@ export type InstantSyncStatus = {
   listening: boolean;
   /** Kill-switch remoto puesto (enabled:false en el documento de señal). */
   disabledRemotely: boolean;
-  /** Marca de la última señal recibida, en milisegundos. */
+  /**
+   * Marca del último aviso DE VERDAD, en milisegundos.
+   *
+   * No cuenta la primera entrega de onSnapshot: Firestore entrega el documento
+   * que ya existe en cuanto uno se suscribe, así que antes esto se ponía a
+   * "ahora mismo" en cada arranque de la aplicación y el indicador decía
+   * "último aviso hace 0 minutos" aunque no hubiera sonado ningún timbre. Era
+   * el único instrumento para saber si la señal llegaba, y no lo medía.
+   */
   lastSignalAt: number | null;
+  /** Avisos recibidos desde que se abrió la aplicación (sin contar el inicial). */
+  signalsReceived: number;
+  /** De esos, cuántos traían alguna tabla más nueva y adelantaron el ciclo. */
+  signalsActed: number;
 };
 
 export const instantSyncStatusState = atom<InstantSyncStatus>({
   listening: false,
   disabledRemotely: false,
   lastSignalAt: null,
+  signalsReceived: 0,
+  signalsActed: 0,
 });
 
 export const isMFAEnabledState = atom(false);

@@ -10,7 +10,16 @@ import {
 } from '@states/app';
 import { backupAutoState, congIDState } from '@states/settings';
 import { useFirebaseAuth } from '@hooks/index';
-import { subscribeSyncSignal, SyncSignal } from '@services/firebase/sync_signal';
+import {
+  subscribeSyncSignal,
+  SyncSignal,
+  SyncSignalMeta,
+} from '@services/firebase/sync_signal';
+import {
+  createSignalScheduler,
+  findNewerTables,
+  pickSignalDelay,
+} from '@services/app/instant_sync';
 import worker from '@services/worker/backupWorker';
 import logger from '@services/logger';
 import { isPersonDetailInUse } from '@services/app/sync_pause';
@@ -21,8 +30,9 @@ import appDb from '@db/appDb';
  *
  * 1. TIMBRE (bajada): escucha la señal de Firestore que emite el backend tras
  *    cada subida de otro dispositivo; si alguna tabla remota es más nueva que
- *    la local, adelanta el ciclo de sync normal con un retraso aleatorio de
- *    2–12 s (para que 30 dispositivos no golpeen el servidor a la vez).
+ *    la local, adelanta el ciclo de sync normal con un retraso aleatorio
+ *    (para que 30 dispositivos no golpeen el servidor a la vez). El reparto y
+ *    la comparación viven en `services/app/instant_sync`, con sus pruebas.
  * 2. SUBIDA INMEDIATA: cuando algo local queda pendiente de enviar
  *    (send_local), dispara el sync a los ~4 s en vez de esperar al intervalo
  *    (el debounce agrupa ráfagas de edición en una sola subida).
@@ -34,8 +44,6 @@ import appDb from '@db/appDb';
  * documento, así que no re-sincroniza (anti-bucle por construcción).
  */
 
-const SIGNAL_DEBOUNCE_MIN_MS = 2000;
-const SIGNAL_DEBOUNCE_MAX_MS = 12000;
 const PENDING_UPLOAD_DEBOUNCE_MS = 4000;
 
 const useInstantSync = () => {
@@ -63,7 +71,6 @@ const useInstantSync = () => {
   const stateRef = useRef({ backupEnabled, user, pathname: location.pathname });
   stateRef.current = { backupEnabled, user, pathname: location.pathname };
 
-  const signalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const uploadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerSync = async (reason: string) => {
@@ -103,11 +110,18 @@ const useInstantSync = () => {
       return;
     }
 
-    const handleSignal = async (signal: SyncSignal) => {
+    const scheduler = createSignalScheduler(() => triggerSync('remote signal'));
+
+    const handleSignal = async (signal: SyncSignal, meta: SyncSignalMeta) => {
+      // La entrega inicial no es un timbre: es el documento que ya estaba ahí,
+      // que Firestore entrega siempre al suscribirse. Se REACCIONA a ella
+      // (recupera lo que cambió con la app cerrada) pero no se cuenta como
+      // aviso, o el indicador miente en cada arranque.
       setInstantStatus((prev) => ({
         ...prev,
         disabledRemotely: signal.enabled === false,
-        lastSignalAt: Date.now(),
+        lastSignalAt: meta.initial ? prev.lastSignalAt : Date.now(),
+        signalsReceived: prev.signalsReceived + (meta.initial ? 0 : 1),
       }));
 
       if (signal.enabled === false) return; // kill-switch remoto
@@ -116,26 +130,38 @@ const useInstantSync = () => {
       const metadata = await appDb.metadata.get(1);
       if (!metadata) return;
 
-      const hasNewer = Object.entries(signal.tables).some(([table, version]) => {
-        const local = metadata.metadata[table]?.version;
-        // tabla sin versión local = este rol no la recibe (o primer sync
-        // pendiente, que ya cubre el intervalo normal) → no dispara
-        return Boolean(local) && typeof version === 'string' && version > local;
-      });
+      const newer = findNewerTables(signal.tables, metadata.metadata);
 
-      if (!hasNewer) return;
+      if (newer.length === 0) {
+        // Antes esto era un `return` mudo, y ahí estaba el problema de fondo
+        // para diagnosticar: en la consola no había forma de distinguir "la
+        // señal no llega" de "llega y no traía nada para mí". Es la pregunta
+        // que hay que responder primero cada vez que alguien dice que la
+        // sincronización va lenta.
+        if (!meta.initial) {
+          logger.info(
+            'app',
+            `instant sync signal received - nothing newer (${Object.keys(signal.tables).length} tablas)`
+          );
+        }
 
-      // colapsar señales en ráfaga en un solo disparo
-      if (signalTimerRef.current) clearTimeout(signalTimerRef.current);
+        return;
+      }
 
-      const delay =
-        SIGNAL_DEBOUNCE_MIN_MS +
-        Math.random() * (SIGNAL_DEBOUNCE_MAX_MS - SIGNAL_DEBOUNCE_MIN_MS);
+      setInstantStatus((prev) => ({
+        ...prev,
+        signalsActed: prev.signalsActed + (meta.initial ? 0 : 1),
+      }));
 
-      signalTimerRef.current = setTimeout(() => {
-        signalTimerRef.current = null;
-        triggerSync('remote signal');
-      }, delay);
+      // Una señal que llega con un disparo ya programado viaja en ESE ciclo:
+      // reprogramarlo lo posponía sin fin cuando varios editaban a la vez
+      // (ver createSignalScheduler).
+      const outcome = scheduler.schedule(pickSignalDelay());
+
+      logger.info(
+        'app',
+        `instant sync signal received - ${newer.join(', ')} (${outcome})`
+      );
     };
 
     const unsubscribe = subscribeSyncSignal(congId, handleSignal, (listening) =>
@@ -144,10 +170,7 @@ const useInstantSync = () => {
 
     return () => {
       unsubscribe();
-      if (signalTimerRef.current) {
-        clearTimeout(signalTimerRef.current);
-        signalTimerRef.current = null;
-      }
+      scheduler.cancel();
     };
   }, [enabled, congId, isConnected, setInstantStatus]);
 

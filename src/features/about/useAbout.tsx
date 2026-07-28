@@ -101,7 +101,10 @@ const useAbout = ({ updatePwa }: AboutProps) => {
     }
 
     if (instantSync.lastSignalAt === null) {
-      return 'Conectado. Aún no ha llegado ningún aviso.';
+      // Ya no se pone solo por conectarse: si dice esto, es que de verdad no
+      // ha sonado ningún timbre desde que se abrió la aplicación (algo normal
+      // si nadie ha editado nada en ese rato).
+      return 'Conectado. Sin avisos desde que se abrió la aplicación.';
     }
 
     const minutes = Math.max(
@@ -109,7 +112,16 @@ const useAbout = ({ updatePwa }: AboutProps) => {
       Math.floor((Date.now() - instantSync.lastSignalAt) / 60000)
     );
 
-    return `Conectado. Último aviso hace ${formatSyncAge(minutes)}.`;
+    // Los dos números son lo que hace falta para diagnosticar: cuántos timbres
+    // han sonado y cuántos traían algo para este dispositivo. Muchos avisos y
+    // ninguno atendido es una pista concreta (versiones locales al día, o una
+    // tabla que este rol no recibe), no un "va lento" a secas.
+    const avisos =
+      instantSync.signalsReceived === 1
+        ? '1 aviso'
+        : `${instantSync.signalsReceived} avisos`;
+
+    return `Conectado. ${avisos}, ${instantSync.signalsActed} con datos nuevos. Último hace ${formatSyncAge(minutes)}.`;
   })();
 
   return {
