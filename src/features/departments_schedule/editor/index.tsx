@@ -30,6 +30,7 @@ const DepartmentEditor = () => {
     handleCloseClearAll,
     handleClearAll,
     weekName,
+    meetingDaysName,
     isNoMeetingWeek,
     departmentsConfig,
   } = useDepartmentEditor();
@@ -82,7 +83,14 @@ const DepartmentEditor = () => {
         width: '100%',
       }}
     >
-      <Typography className="h2-caps">{weekName}</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Typography className="h2-caps">{weekName}</Typography>
+        {meetingDaysName && (
+          <Typography className="body-small-regular" color="var(--grey-400)">
+            {meetingDaysName}
+          </Typography>
+        )}
+      </Box>
 
       <Dialog onClose={handleCloseClearAll} open={clearAll} sx={{ padding: '24px' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

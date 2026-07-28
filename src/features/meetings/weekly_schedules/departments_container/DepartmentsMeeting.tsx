@@ -180,13 +180,23 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
 
   const departmentsConfig = useAtomValue(departmentsConfigState);
 
-  const { isServiceCommittee } = useCurrentUser();
+  // Quien lleva los departamentos tiene que poder ver SU borrador. Antes esto
+  // preguntaba por el comité de servicio, que no es lo mismo: el responsable
+  // con el rol de departamentos —y nada más— no entraba, así que veía "no hay
+  // programa publicado" en lugar de lo que él mismo acababa de escribir.
+  const { isDepartmentsEditor } = useCurrentUser();
 
-  const isDraft = !isDeptWeekPublished(schedule);
+  // Una semana SIN REGISTRO no es un borrador: es que todavía no hay nada.
+  // Distinguirlo importa, porque si no cualquier semana vacía se anunciaba
+  // como "borrador sin publicar" incluso en meses que no hay que publicar.
+  const hasSchedule = Boolean(schedule?.weekOf);
 
-  // Semana en BORRADOR: para el resto de la congregación no existe todavía.
-  // Lo que autocompletar propone no es una decisión hasta que se publica.
-  if (isDraft && !isServiceCommittee) {
+  const isDraft = hasSchedule && !isDeptWeekPublished(schedule);
+
+  // Sin programa guardado, o con la semana en BORRADOR: para el resto de la
+  // congregación no hay nada que enseñar. Lo que autocompletar propone no es
+  // una decisión hasta que se publica.
+  if ((!hasSchedule || isDraft) && !isDepartmentsEditor) {
     return (
       <Box
         sx={{
@@ -202,7 +212,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
         }}
       >
         <Typography className="body-regular" color="var(--grey-400)">
-          Todavía no hay programa de departamentos publicado para esta semana.
+          Todavía no hay programa de departamentos para esta semana.
         </Typography>
       </Box>
     );

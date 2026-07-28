@@ -100,8 +100,17 @@ describe('departamentos: se publica por MES, pero los datos son por semana', () 
 
   it('lo anterior al corte se da por publicado', () => {
     expect(isDeptWeekPublished({ weekOf: '2026/07/27' })).toBe(true);
-    expect(deptMonthNeedsPublishing('2026/08')).toBe(false);
-    expect(isDeptMonthPublished([], '2026/08')).toBe(true);
+    expect(deptMonthNeedsPublishing('2026/07')).toBe(false);
+    expect(isDeptMonthPublished([], '2026/07')).toBe(true);
+  });
+
+  it('agosto ya hay que publicarlo (el corte se adelantó)', () => {
+    // Una semana de agosto sin marca es un borrador, aunque esté guardada.
+    expect(isDeptWeekPublished({ weekOf: '2026/08/03' })).toBe(false);
+    expect(
+      isDeptWeekPublished({ weekOf: '2026/08/03', published: true })
+    ).toBe(true);
+    expect(deptMonthNeedsPublishing('2026/08')).toBe(true);
   });
 
   it('desde el corte hace falta la marca en cada semana', () => {

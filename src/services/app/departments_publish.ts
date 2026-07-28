@@ -20,13 +20,18 @@ import { monthNeedsPublishing, monthOfDate } from './month_publish';
  */
 
 /**
- * Desde qué mes hay que publicar. Todo lo anterior se da por publicado, para
- * que al desplegar esto nadie deje de ver de golpe lo que ya está en marcha.
+ * Desde qué mes hay que publicar. Todo lo anterior cae en el histórico y se da
+ * por publicado.
  *
  * Constante y no dato guardado: todos los dispositivos deciden lo mismo sin
  * migrar nada.
+ *
+ * Empezó en septiembre —el mismo corte que Exhibidores y Salidas— pero se
+ * adelantó a AGOSTO el 2026-07-28, a petición del responsable: en Exhibidores
+ * agosto estaba cancelado y no había nada que decidir, mientras que aquí es un
+ * mes de trabajo normal y se estaba publicando solo, según se escribía.
  */
-export const DEPTS_DRAFT_FROM = '2026/09';
+export const DEPTS_DRAFT_FROM = '2026/08';
 
 /** ¿Hace falta publicar ese mes a mano, o cae en el histórico? */
 export const deptMonthNeedsPublishing = (month: string) =>

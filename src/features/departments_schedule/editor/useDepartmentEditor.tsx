@@ -20,6 +20,10 @@ import {
 } from '@states/settings';
 import { schedulesState } from '@states/schedules';
 import { personGetDisplayName } from '@utils/common';
+import { useAppTranslation } from '@hooks/index';
+import { monthNamesState } from '@states/app';
+import { buildWeekRangeLabel } from '@services/app/week_range';
+import { readDeptConfig } from '@services/app/departments_slots';
 
 const useDepartmentEditor = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
@@ -29,6 +33,8 @@ const useDepartmentEditor = () => {
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const departmentsConfig = useAtomValue(departmentsConfigState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const monthNames = useAtomValue(monthNamesState);
+  const { t } = useAppTranslation();
 
   const [clearAll, setClearAll] = useState(false);
 
@@ -116,18 +122,44 @@ const useDepartmentEditor = () => {
     setClearAll(false);
   };
 
-  const weekName = useMemo(() => {
+  // El encabezado decía la fecha de la reunión de ENTRE SEMANA (miércoles 5),
+  // no la de la semana (lunes 3), y eso se lee mal en las dos configuraciones:
+  // por semana parecía que solo era el miércoles, y por reunión parecía que
+  // toda la página era la de entre semana. Ahora dice la semana, que es lo que
+  // esta página organiza siempre.
+  const weekName = useMemo(
+    () => buildWeekRangeLabel(selectedWeek, monthNames, t),
+    [selectedWeek, monthNames, t]
+  );
+
+  // Y cuando algún departamento se asigna POR REUNIÓN, se dicen los dos días
+  // concretos: si no, "Entre semana" y "Fin de semana" en cada puesto obligan
+  // a mirar el calendario para saber de qué día se está hablando.
+  const meetingDaysName = useMemo(() => {
     if (!selectedWeek) return '';
 
-    const meetingDate = schedulesGetMeetingDate({
+    const anyByMeeting = ALL_DEPARTMENT_TYPES.some(
+      (dept) => readDeptConfig(departmentsConfig, dept).scope === 'meeting'
+    );
+
+    if (!anyByMeeting) return '';
+
+    const midweek = schedulesGetMeetingDate({
       week: selectedWeek,
       meeting: 'midweek',
-      forPrint: true,
       dataView,
     });
 
-    return meetingDate.locale;
-  }, [selectedWeek, dataView]);
+    const weekend = schedulesGetMeetingDate({
+      week: selectedWeek,
+      meeting: 'weekend',
+      dataView,
+    });
+
+    if (!midweek.locale || !weekend.locale) return '';
+
+    return `Entre semana: ${midweek.locale} · Fin de semana: ${weekend.locale}`;
+  }, [selectedWeek, dataView, departmentsConfig]);
 
   return {
     selectedWeek,
@@ -139,6 +171,7 @@ const useDepartmentEditor = () => {
     handleCloseClearAll,
     handleClearAll,
     weekName,
+    meetingDaysName,
     isNoMeetingWeek,
   };
 };
