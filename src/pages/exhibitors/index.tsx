@@ -24,6 +24,11 @@ import {
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
+import {
+  isExhibitorMonthPublished,
+  monthNeedsPublishing,
+  setExhibitorMonthPublished,
+} from '@services/app/exhibitors_publish';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
@@ -271,15 +276,10 @@ const Exhibitors = () => {
     triggerSync();
   };
 
-  // Forzar sincronización con la nube
-  const handleForceSync = () => {
-    worker.postMessage('startWorker');
-    displaySnackNotification({
-      header: t('tr_done', 'Hecho'),
-      message: t('tr_syncInProgress', 'Sincronización en curso...'),
-      severity: 'success',
-    });
-  };
+  // Aquí había un botón rotulado "Publicar" que en realidad solo forzaba una
+  // sincronización — parte de la confusión venía de ahí: parecía que publicaba
+  // el mes y no publicaba nada. Ahora ese botón publica de verdad, y el
+  // sincronizado va incluido (publicar guarda y dispara el ciclo).
 
 
 
@@ -359,6 +359,49 @@ const Exhibitors = () => {
 
     return slots;
   }, [selectedYear, selectedMonth, settings, exhibitorsList, effectiveTurns]);
+
+  // ── Publicación del mes ────────────────────────────────────────────────
+  // Las asignaciones fijas dicen quién SUELE llevar cada turno, no a quién le
+  // toca. Hasta que el responsable publica el mes, esto es un borrador: no
+  // sale en "Mis asignaciones", ni en el programa semanal de los demás, ni
+  // genera aviso. Ver services/app/exhibitors_publish.
+  const [publishDialog, setPublishDialog] = useState(false);
+
+  const monthIsPublished = useMemo(
+    () => isExhibitorMonthPublished(settings, currentMonthStr),
+    [settings, currentMonthStr]
+  );
+
+  const monthIsHistoric = useMemo(
+    () => !monthNeedsPublishing(currentMonthStr),
+    [currentMonthStr]
+  );
+
+  // Turnos del mes sin nadie asignado. No impide publicar —a veces se quiere
+  // confirmar lo que ya está decidido aunque falte gente— pero se dice.
+  const emptySlotsInMonth = useMemo(() => {
+    return generatedSlotsInMonth.filter(
+      (slot) =>
+        !slot.cancelled &&
+        !slot.assignments.some((a) => a.person && a.person.length > 0)
+    ).length;
+  }, [generatedSlotsInMonth]);
+
+  const handleTogglePublishMonth = async () => {
+    if (!settings || monthIsHistoric) return;
+
+    const localSettings = structuredClone(settings);
+    localSettings.publishedMonths = setExhibitorMonthPublished(
+      localSettings.publishedMonths,
+      currentMonthStr,
+      !monthIsPublished
+    );
+
+    await dbExhibitorsSaveSettings(localSettings);
+    setSettings(localSettings);
+    triggerSync();
+    setPublishDialog(false);
+  };
 
   // Determinar qué días de la semana tienen al menos un turno para la cuadrícula horizontal
   const activeWeekdaysInMonth = useMemo(() => {
@@ -1095,12 +1138,14 @@ const Exhibitors = () => {
                 )}
               </>
             )}
-            <NavBarButton
-              text={t('tr_publish', 'Publicar')}
-              main
-              onClick={handleForceSync}
-              icon={<IconGroups />}
-            />
+            {isServiceCommittee && !monthIsHistoric && (
+              <NavBarButton
+                text={monthIsPublished ? 'Publicado' : 'Publicar mes'}
+                main={!monthIsPublished}
+                onClick={() => setPublishDialog(true)}
+                icon={<IconGroups />}
+              />
+            )}
           </>
         }
       />
@@ -3061,6 +3106,65 @@ const Exhibitors = () => {
       {/* DIÁLOGO: Ajustes Mensuales (excepciones de horario/turnos). Mismo
           tratamiento que "Ajustes del mes" en predicacion_salidas — ver
           DESIGN_SYSTEM.md §6/§9. */}
+      <Dialog
+        open={publishDialog}
+        onClose={() => setPublishDialog(false)}
+        maxWidth="mobile"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
+        PaperProps={{
+          style: {
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+            boxShadow: 'var(--pop-up-shadow)',
+          },
+        }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            {monthIsPublished ? 'Retirar' : 'Publicar'}: {MONTH_NAMES[selectedMonth]} {selectedYear}
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+          <InfoTip
+            isBig={false}
+            color={monthIsPublished ? 'warning' : 'info'}
+            text={
+              monthIsPublished
+                ? 'Al retirarlo, este mes vuelve a ser un borrador: dejará de aparecer en las asignaciones de los hermanos y en el programa semanal.'
+                : 'Al publicarlo, cada hermano verá sus turnos de este mes en "Mis asignaciones" y en el programa semanal, y recibirá el aviso correspondiente.'
+            }
+          />
+
+          {!monthIsPublished && emptySlotsInMonth > 0 && (
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'turno sin nadie asignado' : 'turnos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
+            />
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          <AppButton variant="secondary" disableAutoStretch onClick={() => setPublishDialog(false)}>
+            Cancelar
+          </AppButton>
+          <AppButton
+            variant="main"
+            color={monthIsPublished ? 'red' : 'primary'}
+            disableAutoStretch
+            onClick={handleTogglePublishMonth}
+          >
+            {monthIsPublished ? 'Retirar' : 'Publicar mes'}
+          </AppButton>
+        </DialogActions>
+      </Dialog>
+
       <Dialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}

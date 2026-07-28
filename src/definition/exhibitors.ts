@@ -25,6 +25,11 @@ export type ExhibitorSettingsType = {
   availability: {
     [person_uid: string]: string[]; // Array de turnIds preferidos por cada hermano
   };
+  /**
+   * Meses ya publicados ('YYYY/MM'). Un mes que no esté aquí está en BORRADOR:
+   * solo lo ve quien puede editarlo. Ver `services/app/exhibitors_publish`.
+   */
+  publishedMonths?: string[];
 };
 
 export type ExhibitorWeekAssignmentType = {

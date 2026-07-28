@@ -10,12 +10,16 @@ import { ExhibitorWeekType } from '@definition/exhibitors';
 import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
 import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../../../utils/exhibitors';
+import { isExhibitorMonthPublished } from '@services/app/exhibitors_publish';
+import { useCurrentUser } from '@hooks/index';
 import { addDays } from '@utils/date';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
 const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekType, week: string }) => {
   const { t } = useAppTranslation();
+
+  const { isServiceCommittee } = useCurrentUser();
 
   const settings = useAtomValue(exhibitorsSettingsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
@@ -40,6 +44,14 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
 
   const cancelledMonthMessage = useMemo(() => {
     return getMonthCancelledMessage(settings, weekMonthStr);
+  }, [settings, weekMonthStr]);
+
+  // Sin publicar: quien puede editar lo ve igual, pero con el aviso delante
+  // para que no lo confunda con algo ya decidido.
+  const monthIsDraft = useMemo(() => {
+    if (!weekMonthStr) return false;
+
+    return !isExhibitorMonthPublished(settings, weekMonthStr);
   }, [settings, weekMonthStr]);
 
   const formatLegibleDate = (date: Date): string => {
@@ -86,6 +98,13 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       // julio aunque la semana empiece en junio.
       const dayMonthStr = dateStr.substring(0, 7);
       if (isMonthCancelled(settings, dayMonthStr)) continue;
+
+      // Mes en BORRADOR: solo lo ve quien puede editarlo, y marcado como tal.
+      // Para el resto no existe todavía — las asignaciones fijas son una
+      // plantilla, no una decisión tomada.
+      if (!isExhibitorMonthPublished(settings, dayMonthStr) && !isServiceCommittee) {
+        continue;
+      }
       const dayEffectiveTurns = getEffectiveTurnsForMonth(settings, dayMonthStr);
 
       // Encontrar los turnos configurados para este día
@@ -151,7 +170,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
           turns: sortedTurns,
         };
       });
-  }, [weekRecord, week, settings]);
+  }, [weekRecord, week, settings, isServiceCommittee]);
 
   // Solo mostrar el aviso de "mes suspendido" si de verdad no queda ningún
   // turno que enseñar — una semana límite (ej. termina en un mes distinto
@@ -215,6 +234,29 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
 
   return (
     <Stack spacing="20px" sx={{ mt: 1 }}>
+      {/* Solo llega aquí quien puede editar: al resto se le han saltado los
+          días de un mes sin publicar. Se avisa para que no confunda un
+          borrador con algo ya decidido. */}
+      {monthIsDraft && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: 'var(--orange-secondary)',
+            border: '1px solid var(--orange-dark)',
+            borderRadius: 'var(--r-lg)',
+          }}
+        >
+          <IconInfo color="var(--orange-dark)" />
+          <Typography className="body-small-regular" color="var(--orange-dark)">
+            Mes sin publicar. Esto es un borrador: solo lo ves tú, y no le
+            aparece a nadie en sus asignaciones hasta que lo publiques.
+          </Typography>
+        </Box>
+      )}
+
       {groupedTurns.map(({ date, dayDate, turns }) => {
         const dayLabel = formatLegibleDate(dayDate);
 

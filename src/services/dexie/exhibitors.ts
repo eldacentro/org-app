@@ -39,6 +39,9 @@ export const dbExhibitorsGetSettings = async (): Promise<ExhibitorSettingsType> 
     if (!settings.availability) {
       settings.availability = {};
     }
+    if (!settings.publishedMonths) {
+      settings.publishedMonths = [];
+    }
     return settings;
   }
 
@@ -50,6 +53,7 @@ export const dbExhibitorsGetSettings = async (): Promise<ExhibitorSettingsType> 
     responsibles: [],
     fixedAssignments: [],
     availability: {},
+    publishedMonths: [],
   };
 
   await appDb.exhibitors.put(defaultSettings);

@@ -1,5 +1,6 @@
 import { ExhibitorSettingsType, ExhibitorTurnType, ExhibitorWeekType } from '../definition/exhibitors';
 import { addDays, addWeeks, formatDate, getWeekDate } from './date';
+import { isExhibitorMonthPublished } from '@services/app/exhibitors_publish';
 
 /**
  * Gets the effective turns for a given month.
@@ -109,7 +110,14 @@ export const getMyExhibitorTurns = (
     const weekOf = formatDate(weekMonday, 'yyyy/MM/dd');
     const monthStr = weekOf.substring(0, 7);
 
-    if (!isMonthCancelled(settings, monthStr)) {
+    // Un mes en BORRADOR no le sale a nadie: las asignaciones fijas son una
+    // plantilla, no una decisión, y hasta que el responsable publica el mes no
+    // hay nada confirmado. Esto vale para "Mis asignaciones", para el contador
+    // del panel y para las notificaciones, que usan todos esta función.
+    if (
+      !isMonthCancelled(settings, monthStr) &&
+      isExhibitorMonthPublished(settings, monthStr)
+    ) {
       const effectiveTurns = getEffectiveTurnsForMonth(settings, monthStr);
       const weekRecord = exhibitors.find((w) => w?.weekOf === weekOf);
 
