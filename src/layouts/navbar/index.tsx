@@ -310,7 +310,12 @@ const NavBar = ({ isSupported }: NavBarType) => {
                             className: 'small-card-shadow profile-menu-glass',
                             style: {
                               borderRadius: 'var(--radius-l)',
-                              minWidth: '294px',
+                              // Ancho FIJO, no mínimo: con `minWidth` el menú
+                              // se ensanchaba o se encogía según lo largo que
+                              // fuera el estado de la sincronización, y cambiar
+                              // de tamaño al abrirlo se nota mucho.
+                              width: '294px',
+                              maxWidth: 'calc(100vw - 32px)',
                             },
                           },
                         }}

@@ -96,7 +96,10 @@ const DashboardMenu = (props: DashboardMenuProps) => {
                 justifyContent: 'space-between',
               }}
             >
-              <Box>
+              {/* `minWidth: 0` es lo que permite que el texto PARTA en vez de
+                  ensanchar el menú: sin él, un bloque flexible no baja del
+                  ancho de su contenido y estira todo lo que tiene alrededor. */}
+              <Box sx={{ minWidth: 0 }}>
                 <Typography className="body-regular" color="var(--black)">
                   {props.primaryText}
                 </Typography>
@@ -104,6 +107,10 @@ const DashboardMenu = (props: DashboardMenuProps) => {
                   <Typography
                     className="label-small-regular"
                     color="var(--grey-350)"
+                    /* MUI pone `white-space: nowrap` en los MenuItem, así que
+                       el texto secundario se iba a una sola línea y el menú
+                       cambiaba de ancho según lo que dijera. Que parta. */
+                    sx={{ whiteSpace: 'normal' }}
                   >
                     {props.secondaryText}
                   </Typography>
