@@ -309,24 +309,27 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '3px',
-                    px: '6px',
-                    py: '2px',
-                    marginTop: '4px',
-                    borderRadius: 'var(--radius-s)',
+                    px: '10px',
+                    py: '4px',
+                    // Iba pegado al texto de la asignación y casi transparente
+                    // (opacidad 0,55 sobre gris): había que buscarlo para
+                    // verlo. Ahora respira y se lee como lo que es, un enlace.
+                    marginTop: '10px',
+                    borderRadius: 'var(--radius-max)',
                     textDecoration: 'none',
-                    border: '1px solid var(--line)',
-                    opacity: 0.55,
-                    transition: 'opacity 0.2s ease',
-                    '&:hover': { opacity: 0.9 },
-                    '&:active': { opacity: 1 },
+                    border: '1px solid var(--accent-200)',
+                    backgroundColor: 'var(--accent-100)',
+                    transition: 'background-color 0.2s ease',
+                    '&:hover': { backgroundColor: 'var(--accent-200)' },
+                    '&:active': { backgroundColor: 'var(--accent-200)' },
                   }}
                 >
                   <Typography
                     component="span"
                     sx={{
-                      fontSize: '10px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      color: 'var(--grey-400)',
+                      color: 'var(--accent-main)',
                       lineHeight: 1.2,
                       letterSpacing: '0.2px',
                     }}
