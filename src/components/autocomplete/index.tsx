@@ -82,6 +82,7 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
     styleIcon,
     decorator,
     variant,
+    multiline,
     ...defaultProps
   } = props;
 
@@ -131,7 +132,10 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
           slotProps={{ input: params.InputProps }}
           startIcon={startIcon}
           endIcon={endIcon}
-          height={48}
+          multiline={multiline}
+          // Con varias líneas la altura la manda el contenido; fijarla en 48
+          // dejaría la segunda línea fuera del recuadro.
+          height={multiline ? undefined : 48}
           styleIcon={styleIcon ?? true}
           sx={
             decorator

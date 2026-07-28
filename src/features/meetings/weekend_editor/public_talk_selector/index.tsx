@@ -43,6 +43,10 @@ const PublicTalkSelector = ({
 
       <Autocomplete
         readOnly={readOnly}
+        // Los títulos de los discursos pasan de los 60 caracteres y se
+        // cortaban con puntos suspensivos: era el único campo del editor al
+        // que no le cabía su propio valor. Que ocupe dos líneas.
+        multiline
         label={t('tr_publicTalk')}
         options={talks}
         isOptionEqualToValue={(option, value) =>
