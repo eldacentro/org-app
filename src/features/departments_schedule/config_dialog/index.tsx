@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-} from '@mui/material';
+import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
 import AppButton from '@components/button';
@@ -36,6 +30,26 @@ import { ALL_DEPARTMENT_TYPES, DepartmentType } from '@definition/person';
  * cada puesto, así que lo ya asignado con la configuración anterior deja de
  * verse hasta que se vuelva a dejar como estaba. Se avisa abajo.
  */
+
+/**
+ * Son cuatro departamentos con dos ajustes cada uno, así que en un móvil el
+ * diálogo no cabe entero. La altura se limita a lo que de verdad se puede
+ * usar —descontando la barra de estado y el notch— y lo que sobra se
+ * desplaza por dentro. Sin esto, el diálogo crecía por encima de la pantalla
+ * y el título se metía debajo de la hora y la batería.
+ */
+const PAPER_STYLE: CSSProperties = {
+  maxWidth: '560px',
+  borderRadius: 'var(--radius-xl)',
+  backgroundColor: 'var(--white)',
+  marginLeft: '16px',
+  marginRight: '16px',
+  marginTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+  marginBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+  maxHeight:
+    'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
+};
+
 const DeptConfigDialog = ({
   open,
   onClose,
@@ -111,94 +125,97 @@ const DeptConfigDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="mobile"
-      fullWidth
-      sx={{ '& .MuiDialog-paper': { maxWidth: '560px', width: '100%' } }}
-      PaperProps={{
-        style: {
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
-          boxShadow: 'var(--pop-up-shadow)',
-        },
-      }}
-      slotProps={{
-        backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
-      }}
+      PaperProps={{ className: 'pop-up-shadow', style: PAPER_STYLE }}
+      // El contenido no se desplaza entero: solo la lista de departamentos.
+      // Así el título y los botones no se van de la pantalla y no hay que
+      // bajar hasta el final para poder guardar.
+      sx={{ overflow: 'hidden', alignItems: 'stretch' }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
-        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          Configuración de departamentos
-        </Typography>
-      </DialogTitle>
+      <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+        Configuración de departamentos
+      </Typography>
 
-      <DialogContent
-        sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}
+      <Stack
+        spacing="12px"
+        sx={{
+          width: '100%',
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          // Sin esto, la sombra del control segmentado se corta contra el
+          // borde del área que se desplaza.
+          paddingBottom: '4px',
+        }}
       >
-        <InfoTip
-          isBig={false}
-          color="info"
-          text="Cada departamento se organiza como quieras: las mismas personas toda la semana, o unas el día de entre semana y otras el fin de semana. Y si hace falta, el turno se puede partir en dos: uno al principio de la reunión y otro al final."
-        />
+        <Typography className="body-small-regular" color="var(--ink-2)">
+          Cada departamento se organiza por su cuenta: las mismas personas toda
+          la semana, o unas entre semana y otras el fin de semana. Y el turno
+          se puede partir en dos: principio y final de la reunión.
+        </Typography>
 
-        <Stack spacing="12px">
-          {ALL_DEPARTMENT_TYPES.map((dept) => {
-            const config = readDeptConfig(draft, dept);
+        {ALL_DEPARTMENT_TYPES.map((dept) => {
+          const config = readDeptConfig(draft, dept);
 
-            return (
-              <Box
-                key={dept}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  padding: '16px',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--radius-l)',
-                  backgroundColor: 'var(--accent-100)',
-                }}
-              >
-                <Typography className="h4" color="var(--ink)">
-                  {DEPT_LABEL[dept]}
-                </Typography>
+          return (
+            <Box
+              key={dept}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                padding: '16px',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--radius-l)',
+                backgroundColor: 'var(--accent-100)',
+              }}
+            >
+              <Typography className="h4" color="var(--ink)">
+                {DEPT_LABEL[dept]}
+              </Typography>
 
-                <SegmentedControl
-                  ariaLabel={`Cómo se asigna ${DEPT_LABEL[dept]}`}
-                  tabs={['Por semana', 'Por reunión']}
-                  active={config.scope === 'meeting' ? 1 : 0}
-                  onChange={(idx) =>
-                    setDept(dept, { scope: idx === 1 ? 'meeting' : 'week' })
-                  }
-                />
+              <SegmentedControl
+                ariaLabel={`Cómo se asigna ${DEPT_LABEL[dept]}`}
+                tabs={['Por semana', 'Por reunión']}
+                active={config.scope === 'meeting' ? 1 : 0}
+                onChange={(idx) =>
+                  setDept(dept, { scope: idx === 1 ? 'meeting' : 'week' })
+                }
+              />
 
-                <SwitchWithLabel
-                  label="Dividir en dos turnos"
-                  helper="Uno al principio de la reunión y otro al final."
-                  checked={config.turns > 1}
-                  onChange={(checked) =>
-                    setDept(dept, { turns: checked ? MAX_DEPT_TURNS : 1 })
-                  }
-                />
-              </Box>
-            );
-          })}
-        </Stack>
+              <SwitchWithLabel
+                label="Dividir en dos turnos"
+                helper="Uno al principio de la reunión y otro al final."
+                checked={config.turns > 1}
+                onChange={(checked) =>
+                  setDept(dept, { turns: checked ? MAX_DEPT_TURNS : 1 })
+                }
+              />
+            </Box>
+          );
+        })}
 
         <InfoTip
           isBig={false}
           color="warning"
           text="Cambiar esto no borra nada, pero las asignaciones ya hechas con la configuración anterior dejan de verse mientras esté cambiada. Si te arrepientes, déjalo como estaba y vuelven a aparecer."
         />
-      </DialogContent>
+      </Stack>
 
-      <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-        <AppButton variant="secondary" disableAutoStretch onClick={onClose}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '8px',
+          width: '100%',
+        }}
+      >
+        <AppButton variant="tertiary" disableAutoStretch onClick={onClose}>
           Cancelar
         </AppButton>
         <AppButton variant="main" disableAutoStretch onClick={handleSave}>
           Guardar
         </AppButton>
-      </DialogActions>
+      </Box>
     </Dialog>
   );
 };
