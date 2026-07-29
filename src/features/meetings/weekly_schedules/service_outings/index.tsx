@@ -44,7 +44,13 @@ const ServiceOutingsContainer = () => {
             lastUpdated={scheduleLastUpdated}
             action={
               <Accion
-                icono={<IconInfo color="var(--always-white)" width={16} height={16} />}
+                icono={
+                  <IconInfo
+                    color="var(--always-white)"
+                    width={16}
+                    height={16}
+                  />
+                }
                 texto="Consejos"
                 onClick={() => setConsejos(true)}
               />
@@ -56,7 +62,6 @@ const ServiceOutingsContainer = () => {
               <ServiceOutingsMeeting week={week} weekRecord={weekRecord} />
             </Stack>
           )}
-
         </Box>
       )}
     </>

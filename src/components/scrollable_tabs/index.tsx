@@ -89,10 +89,16 @@ function ScrollableTabs({
                 color: 'var(--accent-main)',
                 '&.Mui-disabled': { opacity: 0.3 },
               },
+              // La pestaña elegida, en color pleno. Antes era texto azul sobre
+              // un azul clarísimo y apenas se distinguía de las demás: en una
+              // tira de veinte semanas había que fijarse para saber en cuál
+              // estabas.
               '& button.Mui-selected': {
-                color: 'var(--accent-main)',
-                background: 'var(--accent-150)',
+                color: 'var(--always-white)',
+                background: 'var(--accent-main)',
                 borderRadius: 'var(--radius-max)',
+                fontWeight: 600,
+                '&:hover': { background: 'var(--accent-dark)' },
               },
               '& .MuiTab-root:not(.Mui-selected)': {
                 color: 'var(--grey-350)',

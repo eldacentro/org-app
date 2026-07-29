@@ -11,7 +11,10 @@ import {
 } from '@utils/date';
 import { userDataViewState } from '@states/settings';
 import { ASSIGNMENT_PATH } from '@constants/index';
-import { schedulesGetData } from '@services/app/schedules';
+import {
+  schedulesGetData,
+  weeklySchedulesFirstWeek,
+} from '@services/app/schedules';
 import { dbSchedCheck } from '@services/dexie/schedules';
 import { AssignmentCongregation } from '@definition/schedules';
 import { monthShortNamesState } from '@states/app';
@@ -59,7 +62,7 @@ const useWeekendContainer = () => {
   // solo encima sin tocar lo que ya se haya asignado (son tablas
   // independientes, ver dbSchedCheck/sourcesFormatAndSaveData).
   const weeksRange = useMemo(() => {
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
     const horizon = addMonths(new Date(), 12);
 
     const generated: { weekOf: string }[] = [];
@@ -71,7 +74,9 @@ const useWeekendContainer = () => {
     }
 
     const existingSources = sources
-      .filter((record) => isMondayDate(record.weekOf) && record.weekOf >= minDate)
+      .filter(
+        (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
+      )
       .map((record) => ({ weekOf: record.weekOf }));
 
     const allWeekOfs = new Set([

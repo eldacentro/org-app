@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { schedulesState } from '@states/schedules';
-import { addDays, addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { addDays, formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { userDataViewState } from '@states/settings';
 import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
 import { OutgoingTalkSchedule, OutgoingTalkSchedules } from './index.types';
+import { weeklySchedulesFirstWeek } from '@services/app/schedules';
 
 const useOutgoingTalks = () => {
   const currentWeekVisible = useIntersectionObserver({
@@ -39,12 +40,10 @@ const useOutgoingTalks = () => {
   }, [schedules]);
 
   const filteredSources = useMemo(() => {
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
 
     return sources.filter(
-      (record) =>
-        isMondayDate(record.weekOf) &&
-        record.weekOf >= minDate
+      (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
   }, [sources]);
 

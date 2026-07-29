@@ -44,7 +44,11 @@ const ExhibitorsWeeklyContainer = () => {
         action={
           <Accion
             icono={
-              <IconImportFile color="var(--always-white)" width={16} height={16} />
+              <IconImportFile
+                color="var(--always-white)"
+                width={16}
+                height={16}
+              />
             }
             texto="Documentos"
             onClick={() =>
@@ -53,8 +57,6 @@ const ExhibitorsWeeklyContainer = () => {
           />
         }
       />
-
-
 
       {week === null ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -74,7 +76,13 @@ const ExhibitorsWeeklyContainer = () => {
             justifyContent: 'center',
           }}
         >
-          <Typography sx={{ color: 'var(--grey-400)', fontSize: '14px', fontWeight: '500' }}>
+          <Typography
+            sx={{
+              color: 'var(--grey-400)',
+              fontSize: '14px',
+              fontWeight: '500',
+            }}
+          >
             No hay programa de exhibidores para esta semana.
           </Typography>
         </Box>

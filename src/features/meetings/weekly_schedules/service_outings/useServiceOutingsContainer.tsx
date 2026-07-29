@@ -3,9 +3,10 @@ import { useAtom, useAtomValue } from 'jotai';
 import { jumpToWeekState } from '@states/schedules';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { serviceOutingsListState } from '@states/service_outings';
-import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
+import { weeklySchedulesFirstWeek } from '@services/app/schedules';
 
 const useServiceOutingsContainer = () => {
   const currentWeekVisible = useIntersectionObserver({
@@ -26,12 +27,10 @@ const useServiceOutingsContainer = () => {
   }, [serviceOutings]);
 
   const filteredSources = useMemo(() => {
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
 
     return sources.filter(
-      (record) =>
-        isMondayDate(record.weekOf) &&
-        record.weekOf >= minDate
+      (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
   }, [sources]);
 

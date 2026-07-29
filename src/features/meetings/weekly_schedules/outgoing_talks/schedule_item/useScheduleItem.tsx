@@ -30,9 +30,17 @@ const useScheduleItem = ({ schedule }: ScheduleItemProps) => {
 
     let speakerName = '';
     if (person) {
-      speakerName = personGetDisplayName(person, displayNameEnabled, fullnameOption);
+      speakerName = personGetDisplayName(
+        person,
+        displayNameEnabled,
+        fullnameOption
+      );
     } else if (speaker) {
-      speakerName = speakerGetDisplayName(speaker, displayNameEnabled, fullnameOption);
+      speakerName = speakerGetDisplayName(
+        speaker,
+        displayNameEnabled,
+        fullnameOption
+      );
     }
 
     return {
@@ -40,7 +48,14 @@ const useScheduleItem = ({ schedule }: ScheduleItemProps) => {
       name: speakerName,
       talk_title: talk?.talk_title,
     };
-  }, [schedule, persons, visitingSpeakers, talks, displayNameEnabled, fullnameOption]);
+  }, [
+    schedule,
+    persons,
+    visitingSpeakers,
+    talks,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
 
   return { talkSchedule };
 };

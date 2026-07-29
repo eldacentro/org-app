@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { exhibitorsListState } from '@states/exhibitors';
-import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
+import { weeklySchedulesFirstWeek } from '@services/app/schedules';
 
 const useExhibitorsContainer = () => {
   const currentWeekVisible = useIntersectionObserver({
@@ -25,7 +26,7 @@ const useExhibitorsContainer = () => {
   }, [exhibitors]);
 
   const filteredSources = useMemo(() => {
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
 
     const weekOfs = new Set<string>();
     for (const record of sources) {

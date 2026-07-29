@@ -2,10 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
 import { jumpToWeekState, schedulesState } from '@states/schedules';
-import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { userDataViewState } from '@states/settings';
 import { ASSIGNMENT_PATH } from '@constants/index';
-import { schedulesGetData } from '@services/app/schedules';
+import {
+  schedulesGetData,
+  weeklySchedulesFirstWeek,
+} from '@services/app/schedules';
 import { AssignmentCongregation } from '@definition/schedules';
 import { monthShortNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
@@ -41,12 +44,10 @@ const useMidweekContainer = () => {
   }, [schedules]);
 
   const filteredSources = useMemo(() => {
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
 
     return sources.filter(
-      (record) =>
-        isMondayDate(record.weekOf) &&
-        record.weekOf >= minDate
+      (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate
     );
   }, [sources]);
 

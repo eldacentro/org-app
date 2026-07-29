@@ -69,7 +69,10 @@ const OutgoingTalks = () => {
                 borderRadius: 'var(--radius-l)',
               }}
             >
-              {t('tr_noOutgoingTalksThisWeek', 'No hay discursos salientes programados para esta semana')}
+              {t(
+                'tr_noOutgoingTalksThisWeek',
+                'No hay discursos salientes programados para esta semana'
+              )}
             </Typography>
           ) : (
             talkSchedules.map((item) => (

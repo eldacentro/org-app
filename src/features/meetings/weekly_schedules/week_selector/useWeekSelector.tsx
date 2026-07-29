@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
+import { formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { WeekSelectorProps } from './index.types';
 import { sourcesState } from '@states/sources';
-import { schedulesGetMeetingDate } from '@services/app/schedules';
+import {
+  schedulesGetMeetingDate,
+  weeklySchedulesFirstWeek,
+} from '@services/app/schedules';
 
-const useWeekSelector = ({ onChange, value, customWeeksList }: WeekSelectorProps) => {
+const useWeekSelector = ({
+  onChange,
+  value,
+  customWeeksList,
+}: WeekSelectorProps) => {
   const sources = useAtomValue(sourcesState);
 
   const [currentTab, setCurrentTab] = useState<number | boolean>(false);
@@ -13,7 +20,7 @@ const useWeekSelector = ({ onChange, value, customWeeksList }: WeekSelectorProps
   const weeksList = useMemo(() => {
     if (customWeeksList) return customWeeksList;
 
-    const minDate = formatDate(addMonths(new Date(), -2), 'yyyy/MM/dd');
+    const minDate = weeklySchedulesFirstWeek();
 
     return sources.filter(
       (record) => isMondayDate(record.weekOf) && record.weekOf >= minDate

@@ -131,7 +131,7 @@ const usePersonComponent = ({
         );
         result.female = person.person_data.female.value;
         result.active = assigned.value === userUID;
-        
+
         if (showCongregation) {
           result.congregation = congName;
         }
@@ -146,8 +146,12 @@ const usePersonComponent = ({
       // del orador dejó de existir después.
       if (!result.name && assigned?.value?.length > 0) {
         const speaker =
-          incomingSpeakers.find((record) => record.person_uid === assigned?.value) ??
-          visitingSpeakersActive.find((record) => record.person_uid === assigned?.value);
+          incomingSpeakers.find(
+            (record) => record.person_uid === assigned?.value
+          ) ??
+          visitingSpeakersActive.find(
+            (record) => record.person_uid === assigned?.value
+          );
 
         if (speaker) {
           result.name = speakerGetDisplayName(
@@ -159,10 +163,13 @@ const usePersonComponent = ({
           result.active = false;
 
           if (showCongregation) {
-            const speakerCong = congregations.find(c => c.id === speaker.speaker_data.cong_id);
-            const congNameVal = typeof speakerCong?.cong_data?.cong_name === 'object' 
-              ? speakerCong.cong_data.cong_name.value 
-              : speakerCong?.cong_data?.cong_name;
+            const speakerCong = congregations.find(
+              (c) => c.id === speaker.speaker_data.cong_id
+            );
+            const congNameVal =
+              typeof speakerCong?.cong_data?.cong_name === 'object'
+                ? speakerCong.cong_data.cong_name.value
+                : speakerCong?.cong_data?.cong_name;
             result.congregation = (congNameVal as string) || undefined;
           }
         }
@@ -246,9 +253,7 @@ const usePersonComponent = ({
         // either by explicit talkType or by UID presence in incomingSpeakers.
         const speakerIsVisiting =
           talkType?.value === 'visitingSpeaker' ||
-          incomingSpeakers.some(
-            (s) => s.person_uid === speakerAssigned?.value
-          );
+          incomingSpeakers.some((s) => s.person_uid === speakerAssigned?.value);
 
         if (isSpeaker && result.name && speakerIsVisiting) {
           result.name = `${result.name} ${t('tr_orWatchtowerStudyReader')}`;
@@ -313,8 +318,12 @@ const usePersonComponent = ({
 
           if (speakerIsVisiting) {
             const speaker =
-              incomingSpeakers.find((record) => record.person_uid === speakerAssigned?.value) ??
-              visitingSpeakersActive.find((record) => record.person_uid === speakerAssigned?.value);
+              incomingSpeakers.find(
+                (record) => record.person_uid === speakerAssigned?.value
+              ) ??
+              visitingSpeakersActive.find(
+                (record) => record.person_uid === speakerAssigned?.value
+              );
 
             if (speaker) {
               result.name = `${speakerGetDisplayName(

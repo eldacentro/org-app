@@ -18,10 +18,7 @@ import {
  * hay que normalizar nada — a diferencia de las asignaciones, cuyo weekOf es
  * el día real de la reunión.
  */
-const useWeekJwLibraryLink = (
-  week: string,
-  meeting: 'midweek' | 'weekend'
-) => {
+const useWeekJwLibraryLink = (week: string, meeting: 'midweek' | 'weekend') => {
   const sources = useAtomValue(sourcesState);
   const jwLang = useAtomValue(JWLangState);
 
