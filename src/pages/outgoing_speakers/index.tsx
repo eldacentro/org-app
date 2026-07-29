@@ -8,8 +8,6 @@ import {
   ListItem,
   Tooltip,
   Collapse,
-  TextField,
-  InputAdornment,
   MenuItem,
   Select,
   IconButton,
@@ -28,10 +26,10 @@ import {
   IconPrint,
   IconPublish,
   IconOutgoindSpeaker,
-  IconSearch,
   IconSortDown,
   IconSortUp,
 } from '@components/icons';
+import SearchBar from '@components/search_bar';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
 import { publicTalksState } from '@states/public_talks';
@@ -609,28 +607,17 @@ const OutgoingSpeakersPage = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Search and Sort controls */}
           <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', mt: 1 }}>
-            <TextField
-              placeholder="Buscar por nombre o número/título de discurso..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <IconSearch width={18} height={18} color="var(--grey-400)" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                flexGrow: 1,
-                minWidth: '280px',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 'var(--r-lg)',
-                  backgroundColor: 'var(--card)',
-                  border: '1px solid var(--line)',
-                },
-              }}
-            />
+            {/* El MISMO buscador que en Ayuda, Discursos públicos, Personas o
+                Ausencias. Estaba escrito aquí a mano con otro radio, otro
+                fondo y sin botón de limpiar: era el único de la aplicación
+                que no se parecía a los demás. */}
+            <Box sx={{ flex: '1 1 280px', minWidth: '280px' }}>
+              <SearchBar
+                placeholder="Buscar por nombre o número/título de discurso..."
+                value={searchQuery}
+                onSearch={setSearchQuery}
+              />
+            </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Typography className="body-small-medium" color="var(--grey-500)">
