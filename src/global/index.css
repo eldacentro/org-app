@@ -317,6 +317,28 @@ body iframe {
   --shadow-md: var(--big-card-shadow);
 }
 
+/* ─── El hueco de la etiqueta en el borde del campo ────────────────────────
+   El recuadro de un campo tiene una muesca por donde asoma su etiqueta
+   ("Presidente", "Estudiante", "Fecha de nacimiento"…). MUI la abre animada:
+   `max-width .1s ... .05s`, o sea que espera 50 ms y luego tarda otros 100.
+
+   Escribiendo da igual, porque el hueco ya está abierto. Pero en esta app los
+   campos se rellenan SOLOS cuando llegan los datos de la base local: la
+   etiqueta salta al borde en el mismo instante y el hueco todavía no está, así
+   que durante ~150 ms la línea del recuadro atraviesa la palabra. Medido al
+   abrir una semana en el editor: de quince campos, once tenían la etiqueta ya
+   arriba con la muesca a cero de ancho.
+
+   Se abre sin transición: así la etiqueta siempre aterriza en un hueco que ya
+   existe. Nadie percibe una muesca apareciendo de golpe; lo que sí se percibía
+   era la palabra tachada.
+
+   El selector va doblado para ganarle en especificidad al estilo de MUI (que
+   es emotion y se inyecta después) sin recurrir a `!important`. */
+.MuiOutlinedInput-notchedOutline.MuiOutlinedInput-notchedOutline legend {
+  transition: none;
+}
+
 /* ─── Dark mode semantic overrides ─────────────────────────────────────── */
 [data-theme$='dark'] {
   --line: rgba(255, 255, 255, 0.08);

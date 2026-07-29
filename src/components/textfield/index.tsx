@@ -42,9 +42,20 @@ const TextField = (props: TextFieldTypeProps) => {
     );
   const styleIconLocal = styleIcon ?? true;
 
-  const varHeight = (56 - heightLocal) / 2;
-
   const isMultiLine = props.multiline || props.rows;
+
+  // Cuánto hay que subir la etiqueta del campo VACÍO para que quede centrada.
+  //
+  // MUI la coloca con un desplazamiento fijo (`translate(14px, 16px)`) pensado
+  // para su caja de 56px de alto. Las nuestras son más bajas, así que sin esta
+  // corrección la etiqueta se va hacia abajo.
+  //
+  // Con `multiline` la caja no lleva `height` —crece con el texto— pero sí un
+  // `minHeight` de 48, que es exactamente lo que mide cuando está vacía; y
+  // vacía es el único momento en que esta regla aplica, porque en cuanto hay
+  // texto la etiqueta se encoge y se va al borde.
+  const altoDeReferencia = isMultiLine ? 48 : heightLocal;
+  const varHeight = (56 - altoDeReferencia) / 2;
 
   const handleToggleAccessCode = () => {
     setShowAccessCode((prev) => {
@@ -145,12 +156,9 @@ const TextField = (props: TextFieldTypeProps) => {
           color: 'var(--accent-350)',
         },
 
-        // La etiqueta sin encoger (campo vacío) se sube para quedar centrada
-        // en una caja más baja que la de MUI. Con `multiline` la caja ya no
-        // tiene altura fija y MUI la centra sola: subirla además la dejaba
-        // montada sobre el borde, tachada por la propia línea del recuadro.
+        // La etiqueta del campo vacío, centrada. Ver `varHeight` arriba.
         '.MuiFormLabel-root[data-shrink=false]': {
-          top: isMultiLine ? 0 : `-${varHeight}px`,
+          top: `-${varHeight}px`,
         },
         '& > .MuiAutocomplete-popupIndicator': {
           '& svg, & svg g, & svg g path': { fill: 'var(--black)' },

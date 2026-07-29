@@ -37,7 +37,7 @@ const PendingSlips = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          padding: '14px 16px',
+          padding: '16px',
           cursor: todoConfirmado ? 'default' : 'pointer',
           userSelect: 'none',
         }}
@@ -102,7 +102,8 @@ const PendingSlips = () => {
             sx={{
               flexShrink: 0,
               transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s',
+              transition:
+                'transform var(--motion-medium) var(--ease-emphasized)',
             }}
           />
         )}
@@ -117,7 +118,7 @@ const PendingSlips = () => {
                 color="var(--grey-400)"
                 sx={{
                   display: 'block',
-                  padding: '10px 16px 4px',
+                  padding: '8px 16px 4px',
                   backgroundColor: 'var(--accent-100)',
                 }}
               >
