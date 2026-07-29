@@ -4,6 +4,7 @@ import { Week } from '@definition/week_type';
 import { WEEKEND_WITH_WTSTUDY } from '@constants/index';
 import {
   DoubleFieldContainer,
+  PlainCard,
   PrimaryFieldContainer,
   SecondaryFieldContainer,
 } from '../shared_styles';
@@ -35,93 +36,108 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
     showChairman,
   } = useWeekendMeeting(props);
 
+  // En la clase auxiliar de una semana con discursos no hay presidente, y una
+  // semana normal no lleva etiqueta: sin esto quedaría una tarjeta vacía.
+  const hayApertura =
+    weekType !== Week.NORMAL ||
+    !!myAssignmentsTotal ||
+    (!noMeetingInfo.value && showChairman);
+
   return (
     <Stack spacing="16px">
-      <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
-        <PrimaryFieldContainer
-          sx={{
-            display: 'flex',
-            alignItems: tabletUp ? 'center' : 'unset',
-            gap: tabletUp ? '16px' : '4px',
-            flexDirection: tabletUp ? 'row' : 'column',
-          }}
-        >
-
-          {weekType === Week.CO_VISIT && (
-            <Badge
-              text={t('tr_circuitOverseerWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              icon={<IconWavingHand />}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.ASSEMBLY && (
-            <Badge
-              text={t('tr_assemblyWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.CONVENTION && (
-            <Badge
-              text={t('tr_conventionWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.MEMORIAL && (
-            <Badge
-              text={t('tr_memorialWeek')}
-              color="accent"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {weekType === Week.NO_MEETING && (
-            <Badge
-              text={t('tr_noMeetingWeek')}
-              color="grey"
-              size="medium"
-              multiLine
-              filled={false}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {myAssignmentsTotal && <AssignmentBadge count={myAssignmentsTotal} />}
-        </PrimaryFieldContainer>
-
-        {!noMeetingInfo.value && (
-          <SecondaryFieldContainer
-            sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+      {/* Ver el porqué de esta tarjeta sin título en `PlainCard`. */}
+      {hayApertura && (
+        <PlainCard>
+          <DoubleFieldContainer
+            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
           >
-            {showChairman && (
-              <PersonComponent
-                label={`${t('tr_chairman')}:`}
-                week={week}
-                assignment="WM_Chairman"
-                dataView={props.dataView}
-                color="var(--weekend-meeting)"
-              />
+            <PrimaryFieldContainer
+              sx={{
+                display: 'flex',
+                alignItems: tabletUp ? 'center' : 'unset',
+                gap: tabletUp ? '16px' : '4px',
+                flexDirection: tabletUp ? 'row' : 'column',
+              }}
+            >
+              {weekType === Week.CO_VISIT && (
+                <Badge
+                  text={t('tr_circuitOverseerWeek')}
+                  color="accent"
+                  size="medium"
+                  multiLine
+                  filled={false}
+                  icon={<IconWavingHand />}
+                  sx={{ width: 'fit-content' }}
+                />
+              )}
+
+              {weekType === Week.ASSEMBLY && (
+                <Badge
+                  text={t('tr_assemblyWeek')}
+                  color="accent"
+                  size="medium"
+                  multiLine
+                  filled={false}
+                  sx={{ width: 'fit-content' }}
+                />
+              )}
+
+              {weekType === Week.CONVENTION && (
+                <Badge
+                  text={t('tr_conventionWeek')}
+                  color="accent"
+                  size="medium"
+                  multiLine
+                  filled={false}
+                  sx={{ width: 'fit-content' }}
+                />
+              )}
+
+              {weekType === Week.MEMORIAL && (
+                <Badge
+                  text={t('tr_memorialWeek')}
+                  color="accent"
+                  size="medium"
+                  multiLine
+                  filled={false}
+                  sx={{ width: 'fit-content' }}
+                />
+              )}
+
+              {weekType === Week.NO_MEETING && (
+                <Badge
+                  text={t('tr_noMeetingWeek')}
+                  color="grey"
+                  size="medium"
+                  multiLine
+                  filled={false}
+                  sx={{ width: 'fit-content' }}
+                />
+              )}
+
+              {myAssignmentsTotal && (
+                <AssignmentBadge count={myAssignmentsTotal} />
+              )}
+            </PrimaryFieldContainer>
+
+            {!noMeetingInfo.value && (
+              <SecondaryFieldContainer
+                sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+              >
+                {showChairman && (
+                  <PersonComponent
+                    label={`${t('tr_chairman')}:`}
+                    week={week}
+                    assignment="WM_Chairman"
+                    dataView={props.dataView}
+                    color="var(--weekend-meeting)"
+                  />
+                )}
+              </SecondaryFieldContainer>
             )}
-          </SecondaryFieldContainer>
-        )}
-      </DoubleFieldContainer>
+          </DoubleFieldContainer>
+        </PlainCard>
+      )}
 
       {noMeetingInfo.value && <Typography>{noMeetingInfo.event}</Typography>}
 
@@ -129,35 +145,37 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
         <>
           {showChairman && (
             <>
-              <DoubleFieldContainer
-                sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-              >
-                <PrimaryFieldContainer>
-                  {partTimings?.pgm_start && (
-                    <PartTiming time={partTimings.pgm_start} />
-                  )}
-
-                  <SongSource
-                    meeting="weekend"
-                    week={week}
-                    type="opening"
-                    dataView={props.dataView}
-                  />
-                </PrimaryFieldContainer>
-                <SecondaryFieldContainer
-                  sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+              <PlainCard>
+                <DoubleFieldContainer
+                  sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
                 >
-                  {!openingPrayerAuto && (
-                    <PersonComponent
-                      label={`${t('tr_prayer')}:`}
+                  <PrimaryFieldContainer>
+                    {partTimings?.pgm_start && (
+                      <PartTiming time={partTimings.pgm_start} />
+                    )}
+
+                    <SongSource
+                      meeting="weekend"
                       week={week}
-                      assignment="WM_OpeningPrayer"
+                      type="opening"
                       dataView={props.dataView}
-                      color="var(--weekend-meeting)"
                     />
-                  )}
-                </SecondaryFieldContainer>
-              </DoubleFieldContainer>
+                  </PrimaryFieldContainer>
+                  <SecondaryFieldContainer
+                    sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+                  >
+                    {!openingPrayerAuto && (
+                      <PersonComponent
+                        label={`${t('tr_prayer')}:`}
+                        week={week}
+                        assignment="WM_OpeningPrayer"
+                        dataView={props.dataView}
+                        color="var(--weekend-meeting)"
+                      />
+                    )}
+                  </SecondaryFieldContainer>
+                </DoubleFieldContainer>
+              </PlainCard>
 
               <PublicTalk
                 week={week}

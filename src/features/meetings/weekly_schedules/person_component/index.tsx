@@ -1,5 +1,4 @@
-import { Box, Tooltip } from '@mui/material';
-import { IconFemale, IconMale } from '@components/icons';
+import { Box } from '@mui/material';
 import { PersonComponentProps } from './index.types';
 import usePersonComponent from './usePersonComponent';
 import Typography from '@components/typography';
@@ -20,124 +19,101 @@ const PersonComponent = (props: PersonComponentProps) => {
         padding: '6px 0px',
       }}
     >
+      {/* Nada de `fontSize`/`fontWeight` en `sx`: las clases de tipografía son
+          globales y ganan a emotion, así que aquí no hacían nada. El tamaño lo
+          pone la clase. */}
       {props.label && (
         <Typography
           className="body-small-semibold"
           color="var(--grey-500)"
-          sx={{ 
-            flexShrink: 0, 
-            minWidth: '95px', 
-            fontSize: '13.5px',
-            fontWeight: 600,
-            letterSpacing: '0.2px'
-          }}
+          sx={{ flexShrink: 0, minWidth: '95px' }}
         >
           {props.label}
         </Typography>
       )}
-      
+
+      {/* La caja se tiñe del color de la parte en la que está —turquesa en
+          Tesoros, ámbar en Seamos mejores maestros, rojo en Nuestra vida
+          cristiana—, pero a muy baja opacidad: con doce nombres en una semana,
+          un tinte fuerte convierte la página en un bloque de color. Ya no
+          lleva el icono de persona ni la barra de la izquierda; el color de la
+          parte ya lo dice todo, y el nombre se lee mejor sin nada delante.
+
+          Sin tooltip: repetía al pasar por encima el mismo nombre que ya está
+          escrito ahí. Si el nombre no cabe, se parte en dos líneas. */}
       {personData?.name ? (
-        <Tooltip title={personData.name} arrow placement="top">
-          <Box
-            sx={{
-              display: 'flex',
-              gap: '10px',
-              alignItems: 'center',
-              borderRadius: 'var(--radius-xl)',
-              border: personData.active 
-                ? '1.5px solid var(--brand)' 
-                : '1px solid var(--line)',
-              borderLeft: `4px solid ${accentColor}`,
-              backgroundColor: personData.active 
-                ? 'var(--brand-tint)' 
-                : 'var(--card)',
-              padding: '8px 16px',
-              flex: 1,
-              overflow: 'hidden',
-              boxShadow: personData.active ? 'var(--hover-shadow)' : 'none',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              cursor: 'default',
-              '&:hover': {
-                transform: 'translateY(-1.5px)',
-                borderColor: personData.active ? 'var(--brand)' : accentColor,
-                boxShadow: 'var(--small-card-shadow)',
-              },
-            }}
-          >
-            {personData.female ? (
-              <IconFemale width={16} height={16} color={accentColor} sx={{ flexShrink: 0 }} />
-            ) : (
-              <IconMale width={16} height={16} color={accentColor} sx={{ flexShrink: 0 }} />
-            )}
-            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
-              <Typography
-                className="body-small-semibold"
-                sx={{
-                  minWidth: 0,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  fontWeight: 700,
-                  fontSize: '13.5px',
-                  color: personData.active ? 'var(--brand-deep)' : 'var(--ink)',
-                  letterSpacing: '0.1px',
-                  lineHeight: 1.25,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {personData.name}
-              </Typography>
-              {props.showCongregation && personData.congregation && (
-                <Typography
-                  sx={{
-                    fontSize: '12px',
-                    color: personData.active ? 'var(--brand)' : 'var(--ink-2)',
-                    lineHeight: 1.2,
-                    mt: '2px',
-                    wordBreak: 'break-word',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {personData.congregation}
-                </Typography>
-              )}
-            </Box>
-          </Box>
-        </Tooltip>
-      ) : (
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px dashed var(--line)',
-            borderLeft: `4px dashed var(--grey-300)`,
-            backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
-            padding: '8px 16px',
+            borderRadius: 'var(--radius-l)',
+            border: personData.active
+              ? '1.5px solid var(--brand)'
+              : `1px solid color-mix(in srgb, ${accentColor} 18%, transparent)`,
+            backgroundColor: personData.active
+              ? 'var(--brand-tint)'
+              : `color-mix(in srgb, ${accentColor} 7%, transparent)`,
+            padding: '9px 14px',
             flex: 1,
-            minHeight: '38px',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              borderColor: 'var(--grey-350)',
-              backgroundColor: 'rgba(var(--grey-100-base), 0.06)',
-            }
+            overflow: 'hidden',
+            cursor: 'default',
           }}
         >
-          <Typography 
-            className="body-small-medium" 
-            color="var(--grey-350)" 
-            sx={{ 
-              fontSize: '13px', 
-              fontWeight: 500,
-              letterSpacing: '0.5px' 
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: 0,
+              justifyContent: 'center',
             }}
           >
-            —
+            <Typography
+              className="body-regular-semibold"
+              sx={{
+                minWidth: 0,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                color: personData.active ? 'var(--brand-deep)' : 'var(--ink)',
+                wordBreak: 'break-word',
+              }}
+            >
+              {personData.name}
+            </Typography>
+            {props.showCongregation && personData.congregation && (
+              <Typography
+                className="label-small-regular"
+                sx={{
+                  color: personData.active ? 'var(--brand)' : 'var(--ink-2)',
+                  mt: '2px',
+                  wordBreak: 'break-word',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {personData.congregation}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      ) : (
+        /* Un hueco por asignar era una caja de borde discontinuo con una raya
+           dentro. En una semana a medio repartir, esas cajas gritaban más que
+           los nombres ya puestos. Ahora es texto y ya. */
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '8px 0',
+            flex: 1,
+            minHeight: '38px',
+          }}
+        >
+          <Typography className="body-small-regular" color="var(--grey-350)">
+            Sin asignar
           </Typography>
         </Box>
       )}

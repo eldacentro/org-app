@@ -1280,3 +1280,76 @@ body {
   .huge-numbers { font-size: 73.5px; }
   .big-numbers { font-size: 55px; }
 }
+
+/* ================================================================
+   Programas semanales — un escalón de texto por encima del resto
+   ================================================================
+   Esta página se lee de un vistazo, muchas veces desde el asiento y con el
+   móvil a distancia de brazo. Los tamaños normales de la app se quedaban
+   cortos ahí y en ningún otro sitio, así que el escalón va acotado a la
+   página con `.programas-semanales` (la pone `pages/meetings/schedules`).
+
+   Es x1,15 sobre lo que toque en cada tamaño de pantalla, la misma
+   proporción que usa el escalón de tablet de más arriba. Se escribe tres
+   veces a propósito, una por régimen (móvil, escritorio, tablet táctil),
+   porque estas clases fijan el tamaño en px y no se heredan: un solo bloque
+   ganaría por especificidad a los tres y aplanaría las diferencias — en una
+   tablet el texto ENCOGERÍA en vez de crecer.
+
+   Los interlineados van sin unidad (proporción) para que acompañen al
+   tamaño sin tener que repetir un px por cada clase y régimen.
+
+   Va aquí y no en `global.css` porque `npm run generate:css` reescribe ese
+   fichero entero y se llevaría esto por delante. */
+
+/* Régimen móvil (≤768px) */
+@media (max-width: 768px) {
+  .programas-semanales .h1 { font-size: 23px; line-height: 1.2; }
+  .programas-semanales .h2 { font-size: 20.5px; line-height: 1.33; }
+  .programas-semanales .h2-caps { font-size: 20.5px; line-height: 1.22; }
+  .programas-semanales .h3 { font-size: 18.5px; line-height: 1.25; }
+  .programas-semanales .h4 { font-size: 17px; line-height: 1.33; }
+  .programas-semanales .body-regular { font-size: 17px; line-height: 1.33; }
+  .programas-semanales .body-regular-semibold { font-size: 17px; line-height: 1.33; }
+  .programas-semanales .body-small-semibold { font-size: 15px; line-height: 1.23; }
+  .programas-semanales .body-small-medium { font-size: 15px; line-height: 1.23; }
+  .programas-semanales .body-small-regular { font-size: 15px; line-height: 1.23; }
+  .programas-semanales .label-small-medium { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .label-small-semibold { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .label-small-regular { font-size: 13.5px; line-height: 1.17; }
+}
+
+/* Régimen escritorio (≥768px) */
+@media (min-width: 768px) {
+  .programas-semanales .h1 { font-size: 27.5px; line-height: 1.2; }
+  .programas-semanales .h2 { font-size: 23px; line-height: 1.33; }
+  .programas-semanales .h2-caps { font-size: 23px; line-height: 1.22; }
+  .programas-semanales .h3 { font-size: 20.5px; line-height: 1.25; }
+  .programas-semanales .h4 { font-size: 18.5px; line-height: 1.33; }
+  .programas-semanales .body-regular { font-size: 18.5px; line-height: 1.33; }
+  .programas-semanales .body-regular-semibold { font-size: 18.5px; line-height: 1.33; }
+  .programas-semanales .body-small-semibold { font-size: 16px; line-height: 1.23; }
+  .programas-semanales .body-small-medium { font-size: 16px; line-height: 1.23; }
+  .programas-semanales .body-small-regular { font-size: 16px; line-height: 1.23; }
+  .programas-semanales .label-small-medium { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .label-small-semibold { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .label-small-regular { font-size: 13.5px; line-height: 1.17; }
+}
+
+/* Régimen tablet táctil — el mismo predicado que el escalón de arriba, para
+   que el escalón de la página se sume al de la tablet y no lo pise. */
+@media (any-pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
+  .programas-semanales .h1 { font-size: 31.5px; line-height: 1.2; }
+  .programas-semanales .h2 { font-size: 26.5px; line-height: 1.33; }
+  .programas-semanales .h2-caps { font-size: 26.5px; line-height: 1.22; }
+  .programas-semanales .h3 { font-size: 23.5px; line-height: 1.25; }
+  .programas-semanales .h4 { font-size: 21.5px; line-height: 1.33; }
+  .programas-semanales .body-regular { font-size: 21.5px; line-height: 1.33; }
+  .programas-semanales .body-regular-semibold { font-size: 21.5px; line-height: 1.33; }
+  .programas-semanales .body-small-semibold { font-size: 18.5px; line-height: 1.23; }
+  .programas-semanales .body-small-medium { font-size: 18.5px; line-height: 1.23; }
+  .programas-semanales .body-small-regular { font-size: 18.5px; line-height: 1.23; }
+  .programas-semanales .label-small-medium { font-size: 15.5px; line-height: 1.17; }
+  .programas-semanales .label-small-semibold { font-size: 15.5px; line-height: 1.17; }
+  .programas-semanales .label-small-regular { font-size: 15.5px; line-height: 1.17; }
+}

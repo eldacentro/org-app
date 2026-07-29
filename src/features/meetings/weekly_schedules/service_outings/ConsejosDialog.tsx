@@ -51,8 +51,8 @@ const Idea = ({ numero, texto }: { numero: number; texto: string }) => (
     <Box
       sx={{
         flexShrink: 0,
-        width: '24px',
-        height: '24px',
+        width: '28px',
+        height: '28px',
         borderRadius: '50%',
         backgroundColor: 'var(--accent-main)',
         display: 'flex',
@@ -60,22 +60,19 @@ const Idea = ({ numero, texto }: { numero: number; texto: string }) => (
         justifyContent: 'center',
       }}
     >
-      <Typography
-        className="label-small-semibold"
-        color="var(--always-white)"
-      >
+      <Typography className="body-small-semibold" color="var(--always-white)">
         {numero}
       </Typography>
     </Box>
 
-    <Typography className="body-small-regular" color="var(--ink-2)">
+    <Typography className="body-regular" color="var(--ink-2)">
       {texto}
     </Typography>
   </Box>
 );
 
 const Titulo = ({ children }: { children: string }) => (
-  <Typography className="h4" color="var(--ink)" sx={{ marginTop: '4px' }}>
+  <Typography className="h3" color="var(--ink)" sx={{ marginTop: '4px' }}>
     {children}
   </Typography>
 );
@@ -127,7 +124,7 @@ const ConsejosDialog = ({
           Reuniones para el servicio del campo
         </Typography>
         <Typography
-          className="label-small-regular"
+          className="body-small-regular"
           sx={{ color: 'var(--always-white)', opacity: 0.85 }}
         >
           Guía de actividades, noviembre de 2021, pág. 7 (mwb21 11)
@@ -168,13 +165,13 @@ const ConsejosDialog = ({
         >
           5–7 min
         </Typography>
-        <Typography className="body-small-regular" color="var(--orange-dark)">
+        <Typography className="body-regular" color="var(--orange-dark)">
           contando organizar los grupos, asignar el territorio y la oración. Si
           es al terminar otra reunión, aún menos.
         </Typography>
       </Box>
 
-      <Typography className="body-small-regular" color="var(--ink-2)">
+      <Typography className="body-regular" color="var(--ink-2)">
         Las reuniones para el servicio del campo, al igual que todas las
         reuniones de congregación, son un regalo que Jehová nos da para
         motivarnos a mostrar amor y hacer buenas obras (Heb 10:24, 25). Quien
@@ -201,13 +198,13 @@ const ConsejosDialog = ({
       </Stack>
 
       <Typography
-        className="label-small-regular"
+        className="body-small-regular"
         color="var(--ink-3)"
         sx={{ paddingBottom: '4px' }}
       >
         Hay más ideas y sugerencias en el Ministerio del Reino de marzo de 2015,
-        “Reuniones para el servicio del campo que cumplen su objetivo”
-        (kms 3/15 3).
+        “Reuniones para el servicio del campo que cumplen su objetivo” (kms 3/15
+        3).
       </Typography>
     </Stack>
 

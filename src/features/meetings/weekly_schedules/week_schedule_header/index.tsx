@@ -29,51 +29,60 @@ const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
 
   const rango = buildWeekRangeLabel(props.week, monthNames, t);
 
+  // Exhibidores, Salidas, Departamentos y Discursos salientes no son de UN día
+  // concreto, son de toda la semana: no tienen titular propio y la fila se
+  // quedaba coja, con el botón solo a la derecha y un hueco a la izquierda.
+  // Ahí el titular pasa a ser la semana, y entonces el rango de arriba sobra.
+  const titular = props.title || rango;
+  const rangoDeApoyo = props.title ? rango : '';
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
+        gap: '8px',
         marginBottom: '16px',
       }}
     >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <Typography className="label-small-regular" color="var(--grey-400)">
-          {rango}
-        </Typography>
+      {(rangoDeApoyo || showToCurrent) && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Typography className="label-small-regular" color="var(--grey-400)">
+            {rangoDeApoyo}
+          </Typography>
 
-        {showToCurrent && (
-          <Box
-            onClick={props.onCurrent}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
-          >
-            <IconDate width={16} height={16} color="var(--accent-main)" />
-            <Typography
-              className="label-small-semibold"
-              color="var(--accent-main)"
+          {showToCurrent && (
+            <Box
+              onClick={props.onCurrent}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
             >
-              {t('tr_toCurrentWeek')}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+              <IconDate width={16} height={16} color="var(--accent-main)" />
+              <Typography
+                className="label-small-semibold"
+                color="var(--accent-main)"
+              >
+                {t('tr_toCurrentWeek')}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      )}
 
-      {(props.title || props.action) && (
+      {(titular || props.action) && (
         <Box
           sx={{
             display: 'flex',
@@ -83,21 +92,19 @@ const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
           }}
         >
           <Box sx={{ minWidth: 0 }}>
-            {props.title && (
+            {titular && (
               <Typography className="h2" color="var(--ink)">
-                {props.title}
+                {titular}
               </Typography>
             )}
             {props.subtitle && (
-              <Typography className="body-small-regular" color="var(--ink-2)">
+              <Typography className="body-regular" color="var(--ink-2)">
                 {props.subtitle}
               </Typography>
             )}
           </Box>
 
-          {props.action && (
-            <Box sx={{ flexShrink: 0 }}>{props.action}</Box>
-          )}
+          {props.action && <Box sx={{ flexShrink: 0 }}>{props.action}</Box>}
         </Box>
       )}
 

@@ -60,6 +60,10 @@ const WeeklySchedules = () => {
 
   return (
     <Box
+      // La clase la usa `index.css` para subir un escalón TODO el texto de
+      // esta página. Es una página para leer de un vistazo desde el asiento,
+      // no para trabajar: los tamaños de la app se le quedaban cortos.
+      className="programas-semanales"
       sx={{
         display: 'flex',
         gap: '22px',
@@ -67,7 +71,9 @@ const WeeklySchedules = () => {
         paddingBottom: !tablet688Up ? '60px' : '0px',
       }}
     >
-      <PageTitle title={t('tr_viewAssignmentsSchedule', 'Programas semanales')} />
+      <PageTitle
+        title={t('tr_viewAssignmentsSchedule', 'Programas semanales')}
+      />
 
       {/* Selector desplegable con efecto WOW */}
       <Box
@@ -92,7 +98,15 @@ const WeeklySchedules = () => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {getProgramIcon(tabs[value]?.id, 'var(--ink)')}
-          <Typography className="h3" sx={{ fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', fontSize: '18px' }}>
+          <Typography
+            className="h3"
+            sx={{
+              fontWeight: 700,
+              color: 'var(--ink)',
+              letterSpacing: '-0.01em',
+              fontSize: '18px',
+            }}
+          >
             {tabs[value]?.label}
           </Typography>
         </Box>
@@ -147,7 +161,10 @@ const WeeklySchedules = () => {
             onClick={() => handleSelectTab(index)}
             sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
           >
-            {getProgramIcon(tab.id, index === value ? 'var(--accent-dark)' : 'var(--grey-400)')}
+            {getProgramIcon(
+              tab.id,
+              index === value ? 'var(--accent-dark)' : 'var(--grey-400)'
+            )}
             <Typography sx={{ fontWeight: index === value ? 600 : 400 }}>
               {tab.label}
             </Typography>
@@ -156,9 +173,7 @@ const WeeklySchedules = () => {
       </Menu>
 
       {/* Renders selected program weekly view container */}
-      <Box sx={{ marginTop: '4px' }}>
-        {tabs[value]?.Component}
-      </Box>
+      <Box sx={{ marginTop: '4px' }}>{tabs[value]?.Component}</Box>
     </Box>
   );
 };
