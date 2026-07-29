@@ -75,8 +75,10 @@ function ScrollableTabs({
                   backgroundColor: indicatorMode
                     ? 'var(--accent-main)'
                     : 'transparent',
-                  borderRadius: indicatorMode && '16px 16px 0px 0px',
-                  height: '4px',
+                  borderRadius: indicatorMode
+                    ? 'var(--shape-xs) var(--shape-xs) 0 0'
+                    : undefined,
+                  height: '3px',
                 },
               },
             }}
@@ -90,30 +92,44 @@ function ScrollableTabs({
                 color: 'var(--accent-main)',
                 '&.Mui-disabled': { opacity: 0.3 },
               },
-              // La pestaña elegida: fondo tintado y texto oscuro, no color
-              // pleno.
+              // DOS lenguajes, y cada uno para un trabajo distinto:
               //
-              // Antes era texto azul sobre azul clarísimo y apenas se
-              // distinguía; en azul pleno sí se veía, pero pasaba a competir
-              // con los botones de acción (JW Library y compañía), que son lo
-              // único que debe llevar color lleno. El tinte con el texto en
-              // azul oscuro y en negrita marca cuál está elegida sin subir al
-              // nivel de un botón.
-              '& button.Mui-selected': {
-                color: 'var(--accent-dark)',
-                background: 'var(--accent-150)',
-                borderRadius: 'var(--radius-max)',
-                fontWeight: 600,
-                '&:hover': { background: 'var(--accent-200)' },
-              },
-              '& .MuiTab-root:not(.Mui-selected)': {
-                color: 'var(--grey-350)',
-                '&:hover': {
-                  background:
-                    'color-mix(in srgb, var(--accent-150) 38%, transparent)',
-                  borderRadius: 'var(--radius-max)',
-                },
-              },
+              // - Con subrayado (`indicatorMode`): son pestañas de SECCIÓN, las
+              //   que cambian el contenido de la página. El subrayado marca
+              //   "estás en esta parte" sin pintar una pastilla.
+              // - Sin subrayado: se está ELIGIENDO UN VALOR (una semana, un
+              //   año, un modo). Ahí va el tinte, el mismo que el resto de la
+              //   app usa para lo elegido.
+              //
+              // Hasta ahora el tinte se pintaba SIEMPRE, también con subrayado,
+              // así que en esos seis sitios salían los dos lenguajes a la vez:
+              // pastilla y raya debajo.
+              ...(indicatorMode
+                ? {
+                    '& button.Mui-selected': {
+                      color: 'var(--state-selected-ink)',
+                      fontWeight: 600,
+                    },
+                    '& .MuiTab-root:not(.Mui-selected)': {
+                      color: 'var(--ink-3)',
+                    },
+                  }
+                : {
+                    '& button.Mui-selected': {
+                      color: 'var(--state-selected-ink)',
+                      background: 'var(--state-selected)',
+                      borderRadius: 'var(--shape-full)',
+                      fontWeight: 600,
+                      '&:hover': { background: 'var(--state-selected-strong)' },
+                    },
+                    '& .MuiTab-root:not(.Mui-selected)': {
+                      color: 'var(--ink-3)',
+                      '&:hover': {
+                        background: 'var(--state-hover)',
+                        borderRadius: 'var(--shape-full)',
+                      },
+                    },
+                  }),
               // Programatically changing color of ripple (wave) when click happens:
               '& span.MuiTouchRipple-rippleVisible': {
                 color: 'var(--accent-main)',

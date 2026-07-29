@@ -96,17 +96,23 @@ const Tabs = ({
             value={valueOfActivePanel}
             onChange={handleChange}
             slotProps={{
+              // El MISMO subrayado que `scrollable_tabs` en modo sección:
+              // eran dos dibujos distintos (4px contra 3, y un radio suelto de
+              // 16px que no pertenecía a ninguna escala) para la misma idea.
               indicator: {
                 sx: {
                   backgroundColor: 'var(--accent-main)',
-                  height: '4px',
-                  borderRadius: '16px 16px 0 0',
+                  height: '3px',
+                  borderRadius: 'var(--shape-xs) var(--shape-xs) 0 0',
                 },
               },
             }}
             sx={{
-              '& button.Mui-selected': { color: 'var(--accent-main)' },
-              '& button:not(.Mui-selected)': { color: 'var(--grey-350)' },
+              '& button.Mui-selected': {
+                color: 'var(--state-selected-ink)',
+                fontWeight: 600,
+              },
+              '& button:not(.Mui-selected)': { color: 'var(--ink-3)' },
               // Programatically changing color of ripple (wave) when click happens:
               '& span.MuiTouchRipple-rippleVisible': {
                 color: 'var(--accent-main)',

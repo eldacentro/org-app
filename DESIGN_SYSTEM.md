@@ -158,6 +158,27 @@ color pleno está reservado a la acción principal de la pantalla (§6.2). Una
 pestaña elegida no es un botón. Esto vale por igual para pestañas, segmented
 control, chips de semana y rejillas de mes: antes cada uno tenía su dibujo.
 
+#### Las dos formas de marcar "elegido", y cuándo va cada una
+
+| Trabajo | Dibujo | Ejemplos |
+|---|---|---|
+| **Navegar entre secciones** de una página, con contenido distinto debajo | Subrayado de 3px bajo el rótulo, texto en `--state-selected-ink` | "Entre semana / Fin de semana" en Ajustes, "Asignaciones que tengo / Delegado" |
+| **Elegir un valor** entre varios | Píldora tintada (`--state-selected`) con el texto en `--state-selected-ink` | Chips de semana, años, "Editar asignaciones / Editar partes" |
+
+La diferencia no es capricho: una sección es un SITIO donde estás, y un valor
+es algo que has escogido. Pintar una pastilla en una pestaña de sección la hace
+parecer un filtro; subrayar un chip de semana lo hace parecer una pestaña.
+
+En `@components/scrollable_tabs` lo elige la prop `indicatorMode`. **Nunca los
+dos a la vez** — el tinte se pintaba siempre, también con `indicatorMode`
+puesto, así que en seis pantallas salían pastilla Y raya. Corregido.
+
+> **Deuda abierta:** hay TRES componentes de pestañas (`@components/tabs`,
+> `@components/scrollable_tabs`, `@components/segmented_control`). Los dos
+> primeros dibujan ya el mismo subrayado y el mismo tinte, así que la
+> inconsistencia visual está resuelta, pero sobra uno. Fundirlos es una tarea
+> aparte: `tabs` gestiona además el panel de contenido y lo usan 11 sitios.
+
 **Y en las dos direcciones:** lo que se puede pulsar SIEMPRE reacciona al
 hover/pulsación; lo que no se puede pulsar NUNCA lleva borde + sombra de botón.
 
