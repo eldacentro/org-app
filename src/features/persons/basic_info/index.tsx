@@ -192,29 +192,35 @@ const PersonBasicInfo = () => {
 
       <Divider sx={{ borderColor: 'var(--line)' }} />
 
+      {/* La fecha y, al lado, la edad que se deduce de ella.
+          La edad tenía el ancho clavado (120px, o 140px si el número era
+          largo) y "Edad: 30.4" no cabía: se partía en dos líneas, la caja
+          crecía más alta que el campo y le asomaba por debajo — parecía que
+          chocaba con él. Ahora la caja mide lo que mide su texto, el texto no
+          se parte, y `stretch` la deja EXACTAMENTE a la altura del campo. */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'row',
+          alignItems: 'stretch',
           gap: '8px',
         }}
       >
-        <DatePicker
-          label={t('tr_dateOfBirth')}
-          value={
-            person.person_data.birth_date.value === null
-              ? null
-              : new Date(person.person_data.birth_date.value)
-          }
-          onChange={handleChangeBirthDate}
-          maxDate={new Date()}
-          readOnly={!isPersonEditor}
-        />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <DatePicker
+            label={t('tr_dateOfBirth')}
+            value={
+              person.person_data.birth_date.value === null
+                ? null
+                : new Date(person.person_data.birth_date.value)
+            }
+            onChange={handleChangeBirthDate}
+            maxDate={new Date()}
+            readOnly={!isPersonEditor}
+          />
+        </Box>
+
         <Tooltip
-          sx={{
-            width: age.length > 3 ? '140px' : '120px',
-            height: tabletDown ? 'auto' : '48px',
-          }}
           title={t('tr_ageInYearsAndMonths', ageToYearsAndMonths(age))}
           show={age !== '0'}
         >
@@ -222,13 +228,13 @@ const PersonBasicInfo = () => {
             sx={{
               backgroundColor: 'var(--accent-150)',
               padding: '8px 16px',
-              borderRadius: 'var(--radius-l)',
-              height: age === '0' ? (tabletDown ? 'auto' : '48px') : '100%',
+              borderRadius: 'var(--shape-sm)',
+              minHeight: '48px',
+              flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width:
-                age === '0' ? (age.length > 3 ? '140px' : '120px') : '100%',
+              whiteSpace: 'nowrap',
             }}
           >
             <Typography className="h4" color="var(--accent-dark)">

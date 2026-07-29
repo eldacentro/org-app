@@ -8,8 +8,6 @@ import {
   ListItem,
   Tooltip,
   Collapse,
-  MenuItem,
-  Select,
   IconButton,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
@@ -30,6 +28,8 @@ import {
   IconSortUp,
 } from '@components/icons';
 import SearchBar from '@components/search_bar';
+import Select from '@components/select';
+import MenuItem from '@components/menuitem';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
 import { publicTalksState } from '@states/public_talks';
@@ -619,25 +619,27 @@ const OutgoingSpeakersPage = () => {
               />
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Typography className="body-small-medium" color="var(--grey-500)">
-                Ordenar por:
-              </Typography>
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'alphabetical' | 'last_assignment')}
-                size="small"
-                sx={{
-                  width: '180px',
-                  borderRadius: 'var(--r-lg)',
-                  backgroundColor: 'var(--card)',
-                  border: '1px solid var(--line)',
-                }}
-              >
-                <MenuItem value="alphabetical">Alfabético</MenuItem>
-                <MenuItem value="last_assignment">Última salida</MenuItem>
-              </Select>
-            </Box>
+            {/* El desplegable del sistema, no el de MUI en crudo. El de antes
+                llevaba DOS bordes —el suyo propio más uno puesto a mano— y el
+                radio de un diálogo (28px) en un campo, así que no se parecía a
+                ningún otro desplegable de la app. La etiqueta va DENTRO, como
+                en el resto: un "Ordenar por:" suelto al lado obliga a leer dos
+                trozos para entender un control. */}
+            <Select
+              label="Ordenar por"
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as 'alphabetical' | 'last_assignment')
+              }
+              sx={{ width: '200px', flexShrink: 0 }}
+            >
+              <MenuItem value="alphabetical">
+                <Typography>Alfabético</Typography>
+              </MenuItem>
+              <MenuItem value="last_assignment">
+                <Typography>Última salida</Typography>
+              </MenuItem>
+            </Select>
           </Box>
 
           {filteredSpeakers.length === 0 ? (
