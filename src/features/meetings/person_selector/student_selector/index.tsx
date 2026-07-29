@@ -281,38 +281,45 @@ const StudentSelector = (props: PersonSelectorType) => {
             height: '44px !important',
           },
           '& .MuiOutlinedInput-input': {
-            // Hueco para los tres elementos a la derecha: X de limpiar (al
-            // hover) · exportar S-89 · historial. Antes era 80px con un
-            // solo ícono propio.
-            paddingRight: '120px !important',
+            // Hueco para lo que hay a la derecha: X de limpiar (al hover) ·
+            // exportar S-89 · historial. El ayudante no lleva el de exportar
+            // (la hoja es del estudiante), así que reservarle su sitio le
+            // robaría 30px al nombre para nada.
+            paddingRight: isAssistant ? '90px !important' : '120px !important',
           },
           '& .MuiAutocomplete-clearIndicator': {
-            // +30px respecto al original (era 30px): al añadir un segundo
-            // ícono propio (exportar S-89), la X de limpiar caía justo
-            // encima de él. Se corre un "hueco" más a la izquierda para que
-            // los tres (X · exportar · historial) queden alineados sin
-            // solaparse.
-            marginRight: '60px',
+            // La X de limpiar se corre a la izquierda para no caer encima de
+            // los íconos propios: uno más a la derecha, un hueco más.
+            marginRight: isAssistant ? '30px' : '60px',
           },
         }}
       />
 
       {value && (
         <>
-          <IconButton
-            sx={{ padding: 0, position: 'absolute', right: 65, top: 10 }}
-            title={t('tr_exportS89Sheet', 'Exportar hoja de asignación (S-89)')}
-            onClick={handleExportS89}
-            disabled={isExportingS89}
-          >
-            <IconDownload
-              color={
-                helperText.length > 0
-                  ? 'var(--orange-dark)'
-                  : 'var(--accent-main)'
-              }
-            />
-          </IconButton>
+          {/* La hoja S-89 es UNA por estudiante: el ayudante no recibe la
+              suya, su nombre va escrito en la del estudiante. El botón estaba
+              también en el ayudante y descargaba exactamente la misma hoja,
+              así que solo invitaba a imprimirla dos veces. */}
+          {!isAssistant && (
+            <IconButton
+              sx={{ padding: 0, position: 'absolute', right: 65, top: 10 }}
+              title={t(
+                'tr_exportS89Sheet',
+                'Exportar hoja de asignación (S-89)'
+              )}
+              onClick={handleExportS89}
+              disabled={isExportingS89}
+            >
+              <IconDownload
+                color={
+                  helperText.length > 0
+                    ? 'var(--orange-dark)'
+                    : 'var(--accent-main)'
+                }
+              />
+            </IconButton>
+          )}
 
           <IconButton
             sx={{ padding: 0, position: 'absolute', right: 35, top: 10 }}

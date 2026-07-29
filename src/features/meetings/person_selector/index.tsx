@@ -25,27 +25,26 @@ const PersonSelector = (props: PersonSelectorType) => {
     <Box
       sx={{
         flex: flexPersonSelector ? 1 : null,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
         ...props.selectorBoxSx,
       }}
     >
-      {isBrother && <BrotherSelector {...props} />}
-      {isStudent && <StudentSelector {...props} />}
-      {isCircuitOverseer && <CircuitOverseer {...props} />}
-      {isStreamSpeaker && <StreamSpeaker {...props} />}
-      {isOutgoingSpeaker && <OutgoingSpeaker {...props} />}
-      {isVisitingSpeaker && <VisitingSpeaker {...props} />}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {isBrother && <BrotherSelector {...props} />}
+        {isStudent && <StudentSelector {...props} />}
+        {isCircuitOverseer && <CircuitOverseer {...props} />}
+        {isStreamSpeaker && <StreamSpeaker {...props} />}
+        {isOutgoingSpeaker && <OutgoingSpeaker {...props} />}
+        {isVisitingSpeaker && <VisitingSpeaker {...props} />}
+      </Box>
 
-      {/* La marca de hojita entregada va DEBAJO del campo, no a su lado.
-          Al lado le robaba 32 px al nombre, y en un móvil de 375 px eso es la
-          diferencia entre que quepa "Daniel Cook" y que salga cortado: el
-          nombre vive en un <input>, que no puede partirse en dos líneas.
-          Debajo, además, se entiende sola —lleva su texto— y es más fácil de
-          acertar con el dedo. */}
-      <AssignmentConfirmed
-        week={props.week}
-        assignment={props.assignment}
-        withLabel
-      />
+      {/* Al lado del campo. Estuvo un rato debajo porque aquí le robaba 32px
+          al nombre y lo dejaba cortado, pero eso ya no pasa: con `multiline`
+          el nombre que no cabe se parte en dos líneas en vez de recortarse.
+          Se dibuja sola solo en las asignaciones que llevan hoja. */}
+      <AssignmentConfirmed week={props.week} assignment={props.assignment} />
     </Box>
   );
 };
