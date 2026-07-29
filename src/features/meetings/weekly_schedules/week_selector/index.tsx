@@ -67,12 +67,10 @@ const WeekSelector = (props: WeekSelectorProps) => {
         overflowX: 'auto',
         scrollbarWidth: 'none',
         '&::-webkit-scrollbar': { display: 'none' },
-        // Los chips miden menos que las pestañas de MUI, así que el hueco
-        // que dejaba la página encima sobra; debajo, en cambio, hace falta
-        // separación del titular de la semana.
-        marginTop: '-10px',
-        marginBottom: '-6px',
-        paddingBottom: '4px',
+        // Sin márgenes negativos: el hueco con la cabecera lo pone el
+        // contenedor (16px). Los llevaba para compensar el alto de las
+        // pestañas de MUI, y con chips propios sobran y dejaban la tira
+        // pegada al titular de la semana.
       }}
     >
       {weeksTab.map((week, i) => {

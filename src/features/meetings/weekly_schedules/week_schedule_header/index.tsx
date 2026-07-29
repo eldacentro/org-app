@@ -41,8 +41,9 @@ const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
+        // 8px entre las líneas de la cabecera; los 16px con lo de fuera los
+        // pone el contenedor, para que todas las pestañas respiren igual.
         gap: '8px',
-        marginBottom: '16px',
       }}
     >
       {(rangoDeApoyo || showToCurrent) && (
