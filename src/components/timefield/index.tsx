@@ -36,42 +36,31 @@ const TimeField = (props: TimeFieldProps) => {
       sx={{
         ...props.sx,
         // OJO: el TextField base hace `...props.sx` al FINAL de su propio sx,
-        // así que estas claves REEMPLAZAN (no fusionan) las suyas. Hay que
-        // re-declarar aquí el radio, el borde y el padding del input — sin
-        // ellos, el campo de hora salía con el radio y el color de borde por
-        // defecto de MUI, distinto a Fecha/Lugar (bug visual real).
+        // así que estas claves REEMPLAZAN (no fusionan) las suyas.
+        //
+        // El alto, el radio, el relleno y el anillo de foco ya no se re-declaran
+        // aquí: los pone el bloque «EL CAMPO» de `global/index.css`, que alcanza
+        // también a esta familia. Antes este fichero repetía los suyos y por eso
+        // el campo de hora se veía distinto a Fecha o Lugar.
         '.MuiInputBase-input': {
           textAlign: props.label ? 'left' : 'center',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          paddingTop: 'calc(14.5px - 6px)',
-          paddingBottom: 'calc(14.5px - 6px)',
           flex: '1 0 0',
         },
         '.MuiOutlinedInput-root': {
           paddingRight: 'unset !important',
-          borderRadius: 'var(--radius-l)',
           color: 'var(--black)',
-          // Con label (Fecha/Lugar de Reuniones especiales, pastoreo): caja
-          // con borde. Sin label (uso inline +/- de HoursEditor): SIN borde,
-          // igual que StandardEditor — `!important` porque, sin él, esta
-          // regla pierde por especificidad contra la de arriba y el borde
-          // queda siempre puesto (bug visual real, 2026-07-24).
-          '& fieldset': {
-            border: props.label
-              ? '1px solid var(--accent-350)'
-              : 'none !important',
-          },
-          '&:hover fieldset': {
-            border: props.label
-              ? '1px solid var(--accent-main)'
-              : 'none !important',
-          },
-          '&.Mui-focused fieldset': {
-            border: props.label
-              ? '1px solid var(--accent-main)'
-              : 'none !important',
-          },
+          // Sin etiqueta esto no es un campo de formulario, es el +/- de
+          // HoursEditor metido en una fila: ahí la superficie rellena sobraría
+          // y se queda transparente.
+          ...(props.label
+            ? {}
+            : {
+                backgroundColor: 'transparent',
+                '&:hover': { backgroundColor: 'transparent' },
+                '&.Mui-focused': { backgroundColor: 'transparent' },
+              }),
         },
       }}
     />

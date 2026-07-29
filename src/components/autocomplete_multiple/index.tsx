@@ -9,10 +9,6 @@ CustomListBoxComponent.displayName = 'CustomListBoxComponent';
 const AutocompleteMultiple = <T,>(props: AutocompleteMutilePropsType<T>) => {
   const { t } = useAppTranslation();
 
-  const height = props.height || 44;
-
-  const varHeight = (56 - height) / 2;
-
   return (
     <Autocomplete
       multiple
@@ -37,17 +33,13 @@ const AutocompleteMultiple = <T,>(props: AutocompleteMutilePropsType<T>) => {
           placeholder={props.placeholder}
           variant="standard"
           sx={{
+            // El alto y el ritmo vertical los pone el bloque «EL CAMPO».
             '.MuiInputBase-root': {
-              minHeight: `${height}px`,
-              paddingTop: 'auto',
-              paddingBottom: '12px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
             },
             '.MuiInputBase-input': {
-              paddingTop: `calc(14.5px - ${varHeight}px)`,
-              paddingBottom: `calc(14.5px - ${varHeight}px)`,
               flex: '1 0 0',
               color: 'var(--black)',
             },

@@ -44,23 +44,38 @@ const OTPInput: FC<OTPInputProps> = ({ hasError, ...props }) => {
           inputProps: {
             className: 'h1',
           },
+          // Las casillas del código: un dígito cada una, sin etiqueta. No son
+          // campos de formulario al uso, así que no heredan el alto de 56 ni el
+          // hueco de la etiqueta — pero SÍ el lenguaje: superficie rellena,
+          // anillo al enfocar, y nada de bordes dibujados en reposo.
           sx: {
             '.MuiOutlinedInput-input': {
               color: 'var(--black)',
               width: 52,
               height: 52,
               padding: 0,
-              borderRadius: 'var(--radius-l)',
+              textAlign: 'center',
             },
             '.MuiOutlinedInput-root': {
-              '& fieldset': {
-                border: `1px solid var(${hasError ? '--red-dark' : props.value[index]?.length > 0 ? '--accent-main' : '--accent-300'})`,
+              minHeight: 'unset',
+              width: 52,
+              height: 52,
+              // Un dígito ya escrito se marca con el tinte de "elegido", que es
+              // el mismo que usan las pestañas y los chips: así se ve de un
+              // golpe cuántas casillas llevas sin contar los números.
+              backgroundColor: hasError
+                ? 'var(--red-secondary)'
+                : props.value[index]?.length > 0
+                  ? 'var(--state-selected)'
+                  : 'var(--accent-100)',
+              '&:hover': {
+                backgroundColor: hasError
+                  ? 'var(--red-secondary)'
+                  : 'var(--state-selected)',
               },
-              '&.Mui-focused fieldset': {
-                border: `1px solid var(${hasError ? '--red-dark' : '--accent-main'})`,
-              },
-              '&:hover fieldset': {
-                border: `1px solid var(${hasError ? '--red-dark' : '--accent-main'})`,
+              '&.Mui-focused': {
+                backgroundColor: 'var(--card)',
+                boxShadow: `inset 0 0 0 2px var(${hasError ? '--red-main' : '--accent-main'})`,
               },
             },
           },

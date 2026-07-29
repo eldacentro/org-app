@@ -19,17 +19,13 @@ export const StyledMultiSelectBase = styled(Select)<StyledMultiSelectBaseProps>`
   & .MuiSelect-icon {
     color: var(--black) !important; // change the color of the dropdown icon
   }
-  height: ${({ height }) => `${height}px`};
+  /* Sin alto, ni borde, ni ritmo vertical propios: los pone el bloque
+     «EL CAMPO» de global/index.css, igual que a los otros seis tipos de campo
+     de la app. Aquí llevaba su propio alto y su propio borde de 1px. */
   display: flex;
   align-items: center;
   gap: 8px;
-  .MuiOutlinedInput-notchedOutline {
-    border: 1px solid var(--accent-350);
-    border-radius: var(--radius-l);
-  }
   .MuiInputBase-input {
-    padding-top: ${({ varHeight }) => `calc(14.5px - ${varHeight}px)`};
-    padding-bottom: ${({ varHeight }) => `calc(14.5px - ${varHeight}px)`};
     color: var(--black);
 
     &.MuiSelect-select {
@@ -112,7 +108,7 @@ type StyledFormControlProps = {
 
 export const StyledFormControl = styled(FormControl)<StyledFormControlProps>`
   .MuiFormLabel-root[data-shrink='false'] {
-    top: ${({ varHeight }) => `-${varHeight}px`};
+    /* El sitio de la etiqueta lo pone el bloque «EL CAMPO». */
   }
   .MuiInputLabel-root {
     color: var(--accent-350);
