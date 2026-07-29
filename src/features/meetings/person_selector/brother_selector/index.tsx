@@ -44,7 +44,7 @@ const BrotherSelector = (props: PersonSelectorType) => {
 
       {/* Misma estructura que el selector de estudiante: el campo y, a su
           derecha, el carril de acciones a la altura de la primera línea
-          (48px). El historial iba en posición absoluta DENTRO del campo, con
+          (56px). El historial iba en posición absoluta DENTRO del campo, con
           la X de limpiar corrida 30px para esquivarlo: dos hacks para
           sostener un botón donde no le tocaba estar. */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -180,7 +180,7 @@ const BrotherSelector = (props: PersonSelectorType) => {
         {((showAssignmentsHistory && value) || props.onEditClick) && (
           <Box
             sx={{
-              height: '48px',
+              height: '56px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',

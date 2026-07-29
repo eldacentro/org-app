@@ -267,12 +267,13 @@ body iframe {
      El de los lados lo usan la etiqueta Y el valor, para que arranquen de la
      misma línea: escritos por separado se desalineaban unos píxeles. */
   --campo-pad-x: 14px;
-  /* 18 + la línea del texto (23) + 6 caben en los 48 del campo. Con 22 arriba
-     el valor se salía por abajo y quedaba cortado por el canto. La separación
-     con la etiqueta NO se gana subiendo esto —no hay sitio—, se gana quitándole
-     a la etiqueta el interlineado sobrante (ver `line-height: 1` abajo). */
-  --campo-pad-top: 18px;
-  --campo-pad-bottom: 6px;
+  /* 24 + la línea del texto (23) + 9 = 56, que es el alto del campo.
+     En 48 no cabía: la caja del texto quedaba en 24px para una línea de 23, y
+     ese píxel de margen no daba para el rabito de la "p" — se cortaba. Un campo
+     con la etiqueta DENTRO necesita más alto que uno con la etiqueta fuera; 56
+     es además el alto estándar para este tipo de campo. */
+  --campo-pad-top: 24px;
+  --campo-pad-bottom: 9px;
 
   /* Los nombres viejos pasan a ser alias de la escala nueva. Se conservan
      porque están en ~600 sitios y borrarlos de golpe sería una migración a
@@ -361,7 +362,7 @@ body iframe {
 
 .MuiOutlinedInput-root.MuiOutlinedInput-root,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
-  min-height: 48px;
+  min-height: 56px;
   height: auto;
   border-radius: var(--shape-sm);
   background-color: var(--accent-100);
@@ -432,11 +433,11 @@ body iframe {
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
   top: 0;
-  transform: translate(var(--campo-pad-x), 15px);
+  transform: translate(var(--campo-pad-x), 22px);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
   top: 0;
-  transform: translate(var(--campo-pad-x), 5px) scale(0.75);
+  transform: translate(var(--campo-pad-x), 8px) scale(0.75);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root.Mui-focused {
   color: var(--accent-main);

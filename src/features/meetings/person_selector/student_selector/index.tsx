@@ -290,11 +290,11 @@ const StudentSelector = (props: PersonSelectorType) => {
             campo, la descarga con un margen a ojo, la casilla centrada contra
             el bloque entero, línea de ayuda incluida— y por eso nunca quedaban
             a la misma altura. El carril mide lo que la primera línea del campo
-            (48px) y centra: la alineación sale por construcción. */}
+            (56px) y centra: la alineación sale por construcción. */}
         {value && (
           <Box
             sx={{
-              height: '48px',
+              height: '56px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
