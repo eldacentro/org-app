@@ -64,7 +64,7 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
   const weekTypeBadge = WEEK_TYPE_BADGE_CONFIG[weekType];
 
   return (
-    <Stack spacing="8px">
+    <Stack spacing="16px">
       <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
         <PrimaryFieldContainer
           sx={{

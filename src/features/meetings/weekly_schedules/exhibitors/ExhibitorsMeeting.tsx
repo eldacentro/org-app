@@ -248,7 +248,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
   }
 
   return (
-    <Stack spacing="20px" sx={{ mt: 1 }}>
+    <Stack spacing="16px" sx={{ mt: 1 }}>
       {/* Solo llega aquí quien puede editar: al resto se le han saltado los
           días de un mes sin publicar. Se avisa para que no confunda un
           borrador con algo ya decidido. */}

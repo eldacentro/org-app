@@ -219,7 +219,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
   }
 
   return (
-    <Stack spacing="20px" sx={{ mt: 1 }}>
+    <Stack spacing="16px" sx={{ mt: 1 }}>
       {isDraft && (
         <Box
           sx={{

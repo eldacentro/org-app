@@ -36,7 +36,7 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
   } = useWeekendMeeting(props);
 
   return (
-    <Stack spacing="8px">
+    <Stack spacing="16px">
       <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
         <PrimaryFieldContainer
           sx={{

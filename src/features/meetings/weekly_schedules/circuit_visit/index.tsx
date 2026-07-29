@@ -366,7 +366,7 @@ const CircuitVisitWeek = ({
               Sin salidas programadas todavía.
             </Typography>
           ) : (
-            <Stack spacing="10px">
+            <Stack spacing="8px">
               {outingDays.map((day) => (
                 <Box
                   key={day.dateStr}

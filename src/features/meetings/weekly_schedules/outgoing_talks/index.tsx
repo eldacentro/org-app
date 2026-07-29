@@ -39,7 +39,7 @@ const OutgoingTalks = () => {
       />
 
       {week && (
-        <Stack spacing="24px">
+        <Stack spacing="16px">
           {talkSchedules.length > 0 && (
             <Box
               sx={{
