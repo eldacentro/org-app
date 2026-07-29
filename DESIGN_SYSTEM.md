@@ -84,6 +84,33 @@ una forma, es su ausencia.
 **Nunca un píxel suelto.** Si ninguno de los seis encaja, casi siempre es que
 el elemento está mal clasificado, no que falte un token.
 
+#### Concentricidad — manda sobre la tabla de arriba
+
+Cuando un elemento **comparte esquina con el contenedor que lo envuelve**, su
+radio ya no lo decide su papel: lo decide la geometría.
+
+```
+radio interior = radio exterior − hueco
+```
+
+Dos curvas que arrancan del mismo punto con radios distintos no encajan: entre
+ellas queda un hueco que crece y decrece, y se lee como un error aunque no se
+sepa nombrar. Es lo que pasaba con el botón de "Programas semanales" del
+inicio: la tarjeta iba a 28 y el botón, por la regla de "todo botón es
+píldora", a 999.
+
+**Cuándo aplica:** solo si el elemento toca de verdad la esquina — un botón a
+lo ancho pegado al fondo de una tarjeta, una cabecera de color pegada arriba.
+Un botón suelto en una fila, o un icono centrado con aire por los cuatro lados,
+no comparte esquina con nada y se queda con la forma de su papel.
+
+**Truco práctico:** haz que el hueco sea el `padding` del contenedor y nada
+más. Si el contenedor va a `--shape-xl` (28) y su padding es 8, el interior cae
+en 20, que es `--shape-lg` clavado. Si te sale un número que no es un token,
+casi siempre es que el hueco está fuera de la rejilla de 8 — arregla el hueco,
+no el radio. (El botón del inicio tenía 7px de padding más 6px de margen: 13 de
+hueco, para un radio ideal de 15 que no existe en ninguna escala.)
+
 ### 2.4 Movimiento
 
 ```
@@ -434,6 +461,10 @@ Al revisar cualquier página, comprobar en este orden:
    botones redundantes?
 7. **Espaciado:** ¿los gaps/paddings son múltiplos de 4/8, o valores sueltos
    como 6px/10px/14px?
+7b. **Concentricidad:** ¿hay algo redondeado que comparta esquina con su
+   contenedor? Comprueba `interior = exterior − hueco` (§2.3). Si el
+   contenedor lleva `overflow: hidden` y el hijo va a sangre, no hace falta
+   cuenta: lo recorta el padre.
 8. **Confirmaciones:** ¿usa `useConfirm()` para "¿seguro que...?", o un
    diálogo custom reinventado?
 

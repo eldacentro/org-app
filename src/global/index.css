@@ -726,7 +726,9 @@ body {
 .week-card {
   background: var(--card);
   border-radius: var(--r-lg);
-  padding: 7px;
+  /* 8, no 7: la rejilla es de 8px, y además este hueco es el que decide el
+     radio del botón de abajo — ver el comentario de .week-cta-btn. */
+  padding: 8px;
   margin-bottom: 26px;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--line);
@@ -870,17 +872,23 @@ body {
   border-radius: var(--shape-full);
 }
 .week-cta-btn {
-  margin: 6px;
+  /* CONCÉNTRICO, no píldora. Este botón comparte las esquinas de abajo con la
+     tarjeta que lo contiene, y dos curvas que arrancan del mismo sitio con
+     radios distintos no encajan: se ve un hueco que crece y decrece.
+     La regla es radio interior = radio exterior - hueco. La tarjeta va a 28 y
+     el hueco es su propio padding de 8, así que aquí tocan 20 (--shape-lg).
+     Los botones sueltos SÍ son píldora; este no está suelto. */
+  margin: 0;
   padding: 14px;
   text-align: center;
-  border-radius: var(--shape-full);
+  border-radius: var(--shape-lg);
   background: var(--ink);
   color: var(--card);
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   border: none;
-  width: calc(100% - 12px);
+  width: 100%;
   transition:
     transform var(--motion-fast) var(--ease-standard),
     opacity var(--motion-fast) var(--ease-standard);
@@ -1254,7 +1262,7 @@ body {
   .section-label .t { font-size: 14.5px; }
 
   /* ---------- Programa de la semana ---------- */
-  .week-card { padding: 9px; margin-bottom: 34px; }
+  .week-card { margin-bottom: 34px; }
   .week-head-section { padding: 18px 18px 14px; }
   .week-head-section .ttl { font-size: 25px; }
   .count-pill { font-size: 14px; padding: 9px 14px; gap: 8px; }
@@ -1271,10 +1279,8 @@ body {
     padding: 8px 12px;
   }
   .week-cta-btn {
-    margin: 8px;
     padding: 18px;
     font-size: 17.5px;
-    width: calc(100% - 16px);
   }
   .week-cta-btn svg { width: 21px; height: 21px; }
 
