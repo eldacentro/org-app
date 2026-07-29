@@ -98,14 +98,30 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
           // etiqueta del campo vacío caía FUERA, cruzada por el borde y encima
           // del campo siguiente. Este era el origen de que un selector vacío
           // se viera roto.
-          padding: multiline ? '12px 14px' : '0px 14px',
+          // Solo lo horizontal: el ritmo vertical lo pone el bloque «EL CAMPO».
+          padding: '0px 14px',
         },
         '.MuiInputBase-adornedEnd': {
           paddingRight: '14px !important',
         },
-        '.MuiAutocomplete-input': {
-          padding: '0px !important',
-        },
+        // MUI clava aquí su propio padding con `!important`, así que hay que
+        // responderle con otro — pero con el MISMO número que el resto de los
+        // campos, leído de la variable, no reinventado.
+        // MUI clava el padding de este input con `!important`, así que hay que
+        // responderle con otro — pero leyendo el MISMO número que el resto de
+        // los campos, no reinventándolo.
+        //
+        // `&` es el propio contenedor del campo: sin él, emotion busca un
+        // `.MuiFormControl-root` DENTRO de otro, que no existe.
+        '&:has(> .MuiInputLabel-root[data-shrink="true"]) .MuiAutocomplete-input':
+          {
+            padding:
+              'var(--campo-pad-top) 0 var(--campo-pad-bottom) 0 !important',
+          },
+        '&:has(> .MuiInputLabel-root[data-shrink="false"]) .MuiAutocomplete-input':
+          {
+            padding: '0px !important',
+          },
         ...props.sx,
       }}
       PaperComponent={(paperProps) => (
@@ -144,25 +160,27 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
           height={multiline ? undefined : 48}
           styleIcon={styleIcon ?? true}
           sx={
+            // El aviso ("esta persona ya tiene otra asignación esa semana")
+            // ya no se dibuja con un contorno naranja, porque los campos han
+            // dejado de tener contorno. Se marca tiñendo la propia superficie
+            // —ver `.campo-aviso` en el bloque «EL CAMPO»—, que además se ve
+            // más que una línea de 1px.
             decorator
               ? {
                   '.MuiOutlinedInput-root': {
-                    borderRadius: 'var(--shape-sm)',
-                    '& fieldset': {
-                      border: '1px solid var(--orange-dark)',
+                    backgroundColor: 'var(--orange-secondary)',
+                    boxShadow: 'inset 0 0 0 1px var(--orange-main)',
+                    '&:hover': {
+                      backgroundColor: 'var(--orange-secondary)',
                     },
-                    '&:hover fieldset': {
-                      border: '1px solid var(--orange-dark)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      border: '1px solid var(--orange-dark)',
+                    '&.Mui-focused': {
+                      backgroundColor: 'var(--card)',
+                      boxShadow: 'inset 0 0 0 2px var(--orange-dark)',
                     },
                   },
                   '.MuiInputLabel-root': {
                     color: 'var(--orange-dark)',
-                    '&.Mui-focused': {
-                      color: 'var(--orange-dark)',
-                    },
+                    '&.Mui-focused': { color: 'var(--orange-dark)' },
                   },
                 }
               : {}

@@ -29,7 +29,6 @@ const TextField = (props: TextFieldTypeProps) => {
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [inputType, setInputType] = useState<HTMLInputTypeAttribute>(type);
 
-  const heightLocal = height || 44;
   const endIconLocal =
     type === 'password' ? (
       showAccessCode ? (
@@ -43,19 +42,6 @@ const TextField = (props: TextFieldTypeProps) => {
   const styleIconLocal = styleIcon ?? true;
 
   const isMultiLine = props.multiline || props.rows;
-
-  // Cuánto hay que subir la etiqueta del campo VACÍO para que quede centrada.
-  //
-  // MUI la coloca con un desplazamiento fijo (`translate(14px, 16px)`) pensado
-  // para su caja de 56px de alto. Las nuestras son más bajas, así que sin esta
-  // corrección la etiqueta se va hacia abajo.
-  //
-  // Con `multiline` la caja no lleva `height` —crece con el texto— pero sí un
-  // `minHeight` de 48, que es exactamente lo que mide cuando está vacía; y
-  // vacía es el único momento en que esta regla aplica, porque en cuanto hay
-  // texto la etiqueta se encoge y se va al borde.
-  const altoDeReferencia = isMultiLine ? 48 : heightLocal;
-  const varHeight = (56 - altoDeReferencia) / 2;
 
   const handleToggleAccessCode = () => {
     setShowAccessCode((prev) => {
@@ -72,21 +58,20 @@ const TextField = (props: TextFieldTypeProps) => {
       type={inputType}
       fullWidth
       sx={{
+        // La geometría del campo —alto, radio, relleno, hueco para la etiqueta
+        // de dentro— la gobierna el bloque «EL CAMPO» de `global/index.css`,
+        // que es el único sitio donde está escrita para las cuatro familias de
+        // campo de la app. Aquí solo queda lo propio de este componente:
+        // iconos, colores del texto y adornos.
         '.MuiInputBase-root': {
-          height: isMultiLine ? 'auto' : `${heightLocal}px`,
-          paddingTop: isMultiLine ? '12px' : 'auto',
-          paddingBottom: isMultiLine ? '12px' : 'auto',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isMultiLine ? 'flex-start' : 'center',
           gap: '8px',
+          ...(height && { minHeight: `${height}px` }),
         },
         '.MuiInputBase-input': {
           overflow: isMultiLine ? 'unset' : 'hidden',
           textOverflow: isMultiLine ? 'unset' : 'ellipsis',
-          paddingTop: isMultiLine ? 'unset' : `calc(14.5px - ${varHeight}px)`,
-          paddingBottom: isMultiLine
-            ? 'unset'
-            : `calc(14.5px - ${varHeight}px)`,
           flex: '1 0 0',
           color:
             props.value || props.inputProps?.value
@@ -105,61 +90,31 @@ const TextField = (props: TextFieldTypeProps) => {
           outline: 0,
         },
         '.MuiOutlinedInput-root': {
-          borderRadius: 'var(--shape-sm)',
           color: 'var(--black)',
           '& svg': {
             boxSizing: 'content-box',
           },
-          '& fieldset': {
-            border: success
-              ? '1px solid var(--green-main)'
-              : '1px solid var(--accent-350)',
-          },
-          '&:hover fieldset': {
-            border: success
-              ? '1px solid var(--green-main)'
-              : '1px solid var(--accent-main)',
-          },
-          '&.Mui-focused fieldset': {
-            border: success
-              ? '1px solid var(--green-main)'
-              : '1px solid var(--accent-main)',
-          },
-          '&.Mui-error': {
-            '&:hover fieldset': {
-              border: '1px solid var(--red-main)',
-            },
-            '&.Mui-focused fieldset': {
-              border: '1px solid var(--red-main)',
-            },
-          },
-
-          '&.Mui-disabled fieldset': {
-            border: '1px solid var(--accent-200)',
-          },
+          // El contorno dibujado ya no existe: el campo es una superficie
+          // rellena y solo se le pinta un anillo al enfocarlo. Eso vive en el
+          // bloque «EL CAMPO» de `global/index.css`.
+          //
+          // Lo único que este componente sigue decidiendo por su cuenta es el
+          // estado "correcto" (p. ej. un código de acceso ya validado), que no
+          // tiene clase propia en MUI: mismo anillo que el foco, en verde, y
+          // permanente, porque es un resultado y no un estado pasajero.
+          ...(success && { boxShadow: 'inset 0 0 0 2px var(--green-main)' }),
         },
         '.MuiInputLabel-root': {
-          color: !props.disabled
-            ? success
-              ? 'var(--green-main)'
-              : 'var(--accent-350)'
-            : 'var(--accent-200)',
-          '&.Mui-focused': {
-            color: success ? 'var(--green-main)' : 'var(--accent-350)',
-          },
-          '&.Mui-error': {
-            color: 'var(--red-main)',
-          },
+          ...(success && {
+            color: 'var(--green-main)',
+            '&.Mui-focused': { color: 'var(--green-main)' },
+          }),
         },
 
         '& .MuiSvgIcon-root': {
           color: 'var(--accent-350)',
         },
 
-        // La etiqueta del campo vacío, centrada. Ver `varHeight` arriba.
-        '.MuiFormLabel-root[data-shrink=false]': {
-          top: `-${varHeight}px`,
-        },
         '& > .MuiAutocomplete-popupIndicator': {
           '& svg, & svg g, & svg g path': { fill: 'var(--black)' },
         },

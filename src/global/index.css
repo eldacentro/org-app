@@ -263,6 +263,11 @@ body iframe {
   --shape-xl: 28px;     /* diálogos, hojas, tarjeta destacada del inicio     */
   --shape-full: 999px;  /* botones, píldoras, chips, pestañas, progreso      */
 
+  /* Ritmo vertical de un campo con la etiqueta dentro: el hueco de arriba es
+     el que ocupa la etiqueta encogida. Ver el bloque «EL CAMPO». */
+  --campo-pad-top: 19px;
+  --campo-pad-bottom: 5px;
+
   /* Los nombres viejos pasan a ser alias de la escala nueva. Se conservan
      porque están en ~600 sitios y borrarlos de golpe sería una migración a
      ciegas; con el alias, toda la app adopta la escala nueva a la vez y luego
@@ -317,26 +322,136 @@ body iframe {
   --shadow-md: var(--big-card-shadow);
 }
 
-/* ─── El hueco de la etiqueta en el borde del campo ────────────────────────
-   El recuadro de un campo tiene una muesca por donde asoma su etiqueta
-   ("Presidente", "Estudiante", "Fecha de nacimiento"…). MUI la abre animada:
-   `max-width .1s ... .05s`, o sea que espera 50 ms y luego tarda otros 100.
+/* ═══ EL CAMPO ══════════════════════════════════════════════════════════════
+   Superficie rellena en reposo, y borde SOLO al enfocar.
 
-   Escribiendo da igual, porque el hueco ya está abierto. Pero en esta app los
-   campos se rellenan SOLOS cuando llegan los datos de la base local: la
-   etiqueta salta al borde en el mismo instante y el hueco todavía no está, así
-   que durante ~150 ms la línea del recuadro atraviesa la palabra. Medido al
-   abrir una semana en el editor: de quince campos, once tenían la etiqueta ya
-   arriba con la muesca a cero de ancho.
+   Por qué así y no con el contorno de siempre: en el editor de entre semana
+   hay dieciséis campos en una pantalla. Con un rectángulo dibujado alrededor
+   de cada uno, la pantalla es un muro de dieciséis marcos y el programa —que
+   es a lo que se entra— pelea por salir de ahí. Rellenos, los campos se leen
+   como "superficies donde escribir": ocupan lo mismo pero gastan una fracción
+   de la tinta, y el único que lleva borde es el que tienes delante.
 
-   Se abre sin transición: así la etiqueta siempre aterriza en un hueco que ya
-   existe. Nadie percibe una muesca apareciendo de golpe; lo que sí se percibía
-   era la palabra tachada.
+   Y arregla dos cosas de raíz, no con parche:
 
-   El selector va doblado para ganarle en especificidad al estilo de MUI (que
-   es emotion y se inyecta después) sin recurrir a `!important`. */
-.MuiOutlinedInput-notchedOutline.MuiOutlinedInput-notchedOutline legend {
-  transition: none;
+   1) La etiqueta ya NO va montada en el borde, va dentro. Así desaparece la
+      muesca del recuadro, y con ella el fallo de la etiqueta tachada por la
+      línea mientras los datos llegaban de la base local. No hay muesca que
+      abrir a tiempo porque no hay muesca.
+
+   2) Todos los campos miden lo mismo (48 de alto mínimo). Antes convivían 44
+      y 48 en la misma pantalla, y 44 se queda por debajo del blanco táctil
+      recomendado.
+
+   Vive AQUÍ, en un solo bloque, porque los campos de esta app son cuatro
+   familias de DOM distintas: TextField (que arrastra los autocompletados y los
+   selectores de persona), Select, el DatePicker de x-date-pickers —que tiene
+   sus propias clases, `MuiPickersOutlinedInput`— y TimeField. Escrito cuatro
+   veces volvería a divergir en tres meses; escrito una vez, no puede.
+
+   Los selectores van doblados (`.X.X`) para ganarle en especificidad a los
+   estilos de MUI y a los `sx` de cada componente, que son emotion y se
+   inyectan después, sin recurrir a `!important`. */
+
+.MuiOutlinedInput-root.MuiOutlinedInput-root,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
+  min-height: 48px;
+  height: auto;
+  border-radius: var(--shape-sm);
+  background-color: var(--accent-100);
+  /* El anillo del foco va por DENTRO. Como borde empujaría el contenido un
+     píxel al enfocar y el texto daría un saltito. */
+  box-shadow: inset 0 0 0 0 transparent;
+  transition:
+    background-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+/* Fuera el recuadro dibujado: ya no hay contorno ni muesca. */
+.MuiOutlinedInput-root.MuiOutlinedInput-root > fieldset,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root > fieldset {
+  border: none;
+}
+
+.MuiOutlinedInput-root.MuiOutlinedInput-root:hover,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root:hover {
+  background-color: var(--accent-150);
+}
+
+/* Enfocado: la superficie se aclara y aparece el anillo. El campo pasa de
+   "sitio donde se puede escribir" a "el sitio donde estás escribiendo". */
+.MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-focused,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-focused {
+  background-color: var(--card);
+  box-shadow: inset 0 0 0 2px var(--accent-main);
+}
+
+.MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-error,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-error {
+  background-color: var(--red-secondary);
+}
+.MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-error.Mui-focused,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-error.Mui-focused {
+  box-shadow: inset 0 0 0 2px var(--red-main);
+}
+
+
+/* Deshabilitado: no reacciona al ratón, y se apaga sin llegar a desaparecer
+   (sigue siendo un dato que hay que poder leer). */
+.MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-disabled,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-disabled,
+.MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-disabled:hover,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-disabled:hover {
+  background-color: var(--accent-100);
+  box-shadow: none;
+}
+
+/* ── La etiqueta, dentro del campo ──────────────────────────────────────────
+   Vacío: centrada, hace de texto de ayuda. Con valor o enfocado: se encoge y
+   sube a la parte de arriba, dentro. Las dos posiciones se miden desde el
+   alto real del campo (48), no desde los 56 que MUI da por supuestos. */
+.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root {
+  max-width: calc(100% - 52px);
+  color: var(--ink-3);
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
+}
+.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
+  top: 0;
+  transform: translate(14px, 13px);
+}
+.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
+  top: 0;
+  transform: translate(14px, 5px) scale(0.75);
+}
+.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root.Mui-focused {
+  color: var(--accent-main);
+}
+.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root.Mui-error {
+  color: var(--red-main);
+}
+
+/* El valor baja para dejarle sitio a la etiqueta, pero SOLO cuando la etiqueta
+   ha subido. Reservándolo siempre, el campo vacío crecía de alto y su etiqueta
+   —que ahí hace de texto de ayuda y va centrada— se quedaba descolgada arriba.
+
+   Va por variable (`--campo-pad-*`, definidas con los tokens de forma arriba)
+   porque el autocompletado de MUI clava el padding de su input con
+   `!important` y no hay selector que le gane. Consumiendo la variable sigue
+   habiendo UN solo número; si fuera un literal repetido, en la próxima vuelta
+   uno de los dos se quedaría atrás. */
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+  .MuiOutlinedInput-input,
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+  .MuiSelect-select,
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+  .MuiPickersInputBase-input,
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+  .MuiPickersSectionList-root {
+  padding-top: var(--campo-pad-top);
+  padding-bottom: var(--campo-pad-bottom);
+  box-sizing: border-box;
 }
 
 /* ─── Dark mode semantic overrides ─────────────────────────────────────── */
