@@ -15,4 +15,10 @@ export type VariantProps = {
   size?: number;
 
   type?: 'circular' | 'lottie';
+
+  /**
+   * Qué se está haciendo, bajo el logotipo. Solo para `type: 'lottie'`, que es
+   * la pantalla de arranque a pantalla completa.
+   */
+  message?: string;
 };

@@ -24,7 +24,7 @@ const CongregationEncryption = () => {
           width: '100%',
         }}
       >
-        <WaitingLoader type="lottie" variant="standard" />
+        <WaitingLoader type="circular" size={40} variant="standard" />
         {autoEntering && (
           <Typography color="var(--accent-400)" sx={{ textAlign: 'center' }}>
             {t('tr_eldaEnteringWithSavedKeys')}

@@ -37,7 +37,7 @@ const CongregationEncryption = () => {
         gap: '24px',
       }}
     >
-      {isLoading && <WaitingLoader type="lottie" variant="standard" />}
+      {isLoading && <WaitingLoader type="circular" size={40} variant="standard" />}
       {!isLoading && (
         <>
           <Box

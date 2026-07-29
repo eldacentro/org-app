@@ -14,7 +14,9 @@ const Startup = () => {
   if (isSetup) {
     return (
       <>
-        {isAuth && <WaitingLoader type="lottie" />}
+        {isAuth && (
+          <WaitingLoader type="lottie" message="Comprobando tu sesión" />
+        )}
         {!isAuth && (
           <Box
             sx={{
@@ -40,7 +42,8 @@ const Startup = () => {
                   width: '100vw',
                   zIndex: 1300,
                   padding: { mobile: '16px', tablet: '24px' },
-                  background: 'radial-gradient(circle at 50% 50%, var(--accent-150) 0%, var(--accent-100) 100%)',
+                  background:
+                    'radial-gradient(circle at 50% 50%, var(--accent-150) 0%, var(--accent-100) 100%)',
                 }}
               >
                 <Box
@@ -57,9 +60,22 @@ const Startup = () => {
                     gap: '24px',
                   }}
                 >
-                  {/* Branded Logo Icon Only */}
-                  <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-                    <IconLogo width={80} height={80} sx={{ color: 'var(--accent-main)' }} />
+                  {/* El logotipo de la tarjeta. Lo que va debajo mientras se
+                      comprueba la sesión es una ruedecita neutra, NO la marca
+                      otra vez: dos veces el mismo icono, uno encima de otro,
+                      es lo que parecía un fallo al abrir la app. */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <IconLogo
+                      width={80}
+                      height={80}
+                      sx={{ color: 'var(--accent-main)' }}
+                    />
                   </Box>
 
                   {isAccountChoose && <AccountChooser />}
@@ -79,7 +95,7 @@ const Startup = () => {
     );
   }
 
-  return <WaitingLoader type="lottie" />;
+  return <WaitingLoader type="lottie" message="Preparando tus datos" />;
 };
 
 export default Startup;

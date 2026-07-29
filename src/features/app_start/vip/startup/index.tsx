@@ -25,7 +25,7 @@ const VipStartup = () => {
     <>
       <TermsUse />
       {!isCongCreate && !isEncryptionCodeOpen && !isEmailSent && isLoading && (
-        <WaitingLoader type="lottie" variant="standard" />
+        <WaitingLoader type="circular" size={40} variant="standard" />
       )}
 
       {!isLoading && (

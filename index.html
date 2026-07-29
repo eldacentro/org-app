@@ -492,7 +492,13 @@
     </div>
   </noscript>
   <div id="root">
-    <div class="loader-waiting-js" style="display:flex; justify-content:center; align-items:center; height:100vh;">
+    <!-- La marca latiendo, antes de que React monte. Tiene que quedar EXACTO
+         al `LottieLoader` de src/components/lottie_loader: mismo tamaño, misma
+         duración y mismos fotogramas. Si no, al montar React el logotipo da un
+         salto o cambia de tamaño y parece que algo ha fallado. Se repite aquí
+         a mano porque en este punto todavía no hay nada de React que importar;
+         si tocas los valores de allí, toca estos en el mismo commit. -->
+    <div class="loader-waiting-js" style="display:flex; justify-content:center; align-items:center; height:100dvh;">
       <img alt="Elda Centro" src="./img/icon/isotipo.svg"
         style="height: 80px; width: 80px; animation: pulse 1.5s ease-in-out infinite;" />
       <style>

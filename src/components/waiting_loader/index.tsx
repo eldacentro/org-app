@@ -12,10 +12,16 @@ const WaitingLoader = ({
   variant = 'fixed',
   size,
   type = 'circular',
+  message,
 }: VariantProps) => {
   let sx: SxProps<Theme> = {};
 
-  if (variant === 'fixed') {
+  // `fixed` coloca el indicador con `top: 50%`, o sea el BORDE DE ARRIBA a
+  // media pantalla: queda por debajo del centro. Para la ruedecita pequeña da
+  // igual, pero la pantalla de arranque tiene que caer exactamente donde la
+  // dibuja `index.html` antes de que React monte, o al montar el logotipo da
+  // un salto hacia abajo que parece un fallo.
+  if (variant === 'fixed' && type !== 'lottie') {
     sx = {
       position: 'absolute',
       top: '50%',
@@ -27,7 +33,7 @@ const WaitingLoader = ({
     <Box
       sx={{
         display: 'flex',
-        height: '100%',
+        height: type === 'lottie' ? '100dvh' : '100%',
         width: '100%',
         flexDirection: 'column',
         alignItems: 'center',
@@ -35,7 +41,7 @@ const WaitingLoader = ({
       }}
     >
       <Box sx={sx}>
-        {type === 'lottie' && <LottieLoader size={size} />}
+        {type === 'lottie' && <LottieLoader size={size} message={message} />}
 
         {type === 'circular' && (
           <IconLoading width={size} height={size} color="var(--accent-dark)" />
