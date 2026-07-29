@@ -289,8 +289,11 @@ const StudentSelector = (props: PersonSelectorType) => {
             decorator={helperText.length > 0}
             clearIcon={<IconClose width={20} height={20} />}
             sx={{
-              '& .MuiInputLabel-root': {
-                top: '-5px !important',
+              '& .MuiInputLabel-root[data-shrink=false]': {
+                // Solo la etiqueta SIN encoger (campo vacío) y solo aquí: con
+                // `multiline` la caja no tiene altura fija y MUI ya la centra,
+                // así que subirla la dejaba montada sobre el borde del recuadro.
+                top: 0,
               },
               '& .MuiOutlinedInput-root': {
                 // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa

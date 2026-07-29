@@ -92,7 +92,13 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
       fullWidth={true}
       sx={{
         '.MuiOutlinedInput-root': {
-          padding: '0px 14px',
+          // Sin margen arriba y abajo la caja mide exactamente lo que la línea
+          // de texto. En un campo de una línea da igual (la altura la fija
+          // `height`), pero en uno multilínea la caja se quedaba en 23px: la
+          // etiqueta del campo vacío caía FUERA, cruzada por el borde y encima
+          // del campo siguiente. Este era el origen de que un selector vacío
+          // se viera roto.
+          padding: multiline ? '12px 14px' : '0px 14px',
         },
         '.MuiInputBase-adornedEnd': {
           paddingRight: '14px !important',

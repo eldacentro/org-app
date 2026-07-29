@@ -145,7 +145,13 @@ const TextField = (props: TextFieldTypeProps) => {
           color: 'var(--accent-350)',
         },
 
-        '.MuiFormLabel-root[data-shrink=false]': { top: `-${varHeight}px` },
+        // La etiqueta sin encoger (campo vacío) se sube para quedar centrada
+        // en una caja más baja que la de MUI. Con `multiline` la caja ya no
+        // tiene altura fija y MUI la centra sola: subirla además la dejaba
+        // montada sobre el borde, tachada por la propia línea del recuadro.
+        '.MuiFormLabel-root[data-shrink=false]': {
+          top: isMultiLine ? 0 : `-${varHeight}px`,
+        },
         '& > .MuiAutocomplete-popupIndicator': {
           '& svg, & svg g, & svg g path': { fill: 'var(--black)' },
         },
@@ -155,9 +161,7 @@ const TextField = (props: TextFieldTypeProps) => {
         },
 
         '& .MuiAutocomplete-endAdornment .MuiSvgIcon-root': {
-          color: !props.disabled
-            ? 'var(--black)'
-            : 'var(--accent-200)',
+          color: !props.disabled ? 'var(--black)' : 'var(--accent-200)',
           '& g path': {
             fill: 'var(--black)',
           },
@@ -192,8 +196,8 @@ const TextField = (props: TextFieldTypeProps) => {
                 marginRight: 0,
                 '& svg, & svg g, & svg g path': styleIconLocal
                   ? {
-                    fill: endIconLocal.props.color ?? 'var(--accent-350)',
-                  }
+                      fill: endIconLocal.props.color ?? 'var(--accent-350)',
+                    }
                   : {},
               }}
             >
