@@ -170,7 +170,12 @@ const BrotherSelector = (props: PersonSelectorType) => {
           },
 
           '& .MuiOutlinedInput-root': {
-            height: '48px !important',
+            // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa
+            // a una segunda línea, y una altura clavada con `!important` deja
+            // esa línea fuera del recuadro: el texto se ve aplastado contra
+            // los bordes. Así la caja crece con el contenido y conserva su
+            // aspecto de siempre cuando el nombre cabe en una línea.
+            minHeight: '48px',
           },
           '& .MuiOutlinedInput-input': {
             paddingRight: props.endIcon ? '10px !important' : '80px !important',

@@ -278,7 +278,12 @@ const StudentSelector = (props: PersonSelectorType) => {
             top: '-5px !important',
           },
           '& .MuiOutlinedInput-root': {
-            height: '44px !important',
+            // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa
+            // a una segunda línea, y una altura clavada con `!important` deja
+            // esa línea fuera del recuadro: el texto se ve aplastado contra
+            // los bordes. Así la caja crece con el contenido y conserva su
+            // aspecto de siempre cuando el nombre cabe en una línea.
+            minHeight: '44px',
           },
           '& .MuiOutlinedInput-input': {
             // Hueco para lo que hay a la derecha: X de limpiar (al hover) ·
