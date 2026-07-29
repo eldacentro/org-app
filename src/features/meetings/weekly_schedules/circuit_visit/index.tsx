@@ -24,6 +24,7 @@ import { schedulesGetMeetingDate } from '@services/app/schedules';
 import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 import { getEffectiveCoName } from '@features/circuit_visit/shared/getEffectiveCoName';
 import { CircuitVisitSpecialMeeting } from '@definition/circuit_visit';
+import ActionPill from '@components/action_pill';
 
 /**
  * La semana de la visita del superintendente, para los hermanos.
@@ -93,30 +94,11 @@ const Fila = ({ etiqueta, valor }: { etiqueta: string; valor: string }) => (
   </Stack>
 );
 
+// La misma píldora que el resto de la aplicación. En variante `tinted`
+// porque va DENTRO de una tarjeta: rellena competiría con la propia tarjeta y
+// con la acción principal de la pantalla.
 const Boton = ({ texto, onClick }: { texto: string; onClick: () => void }) => (
-  <Box
-    component="button"
-    type="button"
-    onClick={onClick}
-    sx={{
-      appearance: 'none',
-      display: 'inline-flex',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      px: '14px',
-      py: '7px',
-      borderRadius: 'var(--radius-max)',
-      border: '1px solid var(--accent-200)',
-      backgroundColor: 'var(--accent-100)',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s ease',
-      '&:hover': { backgroundColor: 'var(--accent-200)' },
-    }}
-  >
-    <Typography className="label-small-semibold" color="var(--accent-main)">
-      {texto} →
-    </Typography>
-  </Box>
+  <ActionPill label={texto} onClick={onClick} variant="tinted" trailing=" →" />
 );
 
 const Contenido = ({ children }: { children: ReactNode }) => (

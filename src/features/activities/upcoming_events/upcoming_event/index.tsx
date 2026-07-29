@@ -29,6 +29,7 @@ import {
   ASSEMBLY_CATEGORIES,
   COVER_PHOTO_CATEGORIES,
 } from '../decorations_for_event';
+import ActionPill from '@components/action_pill';
 
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -220,11 +221,13 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
           >
             <AddToCalendar event={props.data} />
 
-            {canManageEvents && !isDerivedEvent && (!desktopUp || showEditIcon) && (
-              <IconButton sx={{ padding: 0 }} onClick={handleTurnEditMode}>
-                <IconEdit color="var(--accent-main)" />
-              </IconButton>
-            )}
+            {canManageEvents &&
+              !isDerivedEvent &&
+              (!desktopUp || showEditIcon) && (
+                <IconButton sx={{ padding: 0 }} onClick={handleTurnEditMode}>
+                  <IconEdit color="var(--accent-main)" />
+                </IconButton>
+              )}
           </Box>
         </Box>
 
@@ -266,7 +269,10 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
         hasVisitAgenda && (
-          <CircuitVisitWeekAgenda event={props.data} previousDay={previousDay} />
+          <CircuitVisitWeekAgenda
+            event={props.data}
+            previousDay={previousDay}
+          />
         )}
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
@@ -319,66 +325,28 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             gap: '8px',
           }}
         >
+          {/* La misma píldora que en el resto de la aplicación. Estaban
+              escritas aquí a mano, con su propio radio (`--r-sm`), su propio
+              gris y una opacidad al 70%: no se parecían al enlace de JW
+              Library de "Mis asignaciones" aunque fueran lo mismo. En variante
+              `outline` porque van dentro de la tarjeta de un evento y pueden
+              ser dos a la vez. */}
           {isAssemblyCategory && props.data.event_data.jwLibraryUrl && (
-            <Box
-              component="a"
+            <ActionPill
               href={props.data.event_data.jwLibraryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                px: '8px',
-                py: '4px',
-                borderRadius: 'var(--r-sm)',
-                textDecoration: 'none',
-                border: '1px solid var(--line)',
-                opacity: 0.7,
-                transition: 'opacity 0.2s ease',
-                '&:hover': { opacity: 1 },
-              }}
-            >
-              <Typography
-                component="span"
-                className="body-small-semibold"
-                color="var(--grey-400)"
-              >
-                JW Library ↗
-              </Typography>
-            </Box>
+              label="JW Library"
+              variant="outline"
+              trailing=" ↗"
+            />
           )}
 
           {props.data.event_data.mapsUrl && (
-            <Box
-              component="a"
+            <ActionPill
               href={props.data.event_data.mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                px: '8px',
-                py: '4px',
-                borderRadius: 'var(--r-sm)',
-                textDecoration: 'none',
-                border: '1px solid var(--line)',
-                opacity: 0.7,
-                transition: 'opacity 0.2s ease',
-                '&:hover': { opacity: 1 },
-              }}
-            >
-              <Typography
-                component="span"
-                className="body-small-semibold"
-                color="var(--grey-400)"
-              >
-                Google Maps ↗
-              </Typography>
-            </Box>
+              label="Google Maps"
+              variant="outline"
+              trailing=" ↗"
+            />
           )}
         </Box>
       )}
@@ -387,4 +355,3 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
 };
 
 export default UpcomingEvent;
-

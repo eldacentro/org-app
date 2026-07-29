@@ -1,13 +1,13 @@
 import { ReactElement } from 'react';
-import { Box } from '@mui/material';
-import Typography from '@components/typography';
+import ActionPill from '@components/action_pill';
 
 /**
  * La acción de una pestaña, en la cabecera de la semana.
  *
- * Misma forma para todas —Consejos en salidas, Documentos en exhibidores— y
- * la misma que el enlace de JW Library de las reuniones, para que las seis
- * pestañas se sientan la misma pantalla.
+ * Es la MISMA píldora que el enlace de JW Library y que los botones de la
+ * pestaña de la visita — todo eso vive en `ActionPill`. Aquí solo queda que en
+ * la cabecera la variante es `solid`: es la acción principal de la pantalla y
+ * hay una sola.
  */
 const Accion = ({
   icono,
@@ -18,30 +18,7 @@ const Accion = ({
   texto: string;
   onClick: () => void;
 }) => (
-  <Box
-    component="button"
-    type="button"
-    onClick={onClick}
-    sx={{
-      appearance: 'none',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '6px',
-      px: '12px',
-      py: '6px',
-      borderRadius: 'var(--radius-max)',
-      border: 'none',
-      backgroundColor: 'var(--accent-main)',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s ease',
-      '&:hover': { backgroundColor: 'var(--accent-dark)' },
-    }}
-  >
-    {icono}
-    <Typography className="label-small-semibold" color="var(--always-white)">
-      {texto}
-    </Typography>
-  </Box>
+  <ActionPill label={texto} icon={icono} onClick={onClick} variant="solid" />
 );
 
 export default Accion;
