@@ -1,10 +1,11 @@
-import { Box, Popper } from '@mui/material';
+import { Box } from '@mui/material';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import { IconClose, IconMale } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useOutgoingSpeaker from './useOutgoingSpeaker';
 import AutoComplete from '@components/autocomplete';
 import Typography from '@components/typography';
+import OptionsPopper from '@components/options_popper';
 
 const OutgoingSpeaker = (props: PersonSelectorType) => {
   const showIcon = props.showIcon;
@@ -33,13 +34,7 @@ const OutgoingSpeaker = (props: PersonSelectorType) => {
       fullWidth={true}
       slots={{
         popper(props) {
-          return (
-            <Popper
-              {...props}
-              style={{ minWidth: 320 }}
-              placement="bottom-start"
-            />
-          );
+          return <OptionsPopper {...props} />;
         },
       }}
       renderOption={(props, option) => (

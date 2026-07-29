@@ -1,4 +1,4 @@
-import { Box, FormControlLabel, Popper, RadioGroup } from '@mui/material';
+import { Box, FormControlLabel, RadioGroup } from '@mui/material';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import {
   IconAssignmetHistory,
@@ -16,6 +16,7 @@ import AutoComplete from '@components/autocomplete';
 import IconButton from '@components/icon_button';
 import Radio from '@components/radio';
 import Typography from '@components/typography';
+import OptionsPopper from '@components/options_popper';
 
 /**
  * El icono de género vive solo en la LISTA desplegable, donde sí informa
@@ -99,13 +100,7 @@ const StudentSelector = (props: PersonSelectorType) => {
               handleSaveAssignment(value)
             }
             slots={{
-              popper: (props) => (
-                <Popper
-                  {...props}
-                  style={{ minWidth: 320 }}
-                  placement="bottom-start"
-                />
-              ),
+              popper: (props) => <OptionsPopper {...props} />,
             }}
             renderOption={(props, option) => (
               <Box
@@ -279,19 +274,6 @@ const StudentSelector = (props: PersonSelectorType) => {
             decorator={helperText.length > 0}
             clearIcon={<IconClose width={20} height={20} />}
             sx={{
-              '& .MuiInputLabel-root[data-shrink=false]': {
-                // Solo la etiqueta SIN encoger (campo vacío) y solo aquí: con
-                // `multiline` la caja no tiene altura fija y MUI ya la centra,
-                // así que subirla la dejaba montada sobre el borde del recuadro.
-                top: 0,
-              },
-              '& .MuiOutlinedInput-root': {
-                // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa
-                // a una segunda línea, y una altura clavada con `!important` deja
-                // esa línea fuera del recuadro. 48px: la MISMA altura que el campo
-                // de hermano — eran 44 y 48 en la misma pantalla y se notaba.
-                minHeight: '48px',
-              },
               '& .MuiOutlinedInput-input': {
                 // Hueco para la X de limpiar y la flecha, y nada más: es lo que
                 // MUI reservaría solo (65px) si no le pisáramos el padding del

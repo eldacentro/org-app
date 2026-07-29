@@ -1,4 +1,4 @@
-import { Box, Popper } from '@mui/material';
+import { Box } from '@mui/material';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import { IconAssignmetHistory, IconClose, IconEdit } from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
@@ -7,6 +7,7 @@ import AutoComplete from '@components/autocomplete';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
+import OptionsPopper from '@components/options_popper';
 
 const BrotherSelector = (props: PersonSelectorType) => {
   const showAssignmentsHistory = props.showAssignmentsHistory ?? true;
@@ -73,13 +74,7 @@ const BrotherSelector = (props: PersonSelectorType) => {
             fullWidth={true}
             slots={{
               popper(props) {
-                return (
-                  <Popper
-                    {...props}
-                    style={{ minWidth: 320 }}
-                    placement="bottom-start"
-                  />
-                );
+                return <OptionsPopper {...props} />;
               },
             }}
             renderOption={(props, option) => (
@@ -170,21 +165,6 @@ const BrotherSelector = (props: PersonSelectorType) => {
             decorator={helperText.length > 0 && !isLinkedPart}
             clearIcon={<IconClose width={20} height={20} />}
             sx={{
-              '& .MuiInputLabel-root[data-shrink=false]': {
-                // Solo la etiqueta SIN encoger (campo vacío) y solo aquí: con
-                // `multiline` la caja no tiene altura fija y MUI ya la centra,
-                // así que subirla la dejaba montada sobre el borde del recuadro.
-                top: 0,
-              },
-
-              '& .MuiOutlinedInput-root': {
-                // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa
-                // a una segunda línea, y una altura clavada con `!important` deja
-                // esa línea fuera del recuadro: el texto se ve aplastado contra
-                // los bordes. Así la caja crece con el contenido y conserva su
-                // aspecto de siempre cuando el nombre cabe en una línea.
-                minHeight: '48px',
-              },
               '& .MuiOutlinedInput-input': {
                 // Hueco para la X de limpiar y la flecha, y nada más: es lo que
                 // MUI reservaría solo (65px) si no le pisáramos el padding del
