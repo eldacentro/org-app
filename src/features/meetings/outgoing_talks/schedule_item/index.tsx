@@ -1,5 +1,12 @@
 import { Box, Autocomplete, TextField as MuiTextField } from '@mui/material';
-import { IconClose, IconDelete, IconTalk, IconLocation, IconAdd, IconArrowBack } from '@components/icons';
+import {
+  IconClose,
+  IconDelete,
+  IconTalk,
+  IconLocation,
+  IconAdd,
+  IconArrowBack,
+} from '@components/icons';
 import { ScheduleItemType } from './index.types';
 import {
   DoubleFieldContainer,
@@ -203,11 +210,15 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 {...params}
                 label={t('tr_congregation')}
                 size="small"
+                // Los nombres de congregación largos se cortaban: un <input>
+                // no puede partir el texto en dos líneas, un <textarea> sí.
+                multiline
               />
             )}
             isOptionEqualToValue={(option, value) =>
               option.id === value?.id ||
-              option.cong_data.cong_name.value === value?.cong_data.cong_name.value
+              option.cong_data.cong_name.value ===
+                value?.cong_data.cong_name.value
             }
             noOptionsText="No hay congregaciones en el catálogo"
           />
@@ -226,7 +237,15 @@ const ScheduleItem = (props: ScheduleItemType) => {
               }}
             >
               {selectedCatalogCong.cong_data.cong_location.address.value && (
-                <Typography className="body-small-regular" sx={{ color: 'var(--grey-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Typography
+                  className="body-small-regular"
+                  sx={{
+                    color: 'var(--grey-500)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
                   <IconLocation width={16} height={16} color="currentColor" />
                   {selectedCatalogCong.cong_data.cong_location.address.value}
                 </Typography>
@@ -384,7 +403,10 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 color: 'var(--grey-500)',
                 fontWeight: '500',
                 width: 'fit-content',
-                '&:hover': { color: 'var(--accent-main)', textDecoration: 'underline' },
+                '&:hover': {
+                  color: 'var(--accent-main)',
+                  textDecoration: 'underline',
+                },
               }}
             >
               <IconArrowBack width={16} height={16} color="currentColor" />

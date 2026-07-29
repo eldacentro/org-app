@@ -60,6 +60,10 @@ const AcceptRequest = (props: AcceptRequestProps) => {
           sx={{ maxHeight: '300px', overflow: 'auto', padding: '8px 0' }}
         >
           <Autocomplete
+            // Un valor que no cabe se cortaba con puntos suspensivos y no había
+            // forma de leerlo entero: dentro de un <input> el texto no puede
+            // partirse en dos líneas. Con `multiline` el campo crece a lo alto.
+            multiline
             label={t('tr_bindWithRecord')}
             options={options}
             getOptionLabel={(option: UsersOption) => option.person_name}

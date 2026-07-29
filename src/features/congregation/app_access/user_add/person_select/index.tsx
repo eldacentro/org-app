@@ -95,6 +95,10 @@ const PersonSelect = (props: PersonSelectType) => {
       )}
 
       <Autocomplete
+        // Un valor que no cabe se cortaba con puntos suspensivos y no había
+        // forma de leerlo entero: dentro de un <input> el texto no puede
+        // partirse en dos líneas. Con `multiline` el campo crece a lo alto.
+        multiline
         disabled={!searchStatus && userType === 'baptized'}
         label={t('tr_selectPerson')}
         hidden={!searchStatus && userType === 'baptized'}

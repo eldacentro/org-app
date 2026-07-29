@@ -31,7 +31,11 @@ export const PersonSelect = ({
       isOptionEqualToValue={(a, b) => a.uid === b.uid}
       onChange={(_, v) => onChange(v?.uid ?? '')}
       size="medium"
-      renderInput={(params) => <TextField {...params} label={label} />}
+      renderInput={(params) => (
+        // Los nombres largos se cortaban: un <input> no puede partir el texto
+        // en dos líneas, un <textarea> sí.
+        <TextField {...params} label={label} multiline />
+      )}
       sx={{ flex: 1, fontFamily: 'Figtree, sans-serif' }}
       noOptionsText="Sin resultados"
     />

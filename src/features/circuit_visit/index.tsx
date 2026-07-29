@@ -96,7 +96,10 @@ const DocRow = ({
       {icon}
     </Box>
     <Stack spacing="1px" flex={1}>
-      <Typography className="body-regular-semibold" color="var(--ink, var(--black))">
+      <Typography
+        className="body-regular-semibold"
+        color="var(--ink, var(--black))"
+      >
         {title}
       </Typography>
       <Typography className="body-small-regular" color="var(--grey-400)">
@@ -107,7 +110,12 @@ const DocRow = ({
     {onClick && (
       <Box
         onClick={onClick}
-        sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', p: '4px' }}
+        sx={{
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          p: '4px',
+        }}
       >
         <IconChevronRight color="var(--grey-350)" />
       </Box>
@@ -115,7 +123,8 @@ const DocRow = ({
   </Box>
 );
 
-const formatRange = (visit: CircuitVisitType) => fmtRangeEs(visit.date_start, visit.date_end);
+const formatRange = (visit: CircuitVisitType) =>
+  fmtRangeEs(visit.date_start, visit.date_end);
 
 // Al TECLEAR una fecha, MUI emite un cambio por pulsación con años parciales
 // (2 → 0002 → 0020...). Confirmarlos persistía fechas basura ("0020/02/07")
@@ -164,13 +173,23 @@ const SpecialMeetingEditor = ({
       </Stack>
 
       {enabled && (
-        <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
+        <Stack
+          direction={{ mobile: 'column', tablet: 'row' }}
+          spacing="10px"
+          flexWrap="wrap"
+          useFlexGap
+        >
           {/* CustomDatePicker/TextField/TimeField son siempre ancho-100% de
               su propio contenedor (fullWidth fijo) — sin envolverlos en una
               Box con flex/minWidth propios, cada uno reclama toda la fila
               para sí y los demás quedan siempre apilados debajo, aunque el
               Stack esté en modo "row". */}
-          <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+          <Box
+            sx={{
+              flex: { tablet: '0 1 170px' },
+              minWidth: { tablet: '150px' },
+            }}
+          >
             <CustomDatePicker
               label="Fecha"
               view="input"
@@ -186,14 +205,21 @@ const SpecialMeetingEditor = ({
               maxDate={maxDate}
             />
           </Box>
-          <Box sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}>
+          <Box
+            sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}
+          >
             <TimeField
               label="Hora"
               value={value.time}
               onChange={(t) => onChange({ ...value, time: t })}
             />
           </Box>
-          <Box sx={{ flex: { tablet: '2 1 200px' }, minWidth: { tablet: '180px' } }}>
+          <Box
+            sx={{
+              flex: { tablet: '2 1 200px' },
+              minWidth: { tablet: '180px' },
+            }}
+          >
             <TextField
               label="Lugar"
               value={value.place}
@@ -216,7 +242,9 @@ const PreachingSection = ({
   companions: CircuitVisitType['co_companions'];
   onUpsertCompanion: (
     outingKey: string,
-    changes: Partial<Omit<CircuitVisitType['co_companions'][number], 'outingKey'>>
+    changes: Partial<
+      Omit<CircuitVisitType['co_companions'][number], 'outingKey'>
+    >
   ) => void;
   onRemoveCompanion: (outingKey: string) => void;
 }) => {
@@ -286,15 +314,23 @@ const PreachingSection = ({
           showCoBanner={false}
         />
 
-        <Button variant="secondary" onClick={() => navigate('/predicacion-salidas')}>
+        <Button
+          variant="secondary"
+          onClick={() => navigate('/predicacion-salidas')}
+        >
           Editar en Salidas de predicación
         </Button>
 
         {assignedOutings.length > 0 && (
           <Stack spacing="12px">
             <Stack spacing="2px">
-              <Typography className="h4">Compañía del superintendente</Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography className="h4">
+                Compañía del superintendente
+              </Typography>
+              <Typography
+                className="body-small-regular"
+                color="var(--grey-400)"
+              >
                 {effectiveCoSpouseName
                   ? `Quién acompaña a ${effectiveCoName} y a ${effectiveCoSpouseName} en cada salida. Sin acompañante = no sale.`
                   : `Quién acompaña a ${effectiveCoName} en cada salida. Sin acompañante = no sale.`}
@@ -342,7 +378,12 @@ const PreachingSection = ({
                     <Typography
                       className="body-small-regular"
                       color="var(--grey-400)"
-                      sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      sx={{
+                        minWidth: 0,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
                     >
                       {outing.location}
                     </Typography>
@@ -371,14 +412,18 @@ const PreachingSection = ({
                         value={selectedPerson}
                         onChange={(_, v) => {
                           if (v) {
-                            onUpsertCompanion(outing.outingKey, { brother: v.uid });
+                            onUpsertCompanion(outing.outingKey, {
+                              brother: v.uid,
+                            });
                             return;
                           }
                           // Al quitar al hermano: si la esposa sigue teniendo
                           // acompañante en este turno, se conserva el
                           // registro; si no, se elimina entero.
                           if ((companion?.spouse_companions ?? []).length > 0) {
-                            onUpsertCompanion(outing.outingKey, { brother: '' });
+                            onUpsertCompanion(outing.outingKey, {
+                              brother: '',
+                            });
                           } else {
                             onRemoveCompanion(outing.outingKey);
                           }
@@ -390,6 +435,10 @@ const PreachingSection = ({
                             {...params}
                             label={`Acompañante de ${effectiveCoName || 'superintendente'}`}
                             size="small"
+                            // Los nombres largos se cortaban: un <input> no
+                            // puede partir el texto en dos líneas, un
+                            // <textarea> sí.
+                            multiline
                           />
                         )}
                       />
@@ -403,15 +452,18 @@ const PreachingSection = ({
                           value={companion.activity}
                           onChange={(e) =>
                             onUpsertCompanion(outing.outingKey, {
-                              activity: e.target.value as CircuitVisitCompanionActivity,
+                              activity: e.target
+                                .value as CircuitVisitCompanionActivity,
                             })
                           }
                         >
-                          {Object.entries(ACTIVITY_LABELS).map(([value, label]) => (
-                            <MenuItem key={value} value={value}>
-                              {label}
-                            </MenuItem>
-                          ))}
+                          {Object.entries(ACTIVITY_LABELS).map(
+                            ([value, label]) => (
+                              <MenuItem key={value} value={value}>
+                                {label}
+                              </MenuItem>
+                            )
+                          )}
                         </Select>
                       )}
                     </Stack>
@@ -469,7 +521,10 @@ const PreachingSection = ({
 // "Documentación para la Visita" para exportar sin navegar a la página.
 
 const S21DirectExportButton = ({ disabled }: { disabled: boolean }) => {
-  const { handleExportCards } = useExportS21({ open: false, onClose: () => {} });
+  const { handleExportCards } = useExportS21({
+    open: false,
+    onClose: () => {},
+  });
   return (
     <Button
       variant="secondary"
@@ -592,8 +647,8 @@ const CircuitVisitDashboard = () => {
     saveStatus === 'saving'
       ? 'Guardando…'
       : saveStatus === 'saved'
-      ? 'Guardado'
-      : '';
+        ? 'Guardado'
+        : '';
 
   const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -614,10 +669,11 @@ const CircuitVisitDashboard = () => {
   );
 
   const elderOptions = useMemo(
-    () => personOptions.filter((o) => {
-      const p = persons.find((pe) => pe.person_uid === o.uid);
-      return p ? personIsElder(p) : false;
-    }),
+    () =>
+      personOptions.filter((o) => {
+        const p = persons.find((pe) => pe.person_uid === o.uid);
+        return p ? personIsElder(p) : false;
+      }),
     [personOptions, persons]
   );
 
@@ -643,15 +699,19 @@ const CircuitVisitDashboard = () => {
   const exportLockedMsg = exportUnlocked
     ? ''
     : working?.date_start
-    ? `Disponible 10 días antes (${fmtDateShortEs(formatDate(addDays(new Date(working.date_start), -10), 'yyyy/MM/dd'))})`
-    : '';
+      ? `Disponible 10 días antes (${fmtDateShortEs(formatDate(addDays(new Date(working.date_start), -10), 'yyyy/MM/dd'))})`
+      : '';
 
   // Estado temporal de la visita seleccionada, para el chip de la cabecera.
   const visitStatus = useMemo(() => {
     if (!working) return null;
 
     if (working.date_start <= todayStr && todayStr <= working.date_end) {
-      return { label: 'En curso', bg: 'var(--green-secondary)', fg: 'var(--green-main)' };
+      return {
+        label: 'En curso',
+        bg: 'var(--green-secondary)',
+        fg: 'var(--green-main)',
+      };
     }
 
     const start = new Date(working.date_start);
@@ -664,8 +724,8 @@ const CircuitVisitDashboard = () => {
       days === 0
         ? 'Empieza hoy'
         : days === 1
-        ? 'Empieza mañana'
-        : `Faltan ${days} días`;
+          ? 'Empieza mañana'
+          : `Faltan ${days} días`;
 
     return { label, bg: 'var(--accent-150)', fg: 'var(--accent-dark)' };
   }, [working, todayStr]);
@@ -694,7 +754,13 @@ const CircuitVisitDashboard = () => {
           flexWrap="wrap"
           useFlexGap
         >
-          <Box sx={{ width: '100%', flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+          <Box
+            sx={{
+              width: '100%',
+              flex: { tablet: '1 1 220px' },
+              minWidth: { tablet: '200px' },
+            }}
+          >
             <CustomDatePicker
               label="Semana de la visita"
               view="input"
@@ -730,30 +796,44 @@ const CircuitVisitDashboard = () => {
           : 'Exporta directamente o abre la página para revisar.'
       }
     >
-      <Stack divider={<Box sx={{ height: '1px', background: 'var(--line)' }} />}>
+      <Stack
+        divider={<Box sx={{ height: '1px', background: 'var(--line)' }} />}
+      >
         <DocRow
-          icon={<IconPerson color="var(--accent-main)" width={20} height={20} />}
+          icon={
+            <IconPerson color="var(--accent-main)" width={20} height={20} />
+          }
           title="Registro de publicadores (S-21)"
           subtitle="Tarjetas de informe de cada publicador."
           onClick={() => navigate('/publisher-records')}
           exportButton={<S21DirectExportButton disabled={!exportUnlocked} />}
         />
         <DocRow
-          icon={<IconAssignment color="var(--accent-main)" width={20} height={20} />}
+          icon={
+            <IconAssignment color="var(--accent-main)" width={20} height={20} />
+          }
           title="Asistencia a las reuniones (S-88)"
           subtitle="Registros de asistencia entre semana y fin de semana."
           onClick={() => navigate('/reports/meeting-attendance')}
           exportButton={<S88DirectExportButton disabled={!exportUnlocked} />}
         />
         <DocRow
-          icon={<IconMapOverview color="var(--accent-main)" width={20} height={20} />}
+          icon={
+            <IconMapOverview
+              color="var(--accent-main)"
+              width={20}
+              height={20}
+            />
+          }
           title="Territorios (S-13)"
           subtitle="Registro y estado actual de los territorios."
           onClick={() => navigate('/congregation/territories')}
           exportButton={<S13DirectExportButton disabled={!exportUnlocked} />}
         />
         <DocRow
-          icon={<IconWallet color="var(--accent-main)" width={20} height={20} />}
+          icon={
+            <IconWallet color="var(--accent-main)" width={20} height={20} />
+          }
           title="Estado de la contabilidad"
           subtitle="Gestionado aparte: revisar con el siervo de cuentas."
         />
@@ -762,7 +842,14 @@ const CircuitVisitDashboard = () => {
   );
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: '760px',
+        margin: '0 auto',
+        padding: '16px',
+      }}
+    >
       <PageTitle
         title="Visita del superintendente de circuito"
         buttons={
@@ -815,7 +902,9 @@ const CircuitVisitDashboard = () => {
 
       {/* Sin visitas activas la tarjeta de activación se muestra sola;
           con visitas queda plegada tras "Nueva visita" en la barra. */}
-      {activeVisits.length === 0 && <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>}
+      {activeVisits.length === 0 && (
+        <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>
+      )}
       {activeVisits.length > 0 && showNewVisit && (
         <Box sx={{ mt: '12px' }}>{newVisitCard}</Box>
       )}
@@ -867,7 +956,9 @@ const CircuitVisitDashboard = () => {
                     flexWrap="wrap"
                     useFlexGap
                   >
-                    <Typography className="h2">{formatRange(working)}</Typography>
+                    <Typography className="h2">
+                      {formatRange(working)}
+                    </Typography>
                     {visitStatus && (
                       <Box
                         sx={{
@@ -918,21 +1009,40 @@ const CircuitVisitDashboard = () => {
                   onChange={(_e, checked) => patch({ is_substitute: checked })}
                 />
                 {working.is_substitute && (
-                  <Stack direction={{ mobile: 'column', tablet: 'row' }} spacing="10px" flexWrap="wrap" useFlexGap>
+                  <Stack
+                    direction={{ mobile: 'column', tablet: 'row' }}
+                    spacing="10px"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
                     {/* TextField es fullWidth fijo y descarta cualquier sx que
                         se le pase — por eso hace falta envolverlo. */}
-                    <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                    <Box
+                      sx={{
+                        flex: { tablet: '1 1 220px' },
+                        minWidth: { tablet: '200px' },
+                      }}
+                    >
                       <TextField
                         label="Nombre del sustituto"
                         value={working.substitute_name ?? ''}
-                        onChange={(e) => patch({ substitute_name: e.target.value })}
+                        onChange={(e) =>
+                          patch({ substitute_name: e.target.value })
+                        }
                       />
                     </Box>
-                    <Box sx={{ flex: { tablet: '1 1 220px' }, minWidth: { tablet: '200px' } }}>
+                    <Box
+                      sx={{
+                        flex: { tablet: '1 1 220px' },
+                        minWidth: { tablet: '200px' },
+                      }}
+                    >
                       <TextField
                         label="Nombre de su esposa (vacío si soltero)"
                         value={working.substitute_spouse_name ?? ''}
-                        onChange={(e) => patch({ substitute_spouse_name: e.target.value })}
+                        onChange={(e) =>
+                          patch({ substitute_spouse_name: e.target.value })
+                        }
                       />
                     </Box>
                   </Stack>
@@ -960,7 +1070,11 @@ const CircuitVisitDashboard = () => {
                       encima de los campos (position:absolute) chocaba con
                       el icono propio del calendario/desplegable de cada
                       campo, que también vive en esa esquina. */}
-                  <Stack direction="row" justifyContent="flex-end" sx={{ mb: '2px' }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="flex-end"
+                    sx={{ mb: '2px' }}
+                  >
                     <IconButton onClick={() => removeMeal(meal.id)}>
                       <IconDelete color="var(--red-main)" />
                     </IconButton>
@@ -969,9 +1083,15 @@ const CircuitVisitDashboard = () => {
                     direction={{ mobile: 'column', tablet: 'row' }}
                     spacing="10px"
                     alignItems={{ tablet: 'center' }}
-                    flexWrap="wrap" useFlexGap
+                    flexWrap="wrap"
+                    useFlexGap
                   >
-                    <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+                    <Box
+                      sx={{
+                        flex: { tablet: '0 1 170px' },
+                        minWidth: { tablet: '150px' },
+                      }}
+                    >
                       <CustomDatePicker
                         label="Día"
                         view="input"
@@ -1018,7 +1138,11 @@ const CircuitVisitDashboard = () => {
                     border: '1px solid var(--line)',
                   }}
                 >
-                  <Stack direction="row" justifyContent="flex-end" sx={{ mb: '2px' }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="flex-end"
+                    sx={{ mb: '2px' }}
+                  >
                     <IconButton onClick={() => removeShepherding(sv.id)}>
                       <IconDelete color="var(--red-main)" />
                     </IconButton>
@@ -1027,21 +1151,31 @@ const CircuitVisitDashboard = () => {
                     direction={{ mobile: 'column', tablet: 'row' }}
                     spacing="10px"
                     alignItems={{ tablet: 'center' }}
-                    flexWrap="wrap" useFlexGap
+                    flexWrap="wrap"
+                    useFlexGap
                   >
                     <PersonPicker
                       label="Hermano visitado"
                       value={sv.brother}
                       options={personOptions}
-                      onChange={(uid) => updateShepherding(sv.id, { brother: uid })}
+                      onChange={(uid) =>
+                        updateShepherding(sv.id, { brother: uid })
+                      }
                     />
                     <PersonPicker
                       label="Anciano acompañante"
                       value={sv.elder}
                       options={elderOptions}
-                      onChange={(uid) => updateShepherding(sv.id, { elder: uid })}
+                      onChange={(uid) =>
+                        updateShepherding(sv.id, { elder: uid })
+                      }
                     />
-                    <Box sx={{ flex: { tablet: '0 1 170px' }, minWidth: { tablet: '150px' } }}>
+                    <Box
+                      sx={{
+                        flex: { tablet: '0 1 170px' },
+                        minWidth: { tablet: '150px' },
+                      }}
+                    >
                       <CustomDatePicker
                         label="Fecha"
                         view="input"
@@ -1054,7 +1188,12 @@ const CircuitVisitDashboard = () => {
                         }}
                       />
                     </Box>
-                    <Box sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}>
+                    <Box
+                      sx={{
+                        flex: { tablet: '0 1 110px' },
+                        minWidth: { tablet: '90px' },
+                      }}
+                    >
                       <TimeField
                         label="Hora"
                         value={sv.time}
@@ -1138,7 +1277,8 @@ const CircuitVisitDashboard = () => {
           >
             <IconHistory color="var(--grey-400)" />
             <Typography className="body-small-semibold" color="var(--grey-400)">
-              {showPast ? 'Ocultar' : 'Ver'} visitas pasadas ({pastVisits.length})
+              {showPast ? 'Ocultar' : 'Ver'} visitas pasadas (
+              {pastVisits.length})
             </Typography>
           </Box>
 
@@ -1159,11 +1299,21 @@ const CircuitVisitDashboard = () => {
                       opacity: 0.85,
                     }}
                   >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb="10px">
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      mb="10px"
+                    >
                       <Stack>
-                        <Typography className="h3">{formatRange(visit)}</Typography>
+                        <Typography className="h3">
+                          {formatRange(visit)}
+                        </Typography>
                         {coDisplayName && (
-                          <Typography className="body-small-regular" color="var(--grey-400)">
+                          <Typography
+                            className="body-small-regular"
+                            color="var(--grey-400)"
+                          >
                             Sustituto: {coDisplayName}
                           </Typography>
                         )}
@@ -1173,11 +1323,16 @@ const CircuitVisitDashboard = () => {
                     {/* Comidas */}
                     {visit.meals.length > 0 && (
                       <Stack spacing="2px" mb="8px">
-                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                        <Typography
+                          className="label-small-semibold"
+                          color="var(--grey-400)"
+                        >
                           Comidas
                         </Typography>
                         {visit.meals.map((meal) => {
-                          const host = persons.find((p) => p.person_uid === meal.host);
+                          const host = persons.find(
+                            (p) => p.person_uid === meal.host
+                          );
                           const hostName = host
                             ? buildPersonFullname(
                                 host.person_data.person_lastname.value,
@@ -1186,7 +1341,10 @@ const CircuitVisitDashboard = () => {
                               )
                             : '';
                           return (
-                            <Typography key={meal.id} className="body-small-regular">
+                            <Typography
+                              key={meal.id}
+                              className="body-small-regular"
+                            >
                               {[meal.date ? fmtDayEs(meal.date) : '', hostName]
                                 .filter(Boolean)
                                 .join(' · ')}
@@ -1199,11 +1357,16 @@ const CircuitVisitDashboard = () => {
                     {/* Pastoreo */}
                     {(visit.shepherding_visits ?? []).length > 0 && (
                       <Stack spacing="2px" mb="8px">
-                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                        <Typography
+                          className="label-small-semibold"
+                          color="var(--grey-400)"
+                        >
                           Pastoreo
                         </Typography>
                         {(visit.shepherding_visits ?? []).map((sv) => {
-                          const bro = persons.find((p) => p.person_uid === sv.brother);
+                          const bro = persons.find(
+                            (p) => p.person_uid === sv.brother
+                          );
                           const broName = bro
                             ? buildPersonFullname(
                                 bro.person_data.person_lastname.value,
@@ -1212,7 +1375,10 @@ const CircuitVisitDashboard = () => {
                               )
                             : '';
                           return (
-                            <Typography key={sv.id} className="body-small-regular">
+                            <Typography
+                              key={sv.id}
+                              className="body-small-regular"
+                            >
                               {[
                                 sv.date ? fmtDayEs(sv.date) : '',
                                 sv.time,
@@ -1229,14 +1395,19 @@ const CircuitVisitDashboard = () => {
                     {/* Reuniones especiales */}
                     {(visit.meeting_pioneers || visit.meeting_elders) && (
                       <Stack spacing="2px">
-                        <Typography className="label-small-semibold" color="var(--grey-400)">
+                        <Typography
+                          className="label-small-semibold"
+                          color="var(--grey-400)"
+                        >
                           Reuniones especiales
                         </Typography>
                         {visit.meeting_pioneers && (
                           <Typography className="body-small-regular">
                             {[
                               'Precursores',
-                              visit.meeting_pioneers.date ? fmtDayEs(visit.meeting_pioneers.date) : '',
+                              visit.meeting_pioneers.date
+                                ? fmtDayEs(visit.meeting_pioneers.date)
+                                : '',
                               visit.meeting_pioneers.time,
                             ]
                               .filter(Boolean)
@@ -1247,7 +1418,9 @@ const CircuitVisitDashboard = () => {
                           <Typography className="body-small-regular">
                             {[
                               'Ancianos y siervos ministeriales',
-                              visit.meeting_elders.date ? fmtDayEs(visit.meeting_elders.date) : '',
+                              visit.meeting_elders.date
+                                ? fmtDayEs(visit.meeting_elders.date)
+                                : '',
                               visit.meeting_elders.time,
                             ]
                               .filter(Boolean)
