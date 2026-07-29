@@ -28,26 +28,6 @@ export const SecondaryFieldContainer = styled(Box, {
   alignSelf: 'self-start',
 })) as unknown as typeof Box;
 
-/**
- * Tarjeta SIN cabecera, con el mismo marco que `MeetingSection`.
- *
- * Es para lo que va antes de las secciones del programa —el tipo de semana, el
- * presidente, la canción y la oración de apertura—, que antes flotaba suelto
- * entre la cabecera y "Tesoros de la Biblia" y hacía que media página no
- * pareciera parte del programa. No lleva título a propósito: no es una parte
- * de la reunión, y ponerle nombre sería inventarse una.
- */
-export const PlainCard = styled(Box)({
-  border: '1px solid var(--line)',
-  borderRadius: 'var(--radius-xl)',
-  backgroundColor: 'var(--card)',
-  boxShadow: 'var(--small-card-shadow)',
-  padding: '16px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-}) as unknown as typeof Box;
-
 /** Fondo/tinte de una fila cancelada (salida de predicación, exhibidor,
  *  mes suspendido) — antes duplicado como texto literal en 3+ sitios. */
 export const CANCELLED_ROW_BG = 'rgba(var(--red-main-base), 0.1)';

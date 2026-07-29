@@ -2,10 +2,21 @@ import { ReactElement } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { useAtomValue } from 'jotai';
-import { IconFemale, IconMale, IconGroups, IconRecordVoiceOver, IconPlay, IconPodium } from '@components/icons';
+import {
+  IconGroups,
+  IconRecordVoiceOver,
+  IconPlay,
+  IconPodium,
+} from '@components/icons';
 import Typography from '@components/typography';
+import AssigneeName from '../assignee_name';
 import { personsStateFind } from '@services/states/persons';
-import { departmentsConfigState, displayNameMeetingsEnableState, fullnameOptionState, userLocalUIDState } from '@states/settings';
+import {
+  departmentsConfigState,
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+  userLocalUIDState,
+} from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { DepartmentType, PersonType } from '@definition/person';
@@ -35,112 +46,28 @@ const DeptPersonComponent = ({
     : fallbackName || '';
 
   const active = person?.person_uid === userUID;
-  const accentColor = 'var(--brand)';
 
   return (
     <Box
       sx={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        alignItems: 'baseline',
         gap: '16px',
         width: '100%',
-        minHeight: '44px',
         padding: '6px 0px',
       }}
     >
       <Typography
         className="body-small-semibold"
         color="var(--grey-500)"
-        sx={{
-          flexShrink: 0,
-          minWidth: '95px',
-          fontWeight: 600,
-          letterSpacing: '0.2px'
-        }}
+        sx={{ flexShrink: 0, minWidth: '95px' }}
       >
         {label}
       </Typography>
-      
-      {displayName ? (
-        <Box
-          sx={{
-            display: 'flex',
-            gap: '10px',
-            alignItems: 'center',
-            borderRadius: 'var(--radius-xl)',
-            border: active 
-              ? '1.5px solid var(--brand)' 
-              : '1px solid var(--line)',
-            borderLeft: `4px solid ${accentColor}`,
-            backgroundColor: active 
-              ? 'var(--brand-tint)' 
-              : 'var(--card)',
-            padding: '8px 16px',
-            flex: 1,
-            overflow: 'hidden',
-            boxShadow: active ? 'var(--hover-shadow)' : 'none',
-            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'default',
-            '&:hover': {
-              transform: 'translateY(-1.5px)',
-              borderColor: active ? 'var(--brand)' : accentColor,
-              boxShadow: 'var(--small-card-shadow)',
-            },
-          }}
-        >
-          {person?.person_data?.female?.value ? (
-            <IconFemale width={16} height={16} color={accentColor} />
-          ) : (
-            <IconMale width={16} height={16} color={accentColor} />
-          )}
-          <Typography
-            className="body-small-semibold"
-            sx={{
-              minWidth: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontWeight: 700,
-              color: active ? 'var(--brand-deep)' : 'var(--ink)',
-              letterSpacing: '0.1px'
-            }}
-          >
-            {displayName}
-          </Typography>
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px dashed var(--line)',
-            borderLeft: `4px dashed var(--grey-300)`,
-            backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
-            padding: '8px 16px',
-            flex: 1,
-            minHeight: '38px',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              borderColor: 'var(--grey-350)',
-              backgroundColor: 'rgba(var(--grey-100-base), 0.06)',
-            }
-          }}
-        >
-          <Typography
-            className="body-small-regular"
-            color="var(--grey-350)"
-            sx={{
-              fontWeight: 500,
-              letterSpacing: '0.5px'
-            }}
-          >
-            —
-          </Typography>
-        </Box>
-      )}
+
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <AssigneeName name={displayName} isMe={active} singleLine />
+      </Box>
     </Box>
   );
 };
@@ -262,4 +189,3 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
 };
 
 export default DepartmentsMeeting;
-

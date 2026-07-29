@@ -3,8 +3,13 @@ import { Box, Card, Stack, Chip } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
+import AssigneeName from '../assignee_name';
 import { personsStateFind } from '@services/states/persons';
-import { displayNameMeetingsEnableState, fullnameOptionState, userLocalUIDState } from '@states/settings';
+import {
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+  userLocalUIDState,
+} from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
@@ -49,7 +54,7 @@ const ServiceOutingsMeeting = ({
       t('tr_friday', 'Viernes'),
       t('tr_saturday', 'Sábado'),
     ];
-    
+
     return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
@@ -158,7 +163,6 @@ const ServiceOutingsMeeting = ({
     );
   }
 
-
   return (
     <Stack spacing="16px" sx={{ mt: 1 }}>
       {/* Solo llega aquí quien puede editar: al resto se le han saltado los
@@ -198,7 +202,11 @@ const ServiceOutingsMeeting = ({
             boxShadow: 'none',
           }}
         >
-          <Typography className="body-regular" color="var(--accent-dark)" style={{ fontWeight: '700', margin: 0 }}>
+          <Typography
+            className="body-regular"
+            color="var(--accent-dark)"
+            style={{ fontWeight: '700', margin: 0 }}
+          >
             Semana de la visita del superintendente de circuito
           </Typography>
         </Card>
@@ -264,13 +272,18 @@ const ServiceOutingsMeeting = ({
                       backgroundColor: isCancelled
                         ? CANCELLED_ROW_BG
                         : isAssignedToMe
-                        ? 'var(--accent-150)'
-                        : 'var(--card)',
+                          ? 'var(--accent-150)'
+                          : 'var(--card)',
                       transition: 'background-color 0.2s ease',
                     }}
                   >
                     {/* Hora + Turno */}
-                    <Box sx={{ minWidth: { mobile: '0px', laptop: '90px' }, flexShrink: 0 }}>
+                    <Box
+                      sx={{
+                        minWidth: { mobile: '0px', laptop: '90px' },
+                        flexShrink: 0,
+                      }}
+                    >
                       <Typography
                         className="h4"
                         sx={{
@@ -307,7 +320,14 @@ const ServiceOutingsMeeting = ({
                     />
 
                     {/* Hermano asignado */}
-                    <Box sx={{ flex: 1, display: 'flex', minWidth: 0, width: { mobile: '100%', laptop: 'auto' } }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        minWidth: 0,
+                        width: { mobile: '100%', laptop: 'auto' },
+                      }}
+                    >
                       {isCancelled ? (
                         <Chip
                           icon={<IconCancelFilled color="var(--error-main)" />}
@@ -320,95 +340,37 @@ const ServiceOutingsMeeting = ({
                           }}
                         />
                       ) : (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px', width: '100%' }}>
-                          {brotherName ? (
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                borderRadius: 'var(--radius-xl)',
-                                border: isAssignedToMe 
-                                  ? '1.5px solid var(--accent-main)' 
-                                  : '1px solid var(--line)',
-                                borderLeft: `4px solid ${accentColor}`,
-                                backgroundColor: isAssignedToMe 
-                                  ? 'var(--accent-150)' 
-                                  : 'var(--card)',
-                                padding: '6px 12px',
-                                boxShadow: isAssignedToMe ? 'var(--hover-shadow)' : 'none',
-                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                cursor: 'default',
-                                '&:hover': {
-                                  transform: 'translateY(-1.5px)',
-                                  borderColor: isAssignedToMe ? 'var(--accent-main)' : accentColor,
-                                  boxShadow: 'var(--small-card-shadow)',
-                                },
-                              }}
-                            >
-                              <Typography
-                                className="body-small-semibold"
-                                sx={{
-                                  minWidth: 0,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  fontWeight: 700,
-                                  color: isAssignedToMe ? 'var(--accent-dark)' : 'var(--ink)',
-                                  letterSpacing: '0.1px'
-                                }}
-                              >
-                                {brotherName}
-                              </Typography>
-                            </Box>
-                          ) : (
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                borderRadius: 'var(--radius-xl)',
-                                border: '1px dashed var(--line)',
-                                borderLeft: '4px dashed var(--grey-300)',
-                                backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
-                                padding: '6px 12px',
-                              }}
-                            >
-                              <Typography
-                                className="body-small-regular"
-                                color="var(--grey-350)"
-                                sx={{
-                                  fontWeight: 500,
-                                  letterSpacing: '0.2px'
-                                }}
-                              >
-                                Sin asignar
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
+                        <AssigneeName
+                          name={brotherName}
+                          isMe={isAssignedToMe}
+                          color={accentColor}
+                          singleLine
+                        />
                       )}
                     </Box>
 
                     {/* Lugar */}
-                    <Box 
-                      sx={{ 
-                        textAlign: { mobile: 'left', laptop: 'right' }, 
+                    <Box
+                      sx={{
+                        textAlign: { mobile: 'left', laptop: 'right' },
                         width: { mobile: '100%', laptop: 'auto' },
                         minWidth: { mobile: '0px', laptop: '180px' },
                         maxWidth: { mobile: '100%', laptop: '260px' },
                         flexShrink: { mobile: 1, laptop: 0 },
-                        alignSelf: { mobile: 'flex-start', laptop: 'center' }
+                        alignSelf: { mobile: 'flex-start', laptop: 'center' },
                       }}
                     >
                       <Typography
                         className="body-small-semibold"
                         sx={{
                           fontWeight: 600,
-                          color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                          color: isCancelled
+                            ? 'var(--grey-400)'
+                            : 'var(--grey-600)',
                           wordBreak: 'break-word',
                           whiteSpace: 'normal',
                           mt: { mobile: '4px', laptop: '0px' },
-                          lineHeight: '1.4'
+                          lineHeight: '1.4',
                         }}
                       >
                         {isCancelled ? '' : slot.location}

@@ -3,20 +3,35 @@ import { Box, Card, Stack, Chip } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
+import AssigneeName from '../assignee_name';
 import { personsStateFind } from '@services/states/persons';
-import { displayNameMeetingsEnableState, fullnameOptionState, userLocalUIDState } from '@states/settings';
+import {
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+  userLocalUIDState,
+} from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { exhibitorsSettingsState } from '@states/exhibitors';
 import { IconCancelFilled, IconInfo } from '@components/icons';
-import { getEffectiveTurnsForMonth, getMonthCancelledMessage, isMonthCancelled } from '../../../../utils/exhibitors';
+import {
+  getEffectiveTurnsForMonth,
+  getMonthCancelledMessage,
+  isMonthCancelled,
+} from '../../../../utils/exhibitors';
 import { isExhibitorMonthPublished } from '@services/app/exhibitors_publish';
 import { useCurrentUser } from '@hooks/index';
 import { addDays } from '@utils/date';
 import { monthNamesState } from '@states/app';
 import { CANCELLED_ROW_BG } from '../shared_styles';
 
-const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekType, week: string }) => {
+const ExhibitorsMeeting = ({
+  weekRecord,
+  week,
+}: {
+  weekRecord?: ExhibitorWeekType;
+  week: string;
+}) => {
   const { t } = useAppTranslation();
 
   const { isServiceCommittee } = useCurrentUser();
@@ -46,7 +61,6 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
     return getMonthCancelledMessage(settings, weekMonthStr);
   }, [settings, weekMonthStr]);
 
-
   const formatLegibleDate = (date: Date): string => {
     const weekdays = [
       t('tr_sunday', 'Domingo'),
@@ -57,7 +71,7 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       t('tr_friday', 'Viernes'),
       t('tr_saturday', 'Sábado'),
     ];
-    
+
     return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
@@ -72,7 +86,15 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
     const targetWeek = weekRecord?.weekOf || week;
     if (!targetWeek) return [];
 
-    const weekdaysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const weekdaysOrder = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
     const [year, month, day] = targetWeek.split(/[-/]/).map(Number);
     // Parse to local date at NOON (12:00:00) to absolutely avoid any DST midnight shift bug
     const mondayDate = new Date(year, month - 1, day, 12, 0, 0);
@@ -95,34 +117,46 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       // Mes en BORRADOR: solo lo ve quien puede editarlo, y marcado como tal.
       // Para el resto no existe todavía — las asignaciones fijas son una
       // plantilla, no una decisión tomada.
-      if (!isExhibitorMonthPublished(settings, dayMonthStr) && !isServiceCommittee) {
+      if (
+        !isExhibitorMonthPublished(settings, dayMonthStr) &&
+        !isServiceCommittee
+      ) {
         continue;
       }
-      const dayEffectiveTurns = getEffectiveTurnsForMonth(settings, dayMonthStr);
+      const dayEffectiveTurns = getEffectiveTurnsForMonth(
+        settings,
+        dayMonthStr
+      );
 
       // Encontrar los turnos configurados para este día
-      const dayTurns = dayEffectiveTurns.filter((t) => t.days.includes(dayLabel));
+      const dayTurns = dayEffectiveTurns.filter((t) =>
+        t.days.includes(dayLabel)
+      );
 
       for (const turn of dayTurns) {
         // Buscar si hay un manual override guardado
-        const savedTurn = weekRecord?.turns?.find((t) => t.turnId === turn.id && t.date === dateStr);
+        const savedTurn = weekRecord?.turns?.find(
+          (t) => t.turnId === turn.id && t.date === dateStr
+        );
 
         let finalAssignments = savedTurn?.assignments || [];
-        const finalLocation = savedTurn?.location || turn.defaultLocation || 'Exhibidor';
+        const finalLocation =
+          savedTurn?.location || turn.defaultLocation || 'Exhibidor';
         const finalCancelled = savedTurn?.cancelled || false;
 
         if (!savedTurn) {
           // Asignaciones fijas dinámicas
-          const fixed = settings?.fixedAssignments?.filter((f) => 
-            f.turnId === turn.id && (!f.day || f.day === dayLabel)
-          ) || [];
-          
+          const fixed =
+            settings?.fixedAssignments?.filter(
+              (f) => f.turnId === turn.id && (!f.day || f.day === dayLabel)
+            ) || [];
+
           const sortedFixed = [...fixed].sort((a, b) => {
             const posA = a.position !== undefined ? a.position : 0;
             const posB = b.position !== undefined ? b.position : 0;
             return posA - posB;
           });
-          
+
           finalAssignments = sortedFixed.map((f) => ({
             person: f.personUid,
             isResponsible: f.isResponsible,
@@ -156,7 +190,9 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
     return Object.keys(groups)
       .sort()
       .map((date) => {
-        const sortedTurns = groups[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const sortedTurns = groups[date].sort((a, b) =>
+          a.startTime.localeCompare(b.startTime)
+        );
         return {
           date,
           dayDate: groups[date][0].dayDate,
@@ -207,7 +243,10 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <IconCancelFilled color="var(--error-main)" />
-          <Typography className="body-regular" style={{ color: 'var(--error-main)', fontWeight: '600' }}>
+          <Typography
+            className="body-regular"
+            style={{ color: 'var(--error-main)', fontWeight: '600' }}
+          >
             Los turnos de exhibidores están suspendidos este mes.
           </Typography>
         </Box>
@@ -215,7 +254,11 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
         {cancelledMonthMessage && (
           <Typography
             className="body-regular"
-            style={{ color: 'var(--error-main)', textAlign: 'center', whiteSpace: 'pre-wrap' }}
+            style={{
+              color: 'var(--error-main)',
+              textAlign: 'center',
+              whiteSpace: 'pre-wrap',
+            }}
           >
             {cancelledMonthMessage}
           </Typography>
@@ -300,11 +343,11 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
             >
               <Typography
                 className="h2-caps"
-                sx={{ 
-                  fontWeight: '800', 
-                  color: 'var(--always-white)', 
+                sx={{
+                  fontWeight: '800',
+                  color: 'var(--always-white)',
                   letterSpacing: '0.6px',
-                  fontSize: '14px'
+                  fontSize: '14px',
                 }}
               >
                 {dayLabel}
@@ -315,7 +358,9 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
             <Stack sx={{ backgroundColor: 'var(--card)' }}>
               {turns.map((turn, idx) => {
                 const timeRange = `${turn.startTime} - ${turn.endTime}`;
-                const isAssignedToMe = turn.assignments?.some((a) => a.person === userUID);
+                const isAssignedToMe = turn.assignments?.some(
+                  (a) => a.person === userUID
+                );
                 const isCancelled = turn.cancelled;
 
                 return (
@@ -332,20 +377,27 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                       backgroundColor: isCancelled
                         ? CANCELLED_ROW_BG
                         : isAssignedToMe
-                        ? 'var(--accent-150)'
-                        : 'var(--card)',
+                          ? 'var(--accent-150)'
+                          : 'var(--card)',
                       transition: 'background-color 0.2s ease',
                     }}
                   >
                     {/* Hora */}
-                    <Box sx={{ minWidth: { mobile: '0px', laptop: '110px' }, flexShrink: 0 }}>
+                    <Box
+                      sx={{
+                        minWidth: { mobile: '0px', laptop: '110px' },
+                        flexShrink: 0,
+                      }}
+                    >
                       <Typography
                         sx={{
                           fontWeight: '800',
                           fontSize: '15px',
-                          color: isCancelled ? 'var(--grey-500)' : 'var(--brand)',
+                          color: isCancelled
+                            ? 'var(--grey-500)'
+                            : 'var(--brand)',
                           textDecoration: isCancelled ? 'line-through' : 'none',
-                          letterSpacing: '0.2px'
+                          letterSpacing: '0.2px',
                         }}
                       >
                         {timeRange}
@@ -363,13 +415,13 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                     />
 
                     {/* Hermanos asignados */}
-                    <Box 
-                      sx={{ 
-                        flex: 1, 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        gap: '4px', 
-                        width: { mobile: '100%', laptop: 'auto' }, 
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        width: { mobile: '100%', laptop: 'auto' },
                         minWidth: 0,
                       }}
                     >
@@ -386,16 +438,23 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                           }}
                         />
                       ) : (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                          }}
+                        >
                           {/* Solo el primero del turno debe llevar la etiqueta
                               de responsable, aunque los demás también estén
                               habilitados — si datos antiguos tuvieran más de
                               uno marcado como responsable, esto evita que se
                               vea más de una etiqueta a la vez. */}
                           {(() => {
-                            const firstResponsibleIdx = turn.assignments?.findIndex(
-                              (a) => a.isResponsible
-                            ) ?? -1;
+                            const firstResponsibleIdx =
+                              turn.assignments?.findIndex(
+                                (a) => a.isResponsible
+                              ) ?? -1;
                             return turn.assignments?.map((ass, aIdx) => {
                               // Antes, si el nombre no se podía resolver (p.ej.
                               // el registro de la persona aún no había
@@ -404,72 +463,36 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                               // parecía que "no salía la asignación". Si hay
                               // una persona asignada, siempre se muestra algo.
                               if (!ass.person) return null;
-                              const name = getBrotherDisplayName(ass.person) || 'Hermano asignado';
+                              const name =
+                                getBrotherDisplayName(ass.person) ||
+                                'Hermano asignado';
                               const isMe = ass.person === userUID;
                               const accentColor = 'var(--brand)';
 
                               return (
-                                <Box
+                                <AssigneeName
                                   key={aIdx}
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    borderRadius: 'var(--radius-xl)',
-                                    border: isMe
-                                      ? '1.5px solid var(--brand)'
-                                      : '1px solid var(--line)',
-                                    borderLeft: `4px solid ${accentColor}`,
-                                    backgroundColor: isMe
-                                      ? 'var(--brand-tint)'
-                                      : 'var(--card)',
-                                    padding: '6px 12px',
-                                    boxShadow: isMe ? 'var(--hover-shadow)' : 'none',
-                                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    cursor: 'default',
-                                    '&:hover': {
-                                      transform: 'translateY(-1.5px)',
-                                      borderColor: isMe ? 'var(--brand)' : accentColor,
-                                      boxShadow: 'var(--small-card-shadow)',
-                                    },
-                                  }}
-                                >
-                                  <Typography
-                                    className="body-small-semibold"
-                                    sx={{
-                                      minWidth: 0,
-                                      whiteSpace: 'nowrap',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      fontWeight: 700,
-                                      fontSize: '13.5px',
-                                      color: isMe ? 'var(--brand-deep)' : 'var(--ink)',
-                                      letterSpacing: '0.1px'
-                                    }}
-                                  >
-                                    {name}
-                                  </Typography>
-                                  {ass.isResponsible && aIdx === firstResponsibleIdx && (
-                                    <Chip
-                                      label="Resp."
-                                      size="small"
-                                      sx={{
-                                        height: '18px',
-                                        fontSize: '9px',
-                                        fontWeight: '800',
-                                        backgroundColor: accentColor,
-                                        color: 'var(--always-white)',
-                                        px: '4px',
-                                        ml: '4px',
-                                        borderRadius: 'var(--radius-s)'
-                                      }}
-                                    />
-                                  )}
-                                </Box>
+                                  name={name}
+                                  isMe={isMe}
+                                  color={accentColor}
+                                  singleLine
+                                  trailing={
+                                    ass.isResponsible &&
+                                    aIdx === firstResponsibleIdx ? (
+                                      <Typography
+                                        className="label-small-semibold"
+                                        color="var(--brand)"
+                                      >
+                                        Resp.
+                                      </Typography>
+                                    ) : undefined
+                                  }
+                                />
                               );
                             });
                           })()}
-                          {(!turn.assignments || turn.assignments.length === 0) && (
+                          {(!turn.assignments ||
+                            turn.assignments.length === 0) && (
                             <Box
                               sx={{
                                 display: 'flex',
@@ -477,17 +500,18 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                                 borderRadius: 'var(--radius-xl)',
                                 border: '1px dashed var(--line)',
                                 borderLeft: '4px dashed var(--grey-300)',
-                                backgroundColor: 'rgba(var(--grey-100-base), 0.03)',
+                                backgroundColor:
+                                  'rgba(var(--grey-100-base), 0.03)',
                                 padding: '6px 12px',
                               }}
                             >
-                              <Typography 
-                                className="body-small-medium" 
-                                color="var(--grey-350)" 
-                                sx={{ 
+                              <Typography
+                                className="body-small-medium"
+                                color="var(--grey-350)"
+                                sx={{
                                   fontSize: '13px',
                                   fontWeight: 500,
-                                  letterSpacing: '0.2px'
+                                  letterSpacing: '0.2px',
                                 }}
                               >
                                 Sin asignar
@@ -499,9 +523,9 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                     </Box>
 
                     {/* Lugar */}
-                    <Box 
-                      sx={{ 
-                        textAlign: { mobile: 'left', laptop: 'right' }, 
+                    <Box
+                      sx={{
+                        textAlign: { mobile: 'left', laptop: 'right' },
                         width: { mobile: '100%', laptop: 'auto' },
                         minWidth: { mobile: '0px', laptop: '180px' },
                         maxWidth: { mobile: '100%', laptop: '260px' },
@@ -513,11 +537,13 @@ const ExhibitorsMeeting = ({ weekRecord, week }: { weekRecord?: ExhibitorWeekTyp
                         sx={{
                           fontSize: '13.5px',
                           fontWeight: 600,
-                          color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                          color: isCancelled
+                            ? 'var(--grey-400)'
+                            : 'var(--grey-600)',
                           wordBreak: 'break-word',
                           whiteSpace: 'normal',
                           mt: { mobile: '4px', laptop: '0px' },
-                          lineHeight: '1.4'
+                          lineHeight: '1.4',
                         }}
                       >
                         {isCancelled ? '—' : turn.location}
