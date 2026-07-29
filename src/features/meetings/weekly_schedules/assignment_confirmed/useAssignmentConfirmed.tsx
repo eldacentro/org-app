@@ -3,8 +3,10 @@ import { useAtomValue } from 'jotai';
 import { AssignmentFieldType } from '@definition/assignment';
 import { AssignmentCongregation } from '@definition/schedules';
 import { ASSIGNMENT_PATH, S89_ASSIGNMENTS } from '@constants/index';
-import { schedulesGetData } from '@services/app/schedules';
-import { schedulesToggleAssignmentConfirmed } from '@services/app/schedules';
+import {
+  schedulesGetData,
+  schedulesToggleAssignmentConfirmed,
+} from '@services/app/schedules';
 import { schedulesState } from '@states/schedules';
 import { userDataViewState } from '@states/settings';
 import useCurrentUser from '@hooks/useCurrentUser';

@@ -648,6 +648,17 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
   });
 });
 
+/** Una parte del programa, con el asignado dentro. */
+type Parte = {
+  student: {
+    type: string;
+    value: string;
+    name: string;
+    confirmed?: boolean;
+    updatedAt: string;
+  };
+};
+
 describe('marca de hojita entregada (confirmed)', () => {
   // Vive DENTRO del objeto de la asignación, que lleva `updatedAt`. Eso
   // significa que la fusión reemplaza el objeto ENTERO por el más reciente, y
@@ -656,7 +667,7 @@ describe('marca de hojita entregada (confirmed)', () => {
   // marca del hermano anterior sobreviviría a su propia asignación: la parte
   // saldría como entregada a alguien que ni sabe que la tiene.
   it('al reasignar la parte, la marca del anterior desaparece en el otro dispositivo', () => {
-    const local = {
+    const local: Parte = {
       student: {
         type: 'main',
         value: 'hermano-antiguo',
@@ -668,7 +679,7 @@ describe('marca de hojita entregada (confirmed)', () => {
 
     // El que reasigna borra `confirmed` antes de guardar (ver
     // schedulesSaveAssignment), así que el objeto nuevo ya no lo trae.
-    const remote = {
+    const remote: Parte = {
       student: {
         type: 'main',
         value: 'hermano-nuevo',
@@ -687,7 +698,7 @@ describe('marca de hojita entregada (confirmed)', () => {
     // Dos dispositivos a la vez: uno marca, otro reasigna. Gane quien gane,
     // nunca puede quedar el asignado viejo — solo se puede perder la MARCA,
     // que se ve a simple vista y se vuelve a pulsar.
-    const marca = {
+    const marca: Parte = {
       student: {
         type: 'main',
         value: 'hermano-antiguo',
@@ -697,7 +708,7 @@ describe('marca de hojita entregada (confirmed)', () => {
       },
     };
 
-    const reasignacion = {
+    const reasignacion: Parte = {
       student: {
         type: 'main',
         value: 'hermano-nuevo',

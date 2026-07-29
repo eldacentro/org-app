@@ -191,6 +191,26 @@ pasa por una clase `-caps`, es casi seguro un error a corregir.
 | Pestañas | `@components/scrollable_tabs` o `@components/segmented_control` | `<Tabs>`/`<Tab>` de MUI sueltos |
 | Un desplegable | `@components/select` | `<Select>` de MUI directo |
 | Iconos | `@components/icons` (308 iconos ya disponibles, revisa antes de traer uno de otra librería) | Emoji o símbolos sueltos en texto (`▾`, `✕`, `→`) como si fueran iconos |
+| Una acción con forma de píldora (JW Library, Google Maps, Consejos, Documentos, «Ver reunión completa») | `@components/action_pill` — ver §6.2 | Un `Box component="a"` con su propio `px`/`py`/`borderRadius` |
+| Buscar dentro de una lista | `@components/search_bar` | Un `TextField` con `IconSearch` de adorno |
+| Elegir el mes que se está mirando (Exhibidores, Salidas) | `@components/month_selector` | Rehacer la tira de meses con `Box`+`Chip` en la página |
+| Elegir la semana que se está mirando | `@features/meetings/weekly_schedules/week_selector` (Programas semanales) o `@components/collapsible_selector` si hace falta el panel plegable | Copiar la cabecera «Semana: … / Cambiar» a mano |
+| Ir a la semana anterior/siguiente desde un editor | `@features/meetings/week_navigator` | Un par de `IconButton` con flechas por cada editor |
+| Escribir el nombre de quien tiene una parte | `@features/meetings/weekly_schedules/assignee_name` | Repetir el `Typography` + viñeta en cada pestaña |
+
+### 6.2 Las tres variantes de `ActionPill` van por JERARQUÍA, no por pantalla
+
+- `solid` — **la** acción de la pantalla. Hay una. Es lo único que lleva color
+  pleno, y por eso ninguna otra cosa debe llevarlo: ni una pestaña elegida, ni
+  una etiqueta, ni un contador.
+- `tinted` — una acción **dentro de una tarjeta**. No compite con la tarjeta que
+  la contiene ni con la acción principal de la pantalla.
+- `outline` — una acción que **se repite en una lista**. En «Mis asignaciones»
+  hay una por fila: rellenas serían un muro de color.
+
+Las tres comparten tamaño (`padding: 6px 12px`, `--radius-max`) a propósito:
+antes eran cinco copias con cuatro tamaños distintos y se notaba al verlas en la
+misma pantalla.
 
 > **Nota sobre `info_tip`:** antes de esta auditoría solo soportaba
 > `color: 'white' | 'blue'`. Se le añadieron las 4 severidades semánticas

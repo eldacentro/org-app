@@ -9,17 +9,23 @@ import {
   DialogTitle,
   Grid,
   List,
-  ListItemButton,
-  ListItemText,
   MenuItem,
   Select,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
+import MonthSelector from '@components/month_selector';
+import {
+  useAppTranslation,
+  useBreakpoints,
+  useCurrentUser,
+} from '@hooks/index';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { personsState } from '@states/persons';
 import { schedulesState } from '@states/schedules';
-import { dbLimpiezaGetConfig, dbLimpiezaSaveConfig } from '@services/dexie/limpieza';
+import {
+  dbLimpiezaGetConfig,
+  dbLimpiezaSaveConfig,
+} from '@services/dexie/limpieza';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { Week } from '@definition/week_type';
@@ -45,14 +51,22 @@ import { displaySnackNotification } from '@services/states/app';
 import {
   IconSettings,
   IconGroups,
-  IconSortDown,
-  IconClose,
 } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 const Limpieza = () => {
@@ -65,22 +79,26 @@ const Limpieza = () => {
   const groups = useAtomValue(fieldServiceGroupsState);
   const persons = useAtomValue(personsState);
   const schedules = useAtomValue(schedulesState);
-  
+
   // Settings store weekdays as an offset from Monday (0=Mon, 6=Sun)
   // We need them in 1-7 format (1=Mon, 7=Sun) to match dayOfWeekNum and JS date logic
   const rawMidweek = useAtomValue(midweekMeetingWeekdayState);
   const rawWeekend = useAtomValue(weekendMeetingWeekdayState);
-  
+
   const midweekWeekdayNum = (rawMidweek !== undefined ? rawMidweek : 2) + 1;
   const weekendWeekdayNum = (rawWeekend !== undefined ? rawWeekend : 6) + 1;
-  
+
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   // Local State
   const [config, setConfig] = useState<LimpiezaConfig | null>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth()
+  );
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [monthsExpanded, setMonthsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -99,7 +117,8 @@ const Limpieza = () => {
     group: undefined,
   });
 
-  const [selectedOverrideGroup, setSelectedOverrideGroup] = useState<string>('');
+  const [selectedOverrideGroup, setSelectedOverrideGroup] =
+    useState<string>('');
   const [isSavingOverride, setIsSavingOverride] = useState(false);
 
   // Cargar en mount y después de cerrar el diálogo de configuración (no al abrirlo)
@@ -148,7 +167,7 @@ const Limpieza = () => {
 
     while (monday <= lastDay) {
       const weekOfStr = `${monday.getFullYear()}/${String(monday.getMonth() + 1).padStart(2, '0')}/${String(monday.getDate()).padStart(2, '0')}`;
-      const schedule = schedules.find(s => s.weekOf === weekOfStr);
+      const schedule = schedules.find((s) => s.weekOf === weekOfStr);
 
       for (const reunionDia of ['midweek', 'weekend'] as const) {
         const { date: meetingDate } = schedulesGetMeetingDate({
@@ -169,7 +188,13 @@ const Limpieza = () => {
         }
         if (cancelled) continue;
 
-        const assignedGroupId = calcularGrupoReunion(config, weekOfStr, reunionDia, groups, schedules);
+        const assignedGroupId = calcularGrupoReunion(
+          config,
+          weekOfStr,
+          reunionDia,
+          groups,
+          schedules
+        );
         const group = groups.find((g) => g.group_id === assignedGroupId);
 
         const [y, m, d] = meetingDate.split('/').map(Number);
@@ -188,7 +213,12 @@ const Limpieza = () => {
     return meetings;
   }, [config, selectedYear, selectedMonth, groups, schedules]);
 
-  const handleOpenEdit = (m: { date: Date; weekOf: string; reunionDia: 'midweek' | 'weekend'; group: FieldServiceGroupType | undefined }) => {
+  const handleOpenEdit = (m: {
+    date: Date;
+    weekOf: string;
+    reunionDia: 'midweek' | 'weekend';
+    group: FieldServiceGroupType | undefined;
+  }) => {
     if (!isManager) return;
     setEditModal({
       open: true,
@@ -227,7 +257,11 @@ const Limpieza = () => {
       setEditModal({ ...editModal, open: false });
     } catch (err) {
       console.error('Error saving limpieza override:', err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo guardar el cambio de grupo.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo guardar el cambio de grupo.',
+      });
     } finally {
       setIsSavingOverride(false);
     }
@@ -235,7 +269,8 @@ const Limpieza = () => {
 
   const getGroupName = (g: FieldServiceGroupType | undefined) => {
     if (!g) return 'Sin asignar';
-    if (g.group_data.name && g.group_data.name.length > 0) return g.group_data.name;
+    if (g.group_data.name && g.group_data.name.length > 0)
+      return g.group_data.name;
     return t('tr_groupNumber', { groupNumber: g.group_data.sort_index + 1 });
   };
 
@@ -268,7 +303,9 @@ const Limpieza = () => {
           )
         )
       : new Set([midweekWeekdayNum, weekendWeekdayNum]);
-  const weekdaysToShowFinal = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
+  const weekdaysToShowFinal = weekdaysInfo.filter((info) =>
+    activeDays.has(info.dayOfWeek)
+  );
 
   const weekKeys = new Set<string>();
   const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -277,7 +314,9 @@ const Limpieza = () => {
     const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(new Date(date).setDate(diff));
-    weekKeys.add(`${monday.getFullYear()}/${String(monday.getMonth() + 1).padStart(2, '0')}/${String(monday.getDate()).padStart(2, '0')}`);
+    weekKeys.add(
+      `${monday.getFullYear()}/${String(monday.getMonth() + 1).padStart(2, '0')}/${String(monday.getDate()).padStart(2, '0')}`
+    );
   }
   const sortedWeekKeys = Array.from(weekKeys).sort();
 
@@ -299,162 +338,73 @@ const Limpieza = () => {
       />
 
       {!config && (
-        <Card sx={{ p: 4, textAlign: 'center', backgroundColor: 'var(--card)' }}>
+        <Card
+          sx={{ p: 4, textAlign: 'center', backgroundColor: 'var(--card)' }}
+        >
           <Typography color="text.secondary">
-            Configura la rotación de limpieza para empezar. Pulsa en &quot;Configuración&quot;.
+            Configura la rotación de limpieza para empezar. Pulsa en
+            &quot;Configuración&quot;.
           </Typography>
         </Card>
       )}
 
       {config && (
-        <Box sx={{ display: 'flex', flexDirection: desktopUp ? 'row' : 'column', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%' }}>
-          
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: desktopUp ? 'row' : 'column',
+            gap: '24px',
+            alignItems: 'flex-start',
+            width: '100%',
+            maxWidth: '100%',
+          }}
+        >
           {/* PANEL IZQUIERDO */}
-          {desktopUp ? (
-            <Box
-              sx={{
-                width: '280px',
-                flexShrink: 0,
-                borderRadius: 'var(--r-lg)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                position: 'sticky',
-                top: 70,
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography className="h3" style={{ color: 'var(--accent-main)' }}>
-                  Seleccionar año
-                </Typography>
-                <Select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  size="small"
-                  fullWidth
-                  sx={{ borderRadius: 'var(--radius-m)', borderColor: 'var(--line)' }}
-                >
-                  {[new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map((yr) => (
-                    <MenuItem key={yr} value={yr}>
-                      {yr}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-
-              <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
-
-              <Typography className="h3" style={{ color: 'var(--accent-main)' }}>
-                Meses
-              </Typography>
-              <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {MONTH_NAMES.map((monthName, idx) => {
-                  const isSelected = selectedMonth === idx;
-                  return (
-                    <ListItemButton
-                      key={monthName}
-                      selected={isSelected}
-                      onClick={() => setSelectedMonth(idx)}
-                      sx={{
-                        borderRadius: 'var(--radius-m)',
-                        borderLeft: isSelected ? '4px solid var(--accent-main)' : '4px solid transparent',
-                        backgroundColor: isSelected ? 'var(--accent-150)' : 'transparent',
-                        '&.Mui-selected': { backgroundColor: 'var(--accent-150)', '&:hover': { backgroundColor: 'var(--line)' } },
-                        '&:hover': { backgroundColor: 'var(--accent-100)' },
-                      }}
-                    >
-                      <ListItemText
-                        primary={monthName}
-                        primaryTypographyProps={{
-                          style: {
-                            fontWeight: isSelected ? '600' : '500',
-                            color: isSelected ? 'var(--accent-dark)' : 'var(--black)',
-                          },
-                        }}
-                      />
-                    </ListItemButton>
-                  );
-                })}
-              </List>
-            </Box>
-          ) : (
-            <Card sx={{ width: '100%', border: '1px solid var(--line)', borderRadius: 'var(--radius-l)', boxShadow: 'none', overflow: 'hidden', mb: '8px' }}>
-              <ListItemButton
-                onClick={() => setMonthsExpanded(!monthsExpanded)}
-                sx={{ backgroundColor: 'var(--accent-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '12px', px: '16px' }}
-              >
-                <Typography className="h4" style={{ fontWeight: '700', color: 'var(--accent-dark)' }}>
-                  {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
-                </Typography>
-                <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {monthsExpanded ? (
-                    <>Cerrar selector <IconClose width={12} height={12} color="var(--accent-main)" /></>
-                  ) : (
-                    <>Cambiar mes <IconSortDown width={12} height={12} color="var(--accent-main)" /></>
-                  )}
-                </Typography>
-              </ListItemButton>
-              {monthsExpanded && (
-                <Box sx={{ p: '16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
-                      Seleccionar año
-                    </Typography>
-                    <Select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(Number(e.target.value))}
-                      size="small"
-                      fullWidth
-                    >
-                      {[new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map((y) => (
-                        <MenuItem key={y} value={y}>{y}</MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
-                  <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <Typography className="body-small-semibold" style={{ color: 'var(--accent-main)' }}>
-                      Seleccionar mes
-                    </Typography>
-                    <Grid container spacing={1}>
-                      {MONTH_NAMES.map((monthName, idx) => {
-                        const isSelected = selectedMonth === idx;
-                        return (
-                          <Grid size={{ mobile: 4 }} key={monthName}>
-                            <Button
-                              variant={isSelected ? 'contained' : 'outlined'}
-                              onClick={() => { setSelectedMonth(idx); setMonthsExpanded(false); }}
-                              fullWidth
-                              size="small"
-                              sx={{
-                                py: '6px', textTransform: 'none', borderRadius: 'var(--radius-m)', fontWeight: '600', fontSize: '13px', boxShadow: 'none',
-                                ...(isSelected ? { backgroundColor: 'var(--accent-main)', color: 'var(--always-white)', '&:hover': { backgroundColor: 'var(--accent-dark)' } } : { borderColor: 'var(--line)', color: 'var(--black)' })
-                              }}
-                            >
-                              {monthName}
-                            </Button>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Box>
-              )}
-            </Card>
-          )}
+          {/* El MISMO selector de mes que Exhibidores y Salidas. Estaba
+              escrito aquí a mano por tercera vez —panel fijo en escritorio,
+              barra plegable en móvil, rejilla de meses y desplegable de año—,
+              con sus propios radios y sus tamaños de letra a pelo. */}
+          <MonthSelector
+            monthNames={MONTH_NAMES}
+            year={selectedYear}
+            month={selectedMonth}
+            years={[
+              new Date().getFullYear() - 1,
+              new Date().getFullYear(),
+              new Date().getFullYear() + 1,
+            ]}
+            expanded={monthsExpanded}
+            onToggle={() => setMonthsExpanded(!monthsExpanded)}
+            onChange={({ year, month }) => {
+              setSelectedYear(year);
+              setSelectedMonth(month);
+            }}
+          />
 
           {/* PANEL DERECHO */}
           <Box sx={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}>
-            
             {/* Título y Selector de Vista */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '16px' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: '16px',
+              }}
+            >
               <Typography className="h1" style={{ color: 'var(--black)' }}>
                 {MONTH_NAMES[selectedMonth]}
               </Typography>
-              <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-m)', border: '1px solid var(--line)' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '4px',
+                  backgroundColor: 'var(--accent-150)',
+                  padding: '4px',
+                  borderRadius: 'var(--radius-m)',
+                  border: '1px solid var(--line)',
+                }}
+              >
                 <Button
                   onClick={() => setViewMode('list')}
                   size="small"
@@ -466,14 +416,16 @@ const Limpieza = () => {
                     px: '16px',
                     fontSize: '13px',
                     boxShadow: 'none',
-                    ...(viewMode === 'list' ? {
-                      backgroundColor: 'var(--accent-main)',
-                      color: 'var(--always-white)',
-                      '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                    } : {
-                      color: 'var(--grey-600)',
-                      '&:hover': { backgroundColor: 'var(--line)' }
-                    })
+                    ...(viewMode === 'list'
+                      ? {
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          '&:hover': { backgroundColor: 'var(--accent-dark)' },
+                        }
+                      : {
+                          color: 'var(--grey-600)',
+                          '&:hover': { backgroundColor: 'var(--line)' },
+                        }),
                   }}
                 >
                   Lista
@@ -489,14 +441,16 @@ const Limpieza = () => {
                     px: '16px',
                     fontSize: '13px',
                     boxShadow: 'none',
-                    ...(viewMode === 'grid' ? {
-                      backgroundColor: 'var(--accent-main)',
-                      color: 'var(--always-white)',
-                      '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                    } : {
-                      color: 'var(--grey-600)',
-                      '&:hover': { backgroundColor: 'var(--line)' }
-                    })
+                    ...(viewMode === 'grid'
+                      ? {
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          '&:hover': { backgroundColor: 'var(--accent-dark)' },
+                        }
+                      : {
+                          color: 'var(--grey-600)',
+                          '&:hover': { backgroundColor: 'var(--line)' },
+                        }),
                   }}
                 >
                   Mensual
@@ -513,13 +467,31 @@ const Limpieza = () => {
                 anidado). */}
             {viewMode === 'grid' && (
               <Box sx={{ p: { mobile: '12px', tablet: '20px' } }}>
-                <Grid container spacing={1} columns={weekdaysToShowFinal.length} sx={{ width: '100%', margin: 0 }}>
-                  
+                <Grid
+                  container
+                  spacing={1}
+                  columns={weekdaysToShowFinal.length}
+                  sx={{ width: '100%', margin: 0 }}
+                >
                   {/* Headers */}
                   {weekdaysToShowFinal.map((dayInfo) => (
-                    <Grid size={{ mobile: 1 }} key={dayInfo.label} sx={{ p: 0.5 }}>
-                      <Box sx={{ textAlign: 'center', py: '6px', borderBottom: '2px solid var(--line)', mb: '8px' }}>
-                        <Typography className="label-small-semibold" style={{ color: 'var(--accent-main)' }}>
+                    <Grid
+                      size={{ mobile: 1 }}
+                      key={dayInfo.label}
+                      sx={{ p: 0.5 }}
+                    >
+                      <Box
+                        sx={{
+                          textAlign: 'center',
+                          py: '6px',
+                          borderBottom: '2px solid var(--line)',
+                          mb: '8px',
+                        }}
+                      >
+                        <Typography
+                          className="label-small-semibold"
+                          style={{ color: 'var(--accent-main)' }}
+                        >
                           {dayInfo.label}
                         </Typography>
                       </Box>
@@ -528,32 +500,43 @@ const Limpieza = () => {
 
                   {/* Body Cells */}
                   {sortedWeekKeys.map((weekKey) => {
-                    const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
+                    const [wYear, wMonth, wDay] = weekKey
+                      .split('/')
+                      .map(Number);
                     const mondayDate = new Date(wYear, wMonth - 1, wDay);
-                    
+
                     return weekdaysToShowFinal.map((dayInfo) => {
-                      const diffDays = dayInfo.dayOfWeek === 7 ? 6 : dayInfo.dayOfWeek - 1;
+                      const diffDays =
+                        dayInfo.dayOfWeek === 7 ? 6 : dayInfo.dayOfWeek - 1;
                       const cellDate = new Date(mondayDate);
                       cellDate.setDate(mondayDate.getDate() + diffDays);
-                      
+
                       const isThisMonth = cellDate.getMonth() === selectedMonth;
-                      
+
                       if (!isThisMonth) {
                         return (
-                          <Grid size={{ mobile: 1 }} key={`${weekKey}-${dayInfo.dayOfWeek}`} sx={{ p: 0.5 }}>
-                            <Box sx={{
-                              aspectRatio: desktopUp ? 'auto' : '1',
-                              minHeight: desktopUp ? '110px' : 'auto',
-                              backgroundColor: 'var(--accent-100)',
-                              border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-m)',
-                              opacity: 0.3
-                            }} />
+                          <Grid
+                            size={{ mobile: 1 }}
+                            key={`${weekKey}-${dayInfo.dayOfWeek}`}
+                            sx={{ p: 0.5 }}
+                          >
+                            <Box
+                              sx={{
+                                aspectRatio: desktopUp ? 'auto' : '1',
+                                minHeight: desktopUp ? '110px' : 'auto',
+                                backgroundColor: 'var(--accent-100)',
+                                border: '1px solid var(--line)',
+                                borderRadius: 'var(--radius-m)',
+                                opacity: 0.3,
+                              }}
+                            />
                           </Grid>
                         );
                       }
 
-                      const m = monthMeetings.find(x => x.date.getDate() === cellDate.getDate());
+                      const m = monthMeetings.find(
+                        (x) => x.date.getDate() === cellDate.getDate()
+                      );
 
                       // Sin reunión ese día esa semana (p. ej. el miércoles de
                       // la semana de visita del CO, cuya reunión se movió al
@@ -561,21 +544,31 @@ const Limpieza = () => {
                       // mes, para no desalinear las columnas del grid.
                       if (!m) {
                         return (
-                          <Grid size={{ mobile: 1 }} key={`${weekKey}-${dayInfo.dayOfWeek}-empty`} sx={{ p: 0.5 }}>
-                            <Box sx={{
-                              aspectRatio: desktopUp ? 'auto' : '1',
-                              minHeight: desktopUp ? '110px' : 'auto',
-                              backgroundColor: 'var(--accent-100)',
-                              border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-m)',
-                              opacity: 0.3
-                            }} />
+                          <Grid
+                            size={{ mobile: 1 }}
+                            key={`${weekKey}-${dayInfo.dayOfWeek}-empty`}
+                            sx={{ p: 0.5 }}
+                          >
+                            <Box
+                              sx={{
+                                aspectRatio: desktopUp ? 'auto' : '1',
+                                minHeight: desktopUp ? '110px' : 'auto',
+                                backgroundColor: 'var(--accent-100)',
+                                border: '1px solid var(--line)',
+                                borderRadius: 'var(--radius-m)',
+                                opacity: 0.3,
+                              }}
+                            />
                           </Grid>
                         );
                       }
-                      
+
                       return (
-                        <Grid size={{ mobile: 1 }} key={m.date.getTime()} sx={{ p: 0.5 }}>
+                        <Grid
+                          size={{ mobile: 1 }}
+                          key={m.date.getTime()}
+                          sx={{ p: 0.5 }}
+                        >
                           <Box
                             onClick={() => handleOpenEdit(m)}
                             sx={{
@@ -592,25 +585,33 @@ const Limpieza = () => {
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
                                 backgroundColor: 'var(--accent-150)',
-                              }
+                              },
                             }}
                           >
-                            <Typography className="body-small-semibold" style={{ color: 'var(--black)' }}>
+                            <Typography
+                              className="body-small-semibold"
+                              style={{ color: 'var(--black)' }}
+                            >
                               {cellDate.getDate()}
                             </Typography>
-                            <Box sx={{
-                              backgroundColor: 'var(--accent-main)',
-                              color: 'var(--always-white)',
-                              borderRadius: 'var(--radius-s)',
-                              px: '8px',
-                              py: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              flexGrow: 1,
-                            }}>
+                            <Box
+                              sx={{
+                                backgroundColor: 'var(--accent-main)',
+                                color: 'var(--always-white)',
+                                borderRadius: 'var(--radius-s)',
+                                px: '8px',
+                                py: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                flexGrow: 1,
+                              }}
+                            >
                               <IconGroups color="var(--always-white)" />
-                              <Typography className="label-small-semibold" style={{ color: 'var(--always-white)' }}>
+                              <Typography
+                                className="label-small-semibold"
+                                style={{ color: 'var(--always-white)' }}
+                              >
                                 {getGroupName(m.group)}
                               </Typography>
                             </Box>
@@ -625,20 +626,40 @@ const Limpieza = () => {
 
             {/* VISTA LISTA */}
             {viewMode === 'list' && (
-              <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <List
+                disablePadding
+                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
                 {sortedWeekKeys.map((weekKey) => {
                   const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
                   const mondayDate = new Date(wYear, wMonth - 1, wDay);
-                  const meetingsForWeek = monthMeetings.filter(m => m.weekOf === weekKey);
-                  
+                  const meetingsForWeek = monthMeetings.filter(
+                    (m) => m.weekOf === weekKey
+                  );
+
                   if (meetingsForWeek.length === 0) return null;
-                  
+
                   return (
                     <Box key={weekKey} sx={{ mb: '16px' }}>
-                      <Typography sx={{ fontWeight: '800', lineHeight: '30px', color: 'var(--accent-dark)', px: '16px', pb: '8px' }}>
-                        Semana del {mondayDate.getDate()} de {MONTH_NAMES[mondayDate.getMonth()]}
+                      <Typography
+                        sx={{
+                          fontWeight: '800',
+                          lineHeight: '30px',
+                          color: 'var(--accent-dark)',
+                          px: '16px',
+                          pb: '8px',
+                        }}
+                      >
+                        Semana del {mondayDate.getDate()} de{' '}
+                        {MONTH_NAMES[mondayDate.getMonth()]}
                       </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                        }}
+                      >
                         {meetingsForWeek.map((m) => (
                           <Card
                             key={`${m.weekOf}-${m.reunionDia}`}
@@ -655,29 +676,45 @@ const Limpieza = () => {
                               transition: 'all 0.2s ease',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
-                                backgroundColor: 'var(--accent-150)'
-                              }
+                                backgroundColor: 'var(--accent-150)',
+                              },
                             }}
                           >
                             <Box>
-                              <Typography className="body-regular-semibold" style={{ color: 'var(--black)' }}>
-                                {m.date.getDate()} {MONTH_NAMES[m.date.getMonth()]}
+                              <Typography
+                                className="body-regular-semibold"
+                                style={{ color: 'var(--black)' }}
+                              >
+                                {m.date.getDate()}{' '}
+                                {MONTH_NAMES[m.date.getMonth()]}
                               </Typography>
-                              <Typography className="body-small-regular" style={{ color: 'var(--grey-400)' }}>
-                                {m.reunionDia === 'midweek' ? 'Reunión de entre semana' : 'Reunión de fin de semana'}
+                              <Typography
+                                className="body-small-regular"
+                                style={{ color: 'var(--grey-400)' }}
+                              >
+                                {m.reunionDia === 'midweek'
+                                  ? 'Reunión de entre semana'
+                                  : 'Reunión de fin de semana'}
                               </Typography>
                             </Box>
-                            <Box sx={{
-                              backgroundColor: 'var(--accent-main)',
-                              px: 2,
-                              py: 1,
-                              borderRadius: 'var(--radius-m)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px'
-                            }}>
+                            <Box
+                              sx={{
+                                backgroundColor: 'var(--accent-main)',
+                                px: 2,
+                                py: 1,
+                                borderRadius: 'var(--radius-m)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
                               <IconGroups color="var(--always-white)" />
-                              <Typography style={{ color: 'var(--always-white)', fontWeight: '600' }}>
+                              <Typography
+                                style={{
+                                  color: 'var(--always-white)',
+                                  fontWeight: '600',
+                                }}
+                              >
                                 {getGroupName(m.group)}
                               </Typography>
                             </Box>
@@ -716,16 +753,31 @@ const Limpieza = () => {
           },
         }}
       >
-        <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '24px' }}>
-          <Typography className="h2">Asignación del {editModal.date?.getDate()}</Typography>
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            p: '24px',
+          }}
+        >
+          <Typography className="h2">
+            Asignación del {editModal.date?.getDate()}
+          </Typography>
           {isManager && (
             <Typography color="text.secondary" className="body-small-regular">
-              Puedes cambiar manualmente a qué grupo le toca limpiar esta fecha en particular.
+              Puedes cambiar manualmente a qué grupo le toca limpiar esta fecha
+              en particular.
             </Typography>
           )}
         </DialogTitle>
         <DialogContent sx={{ p: '24px', pt: 0 }}>
-          <Typography className="h4" sx={{ mb: 1, color: 'var(--accent-dark)' }}>Grupo asignado</Typography>
+          <Typography
+            className="h4"
+            sx={{ mb: 1, color: 'var(--accent-dark)' }}
+          >
+            Grupo asignado
+          </Typography>
           {isManager ? (
             <Select
               value={selectedOverrideGroup}
@@ -742,21 +794,45 @@ const Limpieza = () => {
             </Select>
           ) : (
             <Typography sx={{ mb: 3, fontWeight: 600 }}>
-              {activeGroups.find(g => g.group_id === selectedOverrideGroup)?.group_data.name || getGroupName(editModal.group)}
+              {activeGroups.find((g) => g.group_id === selectedOverrideGroup)
+                ?.group_data.name || getGroupName(editModal.group)}
             </Typography>
           )}
 
           {editModal.group && (
             <>
-              <Typography className="h4" sx={{ mb: 1, color: 'var(--accent-dark)' }}>Integrantes</Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Typography
+                className="h4"
+                sx={{ mb: 1, color: 'var(--accent-dark)' }}
+              >
+                Integrantes
+              </Typography>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              >
                 {editModal.group.group_data.members
-                  .map(m => persons.find(p => p.person_uid === m.person_uid))
+                  .map((m) =>
+                    persons.find((p) => p.person_uid === m.person_uid)
+                  )
                   .filter((p): p is NonNullable<typeof p> => Boolean(p))
                   .map((p) => (
-                    <Box key={p.person_uid} sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', backgroundColor: 'var(--accent-150)', borderRadius: 'var(--radius-m)' }}>
+                    <Box
+                      key={p.person_uid}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        p: '8px 12px',
+                        backgroundColor: 'var(--accent-150)',
+                        borderRadius: 'var(--radius-m)',
+                      }}
+                    >
                       <Typography fontWeight={600} color="var(--black)">
-                        {buildPersonFullname(p.person_data.person_lastname.value, p.person_data.person_firstname.value, fullnameOption)}
+                        {buildPersonFullname(
+                          p.person_data.person_lastname.value,
+                          p.person_data.person_firstname.value,
+                          fullnameOption
+                        )}
                       </Typography>
                     </Box>
                   ))}
@@ -767,15 +843,28 @@ const Limpieza = () => {
         <DialogActions sx={{ p: '24px', gap: '8px' }}>
           {isManager ? (
             <>
-              <AppButton variant="tertiary" disableAutoStretch onClick={() => setEditModal({ ...editModal, open: false })}>
+              <AppButton
+                variant="tertiary"
+                disableAutoStretch
+                onClick={() => setEditModal({ ...editModal, open: false })}
+              >
                 Cancelar
               </AppButton>
-              <AppButton variant="main" disableAutoStretch disabled={isSavingOverride} onClick={handleSaveOverride}>
+              <AppButton
+                variant="main"
+                disableAutoStretch
+                disabled={isSavingOverride}
+                onClick={handleSaveOverride}
+              >
                 Guardar
               </AppButton>
             </>
           ) : (
-            <AppButton variant="main" disableAutoStretch onClick={() => setEditModal({ ...editModal, open: false })}>
+            <AppButton
+              variant="main"
+              disableAutoStretch
+              onClick={() => setEditModal({ ...editModal, open: false })}
+            >
               Cerrar
             </AppButton>
           )}
