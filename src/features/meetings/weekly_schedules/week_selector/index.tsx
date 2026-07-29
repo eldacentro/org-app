@@ -1,45 +1,118 @@
+import { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 import { WeekSelectorProps } from './index.types';
 import useWeekSelector from './useWeekSelector';
-import ScrollableTabs from '@components/scrollable_tabs';
+import Typography from '@components/typography';
 
 /**
  * La tira de semanas de Programas semanales.
  *
- * Sin flechas a los lados: se probaron y quedaban apretadas contra la tira y
- * descuadradas con las pestañas.
+ * No usa `ScrollableTabs` (las pestañas de MUI) a propósito, y merece
+ * explicación porque parece un paso atrás:
  *
- * La semana actual cae casi al principio porque la lista empieza tres semanas
- * atrás (ver `weeklySchedulesFirstWeek`), no dos meses. Se probó a centrarla
- * desplazando la tira al montar y no vale: MUI la recoloca DESPUÉS y borra el
- * desplazamiento, así que dependía de ganarle una carrera con una espera; y
- * centrando también al cambiar de semana, la tira se movía sola y parecía un
- * fallo. Se resuelve con datos —qué semanas se listan— y con el difuminado de
- * los bordes, que no mueve nada.
+ * MUI desplaza la tira por su cuenta para dejar la pestaña elegida "a la
+ * vista", pero la deja PEGADA AL BORDE derecho. Al entrar, la semana actual
+ * quedaba la última visible y no se veía ninguna de las que vienen, que es
+ * justo lo que se consulta. Corregirlo después no vale: se comprobó que el
+ * centrado se aplica y que MUI lo deshace más tarde (187px → 55px), así que
+ * cualquier arreglo dependía de ganarle una carrera con una espera.
+ *
+ * Con una tira propia no hay carrera: se coloca una vez al abrir y no vuelve a
+ * moverse sola. Son unos chips y un `overflow-x`; lo único que aportaban aquí
+ * las pestañas de MUI era un comportamiento que había que combatir.
+ *
+ * Tampoco lleva flechas: las de MUI DESPLAZAN la tira en vez de cambiar de
+ * semana, que no es lo que nadie espera de una flecha ahí.
  */
 const WeekSelector = (props: WeekSelectorProps) => {
   const { weeksTab, handleWeekChange, currentTab } = useWeekSelector(props);
 
+  const tiraRef = useRef<HTMLDivElement>(null);
+  const yaCentrado = useRef(false);
+
+  const index = typeof currentTab === 'number' ? currentTab : -1;
+
+  // Centrar la semana abierta AL ENTRAR, y solo entonces: centrando también al
+  // cambiar de semana, la tira se recolocaría con cada toque y parecería que
+  // la aplicación se mueve por su cuenta.
+  useEffect(() => {
+    if (yaCentrado.current || index < 0) return;
+
+    const tira = tiraRef.current;
+    if (!tira) return;
+
+    const chip = tira.children[index] as HTMLElement | undefined;
+    if (!chip) return;
+
+    const centrado =
+      chip.offsetLeft - (tira.clientWidth - chip.clientWidth) / 2;
+
+    // Sin pasarse de los extremos: en las primeras semanas no hay nada que
+    // centrar a la izquierda y forzarlo dejaría un hueco en blanco.
+    tira.scrollLeft = Math.max(
+      0,
+      Math.min(centrado, tira.scrollWidth - tira.clientWidth)
+    );
+
+    yaCentrado.current = true;
+  }, [index]);
+
   return (
     <Box
+      ref={tiraRef}
+      className="schedules-view-week-selector"
       sx={{
-        marginTop: '-16px',
-        marginBottom: '-32px',
-        // Los bordes se desvanecen para que se vea que la tira sigue a los
-        // lados. Es lo que dice "hay más semanas" sin mover nada: cualquier
-        // desplazamiento automático se siente como un fallo (ver abajo).
-        maskImage:
-          'linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%)',
-        WebkitMaskImage:
-          'linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%)',
+        display: 'flex',
+        gap: '4px',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' },
+        // Los chips miden menos que las pestañas de MUI, así que el hueco
+        // que dejaba la página encima sobra; debajo, en cambio, hace falta
+        // separación del titular de la semana.
+        marginTop: '-10px',
+        marginBottom: '-6px',
+        paddingBottom: '4px',
       }}
     >
-      <ScrollableTabs
-        className="schedules-view-week-selector"
-        tabs={weeksTab}
-        value={currentTab}
-        onChange={handleWeekChange}
-      />
+      {weeksTab.map((week, i) => {
+        const elegida = i === index;
+
+        return (
+          <Box
+            key={week.label}
+            className={week.className}
+            role="tab"
+            aria-selected={elegida}
+            onClick={() => handleWeekChange(i)}
+            sx={{
+              flexShrink: 0,
+              padding: '8px 14px',
+              borderRadius: 'var(--radius-max)',
+              cursor: 'pointer',
+              userSelect: 'none',
+              // El mismo tratamiento que la pestaña elegida en el resto de la
+              // aplicación: fondo tintado y texto oscuro, nunca color pleno,
+              // que se reserva para los botones de acción.
+              backgroundColor: elegida ? 'var(--accent-150)' : 'transparent',
+              transition: 'background-color 0.15s ease',
+              '&:hover': {
+                backgroundColor: elegida
+                  ? 'var(--accent-200)'
+                  : 'color-mix(in srgb, var(--accent-150) 38%, transparent)',
+              },
+            }}
+          >
+            <Typography
+              className={elegida ? 'body-small-semibold' : 'body-small-regular'}
+              color={elegida ? 'var(--accent-dark)' : 'var(--grey-350)'}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              {week.label}
+            </Typography>
+          </Box>
+        );
+      })}
     </Box>
   );
 };

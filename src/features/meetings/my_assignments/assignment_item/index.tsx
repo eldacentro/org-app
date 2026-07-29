@@ -111,7 +111,9 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '2px',
-          backgroundColor: isPreaching ? 'var(--preaching-tint)' : 'var(--brand-tint)',
+          backgroundColor: isPreaching
+            ? 'var(--preaching-tint)'
+            : 'var(--brand-tint)',
           border: isPreaching
             ? '1px solid var(--preaching-border)'
             : '1px solid rgba(59, 114, 196, 0.12)',
@@ -126,9 +128,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             fontWeight: '800 !important', // ExtraBold
             letterSpacing: '0.8px',
             textTransform: 'uppercase',
-            color: isPreaching
-              ? 'var(--preaching-color)'
-              : 'var(--brand)',
+            color: isPreaching ? 'var(--preaching-color)' : 'var(--brand)',
             opacity: isDept ? 0.65 : 0.75,
             lineHeight: 1,
             transition: 'color 0.2s ease',
@@ -198,140 +198,177 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           ) : null
         }
       >
-        {rows.map(({ history, badges, isDept: rowIsDept, jwLibraryUrl: rowJwLibraryUrl }) => (
-          <Stack
-            key={history.id}
-            justifyContent="center"
-            spacing="2px"
-            direction="row"
-            alignItems="flex-start"
-          >
-            <Stack justifyContent="center" spacing="2px" flex={1}>
-              <Stack direction="row" spacing={1.2} alignItems="center" flexWrap="wrap">
-                <Typography className="h3" sx={{ color: 'var(--ink)', fontWeight: 700 }}>
-                  {history.assignment.title}
-                </Typography>
+        {rows.map(
+          ({
+            history,
+            badges,
+            isDept: rowIsDept,
+            jwLibraryUrl: rowJwLibraryUrl,
+          }) => (
+            <Stack
+              key={history.id}
+              justifyContent="center"
+              spacing="2px"
+              direction="row"
+              alignItems="flex-start"
+            >
+              <Stack justifyContent="center" spacing="6px" flex={1}>
+                <Stack
+                  direction="row"
+                  spacing={1.2}
+                  alignItems="center"
+                  flexWrap="wrap"
+                >
+                  <Typography
+                    className="h3"
+                    sx={{ color: 'var(--ink)', fontWeight: 700 }}
+                  >
+                    {history.assignment.title}
+                  </Typography>
 
-                {badges.map((badge) => badge)}
+                  {badges.map((badge) => badge)}
+                </Stack>
+
+                {rowIsDept && (
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--grey-400)"
+                    sx={{ fontStyle: 'italic' }}
+                  >
+                    Toda la semana
+                  </Typography>
+                )}
+
+                {userUID !== history.assignment.person && (
+                  <Badge
+                    size="small"
+                    filled
+                    color="orange"
+                    sx={{
+                      width: 'fit-content',
+                      height: 'auto',
+                      marginTop: '2px',
+                    }}
+                    text={t('tr_deliveredBy', {
+                      name: personGetName(history.assignment.person),
+                    })}
+                  />
+                )}
+
+                {history.assignment.ayf?.student && (
+                  <Typography
+                    className={'body-small-semibold'}
+                    color={'var(--grey-400)'}
+                  >
+                    {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
+                  </Typography>
+                )}
+
+                {history.assignment.ayf?.assistant && (
+                  <Typography
+                    className={'body-small-semibold'}
+                    color={'var(--grey-400)'}
+                  >
+                    {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
+                  </Typography>
+                )}
+
+                {/* Texto secundario descriptivo — MISMO estilo para las tres
+                  variantes (material/src, descripción/desc y las líneas de
+                  descItems de abajo). Antes el src salía en negrita y más
+                  grande (y cambiaba de color según hubiera estudiante o no),
+                  lo que hacía que unas tarjetas se vieran distintas de otras
+                  sin motivo.
+
+                  Va en `body-small-regular` y no en `label-small-regular`: a
+                  12px se leía apretado, y es el texto que de verdad dice qué
+                  tienes que preparar. */}
+                {history.assignment.src && (
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--grey-400)"
+                    sx={{ lineHeight: 1.4 }}
+                  >
+                    {history.assignment.src}
+                  </Typography>
+                )}
+
+                {history.assignment.desc && (
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--grey-400)"
+                    sx={{ lineHeight: 1.4 }}
+                  >
+                    {history.assignment.desc}
+                  </Typography>
+                )}
+
+                {history.assignment.descItems &&
+                  history.assignment.descItems.length > 0 && (
+                    <Stack spacing="6px">
+                      {history.assignment.descItems.map((item, idx) => {
+                        const DescIcon = DESC_ICON_MAP[item.icon];
+                        return (
+                          <Stack
+                            key={`${item.icon}-${idx}`}
+                            direction="row"
+                            alignItems="center"
+                            spacing="6px"
+                          >
+                            <DescIcon
+                              color="var(--grey-350)"
+                              width={15}
+                              height={15}
+                            />
+                            <Typography
+                              className="body-small-regular"
+                              color="var(--grey-400)"
+                              sx={{ lineHeight: 1.4 }}
+                            >
+                              {item.text}
+                            </Typography>
+                          </Stack>
+                        );
+                      })}
+                    </Stack>
+                  )}
+
+                {/* Separado del texto de arriba: es una ACCIÓN, no una línea más
+                  de la descripción, y pegado se leía como parte de ella. */}
+                {rowJwLibraryUrl && (
+                  <JwLibraryLink
+                    href={rowJwLibraryUrl}
+                    sx={{ marginTop: '10px' }}
+                  />
+                )}
               </Stack>
 
-              {rowIsDept && (
-                <Typography
-                  className="label-small-medium"
-                  color="var(--grey-400)"
-                  sx={{ fontStyle: 'italic' }}
-                >
-                  Toda la semana
-                </Typography>
-              )}
-
-              {userUID !== history.assignment.person && (
-                <Badge
-                  size="small"
-                  filled
-                  color="orange"
-                  sx={{ width: 'fit-content', height: 'auto', marginTop: '2px' }}
-                  text={t('tr_deliveredBy', {
-                    name: personGetName(history.assignment.person),
+              {ADD_CALENDAR_SHOW && (
+                <IconButton
+                  onClick={() =>
+                    handleAddToCalendar(history, { personGetName, userUID, t })
+                  }
+                  sx={(theme) => ({
+                    borderRadius: 'var(--r-sm)',
+                    border: '1px solid var(--line)',
+                    padding: '6px',
+                    [theme.breakpoints.up('tablet')]: {
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      transition: 'opacity 500ms ease',
+                    },
                   })}
-                />
-              )}
-
-              {history.assignment.ayf?.student && (
-                <Typography
-                  className={'body-small-semibold'}
-                  color={'var(--grey-400)'}
-                  sx={{ marginTop: '2px' }}
                 >
-                  {`${t('tr_student')}: ${personGetName(history.assignment.ayf.student)}`}
-                </Typography>
-              )}
-
-              {history.assignment.ayf?.assistant && (
-                <Typography
-                  className={'body-small-semibold'}
-                  color={'var(--grey-400)'}
-                >
-                  {`${t('tr_assistant')}: ${personGetName(history.assignment.ayf.assistant)}`}
-                </Typography>
-              )}
-
-              {/* Texto secundario descriptivo — MISMO estilo para las tres
-                  variantes (material/src, descripción/desc y las líneas de
-                  descItems de abajo): regular, grey-400, 12px. Antes el src
-                  salía en negrita y a 13px (y cambiaba de color según hubiera
-                  estudiante o no), lo que hacía que unas tarjetas se vieran
-                  distintas de otras sin motivo. */}
-              {history.assignment.src && (
-                <Typography className="label-small-regular" color="var(--grey-400)" sx={{ marginTop: '2px', lineHeight: 1.3 }}>
-                  {history.assignment.src}
-                </Typography>
-              )}
-
-              {history.assignment.desc && (
-                <Typography className="label-small-regular" color="var(--grey-400)" sx={{ marginTop: '2px', lineHeight: 1.3 }}>
-                  {history.assignment.desc}
-                </Typography>
-              )}
-
-              {history.assignment.descItems && history.assignment.descItems.length > 0 && (
-                <Stack spacing="3px" sx={{ marginTop: '3px' }}>
-                  {history.assignment.descItems.map((item, idx) => {
-                    const DescIcon = DESC_ICON_MAP[item.icon];
-                    return (
-                      <Stack
-                        key={`${item.icon}-${idx}`}
-                        direction="row"
-                        alignItems="center"
-                        spacing="6px"
-                      >
-                        <DescIcon color="var(--grey-350)" width={13} height={13} />
-                        <Typography
-                          className="label-small-regular"
-                          color="var(--grey-400)"
-                          sx={{ lineHeight: 1.3 }}
-                        >
-                          {item.text}
-                        </Typography>
-                      </Stack>
-                    );
-                  })}
-                </Stack>
-              )}
-
-              {rowJwLibraryUrl && (
-                <JwLibraryLink
-                  href={rowJwLibraryUrl}
-                  sx={{ marginTop: '14px' }}
-                />
+                  {isProcessingId === history.id ? (
+                    <IconLoading />
+                  ) : (
+                    <IconAddMonth color="var(--brand)" />
+                  )}
+                </IconButton>
               )}
             </Stack>
-
-            {ADD_CALENDAR_SHOW && (
-              <IconButton
-                onClick={() =>
-                  handleAddToCalendar(history, { personGetName, userUID, t })
-                }
-                sx={(theme) => ({
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid var(--line)',
-                  padding: '6px',
-                  [theme.breakpoints.up('tablet')]: {
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    transition: 'opacity 500ms ease',
-                  },
-                })}
-              >
-                {isProcessingId === history.id ? (
-                  <IconLoading />
-                ) : (
-                  <IconAddMonth color="var(--brand)" />
-                )}
-              </IconButton>
-            )}
-          </Stack>
-        ))}
+          )
+        )}
       </Stack>
     </Stack>
   );

@@ -26,6 +26,7 @@ function ScrollableTabs({
   variant = 'scrollable',
   minHeight = '48px',
   tabsCountOnScreen = 0,
+  hideScrollButtons,
   sx,
 }: CustomTabProps) {
   const { tabletDown } = useBreakpoints();
@@ -65,7 +66,7 @@ function ScrollableTabs({
             value={valueOfActivePanel}
             onChange={handleChange}
             variant={variant}
-            scrollButtons={tabletDown ? false : 'auto'}
+            scrollButtons={tabletDown || hideScrollButtons ? false : 'auto'}
             className={className}
             slotProps={{
               indicator: {

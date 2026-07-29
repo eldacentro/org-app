@@ -89,6 +89,15 @@ export interface CustomTabProps extends TabOwnProps {
   tabsCountOnScreen?: number;
 
   /**
+   * Ocultar las flechas de desplazamiento de MUI.
+   *
+   * Esas flechas DESPLAZAN la tira, no cambian de pestaña, y puestas al lado
+   * de una tira de semanas nadie entiende qué hacen: se espera que lleven a la
+   * semana siguiente. Donde deslizar con el dedo ya funciona, estorban.
+   */
+  hideScrollButtons?: boolean;
+
+  /**
    * The action component to be displayed with the tab.
    */
   actionComponent?: ReactNode;
