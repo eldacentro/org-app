@@ -11,6 +11,7 @@ import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekSelector from '@features/meetings/week_selector';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
+import PendingSlips from '@features/meetings/midweek_editor/pending_slips';
 
 const MidweekMeeting = () => {
   const { t } = useAppTranslation();
@@ -102,6 +103,10 @@ const MidweekMeeting = () => {
       />
 
       <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
+
+      {/* Las hojitas pendientes van AQUÍ y no en Programas semanales: eso es
+          la vista de consulta, y esto es trabajo de quien las reparte. */}
+      {hasWeeks && <PendingSlips />}
 
       <Box
         sx={{

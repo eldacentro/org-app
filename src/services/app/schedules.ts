@@ -2348,29 +2348,34 @@ export const schedulesS89DataForAssignment = (
   return obj;
 };
 
-export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
-  const result: S89DataType[] = [];
-
-  const assignments: AssignmentFieldType[] = [...S89_ASSIGNMENTS];
-
+/**
+ * Qué asignaciones de esta semana llevan hojita, para esta vista.
+ *
+ * Estaba dentro de `schedulesS89Data`. Se saca porque ahora hay dos cosas que
+ * necesitan la MISMA respuesta —imprimir las hojas y contar las que faltan por
+ * confirmar—, y dos copias de estas reglas acabarían diciendo cosas distintas:
+ * una semana de asamblea sin hojas, pero contada como pendiente.
+ *
+ * Devuelve la lista vacía si esa semana no hay reunión.
+ */
+export const schedulesS89AssignmentsForWeek = (
+  schedule: SchedWeekType,
+  dataView: string
+): AssignmentFieldType[] => {
   const weekType =
     schedule.midweek_meeting.week_type.find(
       (record) => record.type === dataView
     )?.value ?? Week.NORMAL;
 
-  const hasNoMeeting = WEEK_TYPE_NO_MEETING.includes(weekType);
-
-  if (hasNoMeeting) return result;
+  if (WEEK_TYPE_NO_MEETING.includes(weekType)) return [];
 
   const languageWeekType =
     schedule.midweek_meeting.week_type.find((record) => record.type !== 'main')
       ?.value ?? Week.NORMAL;
 
-  for (const assignment of assignments) {
+  return [...S89_ASSIGNMENTS].filter((assignment) => {
     // skip aux class assignments for language group
-    if (dataView !== 'main' && assignment.endsWith('_B')) {
-      continue;
-    }
+    if (dataView !== 'main' && assignment.endsWith('_B')) return false;
 
     // skip aux class assignments for congregation when group use the hall
     if (
@@ -2378,9 +2383,17 @@ export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
       MIDWEEK_WITH_STUDENTS_LANGUAGE_GROUP.includes(languageWeekType) &&
       assignment.endsWith('_B')
     ) {
-      continue;
+      return false;
     }
 
+    return true;
+  });
+};
+
+export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
+  const result: S89DataType[] = [];
+
+  for (const assignment of schedulesS89AssignmentsForWeek(schedule, dataView)) {
     const obj = schedulesS89DataForAssignment(schedule, dataView, assignment);
 
     if (obj) result.push(obj);
