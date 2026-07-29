@@ -89,14 +89,6 @@ export interface CustomTabProps extends TabOwnProps {
   tabsCountOnScreen?: number;
 
   /**
-   * Dejar la pestaña elegida en el CENTRO de la tira al abrir, en vez de
-   * pegada al borde. Solo tiene sentido en tiras largas por las que se navega
-   * —las semanas—, donde ver lo que hay a los dos lados es lo que te dice que
-   * puedes moverte.
-   */
-  centerSelected?: boolean;
-
-  /**
    * The action component to be displayed with the tab.
    */
   actionComponent?: ReactNode;

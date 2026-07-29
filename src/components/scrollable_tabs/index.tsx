@@ -3,7 +3,6 @@ import {
   ReactNode,
   SyntheticEvent,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import { Box, Tab, Tabs, tabsClasses } from '@mui/material';
@@ -27,7 +26,6 @@ function ScrollableTabs({
   variant = 'scrollable',
   minHeight = '48px',
   tabsCountOnScreen = 0,
-  centerSelected,
   sx,
 }: CustomTabProps) {
   const { tabletDown } = useBreakpoints();
@@ -53,38 +51,6 @@ function ScrollableTabs({
     setValueOfActivePanel(value ?? false);
   }, [value]);
 
-  const contenedorRef = useRef<HTMLDivElement>(null);
-
-  // Dejar la pestaña elegida centrada.
-  //
-  // MUI la mete en pantalla, pero pegada al borde: al abrir Programas
-  // semanales, la semana actual quedaba LA ÚLTIMA visible y parecía que no
-  // había nada después. Centrarla enseña las anteriores y las siguientes, que
-  // es lo que hace evidente que la tira se puede deslizar.
-  useEffect(() => {
-    if (!centerSelected) return;
-    if (typeof valueOfActivePanel !== 'number') return;
-
-    const contenedor = contenedorRef.current;
-    if (!contenedor) return;
-
-    // Se espera un fotograma: MUI coloca la tira después de montar, y hacerlo
-    // antes deja el cálculo con las medidas viejas.
-    const id = requestAnimationFrame(() => {
-      const pestana = contenedor.querySelectorAll('button[role="tab"]')[
-        valueOfActivePanel
-      ] as HTMLElement | undefined;
-
-      pestana?.scrollIntoView({
-        block: 'nearest',
-        inline: 'center',
-        behavior: 'auto',
-      });
-    });
-
-    return () => cancelAnimationFrame(id);
-  }, [centerSelected, valueOfActivePanel, tabs.length]);
-
   return (
     <Box sx={{ width: '100%', minHeight: tabs.length > 0 && '45px' }}>
       {tabs.length === 0 && (
@@ -94,7 +60,7 @@ function ScrollableTabs({
       )}
 
       {tabs.length > 0 && (
-        <Box ref={contenedorRef}>
+        <Box>
           <Tabs
             value={valueOfActivePanel}
             onChange={handleChange}

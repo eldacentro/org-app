@@ -23,7 +23,11 @@ import {
   ListSubheader,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
-import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
+import {
+  useAppTranslation,
+  useBreakpoints,
+  useCurrentUser,
+} from '@hooks/index';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
@@ -52,19 +56,24 @@ import {
   IconGenerate,
   IconLocation,
   IconInfo,
-  IconSortDown,
-  IconClose,
 } from '@components/icons';
 import { outingsStartAutofill } from '@services/app/outingsAutofill';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import OutingsSchedulePDF from '@views/field_service_outings';
-import { CalendarCellPDF, OutingPDFItem } from '@views/field_service_outings/index.types';
+import {
+  CalendarCellPDF,
+  OutingPDFItem,
+} from '@views/field_service_outings/index.types';
 import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { personsState } from '@states/persons';
 import TimePicker from '@components/time_picker';
 import { generateDateFromTime } from '@utils/date';
-import { hour24FormatState, congNameState, pdfExportEnabledState } from '@states/settings';
+import {
+  hour24FormatState,
+  congNameState,
+  pdfExportEnabledState,
+} from '@states/settings';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
@@ -82,11 +91,22 @@ import {
   isOutingSlotSuppressedByMonth,
 } from '@utils/service_outings';
 import { personIsAway } from '@services/app/persons';
+import MonthSelector from '@components/month_selector';
 
 // Nombres de meses en español
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 // Los 14 turnos (7 días × mañana/tarde) con su etiqueta. Fuente única para el
@@ -137,7 +157,15 @@ const formatToDbDate = (date: Date): string => {
 
 // Helper para formatear fecha legible
 const formatLegibleDate = (date: Date): string => {
-  const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const weekdays = [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado',
+  ];
   return `${weekdays[date.getDay()]} ${date.getDate()}`;
 };
 
@@ -155,7 +183,7 @@ const PredicacionSalidas = () => {
   // useAtom with nullable atom — destructure read and write separately
   const [settings, setSettings] = useAtom(serviceOutingsSettingsState) as [
     ServiceOutingSettingsType | null,
-    (val: ServiceOutingSettingsType | null) => void
+    (val: ServiceOutingSettingsType | null) => void,
   ];
 
   // Selector de Año y Mes activo
@@ -163,7 +191,9 @@ const PredicacionSalidas = () => {
   const years = [currentYear, currentYear + 1];
   const [isSavingOuting, setIsSavingOuting] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-indexed
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth()
+  ); // 0-indexed
   const [monthsExpanded, setMonthsExpanded] = useState<boolean>(false);
 
   // Excepciones de horario por mes ("Ajustes del mes") — mismo patrón que Exhibidores
@@ -182,7 +212,9 @@ const PredicacionSalidas = () => {
   const isCurrentlyOverridden = !!settings?.monthlyOverrides?.[currentMonthStr];
 
   const [monthlySettingsDialog, setMonthlySettingsDialog] = useState(false);
-  const [monthHoursDraft, setMonthHoursDraft] = useState<Record<string, string>>({});
+  const [monthHoursDraft, setMonthHoursDraft] = useState<
+    Record<string, string>
+  >({});
 
   const handleOpenMonthlySettings = () => {
     setMonthHoursDraft(structuredClone(effectiveHours));
@@ -193,7 +225,8 @@ const PredicacionSalidas = () => {
     if (!settings) return;
     const localSettings = structuredClone(settings);
     if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
-    localSettings.monthlyOverrides[currentMonthStr] = structuredClone(effectiveHours);
+    localSettings.monthlyOverrides[currentMonthStr] =
+      structuredClone(effectiveHours);
     await dbServiceOutingsSaveSettings(localSettings);
     setSettings(localSettings);
     triggerSync();
@@ -218,7 +251,9 @@ const PredicacionSalidas = () => {
     if (monthCancelled) {
       delete localSettings.monthlyOverrides[currentMonthStr];
     } else {
-      localSettings.monthlyOverrides[currentMonthStr] = { isCancelledMonth: true };
+      localSettings.monthlyOverrides[currentMonthStr] = {
+        isCancelledMonth: true,
+      };
     }
     await dbServiceOutingsSaveSettings(localSettings);
     setSettings(localSettings);
@@ -229,7 +264,11 @@ const PredicacionSalidas = () => {
   // ej. sábados). Solo tiene sentido cuando el mes está suspendido.
   const keptActiveSlots = useMemo(() => {
     const override = settings?.monthlyOverrides?.[currentMonthStr];
-    if (override && 'isCancelledMonth' in override && override.isCancelledMonth) {
+    if (
+      override &&
+      'isCancelledMonth' in override &&
+      override.isCancelledMonth
+    ) {
       return override.keepActiveSlots ?? [];
     }
     return [];
@@ -242,7 +281,11 @@ const PredicacionSalidas = () => {
     const override = localSettings.monthlyOverrides[currentMonthStr];
 
     // Solo aplica si el mes está suspendido (el interruptor de arriba activo).
-    if (!override || !('isCancelledMonth' in override) || !override.isCancelledMonth) {
+    if (
+      !override ||
+      !('isCancelledMonth' in override) ||
+      !override.isCancelledMonth
+    ) {
       return;
     }
 
@@ -263,7 +306,8 @@ const PredicacionSalidas = () => {
     if (!settings) return;
     const localSettings = structuredClone(settings);
     if (!localSettings.monthlyOverrides) localSettings.monthlyOverrides = {};
-    localSettings.monthlyOverrides[currentMonthStr] = structuredClone(monthHoursDraft);
+    localSettings.monthlyOverrides[currentMonthStr] =
+      structuredClone(monthHoursDraft);
     await dbServiceOutingsSaveSettings(localSettings);
     setSettings(localSettings);
     triggerSync();
@@ -271,12 +315,17 @@ const PredicacionSalidas = () => {
   };
 
   // Control de Vista del Planificador ("lista" o "mensual")
-  const [plannerViewMode, setPlannerViewMode] = useState<'lista' | 'mensual'>('lista');
+  const [plannerViewMode, setPlannerViewMode] = useState<'lista' | 'mensual'>(
+    'lista'
+  );
 
   // Día seleccionado en la cuadrícula mensual móvil (inicializado reactivamente)
   const initialSelectedDay = useMemo(() => {
     const today = new Date();
-    if (today.getFullYear() === selectedYear && today.getMonth() === selectedMonth) {
+    if (
+      today.getFullYear() === selectedYear &&
+      today.getMonth() === selectedMonth
+    ) {
       return today.getDate();
     }
     return 1;
@@ -290,7 +339,8 @@ const PredicacionSalidas = () => {
   }, [initialSelectedDay]);
 
   // Diálogo de Exportación de PDF
-  const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState<boolean>(false);
+  const [pdfExportDialogOpen, setPdfExportDialogOpen] =
+    useState<boolean>(false);
   const [pdfExportMonth, setPdfExportMonth] = useState<number>(selectedMonth);
   const [pdfExportYear, setPdfExportYear] = useState<number>(selectedYear);
 
@@ -335,7 +385,9 @@ const PredicacionSalidas = () => {
     weekOf: string;
   }>({ open: false, weekOf: '' });
   const [showAdjustHours, setShowAdjustHours] = useState<boolean>(false);
-  const [weekHoursConfig, setWeekHoursConfig] = useState<Record<string, string>>({});
+  const [weekHoursConfig, setWeekHoursConfig] = useState<
+    Record<string, string>
+  >({});
   const [tempCOWeek, setTempCOWeek] = useState<boolean>(false);
 
   // Cargar configuración por defecto en Jotai si está vacía
@@ -350,7 +402,8 @@ const PredicacionSalidas = () => {
   // Catálogo de hermanos habilitados (varones con tick en Predicación)
   const enabledBrothers = useMemo(() => {
     return persons.filter(
-      (p) => p.person_data.male && p.person_data.predicacion_salidas?.value === true
+      (p) =>
+        p.person_data.male && p.person_data.predicacion_salidas?.value === true
     );
   }, [persons]);
 
@@ -400,7 +453,10 @@ const PredicacionSalidas = () => {
           slots.push({
             date: new Date(date),
             slotType: morningType,
-            time: overrideHours[morningType] || defaultHours[morningType as keyof typeof defaultHours] || '10:00',
+            time:
+              overrideHours[morningType] ||
+              defaultHours[morningType as keyof typeof defaultHours] ||
+              '10:00',
             slotId: `${formatToDbDate(date)}_morning`,
           });
         }
@@ -410,12 +466,19 @@ const PredicacionSalidas = () => {
         if (
           !disabledSlots.includes(afternoonType) &&
           !disabledSlots.includes(dayLabel) &&
-          !isOutingSlotSuppressedByMonth(settings, currentMonthStr, afternoonType)
+          !isOutingSlotSuppressedByMonth(
+            settings,
+            currentMonthStr,
+            afternoonType
+          )
         ) {
           slots.push({
             date: new Date(date),
             slotType: afternoonType,
-            time: overrideHours[afternoonType] || defaultHours[afternoonType as keyof typeof defaultHours] || '17:00',
+            time:
+              overrideHours[afternoonType] ||
+              defaultHours[afternoonType as keyof typeof defaultHours] ||
+              '17:00',
             slotId: `${formatToDbDate(date)}_afternoon`,
           });
         }
@@ -424,11 +487,18 @@ const PredicacionSalidas = () => {
       date.setDate(date.getDate() + 1);
     }
     return slots;
-  }, [selectedYear, selectedMonth, settings, outingsWeeks, effectiveHours, monthCancelled]);
+  }, [
+    selectedYear,
+    selectedMonth,
+    settings,
+    outingsWeeks,
+    effectiveHours,
+    monthCancelled,
+  ]);
 
   const triggerSync = () => {
-    import('@services/worker/backupWorker').then(
-      ({ default: worker }) => worker.postMessage('startWorker')
+    import('@services/worker/backupWorker').then(({ default: worker }) =>
+      worker.postMessage('startWorker')
     );
   };
 
@@ -488,7 +558,7 @@ const PredicacionSalidas = () => {
     setPublishDialog(false);
   };
 
-  const handleOpenEdit = (slot: typeof outingsSlotsInMonth[0]) => {
+  const handleOpenEdit = (slot: (typeof outingsSlotsInMonth)[0]) => {
     if (!isServiceCommittee) return; // Solo el comité de servicio puede editar
 
     const weekOf = getWeekOfDate(slot.date);
@@ -508,7 +578,9 @@ const PredicacionSalidas = () => {
     });
 
     setEditPerson(outing?.person || '');
-    setEditLocation(outing?.location || settings?.locations?.[0] || 'Salón del Reino');
+    setEditLocation(
+      outing?.location || settings?.locations?.[0] || 'Salón del Reino'
+    );
     setEditCancelled(outing?.cancelled || false);
   };
 
@@ -641,7 +713,10 @@ const PredicacionSalidas = () => {
   };
 
   // Alternar disponibilidad de un hermano para un slot específico
-  const handleToggleAvailability = async (personUid: string, slotKey: string) => {
+  const handleToggleAvailability = async (
+    personUid: string,
+    slotKey: string
+  ) => {
     if (!settings) return;
 
     const currentAvailability = settings.availability || {};
@@ -793,7 +868,7 @@ const PredicacionSalidas = () => {
 
     try {
       const count = await outingsStartAutofill(weekOf);
-      
+
       if (count > 0) {
         triggerSync();
         displaySnackNotification({
@@ -804,11 +879,12 @@ const PredicacionSalidas = () => {
       } else {
         displaySnackNotification({
           header: 'Info',
-          message: 'No se encontraron turnos vacíos que requieran autocompletado para esta semana.',
+          message:
+            'No se encontraron turnos vacíos que requieran autocompletado para esta semana.',
           severity: 'success',
         });
       }
-      
+
       // Cerrar el diálogo para que el usuario vea los cambios inmediatamente
       setWeekSettingsDialog({ open: false, weekOf: '' });
     } catch (error) {
@@ -830,7 +906,7 @@ const PredicacionSalidas = () => {
       const weekKeys = new Set<string>();
       const start = new Date(selectedYear, selectedMonth, 1);
       const end = new Date(selectedYear, selectedMonth + 1, 0);
-      
+
       const date = new Date(start);
       // Para encontrar los días de la semana configurables
       const weekdaysInfo = [
@@ -850,9 +926,13 @@ const PredicacionSalidas = () => {
         if (dayInfo) {
           const morningType = `${dayInfo.englishLabel}_morning`;
           const afternoonType = `${dayInfo.englishLabel}_afternoon`;
-          const hasMorning = !disabledSlots.includes(morningType) && !disabledSlots.includes(dayInfo.englishLabel);
-          const hasAfternoon = !disabledSlots.includes(afternoonType) && !disabledSlots.includes(dayInfo.englishLabel);
-          
+          const hasMorning =
+            !disabledSlots.includes(morningType) &&
+            !disabledSlots.includes(dayInfo.englishLabel);
+          const hasAfternoon =
+            !disabledSlots.includes(afternoonType) &&
+            !disabledSlots.includes(dayInfo.englishLabel);
+
           if (hasMorning || hasAfternoon) {
             weekKeys.add(getWeekOfDate(date));
           }
@@ -879,7 +959,8 @@ const PredicacionSalidas = () => {
       } else {
         displaySnackNotification({
           header: 'Info',
-          message: 'No se encontraron turnos vacíos que requieran autocompletado en este mes.',
+          message:
+            'No se encontraron turnos vacíos que requieran autocompletado en este mes.',
           severity: 'success',
         });
       }
@@ -902,7 +983,8 @@ const PredicacionSalidas = () => {
     if (isOutingsMonthFullyCancelled(settings, pdfMonthStr)) {
       displaySnackNotification({
         header: 'Info',
-        message: 'Las salidas de predicación están suspendidas ese mes — no hay nada que exportar.',
+        message:
+          'Las salidas de predicación están suspendidas ese mes — no hay nada que exportar.',
         severity: 'success',
       });
       return;
@@ -916,7 +998,10 @@ const PredicacionSalidas = () => {
       // Función para abreviar nombres en celdas pequeñas (desactivada por solicitud)
       const getAbbreviatedName = (fullName: string) => {
         if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
-        if (fullName === 'Superintendente de circuito' || settings?.sharedSlots?.some((s) => s.congregation === fullName)) {
+        if (
+          fullName === 'Superintendente de circuito' ||
+          settings?.sharedSlots?.some((s) => s.congregation === fullName)
+        ) {
           return fullName;
         }
         return fullName; // Devolvemos el nombre completo para que fluya en la fila
@@ -969,11 +1054,18 @@ const PredicacionSalidas = () => {
         tempDate.setDate(tempDate.getDate() + 1);
       }
 
-      const weekdaysToShow = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
-      const weekdaysToShowFinal = weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
+      const weekdaysToShow = weekdaysInfo.filter((info) =>
+        activeDays.has(info.dayOfWeek)
+      );
+      const weekdaysToShowFinal =
+        weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
 
       // 2. Calcular límites del mes y semanas naturales ( Monday of week )
-      const daysInMonth = new Date(pdfExportYear, pdfExportMonth + 1, 0).getDate();
+      const daysInMonth = new Date(
+        pdfExportYear,
+        pdfExportMonth + 1,
+        0
+      ).getDate();
       const weekKeys = new Set<string>();
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(pdfExportYear, pdfExportMonth, d);
@@ -987,7 +1079,7 @@ const PredicacionSalidas = () => {
       for (const weekKey of sortedWeekKeys) {
         const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
         const mondayDate = new Date(wYear, wMonth - 1, wDay);
-        
+
         for (const dayInfo of weekdaysToShowFinal) {
           let diffDays = 0;
           if (dayInfo.dayOfWeek === 1) diffDays = 0;
@@ -997,11 +1089,14 @@ const PredicacionSalidas = () => {
           else if (dayInfo.dayOfWeek === 5) diffDays = 4;
           else if (dayInfo.dayOfWeek === 6) diffDays = 5;
           else if (dayInfo.dayOfWeek === 0) diffDays = 6;
-          
+
           const cellDate = new Date(mondayDate);
           cellDate.setDate(mondayDate.getDate() + diffDays);
-          
-          if (cellDate.getMonth() === pdfExportMonth && cellDate.getFullYear() === pdfExportYear) {
+
+          if (
+            cellDate.getMonth() === pdfExportMonth &&
+            cellDate.getFullYear() === pdfExportYear
+          ) {
             const dateKey = formatToDbDate(cellDate);
             const dayOutings: OutingPDFItem[] = [];
 
@@ -1013,13 +1108,20 @@ const PredicacionSalidas = () => {
               !isOutingSlotSuppressedByMonth(settings, pdfMonthStr, morningType)
             ) {
               const weekOfRecord = getWeekOfDate(cellDate);
-              const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const weekRecord = outingsWeeks.find(
+                (w) => w.weekOf === weekOfRecord
+              );
               const overrideHours = weekRecord?.weekOverrideHours || {};
-              const timeVal = overrideHours[morningType] || defaultHours[morningType] || '10:00';
+              const timeVal =
+                overrideHours[morningType] ||
+                defaultHours[morningType] ||
+                '10:00';
               const outing = weekRecord?.outings?.find(
                 (o) => o.date === dateKey && o.time === timeVal
               );
-              const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
+              const assignedBrother = persons.find(
+                (b) => b.person_uid === outing?.person
+              );
               let brotherName = 'Sin asignar';
               let isAssigned = !!assignedBrother;
 
@@ -1036,7 +1138,10 @@ const PredicacionSalidas = () => {
               dayOutings.push({
                 id: `${dateKey}_morning`,
                 time: timeVal,
-                location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+                location:
+                  outing?.location ||
+                  settings?.locations?.[0] ||
+                  'Salón del Reino',
                 brotherName: getAbbreviatedName(brotherName),
                 isAssigned,
                 isCancelled: outing?.cancelled ?? false,
@@ -1048,16 +1153,27 @@ const PredicacionSalidas = () => {
             if (
               !disabledSlots.includes(afternoonType) &&
               !disabledSlots.includes(dayInfo.englishLabel) &&
-              !isOutingSlotSuppressedByMonth(settings, pdfMonthStr, afternoonType)
+              !isOutingSlotSuppressedByMonth(
+                settings,
+                pdfMonthStr,
+                afternoonType
+              )
             ) {
               const weekOfRecord = getWeekOfDate(cellDate);
-              const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+              const weekRecord = outingsWeeks.find(
+                (w) => w.weekOf === weekOfRecord
+              );
               const overrideHours = weekRecord?.weekOverrideHours || {};
-              const actualTimeVal = overrideHours[afternoonType] || defaultHours[afternoonType] || '17:00';
+              const actualTimeVal =
+                overrideHours[afternoonType] ||
+                defaultHours[afternoonType] ||
+                '17:00';
               const outing = weekRecord?.outings?.find(
                 (o) => o.date === dateKey && o.time === actualTimeVal
               );
-              const assignedBrother = persons.find((b) => b.person_uid === outing?.person);
+              const assignedBrother = persons.find(
+                (b) => b.person_uid === outing?.person
+              );
               let brotherName = 'Sin asignar';
               let isAssigned = !!assignedBrother;
 
@@ -1074,7 +1190,10 @@ const PredicacionSalidas = () => {
               dayOutings.push({
                 id: `${dateKey}_afternoon`,
                 time: actualTimeVal,
-                location: outing?.location || settings?.locations?.[0] || 'Salón del Reino',
+                location:
+                  outing?.location ||
+                  settings?.locations?.[0] ||
+                  'Salón del Reino',
                 brotherName: getAbbreviatedName(brotherName),
                 isAssigned,
                 isCancelled: outing?.cancelled ?? false,
@@ -1101,7 +1220,10 @@ const PredicacionSalidas = () => {
 
       for (const week of outingsWeeks) {
         if (week.updatedAt) {
-          if (!lastUpdatedAt || new Date(week.updatedAt) > new Date(lastUpdatedAt)) {
+          if (
+            !lastUpdatedAt ||
+            new Date(week.updatedAt) > new Date(lastUpdatedAt)
+          ) {
             lastUpdatedAt = week.updatedAt;
             lastModifiedBy = week.lastModifiedBy;
           }
@@ -1109,8 +1231,18 @@ const PredicacionSalidas = () => {
       }
 
       const spanishMonths = [
-        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+        'enero',
+        'febrero',
+        'marzo',
+        'abril',
+        'mayo',
+        'junio',
+        'julio',
+        'agosto',
+        'septiembre',
+        'octubre',
+        'noviembre',
+        'diciembre',
       ];
       const monthLabel = `${spanishMonths[pdfExportMonth]} ${pdfExportYear}`;
       const fileName = `Salidas_${spanishMonths[pdfExportMonth]}_${pdfExportYear}.pdf`;
@@ -1172,7 +1304,11 @@ const PredicacionSalidas = () => {
   // también en vez de dejar que se asigne en silencio.
   const editPersonAwayWarning = useMemo(() => {
     if (!editDialog.open || !editDialog.date || !editPerson) return '';
-    if (editPerson === 'CIRCUIT_OVERSEER' || editPerson.startsWith('SHARED_CONG:')) return '';
+    if (
+      editPerson === 'CIRCUIT_OVERSEER' ||
+      editPerson.startsWith('SHARED_CONG:')
+    )
+      return '';
 
     const person = persons.find((record) => record.person_uid === editPerson);
     if (!person) return '';
@@ -1190,8 +1326,18 @@ const PredicacionSalidas = () => {
               <>
                 <NavBarButton
                   text={activeTab === 'planner' ? 'Configuración' : 'Programa'}
-                  onClick={() => setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')}
-                  icon={activeTab === 'planner' ? <IconSettings /> : <IconCalendar />}
+                  onClick={() =>
+                    setActiveTab(
+                      activeTab === 'planner' ? 'settings' : 'planner'
+                    )
+                  }
+                  icon={
+                    activeTab === 'planner' ? (
+                      <IconSettings />
+                    ) : (
+                      <IconCalendar />
+                    )
+                  }
                 />
                 {activeTab === 'planner' && (
                   <>
@@ -1238,8 +1384,8 @@ const PredicacionSalidas = () => {
         }}
       >
         {/* PANEL IZQUIERDO: Selector de Meses y Años */}
-        {activeTab === 'planner' && (
-          desktopUp ? (
+        {activeTab === 'planner' &&
+          (desktopUp ? (
             <Box
               sx={{
                 width: '280px',
@@ -1255,8 +1401,13 @@ const PredicacionSalidas = () => {
                 top: 70,
               }}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography className="h3" style={{ color: 'var(--accent-main)' }}>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
+                <Typography
+                  className="h3"
+                  style={{ color: 'var(--accent-main)' }}
+                >
                   Seleccionar Año
                 </Typography>
                 <Select
@@ -1279,10 +1430,16 @@ const PredicacionSalidas = () => {
 
               <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
 
-              <Typography className="h3" style={{ color: 'var(--accent-main)' }}>
+              <Typography
+                className="h3"
+                style={{ color: 'var(--accent-main)' }}
+              >
                 Meses
               </Typography>
-              <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <List
+                disablePadding
+                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
                 {MONTH_NAMES.map((monthName, idx) => {
                   const isSelected = selectedMonth === idx;
                   return (
@@ -1292,8 +1449,12 @@ const PredicacionSalidas = () => {
                       onClick={() => setSelectedMonth(idx)}
                       sx={{
                         borderRadius: 'var(--radius-l)',
-                        borderLeft: isSelected ? '4px solid var(--accent-main)' : '4px solid transparent',
-                        backgroundColor: isSelected ? 'var(--accent-150)' : 'transparent',
+                        borderLeft: isSelected
+                          ? '4px solid var(--accent-main)'
+                          : '4px solid transparent',
+                        backgroundColor: isSelected
+                          ? 'var(--accent-150)'
+                          : 'transparent',
                         '&.Mui-selected': {
                           backgroundColor: 'var(--accent-150)',
                           '&:hover': {
@@ -1310,7 +1471,9 @@ const PredicacionSalidas = () => {
                         primaryTypographyProps={{
                           style: {
                             fontWeight: isSelected ? '600' : '500',
-                            color: isSelected ? 'var(--accent-dark)' : 'var(--black)',
+                            color: isSelected
+                              ? 'var(--accent-dark)'
+                              : 'var(--black)',
                           },
                         }}
                       />
@@ -1320,196 +1483,155 @@ const PredicacionSalidas = () => {
               </List>
             </Box>
           ) : (
-            <Card
-              sx={{
-                width: '100%',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--radius-l)',
-                boxShadow: 'none',
-                overflow: 'hidden',
-                mb: '8px',
+            <MonthSelector
+              monthNames={MONTH_NAMES}
+              year={selectedYear}
+              month={selectedMonth}
+              years={[new Date().getFullYear(), new Date().getFullYear() + 1]}
+              expanded={monthsExpanded}
+              onToggle={() => setMonthsExpanded(!monthsExpanded)}
+              onChange={({ year, month }) => {
+                setSelectedYear(year);
+                setSelectedMonth(month);
               }}
-            >
-              <ListItemButton
-                onClick={() => setMonthsExpanded(!monthsExpanded)}
-                sx={{
-                  backgroundColor: 'var(--accent-100)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  py: '12px',
-                  px: '16px',
-                }}
-              >
-                <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '15px' }}>
-                  {`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
-                </Typography>
-                <Typography style={{ fontSize: '13px', color: 'var(--accent-main)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {monthsExpanded ? (
-                    <>Cerrar selector <IconClose width={12} height={12} color="var(--accent-main)" /></>
-                  ) : (
-                    <>Cambiar mes <IconSortDown width={12} height={12} color="var(--accent-main)" /></>
-                  )}
-                </Typography>
-              </ListItemButton>
-
-              {monthsExpanded && (
-                <Box sx={{ p: '16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)' }}>
-                      Seleccionar Año
-                    </Typography>
-                    <Select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(Number(e.target.value))}
-                      size="small"
-                      fullWidth
-                      sx={{ borderRadius: 'var(--radius-l)' }}
-                    >
-                      {years.map((yr) => (
-                        <MenuItem key={yr} value={yr}>
-                          {yr}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)' }}>
-                      Seleccionar Mes
-                    </Typography>
-                    <Grid container spacing={1}>
-                      {MONTH_NAMES.map((monthName, idx) => {
-                        const isSelected = selectedMonth === idx;
-                        return (
-                          <Grid size={{ mobile: 4 }} key={monthName}>
-                            <Button
-                              variant={isSelected ? 'contained' : 'outlined'}
-                              onClick={() => {
-                                setSelectedMonth(idx);
-                                setMonthsExpanded(false); // Collapse on month select
-                              }}
-                              fullWidth
-                              size="small"
-                              sx={{
-                                py: '6px',
-                                textTransform: 'none',
-                                borderRadius: 'var(--radius-l)',
-                                fontWeight: '600',
-                                fontSize: '13px',
-                                boxShadow: 'none',
-                                ...(isSelected ? {
-                                  backgroundColor: 'var(--accent-main)',
-                                  color: 'var(--always-white)',
-                                  '&:hover': {
-                                    backgroundColor: 'var(--accent-dark)',
-                                  }
-                                } : {
-                                  borderColor: 'var(--line)',
-                                  color: 'var(--black)',
-                                  '&:hover': {
-                                    backgroundColor: 'var(--accent-100)',
-                                  }
-                                })
-                              }}
-                            >
-                              {monthName}
-                            </Button>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Box>
-              )}
-            </Card>
-          )
-        )}
+            />
+          ))}
 
         {/* PANEL DERECHO: Planificador o Configuración */}
         <Box sx={{ flexGrow: 1, width: '100%' }}>
           {activeTab === 'planner' ? (
             <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexDirection: { mobile: 'column', tablet: 'row' }, gap: '16px', width: '100%' }}>
-                <Typography className="h2" style={{ color: 'var(--accent-main)', margin: 0 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                  flexDirection: { mobile: 'column', tablet: 'row' },
+                  gap: '16px',
+                  width: '100%',
+                }}
+              >
+                <Typography
+                  className="h2"
+                  style={{ color: 'var(--accent-main)', margin: 0 }}
+                >
                   {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                {isServiceCommittee && (
-                  <Button
-                    variant={isCurrentlyOverridden || monthCancelled ? 'contained' : 'outlined'}
-                    color="primary"
-                    size="small"
-                    onClick={handleOpenMonthlySettings}
-                    startIcon={<IconSettings color={isCurrentlyOverridden || monthCancelled ? 'var(--always-white)' : 'var(--accent-main)'} width={18} height={18} />}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: '12px',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {isServiceCommittee && (
+                    <Button
+                      variant={
+                        isCurrentlyOverridden || monthCancelled
+                          ? 'contained'
+                          : 'outlined'
+                      }
+                      color="primary"
+                      size="small"
+                      onClick={handleOpenMonthlySettings}
+                      startIcon={
+                        <IconSettings
+                          color={
+                            isCurrentlyOverridden || monthCancelled
+                              ? 'var(--always-white)'
+                              : 'var(--accent-main)'
+                          }
+                          width={18}
+                          height={18}
+                        />
+                      }
+                      sx={{
+                        borderRadius: 'var(--radius-l)',
+                        textTransform: 'none',
+                        fontWeight: 'bold',
+                        boxShadow: 'none',
+                        height: '36px',
+                        ...((isCurrentlyOverridden || monthCancelled) && {
+                          backgroundColor: 'var(--orange-main)',
+                          color: 'var(--always-white)',
+                          '&:hover': {
+                            backgroundColor: 'var(--orange-dark)',
+                          },
+                        }),
+                      }}
+                    >
+                      Ajustes del mes
+                    </Button>
+                  )}
+                  {/* Selector de modo de vista */}
+                  <Box
                     sx={{
+                      display: 'flex',
+                      gap: '4px',
+                      backgroundColor: 'var(--accent-150)',
+                      padding: '4px',
                       borderRadius: 'var(--radius-l)',
-                      textTransform: 'none',
-                      fontWeight: 'bold',
-                      boxShadow: 'none',
-                      height: '36px',
-                      ...((isCurrentlyOverridden || monthCancelled) && {
-                        backgroundColor: 'var(--orange-main)',
-                        color: 'var(--always-white)',
-                        '&:hover': {
-                          backgroundColor: 'var(--orange-dark)',
-                        },
-                      }),
+                      border: '1px solid var(--line)',
                     }}
                   >
-                    Ajustes del mes
-                  </Button>
-                )}
-                {/* Selector de modo de vista */}
-                <Box sx={{ display: 'flex', gap: '4px', backgroundColor: 'var(--accent-150)', padding: '4px', borderRadius: 'var(--radius-l)', border: '1px solid var(--line)' }}>
-                  <Button
-                    onClick={() => setPlannerViewMode('lista')}
-                    size="small"
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: '700',
-                      borderRadius: 'var(--radius-s)',
-                      py: '4px',
-                      px: '16px',
-                      fontSize: '13px',
-                      boxShadow: 'none',
-                      ...(plannerViewMode === 'lista' ? {
-                        backgroundColor: 'var(--accent-main)',
-                        color: 'var(--always-white)',
-                        '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                      } : {
-                        color: 'var(--grey-600)',
-                        '&:hover': { backgroundColor: 'var(--line)' }
-                      })
-                    }}
-                  >
-                    Lista
-                  </Button>
-                  <Button
-                    onClick={() => setPlannerViewMode('mensual')}
-                    size="small"
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: '700',
-                      borderRadius: 'var(--radius-s)',
-                      py: '4px',
-                      px: '16px',
-                      fontSize: '13px',
-                      boxShadow: 'none',
-                      ...(plannerViewMode === 'mensual' ? {
-                        backgroundColor: 'var(--accent-main)',
-                        color: 'var(--always-white)',
-                        '&:hover': { backgroundColor: 'var(--accent-dark)' }
-                      } : {
-                        color: 'var(--grey-600)',
-                        '&:hover': { backgroundColor: 'var(--line)' }
-                      })
-                    }}
-                  >
-                    Cuadrícula
-                  </Button>
-                </Box>
+                    <Button
+                      onClick={() => setPlannerViewMode('lista')}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: '700',
+                        borderRadius: 'var(--radius-s)',
+                        py: '4px',
+                        px: '16px',
+                        fontSize: '13px',
+                        boxShadow: 'none',
+                        ...(plannerViewMode === 'lista'
+                          ? {
+                              backgroundColor: 'var(--accent-main)',
+                              color: 'var(--always-white)',
+                              '&:hover': {
+                                backgroundColor: 'var(--accent-dark)',
+                              },
+                            }
+                          : {
+                              color: 'var(--grey-600)',
+                              '&:hover': { backgroundColor: 'var(--line)' },
+                            }),
+                      }}
+                    >
+                      Lista
+                    </Button>
+                    <Button
+                      onClick={() => setPlannerViewMode('mensual')}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: '700',
+                        borderRadius: 'var(--radius-s)',
+                        py: '4px',
+                        px: '16px',
+                        fontSize: '13px',
+                        boxShadow: 'none',
+                        ...(plannerViewMode === 'mensual'
+                          ? {
+                              backgroundColor: 'var(--accent-main)',
+                              color: 'var(--always-white)',
+                              '&:hover': {
+                                backgroundColor: 'var(--accent-dark)',
+                              },
+                            }
+                          : {
+                              color: 'var(--grey-600)',
+                              '&:hover': { backgroundColor: 'var(--line)' },
+                            }),
+                      }}
+                    >
+                      Cuadrícula
+                    </Button>
+                  </Box>
                 </Box>
               </Box>
 
@@ -1525,7 +1647,13 @@ const PredicacionSalidas = () => {
                   }
 
                   // 2. Agrupar los días resultantes por su semana de inicio (Lunes)
-                  const weekMap = new Map<string, Array<{ dateKey: string; daySlots: typeof outingsSlotsInMonth }>>();
+                  const weekMap = new Map<
+                    string,
+                    Array<{
+                      dateKey: string;
+                      daySlots: typeof outingsSlotsInMonth;
+                    }>
+                  >();
                   for (const [dateKey, daySlots] of dayMap.entries()) {
                     const dayDate = daySlots[0].date;
                     const weekOf = getWeekOfDate(dayDate); // "YYYY/MM/DD"
@@ -1534,7 +1662,9 @@ const PredicacionSalidas = () => {
                   }
 
                   // 3. Ordenar las semanas cronológicamente
-                  const sortedWeeks = Array.from(weekMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                  const sortedWeeks = Array.from(weekMap.entries()).sort(
+                    (a, b) => a[0].localeCompare(b[0])
+                  );
 
                   const slotLabel = (slotType: string): string => {
                     if (slotType.endsWith('_morning')) return 'Mañana';
@@ -1548,11 +1678,24 @@ const PredicacionSalidas = () => {
                     const sunday = new Date(monday);
                     sunday.setDate(sunday.getDate() + 6);
 
-                    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                    
+                    const months = [
+                      'enero',
+                      'febrero',
+                      'marzo',
+                      'abril',
+                      'mayo',
+                      'junio',
+                      'julio',
+                      'agosto',
+                      'septiembre',
+                      'octubre',
+                      'noviembre',
+                      'diciembre',
+                    ];
+
                     const monDayNum = monday.getDate();
                     const monMonth = months[monday.getMonth()];
-                    
+
                     const sunDayNum = sunday.getDate();
                     const sunMonth = months[sunday.getMonth()];
 
@@ -1568,7 +1711,15 @@ const PredicacionSalidas = () => {
                     return (
                       <Box key={weekOf} sx={{ mb: '32px' }}>
                         {/* Título de la semana */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '12px',
+                            flexWrap: 'wrap',
+                          }}
+                        >
                           <Typography
                             className="h3"
                             style={{
@@ -1583,33 +1734,46 @@ const PredicacionSalidas = () => {
                             {weekLabel}
                           </Typography>
                           {(() => {
-                            const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
-                            return weekRecord?.isCircuitOverseerWeek && (
-                              <Chip
-                                label="Semana del superintendente"
-                                size="small"
-                                sx={{
-                                  backgroundColor: 'var(--accent-main)',
-                                  color: 'var(--always-white)',
-                                  fontWeight: '700',
-                                  fontSize: '11px',
-                                  height: '20px',
-                                }}
-                              />
+                            const weekRecord = outingsWeeks.find(
+                              (w) => w.weekOf === weekOf
+                            );
+                            return (
+                              weekRecord?.isCircuitOverseerWeek && (
+                                <Chip
+                                  label="Semana del superintendente"
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: 'var(--accent-main)',
+                                    color: 'var(--always-white)',
+                                    fontWeight: '700',
+                                    fontSize: '11px',
+                                    height: '20px',
+                                  }}
+                                />
+                              )
                             );
                           })()}
                           {isServiceCommittee && (
                             <IconButton
                               size="small"
                               onClick={() => handleOpenWeekSettings(weekOf)}
-                              sx={{ color: 'var(--grey-500)', '&:hover': { color: 'var(--accent-main)' } }}
+                              sx={{
+                                color: 'var(--grey-500)',
+                                '&:hover': { color: 'var(--accent-main)' },
+                              }}
                             >
                               <IconSettings />
                             </IconButton>
                           )}
                         </Box>
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                          }}
+                        >
                           {days.map(({ dateKey, daySlots }) => {
                             const dayDate = daySlots[0].date;
                             const dayLabel = formatLegibleDate(dayDate);
@@ -1629,8 +1793,10 @@ const PredicacionSalidas = () => {
                                   sx={{
                                     px: '16px',
                                     py: '10px',
-                                    background: 'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
-                                    borderBottom: '1px solid var(--accent-dark)',
+                                    background:
+                                      'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                                    borderBottom:
+                                      '1px solid var(--accent-dark)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px',
@@ -1653,23 +1819,36 @@ const PredicacionSalidas = () => {
                                 {/* Filas de slots */}
                                 {daySlots.map((slot, idx) => {
                                   const weekOfRecord = getWeekOfDate(slot.date);
-                                  const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                  const weekRecord = outingsWeeks.find(
+                                    (w) => w.weekOf === weekOfRecord
+                                  );
                                   const outing = weekRecord?.outings?.find(
-                                    (o) => o.date === dateKey && o.time === slot.time
+                                    (o) =>
+                                      o.date === dateKey && o.time === slot.time
                                   );
                                   const assignedBrother = persons.find(
                                     (b) => b.person_uid === outing?.person
                                   );
                                   let brotherName = '';
-                                  if (outing?.person?.startsWith('SHARED_CONG:')) {
-                                    brotherName = outing.person.replace('SHARED_CONG:', '');
-                                  } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                                  if (
+                                    outing?.person?.startsWith('SHARED_CONG:')
+                                  ) {
+                                    brotherName = outing.person.replace(
+                                      'SHARED_CONG:',
+                                      ''
+                                    );
+                                  } else if (
+                                    outing?.person === 'CIRCUIT_OVERSEER'
+                                  ) {
                                     brotherName = 'Superintendente de circuito';
                                   } else if (assignedBrother) {
                                     brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
                                   }
-                                  const isAssignedToMe = outing?.person === currentPerson?.person_uid;
-                                  const isCancelled = outing?.cancelled ?? false;
+                                  const isAssignedToMe =
+                                    outing?.person ===
+                                    currentPerson?.person_uid;
+                                  const isCancelled =
+                                    outing?.cancelled ?? false;
                                   const label = slotLabel(slot.slotType);
 
                                   return (
@@ -1682,16 +1861,25 @@ const PredicacionSalidas = () => {
                                         gap: '16px',
                                         px: '16px',
                                         py: '14px',
-                                        borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
+                                        borderTop:
+                                          idx > 0
+                                            ? '1px solid var(--line)'
+                                            : 'none',
                                         backgroundColor: isCancelled
                                           ? 'rgba(var(--red-main-base), 0.1)'
                                           : isAssignedToMe
-                                          ? 'var(--accent-150)'
-                                          : 'var(--card)',
-                                        cursor: isServiceCommittee ? 'pointer' : 'default',
+                                            ? 'var(--accent-150)'
+                                            : 'var(--card)',
+                                        cursor: isServiceCommittee
+                                          ? 'pointer'
+                                          : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
-                                          ? { backgroundColor: isCancelled ? 'rgba(var(--red-main-base), 0.15)' : 'var(--accent-100)' }
+                                          ? {
+                                              backgroundColor: isCancelled
+                                                ? 'rgba(var(--red-main-base), 0.15)'
+                                                : 'var(--accent-100)',
+                                            }
                                           : {},
                                       }}
                                     >
@@ -1701,31 +1889,46 @@ const PredicacionSalidas = () => {
                                           style={{
                                             fontWeight: '700',
                                             fontSize: '15px',
-                                            color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                                            color: isCancelled
+                                              ? 'var(--grey-500)'
+                                              : 'var(--accent-main)',
                                           }}
                                         >
                                           {slot.time}
                                         </Typography>
                                         {label && (
                                           <Typography
-                                            style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                                            style={{
+                                              fontSize: '12px',
+                                              color: 'var(--grey-500)',
+                                              fontWeight: '500',
+                                            }}
                                           >
                                             {label}
                                           </Typography>
                                         )}
                                       </Box>
 
-                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--line)' }} />
+                                      <Box
+                                        sx={{
+                                          width: '1px',
+                                          alignSelf: 'stretch',
+                                          backgroundColor: 'var(--line)',
+                                        }}
+                                      />
 
                                       {/* Hermano asignado */}
                                       <Box sx={{ flex: 1 }}>
                                         {isCancelled ? (
                                           <Chip
-                                            icon={<IconCancelFilled color="var(--error-main)" />}
+                                            icon={
+                                              <IconCancelFilled color="var(--error-main)" />
+                                            }
                                             label="Suspendida"
                                             size="small"
                                             sx={{
-                                              backgroundColor: 'var(--error-150)',
+                                              backgroundColor:
+                                                'var(--error-150)',
                                               color: 'var(--error-dark)',
                                               fontWeight: '600',
                                             }}
@@ -1735,7 +1938,9 @@ const PredicacionSalidas = () => {
                                             style={{
                                               fontWeight: '600',
                                               fontSize: '15px',
-                                              color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                              color: brotherName
+                                                ? 'var(--black)'
+                                                : 'var(--error-main)',
                                             }}
                                           >
                                             {brotherName || 'Sin asignar'}
@@ -1744,16 +1949,25 @@ const PredicacionSalidas = () => {
                                       </Box>
 
                                       {/* Lugar */}
-                                      <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                                      <Box
+                                        sx={{
+                                          textAlign: 'right',
+                                          minWidth: '120px',
+                                        }}
+                                      >
                                         <Typography
                                           style={{
                                             fontSize: '13px',
-                                            color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                                            color: isCancelled
+                                              ? 'var(--grey-400)'
+                                              : 'var(--grey-600)',
                                           }}
                                         >
                                           {isCancelled
                                             ? '—'
-                                            : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
+                                            : outing?.location ||
+                                              settings?.locations?.[0] ||
+                                              'Salón del Reino'}
                                         </Typography>
                                       </Box>
                                     </Box>
@@ -1774,7 +1988,11 @@ const PredicacionSalidas = () => {
                     const weekdaysInfo = [
                       { dayOfWeek: 1, label: 'lun.', englishLabel: 'monday' },
                       { dayOfWeek: 2, label: 'mar.', englishLabel: 'tuesday' },
-                      { dayOfWeek: 3, label: 'mié.', englishLabel: 'wednesday' },
+                      {
+                        dayOfWeek: 3,
+                        label: 'mié.',
+                        englishLabel: 'wednesday',
+                      },
                       { dayOfWeek: 4, label: 'jue.', englishLabel: 'thursday' },
                       { dayOfWeek: 5, label: 'vie.', englishLabel: 'friday' },
                       { dayOfWeek: 6, label: 'sáb.', englishLabel: 'saturday' },
@@ -1785,11 +2003,18 @@ const PredicacionSalidas = () => {
                     for (const slot of outingsSlotsInMonth) {
                       activeDays.add(slot.date.getDay());
                     }
-                    const weekdaysToShow = weekdaysInfo.filter(info => activeDays.has(info.dayOfWeek));
-                    const weekdaysToShowFinal = weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
+                    const weekdaysToShow = weekdaysInfo.filter((info) =>
+                      activeDays.has(info.dayOfWeek)
+                    );
+                    const weekdaysToShowFinal =
+                      weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
 
-                    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-                    
+                    const daysInMonth = new Date(
+                      selectedYear,
+                      selectedMonth + 1,
+                      0
+                    ).getDate();
+
                     const weekKeys = new Set<string>();
                     for (let d = 1; d <= daysInMonth; d++) {
                       const date = new Date(selectedYear, selectedMonth, d);
@@ -1797,12 +2022,17 @@ const PredicacionSalidas = () => {
                     }
                     const sortedWeekKeys = Array.from(weekKeys).sort();
 
-                    const cells: Array<{ type: 'empty'; id: string } | { type: 'day'; dayNum: number; date: Date }> = [];
+                    const cells: Array<
+                      | { type: 'empty'; id: string }
+                      | { type: 'day'; dayNum: number; date: Date }
+                    > = [];
 
                     for (const weekKey of sortedWeekKeys) {
-                      const [wYear, wMonth, wDay] = weekKey.split('/').map(Number);
+                      const [wYear, wMonth, wDay] = weekKey
+                        .split('/')
+                        .map(Number);
                       const mondayDate = new Date(wYear, wMonth - 1, wDay);
-                      
+
                       for (const dayInfo of weekdaysToShowFinal) {
                         let diffDays = 0;
                         if (dayInfo.dayOfWeek === 1) diffDays = 0;
@@ -1812,11 +2042,14 @@ const PredicacionSalidas = () => {
                         else if (dayInfo.dayOfWeek === 5) diffDays = 4;
                         else if (dayInfo.dayOfWeek === 6) diffDays = 5;
                         else if (dayInfo.dayOfWeek === 0) diffDays = 6;
-                        
+
                         const cellDate = new Date(mondayDate);
                         cellDate.setDate(mondayDate.getDate() + diffDays);
-                        
-                        if (cellDate.getMonth() === selectedMonth && cellDate.getFullYear() === selectedYear) {
+
+                        if (
+                          cellDate.getMonth() === selectedMonth &&
+                          cellDate.getFullYear() === selectedYear
+                        ) {
                           cells.push({
                             type: 'day',
                             dayNum: cellDate.getDate(),
@@ -1832,7 +2065,10 @@ const PredicacionSalidas = () => {
                     }
 
                     // Group slots by day
-                    const daySlotsMap = new Map<number, typeof outingsSlotsInMonth>();
+                    const daySlotsMap = new Map<
+                      number,
+                      typeof outingsSlotsInMonth
+                    >();
                     for (const slot of outingsSlotsInMonth) {
                       const day = slot.date.getDate();
                       if (!daySlotsMap.has(day)) {
@@ -1842,8 +2078,14 @@ const PredicacionSalidas = () => {
                     }
 
                     const getAbbreviatedName = (fullName: string) => {
-                      if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
-                      if (fullName === 'Superintendente de circuito' || settings?.sharedSlots?.some((s) => s.congregation === fullName)) {
+                      if (!fullName || fullName === 'Sin asignar')
+                        return 'Sin asignar';
+                      if (
+                        fullName === 'Superintendente de circuito' ||
+                        settings?.sharedSlots?.some(
+                          (s) => s.congregation === fullName
+                        )
+                      ) {
                         return fullName;
                       }
                       const parts = fullName.trim().split(/\s+/);
@@ -1854,43 +2096,69 @@ const PredicacionSalidas = () => {
                     };
 
                     return (
-                      <Box sx={{
-                        borderRadius: 'var(--radius-xl)',
-                        border: '1px solid var(--line)',
-                        backgroundColor: 'var(--card)',
-                        p: { mobile: '12px', tablet: '20px' },
-                        boxShadow: 'none',
-                        width: '100%',
-                        boxSizing: 'border-box'
-                      }}>
-                        <Grid container spacing={1} columns={weekdaysToShowFinal.length} sx={{ width: '100%', margin: 0 }}>
+                      <Box
+                        sx={{
+                          borderRadius: 'var(--radius-xl)',
+                          border: '1px solid var(--line)',
+                          backgroundColor: 'var(--card)',
+                          p: { mobile: '12px', tablet: '20px' },
+                          boxShadow: 'none',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        <Grid
+                          container
+                          spacing={1}
+                          columns={weekdaysToShowFinal.length}
+                          sx={{ width: '100%', margin: 0 }}
+                        >
                           {weekdaysToShowFinal.map((dayInfo) => (
-                            <Grid size={{ mobile: 1 }} key={dayInfo.label} sx={{ p: 0.5 }}>
-                              <Box sx={{
-                                textAlign: 'center',
-                                py: '6px',
-                                borderBottom: '2px solid var(--line)',
-                                mb: '4px'
-                              }}>
-                                <Typography style={{ fontWeight: '700', fontSize: '12px', color: 'var(--accent-main)', textTransform: 'none' }}>
+                            <Grid
+                              size={{ mobile: 1 }}
+                              key={dayInfo.label}
+                              sx={{ p: 0.5 }}
+                            >
+                              <Box
+                                sx={{
+                                  textAlign: 'center',
+                                  py: '6px',
+                                  borderBottom: '2px solid var(--line)',
+                                  mb: '4px',
+                                }}
+                              >
+                                <Typography
+                                  style={{
+                                    fontWeight: '700',
+                                    fontSize: '12px',
+                                    color: 'var(--accent-main)',
+                                    textTransform: 'none',
+                                  }}
+                                >
                                   {dayInfo.label}
                                 </Typography>
                               </Box>
                             </Grid>
                           ))}
-                          
+
                           {cells.map((cell) => {
                             if (cell.type === 'empty') {
                               return (
-                                <Grid size={{ mobile: 1 }} key={cell.id} sx={{ p: 0.5 }}>
-                                  <Box sx={{
-                                    aspectRatio: desktopUp ? 'auto' : '1',
-                                    minHeight: desktopUp ? '110px' : 'auto',
-                                    backgroundColor: 'var(--accent-150)',
-                                    border: '1px solid var(--line)',
-                                    borderRadius: 'var(--radius-l)',
-                                    opacity: 0.3
-                                  }} />
+                                <Grid
+                                  size={{ mobile: 1 }}
+                                  key={cell.id}
+                                  sx={{ p: 0.5 }}
+                                >
+                                  <Box
+                                    sx={{
+                                      aspectRatio: desktopUp ? 'auto' : '1',
+                                      minHeight: desktopUp ? '110px' : 'auto',
+                                      backgroundColor: 'var(--accent-150)',
+                                      border: '1px solid var(--line)',
+                                      borderRadius: 'var(--radius-l)',
+                                      opacity: 0.3,
+                                    }}
+                                  />
                                 </Grid>
                               );
                             }
@@ -1901,116 +2169,199 @@ const PredicacionSalidas = () => {
                             if (desktopUp) {
                               // Desktop Calendar Cell
                               return (
-                                <Grid size={{ mobile: 1 }} key={cell.dayNum} sx={{ p: 0.5 }}>
-                                  <Box sx={{
-                                    minHeight: '130px',
-                                    backgroundColor: 'var(--card)',
-                                    border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
-                                    borderRadius: 'var(--radius-l)',
-                                    p: '10px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px',
-                                    height: '100%',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                      borderColor: 'var(--line)',
-                                      boxShadow: 'var(--hover-shadow)',
-                                    }
-                                  }}>
-                                    <Typography style={{
-                                      fontWeight: '800',
-                                      fontSize: '14px',
-                                      color: isSelected ? 'var(--accent-main)' : 'var(--grey-600)',
-                                      margin: 0
-                                    }}>
+                                <Grid
+                                  size={{ mobile: 1 }}
+                                  key={cell.dayNum}
+                                  sx={{ p: 0.5 }}
+                                >
+                                  <Box
+                                    sx={{
+                                      minHeight: '130px',
+                                      backgroundColor: 'var(--card)',
+                                      border: isSelected
+                                        ? '2px solid var(--accent-main)'
+                                        : '1px solid var(--line)',
+                                      borderRadius: 'var(--radius-l)',
+                                      p: '10px',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '8px',
+                                      height: '100%',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: 'none',
+                                      '&:hover': {
+                                        borderColor: 'var(--line)',
+                                        boxShadow: 'var(--hover-shadow)',
+                                      },
+                                    }}
+                                  >
+                                    <Typography
+                                      style={{
+                                        fontWeight: '800',
+                                        fontSize: '14px',
+                                        color: isSelected
+                                          ? 'var(--accent-main)'
+                                          : 'var(--grey-600)',
+                                        margin: 0,
+                                      }}
+                                    >
                                       {cell.dayNum}
                                     </Typography>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1 }}>
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '6px',
+                                        flexGrow: 1,
+                                      }}
+                                    >
                                       {daySlots.length === 0 ? (
-                                        <Typography style={{ fontSize: '11px', color: 'var(--grey-400)', fontStyle: 'italic', marginTop: '4px' }}>
+                                        <Typography
+                                          style={{
+                                            fontSize: '11px',
+                                            color: 'var(--grey-400)',
+                                            fontStyle: 'italic',
+                                            marginTop: '4px',
+                                          }}
+                                        >
                                           Sin salidas
                                         </Typography>
                                       ) : (
                                         daySlots.map((slot) => {
-                                          const weekOfRecord = getWeekOfDate(slot.date);
-                                          const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-                                          const outing = weekRecord?.outings?.find(
-                                            (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                          const weekOfRecord = getWeekOfDate(
+                                            slot.date
                                           );
-                                          const assignedBrother = outing ? persons.find((b) => b.person_uid === outing.person) : null;
+                                          const weekRecord = outingsWeeks.find(
+                                            (w) => w.weekOf === weekOfRecord
+                                          );
+                                          const outing =
+                                            weekRecord?.outings?.find(
+                                              (o) =>
+                                                o.date ===
+                                                  formatToDbDate(slot.date) &&
+                                                o.time === slot.time
+                                            );
+                                          const assignedBrother = outing
+                                            ? persons.find(
+                                                (b) =>
+                                                  b.person_uid === outing.person
+                                              )
+                                            : null;
                                           let brotherName = '';
-                                          if (outing?.person?.startsWith('SHARED_CONG:')) {
-                                            brotherName = outing.person.replace('SHARED_CONG:', '');
-                                          } else if (outing?.person === 'CIRCUIT_OVERSEER') {
-                                            brotherName = 'Superintendente de circuito';
+                                          if (
+                                            outing?.person?.startsWith(
+                                              'SHARED_CONG:'
+                                            )
+                                          ) {
+                                            brotherName = outing.person.replace(
+                                              'SHARED_CONG:',
+                                              ''
+                                            );
+                                          } else if (
+                                            outing?.person ===
+                                            'CIRCUIT_OVERSEER'
+                                          ) {
+                                            brotherName =
+                                              'Superintendente de circuito';
                                           } else if (assignedBrother) {
                                             brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
                                           }
-                                          const isAssignedToMe = outing?.person === currentPerson?.person_uid;
-                                          const isCancelled = outing?.cancelled ?? false;
-                                          
-                                          const text = isCancelled ? 'Suspendida' : getAbbreviatedName(brotherName);
-                                          
-                                           let bgColor = 'var(--accent-150)';
-                                           let textColor = 'var(--accent-dark)';
-                                           let hoverBgColor = 'var(--accent-200)';
-                                           
-                                           if (isCancelled) {
-                                             bgColor = 'rgba(var(--red-main-base), 0.1)';
-                                             textColor = 'var(--error-dark)';
-                                             hoverBgColor = 'rgba(var(--red-main-base), 0.15)';
-                                           } else if (!brotherName) {
-                                             bgColor = 'rgba(var(--orange-main-base), 0.1)';
-                                             textColor = 'var(--orange-dark)';
-                                             hoverBgColor = 'rgba(var(--orange-main-base), 0.15)';
-                                           } else if (isAssignedToMe) {
-                                             bgColor = 'var(--accent-main)';
-                                             textColor = 'var(--always-white)';
-                                             hoverBgColor = 'var(--accent-dark)';
-                                           }
+                                          const isAssignedToMe =
+                                            outing?.person ===
+                                            currentPerson?.person_uid;
+                                          const isCancelled =
+                                            outing?.cancelled ?? false;
 
-                                           return (
-                                             <Box
-                                               key={slot.slotId}
-                                               onClick={() => handleOpenEdit(slot)}
-                                               sx={{
-                                                 backgroundColor: bgColor,
-                                                 color: textColor,
-                                                 border: 'none',
-                                                 borderRadius: 'var(--radius-l)',
-                                                 p: '6px 8px',
-                                                 cursor: isServiceCommittee ? 'pointer' : 'default',
-                                                 display: 'flex',
-                                                 justifyContent: 'space-between',
-                                                 alignItems: 'center',
-                                                 gap: '6px',
-                                                 transition: 'all 0.2s ease-in-out',
-                                                 boxShadow: 'var(--small-card-shadow)',
-                                                 '&:hover': isServiceCommittee ? {
-                                                   transform: 'translateY(-1px)',
-                                                   boxShadow: 'var(--hover-shadow)',
-                                                   backgroundColor: hoverBgColor,
-                                                 } : {}
-                                               }}
-                                             >
-                                               <span style={{ fontWeight: '800', fontSize: '11.5px', whiteSpace: 'nowrap', opacity: 0.9 }}>
-                                                 {slot.time}
-                                               </span>
-                                               <span style={{
-                                                 overflow: 'hidden',
-                                                 textOverflow: 'ellipsis',
-                                                 whiteSpace: 'nowrap',
-                                                 maxWidth: 'calc(100% - 42px)',
-                                                 fontSize: '12px',
-                                                 fontWeight: '700',
-                                                 textAlign: 'right'
-                                               }} title={brotherName || 'Sin asignar'}>
-                                                 {text}
-                                               </span>
-                                             </Box>
-                                           );
+                                          const text = isCancelled
+                                            ? 'Suspendida'
+                                            : getAbbreviatedName(brotherName);
+
+                                          let bgColor = 'var(--accent-150)';
+                                          let textColor = 'var(--accent-dark)';
+                                          let hoverBgColor =
+                                            'var(--accent-200)';
+
+                                          if (isCancelled) {
+                                            bgColor =
+                                              'rgba(var(--red-main-base), 0.1)';
+                                            textColor = 'var(--error-dark)';
+                                            hoverBgColor =
+                                              'rgba(var(--red-main-base), 0.15)';
+                                          } else if (!brotherName) {
+                                            bgColor =
+                                              'rgba(var(--orange-main-base), 0.1)';
+                                            textColor = 'var(--orange-dark)';
+                                            hoverBgColor =
+                                              'rgba(var(--orange-main-base), 0.15)';
+                                          } else if (isAssignedToMe) {
+                                            bgColor = 'var(--accent-main)';
+                                            textColor = 'var(--always-white)';
+                                            hoverBgColor = 'var(--accent-dark)';
+                                          }
+
+                                          return (
+                                            <Box
+                                              key={slot.slotId}
+                                              onClick={() =>
+                                                handleOpenEdit(slot)
+                                              }
+                                              sx={{
+                                                backgroundColor: bgColor,
+                                                color: textColor,
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-l)',
+                                                p: '6px 8px',
+                                                cursor: isServiceCommittee
+                                                  ? 'pointer'
+                                                  : 'default',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition:
+                                                  'all 0.2s ease-in-out',
+                                                boxShadow:
+                                                  'var(--small-card-shadow)',
+                                                '&:hover': isServiceCommittee
+                                                  ? {
+                                                      transform:
+                                                        'translateY(-1px)',
+                                                      boxShadow:
+                                                        'var(--hover-shadow)',
+                                                      backgroundColor:
+                                                        hoverBgColor,
+                                                    }
+                                                  : {},
+                                              }}
+                                            >
+                                              <span
+                                                style={{
+                                                  fontWeight: '800',
+                                                  fontSize: '11.5px',
+                                                  whiteSpace: 'nowrap',
+                                                  opacity: 0.9,
+                                                }}
+                                              >
+                                                {slot.time}
+                                              </span>
+                                              <span
+                                                style={{
+                                                  overflow: 'hidden',
+                                                  textOverflow: 'ellipsis',
+                                                  whiteSpace: 'nowrap',
+                                                  maxWidth: 'calc(100% - 42px)',
+                                                  fontSize: '12px',
+                                                  fontWeight: '700',
+                                                  textAlign: 'right',
+                                                }}
+                                                title={
+                                                  brotherName || 'Sin asignar'
+                                                }
+                                              >
+                                                {text}
+                                              </span>
+                                            </Box>
+                                          );
                                         })
                                       )}
                                     </Box>
@@ -2021,25 +2372,41 @@ const PredicacionSalidas = () => {
                               // Mobile Calendar Cell
                               const dots = daySlots.map((slot) => {
                                 const weekOfRecord = getWeekOfDate(slot.date);
-                                const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
+                                const weekRecord = outingsWeeks.find(
+                                  (w) => w.weekOf === weekOfRecord
+                                );
                                 const outing = weekRecord?.outings?.find(
-                                  (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                  (o) =>
+                                    o.date === formatToDbDate(slot.date) &&
+                                    o.time === slot.time
                                 );
                                 const isCancelled = outing?.cancelled ?? false;
-                                const brotherName = outing?.person ? 'assigned' : '';
+                                const brotherName = outing?.person
+                                  ? 'assigned'
+                                  : '';
                                 if (isCancelled) return 'red';
                                 if (brotherName) return 'green';
                                 return 'yellow';
                               });
 
                               return (
-                                <Grid size={{ mobile: 1 }} key={cell.dayNum} sx={{ p: 0.5 }}>
+                                <Grid
+                                  size={{ mobile: 1 }}
+                                  key={cell.dayNum}
+                                  sx={{ p: 0.5 }}
+                                >
                                   <Box
-                                    onClick={() => setSelectedDayNum(cell.dayNum)}
+                                    onClick={() =>
+                                      setSelectedDayNum(cell.dayNum)
+                                    }
                                     sx={{
                                       aspectRatio: '1',
-                                      backgroundColor: isSelected ? 'var(--accent-150)' : 'var(--card)',
-                                      border: isSelected ? '2px solid var(--accent-main)' : '1px solid var(--line)',
+                                      backgroundColor: isSelected
+                                        ? 'var(--accent-150)'
+                                        : 'var(--card)',
+                                      border: isSelected
+                                        ? '2px solid var(--accent-main)'
+                                        : '1px solid var(--line)',
                                       borderRadius: 'var(--radius-l)',
                                       display: 'flex',
                                       flexDirection: 'column',
@@ -2049,18 +2416,31 @@ const PredicacionSalidas = () => {
                                       transition: 'all 0.15s ease',
                                       '&:hover': {
                                         borderColor: 'var(--accent-main)',
-                                      }
+                                      },
                                     }}
                                   >
-                                    <Typography style={{
-                                      fontWeight: '700',
-                                      fontSize: '14px',
-                                      color: isSelected ? 'var(--accent-dark)' : 'var(--grey-700)'
-                                    }}>
+                                    <Typography
+                                      style={{
+                                        fontWeight: '700',
+                                        fontSize: '14px',
+                                        color: isSelected
+                                          ? 'var(--accent-dark)'
+                                          : 'var(--grey-700)',
+                                      }}
+                                    >
                                       {cell.dayNum}
                                     </Typography>
-                                    
-                                    <Box sx={{ display: 'flex', gap: '3px', mt: '4px', flexWrap: 'wrap', justifyContent: 'center', px: '2px' }}>
+
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        gap: '3px',
+                                        mt: '4px',
+                                        flexWrap: 'wrap',
+                                        justifyContent: 'center',
+                                        px: '2px',
+                                      }}
+                                    >
                                       {dots.map((dotColor, idx) => (
                                         <Box
                                           key={idx}
@@ -2072,8 +2452,8 @@ const PredicacionSalidas = () => {
                                               dotColor === 'green'
                                                 ? 'var(--green-main)'
                                                 : dotColor === 'yellow'
-                                                ? 'var(--orange-main)'
-                                                : 'var(--error-main)',
+                                                  ? 'var(--orange-main)'
+                                                  : 'var(--error-main)',
                                           }}
                                         />
                                       ))}
@@ -2084,7 +2464,7 @@ const PredicacionSalidas = () => {
                             }
                           })}
                         </Grid>
-                        
+
                         {/* Mobile Details Panel */}
                         {!desktopUp && selectedDayNum !== null && (
                           <Box sx={{ mt: '24px' }}>
@@ -2106,53 +2486,94 @@ const PredicacionSalidas = () => {
                               >
                                 <Typography
                                   className="h3"
-                                  style={{ fontWeight: '700', color: 'var(--accent-dark)', textTransform: 'none' }}
+                                  style={{
+                                    fontWeight: '700',
+                                    color: 'var(--accent-dark)',
+                                    textTransform: 'none',
+                                  }}
                                 >
                                   {(() => {
-                                    const date = new Date(selectedYear, selectedMonth, selectedDayNum);
+                                    const date = new Date(
+                                      selectedYear,
+                                      selectedMonth,
+                                      selectedDayNum
+                                    );
                                     return formatLegibleDate(date);
                                   })()}
                                 </Typography>
                               </Box>
 
                               {(() => {
-                                const selectedDaySlots = outingsSlotsInMonth.filter(
-                                  (slot) => slot.date.getDate() === selectedDayNum
-                                );
+                                const selectedDaySlots =
+                                  outingsSlotsInMonth.filter(
+                                    (slot) =>
+                                      slot.date.getDate() === selectedDayNum
+                                  );
 
                                 if (selectedDaySlots.length === 0) {
                                   return (
-                                    <Box sx={{ p: '24px', textAlign: 'center' }}>
-                                      <Typography style={{ color: 'var(--grey-500)', fontSize: '14px', fontStyle: 'italic' }}>
-                                        No hay salidas programadas para este día.
+                                    <Box
+                                      sx={{ p: '24px', textAlign: 'center' }}
+                                    >
+                                      <Typography
+                                        style={{
+                                          color: 'var(--grey-500)',
+                                          fontSize: '14px',
+                                          fontStyle: 'italic',
+                                        }}
+                                      >
+                                        No hay salidas programadas para este
+                                        día.
                                       </Typography>
                                     </Box>
                                   );
                                 }
 
-                                const slotLabel = (slotType: string): string => {
-                                  if (slotType.endsWith('_morning')) return 'Mañana';
-                                  if (slotType.endsWith('_afternoon')) return 'Tarde';
+                                const slotLabel = (
+                                  slotType: string
+                                ): string => {
+                                  if (slotType.endsWith('_morning'))
+                                    return 'Mañana';
+                                  if (slotType.endsWith('_afternoon'))
+                                    return 'Tarde';
                                   return '';
                                 };
 
                                 return selectedDaySlots.map((slot, idx) => {
                                   const weekOfRecord = getWeekOfDate(slot.date);
-                                  const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-                                  const outing = weekRecord?.outings?.find(
-                                    (o) => o.date === formatToDbDate(slot.date) && o.time === slot.time
+                                  const weekRecord = outingsWeeks.find(
+                                    (w) => w.weekOf === weekOfRecord
                                   );
-                                  const assignedBrother = outing ? persons.find((b) => b.person_uid === outing.person) : null;
+                                  const outing = weekRecord?.outings?.find(
+                                    (o) =>
+                                      o.date === formatToDbDate(slot.date) &&
+                                      o.time === slot.time
+                                  );
+                                  const assignedBrother = outing
+                                    ? persons.find(
+                                        (b) => b.person_uid === outing.person
+                                      )
+                                    : null;
                                   let brotherName = '';
-                                  if (outing?.person?.startsWith('SHARED_CONG:')) {
-                                    brotherName = outing.person.replace('SHARED_CONG:', '');
-                                  } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+                                  if (
+                                    outing?.person?.startsWith('SHARED_CONG:')
+                                  ) {
+                                    brotherName = outing.person.replace(
+                                      'SHARED_CONG:',
+                                      ''
+                                    );
+                                  } else if (
+                                    outing?.person === 'CIRCUIT_OVERSEER'
+                                  ) {
                                     brotherName = 'Superintendente de circuito';
                                   } else if (assignedBrother) {
                                     brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
                                   }
-                                  const isAssignedToMe = outing?.person === currentPerson?.person_uid;
-                                  const isCancelled = outing?.cancelled ?? false;
+                                  const isAssignedToMe =
+                                    outing?.person ===
+                                    currentPerson?.person_uid;
+                                  const isCancelled =
+                                    outing?.cancelled ?? false;
                                   const label = slotLabel(slot.slotType);
 
                                   return (
@@ -2165,16 +2586,25 @@ const PredicacionSalidas = () => {
                                         gap: '16px',
                                         px: '16px',
                                         py: '14px',
-                                        borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
+                                        borderTop:
+                                          idx > 0
+                                            ? '1px solid var(--line)'
+                                            : 'none',
                                         backgroundColor: isCancelled
                                           ? 'rgba(var(--red-main-base), 0.1)'
                                           : isAssignedToMe
-                                          ? 'var(--accent-150)'
-                                          : 'var(--card)',
-                                        cursor: isServiceCommittee ? 'pointer' : 'default',
+                                            ? 'var(--accent-150)'
+                                            : 'var(--card)',
+                                        cursor: isServiceCommittee
+                                          ? 'pointer'
+                                          : 'default',
                                         transition: 'background-color 0.15s',
                                         '&:hover': isServiceCommittee
-                                          ? { backgroundColor: isCancelled ? 'rgba(var(--red-main-base), 0.15)' : 'var(--accent-100)' }
+                                          ? {
+                                              backgroundColor: isCancelled
+                                                ? 'rgba(var(--red-main-base), 0.15)'
+                                                : 'var(--accent-100)',
+                                            }
                                           : {},
                                       }}
                                     >
@@ -2183,30 +2613,45 @@ const PredicacionSalidas = () => {
                                           style={{
                                             fontWeight: '700',
                                             fontSize: '15px',
-                                            color: isCancelled ? 'var(--grey-500)' : 'var(--accent-main)',
+                                            color: isCancelled
+                                              ? 'var(--grey-500)'
+                                              : 'var(--accent-main)',
                                           }}
                                         >
                                           {slot.time}
                                         </Typography>
                                         {label && (
                                           <Typography
-                                            style={{ fontSize: '12px', color: 'var(--grey-500)', fontWeight: '500' }}
+                                            style={{
+                                              fontSize: '12px',
+                                              color: 'var(--grey-500)',
+                                              fontWeight: '500',
+                                            }}
                                           >
                                             {label}
                                           </Typography>
                                         )}
                                       </Box>
 
-                                      <Box sx={{ width: '1px', alignSelf: 'stretch', backgroundColor: 'var(--line)' }} />
+                                      <Box
+                                        sx={{
+                                          width: '1px',
+                                          alignSelf: 'stretch',
+                                          backgroundColor: 'var(--line)',
+                                        }}
+                                      />
 
                                       <Box sx={{ flex: 1 }}>
                                         {isCancelled ? (
                                           <Chip
-                                            icon={<IconCancelFilled color="var(--error-main)" />}
+                                            icon={
+                                              <IconCancelFilled color="var(--error-main)" />
+                                            }
                                             label="Suspendida"
                                             size="small"
                                             sx={{
-                                              backgroundColor: 'var(--error-150)',
+                                              backgroundColor:
+                                                'var(--error-150)',
                                               color: 'var(--error-dark)',
                                               fontWeight: '600',
                                             }}
@@ -2216,7 +2661,9 @@ const PredicacionSalidas = () => {
                                             style={{
                                               fontWeight: '600',
                                               fontSize: '15px',
-                                              color: brotherName ? 'var(--black)' : 'var(--error-main)',
+                                              color: brotherName
+                                                ? 'var(--black)'
+                                                : 'var(--error-main)',
                                             }}
                                           >
                                             {brotherName || 'Sin asignar'}
@@ -2224,16 +2671,25 @@ const PredicacionSalidas = () => {
                                         )}
                                       </Box>
 
-                                      <Box sx={{ textAlign: 'right', minWidth: '120px' }}>
+                                      <Box
+                                        sx={{
+                                          textAlign: 'right',
+                                          minWidth: '120px',
+                                        }}
+                                      >
                                         <Typography
                                           style={{
                                             fontSize: '13px',
-                                            color: isCancelled ? 'var(--grey-400)' : 'var(--grey-600)',
+                                            color: isCancelled
+                                              ? 'var(--grey-400)'
+                                              : 'var(--grey-600)',
                                           }}
                                         >
                                           {isCancelled
                                             ? '—'
-                                            : outing?.location || settings?.locations?.[0] || 'Salón del Reino'}
+                                            : outing?.location ||
+                                              settings?.locations?.[0] ||
+                                              'Salón del Reino'}
                                         </Typography>
                                       </Box>
                                     </Box>
@@ -2268,452 +2724,1020 @@ const PredicacionSalidas = () => {
                 sx={{
                   px: { mobile: '20px', tablet: '28px' },
                   py: { mobile: '16px', tablet: '20px' },
-                  background: 'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                  background:
+                    'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                 }}
               >
-                <IconSettings width={22} height={22} color="var(--always-white)" />
+                <IconSettings
+                  width={22}
+                  height={22}
+                  color="var(--always-white)"
+                />
                 <Typography
                   className="h3"
-                  style={{ color: 'var(--always-white)', margin: 0, fontWeight: 800, letterSpacing: '-0.3px' }}
+                  style={{
+                    color: 'var(--always-white)',
+                    margin: 0,
+                    fontWeight: 800,
+                    letterSpacing: '-0.3px',
+                  }}
                 >
                   Configuración de salidas de predicación
                 </Typography>
               </Box>
               <Box sx={{ padding: { mobile: '20px', tablet: '28px' } }}>
-
-              <Tabs
-                value={settingsSubTab}
-                onChange={(_, val) => setSettingsSubTab(val)}
-                variant="scrollable"
-                scrollButtons="auto"
-                allowScrollButtonsMobile
-                sx={{
-                  borderBottom: '1px solid var(--line)',
-                  marginBottom: '28px',
-                  width: '100%',
-                  maxWidth: '100%',
-                  '& .MuiTabs-scroller': {
-                    overflowX: 'auto !important',
-                  },
-                  '& .MuiTabs-indicator': {
-                    backgroundColor: 'var(--accent-main)',
-                    height: '3px',
-                    borderRadius: '3px 3px 0 0',
-                  },
-                  '& .MuiTab-root': {
-                    fontWeight: '700',
-                    fontSize: '13.5px',
-                    minHeight: '48px',
-                    color: 'var(--grey-600)',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    px: '20px',
-                    '&.Mui-selected': {
-                      color: 'var(--accent-main)',
+                <Tabs
+                  value={settingsSubTab}
+                  onChange={(_, val) => setSettingsSubTab(val)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
+                  sx={{
+                    borderBottom: '1px solid var(--line)',
+                    marginBottom: '28px',
+                    width: '100%',
+                    maxWidth: '100%',
+                    '& .MuiTabs-scroller': {
+                      overflowX: 'auto !important',
                     },
-                    '&:hover': {
-                      color: 'var(--accent-dark)',
-                      backgroundColor: 'rgba(48, 108, 180, 0.04)',
-                      borderRadius: 'var(--radius-m) var(--radius-m) 0 0',
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: 'var(--accent-main)',
+                      height: '3px',
+                      borderRadius: '3px 3px 0 0',
                     },
-                  },
-                }}
-              >
-                <Tab label="UBICACIONES" />
-                <Tab label="HORARIOS" />
-                <Tab label="DISPONIBILIDAD DE HERMANOS" />
-                <Tab label="SALIDAS COMPARTIDAS" />
-              </Tabs>
+                    '& .MuiTab-root': {
+                      fontWeight: '700',
+                      fontSize: '13.5px',
+                      minHeight: '48px',
+                      color: 'var(--grey-600)',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      px: '20px',
+                      '&.Mui-selected': {
+                        color: 'var(--accent-main)',
+                      },
+                      '&:hover': {
+                        color: 'var(--accent-dark)',
+                        backgroundColor: 'rgba(48, 108, 180, 0.04)',
+                        borderRadius: 'var(--radius-m) var(--radius-m) 0 0',
+                      },
+                    },
+                  }}
+                >
+                  <Tab label="UBICACIONES" />
+                  <Tab label="HORARIOS" />
+                  <Tab label="DISPONIBILIDAD DE HERMANOS" />
+                  <Tab label="SALIDAS COMPARTIDAS" />
+                </Tabs>
 
-              {/* Sub-tab 0: Ubicaciones */}
-              {settingsSubTab === 0 && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Box>
-                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
-                      Lugares de salidas
-                    </Typography>
-                    <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
-                      Configura los lugares habituales de reunión para las salidas de predicación de la congregación.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: '12px', maxWidth: '500px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' } }}>
-                    <TextField
-                      label="Nueva ubicación"
-                      value={newLocation}
-                      onChange={(e) => setNewLocation(e.target.value)}
-                      size="small"
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 'var(--radius-l)',
-                        }
-                      }}
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={handleAddLocation}
-                      startIcon={<IconAdd color="var(--always-white)" />}
-                      sx={{
-                        backgroundColor: 'var(--accent-main)',
-                        color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-l)',
-                        boxShadow: 'none',
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        py: '8px',
-                        px: '20px',
-                        whiteSpace: 'nowrap',
-                        '&:hover': {
-                          backgroundColor: 'var(--accent-dark)',
-                          boxShadow: 'none',
-                        },
-                      }}
-                    >
-                      Añadir
-                    </Button>
-                  </Box>
-
+                {/* Sub-tab 0: Ubicaciones */}
+                {settingsSubTab === 0 && (
                   <Box
                     sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
-                      gap: '12px',
-                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
                     }}
                   >
-                    {settings?.locations?.map((loc) => (
-                      <Card
-                        key={loc}
-                        sx={{
-                          padding: '16px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          border: '1px solid var(--line)',
-                          borderRadius: 'var(--radius-l)',
-                          boxShadow: 'none',
-                          backgroundColor: 'var(--card)',
-                          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                          '&:hover': {
-                            borderColor: 'var(--accent-main)',
-                            boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
-                            transform: 'translateY(-2px)',
-                          },
+                    <Box>
+                      <Typography
+                        style={{
+                          fontWeight: '800',
+                          fontSize: '16.5px',
+                          color: 'var(--accent-dark)',
                         }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IconLocation width={18} height={18} color="var(--accent-main)" />
-                          <Typography style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--accent-dark)' }}>
-                            {loc}
-                          </Typography>
-                        </Box>
-                        {settings.locations && settings.locations.length > 1 && (
-                          <IconButton
-                            onClick={() => handleDeleteLocation(loc)}
-                            sx={{
-                              color: 'var(--error-main)',
-                              padding: '6px',
-                              borderRadius: 'var(--radius-l)',
-                              '&:hover': {
-                                backgroundColor: 'var(--error-150)',
-                              },
-                            }}
-                            size="small"
-                          >
-                            <IconDelete color="var(--error-main)" />
-                          </IconButton>
-                        )}
-                      </Card>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              {/* Sub-tab 1: Horarios Recurrentes */}
-              {settingsSubTab === 1 && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Box>
-                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
-                      Horarios semanales
-                    </Typography>
-                    <Typography style={{ fontSize: '13.5px', color: 'var(--grey-600)', marginTop: '4px' }}>
-                      Define las horas de reunión y el estado activo/inactivo para cada día y horario de la semana.
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr' },
-                      gap: '16px',
-                      width: '100%',
-                    }}
-                  >
-                    {[
-                      { dayLabel: 'Lunes', morningKey: 'monday_morning', afternoonKey: 'monday_afternoon' },
-                      { dayLabel: 'Martes', morningKey: 'tuesday_morning', afternoonKey: 'tuesday_afternoon' },
-                      { dayLabel: 'Miércoles', morningKey: 'wednesday_morning', afternoonKey: 'wednesday_afternoon' },
-                      { dayLabel: 'Jueves', morningKey: 'thursday_morning', afternoonKey: 'thursday_afternoon' },
-                      { dayLabel: 'Viernes', morningKey: 'friday_morning', afternoonKey: 'friday_afternoon' },
-                      { dayLabel: 'Sábado', morningKey: 'saturday_morning', afternoonKey: 'saturday_afternoon' },
-                      { dayLabel: 'Domingo', morningKey: 'sunday_morning', afternoonKey: 'sunday_afternoon' },
-                    ].map((dayGroup) => {
-                      return (
-                        <Card
-                          key={dayGroup.dayLabel}
-                          sx={{
-                            border: '1px solid var(--line)',
-                            borderRadius: 'var(--radius-l)',
-                            boxShadow: 'none',
-                            overflow: 'hidden',
-                            backgroundColor: 'var(--card)',
-                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                            '&:hover': {
-                              borderColor: 'var(--accent-main)',
-                              boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
-                            },
-                          }}
-                        >
-                          {/* Day Header */}
-                          <Box
-                            sx={{
-                              px: '16px',
-                              py: '12px',
-                              backgroundColor: 'var(--accent-100)',
-                              borderBottom: '1px solid var(--line)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                            }}
-                          >
-                            <IconCalendar width={18} height={18} color="var(--accent-dark)" />
-                            <Typography style={{ fontWeight: '800', color: 'var(--accent-dark)', fontSize: '14.5px' }}>
-                              {dayGroup.dayLabel}
-                            </Typography>
-                          </Box>
-
-                          {/* Slots Rows */}
-                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                            {[
-                              { key: dayGroup.morningKey, label: 'Mañana' },
-                              { key: dayGroup.afternoonKey, label: 'Tarde' }
-                            ].map((slotItem, slotIdx) => {
-                              const isDisabled = settings?.disabledSlots?.includes(slotItem.key) ?? false;
-                              return (
-                                <Box
-                                  key={slotItem.key}
-                                  sx={{
-                                    p: '16px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '12px',
-                                    borderTop: slotIdx > 0 ? '1px solid var(--line)' : 'none',
-                                    backgroundColor: isDisabled ? 'var(--grey-100)' : 'var(--card)',
-                                    transition: 'background-color 0.2s',
-                                  }}
-                                >
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                      <Typography style={{ fontWeight: '700', color: isDisabled ? 'var(--grey-500)' : 'var(--accent-dark)', fontSize: '13.5px' }}>
-                                        {slotItem.label}
-                                      </Typography>
-                                      <Typography style={{ fontSize: '11.5px', color: isDisabled ? 'var(--grey-400)' : 'var(--grey-600)' }}>
-                                        {isDisabled ? 'Desactivado permanente' : 'Salida activa semanal'}
-                                      </Typography>
-                                    </Box>
-
-                                    <FormControlLabel
-                                      control={
-                                        <Switch
-                                          checked={!isDisabled}
-                                          onChange={async (e) => {
-                                            const checked = e.target.checked;
-                                            let currentDisabled = [...(settings?.disabledSlots ?? [])];
-                                            if (checked) {
-                                              currentDisabled = currentDisabled.filter((k) => k !== slotItem.key);
-                                            } else {
-                                              if (!currentDisabled.includes(slotItem.key)) {
-                                                currentDisabled.push(slotItem.key);
-                                              }
-                                            }
-                                            if (settings) {
-                                              const previousSettings = settings;
-                                              const updatedSettings = {
-                                                ...settings,
-                                                disabledSlots: currentDisabled,
-                                              };
-                                              setSettings(updatedSettings);
-                                              try {
-                                                await dbServiceOutingsSaveSettings(updatedSettings);
-                                              } catch (err) {
-                                                console.error(err);
-                                                setSettings(previousSettings);
-                                                displaySnackNotification({
-                                                  header: 'Error',
-                                                  message: 'No se pudo guardar el cambio. Inténtalo de nuevo.',
-                                                  severity: 'error',
-                                                });
-                                              }
-                                            }
-                                          }}
-                                          sx={{
-                                            '& .MuiSwitch-switchBase.Mui-checked': {
-                                              color: 'var(--accent-main)',
-                                            },
-                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                              backgroundColor: 'var(--accent-main)',
-                                            },
-                                          }}
-                                        />
-                                      }
-                                      label={!isDisabled ? 'Habilitado' : 'Inactivo'}
-                                      labelPlacement="start"
-                                      sx={{
-                                        margin: 0,
-                                        '& .MuiFormControlLabel-label': {
-                                          fontSize: '11px',
-                                          fontWeight: '700',
-                                          color: !isDisabled ? 'var(--accent-main)' : 'var(--grey-500)',
-                                          mr: '6px',
-                                        },
-                                      }}
-                                    />
-                                  </Box>
-
-                                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                    <TimePicker
-                                      label="Hora de salida"
-                                      ampm={!hour24}
-                                      value={hoursConfig[slotItem.key] ? generateDateFromTime(hoursConfig[slotItem.key]) : null}
-                                      onChange={(newDate) => {
-                                        const hrs = String(newDate.getHours()).padStart(2, '0');
-                                        const mins = String(newDate.getMinutes()).padStart(2, '0');
-                                        setHoursConfig({ ...hoursConfig, [slotItem.key]: `${hrs}:${mins}` });
-                                      }}
-                                      readOnly={isDisabled}
-                                      sx={{
-                                        width: '100%',
-                                        '& .MuiOutlinedInput-root': {
-                                          borderRadius: 'var(--radius-l)',
-                                        }
-                                      }}
-                                    />
-                                  </Box>
-                                </Box>
-                              );
-                            })}
-                          </Box>
-                        </Card>
-                      );
-                    })}
-                  </Box>
-
-                  <Box sx={{ mt: '8px' }}>
-                    <Button
-                      variant="contained"
-                      onClick={handleSaveHoursConfig}
-                      sx={{
-                        backgroundColor: 'var(--accent-main)',
-                        borderRadius: 'var(--radius-l)',
-                        fontWeight: '700',
-                        textTransform: 'none',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          backgroundColor: 'var(--accent-dark)',
-                          boxShadow: 'none',
-                        },
-                      }}
-                    >
-                      Guardar configuración de horas
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-
-              {/* Sub-tab 2: Disponibilidad de Hermanos */}
-              {settingsSubTab === 2 && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Box>
-                    <Typography style={{ fontWeight: '800', fontSize: '16.5px', color: 'var(--accent-dark)' }}>
-                      Disponibilidad preferente por hermano
-                    </Typography>
-                    <Typography style={{ color: 'var(--grey-600)', fontSize: '13.5px', marginTop: '4px' }}>
-                      Marca los slots semanales en los que cada hermano suele estar disponible. Estos hermanos aparecerán destacados como recomendados al planificar.
-                    </Typography>
-                  </Box>
-
-                  {enabledBrothers.length === 0 ? (
+                        Lugares de salidas
+                      </Typography>
+                      <Typography
+                        style={{
+                          fontSize: '13.5px',
+                          color: 'var(--grey-600)',
+                          marginTop: '4px',
+                        }}
+                      >
+                        Configura los lugares habituales de reunión para las
+                        salidas de predicación de la congregación.
+                      </Typography>
+                    </Box>
                     <Box
                       sx={{
                         display: 'flex',
-                        alignItems: 'center',
                         gap: '12px',
-                        padding: '16px',
-                        backgroundColor: 'var(--accent-100)',
-                        border: '1px dashed var(--line)',
-                        borderRadius: 'var(--radius-xl)',
-                        justifyContent: 'center',
-                        py: '40px',
+                        maxWidth: '500px',
+                        width: '100%',
+                        flexDirection: { mobile: 'column', tablet: 'row' },
                       }}
                     >
-                      <IconInfo color="var(--accent-main)" />
-                      <Typography style={{ fontSize: '13.5px', color: 'var(--accent-dark)', fontWeight: '600' }}>
-                        No hay hermanos habilitados con el tick &quot;Salidas de predicación&quot; en sus perfiles personales.
+                      <TextField
+                        label="Nueva ubicación"
+                        value={newLocation}
+                        onChange={(e) => setNewLocation(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 'var(--radius-l)',
+                          },
+                        }}
+                      />
+                      <Button
+                        variant="contained"
+                        onClick={handleAddLocation}
+                        startIcon={<IconAdd color="var(--always-white)" />}
+                        sx={{
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          borderRadius: 'var(--radius-l)',
+                          boxShadow: 'none',
+                          textTransform: 'none',
+                          fontWeight: '700',
+                          py: '8px',
+                          px: '20px',
+                          whiteSpace: 'nowrap',
+                          '&:hover': {
+                            backgroundColor: 'var(--accent-dark)',
+                            boxShadow: 'none',
+                          },
+                        }}
+                      >
+                        Añadir
+                      </Button>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                          mobile: '1fr',
+                          tablet: '1fr 1fr',
+                          laptop: '1fr 1fr 1fr',
+                        },
+                        gap: '12px',
+                        width: '100%',
+                      }}
+                    >
+                      {settings?.locations?.map((loc) => (
+                        <Card
+                          key={loc}
+                          sx={{
+                            padding: '16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            border: '1px solid var(--line)',
+                            borderRadius: 'var(--radius-l)',
+                            boxShadow: 'none',
+                            backgroundColor: 'var(--card)',
+                            transition:
+                              'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                            '&:hover': {
+                              borderColor: 'var(--accent-main)',
+                              boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
+                              transform: 'translateY(-2px)',
+                            },
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                            }}
+                          >
+                            <IconLocation
+                              width={18}
+                              height={18}
+                              color="var(--accent-main)"
+                            />
+                            <Typography
+                              style={{
+                                fontWeight: '700',
+                                fontSize: '13.5px',
+                                color: 'var(--accent-dark)',
+                              }}
+                            >
+                              {loc}
+                            </Typography>
+                          </Box>
+                          {settings.locations &&
+                            settings.locations.length > 1 && (
+                              <IconButton
+                                onClick={() => handleDeleteLocation(loc)}
+                                sx={{
+                                  color: 'var(--error-main)',
+                                  padding: '6px',
+                                  borderRadius: 'var(--radius-l)',
+                                  '&:hover': {
+                                    backgroundColor: 'var(--error-150)',
+                                  },
+                                }}
+                                size="small"
+                              >
+                                <IconDelete color="var(--error-main)" />
+                              </IconButton>
+                            )}
+                        </Card>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Sub-tab 1: Horarios Recurrentes */}
+                {settingsSubTab === 1 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        style={{
+                          fontWeight: '800',
+                          fontSize: '16.5px',
+                          color: 'var(--accent-dark)',
+                        }}
+                      >
+                        Horarios semanales
+                      </Typography>
+                      <Typography
+                        style={{
+                          fontSize: '13.5px',
+                          color: 'var(--grey-600)',
+                          marginTop: '4px',
+                        }}
+                      >
+                        Define las horas de reunión y el estado activo/inactivo
+                        para cada día y horario de la semana.
                       </Typography>
                     </Box>
-                  ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                      {enabledBrothers.map((bro) => {
-                        const allowedSlots = settings?.availability?.[bro.person_uid] || [];
-                        const firstname = bro.person_data.person_firstname.value || '';
-                        const lastname = bro.person_data.person_lastname.value || '';
-                        const displayName = `${firstname} ${lastname}`.trim();
-                        const initial = displayName.charAt(0).toUpperCase() || 'H';
 
-                        const ALL_SLOTS = [
-                          { key: 'monday_morning', label: 'Lun Mañ' },
-                          { key: 'monday_afternoon', label: 'Lun Tar' },
-                          { key: 'tuesday_morning', label: 'Mar Mañ' },
-                          { key: 'tuesday_afternoon', label: 'Mar Tar' },
-                          { key: 'wednesday_morning', label: 'Mié Mañ' },
-                          { key: 'wednesday_afternoon', label: 'Mié Tar' },
-                          { key: 'thursday_morning', label: 'Jue Mañ' },
-                          { key: 'thursday_afternoon', label: 'Jue Tar' },
-                          { key: 'friday_morning', label: 'Vie Mañ' },
-                          { key: 'friday_afternoon', label: 'Vie Tar' },
-                          { key: 'saturday_morning', label: 'Sáb Mañ' },
-                          { key: 'saturday_afternoon', label: 'Sáb Tar' },
-                          { key: 'sunday_morning', label: 'Dom Mañ' },
-                          { key: 'sunday_afternoon', label: 'Dom Tar' },
-                        ];
-
-                        const activeSlots = ALL_SLOTS.filter(s => !settings?.disabledSlots?.includes(s.key));
-
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', tablet: '1fr 1fr' },
+                        gap: '16px',
+                        width: '100%',
+                      }}
+                    >
+                      {[
+                        {
+                          dayLabel: 'Lunes',
+                          morningKey: 'monday_morning',
+                          afternoonKey: 'monday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Martes',
+                          morningKey: 'tuesday_morning',
+                          afternoonKey: 'tuesday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Miércoles',
+                          morningKey: 'wednesday_morning',
+                          afternoonKey: 'wednesday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Jueves',
+                          morningKey: 'thursday_morning',
+                          afternoonKey: 'thursday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Viernes',
+                          morningKey: 'friday_morning',
+                          afternoonKey: 'friday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Sábado',
+                          morningKey: 'saturday_morning',
+                          afternoonKey: 'saturday_afternoon',
+                        },
+                        {
+                          dayLabel: 'Domingo',
+                          morningKey: 'sunday_morning',
+                          afternoonKey: 'sunday_afternoon',
+                        },
+                      ].map((dayGroup) => {
                         return (
                           <Card
-                            key={bro.person_uid}
+                            key={dayGroup.dayLabel}
                             sx={{
-                              padding: '16px 20px',
+                              border: '1px solid var(--line)',
+                              borderRadius: 'var(--radius-l)',
+                              boxShadow: 'none',
+                              overflow: 'hidden',
+                              backgroundColor: 'var(--card)',
+                              transition:
+                                'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                              '&:hover': {
+                                borderColor: 'var(--accent-main)',
+                                boxShadow:
+                                  '0 6px 16px rgba(48, 108, 180, 0.06)',
+                              },
+                            }}
+                          >
+                            {/* Day Header */}
+                            <Box
+                              sx={{
+                                px: '16px',
+                                py: '12px',
+                                backgroundColor: 'var(--accent-100)',
+                                borderBottom: '1px solid var(--line)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                              }}
+                            >
+                              <IconCalendar
+                                width={18}
+                                height={18}
+                                color="var(--accent-dark)"
+                              />
+                              <Typography
+                                style={{
+                                  fontWeight: '800',
+                                  color: 'var(--accent-dark)',
+                                  fontSize: '14.5px',
+                                }}
+                              >
+                                {dayGroup.dayLabel}
+                              </Typography>
+                            </Box>
+
+                            {/* Slots Rows */}
+                            <Box
+                              sx={{ display: 'flex', flexDirection: 'column' }}
+                            >
+                              {[
+                                { key: dayGroup.morningKey, label: 'Mañana' },
+                                { key: dayGroup.afternoonKey, label: 'Tarde' },
+                              ].map((slotItem, slotIdx) => {
+                                const isDisabled =
+                                  settings?.disabledSlots?.includes(
+                                    slotItem.key
+                                  ) ?? false;
+                                return (
+                                  <Box
+                                    key={slotItem.key}
+                                    sx={{
+                                      p: '16px',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '12px',
+                                      borderTop:
+                                        slotIdx > 0
+                                          ? '1px solid var(--line)'
+                                          : 'none',
+                                      backgroundColor: isDisabled
+                                        ? 'var(--grey-100)'
+                                        : 'var(--card)',
+                                      transition: 'background-color 0.2s',
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                        }}
+                                      >
+                                        <Typography
+                                          style={{
+                                            fontWeight: '700',
+                                            color: isDisabled
+                                              ? 'var(--grey-500)'
+                                              : 'var(--accent-dark)',
+                                            fontSize: '13.5px',
+                                          }}
+                                        >
+                                          {slotItem.label}
+                                        </Typography>
+                                        <Typography
+                                          style={{
+                                            fontSize: '11.5px',
+                                            color: isDisabled
+                                              ? 'var(--grey-400)'
+                                              : 'var(--grey-600)',
+                                          }}
+                                        >
+                                          {isDisabled
+                                            ? 'Desactivado permanente'
+                                            : 'Salida activa semanal'}
+                                        </Typography>
+                                      </Box>
+
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            checked={!isDisabled}
+                                            onChange={async (e) => {
+                                              const checked = e.target.checked;
+                                              let currentDisabled = [
+                                                ...(settings?.disabledSlots ??
+                                                  []),
+                                              ];
+                                              if (checked) {
+                                                currentDisabled =
+                                                  currentDisabled.filter(
+                                                    (k) => k !== slotItem.key
+                                                  );
+                                              } else {
+                                                if (
+                                                  !currentDisabled.includes(
+                                                    slotItem.key
+                                                  )
+                                                ) {
+                                                  currentDisabled.push(
+                                                    slotItem.key
+                                                  );
+                                                }
+                                              }
+                                              if (settings) {
+                                                const previousSettings =
+                                                  settings;
+                                                const updatedSettings = {
+                                                  ...settings,
+                                                  disabledSlots:
+                                                    currentDisabled,
+                                                };
+                                                setSettings(updatedSettings);
+                                                try {
+                                                  await dbServiceOutingsSaveSettings(
+                                                    updatedSettings
+                                                  );
+                                                } catch (err) {
+                                                  console.error(err);
+                                                  setSettings(previousSettings);
+                                                  displaySnackNotification({
+                                                    header: 'Error',
+                                                    message:
+                                                      'No se pudo guardar el cambio. Inténtalo de nuevo.',
+                                                    severity: 'error',
+                                                  });
+                                                }
+                                              }
+                                            }}
+                                            sx={{
+                                              '& .MuiSwitch-switchBase.Mui-checked':
+                                                {
+                                                  color: 'var(--accent-main)',
+                                                },
+                                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track':
+                                                {
+                                                  backgroundColor:
+                                                    'var(--accent-main)',
+                                                },
+                                            }}
+                                          />
+                                        }
+                                        label={
+                                          !isDisabled
+                                            ? 'Habilitado'
+                                            : 'Inactivo'
+                                        }
+                                        labelPlacement="start"
+                                        sx={{
+                                          margin: 0,
+                                          '& .MuiFormControlLabel-label': {
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            color: !isDisabled
+                                              ? 'var(--accent-main)'
+                                              : 'var(--grey-500)',
+                                            mr: '6px',
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                      }}
+                                    >
+                                      <TimePicker
+                                        label="Hora de salida"
+                                        ampm={!hour24}
+                                        value={
+                                          hoursConfig[slotItem.key]
+                                            ? generateDateFromTime(
+                                                hoursConfig[slotItem.key]
+                                              )
+                                            : null
+                                        }
+                                        onChange={(newDate) => {
+                                          const hrs = String(
+                                            newDate.getHours()
+                                          ).padStart(2, '0');
+                                          const mins = String(
+                                            newDate.getMinutes()
+                                          ).padStart(2, '0');
+                                          setHoursConfig({
+                                            ...hoursConfig,
+                                            [slotItem.key]: `${hrs}:${mins}`,
+                                          });
+                                        }}
+                                        readOnly={isDisabled}
+                                        sx={{
+                                          width: '100%',
+                                          '& .MuiOutlinedInput-root': {
+                                            borderRadius: 'var(--radius-l)',
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+                          </Card>
+                        );
+                      })}
+                    </Box>
+
+                    <Box sx={{ mt: '8px' }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleSaveHoursConfig}
+                        sx={{
+                          backgroundColor: 'var(--accent-main)',
+                          borderRadius: 'var(--radius-l)',
+                          fontWeight: '700',
+                          textTransform: 'none',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            backgroundColor: 'var(--accent-dark)',
+                            boxShadow: 'none',
+                          },
+                        }}
+                      >
+                        Guardar configuración de horas
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Sub-tab 2: Disponibilidad de Hermanos */}
+                {settingsSubTab === 2 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        style={{
+                          fontWeight: '800',
+                          fontSize: '16.5px',
+                          color: 'var(--accent-dark)',
+                        }}
+                      >
+                        Disponibilidad preferente por hermano
+                      </Typography>
+                      <Typography
+                        style={{
+                          color: 'var(--grey-600)',
+                          fontSize: '13.5px',
+                          marginTop: '4px',
+                        }}
+                      >
+                        Marca los slots semanales en los que cada hermano suele
+                        estar disponible. Estos hermanos aparecerán destacados
+                        como recomendados al planificar.
+                      </Typography>
+                    </Box>
+
+                    {enabledBrothers.length === 0 ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '16px',
+                          backgroundColor: 'var(--accent-100)',
+                          border: '1px dashed var(--line)',
+                          borderRadius: 'var(--radius-xl)',
+                          justifyContent: 'center',
+                          py: '40px',
+                        }}
+                      >
+                        <IconInfo color="var(--accent-main)" />
+                        <Typography
+                          style={{
+                            fontSize: '13.5px',
+                            color: 'var(--accent-dark)',
+                            fontWeight: '600',
+                          }}
+                        >
+                          No hay hermanos habilitados con el tick &quot;Salidas
+                          de predicación&quot; en sus perfiles personales.
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                          width: '100%',
+                        }}
+                      >
+                        {enabledBrothers.map((bro) => {
+                          const allowedSlots =
+                            settings?.availability?.[bro.person_uid] || [];
+                          const firstname =
+                            bro.person_data.person_firstname.value || '';
+                          const lastname =
+                            bro.person_data.person_lastname.value || '';
+                          const displayName = `${firstname} ${lastname}`.trim();
+                          const initial =
+                            displayName.charAt(0).toUpperCase() || 'H';
+
+                          const ALL_SLOTS = [
+                            { key: 'monday_morning', label: 'Lun Mañ' },
+                            { key: 'monday_afternoon', label: 'Lun Tar' },
+                            { key: 'tuesday_morning', label: 'Mar Mañ' },
+                            { key: 'tuesday_afternoon', label: 'Mar Tar' },
+                            { key: 'wednesday_morning', label: 'Mié Mañ' },
+                            { key: 'wednesday_afternoon', label: 'Mié Tar' },
+                            { key: 'thursday_morning', label: 'Jue Mañ' },
+                            { key: 'thursday_afternoon', label: 'Jue Tar' },
+                            { key: 'friday_morning', label: 'Vie Mañ' },
+                            { key: 'friday_afternoon', label: 'Vie Tar' },
+                            { key: 'saturday_morning', label: 'Sáb Mañ' },
+                            { key: 'saturday_afternoon', label: 'Sáb Tar' },
+                            { key: 'sunday_morning', label: 'Dom Mañ' },
+                            { key: 'sunday_afternoon', label: 'Dom Tar' },
+                          ];
+
+                          const activeSlots = ALL_SLOTS.filter(
+                            (s) => !settings?.disabledSlots?.includes(s.key)
+                          );
+
+                          return (
+                            <Card
+                              key={bro.person_uid}
+                              sx={{
+                                padding: '16px 20px',
+                                display: 'flex',
+                                flexDirection: {
+                                  mobile: 'column',
+                                  tablet: 'row',
+                                },
+                                alignItems: {
+                                  mobile: 'flex-start',
+                                  tablet: 'center',
+                                },
+                                justifyContent: 'space-between',
+                                gap: '16px',
+                                border: '1px solid var(--line)',
+                                borderRadius: 'var(--radius-l)',
+                                boxShadow: 'none',
+                                backgroundColor: 'var(--card)',
+                                transition:
+                                  'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                '&:hover': {
+                                  borderColor: 'var(--accent-main)',
+                                  boxShadow:
+                                    '0 6px 16px rgba(48, 108, 180, 0.06)',
+                                },
+                              }}
+                            >
+                              {/* Profile Info */}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  minWidth: '220px',
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'var(--accent-150)',
+                                    border: '1px solid var(--line)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <Typography
+                                    style={{
+                                      fontWeight: '800',
+                                      fontSize: '12.5px',
+                                      color: 'var(--accent-dark)',
+                                    }}
+                                  >
+                                    {initial}
+                                  </Typography>
+                                </Box>
+                                <Typography
+                                  style={{
+                                    fontWeight: '700',
+                                    fontSize: '13.5px',
+                                    color: 'var(--black)',
+                                  }}
+                                >
+                                  {displayName}
+                                </Typography>
+                              </Box>
+
+                              {/* Active Slots Wrap */}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '6px',
+                                  flex: 1,
+                                  width: '100%',
+                                }}
+                              >
+                                {activeSlots.length === 0 ? (
+                                  <Typography
+                                    style={{
+                                      fontSize: '12px',
+                                      color: 'var(--grey-400)',
+                                      fontStyle: 'italic',
+                                    }}
+                                  >
+                                    No hay horarios semanales activos
+                                    habilitados en la pestaña
+                                    &quot;Horarios&quot;.
+                                  </Typography>
+                                ) : (
+                                  activeSlots.map((slot) => {
+                                    const isChecked = allowedSlots.includes(
+                                      slot.key
+                                    );
+                                    return (
+                                      <Chip
+                                        key={slot.key}
+                                        label={slot.label}
+                                        onClick={() =>
+                                          handleToggleAvailability(
+                                            bro.person_uid,
+                                            slot.key
+                                          )
+                                        }
+                                        sx={{
+                                          fontWeight: '700',
+                                          fontSize: '11.5px',
+                                          borderRadius: 'var(--radius-l)',
+                                          cursor: 'pointer',
+                                          height: '28px',
+                                          transition:
+                                            'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                          backgroundColor: isChecked
+                                            ? 'var(--accent-main)'
+                                            : 'var(--grey-100)',
+                                          color: isChecked
+                                            ? 'var(--always-white)'
+                                            : 'var(--grey-600)',
+                                          border: `1px solid ${isChecked ? 'var(--accent-main)' : 'var(--grey-300)'}`,
+                                          '&:hover': {
+                                            backgroundColor: isChecked
+                                              ? 'var(--accent-dark)'
+                                              : 'var(--accent-100)',
+                                            borderColor: isChecked
+                                              ? 'var(--accent-dark)'
+                                              : 'var(--line)',
+                                            transform: 'scale(1.04)',
+                                          },
+                                        }}
+                                      />
+                                    );
+                                  })
+                                )}
+                              </Box>
+                            </Card>
+                          );
+                        })}
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {/* Sub-tab 3: Salidas compartidas */}
+                {settingsSubTab === 3 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
+                    }}
+                  >
+                    <Typography className="h3">
+                      Salidas compartidas con otras congregaciones
+                    </Typography>
+                    <Typography
+                      style={{ color: 'var(--grey-600)', fontSize: '14px' }}
+                    >
+                      Registra los turnos de salidas semanales que se llevan a
+                      cabo de forma conjunta con congregaciones vecinas. Al
+                      planificar, podrás asignar la congregación directamente en
+                      lugar de un hermano.
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: '16px',
+                        maxWidth: '600px',
+                        width: '100%',
+                        flexDirection: { mobile: 'column', tablet: 'row' },
+                        alignItems: 'flex-end',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <Typography
+                          style={{
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            color: 'var(--accent-main)',
+                          }}
+                        >
+                          Turno de la semana
+                        </Typography>
+                        <Select
+                          value={sharedSlotKey}
+                          onChange={(e) => setSharedSlotKey(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ borderRadius: 'var(--radius-l)' }}
+                        >
+                          {[
+                            { key: 'monday_morning', label: 'Lunes Mañana' },
+                            { key: 'monday_afternoon', label: 'Lunes Tarde' },
+                            { key: 'tuesday_morning', label: 'Martes Mañana' },
+                            { key: 'tuesday_afternoon', label: 'Martes Tarde' },
+                            {
+                              key: 'wednesday_morning',
+                              label: 'Miércoles Mañana',
+                            },
+                            {
+                              key: 'wednesday_afternoon',
+                              label: 'Miércoles Tarde',
+                            },
+                            { key: 'thursday_morning', label: 'Jueves Mañana' },
+                            {
+                              key: 'thursday_afternoon',
+                              label: 'Jueves Tarde',
+                            },
+                            { key: 'friday_morning', label: 'Viernes Mañana' },
+                            { key: 'friday_afternoon', label: 'Viernes Tarde' },
+                            { key: 'saturday_morning', label: 'Sábado Mañana' },
+                            {
+                              key: 'saturday_afternoon',
+                              label: 'Sábado Tarde',
+                            },
+                            { key: 'sunday_morning', label: 'Domingo Mañana' },
+                            { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+                          ].map((s) => (
+                            <MenuItem key={s.key} value={s.key}>
+                              {s.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <Typography
+                          style={{
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            color: 'var(--accent-main)',
+                          }}
+                        >
+                          Congregación vecina
+                        </Typography>
+                        <TextField
+                          label="Nombre de la congregación"
+                          value={sharedCongregation}
+                          onChange={(e) =>
+                            setSharedCongregation(e.target.value)
+                          }
+                          size="small"
+                          fullWidth
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 'var(--radius-l)',
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        onClick={handleAddSharedSlot}
+                        startIcon={<IconAdd color="var(--always-white)" />}
+                        sx={{
+                          backgroundColor: 'var(--accent-main)',
+                          color: 'var(--always-white)',
+                          borderRadius: 'var(--radius-l)',
+                          boxShadow: 'none',
+                          textTransform: 'none',
+                          fontWeight: '700',
+                          py: '8px',
+                          px: '20px',
+                          height: '40px',
+                          '&:hover': {
+                            backgroundColor: 'var(--accent-dark)',
+                            boxShadow: 'none',
+                          },
+                        }}
+                      >
+                        Añadir
+                      </Button>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                          mobile: '1fr',
+                          tablet: '1fr 1fr',
+                          laptop: '1fr 1fr 1fr',
+                        },
+                        gap: '12px',
+                        width: '100%',
+                      }}
+                    >
+                      {settings?.sharedSlots?.map((slot) => {
+                        const slotLabels: Record<string, string> = {
+                          monday_morning: 'Lunes Mañana',
+                          monday_afternoon: 'Lunes Tarde',
+                          tuesday_morning: 'Martes Mañana',
+                          tuesday_afternoon: 'Martes Tarde',
+                          wednesday_morning: 'Miércoles Mañana',
+                          wednesday_afternoon: 'Miércoles Tarde',
+                          thursday_morning: 'Jueves Mañana',
+                          thursday_afternoon: 'Jueves Tarde',
+                          friday_morning: 'Viernes Mañana',
+                          friday_afternoon: 'Viernes Tarde',
+                          saturday_morning: 'Sábado Mañana',
+                          saturday_afternoon: 'Sábado Tarde',
+                          sunday_morning: 'Domingo Mañana',
+                          sunday_afternoon: 'Domingo Tarde',
+                        };
+                        return (
+                          <Card
+                            key={slot.slotKey}
+                            sx={{
+                              padding: '16px',
                               display: 'flex',
-                              flexDirection: { mobile: 'column', tablet: 'row' },
-                              alignItems: { mobile: 'flex-start', tablet: 'center' },
                               justifyContent: 'space-between',
-                              gap: '16px',
+                              alignItems: 'center',
                               border: '1px solid var(--line)',
                               borderRadius: 'var(--radius-l)',
                               boxShadow: 'none',
                               backgroundColor: 'var(--card)',
-                              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                              transition:
+                                'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
-                                boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
+                                boxShadow:
+                                  '0 6px 16px rgba(48, 108, 180, 0.06)',
+                                transform: 'translateY(-2px)',
                               },
                             }}
                           >
-                            {/* Profile Info */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                              }}
+                            >
                               <Box
                                 sx={{
                                   width: '32px',
@@ -2726,254 +3750,85 @@ const PredicacionSalidas = () => {
                                   alignItems: 'center',
                                 }}
                               >
-                                <Typography style={{ fontWeight: '800', fontSize: '12.5px', color: 'var(--accent-dark)' }}>
-                                  {initial}
+                                <IconGroups
+                                  width={18}
+                                  height={18}
+                                  color="var(--accent-dark)"
+                                />
+                              </Box>
+                              <Box>
+                                <Typography
+                                  style={{
+                                    fontWeight: '700',
+                                    color: 'var(--accent-dark)',
+                                    fontSize: '13.5px',
+                                  }}
+                                >
+                                  {slotLabels[slot.slotKey]}
+                                </Typography>
+                                <Typography
+                                  style={{
+                                    fontSize: '12px',
+                                    color: 'var(--grey-600)',
+                                    marginTop: '2px',
+                                  }}
+                                >
+                                  Compartido con:{' '}
+                                  <strong>{slot.congregation}</strong>
                                 </Typography>
                               </Box>
-                              <Typography style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--black)' }}>
-                                {displayName}
-                              </Typography>
                             </Box>
-
-                            {/* Active Slots Wrap */}
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, width: '100%' }}>
-                              {activeSlots.length === 0 ? (
-                                <Typography style={{ fontSize: '12px', color: 'var(--grey-400)', fontStyle: 'italic' }}>
-                                  No hay horarios semanales activos habilitados en la pestaña &quot;Horarios&quot;.
-                                </Typography>
-                              ) : (
-                                activeSlots.map((slot) => {
-                                  const isChecked = allowedSlots.includes(slot.key);
-                                  return (
-                                    <Chip
-                                      key={slot.key}
-                                      label={slot.label}
-                                      onClick={() => handleToggleAvailability(bro.person_uid, slot.key)}
-                                      sx={{
-                                        fontWeight: '700',
-                                        fontSize: '11.5px',
-                                        borderRadius: 'var(--radius-l)',
-                                        cursor: 'pointer',
-                                        height: '28px',
-                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        backgroundColor: isChecked ? 'var(--accent-main)' : 'var(--grey-100)',
-                                        color: isChecked ? 'var(--always-white)' : 'var(--grey-600)',
-                                        border: `1px solid ${isChecked ? 'var(--accent-main)' : 'var(--grey-300)'}`,
-                                        '&:hover': {
-                                          backgroundColor: isChecked ? 'var(--accent-dark)' : 'var(--accent-100)',
-                                          borderColor: isChecked ? 'var(--accent-dark)' : 'var(--line)',
-                                          transform: 'scale(1.04)',
-                                        },
-                                      }}
-                                    />
-                                  );
-                                })
-                              )}
-                            </Box>
+                            <IconButton
+                              onClick={() =>
+                                handleDeleteSharedSlot(slot.slotKey)
+                              }
+                              sx={{
+                                color: 'var(--error-main)',
+                                padding: '6px',
+                                borderRadius: 'var(--radius-l)',
+                                '&:hover': {
+                                  backgroundColor: 'var(--error-150)',
+                                },
+                              }}
+                              size="small"
+                            >
+                              <IconDelete color="var(--error-main)" />
+                            </IconButton>
                           </Card>
                         );
                       })}
                     </Box>
-                  )}
-                </Box>
-              )}
-
-              {/* Sub-tab 3: Salidas compartidas */}
-              {settingsSubTab === 3 && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography className="h3">Salidas compartidas con otras congregaciones</Typography>
-                  <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
-                    Registra los turnos de salidas semanales que se llevan a cabo de forma conjunta con congregaciones vecinas. Al planificar, podrás asignar la congregación directamente en lugar de un hermano.
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', gap: '16px', maxWidth: '600px', width: '100%', flexDirection: { mobile: 'column', tablet: 'row' }, alignItems: 'flex-end' }}>
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <Typography style={{ fontWeight: '600', fontSize: '13px', color: 'var(--accent-main)' }}>
-                        Turno de la semana
-                      </Typography>
-                      <Select
-                        value={sharedSlotKey}
-                        onChange={(e) => setSharedSlotKey(e.target.value)}
-                        size="small"
-                        fullWidth
-                        sx={{ borderRadius: 'var(--radius-l)' }}
-                      >
-                        {[
-                          { key: 'monday_morning', label: 'Lunes Mañana' },
-                          { key: 'monday_afternoon', label: 'Lunes Tarde' },
-                          { key: 'tuesday_morning', label: 'Martes Mañana' },
-                          { key: 'tuesday_afternoon', label: 'Martes Tarde' },
-                          { key: 'wednesday_morning', label: 'Miércoles Mañana' },
-                          { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
-                          { key: 'thursday_morning', label: 'Jueves Mañana' },
-                          { key: 'thursday_afternoon', label: 'Jueves Tarde' },
-                          { key: 'friday_morning', label: 'Viernes Mañana' },
-                          { key: 'friday_afternoon', label: 'Viernes Tarde' },
-                          { key: 'saturday_morning', label: 'Sábado Mañana' },
-                          { key: 'saturday_afternoon', label: 'Sábado Tarde' },
-                          { key: 'sunday_morning', label: 'Domingo Mañana' },
-                          { key: 'sunday_afternoon', label: 'Domingo Tarde' },
-                        ].map((s) => (
-                          <MenuItem key={s.key} value={s.key}>
-                            {s.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </Box>
-
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <Typography style={{ fontWeight: '600', fontSize: '13px', color: 'var(--accent-main)' }}>
-                        Congregación vecina
-                      </Typography>
-                      <TextField
-                        label="Nombre de la congregación"
-                        value={sharedCongregation}
-                        onChange={(e) => setSharedCongregation(e.target.value)}
-                        size="small"
-                        fullWidth
+                    {(!settings?.sharedSlots ||
+                      settings.sharedSlots.length === 0) && (
+                      <Box
                         sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 'var(--radius-l)',
-                          }
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '16px',
+                          backgroundColor: 'var(--accent-100)',
+                          border: '1px dashed var(--line)',
+                          borderRadius: 'var(--radius-xl)',
+                          justifyContent: 'center',
+                          py: '30px',
+                          width: '100%',
                         }}
-                      />
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      onClick={handleAddSharedSlot}
-                      startIcon={<IconAdd color="var(--always-white)" />}
-                      sx={{
-                        backgroundColor: 'var(--accent-main)',
-                        color: 'var(--always-white)',
-                        borderRadius: 'var(--radius-l)',
-                        boxShadow: 'none',
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        py: '8px',
-                        px: '20px',
-                        height: '40px',
-                        '&:hover': {
-                          backgroundColor: 'var(--accent-dark)',
-                          boxShadow: 'none',
-                        },
-                      }}
-                    >
-                      Añadir
-                    </Button>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr', laptop: '1fr 1fr 1fr' },
-                      gap: '12px',
-                      width: '100%',
-                    }}
-                  >
-                    {settings?.sharedSlots?.map((slot) => {
-                      const slotLabels: Record<string, string> = {
-                        monday_morning: 'Lunes Mañana',
-                        monday_afternoon: 'Lunes Tarde',
-                        tuesday_morning: 'Martes Mañana',
-                        tuesday_afternoon: 'Martes Tarde',
-                        wednesday_morning: 'Miércoles Mañana',
-                        wednesday_afternoon: 'Miércoles Tarde',
-                        thursday_morning: 'Jueves Mañana',
-                        thursday_afternoon: 'Jueves Tarde',
-                        friday_morning: 'Viernes Mañana',
-                        friday_afternoon: 'Viernes Tarde',
-                        saturday_morning: 'Sábado Mañana',
-                        saturday_afternoon: 'Sábado Tarde',
-                        sunday_morning: 'Domingo Mañana',
-                        sunday_afternoon: 'Domingo Tarde',
-                      };
-                      return (
-                        <Card
-                          key={slot.slotKey}
-                          sx={{
-                            padding: '16px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            border: '1px solid var(--line)',
-                            borderRadius: 'var(--radius-l)',
-                            boxShadow: 'none',
-                            backgroundColor: 'var(--card)',
-                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                            '&:hover': {
-                              borderColor: 'var(--accent-main)',
-                              boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
-                              transform: 'translateY(-2px)',
-                            },
+                      >
+                        <IconInfo color="var(--accent-main)" />
+                        <Typography
+                          style={{
+                            fontSize: '13.5px',
+                            color: 'var(--accent-dark)',
+                            fontWeight: '600',
                           }}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Box
-                              sx={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                backgroundColor: 'var(--accent-150)',
-                                border: '1px solid var(--line)',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <IconGroups width={18} height={18} color="var(--accent-dark)" />
-                            </Box>
-                            <Box>
-                              <Typography style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '13.5px' }}>
-                                {slotLabels[slot.slotKey]}
-                              </Typography>
-                              <Typography style={{ fontSize: '12px', color: 'var(--grey-600)', marginTop: '2px' }}>
-                                Compartido con: <strong>{slot.congregation}</strong>
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <IconButton
-                            onClick={() => handleDeleteSharedSlot(slot.slotKey)}
-                            sx={{
-                              color: 'var(--error-main)',
-                              padding: '6px',
-                              borderRadius: 'var(--radius-l)',
-                              '&:hover': {
-                                backgroundColor: 'var(--error-150)',
-                              },
-                            }}
-                            size="small"
-                          >
-                            <IconDelete color="var(--error-main)" />
-                          </IconButton>
-                        </Card>
-                      );
-                    })}
+                          No hay ninguna salida compartida configurada.
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
-                  {(!settings?.sharedSlots || settings.sharedSlots.length === 0) && (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '16px',
-                        backgroundColor: 'var(--accent-100)',
-                        border: '1px dashed var(--line)',
-                        borderRadius: 'var(--radius-xl)',
-                        justifyContent: 'center',
-                        py: '30px',
-                        width: '100%',
-                      }}
-                    >
-                      <IconInfo color="var(--accent-main)" />
-                      <Typography style={{ fontSize: '13.5px', color: 'var(--accent-dark)', fontWeight: '600' }}>
-                        No hay ninguna salida compartida configurada.
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              )}
-             </Box>
+                )}
+              </Box>
             </Box>
           )}
         </Box>
@@ -2995,16 +3850,26 @@ const PredicacionSalidas = () => {
           },
         }}
         slotProps={{
-          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+          backdrop: {
+            style: { backgroundColor: 'var(--accent-dark-overlay)' },
+          },
         }}
       >
         <DialogTitle sx={{ pb: 1 }}>
           <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            {monthIsPublished ? 'Retirar' : 'Publicar'}: {MONTH_NAMES[selectedMonth]} {selectedYear}
+            {monthIsPublished ? 'Retirar' : 'Publicar'}:{' '}
+            {MONTH_NAMES[selectedMonth]} {selectedYear}
           </Typography>
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            mt: '8px',
+          }}
+        >
           <InfoTip
             isBig={false}
             color={monthIsPublished ? 'warning' : 'info'}
@@ -3025,7 +3890,11 @@ const PredicacionSalidas = () => {
         </DialogContent>
 
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          <AppButton variant="secondary" disableAutoStretch onClick={() => setPublishDialog(false)}>
+          <AppButton
+            variant="secondary"
+            disableAutoStretch
+            onClick={() => setPublishDialog(false)}
+          >
             Cancelar
           </AppButton>
           <AppButton
@@ -3053,12 +3922,22 @@ const PredicacionSalidas = () => {
         }}
       >
         <DialogTitle style={{ fontWeight: '600', color: 'var(--accent-dark)' }}>
-          {editDialog.date && `${formatLegibleDate(editDialog.date)} — ${editDialog.time}`}
+          {editDialog.date &&
+            `${formatLegibleDate(editDialog.date)} — ${editDialog.time}`}
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mt: '8px' }}>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            mt: '8px',
+          }}
+        >
           {/* Botón de cancelación de bajo perfil */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: '4px' }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'flex-start', mt: '4px' }}
+          >
             <Button
               variant="outlined"
               onClick={() => setEditCancelled(!editCancelled)}
@@ -3070,12 +3949,20 @@ const PredicacionSalidas = () => {
                 py: '6px',
                 px: '16px',
                 boxShadow: 'none',
-                borderColor: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
-                color: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
+                borderColor: editCancelled
+                  ? 'var(--accent-main)'
+                  : 'var(--error-main)',
+                color: editCancelled
+                  ? 'var(--accent-main)'
+                  : 'var(--error-main)',
                 '&:hover': {
-                  backgroundColor: editCancelled ? 'var(--accent-150)' : 'var(--error-150)',
-                  borderColor: editCancelled ? 'var(--accent-main)' : 'var(--error-main)',
-                }
+                  backgroundColor: editCancelled
+                    ? 'var(--accent-150)'
+                    : 'var(--error-150)',
+                  borderColor: editCancelled
+                    ? 'var(--accent-main)'
+                    : 'var(--error-main)',
+                },
               }}
             >
               {editCancelled ? 'Reactivar salida' : 'Suspender salida'}
@@ -3085,8 +3972,16 @@ const PredicacionSalidas = () => {
           {!editCancelled && (
             <>
               {/* Asignar Hermano */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <Typography style={{ fontWeight: '600', fontSize: '14px', color: 'var(--accent-dark)' }}>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+              >
+                <Typography
+                  style={{
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: 'var(--accent-dark)',
+                  }}
+                >
                   Asignar conductor
                 </Typography>
                 <Select
@@ -3101,22 +3996,34 @@ const PredicacionSalidas = () => {
                   </MenuItem>
 
                   {(() => {
-                    const weekOf = editDialog.date ? getWeekOfDate(editDialog.date) : '';
-                    const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+                    const weekOf = editDialog.date
+                      ? getWeekOfDate(editDialog.date)
+                      : '';
+                    const weekRecord = outingsWeeks.find(
+                      (w) => w.weekOf === weekOf
+                    );
                     const isCOWeek = weekRecord?.isCircuitOverseerWeek ?? false;
-                    const sharedSlot = settings?.sharedSlots?.find((s) => s.slotKey === editDialog.timeKey);
-                    
+                    const sharedSlot = settings?.sharedSlots?.find(
+                      (s) => s.slotKey === editDialog.timeKey
+                    );
+
                     const list = [];
                     if (sharedSlot) {
                       list.push(
-                        <MenuItem key="shared-cong" value={`SHARED_CONG:${sharedSlot.congregation}`}>
+                        <MenuItem
+                          key="shared-cong"
+                          value={`SHARED_CONG:${sharedSlot.congregation}`}
+                        >
                           <strong>Compartido: {sharedSlot.congregation}</strong>
                         </MenuItem>
                       );
                     }
                     if (isCOWeek) {
                       list.push(
-                        <MenuItem key="circuit-overseer" value="CIRCUIT_OVERSEER">
+                        <MenuItem
+                          key="circuit-overseer"
+                          value="CIRCUIT_OVERSEER"
+                        >
                           <strong>Superintendente de circuito</strong>
                         </MenuItem>
                       );
@@ -3128,7 +4035,13 @@ const PredicacionSalidas = () => {
                   {sortedBrothersForSlot.recommended.length > 0 && (
                     <ListSubheader
                       key="header-recommended"
-                      sx={{ color: 'var(--accent-main)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--card)', textTransform: 'uppercase' }}
+                      sx={{
+                        color: 'var(--accent-main)',
+                        fontWeight: '700',
+                        lineHeight: '36px',
+                        backgroundColor: 'var(--card)',
+                        textTransform: 'uppercase',
+                      }}
                     >
                       {/* Mayúsculas por CSS (textTransform), no en el texto
                           fuente — así el español de abajo sigue siendo
@@ -3137,7 +4050,11 @@ const PredicacionSalidas = () => {
                     </ListSubheader>
                   )}
                   {sortedBrothersForSlot.recommended.map((bro) => (
-                    <MenuItem key={bro.person_uid} value={bro.person_uid} sx={{ pl: '24px' }}>
+                    <MenuItem
+                      key={bro.person_uid}
+                      value={bro.person_uid}
+                      sx={{ pl: '24px' }}
+                    >
                       {`${bro.person_data.person_firstname.value} ${bro.person_data.person_lastname.value}`}
                     </MenuItem>
                   ))}
@@ -3146,26 +4063,48 @@ const PredicacionSalidas = () => {
                   {sortedBrothersForSlot.others.length > 0 && (
                     <ListSubheader
                       key="header-others"
-                      sx={{ color: 'var(--grey-600)', fontWeight: '700', lineHeight: '36px', backgroundColor: 'var(--card)', textTransform: 'uppercase' }}
+                      sx={{
+                        color: 'var(--grey-600)',
+                        fontWeight: '700',
+                        lineHeight: '36px',
+                        backgroundColor: 'var(--card)',
+                        textTransform: 'uppercase',
+                      }}
                     >
                       Otros hermanos
                     </ListSubheader>
                   )}
                   {sortedBrothersForSlot.others.map((bro) => (
-                    <MenuItem key={bro.person_uid} value={bro.person_uid} sx={{ pl: '24px' }}>
+                    <MenuItem
+                      key={bro.person_uid}
+                      value={bro.person_uid}
+                      sx={{ pl: '24px' }}
+                    >
                       {`${bro.person_data.person_firstname.value} ${bro.person_data.person_lastname.value}`}
                     </MenuItem>
                   ))}
                 </Select>
 
                 {editPersonAwayWarning && (
-                  <InfoTip isBig={false} color="warning" text={editPersonAwayWarning} />
+                  <InfoTip
+                    isBig={false}
+                    color="warning"
+                    text={editPersonAwayWarning}
+                  />
                 )}
               </Box>
 
               {/* Asignar Ubicación */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <Typography style={{ fontWeight: '600', fontSize: '14px', color: 'var(--accent-dark)' }}>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+              >
+                <Typography
+                  style={{
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: 'var(--accent-dark)',
+                  }}
+                >
                   Lugar de reunión
                 </Typography>
                 <Select
@@ -3225,7 +4164,9 @@ const PredicacionSalidas = () => {
           },
         }}
         slotProps={{
-          backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
+          backdrop: {
+            style: { backgroundColor: 'var(--accent-dark-overlay)' },
+          },
         }}
       >
         <DialogTitle sx={{ pb: 1 }}>
@@ -3233,7 +4174,9 @@ const PredicacionSalidas = () => {
             Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
           </Typography>
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           <InfoTip
             isBig={false}
             color={isCurrentlyOverridden ? 'warning' : 'info'}
@@ -3254,10 +4197,16 @@ const PredicacionSalidas = () => {
             <>
               <Divider color="var(--line)" />
               <Box>
-                <Typography className="h4" sx={{ color: 'var(--ink)', mb: '4px' }}>
+                <Typography
+                  className="h4"
+                  sx={{ color: 'var(--ink)', mb: '4px' }}
+                >
                   Mantener activas estas salidas
                 </Typography>
-                <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)', mb: '16px' }}>
+                <Typography
+                  className="body-small-regular"
+                  sx={{ color: 'var(--ink-2)', mb: '16px' }}
+                >
                   El mes está suspendido. Marca los turnos que sí se harán
                   igualmente (por ejemplo, la salida del sábado). Aparecerán
                   solos en el planificador y en Programas semanales.
@@ -3267,10 +4216,18 @@ const PredicacionSalidas = () => {
                     14 filas sueltas — reduce la lista a 7 filas ordenadas. */}
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                   {DAY_LABELS.map(({ key: dayKey, label: dayLabel }, idx) => {
-                    const morning = OUTING_SLOTS.find((s) => s.key === `${dayKey}_morning`);
-                    const afternoon = OUTING_SLOTS.find((s) => s.key === `${dayKey}_afternoon`);
-                    const morningDisabled = !morning || settings?.disabledSlots?.includes(morning.key);
-                    const afternoonDisabled = !afternoon || settings?.disabledSlots?.includes(afternoon.key);
+                    const morning = OUTING_SLOTS.find(
+                      (s) => s.key === `${dayKey}_morning`
+                    );
+                    const afternoon = OUTING_SLOTS.find(
+                      (s) => s.key === `${dayKey}_afternoon`
+                    );
+                    const morningDisabled =
+                      !morning ||
+                      settings?.disabledSlots?.includes(morning.key);
+                    const afternoonDisabled =
+                      !afternoon ||
+                      settings?.disabledSlots?.includes(afternoon.key);
                     if (morningDisabled && afternoonDisabled) return null;
 
                     return (
@@ -3285,7 +4242,10 @@ const PredicacionSalidas = () => {
                           borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                         }}
                       >
-                        <Typography className="body-small-semibold" sx={{ color: 'var(--ink-2)' }}>
+                        <Typography
+                          className="body-small-semibold"
+                          sx={{ color: 'var(--ink-2)' }}
+                        >
                           {dayLabel}
                         </Typography>
                         {!morningDisabled && morning && (
@@ -3293,7 +4253,9 @@ const PredicacionSalidas = () => {
                             className="body-small-regular"
                             label="Mañana"
                             checked={keptActiveSlots.includes(morning.key)}
-                            onChange={() => handleToggleKeepActiveSlot(morning.key)}
+                            onChange={() =>
+                              handleToggleKeepActiveSlot(morning.key)
+                            }
                           />
                         )}
                         {!afternoonDisabled && afternoon && (
@@ -3301,7 +4263,9 @@ const PredicacionSalidas = () => {
                             className="body-small-regular"
                             label="Tarde"
                             checked={keptActiveSlots.includes(afternoon.key)}
-                            onChange={() => handleToggleKeepActiveSlot(afternoon.key)}
+                            onChange={() =>
+                              handleToggleKeepActiveSlot(afternoon.key)
+                            }
                           />
                         )}
                       </Box>
@@ -3325,15 +4289,22 @@ const PredicacionSalidas = () => {
             <>
               <Divider color="var(--line)" />
               <Box>
-                <Typography className="h4" sx={{ color: 'var(--ink)', mb: '12px' }}>
+                <Typography
+                  className="h4"
+                  sx={{ color: 'var(--ink)', mb: '12px' }}
+                >
                   Horarios de este mes
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                   {OUTING_SLOTS.map((slot, idx) => {
-                    if (settings?.disabledSlots?.includes(slot.key)) return null;
+                    if (settings?.disabledSlots?.includes(slot.key))
+                      return null;
 
-                    const currentVal = monthHoursDraft[slot.key] || effectiveHours[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
+                    const currentVal =
+                      monthHoursDraft[slot.key] ||
+                      effectiveHours[slot.key] ||
+                      (slot.key.endsWith('morning') ? '10:00' : '17:00');
 
                     return (
                       <Box
@@ -3347,16 +4318,28 @@ const PredicacionSalidas = () => {
                           borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
                         }}
                       >
-                        <Typography className="body-small-semibold" sx={{ color: 'var(--ink)' }}>
+                        <Typography
+                          className="body-small-semibold"
+                          sx={{ color: 'var(--ink)' }}
+                        >
                           {slot.label}
                         </Typography>
                         <TimePicker
                           ampm={!hour24}
                           value={generateDateFromTime(currentVal)}
                           onChange={(newDate) => {
-                            const hrs = String(newDate.getHours()).padStart(2, '0');
-                            const mins = String(newDate.getMinutes()).padStart(2, '0');
-                            setMonthHoursDraft({ ...monthHoursDraft, [slot.key]: `${hrs}:${mins}` });
+                            const hrs = String(newDate.getHours()).padStart(
+                              2,
+                              '0'
+                            );
+                            const mins = String(newDate.getMinutes()).padStart(
+                              2,
+                              '0'
+                            );
+                            setMonthHoursDraft({
+                              ...monthHoursDraft,
+                              [slot.key]: `${hrs}:${mins}`,
+                            });
                           }}
                           sx={{ width: '130px' }}
                         />
@@ -3390,7 +4373,9 @@ const PredicacionSalidas = () => {
         <DialogActions
           sx={{
             padding: '16px',
-            justifyContent: isCurrentlyOverridden ? 'space-between' : 'flex-end',
+            justifyContent: isCurrentlyOverridden
+              ? 'space-between'
+              : 'flex-end',
           }}
         >
           {isCurrentlyOverridden && (
@@ -3416,7 +4401,11 @@ const PredicacionSalidas = () => {
                 >
                   Cancelar
                 </AppButton>
-                <AppButton variant="main" disableAutoStretch onClick={handleSaveMonthHours}>
+                <AppButton
+                  variant="main"
+                  disableAutoStretch
+                  onClick={handleSaveMonthHours}
+                >
                   Guardar
                 </AppButton>
               </>
@@ -3447,19 +4436,46 @@ const PredicacionSalidas = () => {
           },
         }}
       >
-        <DialogTitle style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '18px' }}>
+        <DialogTitle
+          style={{
+            fontWeight: '700',
+            color: 'var(--accent-dark)',
+            fontSize: '18px',
+          }}
+        >
           Exportar programa a PDF
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mt: '8px' }}>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            mt: '8px',
+          }}
+        >
           <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
-            Selecciona el mes y año que deseas exportar en formato A4 horizontal.
+            Selecciona el mes y año que deseas exportar en formato A4
+            horizontal.
           </Typography>
 
           <Box sx={{ display: 'flex', gap: '16px', width: '100%' }}>
             {/* Selector de Mes */}
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Typography style={{ fontWeight: '600', fontSize: '12px', color: 'var(--grey-600)' }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <Typography
+                style={{
+                  fontWeight: '600',
+                  fontSize: '12px',
+                  color: 'var(--grey-600)',
+                }}
+              >
                 Mes
               </Typography>
               <Select
@@ -3478,8 +4494,21 @@ const PredicacionSalidas = () => {
             </Box>
 
             {/* Selector de Año */}
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Typography style={{ fontWeight: '600', fontSize: '12px', color: 'var(--grey-600)' }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <Typography
+                style={{
+                  fontWeight: '600',
+                  fontSize: '12px',
+                  color: 'var(--grey-600)',
+                }}
+              >
                 Año
               </Typography>
               <Select
@@ -3507,7 +4536,11 @@ const PredicacionSalidas = () => {
           >
             Cancelar
           </AppButton>
-          <AppButton variant="main" disableAutoStretch onClick={handleExportPDF}>
+          <AppButton
+            variant="main"
+            disableAutoStretch
+            onClick={handleExportPDF}
+          >
             Exportar
           </AppButton>
         </DialogActions>
@@ -3516,7 +4549,9 @@ const PredicacionSalidas = () => {
       {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
       <Dialog
         open={weekSettingsDialog.open}
-        onClose={() => setWeekSettingsDialog({ ...weekSettingsDialog, open: false })}
+        onClose={() =>
+          setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
+        }
         fullWidth
         maxWidth={false}
         sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
@@ -3527,13 +4562,33 @@ const PredicacionSalidas = () => {
           },
         }}
       >
-        <DialogTitle style={{ fontWeight: '700', color: 'var(--accent-dark)', fontSize: '18px' }}>
+        <DialogTitle
+          style={{
+            fontWeight: '700',
+            color: 'var(--accent-dark)',
+            fontSize: '18px',
+          }}
+        >
           Ajustes de la semana
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}>
-          <Typography style={{ color: 'var(--grey-600)', fontSize: '14px', marginBottom: '8px' }}>
-            Personaliza el comportamiento y los horarios de la semana del <strong>{weekSettingsDialog.weekOf}</strong>.
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            mt: '8px',
+          }}
+        >
+          <Typography
+            style={{
+              color: 'var(--grey-600)',
+              fontSize: '14px',
+              marginBottom: '8px',
+            }}
+          >
+            Personaliza el comportamiento y los horarios de la semana del{' '}
+            <strong>{weekSettingsDialog.weekOf}</strong>.
           </Typography>
 
           <FormControlLabel
@@ -3559,12 +4614,35 @@ const PredicacionSalidas = () => {
             }
             label="Semana del superintendente de circuito"
             labelPlacement="start"
-            sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', margin: 0 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              width: '100%',
+              margin: 0,
+            }}
           />
 
           {tempCOWeek && !showAdjustHours && (
-            <Box sx={{ mt: '12px', p: '16px', borderRadius: 'var(--radius-l)', backgroundColor: 'var(--accent-100)', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--line)' }}>
-              <Typography style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--accent-dark)', margin: 0 }}>
+            <Box
+              sx={{
+                mt: '12px',
+                p: '16px',
+                borderRadius: 'var(--radius-l)',
+                backgroundColor: 'var(--accent-100)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                border: '1px solid var(--line)',
+              }}
+            >
+              <Typography
+                style={{
+                  fontSize: '13.5px',
+                  fontWeight: '700',
+                  color: 'var(--accent-dark)',
+                  margin: 0,
+                }}
+              >
                 ¿Deseas ajustar el horario de las salidas de esta semana?
               </Typography>
               <Box sx={{ display: 'flex', gap: '8px' }}>
@@ -3574,9 +4652,17 @@ const PredicacionSalidas = () => {
                   onClick={() => {
                     setShowAdjustHours(true);
                     const weekMonthStr = weekSettingsDialog.weekOf.slice(0, 7);
-                    setWeekHoursConfig(getEffectiveHoursForMonth(settings, weekMonthStr));
+                    setWeekHoursConfig(
+                      getEffectiveHoursForMonth(settings, weekMonthStr)
+                    );
                   }}
-                  sx={{ backgroundColor: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-l)', boxShadow: 'none' }}
+                  sx={{
+                    backgroundColor: 'var(--accent-main)',
+                    textTransform: 'none',
+                    fontWeight: '700',
+                    borderRadius: 'var(--radius-l)',
+                    boxShadow: 'none',
+                  }}
                 >
                   Sí
                 </Button>
@@ -3586,7 +4672,13 @@ const PredicacionSalidas = () => {
                   onClick={() => {
                     setShowAdjustHours(false);
                   }}
-                  sx={{ borderColor: 'var(--accent-main)', color: 'var(--accent-main)', textTransform: 'none', fontWeight: '700', borderRadius: 'var(--radius-l)' }}
+                  sx={{
+                    borderColor: 'var(--accent-main)',
+                    color: 'var(--accent-main)',
+                    textTransform: 'none',
+                    fontWeight: '700',
+                    borderRadius: 'var(--radius-l)',
+                  }}
                 >
                   No
                 </Button>
@@ -3595,8 +4687,27 @@ const PredicacionSalidas = () => {
           )}
 
           {showAdjustHours && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '16px', maxHeight: '250px', overflowY: 'auto', pr: '8px', borderTop: '1px solid var(--line)', pt: '16px' }}>
-              <Typography style={{ fontWeight: '700', fontSize: '13px', color: 'var(--accent-main)', margin: 0 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                mt: '16px',
+                maxHeight: '250px',
+                overflowY: 'auto',
+                pr: '8px',
+                borderTop: '1px solid var(--line)',
+                pt: '16px',
+              }}
+            >
+              <Typography
+                style={{
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  color: 'var(--accent-main)',
+                  margin: 0,
+                }}
+              >
                 Horarios específicos de esta semana
               </Typography>
               {[
@@ -3615,14 +4726,36 @@ const PredicacionSalidas = () => {
                 { key: 'sunday_morning', label: 'Domingo Mañana' },
                 { key: 'sunday_afternoon', label: 'Domingo Tarde' },
               ].map((slot) => {
-                const isSlotDisabled = settings?.disabledSlots?.includes(slot.key);
+                const isSlotDisabled = settings?.disabledSlots?.includes(
+                  slot.key
+                );
                 if (isSlotDisabled) return null;
 
-                const weekEffectiveHours = getEffectiveHoursForMonth(settings, weekSettingsDialog.weekOf.slice(0, 7));
-                const currentVal = weekHoursConfig[slot.key] || weekEffectiveHours[slot.key] || (slot.key.endsWith('morning') ? '10:00' : '17:00');
+                const weekEffectiveHours = getEffectiveHoursForMonth(
+                  settings,
+                  weekSettingsDialog.weekOf.slice(0, 7)
+                );
+                const currentVal =
+                  weekHoursConfig[slot.key] ||
+                  weekEffectiveHours[slot.key] ||
+                  (slot.key.endsWith('morning') ? '10:00' : '17:00');
                 return (
-                  <Box key={slot.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                    <Typography style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--black)' }}>
+                  <Box
+                    key={slot.key}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '16px',
+                    }}
+                  >
+                    <Typography
+                      style={{
+                        fontSize: '13.5px',
+                        fontWeight: '600',
+                        color: 'var(--black)',
+                      }}
+                    >
                       {slot.label}
                     </Typography>
                     <TimePicker
@@ -3630,8 +4763,14 @@ const PredicacionSalidas = () => {
                       value={generateDateFromTime(currentVal)}
                       onChange={(newDate) => {
                         const hrs = String(newDate.getHours()).padStart(2, '0');
-                        const mins = String(newDate.getMinutes()).padStart(2, '0');
-                        setWeekHoursConfig({ ...weekHoursConfig, [slot.key]: `${hrs}:${mins}` });
+                        const mins = String(newDate.getMinutes()).padStart(
+                          2,
+                          '0'
+                        );
+                        setWeekHoursConfig({
+                          ...weekHoursConfig,
+                          [slot.key]: `${hrs}:${mins}`,
+                        });
                       }}
                       sx={{ width: '130px' }}
                     />
@@ -3657,7 +4796,9 @@ const PredicacionSalidas = () => {
           <AppButton
             variant="tertiary"
             disableAutoStretch
-            onClick={() => setWeekSettingsDialog({ ...weekSettingsDialog, open: false })}
+            onClick={() =>
+              setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
+            }
           >
             Cancelar
           </AppButton>
