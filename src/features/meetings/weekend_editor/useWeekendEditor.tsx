@@ -23,9 +23,19 @@ import { dbSchedCheck } from '@services/dexie/schedules';
 const useWeekendEditor = () => {
   const navigate = useNavigate();
 
-  const selectedWeek = useAtomValue(selectedWeekState);
+  const [selectedWeek, setSelectedWeek] = useAtom(selectedWeekState);
+
   const schedules = useAtomValue(schedulesState);
   const sources = useAtomValue(sourcesState);
+
+  // Las semanas por las que puede moverse la cabecera: las que TIENEN material
+  // importado. Saltar a una sin material dejaría la pantalla en blanco.
+  const weekList = useMemo(
+    () => sources.map((record) => record.weekOf),
+    [sources]
+  );
+
+  const handleSelectWeek = (week: string) => setSelectedWeek(week);
   const dataView = useAtomValue(userDataViewState);
   const lang = useAtomValue(JWLangState);
   const persons = useAtomValue(personsState);
@@ -131,9 +141,11 @@ const useWeekendEditor = () => {
 
   const speaker1Uid = useMemo(() => {
     if (!schedule) return undefined;
-    return schedule.weekend_meeting.speaker.part_1.find(
-      (record) => record.type === dataView
-    )?.value || undefined;
+    return (
+      schedule.weekend_meeting.speaker.part_1.find(
+        (record) => record.type === dataView
+      )?.value || undefined
+    );
   }, [schedule, dataView]);
 
   // Nombre ya guardado junto con el uid al momento de asignar (ver
@@ -150,7 +162,9 @@ const useWeekendEditor = () => {
   }, [schedule, dataView]);
 
   const weekendMeetingTime = useMemo(() => {
-    const defaultTime = settings.cong_settings.weekend_meeting.find((w) => w.type === dataView)?.time.value || '00:00';
+    const defaultTime =
+      settings.cong_settings.weekend_meeting.find((w) => w.type === dataView)
+        ?.time.value || '00:00';
     return defaultTime;
   }, [settings, dataView]);
 
@@ -221,6 +235,8 @@ const useWeekendEditor = () => {
     speaker1Uid,
     speaker1Name,
     weekendMeetingTime,
+    weekList,
+    handleSelectWeek,
   };
 };
 

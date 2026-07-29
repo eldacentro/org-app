@@ -45,6 +45,7 @@ import TalkTitleSolo from './talk_title_solo';
 import Typography from '@components/typography';
 import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
+import WeekNavigator from '@features/meetings/week_navigator';
 import usePublicTalkInvitation from './usePublicTalkInvitation';
 import { IconMail } from '@components/icons';
 
@@ -59,6 +60,8 @@ const WeekendEditor = () => {
 
   const {
     weekDateLocale,
+    weekList,
+    handleSelectWeek,
     hasSchedule,
     selectedWeek,
     weekType,
@@ -89,10 +92,7 @@ const WeekendEditor = () => {
 
   const { selectedTalk } = usePublicTalkSelector(selectedWeek);
 
-  const {
-    handleGenerate,
-    speakerName,
-  } = usePublicTalkInvitation(
+  const { handleGenerate, speakerName } = usePublicTalkInvitation(
     weekDateLocale,
     weekendMeetingTime,
     selectedTalk?.talk_number,
@@ -135,9 +135,12 @@ const WeekendEditor = () => {
             sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
           >
             <PrimaryFieldContainer>
-              <Typography className="h2" sx={{ flex: 1 }}>
-                {weekDateLocale}
-              </Typography>
+              <WeekNavigator
+                label={weekDateLocale}
+                weeks={weekList}
+                value={selectedWeek}
+                onChange={handleSelectWeek}
+              />
             </PrimaryFieldContainer>
             <SecondaryFieldContainer
               sx={{ flexDirection: laptopUp ? 'row' : 'column' }}

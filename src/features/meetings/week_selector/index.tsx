@@ -39,7 +39,7 @@ const WeekSelector = () => {
         onClick={handleToggleExpand}
         sx={{
           width: '100%',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--radius-xl)',
           border: '1px solid var(--line)',
           backgroundColor: 'var(--accent-100)',
           padding: '10px 16px',
@@ -55,9 +55,15 @@ const WeekSelector = () => {
       >
         <Typography
           className="body-small-semibold"
-          sx={{ color: 'var(--accent-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}
+          sx={{
+            color: 'var(--accent-dark)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
         >
-          {t('tr_week')}: <span style={{ fontWeight: '700' }}>{selectedWeekDateLocale}</span>
+          {t('tr_week')}:{' '}
+          <span style={{ fontWeight: '700' }}>{selectedWeekDateLocale}</span>
         </Typography>
         <Box
           sx={{
@@ -92,7 +98,13 @@ const WeekSelector = () => {
       sx={{
         width: desktopUp ? '360px' : '100%',
         flexShrink: 0,
-        borderRadius: 'var(--r-lg)',
+        // Mismo radio que las tarjetas del resto de la aplicación
+        // (`MeetingSection`, `PlainCard`). Departamentos usaba `--r-lg`
+        // (26px, el de las tarjetas grandes del panel de inicio) y el
+        // selector de reuniones `--r-lg` también en su panel pero
+        // `--radius-l` (8px) en su cabecera plegada: tres radios distintos
+        // para tres versiones de lo mismo.
+        borderRadius: 'var(--radius-xl)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         padding: '16px',

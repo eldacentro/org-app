@@ -1,6 +1,7 @@
 import { Box, Grid } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { Button, Dialog, Typography } from '@components/index';
+import WeekNavigator from '@features/meetings/week_navigator';
 import { IconClose } from '@components/icons';
 import Badge from '@components/badge';
 import PersonSelector from '@features/meetings/person_selector';
@@ -13,9 +14,18 @@ const DEPARTMENTS: {
   dept: DepartmentType;
   label: { key: string; fallback: string };
 }[] = [
-  { dept: 'acomodadores', label: { key: 'tr_attendants', fallback: 'Acomodadores' } },
-  { dept: 'microfonos', label: { key: 'tr_microphones', fallback: 'Micrófonos' } },
-  { dept: 'multimedia', label: { key: 'tr_multimedia', fallback: 'Multimedia' } },
+  {
+    dept: 'acomodadores',
+    label: { key: 'tr_attendants', fallback: 'Acomodadores' },
+  },
+  {
+    dept: 'microfonos',
+    label: { key: 'tr_microphones', fallback: 'Micrófonos' },
+  },
+  {
+    dept: 'multimedia',
+    label: { key: 'tr_multimedia', fallback: 'Multimedia' },
+  },
   { dept: 'plataforma', label: { key: 'tr_platform', fallback: 'Plataforma' } },
 ];
 
@@ -33,6 +43,8 @@ const DepartmentEditor = () => {
     meetingDaysName,
     isNoMeetingWeek,
     departmentsConfig,
+    weekList,
+    handleSelectWeek,
   } = useDepartmentEditor();
 
   if (selectedWeek.length === 0) return null;
@@ -61,7 +73,12 @@ const DepartmentEditor = () => {
             textAlign: 'center',
           }}
         >
-          <Badge text={t('tr_noMeetingWeek')} color="grey" size="medium" filled={false} />
+          <Badge
+            text={t('tr_noMeetingWeek')}
+            color="grey"
+            size="medium"
+            filled={false}
+          />
           <Typography color="var(--grey-400)" sx={{ maxWidth: '320px' }}>
             {t(
               'tr_noMeetingWeekDeptDesc',
@@ -84,7 +101,15 @@ const DepartmentEditor = () => {
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <Typography className="h2-caps">{weekName}</Typography>
+        {/* La misma cabecera con flechas que los editores de reunión. Aquí no
+            había ninguna: para pasar a la semana siguiente había que volver a
+            la lista. */}
+        <WeekNavigator
+          label={weekName}
+          weeks={weekList}
+          value={selectedWeek}
+          onChange={handleSelectWeek}
+        />
         {meetingDaysName && (
           <Typography className="body-small-regular" color="var(--grey-400)">
             {meetingDaysName}
@@ -92,7 +117,11 @@ const DepartmentEditor = () => {
         )}
       </Box>
 
-      <Dialog onClose={handleCloseClearAll} open={clearAll} sx={{ padding: '24px' }}>
+      <Dialog
+        onClose={handleCloseClearAll}
+        open={clearAll}
+        sx={{ padding: '24px' }}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Typography className="h2">{t('tr_clearAllAssignments')}</Typography>
           <Typography color="var(--grey-400)">

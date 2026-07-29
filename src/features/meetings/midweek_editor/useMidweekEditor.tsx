@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { MIDWEEK_WITH_STUDENTS_LANGUAGE_GROUP } from '@constants/index';
 import { schedulesState, selectedWeekState } from '@states/schedules';
-import { sourcesFormattedState, sourcesState } from '@states/sources';
+import { sourcesState } from '@states/sources';
 import {
   JWLangLocaleState,
   JWLangState,
@@ -18,8 +18,16 @@ import { schedulesGetMeetingDate } from '@services/app/schedules';
 const useMidweekEditor = () => {
   const [selectedWeek, setSelectedWeek] = useAtom(selectedWeekState);
 
-  const weeksSource = useAtomValue(sourcesFormattedState);
   const sources = useAtomValue(sourcesState);
+
+  // Las semanas por las que puede moverse la cabecera: las que TIENEN material
+  // importado. Saltar a una sin material dejaría la pantalla en blanco.
+  const weekList = useMemo(
+    () => sources.map((record) => record.weekOf),
+    [sources]
+  );
+
+  const handleSelectWeek = (week: string) => setSelectedWeek(week);
   const lang = useAtomValue(JWLangState);
   const dataView = useAtomValue(userDataViewState);
   const classCount = useAtomValue(midweekMeetingClassCountState);
@@ -39,11 +47,6 @@ const useMidweekEditor = () => {
   const [openAYF, setOpenAYF] = useState(true);
   const [openLC, setOpenLC] = useState(true);
   const [clearAll, setClearAll] = useState(false);
-  const [showWeekArrows, setShowWeeksArrows] = useState({
-    back: false,
-    next: false,
-  });
-
   const source = useMemo(() => {
     return sources.find((record) => record.weekOf === selectedWeek);
   }, [sources, selectedWeek]);
@@ -138,41 +141,8 @@ const useMidweekEditor = () => {
 
   const handleCloseClearAll = () => setClearAll(false);
 
-  const getAllWeeks = useCallback(() => {
-    return weeksSource
-      .flatMap((year) => year.months.flatMap((month) => month.weeks))
-      .sort();
-  }, [weeksSource]);
-
-  const handleChangeWeekBack = () => {
-    const allWeeks = getAllWeeks();
-    const selectedWeekIndex = allWeeks.indexOf(selectedWeek);
-
-    if (selectedWeekIndex > 0) {
-      setSelectedWeek(allWeeks[selectedWeekIndex - 1]);
-    }
-  };
-
-  const handleChangeWeekNext = () => {
-    const allWeeks = getAllWeeks();
-    const selectedWeekIndex = allWeeks.indexOf(selectedWeek);
-
-    if (selectedWeekIndex < allWeeks.length - 1) {
-      setSelectedWeek(allWeeks[selectedWeekIndex + 1]);
-    }
-  };
-
-  useEffect(() => {
-    const allWeeks = getAllWeeks();
-    const selectedWeekIndex = allWeeks.indexOf(selectedWeek);
-
-    if (selectedWeekIndex !== -1) {
-      setShowWeeksArrows({
-        back: selectedWeekIndex !== 0,
-        next: selectedWeekIndex + 1 !== allWeeks.length,
-      });
-    }
-  }, [getAllWeeks, selectedWeek]);
+  // La navegación entre semanas vive ahora en `features/meetings/week_navigator`,
+  // compartida con el editor de fin de semana y con Departamentos.
 
   return {
     isEdit,
@@ -195,12 +165,11 @@ const useMidweekEditor = () => {
     openingPrayerLinked,
     closingPrayerLinked,
     sourceLocale,
-    handleChangeWeekBack,
-    handleChangeWeekNext,
-    showWeekArrows,
     assignFSG,
     showCBSForGroup,
     dataView,
+    weekList,
+    handleSelectWeek,
   };
 };
 

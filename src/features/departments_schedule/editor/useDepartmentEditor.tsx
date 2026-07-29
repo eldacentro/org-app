@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
-import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
+import {
+  deptScheduleState,
+  selectedDeptWeekState,
+} from '@states/departments_schedule';
 import { dbDeptScheduleSave } from '@services/dexie/departments_schedule';
 import {
   ALL_DEPARTMENT_TYPES,
@@ -26,9 +29,20 @@ import { buildWeekRangeLabel } from '@services/app/week_range';
 import { readDeptConfig } from '@services/app/departments_slots';
 
 const useDepartmentEditor = () => {
-  const selectedWeek = useAtomValue(selectedDeptWeekState);
+  const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
+
   const dataView = useAtomValue(userDataViewState);
   const [schedules, setSchedules] = useAtom(deptScheduleState);
+
+  // Las semanas por las que puede moverse la cabecera. Salen del propio
+  // programa de departamentos: no tiene sentido llevar a una semana que aún
+  // no existe aquí.
+  const weekList = useMemo(
+    () => schedules.map((record) => record.weekOf),
+    [schedules]
+  );
+
+  const handleSelectWeek = (week: string) => setSelectedWeek(week);
   const meetingSchedules = useAtomValue(schedulesState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const departmentsConfig = useAtomValue(departmentsConfigState);
@@ -162,6 +176,8 @@ const useDepartmentEditor = () => {
   }, [selectedWeek, dataView, departmentsConfig]);
 
   return {
+    weekList,
+    handleSelectWeek,
     selectedWeek,
     schedule,
     departmentsConfig,

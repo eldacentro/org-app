@@ -8,13 +8,8 @@ import DeptMonthsContainer from './DeptMonthsContainer';
 
 const DeptWeekSelector = () => {
   const { t } = useAppTranslation();
-  const {
-    yearsList,
-    activeTab,
-    expanded,
-    handleToggleExpand,
-    desktopUp,
-  } = useDeptWeekSelector();
+  const { yearsList, activeTab, expanded, handleToggleExpand, desktopUp } =
+    useDeptWeekSelector();
 
   const tabs = yearsList.map((year) => ({
     label: year.label,
@@ -26,7 +21,13 @@ const DeptWeekSelector = () => {
       sx={{
         width: desktopUp ? '360px' : '100%',
         flexShrink: 0,
-        borderRadius: 'var(--r-lg)',
+        // Mismo radio que las tarjetas del resto de la aplicación
+        // (`MeetingSection`, `PlainCard`). Departamentos usaba `--r-lg`
+        // (26px, el de las tarjetas grandes del panel de inicio) y el
+        // selector de reuniones `--r-lg` también en su panel pero
+        // `--radius-l` (8px) en su cabecera plegada: tres radios distintos
+        // para tres versiones de lo mismo.
+        borderRadius: 'var(--radius-xl)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         padding: '16px',

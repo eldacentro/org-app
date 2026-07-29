@@ -5,8 +5,6 @@ import {
   IconLivingPart,
   IconLock,
   IconMinistryPart,
-  IconNavigateLeft,
-  IconNavigateRight,
   IconTreasuresPart,
 } from '@components/icons';
 import {
@@ -28,7 +26,6 @@ import {
 import {
   ClassAssignmentContainer,
   PersonDoubleContainer,
-  StyledNavigationArrowButton,
 } from './index.styles';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import { setIsImportJWOrg } from '@services/states/sources';
@@ -55,6 +52,7 @@ import SongSource from '../song_source';
 import Tooltip from '@components/tooltip';
 import Typography from '@components/typography';
 import WeekHeader from './week_header';
+import WeekNavigator from '@features/meetings/week_navigator';
 import WeekTypeSelector from '../week_type_selector';
 
 const MidweekEditor = () => {
@@ -67,6 +65,8 @@ const MidweekEditor = () => {
   const {
     isEdit,
     weekDateLocale,
+    weekList,
+    handleSelectWeek,
     selectedWeek,
     hasSource,
     showDoublePerson,
@@ -83,9 +83,6 @@ const MidweekEditor = () => {
     handleCloseClearAll,
     handleOpenClearAll,
     sourceLocale,
-    handleChangeWeekBack,
-    handleChangeWeekNext,
-    showWeekArrows,
     assignFSG,
     closingPrayerLinked,
     openingPrayerLinked,
@@ -138,36 +135,12 @@ const MidweekEditor = () => {
               justifyContent: tablet500Down && 'space-between',
             }}
           >
-            <StyledNavigationArrowButton
-              onClick={showWeekArrows.back ? handleChangeWeekBack : undefined}
-              sx={{
-                cursor: showWeekArrows.back && 'pointer',
-              }}
-            >
-              <IconNavigateLeft
-                color={showWeekArrows.back ? 'var(--black)' : 'var(--grey-300)'}
-              />
-            </StyledNavigationArrowButton>
-
-            <Typography
-              className="h2"
-              sx={{
-                minWidth: !tablet500Down && '140px',
-                textAlign: 'center',
-              }}
-            >
-              {weekDateLocale}
-            </Typography>
-            <StyledNavigationArrowButton
-              onClick={showWeekArrows.next ? handleChangeWeekNext : undefined}
-              sx={{
-                cursor: showWeekArrows.next && 'pointer',
-              }}
-            >
-              <IconNavigateRight
-                color={showWeekArrows.next ? 'var(--black)' : 'var(--grey-300)'}
-              />
-            </StyledNavigationArrowButton>
+            <WeekNavigator
+              label={weekDateLocale}
+              weeks={weekList}
+              value={selectedWeek}
+              onChange={handleSelectWeek}
+            />
           </Box>
 
           <DoubleFieldContainer
