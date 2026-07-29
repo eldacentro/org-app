@@ -263,10 +263,16 @@ body iframe {
   --shape-xl: 28px;     /* diálogos, hojas, tarjeta destacada del inicio     */
   --shape-full: 999px;  /* botones, píldoras, chips, pestañas, progreso      */
 
-  /* Ritmo vertical de un campo con la etiqueta dentro: el hueco de arriba es
-     el que ocupa la etiqueta encogida. Ver el bloque «EL CAMPO». */
-  --campo-pad-top: 19px;
-  --campo-pad-bottom: 5px;
+  /* Ritmo de un campo con la etiqueta dentro. Ver el bloque «EL CAMPO».
+     El de los lados lo usan la etiqueta Y el valor, para que arranquen de la
+     misma línea: escritos por separado se desalineaban unos píxeles. */
+  --campo-pad-x: 14px;
+  /* 18 + la línea del texto (23) + 6 caben en los 48 del campo. Con 22 arriba
+     el valor se salía por abajo y quedaba cortado por el canto. La separación
+     con la etiqueta NO se gana subiendo esto —no hay sitio—, se gana quitándole
+     a la etiqueta el interlineado sobrante (ver `line-height: 1` abajo). */
+  --campo-pad-top: 18px;
+  --campo-pad-bottom: 6px;
 
   /* Los nombres viejos pasan a ser alias de la escala nueva. Se conservan
      porque están en ~600 sitios y borrarlos de golpe sería una migración a
@@ -411,19 +417,26 @@ body iframe {
    sube a la parte de arriba, dentro. Las dos posiciones se miden desde el
    alto real del campo (48), no desde los 56 que MUI da por supuestos. */
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root {
-  max-width: calc(100% - 52px);
+  /* El tope se divide por la escala porque la etiqueta encogida se dibuja al
+     75%: un `100% - 52px` a secas le dejaba en pantalla solo tres cuartos de
+     eso, y "Fecha de nacimiento" salía cortada con puntos suspensivos en un
+     campo donde cabía de sobra. Los 44px son el hueco de la flecha y la X. */
+  max-width: calc((100% - 44px) / 0.75);
   color: var(--ink-3);
+  /* Sin interlineado sobrante: la caja de la etiqueta se ceñía a 1,4 líneas y
+     ese aire invisible se comía la separación con el nombre de debajo. */
+  line-height: 1;
   transition:
     transform var(--motion-fast) var(--ease-standard),
     color var(--motion-fast) var(--ease-standard);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
   top: 0;
-  transform: translate(14px, 13px);
+  transform: translate(var(--campo-pad-x), 15px);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
   top: 0;
-  transform: translate(14px, 5px) scale(0.75);
+  transform: translate(var(--campo-pad-x), 5px) scale(0.75);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root.Mui-focused {
   color: var(--accent-main);

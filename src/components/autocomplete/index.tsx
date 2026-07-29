@@ -98,8 +98,9 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
           // etiqueta del campo vacío caía FUERA, cruzada por el borde y encima
           // del campo siguiente. Este era el origen de que un selector vacío
           // se viera roto.
-          // Solo lo horizontal: el ritmo vertical lo pone el bloque «EL CAMPO».
-          padding: '0px 14px',
+          // Solo lo horizontal, y con la MISMA variable que usa la etiqueta:
+          // así el nombre y su etiqueta arrancan de la misma línea.
+          padding: '0 var(--campo-pad-x)',
         },
         '.MuiInputBase-adornedEnd': {
           paddingRight: '14px !important',
