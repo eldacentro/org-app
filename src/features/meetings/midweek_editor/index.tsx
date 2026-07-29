@@ -35,7 +35,7 @@ import AssignmentsWeekDelete from '../assignments_week_delete';
 import AuxClassGroup from './aux_class_group';
 import BrotherAssignment from './brother_assignment';
 import Button from '@components/button';
-import ButtonGroup from '@components/button_group';
+import SegmentedControl from '@components/segmented_control';
 import COTalk from './co_talk';
 import Divider from '@components/divider';
 import EventEditor from '../event_editor';
@@ -149,19 +149,17 @@ const MidweekEditor = () => {
             <PrimaryFieldContainer
               sx={{ alignSelf: laptopUp ? 'center' : 'flex-start' }}
             >
-              <ButtonGroup
-                buttons={[
-                  {
-                    children: t('tr_editAssignments'),
-                    onClick: handleEditAssignments,
-                    className: isEdit ? '' : 'active',
-                  },
-                  {
-                    children: t('tr_editParts'),
-                    onClick: handleEditParts,
-                    className: isEdit ? 'active' : '',
-                  },
-                ]}
+              {/* El MISMO control de dos opciones que el resto de la app.
+                  Era un `ButtonGroup` propio —la quinta forma distinta de
+                  dibujar "elige entre dos"— y encima usado en este único
+                  sitio: dos botones con borde que MUI pega por el costado. */}
+              <SegmentedControl
+                ariaLabel={t('tr_editAssignments')}
+                tabs={[t('tr_editAssignments'), t('tr_editParts')]}
+                active={isEdit ? 1 : 0}
+                onChange={(idx) =>
+                  idx === 0 ? handleEditAssignments() : handleEditParts()
+                }
               />
             </PrimaryFieldContainer>
             <SecondaryFieldContainer

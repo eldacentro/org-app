@@ -50,6 +50,9 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
           color: active === i ? 'var(--state-selected-ink)' : 'var(--ink-2)',
           fontWeight: active === i ? 600 : 400,
           fontSize: '13px',
+          // Sin partir palabras: una opción en dos líneas y la de al lado en
+          // una hacen que el control se vea desequilibrado.
+          whiteSpace: 'nowrap',
           cursor: 'pointer',
           transition:
             'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
