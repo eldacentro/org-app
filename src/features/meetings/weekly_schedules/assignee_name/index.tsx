@@ -43,6 +43,12 @@ type AssigneeNameProps = {
   trailing?: ReactNode;
   /** Recortar a una línea en vez de partir en dos (listas estrechas). */
   singleLine?: boolean;
+  /**
+   * Puntito delante del nombre. Para donde hay VARIOS nombres seguidos sin
+   * etiqueta que los presente (los hermanos de un turno de exhibidores): sin
+   * él, dos nombres en dos líneas se leen como uno partido en dos.
+   */
+  bullet?: boolean;
 };
 
 const AssigneeName = ({
@@ -52,6 +58,7 @@ const AssigneeName = ({
   emptyText = 'Sin asignar',
   trailing,
   singleLine,
+  bullet,
 }: AssigneeNameProps) => {
   if (!name) {
     return (
@@ -79,6 +86,22 @@ const AssigneeName = ({
     <Box
       sx={{ minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '8px' }}
     >
+      {bullet && (
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: '5px',
+            height: '5px',
+            borderRadius: '50%',
+            backgroundColor: isMe ? 'var(--brand)' : 'var(--grey-350)',
+            // `baseline` no alinea una caja vacía, así que el punto se sube a
+            // mano hasta la altura de la equis del nombre.
+            alignSelf: 'center',
+            marginTop: '1px',
+          }}
+        />
+      )}
+
       <Box sx={{ minWidth: 0 }}>
         <Typography
           className="h3"

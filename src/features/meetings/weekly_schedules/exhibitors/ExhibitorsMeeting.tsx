@@ -476,12 +476,21 @@ const ExhibitorsMeeting = ({
                                   name={name}
                                   isMe={isMe}
                                   singleLine
+                                  bullet
                                   trailing={
                                     ass.isResponsible &&
                                     aIdx === firstResponsibleIdx ? (
                                       <Typography
                                         className="label-small-semibold"
-                                        color="var(--brand)"
+                                        sx={{
+                                          flexShrink: 0,
+                                          color: 'var(--always-white)',
+                                          backgroundColor: 'var(--brand)',
+                                          borderRadius: 'var(--radius-s)',
+                                          padding: '2px 8px',
+                                          textTransform: 'uppercase',
+                                          letterSpacing: '0.4px',
+                                        }}
                                       >
                                         Resp.
                                       </Typography>
