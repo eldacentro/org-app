@@ -10,7 +10,10 @@ import {
 } from '@utils/date';
 import { generateMonthNames } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
-import { schedulesWeekHasNoMeetingAtAll } from '@services/app/schedules';
+import {
+  schedulesGetMeetingDate,
+  schedulesWeekHasNoMeetingAtAll,
+} from '@services/app/schedules';
 
 const useDeptWeekSelector = () => {
   const { desktopUp } = useBreakpoints();
@@ -38,7 +41,8 @@ const useDeptWeekSelector = () => {
         let currentMonday = new Date(firstMonday);
         while (
           currentMonday.getFullYear() < year ||
-          (currentMonday.getFullYear() === year && currentMonday.getMonth() <= month)
+          (currentMonday.getFullYear() === year &&
+            currentMonday.getMonth() <= month)
         ) {
           if (
             currentMonday.getFullYear() === year &&
@@ -51,7 +55,10 @@ const useDeptWeekSelector = () => {
             weeks.push({
               weekOf,
               label: `${formatDateShortMonth(currentMonday)} - ${formatDateShortMonth(endOfWeek)}`,
-              noMeeting: schedulesWeekHasNoMeetingAtAll(weekOf, meetingSchedules),
+              noMeeting: schedulesWeekHasNoMeetingAtAll(
+                weekOf,
+                meetingSchedules
+              ),
             });
           }
           currentMonday = addWeeks(currentMonday, 1);
@@ -98,7 +105,21 @@ const useDeptWeekSelector = () => {
     return index !== -1 ? index : 0;
   }, [selectedWeek, yearsList]);
 
+  // Lo que se enseña en la barra plegada. Antes ahí solo ponía "Semanas", que
+  // no dice cuál está abierta: había que desplegar para enterarse.
+  //
+  // El día del lunes y no el rango entero: la barra ya dice "Semana:" delante,
+  // así que el rango completo repetiría la palabra y no cabría. Mismo formato
+  // exacto que el selector de reuniones, para que las dos barras se lean igual.
+  const selectedWeekLabel = useMemo(() => {
+    if (!selectedWeek) return '';
+
+    return schedulesGetMeetingDate({ week: selectedWeek, meeting: 'weekOf' })
+      .locale;
+  }, [selectedWeek]);
+
   return {
+    selectedWeekLabel,
     yearsList,
     selectedWeek,
     setSelectedWeek,

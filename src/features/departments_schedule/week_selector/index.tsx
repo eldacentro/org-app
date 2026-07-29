@@ -1,15 +1,18 @@
-import { Box, Collapse } from '@mui/material';
-import { IconCollapse } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
-import { Typography } from '@components/index';
+import CollapsibleSelector from '@components/collapsible_selector';
 import ScrollableTabs from '@components/scrollable_tabs';
 import useDeptWeekSelector from './useDeptWeekSelector';
 import DeptMonthsContainer from './DeptMonthsContainer';
 
 const DeptWeekSelector = () => {
   const { t } = useAppTranslation();
-  const { yearsList, activeTab, expanded, handleToggleExpand, desktopUp } =
-    useDeptWeekSelector();
+  const {
+    yearsList,
+    activeTab,
+    expanded,
+    handleToggleExpand,
+    selectedWeekLabel,
+  } = useDeptWeekSelector();
 
   const tabs = yearsList.map((year) => ({
     label: year.label,
@@ -17,52 +20,15 @@ const DeptWeekSelector = () => {
   }));
 
   return (
-    <Box
-      sx={{
-        width: desktopUp ? '360px' : '100%',
-        flexShrink: 0,
-        // Mismo radio que las tarjetas del resto de la aplicación
-        // (`MeetingSection`, `PlainCard`). Departamentos usaba `--r-lg`
-        // (26px, el de las tarjetas grandes del panel de inicio) y el
-        // selector de reuniones `--r-lg` también en su panel pero
-        // `--radius-l` (8px) en su cabecera plegada: tres radios distintos
-        // para tres versiones de lo mismo.
-        borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--line)',
-        backgroundColor: 'var(--card)',
-        padding: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        position: desktopUp ? 'sticky' : 'unset',
-        top: desktopUp ? 57 : 'unset',
-      }}
+    <CollapsibleSelector
+      title={t('tr_weeks', 'Semanas')}
+      valuePrefix={t('tr_week', 'Semana')}
+      valueLabel={selectedWeekLabel}
+      expanded={expanded}
+      onToggle={handleToggleExpand}
     >
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: desktopUp ? 'default' : 'pointer',
-        }}
-        onClick={desktopUp ? null : handleToggleExpand}
-      >
-        <Typography className="h2">{t('tr_weeks', 'Semanas')}</Typography>
-        {!desktopUp && (
-          <IconCollapse
-            color="var(--black)"
-            sx={{
-              transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-              transition: 'transform 0.3s',
-            }}
-          />
-        )}
-      </Box>
-
-      <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
-        {tabs.length > 0 && <ScrollableTabs tabs={tabs} value={activeTab} />}
-      </Collapse>
-    </Box>
+      {tabs.length > 0 && <ScrollableTabs tabs={tabs} value={activeTab} />}
+    </CollapsibleSelector>
   );
 };
 

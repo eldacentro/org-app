@@ -1,0 +1,146 @@
+import { ReactNode } from 'react';
+import { Box, Collapse } from '@mui/material';
+import { IconCollapse } from '@components/icons';
+import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import Typography from '@components/typography';
+
+/**
+ * El panel para elegir semana o mes.
+ *
+ * Lo usan el editor de entre semana, el de fin de semana, Departamentos y los
+ * de mes de Exhibidores y Salidas. Antes cada uno tenía el suyo y no se
+ * parecían: uno enseñaba plegado "Semana: **Agosto 5**" sobre fondo azul claro
+ * con un enlace "Cambiar", y otro un "Semanas" grande sobre fondo blanco que
+ * no decía qué semana estaba abierta. Mismo trabajo, dos aspectos y dos
+ * comportamientos.
+ *
+ * En escritorio es una tarjeta pegada al lado, siempre abierta. En móvil se
+ * pliega y deja una barra que dice QUÉ hay elegido —que es el dato útil— y que
+ * se puede cambiar.
+ */
+const CollapsibleSelector = ({
+  title,
+  valuePrefix,
+  valueLabel,
+  expanded,
+  onToggle,
+  actions,
+  children,
+}: {
+  /** Título del panel abierto ("Reuniones", "Semanas", "Meses"). */
+  title: string;
+  /** Qué es lo elegido, para la barra plegada ("Semana", "Mes"). */
+  valuePrefix: string;
+  /** Lo elegido, ya escrito para leer. Sin esto no se pliega. */
+  valueLabel?: string;
+  expanded: boolean;
+  onToggle: () => void;
+  /** Controles propios del panel (ordenar, borrar…), a la derecha del título. */
+  actions?: ReactNode;
+  children: ReactNode;
+}) => {
+  const { t } = useAppTranslation();
+  const { desktopUp } = useBreakpoints();
+
+  // Plegado solo tiene sentido si se puede decir qué hay elegido. Sin valor, la
+  // barra diría "Semana:" y nada más, y habría que abrirla para enterarse.
+  if (!desktopUp && !expanded && valueLabel) {
+    return (
+      <Box
+        onClick={onToggle}
+        sx={{
+          width: '100%',
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--line)',
+          backgroundColor: 'var(--accent-100)',
+          padding: '10px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          transition: 'background-color 0.2s ease',
+          '&:hover': { backgroundColor: 'var(--accent-150)' },
+        }}
+      >
+        <Typography
+          className="body-small-semibold"
+          sx={{ color: 'var(--accent-dark)', minWidth: 0 }}
+        >
+          {valuePrefix}: <strong>{valueLabel}</strong>
+        </Typography>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            flexShrink: 0,
+          }}
+        >
+          <Typography
+            className="label-small-semibold"
+            color="var(--accent-main)"
+          >
+            {t('tr_change', 'Cambiar')}
+          </Typography>
+          <IconCollapse
+            color="var(--accent-main)"
+            sx={{ transform: 'rotate(180deg)', fontSize: '16px' }}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{
+        width: desktopUp ? '360px' : '100%',
+        flexShrink: 0,
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--card)',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        position: desktopUp ? 'sticky' : 'unset',
+        top: desktopUp ? 57 : 'unset',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: desktopUp ? 'default' : 'pointer',
+        }}
+        onClick={desktopUp ? undefined : onToggle}
+      >
+        <Typography className="h2">{title}</Typography>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {actions}
+
+          {!desktopUp && (
+            <IconCollapse
+              color="var(--black)"
+              sx={{
+                transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
+                transition: 'transform 0.3s',
+              }}
+            />
+          )}
+        </Box>
+      </Box>
+
+      <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
+        {children}
+      </Collapse>
+    </Box>
+  );
+};
+
+export default CollapsibleSelector;
