@@ -124,3 +124,13 @@ export const isWeekendEditorState = atom((get) => {
 
   return true;
 });
+
+/**
+ * Semana a la que debe saltar el programa semanal cuando cambie de pestaña.
+ *
+ * Cada pestaña guarda su propia semana seleccionada, así que ir a "Ver reunión
+ * completa" desde la visita del superintendente aterrizaba en la semana que
+ * esa pestaña tuviera puesta, no en la de la visita. Quien salta deja aquí la
+ * semana; la pestaña que llega la aplica y la borra.
+ */
+export const jumpToWeekState = atom(null as string | null);

@@ -27,37 +27,6 @@ const ServiceOutingsContainer = () => {
     <>
       <ConsejosDialog open={consejos} onClose={() => setConsejos(false)} />
 
-      {/* Los consejos de la Guía sobre cómo dirigir estas reuniones, a mano y
-          sin salir del programa: es donde se consultan. Van FUERA del aviso de
-          "no hay programa publicado", porque no dependen de que lo haya. */}
-      <Box
-        component="button"
-        type="button"
-        onClick={() => setConsejos(true)}
-        sx={{
-          appearance: 'none',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          marginBottom: '12px',
-          borderRadius: 'var(--radius-max)',
-          border: '1px solid var(--accent-200)',
-          backgroundColor: 'var(--accent-100)',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s ease',
-          '&:hover': { backgroundColor: 'var(--accent-200)' },
-        }}
-      >
-        <IconInfo color="var(--accent-main)" width={16} height={16} />
-        <Typography
-          className="label-small-semibold"
-          color="var(--accent-main)"
-        >
-          Consejos
-        </Typography>
-      </Box>
-
       {noSchedule && <NoSchedule />}
 
       {!noSchedule && (
@@ -80,6 +49,45 @@ const ServiceOutingsContainer = () => {
               <ServiceOutingsMeeting week={week} weekRecord={weekRecord} />
             </Stack>
           )}
+
+          {/* Al FINAL y centrado: los consejos son una consulta puntual de
+              quien dirige la reunión, no algo que haya que sortear cada vez
+              que se entra a ver el programa. */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '28px',
+              marginBottom: '8px',
+            }}
+          >
+            <Box
+              component="button"
+              type="button"
+              onClick={() => setConsejos(true)}
+              sx={{
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: 'var(--radius-max)',
+                border: '1px solid var(--line)',
+                backgroundColor: 'var(--card)',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+                '&:hover': { backgroundColor: 'var(--accent-100)' },
+              }}
+            >
+              <IconInfo color="var(--accent-main)" width={18} height={18} />
+              <Typography
+                className="body-small-semibold"
+                color="var(--accent-main)"
+              >
+                Consejos para dirigir la reunión
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       )}
     </>

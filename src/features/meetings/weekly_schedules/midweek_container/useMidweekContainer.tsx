@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useAtomValue } from 'jotai';
+import { useEffect, useMemo, useState } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
 import { useAppTranslation, useIntersectionObserver } from '@hooks/index';
-import { schedulesState } from '@states/schedules';
+import { jumpToWeekState, schedulesState } from '@states/schedules';
 import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
 import { userDataViewState } from '@states/settings';
 import { ASSIGNMENT_PATH } from '@constants/index';
@@ -49,6 +49,24 @@ const useMidweekContainer = () => {
         record.weekOf >= minDate
     );
   }, [sources]);
+
+  // Alguien pidió saltar a una semana concreta (p. ej. desde la pestaña de la
+  // visita del superintendente). Se aplica en cuanto esa semana existe en la
+  // lista de esta pestaña, y se borra para no volver a saltar sola.
+  const [jumpToWeek, setJumpToWeek] = useAtom(jumpToWeekState);
+
+  useEffect(() => {
+    if (!jumpToWeek) return;
+
+    const index = filteredSources.findIndex(
+      (record) => record.weekOf === jumpToWeek
+    );
+
+    if (index === -1) return;
+
+    setValue(index);
+    setJumpToWeek(null);
+  }, [jumpToWeek, filteredSources, setJumpToWeek]);
 
   const week = useMemo(() => {
     if (typeof value === 'boolean') return null;

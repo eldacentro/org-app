@@ -1,20 +1,28 @@
 import { ReactNode } from 'react';
-import { Box, Stack } from '@mui/material';
-import { useAtomValue } from 'jotai';
+import { Box, Card, Stack } from '@mui/material';
+import { useAtomValue, useSetAtom } from 'jotai';
 import Typography from '@components/typography';
-import Badge from '@components/badge';
+import {
+  IconCircuitOverseer,
+  IconPodium,
+  IconTreasuresPart,
+  IconInTerritory,
+  IconCalendarWeek,
+} from '@components/icons';
+import MeetingSection from '@features/meetings/meeting_section';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
 } from '@states/service_outings';
 import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { sourcesState } from '@states/sources';
+import { jumpToWeekState } from '@states/schedules';
 import { COFullnameState, COSpouseNameState } from '@states/settings';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
 import { isSpecialMeetingComplete } from '@services/app/circuit_visit';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
 import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 import { getEffectiveCoName } from '@features/circuit_visit/shared/getEffectiveCoName';
-import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
 import { CircuitVisitSpecialMeeting } from '@definition/circuit_visit';
 
 /**
@@ -27,63 +35,65 @@ import { CircuitVisitSpecialMeeting } from '@definition/circuit_visit';
  * Aparece en cuanto la visita está programada y desaparece sola el día
  * después de terminar (ver useUpcomingCircuitVisit). Nunca enseña comidas,
  * pastoreo, acompañantes, documentación ni contabilidad.
+ *
+ * Usa el MISMO lenguaje que las demás pestañas —MeetingSection con su cabecera
+ * de color, y las salidas con tarjetas por día— para que no se note que es
+ * otra pantalla.
  */
 
-const Tarjeta = ({
-  titulo,
-  subtitulo,
-  children,
-  accion,
-}: {
-  titulo: string;
-  subtitulo?: string;
-  children: ReactNode;
-  accion?: ReactNode;
-}) => (
-  <Box
-    sx={{
-      padding: '16px',
-      border: '1px solid var(--line)',
-      borderRadius: 'var(--radius-l)',
-      backgroundColor: 'var(--card)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
-    }}
-  >
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: '12px',
-        flexWrap: 'wrap',
-      }}
-    >
-      <Box>
-        <Typography className="h4" color="var(--ink)">
-          {titulo}
-        </Typography>
-        {subtitulo && (
-          <Typography className="label-small-regular" color="var(--ink-2)">
-            {subtitulo}
-          </Typography>
-        )}
-      </Box>
-      {accion}
-    </Box>
+const DIAS = [
+  'domingo',
+  'lunes',
+  'martes',
+  'miércoles',
+  'jueves',
+  'viernes',
+  'sábado',
+];
 
-    {children}
-  </Box>
+const MESES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+
+/** "martes 28 de julio" — la fecha entera, sin abreviar. */
+const fechaLarga = (fecha: string) => {
+  const d = new Date(fecha);
+  if (Number.isNaN(d.getTime())) return fecha;
+
+  return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+};
+
+/** "Del martes 28 de julio al domingo 2 de agosto de 2026". */
+const rangoLargo = (inicio: string, fin: string) => {
+  const d = new Date(fin);
+  const anio = Number.isNaN(d.getTime()) ? '' : ` de ${d.getFullYear()}`;
+
+  return `Del ${fechaLarga(inicio)} al ${fechaLarga(fin)}${anio}`;
+};
+
+const Fila = ({ etiqueta, valor }: { etiqueta: string; valor: string }) => (
+  <Stack spacing="2px">
+    <Typography className="label-small-medium" color="var(--grey-400)">
+      {etiqueta}
+    </Typography>
+    <Typography className="body-regular-semibold" color="var(--ink)">
+      {valor || 'Sin publicar todavía'}
+    </Typography>
+  </Stack>
 );
 
-const Enlace = ({
-  texto,
-  onClick,
-}: {
-  texto: string;
-  onClick: () => void;
-}) => (
+const Boton = ({ texto, onClick }: { texto: string; onClick: () => void }) => (
   <Box
     component="button"
     type="button"
@@ -92,14 +102,13 @@ const Enlace = ({
       appearance: 'none',
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '4px',
-      px: '10px',
-      py: '4px',
+      alignSelf: 'flex-start',
+      px: '14px',
+      py: '7px',
       borderRadius: 'var(--radius-max)',
       border: '1px solid var(--accent-200)',
       backgroundColor: 'var(--accent-100)',
       cursor: 'pointer',
-      flexShrink: 0,
       transition: 'background-color 0.2s ease',
       '&:hover': { backgroundColor: 'var(--accent-200)' },
     }}
@@ -110,14 +119,9 @@ const Enlace = ({
   </Box>
 );
 
-const Discurso = ({ titulo, texto }: { titulo: string; texto: string }) => (
-  <Stack spacing="1px">
-    <Typography className="body-small-semibold" color="var(--ink)">
-      {titulo}
-    </Typography>
-    <Typography className="body-small-regular" color="var(--ink-2)">
-      {texto || 'Sin publicar todavía'}
-    </Typography>
+const Contenido = ({ children }: { children: ReactNode }) => (
+  <Stack spacing="16px" sx={{ padding: '16px 20px 20px' }}>
+    {children}
   </Stack>
 );
 
@@ -128,12 +132,12 @@ const ReunionEspecial = ({
   label: string;
   when: CircuitVisitSpecialMeeting;
 }) => (
-  <Stack spacing="1px">
-    <Typography className="body-small-semibold" color="var(--ink)">
+  <Stack spacing="2px">
+    <Typography className="body-regular-semibold" color="var(--ink)">
       {label}
     </Typography>
-    <Typography className="body-small-regular" color="var(--ink-2)">
-      {[fmtDayEs(when!.date), when!.time, when!.place]
+    <Typography className="body-small-regular" color="var(--grey-400)">
+      {[fechaLarga(when!.date), when!.time, when!.place]
         .filter(Boolean)
         .join(' · ')}
     </Typography>
@@ -153,27 +157,33 @@ const CircuitVisitWeek = ({
   const outingsList = useAtomValue(serviceOutingsListState);
   const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const sources = useAtomValue(sourcesState);
+  const setJumpToWeek = useSetAtom(jumpToWeekState);
 
   if (!visit) return null;
 
-  const { effectiveCoName } = getEffectiveCoName(visit, coName, coSpouseName);
+  const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
+    visit,
+    coName,
+    coSpouseName
+  );
+
+  // Ir a otra pestaña Y a la semana de la visita. Sin lo segundo se aterrizaba
+  // en la semana que esa pestaña tuviera puesta, que casi nunca es esta.
+  const irA = (id: string) => {
+    setJumpToWeek(visit.weekOf);
+    onGoToTab(id);
+  };
 
   const weekRecord = outingsList.find((r) => r.weekOf === visit.weekOf);
   const weekSource = sources.find((s) => s.weekOf === visit.weekOf);
 
-  // Los turnos NO son solo los guardados: la mayoría salen de la plantilla de
-  // ajustes y se derivan por semana. Leer únicamente `weekRecord.outings`
-  // hacía que esta pestaña dijera "sin salidas" mientras Próximos eventos las
-  // listaba — la misma semana contada de dos formas. Se usa la misma función
-  // que la agenda, que es la única fuente buena.
-  //
-  // Solo horario y lugar — nunca quién va, que es gestión interna.
   const weekSlots = deriveWeekOutingSlots(
     outingsSettings,
     weekRecord,
     visit.weekOf
   );
 
+  // Solo horario y lugar — nunca quién va, que es gestión interna.
   const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end)
     .map((date) => {
       const dateStr = formatDate(date, 'yyyy/MM/dd');
@@ -190,68 +200,144 @@ const CircuitVisitWeek = ({
   const midweekTalk = weekSource?.midweek_meeting?.co_talk_title?.src ?? '';
   const publicTalk =
     weekSource?.weekend_meeting?.co_talk_title?.public?.src ?? '';
+  // El SEGUNDO discurso del fin de semana. El superintendente da dos ese día:
+  // el público y el de servicio, que sustituye al estudio de La Atalaya. No
+  // es el estudio, y llamarlo así confundía.
   const serviceTalk =
     weekSource?.weekend_meeting?.co_talk_title?.service?.src ?? '';
 
+  // La fecha real de cada reunión (incluye el salto a martes de la semana de
+  // la visita), con el mismo formato largo que el rango de arriba: mezclar
+  // "Julio 28" con "martes 28 de julio" en la misma tarjeta se lee mal.
+  const midweekDate = schedulesGetMeetingDate({
+    week: visit.weekOf,
+    meeting: 'midweek',
+    dataView: 'main',
+  });
+
+  const weekendDate = schedulesGetMeetingDate({
+    week: visit.weekOf,
+    meeting: 'weekend',
+    dataView: 'main',
+  });
+
   // Las reuniones a medio rellenar no se anuncian: una fecha sin hora ni
   // lugar no es un aviso, es una duda.
-  //
-  // Las dos se enseñan a todo el mundo. No son secretas —ya salían así en
-  // Próximos eventos y en la agenda de Inicio— y esconderlas aquí solo dejaba
-  // este sitio contando algo distinto que el resto de la aplicación.
   const hayPrecursores = isSpecialMeetingComplete(visit.meeting_pioneers);
   const hayAncianos = isSpecialMeetingComplete(visit.meeting_elders);
 
   return (
-    <Stack spacing="12px" sx={{ marginTop: '8px' }}>
-      <Box
+    <Stack spacing="16px" sx={{ marginTop: '8px' }}>
+      {/* Cabecera de la visita */}
+      <Card
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          flexWrap: 'wrap',
+          border: '1px solid var(--accent-200)',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: 'var(--small-card-shadow)',
+          overflow: 'hidden',
         }}
       >
-        <Typography className="h3" color="var(--ink)">
-          {fmtRangeEs(visit.date_start, visit.date_end)}
-        </Typography>
-        <Badge text="Visita del circuito" color="accent" size="small" filled />
-      </Box>
-
-      {effectiveCoName && (
-        <Typography className="body-small-regular" color="var(--ink-2)">
-          {effectiveCoName}
-        </Typography>
-      )}
-
-      <Tarjeta
-        titulo="Reunión de entre semana"
-        accion={
-          <Enlace
-            texto="Ver reunión completa"
-            onClick={() => onGoToTab('midweek')}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            px: '20px',
+            py: '14px',
+            backgroundColor: 'var(--accent-main)',
+          }}
+        >
+          <IconCircuitOverseer
+            color="var(--always-white)"
+            width={26}
+            height={26}
           />
-        }
-      >
-        <Discurso titulo="Discurso del superintendente" texto={midweekTalk} />
-      </Tarjeta>
+          <Typography
+            className="h3"
+            sx={{ color: 'var(--always-white)', fontWeight: 800 }}
+          >
+            Visita del superintendente de circuito
+          </Typography>
+        </Box>
 
-      <Tarjeta
-        titulo="Reunión de fin de semana"
-        accion={
-          <Enlace
-            texto="Ver reunión completa"
-            onClick={() => onGoToTab('weekend')}
-          />
-        }
+        <Stack spacing="8px" sx={{ padding: '18px 20px 20px' }}>
+          <Typography className="h2" color="var(--ink)">
+            {effectiveCoName || 'Superintendente de circuito'}
+          </Typography>
+
+          {effectiveCoSpouseName && (
+            <Typography className="body-regular" color="var(--grey-400)">
+              Le acompaña su esposa, {effectiveCoSpouseName}.
+            </Typography>
+          )}
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '4px',
+            }}
+          >
+            <IconCalendarWeek
+              color="var(--accent-main)"
+              width={18}
+              height={18}
+            />
+            <Typography className="body-regular-semibold" color="var(--ink-2)">
+              {rangoLargo(visit.date_start, visit.date_end)}
+            </Typography>
+          </Box>
+        </Stack>
+      </Card>
+
+      <MeetingSection
+        part="Reunión de entre semana"
+        color="var(--midweek-meeting)"
+        icon={<IconTreasuresPart color="var(--always-white)" />}
+        alwaysExpanded
       >
-        <Discurso titulo="Discurso público" texto={publicTalk} />
-        <Discurso titulo="Estudio de La Atalaya" texto={serviceTalk} />
-      </Tarjeta>
+        <Contenido>
+          <Fila
+            etiqueta="Cuándo"
+            valor={midweekDate.date ? fechaLarga(midweekDate.date) : ''}
+          />
+          <Fila etiqueta="Discurso del superintendente" valor={midweekTalk} />
+          <Boton texto="Ver reunión completa" onClick={() => irA('midweek')} />
+        </Contenido>
+      </MeetingSection>
+
+      <MeetingSection
+        part="Reunión de fin de semana"
+        color="var(--weekend-meeting)"
+        icon={<IconPodium color="var(--always-white)" />}
+        alwaysExpanded
+      >
+        <Contenido>
+          <Fila
+            etiqueta="Cuándo"
+            valor={weekendDate.date ? fechaLarga(weekendDate.date) : ''}
+          />
+
+          <Typography className="body-small-regular" color="var(--grey-400)">
+            El superintendente da los dos discursos de esta reunión.
+          </Typography>
+
+          <Fila etiqueta="Discurso público" valor={publicTalk} />
+          <Fila etiqueta="Discurso de servicio" valor={serviceTalk} />
+
+          <Boton texto="Ver reunión completa" onClick={() => irA('weekend')} />
+        </Contenido>
+      </MeetingSection>
 
       {(hayPrecursores || hayAncianos) && (
-        <Tarjeta titulo="Reuniones especiales">
-          <Stack spacing="10px">
+        <MeetingSection
+          part="Reuniones especiales"
+          color="var(--accent-dark)"
+          icon={<IconCalendarWeek color="var(--always-white)" />}
+          alwaysExpanded
+        >
+          <Contenido>
             {hayPrecursores && (
               <ReunionEspecial
                 label="Reunión con precursores"
@@ -264,44 +350,84 @@ const CircuitVisitWeek = ({
                 when={visit.meeting_elders}
               />
             )}
-          </Stack>
-        </Tarjeta>
+          </Contenido>
+        </MeetingSection>
       )}
 
-      <Tarjeta
-        titulo="Salidas de predicación"
-        subtitulo="Horarios de esta semana."
-        accion={
-          <Enlace
-            texto="Ver salidas"
-            onClick={() => onGoToTab('service_outings')}
-          />
-        }
+      <MeetingSection
+        part="Salidas de predicación"
+        color="var(--apply-yourself-to-the-field-ministry)"
+        icon={<IconInTerritory color="var(--always-white)" />}
+        alwaysExpanded
       >
-        {outingDays.length === 0 ? (
-          <Typography className="body-small-regular" color="var(--ink-2)">
-            Sin salidas programadas todavía.
-          </Typography>
-        ) : (
-          <Stack spacing="8px">
-            {outingDays.map((day) => (
-              <Stack key={day.dateStr} spacing="1px">
-                <Typography className="body-small-semibold" color="var(--ink)">
-                  {fmtDayEs(day.dateStr)}
-                </Typography>
-                <Typography className="body-small-regular" color="var(--ink-2)">
-                  {day.slots
-                    .map(
-                      (slot) =>
-                        `${slot.time} · ${slot.location || 'Salón del Reino'}`
-                    )
-                    .join('  •  ')}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
-        )}
-      </Tarjeta>
+        <Contenido>
+          {outingDays.length === 0 ? (
+            <Typography className="body-regular" color="var(--grey-400)">
+              Sin salidas programadas todavía.
+            </Typography>
+          ) : (
+            <Stack spacing="10px">
+              {outingDays.map((day) => (
+                <Box
+                  key={day.dateStr}
+                  sx={{
+                    border: '1px solid var(--line)',
+                    borderRadius: 'var(--radius-l)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      px: '14px',
+                      py: '8px',
+                      backgroundColor: 'var(--accent-100)',
+                    }}
+                  >
+                    <Typography
+                      className="body-small-semibold"
+                      color="var(--accent-dark)"
+                    >
+                      {fechaLarga(day.dateStr)}
+                    </Typography>
+                  </Box>
+
+                  <Stack sx={{ backgroundColor: 'var(--card)' }}>
+                    {day.slots.map((slot, idx) => (
+                      <Box
+                        key={`${slot.date}_${slot.time}`}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          px: '14px',
+                          py: '10px',
+                          borderTop: idx > 0 ? '1px solid var(--line)' : 'none',
+                        }}
+                      >
+                        <Typography
+                          className="body-small-semibold"
+                          color="var(--accent-main)"
+                          sx={{ minWidth: '46px' }}
+                        >
+                          {slot.time}
+                        </Typography>
+                        <Typography
+                          className="body-small-regular"
+                          color="var(--ink-2)"
+                        >
+                          {slot.location || 'Salón del Reino'}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          )}
+
+          <Boton texto="Ver salidas" onClick={() => irA('service_outings')} />
+        </Contenido>
+      </MeetingSection>
     </Stack>
   );
 };
