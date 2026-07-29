@@ -25,8 +25,15 @@ export type MaterialOrigen = 'jw' | 'jwpub' | 'desconocido';
 export type EstadoReunion = {
   semanas: string[];
   origen: MaterialOrigen;
-  /** Cuándo se importó, si consta. ISO. */
+  /** Cuándo se importó por última vez, si consta. ISO. */
   importadoEl?: string;
+  /**
+   * De dónde vino esa ÚLTIMA importación, que no siempre es lo mismo que
+   * `origen`: la automática de jw.org pasa cada semana por encima del material
+   * subido con un .jwpub sin quitarle lo que lo hace especial. Sirve para no
+   * llamar "importado" a algo que en realidad fue una actualización.
+   */
+  ultimaImportacion?: MaterialOrigen;
   /**
    * Si el enlace de JW Library puede abrir la semana exacta. Solo el .jwpub
    * trae los identificadores; desde jw.org se abre la publicación y ya.
@@ -87,21 +94,34 @@ const origenGuardado = (week: SourceWeekType, meeting: MeetingKind) => {
 /**
  * De dónde salió el material de esa reunión, en esa semana.
  *
- * Lo importado antes de que se guardara el origen no lo lleva, así que se
- * deduce: solo la importación desde .jwpub guarda el identificador de
- * documento. No es infalible —si sobre un .jwpub se reimporta desde jw.org, el
- * identificador se conserva— por eso lo explícito manda cuando existe.
+ * MANDA EL IDENTIFICADOR DE DOCUMENTO, no el sello de la última importación.
+ *
+ * El sello iba primero y estaba mal. La importación automática desde jw.org
+ * corre cada semana sobre las mismas semanas y vuelve a sellarlas como 'jw',
+ * pero NO puede quitar el identificador (no lo trae ni lo toca). Resultado: la
+ * misma fila decía "Desde jw.org" y a la vez "JW Library abre la semana
+ * exacta", que es una capacidad que solo da el .jwpub. Se contradecía sola.
+ *
+ * Preguntándoselo al identificador eso es imposible por construcción: es el
+ * MISMO dato del que sale `semanaExacta`, así que las dos líneas no pueden
+ * discrepar nunca. Y responde a lo que de verdad se quiere saber mirando esta
+ * página — qué meses traen los extras del .jwpub—, en vez de a quién escribió
+ * el último.
+ *
+ * El sello sigue sirviendo para dos cosas: para el material sin identificador
+ * (publicaciones antiguas, o lo importado desde jw.org, que nunca lo tiene) y
+ * para la FECHA, que sí debe moverse cuando jw.org trae correcciones.
  */
 export const origenDeSemana = (
   week: SourceWeekType,
   meeting: MeetingKind
 ): MaterialOrigen => {
+  if (typeof docidDeSemana(week, meeting) === 'number') return 'jwpub';
+
   const guardado = origenGuardado(week, meeting);
 
   if (guardado?.type === 'jw') return 'jw';
   if (guardado?.type === 'jwpub') return 'jwpub';
-
-  if (typeof docidDeSemana(week, meeting) === 'number') return 'jwpub';
 
   return 'desconocido';
 };
@@ -140,13 +160,19 @@ const construirEstado = (
 
   const conteo = new Map<MaterialOrigen, number>();
   let importadoEl: string | undefined;
+  let ultimaImportacion: MaterialOrigen | undefined;
 
   for (const week of conMaterial) {
     const origen = origenDeSemana(week, meeting);
     conteo.set(origen, (conteo.get(origen) ?? 0) + 1);
 
-    const fecha = origenGuardado(week, meeting)?.updatedAt;
-    if (fecha && (!importadoEl || fecha > importadoEl)) importadoEl = fecha;
+    const sello = origenGuardado(week, meeting);
+    const fecha = sello?.updatedAt;
+
+    if (fecha && (!importadoEl || fecha > importadoEl)) {
+      importadoEl = fecha;
+      ultimaImportacion = sello?.type as MaterialOrigen;
+    }
   }
 
   let origen: MaterialOrigen = 'desconocido';
@@ -165,6 +191,7 @@ const construirEstado = (
     semanas: conMaterial.map((week) => week.weekOf).sort(),
     origen,
     importadoEl,
+    ultimaImportacion,
     semanaExacta: conMaterial.some(
       (week) => typeof docidDeSemana(week, meeting) === 'number'
     ),

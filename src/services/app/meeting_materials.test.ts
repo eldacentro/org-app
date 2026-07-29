@@ -116,8 +116,12 @@ describe('de dónde salió cada reunión', () => {
     );
   });
 
-  it('lo explícito gana al identificador antiguo', () => {
-    // Reimportar desde jw.org encima de un .jwpub conserva el identificador.
+  it('el identificador manda sobre el sello de la última importación', () => {
+    // Este es EL caso que se veía en la app. La importación automática desde
+    // jw.org corre cada semana y vuelve a sellar como 'jw' semanas que se
+    // habían subido con un .jwpub, pero no puede quitarles el identificador.
+    // Haciendo caso al sello, la fila decía "Desde jw.org" y a la vez "abre la
+    // semana exacta", que solo puede darlo el .jwpub: se contradecía sola.
     expect(
       origenDeSemana(
         conGuia('2026/01/05', {
@@ -128,7 +132,36 @@ describe('de dónde salió cada reunión', () => {
         }),
         'midweek'
       )
+    ).toBe('jwpub');
+  });
+
+  it('sin identificador, el sello decide', () => {
+    // Lo que viene de jw.org nunca trae identificador, así que aquí el sello
+    // es la única fuente — y sigue haciendo falta.
+    expect(
+      origenDeSemana(
+        conGuia('2026/01/05', {
+          import_source: {
+            midweek: { type: 'jw', updatedAt: '2026-02-01T00:00:00Z' },
+          },
+        }),
+        'midweek'
+      )
     ).toBe('jw');
+  });
+
+  it('el identificador de una reunión no contagia a la otra', () => {
+    // La Guía y La Atalaya se importan por separado: tener el identificador de
+    // entre semana no dice nada del fin de semana.
+    const semana = conGuia('2026/01/05', {
+      mwb_week_docid: 123,
+      import_source: {
+        weekend: { type: 'jw', updatedAt: '2026-02-01T00:00:00Z' },
+      },
+    });
+
+    expect(origenDeSemana(semana, 'midweek')).toBe('jwpub');
+    expect(origenDeSemana(semana, 'weekend')).toBe('jw');
   });
 
   it('la forma antigua (un origen por semana) se sigue entendiendo', () => {
@@ -156,7 +189,9 @@ describe('agrupado por cuaderno', () => {
       },
     }),
     conGuia('2026/03/02', {
-      import_source: { midweek: { type: 'jw', updatedAt: '2026-02-20T10:00:00Z' } },
+      import_source: {
+        midweek: { type: 'jw', updatedAt: '2026-02-20T10:00:00Z' },
+      },
     }),
     vacia('2026/05/04'),
   ];

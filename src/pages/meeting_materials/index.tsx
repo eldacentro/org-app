@@ -108,7 +108,14 @@ const FilaReunion = ({
               estado.semanas.length === 1 ? 'semana' : 'semanas'
             }${
               estado.importadoEl
-                ? ` · importado el ${fechaCorta(estado.importadoEl)}`
+                ? estado.ultimaImportacion &&
+                  estado.ultimaImportacion !== estado.origen
+                  ? // La última pasada no fue la que da la etiqueta: la
+                    // automática de jw.org repasa cada semana el material que
+                    // ya estaba. Llamarlo "importado" haría pensar que se
+                    // sustituyó, y no es eso.
+                    ` · actualizado desde jw.org el ${fechaCorta(estado.importadoEl)}`
+                  : ` · importado el ${fechaCorta(estado.importadoEl)}`
                 : ''
             } · JW Library abre ${
               estado.semanaExacta ? 'la semana exacta' : 'la publicación'
@@ -186,8 +193,8 @@ const MeetingMaterials = () => {
                 {t('tr_sourceImportJw', 'Importar desde jw.org')}
               </Typography>
               <Typography className="label-small-regular" color="var(--ink-2)">
-                Trae el material publicado. El enlace de JW Library llevará a
-                la publicación, no a la semana.
+                Trae el material publicado. El enlace de JW Library llevará a la
+                publicación, no a la semana.
               </Typography>
             </Box>
           </Box>
