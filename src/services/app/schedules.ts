@@ -3581,11 +3581,11 @@ export const schedulesGetMeetingDate = ({
  * como un ÍNDICE dentro de esta lista, así que en cuanto una de las siete
  * calcule una ventana distinta, tocar una semana abre otra.
  *
- * Son tres semanas hacia atrás, no dos meses. Con dos meses la semana actual
- * caía la novena de la lista, o sea fuera de la pantalla al entrar: había que
- * deslizar para encontrar la semana en la que estás, que es justo la que se
- * viene a ver. Tres semanas la dejan casi al principio y dejan ver lo que
- * viene, que es lo que de verdad se consulta.
+ * Un mes hacia atrás, no dos. Con dos meses la semana actual caía la novena de
+ * la lista, o sea fuera de la pantalla al entrar, y había que deslizar para
+ * encontrar justo la semana que se viene a ver. Con uno queda cerca del
+ * principio y se sigue pudiendo mirar atrás, que hace falta: una asignación
+ * del mes pasado se consulta.
  */
 export const weeklySchedulesFirstWeek = () =>
-  formatDate(addWeeks(new Date(), -3), 'yyyy/MM/dd');
+  formatDate(addMonths(new Date(), -1), 'yyyy/MM/dd');
