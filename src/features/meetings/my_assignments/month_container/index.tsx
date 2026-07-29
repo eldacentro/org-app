@@ -9,6 +9,7 @@ import { AssignmentHistoryType } from '@definition/schedules';
 import { getWeekDate, formatDate } from '@utils/date';
 import { monthShortNamesState } from '@states/app';
 import { useAppTranslation } from '@hooks/index';
+import accentSurface from '@components/accent_surface';
 
 const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   const { monthLocale } = useMonthContainer(monthData.month);
@@ -37,7 +38,11 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
       const dateParts = item.weekOf.split('/');
       let mondayKey = item.weekOf;
       if (dateParts.length === 3) {
-        const itemDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+        const itemDate = new Date(
+          parseInt(dateParts[0], 10),
+          parseInt(dateParts[1], 10) - 1,
+          parseInt(dateParts[2], 10)
+        );
         const mondayDate = getWeekDate(itemDate);
         mondayKey = formatDate(mondayDate, 'yyyy/MM/dd');
       }
@@ -75,11 +80,10 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
               return a.id.localeCompare(b.id);
             })
           )
-          .toSorted(
-            (a, b) =>
-              (a[0].actualDate || a[0].weekOf).localeCompare(
-                b[0].actualDate || b[0].weekOf
-              )
+          .toSorted((a, b) =>
+            (a[0].actualDate || a[0].weekOf).localeCompare(
+              b[0].actualDate || b[0].weekOf
+            )
           );
 
         return { weekOf, items };
@@ -98,13 +102,17 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   return (
     <Stack spacing="16px">
       {/* Month header */}
+      {/* La cápsula en vez de la "uñita": el `borderLeft` recto se cortaba en
+          seco donde arrancaba la curva de la esquina y dejaba la cabecera con
+          pinta de paréntesis roto. La barrita de dentro tiene su propio radio
+          y no toca ningún canto. */}
       <Box
         sx={{
           padding: '8px 14px',
           alignSelf: 'stretch',
-          borderRadius: 'var(--r-sm)',
+          borderRadius: 'var(--shape-md)',
           background: 'var(--brand-tint)',
-          borderLeft: '4px solid var(--brand)',
+          ...accentSurface('var(--brand)', { tint: false }),
         }}
       >
         <Typography

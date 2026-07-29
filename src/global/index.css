@@ -245,9 +245,67 @@ body iframe {
   --song-text: #5b4287;
   --song-tint: rgba(114, 85, 168, 0.10);
 
-  --r-lg: 26px;
-  --r-md: 20px;
-  --r-sm: 15px;
+  /* ─── Forma ──────────────────────────────────────────────────────────────
+     UNA escala, elegida por el ROL del elemento, nunca por la página.
+
+     Antes había dos escalas conviviendo (`--radius-*` de 2 a 16px y `--r-*`
+     de 15 a 26px) más una treintena de píxeles sueltos. En una misma pantalla
+     se veían cuatro familias de esquina distintas y el conjunto parecía cosido
+     por varias manos: eso es lo que esto viene a arreglar.
+
+     La regla, en una frase: cuanto más pequeño y más interactivo, más redondo
+     en proporción; los contenedores grandes se quedan en una curva generosa
+     pero contenida. */
+  --shape-xs: 8px;      /* casillas, badges, cuadraditos de fecha            */
+  --shape-sm: 12px;     /* campos, desplegables, filas de lista, botón-icono */
+  --shape-md: 16px;     /* paneles anidados, barras, tarjeta pequeña         */
+  --shape-lg: 20px;     /* LA tarjeta estándar de una página                 */
+  --shape-xl: 28px;     /* diálogos, hojas, tarjeta destacada del inicio     */
+  --shape-full: 999px;  /* botones, píldoras, chips, pestañas, progreso      */
+
+  /* Los nombres viejos pasan a ser alias de la escala nueva. Se conservan
+     porque están en ~600 sitios y borrarlos de golpe sería una migración a
+     ciegas; con el alias, toda la app adopta la escala nueva a la vez y luego
+     cada página se va pasando a los nombres nuevos al tocarla.
+     `--radius-none` se queda como está: 0 no es una forma, es su ausencia. */
+  --radius-xs: var(--shape-full);   /* solo lo usan barras de progreso y micro-badges */
+  --radius-s: var(--shape-xs);
+  --radius-m: var(--shape-sm);
+  --radius-l: var(--shape-sm);
+  --radius-xl: var(--shape-md);
+  --radius-xxl: var(--shape-lg);
+  --radius-max: var(--shape-full);
+
+  --r-sm: var(--shape-md);
+  --r-md: var(--shape-lg);
+  --r-lg: var(--shape-xl);
+
+  /* ─── Movimiento ─────────────────────────────────────────────────────────
+     Dos duraciones y dos curvas para toda la app. `fast` es para lo que
+     responde al dedo (color de fondo, opacidad); `medium` para lo que cambia
+     de tamaño o aparece. Más allá de 300 ms una interfaz de consulta se
+     siente lenta, no elegante.
+
+     `--ease-emphasized` arranca despacio y frena tarde: es la curva de las
+     cosas que se despliegan. `--ease-standard` vale para todo lo demás. */
+  --motion-fast: 150ms;
+  --motion-medium: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  /* ─── Estados ────────────────────────────────────────────────────────────
+     Un solo lenguaje para "puedes tocarme", "estoy pulsado" y "estoy
+     elegido", en vez de que cada componente se lo invente.
+
+     Lo ELEGIDO va tintado con el texto en azul oscuro, nunca en color pleno:
+     el color pleno está reservado a la acción principal de la pantalla (ver
+     ActionPill). Una pestaña elegida no es un botón. */
+  --state-hover: color-mix(in srgb, var(--accent-main) 8%, transparent);
+  --state-pressed: color-mix(in srgb, var(--accent-main) 14%, transparent);
+  --state-selected: var(--accent-150);
+  --state-selected-strong: var(--accent-200);
+  --state-selected-ink: var(--accent-dark);
+  --state-disabled-opacity: 0.38;
 
   /* Ancho máximo de la columna de contenido del panel principal y de los
      menús de categoría. Es una variable y no un 600px suelto repetido en

@@ -213,10 +213,12 @@ const Button: FC<ButtonPropsType> = (props) => {
             : 'none',
         color: getColor(),
         boxShadow: 'none',
-        borderRadius:
-          variant === 'small' || variant === 'semi-white'
-            ? 'var(--radius-m)'
-            : 'var(--radius-l)',
+        // Todos los botones, píldora. Tenían dos radios según la variante
+        // (6px los pequeños, 8px el resto) y ninguno de los dos casaba con la
+        // píldora de ActionPill ni con los chips de semana, que ya eran
+        // redondos: en la misma pantalla convivían tres formas para la misma
+        // idea de "esto se pulsa".
+        borderRadius: 'var(--shape-full)',
         '&:hover': {
           backgroundColor: getBackgroundColorHover(),
           border:

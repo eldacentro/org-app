@@ -21,7 +21,7 @@ export const SelectStyled = styled(Select)({
   },
   '.MuiOutlinedInput-notchedOutline': {
     borderColor: 'var(--accent-350)',
-    borderRadius: 'var(--radius-l)',
+    borderRadius: 'var(--shape-sm)',
   },
   '&.Mui-focused': {
     '& .MuiOutlinedInput-notchedOutline': {

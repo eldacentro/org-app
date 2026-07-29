@@ -8,7 +8,9 @@ mejor hechas (Territorios, Ayuda, visita del Superintendente de Circuito) —
 son la referencia; si una página vieja no las sigue, la página vieja está mal,
 no el documento.
 
-Última revisión: 2026-07-14, durante la auditoría de consistencia de toda la app.
+Última revisión: 2026-07-29 — se fijó la escala de FORMA, el lenguaje de
+MOVIMIENTO y el de ESTADOS (§2.3 a §2.5), que era lo que faltaba para que esto
+fuese un sistema y no una lista de buenas costumbres.
 
 ---
 
@@ -54,22 +56,71 @@ rgba en una página — siempre a través de `var(--token)`, para que los 8 tema
 `--accent-main/-dark/-150/-200/-300/-400`, `--grey-100…600`, `--red-*`,
 `--green-*`, `--orange-*` — cada uno redefinido por tema en `global.css`.
 
-### 2.3 Radios
+### 2.3 Forma (radios)
+
+**Una sola escala, elegida por el ROL del elemento — nunca por la página.**
+
+| Token | Valor | Para qué |
+|---|---|---|
+| `--shape-xs` | 8px | Casillas, badges, cuadraditos de fecha |
+| `--shape-sm` | 12px | Campos, desplegables, filas de lista, botón-icono |
+| `--shape-md` | 16px | Paneles anidados, barras (selector plegado), tarjeta pequeña |
+| `--shape-lg` | 20px | **La** tarjeta estándar de una página |
+| `--shape-xl` | 28px | Diálogos, hojas, tarjeta destacada del inicio |
+| `--shape-full` | 999px | Botones, píldoras, chips, pestañas, buscador, barras de progreso |
+
+La regla en una frase: **cuanto más pequeño y más interactivo, más redondo en
+proporción**; los contenedores grandes se quedan en una curva generosa pero
+contenida. Todo lo que se pulsa y no es un contenedor tiende a `--shape-full`
+— así "esto se toca" se reconoce por la forma, antes de leer nada.
+
+Los nombres viejos (`--radius-*`, `--r-*`) **siguen existiendo como alias** de
+esta escala: están en cientos de sitios y cambiarlos de golpe sería una
+migración a ciegas. Con el alias, toda la app adoptó la escala nueva a la vez.
+En código nuevo usa siempre los `--shape-*`; los `--radius-*` se van
+sustituyendo al tocar cada página. `--radius-none` se queda como está: 0 no es
+una forma, es su ausencia.
+
+**Nunca un píxel suelto.** Si ninguno de los seis encaja, casi siempre es que
+el elemento está mal clasificado, no que falte un token.
+
+### 2.4 Movimiento
 
 ```
---radius-xs   2px   --radius-l    8px    --radius-xxl  16px
---radius-s    4px   --radius-xl  12px    --radius-max  999px (pill)
---radius-m    6px
+--motion-fast    150ms   lo que responde al dedo (fondo, color, opacidad)
+--motion-medium  250ms   lo que cambia de tamaño o aparece
+--ease-standard    cubic-bezier(0.2, 0, 0, 1)   todo lo demás
+--ease-emphasized  cubic-bezier(0.3, 0, 0, 1)   lo que se despliega
 ```
 
-Además existe una segunda escala semántica (`--r-lg: 26px`, `--r-md: 20px`,
-`--r-sm: 15px`) usada por páginas/tarjetas de contenedor de nivel superior
-(ej. la tarjeta raíz de una página). **Las dos escalas conviven a propósito**:
-`--radius-*` para controles internos (botones, chips, inputs, filas),
-`--r-*` para el contenedor de página. No mezclar libremente; si dudas, mira
-qué usa una página hermana ya bien hecha (Territorios, Ayuda).
+Más allá de 300 ms una aplicación de consulta se siente lenta, no elegante.
+Nunca animar `width`/`height`/`top` si se puede animar `transform`/`opacity`.
 
-### 2.4 Sombras
+### 2.5 Estados
+
+Un solo lenguaje para "puedes tocarme", "estoy pulsado" y "estoy elegido", en
+vez de que cada componente se lo invente.
+
+```
+--state-hover            8%  de marca sobre transparente
+--state-pressed         14%  de marca sobre transparente
+--state-selected         fondo de lo elegido (--accent-150)
+--state-selected-strong  su hover (--accent-200)
+--state-selected-ink     texto de lo elegido (--accent-dark)
+--state-disabled-opacity 0.38
+```
+
+Foco visible: `outline: 2px solid var(--accent-main)` con `outlineOffset: 2px`.
+
+**Lo elegido va tintado con el texto en azul oscuro, jamás en color pleno.** El
+color pleno está reservado a la acción principal de la pantalla (§6.2). Una
+pestaña elegida no es un botón. Esto vale por igual para pestañas, segmented
+control, chips de semana y rejillas de mes: antes cada uno tenía su dibujo.
+
+**Y en las dos direcciones:** lo que se puede pulsar SIEMPRE reacciona al
+hover/pulsación; lo que no se puede pulsar NUNCA lleva borde + sombra de botón.
+
+### 2.6 Sombras
 
 ```
 --small-card-shadow   tarjeta en reposo / hover ligero
@@ -187,10 +238,11 @@ pasa por una clase `-caps`, es casi seguro un error a corregir.
 | Un interruptor con etiqueta | `@components/switch_with_label` (o `@components/switch` a secas si no hay etiqueta) | `<Switch>` + `<FormControlLabel>` de MUI |
 | Una casilla | `@components/checkbox` (acepta `label` directamente) | `<Checkbox>` + `<FormControlLabel>` de MUI |
 | Un aviso/banner inline (info, éxito, aviso, error) | `@components/info_tip` (`color`: `info` \| `success` \| `warning` \| `error` \| `white` — ver nota) | `<Alert severity="...">` de MUI |
-| Una tarjeta/superficie | `@components/card`, o un `Box` con `backgroundColor: var(--card)`, `border: 1px solid var(--line)`, `borderRadius: var(--r-lg)` — **una sola vez por jerarquía**, ver §8 | Repetir el mismo fondo/borde en un componente Y en su contenedor padre |
+| Una tarjeta/superficie | `@components/card`, o un `Box` con `backgroundColor: var(--card)`, `border: 1px solid var(--line)`, `borderRadius: var(--shape-lg)` — **una sola vez por jerarquía**, ver §8 | Repetir el mismo fondo/borde en un componente Y en su contenedor padre |
 | Pestañas | `@components/scrollable_tabs` o `@components/segmented_control` | `<Tabs>`/`<Tab>` de MUI sueltos |
 | Un desplegable | `@components/select` | `<Select>` de MUI directo |
 | Iconos | `@components/icons` (308 iconos ya disponibles, revisa antes de traer uno de otra librería) | Emoji o símbolos sueltos en texto (`▾`, `✕`, `→`) como si fueran iconos |
+| Marcar una tarjeta con el color de su categoría | `accentSurface()` de `@components/accent_surface` — ver §6.3 | `borderLeft: '4px solid <color>'` (la "uñita") |
 | Una acción con forma de píldora (JW Library, Google Maps, Consejos, Documentos, «Ver reunión completa») | `@components/action_pill` — ver §6.2 | Un `Box component="a"` con su propio `px`/`py`/`borderRadius` |
 | Buscar dentro de una lista | `@components/search_bar` | Un `TextField` con `IconSearch` de adorno |
 | Elegir el mes que se está mirando (Exhibidores, Salidas) | `@components/month_selector` | Rehacer la tira de meses con `Box`+`Chip` en la página |
@@ -208,9 +260,32 @@ pasa por una clase `-caps`, es casi seguro un error a corregir.
 - `outline` — una acción que **se repite en una lista**. En «Mis asignaciones»
   hay una por fila: rellenas serían un muro de color.
 
-Las tres comparten tamaño (`padding: 6px 12px`, `--radius-max`) a propósito:
+Las tres comparten tamaño (`padding: 6px 12px`, `--shape-full`) a propósito:
 antes eran cinco copias con cuatro tamaños distintos y se notaba al verlas en la
 misma pantalla.
+
+### 6.3 Marcar una tarjeta con el color de su categoría — `accentSurface`
+
+**No uses `borderLeft: '4px solid <color>'`.** Es la "uñita" que estaba copiada
+en veintitantos ficheros con cuatro grosores distintos (2, 3, 4 y 5px), y no es
+cuestión de gusto que se vea mal: un borde recto pegado al canto de una caja
+redondeada **pelea con la propia esquina** — el color llega arriba, se corta en
+seco donde empieza la curva y deja dos muescas. Cuanto más redonda la tarjeta,
+peor; y la escala nueva subió todos los radios.
+
+En su lugar, `accentSurface(color)` de `@components/accent_surface`: una
+cápsula de 4px **con su propio radio completo**, metida dentro del margen y más
+corta que la tarjeta, más un lavado del mismo color al 6%. Al no tocar ningún
+canto no hay nada con lo que pelear, y al ser redonda pertenece a la misma
+familia que el resto. El lavado es lo que hace que la fila se lea "de esta
+categoría" de un vistazo, sin depender de una línea de 4px.
+
+```tsx
+<Box sx={{ ...tarjeta, ...accentSurface(zone.color) }}>
+```
+
+Incluye el `paddingLeft` que hace falta para que el contenido no pise la
+cápsula. Pasa `{ tint: false }` si la tarjeta ya tiene fondo propio.
 
 > **Nota sobre `info_tip`:** antes de esta auditoría solo soportaba
 > `color: 'white' | 'blue'`. Se le añadieron las 4 severidades semánticas
@@ -276,9 +351,17 @@ cercano. No se ha tocado porque cambiar el valor numérico cambiaría el
 renderizado visual ya aprobado; se documenta para que quien añada nuevas
 clases de peso "semibold" no copie este patrón (usar 600, un peso real).
 
-### 7.3 Dos escalas de radio (`--radius-*` y `--r-*`)
-Ver §2.3 — es coexistencia intencional (controles vs. contenedor de página),
-no una a eliminar.
+### 7.3 Dos escalas de radio (`--radius-*` y `--r-*`) — ~~deuda~~ **pagada (2026-07-29)**
+Durante un tiempo este documento defendió que las dos escalas convivían "a
+propósito" (controles vs. contenedor de página). No era verdad: en la práctica
+cada componente elegía una al nacer, y a las dos escalas se sumaban ~35 radios
+en píxeles sueltos (`10px`, `15px`, `17px`, `13px`…). El resultado eran cuatro
+familias de esquina distintas visibles en una sola pantalla.
+
+Resuelto en §2.3: una escala `--shape-*` por rol, con los nombres viejos
+convertidos en alias. Lección para la próxima: **si una "coexistencia
+intencional" no se puede explicar con una regla que diga qué usar en cada caso,
+no es intencional — es deuda con buena prensa.**
 
 ### 7.4 Tokens de color CSS huérfanos (corregidos 2026-07-14)
 Igual que las clases de tipografía huérfanas del §3, existían **15 custom

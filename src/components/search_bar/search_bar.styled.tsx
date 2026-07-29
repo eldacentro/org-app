@@ -1,14 +1,18 @@
 import { styled } from '@mui/system';
 import { Box, Button, Input } from '@mui/material';
 
+// Buscar es una acción, y las acciones en esta app tienen forma de píldora.
+// Además el campo redondo se distingue de un vistazo de los campos de dato
+// (rectángulo de esquina suave): al entrar en una lista larga, encontrar el
+// buscador deja de requerir leer.
 export const StyledBox = styled(Box)({
   display: 'flex',
   width: '100%',
   height: '48px',
   alignItems: 'center',
-  borderRadius: 'var(--radius-m)',
+  borderRadius: 'var(--shape-full)',
   background: 'var(--grey-100)',
-  padding: '4px',
+  padding: '4px 8px',
   gap: '4px',
   alignSelf: 'stretch',
 });
@@ -16,11 +20,12 @@ export const StyledBox = styled(Box)({
 export const StyledButton = styled(Button)({
   minWidth: '0px',
   padding: '8px',
+  borderRadius: 'var(--shape-full)',
   '&:hover': {
-    color: 'var(--accent-100)',
+    backgroundColor: 'var(--state-hover)',
   },
   '&:active': {
-    color: 'var(--accent-300)',
+    backgroundColor: 'var(--state-pressed)',
   },
 });
 

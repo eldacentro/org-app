@@ -94,7 +94,7 @@ const TextField = (props: TextFieldTypeProps) => {
           outline: 0,
         },
         '.MuiOutlinedInput-root': {
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           color: 'var(--black)',
           '& svg': {
             boxSizing: 'content-box',

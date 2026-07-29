@@ -39,7 +39,10 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
           className: 'pop-up-shadow',
           style: {
             maxWidth: '560px',
-            borderRadius: 'var(--radius-xl)',
+            // Un diálogo es la superficie más grande que se levanta sobre la
+            // página: le toca la curva más generosa de la escala, la misma que
+            // la tarjeta destacada del inicio.
+            borderRadius: 'var(--shape-xl)',
             backgroundColor: 'var(--white)',
           },
         }

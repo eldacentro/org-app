@@ -15,9 +15,12 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
     aria-label={ariaLabel}
     sx={{
       display: 'flex',
-      backgroundColor: 'var(--accent-200)',
-      borderRadius: '10px',
-      p: '3px',
+      // El carril, en un tinte más suave que antes (`--accent-200` competía
+      // con el propio segmento elegido) y con forma de píldora: el 10px suelto
+      // que tenía no pertenecía a ninguna escala.
+      backgroundColor: 'var(--accent-100)',
+      borderRadius: 'var(--shape-full)',
+      p: '4px',
     }}
   >
     {tabs.map((t, i) => (
@@ -37,24 +40,26 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
           font: 'inherit',
           flex: 1,
           textAlign: 'center',
-          py: '6px',
-          borderRadius: 'var(--radius-l)',
-          // Tokens en vez de blanco/negro literales: sobre los 4 temas
-          // oscuros, la pestaña activa quedaba blanca y las inactivas
-          // negro-sobre-negro (ilegibles).
-          backgroundColor: active === i ? 'var(--card)' : 'transparent',
-          boxShadow:
-            active === i
-              ? '0 1px 3px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.05)'
-              : 'none',
-          color: active === i ? 'var(--ink)' : 'var(--ink-2)',
+          py: '8px',
+          borderRadius: 'var(--shape-full)',
+          // El MISMO lenguaje de "elegido" que las pestañas y los chips de
+          // semana: tinte de marca y texto en azul oscuro. Antes era una
+          // pastilla blanca con sombra propia —un tercer dibujo para la misma
+          // idea— y encima esa sombra no se adaptaba al tema oscuro.
+          backgroundColor: active === i ? 'var(--state-selected)' : 'transparent',
+          color: active === i ? 'var(--state-selected-ink)' : 'var(--ink-2)',
           fontWeight: active === i ? 600 : 400,
           fontSize: '13px',
           cursor: 'pointer',
-          transition: 'all 0.15s ease',
+          transition:
+            'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
           userSelect: 'none',
           WebkitUserSelect: 'none',
           letterSpacing: '-0.1px',
+          '&:hover': {
+            backgroundColor:
+              active === i ? 'var(--state-selected)' : 'var(--state-hover)',
+          },
           '&:focus-visible': {
             outline: '2px solid var(--accent-main)',
             outlineOffset: '2px',

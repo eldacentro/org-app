@@ -25,7 +25,7 @@ export const CustomPaper = ({
       elevation={1}
       sx={{
         backgroundColor: 'var(--white)',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         border: '1px solid var(--accent-200)',
       }}
       className="small-card-shadow"
@@ -147,7 +147,7 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
             decorator
               ? {
                   '.MuiOutlinedInput-root': {
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     '& fieldset': {
                       border: '1px solid var(--orange-dark)',
                     },

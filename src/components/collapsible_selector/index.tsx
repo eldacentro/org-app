@@ -50,7 +50,10 @@ const CollapsibleSelector = ({
         onClick={onToggle}
         sx={{
           width: '100%',
-          borderRadius: 'var(--radius-xl)',
+          // Plegado es una BARRA, no una tarjeta: un escalón menos de curva
+          // que el panel abierto. Con el mismo radio los dos parecían la misma
+          // pieza cambiando de tamaño, y no lo son.
+          borderRadius: 'var(--shape-md)',
           border: '1px solid var(--line)',
           backgroundColor: 'var(--accent-100)',
           padding: '10px 16px',
@@ -98,7 +101,7 @@ const CollapsibleSelector = ({
       sx={{
         width: desktopUp ? '360px' : '100%',
         flexShrink: 0,
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-lg)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         padding: '16px',

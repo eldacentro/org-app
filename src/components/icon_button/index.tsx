@@ -27,11 +27,17 @@ const IconButton: FC<CustomIconButtonProps> = (props) => {
   return (
     <MUIIconButton
       color="inherit"
-      edge="start"
+      // SIN `edge`. Lo llevaba puesto a fuego (`edge="start"`), y eso en MUI
+      // es un `margin-left: -12px` pensado para el botón que va pegado al
+      // borde izquierdo de una barra. Como esto lo usa TODA la app, cualquier
+      // botón de icono que no estuviera en ese sitio salía 12px corrido a la
+      // izquierda — encima del borde del campo que tenía al lado, o comiéndose
+      // el hueco del elemento anterior. Quien de verdad esté al borde de una
+      // barra puede pedir `edge="start"` a mano.
       disableRipple
       sx={{
         padding: '8px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-full)',
         transition: 'transform 100ms ease, background-color 150ms ease',
 
         ...(disableHover
