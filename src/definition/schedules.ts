@@ -13,6 +13,19 @@ export type AssignmentCongregation = {
   solo?: boolean;
   id?: string;
   _deleted?: true;
+  /**
+   * La hojita de asignación (S-89) se entregó y la persona la aceptó.
+   *
+   * Vive DENTRO de la asignación, y no en una tabla aparte, porque pertenece
+   * al par parte+persona y tiene que morir con él: al reasignar la parte a
+   * otro hermano, la confirmación del anterior no significa nada. La fusión de
+   * la sincronización reemplaza este objeto entero por el más reciente, así
+   * que eso sale gratis — y `schedulesSaveAssignment` lo borra explícitamente
+   * al cambiar de persona, para que tampoco dependa de la carrera.
+   *
+   * Solo se usa en las asignaciones que llevan hojita: ver `S89_ASSIGNMENTS`.
+   */
+  confirmed?: boolean;
 };
 
 export type WeekTypeCongregation = {

@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { PersonComponentProps } from './index.types';
 import usePersonComponent from './usePersonComponent';
 import AssigneeName from '../assignee_name';
+import AssignmentConfirmed from '../assignment_confirmed';
 import Typography from '@components/typography';
 
 /**
@@ -47,6 +48,14 @@ const PersonComponent = (props: PersonComponentProps) => {
           }
         />
       </Box>
+
+      {/* Solo se dibuja en las asignaciones con hojita y solo para quien
+          edita la reunión de entre semana — se decide dentro. */}
+      <AssignmentConfirmed
+        week={props.week}
+        assignment={props.assignment}
+        dataView={props.dataView}
+      />
     </Box>
   );
 };

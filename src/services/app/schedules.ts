@@ -73,6 +73,7 @@ import {
   WEEKEND_FULL,
   WEEKEND_WITH_TALKS,
   WEEKEND_WITH_WTSTUDY,
+  S89_ASSIGNMENTS,
 } from '@constants/index';
 import { assignmentState } from '@states/assignment';
 import { setAssignmentsHistory } from '@services/states/schedules';
@@ -99,7 +100,10 @@ import {
 import { sourcesFind } from '@services/states/sources';
 import { weekTypeLocaleState } from '@states/weekType';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
-import { incomingSpeakersState, outgoingSpeakersState } from '@states/visiting_speakers';
+import {
+  incomingSpeakersState,
+  outgoingSpeakersState,
+} from '@states/visiting_speakers';
 import { FullnameOption } from '@definition/settings';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 import { publicTalksState } from '@states/public_talks';
@@ -933,7 +937,8 @@ export const schedulesGetHistoryDetails = ({
   if (assignment.startsWith('MM_TGWBibleReading')) {
     history.assignment.code = AssignmentCode.MM_BibleReading;
     history.assignment.title = getTranslation({ key: 'tr_bibleReading' });
-    history.assignment.src = source?.midweek_meeting.tgw_bible_reading.src[lang];
+    history.assignment.src =
+      source?.midweek_meeting.tgw_bible_reading.src[lang];
   }
 
   if (assignment.includes('AYFPart')) {
@@ -1005,7 +1010,8 @@ export const schedulesGetHistoryDetails = ({
     const lcPartLabel = `lc_part${partNum}`;
 
     if (source) {
-      const lcPart: LivingAsChristiansType = source.midweek_meeting[lcPartLabel];
+      const lcPart: LivingAsChristiansType =
+        source.midweek_meeting[lcPartLabel];
 
       const type = lcPartLabel as SourceAssignmentType;
 
@@ -1022,9 +1028,11 @@ export const schedulesGetHistoryDetails = ({
       const lcPart = source.midweek_meeting.lc_part3;
 
       const src =
-        lcPart.title.find((record) => record.type === assigned.type)?.value || '';
+        lcPart.title.find((record) => record.type === assigned.type)?.value ||
+        '';
       const desc =
-        lcPart.desc.find((record) => record.type === assigned.type)?.value || '';
+        lcPart.desc.find((record) => record.type === assigned.type)?.value ||
+        '';
 
       const time = sourcesPartTiming(source, 'lc_part3', dataView, lang);
 
@@ -1297,6 +1305,51 @@ export const schedulesUpdateHistory = (
   setAssignmentsHistory(historyStale);
 };
 
+/**
+ * Marcar (o desmarcar) que la hojita de asignación se entregó y se aceptó.
+ *
+ * Escribe SOLO ese campo y la marca de tiempo, sin tocar quién tiene la parte.
+ * Es a propósito: quien confirma hojitas y quien reparte asignaciones pueden
+ * ser dos personas a la vez en dos dispositivos, y reescribir aquí el `value`
+ * leído de una copia local rancia podría revivir a un asignado ya cambiado.
+ *
+ * La fusión de la sincronización reemplaza el objeto entero por el más
+ * reciente, así que en el peor caso —confirmar y reasignar en el mismo
+ * instante— se pierde la MARCA, nunca la asignación. Y una marca perdida se ve
+ * a simple vista (la casilla vuelve a estar vacía) y se vuelve a pulsar.
+ */
+export const schedulesToggleAssignmentConfirmed = async (
+  schedule: SchedWeekType,
+  assignment: AssignmentFieldType,
+  confirmed: boolean
+) => {
+  const dataView = store.get(userDataViewState);
+  const path = ASSIGNMENT_PATH[assignment];
+
+  const fieldUpdate = structuredClone(schedulesGetData(schedule, path));
+  const updatedAt = new Date().toISOString();
+
+  if (Array.isArray(fieldUpdate)) {
+    const assigned = fieldUpdate.find((record) => record.type === dataView);
+
+    // Sin nadie asignado no hay nada que confirmar: crear el registro aquí
+    // dejaría una asignación vacía marcada como entregada.
+    if (!assigned?.value) return;
+
+    assigned.confirmed = confirmed;
+    assigned.updatedAt = updatedAt;
+  } else {
+    if (!fieldUpdate?.value) return;
+
+    fieldUpdate.confirmed = confirmed;
+    fieldUpdate.updatedAt = updatedAt;
+  }
+
+  await dbSchedUpdate(schedule.weekOf, {
+    [path]: fieldUpdate,
+  } as unknown as UpdateSpec<SchedWeekType>);
+};
+
 export const schedulesSaveAssignment = async (
   schedule: SchedWeekType,
   assignment: AssignmentFieldType,
@@ -1342,6 +1395,12 @@ export const schedulesSaveAssignment = async (
       const assigned = fieldUpdate.find((record) => record.type === dataView);
 
       if (assigned) {
+        // Cambiar de persona invalida la confirmación de la hojita: la aceptó
+        // el anterior, no el nuevo. Si no se borrara aquí, la parte quedaría
+        // marcada como entregada a alguien que ni sabe que la tiene — que es
+        // justo lo que la marca existe para evitar.
+        if (assigned.value !== toSave) delete assigned.confirmed;
+
         assigned.value = toSave;
         assigned.name = nameToSave;
         assigned.updatedAt = new Date().toISOString();
@@ -1356,6 +1415,9 @@ export const schedulesSaveAssignment = async (
         });
       }
     } else {
+      // Mismo motivo que arriba.
+      if (fieldUpdate.value !== toSave) delete fieldUpdate.confirmed;
+
       fieldUpdate.value = toSave;
       fieldUpdate.name = nameToSave;
       fieldUpdate.updatedAt = new Date().toISOString();
@@ -1392,7 +1454,11 @@ export const schedulesSaveAssignment = async (
     if (speaker) {
       const useDisplayName = store.get(displayNameMeetingsEnableState);
       const fullnameOption = store.get(fullnameOptionState);
-      nameToSave = personGetDisplayName(speaker, useDisplayName, fullnameOption);
+      nameToSave = personGetDisplayName(
+        speaker,
+        useDisplayName,
+        fullnameOption
+      );
     }
 
     outgoingSchedule.updatedAt = new Date().toISOString();
@@ -2285,18 +2351,7 @@ export const schedulesS89DataForAssignment = (
 export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
   const result: S89DataType[] = [];
 
-  const assignments: AssignmentFieldType[] = [
-    'MM_TGWBibleReading_A',
-    'MM_TGWBibleReading_B',
-    'MM_AYFPart1_Student_A',
-    'MM_AYFPart1_Student_B',
-    'MM_AYFPart2_Student_A',
-    'MM_AYFPart2_Student_B',
-    'MM_AYFPart3_Student_A',
-    'MM_AYFPart3_Student_B',
-    'MM_AYFPart4_Student_A',
-    'MM_AYFPart4_Student_B',
-  ];
+  const assignments: AssignmentFieldType[] = [...S89_ASSIGNMENTS];
 
   const weekType =
     schedule.midweek_meeting.week_type.find(
@@ -3288,11 +3343,13 @@ export const scheduleOutgoingSpeakers = (
         fullnameOption
       );
     } else if (visitingSpeaker) {
-      const firstname = visitingSpeaker.speaker_data.person_firstname.value ?? '';
+      const firstname =
+        visitingSpeaker.speaker_data.person_firstname.value ?? '';
       const lastname = visitingSpeaker.speaker_data.person_lastname.value ?? '';
 
       speakerName = displayNameEnabled
-        ? visitingSpeaker.speaker_data.person_display_name.value || `${firstname} ${lastname}`.trim()
+        ? visitingSpeaker.speaker_data.person_display_name.value ||
+          `${firstname} ${lastname}`.trim()
         : fullnameOption === FullnameOption.FIRST_BEFORE_LAST
           ? `${firstname} ${lastname}`.trim()
           : `${lastname} ${firstname}`.trim();
@@ -3425,7 +3482,9 @@ export const schedulesGetMeetingDate = ({
     locale = source.midweek_meeting.week_date_locale[lang] ?? '';
   }
 
-  const weekTypes = (meeting === 'weekOf' ? null : schedule?.[`${meeting}_meeting`]?.week_type) as WeekTypeCongregation[];
+  const weekTypes = (
+    meeting === 'weekOf' ? null : schedule?.[`${meeting}_meeting`]?.week_type
+  ) as WeekTypeCongregation[];
 
   const weekType =
     weekTypes?.find((record) => record.type === dataView)?.value ?? Week.NORMAL;
@@ -3456,7 +3515,8 @@ export const schedulesGetMeetingDate = ({
     // gateada — solo aplica cuando mainWeekType === CO_VISIT; el resto de
     // semanas siguen exactamente igual que antes.
     if (mainWeekType === Week.CO_VISIT) {
-      meetingDay = settings.cong_settings.circuit_overseer.visit_weekday?.value ?? 1;
+      meetingDay =
+        settings.cong_settings.circuit_overseer.visit_weekday?.value ?? 1;
     }
   }
 

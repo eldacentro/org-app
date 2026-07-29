@@ -388,3 +388,24 @@ export const CO_TALK_DURATION_MINUTES = 30;
  * un ciclo de importación (el envoltorio ya importa de `states`).
  */
 export const LAST_SYNC_STORAGE_KEY = 'organized_last_sync_at';
+
+/**
+ * Las asignaciones que llevan hojita (S-89).
+ *
+ * Es la MISMA lista que usa el export de las hojas, sacada aquí para que la
+ * marca de "entregada y aceptada" del programa y lo que de verdad se imprime
+ * no puedan separarse con el tiempo. Son solo los ESTUDIANTES: el ayudante no
+ * recibe hoja propia, su nombre va escrito en la del estudiante.
+ */
+export const S89_ASSIGNMENTS = [
+  'MM_TGWBibleReading_A',
+  'MM_TGWBibleReading_B',
+  'MM_AYFPart1_Student_A',
+  'MM_AYFPart1_Student_B',
+  'MM_AYFPart2_Student_A',
+  'MM_AYFPart2_Student_B',
+  'MM_AYFPart3_Student_A',
+  'MM_AYFPart3_Student_B',
+  'MM_AYFPart4_Student_A',
+  'MM_AYFPart4_Student_B',
+] as const;

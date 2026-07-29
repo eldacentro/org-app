@@ -647,3 +647,67 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
     expect(toSave).toEqual({ id: 1, metadata: versions({ schedules: 'v1' }) });
   });
 });
+
+describe('marca de hojita entregada (confirmed)', () => {
+  // Vive DENTRO del objeto de la asignación, que lleva `updatedAt`. Eso
+  // significa que la fusión reemplaza el objeto ENTERO por el más reciente, y
+  // de ahí depende que quitar la marca al reasignar llegue a los demás
+  // dispositivos. Si algún día la fusión pasara a combinar campo a campo, la
+  // marca del hermano anterior sobreviviría a su propia asignación: la parte
+  // saldría como entregada a alguien que ni sabe que la tiene.
+  it('al reasignar la parte, la marca del anterior desaparece en el otro dispositivo', () => {
+    const local = {
+      student: {
+        type: 'main',
+        value: 'hermano-antiguo',
+        name: 'Antiguo',
+        confirmed: true,
+        updatedAt: '2026-02-01T10:00:00Z',
+      },
+    };
+
+    // El que reasigna borra `confirmed` antes de guardar (ver
+    // schedulesSaveAssignment), así que el objeto nuevo ya no lo trae.
+    const remote = {
+      student: {
+        type: 'main',
+        value: 'hermano-nuevo',
+        name: 'Nuevo',
+        updatedAt: '2026-02-01T11:00:00Z',
+      },
+    };
+
+    const result = syncFromRemote(local, remote);
+
+    expect(result.student.value).toBe('hermano-nuevo');
+    expect(result.student.confirmed).toBeUndefined();
+  });
+
+  it('marcar la hojita no revive a un asignado que ya se había cambiado', () => {
+    // Dos dispositivos a la vez: uno marca, otro reasigna. Gane quien gane,
+    // nunca puede quedar el asignado viejo — solo se puede perder la MARCA,
+    // que se ve a simple vista y se vuelve a pulsar.
+    const marca = {
+      student: {
+        type: 'main',
+        value: 'hermano-antiguo',
+        name: 'Antiguo',
+        confirmed: true,
+        updatedAt: '2026-02-01T10:00:00Z',
+      },
+    };
+
+    const reasignacion = {
+      student: {
+        type: 'main',
+        value: 'hermano-nuevo',
+        name: 'Nuevo',
+        updatedAt: '2026-02-01T10:00:05Z',
+      },
+    };
+
+    expect(syncFromRemote(marca, reasignacion).student.value).toBe(
+      'hermano-nuevo'
+    );
+  });
+});
