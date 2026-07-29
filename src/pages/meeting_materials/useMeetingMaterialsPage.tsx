@@ -9,6 +9,7 @@ import { STORAGE_KEY } from '@constants/index';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import {
   agruparPorBimestre,
+  bimestreDeMes,
   semanasSinMaterial,
 } from '@services/app/meeting_materials';
 import useMeetingMaterials from '@pages/dashboard/meeting_materials/useMeetingMaterials';
@@ -27,6 +28,28 @@ const useMeetingMaterialsPage = () => {
   const autoImportFrequency = useAtomValue(sourcesJWAutoImportFrequencyState);
 
   const bimestres = useMemo(() => agruparPorBimestre(sources), [sources]);
+
+  /**
+   * Lo vigente es el bimestre en curso y los que vienen; lo demás es historia.
+   * Se separan aquí para que la página enseñe primero lo único que se
+   * consulta y deje lo viejo plegado.
+   */
+  const { vigentes, anteriores } = useMemo(() => {
+    const hoy = new Date();
+    const actual = `${hoy.getFullYear()}-${bimestreDeMes(hoy.getMonth() + 1)}`;
+
+    const esAnterior = (id: string) => {
+      const [anioA, bimA] = id.split('-').map(Number);
+      const [anioB, bimB] = actual.split('-').map(Number);
+
+      return anioA === anioB ? bimA < bimB : anioA < anioB;
+    };
+
+    return {
+      vigentes: bimestres.filter((grupo) => !esAnterior(grupo.id)),
+      anteriores: bimestres.filter((grupo) => esAnterior(grupo.id)),
+    };
+  }, [bimestres]);
 
   /**
    * Las semanas de aquí en adelante que no tienen material.
@@ -75,6 +98,8 @@ const useMeetingMaterialsPage = () => {
     isNavigatorOnline,
     handleFileSelected,
     bimestres,
+    vigentes,
+    anteriores,
     semanasQueFaltan,
     autoImport,
     autoImportFrequency,

@@ -13,9 +13,13 @@ import {
   userLocalUIDState,
 } from '@states/settings';
 import { ACTIVITY_LABELS } from './shared/activityLabels';
+import { deriveWeekOutingSlots } from '@utils/service_outings';
 import { isSpecialMeetingComplete } from '@services/app/circuit_visit';
 import { personsState } from '@states/persons';
-import { serviceOutingsListState } from '@states/service_outings';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
 import { sourcesState } from '@states/sources';
 import { personGetDisplayName } from '@utils/common';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
@@ -62,6 +66,7 @@ const CircuitVisitSummary = ({
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const outingsList = useAtomValue(serviceOutingsListState);
+  const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const sources = useAtomValue(sourcesState);
 
   const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
@@ -73,11 +78,23 @@ const CircuitVisitSummary = ({
   const weekRecord = outingsList.find((r) => r.weekOf === visit.weekOf);
   const weekSource = sources.find((s) => s.weekOf === visit.weekOf);
 
+  // Los turnos NO son solo los guardados: la mayoría salen de la plantilla de
+  // ajustes y se derivan por semana — incluida la regla de que, en la semana
+  // del superintendente, de miércoles a domingo los turnos sin nadie asignado
+  // son suyos. Leer solo `weekRecord.outings` hacía que esta página dijera
+  // "sin salidas" mientras Próximos eventos las listaba.
+  //
   // Solo horario y lugar — nunca quién va, eso es gestión interna.
+  const weekSlots = deriveWeekOutingSlots(
+    outingsSettings,
+    weekRecord,
+    visit.weekOf
+  );
+
   const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end).map((date) => {
     const dateStr = formatDate(date, 'yyyy/MM/dd');
-    const slots = (weekRecord?.outings ?? [])
-      .filter((o) => o && o.date === dateStr && !o.cancelled)
+    const slots = weekSlots
+      .filter((slot) => slot.date === dateStr && !slot.cancelled)
       .toSorted((a, b) => a.time.localeCompare(b.time));
 
     return { dateStr, slots };

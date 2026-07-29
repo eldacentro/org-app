@@ -302,7 +302,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               {rowJwLibraryUrl && (
                 <JwLibraryLink
                   href={rowJwLibraryUrl}
-                  sx={{ marginTop: '10px' }}
+                  sx={{ marginTop: '14px' }}
                 />
               )}
             </Stack>

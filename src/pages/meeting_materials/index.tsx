@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { IconImportFile, IconJwOrg } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
@@ -18,7 +18,7 @@ import {
  * Los dos botones de importar estaban sueltos en Configuración y no había
  * forma de saber QUÉ hay importado ni de dónde salió. Aquí están los dos, y
  * además lo que hasta ahora solo se podía averiguar mirando la base de datos:
- * qué cuadernos hay, de dónde vinieron, y —lo que de verdad importa— qué
+ * qué material hay, de dónde vino, y —lo que de verdad importa— qué
  * semanas de las que vienen están sin material.
  */
 
@@ -126,6 +126,20 @@ const FilaReunion = ({
   </Box>
 );
 
+const TarjetaBimestre = ({ grupo }: { grupo: BimestreMateriales }) => (
+  <Tarjeta>
+    <Typography className="h4" color="var(--ink)">
+      {nombreBimestre(grupo)}
+    </Typography>
+
+    <FilaReunion
+      titulo="Entre semana · Guía de actividades"
+      estado={grupo.midweek}
+    />
+    <FilaReunion titulo="Fin de semana · La Atalaya" estado={grupo.weekend} />
+  </Tarjeta>
+);
+
 const MeetingMaterials = () => {
   const { t } = useAppTranslation();
 
@@ -134,12 +148,16 @@ const MeetingMaterials = () => {
     isNavigatorOnline,
     handleFileSelected,
     bimestres,
+    vigentes,
+    anteriores,
     semanasQueFaltan,
     autoImport,
     autoImportFrequency,
     proximaAutomatica,
     semanasVigiladas,
   } = useMeetingMaterialsPage();
+
+  const [verAnteriores, setVerAnteriores] = useState(false);
 
   const botonSx = {
     display: 'flex',
@@ -168,8 +186,8 @@ const MeetingMaterials = () => {
                 {t('tr_sourceImportJw', 'Importar desde jw.org')}
               </Typography>
               <Typography className="label-small-regular" color="var(--ink-2)">
-                Trae el material publicado. El enlace de JW Library llevará al
-                cuaderno del bimestre.
+                Trae el material publicado. El enlace de JW Library llevará a
+                la publicación, no a la semana.
               </Typography>
             </Box>
           </Box>
@@ -255,7 +273,7 @@ const MeetingMaterials = () => {
 
       {/* ── Qué hay importado ───────────────────────────────────────────── */}
       <Typography className="h4" color="var(--ink)">
-        Cuadernos importados
+        Material importado
       </Typography>
 
       {bimestres.length === 0 && (
@@ -264,24 +282,49 @@ const MeetingMaterials = () => {
         </Typography>
       )}
 
+      {/* Lo que viene, primero. Lo pasado ya no se consulta: se guarda
+          plegado para no enterrar lo único que hay que mirar. */}
       <Stack spacing="12px">
-        {bimestres.map((grupo) => (
-          <Tarjeta key={grupo.id}>
-            <Typography className="h4" color="var(--ink)">
-              {nombreBimestre(grupo)}
-            </Typography>
-
-            <FilaReunion
-              titulo="Entre semana · Guía de actividades"
-              estado={grupo.midweek}
-            />
-            <FilaReunion
-              titulo="Fin de semana · La Atalaya"
-              estado={grupo.weekend}
-            />
-          </Tarjeta>
+        {vigentes.map((grupo) => (
+          <TarjetaBimestre key={grupo.id} grupo={grupo} />
         ))}
       </Stack>
+
+      {anteriores.length > 0 && (
+        <Box>
+          <Box
+            component="button"
+            type="button"
+            onClick={() => setVerAnteriores((abierto) => !abierto)}
+            sx={{
+              appearance: 'none',
+              border: 'none',
+              background: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Typography
+              className="label-small-semibold"
+              color="var(--accent-main)"
+            >
+              {verAnteriores ? 'Ocultar' : 'Ver'} anteriores (
+              {anteriores.length})
+            </Typography>
+          </Box>
+
+          {verAnteriores && (
+            <Stack spacing="12px" sx={{ marginTop: '12px' }}>
+              {anteriores.map((grupo) => (
+                <TarjetaBimestre key={grupo.id} grupo={grupo} />
+              ))}
+            </Stack>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };
