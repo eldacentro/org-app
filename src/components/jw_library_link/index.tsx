@@ -11,10 +11,17 @@ import Typography from '@components/typography';
 const JwLibraryLink = ({
   href,
   label = 'JW Library',
+  variant = 'subtle',
   sx,
 }: {
   href: string;
   label?: string;
+  /**
+   * 'subtle' acompaña a una asignación concreta (en "Mis asignaciones" hay uno
+   * por fila y no deben competir con el texto). 'solid' es la acción de la
+   * pestaña en el programa semanal: hay una sola y tiene que verse.
+   */
+  variant?: 'subtle' | 'solid';
   sx?: object;
 }) => (
   <Box
@@ -35,11 +42,22 @@ const JwLibraryLink = ({
       // pedía demasiada atención al lado del programa, que es lo que se viene
       // a leer. Al pasar por encima sí se rellena, para que siga sintiéndose
       // como algo que se pulsa.
-      border: '1px solid var(--accent-200)',
-      backgroundColor: 'transparent',
+      ...(variant === 'solid'
+        ? {
+            px: '12px',
+            py: '6px',
+            border: 'none',
+            backgroundColor: 'var(--accent-main)',
+            '&:hover': { backgroundColor: 'var(--accent-dark)' },
+            '&:active': { backgroundColor: 'var(--accent-dark)' },
+          }
+        : {
+            border: '1px solid var(--accent-200)',
+            backgroundColor: 'transparent',
+            '&:hover': { backgroundColor: 'var(--accent-100)' },
+            '&:active': { backgroundColor: 'var(--accent-200)' },
+          }),
       transition: 'background-color 0.2s ease',
-      '&:hover': { backgroundColor: 'var(--accent-100)' },
-      '&:active': { backgroundColor: 'var(--accent-200)' },
       ...sx,
     }}
   >
@@ -50,8 +68,10 @@ const JwLibraryLink = ({
         es lo único que se ajusta. */}
     <Typography
       component="span"
-      className="label-small-medium"
-      color="var(--accent-main)"
+      className={
+        variant === 'solid' ? 'label-small-semibold' : 'label-small-medium'
+      }
+      color={variant === 'solid' ? 'var(--always-white)' : 'var(--accent-main)'}
     >
       {label} ↗
     </Typography>

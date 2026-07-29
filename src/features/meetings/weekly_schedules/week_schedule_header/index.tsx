@@ -1,126 +1,110 @@
 import { Box } from '@mui/material';
-import { IconDate } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { useAtomValue } from 'jotai';
-import { monthNamesState } from '@states/app';
-import { buildWeekRangeLabel } from '@services/app/week_range';
+import { IconDate } from '@components/icons';
 import { WeekScheduleHeaderProps } from './index.types';
 import useWeekScheduleHeader from './useWeekScheduleHeader';
 import Typography from '@components/typography';
+import { monthNamesState } from '@states/app';
+import { buildWeekRangeLabel } from '@services/app/week_range';
 
+/**
+ * Cabecera de una semana en Programas semanales.
+ *
+ * Antes decía la semana TRES veces: el selector de arriba, una frase grande
+ * centrada, y otra vez la fecha de la reunión. Media pantalla se iba en decir
+ * cuándo, y el programa —que es a lo que se entra— empezaba abajo del todo.
+ *
+ * Ahora el rango es un apoyo pequeño (sigue haciendo falta: la reunión puede
+ * caer en otro mes que el lunes), el titular es la fecha real de la reunión
+ * con su día, y a su derecha va la acción de la pestaña. "Última
+ * actualización" pierde la píldora de color y baja al final, en gris: es un
+ * dato de confianza, no un titular.
+ */
 const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
   const { t } = useAppTranslation();
-
   const monthNames = useAtomValue(monthNamesState);
 
-  // La frase del rango vive en una función compartida: el editor de
-  // departamentos necesita exactamente la misma y no conviene tener dos copias.
-  const getWeekRangeLabel = (week: string) =>
-    buildWeekRangeLabel(week, monthNames, t);
-
   const { showToCurrent } = useWeekScheduleHeader(props);
+
+  const rango = buildWeekRangeLabel(props.week, monthNames, t);
 
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        gap: '8px',
-        marginBottom: '24px',
+        gap: '10px',
+        marginBottom: '16px',
       }}
     >
-      <Typography
-        className="h2"
-        color="var(--accent-dark)"
+      <Box
         sx={{
-          textAlign: 'center',
-          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          flexWrap: 'wrap',
         }}
       >
-        {getWeekRangeLabel(props.week)}
-      </Typography>
+        <Typography className="label-small-regular" color="var(--grey-400)">
+          {rango}
+        </Typography>
 
-      {showToCurrent && (
+        {showToCurrent && (
+          <Box
+            onClick={props.onCurrent}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
+          >
+            <IconDate width={16} height={16} color="var(--accent-main)" />
+            <Typography
+              className="label-small-semibold"
+              color="var(--accent-main)"
+            >
+              {t('tr_toCurrentWeek')}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {(props.title || props.action) && (
         <Box
-          onClick={props.onCurrent}
           sx={{
-            borderRadius: 'var(--radius-max)',
-            backgroundColor: 'var(--accent-150)',
             display: 'flex',
-            gap: '4px',
             alignItems: 'center',
-            padding: '4px 8px',
-            cursor: 'pointer',
-            userSelect: 'none',
-            height: 'fit-content',
-            marginBottom: '4px',
+            justifyContent: 'space-between',
+            gap: '12px',
           }}
         >
-          <IconDate width={22} height={22} color="var(--accent-dark)" />
-          <Typography
-            className="body-small-semibold"
-            color="var(--accent-dark)"
-          >
-            {t('tr_toCurrentWeek')}
-          </Typography>
+          <Box sx={{ minWidth: 0 }}>
+            {props.title && (
+              <Typography className="h2" color="var(--ink)">
+                {props.title}
+              </Typography>
+            )}
+            {props.subtitle && (
+              <Typography className="body-small-regular" color="var(--ink-2)">
+                {props.subtitle}
+              </Typography>
+            )}
+          </Box>
+
+          {props.action && (
+            <Box sx={{ flexShrink: 0 }}>{props.action}</Box>
+          )}
         </Box>
       )}
 
       {props.lastUpdated && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '2px' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: 'rgba(var(--accent-main-base), 0.08)',
-              border: '1px solid rgba(var(--accent-main-base), 0.15)',
-              borderRadius: 'var(--radius-max)',
-              padding: '5px 12px',
-              boxShadow: '0 2px 8px rgba(var(--accent-main-base), 0.04)',
-              transition: 'transform 0.2s ease',
-              '&:hover': {
-                transform: 'scale(1.02)',
-              }
-            }}
-          >
-            {/* Pulse indicator indicating fresh status */}
-            <Box
-              sx={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--accent-main)',
-                boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0.4)',
-                animation: 'pulse-sync 2.2s infinite',
-                '@keyframes pulse-sync': {
-                  '0%': {
-                    boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0.5)',
-                  },
-                  '70%': {
-                    boxShadow: '0 0 0 5px rgba(var(--accent-main-base), 0)',
-                  },
-                  '100%': {
-                    boxShadow: '0 0 0 0 rgba(var(--accent-main-base), 0)',
-                  }
-                }
-              }}
-            />
-            
-            <Typography
-              className="label-small-medium"
-              sx={{
-                color: 'var(--accent-dark)',
-                fontWeight: 600,
-                fontSize: '12px',
-                letterSpacing: '0.01em',
-              }}
-            >
-              {t('tr_lastUpdated', { date: props.lastUpdated })}
-            </Typography>
-          </Box>
-        </Box>
+        <Typography className="label-small-regular" color="var(--grey-350)">
+          {t('tr_lastUpdated', { date: props.lastUpdated })}
+        </Typography>
       )}
     </Box>
   );

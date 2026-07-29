@@ -10,6 +10,7 @@ import Typography from '@components/typography';
 import JwLibraryLink from '@components/jw_library_link';
 import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
 import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
+import useMeetingHeadline from '../useMeetingHeadline';
 
 const MidweekContainer = ({
   onGoToVisit,
@@ -33,6 +34,8 @@ const MidweekContainer = ({
   const visit = useUpcomingCircuitVisit();
   const esSemanaDeVisita = !!visit && !!week && visit.weekOf === week;
 
+  const headline = useMeetingHeadline(week, 'midweek', dataView ?? 'main');
+
   const jwLibraryUrl = useWeekJwLibraryLink(week, 'midweek');
 
   return (
@@ -52,49 +55,44 @@ const MidweekContainer = ({
             week={week}
             onCurrent={handleGoCurrent}
             lastUpdated={scheduleLastUpdated}
+            title={headline.title}
+            subtitle={headline.subtitle}
+            action={
+              jwLibraryUrl ? (
+                <JwLibraryLink href={jwLibraryUrl} variant="solid" />
+              ) : undefined
+            }
           />
 
-          {/* Uno por reunión, en la cabecera. Uno por parte sería ruido. */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              flexWrap: 'wrap',
-              marginBottom: '12px',
-            }}
-          >
-            {jwLibraryUrl && <JwLibraryLink href={jwLibraryUrl} />}
-
-            {/* Solo en la semana de la visita, y solo si hay a dónde ir. */}
-            {esSemanaDeVisita && onGoToVisit && (
-              <Box
-                component="button"
-                type="button"
-                onClick={onGoToVisit}
-                sx={{
-                  appearance: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  px: '10px',
-                  py: '4px',
-                  borderRadius: 'var(--radius-max)',
-                  border: '1px solid var(--accent-200)',
-                  backgroundColor: 'var(--accent-100)',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s ease',
-                  '&:hover': { backgroundColor: 'var(--accent-200)' },
-                }}
+          {/* Solo en la semana de la visita, y solo si hay a dónde ir. */}
+          {esSemanaDeVisita && onGoToVisit && (
+            <Box
+              component="button"
+              type="button"
+              onClick={onGoToVisit}
+              sx={{
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: '10px',
+                py: '4px',
+                marginBottom: '12px',
+                borderRadius: 'var(--radius-max)',
+                border: '1px solid var(--accent-200)',
+                backgroundColor: 'var(--accent-100)',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+                '&:hover': { backgroundColor: 'var(--accent-200)' },
+              }}
+            >
+              <Typography
+                className="label-small-semibold"
+                color="var(--accent-main)"
               >
-                <Typography
-                  className="label-small-semibold"
-                  color="var(--accent-main)"
-                >
-                  Ver visita del superintendente →
-                </Typography>
-              </Box>
-            )}
-          </Box>
+                Ver visita del superintendente →
+              </Typography>
+            </Box>
+          )}
 
           {week && (
             <Stack spacing="24px">

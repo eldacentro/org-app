@@ -2,6 +2,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { IconImportFile } from '@components/icons';
 import WeekSelector from '../week_selector';
+import Accion from '../week_schedule_header/Accion';
 import WeekScheduleHeader from '../week_schedule_header';
 import useExhibitorsContainer from './useExhibitorsContainer';
 import ExhibitorsMeeting from './ExhibitorsMeeting';
@@ -40,37 +41,20 @@ const ExhibitorsWeeklyContainer = () => {
         week={week}
         onCurrent={handleGoCurrent}
         lastUpdated={scheduleLastUpdated}
+        action={
+          <Accion
+            icono={
+              <IconImportFile color="var(--always-white)" width={16} height={16} />
+            }
+            texto="Documentos"
+            onClick={() =>
+              navigate('/congregation/documentos?categoria=Exhibidores')
+            }
+          />
+        }
       />
 
-      {/* Los documentos de exhibidores, a un toque desde donde se consulta el
-          turno. Se enlaza por NOMBRE de categoría: el id se genera al crearla y
-          no vale para escribirlo en un enlace. */}
-      <Box
-        component="button"
-        type="button"
-        onClick={() =>
-          navigate('/congregation/documentos?categoria=Exhibidores')
-        }
-        sx={{
-          appearance: 'none',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          marginBottom: '12px',
-          borderRadius: 'var(--radius-max)',
-          border: '1px solid var(--accent-200)',
-          backgroundColor: 'var(--accent-100)',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s ease',
-          '&:hover': { backgroundColor: 'var(--accent-200)' },
-        }}
-      >
-        <IconImportFile color="var(--accent-main)" width={16} height={16} />
-        <Typography className="label-small-semibold" color="var(--accent-main)">
-          Documentos de exhibidores
-        </Typography>
-      </Box>
+
 
       {week === null ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>

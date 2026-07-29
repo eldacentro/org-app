@@ -32,7 +32,6 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
     openingPrayerAuto,
     partTimings,
     weekType,
-    weekDateLocale,
     showChairman,
   } = useWeekendMeeting(props);
 
@@ -47,7 +46,6 @@ const WeekendMeeting = (props: WeekendMeetingProps) => {
             flexDirection: tabletUp ? 'row' : 'column',
           }}
         >
-          <Typography className="h2-caps">{weekDateLocale}</Typography>
 
           {weekType === Week.CO_VISIT && (
             <Badge

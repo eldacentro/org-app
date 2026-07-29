@@ -19,7 +19,6 @@ import PartTiming from '../part_timing';
 import SongSource from '@features/meetings/song_source';
 import TreasuresPart from './treasures_part';
 import Typography from '@components/typography';
-import WeekHeader from '@features/meetings/midweek_editor/week_header';
 import {
   MIDWEEK_FULL,
   MIDWEEK_WITH_LIVING,
@@ -75,7 +74,6 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
             flexDirection: tabletUp ? 'row' : 'column',
           }}
         >
-          <WeekHeader week={week} dataView={props.dataView} />
 
           {weekTypeBadge && (
             <Badge
