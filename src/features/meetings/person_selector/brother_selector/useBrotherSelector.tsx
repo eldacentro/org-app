@@ -431,10 +431,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
   // handleSaveAssignment) para no dejar una selección visual que nunca
   // se guardó.
   useEffect(() => {
-    if (
-      pendingValue &&
-      derivedValue?.person_uid === pendingValue.person_uid
-    ) {
+    if (pendingValue && derivedValue?.person_uid === pendingValue.person_uid) {
       setPendingValue(null);
     }
   }, [derivedValue, pendingValue]);

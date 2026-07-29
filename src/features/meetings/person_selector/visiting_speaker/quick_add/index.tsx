@@ -58,7 +58,9 @@ const QuickAddSpeaker = (props: QuickAddSpeakerType) => {
                 handleCongSelect(typeof value === 'string' ? null : value)
               }
               getOptionLabel={(option: SpeakersCongregationsType | string) =>
-                typeof option === 'string' ? option : option.cong_data.cong_name.value
+                typeof option === 'string'
+                  ? option
+                  : option.cong_data.cong_name.value
               }
               isOptionEqualToValue={(option, value) => option.id === value.id}
               startIcon={<IconGroups />}
@@ -111,10 +113,17 @@ const QuickAddSpeaker = (props: QuickAddSpeakerType) => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Button variant="main" disabled={!canSave || isSaving} onClick={handleSave}>
+              <Button
+                variant="main"
+                disabled={!canSave || isSaving}
+                onClick={handleSave}
+              >
                 Guardar
               </Button>
-              <Button variant="secondary" onClick={handleMoveBackToCongregation}>
+              <Button
+                variant="secondary"
+                onClick={handleMoveBackToCongregation}
+              >
                 Atrás
               </Button>
             </Box>

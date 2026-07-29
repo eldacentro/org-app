@@ -350,10 +350,7 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
   }, [options, personAssigned]);
 
   useEffect(() => {
-    if (
-      pendingValue &&
-      derivedValue?.person_uid === pendingValue.person_uid
-    ) {
+    if (pendingValue && derivedValue?.person_uid === pendingValue.person_uid) {
       setPendingValue(null);
     }
   }, [derivedValue, pendingValue]);

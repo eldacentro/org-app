@@ -29,6 +29,12 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
   return (
     <>
       <AutoComplete
+        // Un nombre largo no cabe y se cortaba con puntos suspensivos, sin
+        // forma de leerlo entero: dentro de un <input> el texto no puede
+        // partirse en dos líneas. Con `multiline` el campo pasa a ser un
+        // <textarea>, crece a lo alto y el nombre se lee completo. Es lo mismo
+        // que ya se hizo con los títulos de los discursos públicos.
+        multiline
         freeSolo={true}
         label={props.label}
         isOptionEqualToValue={(option, value) =>

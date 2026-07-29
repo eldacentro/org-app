@@ -55,7 +55,11 @@ const useOutgoingSpeaker = ({
     for (const speaker of outgoingSpeakers) {
       // If a talk filter is set, only include speakers who have that talk
       // prepared — salvo el ya asignado, que siempre se muestra.
-      if (talk !== undefined && talk !== null && speaker.person_uid !== assignedUid) {
+      if (
+        talk !== undefined &&
+        talk !== null &&
+        speaker.person_uid !== assignedUid
+      ) {
         const hasTalk = speaker.speaker_data.talks.some(
           (record) =>
             record._deleted === false &&
@@ -71,12 +75,14 @@ const useOutgoingSpeaker = ({
       );
 
       // Build name from person record if available, otherwise from speaker_data
-      const firstname = person?.person_data.person_firstname.value
-        ?? speaker.speaker_data.person_firstname.value
-        ?? '';
-      const lastname = person?.person_data.person_lastname.value
-        ?? speaker.speaker_data.person_lastname.value
-        ?? '';
+      const firstname =
+        person?.person_data.person_firstname.value ??
+        speaker.speaker_data.person_firstname.value ??
+        '';
+      const lastname =
+        person?.person_data.person_lastname.value ??
+        speaker.speaker_data.person_lastname.value ??
+        '';
 
       const person_name = displayNameEnabled
         ? speaker.speaker_data.person_display_name.value ||
@@ -103,7 +109,14 @@ const useOutgoingSpeaker = ({
     return result.sort((a, b) =>
       (a.person_name ?? '').localeCompare(b.person_name ?? '')
     );
-  }, [persons, displayNameEnabled, fullnameOption, talk, outgoingSpeakers, assignedUid]);
+  }, [
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+    talk,
+    outgoingSpeakers,
+    assignedUid,
+  ]);
 
   const value = useMemo(() => {
     if (week.length === 0) return null;

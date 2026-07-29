@@ -19,9 +19,8 @@ const useQuickAddSpeaker = ({ onClose, onCreated }: QuickAddSpeakerType) => {
 
   const [step, setStep] = useState<Step>('congregation');
   const [congInputValue, setCongInputValue] = useState('');
-  const [selectedCong, setSelectedCong] = useState<SpeakersCongregationsType | null>(
-    null
-  );
+  const [selectedCong, setSelectedCong] =
+    useState<SpeakersCongregationsType | null>(null);
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [isElder, setIsElder] = useState(false);
@@ -76,7 +75,10 @@ const useQuickAddSpeaker = ({ onClose, onCreated }: QuickAddSpeakerType) => {
         speakersCongregationSchema
       );
       newCong.id = crypto.randomUUID();
-      newCong.cong_data.cong_name = { value: congInputValue.trim(), updatedAt: now };
+      newCong.cong_data.cong_name = {
+        value: congInputValue.trim(),
+        updatedAt: now,
+      };
       newCong.cong_data.cong_circuit = { value: ownCircuit, updatedAt: now };
 
       await dbSpeakersCongregationsCreate(newCong);
