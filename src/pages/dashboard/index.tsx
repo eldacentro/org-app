@@ -12,10 +12,7 @@ import {
   IconSettings,
   IconTreasuresPart,
 } from '@icons/index';
-import {
-  useAppTranslation,
-  useCurrentUser,
-} from '@hooks/index';
+import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import {
   midweekMeetingWeekdayState,
   midweekMeetingTimeState,
@@ -44,6 +41,7 @@ import {
   UPCOMING_EVENT_ASSEMBLY_CATEGORIES,
   UPCOMING_EVENT_MEMORIAL_CATEGORIES,
 } from '@constants/index';
+import useFirstSyncPending from '@hooks/useFirstSyncPending';
 import PageTitle from '@components/page_title';
 import { getWeekDate, formatDate, getDatesBetweenDates } from '@utils/date';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
@@ -62,7 +60,9 @@ import {
 
 const matchesDataView = (record: UpcomingEventType, dataView: string) => {
   if (dataView === 'main') return record.event_data.type === 'main';
-  return record.event_data.type === 'main' || record.event_data.type === dataView;
+  return (
+    record.event_data.type === 'main' || record.event_data.type === dataView
+  );
 };
 
 // Mientras dura una asamblea/congreso (cualquier día del evento cae dentro
@@ -76,7 +76,9 @@ const isWeekSuppressedByAssembly = (
   weekEnd: Date
 ) => {
   return events.some((record) => {
-    if (!UPCOMING_EVENT_ASSEMBLY_CATEGORIES.includes(record.event_data.category)) {
+    if (
+      !UPCOMING_EVENT_ASSEMBLY_CATEGORIES.includes(record.event_data.category)
+    ) {
       return false;
     }
     if (!matchesDataView(record, dataView)) return false;
@@ -98,12 +100,17 @@ const isMeetingDaySuppressedByMemorial = (
   const meetingDateStr = formatDate(meetingDate, 'yyyy/MM/dd');
 
   return events.some((record) => {
-    if (!UPCOMING_EVENT_MEMORIAL_CATEGORIES.includes(record.event_data.category)) {
+    if (
+      !UPCOMING_EVENT_MEMORIAL_CATEGORIES.includes(record.event_data.category)
+    ) {
       return false;
     }
     if (!matchesDataView(record, dataView)) return false;
 
-    const startStr = formatDate(new Date(record.event_data.start), 'yyyy/MM/dd');
+    const startStr = formatDate(
+      new Date(record.event_data.start),
+      'yyyy/MM/dd'
+    );
     const endStr = formatDate(new Date(record.event_data.end), 'yyyy/MM/dd');
 
     return meetingDateStr >= startStr && meetingDateStr <= endStr;
@@ -144,6 +151,10 @@ const Dashboard = () => {
 
   const { showMidweek, showWeekend, showMeetingCard } = useSharedHook();
 
+  // Un móvil recién estrenado no sabe todavía lo que hay. Mientras no lo sepa,
+  // el panel no puede enseñar cifras: un 0 se lee como "no te toca nada".
+  const primeraDescarga = useFirstSyncPending();
+
   const {
     firstName,
     handleOpenMyAssignments,
@@ -158,12 +169,14 @@ const Dashboard = () => {
       (lang) => lang.code === appLang || lang.threeLettersCode === appLang
     );
     const locale = langItem ? langItem.locale : 'es-ES';
-    const dateStr = new Date().toLocaleDateString(locale, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    }).toLowerCase();
-    
+    const dateStr = new Date()
+      .toLocaleDateString(locale, {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      })
+      .toLowerCase();
+
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
   }, [appLang]);
 
@@ -196,16 +209,20 @@ const Dashboard = () => {
 
   const midweekWeekType = useMemo(() => {
     if (!currentWeekSchedule) return Week.NORMAL;
-    return currentWeekSchedule.midweek_meeting.week_type.find(
-      (record) => record.type === dataView
-    )?.value ?? Week.NORMAL;
+    return (
+      currentWeekSchedule.midweek_meeting.week_type.find(
+        (record) => record.type === dataView
+      )?.value ?? Week.NORMAL
+    );
   }, [currentWeekSchedule, dataView]);
 
   const weekendWeekType = useMemo(() => {
     if (!currentWeekSchedule) return Week.NORMAL;
-    return currentWeekSchedule.weekend_meeting.week_type.find(
-      (record) => record.type === dataView
-    )?.value ?? Week.NORMAL;
+    return (
+      currentWeekSchedule.weekend_meeting.week_type.find(
+        (record) => record.type === dataView
+      )?.value ?? Week.NORMAL
+    );
   }, [currentWeekSchedule, dataView]);
 
   const isMidweekSuspended = useMemo(() => {
@@ -221,7 +238,11 @@ const Dashboard = () => {
     if (info && info.date) {
       const parts = info.date.split('/');
       if (parts.length === 3) {
-        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return new Date(
+          parseInt(parts[0], 10),
+          parseInt(parts[1], 10) - 1,
+          parseInt(parts[2], 10)
+        );
       }
     }
     // Fallback to default calculation if schedule or date not found
@@ -235,7 +256,11 @@ const Dashboard = () => {
     if (info && info.date) {
       const parts = info.date.split('/');
       if (parts.length === 3) {
-        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return new Date(
+          parseInt(parts[0], 10),
+          parseInt(parts[1], 10) - 1,
+          parseInt(parts[2], 10)
+        );
       }
     }
     // Fallback to default calculation if schedule or date not found
@@ -245,17 +270,33 @@ const Dashboard = () => {
   }, [weekOf, monday, weekendMeetingWeekday]);
 
   const isWeekSuppressedByAssemblyEvent = useMemo(
-    () => isWeekSuppressedByAssembly(upcomingEvents, dataView, startOfWeek, endOfWeek),
+    () =>
+      isWeekSuppressedByAssembly(
+        upcomingEvents,
+        dataView,
+        startOfWeek,
+        endOfWeek
+      ),
     [upcomingEvents, dataView, startOfWeek, endOfWeek]
   );
 
   const isMidweekSuppressedByMemorial = useMemo(
-    () => isMeetingDaySuppressedByMemorial(upcomingEvents, dataView, midweekMeetingDate),
+    () =>
+      isMeetingDaySuppressedByMemorial(
+        upcomingEvents,
+        dataView,
+        midweekMeetingDate
+      ),
     [upcomingEvents, dataView, midweekMeetingDate]
   );
 
   const isWeekendSuppressedByMemorial = useMemo(
-    () => isMeetingDaySuppressedByMemorial(upcomingEvents, dataView, weekendMeetingDate),
+    () =>
+      isMeetingDaySuppressedByMemorial(
+        upcomingEvents,
+        dataView,
+        weekendMeetingDate
+      ),
     [upcomingEvents, dataView, weekendMeetingDate]
   );
 
@@ -276,7 +317,10 @@ const Dashboard = () => {
       (lang) => lang.code === appLang || lang.threeLettersCode === appLang
     );
     const locale = langItem ? langItem.locale : 'es-ES';
-    return midweekMeetingDate.toLocaleDateString(locale, { month: 'short' }).slice(0, 3).toLowerCase();
+    return midweekMeetingDate
+      .toLocaleDateString(locale, { month: 'short' })
+      .slice(0, 3)
+      .toLowerCase();
   }, [midweekMeetingDate, appLang]);
 
   const weekendDayNum = weekendMeetingDate.getDate();
@@ -285,7 +329,10 @@ const Dashboard = () => {
       (lang) => lang.code === appLang || lang.threeLettersCode === appLang
     );
     const locale = langItem ? langItem.locale : 'es-ES';
-    return weekendMeetingDate.toLocaleDateString(locale, { month: 'short' }).slice(0, 3).toLowerCase();
+    return weekendMeetingDate
+      .toLocaleDateString(locale, { month: 'short' })
+      .slice(0, 3)
+      .toLowerCase();
   }, [weekendMeetingDate, appLang]);
 
   const midweekDescription = useMemo(() => {
@@ -340,8 +387,16 @@ const Dashboard = () => {
       // hasta que el responsable la publica.
       if (deptWeek && isDeptWeekPublished(deptWeek)) {
         const rows = [
-          { meeting: 'midweek' as const, titles: midweekTitles, show: showMidweekRow },
-          { meeting: 'weekend' as const, titles: weekendTitles, show: showWeekendRow },
+          {
+            meeting: 'midweek' as const,
+            titles: midweekTitles,
+            show: showMidweekRow,
+          },
+          {
+            meeting: 'weekend' as const,
+            titles: weekendTitles,
+            show: showWeekendRow,
+          },
         ];
 
         for (const dept of ALL_DEPARTMENT_TYPES) {
@@ -367,7 +422,10 @@ const Dashboard = () => {
       }
     }
 
-    return { midweekAssignmentTitles: midweekTitles, weekendAssignmentTitles: weekendTitles };
+    return {
+      midweekAssignmentTitles: midweekTitles,
+      weekendAssignmentTitles: weekendTitles,
+    };
   }, [
     assignmentsHistory,
     userUID,
@@ -418,7 +476,10 @@ const Dashboard = () => {
         // además el evento de 6 días completo aquí sería redundante.
         // Las reuniones con precursores y con ancianos/SM sí se quedan,
         // son informativas por sí solas.
-        if (record.event_data.category === UpcomingEventCategory.CircuitOverseerWeek) {
+        if (
+          record.event_data.category ===
+          UpcomingEventCategory.CircuitOverseerWeek
+        ) {
           return false;
         }
 
@@ -426,7 +487,11 @@ const Dashboard = () => {
         if (dataView === 'main') {
           if (record.event_data.type !== 'main') return false;
         } else {
-          if (record.event_data.type !== 'main' && record.event_data.type !== dataView) return false;
+          if (
+            record.event_data.type !== 'main' &&
+            record.event_data.type !== dataView
+          )
+            return false;
         }
 
         // filter by week overlap
@@ -456,7 +521,8 @@ const Dashboard = () => {
             ? t(eventDecoration.translationKey)
             : record.event_data.custom;
 
-        const isMultiDay = record.event_data.duration === UpcomingEventDuration.MultipleDays;
+        const isMultiDay =
+          record.event_data.duration === UpcomingEventDuration.MultipleDays;
 
         // Línea informativa breve: para eventos de varios días, cuántos
         // días abarca (ej. "3 días"), más el Tema si se puso — así una
@@ -526,7 +592,9 @@ const Dashboard = () => {
         dayNum: midweekDayNum,
         monthStr: midweekMonthStr,
         title: t('tr_midweekMeeting', 'Reunión de entre semana'),
-        description: [midweekDescription, midweekAssignmentText].filter(Boolean).join(' · '),
+        description: [midweekDescription, midweekAssignmentText]
+          .filter(Boolean)
+          .join(' · '),
         hasAssignment: midweekAssignmentTitles.length > 0,
         time: midweekMeetingTime,
         isPast: isDateTimePast(midweekMeetingDate, midweekMeetingTime, now),
@@ -546,7 +614,9 @@ const Dashboard = () => {
         dayNum: weekendDayNum,
         monthStr: weekendMonthStr,
         title: t('tr_weekendMeeting', 'Reunión de fin de semana'),
-        description: [weekendDescription, weekendAssignmentText].filter(Boolean).join(' · '),
+        description: [weekendDescription, weekendAssignmentText]
+          .filter(Boolean)
+          .join(' · '),
         hasAssignment: weekendAssignmentTitles.length > 0,
         time: weekendMeetingTime,
         isPast: isDateTimePast(weekendMeetingDate, weekendMeetingTime, now),
@@ -599,14 +669,18 @@ const Dashboard = () => {
   ]);
 
   // Live countdown to next meeting
-  const [countdownText, setCountdownText] = useState(t('tr_loading', 'cargando…'));
+  const [countdownText, setCountdownText] = useState(
+    t('tr_loading', 'cargando…')
+  );
 
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
 
       if (!showMidweekRow && !showWeekendRow) {
-        setCountdownText(t('tr_noMeetingsThisWeek', 'Sin reuniones esta semana'));
+        setCountdownText(
+          t('tr_noMeetingsThisWeek', 'Sin reuniones esta semana')
+        );
         return;
       }
 
@@ -648,7 +722,10 @@ const Dashboard = () => {
           const currentDay = now.getDay();
 
           let daysDiff = jsWeekday - currentDay;
-          if (daysDiff < 0 || (daysDiff === 0 && now.getTime() >= target.getTime())) {
+          if (
+            daysDiff < 0 ||
+            (daysDiff === 0 && now.getTime() >= target.getTime())
+          ) {
             daysDiff += 7;
           }
 
@@ -658,10 +735,19 @@ const Dashboard = () => {
           return res;
         };
 
-        const nextMidweek = getNextOccurrence(midweekMeetingWeekday, midweekMeetingTime);
-        const nextWeekend = getNextOccurrence(weekendMeetingWeekday, weekendMeetingTime);
+        const nextMidweek = getNextOccurrence(
+          midweekMeetingWeekday,
+          midweekMeetingTime
+        );
+        const nextWeekend = getNextOccurrence(
+          weekendMeetingWeekday,
+          weekendMeetingTime
+        );
 
-        targetMeeting = nextMidweek.getTime() < nextWeekend.getTime() ? nextMidweek : nextWeekend;
+        targetMeeting =
+          nextMidweek.getTime() < nextWeekend.getTime()
+            ? nextMidweek
+            : nextWeekend;
       }
 
       const diffMs = targetMeeting.getTime() - now.getTime();
@@ -676,11 +762,28 @@ const Dashboard = () => {
       const m = Math.floor((diffSecs % 3600) / 60);
 
       if (d > 0) {
-        setCountdownText(t('tr_countdownDays', { defaultValue: `Faltan ${d} d ${h} h`, days: d, hours: h }));
+        setCountdownText(
+          t('tr_countdownDays', {
+            defaultValue: `Faltan ${d} d ${h} h`,
+            days: d,
+            hours: h,
+          })
+        );
       } else if (h > 0) {
-        setCountdownText(t('tr_countdownHours', { defaultValue: `Faltan ${h} h ${m} min`, hours: h, minutes: m }));
+        setCountdownText(
+          t('tr_countdownHours', {
+            defaultValue: `Faltan ${h} h ${m} min`,
+            hours: h,
+            minutes: m,
+          })
+        );
       } else {
-        setCountdownText(t('tr_countdownMinutes', { defaultValue: `Faltan ${m} min`, minutes: m }));
+        setCountdownText(
+          t('tr_countdownMinutes', {
+            defaultValue: `Faltan ${m} min`,
+            minutes: m,
+          })
+        );
       }
     };
 
@@ -696,25 +799,87 @@ const Dashboard = () => {
     weekendMeetingDate,
     showMidweekRow,
     showWeekendRow,
-    t
+    t,
   ]);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: 'var(--dash-measure)',
+        margin: '0 auto',
+        paddingTop: '16px',
+      }}
+    >
       <PageTitle />
 
       {/* GREETING */}
       <div className="hello-greeting">
         <h1>
-          {t('tr_greeting', { defaultValue: 'Hola, {{firstName}}', firstName: firstName || 'Carlos' })} <span className="waving-hand">👋</span>
+          {t('tr_greeting', {
+            defaultValue: 'Hola, {{firstName}}',
+            firstName: firstName || 'Carlos',
+          })}{' '}
+          <span className="waving-hand">👋</span>
         </h1>
         <div className="date-string">{todayStr}</div>
       </div>
 
+      {/* Un solo renglón mientras baja la primera tanda de datos. Va aquí y no
+          repartido por cada tarjeta porque el panel entero está a medias: sin
+          esto se ve un panel vacío y no hay nada que explique por qué.
+          NO bloquea la pantalla: quien ya tiene datos en el dispositivo tiene
+          que poder usar la app sin esperar a nadie. */}
+      {primeraDescarga.pending && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            borderRadius: 'var(--radius-l)',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card)',
+          }}
+        >
+          {!primeraDescarga.offline && (
+            <Box
+              sx={{
+                flexShrink: 0,
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--brand)',
+                // `pulse` es global (index.css) y es la misma señal de "vivo"
+                // que la cuenta atrás de la tarjeta del programa. `eldaPulse`
+                // NO vale aquí: solo existe mientras el logotipo de carga está
+                // montado, y este renglón se dibuja con el panel ya cargado.
+                animation: 'pulse 2s infinite',
+              }}
+            />
+          )}
+          <Typography className="body-small-regular" color="var(--ink-2)">
+            {primeraDescarga.offline
+              ? 'Sin conexión. El programa y tus asignaciones se descargarán en cuanto vuelvas a tener internet.'
+              : 'Estamos descargando el programa y tus asignaciones. Tardará unos segundos.'}
+          </Typography>
+        </Box>
+      )}
+
       {/* MY ASSIGNMENTS SHORTCUT */}
-      <div className="assign-card active-press" onClick={handleOpenMyAssignments}>
+      <div
+        className="assign-card active-press"
+        onClick={handleOpenMyAssignments}
+      >
         <div className="ic">
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 11l3 3L22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
@@ -722,14 +887,31 @@ const Dashboard = () => {
         <div className="txt">
           <div className="lab">{t('tr_myAssignments', 'Mis asignaciones')}</div>
           <div className="big">
-            {countFutureAssignments === 0
-              ? t('tr_noMeetingAssignments', 'No tienes asignaciones pendientes')
-              : t('tr_pendingAssignments', 'Tienes asignaciones pendientes')
-            }
+            {primeraDescarga.pending
+              ? primeraDescarga.offline
+                ? 'Sin conexión. Se descargarán al volver'
+                : 'Descargando tus asignaciones…'
+              : countFutureAssignments === 0
+                ? t(
+                    'tr_noMeetingAssignments',
+                    'No tienes asignaciones pendientes'
+                  )
+                : t('tr_pendingAssignments', 'Tienes asignaciones pendientes')}
           </div>
         </div>
-        <div className="count-val">{countFutureAssignments}</div>
-        <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        {/* Sin número mientras no se sepa: un 0 aquí no significa "ninguna",
+            significa "todavía no lo sé", y se leen igual. */}
+        {!primeraDescarga.pending && (
+          <div className="count-val">{countFutureAssignments}</div>
+        )}
+        <svg
+          className="chev-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M9 6l6 6-6 6" />
         </svg>
       </div>
@@ -830,11 +1012,20 @@ const Dashboard = () => {
                   <rect x="3" y="4" width="18" height="18" rx="2" />
                   <path d="m14 14-4 4M10 14l4 4" />
                 </svg>
-                <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)', marginBottom: '4px' }}>
+                <Typography
+                  className="body-regular-semibold"
+                  sx={{ color: 'var(--ink)', marginBottom: '4px' }}
+                >
                   {t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
                 </Typography>
-                <Typography className="body-small-regular" sx={{ color: 'var(--grey-400)', maxWidth: '300px' }}>
-                  {t('tr_noMeetingsScheduledDesc', 'Esta semana no hay reuniones debido a eventos especiales o asambleas.')}
+                <Typography
+                  className="body-small-regular"
+                  sx={{ color: 'var(--grey-400)', maxWidth: '300px' }}
+                >
+                  {t(
+                    'tr_noMeetingsScheduledDesc',
+                    'Esta semana no hay reuniones debido a eventos especiales o asambleas.'
+                  )}
                 </Typography>
               </Box>
             ) : (
@@ -843,7 +1034,7 @@ const Dashboard = () => {
                   const isMidweek = item.type === 'midweek';
                   const isWeekend = item.type === 'weekend';
                   const isEvent = item.type === 'event';
-                  
+
                   let badgeClass = 'day-badge';
                   if (isMidweek) badgeClass += ' mid';
                   if (isWeekend) badgeClass += ' wknd';
@@ -868,13 +1059,22 @@ const Dashboard = () => {
                             gap: '8px',
                           }}
                         >
-                          {isEvent && item.decoration && cloneElement(item.decoration.icon, {
-                            color: 'var(--ink)',
-                            style: { width: '16px', height: '16px', flexShrink: 0 }
-                          })}
+                          {isEvent &&
+                            item.decoration &&
+                            cloneElement(item.decoration.icon, {
+                              color: 'var(--ink)',
+                              style: {
+                                width: '16px',
+                                height: '16px',
+                                flexShrink: 0,
+                              },
+                            })}
                           <span>{item.title}</span>
                           {item.hasAssignment && (
-                            <span className="assignment-dot" title={t('tr_youHaveSomething', 'Tienes algo')} />
+                            <span
+                              className="assignment-dot"
+                              title={t('tr_youHaveSomething', 'Tienes algo')}
+                            />
                           )}
                         </div>
                         {item.description && (
@@ -890,9 +1090,18 @@ const Dashboard = () => {
               </>
             )}
 
-            <button className="week-cta-btn active-press" onClick={() => handleTileClick('/weekly-schedules')}>
+            <button
+              className="week-cta-btn active-press"
+              onClick={() => handleTileClick('/weekly-schedules')}
+            >
               {t('tr_viewAssignmentsSchedule', 'Ver programa completo')}
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </button>
@@ -905,9 +1114,12 @@ const Dashboard = () => {
         <div className="t">{t('tr_explore', 'Explorar')}</div>
       </div>
       <div className="tile-grid">
-
         {/* 1. REUNIONES (Always visible) */}
-        <div className="tile-item c-blue active-press" style={{ animationDelay: '0.26s' }} onClick={() => handleTileClick('/dashboard/meetings')}>
+        <div
+          className="tile-item c-blue active-press"
+          style={{ animationDelay: '0.26s' }}
+          onClick={() => handleTileClick('/dashboard/meetings')}
+        >
           <div className="ti">
             <IconTreasuresPart color="var(--brand)" width={22} height={22} />
           </div>
@@ -918,7 +1130,11 @@ const Dashboard = () => {
 
         {/* 2. PREDICACIÓN (Visible if publisher) */}
         {isPublisher && (
-          <div className="tile-item c-blue active-press" style={{ animationDelay: '0.3s' }} onClick={() => handleTileClick('/dashboard/ministry')}>
+          <div
+            className="tile-item c-blue active-press"
+            style={{ animationDelay: '0.3s' }}
+            onClick={() => handleTileClick('/dashboard/ministry')}
+          >
             <div className="ti">
               <IconInTerritory color="var(--brand)" width={22} height={22} />
             </div>
@@ -929,55 +1145,89 @@ const Dashboard = () => {
         )}
 
         {/* 3. CONGREGACIÓN (Always visible) */}
-        <div className="tile-item c-blue active-press" style={{ animationDelay: '0.34s' }} onClick={() => handleTileClick('/dashboard/congregation')}>
+        <div
+          className="tile-item c-blue active-press"
+          style={{ animationDelay: '0.34s' }}
+          onClick={() => handleTileClick('/dashboard/congregation')}
+        >
           <div className="ti">
             <IconCongregation color="var(--brand)" width={22} height={22} />
           </div>
           <div>
-            <div className="tile-name">{t('tr_congregation', 'Congregación')}</div>
+            <div className="tile-name">
+              {t('tr_congregation', 'Congregación')}
+            </div>
           </div>
         </div>
 
         {/* 4. DISCURSOS (Visible if weekend meeting is shown and authorized) */}
-        {showWeekend && (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
-          <div className="tile-item c-blue active-press" style={{ animationDelay: '0.38s' }} onClick={() => handleTileClick('/dashboard/talks')}>
-            <div className="ti">
-              <IconPodium color="var(--brand)" width={22} height={22} />
+        {showWeekend &&
+          (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
+            <div
+              className="tile-item c-blue active-press"
+              style={{ animationDelay: '0.38s' }}
+              onClick={() => handleTileClick('/dashboard/talks')}
+            >
+              <div className="ti">
+                <IconPodium color="var(--brand)" width={22} height={22} />
+              </div>
+              <div>
+                <div className="tile-name">
+                  {t('tr_publicTalks', 'Discursos')}
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="tile-name">{t('tr_publicTalks', 'Discursos')}</div>
-            </div>
-          </div>
-        )}
+          )}
 
         {/* 5. INFORMES (Full width, visible for elders, secretaries, attendance/group overseers) */}
         {(isElder || isAttendanceEditor || isGroupOverseer || isSecretary) && (
-          <div className="tile-item c-blue full-width active-press" style={{ animationDelay: '0.42s' }} onClick={() => handleTileClick('/dashboard/reports')}>
+          <div
+            className="tile-item c-blue full-width active-press"
+            style={{ animationDelay: '0.42s' }}
+            onClick={() => handleTileClick('/dashboard/reports')}
+          >
             <div className="ti">
               <IconStats color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">{t('tr_reports', 'Informes')}</div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </div>
         )}
 
         {/* 6. CONFIGURACIÓN (Full width, always visible) */}
-        <div className="tile-item c-blue full-width active-press" style={{ animationDelay: '0.46s' }} onClick={() => handleTileClick('/dashboard/settings')}>
+        <div
+          className="tile-item c-blue full-width active-press"
+          style={{ animationDelay: '0.46s' }}
+          onClick={() => handleTileClick('/dashboard/settings')}
+        >
           <div className="ti">
             <IconSettings color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_settings', 'Configuración')}</div>
           </div>
-          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="chev-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 6l6 6-6 6" />
           </svg>
         </div>
-
       </div>
 
       {/* SNACKBARS / NOTICES */}
@@ -986,15 +1236,19 @@ const Dashboard = () => {
           open={newCongSnack}
           variant="success"
           messageIcon={<IconCheckCircle color="var(--always-white)" />}
-          messageHeader={t('tr_welcomeCongregationTitle', '¡Te damos la bienvenida!')}
-          message={t('tr_welcomeCongregationDesc', 'Te has conectado con éxito a tu congregación. Ahora puedes empezar a usar Elda Centro.')}
+          messageHeader={t(
+            'tr_welcomeCongregationTitle',
+            '¡Te damos la bienvenida!'
+          )}
+          message={t(
+            'tr_welcomeCongregationDesc',
+            'Te has conectado con éxito a tu congregación. Ahora puedes empezar a usar Elda Centro.'
+          )}
           onClose={handleCloseNewCongNotice}
         />
       )}
-
     </Box>
   );
 };
 
 export default Dashboard;
-

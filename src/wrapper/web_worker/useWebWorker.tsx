@@ -3,9 +3,10 @@ import { useLocation } from 'react-router';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   displaySnackNotification,
+  setFirstSyncDone,
   setLastAppDataSync,
 } from '@services/states/app';
-import { isTest, LANGUAGE_LIST } from '@constants/index';
+import { isTest, LANGUAGE_LIST, LAST_SYNC_STORAGE_KEY } from '@constants/index';
 import {
   congAccountConnectedState,
   isAppDataSyncingState,
@@ -39,7 +40,8 @@ import { isPersonDetailInUse } from '@services/app/sync_pause';
 // Sin esto, al recargar la app el contador volvía a cero y la interfaz no
 // podía decir la verdad ("llevas dos días sin sincronizar"): parecía recién
 // sincronizada aunque llevara días sin subir nada.
-export const LAST_SYNC_STORAGE_KEY = 'organized_last_sync_at';
+// Se reexporta desde aquí porque media app la importaba de este fichero.
+export { LAST_SYNC_STORAGE_KEY };
 
 const readStoredLastSync = () => {
   try {
@@ -85,7 +87,9 @@ const useWebWorker = () => {
   const isPendingSync = useLiveQuery(async () => {
     const metadata = await appDb.metadata.get(1);
     if (!metadata) return false;
-    return Object.values(metadata.metadata).some((table) => table.send_local === true);
+    return Object.values(metadata.metadata).some(
+      (table) => table.send_local === true
+    );
   }, []);
 
   useEffect(() => {
@@ -191,10 +195,12 @@ const useWebWorker = () => {
 
           // Always show an error so the user knows sync failed.
           // Use the translated message when available, otherwise show raw details.
-          const translated = details.length > 0 ? getMessageByCode(details) : '';
-          const message = translated && translated !== details
-            ? `(${details}) ${translated}`
-            : details || getMessageByCode('error_app_generic-title');
+          const translated =
+            details.length > 0 ? getMessageByCode(details) : '';
+          const message =
+            translated && translated !== details
+              ? `(${details}) ${translated}`
+              : details || getMessageByCode('error_app_generic-title');
 
           displaySnackNotification({
             header: getMessageByCode('error_app_generic-title'),
@@ -205,6 +211,9 @@ const useWebWorker = () => {
 
         if (event.data.lastBackup) {
           setLastBackup(event.data.lastBackup);
+          // A partir de aquí este dispositivo YA sabe lo que hay: el panel
+          // puede dejar de decir "descargando" y enseñar las cifras de verdad.
+          setFirstSyncDone();
 
           try {
             localStorage.setItem(
@@ -226,8 +235,7 @@ const useWebWorker = () => {
     prevPathRef.current = location.pathname;
 
     const enteringPersons =
-      location.pathname.includes('/persons') &&
-      !prevPath.includes('/persons');
+      location.pathname.includes('/persons') && !prevPath.includes('/persons');
 
     if (!enteringPersons || !backupEnabled || !user) return;
 

@@ -373,3 +373,18 @@ export const TIMER_KEY = 'organized_timer';
  *  circuito — antes escrita a mano en 2 sitios (el cálculo de horario en
  *  schedulesMidweekGetTiming y la etiqueta en useCOTalk). */
 export const CO_TALK_DURATION_MINUTES = 30;
+
+/**
+ * Marca de la última sincronización completada EN ESTE DISPOSITIVO.
+ *
+ * Vive en `localStorage` y no en Dexie a propósito: la escribe el hilo
+ * principal al recibir el resultado del worker, y hay que poder leerla antes
+ * de que la base de datos esté abierta. El cierre de sesión borra
+ * `localStorage` entero salvo una lista corta (tema, idioma, consentimiento),
+ * así que también queda vacía al volver a entrar — que es justo lo que se
+ * quiere: ese dispositivo vuelve a no saber nada.
+ *
+ * Estaba declarada dentro de `useWebWorker`, y leerla desde los átomos creaba
+ * un ciclo de importación (el envoltorio ya importa de `states`).
+ */
+export const LAST_SYNC_STORAGE_KEY = 'organized_last_sync_at';

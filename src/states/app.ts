@@ -6,6 +6,7 @@ import {
   getTranslation,
 } from '@services/i18n/translation';
 import { localStorageGetItem } from '@utils/common';
+import { LAST_SYNC_STORAGE_KEY } from '@constants/index';
 import {
   BackupFileType,
   ColorSchemeType,
@@ -491,3 +492,28 @@ export const countriesState = atom<CountryResponseType[]>([]);
 // useMyAssignments (el diálogo vive montado en el layout raíz) y leído por
 // el contador del inicio — una sola fuente, imposible que diverjan.
 export const myAssignmentsBadgeState = atom(0);
+
+/**
+ * Este dispositivo ya ha terminado al menos UNA sincronización.
+ *
+ * Sin esto la app confundía "sé que tienes 0 asignaciones" con "todavía no sé
+ * cuántas tienes": al entrar por primera vez, tras cerrar y volver a abrir
+ * sesión, o en un móvil nuevo, el panel decía "No tienes asignaciones" y un 0
+ * bien grande mientras los datos aún venían de camino. El hermano cerraba la
+ * app creyendo que no le tocaba nada.
+ *
+ * Arranca leyendo la marca que dejó la última sincronización, así que una
+ * recarga normal NO vuelve a enseñar el aviso: solo lo ve quien de verdad no
+ * tiene nada todavía.
+ */
+export const firstSyncDoneState = atom(
+  (() => {
+    try {
+      return (localStorage.getItem(LAST_SYNC_STORAGE_KEY) ?? '').length > 0;
+    } catch {
+      // Almacenamiento bloqueado (Safari en privado). Se prefiere NO avisar:
+      // un aviso que no se va nunca es peor que un 0 durante dos segundos.
+      return true;
+    }
+  })()
+);

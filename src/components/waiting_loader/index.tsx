@@ -41,7 +41,9 @@ const WaitingLoader = ({
       }}
     >
       <Box sx={sx}>
-        {type === 'lottie' && <LottieLoader size={size} message={message} />}
+        {type === 'lottie' && (
+          <LottieLoader size={size} message={message} slowWarning />
+        )}
 
         {type === 'circular' && (
           <IconLoading width={size} height={size} color="var(--accent-dark)" />

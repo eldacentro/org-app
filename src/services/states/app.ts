@@ -41,6 +41,7 @@ import {
   isSupportOpenState,
   isNewCongregationState,
   isAppDataSyncingState,
+  firstSyncDoneState,
   lastAppDataSyncState,
   appMessageHeaderState,
   isMFAEnabledState,
@@ -234,6 +235,11 @@ export const setIsAppDataSyncing = (value: boolean) => {
 
 export const setLastAppDataSync = (value: number | string) => {
   store.set(lastAppDataSyncState, value);
+};
+
+/** La primera sincronización de este dispositivo ya ha terminado. */
+export const setFirstSyncDone = () => {
+  store.set(firstSyncDoneState, true);
 };
 
 export const setAppSnackOpen = (value: boolean) => {
