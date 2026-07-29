@@ -16,7 +16,7 @@ import usePendingSlips from './usePendingSlips';
  * días; el detalle, solo cuando te pones a ello.
  */
 const PendingSlips = () => {
-  const { pending, porSemana } = usePendingSlips();
+  const { pending, porSemana, enSemana } = usePendingSlips();
 
   const [open, setOpen] = useState(false);
 
@@ -68,17 +68,33 @@ const PendingSlips = () => {
           )}
         </Box>
 
-        <Typography
-          className="body-regular"
-          color="var(--ink)"
-          sx={{ flex: 1 }}
-        >
-          {todoConfirmado
-            ? 'Todas las hojitas están confirmadas'
-            : pending.length === 1
-              ? 'Queda 1 hojita por confirmar'
-              : `Quedan ${pending.length} hojitas por confirmar`}
-        </Typography>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography className="body-regular" color="var(--ink)">
+            {todoConfirmado
+              ? 'Todas las hojitas están confirmadas'
+              : pending.length === 1
+                ? 'Queda 1 hojita por confirmar'
+                : `Quedan ${pending.length} hojitas por confirmar`}
+          </Typography>
+
+          {/* Lo de la semana abierta, que es lo que se puede hacer ahora
+              mismo. Solo aparece si hay una semana elegida; el total de
+              arriba sigue siendo el titular. */}
+          {enSemana !== null && !todoConfirmado && (
+            <Typography
+              className="label-small-regular"
+              color={
+                enSemana.length === 0 ? 'var(--green-main)' : 'var(--grey-400)'
+              }
+            >
+              {enSemana.length === 0
+                ? 'En la semana abierta no queda ninguna'
+                : enSemana.length === 1
+                  ? 'En la semana abierta queda 1'
+                  : `En la semana abierta quedan ${enSemana.length}`}
+            </Typography>
+          )}
+        </Box>
 
         {!todoConfirmado && (
           <IconExpand

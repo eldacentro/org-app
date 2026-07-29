@@ -12,7 +12,7 @@ import { buildWeekRangeLabel } from '@services/app/week_range';
 import { formatDate, getWeekDate } from '@utils/date';
 import { monthNamesState } from '@states/app';
 import { personsState } from '@states/persons';
-import { schedulesState } from '@states/schedules';
+import { schedulesState, selectedWeekState } from '@states/schedules';
 import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
@@ -39,6 +39,7 @@ const usePendingSlips = () => {
   const { t } = useAppTranslation();
 
   const schedules = useAtomValue(schedulesState);
+  const selectedWeek = useAtomValue(selectedWeekState);
   const persons = useAtomValue(personsState);
   const dataView = useAtomValue(userDataViewState);
   const monthNames = useAtomValue(monthNamesState);
@@ -125,7 +126,16 @@ const usePendingSlips = () => {
     return grupos;
   }, [pending]);
 
-  return { pending, porSemana };
+  // Lo de la semana abierta. Es lo que de verdad se puede hacer AHORA: con
+  // dos meses repartidos, "quedan 59" no dice por dónde empezar, y "en esta
+  // semana quedan 3" sí. El total sigue estando, detrás.
+  const enSemana = useMemo(() => {
+    if (!selectedWeek) return null;
+
+    return pending.filter((slip) => slip.weekOf === selectedWeek);
+  }, [pending, selectedWeek]);
+
+  return { pending, porSemana, enSemana };
 };
 
 export default usePendingSlips;
