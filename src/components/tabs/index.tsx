@@ -96,23 +96,28 @@ const Tabs = ({
             value={valueOfActivePanel}
             onChange={handleChange}
             slotProps={{
-              // El MISMO subrayado que `scrollable_tabs` en modo sección:
-              // eran dos dibujos distintos (4px contra 3, y un radio suelto de
-              // 16px que no pertenecía a ninguna escala) para la misma idea.
-              indicator: {
-                sx: {
-                  backgroundColor: 'var(--accent-main)',
-                  height: '3px',
-                  borderRadius: 'var(--shape-xs) var(--shape-xs) 0 0',
-                },
-              },
+              // Sin subrayado: lo elegido se marca con el tinte, el mismo que
+              // la tira de semanas y que `scrollable_tabs`.
+              indicator: { sx: { backgroundColor: 'transparent', height: 0 } },
             }}
             sx={{
+              minHeight: 'unset',
+              '& .MuiTabs-flexContainer': { gap: '4px' },
+              '& button': { minHeight: '40px', textTransform: 'none' },
               '& button.Mui-selected': {
                 color: 'var(--state-selected-ink)',
+                background: 'var(--state-selected)',
+                borderRadius: 'var(--shape-full)',
                 fontWeight: 600,
+                '&:hover': { background: 'var(--state-selected-strong)' },
               },
-              '& button:not(.Mui-selected)': { color: 'var(--ink-3)' },
+              '& button:not(.Mui-selected)': {
+                color: 'var(--ink-3)',
+                '&:hover': {
+                  background: 'var(--state-hover)',
+                  borderRadius: 'var(--shape-full)',
+                },
+              },
               // Programatically changing color of ripple (wave) when click happens:
               '& span.MuiTouchRipple-rippleVisible': {
                 color: 'var(--accent-main)',
@@ -124,7 +129,7 @@ const Tabs = ({
                 <Tab
                   label={label}
                   key={index}
-                  className={`${valueOfActivePanel === index ? 'h4' : 'body-regular'} ${className}`}
+                  className={`body-regular ${className ?? ''}`}
                   {...a11yProps(index)}
                 />
               )

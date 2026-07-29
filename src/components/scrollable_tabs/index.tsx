@@ -71,15 +71,11 @@ function ScrollableTabs({
             slotProps={{
               indicator: {
                 hidden: !indicatorMode,
-                sx: {
-                  backgroundColor: indicatorMode
-                    ? 'var(--accent-main)'
-                    : 'transparent',
-                  borderRadius: indicatorMode
-                    ? 'var(--shape-xs) var(--shape-xs) 0 0'
-                    : undefined,
-                  height: '3px',
-                },
+                // Sin subrayado nunca: lo elegido se marca con el tinte, aquí
+                // y en toda la app. `indicatorMode` sigue existiendo porque
+                // también decide si el clic hace `preventDefault`, pero ya no
+                // pinta nada.
+                sx: { backgroundColor: 'transparent', height: 0 },
               },
             }}
             slots={{
@@ -92,44 +88,29 @@ function ScrollableTabs({
                 color: 'var(--accent-main)',
                 '&.Mui-disabled': { opacity: 0.3 },
               },
-              // DOS lenguajes, y cada uno para un trabajo distinto:
+              // UN solo dibujo de "elegido" en toda la app: tinte de marca y
+              // texto en azul oscuro, el mismo que la tira de semanas.
               //
-              // - Con subrayado (`indicatorMode`): son pestañas de SECCIÓN, las
-              //   que cambian el contenido de la página. El subrayado marca
-              //   "estás en esta parte" sin pintar una pastilla.
-              // - Sin subrayado: se está ELIGIENDO UN VALOR (una semana, un
-              //   año, un modo). Ahí va el tinte, el mismo que el resto de la
-              //   app usa para lo elegido.
-              //
-              // Hasta ahora el tinte se pintaba SIEMPRE, también con subrayado,
-              // así que en esos seis sitios salían los dos lenguajes a la vez:
-              // pastilla y raya debajo.
-              ...(indicatorMode
-                ? {
-                    '& button.Mui-selected': {
-                      color: 'var(--state-selected-ink)',
-                      fontWeight: 600,
-                    },
-                    '& .MuiTab-root:not(.Mui-selected)': {
-                      color: 'var(--ink-3)',
-                    },
-                  }
-                : {
-                    '& button.Mui-selected': {
-                      color: 'var(--state-selected-ink)',
-                      background: 'var(--state-selected)',
-                      borderRadius: 'var(--shape-full)',
-                      fontWeight: 600,
-                      '&:hover': { background: 'var(--state-selected-strong)' },
-                    },
-                    '& .MuiTab-root:not(.Mui-selected)': {
-                      color: 'var(--ink-3)',
-                      '&:hover': {
-                        background: 'var(--state-hover)',
-                        borderRadius: 'var(--shape-full)',
-                      },
-                    },
-                  }),
+              // Hubo un momento en que esto tenía dos —subrayado para las
+              // pestañas de sección, tinte para elegir un valor— con el
+              // argumento de que son trabajos distintos. Pero al aplicarlo a
+              // esta app no había forma de clasificar: "Entre semana / Fin de
+              // semana" ¿es una sección o es elegir qué reunión configuras?
+              // Una regla que no se puede aplicar sin dudar no es una regla.
+              '& button.Mui-selected': {
+                color: 'var(--state-selected-ink)',
+                background: 'var(--state-selected)',
+                borderRadius: 'var(--shape-full)',
+                fontWeight: 600,
+                '&:hover': { background: 'var(--state-selected-strong)' },
+              },
+              '& .MuiTab-root:not(.Mui-selected)': {
+                color: 'var(--ink-3)',
+                '&:hover': {
+                  background: 'var(--state-hover)',
+                  borderRadius: 'var(--shape-full)',
+                },
+              },
               // Programatically changing color of ripple (wave) when click happens:
               '& span.MuiTouchRipple-rippleVisible': {
                 color: 'var(--accent-main)',
