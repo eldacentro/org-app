@@ -27,27 +27,31 @@ const JwLibraryLink = ({
       display: 'inline-flex',
       alignItems: 'center',
       gap: '3px',
-      px: '10px',
-      py: '4px',
+      px: '9px',
+      py: '3px',
       borderRadius: 'var(--radius-max)',
       textDecoration: 'none',
+      // Sin relleno: se apoya en el borde y en el color del texto. Con fondo
+      // pedía demasiada atención al lado del programa, que es lo que se viene
+      // a leer. Al pasar por encima sí se rellena, para que siga sintiéndose
+      // como algo que se pulsa.
       border: '1px solid var(--accent-200)',
-      backgroundColor: 'var(--accent-100)',
+      backgroundColor: 'transparent',
       transition: 'background-color 0.2s ease',
-      '&:hover': { backgroundColor: 'var(--accent-200)' },
+      '&:hover': { backgroundColor: 'var(--accent-100)' },
       '&:active': { backgroundColor: 'var(--accent-200)' },
       ...sx,
     }}
   >
+    {/* La clase manda sobre el `sx`: las tipográficas globales de la app
+        tienen más especificidad, así que poner aquí fontSize/fontWeight no
+        hacía nada y el texto salía a 15 px con el peso normal. Se usa la clase
+        que toca —la misma familia que los demás enlaces pequeños— y el color
+        es lo único que se ajusta. */}
     <Typography
       component="span"
-      sx={{
-        fontSize: '11px',
-        fontWeight: 600,
-        color: 'var(--accent-main)',
-        lineHeight: 1.2,
-        letterSpacing: '0.2px',
-      }}
+      className="label-small-medium"
+      color="var(--accent-main)"
     >
       {label} ↗
     </Typography>
