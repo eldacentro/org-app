@@ -58,8 +58,8 @@ const DeptPersonComponent = ({
       }}
     >
       <Typography
-        className="body-small-semibold"
-        color="var(--grey-500)"
+        className="label-small-regular"
+        color="var(--grey-400)"
         sx={{ flexShrink: 0, minWidth: '95px' }}
       >
         {label}

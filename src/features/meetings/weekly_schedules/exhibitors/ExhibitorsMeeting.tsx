@@ -438,11 +438,13 @@ const ExhibitorsMeeting = ({
                           }}
                         />
                       ) : (
+                        // Uno por línea: en horizontal, dos nombres sin nada
+                        // que los separe se leían como uno solo.
                         <Box
                           sx={{
                             display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '10px',
+                            flexDirection: 'column',
+                            gap: '2px',
                           }}
                         >
                           {/* Solo el primero del turno debe llevar la etiqueta

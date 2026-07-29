@@ -18,6 +18,12 @@ import Typography from '@components/typography';
  * El único color es el azul de marca cuando la asignación es tuya. Es el único
  * que tiene que significar algo, así que no compite con ningún otro.
  *
+ * Lo que hace que el nombre destaque sin recuadro es la DIFERENCIA con su
+ * etiqueta: el nombre en `h3` y en tinta, la etiqueta bastante más pequeña y
+ * en gris. Cuando los dos iban al mismo tamaño la fila se leía como un párrafo
+ * y el nombre no saltaba a la vista; si algún día se tocan estos tamaños, hay
+ * que mover los dos a la vez o vuelve el mismo problema.
+ *
  * Existe porque este trozo estaba copiado A MANO en cuatro sitios
  * —`person_component`, Departamentos, Exhibidores y Salidas de predicación—
  * con los mismos veinte valores repetidos. Un cambio de diseño solo llegaba a
@@ -75,7 +81,7 @@ const AssigneeName = ({
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography
-          className="body-regular-semibold"
+          className="h3"
           sx={{
             minWidth: 0,
             color: isMe ? 'var(--brand-deep)' : 'var(--ink)',
