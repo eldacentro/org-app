@@ -93,7 +93,7 @@ const MidweekEditor = () => {
   return (
     <Box
       sx={{
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         padding: '16px',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',

@@ -59,7 +59,7 @@ const SongSource = (props: SongSourceType) => {
             width: 'fit-content',
             maxWidth: '100%',
             padding: '4px 12px 4px 8px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--song-tint)',
           }}
         >

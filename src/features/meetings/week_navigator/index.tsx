@@ -51,9 +51,9 @@ const WeekNavigator = ({
     width: '40px',
     height: '40px',
     flexShrink: 0,
-    borderRadius: 'var(--radius-max)',
+    borderRadius: 'var(--shape-full)',
     cursor: activa ? 'pointer' : 'default',
-    transition: 'background-color 0.15s ease',
+    transition: 'background-color var(--motion-fast) var(--ease-standard)',
     '&:hover': { backgroundColor: activa ? 'var(--accent-150)' : 'unset' },
   });
 

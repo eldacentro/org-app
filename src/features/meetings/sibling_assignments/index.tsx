@@ -22,7 +22,7 @@ const SiblingAssignment = ({
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'var(--grey-350)',
-          borderRadius: 'var(--radius-s)',
+          borderRadius: 'var(--shape-xs)',
           padding: '4px 8px',
           cursor: 'pointer',
         }}
@@ -54,7 +54,7 @@ const SiblingAssignment = ({
           color="var(--always-white)"
           sx={{
             transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s',
+            transition: 'transform var(--motion-medium) var(--ease-emphasized)',
           }}
         />
       </Box>

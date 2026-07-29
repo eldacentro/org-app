@@ -26,7 +26,7 @@ const PendingSlips = () => {
     <Box
       sx={{
         border: '1px solid var(--line)',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         backgroundColor: 'var(--card)',
         overflow: 'hidden',
       }}

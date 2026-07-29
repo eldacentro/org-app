@@ -21,13 +21,11 @@ const MeetingSection = ({
         flexDirection: 'column',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         boxShadow: 'var(--small-card-shadow)',
+        // La cabecera de color va a sangre y la recorta esta esquina, así que
+        // no hay radio que calcular dentro: lo hace el `overflow`.
         overflow: 'hidden',
-        transition: 'box-shadow 0.3s ease',
-        '&:hover': {
-          boxShadow: onToggle ? 'var(--hover-shadow)' : 'var(--small-card-shadow)',
-        },
       }}
     >
       <Box
@@ -35,8 +33,19 @@ const MeetingSection = ({
           display: 'flex',
           alignItems: 'center',
           backgroundColor: color,
-          padding: '10px 16px',
+          padding: '12px 16px',
           cursor: onToggle ? 'pointer' : 'default',
+          transition: 'filter var(--motion-fast) var(--ease-standard)',
+          // Reacciona SOLO la cabecera, que es lo único que se pulsa. Antes la
+          // sombra de la tarjeta entera cambiaba al pasar por encima de
+          // cualquier punto, así que el bloque completo parecía pulsable
+          // cuando en realidad solo lo es esta franja.
+          // `brightness` y no un color: la cabecera es de un color distinto en
+          // cada sección y un tinte fijo encima quedaría mal en unas u otras.
+          ...(onToggle && {
+            '&:hover': { filter: 'brightness(0.94)' },
+            '&:active': { filter: 'brightness(0.90)' },
+          }),
         }}
         onClick={onToggle}
       >
@@ -70,7 +79,7 @@ const MeetingSection = ({
             color="var(--always-white)"
             sx={{
               transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.3s',
+              transition: 'transform var(--motion-medium) var(--ease-emphasized)',
             }}
           />
         )}
