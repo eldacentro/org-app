@@ -5,19 +5,18 @@ import Typography from '@components/typography';
 /**
  * El nombre de quien tiene una asignación, en Programas semanales.
  *
- * SOLO CONTORNO, del color de la parte —turquesa en Tesoros, ámbar en Seamos
- * mejores maestros, rojo en Nuestra vida cristiana— con un relleno casi
- * inexistente (4 %). La versión con fondo tintado y borde marcado parecía un
- * campo de formulario, que en esta app es lo que significa una caja rellena; y
- * en un programa hay entre quince y veinticinco nombres, así que cualquier
- * cosa repetida veinte veces se convierte en la textura de la página. Un
- * contorno fino agrupa el nombre sin pesar.
+ * Es TEXTO Y YA: ni recuadro, ni contorno, ni fondo, ni icono. Se probaron las
+ * dos versiones intermedias —fondo tintado, y luego solo contorno del color de
+ * la parte— y las dos sobran: en un programa hay entre quince y veinticinco
+ * nombres, así que cualquier cosa repetida veinte veces deja de ser un detalle
+ * y se convierte en la textura de la página. De qué parte es lo dicen ya la
+ * posición y la cabecera de la sección.
  *
- * Ni icono, ni barra a la izquierda, ni salto al pasar el ratón por encima:
- * eso último sugería que se podía pulsar, y no se puede.
+ * Tampoco hay salto al pasar el ratón por encima: sugería que se podía pulsar,
+ * y no se puede.
  *
- * Cuando la asignación es tuya manda el azul de marca sobre el color de la
- * parte: es la única señal que tiene que saltar a la vista.
+ * El único color es el azul de marca cuando la asignación es tuya. Es el único
+ * que tiene que significar algo, así que no compite con ningún otro.
  *
  * Existe porque este trozo estaba copiado A MANO en cuatro sitios
  * —`person_component`, Departamentos, Exhibidores y Salidas de predicación—
@@ -30,8 +29,6 @@ type AssigneeNameProps = {
   name?: string;
   /** La asignación es de quien está mirando. */
   isMe?: boolean;
-  /** Color de la parte del programa. Pinta el contorno. */
-  color?: string;
   /** Congregación del orador visitante, debajo del nombre. */
   congregation?: string;
   /** Qué poner cuando el puesto está por repartir. */
@@ -45,7 +42,6 @@ type AssigneeNameProps = {
 const AssigneeName = ({
   name,
   isMe,
-  color = 'var(--brand)',
   congregation,
   emptyText = 'Sin asignar',
   trailing,
@@ -75,20 +71,7 @@ const AssigneeName = ({
 
   return (
     <Box
-      sx={{
-        minWidth: 0,
-        display: 'flex',
-        alignItems: 'baseline',
-        gap: '8px',
-        borderRadius: 'var(--radius-l)',
-        border: isMe
-          ? '1.5px solid var(--brand)'
-          : `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
-        backgroundColor: isMe
-          ? 'var(--brand-tint)'
-          : `color-mix(in srgb, ${color} 4%, transparent)`,
-        padding: '8px 14px',
-      }}
+      sx={{ minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '8px' }}
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography

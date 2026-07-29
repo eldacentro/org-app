@@ -467,14 +467,12 @@ const ExhibitorsMeeting = ({
                                 getBrotherDisplayName(ass.person) ||
                                 'Hermano asignado';
                               const isMe = ass.person === userUID;
-                              const accentColor = 'var(--brand)';
 
                               return (
                                 <AssigneeName
                                   key={aIdx}
                                   name={name}
                                   isMe={isMe}
-                                  color={accentColor}
                                   singleLine
                                   trailing={
                                     ass.isResponsible &&

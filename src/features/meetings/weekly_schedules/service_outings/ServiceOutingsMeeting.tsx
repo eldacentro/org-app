@@ -343,7 +343,6 @@ const ServiceOutingsMeeting = ({
                         <AssigneeName
                           name={brotherName}
                           isMe={isAssignedToMe}
-                          color={accentColor}
                           singleLine
                         />
                       )}

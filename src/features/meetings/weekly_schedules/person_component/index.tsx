@@ -41,7 +41,6 @@ const PersonComponent = (props: PersonComponentProps) => {
         <AssigneeName
           name={personData?.name}
           isMe={personData?.active}
-          color={props.color}
           congregation={
             props.showCongregation ? personData?.congregation : undefined
           }

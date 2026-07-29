@@ -4,6 +4,7 @@ import { IconWavingHand } from '@components/icons';
 import { Week } from '@definition/week_type';
 import {
   DoubleFieldContainer,
+  PlainCard,
   PrimaryFieldContainer,
   SecondaryFieldContainer,
 } from '../shared_styles';
@@ -65,7 +66,9 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
 
   return (
     <Stack spacing="16px">
-      <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
+      {/* El tipo de semana y "tienes N asignaciones" son etiquetas de la
+          semana entera, no parte del programa: van sueltas arriba. */}
+      {(weekTypeBadge || myAssignmentsTotal) && (
         <PrimaryFieldContainer
           sx={{
             display: 'flex',
@@ -88,86 +91,94 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
 
           {myAssignmentsTotal && <AssignmentBadge count={myAssignmentsTotal} />}
         </PrimaryFieldContainer>
-
-        {!noMeetingInfo.value && (
-          <SecondaryFieldContainer
-            sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
-          >
-            <PersonComponent
-              label={`${t('tr_chairman')}:`}
-              week={week}
-              assignment="MM_Chairman_A"
-              dataView={props.dataView}
-              color="var(--midweek-meeting)"
-            />
-          </SecondaryFieldContainer>
-        )}
-      </DoubleFieldContainer>
-
-      {!noMeetingInfo.value &&
-        MIDWEEK_FULL.includes(weekType) &&
-        showAuxCounselor && (
-          <DoubleFieldContainer
-            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-          >
-            <PrimaryFieldContainer />
-
-            <SecondaryFieldContainer
-              sx={{
-                maxWidth: laptopUp ? '360px' : '100%',
-                gap: 'unset',
-              }}
-            >
-              <PersonComponent
-                week={week}
-                label={`${t('tr_auxClass')}:`}
-                assignment="MM_Chairman_B"
-                dataView={props.dataView}
-                color="var(--midweek-meeting)"
-              />
-
-              <AuxClassGroup week={week} />
-            </SecondaryFieldContainer>
-          </DoubleFieldContainer>
-        )}
+      )}
 
       {noMeetingInfo.value && <Typography>{noMeetingInfo.event}</Typography>}
 
       {!noMeetingInfo.value && (
         <>
-          {MIDWEEK_FULL.includes(weekType) && (
+          {/* La apertura: quién dirige y con qué se empieza. Ver `PlainCard`. */}
+          <PlainCard>
             <DoubleFieldContainer
               sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
             >
-              <PrimaryFieldContainer>
-                {partTimings?.pgm_start && (
-                  <PartTiming time={partTimings.pgm_start} />
-                )}
+              {/* La columna izquierda solo existe para alinear con las filas que
+                  sí llevan hora y canción. En móvil no hay dos columnas, así
+                  que vacía solo mete un hueco encima del nombre. */}
+              {laptopUp && <PrimaryFieldContainer />}
 
-                <SongSource
-                  meeting="midweek"
-                  week={week}
-                  type="opening"
-                  dataView={props.dataView}
-                />
-              </PrimaryFieldContainer>
               <SecondaryFieldContainer
                 sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
               >
                 <PersonComponent
-                  label={`${t('tr_prayer')}:`}
+                  label={`${t('tr_chairman')}:`}
                   week={week}
+                  assignment="MM_Chairman_A"
                   dataView={props.dataView}
-                  assignment={
-                    !openingPrayerLinked
-                      ? 'MM_OpeningPrayer'
-                      : openingPrayerLinked
-                  }
                   color="var(--midweek-meeting)"
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>
-          )}
+
+            {MIDWEEK_FULL.includes(weekType) && showAuxCounselor && (
+              <DoubleFieldContainer
+                sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+              >
+                {laptopUp && <PrimaryFieldContainer />}
+
+                <SecondaryFieldContainer
+                  sx={{
+                    maxWidth: laptopUp ? '360px' : '100%',
+                    gap: 'unset',
+                  }}
+                >
+                  <PersonComponent
+                    week={week}
+                    label={`${t('tr_auxClass')}:`}
+                    assignment="MM_Chairman_B"
+                    dataView={props.dataView}
+                    color="var(--midweek-meeting)"
+                  />
+
+                  <AuxClassGroup week={week} />
+                </SecondaryFieldContainer>
+              </DoubleFieldContainer>
+            )}
+
+            {MIDWEEK_FULL.includes(weekType) && (
+              <DoubleFieldContainer
+                sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+              >
+                <PrimaryFieldContainer>
+                  {partTimings?.pgm_start && (
+                    <PartTiming time={partTimings.pgm_start} />
+                  )}
+
+                  <SongSource
+                    meeting="midweek"
+                    week={week}
+                    type="opening"
+                    dataView={props.dataView}
+                  />
+                </PrimaryFieldContainer>
+                <SecondaryFieldContainer
+                  sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+                >
+                  <PersonComponent
+                    label={`${t('tr_prayer')}:`}
+                    week={week}
+                    dataView={props.dataView}
+                    assignment={
+                      !openingPrayerLinked
+                        ? 'MM_OpeningPrayer'
+                        : openingPrayerLinked
+                    }
+                    color="var(--midweek-meeting)"
+                  />
+                </SecondaryFieldContainer>
+              </DoubleFieldContainer>
+            )}
+          </PlainCard>
 
           {MIDWEEK_WITH_TREASURES.includes(weekType) && (
             <TreasuresPart
