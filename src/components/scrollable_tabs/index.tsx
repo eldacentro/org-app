@@ -89,16 +89,21 @@ function ScrollableTabs({
                 color: 'var(--accent-main)',
                 '&.Mui-disabled': { opacity: 0.3 },
               },
-              // La pestaña elegida, en color pleno. Antes era texto azul sobre
-              // un azul clarísimo y apenas se distinguía de las demás: en una
-              // tira de veinte semanas había que fijarse para saber en cuál
-              // estabas.
+              // La pestaña elegida: fondo tintado y texto oscuro, no color
+              // pleno.
+              //
+              // Antes era texto azul sobre azul clarísimo y apenas se
+              // distinguía; en azul pleno sí se veía, pero pasaba a competir
+              // con los botones de acción (JW Library y compañía), que son lo
+              // único que debe llevar color lleno. El tinte con el texto en
+              // azul oscuro y en negrita marca cuál está elegida sin subir al
+              // nivel de un botón.
               '& button.Mui-selected': {
-                color: 'var(--always-white)',
-                background: 'var(--accent-main)',
+                color: 'var(--accent-dark)',
+                background: 'var(--accent-150)',
                 borderRadius: 'var(--radius-max)',
                 fontWeight: 600,
-                '&:hover': { background: 'var(--accent-dark)' },
+                '&:hover': { background: 'var(--accent-200)' },
               },
               '& .MuiTab-root:not(.Mui-selected)': {
                 color: 'var(--grey-350)',
