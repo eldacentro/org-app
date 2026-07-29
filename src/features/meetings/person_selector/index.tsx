@@ -7,7 +7,6 @@ import OutgoingSpeaker from './outgoing_speaker';
 import StreamSpeaker from './stream_speaker';
 import StudentSelector from './student_selector';
 import VisitingSpeaker from './visiting_speaker';
-import AssignmentConfirmed from '@features/meetings/weekly_schedules/assignment_confirmed';
 
 const PersonSelector = (props: PersonSelectorType) => {
   const flexPersonSelector = props.flex ?? true;
@@ -21,6 +20,10 @@ const PersonSelector = (props: PersonSelectorType) => {
     isVisitingSpeaker,
   } = usePersonSelector(props);
 
+  // La casilla de "hojita entregada" NO va aquí: vive dentro del carril de
+  // acciones del selector de estudiante, junto al historial y la descarga.
+  // Estuvo aquí fuera un tiempo y era imposible alinearla con los otros dos
+  // botones — cada uno colgaba de un ancla distinta.
   return (
     <Box
       sx={{
@@ -39,12 +42,6 @@ const PersonSelector = (props: PersonSelectorType) => {
         {isOutgoingSpeaker && <OutgoingSpeaker {...props} />}
         {isVisitingSpeaker && <VisitingSpeaker {...props} />}
       </Box>
-
-      {/* Al lado del campo. Estuvo un rato debajo porque aquí le robaba 32px
-          al nombre y lo dejaba cortado, pero eso ya no pasa: con `multiline`
-          el nombre que no cabe se parte en dos líneas en vez de recortarse.
-          Se dibuja sola solo en las asignaciones que llevan hoja. */}
-      <AssignmentConfirmed week={props.week} assignment={props.assignment} />
     </Box>
   );
 };

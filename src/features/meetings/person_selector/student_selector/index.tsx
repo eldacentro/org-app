@@ -1,5 +1,4 @@
 import { Box, FormControlLabel, Popper, RadioGroup } from '@mui/material';
-import { STUDENT_ASSIGNMENT } from '@constants/index';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import {
   IconAssignmetHistory,
@@ -7,24 +6,24 @@ import {
   IconDownload,
   IconFemale,
   IconMale,
-  IconPersonPlaceholder,
 } from '@components/icons';
 import { StudentIconType } from './index.types';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useStudentSelector from './useStudentSelector';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
+import AssignmentConfirmed from '@features/meetings/weekly_schedules/assignment_confirmed';
 import AutoComplete from '@components/autocomplete';
 import IconButton from '@components/icon_button';
 import Radio from '@components/radio';
 import Typography from '@components/typography';
 
-const StudentIcon = ({ type, value }: StudentIconType) => (
+/**
+ * El icono de género vive solo en la LISTA desplegable, donde sí informa
+ * (al elegir para una demostración importa quién es hermana). En el campo ya
+ * no se dibuja: el nombre elegido no necesita que un muñequito lo repita.
+ */
+const StudentIcon = ({ value }: StudentIconType) => (
   <>
-    {!value && type && STUDENT_ASSIGNMENT.includes(type) && (
-      <IconPersonPlaceholder />
-    )}
-    {!value && type && !STUDENT_ASSIGNMENT.includes(type) && <IconMale />}
-
     {value?.person_data.male.value && <IconMale />}
     {value?.person_data.female.value && <IconFemale />}
   </>
@@ -69,13 +68,8 @@ const StudentSelector = (props: PersonSelectorType) => {
         />
       )}
 
-      {/* El campo y, FUERA de él, el botón de la hoja. Dentro de la caja
-          reservaba 40px de los 120 que se le quitaban al nombre; ahí fuera
-          esos 40px vuelven al texto y el botón se ve igual de bien. La caja
-          conserva su `position: relative` porque el historial va pegado a su
-          borde derecho, no al de la fila. */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-        <Box sx={{ position: 'relative', flex: 1, minWidth: 0 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <AutoComplete
             // Un nombre largo no cabe y se cortaba con puntos suspensivos, sin
             // forma de leerlo entero: dentro de un <input> el texto no puede
@@ -282,10 +276,6 @@ const StudentSelector = (props: PersonSelectorType) => {
                 </Box>
               </>
             }
-            styleIcon={false}
-            startIcon={
-              showIcon ? <StudentIcon type={props.type} value={value} /> : null
-            }
             decorator={helperText.length > 0}
             clearIcon={<IconClose width={20} height={20} />}
             sx={{
@@ -298,29 +288,43 @@ const StudentSelector = (props: PersonSelectorType) => {
               '& .MuiOutlinedInput-root': {
                 // Alto MÍNIMO, no fijo. Con `multiline` el nombre que no cabe pasa
                 // a una segunda línea, y una altura clavada con `!important` deja
-                // esa línea fuera del recuadro: el texto se ve aplastado contra
-                // los bordes. Así la caja crece con el contenido y conserva su
-                // aspecto de siempre cuando el nombre cabe en una línea.
-                minHeight: '44px',
+                // esa línea fuera del recuadro. 48px: la MISMA altura que el campo
+                // de hermano — eran 44 y 48 en la misma pantalla y se notaba.
+                minHeight: '48px',
               },
               '& .MuiOutlinedInput-input': {
-                // Hueco para la X de limpiar (al pasar por encima) y el
-                // historial. Eran 120px cuando el botón de la hoja S-89 también
-                // iba aquí dentro, y con eso al nombre le quedaban 63px en un
-                // móvil: se cortaba hasta "Daniel Cook", y al partirlo en dos
-                // líneas salían cinco. Ese botón está ahora FUERA de la caja.
-                paddingRight: '80px !important',
-              },
-              '& .MuiAutocomplete-clearIndicator': {
-                // La X de limpiar se corre para no caer encima del historial.
-                marginRight: '30px',
+                // Hueco para la X de limpiar y la flecha, y nada más: es lo que
+                // MUI reservaría solo (65px) si no le pisáramos el padding del
+                // root. Aquí dentro ya no vive ningún botón.
+                paddingRight: '65px !important',
               },
             }}
           />
+        </Box>
 
-          {value && (
+        {/* TODAS las acciones de la fila en un solo carril: historial, hoja
+            S-89 y la casilla de "hojita entregada". Antes cada una colgaba de
+            un ancla distinta —el historial en posición absoluta dentro del
+            campo, la descarga con un margen a ojo, la casilla centrada contra
+            el bloque entero, línea de ayuda incluida— y por eso nunca quedaban
+            a la misma altura. El carril mide lo que la primera línea del campo
+            (48px) y centra: la alineación sale por construcción. */}
+        {value && (
+          <Box
+            sx={{
+              height: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0,
+            }}
+          >
             <IconButton
-              sx={{ padding: 0, position: 'absolute', right: 35, top: 10 }}
+              // El IconButton compartido trae `edge="start"` (-12px de margen
+              // izquierdo, pensado para pegarlo al borde de una barra); aquí
+              // rompería el ritmo del carril.
+              edge={false}
+              sx={{ padding: 0 }}
               title={t('tr_assignmentHistory')}
               onClick={handleOpenHistory}
             >
@@ -332,33 +336,38 @@ const StudentSelector = (props: PersonSelectorType) => {
                 }
               />
             </IconButton>
-          )}
-        </Box>
 
-        {/* La hoja S-89 es UNA por estudiante: el ayudante no recibe la suya,
-            su nombre va escrito en la del estudiante. */}
-        {value && !isAssistant && (
-          <IconButton
-            // `edge={false}` NO es decorativo: el IconButton compartido lleva
-            // `edge="start"` puesto a fuego, y eso es un `margin-left: -12px`
-            // pensado para un botón pegado al borde IZQUIERDO de una barra.
-            // Aquí el botón va a la DERECHA de un campo, así que esos -12px lo
-            // metían encima del recuadro: se veía mitad dentro, mitad fuera,
-            // montado sobre el borde.
-            edge={false}
-            sx={{ padding: 0, marginTop: '12px' }}
-            title={t('tr_exportS89Sheet', 'Exportar hoja de asignación (S-89)')}
-            onClick={handleExportS89}
-            disabled={isExportingS89}
-          >
-            <IconDownload
-              color={
-                helperText.length > 0
-                  ? 'var(--orange-dark)'
-                  : 'var(--accent-main)'
-              }
+            {/* La hoja S-89 es UNA por estudiante: el ayudante no recibe la
+                suya, su nombre va escrito en la del estudiante. */}
+            {!isAssistant && (
+              <IconButton
+                edge={false}
+                sx={{ padding: 0 }}
+                title={t(
+                  'tr_exportS89Sheet',
+                  'Exportar hoja de asignación (S-89)'
+                )}
+                onClick={handleExportS89}
+                disabled={isExportingS89}
+              >
+                <IconDownload
+                  color={
+                    helperText.length > 0
+                      ? 'var(--orange-dark)'
+                      : 'var(--accent-main)'
+                  }
+                />
+              </IconButton>
+            )}
+
+            {/* Se esconde sola donde no toca (partes sin hojita, quien no
+                edita la reunión). Vive aquí y no en person_selector para que
+                comparta ancla con los otros dos botones. */}
+            <AssignmentConfirmed
+              week={props.week}
+              assignment={props.assignment}
             />
-          </IconButton>
+          </Box>
         )}
       </Box>
 
