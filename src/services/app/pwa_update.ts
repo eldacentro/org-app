@@ -27,7 +27,8 @@ export const canAutoReload = () => {
     );
 
     const recent = previous.filter(
-      (value) => typeof value === 'number' && now - value < AUTO_RELOAD_WINDOW_MS
+      (value) =>
+        typeof value === 'number' && now - value < AUTO_RELOAD_WINDOW_MS
     );
 
     if (recent.length >= MAX_AUTO_RELOADS) {
@@ -92,6 +93,13 @@ export type AppUpdateOutcome =
 /** Tope de espera de la comprobación contra la red. */
 const CHECK_TIMEOUT_MS = 8000;
 
+/**
+ * Margen para que el navegador ponga en `installing` el service worker nuevo
+ * después de que `registration.update()` haya resuelto. Corto a propósito: si
+ * de verdad no hay nada nuevo, nadie tiene que esperar casi.
+ */
+const APPEAR_GRACE_MS = 2500;
+
 export const forceAppUpdate = async (
   extraTrigger?: () => void,
   options?: {
@@ -137,6 +145,42 @@ export const forceAppUpdate = async (
       once: true,
     });
 
+    // Al service worker nuevo hay que decirle que tome el control, y hay que
+    // hacerlo VENGA CUANDO VENGA. Antes solo se enganchaba si ya estaba ahí en
+    // ese preciso instante: si aparecía un poco después se quedaba esperando
+    // para siempre, y por eso había que pulsar el botón dos veces.
+    const activar = (worker: ServiceWorker | null | undefined) => {
+      if (!worker) return;
+
+      const intentar = () => {
+        if (worker.state === 'installed') {
+          registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+        }
+      };
+
+      intentar();
+      worker.addEventListener('statechange', intentar);
+    };
+
+    let nuevo: ServiceWorker | null =
+      registration.installing ?? registration.waiting ?? null;
+
+    let avisarAparicion: (() => void) | null = null;
+    const aparicion = new Promise<void>((resolve) => {
+      avisarAparicion = resolve;
+    });
+
+    const onUpdateFound = () => {
+      nuevo = registration.installing ?? registration.waiting ?? nuevo;
+      activar(nuevo);
+      avisarAparicion?.();
+    };
+
+    // Se escucha ANTES de pedir la comprobación: si se hiciera después, un
+    // `updatefound` rápido pasaría desapercibido.
+    registration.addEventListener('updatefound', onUpdateFound);
+    activar(nuevo);
+
     // Con tope: sin él, una conexión mala deja esta promesa sin resolver y el
     // botón se queda sin hacer absolutamente nada, sin aviso ni error.
     let timedOut = false;
@@ -151,18 +195,27 @@ export const forceAppUpdate = async (
       ),
     ]);
 
-    const activateWaiting = () =>
-      registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-
-    if (registration.waiting) {
-      activateWaiting();
-    } else if (registration.installing) {
-      registration.installing.addEventListener('statechange', activateWaiting);
-    }
-
     extraTrigger?.();
 
-    const hasUpdate = Boolean(registration.installing || registration.waiting);
+    // La segunda carrera, y la de verdad. `registration.update()` resuelve
+    // cuando termina de comprobar el script, pero el navegador puede tardar un
+    // pelín más en poner el worker nuevo en `installing`. Leerlo en el mismo
+    // instante daba "ya tienes la última versión", recargaba en seco, y a la
+    // vuelta el worker YA estaba instalado — así que la segunda pulsación sí
+    // lo encontraba. De ahí las dos pulsaciones. Ahora se le da una ventana
+    // corta a que aparezca antes de concluir nada.
+    if (!nuevo) {
+      await Promise.race([
+        aparicion,
+        new Promise((resolve) => setTimeout(resolve, APPEAR_GRACE_MS)),
+      ]);
+    }
+
+    registration.removeEventListener('updatefound', onUpdateFound);
+
+    const hasUpdate = Boolean(
+      nuevo || registration.installing || registration.waiting
+    );
 
     if (hasUpdate) {
       // controllerchange dispara la recarga en cuanto el service worker nuevo

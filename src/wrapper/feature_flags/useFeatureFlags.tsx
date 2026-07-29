@@ -9,6 +9,14 @@ import { settingsState } from '@states/settings';
 import worker from '@services/worker/backupWorker';
 import logger from '@services/logger';
 
+/**
+ * Cuánto se espera como mucho a los interruptores de funciones antes de abrir
+ * la app igualmente. Va por encima del aviso de "está tardando" del logotipo
+ * (6 s), para que quien mire la pantalla vea primero el aviso y luego entre,
+ * en vez de un salto sin explicación.
+ */
+const STARTUP_GATE_TIMEOUT_MS = 9000;
+
 const useFeatureFlags = () => {
   const [apiHost, setApiHost] = useAtom(apiHostState);
 
@@ -109,6 +117,41 @@ const useFeatureFlags = () => {
       worker.postMessage({ field: 'FEATURE_FLAGS', value: featureFlagsEnv });
     }
   }, [isOnline, apiHost, setFeatureFlags, featureFlagsEnv]);
+
+  // Tope para poder ABRIR LA APP aunque esto no conteste.
+  //
+  // `navigator.onLine` dice "sí" siempre que haya wifi, aunque esa wifi no
+  // llegue a ninguna parte: un portal cautivo de hotel, una red con el pago
+  // caducado, el móvil "conectado" sin datos. Con eso, `isOnline` es cierto,
+  // se pide el identificador de instalación a Firebase, y esa llamada no
+  // rechaza — se queda colgando. `isLoading` no bajaba nunca y la app se
+  // quedaba PARA SIEMPRE en el logotipo latiendo.
+  //
+  // Y es el peor caso posible, porque le pasa justo a quien ya tiene todos sus
+  // datos en el dispositivo y solo quería consultar el programa: no necesita
+  // la red para nada, y la red le impedía entrar.
+  //
+  // Pasado el tope se sigue con los interruptores del entorno. No se pierde
+  // nada: son los valores por defecto con los que se compiló esta versión, y
+  // si la conexión aparece luego, la consulta de arriba los actualiza sola.
+  useEffect(() => {
+    // El temporizador solo está armado mientras se espera, y se desarma solo
+    // en cuanto los interruptores llegan por cualquiera de los otros caminos.
+    if (!isLoading) return;
+
+    const id = setTimeout(() => {
+      logger.warn(
+        'app',
+        'los interruptores de funciones no contestaron a tiempo: se abre la aplicación con los del entorno'
+      );
+
+      setFeatureFlags(featureFlagsEnv);
+      worker.postMessage({ field: 'FEATURE_FLAGS', value: featureFlagsEnv });
+      setIsLoading(false);
+    }, STARTUP_GATE_TIMEOUT_MS);
+
+    return () => clearTimeout(id);
+  }, [isLoading, setFeatureFlags, featureFlagsEnv]);
 
   useEffect(() => {
     if (isOnline) {
