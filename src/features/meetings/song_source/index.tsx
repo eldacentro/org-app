@@ -37,10 +37,37 @@ const SongSource = (props: SongSourceType) => {
           )}
         />
       )}
+      {/* La canción tiene color propio (ver `--song` en global/index.css).
+          Antes era un icono gris y un texto en tinta, o sea exactamente lo
+          mismo que todo lo demás: la canción de apertura se perdía entre el
+          presidente y la oración, que están justo encima y justo debajo. El
+          violeta no lo usa ninguna sección del programa, así que "lo morado
+          con una nota es una canción" se aprende de una sola pasada.
+
+          Es una píldora tenue y no solo texto de color porque el fondo es lo
+          que hace que se localice de un vistazo sin tener que leerla. */}
       {!props.isEdit && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <IconSong color="var(--grey-400)" height={20} width={20} />
-          <Typography className="h4">{songTitle}</Typography>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            width: 'fit-content',
+            maxWidth: '100%',
+            padding: '4px 12px 4px 8px',
+            borderRadius: 'var(--radius-max)',
+            backgroundColor: 'var(--song-tint)',
+          }}
+        >
+          <IconSong
+            color="var(--song)"
+            height={20}
+            width={20}
+            sx={{ flexShrink: 0 }}
+          />
+          <Typography className="h4" color="var(--song-text)">
+            {songTitle}
+          </Typography>
         </Box>
       )}
     </>

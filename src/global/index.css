@@ -236,6 +236,15 @@ body iframe {
   --amber-tint: var(--orange-secondary);
   --badge: #ff5a4d;                    /* notification badge (semantic)     */
 
+  /* Color propio de las canciones en Programas semanales. Un violeta que no
+     usa ninguna sección del programa (turquesa, ámbar, rojo, azul, verde), y
+     por eso funciona: "esto morado con una nota es una canción" se aprende
+     mirando la página una vez. Va aquí y no en `global.css` porque
+     `npm run generate:css` reescribe ese fichero entero. */
+  --song: #7255a8;
+  --song-text: #5b4287;
+  --song-tint: rgba(114, 85, 168, 0.10);
+
   --r-lg: 26px;
   --r-md: 20px;
   --r-sm: 15px;
@@ -255,6 +264,12 @@ body iframe {
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.12);
   --badge: #ff7272;                    /* softer notification red in dark   */
+
+  /* En oscuro el violeta hay que subirlo o se hunde en el fondo, y el texto
+     tiene que ser MÁS claro que el icono, no más oscuro. */
+  --song: #a98ede;
+  --song-text: #c3aeea;
+  --song-tint: rgba(169, 142, 222, 0.14);
 }
 
 /* ─── Smooth theme transitions ──────────────────────────────────────────── */

@@ -8,8 +8,9 @@ import Typography from '@components/typography';
  * Una fila "puesto: quién". La etiqueta a la izquierda en gris pequeño, el
  * nombre a la derecha en tinta. Nada más — el porqué está en `AssigneeName`.
  *
- * `props.color` es el color de la parte del programa; va al contorno del
- * nombre.
+ * `props.color` (el color de la parte del programa) ya no pinta nada aquí: se
+ * quedó sin uso al quitar el recuadro del nombre. Sigue en las props porque lo
+ * pasan una veintena de llamadas y limpiarlas es un cambio aparte.
  */
 const PersonComponent = (props: PersonComponentProps) => {
   const { personData } = usePersonComponent(props);
