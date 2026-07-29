@@ -74,7 +74,7 @@ const StudentSelector = (props: PersonSelectorType) => {
           esos 40px vuelven al texto y el botón se ve igual de bien. La caja
           conserva su `position: relative` porque el historial va pegado a su
           borde derecho, no al de la fila. */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
         <Box sx={{ position: 'relative', flex: 1, minWidth: 0 }}>
           <AutoComplete
             // Un nombre largo no cabe y se cortaba con puntos suspensivos, sin
@@ -339,6 +339,13 @@ const StudentSelector = (props: PersonSelectorType) => {
             su nombre va escrito en la del estudiante. */}
         {value && !isAssistant && (
           <IconButton
+            // `edge={false}` NO es decorativo: el IconButton compartido lleva
+            // `edge="start"` puesto a fuego, y eso es un `margin-left: -12px`
+            // pensado para un botón pegado al borde IZQUIERDO de una barra.
+            // Aquí el botón va a la DERECHA de un campo, así que esos -12px lo
+            // metían encima del recuadro: se veía mitad dentro, mitad fuera,
+            // montado sobre el borde.
+            edge={false}
             sx={{ padding: 0, marginTop: '12px' }}
             title={t('tr_exportS89Sheet', 'Exportar hoja de asignación (S-89)')}
             onClick={handleExportS89}
