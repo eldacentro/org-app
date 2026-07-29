@@ -15,13 +15,38 @@ const useEPUBMaterialsImport = () => {
 
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Qué trajo de verdad el archivo. Sin esto, importar el .jwpub equivocado y
+  // el correcto se ven igual: "Importado correctamente" y a callar.
+  const [resumen, setResumen] = useState('');
+
   const handleClose = () => setIsImportEPUB(false);
 
   useEffect(() => {
     const handleRunImport = async () => {
       try {
         if (epubFile) {
-          await sourcesImportEPUB(epubFile);
+          const result = await sourcesImportEPUB(epubFile);
+
+          const partes: string[] = [];
+
+          if (result.midweek > 0) {
+            partes.push(
+              `${result.midweek} ${result.midweek === 1 ? 'semana' : 'semanas'} de la Guía de actividades`
+            );
+          }
+
+          if (result.weekend > 0) {
+            partes.push(
+              `${result.weekend} ${result.weekend === 1 ? 'semana' : 'semanas'} de La Atalaya`
+            );
+          }
+
+          setResumen(
+            partes.length > 0
+              ? `${partes.join(' y ')}.`
+              : 'El archivo no traía semanas que la aplicación pueda leer. Comprueba que es la Guía de actividades o La Atalaya de estudio, en el idioma de la congregación.'
+          );
+
           setEpubFile(null);
           setIsCompleted(true);
         }
@@ -40,7 +65,7 @@ const useEPUBMaterialsImport = () => {
     handleRunImport();
   }, [t, epubFile]);
 
-  return { isOpen, handleClose, isCompleted };
+  return { isOpen, handleClose, isCompleted, resumen };
 };
 
 export default useEPUBMaterialsImport;

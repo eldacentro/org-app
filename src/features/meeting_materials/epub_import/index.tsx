@@ -7,7 +7,7 @@ import useEPUBMaterialsImport from './useEPUBMaterialsImport';
 const EPUBMaterialsImport = () => {
   const { t } = useAppTranslation();
 
-  const { isOpen, isCompleted, handleClose } = useEPUBMaterialsImport();
+  const { isOpen, isCompleted, handleClose, resumen } = useEPUBMaterialsImport();
 
   return (
     <SnackBar
@@ -17,7 +17,9 @@ const EPUBMaterialsImport = () => {
         isCompleted ? t('tr_successfullyImported') : t('tr_EPUBImport')
       }
       message={
-        isCompleted ? t('tr_successfullyImportedDesc') : t('tr_pleaseWait')
+        isCompleted
+          ? resumen || t('tr_successfullyImportedDesc')
+          : t('tr_pleaseWait')
       }
       messageIcon={
         isCompleted ? (

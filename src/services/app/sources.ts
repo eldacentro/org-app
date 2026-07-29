@@ -26,16 +26,36 @@ import {
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { STORAGE_KEY } from '@constants/index';
 
-export const sourcesImportEPUB = async (fileEPUB) => {
+/**
+ * Qué ha traído de verdad una importación.
+ *
+ * Sin esto, importar un .jwpub que no aporta nada y uno que trae cinco
+ * semanas se ven EXACTAMENTE igual: "Importado correctamente". Cuando algo no
+ * cuadra —el archivo equivocado, un idioma que no toca, una publicación que el
+ * lector no reconoce— no hay forma de saberlo desde la aplicación.
+ */
+export type SourcesImportResult = {
+  /** Semanas con programa de la Guía de actividades. */
+  midweek: number;
+  /** Semanas con artículo de estudio de La Atalaya. */
+  weekend: number;
+  /** De cuántas se pudo guardar el identificador de semana/artículo. */
+  withDocid: number;
+};
+
+export const sourcesImportEPUB = async (
+  fileEPUB
+): Promise<SourcesImportResult> => {
   const [data, docids] = await Promise.all([
     loadPub(fileEPUB),
     extractJwpubDocids(fileEPUB),
   ]);
-  await sourcesFormatAndSaveData(data, docids);
+
+  return await sourcesFormatAndSaveData(data, docids);
 };
 
 export const sourcesImportJW = async (dataJw) => {
-  await sourcesFormatAndSaveData(dataJw);
+  const result = await sourcesFormatAndSaveData(dataJw);
 
   const isAutoImportEnabled = store.get(sourcesJWAutoImportState);
   const cookiesConsent = store.get(cookiesConsentState);
@@ -47,6 +67,8 @@ export const sourcesImportJW = async (dataJw) => {
 
     localStorage.setItem(STORAGE_KEY.source_import, nextSync.toISOString());
   }
+
+  return result;
 };
 
 const remapAssignmentType = (week: string, type: number) => {
@@ -67,7 +89,7 @@ const remapAssignmentType = (week: string, type: number) => {
 const sourcesFormatAndSaveData = async (
   data: SourceWeekIncomingType[],
   docids?: JwpubDocids
-) => {
+): Promise<SourcesImportResult> => {
   const source_lang = store.get(JWLangState);
   const assTypeList = store.get(assignmentTypeAYFOnlyState);
 
@@ -83,6 +105,8 @@ const sourcesFormatAndSaveData = async (
   // identificadores cuadre con las semanas de ESA publicación.
   let indiceMWB = 0;
   let indiceW = 0;
+
+  const result: SourcesImportResult = { midweek: 0, weekend: 0, withDocid: 0 };
 
   for (const src of data) {
     const obj = {} as SourceWeekType;
@@ -272,18 +296,26 @@ const sourcesFormatAndSaveData = async (
 
       if (isMWB) {
         const docid = docids?.mwb?.[indiceMWB];
-        if (docid !== undefined) obj.mwb_week_docid = docid;
+        if (docid !== undefined) {
+          obj.mwb_week_docid = docid;
+          result.withDocid++;
+        }
 
         indiceMWB++;
         obj.import_source = { midweek: origen };
+        result.midweek++;
       }
 
       if (isW) {
         const docid = docids?.w?.[indiceW];
-        if (docid !== undefined) obj.w_study_docid = docid;
+        if (docid !== undefined) {
+          obj.w_study_docid = docid;
+          result.withDocid++;
+        }
 
         indiceW++;
         obj.import_source = { ...obj.import_source, weekend: origen };
+        result.weekend++;
       }
 
       await dbSourcesSave(obj);
@@ -292,6 +324,8 @@ const sourcesFormatAndSaveData = async (
       await dbSchedCheck(obj.weekOf);
     }
   }
+
+  return result;
 };
 
 export const sourcesCheckAYFExplainBeliefsAssignment = (
