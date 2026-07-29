@@ -726,9 +726,14 @@ body {
 .week-card {
   background: var(--card);
   border-radius: var(--r-lg);
-  /* 8, no 7: la rejilla es de 8px, y además este hueco es el que decide el
-     radio del botón de abajo — ver el comentario de .week-cta-btn. */
-  padding: 8px;
+  /* UN solo margen interior para todo lo que va dentro: título, filas y botón
+     arrancan de la misma línea. Antes la tarjeta tenía 8 y luego el título y
+     las filas se metían 13 más por su cuenta (21 en total), mientras el botón
+     se quedaba en los 8: por eso el botón se salía del límite que seguía todo
+     lo demás.
+     16 es además el padding de tarjeta del sistema, y hace que el radio
+     concéntrico del botón caiga en un token exacto: 28 - 16 = 12. */
+  padding: 16px;
   margin-bottom: 26px;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--line);
@@ -739,7 +744,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 13px 11px;
+  /* Sin margen propio a los lados: el de la tarjeta ya lo pone. */
+  padding: 0 0 12px;
 }
 .week-head-section .ttl {
   font-size: 21px;
@@ -776,7 +782,11 @@ body {
   display: flex;
   align-items: center;
   gap: 13px;
-  padding: 14px 13px;
+  /* El margen negativo es a propósito: el fondo del hover se derrama 8px hacia
+     el margen de la tarjeta —para que la fila no se sienta apretada al pasar
+     por encima— pero el CONTENIDO sigue alineado con el título y el botón. */
+  margin: 0 -8px;
+  padding: 14px 8px;
   border-radius: var(--shape-md);
   cursor: pointer;
   transition:
@@ -876,12 +886,12 @@ body {
      tarjeta que lo contiene, y dos curvas que arrancan del mismo sitio con
      radios distintos no encajan: se ve un hueco que crece y decrece.
      La regla es radio interior = radio exterior - hueco. La tarjeta va a 28 y
-     el hueco es su propio padding de 8, así que aquí tocan 20 (--shape-lg).
+     el hueco es su propio padding de 16, así que aquí tocan 12 (--shape-sm).
      Los botones sueltos SÍ son píldora; este no está suelto. */
-  margin: 0;
+  margin: 8px 0 0;
   padding: 14px;
   text-align: center;
-  border-radius: var(--shape-lg);
+  border-radius: var(--shape-sm);
   background: var(--ink);
   color: var(--card);
   font-weight: 700;
@@ -1263,12 +1273,12 @@ body {
 
   /* ---------- Programa de la semana ---------- */
   .week-card { margin-bottom: 34px; }
-  .week-head-section { padding: 18px 18px 14px; }
+  .week-head-section { padding: 0 0 14px; }
   .week-head-section .ttl { font-size: 25px; }
   .count-pill { font-size: 14px; padding: 9px 14px; gap: 8px; }
   .count-pill .pulse-indicator { width: 8px; height: 8px; }
   .assignment-dot { width: 8px; height: 8px; }
-  .meeting-row { gap: 18px; padding: 18px; }
+  .meeting-row { gap: 18px; margin: 0 -8px; padding: 18px 8px; }
   .meeting-row .day-badge { width: 64px; height: 68px; }
   .meeting-row .day-badge .d { font-size: 26px; }
   .meeting-row .day-badge .m { font-size: 12.5px; }

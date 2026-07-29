@@ -105,11 +105,25 @@ Un botón suelto en una fila, o un icono centrado con aire por los cuatro lados,
 no comparte esquina con nada y se queda con la forma de su papel.
 
 **Truco práctico:** haz que el hueco sea el `padding` del contenedor y nada
-más. Si el contenedor va a `--shape-xl` (28) y su padding es 8, el interior cae
-en 20, que es `--shape-lg` clavado. Si te sale un número que no es un token,
-casi siempre es que el hueco está fuera de la rejilla de 8 — arregla el hueco,
-no el radio. (El botón del inicio tenía 7px de padding más 6px de margen: 13 de
-hueco, para un radio ideal de 15 que no existe en ninguna escala.)
+más. Si te sale un número que no es un token, casi siempre es que el hueco está
+fuera de la rejilla — arregla el hueco, no el radio. (El botón del inicio tenía
+7px de padding más 6px de margen: 13 de hueco, para un radio ideal de 15 que no
+existe en ninguna escala.)
+
+**Y el hueco es UNO para toda la tarjeta.** No basta con que el botón sea
+concéntrico: tiene que arrancar de la misma línea vertical que el título y que
+las filas de arriba, o se sale del límite que sigue todo lo demás. Un
+contenedor con `padding: 8` cuyos hijos se meten otros 13 por su cuenta tiene
+en realidad **dos** márgenes interiores, y el que se pegue al de fuera cantará.
+
+Así que: el `padding` de la tarjeta ES el margen interior, los hijos no añaden
+el suyo, y de ahí sale el radio. Con `padding: 16` sobre `--shape-xl` (28) el
+interior cae en 12 = `--shape-sm`.
+
+Si una fila necesita que su fondo de hover **se derrame** más allá de esa línea
+—para no verse apretada—, se hace con margen negativo, nunca moviendo el
+contenido: `margin: 0 -8px; padding: 14px 8px;`. El fondo se ensancha, el texto
+se queda alineado.
 
 ### 2.4 Movimiento
 
