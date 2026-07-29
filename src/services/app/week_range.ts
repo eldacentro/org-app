@@ -11,6 +11,13 @@
  * hook dentro de src/hooks entraba en el barril de hooks y rompía el orden de
  * inicialización de los átomos (`appLangState` llegaba a `false` y reventaba
  * useAppTranslation). Además así se puede probar.
+ *
+ * El año SE CALLA cuando la semana entera cae en el año en curso, que es el
+ * caso normal: como titular de la pestaña se iba a dos líneas en un móvil, y
+ * "de 2026" no le dice nada a nadie en 2026. Aparece solo cuando de verdad
+ * hace falta — al mirar el año que viene, o en la semana que cruza de un año a
+ * otro, que siempre lo lleva. `currentYear` se puede pasar para poder probarlo
+ * sin depender de la fecha de hoy.
  */
 
 type Translate = (key: string, params?: Record<string, unknown>) => string;
@@ -18,7 +25,8 @@ type Translate = (key: string, params?: Record<string, unknown>) => string;
 export const buildWeekRangeLabel = (
   weekStr: string,
   monthNames: string[],
-  t: Translate
+  t: Translate,
+  currentYear = new Date().getFullYear()
 ) => {
   if (!weekStr) return '';
 
@@ -37,7 +45,18 @@ export const buildWeekRangeLabel = (
   const sundayMonth = monthNames[sunday.getMonth()];
   const sundayYear = sunday.getFullYear();
 
+  const esDelAnyoEnCurso =
+    mondayYear === currentYear && sundayYear === currentYear;
+
   if (monday.getMonth() === sunday.getMonth()) {
+    if (esDelAnyoEnCurso) {
+      return t('tr_weekRangeSameMonthNoYear', {
+        mondayDay,
+        sundayDay,
+        month: mondayMonth,
+      });
+    }
+
     return t('tr_weekRangeSameMonth', {
       mondayDay,
       sundayDay,
@@ -47,6 +66,15 @@ export const buildWeekRangeLabel = (
   }
 
   if (monday.getFullYear() === sunday.getFullYear()) {
+    if (esDelAnyoEnCurso) {
+      return t('tr_weekRangeSameYearNoYear', {
+        mondayDay,
+        mondayMonth,
+        sundayDay,
+        sundayMonth,
+      });
+    }
+
     return t('tr_weekRangeSameYear', {
       mondayDay,
       mondayMonth,

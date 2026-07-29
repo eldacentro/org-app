@@ -29,7 +29,10 @@ const MESES = [
 const t = (key: string, params?: Record<string, unknown>) =>
   `${key}(${JSON.stringify(params)})`;
 
-const label = (week: string) => buildWeekRangeLabel(week, MESES, t);
+// El año en curso se pasa a mano: si no, estas pruebas dirían una cosa este
+// año y otra el que viene.
+const label = (week: string, anyoEnCurso = 1999) =>
+  buildWeekRangeLabel(week, MESES, t, anyoEnCurso);
 
 describe('la semana va del lunes al domingo', () => {
   it('empieza en el lunes que se le da, no en otro día', () => {
@@ -50,6 +53,30 @@ describe('la semana va del lunes al domingo', () => {
     expect(label('2026/12/28')).toBe(
       'tr_weekRangeDiffYear({"mondayDay":28,"mondayMonth":"diciembre","mondayYear":2026,"sundayDay":3,"sundayMonth":"enero","sundayYear":2027})'
     );
+  });
+});
+
+describe('el año solo se dice cuando hace falta', () => {
+  it('lo calla si la semana entera es del año en curso', () => {
+    expect(label('2026/08/03', 2026)).toBe(
+      'tr_weekRangeSameMonthNoYear({"mondayDay":3,"sundayDay":9,"month":"agosto"})'
+    );
+  });
+
+  it('lo calla también cuando la semana cruza de mes', () => {
+    expect(label('2026/07/27', 2026)).toBe(
+      'tr_weekRangeSameYearNoYear({"mondayDay":27,"mondayMonth":"julio","sundayDay":2,"sundayMonth":"agosto"})'
+    );
+  });
+
+  it('lo dice al mirar otro año', () => {
+    expect(label('2027/08/02', 2026)).toContain('tr_weekRangeSameMonth(');
+    expect(label('2027/08/02', 2026)).toContain('"year":2027');
+  });
+
+  it('la semana que cruza de año lleva siempre los dos años', () => {
+    // Aunque el lunes sea del año en curso: media semana es del siguiente.
+    expect(label('2026/12/28', 2026)).toContain('tr_weekRangeDiffYear(');
   });
 });
 
