@@ -44,12 +44,8 @@ const Procedimientos = ({ estructuraMando, equipos }: Props) => {
       {bloques.map((bloque) => (
         <Box key={bloque.titulo}>
           <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '15px',
-              marginBottom: '10px',
-              color: bloque.color,
-            }}
+            className="body-regular-semibold"
+            sx={{ marginBottom: '8px', color: bloque.color }}
           >
             {bloque.titulo}
           </Typography>
@@ -57,7 +53,7 @@ const Procedimientos = ({ estructuraMando, equipos }: Props) => {
             {bloque.pasos.map((paso, i) => (
               <Box
                 key={i}
-                sx={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}
+                sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}
               >
                 <Box
                   sx={{
@@ -66,7 +62,7 @@ const Procedimientos = ({ estructuraMando, equipos }: Props) => {
                     height: '24px',
                     borderRadius: '50%',
                     backgroundColor: bloque.color,
-                    color: '#fff',
+                    color: 'var(--always-white)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -77,11 +73,9 @@ const Procedimientos = ({ estructuraMando, equipos }: Props) => {
                   {i + 1}
                 </Box>
                 <Typography
-                  sx={{
-                    fontSize: '13px',
-                    color: 'var(--grey-400, #475569)',
-                    paddingTop: '2px',
-                  }}
+                  className="body-small-regular"
+                  color="var(--ink-2)"
+                  sx={{ paddingTop: '2px' }}
                 >
                   {paso}
                 </Typography>

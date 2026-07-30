@@ -51,7 +51,8 @@ const construir = (
 
     const lineas = [equipo.nombre];
     if (miembro?.esResponsable) lineas.push('Responsable del equipo');
-    if (salida) lineas.push(`Atiende ${salida.nombre.toLowerCase()} (${salida.calle})`);
+    if (salida)
+      lineas.push(`Atiende ${salida.nombre.toLowerCase()} (${salida.calle})`);
 
     return {
       etiqueta: `Puesto ${seleccion.posicion}`,
@@ -159,7 +160,10 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
               marginBottom: '4px',
             }}
           >
-            <Typography className="label-small-semibold" color="var(--always-white)">
+            <Typography
+              className="label-small-semibold"
+              color="var(--always-white)"
+            >
               {contenido.etiqueta}
             </Typography>
           </Box>
@@ -194,7 +198,11 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
 
       <Stack spacing="4px">
         {contenido.lineas.map((linea) => (
-          <Typography key={linea} className="body-small-regular" color="var(--ink-2)">
+          <Typography
+            key={linea}
+            className="body-small-regular"
+            color="var(--ink-2)"
+          >
             {linea}
           </Typography>
         ))}

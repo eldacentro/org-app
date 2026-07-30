@@ -90,13 +90,15 @@ const PlanoPantallaCompleta = ({
       );
 
       try {
-        (screen.orientation as ScreenOrientation & { unlock?: () => void })
-          ?.unlock?.();
+        (
+          screen.orientation as ScreenOrientation & { unlock?: () => void }
+        )?.unlock?.();
       } catch {
         // Da igual: si no se pudo bloquear, tampoco hay nada que soltar.
       }
 
-      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+      if (document.fullscreenElement)
+        document.exitFullscreen?.().catch(() => {});
     };
   }, [onClose]);
 
@@ -140,7 +142,14 @@ const PlanoPantallaCompleta = ({
           flexShrink: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '8px', minWidth: 0 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '8px',
+            minWidth: 0,
+          }}
+        >
           <Typography className="h3" color="var(--ink)">
             Plan de evacuación
           </Typography>
@@ -177,7 +186,14 @@ const PlanoPantallaCompleta = ({
       </Box>
 
       {/* El plano ocupa todo lo que queda */}
-      <Box sx={{ flex: 1, minHeight: 0, padding: '0 14px 14px', position: 'relative' }}>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          padding: '0 14px 14px',
+          position: 'relative',
+        }}
+      >
         <Plano2D seleccion={seleccion} onSelect={onSelect} />
 
         {/* El detalle flota sobre el plano, arriba a la derecha: aquí sí, porque

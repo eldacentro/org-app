@@ -19,13 +19,13 @@ const NormasGenerales = ({ normas }: Props) => {
             padding: '10px 12px',
             borderRadius: '10px',
             backgroundColor: COLORES.fondo2D,
-            border: '1px solid var(--accent-200, #E2E8F0)',
+            border: '1px solid var(--line)',
           }}
         >
           <Box aria-hidden sx={{ flexShrink: 0, display: 'flex' }}>
             <IconCheckCircle width={16} height={16} color="var(--green-main)" />
           </Box>
-          <Typography sx={{ fontSize: '14px', color: 'var(--grey-400, #475569)' }}>
+          <Typography className="body-small-regular" color="var(--ink-2)">
             {norma}
           </Typography>
         </Box>

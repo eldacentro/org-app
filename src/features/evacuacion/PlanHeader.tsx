@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { IconE911Emergency, IconClock } from '@components/icons';
-import { COLORES } from './data';
 
 type Props = {
   tiempoMaximo: number;
@@ -29,13 +28,15 @@ const PlanHeader = ({ tiempoMaximo }: Props) => {
               gap: '6px',
               padding: '4px 12px',
               borderRadius: 'var(--radius-max)',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: '#fff',
-              backgroundColor: COLORES.emergencia,
+              color: 'var(--always-white)',
+              backgroundColor: 'var(--red-main)',
             }}
           >
-            <IconE911Emergency width={14} height={14} color="#fff" />
+            <IconE911Emergency
+              width={14}
+              height={14}
+              color="var(--always-white)"
+            />
             Emergencia
           </Box>
           <Box
@@ -45,11 +46,9 @@ const PlanHeader = ({ tiempoMaximo }: Props) => {
               gap: '6px',
               padding: '4px 12px',
               borderRadius: 'var(--radius-max)',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: 'var(--grey-400, #475569)',
-              backgroundColor: 'var(--accent-150, #F1F5F9)',
-              border: '1px solid var(--accent-200, #E2E8F0)',
+              color: 'var(--ink-2)',
+              backgroundColor: 'var(--accent-150)',
+              border: '1px solid var(--line)',
             }}
           >
             <IconClock width={14} height={14} color="var(--grey-400)" />

@@ -130,6 +130,11 @@ function ScrollableTabs({
               },
               alignItems: 'center',
               minHeight,
+              // Aire alrededor de la píldora. Con el subrayado no hacía falta
+              // —se dibujaba en el canto de abajo y no ocupaba alto— pero la
+              // píldora sí ocupa, y sin esto toca el borde del contenedor y se
+              // ve cortada por arriba.
+              padding: '4px 0',
               [`& .${tabsClasses.flexContainer}`]: {
                 gap: '4px',
               },

@@ -50,7 +50,6 @@ import AppButton from '@components/button';
 import { displaySnackNotification } from '@services/states/app';
 import {
   IconSettings,
-  IconGroups,
 } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
@@ -598,8 +597,8 @@ const Limpieza = () => {
                               sx={{
                                 backgroundColor: 'var(--accent-main)',
                                 color: 'var(--always-white)',
-                                borderRadius: 'var(--radius-s)',
-                                px: '8px',
+                                borderRadius: 'var(--shape-full)',
+                                px: '12px',
                                 py: '4px',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -607,7 +606,10 @@ const Limpieza = () => {
                                 flexGrow: 1,
                               }}
                             >
-                              <IconGroups color="var(--always-white)" />
+                              {/* Sin icono: era el MISMO en todas las filas,
+                                  así que no distinguía un grupo de otro — solo
+                                  gastaba sitio y ruido. El nombre del grupo ya
+                                  dice lo que hay que saber. */}
                               <Typography
                                 className="label-small-semibold"
                                 style={{ color: 'var(--always-white)' }}
@@ -708,7 +710,10 @@ const Limpieza = () => {
                                 gap: '6px',
                               }}
                             >
-                              <IconGroups color="var(--always-white)" />
+                              {/* Sin icono: era el MISMO en todas las filas,
+                                  así que no distinguía un grupo de otro — solo
+                                  gastaba sitio y ruido. El nombre del grupo ya
+                                  dice lo que hay que saber. */}
                               <Typography
                                 style={{
                                   color: 'var(--always-white)',

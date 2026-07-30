@@ -1,4 +1,11 @@
-import { memo, PointerEvent, useCallback, useRef, useState, WheelEvent } from 'react';
+import {
+  memo,
+  PointerEvent,
+  useCallback,
+  useRef,
+  useState,
+  WheelEvent,
+} from 'react';
 import { Box } from '@mui/material';
 import Typography from '@components/typography';
 import { IconAdd, IconFullscreen } from '@components/icons';
@@ -67,9 +74,7 @@ const Pictograma = ({
       >
         <circle cx="-0.3" cy="-2.7" r="0.95" />
         {/* Tronco y brazo hacia el aro, y la rueda: la silueta de siempre. */}
-        <path
-          d="M-0.9,-1.5 L0.1,-1.5 L0.1,0.9 L2,0.9 L2,1.9 L-0.9,1.9 Z"
-          />
+        <path d="M-0.9,-1.5 L0.1,-1.5 L0.1,0.9 L2,0.9 L2,1.9 L-0.9,1.9 Z" />
         <circle
           cx="0.35"
           cy="2.1"
@@ -84,11 +89,7 @@ const Pictograma = ({
   }
 
   return (
-    <g
-      transform={`translate(${x}, ${y}) scale(0.58)`}
-      fill={SUAVE}
-      aria-hidden
-    >
+    <g transform={`translate(${x}, ${y}) scale(0.58)`} fill={SUAVE} aria-hidden>
       <circle cx="0" cy="-2.6" r="1.05" />
       {tipo === 'mujeres' ? (
         <>
@@ -143,8 +144,28 @@ const PlanoBase = memo(function PlanoBase() {
       <Pictograma tipo="adaptado" x={18.5} y={9} />
       <Pictograma tipo="hombres" x={40} y={9} />
 
-      <text x="62.5" y="17" textAnchor="middle" fontSize="3.6" fontWeight="700" fill="#94A3B8" transform="rotate(90 62.5,17)">SALA B</text>
-      <text x="168" y="18" textAnchor="middle" fontSize="4" fontWeight="700" fill="#94A3B8" transform="rotate(90 168,18)">PLATAFORMA</text>
+      <text
+        x="62.5"
+        y="17"
+        textAnchor="middle"
+        fontSize="3.6"
+        fontWeight="700"
+        fill="#94A3B8"
+        transform="rotate(90 62.5,17)"
+      >
+        SALA B
+      </text>
+      <text
+        x="168"
+        y="18"
+        textAnchor="middle"
+        fontSize="4"
+        fontWeight="700"
+        fill="#94A3B8"
+        transform="rotate(90 168,18)"
+      >
+        PLATAFORMA
+      </text>
     </>
   );
 });
@@ -160,37 +181,45 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
   // cuesta nada — es el mismo dibujo, recortado.
   const [vista, setVista] = useState(VISTA_COMPLETA);
   const svgRef = useRef<SVGSVGElement>(null);
-  const arrastre = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const arrastre = useRef<{
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+  } | null>(null);
   const movido = useRef(false);
 
   const zoomActual = VISTA_COMPLETA.w / vista.w;
 
   /** Amplía o reduce manteniendo fijo un punto (el del dedo o el centro). */
-  const zoom = useCallback((factor: number, foco?: { x: number; y: number }) => {
-    setVista((actual) => {
-      const nuevoAncho = Math.min(
-        VISTA_COMPLETA.w,
-        Math.max(VISTA_COMPLETA.w / ZOOM_MAX, actual.w / factor)
-      );
-      const escala = nuevoAncho / actual.w;
-      const nuevoAlto = actual.h * escala;
+  const zoom = useCallback(
+    (factor: number, foco?: { x: number; y: number }) => {
+      setVista((actual) => {
+        const nuevoAncho = Math.min(
+          VISTA_COMPLETA.w,
+          Math.max(VISTA_COMPLETA.w / ZOOM_MAX, actual.w / factor)
+        );
+        const escala = nuevoAncho / actual.w;
+        const nuevoAlto = actual.h * escala;
 
-      const fx = foco?.x ?? actual.x + actual.w / 2;
-      const fy = foco?.y ?? actual.y + actual.h / 2;
+        const fx = foco?.x ?? actual.x + actual.w / 2;
+        const fy = foco?.y ?? actual.y + actual.h / 2;
 
-      // Sin dejar que el plano se escape de la vista.
-      const x = Math.min(
-        Math.max(fx - (fx - actual.x) * escala, VISTA_COMPLETA.x),
-        VISTA_COMPLETA.x + VISTA_COMPLETA.w - nuevoAncho
-      );
-      const y = Math.min(
-        Math.max(fy - (fy - actual.y) * escala, VISTA_COMPLETA.y),
-        VISTA_COMPLETA.y + VISTA_COMPLETA.h - nuevoAlto
-      );
+        // Sin dejar que el plano se escape de la vista.
+        const x = Math.min(
+          Math.max(fx - (fx - actual.x) * escala, VISTA_COMPLETA.x),
+          VISTA_COMPLETA.x + VISTA_COMPLETA.w - nuevoAncho
+        );
+        const y = Math.min(
+          Math.max(fy - (fy - actual.y) * escala, VISTA_COMPLETA.y),
+          VISTA_COMPLETA.y + VISTA_COMPLETA.h - nuevoAlto
+        );
 
-      return { x, y, w: nuevoAncho, h: nuevoAlto };
-    });
-  }, []);
+        return { x, y, w: nuevoAncho, h: nuevoAlto };
+      });
+    },
+    []
+  );
 
   /** Coordenadas del plano bajo un punto de la pantalla. */
   const aPlano = (clientX: number, clientY: number) => {
@@ -211,7 +240,12 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
 
   const onPointerDown = (event: PointerEvent) => {
     movido.current = false;
-    arrastre.current = { x: event.clientX, y: event.clientY, vx: vista.x, vy: vista.y };
+    arrastre.current = {
+      x: event.clientX,
+      y: event.clientY,
+      vx: vista.x,
+      vy: vista.y,
+    };
   };
 
   const onPointerMove = (event: PointerEvent) => {
@@ -224,7 +258,10 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
 
     // Un temblor de dos píxeles no es arrastrar: si no, tocar un extintor
     // con el dedo se comería la selección.
-    if (Math.abs(event.clientX - inicio.x) > 3 || Math.abs(event.clientY - inicio.y) > 3) {
+    if (
+      Math.abs(event.clientX - inicio.x) > 3 ||
+      Math.abs(event.clientY - inicio.y) > 3
+    ) {
       movido.current = true;
     }
     if (!movido.current) return;
@@ -278,206 +315,208 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
           border: '1px solid var(--line)',
         }}
       >
-      <style>
-        {`
+        <style>
+          {`
           /* El navegador pinta un aro azul enorme alrededor de un <g> con
              tabIndex en cuanto se pulsa. Se quita el de ratón y se conserva
              uno discreto para quien navega con el teclado. */
           .evac-hit:focus { outline: none; }
           .evac-hit:focus-visible { outline: 2px solid var(--accent-main); outline-offset: 2px; }
         `}
-      </style>
+        </style>
 
-      <svg
-        ref={svgRef}
-        viewBox={`${vista.x} ${vista.y} ${vista.w} ${vista.h}`}
-        preserveAspectRatio="xMidYMid meet"
-        onWheel={onWheel}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={soltar}
-        onPointerLeave={soltar}
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'block',
-          touchAction: 'none',
-          cursor: zoomActual > 1 ? 'grab' : 'default',
-        }}
-      >
-        <PlanoBase />
+        <svg
+          ref={svgRef}
+          viewBox={`${vista.x} ${vista.y} ${vista.w} ${vista.h}`}
+          preserveAspectRatio="xMidYMid meet"
+          onWheel={onWheel}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={soltar}
+          onPointerLeave={soltar}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            touchAction: 'none',
+            cursor: zoomActual > 1 ? 'grab' : 'default',
+          }}
+        >
+          <PlanoBase />
 
-        {/* Bloques de asientos: se tocan enteros, no asiento a asiento */}
-        {BLOQUES_ASIENTOS.map((bloque) => {
-          const sel: Seleccion = { tipo: 'bloque', bloqueId: bloque.id };
-          const activo =
-            seleccion?.tipo === 'bloque' && seleccion.bloqueId === bloque.id;
+          {/* Bloques de asientos: se tocan enteros, no asiento a asiento */}
+          {BLOQUES_ASIENTOS.map((bloque) => {
+            const sel: Seleccion = { tipo: 'bloque', bloqueId: bloque.id };
+            const activo =
+              seleccion?.tipo === 'bloque' && seleccion.bloqueId === bloque.id;
 
-          return (
-            <g
-              key={bloque.id}
-              className="evac-hit"
-              role="button"
-              tabIndex={0}
-              aria-label={`${bloque.nombre}, ${bloque.asientos.length} asientos`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => activar(sel)}
-              onKeyDown={teclado(sel)}
-            >
-              {bloque.asientos.map(([x, y], idx) => (
+            return (
+              <g
+                key={bloque.id}
+                className="evac-hit"
+                role="button"
+                tabIndex={0}
+                aria-label={`${bloque.nombre}, ${bloque.asientos.length} asientos`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => activar(sel)}
+                onKeyDown={teclado(sel)}
+              >
+                {bloque.asientos.map(([x, y], idx) => (
+                  <rect
+                    key={idx}
+                    x={x - 1.25}
+                    y={y - 1.05}
+                    width="2.5"
+                    height="2.1"
+                    rx="0.55"
+                    fill={activo ? bloque.color : '#E7EDF6'}
+                    fillOpacity={activo ? 0.55 : 1}
+                    stroke={activo ? bloque.color : '#C3CFE0'}
+                    strokeWidth="0.28"
+                  />
+                ))}
+              </g>
+            );
+          })}
+
+          {/* Salidas */}
+          {SALIDAS.map((salida) => {
+            const sel: Seleccion = { tipo: 'salida', salidaId: salida.id };
+            const activa =
+              seleccion?.tipo === 'salida' && seleccion.salidaId === salida.id;
+            const color = salida.esEmergencia ? COLORES.ruta : COLORES.zonaA;
+            const fuera = salida.x === 0 ? -1 : 1;
+
+            return (
+              <g
+                key={salida.id}
+                className="evac-hit"
+                role="button"
+                tabIndex={0}
+                aria-label={`${salida.nombre}, ${salida.calle}`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => activar(sel)}
+                onKeyDown={teclado(sel)}
+              >
+                {/* Zona tocable generosa: en un móvil, un dedo no acierta una línea */}
                 <rect
-                  key={idx}
-                  x={x - 1.25}
-                  y={y - 1.05}
-                  width="2.5"
-                  height="2.1"
-                  rx="0.55"
-                  fill={activo ? bloque.color : '#E7EDF6'}
-                  fillOpacity={activo ? 0.55 : 1}
-                  stroke={activo ? bloque.color : '#C3CFE0'}
-                  strokeWidth="0.28"
+                  x={salida.x + (fuera < 0 ? -6 : -1)}
+                  y={salida.y - 6}
+                  width="7"
+                  height="12"
+                  fill="transparent"
                 />
-              ))}
-            </g>
-          );
-        })}
+                <line
+                  x1={salida.x}
+                  y1={salida.y - 4}
+                  x2={salida.x}
+                  y2={salida.y + 4}
+                  stroke={color}
+                  strokeWidth={activa ? 2.4 : 1.6}
+                  strokeLinecap="round"
+                />
+                <path
+                  d={`M ${salida.x + fuera * 1.5} ${salida.y} L ${salida.x + fuera * 4.5} ${salida.y}`}
+                  stroke={color}
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                />
+                <path
+                  d={`M ${salida.x + fuera * 5.6} ${salida.y} l ${-fuera * 1.8} -1.4 l 0 2.8 Z`}
+                  fill={color}
+                />
+              </g>
+            );
+          })}
 
-        {/* Salidas */}
-        {SALIDAS.map((salida) => {
-          const sel: Seleccion = { tipo: 'salida', salidaId: salida.id };
-          const activa =
-            seleccion?.tipo === 'salida' && seleccion.salidaId === salida.id;
-          const color = salida.esEmergencia ? COLORES.ruta : COLORES.zonaA;
-          const fuera = salida.x === 0 ? -1 : 1;
+          {/* Puestos de los equipos de evacuación */}
+          {PUESTOS.map((puesto) => {
+            const sel: Seleccion = {
+              tipo: 'puesto',
+              equipoId: puesto.equipoId,
+              posicion: puesto.posicion,
+            };
+            const activo =
+              seleccion?.tipo === 'puesto' &&
+              seleccion.posicion === puesto.posicion;
+            const color =
+              puesto.equipoId === 'evacuacion-a'
+                ? COLORES.zonaA
+                : COLORES.zonaB;
 
-          return (
-            <g
-              key={salida.id}
-              className="evac-hit"
-              role="button"
-              tabIndex={0}
-              aria-label={`${salida.nombre}, ${salida.calle}`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => activar(sel)}
-              onKeyDown={teclado(sel)}
-            >
-              {/* Zona tocable generosa: en un móvil, un dedo no acierta una línea */}
-              <rect
-                x={salida.x + (fuera < 0 ? -6 : -1)}
-                y={salida.y - 6}
-                width="7"
-                height="12"
-                fill="transparent"
-              />
-              <line
-                x1={salida.x}
-                y1={salida.y - 4}
-                x2={salida.x}
-                y2={salida.y + 4}
-                stroke={color}
-                strokeWidth={activa ? 2.4 : 1.6}
-                strokeLinecap="round"
-              />
-              <path
-                d={`M ${salida.x + fuera * 1.5} ${salida.y} L ${salida.x + fuera * 4.5} ${salida.y}`}
-                stroke={color}
-                strokeWidth="1"
-                strokeLinecap="round"
-              />
-              <path
-                d={`M ${salida.x + fuera * 5.6} ${salida.y} l ${-fuera * 1.8} -1.4 l 0 2.8 Z`}
-                fill={color}
-              />
-            </g>
-          );
-        })}
-
-        {/* Puestos de los equipos de evacuación */}
-        {PUESTOS.map((puesto) => {
-          const sel: Seleccion = {
-            tipo: 'puesto',
-            equipoId: puesto.equipoId,
-            posicion: puesto.posicion,
-          };
-          const activo =
-            seleccion?.tipo === 'puesto' &&
-            seleccion.posicion === puesto.posicion;
-          const color =
-            puesto.equipoId === 'evacuacion-a' ? COLORES.zonaA : COLORES.zonaB;
-
-          return (
-            <g
-              key={puesto.posicion}
-              className="evac-hit"
-              role="button"
-              tabIndex={0}
-              aria-label={`Puesto ${puesto.posicion}`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => activar(sel)}
-              onKeyDown={teclado(sel)}
-            >
-              <circle
-                cx={puesto.x}
-                cy={puesto.y}
-                r={activo ? 4.2 : 3.4}
-                fill={color}
-                stroke="#FFFFFF"
-                strokeWidth="0.7"
-              />
-              <text
-                x={puesto.x}
-                y={puesto.y + 1.1}
-                textAnchor="middle"
-                fontSize="3"
-                fontWeight="800"
-                fill="#FFFFFF"
+            return (
+              <g
+                key={puesto.posicion}
+                className="evac-hit"
+                role="button"
+                tabIndex={0}
+                aria-label={`Puesto ${puesto.posicion}`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => activar(sel)}
+                onKeyDown={teclado(sel)}
               >
-                {puesto.posicion}
-              </text>
-            </g>
-          );
-        })}
+                <circle
+                  cx={puesto.x}
+                  cy={puesto.y}
+                  r={activo ? 4.2 : 3.4}
+                  fill={color}
+                  stroke="#FFFFFF"
+                  strokeWidth="0.7"
+                />
+                <text
+                  x={puesto.x}
+                  y={puesto.y + 1.1}
+                  textAnchor="middle"
+                  fontSize="3"
+                  fontWeight="800"
+                  fill="#FFFFFF"
+                >
+                  {puesto.posicion}
+                </text>
+              </g>
+            );
+          })}
 
-        {/* Extintores */}
-        {EXTINTORES_GEO.map((ext) => {
-          const sel: Seleccion = { tipo: 'extintor', id: ext.id };
-          const activo =
-            seleccion?.tipo === 'extintor' && seleccion.id === ext.id;
+          {/* Extintores */}
+          {EXTINTORES_GEO.map((ext) => {
+            const sel: Seleccion = { tipo: 'extintor', id: ext.id };
+            const activo =
+              seleccion?.tipo === 'extintor' && seleccion.id === ext.id;
 
-          return (
-            <g
-              key={ext.id}
-              className="evac-hit"
-              role="button"
-              tabIndex={0}
-              aria-label={`Extintor ${ext.id}`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => activar(sel)}
-              onKeyDown={teclado(sel)}
-            >
-              <circle cx={ext.x} cy={ext.y} r="4" fill="transparent" />
-              <circle
-                cx={ext.x}
-                cy={ext.y}
-                r={activo ? 2.6 : 2}
-                fill={COLORES.extintor}
-                stroke="#FFFFFF"
-                strokeWidth="0.5"
-              />
-              <text
-                x={ext.x}
-                y={ext.y + 0.8}
-                textAnchor="middle"
-                fontSize="2.2"
-                fontWeight="800"
-                fill="#FFFFFF"
+            return (
+              <g
+                key={ext.id}
+                className="evac-hit"
+                role="button"
+                tabIndex={0}
+                aria-label={`Extintor ${ext.id}`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => activar(sel)}
+                onKeyDown={teclado(sel)}
               >
-                {ext.id}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+                <circle cx={ext.x} cy={ext.y} r="4" fill="transparent" />
+                <circle
+                  cx={ext.x}
+                  cy={ext.y}
+                  r={activo ? 2.6 : 2}
+                  fill={COLORES.extintor}
+                  stroke="#FFFFFF"
+                  strokeWidth="0.5"
+                />
+                <text
+                  x={ext.x}
+                  y={ext.y + 0.8}
+                  textAnchor="middle"
+                  fontSize="2.2"
+                  fontWeight="800"
+                  fill="#FFFFFF"
+                >
+                  {ext.id}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </Box>
 
       {/* Controles de zoom. En un móvil el salón entero cabe en 300 px de
@@ -507,7 +546,10 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
             justifyContent: 'center',
             color: 'var(--ink-2)',
             transition: 'background-color 0.15s, color 0.15s',
-            '&:hover': { backgroundColor: 'var(--accent-150)', color: 'var(--ink)' },
+            '&:hover': {
+              backgroundColor: 'var(--accent-150)',
+              color: 'var(--ink)',
+            },
             '&:disabled': { opacity: 0.35, cursor: 'default' },
           },
         }}
@@ -519,7 +561,14 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
           disabled={zoomActual <= 1.01}
           onClick={() => zoom(1 / 1.5)}
         >
-          <Box sx={{ width: 13, height: 1.5, borderRadius: 1, backgroundColor: 'currentColor' }} />
+          <Box
+            sx={{
+              width: 13,
+              height: 1.5,
+              borderRadius: 1,
+              backgroundColor: 'currentColor',
+            }}
+          />
         </Box>
 
         <Box

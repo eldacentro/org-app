@@ -6,7 +6,8 @@ type Props = {
 };
 
 const areaPorEquipo: Record<string, string> = {
-  sanitario: 'Atención a heridos y personas con movilidad reducida en todo el salón.',
+  sanitario:
+    'Atención a heridos y personas con movilidad reducida en todo el salón.',
   'evacuacion-a': 'Sala B + aseos + auditorio principal desde la última fila.',
   'evacuacion-b':
     'Auditorio a la izquierda de la plataforma (de delante hacia atrás) + plataforma hasta la 3ª fila.',
@@ -19,10 +20,10 @@ const EquiposCard = ({ equipos }: Props) => {
         <Box
           key={equipo.id}
           sx={{
-            border: '1px solid var(--accent-200, #E2E8F0)',
+            border: '1px solid var(--line)',
             borderRadius: 'var(--radius-xl)',
             overflow: 'hidden',
-            backgroundColor: 'var(--white, #fff)',
+            backgroundColor: 'var(--card)',
           }}
         >
           <Box
@@ -43,7 +44,7 @@ const EquiposCard = ({ equipos }: Props) => {
               <Box
                 className="label-small-semibold"
                 sx={{
-                  color: '#fff',
+                  color: 'var(--always-white)',
                   backgroundColor: equipo.color,
                   borderRadius: 'var(--radius-max)',
                   padding: '2px 10px',
@@ -72,18 +73,20 @@ const EquiposCard = ({ equipos }: Props) => {
                         justifyContent: 'center',
                         borderRadius: 'var(--radius-m)',
                         backgroundColor: equipo.color,
-                        color: '#fff',
+                        color: 'var(--always-white)',
                         padding: '0 6px',
                       }}
                     >
                       {m.posicion}
                     </Box>
                   )}
-                  <Typography className="body-small-regular">{m.nombre}</Typography>
+                  <Typography className="body-small-regular">
+                    {m.nombre}
+                  </Typography>
                   {i === 0 && equipo.miembros.length > 1 && m.posicion && (
                     <Typography
                       className="label-small-regular"
-                      sx={{ color: 'var(--grey-350, #64748B)' }}
+                      sx={{ color: 'var(--ink-3)' }}
                     >
                       · Responsable
                     </Typography>
@@ -97,7 +100,7 @@ const EquiposCard = ({ equipos }: Props) => {
                 className="body-small-regular"
                 sx={{
                   marginTop: '10px',
-                  color: 'var(--grey-400, #475569)',
+                  color: 'var(--ink-2)',
                   fontStyle: 'italic',
                 }}
               >

@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { RolEmergencia } from '@definition/evacuacion';
-import { COLORES } from './data';
+import accentSurface from '@components/accent_surface';
 
 type Props = {
   estructuraMando: RolEmergencia[];
@@ -13,37 +13,41 @@ const EstructuraMando = ({ estructuraMando }: Props) => {
         <Box
           key={rol.rol}
           sx={{
-            border: '1px solid var(--accent-200, #E2E8F0)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '14px 16px',
-            backgroundColor: 'var(--white, #fff)',
-            borderLeft: `4px solid ${COLORES.emergencia}`,
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--shape-md)',
+            padding: '16px',
+            backgroundColor: 'var(--card)',
+            // La cápsula, no la uñita: el borde de 4px iba pegado al canto y la
+            // esquina redondeada lo cortaba. Ver DESIGN_SYSTEM §6.3.
+            ...accentSurface('var(--red-main)', { tint: false }),
           }}
         >
-          <Typography
-            sx={{ fontWeight: 700, fontSize: '15px', lineHeight: 1.3 }}
-          >
+          <Typography className="body-regular-semibold" color="var(--ink)">
             {rol.nombre}
           </Typography>
           <Typography
-            sx={{
-              fontSize: '13px',
-              color: COLORES.emergencia,
-              fontWeight: 600,
-              marginBottom: '8px',
-            }}
+            className="body-small-semibold"
+            color="var(--red-main)"
+            sx={{ marginBottom: '8px' }}
           >
             {rol.rol}
           </Typography>
           <Box
             component="ul"
-            sx={{ margin: 0, paddingInlineStart: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}
+            sx={{
+              margin: 0,
+              paddingInlineStart: '18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
           >
             {rol.responsabilidades.map((r, i) => (
               <Typography
                 key={i}
                 component="li"
-                sx={{ fontSize: '13px', color: 'var(--grey-400, #475569)' }}
+                className="body-small-regular"
+                color="var(--ink-2)"
               >
                 {r}
               </Typography>

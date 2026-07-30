@@ -102,6 +102,8 @@ const Tabs = ({
             }}
             sx={{
               minHeight: 'unset',
+              // Ver el comentario del mismo ajuste en `scrollable_tabs`.
+              padding: '4px 0',
               '& .MuiTabs-flexContainer': { gap: '4px' },
               '& button': { minHeight: '40px', textTransform: 'none' },
               '& button.Mui-selected': {

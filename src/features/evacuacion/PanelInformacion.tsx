@@ -17,9 +17,9 @@ const PanelInformacion = ({ plan }: Props) => {
   return (
     <Box
       sx={{
-        border: '1px solid var(--accent-200)',
+        border: '1px solid var(--line)',
         borderRadius: 'var(--radius-xxl)',
-        backgroundColor: 'var(--white)',
+        backgroundColor: 'var(--card)',
         overflow: 'hidden',
         height: '100%',
         display: 'flex',
