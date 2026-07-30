@@ -98,7 +98,6 @@ import MonthSelector from '@components/month_selector';
 // Nombres de meses en español
 const MONTH_NAMES = [...MESES_ES];
 
-
 /**
  * "Semana del 29 de junio al 5 de julio" a partir de un `weekOf` (2026/06/29).
  *
@@ -1609,10 +1608,14 @@ const PredicacionSalidas = () => {
                   {isServiceCommittee && (
                     <AppButton
                       variant={
-                        isCurrentlyOverridden || monthCancelled ? 'main' : 'tertiary'
+                        isCurrentlyOverridden || monthCancelled
+                          ? 'main'
+                          : 'tertiary'
                       }
                       color={
-                        isCurrentlyOverridden || monthCancelled ? 'orange' : undefined
+                        isCurrentlyOverridden || monthCancelled
+                          ? 'orange'
+                          : undefined
                       }
                       disableAutoStretch
                       onClick={handleOpenMonthlySettings}
@@ -1705,10 +1708,10 @@ const PredicacionSalidas = () => {
                             return (
                               weekRecord?.isCircuitOverseerWeek && (
                                 <Badge
-                      size="small"
-                      color="accent"
-                      text="Semana del superintendente"
-                    />
+                                  size="small"
+                                  color="accent"
+                                  text="Semana del superintendente"
+                                />
                               )
                             );
                           })()}
@@ -1819,8 +1822,14 @@ const PredicacionSalidas = () => {
                                   return (
                                     <Box
                                       key={slot.slotId}
-                                      component={isServiceCommittee ? 'button' : 'div'}
-                                      type={isServiceCommittee ? 'button' : undefined}
+                                      component={
+                                        isServiceCommittee ? 'button' : 'div'
+                                      }
+                                      type={
+                                        isServiceCommittee
+                                          ? 'button'
+                                          : undefined
+                                      }
                                       onClick={() => handleOpenEdit(slot)}
                                       sx={{
                                         ...(isServiceCommittee && {
@@ -1831,7 +1840,8 @@ const PredicacionSalidas = () => {
                                           border: 'none',
                                           width: '100%',
                                           '&:focus-visible': {
-                                            outline: '2px solid var(--accent-main)',
+                                            outline:
+                                              '2px solid var(--accent-main)',
                                             outlineOffset: '-2px',
                                           },
                                         }),
@@ -1897,63 +1907,106 @@ const PredicacionSalidas = () => {
                                       />
 
                                       {/* Hermano asignado */}
-                                      <Box sx={{ flex: 1 }}>
-                                        {isCancelled ? (
-                                          <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendida"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
-                                        ) : (
-                                          <Typography
-                                            style={{
-                                              fontWeight: '600',
-                                              fontSize: '16px',
-                                              color: brotherName
-                                                ? 'var(--black)'
-                                                : 'var(--error-main)',
-                                            }}
-                                          >
-                                            {brotherName || 'Sin asignar'}
-                                          </Typography>
-                                        )}
-                                      </Box>
-
-                                      {/* Lugar */}
+                                      {/* El nombre y el sitio. Debajo de 600
+                                          se apilan: en dos columnas la
+                                          dirección entera —que va en una sola
+                                          línea— se quedaba con el ancho y el
+                                          nombre, que parte de cero, se partía
+                                          palabra a palabra. De 600 para arriba
+                                          siguen en columnas, con el sitio
+                                          topado al 45%. Misma fila y mismo
+                                          arreglo que en Exhibidores. */}
                                       <Box
                                         sx={{
-                                          textAlign: 'right',
-                                          // `minWidth: 120px` FIJO: en un móvil
-                                          // de 375 las tres columnas no caben y
-                                          // esta, al no poder encoger, se salía
-                                          // 1px del relleno de la fila. Con un
-                                          // mínimo pequeño y `flexShrink` la
-                                          // columna cede, y si el nombre del
-                                          // sitio es largo se corta con puntos
-                                          // en vez de empujar.
+                                          flex: 1,
                                           minWidth: 0,
-                                          flexShrink: 1,
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          whiteSpace: 'nowrap',
+                                          display: 'flex',
+                                          flexDirection: {
+                                            mobile: 'column',
+                                            tablet600: 'row',
+                                          },
+                                          alignItems: {
+                                            mobile: 'flex-start',
+                                            tablet600: 'center',
+                                          },
+                                          gap: {
+                                            mobile: '2px',
+                                            tablet600: '16px',
+                                          },
                                         }}
                                       >
-                                        <Typography
-                                          style={{
-                                            fontSize: '13px',
-                                            color: isCancelled
-                                              ? 'var(--grey-400)'
-                                              : 'var(--grey-600)',
+                                        <Box
+                                          sx={{
+                                            minWidth: 0,
+                                            width: {
+                                              mobile: '100%',
+                                              tablet600: 'auto',
+                                            },
+                                            flex: {
+                                              mobile: '0 0 auto',
+                                              tablet600: 1,
+                                            },
                                           }}
                                         >
-                                          {isCancelled
-                                            ? '—'
-                                            : outing?.location ||
-                                              settings?.locations?.[0] ||
-                                              'Salón del Reino'}
-                                        </Typography>
+                                          {isCancelled ? (
+                                            <Badge
+                                              size="small"
+                                              color="red"
+                                              text="Suspendida"
+                                              icon={
+                                                <IconCancelFilled color="var(--red-main)" />
+                                              }
+                                              sx={{ alignSelf: 'flex-start' }}
+                                            />
+                                          ) : (
+                                            <Typography
+                                              style={{
+                                                fontWeight: '600',
+                                                fontSize: '16px',
+                                                color: brotherName
+                                                  ? 'var(--black)'
+                                                  : 'var(--error-main)',
+                                              }}
+                                            >
+                                              {brotherName || 'Sin asignar'}
+                                            </Typography>
+                                          )}
+                                        </Box>
+
+                                        <Box
+                                          sx={{
+                                            minWidth: 0,
+                                            maxWidth: {
+                                              mobile: '100%',
+                                              tablet600: '45%',
+                                            },
+                                            textAlign: {
+                                              mobile: 'left',
+                                              tablet600: 'right',
+                                            },
+                                            whiteSpace: {
+                                              mobile: 'normal',
+                                              tablet600: 'nowrap',
+                                            },
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                          }}
+                                        >
+                                          <Typography
+                                            style={{
+                                              fontSize: '13px',
+                                              color: isCancelled
+                                                ? 'var(--grey-400)'
+                                                : 'var(--grey-600)',
+                                            }}
+                                          >
+                                            {isCancelled
+                                              ? '—'
+                                              : outing?.location ||
+                                                settings?.locations?.[0] ||
+                                                'Salón del Reino'}
+                                          </Typography>
+                                        </Box>
                                       </Box>
                                     </Box>
                                   );
@@ -2576,8 +2629,14 @@ const PredicacionSalidas = () => {
                                   return (
                                     <Box
                                       key={slot.slotId}
-                                      component={isServiceCommittee ? 'button' : 'div'}
-                                      type={isServiceCommittee ? 'button' : undefined}
+                                      component={
+                                        isServiceCommittee ? 'button' : 'div'
+                                      }
+                                      type={
+                                        isServiceCommittee
+                                          ? 'button'
+                                          : undefined
+                                      }
                                       onClick={() => handleOpenEdit(slot)}
                                       sx={{
                                         ...(isServiceCommittee && {
@@ -2588,7 +2647,8 @@ const PredicacionSalidas = () => {
                                           border: 'none',
                                           width: '100%',
                                           '&:focus-visible': {
-                                            outline: '2px solid var(--accent-main)',
+                                            outline:
+                                              '2px solid var(--accent-main)',
                                             outlineOffset: '-2px',
                                           },
                                         }),
@@ -2652,62 +2712,106 @@ const PredicacionSalidas = () => {
                                         }}
                                       />
 
-                                      <Box sx={{ flex: 1 }}>
-                                        {isCancelled ? (
-                                          <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendida"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
-                                        ) : (
-                                          <Typography
-                                            style={{
-                                              fontWeight: '600',
-                                              fontSize: '16px',
-                                              color: brotherName
-                                                ? 'var(--black)'
-                                                : 'var(--error-main)',
-                                            }}
-                                          >
-                                            {brotherName || 'Sin asignar'}
-                                          </Typography>
-                                        )}
-                                      </Box>
-
+                                      {/* El nombre y el sitio. Debajo de 600
+                                          se apilan: en dos columnas la
+                                          dirección entera —que va en una sola
+                                          línea— se quedaba con el ancho y el
+                                          nombre, que parte de cero, se partía
+                                          palabra a palabra. De 600 para arriba
+                                          siguen en columnas, con el sitio
+                                          topado al 45%. Misma fila y mismo
+                                          arreglo que en Exhibidores. */}
                                       <Box
                                         sx={{
-                                          textAlign: 'right',
-                                          // `minWidth: 120px` FIJO: en un móvil
-                                          // de 375 las tres columnas no caben y
-                                          // esta, al no poder encoger, se salía
-                                          // 1px del relleno de la fila. Con un
-                                          // mínimo pequeño y `flexShrink` la
-                                          // columna cede, y si el nombre del
-                                          // sitio es largo se corta con puntos
-                                          // en vez de empujar.
+                                          flex: 1,
                                           minWidth: 0,
-                                          flexShrink: 1,
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          whiteSpace: 'nowrap',
+                                          display: 'flex',
+                                          flexDirection: {
+                                            mobile: 'column',
+                                            tablet600: 'row',
+                                          },
+                                          alignItems: {
+                                            mobile: 'flex-start',
+                                            tablet600: 'center',
+                                          },
+                                          gap: {
+                                            mobile: '2px',
+                                            tablet600: '16px',
+                                          },
                                         }}
                                       >
-                                        <Typography
-                                          style={{
-                                            fontSize: '13px',
-                                            color: isCancelled
-                                              ? 'var(--grey-400)'
-                                              : 'var(--grey-600)',
+                                        <Box
+                                          sx={{
+                                            minWidth: 0,
+                                            width: {
+                                              mobile: '100%',
+                                              tablet600: 'auto',
+                                            },
+                                            flex: {
+                                              mobile: '0 0 auto',
+                                              tablet600: 1,
+                                            },
                                           }}
                                         >
-                                          {isCancelled
-                                            ? '—'
-                                            : outing?.location ||
-                                              settings?.locations?.[0] ||
-                                              'Salón del Reino'}
-                                        </Typography>
+                                          {isCancelled ? (
+                                            <Badge
+                                              size="small"
+                                              color="red"
+                                              text="Suspendida"
+                                              icon={
+                                                <IconCancelFilled color="var(--red-main)" />
+                                              }
+                                              sx={{ alignSelf: 'flex-start' }}
+                                            />
+                                          ) : (
+                                            <Typography
+                                              style={{
+                                                fontWeight: '600',
+                                                fontSize: '16px',
+                                                color: brotherName
+                                                  ? 'var(--black)'
+                                                  : 'var(--error-main)',
+                                              }}
+                                            >
+                                              {brotherName || 'Sin asignar'}
+                                            </Typography>
+                                          )}
+                                        </Box>
+
+                                        <Box
+                                          sx={{
+                                            minWidth: 0,
+                                            maxWidth: {
+                                              mobile: '100%',
+                                              tablet600: '45%',
+                                            },
+                                            textAlign: {
+                                              mobile: 'left',
+                                              tablet600: 'right',
+                                            },
+                                            whiteSpace: {
+                                              mobile: 'normal',
+                                              tablet600: 'nowrap',
+                                            },
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                          }}
+                                        >
+                                          <Typography
+                                            style={{
+                                              fontSize: '13px',
+                                              color: isCancelled
+                                                ? 'var(--grey-400)'
+                                                : 'var(--grey-600)',
+                                            }}
+                                          >
+                                            {isCancelled
+                                              ? '—'
+                                              : outing?.location ||
+                                                settings?.locations?.[0] ||
+                                                'Salón del Reino'}
+                                          </Typography>
+                                        </Box>
                                       </Box>
                                     </Box>
                                   );
@@ -2750,7 +2854,11 @@ const PredicacionSalidas = () => {
                   gap: '12px',
                 }}
               >
-                <IconSettings width={22} height={22} color="var(--accent-dark)" />
+                <IconSettings
+                  width={22}
+                  height={22}
+                  color="var(--accent-dark)"
+                />
                 <Typography
                   className="h3"
                   style={{ color: 'var(--accent-dark)', margin: 0 }}
@@ -4597,13 +4705,13 @@ const PredicacionSalidas = () => {
                         });
                       }}
                       // `flex: 'none'` no es adorno: el TimePicker compartido trae
-                          // `flex: 1` de serie, que en un contenedor flexible
-                          // gana al `width` — asi que el campo crecia hasta
-                          // llenar el hueco y su borde izquierdo caia donde
-                          // acabase la etiqueta. Con etiquetas de largo distinto
-                          // ("Lunes Manana" vs "Miercoles Manana") la columna de
-                          // campos bajaba en zigzag.
-                          sx={{ flex: 'none', width: '130px' }}
+                      // `flex: 1` de serie, que en un contenedor flexible
+                      // gana al `width` — asi que el campo crecia hasta
+                      // llenar el hueco y su borde izquierdo caia donde
+                      // acabase la etiqueta. Con etiquetas de largo distinto
+                      // ("Lunes Manana" vs "Miercoles Manana") la columna de
+                      // campos bajaba en zigzag.
+                      sx={{ flex: 'none', width: '130px' }}
                     />
                   </Box>
                 );

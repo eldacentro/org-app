@@ -1438,6 +1438,13 @@ const Exhibitors = () => {
                     // una columna estrecha a la derecha del título.
                     flexWrap: 'nowrap',
                     flexShrink: 0,
+                    // En móvil el título ya baja a su propia línea, así que
+                    // este grupo se queda solo y toma el ancho entero. Sin
+                    // esto se dimensionaba por su contenido —160 del botón +
+                    // 12 + 200 del selector = 372— dentro de un hueco de 361,
+                    // y "Cuadrícula" asomaba 11px por fuera del margen de la
+                    // página. Medido en un móvil de 393.
+                    width: { mobile: '100%', tablet: 'auto' },
                   }}
                 >
                   {/* El `Button` compartido de la app. Era un Button de MUI en crudo:
@@ -1462,7 +1469,16 @@ const Exhibitors = () => {
                       segmento activo se pintaba de azul macizo con texto
                       blanco, mientras en todas las demás pantallas "elegido"
                       es un tinte suave con la tinta oscura. */}
-                  <Box sx={{ flexShrink: 0, minWidth: '200px' }}>
+                  {/* Los 200 son el ancho cómodo, no un mínimo intocable: en
+                      un móvil de 360 el botón de al lado no cabría. Ahí el
+                      selector cede lo justo y sigue leyéndose. */}
+                  <Box
+                    sx={{
+                      flexShrink: { mobile: 1, tablet: 0 },
+                      minWidth: { mobile: 0, tablet: '200px' },
+                      flexBasis: '200px',
+                    }}
+                  >
                     <SegmentedControl
                       ariaLabel="Vista del programa"
                       tabs={['Lista', 'Cuadrícula']}
@@ -1713,56 +1729,119 @@ const Exhibitors = () => {
                                             }}
                                           />
 
-                                          <Box sx={{ flex: 1 }}>
-                                            {isCancelled ? (
-                                              <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendido"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
-                                            ) : (
-                                              <Typography
-                                                style={{
-                                                  fontWeight: '600',
-                                                  fontSize: '16px',
-                                                  color: isAssigned
-                                                    ? 'var(--black)'
-                                                    : 'var(--error-main)',
-                                                }}
-                                              >
-                                                {assignedNames || 'Sin asignar'}
-                                              </Typography>
-                                            )}
-                                          </Box>
+                                          {/* Los nombres y el sitio.
 
+                                              En móvil iban en dos columnas y el
+                                              sitio ganaba: una dirección entera
+                                              en una sola línea pide mucho ancho,
+                                              y como los nombres eran `flex: 1`
+                                              —que parte de cero— se quedaban con
+                                              las sobras. "Jonathan Izquierdo,
+                                              Silvia Izquierdo, Lara Izquierdo"
+                                              salía en seis renglones de una
+                                              palabra, y la dirección igualmente
+                                              cortada.
+
+                                              Debajo de 600 se apilan: los
+                                              nombres a todo lo ancho y el sitio
+                                              debajo, en pequeño y sin cortar
+                                              —que ahí tiene línea entera—. De
+                                              600 para arriba siguen en columnas,
+                                              pero con el sitio topado al 45%
+                                              para que no vuelva a comerse el
+                                              sitio de los nombres. */}
                                           <Box
                                             sx={{
-                                              textAlign: 'right',
-                                              // Igual que en Salidas: el mínimo
-                                              // fijo impedía encoger y la
-                                              // columna se salía del relleno en
-                                              // un móvil estrecho.
+                                              flex: 1,
                                               minWidth: 0,
-                                              flexShrink: 1,
-                                              overflow: 'hidden',
-                                              textOverflow: 'ellipsis',
-                                              whiteSpace: 'nowrap',
+                                              display: 'flex',
+                                              flexDirection: {
+                                                mobile: 'column',
+                                                tablet600: 'row',
+                                              },
+                                              alignItems: {
+                                                mobile: 'flex-start',
+                                                tablet600: 'center',
+                                              },
+                                              gap: {
+                                                mobile: '2px',
+                                                tablet600: '16px',
+                                              },
                                             }}
                                           >
-                                            <Typography
-                                              style={{
-                                                fontSize: '13px',
-                                                color: isCancelled
-                                                  ? 'var(--grey-400)'
-                                                  : 'var(--grey-600)',
+                                            <Box
+                                              sx={{
+                                                minWidth: 0,
+                                                width: {
+                                                  mobile: '100%',
+                                                  tablet600: 'auto',
+                                                },
+                                                flex: {
+                                                  mobile: '0 0 auto',
+                                                  tablet600: 1,
+                                                },
                                               }}
                                             >
-                                              {isCancelled
-                                                ? '—'
-                                                : slot.location}
-                                            </Typography>
+                                              {isCancelled ? (
+                                                <Badge
+                                                  size="small"
+                                                  color="red"
+                                                  text="Suspendido"
+                                                  icon={
+                                                    <IconCancelFilled color="var(--red-main)" />
+                                                  }
+                                                  sx={{
+                                                    alignSelf: 'flex-start',
+                                                  }}
+                                                />
+                                              ) : (
+                                                <Typography
+                                                  style={{
+                                                    fontWeight: '600',
+                                                    fontSize: '16px',
+                                                    color: isAssigned
+                                                      ? 'var(--black)'
+                                                      : 'var(--error-main)',
+                                                  }}
+                                                >
+                                                  {assignedNames ||
+                                                    'Sin asignar'}
+                                                </Typography>
+                                              )}
+                                            </Box>
+
+                                            <Box
+                                              sx={{
+                                                minWidth: 0,
+                                                maxWidth: {
+                                                  mobile: '100%',
+                                                  tablet600: '45%',
+                                                },
+                                                textAlign: {
+                                                  mobile: 'left',
+                                                  tablet600: 'right',
+                                                },
+                                                whiteSpace: {
+                                                  mobile: 'normal',
+                                                  tablet600: 'nowrap',
+                                                },
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                              }}
+                                            >
+                                              <Typography
+                                                style={{
+                                                  fontSize: '13px',
+                                                  color: isCancelled
+                                                    ? 'var(--grey-400)'
+                                                    : 'var(--grey-600)',
+                                                }}
+                                              >
+                                                {isCancelled
+                                                  ? '—'
+                                                  : slot.location}
+                                              </Typography>
+                                            </Box>
                                           </Box>
                                         </Box>
                                       );
@@ -2297,7 +2376,8 @@ const Exhibitors = () => {
                                               sx={{
                                                 width: '5px',
                                                 height: '5px',
-                                                borderRadius: 'var(--shape-full)',
+                                                borderRadius:
+                                                  'var(--shape-full)',
                                                 backgroundColor:
                                                   dotColor === 'green'
                                                     ? 'var(--green-main)'
@@ -2458,15 +2538,35 @@ const Exhibitors = () => {
                                             }}
                                           />
 
-                                          <Box sx={{ flex: 1 }}>
+                                          {/* Este panel solo sale en móvil, así
+                                              que aquí no hay nada que decidir:
+                                              los nombres a todo lo ancho y el
+                                              sitio debajo. En dos columnas
+                                              pasaba lo mismo que en la vista de
+                                              Lista —la dirección se quedaba con
+                                              el ancho y los nombres se partían
+                                              palabra a palabra—, y encima el
+                                              `minWidth: 100px` de la dirección
+                                              no la dejaba ceder. */}
+                                          <Box
+                                            sx={{
+                                              flex: 1,
+                                              minWidth: 0,
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              gap: '2px',
+                                            }}
+                                          >
                                             {isCancelled ? (
                                               <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendido"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
+                                                size="small"
+                                                color="red"
+                                                text="Suspendido"
+                                                icon={
+                                                  <IconCancelFilled color="var(--red-main)" />
+                                                }
+                                                sx={{ alignSelf: 'flex-start' }}
+                                              />
                                             ) : (
                                               <Typography
                                                 style={{
@@ -2487,14 +2587,7 @@ const Exhibitors = () => {
                                                   .join(', ') || 'Sin asignar'}
                                               </Typography>
                                             )}
-                                          </Box>
 
-                                          <Box
-                                            sx={{
-                                              textAlign: 'right',
-                                              minWidth: '100px',
-                                            }}
-                                          >
                                             <Typography
                                               style={{
                                                 fontSize: '13px',
@@ -2550,7 +2643,11 @@ const Exhibitors = () => {
                   gap: '12px',
                 }}
               >
-                <IconSettings width={22} height={22} color="var(--accent-dark)" />
+                <IconSettings
+                  width={22}
+                  height={22}
+                  color="var(--accent-dark)"
+                />
                 <Typography
                   className="h3"
                   style={{ color: 'var(--accent-dark)', margin: 0 }}
@@ -2808,9 +2905,7 @@ const Exhibitors = () => {
                       }}
                     >
                       <Box>
-                        <Typography
-                          className="h4" color="var(--ink)"
-                        >
+                        <Typography className="h4" color="var(--ink)">
                           Configuración de turnos de exhibidores
                         </Typography>
                         <Typography
@@ -2941,9 +3036,7 @@ const Exhibitors = () => {
                                     height={18}
                                     color="var(--accent-main)"
                                   />
-                                  <Typography
-                                    className="h4" color="var(--ink)"
-                                  >
+                                  <Typography className="h4" color="var(--ink)">
                                     {turn.startTime} - {turn.endTime}
                                   </Typography>
                                 </Box>
@@ -3478,8 +3571,12 @@ const Exhibitors = () => {
                                                 isOptionEqualToValue={(
                                                   o: PersonType,
                                                   v: PersonType
-                                                ) => o.person_uid === v.person_uid}
-                                                getOptionLabel={(o: PersonType) =>
+                                                ) =>
+                                                  o.person_uid === v.person_uid
+                                                }
+                                                getOptionLabel={(
+                                                  o: PersonType
+                                                ) =>
                                                   personGetDisplayName(
                                                     o,
                                                     displayNameEnabled,
@@ -3919,9 +4016,7 @@ const Exhibitors = () => {
                         )
                       }
                       groupBy={(o: PersonType) =>
-                        recommended.some(
-                          (r) => r.person_uid === o.person_uid
-                        )
+                        recommended.some((r) => r.person_uid === o.person_uid)
                           ? 'Recomendados (tienen este turno de preferencia)'
                           : 'Otros hermanos habilitados'
                       }
