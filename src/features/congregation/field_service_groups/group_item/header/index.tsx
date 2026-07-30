@@ -33,12 +33,10 @@ const GroupHeader = (props: GroupHeaderProps) => {
     <Box
       sx={{
         padding: '12px 16px',
-        borderRadius: '11px 11px 0px 0px',
         backgroundColor: bg_color,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottom: `1px solid rgba(var(--group-${props.index}-base), 0.16)`,
       }}
     >
       {dlgOpen && (
@@ -62,13 +60,21 @@ const GroupHeader = (props: GroupHeaderProps) => {
 
       <Stack spacing="2px">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Typography className="h3" color={color}>
+          <Typography
+            className="h2-caps"
+            color={color}
+            sx={{ fontWeight: 700, letterSpacing: '0.5px' }}
+          >
             {group_index}
           </Typography>
           <GroupBadge group={props.group} index={props.index} />
         </Box>
 
-        {group_name && <Typography color={color}>{group_name}</Typography>}
+        {group_name && (
+          <Typography className="body-small-regular" color={color}>
+            {group_name}
+          </Typography>
+        )}
       </Stack>
 
       <Box
@@ -76,7 +82,7 @@ const GroupHeader = (props: GroupHeaderProps) => {
           display: 'flex',
           alignItems: 'center',
           gap: '24px',
-          paddingLeft: '15px',
+          paddingLeft: '16px',
         }}
       >
         {my_group && (

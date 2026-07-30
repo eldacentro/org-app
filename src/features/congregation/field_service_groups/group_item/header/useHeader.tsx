@@ -17,16 +17,14 @@ const useHeader = ({ group, index, editable }: GroupHeaderProps) => {
   const [lngOpen, setLngOpen] = useState(false);
   const [type, setType] = useState<'edit' | 'delete'>('edit');
 
-  const bg_color = useMemo(() => {
-    const css = `--group-${index}-base`;
+  // El MISMO trato que la cabecera de sección de Programas semanales: color
+  // pleno de la categoría y texto en blanco. Aquí era un tinte al 12% con el
+  // texto en el color del grupo — dos dibujos para "tarjeta con cabecera de
+  // color", y encima el tinte al 12% deja el nombre del grupo con muy poco
+  // contraste.
+  const bg_color = useMemo(() => `var(--group-${index})`, [index]);
 
-    return `rgba(var(${css}), 0.12)`;
-  }, [index]);
-
-  const color = useMemo(() => {
-    const css = `--group-${index}`;
-    return `var(${css})`;
-  }, [index]);
+  const color = 'var(--always-white)';
 
   const group_index = useMemo(() => {
     return t('tr_groupNumber', { groupNumber: index });

@@ -9,8 +9,16 @@ import GroupMember from './member';
 const GroupItem = (props: GroupItemProps) => {
   const { border_color, divider_color, members } = useGroupItem(props);
 
+  // La tarjeta ya no lleva `group-card-glass` ni `group-card-hover-effect`:
+  // se levantaba 4px al pasar el ratón, con curva de rebote, sombra de color y
+  // cambio de borde — y no es pulsable, solo lo son el lápiz de la cabecera y
+  // los menús de cada fila. Prometía algo que no existe.
+  //
+  // El "cristal", además, la dejaba semitransparente con un desenfoque de 18px
+  // detrás (caro en un móvil) y con sombras en azul fijo que no seguían el
+  // color del tema elegido.
   return (
-    <GroupContainer className="group-card-glass group-card-hover-effect" sx={{ border: border_color }}>
+    <GroupContainer sx={{ border: border_color }}>
       <GroupHeader
         group={props.group}
         index={props.index}

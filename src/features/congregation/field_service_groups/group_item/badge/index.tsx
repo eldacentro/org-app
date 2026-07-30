@@ -12,8 +12,8 @@ const GroupBadge = (props: GroupBadgeProps) => {
       sx={{
         display: 'flex',
         gap: '4px',
-        padding: '2px 8px 2px 8px',
-        borderRadius: 'var(--radius-s)',
+        padding: '2px 10px',
+        borderRadius: 'var(--shape-full)',
         alignItems: 'center',
         backgroundColor: bg_color,
       }}

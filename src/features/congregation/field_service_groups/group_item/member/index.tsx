@@ -4,7 +4,6 @@ import {
   IconOverseer,
   IconMore,
   IconRemovePerson,
-  IconPerson,
 } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { GroupMemberProps } from './index.types';
@@ -25,7 +24,6 @@ const GroupMember = (props: GroupMemberProps) => {
     handleCloseMenu,
     handleOpenMenu,
     open,
-    item_hover_color,
     make_assistant,
     make_overseer,
     handleMakeOverseer,
@@ -39,6 +37,8 @@ const GroupMember = (props: GroupMemberProps) => {
     isPioneer,
   } = useMember(props);
 
+  const destacado = props.member.isOverseer || props.member.isAssistant;
+
   return (
     <Box
       sx={{
@@ -46,13 +46,14 @@ const GroupMember = (props: GroupMemberProps) => {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '8px',
-        padding: '6px 12px',
-        borderRadius: 'var(--radius-m)',
-        transition: 'background-color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        '&:hover': {
-          backgroundColor: item_hover_color,
-          transform: 'translateX(6px)',
-        },
+        padding: '8px 12px',
+        borderRadius: 'var(--shape-sm)',
+        // SIN reacción al ratón. La fila no se puede pulsar —lo único pulsable
+        // es el menú de los tres puntos— así que iluminarla al pasar por encima
+        // promete algo que no existe. Antes, además, se desplazaba 6px a la
+        // derecha con una curva de rebote: en una lista de dieciocho nombres,
+        // una fila que se mueve y se desalinea con sus vecinas cada vez que el
+        // ratón la cruza.
       }}
     >
       {removeOpen && (
@@ -67,6 +68,12 @@ const GroupMember = (props: GroupMemberProps) => {
       )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* El distintivo SOLO para el superintendente y su auxiliar. Los demás
+            llevaban un icono de personita idéntico en las dieciocho filas: no
+            distinguía a nadie y, peor, hacía que los dos que sí importan se
+            perdieran entre dieciséis medallones iguales. Sin él, el hueco se
+            reserva igual para que todos los nombres arranquen de la misma
+            línea. */}
         <Box
           sx={{
             display: 'flex',
@@ -74,39 +81,37 @@ const GroupMember = (props: GroupMemberProps) => {
             justifyContent: 'center',
             width: '32px',
             height: '32px',
-            borderRadius: '50%',
-            backgroundColor: props.member.isOverseer || props.member.isAssistant ? `rgba(var(--group-${props.index}-base), 0.12)` : 'var(--accent-100)',
-            color: props.member.isOverseer || props.member.isAssistant ? `var(--group-${props.index})` : 'var(--grey-350)',
-            boxShadow: props.member.isOverseer || props.member.isAssistant ? `0 2px 6px rgba(var(--group-${props.index}-base), 0.15)` : 'none',
+            borderRadius: 'var(--shape-full)',
             flexShrink: 0,
-            transition: 'transform 0.2s ease',
-            '&:hover': {
-              transform: 'scale(1.08)',
-            }
+            ...(destacado && {
+              backgroundColor: `rgba(var(--group-${props.index}-base), 0.12)`,
+              color: `var(--group-${props.index})`,
+            }),
           }}
         >
-          {props.member.isOverseer && <IconOverseer color="currentColor" width={18} height={18} />}
-          {props.member.isAssistant && <IconAssistant color="currentColor" width={18} height={18} />}
-          {!props.member.isOverseer && !props.member.isAssistant && <IconPerson color="currentColor" width={18} height={18} />}
+          {props.member.isOverseer && (
+            <IconOverseer color="currentColor" width={18} height={18} />
+          )}
+          {props.member.isAssistant && (
+            <IconAssistant color="currentColor" width={18} height={18} />
+          )}
         </Box>
 
         <Stack>
-          {/* 'body-medium-semibold'/'body-medium-regular' no existían en el
-              sistema tipográfico (ninguna clase "body-medium" real) — el
-              nombre y peso reales más cercanos son body-small-*. */}
+          {/* El nombre es lo principal de la fila, así que va al tamaño de
+              cuerpo. Estaba en el tamaño pequeño —el de los metadatos— por un
+              apaño viejo: el código original pedía una clase "body-medium" que
+              nunca existió, y al arreglarlo se eligió la pequeña en vez de la
+              de cuerpo. */}
           <Typography
-            className={isPioneer ? 'body-small-semibold' : 'body-small-regular'}
-            color="var(--black)"
+            className={isPioneer ? 'body-regular-semibold' : 'body-regular'}
+            color="var(--ink)"
           >
             {member_name}
           </Typography>
 
           {member_desc && (
-            <Typography
-              className="label-small-medium"
-              color={'var(--grey-350)'}
-              sx={{ opacity: 0.85 }}
-            >
+            <Typography className="label-small-medium" color="var(--ink-3)">
               {member_desc}
             </Typography>
           )}
@@ -142,7 +147,7 @@ const GroupMember = (props: GroupMemberProps) => {
               paper: {
                 className: 'small-card-shadow',
                 style: {
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                   border: '1px solid var(--line)',
                   backgroundColor: 'var(--card)',
                 },
