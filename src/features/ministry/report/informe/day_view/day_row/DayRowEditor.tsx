@@ -1,6 +1,9 @@
 import { Stack } from '@mui/material';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
-import { Field, FieldContainer } from '@features/ministry/report/report_form_dialog/service_time/index.styles';
+import {
+  Field,
+  FieldContainer,
+} from '@features/ministry/report/report_form_dialog/service_time/index.styles';
 import useServiceTime from '@features/ministry/report/report_form_dialog/service_time/useServiceTime';
 import BibleStudiesList from '@features/ministry/report/report_form_dialog/service_time/bible_studies_list';
 import BibleStudySelector from '@features/ministry/report/bible_study_selector';
@@ -68,13 +71,24 @@ const DayRowEditor = ({
         <FieldContainer ref={hoursRef}>
           <Field sx={{ flexDirection: tabletUp ? 'row' : 'column' }}>
             <Typography sx={{ flex: 1 }}>{t('tr_hours')}</Typography>
-            <HoursEditor value={hours_field} onChange={handleHoursChange} hoursLength={2} />
+            <HoursEditor
+              value={hours_field}
+              onChange={handleHoursChange}
+              hoursLength={2}
+            />
           </Field>
 
           {hours_credit_enabled && (
             <Field sx={{ flexDirection: tabletUp ? 'row' : 'column' }}>
-              <HoursCreditPresets anchorEl={hoursRef} onSelect={handleSelectPreset} />
-              <HoursEditor value={hours_credit} onChange={handleHoursCreditChange} hoursLength={2} />
+              <HoursCreditPresets
+                anchorEl={hoursRef}
+                onSelect={handleSelectPreset}
+              />
+              <HoursEditor
+                value={hours_credit}
+                onChange={handleHoursCreditChange}
+                hoursLength={2}
+              />
             </Field>
           )}
         </FieldContainer>
@@ -86,7 +100,12 @@ const DayRowEditor = ({
       >
         <Stack
           direction={tabletUp ? 'row' : 'column'}
-          sx={{ width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+          sx={{
+            width: '100%',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+          }}
         >
           <BibleStudySelector
             anchorEl={bibleStudyRef}
@@ -106,7 +125,11 @@ const DayRowEditor = ({
 
       <Stack direction="row" spacing="8px">
         {hasExistingReport && (
-          <IconButton aria-label="Eliminar" onClick={handleDeleteReport} color="error">
+          <IconButton
+            aria-label="Eliminar"
+            onClick={handleDeleteReport}
+            color="error"
+          >
             <IconDelete color="var(--red-main)" />
           </IconButton>
         )}

@@ -1,12 +1,13 @@
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
-import { IconInfo } from '@components/icons';
+import { IconInfo, IconVisitingSpeaker } from '@components/icons';
 import useOutgoingTalks from './useOutgoingTalks';
 import WeekSelector from '../week_selector';
 import WeekScheduleHeader from '../week_schedule_header';
 import WeekContainer from './week_container';
 import NoSchedule from '../no_schedule';
 import Typography from '@components/typography';
+import EmptyState from '@components/empty_state';
 
 const OutgoingTalks = () => {
   const { t } = useAppTranslation();
@@ -27,6 +28,14 @@ const OutgoingTalks = () => {
     <Box
       sx={{
         marginTop: '8px',
+        // El mismo ritmo que las otras pestañas: 16px entre la tira de
+        // semanas, la cabecera y el contenido. Aquí no había ninguno —el
+        // `spacing` del `Stack` de abajo solo separa a SUS hijos entre sí— y
+        // el contenido salía pegado al "Semana del 27 de julio al 2 de
+        // agosto", sin nada de aire.
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
       }}
     >
       <WeekSelector value={value} onChange={handleValueChange} />
@@ -59,21 +68,17 @@ const OutgoingTalks = () => {
           )}
 
           {talkSchedules.length === 0 ? (
-            <Typography
-              align="center"
-              color="var(--grey-400)"
-              sx={{
-                padding: '32px 16px',
-                backgroundColor: 'var(--card)',
-                border: '1px dashed var(--line)',
-                borderRadius: 'var(--shape-sm)',
-              }}
-            >
-              {t(
+            // El estado vacío compartido. Este era una caja de borde PUNTEADO
+            // hecha a mano, que se quedó fuera de la unificación de estados
+            // vacíos: el punteado significa "aquí se suelta algo", y aquí no
+            // se suelta nada.
+            <EmptyState
+              icon={<IconVisitingSpeaker color="var(--accent-dark)" />}
+              title={t(
                 'tr_noOutgoingTalksThisWeek',
                 'No hay discursos salientes programados para esta semana'
               )}
-            </Typography>
+            />
           ) : (
             talkSchedules.map((item) => (
               <WeekContainer key={item.date} talkSchedules={item} />

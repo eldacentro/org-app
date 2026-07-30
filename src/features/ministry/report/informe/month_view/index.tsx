@@ -9,8 +9,7 @@ import { IconChevronLeft, IconChevronRight } from '@components/icons';
 import IconButton from '@components/icon_button';
 import ProgressBarSmall from '@components/progress_bar_small';
 import Typography from '@components/typography';
-import SubmitButton from '@features/ministry/report/form_S4/submit_button';
-import Comments from '@features/ministry/report/form_S4/comments';
+import SubmitBlock from '../submit_block';
 import useMonthView from './useMonthView';
 import DayPanel from './day_panel';
 
@@ -59,8 +58,15 @@ const MonthView = () => {
       <CardContainer>
         {goal !== undefined && (
           <Stack spacing="6px">
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography className="body-small-semibold" color="var(--grey-400)">
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
                 {t('tr_hours', 'Horas')}
               </Typography>
               <Typography className="body-small-semibold">
@@ -71,7 +77,11 @@ const MonthView = () => {
           </Stack>
         )}
 
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
           <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
@@ -83,7 +93,13 @@ const MonthView = () => {
           </IconButton>
         </Stack>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: '4px',
+          }}
+        >
           {dayNamesShort.map((name, idx) => (
             <Typography
               key={idx}
@@ -96,12 +112,15 @@ const MonthView = () => {
           ))}
 
           {cells.map((cell, idx) => {
-            const isSelected = cell.dateStr !== '' && cell.dateStr === selectedDayStr;
+            const isSelected =
+              cell.dateStr !== '' && cell.dateStr === selectedDayStr;
 
             return (
               <Box
                 key={cell.dateStr || `blank-${idx}`}
-                onClick={cell.date ? () => handleDayClick(cell.dateStr) : undefined}
+                onClick={
+                  cell.date ? () => handleDayClick(cell.dateStr) : undefined
+                }
                 sx={{
                   aspectRatio: '1',
                   display: 'flex',
@@ -116,7 +135,13 @@ const MonthView = () => {
                     : cell.isToday
                       ? 'var(--brand-tint)'
                       : 'transparent',
-                  '&:hover': cell.date ? { backgroundColor: isSelected ? 'var(--brand)' : 'rgba(var(--black-base), 0.04)' } : {},
+                  '&:hover': cell.date
+                    ? {
+                        backgroundColor: isSelected
+                          ? 'var(--brand)'
+                          : 'rgba(var(--black-base), 0.04)',
+                      }
+                    : {},
                 }}
               >
                 {cell.date && (
@@ -161,25 +186,7 @@ const MonthView = () => {
         />
       )}
 
-      {/* Un sitio donde escribir lo que los números no cuentan: que estuvo
-          enfermo, que se ausentó parte del mes, lo que sea. Lo lee el
-          secretario junto al informe. Existía en el formulario clásico pero
-          esta vista, que es la que usa todo el mundo, no lo tenía. */}
-      <CardContainer>
-        <Stack spacing="8px">
-          <Typography className="h4">{t('tr_comments')}</Typography>
-          <Typography className="body-small-regular" color="var(--grey-400)">
-            Opcional. Si quieres aclarar algo de este mes, escríbelo aquí.
-          </Typography>
-          <Comments
-            month={selectedMonth}
-            person_uid={person_uid}
-            publisher={true}
-          />
-        </Stack>
-      </CardContainer>
-
-      <SubmitButton month={selectedMonth} person_uid={person_uid} publisher={true} />
+      <SubmitBlock month={selectedMonth} person_uid={person_uid} />
     </Stack>
   );
 };

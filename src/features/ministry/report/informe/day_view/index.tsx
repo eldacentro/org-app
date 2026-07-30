@@ -1,16 +1,15 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { CardContainer } from '@features/ministry/shared_styles';
-import { IconArrowDown, IconChevronLeft, IconChevronRight } from '@components/icons';
+import { IconChevronLeft, IconChevronRight } from '@components/icons';
 import IconButton from '@components/icon_button';
 import ProgressBarSmall from '@components/progress_bar_small';
 import Typography from '@components/typography';
-import SubmitButton from '@features/ministry/report/form_S4/submit_button';
+import SubmitBlock from '../submit_block';
 import useMonthView from '../month_view/useMonthView';
 import useTodayCard from './today_card/useTodayCard';
 import TodayCard from './today_card';
-import DayRow from './day_row';
 
 /**
  * Tarjeta grande del día enfocado (empieza en hoy, con flechitas para ir
@@ -25,7 +24,6 @@ const DayView = () => {
   const topRef = useRef<HTMLDivElement>(null);
 
   const {
-    cells,
     monthLabel,
     goToPreviousMonth,
     goToNextMonth,
@@ -39,7 +37,6 @@ const DayView = () => {
 
   const {
     focusedDateStr,
-    focusDate,
     weekday,
     monthLabel: focusedMonthLabel,
     dayNum,
@@ -51,15 +48,6 @@ const DayView = () => {
     summaryHours,
     summaryStudies,
   } = useTodayCard();
-
-  const [showAllDays, setShowAllDays] = useState(false);
-
-  const dayCells = cells.filter((cell) => cell.date);
-
-  const handleSelectDay = (dateStr: string) => {
-    focusDate(dateStr);
-    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <Stack spacing="12px" ref={topRef}>
@@ -81,8 +69,15 @@ const DayView = () => {
       <CardContainer>
         {goal !== undefined && (
           <Stack spacing="6px" sx={{ marginBottom: '4px' }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography className="body-small-semibold" color="var(--grey-400)">
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
                 {t('tr_hours', 'Horas')}
               </Typography>
               <Typography className="body-small-semibold">
@@ -93,7 +88,11 @@ const DayView = () => {
           </Stack>
         )}
 
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
           <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
@@ -111,57 +110,19 @@ const DayView = () => {
             color="var(--grey-400)"
             sx={{ textAlign: 'center', marginTop: '8px' }}
           >
-            {t('tr_monthReportLockedInfo', 'Este mes ya se envió, solo puedes consultarlo')}
+            {t(
+              'tr_monthReportLockedInfo',
+              'Este mes ya se envió, solo puedes consultarlo'
+            )}
           </Typography>
         )}
       </CardContainer>
 
-      <Stack
-        component="button"
-        type="button"
-        aria-expanded={showAllDays}
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        onClick={() => setShowAllDays((prev) => !prev)}
-        sx={{
-          appearance: 'none',
-          font: 'inherit',
-          color: 'inherit',
-          background: 'none',
-          border: 'none',
-          width: '100%',
-          cursor: 'pointer',
-          padding: '4px 4px',
-          '&:focus-visible': {
-            outline: '2px solid var(--accent-main)',
-            outlineOffset: '2px',
-            borderRadius: 'var(--shape-xs)',
-          },
-        }}
-      >
-        <Typography className="body-small-semibold" color="var(--grey-400)">
-          {t('tr_allMonthDays', 'Todos los días')}
-        </Typography>
-        <IconArrowDown
-          color="var(--grey-350)"
-          sx={{
-            transition:
-              'transform var(--motion-medium) var(--ease-emphasized)',
-            transform: showAllDays ? 'rotate(180deg)' : 'none',
-          }}
-        />
-      </Stack>
-
-      {showAllDays && (
-        <Stack spacing="8px">
-          {dayCells.map((cell) => (
-            <DayRow key={cell.dateStr} cell={cell} onSelect={handleSelectDay} />
-          ))}
-        </Stack>
-      )}
-
-      <SubmitButton month={selectedMonth} person_uid={person_uid} publisher={true} />
+      {/* Aquí iba un plegable de "Todos los días" con la lista del mes
+          entera. Se va: para ver el mes de un vistazo está la vista de Mes,
+          que es exactamente eso y con más sitio. Aquí solo servía para meter
+          una segunda lista justo encima del botón de enviar, pegada a él. */}
+      <SubmitBlock month={selectedMonth} person_uid={person_uid} />
     </Stack>
   );
 };

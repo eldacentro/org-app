@@ -38,7 +38,11 @@ const DayPanel = ({
         </IconButton>
       </Stack>
 
-      <DayRowEditor dateStr={dateStr} onSaved={onClose} hasExistingReport={hasExistingReport} />
+      <DayRowEditor
+        dateStr={dateStr}
+        onSaved={onClose}
+        hasExistingReport={hasExistingReport}
+      />
     </CardContainer>
   );
 };

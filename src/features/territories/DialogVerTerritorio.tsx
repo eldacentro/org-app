@@ -36,7 +36,11 @@ import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import DialogCompartir from './dialogs/DialogCompartir';
 import SegmentedControl from '@components/segmented_control';
-import { Territory, TerritoryAssignment } from '@definition/territories';
+import {
+  Territory,
+  TerritoryAssignment,
+  TerritoryTag,
+} from '@definition/territories';
 import {
   territoryZonesState,
   territoryTagsState,
@@ -194,6 +198,9 @@ const InfoTabContent = ({
   assignment,
   assignedName,
   dateFormat,
+  tags,
+  allTags,
+  onToggleTag,
 }: {
   territory: Territory;
   canManage: boolean;
@@ -201,6 +208,12 @@ const InfoTabContent = ({
   assignment?: TerritoryAssignment | null;
   assignedName?: string;
   dateFormat: string;
+  /** Las etiquetas puestas a ESTE territorio, ya filtradas por rol. */
+  tags: string[];
+  /** Todas las de la congregación — las que se pueden poner y quitar. */
+  allTags: TerritoryTag[];
+  /** Solo se pasa si quien mira puede cambiarlas. */
+  onToggleTag?: (tagId: string) => void;
 }) => (
   // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
   // identidad, tres centímetros más arriba en móvil y en la ficha sobre el
@@ -236,6 +249,46 @@ const InfoTabContent = ({
             ? ` · vence el ${formatTerritoryDate(assignment.dueAt, dateFormat)}`
             : ''}
         </Typography>
+      </Box>
+    )}
+
+    {/* Las etiquetas viven AQUÍ, no en la cabecera.
+        Estuvieron un rato arriba, con su nombre y su color, y la cabecera se
+        quedó cargada: la zona, las viviendas, a quién está asignado y encima
+        todas las etiquetas, en una fila que en un móvil se iba a tres líneas.
+        Y una etiqueta no es algo que haga falta tener delante SIEMPRE: es una
+        característica del territorio, que es exactamente lo que esta pestaña
+        guarda. Arriba se queda lo que se mira de un vistazo; aquí, lo que se
+        consulta. */}
+    {(tags.length > 0 || (canManage && allTags.length > 0)) && (
+      <Box>
+        <Typography
+          className="label-small-semibold"
+          color="var(--ink-3)"
+          sx={{ display: 'block', mb: '8px' }}
+        >
+          Etiquetas
+        </Typography>
+
+        {/* Para un responsable salen TODAS y se encienden o apagan pulsando;
+            para quien solo mira, únicamente las que tiene puestas. Sin modo de
+            edición aparte: si puedes cambiarlas, están cambiables. */}
+        <Stack direction="row" flexWrap="wrap" gap={0.75}>
+          {(canManage
+            ? allTags
+            : allTags.filter((t) => tags.includes(t.id))
+          ).map((tag) => (
+            <TagChip
+              key={tag.id}
+              label={tag.nombre}
+              color={tag.color}
+              selected={tags.includes(tag.id)}
+              onClick={
+                canManage && onToggleTag ? () => onToggleTag(tag.id) : undefined
+              }
+            />
+          ))}
+        </Stack>
       </Box>
     )}
 
@@ -370,7 +423,6 @@ const DialogVerTerritorio = ({
   const tabletDown = laptopDown || touchDevice;
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [tab, setTab] = useState(0);
-  const [editingTags, setEditingTags] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -418,7 +470,6 @@ const DialogVerTerritorio = ({
           ? 1
           : 0;
     setTab(defaultTab);
-    setEditingTags(false);
   }, [territory?.id]);
 
   // Móvil tiene 3 pestañas y escritorio 2. Al girar el móvil o ensanchar la
@@ -763,101 +814,9 @@ const DialogVerTerritorio = ({
                     }
                   />
                 )}
-                {/* Las etiquetas, con su nombre.
-                    Eran puntos de color de 9px arriba a la derecha, con el
-                    nombre solo en el `title` — o sea, en ningún sitio para
-                    quien va con el dedo. Un punto naranja no dice "Comercial";
-                    hay que saberlo de antes. Aquí abajo caben con su nombre y
-                    su color, en la misma fila que todo lo demás que describe
-                    el territorio, y la fila ya envolvía. */}
-                {visibleHeaderTags.map((tagId) => {
-                  const tag = allTags.find((t) => t.id === tagId);
-                  if (!tag) return null;
-                  return (
-                    <TagChip
-                      key={tag.id}
-                      label={tag.nombre}
-                      color={tag.color}
-                    />
-                  );
-                })}
               </Stack>
             </Box>
-
-            {/* Botón de editar etiquetas */}
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={0.5}
-              sx={{ mt: '2px', flexShrink: 0 }}
-            >
-              {canManage && (
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={() => setEditingTags(!editingTags)}
-                  aria-label="Editar etiquetas"
-                  aria-expanded={editingTags}
-                  sx={{
-                    ...buttonReset,
-                    ml: 0.5,
-                    width: 28,
-                    height: 28,
-                    borderRadius: 'var(--shape-full)',
-                    backgroundColor: editingTags
-                      ? `color-mix(in srgb, ${color} 8%, transparent)`
-                      : 'var(--accent-100)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: editingTags ? color : 'var(--ink-2)',
-                    transition:
-                      'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
-                    '&:active': { transform: 'scale(0.88)' },
-                  }}
-                >
-                  <IconEdit width={13} height={13} />
-                </Box>
-              )}
-            </Stack>
           </Stack>
-
-          {/* Editor de etiquetas (expandible) */}
-          {editingTags && canManage && (
-            <Box
-              sx={{
-                mt: 1.5,
-                p: '12px',
-                backgroundColor: 'var(--accent-100)',
-                borderRadius: 'var(--shape-md)',
-              }}
-            >
-              {allTags.length === 0 ? (
-                <Typography
-                  className="label-small-regular"
-                  sx={{ color: 'var(--ink-2)' }}
-                >
-                  No hay etiquetas creadas.
-                </Typography>
-              ) : (
-                <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                  {allTags.map((tag) => {
-                    const active = (liveTerritory.tags || []).includes(tag.id);
-                    return (
-                      <TagChip
-                        key={tag.id}
-                        label={tag.nombre}
-                        color={tag.color}
-                        selected={active}
-                        onClick={() => handleToggleTag(tag.id)}
-                      />
-                    );
-                  })}
-                </Stack>
-              )}
-            </Box>
-          )}
         </Box>
 
         {/* SEGMENTED CONTROL */}
@@ -868,7 +827,6 @@ const DialogVerTerritorio = ({
             active={tab}
             onChange={(i) => {
               setTab(i);
-              setEditingTags(false);
             }}
           />
         </Box>
@@ -1053,6 +1011,9 @@ const DialogVerTerritorio = ({
                   : undefined
               }
               dateFormat={settings.dateFormat}
+              tags={visibleHeaderTags}
+              allTags={allTags}
+              onToggleTag={canManage ? handleToggleTag : undefined}
             />
           )}
         </Box>
@@ -1300,95 +1261,9 @@ const DialogVerTerritorio = ({
             </Stack>
           </Stack>
 
-          {/* Tags */}
-          {visibleHeaderTags.length > 0 || canManage ? (
-            <Stack
-              direction="row"
-              alignItems="center"
-              sx={{ mt: 1.25, flexWrap: 'wrap', gap: 0.5 }}
-            >
-              {visibleHeaderTags.map((tagId) => {
-                const tag = allTags.find((t) => t.id === tagId);
-                if (!tag) return null;
-                return (
-                  <TagChip key={tag.id} label={tag.nombre} color={tag.color} />
-                );
-              })}
-              {canManage && (
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={() => setEditingTags(!editingTags)}
-                  aria-label="Editar etiquetas"
-                  aria-expanded={editingTags}
-                  sx={{
-                    ...buttonReset,
-                    padding: '2px 10px',
-                    minHeight: '22px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    borderRadius: 'var(--shape-full)',
-                    backgroundColor: editingTags
-                      ? 'var(--state-selected)'
-                      : 'var(--accent-100)',
-                    border: `1px solid ${editingTags ? 'var(--accent-main)' : 'var(--line)'}`,
-                    color: editingTags
-                      ? 'var(--state-selected-ink)'
-                      : 'var(--ink-2)',
-                    cursor: 'pointer',
-                    transition:
-                      'background-color var(--motion-fast) var(--ease-standard)',
-                  }}
-                >
-                  {/* Iba a 11px con peso 600 — un tamaño que no está en la
-                      escala, y además distinto del de las etiquetas que tiene
-                      al lado. */}
-                  <Typography
-                    component="span"
-                    className="body-small-semibold"
-                    color="inherit"
-                  >
-                    + Etiquetas
-                  </Typography>
-                </Box>
-              )}
-            </Stack>
-          ) : null}
-
-          {editingTags && canManage && (
-            <Box
-              sx={{
-                mt: 1.5,
-                p: 1.5,
-                backgroundColor: 'var(--accent-100)',
-                borderRadius: 'var(--shape-md)',
-              }}
-            >
-              {allTags.length === 0 ? (
-                <Typography
-                  className="label-small-regular"
-                  sx={{ color: 'var(--ink-2)' }}
-                >
-                  No hay etiquetas creadas.
-                </Typography>
-              ) : (
-                <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                  {allTags.map((tag) => {
-                    const active = (liveTerritory.tags || []).includes(tag.id);
-                    return (
-                      <TagChip
-                        key={tag.id}
-                        label={tag.nombre}
-                        color={tag.color}
-                        selected={active}
-                        onClick={() => handleToggleTag(tag.id)}
-                      />
-                    );
-                  })}
-                </Stack>
-              )}
-            </Box>
-          )}
+          {/* Las etiquetas viven en la pestaña Info, aquí al lado. Estaban
+              también en esta ficha, así que con Info abierta salían dos veces
+              en la misma pantalla. */}
         </Box>
 
         {/* Tabs */}
@@ -1399,7 +1274,6 @@ const DialogVerTerritorio = ({
             active={tab}
             onChange={(i) => {
               setTab(i);
-              setEditingTags(false);
             }}
           />
         </Box>
@@ -1417,6 +1291,9 @@ const DialogVerTerritorio = ({
                   : undefined
               }
               dateFormat={settings.dateFormat}
+              tags={visibleHeaderTags}
+              allTags={allTags}
+              onToggleTag={canManage ? handleToggleTag : undefined}
             />
           )}
 

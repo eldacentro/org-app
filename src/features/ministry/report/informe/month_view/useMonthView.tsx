@@ -3,7 +3,10 @@ import { capitalizarPrimera } from '@utils/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { dayNamesShortState, monthNamesState } from '@states/app';
-import { reportUserSelectedMonthState, userFieldServiceDailyReportsState } from '@states/user_field_service_reports';
+import {
+  reportUserSelectedMonthState,
+  userFieldServiceDailyReportsState,
+} from '@states/user_field_service_reports';
 import { formatDate } from '@utils/date';
 import useMinistryMonthlyRecord from '@features/ministry/hooks/useMinistryMonthlyRecord';
 import useMonthlyGoal from '@features/ministry/hooks/useMonthlyGoal';
@@ -20,7 +23,9 @@ const useMonthView = () => {
   const { person } = useCurrentUser();
   const dayNamesShort = useAtomValue(dayNamesShortState);
   const monthNames = useAtomValue(monthNamesState);
-  const [selectedMonth, setSelectedMonth] = useAtom(reportUserSelectedMonthState);
+  const [selectedMonth, setSelectedMonth] = useAtom(
+    reportUserSelectedMonthState
+  );
   const dailyReports = useAtomValue(userFieldServiceDailyReportsState);
 
   const { hours_total, read_only, status } = useMinistryMonthlyRecord({
@@ -57,7 +62,13 @@ const useMonthView = () => {
     const result: MonthDayCell[] = [];
 
     for (let i = 0; i < leadingBlanks; i++) {
-      result.push({ date: null, dateStr: '', dayNum: 0, hasRecord: false, isToday: false });
+      result.push({
+        date: null,
+        dateStr: '',
+        dayNum: 0,
+        hasRecord: false,
+        isToday: false,
+      });
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -67,8 +78,8 @@ const useMonthView = () => {
       const record = dailyReports.find((r) => r.report_date === dateStr);
       const hasRecord = Boolean(
         record &&
-          (record.report_data.hours.field_service !== '0:00' ||
-            record.report_data.bible_studies.value > 0)
+        (record.report_data.hours.field_service !== '0:00' ||
+          record.report_data.bible_studies.value > 0)
       );
 
       result.push({

@@ -69,9 +69,24 @@ const SongSource = (props: SongSourceType) => {
             width={20}
             sx={{ flexShrink: 0 }}
           />
-          <Typography className="h4" color="var(--song-text)">
-            {songTitle}
-          </Typography>
+          {/* Sin canción, esto era la píldora con el icono y NADA al lado.
+              Pasa de verdad y no es un fallo: la canción del discurso público
+              la trae el orador que viene de fuera, y muchas veces no la manda
+              hasta unos días antes. Pero una píldora vacía no dice "todavía no
+              se sabe": parece que algo se ha roto.
+
+              Así que lo dice. En tinta apagada y con el peso del texto normal,
+              no con el de un título, para que no se confunda con el nombre de
+              una canción de verdad. */}
+          {songTitle ? (
+            <Typography className="h4" color="var(--song-text)">
+              {songTitle}
+            </Typography>
+          ) : (
+            <Typography className="body-small-regular" color="var(--ink-2)">
+              Aún sin canción
+            </Typography>
+          )}
         </Box>
       )}
     </>

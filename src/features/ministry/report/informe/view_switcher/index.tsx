@@ -1,7 +1,12 @@
 import { MouseEvent, useState } from 'react';
 import { Box, Menu, MenuItem } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
-import { IconArrowDown, IconCalendarClock, IconCalendarMonth, IconStatsYear } from '@components/icons';
+import {
+  IconArrowDown,
+  IconCalendarClock,
+  IconCalendarMonth,
+  IconStatsYear,
+} from '@components/icons';
 import Typography from '@components/typography';
 import { InformeViewId, ViewSwitcherProps } from './index.types';
 
@@ -87,7 +92,12 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
           {getViewIcon(activeView.id, 'var(--ink)')}
           <Typography
             className="h3"
-            sx={{ fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', fontSize: '17px' }}
+            sx={{
+              fontWeight: 700,
+              color: 'var(--ink)',
+              letterSpacing: '-0.01em',
+              fontSize: '17px',
+            }}
           >
             {t(activeView.labelKey, activeView.fallback)}
           </Typography>
@@ -142,7 +152,10 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
             onClick={() => handleSelect(view.id)}
             sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
           >
-            {getViewIcon(view.id, view.id === value ? 'var(--accent-dark)' : 'var(--grey-400)')}
+            {getViewIcon(
+              view.id,
+              view.id === value ? 'var(--accent-dark)' : 'var(--grey-400)'
+            )}
             <Typography sx={{ fontWeight: view.id === value ? 600 : 400 }}>
               {t(view.labelKey, view.fallback)}
             </Typography>

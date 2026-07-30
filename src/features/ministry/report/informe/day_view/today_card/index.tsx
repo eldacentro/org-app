@@ -83,7 +83,9 @@ const TodayCard = ({
       {locked ? (
         <Stack spacing="4px" sx={{ textAlign: 'center' }}>
           {hoursEnabled && (
-            <Typography className="body-small-semibold">{summaryHours}</Typography>
+            <Typography className="body-small-semibold">
+              {summaryHours}
+            </Typography>
           )}
           <Typography className="body-small-regular" color="var(--grey-400)">
             {summaryStudies > 0
@@ -95,7 +97,10 @@ const TodayCard = ({
             color="var(--grey-400)"
             sx={{ marginTop: '8px' }}
           >
-            {t('tr_monthReportLockedInfo', 'Este mes ya se envió, solo puedes consultarlo')}
+            {t(
+              'tr_monthReportLockedInfo',
+              'Este mes ya se envió, solo puedes consultarlo'
+            )}
           </Typography>
         </Stack>
       ) : (
