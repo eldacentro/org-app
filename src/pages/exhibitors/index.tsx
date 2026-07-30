@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
-  Switch,
   TextField,
   Tabs,
   Tab,
@@ -41,8 +40,11 @@ import { Typography } from '@components/index';
 // usa el Button de MUI en el cuerpo; los pies de diálogo ya migran al del
 // sistema (mismo tratamiento que predicacion_salidas).
 import AppButton from '@components/button';
+import SegmentedControl from '@components/segmented_control';
+import accentSurface from '@components/accent_surface';
 import Checkbox from '@components/checkbox';
 import SwitchWithLabel from '@components/switch_with_label';
+import AppSwitch from '@components/switch';
 import InfoTip from '@components/info_tip';
 import {
   IconSettings,
@@ -1311,7 +1313,7 @@ const Exhibitors = () => {
               sx={{
                 width: '280px',
                 flexShrink: 0,
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-md)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -1325,10 +1327,7 @@ const Exhibitors = () => {
               <Box
                 sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
               >
-                <Typography
-                  className="h3"
-                  style={{ color: 'var(--accent-main)' }}
-                >
+                <Typography className="h3" color="var(--ink)">
                   Seleccionar año
                 </Typography>
                 <Select
@@ -1337,7 +1336,7 @@ const Exhibitors = () => {
                   size="small"
                   fullWidth
                   sx={{
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     borderColor: 'var(--line)',
                   }}
                 >
@@ -1353,10 +1352,7 @@ const Exhibitors = () => {
 
               <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
 
-              <Typography
-                className="h3"
-                style={{ color: 'var(--accent-main)' }}
-              >
+              <Typography className="h3" color="var(--ink)">
                 Meses
               </Typography>
               <List
@@ -1371,10 +1367,7 @@ const Exhibitors = () => {
                       selected={isSelected}
                       onClick={() => setSelectedMonth(idx)}
                       sx={{
-                        borderRadius: 'var(--radius-l)',
-                        borderLeft: isSelected
-                          ? '4px solid var(--accent-main)'
-                          : '4px solid transparent',
+                        borderRadius: 'var(--shape-sm)',
                         backgroundColor: isSelected
                           ? 'var(--accent-150)'
                           : 'transparent',
@@ -1432,13 +1425,22 @@ const Exhibitors = () => {
                   alignItems: 'center',
                   marginBottom: '8px',
                   flexDirection: { mobile: 'column', tablet: 'row' },
+                  // Si el grupo de controles no cabe al lado del título, baja
+                  // ENTERO a la linea de abajo. Sin esto se estrujaba hasta
+                  // dejar "Lista" y "Cuadricula" pegados el uno al otro.
+                  flexWrap: 'wrap',
                   gap: '16px',
                   width: '100%',
                 }}
               >
                 <Typography
                   className="h2"
-                  style={{ color: 'var(--accent-main)', margin: 0 }}
+                  // El título de la sección iba en azul de marca; en esta app
+                  // los encabezados van con la tinta normal y el azul se
+                  // reserva para lo que se pulsa.
+                  color="var(--ink)"
+                  sx={{ minWidth: 0 }}
+                  style={{ margin: 0 }}
                 >
                   {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
                 </Typography>
@@ -1446,114 +1448,47 @@ const Exhibitors = () => {
                 <Box
                   sx={{
                     display: 'flex',
-                    gap: '16px',
+                    gap: '12px',
                     alignItems: 'center',
-                    flexWrap: 'wrap',
+                    // Los dos controles NO se separan uno del otro: lo que
+                    // cede cuando falta sitio es el título, que puede pasar a
+                    // dos líneas. Antes envolvían ellos y quedaban apilados en
+                    // una columna estrecha a la derecha del título.
+                    flexWrap: 'nowrap',
+                    flexShrink: 0,
                   }}
                 >
-                  <Button
-                    variant={isCurrentlyOverridden ? 'contained' : 'outlined'}
-                    color="primary"
-                    size="small"
+                  {/* El `Button` compartido de la app. Era un Button de MUI en crudo:
+                    radio de 12px cuando todos los botones son píldoras,
+                    `textTransform: none` cuando la app los pone en mayúsculas,
+                    y `fontWeight: bold` a mano. Cuando el mes tiene
+                    excepciones se pone naranja, y eso ya lo sabe hacer el
+                    componente con su prop `color`. */}
+                  <AppButton
+                    variant={isCurrentlyOverridden ? 'main' : 'tertiary'}
+                    color={isCurrentlyOverridden ? 'orange' : undefined}
+                    disableAutoStretch
                     onClick={() => setMonthlySettingsDialog(true)}
-                    startIcon={
-                      <IconSettings
-                        color={
-                          isCurrentlyOverridden
-                            ? 'var(--always-white)'
-                            : 'var(--accent-main)'
-                        }
-                        width={18}
-                        height={18}
-                      />
-                    }
-                    sx={{
-                      borderRadius: 'var(--radius-l)',
-                      textTransform: 'none',
-                      fontWeight: 'bold',
-                      boxShadow: 'none',
-                      height: '36px',
-                      ...(isCurrentlyOverridden && {
-                        backgroundColor: 'var(--orange-main)',
-                        color: 'var(--always-white)',
-                        '&:hover': {
-                          backgroundColor: 'var(--orange-dark)',
-                        },
-                      }),
-                    }}
+                    startIcon={<IconSettings width={18} height={18} />}
                   >
                     Ajustes del mes
-                  </Button>
+                  </AppButton>
 
-                  {/* Selector de modo de vista */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: '4px',
-                      backgroundColor: 'var(--accent-150)',
-                      padding: '4px',
-                      borderRadius: 'var(--radius-l)',
-                      border: '1px solid var(--line)',
-                      height: '36px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Button
-                      onClick={() => setPlannerViewMode('lista')}
-                      size="small"
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        borderRadius: 'var(--radius-s)',
-                        py: '4px',
-                        px: '16px',
-                        fontSize: '13px',
-                        boxShadow: 'none',
-                        minWidth: 'unset',
-                        ...(plannerViewMode === 'lista'
-                          ? {
-                              backgroundColor: 'var(--accent-main)',
-                              color: 'var(--always-white)',
-                              '&:hover': {
-                                backgroundColor: 'var(--accent-dark)',
-                              },
-                            }
-                          : {
-                              color: 'var(--grey-600)',
-                              '&:hover': { backgroundColor: 'var(--line)' },
-                            }),
-                      }}
-                    >
-                      Lista
-                    </Button>
-                    <Button
-                      onClick={() => setPlannerViewMode('mensual')}
-                      size="small"
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        borderRadius: 'var(--radius-s)',
-                        py: '4px',
-                        px: '16px',
-                        fontSize: '13px',
-                        boxShadow: 'none',
-                        minWidth: 'unset',
-                        ...(plannerViewMode === 'mensual'
-                          ? {
-                              backgroundColor: 'var(--accent-main)',
-                              color: 'var(--always-white)',
-                              '&:hover': {
-                                backgroundColor: 'var(--accent-dark)',
-                              },
-                            }
-                          : {
-                              color: 'var(--grey-600)',
-                              '&:hover': { backgroundColor: 'var(--line)' },
-                            }),
-                      }}
-                    >
-                      Cuadrícula
-                    </Button>
+                  {/* El `SegmentedControl` compartido — el mismo de la ficha de
+                      territorio y del resto de la app. Aquí había uno propio y
+                      era el dibujo de "elegido" MÁS ruidoso que quedaba: el
+                      segmento activo se pintaba de azul macizo con texto
+                      blanco, mientras en todas las demás pantallas "elegido"
+                      es un tinte suave con la tinta oscura. */}
+                  <Box sx={{ flexShrink: 0, minWidth: '200px' }}>
+                    <SegmentedControl
+                      ariaLabel="Vista del programa"
+                      tabs={['Lista', 'Cuadrícula']}
+                      active={plannerViewMode === 'lista' ? 0 : 1}
+                      onChange={(i) =>
+                        setPlannerViewMode(i === 0 ? 'lista' : 'mensual')
+                      }
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -1567,7 +1502,7 @@ const Exhibitors = () => {
                     padding: '24px',
                     backgroundColor: 'var(--card)',
                     border: '1px solid var(--line)',
-                    borderRadius: 'var(--radius-xl)',
+                    borderRadius: 'var(--shape-lg)',
                     justifyContent: 'center',
                   }}
                 >
@@ -1690,14 +1625,8 @@ const Exhibitors = () => {
                             >
                               <Typography
                                 className="h3"
-                                style={{
-                                  fontWeight: '700',
-                                  color: 'var(--accent-main)',
-                                  textTransform: 'none',
-                                  borderLeft: '4px solid var(--accent-main)',
-                                  paddingLeft: '12px',
-                                  margin: 0,
-                                }}
+                                color="var(--ink)"
+                                style={{ margin: 0 }}
                               >
                                 {weekLabel}
                               </Typography>
@@ -1718,7 +1647,7 @@ const Exhibitors = () => {
                                     key={dateKey}
                                     sx={{
                                       border: '1px solid var(--line)',
-                                      borderRadius: 'var(--radius-l)',
+                                      borderRadius: 'var(--shape-sm)',
                                       boxShadow: 'none',
                                       overflow: 'hidden',
                                     }}
@@ -1727,10 +1656,16 @@ const Exhibitors = () => {
                                       sx={{
                                         px: '16px',
                                         py: '10px',
-                                        background:
-                                          'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
-                                        borderBottom:
-                                          '1px solid var(--accent-dark)',
+                                        // Era un degradado de 135° de azul a
+                                        // azul oscuro con texto blanco: el
+                                        // único de la app junto al de su
+                                        // gemela. La cabecera de una tarjeta
+                                        // aquí es un tinte plano con la tinta
+                                        // de marca —así lo hacen `card_header`
+                                        // y las secciones de Territorios—, y
+                                        // así sigue al tema oscuro sola.
+                                        backgroundColor: 'var(--accent-100)',
+                                        borderBottom: '1px solid var(--line)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '8px',
@@ -1739,11 +1674,8 @@ const Exhibitors = () => {
                                       <Typography
                                         className="label-small-semibold"
                                         style={{
-                                          fontWeight: '700',
-                                          color: 'var(--always-white)',
+                                          color: 'var(--accent-dark)',
                                           textTransform: 'capitalize',
-                                          letterSpacing: '0.02em',
-                                          opacity: 0.92,
                                         }}
                                       >
                                         {dayLabel}
@@ -1798,7 +1730,7 @@ const Exhibitors = () => {
                                             <Typography
                                               style={{
                                                 fontWeight: '700',
-                                                fontSize: '15px',
+                                                fontSize: '16px',
                                                 color: isCancelled
                                                   ? 'var(--grey-500)'
                                                   : 'var(--accent-main)',
@@ -1844,7 +1776,7 @@ const Exhibitors = () => {
                                               <Typography
                                                 style={{
                                                   fontWeight: '600',
-                                                  fontSize: '15px',
+                                                  fontSize: '16px',
                                                   color: isAssigned
                                                     ? 'var(--black)'
                                                     : 'var(--error-main)',
@@ -1863,7 +1795,7 @@ const Exhibitors = () => {
                                           >
                                             <Typography
                                               style={{
-                                                fontSize: '13px',
+                                                fontSize: '13.5px',
                                                 color: isCancelled
                                                   ? 'var(--grey-400)'
                                                   : 'var(--grey-600)',
@@ -2036,7 +1968,7 @@ const Exhibitors = () => {
                         return (
                           <Box
                             sx={{
-                              borderRadius: 'var(--radius-xl)',
+                              borderRadius: 'var(--shape-md)',
                               border: '1px solid var(--line)',
                               backgroundColor: 'var(--card)',
                               p: { mobile: '12px', tablet: '20px' },
@@ -2095,7 +2027,7 @@ const Exhibitors = () => {
                                             : 'auto',
                                           backgroundColor: 'var(--accent-150)',
                                           border: '1px solid var(--line)',
-                                          borderRadius: 'var(--radius-l)',
+                                          borderRadius: 'var(--shape-sm)',
                                           opacity: 0.3,
                                         }}
                                       />
@@ -2123,24 +2055,19 @@ const Exhibitors = () => {
                                           border: isSelected
                                             ? '2px solid var(--accent-main)'
                                             : '1px solid var(--line)',
-                                          borderRadius: 'var(--radius-l)',
+                                          borderRadius: 'var(--shape-sm)',
                                           p: '10px',
                                           display: 'flex',
                                           flexDirection: 'column',
                                           gap: '8px',
                                           height: '100%',
-                                          transition: 'all 0.2s ease',
                                           boxShadow: 'none',
-                                          '&:hover': {
-                                            borderColor: 'var(--line)',
-                                            boxShadow: 'var(--hover-shadow)',
-                                          },
                                         }}
                                       >
                                         <Typography
                                           style={{
                                             fontWeight: '800',
-                                            fontSize: '14px',
+                                            fontSize: '13.5px',
                                             color: isSelected
                                               ? 'var(--accent-main)'
                                               : 'var(--grey-600)',
@@ -2224,10 +2151,6 @@ const Exhibitors = () => {
                                                     '&:hover':
                                                       isServiceCommittee
                                                         ? {
-                                                            transform:
-                                                              'translateY(-1px)',
-                                                            boxShadow:
-                                                              'var(--hover-shadow)',
                                                             backgroundColor:
                                                               hoverBgColor,
                                                           }
@@ -2376,7 +2299,7 @@ const Exhibitors = () => {
                                           border: isSelected
                                             ? '2px solid var(--accent-main)'
                                             : '1px solid var(--line)',
-                                          borderRadius: 'var(--radius-l)',
+                                          borderRadius: 'var(--shape-sm)',
                                           display: 'flex',
                                           flexDirection: 'column',
                                           justifyContent: 'center',
@@ -2391,7 +2314,7 @@ const Exhibitors = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '700',
-                                            fontSize: '14px',
+                                            fontSize: '13.5px',
                                             color: isSelected
                                               ? 'var(--accent-dark)'
                                               : 'var(--grey-700)',
@@ -2416,7 +2339,7 @@ const Exhibitors = () => {
                                               sx={{
                                                 width: '5px',
                                                 height: '5px',
-                                                borderRadius: '50%',
+                                                borderRadius: 'var(--shape-full)',
                                                 backgroundColor:
                                                   dotColor === 'green'
                                                     ? 'var(--green-main)'
@@ -2440,7 +2363,7 @@ const Exhibitors = () => {
                                 <Card
                                   sx={{
                                     border: '1px solid var(--line)',
-                                    borderRadius: 'var(--radius-l)',
+                                    borderRadius: 'var(--shape-sm)',
                                     boxShadow: 'none',
                                     overflow: 'hidden',
                                   }}
@@ -2497,7 +2420,7 @@ const Exhibitors = () => {
                                           <Typography
                                             style={{
                                               color: 'var(--grey-500)',
-                                              fontSize: '14px',
+                                              fontSize: '13.5px',
                                               fontStyle: 'italic',
                                             }}
                                           >
@@ -2550,7 +2473,7 @@ const Exhibitors = () => {
                                             <Typography
                                               style={{
                                                 fontWeight: '700',
-                                                fontSize: '15px',
+                                                fontSize: '16px',
                                                 color: isCancelled
                                                   ? 'var(--grey-500)'
                                                   : 'var(--accent-main)',
@@ -2596,7 +2519,7 @@ const Exhibitors = () => {
                                               <Typography
                                                 style={{
                                                   fontWeight: '600',
-                                                  fontSize: '14px',
+                                                  fontSize: '13.5px',
                                                   color: isAssigned
                                                     ? 'var(--black)'
                                                     : 'var(--error-main)',
@@ -2622,7 +2545,7 @@ const Exhibitors = () => {
                                           >
                                             <Typography
                                               style={{
-                                                fontSize: '13px',
+                                                fontSize: '13.5px',
                                                 color: isCancelled
                                                   ? 'var(--grey-400)'
                                                   : 'var(--grey-600)',
@@ -2652,7 +2575,7 @@ const Exhibitors = () => {
             // PANTALLA DE CONFIGURACIÓN GLOBAL
             <Box
               sx={{
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-lg)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 overflow: 'hidden',
@@ -2666,26 +2589,19 @@ const Exhibitors = () => {
                 sx={{
                   px: { mobile: '20px', tablet: '28px' },
                   py: { mobile: '16px', tablet: '20px' },
-                  background:
-                    'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                  // Mismo caso que la cabecera del día: degradado fuera,
+                  // tinte plano del tema dentro.
+                  backgroundColor: 'var(--accent-100)',
+                  borderBottom: '1px solid var(--line)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                 }}
               >
-                <IconSettings
-                  width={22}
-                  height={22}
-                  color="var(--always-white)"
-                />
+                <IconSettings width={22} height={22} color="var(--accent-dark)" />
                 <Typography
                   className="h3"
-                  style={{
-                    color: 'var(--always-white)',
-                    margin: 0,
-                    fontWeight: 800,
-                    letterSpacing: '-0.3px',
-                  }}
+                  style={{ color: 'var(--accent-dark)', margin: 0 }}
                 >
                   Configuración de exhibidores
                 </Typography>
@@ -2698,25 +2614,46 @@ const Exhibitors = () => {
                   scrollButtons="auto"
                   allowScrollButtonsMobile
                   sx={{
-                    borderBottom: '1px solid var(--line)',
                     marginBottom: '24px',
                     width: '100%',
                     maxWidth: '100%',
-                    '& .MuiTabs-scroller': {
-                      overflowX: 'auto !important',
-                    },
+                    minHeight: 'unset',
+                    // Sin subrayado y sin MAYUSCULAS: lo elegido se marca con
+                    // el tinte de marca, igual que las pestanas del resto de la
+                    // app (`components/tabs`, `scrollable_tabs`, la tira de
+                    // semanas y el selector de vista de esta misma pagina).
+                    // Aqui habia un subrayado azul de 3px con el texto en azul
+                    // — un dibujo de "elegido" mas, y el que menos se parecia
+                    // al de al lado.
+                    padding: '4px 0',
+                    '& .MuiTabs-scroller': { overflowX: 'auto !important' },
+                    '& .MuiTabs-flexContainer': { gap: '4px' },
                     '& .MuiTabs-indicator': {
-                      backgroundColor: 'var(--accent-main)',
+                      backgroundColor: 'transparent',
+                      height: 0,
                     },
                     '& .MuiTab-root': {
-                      fontWeight: '700',
-                      color: 'var(--grey-600)',
-                      fontSize: '13.5px',
-                      minHeight: '48px',
-                      py: '8px',
+                      minHeight: '40px',
+                      textTransform: 'none',
                       px: '16px',
-                      '&.Mui-selected': {
-                        color: 'var(--accent-main)',
+                      fontSize: '13.5px',
+                      transition:
+                        'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
+                    },
+                    '& .MuiTab-root.Mui-selected': {
+                      color: 'var(--state-selected-ink)',
+                      backgroundColor: 'var(--state-selected)',
+                      borderRadius: 'var(--shape-full)',
+                      fontWeight: 600,
+                      '&:hover': {
+                        backgroundColor: 'var(--state-selected-strong)',
+                      },
+                    },
+                    '& .MuiTab-root:not(.Mui-selected)': {
+                      color: 'var(--ink-3)',
+                      '&:hover': {
+                        backgroundColor: 'var(--state-hover)',
+                        borderRadius: 'var(--shape-full)',
                       },
                     },
                   }}
@@ -2738,13 +2675,7 @@ const Exhibitors = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Ubicaciones de exhibidores
                       </Typography>
                       <Typography
@@ -2767,6 +2698,17 @@ const Exhibitors = () => {
                         maxWidth: '500px',
                         width: '100%',
                         flexDirection: { mobile: 'column', tablet: 'row' },
+                        // `alignItems: center` no es un detalle de espaciado.
+                        // Sin el, el contenedor estira el boton hasta el alto
+                        // del campo (56px), asi que los dos compartian borde
+                        // superior e inferior exactos y el ojo los leia como UN
+                        // solo objeto — y un objeto con dos radios distintos
+                        // canta. Con el boton a su alto normal (40) son dos
+                        // cosas separadas, y cada una se queda con la forma que
+                        // le toca por su papel: el campo cuadradito, el boton
+                        // pildora. De paso, el boton deja de ser un 40% mas
+                        // alto que todos los demas botones de la app.
+                        alignItems: 'center',
                       }}
                     >
                       <TextField
@@ -2779,32 +2721,19 @@ const Exhibitors = () => {
                         fullWidth
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                           },
                         }}
                       />
-                      <Button
-                        variant="contained"
+                      <AppButton
+                        variant="main"
+                        disableAutoStretch
                         onClick={handleAddExhibitorLocation}
-                        startIcon={<IconAdd color="var(--always-white)" />}
-                        sx={{
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          borderRadius: 'var(--radius-l)',
-                          boxShadow: 'none',
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          py: '8px',
-                          px: '20px',
-                          whiteSpace: 'nowrap',
-                          '&:hover': {
-                            backgroundColor: 'var(--accent-dark)',
-                            boxShadow: 'none',
-                          },
-                        }}
+                        startIcon={<IconAdd />}
+                        sx={{ whiteSpace: 'nowrap' }}
                       >
                         Añadir
-                      </Button>
+                      </AppButton>
                     </Box>
 
                     {!settings?.locations || settings.locations.length === 0 ? (
@@ -2816,13 +2745,13 @@ const Exhibitors = () => {
                           padding: '16px',
                           backgroundColor: 'var(--accent-100)',
                           border: '1px dashed var(--line)',
-                          borderRadius: 'var(--radius-l)',
+                          borderRadius: 'var(--shape-sm)',
                         }}
                       >
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13px',
+                            fontSize: '13.5px',
                             color: 'var(--accent-dark)',
                             fontWeight: '500',
                           }}
@@ -2853,17 +2782,9 @@ const Exhibitors = () => {
                               justifyContent: 'space-between',
                               alignItems: 'center',
                               border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               boxShadow: 'none',
                               backgroundColor: 'var(--card)',
-                              transition:
-                                'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                              '&:hover': {
-                                borderColor: 'var(--accent-main)',
-                                transform: 'translateY(-2px)',
-                                boxShadow:
-                                  '0 6px 16px rgba(48, 108, 180, 0.08)',
-                              },
                             }}
                           >
                             <Box
@@ -2907,7 +2828,7 @@ const Exhibitors = () => {
                               }}
                               size="small"
                             >
-                              <IconDelete />
+                              <IconDelete color="var(--red-main)" />
                             </IconButton>
                           </Card>
                         ))}
@@ -2936,11 +2857,7 @@ const Exhibitors = () => {
                     >
                       <Box>
                         <Typography
-                          style={{
-                            fontWeight: '800',
-                            fontSize: '16.5px',
-                            color: 'var(--accent-dark)',
-                          }}
+                          className="h4" color="var(--ink)"
                         >
                           Configuración de turnos de exhibidores
                         </Typography>
@@ -2955,25 +2872,14 @@ const Exhibitors = () => {
                           con sus días, horarios, y ubicaciones asociadas.
                         </Typography>
                       </Box>
-                      <Button
-                        variant="contained"
+                      <AppButton
+                        variant="main"
+                        disableAutoStretch
                         onClick={() => handleOpenTurnConfig()}
-                        startIcon={<IconAdd color="var(--always-white)" />}
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          borderRadius: 'var(--radius-l)',
-                          boxShadow: 'none',
-                          '&:hover': {
-                            backgroundColor: 'var(--accent-dark)',
-                            boxShadow: 'none',
-                          },
-                        }}
+                        startIcon={<IconAdd />}
                       >
                         Añadir turno
-                      </Button>
+                      </AppButton>
                     </Box>
 
                     {!settings?.turns || settings.turns.length === 0 ? (
@@ -2985,7 +2891,7 @@ const Exhibitors = () => {
                           padding: '16px',
                           backgroundColor: 'var(--accent-100)',
                           border: '1px dashed var(--line)',
-                          borderRadius: 'var(--radius-xl)',
+                          borderRadius: 'var(--shape-md)',
                           justifyContent: 'center',
                           py: '40px',
                         }}
@@ -3025,18 +2931,10 @@ const Exhibitors = () => {
                                 justifyContent: 'space-between',
                                 p: '20px',
                                 border: '1px solid var(--line)',
-                                borderRadius: 'var(--radius-l)',
+                                borderRadius: 'var(--shape-lg)',
                                 boxShadow: 'none',
                                 backgroundColor: 'var(--card)',
-                                borderLeft: '4px solid var(--accent-main)',
-                                transition:
-                                  'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                '&:hover': {
-                                  borderColor: 'var(--accent-main)',
-                                  boxShadow:
-                                    '0 6px 20px rgba(48, 108, 180, 0.08)',
-                                  transform: 'translateY(-2px)',
-                                },
+                                ...accentSurface('var(--accent-main)'),
                               }}
                             >
                               <Box
@@ -3070,7 +2968,7 @@ const Exhibitors = () => {
                                           color: 'var(--accent-dark)',
                                           fontWeight: '700',
                                           fontSize: '11px',
-                                          borderRadius: 'var(--radius-s)',
+                                          borderRadius: 'var(--shape-xs)',
                                         }}
                                       />
                                     );
@@ -3092,11 +2990,7 @@ const Exhibitors = () => {
                                     color="var(--accent-main)"
                                   />
                                   <Typography
-                                    style={{
-                                      fontWeight: '800',
-                                      fontSize: '15px',
-                                      color: 'var(--accent-dark)',
-                                    }}
+                                    className="h4" color="var(--ink)"
                                   >
                                     {turn.startTime} - {turn.endTime}
                                   </Typography>
@@ -3119,7 +3013,7 @@ const Exhibitors = () => {
                                     />
                                     <Typography
                                       style={{
-                                        fontSize: '12.5px',
+                                        fontSize: '12px',
                                         color: 'var(--grey-600)',
                                       }}
                                     >
@@ -3163,7 +3057,7 @@ const Exhibitors = () => {
                                               color: 'var(--grey-600)',
                                               fontSize: '11px',
                                               height: '22px',
-                                              borderRadius: 'var(--radius-s)',
+                                              borderRadius: 'var(--shape-xs)',
                                             }}
                                           />
                                         ))}
@@ -3200,7 +3094,7 @@ const Exhibitors = () => {
                                     '&:hover': {
                                       backgroundColor: 'var(--accent-100)',
                                     },
-                                    borderRadius: 'var(--radius-l)',
+                                    borderRadius: 'var(--shape-sm)',
                                   }}
                                 >
                                   Editar
@@ -3224,7 +3118,7 @@ const Exhibitors = () => {
                                     '&:hover': {
                                       backgroundColor: 'var(--error-150)',
                                     },
-                                    borderRadius: 'var(--radius-l)',
+                                    borderRadius: 'var(--shape-sm)',
                                   }}
                                 >
                                   Eliminar
@@ -3248,13 +3142,7 @@ const Exhibitors = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Hermanos responsables de turno
                       </Typography>
                       <Typography
@@ -3281,7 +3169,7 @@ const Exhibitors = () => {
                           padding: '16px',
                           backgroundColor: 'var(--accent-100)',
                           border: '1px dashed var(--line)',
-                          borderRadius: 'var(--radius-xl)',
+                          borderRadius: 'var(--shape-md)',
                           justifyContent: 'center',
                           py: '40px',
                         }}
@@ -3333,17 +3221,9 @@ const Exhibitors = () => {
                                   justifyContent: 'space-between',
                                   alignItems: 'center',
                                   border: '1px solid var(--line)',
-                                  borderRadius: 'var(--radius-l)',
+                                  borderRadius: 'var(--shape-sm)',
                                   boxShadow: 'none',
                                   backgroundColor: 'var(--card)',
-                                  transition:
-                                    'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                  '&:hover': {
-                                    borderColor: 'var(--accent-main)',
-                                    boxShadow:
-                                      '0 6px 16px rgba(48, 108, 180, 0.06)',
-                                    transform: 'translateY(-1px)',
-                                  },
                                 }}
                               >
                                 <Box
@@ -3357,7 +3237,7 @@ const Exhibitors = () => {
                                     sx={{
                                       width: '32px',
                                       height: '32px',
-                                      borderRadius: '50%',
+                                      borderRadius: 'var(--shape-full)',
                                       backgroundColor: isResponsible
                                         ? 'var(--accent-150)'
                                         : 'var(--grey-100)',
@@ -3392,21 +3272,15 @@ const Exhibitors = () => {
                                 </Box>
                                 <FormControlLabel
                                   control={
-                                    <Switch
+                                    // El interruptor compartido de la app. Era el
+                                    // de MUI en crudo con la pista repintada a
+                                    // mano, asi que ni su forma ni su tamano
+                                    // coincidian con los de Ajustes.
+                                    <AppSwitch
                                       checked={isResponsible}
                                       onChange={() =>
                                         handleToggleResponsible(bro.person_uid)
                                       }
-                                      sx={{
-                                        '& .MuiSwitch-switchBase.Mui-checked': {
-                                          color: 'var(--accent-main)',
-                                        },
-                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track':
-                                          {
-                                            backgroundColor:
-                                              'var(--accent-main)',
-                                          },
-                                      }}
                                     />
                                   }
                                   label={
@@ -3443,13 +3317,7 @@ const Exhibitors = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Asignaciones fijas por turno
                       </Typography>
                       <Typography
@@ -3506,14 +3374,9 @@ const Exhibitors = () => {
                           return (
                             <Box key={day} sx={{ mb: '12px' }}>
                               <Typography
-                                style={{
-                                  fontWeight: '800',
-                                  fontSize: '15px',
-                                  color: 'var(--accent-main)',
-                                  borderLeft: '4px solid var(--accent-main)',
-                                  paddingLeft: '12px',
-                                  marginBottom: '16px',
-                                }}
+                                className="h4"
+                                color="var(--ink)"
+                                style={{ marginBottom: '16px' }}
                               >
                                 {dayLabelCapitalized}
                               </Typography>
@@ -3538,7 +3401,7 @@ const Exhibitors = () => {
                                       sx={{
                                         padding: '20px',
                                         border: '1px solid var(--line)',
-                                        borderRadius: 'var(--radius-l)',
+                                        borderRadius: 'var(--shape-sm)',
                                         boxShadow: 'none',
                                         display: 'flex',
                                         flexDirection: 'column',
@@ -3570,7 +3433,7 @@ const Exhibitors = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '800',
-                                            fontSize: '14px',
+                                            fontSize: '13.5px',
                                             color: 'var(--accent-dark)',
                                           }}
                                         >
@@ -3624,7 +3487,7 @@ const Exhibitors = () => {
                                                 p: '12px',
                                                 border:
                                                   '1px solid var(--accent-150)',
-                                                borderRadius: 'var(--radius-l)',
+                                                borderRadius: 'var(--shape-sm)',
                                                 backgroundColor:
                                                   'var(--accent-100)',
                                               }}
@@ -3706,13 +3569,7 @@ const Exhibitors = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Matriz de disponibilidad de hermanos
                       </Typography>
                       <Typography
@@ -3819,7 +3676,7 @@ const Exhibitors = () => {
                                   justifyContent: 'space-between',
                                   p: '16px',
                                   border: '1px solid var(--line)',
-                                  borderRadius: 'var(--radius-l)',
+                                  borderRadius: 'var(--shape-sm)',
                                   backgroundColor: 'var(--card)',
                                   gap: '16px',
                                   transition: 'all 0.2s ease',
@@ -3842,7 +3699,7 @@ const Exhibitors = () => {
                                     sx={{
                                       width: '32px',
                                       height: '32px',
-                                      borderRadius: '50%',
+                                      borderRadius: 'var(--shape-full)',
                                       backgroundColor: 'var(--accent-150)',
                                       display: 'flex',
                                       justifyContent: 'center',
@@ -3862,7 +3719,7 @@ const Exhibitors = () => {
                                   <Typography
                                     style={{
                                       fontWeight: '700',
-                                      fontSize: '14.5px',
+                                      fontSize: '13.5px',
                                       color: 'var(--black)',
                                     }}
                                   >
@@ -3895,8 +3752,8 @@ const Exhibitors = () => {
                                         sx={{
                                           cursor: 'pointer',
                                           padding: '6px 14px',
-                                          borderRadius: '100px',
-                                          fontSize: '12.5px',
+                                          borderRadius: 'var(--shape-full)',
+                                          fontSize: '12px',
                                           fontWeight: '700',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -3912,8 +3769,7 @@ const Exhibitors = () => {
                                                   '1px solid var(--accent-main)',
                                                 '&:hover': {
                                                   backgroundColor:
-                                                    'var(--line)',
-                                                  transform: 'translateY(-1px)',
+                                                    'var(--state-selected-strong)',
                                                 },
                                               }
                                             : {
@@ -3923,9 +3779,7 @@ const Exhibitors = () => {
                                                 border: '1px solid var(--line)',
                                                 '&:hover': {
                                                   backgroundColor:
-                                                    'var(--accent-100)',
-                                                  borderColor: 'var(--line)',
-                                                  transform: 'translateY(-1px)',
+                                                    'var(--state-hover)',
                                                 },
                                               }),
                                         }}
@@ -3942,7 +3796,7 @@ const Exhibitors = () => {
                                               display: 'inline-block',
                                               width: '5px',
                                               height: '5px',
-                                              borderRadius: '50%',
+                                              borderRadius: 'var(--shape-full)',
                                               backgroundColor:
                                                 'var(--grey-400)',
                                             }}
@@ -3987,7 +3841,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4153,7 +4007,15 @@ const Exhibitors = () => {
                 );
               })}
 
-              {/* Ubicación Personalizada */}
+              {/* Ubicación Personalizada.
+                  Sin `label`: este es un `Select` de MUI suelto, sin el
+                  `FormControl` + `InputLabel` que hacen falta para que la
+                  etiqueta se dibuje. La prop `label="Ubicación"` que tenía no
+                  pintaba nada — solo reservaba hueco en un contorno que aquí
+                  tampoco existe. El rótulo de verdad es el Typography de
+                  encima, que es la convención de ESTE diálogo (y tiene que
+                  serlo: "Días aplicables" rotula un grupo de casillas, y eso
+                  no puede ir dentro de ningún campo). */}
               <Select
                 value={editDialog.location}
                 onChange={(e) =>
@@ -4161,7 +4023,6 @@ const Exhibitors = () => {
                 }
                 size="small"
                 fullWidth
-                label="Ubicación"
               >
                 {settings?.turns
                   ?.find((t) => t.id === editDialog.turnId)
@@ -4224,7 +4085,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4297,7 +4158,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4351,7 +4212,7 @@ const Exhibitors = () => {
               helperText='Sale debajo de "Los turnos de exhibidores están suspendidos este mes." en Programas semanales.'
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                 },
               }}
             />
@@ -4387,7 +4248,7 @@ const Exhibitors = () => {
                       key={turn.id}
                       sx={{
                         border: '1px solid var(--line)',
-                        borderRadius: 'var(--radius-l)',
+                        borderRadius: 'var(--shape-sm)',
                         boxShadow: 'none',
                         p: '12px',
                         display: 'flex',
@@ -4443,7 +4304,7 @@ const Exhibitors = () => {
                               handleDeleteGlobalTurn(turn.id, true)
                             }
                           >
-                            <IconDelete />
+                            <IconDelete color="var(--red-main)" />
                           </IconButton>
                         </Box>
                       )}
@@ -4525,7 +4386,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4611,7 +4472,7 @@ const Exhibitors = () => {
                 fullWidth
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                   },
                 }}
               />
@@ -4636,7 +4497,7 @@ const Exhibitors = () => {
                 fullWidth
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                   },
                 }}
               />
@@ -4719,7 +4580,7 @@ const Exhibitors = () => {
               sx={{
                 flexGrow: 1,
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                 },
               }}
               onKeyDown={(e) => {

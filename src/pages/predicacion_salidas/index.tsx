@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Switch,
   FormControlLabel,
   TextField,
   Tabs,
@@ -35,6 +34,7 @@ import { Typography } from '@components/index';
 // el resto de la app. Se importa con alias porque esta página todavía usa el
 // Button de MUI en el cuerpo; los pies de diálogo ya migran al del sistema.
 import AppButton from '@components/button';
+import SegmentedControl from '@components/segmented_control';
 import {
   isOutingsMonthPublished,
   outingsMonthNeedsPublishing,
@@ -42,6 +42,8 @@ import {
 } from '@services/app/service_outings_publish';
 import Checkbox from '@components/checkbox';
 import SwitchWithLabel from '@components/switch_with_label';
+import AppSwitch from '@components/switch';
+import AppSelect from '@components/select';
 import Divider from '@components/divider';
 import InfoTip from '@components/info_tip';
 import {
@@ -1390,7 +1392,7 @@ const PredicacionSalidas = () => {
               sx={{
                 width: '280px',
                 flexShrink: 0,
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-md)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -1404,10 +1406,7 @@ const PredicacionSalidas = () => {
               <Box
                 sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
               >
-                <Typography
-                  className="h3"
-                  style={{ color: 'var(--accent-main)' }}
-                >
+                <Typography className="h3" color="var(--ink)">
                   Seleccionar Año
                 </Typography>
                 <Select
@@ -1416,7 +1415,7 @@ const PredicacionSalidas = () => {
                   size="small"
                   fullWidth
                   sx={{
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     borderColor: 'var(--line)',
                   }}
                 >
@@ -1430,10 +1429,7 @@ const PredicacionSalidas = () => {
 
               <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
 
-              <Typography
-                className="h3"
-                style={{ color: 'var(--accent-main)' }}
-              >
+              <Typography className="h3" color="var(--ink)">
                 Meses
               </Typography>
               <List
@@ -1448,10 +1444,7 @@ const PredicacionSalidas = () => {
                       selected={isSelected}
                       onClick={() => setSelectedMonth(idx)}
                       sx={{
-                        borderRadius: 'var(--radius-l)',
-                        borderLeft: isSelected
-                          ? '4px solid var(--accent-main)'
-                          : '4px solid transparent',
+                        borderRadius: 'var(--shape-sm)',
                         backgroundColor: isSelected
                           ? 'var(--accent-150)'
                           : 'transparent',
@@ -1514,7 +1507,12 @@ const PredicacionSalidas = () => {
               >
                 <Typography
                   className="h2"
-                  style={{ color: 'var(--accent-main)', margin: 0 }}
+                  // El título de la sección iba en azul de marca; en esta app
+                  // los encabezados van con la tinta normal y el azul se
+                  // reserva para lo que se pulsa.
+                  color="var(--ink)"
+                  sx={{ minWidth: 0 }}
+                  style={{ margin: 0 }}
                 >
                   {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
                 </Typography>
@@ -1524,113 +1522,49 @@ const PredicacionSalidas = () => {
                     display: 'flex',
                     gap: '12px',
                     alignItems: 'center',
-                    flexWrap: 'wrap',
+                    // Los dos controles NO se separan uno del otro: lo que
+                    // cede cuando falta sitio es el título, que puede pasar a
+                    // dos líneas.
+                    flexWrap: 'nowrap',
+                    flexShrink: 0,
                   }}
                 >
+                  {/* El `Button` compartido de la app. Era un Button de MUI en
+                      crudo: radio de 12px cuando todos los botones son
+                      píldoras, `textTransform: none` cuando la app los pone en
+                      mayúsculas, y `fontWeight: bold` a mano. Cuando el mes
+                      tiene excepciones se pone naranja, y eso ya lo sabe hacer
+                      el componente con su prop `color`. */}
                   {isServiceCommittee && (
-                    <Button
+                    <AppButton
                       variant={
-                        isCurrentlyOverridden || monthCancelled
-                          ? 'contained'
-                          : 'outlined'
+                        isCurrentlyOverridden || monthCancelled ? 'main' : 'tertiary'
                       }
-                      color="primary"
-                      size="small"
+                      color={
+                        isCurrentlyOverridden || monthCancelled ? 'orange' : undefined
+                      }
+                      disableAutoStretch
                       onClick={handleOpenMonthlySettings}
-                      startIcon={
-                        <IconSettings
-                          color={
-                            isCurrentlyOverridden || monthCancelled
-                              ? 'var(--always-white)'
-                              : 'var(--accent-main)'
-                          }
-                          width={18}
-                          height={18}
-                        />
-                      }
-                      sx={{
-                        borderRadius: 'var(--radius-l)',
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        boxShadow: 'none',
-                        height: '36px',
-                        ...((isCurrentlyOverridden || monthCancelled) && {
-                          backgroundColor: 'var(--orange-main)',
-                          color: 'var(--always-white)',
-                          '&:hover': {
-                            backgroundColor: 'var(--orange-dark)',
-                          },
-                        }),
-                      }}
+                      startIcon={<IconSettings width={18} height={18} />}
                     >
                       Ajustes del mes
-                    </Button>
+                    </AppButton>
                   )}
-                  {/* Selector de modo de vista */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: '4px',
-                      backgroundColor: 'var(--accent-150)',
-                      padding: '4px',
-                      borderRadius: 'var(--radius-l)',
-                      border: '1px solid var(--line)',
-                    }}
-                  >
-                    <Button
-                      onClick={() => setPlannerViewMode('lista')}
-                      size="small"
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        borderRadius: 'var(--radius-s)',
-                        py: '4px',
-                        px: '16px',
-                        fontSize: '13px',
-                        boxShadow: 'none',
-                        ...(plannerViewMode === 'lista'
-                          ? {
-                              backgroundColor: 'var(--accent-main)',
-                              color: 'var(--always-white)',
-                              '&:hover': {
-                                backgroundColor: 'var(--accent-dark)',
-                              },
-                            }
-                          : {
-                              color: 'var(--grey-600)',
-                              '&:hover': { backgroundColor: 'var(--line)' },
-                            }),
-                      }}
-                    >
-                      Lista
-                    </Button>
-                    <Button
-                      onClick={() => setPlannerViewMode('mensual')}
-                      size="small"
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: '700',
-                        borderRadius: 'var(--radius-s)',
-                        py: '4px',
-                        px: '16px',
-                        fontSize: '13px',
-                        boxShadow: 'none',
-                        ...(plannerViewMode === 'mensual'
-                          ? {
-                              backgroundColor: 'var(--accent-main)',
-                              color: 'var(--always-white)',
-                              '&:hover': {
-                                backgroundColor: 'var(--accent-dark)',
-                              },
-                            }
-                          : {
-                              color: 'var(--grey-600)',
-                              '&:hover': { backgroundColor: 'var(--line)' },
-                            }),
-                      }}
-                    >
-                      Cuadrícula
-                    </Button>
+                  {/* El `SegmentedControl` compartido — el mismo de la ficha de
+                      territorio y del resto de la app. Aquí había uno propio y
+                      era el dibujo de "elegido" MÁS ruidoso que quedaba: el
+                      segmento activo se pintaba de azul macizo con texto
+                      blanco, mientras en todas las demás pantallas "elegido"
+                      es un tinte suave con la tinta oscura. */}
+                  <Box sx={{ flexShrink: 0, minWidth: '200px' }}>
+                    <SegmentedControl
+                      ariaLabel="Vista del programa"
+                      tabs={['Lista', 'Cuadrícula']}
+                      active={plannerViewMode === 'lista' ? 0 : 1}
+                      onChange={(i) =>
+                        setPlannerViewMode(i === 0 ? 'lista' : 'mensual')
+                      }
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -1722,14 +1656,8 @@ const PredicacionSalidas = () => {
                         >
                           <Typography
                             className="h3"
-                            style={{
-                              fontWeight: '700',
-                              color: 'var(--accent-main)',
-                              textTransform: 'none',
-                              borderLeft: '4px solid var(--accent-main)',
-                              paddingLeft: '12px',
-                              margin: 0,
-                            }}
+                            color="var(--ink)"
+                            style={{ margin: 0 }}
                           >
                             {weekLabel}
                           </Typography>
@@ -1762,7 +1690,7 @@ const PredicacionSalidas = () => {
                                 '&:hover': { color: 'var(--accent-main)' },
                               }}
                             >
-                              <IconSettings />
+                              <IconSettings color="var(--ink-2)" />
                             </IconButton>
                           )}
                         </Box>
@@ -1783,7 +1711,7 @@ const PredicacionSalidas = () => {
                                 key={dateKey}
                                 sx={{
                                   border: '1px solid var(--line)',
-                                  borderRadius: 'var(--radius-l)',
+                                  borderRadius: 'var(--shape-sm)',
                                   boxShadow: 'none',
                                   overflow: 'hidden',
                                 }}
@@ -1793,10 +1721,16 @@ const PredicacionSalidas = () => {
                                   sx={{
                                     px: '16px',
                                     py: '10px',
-                                    background:
-                                      'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
-                                    borderBottom:
-                                      '1px solid var(--accent-dark)',
+                                    // Era un degradado de 135° de azul a azul
+                                    // oscuro con texto blanco: el único de la
+                                    // app junto al de su gemela. La cabecera de
+                                    // una tarjeta en esta aplicación es un
+                                    // tinte plano con la tinta de marca —así lo
+                                    // hacen `card_header` y las secciones de
+                                    // Territorios— y además así sigue al tema
+                                    // oscuro sin tener que repintarse.
+                                    backgroundColor: 'var(--accent-100)',
+                                    borderBottom: '1px solid var(--line)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px',
@@ -1805,11 +1739,8 @@ const PredicacionSalidas = () => {
                                   <Typography
                                     className="label-small-semibold"
                                     style={{
-                                      fontWeight: '700',
-                                      color: 'var(--always-white)',
+                                      color: 'var(--accent-dark)',
                                       textTransform: 'capitalize',
-                                      letterSpacing: '0.02em',
-                                      opacity: 0.92,
                                     }}
                                   >
                                     {dayLabel}
@@ -1888,7 +1819,7 @@ const PredicacionSalidas = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '700',
-                                            fontSize: '15px',
+                                            fontSize: '16px',
                                             color: isCancelled
                                               ? 'var(--grey-500)'
                                               : 'var(--accent-main)',
@@ -1937,7 +1868,7 @@ const PredicacionSalidas = () => {
                                           <Typography
                                             style={{
                                               fontWeight: '600',
-                                              fontSize: '15px',
+                                              fontSize: '16px',
                                               color: brotherName
                                                 ? 'var(--black)'
                                                 : 'var(--error-main)',
@@ -1957,7 +1888,7 @@ const PredicacionSalidas = () => {
                                       >
                                         <Typography
                                           style={{
-                                            fontSize: '13px',
+                                            fontSize: '13.5px',
                                             color: isCancelled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -2098,7 +2029,7 @@ const PredicacionSalidas = () => {
                     return (
                       <Box
                         sx={{
-                          borderRadius: 'var(--radius-xl)',
+                          borderRadius: 'var(--shape-md)',
                           border: '1px solid var(--line)',
                           backgroundColor: 'var(--card)',
                           p: { mobile: '12px', tablet: '20px' },
@@ -2155,7 +2086,7 @@ const PredicacionSalidas = () => {
                                       minHeight: desktopUp ? '110px' : 'auto',
                                       backgroundColor: 'var(--accent-150)',
                                       border: '1px solid var(--line)',
-                                      borderRadius: 'var(--radius-l)',
+                                      borderRadius: 'var(--shape-sm)',
                                       opacity: 0.3,
                                     }}
                                   />
@@ -2181,24 +2112,19 @@ const PredicacionSalidas = () => {
                                       border: isSelected
                                         ? '2px solid var(--accent-main)'
                                         : '1px solid var(--line)',
-                                      borderRadius: 'var(--radius-l)',
+                                      borderRadius: 'var(--shape-sm)',
                                       p: '10px',
                                       display: 'flex',
                                       flexDirection: 'column',
                                       gap: '8px',
                                       height: '100%',
-                                      transition: 'all 0.2s ease',
                                       boxShadow: 'none',
-                                      '&:hover': {
-                                        borderColor: 'var(--line)',
-                                        boxShadow: 'var(--hover-shadow)',
-                                      },
                                     }}
                                   >
                                     <Typography
                                       style={{
                                         fontWeight: '800',
-                                        fontSize: '14px',
+                                        fontSize: '13.5px',
                                         color: isSelected
                                           ? 'var(--accent-main)'
                                           : 'var(--grey-600)',
@@ -2309,7 +2235,7 @@ const PredicacionSalidas = () => {
                                                 backgroundColor: bgColor,
                                                 color: textColor,
                                                 border: 'none',
-                                                borderRadius: 'var(--radius-l)',
+                                                borderRadius: 'var(--shape-sm)',
                                                 p: '6px 8px',
                                                 cursor: isServiceCommittee
                                                   ? 'pointer'
@@ -2324,10 +2250,6 @@ const PredicacionSalidas = () => {
                                                   'var(--small-card-shadow)',
                                                 '&:hover': isServiceCommittee
                                                   ? {
-                                                      transform:
-                                                        'translateY(-1px)',
-                                                      boxShadow:
-                                                        'var(--hover-shadow)',
                                                       backgroundColor:
                                                         hoverBgColor,
                                                     }
@@ -2337,7 +2259,7 @@ const PredicacionSalidas = () => {
                                               <span
                                                 style={{
                                                   fontWeight: '800',
-                                                  fontSize: '11.5px',
+                                                  fontSize: '11px',
                                                   whiteSpace: 'nowrap',
                                                   opacity: 0.9,
                                                 }}
@@ -2407,7 +2329,7 @@ const PredicacionSalidas = () => {
                                       border: isSelected
                                         ? '2px solid var(--accent-main)'
                                         : '1px solid var(--line)',
-                                      borderRadius: 'var(--radius-l)',
+                                      borderRadius: 'var(--shape-sm)',
                                       display: 'flex',
                                       flexDirection: 'column',
                                       justifyContent: 'center',
@@ -2422,7 +2344,7 @@ const PredicacionSalidas = () => {
                                     <Typography
                                       style={{
                                         fontWeight: '700',
-                                        fontSize: '14px',
+                                        fontSize: '13.5px',
                                         color: isSelected
                                           ? 'var(--accent-dark)'
                                           : 'var(--grey-700)',
@@ -2447,7 +2369,7 @@ const PredicacionSalidas = () => {
                                           sx={{
                                             width: '5px',
                                             height: '5px',
-                                            borderRadius: '50%',
+                                            borderRadius: 'var(--shape-full)',
                                             backgroundColor:
                                               dotColor === 'green'
                                                 ? 'var(--green-main)'
@@ -2471,7 +2393,7 @@ const PredicacionSalidas = () => {
                             <Card
                               sx={{
                                 border: '1px solid var(--line)',
-                                borderRadius: 'var(--radius-l)',
+                                borderRadius: 'var(--shape-sm)',
                                 boxShadow: 'none',
                                 overflow: 'hidden',
                               }}
@@ -2518,7 +2440,7 @@ const PredicacionSalidas = () => {
                                       <Typography
                                         style={{
                                           color: 'var(--grey-500)',
-                                          fontSize: '14px',
+                                          fontSize: '13.5px',
                                           fontStyle: 'italic',
                                         }}
                                       >
@@ -2612,7 +2534,7 @@ const PredicacionSalidas = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '700',
-                                            fontSize: '15px',
+                                            fontSize: '16px',
                                             color: isCancelled
                                               ? 'var(--grey-500)'
                                               : 'var(--accent-main)',
@@ -2660,7 +2582,7 @@ const PredicacionSalidas = () => {
                                           <Typography
                                             style={{
                                               fontWeight: '600',
-                                              fontSize: '15px',
+                                              fontSize: '16px',
                                               color: brotherName
                                                 ? 'var(--black)'
                                                 : 'var(--error-main)',
@@ -2679,7 +2601,7 @@ const PredicacionSalidas = () => {
                                       >
                                         <Typography
                                           style={{
-                                            fontSize: '13px',
+                                            fontSize: '13.5px',
                                             color: isCancelled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -2709,7 +2631,7 @@ const PredicacionSalidas = () => {
             /* VISTA DE CONFIGURACIÓN GLOBAL */
             <Box
               sx={{
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-lg)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 overflow: 'hidden',
@@ -2724,26 +2646,19 @@ const PredicacionSalidas = () => {
                 sx={{
                   px: { mobile: '20px', tablet: '28px' },
                   py: { mobile: '16px', tablet: '20px' },
-                  background:
-                    'linear-gradient(135deg, var(--accent-main) 0%, var(--accent-dark) 100%)',
+                  // Mismo caso que la cabecera del día: degradado fuera,
+                  // tinte plano del tema dentro.
+                  backgroundColor: 'var(--accent-100)',
+                  borderBottom: '1px solid var(--line)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                 }}
               >
-                <IconSettings
-                  width={22}
-                  height={22}
-                  color="var(--always-white)"
-                />
+                <IconSettings width={22} height={22} color="var(--accent-dark)" />
                 <Typography
                   className="h3"
-                  style={{
-                    color: 'var(--always-white)',
-                    margin: 0,
-                    fontWeight: 800,
-                    letterSpacing: '-0.3px',
-                  }}
+                  style={{ color: 'var(--accent-dark)', margin: 0 }}
                 >
                   Configuración de salidas de predicación
                 </Typography>
@@ -2756,32 +2671,46 @@ const PredicacionSalidas = () => {
                   scrollButtons="auto"
                   allowScrollButtonsMobile
                   sx={{
-                    borderBottom: '1px solid var(--line)',
-                    marginBottom: '28px',
+                    marginBottom: '24px',
                     width: '100%',
                     maxWidth: '100%',
-                    '& .MuiTabs-scroller': {
-                      overflowX: 'auto !important',
-                    },
+                    minHeight: 'unset',
+                    // Sin subrayado y sin MAYUSCULAS: lo elegido se marca con
+                    // el tinte de marca, igual que las pestanas del resto de la
+                    // app (`components/tabs`, `scrollable_tabs`, la tira de
+                    // semanas y el selector de vista de esta misma pagina).
+                    // Aqui habia un subrayado azul de 3px con el texto en azul
+                    // — un dibujo de "elegido" mas, y el que menos se parecia
+                    // al de al lado.
+                    padding: '4px 0',
+                    '& .MuiTabs-scroller': { overflowX: 'auto !important' },
+                    '& .MuiTabs-flexContainer': { gap: '4px' },
                     '& .MuiTabs-indicator': {
-                      backgroundColor: 'var(--accent-main)',
-                      height: '3px',
-                      borderRadius: '3px 3px 0 0',
+                      backgroundColor: 'transparent',
+                      height: 0,
                     },
                     '& .MuiTab-root': {
-                      fontWeight: '700',
+                      minHeight: '40px',
+                      textTransform: 'none',
+                      px: '16px',
                       fontSize: '13.5px',
-                      minHeight: '48px',
-                      color: 'var(--grey-600)',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      px: '20px',
-                      '&.Mui-selected': {
-                        color: 'var(--accent-main)',
-                      },
+                      transition:
+                        'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
+                    },
+                    '& .MuiTab-root.Mui-selected': {
+                      color: 'var(--state-selected-ink)',
+                      backgroundColor: 'var(--state-selected)',
+                      borderRadius: 'var(--shape-full)',
+                      fontWeight: 600,
                       '&:hover': {
-                        color: 'var(--accent-dark)',
-                        backgroundColor: 'rgba(48, 108, 180, 0.04)',
-                        borderRadius: 'var(--radius-m) var(--radius-m) 0 0',
+                        backgroundColor: 'var(--state-selected-strong)',
+                      },
+                    },
+                    '& .MuiTab-root:not(.Mui-selected)': {
+                      color: 'var(--ink-3)',
+                      '&:hover': {
+                        backgroundColor: 'var(--state-hover)',
+                        borderRadius: 'var(--shape-full)',
                       },
                     },
                   }}
@@ -2802,13 +2731,7 @@ const PredicacionSalidas = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Lugares de salidas
                       </Typography>
                       <Typography
@@ -2829,6 +2752,17 @@ const PredicacionSalidas = () => {
                         maxWidth: '500px',
                         width: '100%',
                         flexDirection: { mobile: 'column', tablet: 'row' },
+                        // `alignItems: center` no es un detalle de espaciado.
+                        // Sin el, el contenedor estira el boton hasta el alto
+                        // del campo (56px), asi que los dos compartian borde
+                        // superior e inferior exactos y el ojo los leia como UN
+                        // solo objeto — y un objeto con dos radios distintos
+                        // canta. Con el boton a su alto normal (40) son dos
+                        // cosas separadas, y cada una se queda con la forma que
+                        // le toca por su papel: el campo cuadradito, el boton
+                        // pildora. De paso, el boton deja de ser un 40% mas
+                        // alto que todos los demas botones de la app.
+                        alignItems: 'center',
                       }}
                     >
                       <TextField
@@ -2839,32 +2773,19 @@ const PredicacionSalidas = () => {
                         fullWidth
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                           },
                         }}
                       />
-                      <Button
-                        variant="contained"
+                      <AppButton
+                        variant="main"
+                        disableAutoStretch
                         onClick={handleAddLocation}
-                        startIcon={<IconAdd color="var(--always-white)" />}
-                        sx={{
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          borderRadius: 'var(--radius-l)',
-                          boxShadow: 'none',
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          py: '8px',
-                          px: '20px',
-                          whiteSpace: 'nowrap',
-                          '&:hover': {
-                            backgroundColor: 'var(--accent-dark)',
-                            boxShadow: 'none',
-                          },
-                        }}
+                        startIcon={<IconAdd />}
+                        sx={{ whiteSpace: 'nowrap' }}
                       >
                         Añadir
-                      </Button>
+                      </AppButton>
                     </Box>
 
                     <Box
@@ -2888,16 +2809,9 @@ const PredicacionSalidas = () => {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             border: '1px solid var(--line)',
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                             boxShadow: 'none',
                             backgroundColor: 'var(--card)',
-                            transition:
-                              'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                            '&:hover': {
-                              borderColor: 'var(--accent-main)',
-                              boxShadow: '0 6px 16px rgba(48, 108, 180, 0.06)',
-                              transform: 'translateY(-2px)',
-                            },
                           }}
                         >
                           <Box
@@ -2929,7 +2843,7 @@ const PredicacionSalidas = () => {
                                 sx={{
                                   color: 'var(--error-main)',
                                   padding: '6px',
-                                  borderRadius: 'var(--radius-l)',
+                                  borderRadius: 'var(--shape-sm)',
                                   '&:hover': {
                                     backgroundColor: 'var(--error-150)',
                                   },
@@ -2955,13 +2869,7 @@ const PredicacionSalidas = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Horarios semanales
                       </Typography>
                       <Typography
@@ -3026,7 +2934,7 @@ const PredicacionSalidas = () => {
                             key={dayGroup.dayLabel}
                             sx={{
                               border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               boxShadow: 'none',
                               overflow: 'hidden',
                               backgroundColor: 'var(--card)',
@@ -3060,7 +2968,7 @@ const PredicacionSalidas = () => {
                                 style={{
                                   fontWeight: '800',
                                   color: 'var(--accent-dark)',
-                                  fontSize: '14.5px',
+                                  fontSize: '13.5px',
                                 }}
                               >
                                 {dayGroup.dayLabel}
@@ -3123,7 +3031,7 @@ const PredicacionSalidas = () => {
                                         </Typography>
                                         <Typography
                                           style={{
-                                            fontSize: '11.5px',
+                                            fontSize: '11px',
                                             color: isDisabled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -3137,7 +3045,7 @@ const PredicacionSalidas = () => {
 
                                       <FormControlLabel
                                         control={
-                                          <Switch
+                                          <AppSwitch
                                             checked={!isDisabled}
                                             onChange={async (e) => {
                                               const checked = e.target.checked;
@@ -3185,17 +3093,6 @@ const PredicacionSalidas = () => {
                                                   });
                                                 }
                                               }
-                                            }}
-                                            sx={{
-                                              '& .MuiSwitch-switchBase.Mui-checked':
-                                                {
-                                                  color: 'var(--accent-main)',
-                                                },
-                                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track':
-                                                {
-                                                  backgroundColor:
-                                                    'var(--accent-main)',
-                                                },
                                             }}
                                           />
                                         }
@@ -3252,7 +3149,7 @@ const PredicacionSalidas = () => {
                                         sx={{
                                           width: '100%',
                                           '& .MuiOutlinedInput-root': {
-                                            borderRadius: 'var(--radius-l)',
+                                            borderRadius: 'var(--shape-sm)',
                                           },
                                         }}
                                       />
@@ -3267,23 +3164,13 @@ const PredicacionSalidas = () => {
                     </Box>
 
                     <Box sx={{ mt: '8px' }}>
-                      <Button
-                        variant="contained"
+                      <AppButton
+                        variant="main"
+                        disableAutoStretch
                         onClick={handleSaveHoursConfig}
-                        sx={{
-                          backgroundColor: 'var(--accent-main)',
-                          borderRadius: 'var(--radius-l)',
-                          fontWeight: '700',
-                          textTransform: 'none',
-                          boxShadow: 'none',
-                          '&:hover': {
-                            backgroundColor: 'var(--accent-dark)',
-                            boxShadow: 'none',
-                          },
-                        }}
                       >
                         Guardar configuración de horas
-                      </Button>
+                      </AppButton>
                     </Box>
                   </Box>
                 )}
@@ -3298,13 +3185,7 @@ const PredicacionSalidas = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        style={{
-                          fontWeight: '800',
-                          fontSize: '16.5px',
-                          color: 'var(--accent-dark)',
-                        }}
-                      >
+                      <Typography className="h4" color="var(--ink)">
                         Disponibilidad preferente por hermano
                       </Typography>
                       <Typography
@@ -3329,7 +3210,7 @@ const PredicacionSalidas = () => {
                           padding: '16px',
                           backgroundColor: 'var(--accent-100)',
                           border: '1px dashed var(--line)',
-                          borderRadius: 'var(--radius-xl)',
+                          borderRadius: 'var(--shape-md)',
                           justifyContent: 'center',
                           py: '40px',
                         }}
@@ -3404,7 +3285,7 @@ const PredicacionSalidas = () => {
                                 justifyContent: 'space-between',
                                 gap: '16px',
                                 border: '1px solid var(--line)',
-                                borderRadius: 'var(--radius-l)',
+                                borderRadius: 'var(--shape-sm)',
                                 boxShadow: 'none',
                                 backgroundColor: 'var(--card)',
                                 transition:
@@ -3429,7 +3310,7 @@ const PredicacionSalidas = () => {
                                   sx={{
                                     width: '32px',
                                     height: '32px',
-                                    borderRadius: '50%',
+                                    borderRadius: 'var(--shape-full)',
                                     backgroundColor: 'var(--accent-150)',
                                     border: '1px solid var(--line)',
                                     display: 'flex',
@@ -3440,7 +3321,7 @@ const PredicacionSalidas = () => {
                                   <Typography
                                     style={{
                                       fontWeight: '800',
-                                      fontSize: '12.5px',
+                                      fontSize: '12px',
                                       color: 'var(--accent-dark)',
                                     }}
                                   >
@@ -3497,8 +3378,8 @@ const PredicacionSalidas = () => {
                                         }
                                         sx={{
                                           fontWeight: '700',
-                                          fontSize: '11.5px',
-                                          borderRadius: 'var(--radius-l)',
+                                          fontSize: '11px',
+                                          borderRadius: 'var(--shape-sm)',
                                           cursor: 'pointer',
                                           height: '28px',
                                           transition:
@@ -3546,7 +3427,7 @@ const PredicacionSalidas = () => {
                       Salidas compartidas con otras congregaciones
                     </Typography>
                     <Typography
-                      style={{ color: 'var(--grey-600)', fontSize: '14px' }}
+                      style={{ color: 'var(--grey-600)', fontSize: '13.5px' }}
                     >
                       Registra los turnos de salidas semanales que se llevan a
                       cabo de forma conjunta con congregaciones vecinas. Al
@@ -3561,32 +3442,31 @@ const PredicacionSalidas = () => {
                         maxWidth: '600px',
                         width: '100%',
                         flexDirection: { mobile: 'column', tablet: 'row' },
-                        alignItems: 'flex-end',
+                        // Los campos miden 56 y el boton 40: centrado. Con
+                        // `flex-end` el boton quedaba colgado del borde
+                        // inferior del campo, soldado a el (ver §6.5).
+                        alignItems: 'center',
                       }}
                     >
-                      <Box
-                        sx={{
-                          flex: 1,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
-                        }}
-                      >
-                        <Typography
-                          style={{
-                            fontWeight: '600',
-                            fontSize: '13px',
-                            color: 'var(--accent-main)',
-                          }}
-                        >
-                          Turno de la semana
-                        </Typography>
-                        <Select
+                      {/* El desplegable era un `Select` de MUI en crudo, SIN
+                          etiqueta dentro. El campo de la app mide 56px de alto
+                          solo cuando lleva la etiqueta dentro (ver el bloque
+                          «EL CAMPO»), asi que este se quedaba en la altura
+                          suelta de MUI y salia mas bajo que el campo de al
+                          lado. Con el `Select` compartido —que si trae su
+                          etiqueta dentro— los dos miden lo mismo por
+                          construccion, no por un alto escrito a mano.
+
+                          Y de paso desaparece el rotulo azul de encima: cada
+                          columna decia su nombre DOS veces (fuera "Congregacion
+                          vecina" y dentro "Nombre de la congregacion"). */}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <AppSelect
+                          label="Turno de la semana"
                           value={sharedSlotKey}
-                          onChange={(e) => setSharedSlotKey(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ borderRadius: 'var(--radius-l)' }}
+                          onChange={(e) =>
+                            setSharedSlotKey(e.target.value as string)
+                          }
                         >
                           {[
                             { key: 'monday_morning', label: 'Lunes Mañana' },
@@ -3620,64 +3500,28 @@ const PredicacionSalidas = () => {
                               {s.label}
                             </MenuItem>
                           ))}
-                        </Select>
+                        </AppSelect>
                       </Box>
 
-                      <Box
-                        sx={{
-                          flex: 1,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
-                        }}
-                      >
-                        <Typography
-                          style={{
-                            fontWeight: '600',
-                            fontSize: '13px',
-                            color: 'var(--accent-main)',
-                          }}
-                        >
-                          Congregación vecina
-                        </Typography>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
                         <TextField
-                          label="Nombre de la congregación"
+                          label="Congregación vecina"
                           value={sharedCongregation}
                           onChange={(e) =>
                             setSharedCongregation(e.target.value)
                           }
-                          size="small"
                           fullWidth
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 'var(--radius-l)',
-                            },
-                          }}
                         />
                       </Box>
 
-                      <Button
-                        variant="contained"
+                      <AppButton
+                        variant="main"
+                        disableAutoStretch
                         onClick={handleAddSharedSlot}
-                        startIcon={<IconAdd color="var(--always-white)" />}
-                        sx={{
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          borderRadius: 'var(--radius-l)',
-                          boxShadow: 'none',
-                          textTransform: 'none',
-                          fontWeight: '700',
-                          py: '8px',
-                          px: '20px',
-                          height: '40px',
-                          '&:hover': {
-                            backgroundColor: 'var(--accent-dark)',
-                            boxShadow: 'none',
-                          },
-                        }}
+                        startIcon={<IconAdd />}
                       >
                         Añadir
-                      </Button>
+                      </AppButton>
                     </Box>
 
                     <Box
@@ -3718,17 +3562,9 @@ const PredicacionSalidas = () => {
                               justifyContent: 'space-between',
                               alignItems: 'center',
                               border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               boxShadow: 'none',
                               backgroundColor: 'var(--card)',
-                              transition:
-                                'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                              '&:hover': {
-                                borderColor: 'var(--accent-main)',
-                                boxShadow:
-                                  '0 6px 16px rgba(48, 108, 180, 0.06)',
-                                transform: 'translateY(-2px)',
-                              },
                             }}
                           >
                             <Box
@@ -3742,7 +3578,7 @@ const PredicacionSalidas = () => {
                                 sx={{
                                   width: '32px',
                                   height: '32px',
-                                  borderRadius: '50%',
+                                  borderRadius: 'var(--shape-full)',
                                   backgroundColor: 'var(--accent-150)',
                                   border: '1px solid var(--line)',
                                   display: 'flex',
@@ -3785,7 +3621,7 @@ const PredicacionSalidas = () => {
                               sx={{
                                 color: 'var(--error-main)',
                                 padding: '6px',
-                                borderRadius: 'var(--radius-l)',
+                                borderRadius: 'var(--shape-sm)',
                                 '&:hover': {
                                   backgroundColor: 'var(--error-150)',
                                 },
@@ -3808,7 +3644,7 @@ const PredicacionSalidas = () => {
                           padding: '16px',
                           backgroundColor: 'var(--accent-100)',
                           border: '1px dashed var(--line)',
-                          borderRadius: 'var(--radius-xl)',
+                          borderRadius: 'var(--shape-md)',
                           justifyContent: 'center',
                           py: '30px',
                           width: '100%',
@@ -3843,7 +3679,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -3916,7 +3752,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             padding: '8px',
           },
         }}
@@ -3942,10 +3778,10 @@ const PredicacionSalidas = () => {
               variant="outlined"
               onClick={() => setEditCancelled(!editCancelled)}
               sx={{
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 fontWeight: '600',
                 textTransform: 'none',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 py: '6px',
                 px: '16px',
                 boxShadow: 'none',
@@ -3978,7 +3814,7 @@ const PredicacionSalidas = () => {
                 <Typography
                   style={{
                     fontWeight: '600',
-                    fontSize: '14px',
+                    fontSize: '13.5px',
                     color: 'var(--accent-dark)',
                   }}
                 >
@@ -3989,7 +3825,7 @@ const PredicacionSalidas = () => {
                   onChange={(e) => setEditPerson(e.target.value)}
                   fullWidth
                   size="small"
-                  sx={{ borderRadius: 'var(--radius-l)' }}
+                  sx={{ borderRadius: 'var(--shape-sm)' }}
                 >
                   <MenuItem value="">
                     <em>Ninguno / Sin asignar</em>
@@ -4101,7 +3937,7 @@ const PredicacionSalidas = () => {
                 <Typography
                   style={{
                     fontWeight: '600',
-                    fontSize: '14px',
+                    fontSize: '13.5px',
                     color: 'var(--accent-dark)',
                   }}
                 >
@@ -4112,7 +3948,7 @@ const PredicacionSalidas = () => {
                   onChange={(e) => setEditLocation(e.target.value)}
                   fullWidth
                   size="small"
-                  sx={{ borderRadius: 'var(--radius-l)' }}
+                  sx={{ borderRadius: 'var(--shape-sm)' }}
                 >
                   {settings?.locations?.map((loc) => (
                     <MenuItem key={loc} value={loc}>
@@ -4157,7 +3993,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4341,7 +4177,14 @@ const PredicacionSalidas = () => {
                               [slot.key]: `${hrs}:${mins}`,
                             });
                           }}
-                          sx={{ width: '130px' }}
+                          // `flex: 'none'` no es adorno: el TimePicker compartido trae
+                          // `flex: 1` de serie, que en un contenedor flexible
+                          // gana al `width` — asi que el campo crecia hasta
+                          // llenar el hueco y su borde izquierdo caia donde
+                          // acabase la etiqueta. Con etiquetas de largo distinto
+                          // ("Lunes Manana" vs "Miercoles Manana") la columna de
+                          // campos bajaba en zigzag.
+                          sx={{ flex: 'none', width: '130px' }}
                         />
                       </Box>
                     );
@@ -4431,7 +4274,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             padding: '12px',
           },
         }}
@@ -4440,7 +4283,7 @@ const PredicacionSalidas = () => {
           style={{
             fontWeight: '700',
             color: 'var(--accent-dark)',
-            fontSize: '18px',
+            fontSize: '18.5px',
           }}
         >
           Exportar programa a PDF
@@ -4454,7 +4297,7 @@ const PredicacionSalidas = () => {
             mt: '8px',
           }}
         >
-          <Typography style={{ color: 'var(--grey-600)', fontSize: '14px' }}>
+          <Typography style={{ color: 'var(--grey-600)', fontSize: '13.5px' }}>
             Selecciona el mes y año que deseas exportar en formato A4
             horizontal.
           </Typography>
@@ -4483,7 +4326,7 @@ const PredicacionSalidas = () => {
                 onChange={(e) => setPdfExportMonth(Number(e.target.value))}
                 fullWidth
                 size="small"
-                sx={{ borderRadius: 'var(--radius-l)' }}
+                sx={{ borderRadius: 'var(--shape-sm)' }}
               >
                 {MONTH_NAMES.map((name, idx) => (
                   <MenuItem key={name} value={idx}>
@@ -4516,7 +4359,7 @@ const PredicacionSalidas = () => {
                 onChange={(e) => setPdfExportYear(Number(e.target.value))}
                 fullWidth
                 size="small"
-                sx={{ borderRadius: 'var(--radius-l)' }}
+                sx={{ borderRadius: 'var(--shape-sm)' }}
               >
                 {years.map((y) => (
                   <MenuItem key={y} value={y}>
@@ -4557,7 +4400,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             padding: '12px',
           },
         }}
@@ -4566,7 +4409,7 @@ const PredicacionSalidas = () => {
           style={{
             fontWeight: '700',
             color: 'var(--accent-dark)',
-            fontSize: '18px',
+            fontSize: '18.5px',
           }}
         >
           Ajustes de la semana
@@ -4583,7 +4426,7 @@ const PredicacionSalidas = () => {
           <Typography
             style={{
               color: 'var(--grey-600)',
-              fontSize: '14px',
+              fontSize: '13.5px',
               marginBottom: '8px',
             }}
           >
@@ -4593,7 +4436,7 @@ const PredicacionSalidas = () => {
 
           <FormControlLabel
             control={
-              <Switch
+              <AppSwitch
                 checked={tempCOWeek}
                 onChange={(e) => {
                   const checked = e.target.checked;
@@ -4601,14 +4444,6 @@ const PredicacionSalidas = () => {
                   if (!checked) {
                     setShowAdjustHours(false);
                   }
-                }}
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': {
-                    color: 'var(--accent-main)',
-                  },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: 'var(--accent-main)',
-                  },
                 }}
               />
             }
@@ -4627,7 +4462,7 @@ const PredicacionSalidas = () => {
               sx={{
                 mt: '12px',
                 p: '16px',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 backgroundColor: 'var(--accent-100)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -4646,9 +4481,9 @@ const PredicacionSalidas = () => {
                 ¿Deseas ajustar el horario de las salidas de esta semana?
               </Typography>
               <Box sx={{ display: 'flex', gap: '8px' }}>
-                <Button
-                  size="small"
-                  variant="contained"
+                <AppButton
+                  variant="main"
+                  disableAutoStretch
                   onClick={() => {
                     setShowAdjustHours(true);
                     const weekMonthStr = weekSettingsDialog.weekOf.slice(0, 7);
@@ -4656,16 +4491,9 @@ const PredicacionSalidas = () => {
                       getEffectiveHoursForMonth(settings, weekMonthStr)
                     );
                   }}
-                  sx={{
-                    backgroundColor: 'var(--accent-main)',
-                    textTransform: 'none',
-                    fontWeight: '700',
-                    borderRadius: 'var(--radius-l)',
-                    boxShadow: 'none',
-                  }}
                 >
                   Sí
-                </Button>
+                </AppButton>
                 <Button
                   size="small"
                   variant="outlined"
@@ -4677,7 +4505,7 @@ const PredicacionSalidas = () => {
                     color: 'var(--accent-main)',
                     textTransform: 'none',
                     fontWeight: '700',
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                   }}
                 >
                   No
@@ -4703,7 +4531,7 @@ const PredicacionSalidas = () => {
               <Typography
                 style={{
                   fontWeight: '700',
-                  fontSize: '13px',
+                  fontSize: '13.5px',
                   color: 'var(--accent-main)',
                   margin: 0,
                 }}
@@ -4772,7 +4600,14 @@ const PredicacionSalidas = () => {
                           [slot.key]: `${hrs}:${mins}`,
                         });
                       }}
-                      sx={{ width: '130px' }}
+                      // `flex: 'none'` no es adorno: el TimePicker compartido trae
+                          // `flex: 1` de serie, que en un contenedor flexible
+                          // gana al `width` — asi que el campo crecia hasta
+                          // llenar el hueco y su borde izquierdo caia donde
+                          // acabase la etiqueta. Con etiquetas de largo distinto
+                          // ("Lunes Manana" vs "Miercoles Manana") la columna de
+                          // campos bajaba en zigzag.
+                          sx={{ flex: 'none', width: '130px' }}
                     />
                   </Box>
                 );
