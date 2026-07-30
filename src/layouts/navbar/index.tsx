@@ -681,7 +681,14 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       padding: '4px',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      borderRadius: 'var(--radius-xl)',
+                      // Concéntrico con lo que lleva dentro. Los botones de
+                      // acción pasaron a ser píldoras, y esta bandeja se quedó
+                      // en 16px: una caja medio cuadrada abrazando algo
+                      // totalmente redondo, con 4px de hueco. La regla es
+                      // `radio interior = radio exterior − hueco`, y con un
+                      // hijo redondo del todo eso solo se cumple si la bandeja
+                      // también lo es.
+                      borderRadius: 'var(--shape-full)',
                     }}
                   >
                     {navBarOptions.buttons}
