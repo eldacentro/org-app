@@ -45,8 +45,25 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
       <TableRow
         className="talk-list-item"
         onClick={canExpand ? () => handleToggleCollapse() : null}
+        role={canExpand ? 'button' : undefined}
+        tabIndex={canExpand ? 0 : undefined}
+        aria-expanded={canExpand ? collapseOpen : undefined}
+        onKeyDown={
+          canExpand
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggleCollapse();
+                }
+              }
+            : undefined
+        }
         sx={{
           cursor: canExpand ? 'pointer' : 'default',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '-2px',
+          },
           height: '48px',
           '& > .MuiTableCell-root': {
             borderBottomStyle: 'none',

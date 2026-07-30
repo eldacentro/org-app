@@ -48,6 +48,14 @@ const CustomThemeSwitch = ({
       </Box>
 
       <Switch
+        // Sin esto se anuncia como "casilla" a secas: el interruptor que cambia
+        // el tema de TODA la app no decía qué hace. Y dice a qué modo lleva,
+        // no en cuál estás, que es lo que se quiere saber antes de pulsar.
+        inputProps={{
+          'aria-label': checked
+            ? 'Cambiar al modo claro'
+            : 'Cambiar al modo oscuro',
+        }}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disableRipple

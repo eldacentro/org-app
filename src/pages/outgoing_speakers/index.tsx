@@ -699,8 +699,17 @@ const OutgoingSpeakersPage = () => {
                       {/* Collapsible Prepared Talks */}
                       <Box>
                         <Box
+                          aria-expanded={showTalks}
                           onClick={() => toggleTalks(speaker.person_uid)}
+                          component="button"
+                          type="button"
                           sx={{
+                            appearance: 'none',
+                            font: 'inherit',
+                            color: 'inherit',
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -709,6 +718,10 @@ const OutgoingSpeakersPage = () => {
                             px: 1,
                             borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
+                            '&:focus-visible': {
+                              outline: '2px solid var(--accent-main)',
+                              outlineOffset: '-2px',
+                            },
                           }}
                         >
                           <Typography className="h3" sx={{ fontWeight: '600' }}>
@@ -751,8 +764,17 @@ const OutgoingSpeakersPage = () => {
                       {/* Collapsible Assignments History */}
                       <Box sx={{ mt: 0.5 }}>
                         <Box
+                          aria-expanded={showHistory}
                           onClick={() => toggleHistory(speaker.person_uid)}
+                          component="button"
+                          type="button"
                           sx={{
+                            appearance: 'none',
+                            font: 'inherit',
+                            color: 'inherit',
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -761,6 +783,10 @@ const OutgoingSpeakersPage = () => {
                             px: 1,
                             borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
+                            '&:focus-visible': {
+                              outline: '2px solid var(--accent-main)',
+                              outlineOffset: '-2px',
+                            },
                           }}
                         >
                           <Typography className="h3" sx={{ fontWeight: '600' }}>
@@ -1009,6 +1035,10 @@ const OutgoingSpeakersPage = () => {
                             px: 1,
                             borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
+                            '&:focus-visible': {
+                              outline: '2px solid var(--accent-main)',
+                              outlineOffset: '-2px',
+                            },
                           }}
                         >
                           <Typography

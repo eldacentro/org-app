@@ -15,13 +15,27 @@ const DelegateReports = () => {
   return (
     <>
       <Box
+        component="button"
+        type="button"
+        aria-expanded={open}
         onClick={handleToggleCollapse}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          background: 'none',
+          border: 'none',
+          padding: 0,
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           cursor: 'pointer',
           width: 'fit-content',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
+            borderRadius: 'var(--shape-xs)',
+          },
         }}
       >
         <TabLabelWithBadge

@@ -51,9 +51,17 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
   return (
     <Box>
       <Box
+        component="button"
+        type="button"
+        aria-haspopup="listbox"
         className="active-press"
         onClick={handleOpenMenu}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          textAlign: 'left',
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -64,9 +72,14 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
           cursor: 'pointer',
           userSelect: 'none',
           boxShadow: 'var(--shadow-sm)',
-          transition: 'transform 0.14s, box-shadow 0.2s',
+          transition:
+            'transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-medium) var(--ease-standard)',
           '&:hover': {
             boxShadow: 'var(--shadow-md)',
+          },
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
           },
         }}
       >

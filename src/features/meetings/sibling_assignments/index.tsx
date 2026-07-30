@@ -18,13 +18,25 @@ const SiblingAssignment = ({
   return (
     <>
       <Box
+        component="button"
+        type="button"
+        aria-expanded={expanded}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          border: 'none',
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'var(--grey-350)',
           borderRadius: 'var(--shape-xs)',
           padding: '4px 8px',
           cursor: 'pointer',
+          '&:focus-visible': {
+            outline: '2px solid var(--always-white)',
+            outlineOffset: '-3px',
+          },
         }}
         onClick={handleToggle}
       >

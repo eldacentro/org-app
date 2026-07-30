@@ -76,7 +76,30 @@ Rompe algo, no solo se ve mal. **Cerrado salvo lo marcado.**
 - [x] El interruptor `others` de "nombre para mostrar", que no leía nadie
 - [x] Teclado: las 37 casillas del Inicio y la tira de 26 semanas
 - [x] Exhibidores: dos desplegables de +100 hermanos sin buscador
-- [ ] **Teclado: los 69 casos restantes**, en pantallas de menos tráfico
+- [x] **Teclado: los `div` pulsables.** Medido en el navegador ruta por ruta
+      (lo que se puede pulsar con el ratón y no con el teclado), no estimado.
+      Salían **~180**, no 69, y estaban concentrados en listas:
+      · Registros de publicadores: **90 filas** — la pantalla entera era
+        inalcanzable. Y venían de DOS `styled(Box)` idénticos byte a byte, los
+        dos llamados `UserCard`, tapando con ese nombre al `@components/
+        user_card` de verdad. Ahora hay uno: `@components/card_button`.
+      · Salidas de predicación: 62 filas de turno (tres sitios con la misma
+        forma). Solo son botón si eres del comité de servicio — una fila que no
+        lleva a ningún lado no debe aparecer al tabular.
+      · Asistencia: 11 cabeceras de mes. Discursos públicos: 8 filas.
+      · Los selectores de mes de las gemelas (`collapsible_selector`), el de
+        vista del Informe, el de reunión de Programas semanales, las dos
+        tarjetas de importar de Materiales, los plegables de Oradores
+        salientes, "Todos los días", "Todos los demás publicadores" y la
+        cabecera de grupo de idioma.
+      Una fila de TABLA no puede ser un `<button>` (no es HTML válido dentro de
+      un `<tr>`), así que ahí va el otro patrón: `tabIndex` + `role` + atender
+      a Intro y Espacio a mano.
+      **Quedan dos a propósito**: el sol/luna del interruptor de tema (el
+      `<input>` de dentro SÍ se alcanza, y ahora además tiene nombre) y las 8
+      filas de historial de Discursos públicos, que repiten el mismo toggle de
+      la fila de arriba — una segunda parada de tabulador para la misma acción
+      es peor que ninguna.
 - [ ] **Márgenes de iOS: el resto.** Solo 16 ficheros de ~94 con diálogo los
       tienen en cuenta. Peligroso solo cuando algo se ancla abajo.
 - [x] ~~Traducción de los 5 módulos sin `t()`~~ — **descartado a propósito**:

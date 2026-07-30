@@ -4,7 +4,7 @@ import {
   IconReportWaiting,
 } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
-import { UserCard } from './index.styles';
+import CardButton from '@components/card_button';
 import { PersonItemProps } from './index.types';
 import usePersonItem from './usePersonItem';
 import PersonDetails from '@features/persons/person_details';
@@ -17,7 +17,7 @@ const PersonItem = (props: PersonItemProps) => {
   const { t } = useAppTranslation();
 
   return (
-    <UserCard
+    <CardButton
       onClick={handleToggleSelect}
       sx={{
         borderColor: isSelected && 'var(--accent-main)',
@@ -43,7 +43,7 @@ const PersonItem = (props: PersonItemProps) => {
           <IconReportWaiting color="var(--accent-main)" />
         </Tooltip>
       )}
-    </UserCard>
+    </CardButton>
   );
 };
 

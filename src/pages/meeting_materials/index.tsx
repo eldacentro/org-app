@@ -154,7 +154,15 @@ const MeetingMaterials = () => {
 
   const [verAnteriores, setVerAnteriores] = useState(false);
 
+  // Reset de <button> incluido: la primera de estas dos tarjetas es un botón
+  // de verdad (la segunda lleva un <input type="file"> transparente encima,
+  // que ya se alcanza con el teclado por su cuenta).
   const botonSx = {
+    appearance: 'none',
+    font: 'inherit',
+    color: 'inherit',
+    textAlign: 'left',
+    width: '100%',
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
@@ -163,8 +171,12 @@ const MeetingMaterials = () => {
     borderRadius: 'var(--shape-sm)',
     backgroundColor: 'var(--accent-100)',
     cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
+    transition: 'background-color var(--motion-fast) var(--ease-standard)',
     '&:hover': { backgroundColor: 'var(--accent-200)' },
+    '&:focus-visible': {
+      outline: '2px solid var(--accent-main)',
+      outlineOffset: '2px',
+    },
   };
 
   return (
@@ -174,7 +186,12 @@ const MeetingMaterials = () => {
       {/* ── Importar ────────────────────────────────────────────────────── */}
       <Stack spacing="12px">
         {isNavigatorOnline && (
-          <Box sx={botonSx} onClick={handleOpenJWImport}>
+          <Box
+            component="button"
+            type="button"
+            sx={botonSx}
+            onClick={handleOpenJWImport}
+          >
             <IconJwOrg color="var(--accent-main)" width={22} height={22} />
             <Box>
               <Typography className="h4" color="var(--ink)">

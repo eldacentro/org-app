@@ -1756,8 +1756,22 @@ const PredicacionSalidas = () => {
                                   return (
                                     <Box
                                       key={slot.slotId}
+                                      component={isServiceCommittee ? 'button' : 'div'}
+                                      type={isServiceCommittee ? 'button' : undefined}
                                       onClick={() => handleOpenEdit(slot)}
                                       sx={{
+                                        ...(isServiceCommittee && {
+                                          appearance: 'none',
+                                          font: 'inherit',
+                                          color: 'inherit',
+                                          textAlign: 'left',
+                                          border: 'none',
+                                          width: '100%',
+                                          '&:focus-visible': {
+                                            outline: '2px solid var(--accent-main)',
+                                            outlineOffset: '-2px',
+                                          },
+                                        }),
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '16px',
@@ -2199,10 +2213,31 @@ const PredicacionSalidas = () => {
                                           return (
                                             <Box
                                               key={slot.slotId}
+                                              component={
+                                                isServiceCommittee
+                                                  ? 'button'
+                                                  : 'div'
+                                              }
+                                              type={
+                                                isServiceCommittee
+                                                  ? 'button'
+                                                  : undefined
+                                              }
                                               onClick={() =>
                                                 handleOpenEdit(slot)
                                               }
                                               sx={{
+                                                ...(isServiceCommittee && {
+                                                  appearance: 'none',
+                                                  font: 'inherit',
+                                                  textAlign: 'left',
+                                                  width: '100%',
+                                                  '&:focus-visible': {
+                                                    outline:
+                                                      '2px solid var(--accent-main)',
+                                                    outlineOffset: '-2px',
+                                                  },
+                                                }),
                                                 backgroundColor: bgColor,
                                                 color: textColor,
                                                 border: 'none',
@@ -2216,7 +2251,7 @@ const PredicacionSalidas = () => {
                                                 alignItems: 'center',
                                                 gap: '6px',
                                                 transition:
-                                                  'all 0.2s ease-in-out',
+                                                  'background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                                 boxShadow:
                                                   'var(--small-card-shadow)',
                                                 '&:hover': isServiceCommittee
@@ -2472,8 +2507,22 @@ const PredicacionSalidas = () => {
                                   return (
                                     <Box
                                       key={slot.slotId}
+                                      component={isServiceCommittee ? 'button' : 'div'}
+                                      type={isServiceCommittee ? 'button' : undefined}
                                       onClick={() => handleOpenEdit(slot)}
                                       sx={{
+                                        ...(isServiceCommittee && {
+                                          appearance: 'none',
+                                          font: 'inherit',
+                                          color: 'inherit',
+                                          textAlign: 'left',
+                                          border: 'none',
+                                          width: '100%',
+                                          '&:focus-visible': {
+                                            outline: '2px solid var(--accent-main)',
+                                            outlineOffset: '-2px',
+                                          },
+                                        }),
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '16px',

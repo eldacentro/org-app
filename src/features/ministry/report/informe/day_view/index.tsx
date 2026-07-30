@@ -117,13 +117,27 @@ const DayView = () => {
       </CardContainer>
 
       <Stack
+        component="button"
+        type="button"
+        aria-expanded={showAllDays}
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         onClick={() => setShowAllDays((prev) => !prev)}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          background: 'none',
+          border: 'none',
+          width: '100%',
           cursor: 'pointer',
           padding: '4px 4px',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
+            borderRadius: 'var(--shape-xs)',
+          },
         }}
       >
         <Typography className="body-small-semibold" color="var(--grey-400)">
@@ -132,7 +146,8 @@ const DayView = () => {
         <IconArrowDown
           color="var(--grey-350)"
           sx={{
-            transition: 'transform 0.2s ease',
+            transition:
+              'transform var(--motion-medium) var(--ease-emphasized)',
             transform: showAllDays ? 'rotate(180deg)' : 'none',
           }}
         />

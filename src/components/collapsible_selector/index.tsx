@@ -46,9 +46,18 @@ const CollapsibleSelector = ({
   // barra diría "Semana:" y nada más, y habría que abrirla para enterarse.
   if (!desktopUp && !expanded && valueLabel) {
     return (
+      // Era un `Box` con `onClick`: la barra que abre el selector de mes en
+      // Exhibidores y en Salidas, y con el teclado no se llegaba a ella.
       <Box
+        component="button"
+        type="button"
+        aria-expanded={false}
         onClick={onToggle}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          textAlign: 'left',
           width: '100%',
           // Plegado es una BARRA, no una tarjeta: un escalón menos de curva
           // que el panel abierto. Con el mismo radio los dos parecían la misma
@@ -62,8 +71,13 @@ const CollapsibleSelector = ({
           alignItems: 'center',
           gap: '8px',
           cursor: 'pointer',
-          transition: 'background-color 0.2s ease',
+          transition:
+            'background-color var(--motion-fast) var(--ease-standard)',
           '&:hover': { backgroundColor: 'var(--accent-150)' },
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
+          },
         }}
       >
         <Typography

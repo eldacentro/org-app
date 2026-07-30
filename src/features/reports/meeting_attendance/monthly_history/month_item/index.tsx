@@ -15,8 +15,17 @@ const MonthItem = ({ data }: MonthItemProps) => {
   return (
     <Stack spacing="16px">
       <Box
+        component="button"
+        type="button"
+        aria-expanded={expanded}
         onClick={handleToggleExpanded}
         sx={{
+          appearance: 'none',
+          font: 'inherit',
+          color: 'inherit',
+          textAlign: 'left',
+          border: 'none',
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -25,6 +34,10 @@ const MonthItem = ({ data }: MonthItemProps) => {
           backgroundColor: 'var(--accent-150)',
           cursor: 'pointer',
           userSelect: 'none',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
+          },
         }}
       >
         <Typography className="h4" color="var(--accent-dark)">
