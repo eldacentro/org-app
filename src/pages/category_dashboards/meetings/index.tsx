@@ -33,7 +33,7 @@ const MeetingsDashboard = () => {
       <div className="tile-grid">
         
         {/* Mis Asignaciones */}
-        <div className="tile-item c-blue active-press full-width" onClick={handleOpenMyAssignments}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={handleOpenMyAssignments}>
           <div className="ti">
             <IconAssigned color="var(--brand)" width={22} height={22} />
           </div>
@@ -43,10 +43,10 @@ const MeetingsDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Programas Semanales */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/weekly-schedules')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/weekly-schedules')}>
           <div className="ti">
             <IconClock color="var(--brand)" width={22} height={22} />
           </div>
@@ -56,35 +56,35 @@ const MeetingsDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Reunión de entre semana */}
         {(isMidweekEditor) && (
-          <div className="tile-item c-blue active-press" onClick={() => handleTileClick('/midweek-meeting')}>
+          <button type="button" className="tile-item c-blue active-press" onClick={() => handleTileClick('/midweek-meeting')}>
             <div className="ti">
               <IconTreasuresPart color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_midweekMeeting', 'Reunión de entre semana')}</div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Reunión de fin de semana */}
         {(isWeekendEditor) && (
-          <div className="tile-item c-blue active-press" onClick={() => handleTileClick('/weekend-meeting')}>
+          <button type="button" className="tile-item c-blue active-press" onClick={() => handleTileClick('/weekend-meeting')}>
             <div className="ti">
               <IconPodium color="var(--brand)" width={22} height={22} />
             </div>
             <div>
               <div className="tile-name">{t('tr_weekendMeeting', 'Reunión de fin de semana')}</div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Departamentos */}
         {(isMidweekEditor || isDepartmentsEditor) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/departments-schedule')}>
             <div className="ti">
               <IconDuties color="var(--brand)" width={22} height={22} />
             </div>
@@ -94,7 +94,7 @@ const MeetingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
       </div>

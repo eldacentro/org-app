@@ -1115,7 +1115,7 @@ const Dashboard = () => {
       </div>
       <div className="tile-grid">
         {/* 1. REUNIONES (Always visible) */}
-        <div
+        <button type="button"
           className="tile-item c-blue active-press"
           style={{ animationDelay: '0.26s' }}
           onClick={() => handleTileClick('/dashboard/meetings')}
@@ -1126,11 +1126,11 @@ const Dashboard = () => {
           <div>
             <div className="tile-name">{t('tr_meetings', 'Reuniones')}</div>
           </div>
-        </div>
+        </button>
 
         {/* 2. PREDICACIÓN (Visible if publisher) */}
         {isPublisher && (
-          <div
+          <button type="button"
             className="tile-item c-blue active-press"
             style={{ animationDelay: '0.3s' }}
             onClick={() => handleTileClick('/dashboard/ministry')}
@@ -1141,11 +1141,11 @@ const Dashboard = () => {
             <div>
               <div className="tile-name">{t('tr_ministry', 'Predicación')}</div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* 3. CONGREGACIÓN (Always visible) */}
-        <div
+        <button type="button"
           className="tile-item c-blue active-press"
           style={{ animationDelay: '0.34s' }}
           onClick={() => handleTileClick('/dashboard/congregation')}
@@ -1158,12 +1158,12 @@ const Dashboard = () => {
               {t('tr_congregation', 'Congregación')}
             </div>
           </div>
-        </div>
+        </button>
 
         {/* 4. DISCURSOS (Visible if weekend meeting is shown and authorized) */}
         {showWeekend &&
           (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
-            <div
+            <button type="button"
               className="tile-item c-blue active-press"
               style={{ animationDelay: '0.38s' }}
               onClick={() => handleTileClick('/dashboard/talks')}
@@ -1176,12 +1176,12 @@ const Dashboard = () => {
                   {t('tr_publicTalks', 'Discursos')}
                 </div>
               </div>
-            </div>
+            </button>
           )}
 
         {/* 5. INFORMES (Full width, visible for elders, secretaries, attendance/group overseers) */}
         {(isElder || isAttendanceEditor || isGroupOverseer || isSecretary) && (
-          <div
+          <button type="button"
             className="tile-item c-blue full-width active-press"
             style={{ animationDelay: '0.42s' }}
             onClick={() => handleTileClick('/dashboard/reports')}
@@ -1202,11 +1202,11 @@ const Dashboard = () => {
             >
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* 6. CONFIGURACIÓN (Full width, always visible) */}
-        <div
+        <button type="button"
           className="tile-item c-blue full-width active-press"
           style={{ animationDelay: '0.46s' }}
           onClick={() => handleTileClick('/dashboard/settings')}
@@ -1227,7 +1227,7 @@ const Dashboard = () => {
           >
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
       </div>
 
       {/* SNACKBARS / NOTICES */}

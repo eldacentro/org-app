@@ -28,7 +28,7 @@ const MinistryDashboard = () => {
       <PageTitle title={t('tr_ministry', 'Predicación')} />
       <div className="tile-grid">
         {(isServiceCommittee || territoriesEnabled) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/territories')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/territories')}>
             <div className="ti">
               <IconMapOverview color="var(--brand)" width={22} height={22} />
             </div>
@@ -38,12 +38,12 @@ const MinistryDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Exhibidores */}
         {(isServiceCommittee) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/exhibitors')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/exhibitors')}>
             <div className="ti">
               <IconCart color="var(--brand)" width={22} height={22} />
             </div>
@@ -53,12 +53,12 @@ const MinistryDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Salidas de predicación */}
         {(isServiceCommittee) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
             <div className="ti">
               <IconInTerritory color="var(--brand)" width={22} height={22} />
             </div>
@@ -68,12 +68,12 @@ const MinistryDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Informe */}
         {(isPublisher) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/ministry-report')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/ministry-report')}>
             <div className="ti">
               <IconMinistryReport color="var(--brand)" width={22} height={22} />
             </div>
@@ -83,7 +83,7 @@ const MinistryDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
       </div>

@@ -79,14 +79,28 @@ const WeekSelector = (props: WeekSelectorProps) => {
         return (
           <Box
             key={week.label}
+            // Un <button> de verdad. Llevaba `role="tab"` pero ni `tabIndex`
+            // ni manejo de teclas, o sea que anunciaba ser una pestaña y
+            // luego no se podía alcanzar ni activar sin ratón. La tira de
+            // semanas es de lo que más se toca de toda la app.
+            component="button"
+            type="button"
             className={week.className}
             role="tab"
             aria-selected={elegida}
             onClick={() => handleWeekChange(i)}
             sx={{
+              appearance: 'none',
+              border: 'none',
+              font: 'inherit',
+              color: 'inherit',
               flexShrink: 0,
               padding: '8px 14px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
+              '&:focus-visible': {
+                outline: '2px solid var(--accent-main)',
+                outlineOffset: '2px',
+              },
               cursor: 'pointer',
               userSelect: 'none',
               // El mismo tratamiento que la pestaña elegida en el resto de la

@@ -34,7 +34,7 @@ const ReportsDashboard = () => {
         
         {/* Registro de asistencia */}
         {(isAttendanceEditor || isElder || isSecretary || isGroupOverseer) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/meeting-attendance')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/meeting-attendance')}>
             <div className="ti">
               <IconGroups color="var(--brand)" width={22} height={22} />
             </div>
@@ -44,12 +44,12 @@ const ReportsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Registros de publicadores */}
         {(isElder || isSecretary) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/publisher-records')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/publisher-records')}>
             <div className="ti">
               <IconPublisherRecordCard color="var(--brand)" width={22} height={22} />
             </div>
@@ -59,12 +59,12 @@ const ReportsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Informes de predicación */}
         {(isSecretary || isGroupOverseer || isLanguageGroupOverseer) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/field-service')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/field-service')}>
             <div className="ti">
               <IconPublishersReports color="var(--brand)" width={22} height={22} />
             </div>
@@ -74,12 +74,12 @@ const ReportsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Informes a la sucursal */}
         {(isAdmin || isSecretary) && !isGroup && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/reports/branch-office')}>
             <div className="ti">
               <IconReportToBranch color="var(--brand)" width={22} height={22} />
             </div>
@@ -89,7 +89,7 @@ const ReportsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
       </div>

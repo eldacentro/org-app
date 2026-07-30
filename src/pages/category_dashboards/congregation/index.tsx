@@ -40,7 +40,7 @@ const CongregationDashboard = () => {
         
         {/* Personas */}
         {(isPersonViewer || isElder) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/persons')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/persons')}>
             <div className="ti">
               <IconPerson color="var(--brand)" width={22} height={22} />
             </div>
@@ -50,13 +50,13 @@ const CongregationDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Ausencias — solo ancianos: los periodos llevan comentarios
             personales y hoy solo los ve quien puede abrir fichas. */}
         {isElder && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/ausencias')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/ausencias')}>
             <div className="ti">
               <IconAirplaneTicket color="var(--brand)" width={22} height={22} />
             </div>
@@ -66,11 +66,11 @@ const CongregationDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Grupos de predicación */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/field-service-groups')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/field-service-groups')}>
           <div className="ti">
             <IconGroups color="var(--brand)" width={22} height={22} />
           </div>
@@ -80,10 +80,10 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Responsabilidades */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/responsabilidades')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/responsabilidades')}>
           <div className="ti">
             <IconAssignment color="var(--brand)" width={22} height={22} />
           </div>
@@ -93,10 +93,10 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Plan de Evacuación (visible para todos) */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/evacuacion')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/evacuacion')}>
           <div className="ti">
             <IconMapOverview color="var(--brand)" width={22} height={22} />
           </div>
@@ -106,14 +106,14 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Visita del Superintendente de Circuito — SOLO ancianos: es la
             herramienta de quien la organiza. Lo que los hermanos necesitan
             está en su pestaña de Programas semanales, que sale sola mientras
             hay visita. El tier sigue mandando dentro de la página. */}
         {isElder && circuitVisitTier !== 'none' && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/circuit-visit')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/circuit-visit')}>
             <div className="ti">
               <IconCalendarWeek color="var(--brand)" width={22} height={22} />
             </div>
@@ -123,11 +123,11 @@ const CongregationDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Limpieza */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/limpieza')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/limpieza')}>
           <div className="ti">
             <IconClean color="var(--brand)" width={22} height={22} />
           </div>
@@ -137,12 +137,12 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
 
 
         {/* Documentos */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/documentos')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/documentos')}>
           <div className="ti">
             <IconInformationBoard color="var(--brand)" width={22} height={22} />
           </div>
@@ -157,11 +157,11 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Solicitudes de precursor */}
         {(isElder) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/pioneer-applications')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/pioneer-applications')}>
             <div className="ti">
               <IconPioneerForm color="var(--brand)" width={22} height={22} />
             </div>
@@ -171,11 +171,11 @@ const CongregationDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Próximos eventos */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/activities/upcoming-events')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/activities/upcoming-events')}>
           <div className="ti">
             <IconNextEvents color="var(--brand)" width={22} height={22} />
           </div>
@@ -185,7 +185,7 @@ const CongregationDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
       </div>
     </Box>

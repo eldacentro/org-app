@@ -41,7 +41,7 @@ const SettingsDashboard = () => {
       <div className="tile-grid">
         
         {/* Mi cuenta */}
-        <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/user-profile')}>
+        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/user-profile')}>
           <div className="ti">
             <IconAccount color="var(--brand)" width={22} height={22} />
           </div>
@@ -51,11 +51,11 @@ const SettingsDashboard = () => {
           <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 6l6 6-6 6" />
           </svg>
-        </div>
+        </button>
 
         {/* Ajustes de congregación */}
         {(isAdmin || isElder) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
             <div className="ti">
               <IconSettings color="var(--brand)" width={22} height={22} />
             </div>
@@ -65,12 +65,12 @@ const SettingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Cuentas de usuario */}
         {(isAdmin) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/manage-access')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/manage-access')}>
             <div className="ti">
               <IconManageAccess color="var(--brand)" width={22} height={22} />
             </div>
@@ -80,12 +80,12 @@ const SettingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Materiales de reunión */}
         {isMeetingEditor && (
-          <div className="tile-item c-blue active-press full-width" onClick={handleOpenMeetingMaterials}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={handleOpenMeetingMaterials}>
             <div className="ti">
               <IconJwOrg color="var(--brand)" width={22} height={22} />
             </div>
@@ -95,12 +95,12 @@ const SettingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Sincronizar datos */}
         {isConnected && (
-          <div className="tile-item c-blue active-press full-width" onClick={handleManualSync}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={handleManualSync}>
             <div className="ti">
               <IconSynced color="var(--brand)" width={22} height={22} />
             </div>
@@ -111,7 +111,7 @@ const SettingsDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
       </div>

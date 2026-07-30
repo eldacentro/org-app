@@ -1113,7 +1113,21 @@ body {
   gap: 12px;
   margin-bottom: 14px;
 }
+/* Las casillas del Inicio y de las pantallas de categoría son <button>, no
+   <div>: eran 37 divs con onClick, o sea que NINGUNA se podía abrir con el
+   teclado ni la anunciaba un lector de pantalla — y son la puerta de entrada
+   a toda la app. Como <button> se ganan el foco, el Enter y el Espacio sin
+   escribir una línea de JavaScript; este bloque solo deshace lo que el
+   navegador le pone de serie a un botón, para que se vean exactamente igual
+   que antes. */
 .tile-item {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  width: 100%;
+  margin: 0;
   background: var(--card);
   border-radius: var(--r-md);
   padding: 17px 16px 16px;
@@ -1136,6 +1150,10 @@ body {
 }
 .tile-item:hover {
   box-shadow: var(--shadow-md);
+}
+.tile-item:focus-visible {
+  outline: 2px solid var(--accent-main);
+  outline-offset: 2px;
 }
 .tile-item .ti {
   width: 46px;

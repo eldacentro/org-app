@@ -25,7 +25,7 @@ const TalksDashboard = () => {
         
         {/* Lista de discursos públicos */}
         {(isElder || isWeekendEditor || isPublicTalkCoordinator) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/public-talks-list')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/public-talks-list')}>
             <div className="ti">
               <IconTalk color="var(--brand)" width={22} height={22} />
             </div>
@@ -35,12 +35,12 @@ const TalksDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Catálogo de oradores */}
         {(isAppointed || isPublicTalkCoordinator) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/speakers-catalog')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/speakers-catalog')}>
             <div className="ti">
               <IconTalker color="var(--brand)" width={22} height={22} />
             </div>
@@ -50,12 +50,12 @@ const TalksDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
         {/* Oradores salientes */}
         {(isAppointed || isPublicTalkCoordinator) && (
-          <div className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/outgoing-speakers')}>
+          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/outgoing-speakers')}>
             <div className="ti">
               <IconOutgoindSpeaker color="var(--brand)" width={22} height={22} />
             </div>
@@ -65,7 +65,7 @@ const TalksDashboard = () => {
             <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </div>
+          </button>
         )}
 
       </div>
