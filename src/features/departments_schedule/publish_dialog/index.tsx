@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
+import { MESES_ES } from '@utils/nombres_fecha';
 import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
 import AppButton from '@components/button';
@@ -33,10 +34,7 @@ const DeptPublishDialog = ({
 }) => {
   const monthLabel = (() => {
     const [year, monthNumber] = month.split('/');
-    const names = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-    ];
+    const names = [...MESES_ES];
 
     return `${names[Number(monthNumber) - 1] ?? ''} ${year ?? ''}`.trim();
   })();

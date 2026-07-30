@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
 import { useBreakpoints } from '@hooks/index';
@@ -66,7 +67,7 @@ const useDeptWeekSelector = () => {
 
         if (weeks.length > 0) {
           yearMonths.push({
-            label: monthNames[month],
+            label: capitalizarPrimera(monthNames[month]),
             value: `${year}/${String(month + 1).padStart(2, '0')}`,
             weeks,
           });

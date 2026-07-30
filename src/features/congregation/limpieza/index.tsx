@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -51,20 +52,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { IconSettings } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+const MONTH_NAMES = [...MESES_ES];
 
 const Limpieza = () => {
   const { t } = useAppTranslation();

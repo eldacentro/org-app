@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { Box, Stack } from '@mui/material';
 import { IconImportFile, IconJwOrg } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
@@ -22,20 +23,7 @@ import {
  * semanas de las que vienen están sin material.
  */
 
-const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+const MESES = [...MESES_ES];
 
 const nombreBimestre = (grupo: BimestreMateriales) =>
   `${MESES[grupo.primerMes - 1]}–${MESES[grupo.primerMes]} ${grupo.year}`;

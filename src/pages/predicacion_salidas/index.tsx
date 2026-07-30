@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -94,35 +95,8 @@ import { personIsAway } from '@services/app/persons';
 import MonthSelector from '@components/month_selector';
 
 // Nombres de meses en español
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+const MONTH_NAMES = [...MESES_ES];
 
-const MESES_ES = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
 
 /**
  * "Semana del 29 de junio al 5 de julio" a partir de un `weekOf` (2026/06/29).
@@ -1273,20 +1247,7 @@ const PredicacionSalidas = () => {
         }
       }
 
-      const spanishMonths = [
-        'enero',
-        'febrero',
-        'marzo',
-        'abril',
-        'mayo',
-        'junio',
-        'julio',
-        'agosto',
-        'septiembre',
-        'octubre',
-        'noviembre',
-        'diciembre',
-      ];
+      const spanishMonths = [...MESES_ES];
       const monthLabel = `${spanishMonths[pdfExportMonth]} ${pdfExportYear}`;
       const fileName = `Salidas_${spanishMonths[pdfExportMonth]}_${pdfExportYear}.pdf`;
 

@@ -1,4 +1,5 @@
 import { Page, Text, View } from '@react-pdf/renderer';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
 import { Week } from '@definition/week_type';
 import { S140Type } from '../shared/index.types';
@@ -49,20 +50,7 @@ const TemplateS140AppNormal = ({
   }, null);
 
   const formatTitle = (title: string) => {
-    const meses = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
+    const meses = [...MESES_ES];
     const parts = title.split('|');
     const datePart = parts[0].trim();
     const rest = parts.slice(1).join('|');

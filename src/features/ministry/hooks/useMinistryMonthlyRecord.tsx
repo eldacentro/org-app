@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { userFieldServiceMonthlyReportsState } from '@states/user_field_service_reports';
 import { monthNamesState } from '@states/app';
@@ -35,7 +36,7 @@ const useMinistryMonthlyRecord = ({
     if (!month) return '';
 
     const monthIndex = +month.split('/')[1] - 1;
-    return monthNames[monthIndex];
+    return capitalizarPrimera(monthNames[monthIndex]);
   }, [monthNames, month]);
 
   const person = useMemo(() => {

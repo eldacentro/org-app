@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { APRecordType } from '@definition/ministry';
 import { FormHeaderProps } from './index.types';
@@ -22,7 +23,7 @@ const useHeader = ({ applications }: FormHeaderProps) => {
         const splits = record.split('-');
         const start = +splits[0].split('/')[1] - 1;
 
-        let str = monthNames[start];
+        let str = capitalizarPrimera(monthNames[start]);
 
         if (splits[1]) {
           const end = +splits[1].split('/')[1] - 1;

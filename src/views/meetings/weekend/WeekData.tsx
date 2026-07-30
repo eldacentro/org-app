@@ -1,4 +1,5 @@
 import { Text, View } from '@react-pdf/renderer';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { Week } from '@definition/week_type';
 import { WeekDataType } from './index.types';
 import COTalks from './COTalks';
@@ -12,20 +13,7 @@ import {
   WEEKEND_WITH_WTSTUDY,
 } from '@constants/index';
 
-const meses = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
+const meses = [...MESES_ES];
 
 const WeekData = ({ meetingData, lang }: WeekDataType) => {
   const parts = meetingData.weekOf.split('/');

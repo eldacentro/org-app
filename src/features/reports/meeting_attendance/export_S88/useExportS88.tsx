@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
@@ -415,7 +416,7 @@ const useExportS88 = () => {
                   const monthIndex = +record.month.split('/')[1] - 1;
 
                   return {
-                    month: monthNames[monthIndex],
+                    month: capitalizarPrimera(monthNames[monthIndex]),
                     table_1: {
                       count: table1.midweek.count || '',
                       total: table1.midweek.total || '',
@@ -446,7 +447,7 @@ const useExportS88 = () => {
                   const monthIndex = +record.month.split('/')[1] - 1;
 
                   return {
-                    month: monthNames[monthIndex],
+                    month: capitalizarPrimera(monthNames[monthIndex]),
                     table_1: {
                       count: table1.weekend.count || '',
                       total: table1.weekend.total || '',

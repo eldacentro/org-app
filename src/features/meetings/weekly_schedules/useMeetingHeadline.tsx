@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { dayNamesState, monthNamesState } from '@states/app';
 import { sourcesState } from '@states/sources';
@@ -44,7 +45,7 @@ const useMeetingHeadline = (
 
       if (!Number.isNaN(d.getTime())) {
         const dia = dayNames[d.getDay()] ?? '';
-        title = `${dia} ${d.getDate()} de ${monthNames[d.getMonth()]}`.trim();
+        title = `${capitalizarPrimera(dia)} ${d.getDate()} de ${monthNames[d.getMonth()]}`.trim();
       }
     }
 

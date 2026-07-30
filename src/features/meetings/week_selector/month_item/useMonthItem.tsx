@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
+import { capitalizarPrimera } from '@utils/common';
 import { useLocation } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { MonthItemType } from './index.types';
@@ -33,27 +35,14 @@ const useMonthItem = ({
   }, [currentExpanded, month]);
 
   const monthName = useMemo(() => {
-    const mesesEs = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
+    const mesesEs = [...MESES_ES];
     const parts = month.split(/[/-]/);
     const year = parts[0];
     const monthPart = parts[1];
     const monthIndex = parseInt(monthPart, 10) - 1;
 
     const monthNames = generateMonthNames(appLang);
-    let name = monthNames[monthIndex];
+    let name = capitalizarPrimera(monthNames[monthIndex]);
 
     if (!name || name === 'undefined') {
       name = mesesEs[monthIndex] || 'Mes';

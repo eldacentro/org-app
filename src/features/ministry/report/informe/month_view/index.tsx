@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
@@ -49,7 +50,7 @@ const MonthView = () => {
     if (!selectedDayStr) return '';
     const date = new Date(selectedDayStr);
     const weekday = dayNames[date.getDay()];
-    const capitalWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const capitalWeekday = capitalizarPrimera(weekday);
     return `${capitalWeekday} ${date.getDate()} de ${monthNames[date.getMonth()].toLowerCase()}`;
   }, [selectedDayStr, dayNames, monthNames]);
 

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { UserFieldServiceDailyReportType } from '@definition/user_field_service_reports';
 import { userBibleStudiesState } from '@states/user_bible_studies';
@@ -24,7 +25,7 @@ const useMinistryDailyRecord = (report: UserFieldServiceDailyReportType) => {
     const day = reportDate.getDay();
 
     const monthName = monthNames[month];
-    const dayName = dayNames[day];
+    const dayName = capitalizarPrimera(dayNames[day]);
 
     return t('tr_longDateWithYearAndDayLocale', {
       year,

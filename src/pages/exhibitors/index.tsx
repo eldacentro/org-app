@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -119,20 +120,7 @@ const weekdaysSpanish = [
   'Sábado',
   'Domingo',
 ];
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+const MONTH_NAMES = [...MESES_ES];
 
 const getWeekOfDate = (date: Date): string => {
   const d = new Date(date);
@@ -581,20 +569,7 @@ const Exhibitors = () => {
     if (!settings) return;
 
     try {
-      const monthNames = [
-        'Enero',
-        'Febrero',
-        'Marzo',
-        'Abril',
-        'Mayo',
-        'Junio',
-        'Julio',
-        'Agosto',
-        'Septiembre',
-        'Octubre',
-        'Noviembre',
-        'Diciembre',
-      ];
+      const monthNames = [...MESES_ES];
       const monthName = `${monthNames[selectedMonth]} ${selectedYear}`;
 
       const activeDaysSpanish = activeWeekdaysInMonth.map((day) => {
@@ -1570,20 +1545,7 @@ const Exhibitors = () => {
                         const sunday = new Date(monday);
                         sunday.setDate(sunday.getDate() + 6);
 
-                        const months = [
-                          'enero',
-                          'febrero',
-                          'marzo',
-                          'abril',
-                          'mayo',
-                          'junio',
-                          'julio',
-                          'agosto',
-                          'septiembre',
-                          'octubre',
-                          'noviembre',
-                          'diciembre',
-                        ];
+                        const months = [...MESES_ES];
 
                         const monDayNum = monday.getDate();
                         const monMonth = months[monday.getMonth()];

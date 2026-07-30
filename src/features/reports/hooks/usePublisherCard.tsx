@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { S21CardData, S21CardMonthData } from '@definition/report';
@@ -109,7 +110,7 @@ const usePublisherCard = () => {
         AP: false,
         bible_studies: '',
         hours: '',
-        month_name: monthNames[+month.split('/')[1] - 1],
+        month_name: capitalizarPrimera(monthNames[+month.split('/')[1] - 1]),
         remarks: '',
         shared: false,
       };

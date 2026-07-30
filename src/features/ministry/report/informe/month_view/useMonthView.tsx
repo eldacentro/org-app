@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { dayNamesShortState, monthNamesState } from '@states/app';
@@ -40,7 +41,7 @@ const useMonthView = () => {
   const monthLabel = useMemo(() => {
     if (!selectedMonth) return '';
     const [year, month] = selectedMonth.split('/').map(Number);
-    return `${monthNames[month - 1]} ${year}`;
+    return `${capitalizarPrimera(monthNames[month - 1])} ${year}`;
   }, [selectedMonth, monthNames]);
 
   const todayStr = formatDate(new Date(), 'yyyy/MM/dd');

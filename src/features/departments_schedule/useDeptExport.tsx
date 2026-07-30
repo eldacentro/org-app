@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { useAtomValue } from 'jotai';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
@@ -67,20 +68,7 @@ const useDeptExport = () => {
       };
     });
 
-    const meses = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
+    const meses = [...MESES_ES];
     const monthIndex = parseInt(month) - 1;
     const monthName = meses[monthIndex];
     const fileName = `Departamentos_${monthName}_${year}.pdf`;

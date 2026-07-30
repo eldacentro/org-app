@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { YearOptionType } from './index.types';
 import { congSpecialMonthsState, settingsState } from '@states/settings';
@@ -38,7 +39,7 @@ const useSpecialMonths = () => {
       const months = createArrayFromMonths(startMonth, endMonth).map(
         (month) => {
           const monthIndex = +month.split('/')[1] - 1;
-          return { value: month, label: monthNames[monthIndex] };
+          return { value: month, label: capitalizarPrimera(monthNames[monthIndex]) };
         }
       );
 
@@ -60,7 +61,7 @@ const useSpecialMonths = () => {
       .toSorted()
       .map((value) => {
         const monthIndex = +value.split('/')[1] - 1;
-        const month = monthNames[monthIndex];
+        const month = capitalizarPrimera(monthNames[monthIndex]);
 
         return month;
       })

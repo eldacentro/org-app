@@ -155,8 +155,19 @@ Entre los cinco son el **56%** del total.
       oradores (es el formato de intercambio con otras congregaciones) y
       "Visita del Superintendente" de Documentos (es un DATO ya guardado en el
       servidor; renombrarlo dejaría los documentos existentes descolgados).
-      **Queda**: los 7 arrays de meses/días a mano, plurales concatenados,
-      códigos en pantalla.
+      · **Los meses y los días, en minúscula.** En Programas semanales se leía
+        "Semana del 27 de Julio al 2 de Agosto" mientras el saludo del Inicio
+        —tres toques más allá— decía "Jueves, 30 de julio": esa pantalla usa el
+        formateador del navegador, que sí sabe la regla. No eran 7 arrays a
+        mano sino **TRECE**, unos en mayúscula y otros en minúscula.
+        Ahora los nombres viven en minúscula (diccionario español +
+        `@utils/nombres_fecha`) y la mayúscula la pone quien abre la etiqueta,
+        con `capitalizarPrimera()`. Se retiró de paso un `monthCase` que ya
+        intentaba arreglarlo preguntando "¿estamos en español?" — pero solo en
+        una pantalla de las trece.
+        Comprobado en el navegador por las dos caras: ni un mes en mayúscula a
+        mitad de frase en 14 rutas, ni uno en minúscula abriendo una.
+      **Queda**: plurales concatenados y códigos en pantalla.
 - [x] **B6 · Accesibilidad** — cerrado y **comprobado en el navegador, no con
       `grep`**: las 43 rutas de `App.tsx`, contando botones sin nombre
       accesible. Cero.

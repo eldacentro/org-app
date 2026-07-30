@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { monthNamesState } from '@states/app';
@@ -16,7 +17,7 @@ const useMonthlyReport = ({ month }: MonthlyReportProps) => {
 
     const [year, varMonth] = month.split('/');
 
-    const name = monthNames[+varMonth - 1];
+    const name = capitalizarPrimera(monthNames[+varMonth - 1]);
 
     return t('tr_monthYear', { month: name, year: year });
   }, [monthNames, t, month]);

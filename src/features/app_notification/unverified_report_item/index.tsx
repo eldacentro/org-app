@@ -1,4 +1,5 @@
 import { Box, Stack } from '@mui/material';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useNavigate } from 'react-router';
 import { UnverifiedReportEntry } from '@definition/notification';
@@ -33,7 +34,7 @@ const UnverifiedReportItem = ({ entry }: { entry: UnverifiedReportEntry }) => {
     : 'Publicador desconocido';
 
   const [year, month] = entry.report_date.split('/');
-  const monthLabel = `${monthNames[+month - 1]} ${year}`;
+  const monthLabel = `${capitalizarPrimera(monthNames[+month - 1])} ${year}`;
 
   const handleViewReport = () => {
     setSelectedMonth(entry.report_date);

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useLocation } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
@@ -100,7 +101,7 @@ const useFormBody = ({ application, onChange }: ApplicationFormProps) => {
     const data = options.map((record) => {
       const month = +record.split('/')[1] - 1;
 
-      return { label: months[month], value: record };
+      return { label: capitalizarPrimera(months[month]), value: record };
     });
 
     return data;

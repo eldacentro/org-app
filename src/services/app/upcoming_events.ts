@@ -71,15 +71,11 @@ export const upcomingEventData = (event: UpcomingEventType) => {
   const months = generateMonthNames();
   const weekdays = generateWeekday();
 
-  // El español no capitaliza los nombres de mes en medio de una oración
-  // ("6 de diciembre", no "6 de Diciembre") — el resto del año en cambio
-  // sí lo usa como encabezado propio, así que solo se ajusta aquí. El
-  // idioma se guarda con el código ISO 639-2 de 3 letras (p. ej. "spa"),
-  // no "es" — ver threeLettersCode en states/settings.ts.
-  const isSpanish = getCurrentLanguage() === 'spa';
-  const monthCase = (value: string) =>
-    isSpanish ? value.charAt(0).toLowerCase() + value.slice(1) : value;
-
+  // Aquí ya no hay que ajustar nada: los meses viven en minúscula en el
+  // diccionario español, que es como se escriben, y la mayúscula la pone
+  // quien abre la etiqueta con ellos. Antes había aquí un `monthCase` que
+  // preguntaba "¿estamos en español?" y bajaba la inicial — un parche de una
+  // sola pantalla para un fallo que estaba en toda la app.
   const result = {} as UpcomingEventDataType;
 
   result.uid = event.event_uid;
@@ -99,7 +95,7 @@ export const upcomingEventData = (event: UpcomingEventType) => {
   result.start = formatDate(start, 'yyyy/MM/dd');
   result.date = getTranslation({
     key: 'tr_longDateFullMonthNoYearLocale',
-    params: { month: monthCase(month), date },
+    params: { month, date },
   });
 
   const todayIndex = start.getDay();
@@ -151,7 +147,7 @@ export const upcomingEventData = (event: UpcomingEventType) => {
       day: weekdays[dayIndex === 0 ? 6 : dayIndex - 1],
       dateFormatted: getTranslation({
         key: 'tr_longDateFullMonthNoYearLocale',
-        params: { month: monthCase(month), date: dateV },
+        params: { month, date: dateV },
       }),
       time: dayTime,
     };

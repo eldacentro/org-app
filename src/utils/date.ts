@@ -6,6 +6,7 @@ import {
   isAfter as libIsAfter,
   isEqual as libIsEqual,
 } from 'date-fns';
+import { capitalizarPrimera } from '@utils/common';
 import { store } from '@states/index';
 import { ReportMonthType, ServiceYearType } from '@definition/report';
 import {
@@ -370,7 +371,7 @@ export const buildServiceYearsList = (count = 4) => {
       let month = `${newYear}/`;
       month += String(monthIndex).padStart(2, '0');
 
-      const monthName = monthNames[monthIndex - 1];
+      const monthName = capitalizarPrimera(monthNames[monthIndex - 1]);
 
       monthsList.push({
         value: month,
@@ -410,7 +411,7 @@ export const buildPublisherReportMonths = () => {
 
   for (let i = 0; i < 13; i++) {
     results.push({
-      label: monthNames[month],
+      label: capitalizarPrimera(monthNames[month]),
       value: `${year}/${String(month + 1).padStart(2, '0')}`,
     });
 

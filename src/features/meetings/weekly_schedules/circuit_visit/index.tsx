@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
 import Typography from '@components/typography';
@@ -52,20 +53,7 @@ const DIAS = [
   'sábado',
 ];
 
-const MESES = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
+const MESES = [...MESES_ES];
 
 /** "martes 28 de julio" — la fecha entera, sin abreviar. */
 const fechaLarga = (fecha: string) => {

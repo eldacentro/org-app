@@ -331,6 +331,32 @@ escrito en Frase-caso — el JSX debajo sigue en minúsculas salvo la primera
 letra. **Lo que hay que corregir es texto escrito a mano en mayúsculas o en
 Title Case dentro del JSX/strings**, no esa clase.
 
+### Meses y días: en minúscula, salvo que abran la etiqueta
+
+En español "el 27 de julio", no "el 27 de Julio". La mayúscula solo la lleva la
+primera palabra de la frase.
+
+Por eso los nombres viven **en minúscula** —en `locales/es-ES/general.json` y en
+`@utils/nombres_fecha`, que es la copia para lo que no pasa por i18n— y la
+mayúscula la pone **quien construye la etiqueta**, con
+`capitalizarPrimera()` de `@utils/common`:
+
+```
+`${capitalizarPrimera(mes)} ${año}`   →  "Julio 2026"    (el mes abre)
+`${dia} de ${mes}`                    →  "30 de julio"   (va dentro)
+```
+
+Las plantillas del diccionario dicen cuál es cuál sin tener que pensarlo:
+`tr_monthYear` es `{{ month }} {{ year }}` —el mes abre, lleva mayúscula— y
+`tr_longDateFullMonthNoYearLocale` es `{{ date }} de {{ month }}` —va dentro,
+minúscula—.
+
+**Nunca `.toLowerCase()` en el código para conseguirlo.** La app trae más de
+cincuenta idiomas y en alemán los meses van en mayúscula por ser sustantivos:
+la regla es del idioma y vive en su diccionario. Ya hubo un intento así —un
+`monthCase` en `upcoming_events.ts` que preguntaba "¿estamos en español?"—, y
+solo arreglaba una pantalla de las trece que tenían el fallo.
+
 ### Un verbo por acción, y el más corto que se entienda
 
 "Guardar", nunca "Guardar cambios" — si el botón está en un formulario, ya se

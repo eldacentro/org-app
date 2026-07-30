@@ -328,3 +328,23 @@ export const normalizeForSearch = (str: string) => {
     .replace(/[\u0300-\u036f]/g, '');
 };
 
+
+/**
+ * Pone en mayúscula la PRIMERA letra y deja el resto como está.
+ *
+ * En español los meses y los días de la semana se escriben en minúscula: es
+ * "el 27 de julio", no "el 27 de Julio". Lo único que lleva mayúscula es la
+ * primera palabra de la frase. Por eso los nombres viven en minúscula en el
+ * diccionario —que es como se escriben de verdad— y la mayúscula la pone
+ * QUIEN construye la etiqueta, y solo si el mes la abre:
+ *
+ *   `${capitalizarPrimera(mes)} ${año}`   →  "Julio 2026"     (abre)
+ *   `${dia} de ${mes}`                    →  "30 de julio"    (va dentro)
+ *
+ * No usar `toLowerCase()` en el código para conseguir lo mismo: la app trae
+ * más de cincuenta idiomas y en alemán, por ejemplo, los meses SÍ van en
+ * mayúscula por ser sustantivos. La regla es del idioma, así que vive en su
+ * diccionario, no en el código.
+ */
+export const capitalizarPrimera = (texto: string) =>
+  texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : texto;

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { S21CardData, S21CardMonthData } from '@definition/report';
@@ -88,7 +89,7 @@ const useCongregationCard = () => {
         AP: false,
         bible_studies: sum_studies.toString(),
         hours: sum_hours.toString(),
-        month_name: monthNames[+month.split('/')[1] - 1],
+        month_name: capitalizarPrimera(monthNames[+month.split('/')[1] - 1]),
         remarks: totalCount === 0 ? '' : `${t('tr_count')}: ${totalCount}`,
         shared: false,
       };

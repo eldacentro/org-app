@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { dayNamesShortState, monthNamesState } from '@states/app';
@@ -85,7 +86,7 @@ const useTodayCard = () => {
     focusedDateStr,
     focusDate,
     weekday: dayNamesShort[focusedDate.getDay()],
-    monthLabel: monthNames[focusedDate.getMonth()],
+    monthLabel: capitalizarPrimera(monthNames[focusedDate.getMonth()]),
     dayNum: focusedDate.getDate(),
     isToday: focusedDateStr === todayStr,
     handlePrevDay,

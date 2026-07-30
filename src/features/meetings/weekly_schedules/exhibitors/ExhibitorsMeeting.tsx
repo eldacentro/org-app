@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { Box, Card, Stack, Chip } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
@@ -72,7 +73,7 @@ const ExhibitorsMeeting = ({
       t('tr_saturday', 'Sábado'),
     ];
 
-    return `${weekdays[date.getDay()]} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
+    return `${capitalizarPrimera(weekdays[date.getDay()])} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   };
 
   const getBrotherDisplayName = (personUid: string) => {

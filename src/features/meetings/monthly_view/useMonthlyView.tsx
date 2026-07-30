@@ -1,4 +1,5 @@
 import { AssignmentCode } from '@definition/assignment';
+import { capitalizarPrimera } from '@utils/common';
 import { Week } from '@definition/week_type';
 import useAppTranslation from '@hooks/useAppTranslation';
 import {
@@ -122,7 +123,7 @@ weeks = foundMonth ? foundMonth.weeks : [];
   const thisYearMonths = sourcesFormatted
     .find((year) => year.value.toString() === currentYear)
     .months.toReversed()
-    .map((month) => monthNames[month.value]);
+    .map((month) => capitalizarPrimera(monthNames[month.value]));
 
   const monthName = thisYearMonths[selectedMonth];
 

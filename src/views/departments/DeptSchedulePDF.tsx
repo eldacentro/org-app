@@ -1,4 +1,5 @@
 import { Page, Text, View } from '@react-pdf/renderer';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
 import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
@@ -33,20 +34,7 @@ type DeptSchedulePDFProps = {
   cong_name: string;
 };
 
-const meses = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
+const meses = [...MESES_ES];
 
 const DeptSchedulePDF = ({
   data,

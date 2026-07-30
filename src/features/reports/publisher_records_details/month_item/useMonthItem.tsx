@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { useBreakpoints } from '@hooks/index';
 import { MonthItemProps, MonthStatusType } from './index.types';
@@ -82,7 +83,7 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
 
   const monthname = useMemo(() => {
     const monthIndex = +month.split('/')[1] - 1;
-    return monthNames[monthIndex];
+    return capitalizarPrimera(monthNames[monthIndex]);
   }, [month, monthNames]);
 
   const isCurrent = useMemo(() => {

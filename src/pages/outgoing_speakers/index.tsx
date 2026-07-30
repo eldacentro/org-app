@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -252,10 +253,7 @@ const OutgoingSpeakersPage = () => {
   const groupedWeeks = useMemo(() => {
     const groups: Array<{ month: string; monthLabel: string; weeks: string[] }> = [];
 
-    const mesesEs = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-    ];
+    const mesesEs = [...MESES_ES];
 
     // Build a Set of existing schedule weekOf keys (normalised to YYYY/MM/DD)
     const existingWeeks = new Set<string>();
@@ -346,10 +344,7 @@ const OutgoingSpeakersPage = () => {
     const normalised = selectedWeek.replace(/\//g, '-');
     const date = new Date(normalised + 'T12:00:00');
     if (isNaN(date.getTime())) return selectedWeek;
-    const mesesEs = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-    ];
+    const mesesEs = [...MESES_ES];
     return `Semana del ${date.getDate()} de ${mesesEs[date.getMonth()]} de ${date.getFullYear()}`;
   }, [selectedWeek]);
 
@@ -408,10 +403,7 @@ const OutgoingSpeakersPage = () => {
           // publicación JW, p.ej. 'S') contra 'es', que nunca coincide, así
           // que siempre caía a inglés. Se usa el mismo array manual de
           // meses en español que ya usa selectedWeekLabel en este archivo.
-          const mesesEs = [
-            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-          ];
+          const mesesEs = [...MESES_ES];
           const formattedDate = `${recordDate.getDate()} de ${mesesEs[recordDate.getMonth()]} de ${recordDate.getFullYear()}`;
 
           history[speakerUid].push({

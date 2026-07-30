@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
@@ -30,7 +31,7 @@ const usePersonItem = ({ month, person, type }: PersonItemProps) => {
     const lastReport = userReports.at(0).report_data.report_date;
 
     const [year, reportMonth] = lastReport.split('/');
-    const monthname = monthNames[+reportMonth - 1];
+    const monthname = capitalizarPrimera(monthNames[+reportMonth - 1]);
 
     const date = t('tr_monthYear', { month: monthname, year });
 

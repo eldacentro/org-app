@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
 import { sourcesState } from '@states/sources';
 import {
@@ -66,7 +67,7 @@ const useScheduleRangeSelector = (
         const isExist = result.find((schedule) => schedule.value === label);
 
         if (!isExist) {
-          const monthName = monthNames[month];
+          const monthName = capitalizarPrimera(monthNames[month]);
 
           result.push({
             label: `${monthName} ${year}`,

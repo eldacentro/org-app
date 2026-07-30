@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue, useAtom } from 'jotai';
 import { AssignmentCode } from '@definition/assignment';
 import { monthNamesState } from '@states/app';
@@ -34,7 +35,7 @@ const useReportDetails = ({ month, person, onClose }: ReportDetailsProps) => {
   const reportMonth = useMemo(() => {
     const [year, monthIndex] = month.split('/').map(Number);
 
-    return `${monthNames[monthIndex - 1]} ${year}`;
+    return `${capitalizarPrimera(monthNames[monthIndex - 1])} ${year}`;
   }, [month, monthNames]);
 
   const report = useMemo(() => {
