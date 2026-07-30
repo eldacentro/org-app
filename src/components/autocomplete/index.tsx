@@ -1,4 +1,5 @@
 import { MouseEvent, forwardRef } from 'react';
+import { IconExpand } from '@components/icons';
 import {
   Autocomplete as MUIAutocomplete,
   Box,
@@ -91,6 +92,7 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
     <MUIAutocomplete
       {...defaultProps}
       fullWidth={true}
+      popupIcon={<IconExpand color="var(--ink-2)" width={20} height={20} />}
       sx={{
         '.MuiOutlinedInput-root': {
           // Sin margen arriba y abajo la caja mide exactamente lo que la línea

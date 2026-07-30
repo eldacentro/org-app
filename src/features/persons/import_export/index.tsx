@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Link from '@mui/material/Link';
 import Collapse from '@mui/material/Collapse';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { IconExpand } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useImportExport from './useImportExport';
 import useTemplateDownload from './useTemplateDownload';
@@ -142,7 +142,7 @@ const ImportExport = (props: ImportExportType) => {
                 >
                   {t('tr_templateFillingTips')}
                 </Typography>
-                <ExpandMoreIcon
+                <IconExpand
                   sx={{
                     width: '24px',
                     height: '24px',

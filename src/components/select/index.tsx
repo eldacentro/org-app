@@ -3,6 +3,7 @@ import { useAppTranslation } from '@hooks/index';
 import { SelectStyled } from './index.styles';
 import { SelectPropsType } from './index.types';
 import MenuItem from '@components/menuitem';
+import { IconExpand } from '@components/icons';
 import Typography from '@components/typography';
 
 /**
@@ -33,6 +34,15 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
         {...props}
         size="small"
         fullWidth
+        // MUI trae su propio TRIÁNGULO para "esto se despliega", y era el único
+        // sitio de la app donde aparecía: el resto de la interfaz —el selector
+        // de mes, los plegables, las filas de Oradores salientes— usa el
+        // chevrón de `@components/icons`. Dos dibujos para la misma idea.
+        // MUI le pasa su `className`, así que la vuelta de 180° al abrirse
+        // (`.MuiSelect-iconOpen`) sigue funcionando sola.
+        IconComponent={(iconProps) => (
+          <IconExpand {...iconProps} color="var(--ink-2)" width={20} height={20} />
+        )}
         inputProps={{
           ...props.inputProps,
           MenuProps: {

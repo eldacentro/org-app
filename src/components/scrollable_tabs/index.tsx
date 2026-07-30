@@ -9,8 +9,7 @@ import { Box, Tab, Tabs, tabsClasses } from '@mui/material';
 import { useBreakpoints } from '@hooks/index';
 import { CustomTabPanel } from '@components/tabs';
 import { CustomTabProps } from '@components/tabs/index.types';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { IconChevronLeft, IconChevronRight } from '@components/icons';
 import Typography from '@components/typography';
 
 /**
@@ -79,8 +78,14 @@ function ScrollableTabs({
               },
             }}
             slots={{
-              EndScrollButtonIcon: ArrowForwardIosIcon,
-              StartScrollButtonIcon: ArrowBackIosIcon,
+              // Los de la app, no los de Material: son los mismos chevrones
+              // que usa el resto de la interfaz, con su mismo trazo.
+              EndScrollButtonIcon: () => (
+                <IconChevronRight color="var(--accent-main)" width={18} height={18} />
+              ),
+              StartScrollButtonIcon: () => (
+                <IconChevronLeft color="var(--accent-main)" width={18} height={18} />
+              ),
             }}
             aria-label="scrollable-auto-tabs"
             sx={{

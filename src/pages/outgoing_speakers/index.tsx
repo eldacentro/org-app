@@ -20,7 +20,7 @@ import MiniChip from '@components/mini_chip';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import WeekRangeSelector from '@features/meetings/week_range_selector';
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { IconExpand, IconUp } from '@components/icons';
 import {
   IconPrint,
   IconPublish,
@@ -714,7 +714,16 @@ const OutgoingSpeakersPage = () => {
                           <Typography className="h3" sx={{ fontWeight: '600' }}>
                             Discursos preparados ({preparedTalks.length})
                           </Typography>
-                          {showTalks ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                          <IconExpand
+                            color="var(--ink-2)"
+                            sx={{
+                              transform: showTalks
+                                ? 'rotate(180deg)'
+                                : 'rotate(0deg)',
+                              transition:
+                                'transform var(--motion-medium) var(--ease-emphasized)',
+                            }}
+                          />
                         </Box>
                         <Collapse in={showTalks} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
                           {preparedTalks.length === 0 ? (
@@ -757,7 +766,16 @@ const OutgoingSpeakersPage = () => {
                           <Typography className="h3" sx={{ fontWeight: '600' }}>
                             Historial de salidas ({history.length})
                           </Typography>
-                          {showHistory ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                          <IconExpand
+                            color="var(--ink-2)"
+                            sx={{
+                              transform: showHistory
+                                ? 'rotate(180deg)'
+                                : 'rotate(0deg)',
+                              transition:
+                                'transform var(--motion-medium) var(--ease-emphasized)',
+                            }}
+                          />
                         </Box>
                         <Collapse in={showHistory} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
                           {history.length === 0 ? (
@@ -902,13 +920,7 @@ const OutgoingSpeakersPage = () => {
                 >
                   {t('tr_change', 'Cambiar')}
                 </Typography>
-                <KeyboardArrowDown
-                  sx={{
-                    color: 'var(--accent-main)',
-                    transform: 'rotate(0deg)',
-                    fontSize: '18px',
-                  }}
-                />
+                <IconExpand color="var(--accent-main)" width={18} height={18} />
               </Box>
             </Box>
           ) : (
@@ -956,7 +968,7 @@ const OutgoingSpeakersPage = () => {
                         padding: '4px',
                       }}
                     >
-                      <KeyboardArrowDown style={{ transform: 'rotate(180deg)' }} />
+                      <IconUp color="var(--ink-2)" />
                     </IconButton>
                   )}
                 </Box>
@@ -1009,12 +1021,16 @@ const OutgoingSpeakersPage = () => {
                           >
                             {group.monthLabel}
                           </Typography>
-                          <KeyboardArrowDown
+                          <IconExpand
+                            color="var(--ink-2)"
+                            width={18}
+                            height={18}
                             sx={{
-                              fontSize: '18px',
-                              color: 'var(--grey-400)',
-                              transform: isMonthExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                              transition: 'transform 0.2s',
+                              transform: isMonthExpanded
+                                ? 'rotate(180deg)'
+                                : 'rotate(0deg)',
+                              transition:
+                                'transform var(--motion-medium) var(--ease-emphasized)',
                             }}
                           />
                         </Box>

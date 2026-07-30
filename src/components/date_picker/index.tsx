@@ -3,7 +3,11 @@ import { createPortal } from 'react-dom';
 import { useAtomValue } from 'jotai';
 import { getWeeksInMonth, isValid } from 'date-fns';
 import { Box, ClickAwayListener } from '@mui/material';
-import { ArrowDropDown, ArrowLeft, ArrowRight } from '@mui/icons-material';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconExpand,
+} from '@components/icons';
 import { DatePicker as MuiDatePicker } from '@mui/x-date-pickers';
 import { IconDate } from '@components/icons';
 import { shortDateFormatState } from '@states/settings';
@@ -167,9 +171,15 @@ const DatePicker = ({
               />
             ),
             openPickerIcon: IconDate,
-            leftArrowIcon: hideNav ? () => <></> : ArrowLeft,
-            rightArrowIcon: hideNav ? () => <></> : ArrowRight,
-            switchViewIcon: hideNav ? () => <></> : ArrowDropDown,
+            leftArrowIcon: hideNav
+              ? () => <></>
+              : () => <IconChevronLeft color="var(--ink-2)" />,
+            rightArrowIcon: hideNav
+              ? () => <></>
+              : () => <IconChevronRight color="var(--ink-2)" />,
+            switchViewIcon: hideNav
+              ? () => <></>
+              : () => <IconExpand color="var(--ink-2)" />,
           }}
           slotProps={{
             layout: StyleDatePickerLayout,

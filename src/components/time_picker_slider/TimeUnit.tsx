@@ -9,7 +9,7 @@ import {
   TimePickerSelectorStyle,
 } from './index.styles';
 import { useGestureControl } from './useGestureControl';
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { IconDown, IconUp } from '@components/icons';
 import Typography from '@components/typography';
 
 const TimeUnit = ({
@@ -59,7 +59,7 @@ const TimeUnit = ({
   return (
     <Box sx={TimePickerSelectorStyle}>
       <IconButton onClick={onDecrement} style={TimePickerArrowStyle}>
-        <KeyboardArrowUp />
+        <IconUp color="var(--ink-2)" />
       </IconButton>
 
       <div ref={scrollContainerRef} style={CaseContainerStyle}>
@@ -82,7 +82,7 @@ const TimeUnit = ({
       </div>
 
       <IconButton onClick={onIncrement} style={TimePickerArrowStyle}>
-        <KeyboardArrowDown />
+        <IconDown color="var(--ink-2)" />
       </IconButton>
     </Box>
   );

@@ -1,4 +1,5 @@
 import { Autocomplete, Box, TextField } from '@mui/material';
+import { IconExpand } from '@components/icons';
 import { AutocompleteMutilePropsType } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
@@ -14,6 +15,7 @@ const AutocompleteMultiple = <T,>(props: AutocompleteMutilePropsType<T>) => {
       multiple
       {...props}
       clearIcon={false}
+      popupIcon={<IconExpand color="var(--ink-2)" width={20} height={20} />}
       PaperComponent={CustomPaper}
       ListboxComponent={CustomListBoxComponent}
       sx={{

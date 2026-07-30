@@ -236,8 +236,23 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       ancho del padre aunque sea `display: flex`, y trae fondo gris de fábrica.
       Lo primero lo cazó una medición; lo segundo, una captura.
       Queda el repaso visual de las pantallas de categoría.
-- [ ] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
-      decenas de pantallas
+- [~] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
+      decenas de pantallas. Hecho el **barrido de iconos ajenos**: la app tiene
+      308 iconos propios y usaba 9 de Material Icons, con OTRO trazo. Fuera los
+      que tenían equivalente (`ExpandMoreIcon`, las flechas de
+      `scrollable_tabs`, `KeyboardArrowUp/Down`, `ArrowDropDown/Left/Right` del
+      selector de fecha).
+      Y tirando de ese hilo salieron dos que no importaba nadie: el `Select` y
+      el `Autocomplete` enseñaban el **triángulo por defecto de MUI** donde toda
+      la app usa su chevrón. Arreglado en los dos componentes compartidos, o
+      sea en todas las pantallas de golpe.
+      Ojo con un fallo mío: primero puse `IconDown`, que es una flecha CON
+      ASTIL —la de "mover abajo"—, no el chevrón. Se vio en una captura, no en
+      el código. `IconExpand` es el bueno, y lo usan 17 ficheros contra 5.
+      Se quedan a propósito: los círculos de radio de MUI (un radio ES un
+      círculo y la app no tiene ese icono) y `PictureAsPdfIcon`/`DirectionsIcon`
+      (huecos reales del juego propio).
+      **Queda** el resto del repaso de `src/components`.
 - [ ] **Mis asignaciones** — la abre cualquier publicador; 44 defectos en dos
       ficheros
 - [~] **Documentos** — el inventario decía "127 en 26 ficheros"; son **6
@@ -263,10 +278,7 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       vio es `accentSurface` renderizando bien en el diálogo de categorías, que
       usa la misma función.
       **Queda**: `PictureAsPdfIcon` de Material Icons — es un hueco real (la
-      app no tiene icono de documento entre sus 308), no un descuido. Pero hay
-      **9 ficheros con iconos de Material** y varios SÍ tienen equivalente
-      propio (`ExpandMoreIcon`, `ArrowBackIos/ForwardIos`, `KeyboardArrowUp/
-      Down`, `ArrowDropDown`) — barrido aparte.
+      app no tiene icono de documento entre sus 308), no un descuido.
 - [ ] Exhibidores y Salidas, **pestañas de Programas semanales** (son ficheros
       DISTINTOS de las páginas ya repasadas, con el mismo nombre)
 - [ ] **Oradores salientes** — panel lateral entero de divs
