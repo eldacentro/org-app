@@ -11,8 +11,57 @@ o no existe y se crea UNA vez y la usan todos.
 
 Objetivo de esta sesión: **$ARGUMENTS**
 
-Si no se ha indicado nada, elige tú la siguiente pantalla sin repasar y dilo
-antes de empezar.
+---
+
+## Los tres modos
+
+El tamaño real del trabajo: **50 páginas, 94 ficheros con diálogo, 237.000
+líneas**. Eso no cabe en una pasada, así que el comando tiene tres modos.
+Elige por lo que te hayan pedido:
+
+| Cómo se invoca | Qué hace |
+|---|---|
+| `/pulir <pantalla>` | **Pulido.** Una pantalla a fondo, con los ojos encima. Es el modo por defecto. |
+| `/pulir --barrido <defecto>` | **Barrido.** UN defecto, en TODA la app, de una vez. |
+| `/pulir --inventario` | **Inventario.** No cambia nada: cuenta y mapea para poder priorizar. |
+
+Sin argumentos, empieza por `--inventario` si no existe uno reciente; si
+existe, coge la pantalla peor parada y púlela.
+
+### Por qué no se puede pulir toda la app de una
+
+Porque son **dos trabajos distintos** y solo uno se puede automatizar:
+
+- **Encontrar** es mecánico. Un grep te dice dónde hay un radio suelto, un
+  degradado o un `Switch` de MUI. Eso sí escala a 237.000 líneas.
+- **Decidir** no lo es. Saber si un `translateY` sobra hay que saber si esa
+  tarjeta se pulsa. Saber si dos controles están desalineados hay que
+  **medirlos en el DOM**. Saber si un diálogo se sale por abajo hay que
+  abrirlo. Eso es de uno en uno, y no hay atajo.
+
+Mezclarlos es como se producen los desastres: un cambio a ciegas en 100
+sitios de un fichero de 4.000 líneas que nadie ha visto renderizar.
+
+### Cuándo usar `--barrido`
+
+Cuando el defecto se **encuentra Y se verifica** sin abrir la pantalla: el
+grep prueba que no queda ninguno, y `tsc` + `build` + tests prueban que no se
+ha roto nada. Sirve para los defectos **3** (radios), **4** (tipografía),
+**5** (colores fijos), **6** (MUI en crudo), **9** (accesibilidad),
+**10** (plurales) y **14** (degradados).
+
+El barrido es además la forma CORRECTA de hacer estos: hacerlos pantalla a
+pantalla es justo lo que deja la app a medio migrar durante meses.
+
+Los defectos **1, 2, 7, 8, 11, 12 y 13** NO se barren: hay que ver la
+pantalla. Si te piden barrer uno de esos, dilo y propón el modo pulido.
+
+### Qué debe producir `--inventario`
+
+Una tabla por pantalla con el recuento de cada defecto del catálogo, ordenada
+de peor a mejor, y al final las **incoherencias entre pantallas** (la misma
+tarea resuelta de dos maneras). Sin tocar una línea de código. Es lo que
+convierte "hay que repasarlo todo" en un plan con orden.
 
 ---
 
@@ -186,14 +235,17 @@ cuenta.
 
 ## Flujo de trabajo
 
-1. **Una pantalla cada vez.** Inventario primero (qué defectos y cuántos),
-   luego arreglar, luego verificar.
+1. **Una pantalla cada vez** (o un defecto cada vez, si es barrido).
+   Inventario primero, luego arreglar, luego verificar.
 2. **Enséñamelo antes de subir.** Capturas o medidas concretas de lo que
    cambió. Explica el *porqué* de cada cambio, no solo el qué.
 3. **Solo al aprobar, subir.** Commits separados por tema, mensaje en español
    explicando la causa del fallo, no solo el síntoma.
 4. Si un arreglo se repite en 3+ sitios, **haz el componente** y actualiza
    `DESIGN_SYSTEM.md` con la regla.
+5. **Cuando el contexto se llene, no aceleres.** Este trabajo se ha
+   compactado a mitad más de una vez. Cierra la pantalla que tengas abierta,
+   súbela y deja dicho por dónde ibas — antes que dejar tres a medias.
 
 ---
 
