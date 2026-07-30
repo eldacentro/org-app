@@ -46,32 +46,45 @@ const TableHead = (props: EnhancedTableProps) => {
               ...headCell.sx,
             }}
           >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-              style={{ position: 'relative' }}
-              IconComponent={(props) => (
-                <Stack
-                  {...props}
-                  style={{ position: 'absolute', right: '-25px' }}
-                >
-                  <IconDown color={'var(--grey-350)'} width={18} height={18} />
-                </Stack>
-              )}
-            >
-              <Typography
-                className={'body-small-regular'}
-                color={'var(--grey-350)'}
+            {/* La columna de acciones no lleva título, y aquí TODAS las
+                columnas se envolvían en un control de ordenar. Resultado: un
+                botón de 0×0 al que se llega con el tabulador, que no dice nada
+                y que ordenaría por una columna que no se ordena. Sin título no
+                hay nada por lo que ordenar, así que va la celda a secas. */}
+            {headCell.label ? (
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'asc'}
+                onClick={createSortHandler(headCell.id)}
+                style={{ position: 'relative' }}
+                IconComponent={(props) => (
+                  <Stack
+                    {...props}
+                    style={{ position: 'absolute', right: '-25px' }}
+                  >
+                    <IconDown
+                      color={'var(--grey-350)'}
+                      width={18}
+                      height={18}
+                    />
+                  </Stack>
+                )}
               >
-                {headCell.label}
-              </Typography>
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </Box>
-              ) : null}
-            </TableSortLabel>
+                <Typography
+                  className={'body-small-regular'}
+                  color={'var(--grey-350)'}
+                >
+                  {headCell.label}
+                </Typography>
+                {orderBy === headCell.id ? (
+                  <Box component="span" sx={visuallyHidden}>
+                    {order === 'desc'
+                      ? 'ordenado de mayor a menor'
+                      : 'ordenado de menor a mayor'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            ) : null}
           </TableCell>
         ))}
       </TableRow>

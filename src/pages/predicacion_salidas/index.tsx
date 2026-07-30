@@ -1690,6 +1690,9 @@ const PredicacionSalidas = () => {
                           })()}
                           {isServiceCommittee && (
                             <IconButton
+                              aria-label={`Ajustes de la ${getWeekLabel(
+                                weekOf
+                              ).toLowerCase()}`}
                               size="small"
                               onClick={() => handleOpenWeekSettings(weekOf)}
                               sx={{

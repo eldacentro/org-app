@@ -65,7 +65,12 @@ const OutgoingSpeakersHeader = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {isPublicTalkCoordinator && (
                 <Tooltip title={t('tr_edit')} delaySpeed="slow">
-                  <IconButton onClick={onEditModeChange}>
+                  <IconButton
+                    aria-label={
+                      editMode ? 'Guardar los cambios' : 'Editar los oradores'
+                    }
+                    onClick={onEditModeChange}
+                  >
                     {!editMode && <IconEdit color="var(--accent-main)" />}
                     {editMode && <IconCheck color="var(--accent-main)" />}
                   </IconButton>
@@ -135,7 +140,12 @@ const OutgoingSpeakersHeader = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isPublicTalkCoordinator && (
             <Tooltip title={t('tr_edit')} delaySpeed="slow">
-              <IconButton onClick={onEditModeChange}>
+              <IconButton
+                    aria-label={
+                      editMode ? 'Guardar los cambios' : 'Editar los oradores'
+                    }
+                    onClick={onEditModeChange}
+                  >
                 {!editMode && <IconEdit color="var(--accent-main)" />}
                 {editMode && <IconCheck color="var(--accent-main)" />}
               </IconButton>

@@ -65,7 +65,12 @@ const IncomingCongregationHeader = ({
           </Typography>
         </Box>
         {tablet600Down && (
-          <IconButton onClick={() => onExpandChange(cong_number)}>
+          <IconButton
+            aria-label={
+              expanded ? 'Ocultar la congregación' : 'Mostrar la congregación'
+            }
+            onClick={() => onExpandChange(cong_number)}
+          >
             <IconExpand
               color="var(--black)"
               sx={{
@@ -87,14 +92,24 @@ const IncomingCongregationHeader = ({
                 </IconButton>
               )}
 
-              <IconButton onClick={onEditModeChange}>
+              <IconButton
+                aria-label={
+                  editMode ? 'Guardar los cambios' : 'Editar la congregación'
+                }
+                onClick={onEditModeChange}
+              >
                 {!editMode && <IconEdit color="var(--accent-main)" />}
                 {editMode && <IconCheck color="var(--accent-main)" />}
               </IconButton>
             </>
           )}
 
-          <IconButton onClick={() => onExpandChange(cong_number)}>
+          <IconButton
+            aria-label={
+              expanded ? 'Ocultar la congregación' : 'Mostrar la congregación'
+            }
+            onClick={() => onExpandChange(cong_number)}
+          >
             <IconExpand
               color="var(--black)"
               sx={{

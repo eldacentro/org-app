@@ -157,16 +157,25 @@ Entre los cinco son el **56%** del total.
       servidor; renombrarlo dejaría los documentos existentes descolgados).
       **Queda**: los 7 arrays de meses/días a mano, plurales concatenados,
       códigos en pantalla.
-- [~] **B6 · Accesibilidad** — 150 botones de solo icono se quedaron con
-      etiqueta. Los cuatro de desplegar la llevan DINÁMICA (dice "Ocultar" o
-      "Mostrar" según cómo esté), y el de borrar de la lista de personas dice a
-      quién borra, porque si no son cien "Eliminar" seguidos.
-      **Aviso**: buscarlos con `grep` NO basta. Mi patrón sólo veía
-      `<IconButton>` escrito tal cual, y el de la lista de personas —que son
-      100, uno por hermano— se escapó porque está envuelto en un
-      `styled(IconButton)` con otro nombre. Lo cazó el navegador, contando
-      botones sin nombre accesible. **Falta pasar esa cuenta por el resto de
-      las rutas**; sólo se comprobaron Inicio, Personas e Informe.
+- [x] **B6 · Accesibilidad** — cerrado y **comprobado en el navegador, no con
+      `grep`**: las 43 rutas de `App.tsx`, contando botones sin nombre
+      accesible. Cero.
+      El método importa, porque `grep` falló DOS veces:
+      · El borrar de la lista de personas (100 botones, uno por hermano) va
+        dentro de un `styled(IconButton)` con otro nombre.
+      · El buscador compartido, que sale en cinco pantallas, y el icono de
+        cuenta de la barra superior, que es un `Box` con `role="button"`.
+      Un tercero no era de etiquetar: en `components/table` TODAS las columnas
+      se envolvían en un control de ordenar, incluida la de acciones, que no
+      tiene título — salía un botón **de 0×0 al que se llega con el tabulador**
+      y que ordenaría por una columna que no se ordena. Ahora sin título no hay
+      control.
+      Las etiquetas dicen SOBRE QUÉ, no sólo qué: las cinco ruedecitas de
+      Salidas dicen cada una su semana ("Ajustes de la semana del 29 de junio
+      al 5 de julio"), y el borrar de una persona dice a quién borra.
+      **Lo que NO cubre esta comprobación**: los diálogos y cajones, que solo
+      se abren a mano. Se revisaron los de Salidas (semana y mes), Exhibidores
+      y el de categorías de Documentos; el resto queda sin barrer.
 - [~] **B7 · MUI en crudo** — hecha la parte de los BOTONES, que es donde se
       veía. De 108 quedan **cinco** `<Button>` de MUI en toda la app, y los
       cinco son legítimos: son componentes compartidos que CONSTRUYEN su propio

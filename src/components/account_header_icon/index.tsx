@@ -70,6 +70,7 @@ const AccountHeaderIcon = ({
   return (
     <Box
       role="button"
+      aria-label="Tu cuenta"
       tabIndex={0}
       sx={{
         display: 'flex',
