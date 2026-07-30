@@ -186,8 +186,22 @@ const SpecialMeetingEditor = ({
 
   return (
     <Stack spacing="10px">
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography className="body-regular-semibold">{label}</Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing="12px"
+      >
+        {/* `flex: 1` + `minWidth: 0`: sin esto, en un móvil el botón se llevaba
+            los 301px de la fila y al título le quedaban 79 — "Reunión con
+            precursores" salía partido en TRES líneas. Un elemento flexible no
+            baja de su ancho de contenido a menos que se le diga. */}
+        <Typography
+          className="body-regular-semibold"
+          sx={{ flex: 1, minWidth: 0 }}
+        >
+          {label}
+        </Typography>
         {/* Misma variante y mismo ancho mínimo en los dos estados. Antes una
             reunión programada llevaba botón "secondary" y otra sin programar
             "tertiary", con textos de distinta longitud: las dos reuniones de
@@ -195,6 +209,10 @@ const SpecialMeetingEditor = ({
             estado estuviera cada una. */}
         <Button
           variant="secondary"
+          // Sin `disableAutoStretch` el botón de la app se estira a lo que le
+          // deje el contenedor, y aquí le dejaba TODO. El `flexShrink: 0`
+          // impedía que encogiera, pero nada le impedía crecer.
+          disableAutoStretch
           sx={{ minWidth: '116px', flexShrink: 0 }}
           onClick={() =>
             onChange(enabled ? null : { date: '', time: '', place: '' })

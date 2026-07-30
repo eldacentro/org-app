@@ -358,8 +358,25 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       Lleva `aria-expanded`, así que además ANUNCIA si está abierta.
       Quedan las copias sueltas (spiritual_status, import_export, week_selector,
       delegate_reports, pending_slips, month_item de asistencia…).
-- [ ] **Elegir persona** (6) → `@components/autocomplete` para lo sencillo,
-      `person_selector` cuando haga falta historial
+- [~] **Elegir persona** — mapeado. NO son 6 maneras arbitrarias: hay tres
+      familias con motivo (`person_selector` cuando hace falta historial,
+      `AutoComplete` para lo sencillo, `Select` cuando la lista es corta y
+      cerrada). El problema es UNO y concreto:
+      **Salidas de predicación asigna conductor con un `Select` sin buscador**
+      mientras Exhibidores —su página GEMELA, misma acción— ya usa un
+      `AutoComplete` con `groupBy`, que conserva los apartados "recomendados /
+      otros" Y deja escribir. El comentario que dejé allí lo explica: "con más
+      de cien hermanos habilitados hay que recorrer la lista entera con el
+      dedo".
+      **No lo reescribo a ciegas**: el `Select` de Salidas lleva además tres
+      entradas que NO son personas (Ninguno, "Compartido: <congregación>",
+      "Superintendente de circuito"), así que no es un cambio de una línea; y
+      la semilla de prueba no trae hermanos habilitados para Salidas, así que
+      la lista sale con UNA opción y no se puede comprobar que funcione. Es el
+      control con el que se asignan las salidas: si se rompe, no se puede
+      asignar a nadie.
+      Quedan también los dos `<MenuItem>` sueltos con personas (Limpieza y
+      catálogo de oradores).
 - [x] **Estado vacío** → `@components/empty_state`. No eran "8 copias del
       patrón bueno": eran **SIETE dibujos distintos** que no coincidían en
       nada — borde punteado o sólido, tres radios, tres clases de texto, dos

@@ -93,7 +93,8 @@ const BottomMenu = (props: BottomMenuProps) => {
             : 'translateX(-50%)',
           opacity: keyboardOpen ? 0 : 1,
           pointerEvents: keyboardOpen ? 'none' : 'auto',
-          transition: 'opacity 0.18s ease, transform 0.18s ease',
+          transition:
+            'opacity var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard)',
           zIndex: (theme) => theme.zIndex.drawer + 1,
 
           /* Glass */
@@ -102,7 +103,17 @@ const BottomMenu = (props: BottomMenuProps) => {
           WebkitBackdropFilter: 'blur(22px) saturate(1.6)',
 
           border: '1px solid rgba(var(--accent-200-base), 0.7)',
-          borderRadius: 'var(--shape-md)',
+          // Concéntrica con lo que lleva dentro, igual que su gemela de
+          // escritorio (`navbar-actions-container`), que ya se arregló y esta
+          // se quedó atrás. Los botones de acción son PÍLDORAS; la bandeja
+          // estaba en 16px con 5px de hueco, así que en las cuatro esquinas
+          // asomaba una cuña del fondo de la bandeja entre la curva de fuera y
+          // la de dentro. Con un hijo redondo del todo, la regla
+          // `radio interior = radio exterior − hueco` solo se cumple si la
+          // bandeja también lo es. Se nota sobre todo cuando hay UN solo botón,
+          // que es cuando la bandeja casi no se ve y ese halo es todo lo que
+          // queda de ella — el caso de la visita del superintendente.
+          borderRadius: 'var(--shape-full)',
           boxShadow: 'var(--shadow-md)',
 
           padding: '5px',
