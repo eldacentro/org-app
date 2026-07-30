@@ -1,6 +1,5 @@
 import { Box, Typography } from '@mui/material';
 import { IconCheckCircle } from '@components/icons';
-import { COLORES } from './data';
 
 type Props = {
   normas: string[];
@@ -17,8 +16,12 @@ const NormasGenerales = ({ normas }: Props) => {
             alignItems: 'flex-start',
             gap: '10px',
             padding: '10px 12px',
-            borderRadius: '10px',
-            backgroundColor: COLORES.fondo2D,
+            borderRadius: 'var(--shape-sm)',
+            // `COLORES.fondo2D` es #F8FAFC, la paleta del PLANO. En un dibujo
+            // un blanco fijo es correcto; en una tarjeta de la interfaz con
+            // el texto en `--ink-2` es gris claro sobre casi blanco en cuanto
+            // se pone el tema oscuro.
+            backgroundColor: 'var(--accent-100)',
             border: '1px solid var(--line)',
           }}
         >

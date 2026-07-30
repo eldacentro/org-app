@@ -115,6 +115,15 @@ export const StyleDatePickerPopper: SxProps<Theme> = {
     bottom: '0 !important',
     transform: 'none !important',
     maxHeight: '88vh',
+    // Anclada a `bottom: 0` en un iPhone, la fila de "Aceptar / Cancelar"
+    // quedaba DEBAJO de la barra del gesto de inicio: se veía, pero el dedo
+    // no llegaba. Y esto no es una pantalla suelta — es el selector de fecha
+    // compartido, así que pasaba en TODAS las pantallas de la app que piden
+    // una fecha, y solo con la app instalada como PWA (en el navegador la
+    // barra de direcciones lo tapaba y disimulaba el fallo).
+    '.MuiDialogActions-root': {
+      paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+    },
   },
   '.MuiPickersLayout-root': {
     display: 'flex',
@@ -198,7 +207,11 @@ export const StyledIconWrapper = styled(Stack)({
     cursor: 'pointer',
   },
   '& svg:hover': {
-    background: 'var(--accent-350-base)',
+    // `--accent-350-base` guarda `144, 172, 219`: un triplete pensado para ir
+    // DENTRO de un `rgba(...)`. Suelto no es un color válido, así que este
+    // fondo no se pintaba nunca y las flechas de mes no tenían señal de
+    // hover. El token de color de verdad es el que no lleva `-base`.
+    background: 'var(--accent-350)',
     '& g, & g path': {
       fill: 'var(--accent-400) !important',
     },

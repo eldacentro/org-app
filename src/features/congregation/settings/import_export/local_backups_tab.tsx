@@ -260,8 +260,10 @@ const LocalBackupsTab = () => {
             p: 4,
             textAlign: 'center',
             border: '1px dashed var(--line)',
-            borderRadius: 'var(--radius-m)',
-            bgcolor: 'var(--accent-50)',
+            borderRadius: 'var(--shape-sm)',
+            // `--accent-50` no existe en NINGÚN tema: esta caja se quedaba
+            // sin fondo. El escalón más suave que sí existe es el 100.
+            bgcolor: 'var(--accent-100)',
           }}
         >
           <IconBackupOrganized color="var(--accent-dark)" />
@@ -312,8 +314,9 @@ const LocalBackupsTab = () => {
                   px: 2,
                   py: 1,
                   border: '1px solid var(--line)',
-                  borderRadius: 'var(--radius-m)',
-                  bgcolor: 'var(--accent-50)',
+                  borderRadius: 'var(--shape-sm)',
+                  // Mismo caso: `--accent-50` no existe, la fila salía lisa.
+                  bgcolor: 'var(--accent-100)',
                   transition: 'background-color 0.2s',
                   '&:hover': {
                     bgcolor: 'var(--accent-100)',
@@ -332,10 +335,13 @@ const LocalBackupsTab = () => {
                         display: 'inline-block',
                         px: 1,
                         py: 0.2,
-                        borderRadius: 'var(--radius-s)',
+                        borderRadius: 'var(--shape-full)',
                         bgcolor:
                           snapshot.type === 'monthly'
-                            ? 'var(--accent-250)'
+                            // `--accent-250` no existe: la píldora "Mensual"
+                            // salía SIN fondo, que es justo lo contrario de
+                            // lo que busca (distinguirla de las otras dos).
+                            ? 'var(--accent-200)'
                             : snapshot.type === 'weekly'
                             ? 'var(--line)'
                             : 'var(--accent-150)',

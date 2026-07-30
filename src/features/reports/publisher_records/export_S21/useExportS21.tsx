@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { saveAs } from 'file-saver';
 import { useAtomValue } from 'jotai';
 import { pdf } from '@react-pdf/renderer';
 import JSZip from 'jszip';
@@ -220,11 +221,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    const url = URL.createObjectURL(content);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'EldaCentro_S-21_Cards.zip';
-    link.click();
+    saveAs(content, 'EldaCentro_S-21_Cards.zip');
   };
 
   const handleExportInactive = async (values: string[]) => {
@@ -241,11 +238,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />
     ).toBlob();
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'EldaCentro_S-21_Cards_Inactives.pdf';
-    link.click();
+    saveAs(blob, 'EldaCentro_S-21_Cards_Inactives.pdf');
   };
 
   // Arma un solo Document (una página por publicador) con los publicadores
@@ -321,11 +314,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    const url = URL.createObjectURL(content);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'EldaCentro_S-21_Cards_Groups.zip';
-    link.click();
+    saveAs(content, 'EldaCentro_S-21_Cards_Groups.zip');
   };
 
   const handleExportActive = async (values: string[]) => {
@@ -403,11 +392,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    const url = URL.createObjectURL(content);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'EldaCentro_S-21_Cards_Actives.zip';
-    link.click();
+    saveAs(content, 'EldaCentro_S-21_Cards_Actives.zip');
   };
 
   const handleExportCards = async (values: string[], type: string) => {
@@ -457,11 +442,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       <TemplateS21DocMulti publishers={totals} lang={sourceLocale} />
     ).toBlob();
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'EldaCentro_S-21_Totales.pdf';
-    link.click();
+    saveAs(blob, 'EldaCentro_S-21_Totales.pdf');
 
     onClose?.();
   };

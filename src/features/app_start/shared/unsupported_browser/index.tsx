@@ -25,8 +25,12 @@ const UnsupportedBrowser = () => {
         alignItems: 'center',
         justifyContent: 'center',
         maxWidth: '1440px',
+        // Esta caja llega hasta `bottom: 0`. En un iPhone con la app
+        // instalada, lo último de su contenido —que aquí es el botón de
+        // recargar— cae bajo la barra del gesto de inicio.
         paddingLeft: { mobile: '16px', tablet: '24px', desktop: '32px' },
         paddingRight: { mobile: '16px', tablet: '24px', desktop: '32px' },
+        paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
       <Box

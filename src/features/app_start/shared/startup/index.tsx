@@ -42,6 +42,10 @@ const Startup = () => {
                   width: '100vw',
                   zIndex: 1300,
                   padding: { mobile: '16px', tablet: '24px' },
+                  // Ocupa la pantalla entera: el relleno tiene que contar
+                  // con la muesca y con la barra del gesto de inicio.
+                  paddingTop: 'max(16px, env(safe-area-inset-top))',
+                  paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
                   background:
                     'radial-gradient(circle at 50% 50%, var(--accent-150) 0%, var(--accent-100) 100%)',
                 }}

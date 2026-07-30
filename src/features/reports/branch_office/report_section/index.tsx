@@ -40,7 +40,7 @@ const ReportSection = ({
           <Box
             sx={{
               display: 'flex',
-              alignItems: laptopUp ? 'center' : 'strecth',
+              alignItems: laptopUp ? 'center' : 'stretch',
               gap: '16px',
               flexDirection: !tabletUp
                 ? 'column'

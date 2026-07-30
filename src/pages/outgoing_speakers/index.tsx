@@ -950,7 +950,11 @@ const OutgoingSpeakersPage = () => {
                       '&:hover': { backgroundColor: 'var(--accent-100)' },
                     }}
                   >
-                    {monthSortOrder === 'desc' ? <IconSortDown /> : <IconSortUp />}
+                    {monthSortOrder === 'desc' ? (
+                      <IconSortDown color="var(--accent-main)" />
+                    ) : (
+                      <IconSortUp color="var(--accent-main)" />
+                    )}
                   </IconButton>
                   {!desktopUp && selectedWeek && (
                     <IconButton

@@ -471,7 +471,7 @@ const ReorderDialog = ({
                   backgroundColor: 'var(--white)',
                 }}
               >
-                <IconUp />
+                <IconUp color="var(--accent-dark)" />
               </IconButton>
               <IconButton
                 size="small"
@@ -482,7 +482,7 @@ const ReorderDialog = ({
                   backgroundColor: 'var(--white)',
                 }}
               >
-                <IconDown />
+                <IconDown color="var(--accent-dark)" />
               </IconButton>
             </Stack>
           </Box>

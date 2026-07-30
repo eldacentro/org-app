@@ -29,7 +29,7 @@ const EquiposCard = ({ equipos }: Props) => {
           <Box
             sx={{
               padding: '10px 16px',
-              backgroundColor: `${equipo.color}1A`,
+              backgroundColor: `color-mix(in srgb, ${equipo.color} 10%, transparent)`,
               borderBottom: `2px solid ${equipo.color}`,
               display: 'flex',
               alignItems: 'center',

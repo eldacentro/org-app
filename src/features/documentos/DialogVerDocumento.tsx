@@ -229,7 +229,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     Descargar
                   </Button>
                   <IconButton onClick={handleClose} sx={{ color: 'var(--ink-2)', ml: 1 }}>
-                    <IconClose />
+                    <IconClose color="var(--ink-2)" />
                   </IconButton>
                 </Stack>
               </Toolbar>
@@ -304,7 +304,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 '&:hover': { backgroundColor: 'var(--card)' },
               }}
             >
-              <IconClose />
+              <IconClose color="var(--ink-2)" />
             </IconButton>
 
             <Box sx={{ mt: 2 }}>
@@ -314,9 +314,9 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    backgroundColor: `${categoria.color}15`,
+                    backgroundColor: `color-mix(in srgb, ${categoria.color} 8%, transparent)`,
                     color: categoria.color,
-                    border: `1.5px solid ${categoria.color}35`,
+                    border: `1.5px solid color-mix(in srgb, ${categoria.color} 21%, transparent)`,
                     px: 2,
                     py: 0.8,
                     lineHeight: 1,

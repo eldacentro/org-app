@@ -145,11 +145,7 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
 
         const content = await zip.generateAsync({ type: 'blob' });
 
-        const url = URL.createObjectURL(content);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `S-89_${firstWeek}-${lastWeek}.zip`;
-        link.click();
+        saveAs(content, `S-89_${firstWeek}-${lastWeek}.zip`);
       }
     }
   };

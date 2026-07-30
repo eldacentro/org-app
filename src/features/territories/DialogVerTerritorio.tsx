@@ -644,7 +644,7 @@ const DialogVerTerritorio = ({
                       height: 9,
                       borderRadius: 'var(--shape-full)',
                       backgroundColor: color,
-                      boxShadow: `0 0 0 2.5px ${color}25`,
+                      boxShadow: `0 0 0 2.5px color-mix(in srgb, ${color} 15%, transparent)`,
                       flexShrink: 0,
                     }}
                   />
@@ -690,7 +690,7 @@ const DialogVerTerritorio = ({
                     width: 28,
                     height: 28,
                     borderRadius: 'var(--shape-full)',
-                    backgroundColor: editingTags ? `${color}15` : 'var(--accent-100)',
+                    backgroundColor: editingTags ? `color-mix(in srgb, ${color} 8%, transparent)` : 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1071,7 +1071,7 @@ const DialogVerTerritorio = ({
                   height: 12,
                   borderRadius: 'var(--shape-full)',
                   backgroundColor: color,
-                  boxShadow: `0 0 0 3px ${color}22`,
+                  boxShadow: `0 0 0 3px color-mix(in srgb, ${color} 13%, transparent)`,
                   flexShrink: 0,
                 }}
               />

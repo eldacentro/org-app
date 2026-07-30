@@ -160,7 +160,7 @@ function ScrollableTabs({
                     fontSize: 16,
                     textTransform: 'none',
                     ':not(&.Mui-selected)': { fontWeight: 400 },
-                    '&.Mui-Selected': {
+                    '&.Mui-selected': {
                       fontWeight: 600,
                       fontSize: 18,
                     },

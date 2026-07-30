@@ -168,7 +168,7 @@ const DocumentosPage = () => {
                     mb: 2,
                     fontWeight: 700,
                     color: cat.color,
-                    borderBottom: `2px solid ${cat.color}30`,
+                    borderBottom: `2px solid color-mix(in srgb, ${cat.color} 19%, transparent)`,
                     paddingBottom: '6px',
                   }}
                 >

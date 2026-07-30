@@ -360,7 +360,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                   })}
                 >
                   {isProcessingId === history.id ? (
-                    <IconLoading />
+                    <IconLoading color="var(--accent-main)" />
                   ) : (
                     <IconAddMonth color="var(--brand)" />
                   )}
