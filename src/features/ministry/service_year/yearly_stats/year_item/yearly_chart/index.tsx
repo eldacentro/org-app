@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import { Box } from '@mui/material';
 import Typography from '@components/typography';
 import { useAppTranslation } from '@hooks/index';
@@ -32,7 +31,6 @@ const barState = (item: YearlyChartMonth): BarState => {
 const YearlyChart = ({ year }: { year: string }) => {
   const { t } = useAppTranslation();
   const { months } = useYearlyChart(year);
-  const gradientId = useId();
 
   if (months.length === 0) return null;
 
@@ -41,11 +39,17 @@ const YearlyChart = ({ year }: { year: string }) => {
   const barWidth = Math.min(26, colWidth * 0.5);
   const barRadius = 5;
 
+  // Colores planos. Las barras se pintaban con dos degradados verticales
+  // —el único sitio de la app donde quedaba uno—, y en un gráfico además
+  // estorban: el ojo lee el degradado como si el valor cambiara a lo alto de
+  // la barra, cuando lo que mide es la ALTURA. Un color plano dice lo mismo
+  // sin sugerir nada que no sea cierto.
   const fillFor = (state: BarState) => {
     if (state === 'muted') return 'var(--grey-300)';
     if (state === 'below') return 'var(--accent-300)';
+    if (state === 'current') return 'var(--accent-300)';
 
-    return `url(#${gradientId}-${state})`;
+    return 'var(--accent-main)';
   };
 
   return (
@@ -62,16 +66,6 @@ const YearlyChart = ({ year }: { year: string }) => {
           role="img"
           aria-label={t('tr_yearlyChartTitle', 'Horas por mes')}
         >
-          <defs>
-            <linearGradient id={`${gradientId}-ok`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent-main)" />
-              <stop offset="100%" stopColor="var(--brand-deep)" />
-            </linearGradient>
-            <linearGradient id={`${gradientId}-current`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent-200)" />
-              <stop offset="100%" stopColor="var(--accent-350)" />
-            </linearGradient>
-          </defs>
 
           <line
             x1={0}

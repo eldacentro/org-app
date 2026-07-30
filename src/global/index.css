@@ -257,11 +257,11 @@ body iframe {
      en proporción; los contenedores grandes se quedan en una curva generosa
      pero contenida. */
   --shape-xs: 8px;      /* casillas, badges, cuadraditos de fecha            */
-  --shape-sm: 12px;     /* campos, desplegables, filas de lista, botón-icono */
+  --shape-sm: 12px;     /* campos, desplegables, filas de lista              */
   --shape-md: 16px;     /* paneles anidados, barras, tarjeta pequeña         */
   --shape-lg: 20px;     /* LA tarjeta estándar de una página                 */
   --shape-xl: 28px;     /* diálogos, hojas, tarjeta destacada del inicio     */
-  --shape-full: 999px;  /* botones, píldoras, chips, pestañas, progreso      */
+  --shape-full: 999px;  /* botones (también los de icono), chips, pestañas   */
 
   /* Ritmo de un campo con la etiqueta dentro. Ver el bloque «EL CAMPO».
      El de los lados lo usan la etiqueta Y el valor, para que arranquen de la

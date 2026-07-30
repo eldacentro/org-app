@@ -9,6 +9,7 @@ import {
   Box,
   Stack,
   TextField,
+  MenuItem,
   Grid,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -202,20 +203,27 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
         <Grid container spacing={3}>
           <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
             <Stack spacing={2.5}>
-              <Box>
-                <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 1 }}>
-                  Zona *
-                </Typography>
-                <Select
-                  value={zoneId}
-                  onChange={(e) => setZoneId(e.target.value as string)}
-                >
-                  <option value="" disabled>Seleccione una zona</option>
-                  {zones.map((z) => (
-                    <option key={z.id} value={z.id}>{z.nombre}</option>
-                  ))}
-                </Select>
-              </Box>
+              {/* El desplegable se alimentaba con `<option>` en crudo. Un
+                  Select de MUI no los estila: se pintan como los del navegador
+                  —escuetos, de otra aplicación— y encima la etiqueta flotante
+                  no encontraba su sitio, así que el valor elegido caía
+                  demasiado abajo. Con `MenuItem` se pinta como el resto.
+
+                  Y la etiqueta pasa DENTRO del campo: los demás campos de este
+                  diálogo ("Número", "Nombre") la llevan dentro, así que tener
+                  el rótulo de la Zona fuera y encima era mezclar las dos
+                  convenciones en la misma columna. */}
+              <Select
+                label="Zona *"
+                value={zoneId}
+                onChange={(e) => setZoneId(e.target.value as string)}
+              >
+                {zones.map((z) => (
+                  <MenuItem key={z.id} value={z.id}>
+                    {z.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
 
               <TextField
                 label="Número *"

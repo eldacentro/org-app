@@ -14,7 +14,11 @@ const MinusButton = ({ onClick, sx }: MinusButtonProps) => {
       onClick={onClick}
       sx={{
         border: '1px solid var(--accent-350)',
-        borderRadius: 'var(--radius-m)',
+        // Redondo del todo, como el `IconButton` compartido de la app.
+        // Estaban a 12px y eran los dos ÚNICOS botones de icono cuadraditos
+        // de toda la aplicación: en el editor de horas del Informe se veía el
+        // contraste, porque al lado no hay ninguna otra caja de ese radio.
+        borderRadius: 'var(--shape-full)',
         '&:hover': {
           '@media (hover: hover)': {
             backgroundColor: 'var(--accent-200)',

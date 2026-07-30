@@ -40,7 +40,10 @@ import { Typography } from '@components/index';
 // sistema (mismo tratamiento que predicacion_salidas).
 import AppButton from '@components/button';
 import AutoComplete from '@components/autocomplete';
+import TimePicker from '@components/time_picker';
 import { PersonType } from '@definition/person';
+import { generateDateFromTime } from '@utils/date';
+import { hour24FormatState } from '@states/settings';
 import SegmentedControl from '@components/segmented_control';
 import accentSurface from '@components/accent_surface';
 import Checkbox from '@components/checkbox';
@@ -163,6 +166,8 @@ const Exhibitors = () => {
       dbExhibitorsGetSettings().then(setSettings);
     }
   }, [settings, setSettings]);
+
+  const hour24 = useAtomValue(hour24FormatState);
 
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -4442,53 +4447,53 @@ const Exhibitors = () => {
 
           {/* Horarios */}
           <Box sx={{ display: 'flex', gap: '16px' }}>
-            <Box sx={{ flex: 1 }}>
+            {/* `minWidth: 0` en las dos columnas: `flex: 1` por sí solo NO
+                deja encoger por debajo del ancho mínimo del contenido, y el
+                TimePicker compartido es más ancho que el <input type="time">
+                nativo que había antes. Sin esto el diálogo se desborda a lo
+                ancho y sale una barra de desplazamiento horizontal. */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 className="label-small-semibold"
                 sx={{ color: 'var(--ink-2)', mb: '4px' }}
               >
                 Hora de inicio
               </Typography>
-              <TextField
-                type="time"
-                value={turnConfigDialog.startTime}
-                onChange={(e) =>
+              {/* El `TimePicker` de la app, no `<TextField type="time">`.
+                  Aquel es el control NATIVO del navegador: se ve distinto en
+                  cada sistema operativo, y en la pantalla gemela —Salidas de
+                  predicación— la misma hora de un turno ya se pide con este.
+                  La misma acción se hacía de dos maneras según la pestaña. */}
+              <TimePicker
+                ampm={!hour24}
+                value={generateDateFromTime(turnConfigDialog.startTime)}
+                onChange={(nueva) => {
+                  const h = String(nueva.getHours()).padStart(2, '0');
+                  const m = String(nueva.getMinutes()).padStart(2, '0');
                   setTurnConfigDialog({
                     ...turnConfigDialog,
-                    startTime: e.target.value,
-                  })
-                }
-                size="small"
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--shape-sm)',
-                  },
+                    startTime: `${h}:${m}`,
+                  });
                 }}
               />
             </Box>
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 className="label-small-semibold"
                 sx={{ color: 'var(--ink-2)', mb: '4px' }}
               >
                 Hora de finalización
               </Typography>
-              <TextField
-                type="time"
-                value={turnConfigDialog.endTime}
-                onChange={(e) =>
+              <TimePicker
+                ampm={!hour24}
+                value={generateDateFromTime(turnConfigDialog.endTime)}
+                onChange={(nueva) => {
+                  const h = String(nueva.getHours()).padStart(2, '0');
+                  const m = String(nueva.getMinutes()).padStart(2, '0');
                   setTurnConfigDialog({
                     ...turnConfigDialog,
-                    endTime: e.target.value,
-                  })
-                }
-                size="small"
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 'var(--shape-sm)',
-                  },
+                    endTime: `${h}:${m}`,
+                  });
                 }}
               />
             </Box>
