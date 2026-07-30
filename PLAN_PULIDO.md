@@ -122,8 +122,20 @@ Rompe algo, no solo se ve mal. **Cerrado salvo lo marcado.**
       arriba anclan al techo, no al suelo, y están bien.
 - [x] ~~Traducción de los 5 módulos sin `t()`~~ — **descartado a propósito**:
       la app es solo para Elda Centro, en español. No re-abrir.
-- [ ] Fuga del blob del avatar (`states/settings.ts`) — es un átomo derivado,
-      liberarla mal rompe la foto; necesita mirarse aparte
+- [x] **Fuga del blob del avatar** (`states/settings.ts`). `createObjectURL` no
+      es una función pura: cada llamada RESERVA memoria para el blob y solo la
+      suelta `revokeObjectURL`. Se llamaba dentro de un átomo derivado sin
+      liberar nunca la anterior, así que cada recálculo —y se recalcula al
+      cambiar CUALQUIER ajuste, no solo la foto— dejaba otra copia en memoria
+      hasta recargar la página.
+      Ahora se guarda el búfer junto a su URL: si es el mismo búfer no se crea
+      nada, y si cambió se libera la vieja. El aviso del plan era acertado
+      (liberarla mal rompe la foto), así que la anterior se suelta en el
+      siguiente turno del bucle de eventos y no a la vez: en ese instante
+      todavía hay un `<img>` pintando la URL vieja.
+      **No verificado en marcha**: el usuario de prueba no tiene foto, así que
+      la fuga no se puede provocar en modo de prueba (medido: cero llamadas a
+      `createObjectURL` paseando por la app).
 
 ---
 

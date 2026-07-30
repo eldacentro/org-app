@@ -642,17 +642,41 @@ export const userAvatarState = atom((get) => {
   return settings.user_settings.user_avatar;
 });
 
+/**
+ * La última foto convertida, para no repetir el trabajo ni dejar basura.
+ *
+ * `URL.createObjectURL` no es una función pura: cada llamada RESERVA memoria
+ * para el blob y solo la suelta `revokeObjectURL`. Aquí se llamaba dentro de un
+ * átomo derivado sin liberar nunca la anterior, así que cada recálculo dejaba
+ * una copia de la foto en memoria hasta recargar la página.
+ *
+ * Se guarda junto al búfer del que salió, y no solo la URL, porque así:
+ *   · si el búfer es EL MISMO (que es lo normal: el átomo se recalcula cuando
+ *     cambia cualquier ajuste, no solo la foto) se devuelve la URL de antes y
+ *     no se crea ninguna;
+ *   · y si de verdad cambió, se libera la vieja.
+ */
+let fotoCache: { buffer: unknown; url: string } | null = null;
+
 export const userAvatarUrlState = atom((get) => {
   const avatarBuffer = get(userAvatarState);
 
-  let src = '';
+  if (fotoCache && fotoCache.buffer === avatarBuffer) return fotoCache.url;
 
-  if (avatarBuffer) {
-    const blob = new Blob([avatarBuffer]);
-    src = URL.createObjectURL(blob);
+  const anterior = fotoCache;
+  fotoCache = avatarBuffer
+    ? { buffer: avatarBuffer, url: URL.createObjectURL(new Blob([avatarBuffer])) }
+    : null;
+
+  // La anterior se suelta DESPUÉS, no aquí mismo: en el momento de este
+  // cálculo todavía hay un <img> pintando la URL vieja, y liberarla a la vez
+  // dejaría el hueco en blanco hasta que React repinte. Con el respiro de un
+  // turno del bucle de eventos, el cambio no se ve.
+  if (anterior) {
+    setTimeout(() => URL.revokeObjectURL(anterior.url), 0);
   }
 
-  return src;
+  return fotoCache?.url ?? '';
 });
 
 export const backupAutoState = atom((get) => {
