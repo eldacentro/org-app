@@ -75,12 +75,24 @@ export type SettingsType = {
       updatedAt: string;
       _deleted: boolean;
     }[];
+    /**
+     * Abreviar el nombre en el programa: "Mike S." en vez de "Mike Stevens".
+     *
+     * Tenía un segundo interruptor, `others`, para aplicarlo FUERA de las
+     * reuniones. Se guardaba, se sincronizaba y se migraba desde 2024, pero
+     * no lo leía nadie: no existía ningún estado que lo expusiera, ni la
+     * pantalla de Ajustes ofrecía encenderlo. Era media función construida.
+     *
+     * Se retira en vez de terminarla porque no se quiere: en las listas de
+     * consulta —grupos, limpieza, responsabilidades, territorios— el nombre
+     * completo es lo correcto, y en los formularios oficiales (S-21,
+     * solicitudes de precursorado, informes a la sucursal) es obligatorio.
+     */
     display_name_enabled: {
       type: string;
       updatedAt: string;
       _deleted: boolean;
       meetings: boolean;
-      others: boolean;
     }[];
     schedule_exact_date_enabled: {
       value: boolean;

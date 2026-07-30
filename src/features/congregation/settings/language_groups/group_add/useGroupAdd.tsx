@@ -111,7 +111,6 @@ const useGroupAdd = ({ onClose }: GroupAddProps) => {
         type: group.group_id,
         updatedAt: new Date().toISOString(),
         meetings: false,
-        others: false,
       });
 
       const fullnameOption = appSettings.cong_settings.fullname_option;

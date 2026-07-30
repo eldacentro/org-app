@@ -266,7 +266,6 @@ export const settingSchema: SettingsType = {
         _deleted: false,
         updatedAt: '',
         meetings: false,
-        others: false,
       },
     ],
     schedule_exact_date_enabled: [

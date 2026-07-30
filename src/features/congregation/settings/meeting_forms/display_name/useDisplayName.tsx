@@ -27,15 +27,16 @@ const useMeetingForms = () => {
       const dateA = displayName['meetings']['updatedAt'];
       const dateB = displayName['others']['updatedAt'];
       const meetings = displayName['meetings']['value'];
-      const others = displayName['others']['value'];
 
       displayName = [
         {
           type: 'main',
+          // Se sigue mirando la fecha del `others` del formato viejo aunque
+          // el campo ya no exista: es la marca que decide qué registro gana
+          // en la fusión. Lo que desaparece es el VALOR, no la fecha.
           updatedAt: dateA > dateB ? dateA : dateB,
           _deleted: false,
           meetings,
-          others,
         },
       ];
     }
@@ -53,7 +54,6 @@ const useMeetingForms = () => {
       displayName.push({
         _deleted: false,
         meetings: value,
-        others: false,
         type: dataView,
         updatedAt: new Date().toISOString(),
       });

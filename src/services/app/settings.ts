@@ -11,16 +11,16 @@ export const convertSettingsObjectToArray = (settings: SettingsType) => {
     const meetings =
       settings.cong_settings.display_name_enabled['meetings']['value'];
 
-    const others =
-      settings.cong_settings.display_name_enabled['others']['value'];
-
     settings.cong_settings.display_name_enabled = [
       {
         type: 'main',
         _deleted: false,
+        // Se sigue mirando la fecha del `others` del formato viejo aunque el
+        // campo ya no exista: es la marca de tiempo que decide qué registro
+        // gana en la fusión, y rebajarla haría que este perdiera contra uno
+        // más antiguo. Lo que desaparece es el VALOR, no la fecha.
         updatedAt: dateA > dateB ? dateA : dateB,
         meetings,
-        others,
       },
     ];
   }
