@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
-  Button,
   Card,
   Dialog,
   DialogActions,
@@ -14,6 +13,7 @@ import {
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import MonthSelector from '@components/month_selector';
+import SegmentedControl from '@components/segmented_control';
 import {
   useAppTranslation,
   useBreakpoints,
@@ -48,9 +48,7 @@ import { Typography } from '@components/index';
 // diálogo de excepciones sí migra al botón del sistema de diseño.
 import AppButton from '@components/button';
 import { displaySnackNotification } from '@services/states/app';
-import {
-  IconSettings,
-} from '@components/icons';
+import { IconSettings } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
 const MONTH_NAMES = [
@@ -394,67 +392,15 @@ const Limpieza = () => {
               <Typography className="h1" style={{ color: 'var(--black)' }}>
                 {MONTH_NAMES[selectedMonth]}
               </Typography>
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: '4px',
-                  backgroundColor: 'var(--accent-150)',
-                  padding: '4px',
-                  borderRadius: 'var(--radius-m)',
-                  border: '1px solid var(--line)',
-                }}
-              >
-                <Button
-                  onClick={() => setViewMode('list')}
-                  size="small"
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: '700',
-                    borderRadius: 'var(--radius-s)',
-                    py: '4px',
-                    px: '16px',
-                    fontSize: '13px',
-                    boxShadow: 'none',
-                    ...(viewMode === 'list'
-                      ? {
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          '&:hover': { backgroundColor: 'var(--accent-dark)' },
-                        }
-                      : {
-                          color: 'var(--grey-600)',
-                          '&:hover': { backgroundColor: 'var(--line)' },
-                        }),
-                  }}
-                >
-                  Lista
-                </Button>
-                <Button
-                  onClick={() => setViewMode('grid')}
-                  size="small"
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: '700',
-                    borderRadius: 'var(--radius-s)',
-                    py: '4px',
-                    px: '16px',
-                    fontSize: '13px',
-                    boxShadow: 'none',
-                    ...(viewMode === 'grid'
-                      ? {
-                          backgroundColor: 'var(--accent-main)',
-                          color: 'var(--always-white)',
-                          '&:hover': { backgroundColor: 'var(--accent-dark)' },
-                        }
-                      : {
-                          color: 'var(--grey-600)',
-                          '&:hover': { backgroundColor: 'var(--line)' },
-                        }),
-                  }}
-                >
-                  Mensual
-                </Button>
-              </Box>
+              {/* El SegmentedControl de la app. Estaba escrito a mano aquí,
+                  con lo elegido en color PLENO — que está reservado a la acción
+                  principal de la pantalla, no a decir en qué vista estás. */}
+              <SegmentedControl
+                ariaLabel="Vista del calendario"
+                tabs={['Lista', 'Mensual']}
+                active={viewMode === 'list' ? 0 : 1}
+                onChange={(i) => setViewMode(i === 0 ? 'list' : 'month')}
+              />
             </Box>
 
             {/* VISTA CUADRÍCULA.
@@ -595,8 +541,12 @@ const Limpieza = () => {
                             </Typography>
                             <Box
                               sx={{
-                                backgroundColor: 'var(--accent-main)',
-                                color: 'var(--always-white)',
+                                // Rótulo, no botón: tinte y texto oscuro. En
+                                // color pleno, una rejilla de nueve fechas era
+                                // un muro de azul que tapaba las propias
+                                // fechas.
+                                backgroundColor: 'var(--state-selected)',
+                                color: 'var(--state-selected-ink)',
                                 borderRadius: 'var(--shape-full)',
                                 px: '12px',
                                 py: '4px',
@@ -612,7 +562,7 @@ const Limpieza = () => {
                                   dice lo que hay que saber. */}
                               <Typography
                                 className="label-small-semibold"
-                                style={{ color: 'var(--always-white)' }}
+                                style={{ color: 'var(--state-selected-ink)' }}
                               >
                                 {getGroupName(m.group)}
                               </Typography>

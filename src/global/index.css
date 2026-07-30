@@ -430,11 +430,6 @@ body iframe {
    sube a la parte de arriba, dentro. Las dos posiciones se miden desde el
    alto real del campo (48), no desde los 56 que MUI da por supuestos. */
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root {
-  /* El tope se divide por la escala porque la etiqueta encogida se dibuja al
-     75%: un `100% - 52px` a secas le dejaba en pantalla solo tres cuartos de
-     eso, y "Fecha de nacimiento" salía cortada con puntos suspensivos en un
-     campo donde cabía de sobra. Los 44px son el hueco de la flecha y la X. */
-  max-width: calc((100% - 44px) / 0.75);
   color: var(--ink-3);
   /* Sin interlineado sobrante: la caja de la etiqueta se ceñía a 1,4 líneas y
      ese aire invisible se comía la separación con el nombre de debajo. */
@@ -446,10 +441,19 @@ body iframe {
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
   top: 0;
   transform: translate(var(--campo-pad-x), 22px);
+  /* SIN encoger, la etiqueta se dibuja a tamaño real, así que el tope es el
+     ancho tal cual. Estaba dividido por 0,75 para los dos estados y aquí le
+     daba un tercio de más: "Responsabilidades (una por línea)" se salía por la
+     derecha del campo vacío. */
+  max-width: calc(100% - 44px);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
   top: 0;
   transform: translate(var(--campo-pad-x), 8px) scale(0.75);
+  /* Encogida SÍ se dibuja al 75%, así que el tope se divide por la escala: con
+     el ancho a secas le quedaban en pantalla solo tres cuartos, y "Fecha de
+     nacimiento" salía con puntos suspensivos donde cabía de sobra. */
+  max-width: calc((100% - 44px) / 0.75);
 }
 .MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root.Mui-focused {
   color: var(--accent-main);
@@ -480,16 +484,26 @@ body iframe {
   box-sizing: border-box;
 }
 
-/* Y el sangrado lateral, para TODO campo tenga etiqueta o no. Venía del 14px
-   por defecto de MUI, que coincidía con `--campo-pad-x` por casualidad; en
-   cuanto una pantalla lo pisaba (el registro de asistencia lo bajaba a 2px), el
-   valor se pegaba al canto mientras su etiqueta seguía en su sitio. */
+/* El sangrado lateral lo pone la CAJA, y el texto de dentro no pone ninguno.
+   Tiene que ser así y no al revés: en un campo de varias líneas MUI le da el
+   sangrado a la caja, así que poniéndoselo también al texto se aplicaba DOS
+   veces y el valor aparecía 14px más adentro que su propia etiqueta. Se veía en
+   cualquier campo multilínea — notas, responsabilidades, direcciones.
+
+   Además, con el sangrado en la caja los iconos de dentro (calendario, flecha,
+   la X de limpiar) quedan dentro del mismo margen que el texto, que es lo que
+   se espera. */
+.MuiOutlinedInput-root.MuiOutlinedInput-root,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
+  padding-left: var(--campo-pad-x);
+  padding-right: var(--campo-pad-x);
+}
 .MuiOutlinedInput-root.MuiOutlinedInput-root > .MuiOutlinedInput-input,
 .MuiOutlinedInput-root.MuiOutlinedInput-root > .MuiSelect-select,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root
   > .MuiPickersInputBase-input {
-  padding-left: var(--campo-pad-x);
-  padding-right: var(--campo-pad-x);
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* ─── Dark mode semantic overrides ─────────────────────────────────────── */

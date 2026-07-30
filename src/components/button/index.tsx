@@ -219,6 +219,10 @@ const Button: FC<ButtonPropsType> = (props) => {
         // redondos: en la misma pantalla convivían tres formas para la misma
         // idea de "esto se pulsa".
         borderRadius: 'var(--shape-full)',
+        // La etiqueta de un botón NUNCA se parte en dos líneas: si no cabe, lo
+        // que está mal es el sitio donde se ha metido, no la etiqueta. Salía
+        // partida en "Nueva visita" y en "Guardar cambios".
+        whiteSpace: 'nowrap',
         '&:hover': {
           backgroundColor: getBackgroundColorHover(),
           border:
@@ -226,12 +230,6 @@ const Button: FC<ButtonPropsType> = (props) => {
               ? '1px solid var(--accent-dark)'
               : 'none',
           boxShadow: 'none',
-          borderRadius:
-            variant === 'group'
-              ? 'none'
-              : variant === 'small' || variant === 'semi-white'
-                ? 'var(--radius-m)'
-                : 'var(--radius-l)',
           '@media (hover: none)': {
             backgroundColor: getBackgroundColor(),
           },
@@ -249,14 +247,6 @@ const Button: FC<ButtonPropsType> = (props) => {
               ? '1px solid var(--accent-dark)'
               : 'none',
           boxShadow: 'none',
-          borderRadius:
-            variant === 'group'
-              ? 'none'
-              : variant === 'small'
-                ? 'var(--radius-s)'
-                : variant === 'semi-white'
-                  ? 'var(--radius-m)'
-                  : 'var(--radius-l)',
           opacity: variant === 'small' || color ? 0.8 : 1,
         },
         '&:disabled': {

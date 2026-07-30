@@ -15,6 +15,7 @@ import {
   EquipoEvacuacion,
   MiembroEquipo,
 } from '@definition/evacuacion';
+import { COLORES } from './data';
 import { dbEvacuacionSaveConfig } from '@services/dexie/evacuacion';
 import { IconAdd, IconDelete } from '@components/icons';
 
@@ -115,7 +116,11 @@ const EvacuacionConfigDialog = ({
         {
           id: `eq-${Date.now()}`,
           nombre: 'Nuevo Equipo',
-          color: '#3f51b5',
+          // El azul del propio plano, no un índigo suelto de Material que no
+          // aparece en ninguna otra parte de la app. Es un dato que se guarda,
+          // así que va en hexadecimal a propósito: un `var()` no sobrevive a
+          // la base de datos.
+          color: COLORES.zonaA,
           miembros: [],
           procedimiento: [],
         },
@@ -198,6 +203,10 @@ const EvacuacionConfigDialog = ({
               minHeight: '280px',
               maxHeight: { mobile: '55vh', tablet: '460px' },
               overflowY: 'auto',
+              // Solo se desplaza en vertical. Desbordaba 2px a lo ancho —lo
+              // justo para pintar una barra horizontal de lado a lado del
+              // diálogo, que parecía un error de maquetación.
+              overflowX: 'hidden',
               paddingRight: '4px',
             }}
           >
@@ -209,25 +218,31 @@ const EvacuacionConfigDialog = ({
                     sx={{
                       border: '1px solid var(--line)',
                       p: 2,
-                      borderRadius: 'var(--r-lg)',
+                      borderRadius: 'var(--shape-md)',
                       position: 'relative',
                     }}
                   >
                     <Box
                       sx={{
                         display: 'flex',
-                        justifyContent: 'space-between',
                         alignItems: 'center',
+                        gap: '8px',
                         mb: 2,
                       }}
                     >
+                      {/* `minWidth: 0` es lo que faltaba: sin él, un hijo flex
+                          no baja de su ancho de contenido, así que el campo se
+                          negaba a encogerse y su valor salía cortado con puntos
+                          suspensivos ("Jefe de Emergenci…") aunque hubiera
+                          sitio de sobra en la fila. */}
                       <TextField
+                        multiline
                         label="Puesto / título del rol"
                         value={rol.rol}
                         onChange={(e) =>
                           handleMandoChange(i, 'rol', e.target.value)
                         }
-                        sx={{ flex: 1, mr: 2 }}
+                        sx={{ flex: 1, minWidth: 0 }}
                       />
                       <IconButton onClick={() => handleDeleteRol(i)}>
                         <IconDelete color="var(--red-main)" />
@@ -244,7 +259,12 @@ const EvacuacionConfigDialog = ({
                       sx={{ mb: 2 }}
                     />
                     <TextField
-                      label="Responsabilidades (una por línea)"
+                      // La etiqueta hacía dos trabajos —nombrar el campo Y
+                      // explicar el formato— y por eso no cabía en un campo de
+                      // este ancho. El nombre se queda en la etiqueta; la
+                      // instrucción baja al texto de ayuda, que es su sitio.
+                      label="Responsabilidades"
+                      placeholder="Una por línea"
                       multiline
                       minRows={3}
                       value={rol.responsabilidades.join('\n')}
@@ -277,7 +297,7 @@ const EvacuacionConfigDialog = ({
                     sx={{
                       border: '1px solid var(--line)',
                       p: 2,
-                      borderRadius: 'var(--r-lg)',
+                      borderRadius: 'var(--shape-md)',
                     }}
                   >
                     <Box

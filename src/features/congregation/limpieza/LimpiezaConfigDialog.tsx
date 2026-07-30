@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { displaySnackNotification } from '@services/states/app';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  FormGroup,
-  Box,
-  MenuItem,
-} from '@mui/material';
-import { Typography } from '@components/index';
+import { Box, MenuItem } from '@mui/material';
+import Dialog from '@components/dialog';
+import Typography from '@components/typography';
 import Button from '@components/button';
 import Checkbox from '@components/checkbox';
 import TextField from '@components/textfield';
 import DatePicker from '@components/date_picker';
 import { useAtomValue } from 'jotai';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
-import { dbLimpiezaGetConfig, dbLimpiezaSaveConfig } from '@services/dexie/limpieza';
+import {
+  dbLimpiezaGetConfig,
+  dbLimpiezaSaveConfig,
+} from '@services/dexie/limpieza';
 import { useAppTranslation } from '@hooks/index';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
@@ -54,7 +49,12 @@ const freezePastWeeks = (
     for (const reunionDia of ['midweek', 'weekend'] as const) {
       const key = `${weekOf}-${reunionDia}`;
       if (!overrides[key]) {
-        const groupId = calcularGrupoReunion(oldConfig, weekOf, reunionDia, groups);
+        const groupId = calcularGrupoReunion(
+          oldConfig,
+          weekOf,
+          reunionDia,
+          groups
+        );
         if (groupId) overrides[key] = groupId;
       }
     }
@@ -81,7 +81,8 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
 
   const getGroupName = (g: FieldServiceGroupType) => {
     if (!g) return '';
-    if (g.group_data.name && g.group_data.name.length > 0) return g.group_data.name;
+    if (g.group_data.name && g.group_data.name.length > 0)
+      return g.group_data.name;
     return t('tr_groupNumber', { groupNumber: g.group_data.sort_index + 1 });
   };
 
@@ -103,7 +104,9 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
         } else {
           // Default values
           setFechaInicio(new Date());
-          setGrupoInicio(activeGroups.length > 0 ? activeGroups[0].group_id : '');
+          setGrupoInicio(
+            activeGroups.length > 0 ? activeGroups[0].group_id : ''
+          );
           setGruposParticipantes(activeGroups.map((g) => g.group_id));
           setNotasGenerales('');
         }
@@ -142,11 +145,19 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
       };
 
       await dbLimpiezaSaveConfig(newConfig);
-      displaySnackNotification({ severity: 'success', header: 'Configuración guardada', message: 'La rotación de limpieza ha sido actualizada.' });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Configuración guardada',
+        message: 'La rotación de limpieza ha sido actualizada.',
+      });
       onClose();
     } catch (err) {
       console.error('Error saving limpieza config:', err);
-      displaySnackNotification({ severity: 'error', header: 'Error al guardar', message: 'No se pudo guardar la configuración de limpieza.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error al guardar',
+        message: 'No se pudo guardar la configuración de limpieza.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -161,81 +172,99 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          maxWidth: '600px',
-          width: '100%',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
-          boxShadow: 'var(--pop-up-shadow)',
-          borderRadius: 'var(--radius-xl)',
-        },
-      }}
-    >
-      <DialogTitle>
-        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          Configuración de limpieza
-        </Typography>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-          <DatePicker
-            label="Fecha de inicio"
-            value={fechaInicio}
-            onChange={(newValue) => { if (newValue) setFechaInicio(newValue as Date); }}
-            view="input"
-          />
+    // El Dialog del sistema, no el de MUI en crudo. Con el de MUI este diálogo
+    // traía su propio Paper (radio, borde, sombra), su propio DialogTitle y un
+    // DialogActions cuyo espaciado no era el de los demás: por eso sus botones
+    // no se parecían a los del resto de la app. Ver DESIGN_SYSTEM §6.1.
+    <Dialog open={open} onClose={onClose}>
+      <Typography className="h2" color="var(--ink)">
+        Configuración de limpieza
+      </Typography>
+      <Typography
+        className="body-small-regular"
+        color="var(--ink-2)"
+        sx={{ marginTop: '4px' }}
+      >
+        Define desde cuándo y con qué grupos rota la limpieza del salón.
+      </Typography>
 
-          <TextField
-            select
-            label="Grupo de inicio"
-            value={grupoInicio}
-            onChange={(e) => setGrupoInicio(e.target.value)}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          marginTop: '24px',
+        }}
+      >
+        <DatePicker
+          label="Fecha de inicio"
+          value={fechaInicio}
+          onChange={(newValue) => {
+            if (newValue) setFechaInicio(newValue as Date);
+          }}
+          view="input"
+        />
+
+        <TextField
+          select
+          label="Grupo de inicio"
+          value={grupoInicio}
+          onChange={(e) => setGrupoInicio(e.target.value)}
+        >
+          {activeGroups.map((g) => (
+            <MenuItem key={g.group_id} value={g.group_id}>
+              {getGroupName(g)}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <Box>
+          <Typography
+            className="body-small-semibold"
+            color="var(--ink-2)"
+            sx={{ marginBottom: '8px' }}
           >
+            Grupos que participan en la rotación
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {activeGroups.map((g) => (
-              <MenuItem key={g.group_id} value={g.group_id}>
-                {getGroupName(g)}
-              </MenuItem>
+              <Checkbox
+                key={g.group_id}
+                label={getGroupName(g)}
+                checked={gruposParticipantes.includes(g.group_id)}
+                onChange={() => toggleGroup(g.group_id)}
+              />
             ))}
-          </TextField>
-
-          <FormControl component="fieldset">
-            <Typography className="body-small-semibold" sx={{ color: 'var(--ink-2)', mb: 1 }}>
-              Grupos que participan en la rotación
-            </Typography>
-            <FormGroup>
-              {activeGroups.map((g) => (
-                <Checkbox
-                  key={g.group_id}
-                  label={getGroupName(g)}
-                  checked={gruposParticipantes.includes(g.group_id)}
-                  onChange={() => toggleGroup(g.group_id)}
-                />
-              ))}
-            </FormGroup>
-          </FormControl>
-
-          <TextField
-            label="Notas generales"
-            multiline
-            rows={3}
-            value={notasGenerales}
-            onChange={(e) => setNotasGenerales(e.target.value)}
-            placeholder="Ej: Traer fregonas, revisar aseos, etc."
-          />
+          </Box>
         </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="tertiary">
+
+        <TextField
+          label="Notas generales"
+          multiline
+          rows={3}
+          value={notasGenerales}
+          onChange={(e) => setNotasGenerales(e.target.value)}
+          placeholder="Ej: Traer fregonas, revisar aseos, etc."
+        />
+      </Box>
+
+      {/* Cancelar a la izquierda y Guardar el más a la derecha, como en todos
+          los diálogos de la app. */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '8px',
+          marginTop: '24px',
+        }}
+      >
+        <Button variant="tertiary" onClick={onClose}>
           Cancelar
         </Button>
-        <Button onClick={handleSave} variant="main" disabled={isSaving}>
+        <Button variant="main" onClick={handleSave} disabled={isSaving}>
           Guardar
         </Button>
-      </DialogActions>
+      </Box>
     </Dialog>
   );
 };
