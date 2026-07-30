@@ -107,7 +107,6 @@ const ProfileSettings = () => {
               <Typography>{option.person_name}</Typography>
             </Box>
           )}
-          height={40}
           renderValue={(value: UsersOption[]) =>
             value.map((option: UsersOption) => {
               return (

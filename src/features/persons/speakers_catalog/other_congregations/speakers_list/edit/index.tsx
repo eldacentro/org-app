@@ -192,7 +192,6 @@ const IncomingSpeakerEdit = ({ speaker }: IncomingSpeakerEditType) => {
           </Box>
         )}
         label={t('tr_publicTalks')}
-        height={40}
         renderValue={(value: PublicTalkType[]) =>
           value.map((option: PublicTalkType) => {
             return (

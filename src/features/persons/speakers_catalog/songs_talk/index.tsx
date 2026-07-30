@@ -84,7 +84,6 @@ const SongsTalk = ({
             </Box>
           )}
           label={t('tr_songs')}
-          height={40}
           renderValue={(value: SongType[]) =>
             value.map((option: SongType) => {
               return (

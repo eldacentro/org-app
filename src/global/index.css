@@ -500,6 +500,36 @@ body iframe {
   box-sizing: border-box;
 }
 
+/* Un campo de VARIOS valores no baja su texto: baja sus PÍLDORAS, que no son
+   el `input` y por eso la regla de arriba no las alcanzaba. Se veía en
+   "Miembros de familia": la píldora se sentaba centrada en la caja y cruzaba
+   por encima de la etiqueta encogida.
+
+   Así que aquí baja el contenedor entero —píldoras y hueco de escribir— y el
+   `input` de dentro devuelve su relleno a cero para no sumarlo dos veces.
+
+   Se reconoce por que la caja LLEVA píldoras dentro, no por ser un
+   autocompletado: así el de elegir uno —que no las lleva— se queda exactamente
+   como estaba.
+
+   Los números salen de medir, no del token de texto: en un campo de 56 la
+   etiqueta encogida termina en el 23 y la píldora mide 26, así que 26 arriba y
+   4 abajo la dejan centrada en el hueco que queda (3 de aire bajo la etiqueta,
+   4 hasta el suelo) y la caja sigue midiendo exactamente 56. Con el
+   `--campo-pad-top` del texto —24— la píldora rozaba la etiqueta.
+
+   Y el `!important` porque MUI le pone a este campo un `padding: 9px` que gana
+   la cascada; es el mismo motivo que explica el comentario de aquí arriba. */
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+  .MuiOutlinedInput-root:has(> .MuiChip-root) {
+  padding-top: 26px !important;
+  padding-bottom: 4px !important;
+}
+.MuiOutlinedInput-root:has(> .MuiChip-root) > .MuiOutlinedInput-input {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 /* El sangrado lateral lo pone la CAJA, y el texto de dentro no pone ninguno.
    Tiene que ser así y no al revés: en un campo de varias líneas MUI le da el
    sangrado a la caja, así que poniéndoselo también al texto se aplicaba DOS

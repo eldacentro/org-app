@@ -21,5 +21,4 @@ export type AutocompleteMutilePropsType<T> = Omit<
    * Placeholder text for the Autocomplete component.
    */
   placeholder?: string;
-  height?: number;
 };

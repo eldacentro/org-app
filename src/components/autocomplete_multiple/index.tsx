@@ -7,7 +7,37 @@ import { CustomListBoxComponent, CustomPaper } from '@components/autocomplete';
 
 CustomListBoxComponent.displayName = 'CustomListBoxComponent';
 
-const AutocompleteMultiple = <T,>(props: AutocompleteMutilePropsType<T>) => {
+/**
+ * Elegir VARIAS cosas: los miembros de una familia, los idiomas de un grupo,
+ * los discursos de un orador. Lo elegido se queda dentro del campo en forma de
+ * píldoras que se pueden quitar (`MiniChip`).
+ *
+ * ── Por qué es `outlined` ────────────────────────────────────────────────
+ *
+ * Estaba clavado a `variant="standard"`, que en MUI es el campo de RAYA: sin
+ * caja, sin fondo y sin relleno. Al lado de cualquier otro campo de la app
+ * cantaba, y medido lo dice todo:
+ *
+ *              este campo            cualquier campo de al lado
+ *   alto       32                    56
+ *   fondo      transparente          rgb(240, 244, 250)
+ *   radio      0                     12
+ *   relleno    ninguno               14px
+ *
+ * Y de ahí venía que las píldoras pareciesen pegadas a la etiqueta: sin caja
+ * ni relleno no había NADA entre una cosa y la otra. El hermano de al lado
+ * —`@components/autocomplete`, el de elegir uno— ya era `outlined`; eran los
+ * dos únicos campos de la app que no se parecían entre sí.
+ *
+ * Con `outlined` lo coge el bloque «EL CAMPO» de `global/index.css`: fondo,
+ * radio, anillo de foco, sitio de la etiqueta y 56 de alto MÍNIMO —`height:
+ * auto`—, así que la caja crece sola cuando las píldoras pasan de una línea.
+ */
+const AutocompleteMultiple = <T,>({
+  label,
+  placeholder,
+  ...props
+}: AutocompleteMutilePropsType<T>) => {
   const { t } = useAppTranslation();
 
   return (
@@ -31,35 +61,23 @@ const AutocompleteMultiple = <T,>(props: AutocompleteMutilePropsType<T>) => {
       renderInput={(params) => (
         <TextField
           {...params}
-          label={props.label}
-          placeholder={props.placeholder}
-          variant="standard"
+          label={label}
+          placeholder={placeholder}
           sx={{
-            // El alto y el ritmo vertical los pone el bloque «EL CAMPO».
+            // El alto, el fondo, el radio y el sitio de la etiqueta los pone
+            // «EL CAMPO». Aquí solo el ritmo de las píldoras DENTRO.
             '.MuiInputBase-root': {
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: '8px',
             },
             '.MuiInputBase-input': {
               flex: '1 0 0',
               color: 'var(--black)',
-            },
-            '.MuiInput-root:hover:before': {
-              borderBottom: '1px solid var(--accent-main)',
-              outline: 0,
-            },
-            '.MuiInput-root:before': {
-              borderBottom: '1px solid var(--accent-300) !important',
-            },
-            '.MuiInput-root:after': {
-              borderBottom: '1px solid var(--accent-main)',
-            },
-            '.MuiInputLabel-root': {
-              color: 'var(--accent-350)',
-              '&.Mui-focused': {
-                color: 'var(--accent-main)',
-              },
+              // Sin un mínimo, el hueco de escribir se queda sin sitio en
+              // cuanto hay dos o tres píldoras y no se puede seguir buscando.
+              minWidth: '60px',
             },
           }}
         />

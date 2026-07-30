@@ -47,7 +47,6 @@ const LanguageGroupMembers = (props: LanguageGroupMembersProps) => {
             <Typography>{option.person_name}</Typography>
           </Box>
         )}
-        height={40}
         renderValue={(value: PersonOption[]) =>
           value.map((option: PersonOption, index) => {
             return (
@@ -86,7 +85,6 @@ const LanguageGroupMembers = (props: LanguageGroupMembersProps) => {
             <Typography>{option.person_name}</Typography>
           </Box>
         )}
-        height={40}
         renderValue={(value: PersonOption[]) =>
           value.map((option: PersonOption) => {
             return (

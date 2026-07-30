@@ -155,7 +155,6 @@ const SpeakerEditView = (props: SpeakerEditViewType) => {
               </Box>
             )}
             label={t('tr_publicTalks')}
-            height={40}
             renderValue={(value: PublicTalkLocaleType[]) =>
               value.map((option: PublicTalkLocaleType) => {
                 return (
