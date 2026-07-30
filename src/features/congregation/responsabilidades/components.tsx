@@ -86,7 +86,7 @@ export const PersonMultiSelect = ({
               label={option.label}
               size="medium"
               {...tagProps}
-              sx={{ fontFamily: 'Figtree, sans-serif', fontSize: '14px' }}
+              sx={{ fontFamily: 'Figtree, sans-serif', fontSize: '13px' }}
             />
           );
         })

@@ -275,7 +275,7 @@ const SectionView = ({
                 sx={{
                   backgroundColor: 'var(--orange-secondary)',
                   color: 'var(--orange-dark)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   height: '20px',
                 }}
               />

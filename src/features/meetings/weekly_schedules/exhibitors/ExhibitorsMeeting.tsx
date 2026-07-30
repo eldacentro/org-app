@@ -348,7 +348,7 @@ const ExhibitorsMeeting = ({
                   fontWeight: '800',
                   color: 'var(--always-white)',
                   letterSpacing: '0.6px',
-                  fontSize: '14px',
+                  fontSize: '13px',
                 }}
               >
                 {dayLabel}
@@ -545,7 +545,7 @@ const ExhibitorsMeeting = ({
                     >
                       <Typography
                         sx={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           fontWeight: 600,
                           color: isCancelled
                             ? 'var(--grey-400)'

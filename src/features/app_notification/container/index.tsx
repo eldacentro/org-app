@@ -54,7 +54,7 @@ const NotificationContainer = ({
               >
                 <Typography
                   className="label-small-medium"
-                  sx={{ color: 'white', fontSize: '11px', fontWeight: 700 }}
+                  sx={{ color: 'white', fontSize: '12px', fontWeight: 700 }}
                 >
                   {unreadCount}
                 </Typography>

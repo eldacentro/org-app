@@ -18,7 +18,7 @@ const LabelBadge = ({
       justifyContent: 'center',
       alignItems: 'center',
       height: '24px',
-      fontSize: '14px',
+      fontSize: '13px',
       opacity: 1,
       transition: 'opacity 0.2s',
     }}

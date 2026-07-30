@@ -469,7 +469,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                       border: '1.5px solid var(--accent-main)',
                       color: 'var(--accent-main)',
                       fontWeight: 600,
-                      fontSize: '14px',
+                      fontSize: '13px',
                       textAlign: 'center',
                     }}
                   >

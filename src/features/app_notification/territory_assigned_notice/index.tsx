@@ -56,7 +56,7 @@ const TerritoryAssignedNotice = ({
             px: '20px',
             borderRadius: 'var(--shape-sm)',
             fontWeight: 600,
-            fontSize: '14px',
+            fontSize: '13px',
             letterSpacing: '0.01em',
             boxShadow: 'var(--btn-shadow)',
             transition: 'all 0.2s ease',

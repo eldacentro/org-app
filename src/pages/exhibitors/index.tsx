@@ -1745,12 +1745,20 @@ const Exhibitors = () => {
                                           <Box
                                             sx={{
                                               textAlign: 'right',
-                                              minWidth: '120px',
+                                              // Igual que en Salidas: el mínimo
+                                              // fijo impedía encoger y la
+                                              // columna se salía del relleno en
+                                              // un móvil estrecho.
+                                              minWidth: 0,
+                                              flexShrink: 1,
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              whiteSpace: 'nowrap',
                                             }}
                                           >
                                             <Typography
                                               style={{
-                                                fontSize: '13.5px',
+                                                fontSize: '13px',
                                                 color: isCancelled
                                                   ? 'var(--grey-400)'
                                                   : 'var(--grey-600)',
@@ -2022,7 +2030,7 @@ const Exhibitors = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '800',
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                             color: isSelected
                                               ? 'var(--accent-main)'
                                               : 'var(--grey-600)',
@@ -2042,7 +2050,7 @@ const Exhibitors = () => {
                                           {daySlots.length === 0 ? (
                                             <Typography
                                               style={{
-                                                fontSize: '11px',
+                                                fontSize: '12px',
                                                 color: 'var(--grey-400)',
                                                 fontStyle: 'italic',
                                                 marginTop: '4px',
@@ -2133,7 +2141,7 @@ const Exhibitors = () => {
                                                     </span>
                                                     <span
                                                       style={{
-                                                        fontSize: '11px',
+                                                        fontSize: '12px',
                                                         opacity: 0.8,
                                                         fontStyle: 'italic',
                                                         maxWidth: '60%',
@@ -2269,7 +2277,7 @@ const Exhibitors = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '700',
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                             color: isSelected
                                               ? 'var(--accent-dark)'
                                               : 'var(--grey-700)',
@@ -2375,7 +2383,7 @@ const Exhibitors = () => {
                                           <Typography
                                             style={{
                                               color: 'var(--grey-500)',
-                                              fontSize: '13.5px',
+                                              fontSize: '13px',
                                               fontStyle: 'italic',
                                             }}
                                           >
@@ -2474,7 +2482,7 @@ const Exhibitors = () => {
                                               <Typography
                                                 style={{
                                                   fontWeight: '600',
-                                                  fontSize: '13.5px',
+                                                  fontSize: '13px',
                                                   color: isAssigned
                                                     ? 'var(--black)'
                                                     : 'var(--error-main)',
@@ -2500,7 +2508,7 @@ const Exhibitors = () => {
                                           >
                                             <Typography
                                               style={{
-                                                fontSize: '13.5px',
+                                                fontSize: '13px',
                                                 color: isCancelled
                                                   ? 'var(--grey-400)'
                                                   : 'var(--grey-600)',
@@ -2591,7 +2599,7 @@ const Exhibitors = () => {
                       minHeight: '40px',
                       textTransform: 'none',
                       px: '16px',
-                      fontSize: '13.5px',
+                      fontSize: '13px',
                       transition:
                         'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
                     },
@@ -2635,7 +2643,7 @@ const Exhibitors = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -2706,7 +2714,7 @@ const Exhibitors = () => {
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--accent-dark)',
                             fontWeight: '500',
                           }}
@@ -2766,7 +2774,7 @@ const Exhibitors = () => {
                               <Typography
                                 style={{
                                   fontWeight: '700',
-                                  fontSize: '13.5px',
+                                  fontSize: '13px',
                                   color: 'var(--black)',
                                 }}
                               >
@@ -2818,7 +2826,7 @@ const Exhibitors = () => {
                         </Typography>
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--grey-600)',
                             marginTop: '4px',
                           }}
@@ -2854,7 +2862,7 @@ const Exhibitors = () => {
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--accent-dark)',
                             fontWeight: '600',
                           }}
@@ -2922,7 +2930,7 @@ const Exhibitors = () => {
                                           backgroundColor: 'var(--accent-100)',
                                           color: 'var(--accent-dark)',
                                           fontWeight: '700',
-                                          fontSize: '11px',
+                                          fontSize: '12px',
                                           borderRadius: 'var(--shape-xs)',
                                         }}
                                       />
@@ -2985,7 +2993,7 @@ const Exhibitors = () => {
                                       <Typography
                                         style={{
                                           fontWeight: '700',
-                                          fontSize: '11px',
+                                          fontSize: '12px',
                                           color: 'var(--grey-500)',
                                           textTransform: 'uppercase',
                                           letterSpacing: '0.5px',
@@ -3010,7 +3018,7 @@ const Exhibitors = () => {
                                             sx={{
                                               borderColor: 'var(--line)',
                                               color: 'var(--grey-600)',
-                                              fontSize: '11px',
+                                              fontSize: '12px',
                                               height: '22px',
                                               borderRadius: 'var(--shape-xs)',
                                             }}
@@ -3091,7 +3099,7 @@ const Exhibitors = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -3121,7 +3129,7 @@ const Exhibitors = () => {
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--accent-dark)',
                             fontWeight: '600',
                           }}
@@ -3207,7 +3215,7 @@ const Exhibitors = () => {
                                   <Typography
                                     style={{
                                       fontWeight: '700',
-                                      fontSize: '13.5px',
+                                      fontSize: '13px',
                                       color: 'var(--black)',
                                     }}
                                   >
@@ -3234,7 +3242,7 @@ const Exhibitors = () => {
                                   sx={{
                                     margin: 0,
                                     '& .MuiFormControlLabel-label': {
-                                      fontSize: '11px',
+                                      fontSize: '12px',
                                       fontWeight: '700',
                                       color: isResponsible
                                         ? 'var(--accent-main)'
@@ -3266,7 +3274,7 @@ const Exhibitors = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -3377,7 +3385,7 @@ const Exhibitors = () => {
                                         <Typography
                                           style={{
                                             fontWeight: '800',
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                             color: 'var(--accent-dark)',
                                           }}
                                         >
@@ -3439,7 +3447,7 @@ const Exhibitors = () => {
                                               <Typography
                                                 style={{
                                                   fontWeight: '800',
-                                                  fontSize: '11px',
+                                                  fontSize: '12px',
                                                   color: 'var(--accent-main)',
                                                   textTransform: 'uppercase',
                                                   letterSpacing: '0.5px',
@@ -3531,7 +3539,7 @@ const Exhibitors = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -3676,7 +3684,7 @@ const Exhibitors = () => {
                                   <Typography
                                     style={{
                                       fontWeight: '700',
-                                      fontSize: '13.5px',
+                                      fontSize: '13px',
                                       color: 'var(--black)',
                                     }}
                                   >

@@ -183,10 +183,24 @@ Entre los cinco son el **56%** del total.
       del navegador, no el fichero. Arreglado.
       Comprobado también que no queda ninguna clase de texto declarada sin CSS
       (el fallo de 2026-07-14 no ha vuelto).
-      **Queda**: ~150 `fontSize` a mano en `sx`, casi todos en Exhibidores y
-      Salidas. NO es un barrido: cada uno lleva su `fontWeight`/`fontStyle`
-      pegado y hay que decidir clase por clase. Y hay un motivo real para
-      hacerlo — un `fontSize` en `sx` no crece en tablet (ver DESIGN_SYSTEM §3).
+      **Los `fontSize` a mano: 76 AJUSTADOS A LA ESCALA.** Eran 140 (no ~150) y
+      82 estaban en las dos páginas gemelas. Lo grave no era el escalón de
+      tablet: era que esas dos páginas usaban CINCO tamaños (11, 12, 13'5, 14 y
+      16) donde la escala de la app tiene 12, 13, 15 y 16. O sea que el mismo
+      tipo de texto se veía de un tamaño en Exhibidores y de otro en el resto.
+      Ajustados al valor más cercano, con los empates hacia abajo para no
+      provocar desbordes: 13'5→13 (42), 14→13 (15), 11→12 (19). Quedan 13, 12 y
+      16, todos en escala.
+      Comprobado que no se rompe nada: cero desbordes de texto y cero scroll
+      horizontal en las dos páginas, en escritorio y en móvil, en vista de
+      lista y de cuadrícula.
+      Y mirándolo salió otro que no era mío: la columna de lugar tenía
+      `minWidth: 120px` FIJO, así que en un móvil de 375 las tres columnas no
+      cabían y esa se salía 1px del relleno de la fila. Ahora encoge y corta
+      con puntos.
+      **Queda**: pasarlos a las CLASES de tipografía (que es lo que además los
+      haría crecer en tablet). Eso ya no es un barrido: 92 de los 140 llevan un
+      `fontWeight` pegado al lado y hay que decidir clase por clase.
 - [x] **B4 · Degradados** — cerrado con matiz: "los 14 fuera" era demasiado
       grueso. Fuera los que caen sobre CONTENIDO (cabeceras, botones, barras de
       gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las

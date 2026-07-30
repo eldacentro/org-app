@@ -1710,7 +1710,7 @@ const PredicacionSalidas = () => {
                                     backgroundColor: 'var(--accent-main)',
                                     color: 'var(--always-white)',
                                     fontWeight: '700',
-                                    fontSize: '11px',
+                                    fontSize: '12px',
                                     height: '20px',
                                   }}
                                 />
@@ -1936,12 +1936,24 @@ const PredicacionSalidas = () => {
                                       <Box
                                         sx={{
                                           textAlign: 'right',
-                                          minWidth: '120px',
+                                          // `minWidth: 120px` FIJO: en un móvil
+                                          // de 375 las tres columnas no caben y
+                                          // esta, al no poder encoger, se salía
+                                          // 1px del relleno de la fila. Con un
+                                          // mínimo pequeño y `flexShrink` la
+                                          // columna cede, y si el nombre del
+                                          // sitio es largo se corta con puntos
+                                          // en vez de empujar.
+                                          minWidth: 0,
+                                          flexShrink: 1,
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
                                         }}
                                       >
                                         <Typography
                                           style={{
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                             color: isCancelled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -2177,7 +2189,7 @@ const PredicacionSalidas = () => {
                                     <Typography
                                       style={{
                                         fontWeight: '800',
-                                        fontSize: '13.5px',
+                                        fontSize: '13px',
                                         color: isSelected
                                           ? 'var(--accent-main)'
                                           : 'var(--grey-600)',
@@ -2197,7 +2209,7 @@ const PredicacionSalidas = () => {
                                       {daySlots.length === 0 ? (
                                         <Typography
                                           style={{
-                                            fontSize: '11px',
+                                            fontSize: '12px',
                                             color: 'var(--grey-400)',
                                             fontStyle: 'italic',
                                             marginTop: '4px',
@@ -2333,7 +2345,7 @@ const PredicacionSalidas = () => {
                                               <span
                                                 style={{
                                                   fontWeight: '800',
-                                                  fontSize: '11px',
+                                                  fontSize: '12px',
                                                   whiteSpace: 'nowrap',
                                                   opacity: 0.9,
                                                 }}
@@ -2418,7 +2430,7 @@ const PredicacionSalidas = () => {
                                     <Typography
                                       style={{
                                         fontWeight: '700',
-                                        fontSize: '13.5px',
+                                        fontSize: '13px',
                                         color: isSelected
                                           ? 'var(--accent-dark)'
                                           : 'var(--grey-700)',
@@ -2514,7 +2526,7 @@ const PredicacionSalidas = () => {
                                       <Typography
                                         style={{
                                           color: 'var(--grey-500)',
-                                          fontSize: '13.5px',
+                                          fontSize: '13px',
                                           fontStyle: 'italic',
                                         }}
                                       >
@@ -2684,12 +2696,24 @@ const PredicacionSalidas = () => {
                                       <Box
                                         sx={{
                                           textAlign: 'right',
-                                          minWidth: '120px',
+                                          // `minWidth: 120px` FIJO: en un móvil
+                                          // de 375 las tres columnas no caben y
+                                          // esta, al no poder encoger, se salía
+                                          // 1px del relleno de la fila. Con un
+                                          // mínimo pequeño y `flexShrink` la
+                                          // columna cede, y si el nombre del
+                                          // sitio es largo se corta con puntos
+                                          // en vez de empujar.
+                                          minWidth: 0,
+                                          flexShrink: 1,
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
                                         }}
                                       >
                                         <Typography
                                           style={{
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                             color: isCancelled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -2781,7 +2805,7 @@ const PredicacionSalidas = () => {
                       minHeight: '40px',
                       textTransform: 'none',
                       px: '16px',
-                      fontSize: '13.5px',
+                      fontSize: '13px',
                       transition:
                         'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
                     },
@@ -2824,7 +2848,7 @@ const PredicacionSalidas = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -2917,7 +2941,7 @@ const PredicacionSalidas = () => {
                             <Typography
                               style={{
                                 fontWeight: '700',
-                                fontSize: '13.5px',
+                                fontSize: '13px',
                                 color: 'var(--accent-dark)',
                               }}
                             >
@@ -2962,7 +2986,7 @@ const PredicacionSalidas = () => {
                       </Typography>
                       <Typography
                         style={{
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           color: 'var(--grey-600)',
                           marginTop: '4px',
                         }}
@@ -3056,7 +3080,7 @@ const PredicacionSalidas = () => {
                                 style={{
                                   fontWeight: '800',
                                   color: 'var(--accent-dark)',
-                                  fontSize: '13.5px',
+                                  fontSize: '13px',
                                 }}
                               >
                                 {dayGroup.dayLabel}
@@ -3112,14 +3136,14 @@ const PredicacionSalidas = () => {
                                             color: isDisabled
                                               ? 'var(--grey-500)'
                                               : 'var(--accent-dark)',
-                                            fontSize: '13.5px',
+                                            fontSize: '13px',
                                           }}
                                         >
                                           {slotItem.label}
                                         </Typography>
                                         <Typography
                                           style={{
-                                            fontSize: '11px',
+                                            fontSize: '12px',
                                             color: isDisabled
                                               ? 'var(--grey-400)'
                                               : 'var(--grey-600)',
@@ -3193,7 +3217,7 @@ const PredicacionSalidas = () => {
                                         sx={{
                                           margin: 0,
                                           '& .MuiFormControlLabel-label': {
-                                            fontSize: '11px',
+                                            fontSize: '12px',
                                             fontWeight: '700',
                                             color: !isDisabled
                                               ? 'var(--accent-main)'
@@ -3279,7 +3303,7 @@ const PredicacionSalidas = () => {
                       <Typography
                         style={{
                           color: 'var(--grey-600)',
-                          fontSize: '13.5px',
+                          fontSize: '13px',
                           marginTop: '4px',
                         }}
                       >
@@ -3306,7 +3330,7 @@ const PredicacionSalidas = () => {
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--accent-dark)',
                             fontWeight: '600',
                           }}
@@ -3419,7 +3443,7 @@ const PredicacionSalidas = () => {
                                 <Typography
                                   style={{
                                     fontWeight: '700',
-                                    fontSize: '13.5px',
+                                    fontSize: '13px',
                                     color: 'var(--black)',
                                   }}
                                 >
@@ -3466,7 +3490,7 @@ const PredicacionSalidas = () => {
                                         }
                                         sx={{
                                           fontWeight: '700',
-                                          fontSize: '11px',
+                                          fontSize: '12px',
                                           borderRadius: 'var(--shape-sm)',
                                           cursor: 'pointer',
                                           height: '28px',
@@ -3515,7 +3539,7 @@ const PredicacionSalidas = () => {
                       Salidas compartidas con otras congregaciones
                     </Typography>
                     <Typography
-                      style={{ color: 'var(--grey-600)', fontSize: '13.5px' }}
+                      style={{ color: 'var(--grey-600)', fontSize: '13px' }}
                     >
                       Registra los turnos de salidas semanales que se llevan a
                       cabo de forma conjunta con congregaciones vecinas. Al
@@ -3685,7 +3709,7 @@ const PredicacionSalidas = () => {
                                   style={{
                                     fontWeight: '700',
                                     color: 'var(--accent-dark)',
-                                    fontSize: '13.5px',
+                                    fontSize: '13px',
                                   }}
                                 >
                                   {slotLabels[slot.slotKey]}
@@ -3741,7 +3765,7 @@ const PredicacionSalidas = () => {
                         <IconInfo color="var(--accent-main)" />
                         <Typography
                           style={{
-                            fontSize: '13.5px',
+                            fontSize: '13px',
                             color: 'var(--accent-dark)',
                             fontWeight: '600',
                           }}
@@ -4283,7 +4307,7 @@ const PredicacionSalidas = () => {
             mt: '8px',
           }}
         >
-          <Typography style={{ color: 'var(--grey-600)', fontSize: '13.5px' }}>
+          <Typography style={{ color: 'var(--grey-600)', fontSize: '13px' }}>
             Selecciona el mes y año que deseas exportar en formato A4
             horizontal.
           </Typography>
@@ -4412,7 +4436,7 @@ const PredicacionSalidas = () => {
           <Typography
             style={{
               color: 'var(--grey-600)',
-              fontSize: '13.5px',
+              fontSize: '13px',
               marginBottom: '8px',
             }}
           >
@@ -4463,7 +4487,7 @@ const PredicacionSalidas = () => {
             >
               <Typography
                 style={{
-                  fontSize: '13.5px',
+                  fontSize: '13px',
                   fontWeight: '700',
                   color: 'var(--accent-dark)',
                   margin: 0,
@@ -4520,7 +4544,7 @@ const PredicacionSalidas = () => {
               <Typography
                 style={{
                   fontWeight: '700',
-                  fontSize: '13.5px',
+                  fontSize: '13px',
                   color: 'var(--accent-main)',
                   margin: 0,
                 }}
@@ -4568,7 +4592,7 @@ const PredicacionSalidas = () => {
                   >
                     <Typography
                       style={{
-                        fontSize: '13.5px',
+                        fontSize: '13px',
                         fontWeight: '600',
                         color: 'var(--black)',
                       }}

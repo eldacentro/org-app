@@ -187,7 +187,7 @@ const Badge = (props: BadgePropsType) => {
             <BadgeTypography
               className={className}
               sx={{
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: '520',
                 lineHeight: '16px',
                 color: getColor(),

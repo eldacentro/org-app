@@ -946,7 +946,7 @@ const TerritoryMap = ({
             px: '16px',
             py: '10px',
             cursor: 'pointer',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: 600,
             color: 'rgba(0,0,0,0.78)',
             letterSpacing: '-0.1px',

@@ -121,7 +121,7 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
           sx={{
             textAlign: 'left',
             fontWeight: 800,
-            fontSize: '14px',
+            fontSize: '13px',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}

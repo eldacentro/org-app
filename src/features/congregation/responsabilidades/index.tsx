@@ -321,7 +321,7 @@ const ReadDepartamentos = ({
                           size="small"
                           sx={{
                             fontFamily: 'Figtree, sans-serif',
-                            fontSize: '11px',
+                            fontSize: '12px',
                             backgroundColor: 'var(--accent-100)',
                             color: 'var(--accent-dark)',
                             borderRadius: 'var(--shape-md)',
@@ -567,7 +567,7 @@ const ResponsabilidadesFeature = ({
       <Box
         sx={{
           color: 'var(--ink-2)',
-          fontSize: '14px',
+          fontSize: '13px',
           padding: '32px',
           textAlign: 'center',
         }}

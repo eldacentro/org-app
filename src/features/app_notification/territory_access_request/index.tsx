@@ -60,7 +60,7 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
         }}
       >
         <Stack spacing={1.5}>
-          <Typography sx={{ fontWeight: 600, fontSize: '14px', color: 'var(--ink)' }}>{fullname}</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}>{fullname}</Typography>
           {request.nota && (
             <Typography variant="body2" sx={{ color: 'var(--grey-400)', lineHeight: 1.5 }}>
               <strong>Nota:</strong> {request.nota}
@@ -77,7 +77,7 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
                 px: '20px',
                 borderRadius: 'var(--shape-sm)',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: '13px',
                 letterSpacing: '0.01em',
                 boxShadow: 'var(--btn-shadow)',
                 transition: 'all 0.2s ease',

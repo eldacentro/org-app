@@ -204,7 +204,7 @@ const NotificationItem = ({
             <Typography
               sx={{
                 color: 'var(--grey-350)',
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 500,
                 letterSpacing: '0.02em',
               }}

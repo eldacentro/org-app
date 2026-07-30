@@ -80,7 +80,7 @@ const ExhibitorsWeeklyContainer = () => {
           <Typography
             sx={{
               color: 'var(--grey-400)',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: '500',
             }}
           >

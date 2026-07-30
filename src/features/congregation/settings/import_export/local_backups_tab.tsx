@@ -361,14 +361,14 @@ const LocalBackupsTab = () => {
                   <Grid size={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                     <Button
                       variant="small"
-                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '11px', minHeight: 'auto' }}
+                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '12px', minHeight: 'auto' }}
                       onClick={() => setConfirmRestore(snapshot)}
                     >
                       Restaurar
                     </Button>
                     <Button
                       variant="secondary"
-                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '11px', minHeight: 'auto' }}
+                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '12px', minHeight: 'auto' }}
                       onClick={() => handleDownloadSnapshot(snapshot)}
                     >
                       Descargar
