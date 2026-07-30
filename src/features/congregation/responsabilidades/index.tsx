@@ -1,14 +1,5 @@
 import { useState, useMemo, useEffect, ElementType } from 'react';
-import {
-  Box,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Stack,
-  Chip,
-  IconButton,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Box, Stack, Chip, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import {
   IconAdd,
@@ -31,8 +22,6 @@ import {
   DepartamentoSimple,
   DepartamentoExtended,
 } from '@definition/responsabilidades';
-import { CardContainer } from './shared_styles';
-import useBreakpoints from '@hooks/useBreakpoints';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Dialog from '@components/dialog';
@@ -41,6 +30,8 @@ import Divider from '@components/divider';
 import { PersonOption } from './components';
 import DrawerEditCargo from './DrawerEditCargo';
 import DrawerEditDepartamento from './DrawerEditDepartamento';
+import MeetingSection from '@features/meetings/meeting_section';
+import accentSurface from '@components/accent_surface';
 
 // ─── Hooks for person lists ──────────────────────────────────────────────────
 
@@ -123,17 +114,23 @@ const SectionHeader = ({
   </Box>
 );
 
+// El nombre del cargo arriba y quién lo lleva debajo, no en dos columnas: con
+// `minWidth: 160` para la etiqueta, un cargo largo como "Superintendente de
+// Vida y Ministerio Cristianos" dejaba al nombre sin sitio en un móvil.
+//
+// Y sin nadie asignado se decía en voz alta. Antes la fila salía con el cargo y
+// un hueco en blanco detrás, que no distingue "no lo ha rellenado nadie" de
+// "esto se ha roto".
 const FieldRow = ({ label, value }: { label: string; value: string }) => (
-  <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', py: '4px' }}>
-    <Typography
-      className="body-small-semibold"
-      color="var(--accent-dark)"
-      sx={{ minWidth: 160 }}
-    >
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', py: '6px' }}>
+    <Typography className="label-small-semibold" color="var(--ink-3)">
       {label}
     </Typography>
-    <Typography className="body-regular" color="var(--black)" sx={{ fontWeight: 500 }}>
-      {value}
+    <Typography
+      className="body-regular"
+      color={value ? 'var(--ink)' : 'var(--ink-3)'}
+    >
+      {value || 'Sin asignar'}
     </Typography>
   </Box>
 );
@@ -147,29 +144,21 @@ const ReadCuerpoAncianos = ({
   uids: string[];
   resolveName: (u: string) => string;
 }) => (
-  <CardContainer>
-    <SectionHeader icon={IconGroups} title="Cuerpo de Ancianos" />
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
       {uids.map((uid) => (
         <Chip
           key={uid}
           label={resolveName(uid)}
+          // Un nombre es un RÓTULO, no un botón: no se puede pulsar, así que
+          // no crece ni se ilumina al pasar por encima. Llevaba además un
+          // degradado —el único de toda la app— y su tipografía escrita a mano.
           sx={{
-            background: 'linear-gradient(135deg, var(--accent-100) 0%, var(--white) 100%)',
-            color: 'var(--accent-dark)',
-            fontFamily: 'Figtree, sans-serif',
-            fontSize: '14px',
-            fontWeight: 600,
-            border: '1px solid var(--accent-200)',
-            height: '36px',
-            px: '4px',
-            borderRadius: 'var(--r-md)',
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-              transform: 'scale(1.05)',
-              boxShadow: 'var(--shadow-sm)',
-              borderColor: 'var(--accent-main)',
-            },
+            backgroundColor: 'var(--state-selected)',
+            color: 'var(--state-selected-ink)',
+            border: 'none',
+            height: '32px',
+            borderRadius: 'var(--shape-full)',
           }}
         />
       ))}
@@ -179,7 +168,7 @@ const ReadCuerpoAncianos = ({
         </Typography>
       )}
     </Box>
-  </CardContainer>
+  </Box>
 );
 
 const ReadCargos = ({
@@ -189,8 +178,7 @@ const ReadCargos = ({
   cargos: AncianoCargo[];
   resolveName: (u: string) => string;
 }) => (
-  <CardContainer>
-    <SectionHeader icon={IconAssignment} title="Responsabilidades de Ancianos" />
+  <Box>
     <Stack spacing="8px" divider={<Divider color="var(--accent-100)" />}>
       {cargos.map((item, i) => (
         <FieldRow
@@ -205,7 +193,7 @@ const ReadCargos = ({
         </Typography>
       )}
     </Stack>
-  </CardContainer>
+  </Box>
 );
 
 const ReadDepartamentos = ({
@@ -216,7 +204,6 @@ const ReadDepartamentos = ({
   resolveName: (u: string) => string;
 }) => (
   <Box>
-    <SectionHeader icon={IconCongregation} title="Departamentos" />
     <Box
       sx={{
         display: 'grid',
@@ -234,49 +221,76 @@ const ReadDepartamentos = ({
           sx={{
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
-            borderRadius: 'var(--r-lg)',
-            overflow: 'hidden',
+            borderRadius: 'var(--shape-md)',
             display: 'flex',
             flexDirection: 'column',
-            position: 'relative',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: 'var(--hover-shadow)',
-              borderColor: 'var(--accent-main)',
-            },
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: '6px',
-              backgroundColor: 'var(--accent-main)',
-            }
+            // La cápsula en vez de la uñita —6px pegados al canto y cortados
+            // por la esquina— y sin levantarse al pasar el ratón: la tarjeta no
+            // se pulsa, lo que se pulsa es el lápiz de dentro.
+            ...accentSurface('var(--accent-main)', { tint: false }),
           }}
         >
-          <Box sx={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Typography className="h3" color="var(--black)" sx={{ fontWeight: 700 }}>
+          <Box
+            sx={{
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+              }}
+            >
+              <Typography
+                className="h3"
+                color="var(--black)"
+                sx={{ fontWeight: 700 }}
+              >
                 {dep.name}
               </Typography>
-              <IconCongregation color="var(--accent-200)" width={24} height={24} />
+              <IconCongregation
+                color="var(--accent-200)"
+                width={24}
+                height={24}
+              />
             </Box>
 
             <Stack spacing="12px">
               <Box>
-                <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                <Typography
+                  className="label-small-medium"
+                  color="var(--grey-400)"
+                  sx={{
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    mb: '4px',
+                  }}
+                >
                   Responsable
                 </Typography>
-                <Typography className="body-regular-semibold" color="var(--accent-dark)">
+                <Typography
+                  className="body-regular-semibold"
+                  color="var(--accent-dark)"
+                >
                   {resolveName(dep.responsable)}
                 </Typography>
               </Box>
 
               {dep.auxiliar && (
                 <Box>
-                  <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '4px' }}>
+                  <Typography
+                    className="label-small-medium"
+                    color="var(--grey-400)"
+                    sx={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      mb: '4px',
+                    }}
+                  >
                     Auxiliar
                   </Typography>
                   <Typography className="body-regular" color="var(--black)">
@@ -288,8 +302,16 @@ const ReadDepartamentos = ({
               {dep.type === 'extended' &&
                 (dep as DepartamentoExtended).members.length > 0 && (
                   <Box sx={{ mt: '4px' }}>
-                    <Typography className="label-small-medium" color="var(--grey-400)" sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', mb: '8px' }}>
-                      Equipo ({ (dep as DepartamentoExtended).members.length })
+                    <Typography
+                      className="label-small-medium"
+                      color="var(--grey-400)"
+                      sx={{
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        mb: '8px',
+                      }}
+                    >
+                      Equipo ({(dep as DepartamentoExtended).members.length})
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       {(dep as DepartamentoExtended).members.map((uid) => (
@@ -304,7 +326,7 @@ const ReadDepartamentos = ({
                             color: 'var(--accent-dark)',
                             borderRadius: 'var(--r-sm)',
                             fontWeight: 500,
-                            '&:hover': { backgroundColor: 'var(--accent-200)' }
+                            '&:hover': { backgroundColor: 'var(--accent-200)' },
                           }}
                         />
                       ))}
@@ -397,11 +419,12 @@ const ReorderDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { maxWidth: '600px', width: '100%', p: '24px' } }}>
-      <SectionHeader
-        icon={IconReorder}
-        title="Reordenar departamentos"
-      />
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{ sx: { maxWidth: '600px', width: '100%', p: '24px' } }}
+    >
+      <SectionHeader icon={IconReorder} title="Reordenar departamentos" />
 
       <Box
         sx={{
@@ -431,7 +454,11 @@ const ReorderDialog = ({
               },
             }}
           >
-            <Typography className="body-regular-semibold" sx={{ flex: 1 }} color="var(--black)">
+            <Typography
+              className="body-regular-semibold"
+              sx={{ flex: 1 }}
+              color="var(--black)"
+            >
               {dep.name || '(Sin nombre)'}
             </Typography>
             <Stack direction="row" spacing="4px">
@@ -439,15 +466,21 @@ const ReorderDialog = ({
                 size="small"
                 onClick={() => moveUp(i)}
                 disabled={i === 0}
-                sx={{ border: '1px solid var(--line)', backgroundColor: 'var(--white)' }}
+                sx={{
+                  border: '1px solid var(--line)',
+                  backgroundColor: 'var(--white)',
+                }}
               >
                 <IconUp />
               </IconButton>
               <IconButton
-               size="small"
+                size="small"
                 onClick={() => moveDown(i)}
                 disabled={i === list.length - 1}
-                sx={{ border: '1px solid var(--line)', backgroundColor: 'var(--white)' }}
+                sx={{
+                  border: '1px solid var(--line)',
+                  backgroundColor: 'var(--white)',
+                }}
               >
                 <IconDown />
               </IconButton>
@@ -456,7 +489,12 @@ const ReorderDialog = ({
         ))}
       </Box>
 
-      <Stack direction="row" spacing="12px" width="100%" justifyContent="flex-end">
+      <Stack
+        direction="row"
+        spacing="12px"
+        width="100%"
+        justifyContent="flex-end"
+      >
         <Button variant="tertiary" onClick={onClose}>
           Cerrar
         </Button>
@@ -487,10 +525,20 @@ const ResponsabilidadesFeature = ({
 }) => {
   const data = useAtomValue(responsabilidadesState);
   const { resolveName, ancianos, varones } = usePersonOptions();
-  const { tablet600Down: mobile } = useBreakpoints();
+
+  const [abiertas, setAbiertas] = useState<string[]>([
+    'Cuerpo de Ancianos',
+    'Responsabilidades de Ancianos',
+    'Departamentos',
+  ]);
+
+  const alternarSeccion = (label: string) =>
+    setAbiertas((prev) =>
+      prev.includes(label) ? prev.filter((x) => x !== label) : [...prev, label]
+    );
 
   const [reorderOpen, setReorderOpen] = useState(false);
-  
+
   // Drawer States
   const [editCargoIndex, setEditCargoIndex] = useState<number | null>(null);
   const [editDepIndex, setEditDepIndex] = useState<number | null>(null);
@@ -546,51 +594,46 @@ const ResponsabilidadesFeature = ({
       />
     );
 
-    if (mobile) {
-      return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', pb: '40px' }}>
-          {[
-            { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
-            { label: 'Responsabilidades de Ancianos', content: secCargos, icon: IconAssignment },
-            { label: 'Departamentos', content: secDepartamentos, icon: IconCongregation },
-          ].map(({ label, content, icon: Icon }) => (
-            <Accordion
-              key={label}
-              defaultExpanded
-              sx={{
-                borderRadius: 'var(--r-lg) !important',
-                border: '1px solid var(--line)',
-                boxShadow: 'var(--shadow-sm)',
-                overflow: 'hidden',
-                '&:before': { display: 'none' },
-                '&.Mui-expanded': { mb: '16px' },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: 'var(--accent-main)' }} />}
-                sx={{ backgroundColor: 'var(--accent-100)', py: '4px' }}
-              >
-                <Stack direction="row" spacing="12px" alignItems="center">
-                  <Icon color="var(--accent-main)" width={22} height={22} />
-                  <Typography className="h3" color="var(--black)">
-                    {label}
-                  </Typography>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: '20px', pb: '20px', px: '12px', backgroundColor: 'var(--white)' }}>
-                {content}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Box>
-      );
-    }
+    // El MISMO componente de "sección con cabecera de color" que Programas
+    // semanales, en móvil y en escritorio. Aquí había un Accordion de MUI
+    // montado a mano —la décima forma distinta de hacer una sección plegable en
+    // esta app— y, encima, el título se escribía DOS veces: una en la cabecera
+    // del acordeón y otra dentro del propio contenido.
+    const secciones = [
+      { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
+      {
+        label: 'Responsabilidades de Ancianos',
+        content: secCargos,
+        icon: IconAssignment,
+      },
+      {
+        label: 'Departamentos',
+        content: secDepartamentos,
+        icon: IconCongregation,
+      },
+    ];
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px', pb: '40px' }}>
-        <Box>{secCuerpo}</Box>
-        <Box>{secCargos}</Box>
-        <Box>{secDepartamentos}</Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          pb: '40px',
+        }}
+      >
+        {secciones.map(({ label, content, icon: Icon }) => (
+          <MeetingSection
+            key={label}
+            part={label}
+            color="var(--accent-main)"
+            icon={<Icon color="var(--always-white)" width={22} height={22} />}
+            expanded={abiertas.includes(label)}
+            onToggle={() => alternarSeccion(label)}
+          >
+            {content}
+          </MeetingSection>
+        ))}
       </Box>
     );
   };
@@ -601,7 +644,10 @@ const ResponsabilidadesFeature = ({
     const addCargo = () => {
       const newIndex = draft.cargosAncianos.length;
       updateDraft({
-        cargosAncianos: [...draft.cargosAncianos, { cargo: '', responsable: '' }]
+        cargosAncianos: [
+          ...draft.cargosAncianos,
+          { cargo: '', responsable: '' },
+        ],
       });
       setEditCargoIndex(newIndex);
     };
@@ -626,12 +672,24 @@ const ResponsabilidadesFeature = ({
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         {/* Cuerpo de Ancianos (Read Only View) */}
-        <ReadCuerpoAncianos uids={draft.cuerpoAncianos || []} resolveName={resolveName} />
+        <ReadCuerpoAncianos
+          uids={draft.cuerpoAncianos || []}
+          resolveName={resolveName}
+        />
 
         {/* Cargos */}
         <Box>
-          <SectionHeader icon={IconAssignment} title="Responsabilidades de Ancianos" />
-          <Box sx={{ display: 'grid', gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' }, gap: '12px' }}>
+          <SectionHeader
+            icon={IconAssignment}
+            title="Responsabilidades de Ancianos"
+          />
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' },
+              gap: '12px',
+            }}
+          >
             {draft.cargosAncianos.map((cargo, i) => (
               <EditSummaryCard
                 key={i}
@@ -655,20 +713,33 @@ const ResponsabilidadesFeature = ({
 
         {/* Departamentos */}
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '16px' }}>
-             <SectionHeader icon={IconCongregation} title="Departamentos" />
-             {draft.departamentos.length > 1 && (
-               <Button
-                 variant="tertiary"
-                 onClick={() => setReorderOpen(true)}
-                 startIcon={<IconReorder color="var(--accent-main)" />}
-               >
-                 Reordenar
-               </Button>
-             )}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: '16px',
+            }}
+          >
+            <SectionHeader icon={IconCongregation} title="Departamentos" />
+            {draft.departamentos.length > 1 && (
+              <Button
+                variant="tertiary"
+                onClick={() => setReorderOpen(true)}
+                startIcon={<IconReorder color="var(--accent-main)" />}
+              >
+                Reordenar
+              </Button>
+            )}
           </Box>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' }, gap: '12px' }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' },
+              gap: '12px',
+            }}
+          >
             {draft.departamentos.map((dep, i) => (
               <EditSummaryCard
                 key={dep.id}
@@ -697,12 +768,16 @@ const ResponsabilidadesFeature = ({
             onClose={() => setEditCargoIndex(null)}
             onSave={(val) => {
               updateDraft({
-                cargosAncianos: draft.cargosAncianos.map((c, i) => i === editCargoIndex ? val : c)
+                cargosAncianos: draft.cargosAncianos.map((c, i) =>
+                  i === editCargoIndex ? val : c
+                ),
               });
             }}
             onDelete={() => {
               updateDraft({
-                cargosAncianos: draft.cargosAncianos.filter((_, i) => i !== editCargoIndex)
+                cargosAncianos: draft.cargosAncianos.filter(
+                  (_, i) => i !== editCargoIndex
+                ),
               });
             }}
           />
@@ -716,12 +791,16 @@ const ResponsabilidadesFeature = ({
             onClose={() => setEditDepIndex(null)}
             onSave={(val) => {
               updateDraft({
-                departamentos: draft.departamentos.map((d, i) => i === editDepIndex ? val : d)
+                departamentos: draft.departamentos.map((d, i) =>
+                  i === editDepIndex ? val : d
+                ),
               });
             }}
             onDelete={() => {
               updateDraft({
-                departamentos: draft.departamentos.filter((_, i) => i !== editDepIndex)
+                departamentos: draft.departamentos.filter(
+                  (_, i) => i !== editDepIndex
+                ),
               });
             }}
           />
