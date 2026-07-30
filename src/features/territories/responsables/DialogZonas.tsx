@@ -167,8 +167,11 @@ const DialogZonas = ({ open, onClose }: Props) => {
                   <Box sx={{ flex: 1 }}>
                     {editingZoneId === zone.id ? (
                       <Stack direction="row" spacing={1} alignItems="center">
+                        {/* Sin `label` (antes iba una etiqueta VACÍA, que MUI
+                            dibuja igual): así este campo no reserva el hueco
+                            para la etiqueta de dentro y se queda compacto, que
+                            es lo que pide renombrar en línea. */}
                         <TextField
-                          label=""
                           value={editingName}
                           onChange={(e) => setEditingName(e.target.value)}
                           sx={{ '& .MuiInputBase-root': { height: '36px' } }}

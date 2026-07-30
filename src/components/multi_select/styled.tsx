@@ -9,8 +9,6 @@ import {
 } from '@mui/material';
 
 type StyledMultiSelectBaseProps = {
-  height: number;
-  varHeight: number;
   children?: React.ReactNode;
 } & BaseSelectProps &
   OutlinedSelectProps;
@@ -91,47 +89,19 @@ export const StyledMultiSelect = styled(
   '&.Mui-focused svg': {
     color: 'var(--black)',
   },
-  '& fieldset': {
-    border: '1px solid var(--accent-350)',
-  },
-  '&:hover fieldset': {
-    border: '1px solid var(--accent-main)',
-  },
-  '&.Mui-focused fieldset': {
-    border: '1px solid var(--accent-main)',
-  },
 }));
 
-type StyledFormControlProps = {
-  varHeight: number;
-};
-
-export const StyledFormControl = styled(FormControl)<StyledFormControlProps>`
-  .MuiFormLabel-root[data-shrink='false'] {
-    /* El sitio de la etiqueta lo pone el bloque «EL CAMPO». */
-  }
-  .MuiInputLabel-root {
-    color: var(--accent-350);
-    &.Mui-focused {
-      color: var(--accent-main);
-    }
-  }
+/* Sin contornos ni colores de etiqueta propios: los pone el bloque «EL CAMPO»
+   de global/index.css. Aquí quedaban DOS juegos de reglas de fieldset —uno en
+   objeto y otro en plantilla— para el mismo componente. */
+export const StyledFormControl = styled(FormControl)`
   .MuiOutlinedInput-root {
     & svg {
       color: var(--accent-350);
-      boxsizing: content-box;
+      box-sizing: content-box;
     }
     &.Mui-focused svg {
       color: var(--black);
-    }
-    & fieldset {
-      border: 1px solid var(--accent-350);
-    }
-    &:hover fieldset {
-      border: 1px solid var(--accent-main);
-    }
-    &.Mui-focused fieldset {
-      border: 1px solid var(--accent-main);
     }
   }
 `;

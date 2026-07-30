@@ -19,15 +19,13 @@ const MultiSelect = (props: MultiSelectPropsType) => {
     value,
     onChange,
     required = false,
-    height = 44,
     fullWidth = true,
     options = [],
     disabled = false,
   } = props;
-  const varHeight = (56 - height) / 2;
 
   return (
-    <StyledFormControl varHeight={varHeight} fullWidth>
+    <StyledFormControl fullWidth>
       <InputLabel id="demo-multiple-checkbox-label">{label}</InputLabel>
       <StyledMultiSelect
         className="small-card-shadow"
@@ -42,8 +40,6 @@ const MultiSelect = (props: MultiSelectPropsType) => {
         fullWidth={fullWidth}
         variant="outlined"
         required={required}
-        height={height}
-        varHeight={varHeight}
         sx={props.sx}
         inputProps={{
           disabled,
