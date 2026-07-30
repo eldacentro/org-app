@@ -5,7 +5,7 @@ export const HeaderBox = styled(Box)({
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
-  borderRadius: 'var(--radius-s, 4px)',
+  borderRadius: 'var(--shape-xs)',
 }) as unknown as typeof Box;
 
 export const StyledContentBox = styled(Box)({

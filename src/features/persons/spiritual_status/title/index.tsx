@@ -31,7 +31,11 @@ const SpiritualStatusTitle = ({
         />
         <Typography className="h3">{title}</Typography>
       </Box>
-      <IconButton sx={{ padding: 0 }} onClick={onExpand}>
+      <IconButton
+        aria-label={isExpanded ? `Ocultar ${title}` : `Mostrar ${title}`}
+        sx={{ padding: 0 }}
+        onClick={onExpand}
+      >
         <IconExpand
           color="var(--black)"
           sx={{

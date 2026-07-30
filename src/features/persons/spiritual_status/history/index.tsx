@@ -45,7 +45,11 @@ const StatusHistory = ({
             <IconHelpFilled width={16} height={16} />
           </Tooltip>
         </Box>
-        <IconButton sx={{ padding: 0 }} onClick={onExpand}>
+        <IconButton
+          aria-label={expanded ? 'Ocultar el historial' : 'Mostrar el historial'}
+          sx={{ padding: 0 }}
+          onClick={onExpand}
+        >
           <IconExpand
             color="var(--black)"
             sx={{

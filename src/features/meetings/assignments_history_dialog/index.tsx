@@ -30,7 +30,7 @@ const AssignmentsHistoryDialog = ({
           <Typography color="var(--grey-400)">{person}</Typography>
         </Box>
 
-        <IconButton sx={{ padding: 0 }} onClick={onClose}>
+        <IconButton aria-label="Cerrar" sx={{ padding: 0 }} onClick={onClose}>
           <IconClose color="var(--grey-400)" />
         </IconButton>
       </Box>

@@ -21,14 +21,22 @@ pero sin arreglar.
       `<option>` en crudo, que MUI no estila: se veía nativo y el valor elegido
       caía descolocado. Ahora con `MenuItem`, y la etiqueta pasa DENTRO del
       campo, como los otros campos del mismo diálogo.
-- [x] **Informe de predicación · el editor de horas.** `MinusButton` y
-      `PlusButton` pasan a redondos, como el `IconButton` compartido: eran los
-      dos únicos botones de icono cuadraditos de la app. Al mirarlo salió que
-      la TABLA DE FORMAS decía lo contrario que el código (ponía que un
-      botón-icono es 12px); mandó el código y se corrigió la tabla.
+- [x] **Informe de predicación · el editor de horas.** Dos vueltas:
+      1ª: `MinusButton`/`PlusButton` a redondos, como el `IconButton`
+      compartido. Al mirarlo salió que la TABLA DE FORMAS decía lo contrario
+      que el código; mandó el código y se corrigió la tabla.
+      2ª (Carlos, 2026-07-30): redondos seguían quedando mal, y con razón — el
+      problema no era la forma sino la COMPOSICIÓN. Eran tres piezas sueltas en
+      una caja de 180px con `space-between`, y 40 + 100 + 40 = 180 exactos: el
+      reparto no dejaba ni un píxel entre ellas, **se tocaban**. Y el campo del
+      número medía 59 de alto contra 40 de los botones.
+      Ahora es UN control (`report/stepper_track.ts`): un carril con la
+      superficie y el radio, los dos signos sin dibujo propio dentro, y el
+      número con `flex: 1`, que es lo que lo centra de verdad entre los dos y
+      no "dentro de su cajita". 4 + 40 + 96 + 40 + 4 = 184.
       Lo del "número sin superficie" del inventario era FALSO: `TimeField` es
       un `TextField` y le alcanza el bloque «EL CAMPO».
-      → `components/{plus,minus}_button/`, `global/index.css`
+      → `components/{plus,minus}_button/`, `report/{hours,standard}_editor/`
 - [x] **Informe de predicación · Año.** Fuera los 4 `<linearGradient>` del
       gráfico: en una gráfica el degradado además engaña, porque el ojo lo lee
       como si el valor cambiara a lo alto de la barra cuando lo que mide es la
@@ -149,7 +157,16 @@ Entre los cinco son el **56%** del total.
       servidor; renombrarlo dejaría los documentos existentes descolgados).
       **Queda**: los 7 arrays de meses/días a mano, plurales concatenados,
       códigos en pantalla.
-- [ ] **B6 · Accesibilidad** (161) — `aria-label` en botones de solo icono
+- [~] **B6 · Accesibilidad** — 150 botones de solo icono se quedaron con
+      etiqueta. Los cuatro de desplegar la llevan DINÁMICA (dice "Ocultar" o
+      "Mostrar" según cómo esté), y el de borrar de la lista de personas dice a
+      quién borra, porque si no son cien "Eliminar" seguidos.
+      **Aviso**: buscarlos con `grep` NO basta. Mi patrón sólo veía
+      `<IconButton>` escrito tal cual, y el de la lista de personas —que son
+      100, uno por hermano— se escapó porque está envuelto en un
+      `styled(IconButton)` con otro nombre. Lo cazó el navegador, contando
+      botones sin nombre accesible. **Falta pasar esa cuenta por el resto de
+      las rutas**; sólo se comprobaron Inicio, Personas e Informe.
 - [ ] **B7 · MUI en crudo** (108) — el último: `confirm_dialog` primero, que es
       lo más reutilizado y lo que menos se parece a la app
 

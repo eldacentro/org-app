@@ -27,7 +27,7 @@ const MemberItem = (props: MemberItemProps) => {
         <Typography>{name}</Typography>
       </Box>
 
-      <IconButton onClick={handleRemove} sx={{ padding: 0 }}>
+      <IconButton aria-label="Quitar persona" onClick={handleRemove} sx={{ padding: 0 }}>
         <IconRemovePerson color="var(--red-main)" />
       </IconButton>
     </Box>

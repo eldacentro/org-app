@@ -51,7 +51,7 @@ const TodayCard = ({
         justifyContent="space-between"
         sx={{ marginBottom: '16px' }}
       >
-        <IconButton onClick={handlePrevDay}>
+        <IconButton aria-label="Día anterior" onClick={handlePrevDay}>
           <IconChevronLeft color="var(--ink)" />
         </IconButton>
 
@@ -75,7 +75,7 @@ const TodayCard = ({
           </Typography>
         </Stack>
 
-        <IconButton onClick={handleNextDay}>
+        <IconButton aria-label="Día siguiente" onClick={handleNextDay}>
           <IconChevronRight color="var(--ink)" />
         </IconButton>
       </Stack>

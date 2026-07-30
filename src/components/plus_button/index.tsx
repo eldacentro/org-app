@@ -9,38 +9,33 @@ import { PlusButtonProps } from './index.types';
 const PlusButton = ({ onClick, sx }: PlusButtonProps) => {
   return (
     <IconButton
+      aria-label="Sumar"
       disableRipple
       onClick={onClick}
       sx={{
-        border: '1px solid var(--accent-350)',
-        // Redondo del todo, como el `IconButton` compartido de la app.
-        // Estaban a 12px y eran los dos ÚNICOS botones de icono cuadraditos
-        // de toda la aplicación: en el editor de horas del Informe se veía el
-        // contraste, porque al lado no hay ninguna otra caja de ese radio.
+        // Gemelo de `MinusButton`: sin contorno, porque la superficie la pone
+        // el carril del control que los contiene.
+        width: '40px',
+        height: '40px',
+        flex: '0 0 auto',
         borderRadius: 'var(--shape-full)',
+        backgroundColor: 'transparent',
         '&:hover': {
           '@media (hover: hover)': {
-            backgroundColor: 'var(--accent-200)',
-            border: '1px solid var(--accent-dark)',
-            '& svg, & svg g, & svg g path': {
-              fill: 'var(--accent-dark)',
-            },
+            backgroundColor: 'var(--state-hover)',
+            '& svg, & svg g, & svg g path': { fill: 'var(--accent-dark)' },
           },
+        },
+        '&:focus-visible': {
+          outline: '2px solid var(--accent-main)',
+          outlineOffset: '-2px',
         },
         '&:active': {
-          backgroundColor: 'var(--accent-150)',
-          border: '1px solid var(--accent-dark)',
-          '& svg, & svg g, & svg g path': {
-            fill: 'var(--accent-dark)',
-          },
+          backgroundColor: 'var(--state-pressed)',
+          '& svg, & svg g, & svg g path': { fill: 'var(--accent-dark)' },
         },
-
-        '&:focus-visible': {
-          outline: 'var(--accent-main) auto 1px',
-        },
-
         '& svg, & svg g, & svg g path': {
-          fill: 'var(--accent-350)',
+          fill: 'var(--accent-400)',
         },
         ...sx,
       }}

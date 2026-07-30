@@ -33,7 +33,7 @@ const DayPanel = ({
         <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
           {label}
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton aria-label="Cerrar" onClick={onClose}>
           <IconClose color="var(--grey-350)" />
         </IconButton>
       </Stack>

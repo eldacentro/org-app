@@ -117,7 +117,7 @@ const MonthItem = (props: MonthItemProps) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {showEditIcon && (
-            <IconButton sx={{ padding: 0 }} onClick={handleOpenEditor}>
+            <IconButton aria-label="Editar" sx={{ padding: 0 }} onClick={handleOpenEditor}>
               <IconEdit color="var(--accent-dark)" />
             </IconButton>
           )}

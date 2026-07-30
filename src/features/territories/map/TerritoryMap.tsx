@@ -829,7 +829,7 @@ const TerritoryMap = ({
       sx={{
         width: '100%',
         height,
-        borderRadius: borderRadius ?? 'var(--radius-l, 16px)',
+        borderRadius: borderRadius ?? 'var(--shape-sm)',
         overflow: 'hidden',
         position: 'relative',
         '& .leaflet-container': { height: '100%', width: '100%' },

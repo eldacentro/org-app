@@ -55,7 +55,7 @@ const SpeakerDetails = ({ open, onClose, speaker }: SpeakerDetailsType) => {
             />
           )}
         </Box>
-        <IconButton onClick={onClose}>
+        <IconButton aria-label="Cerrar" onClick={onClose}>
           <IconClose color="var(--black)" />
         </IconButton>
       </Box>

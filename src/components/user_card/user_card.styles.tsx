@@ -36,7 +36,7 @@ export const StyledIconWrapper = styled(IconButton, {
   ({ hoverBackgrColor, iconColor }) => ({
     '& svg:hover': {
       background: hoverBackgrColor,
-      borderRadius: 'var(--radius-xl, 8px)',
+      borderRadius: 'var(--shape-md)',
       cursor: 'pointer',
     },
     '& svg g, & svg g path': {

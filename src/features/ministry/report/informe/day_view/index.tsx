@@ -94,13 +94,13 @@ const DayView = () => {
         )}
 
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <IconButton onClick={goToPreviousMonth}>
+          <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
           <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
             {monthLabel}
           </Typography>
-          <IconButton onClick={goToNextMonth}>
+          <IconButton aria-label="Mes siguiente" onClick={goToNextMonth}>
             <IconChevronRight color="var(--ink)" />
           </IconButton>
         </Stack>

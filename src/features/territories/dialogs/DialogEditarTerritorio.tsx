@@ -193,7 +193,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       <DialogTitle sx={{ p: 0 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
           <Typography className="h2" sx={{ color: 'var(--ink)' }}>Editar territorio</Typography>
-          <IconButton onClick={handleRequestClose}>
+          <IconButton aria-label="Cerrar" onClick={handleRequestClose}>
             <IconClose color="var(--black)" />
           </IconButton>
         </Stack>

@@ -44,7 +44,7 @@ const Contact = () => {
           }}
         >
           <Typography className="h2">{t('tr_shareFeeback')}</Typography>
-          <IconButton
+          <IconButton aria-label="Cerrar"
             disableRipple
             sx={{ padding: 0, margin: 0 }}
             onClick={handleClose}

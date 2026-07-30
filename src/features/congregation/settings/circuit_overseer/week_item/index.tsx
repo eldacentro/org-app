@@ -70,7 +70,7 @@ const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItem
       />
 
       {canEdit && (
-        <IconButton
+        <IconButton aria-label="Eliminar"
           color="error"
           sx={{
             borderRadius: 'var(--shape-sm)',

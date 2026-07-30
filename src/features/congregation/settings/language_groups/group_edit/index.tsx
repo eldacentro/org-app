@@ -11,7 +11,7 @@ const GroupEdit = ({ group }: GroupEditProps) => {
     <>
       {open && <GroupInfo open={open} onClose={handleClose} group={group} />}
 
-      <IconButton onClick={handleOpen} sx={{ padding: 0.2 }}>
+      <IconButton aria-label="Editar" onClick={handleOpen} sx={{ padding: 0.2 }}>
         <IconEdit color="var(--accent-main)" />
       </IconButton>
     </>

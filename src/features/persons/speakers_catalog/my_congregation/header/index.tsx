@@ -72,7 +72,10 @@ const OutgoingSpeakersHeader = ({
                 </Tooltip>
               )}
 
-              <IconButton onClick={onExpandChange}>
+              <IconButton
+            aria-label={expanded ? 'Ocultar la lista' : 'Mostrar la lista'}
+            onClick={onExpandChange}
+          >
                 <IconExpand
                   color="var(--black)"
                   sx={{
@@ -139,7 +142,10 @@ const OutgoingSpeakersHeader = ({
             </Tooltip>
           )}
 
-          <IconButton onClick={onExpandChange}>
+          <IconButton
+            aria-label={expanded ? 'Ocultar la lista' : 'Mostrar la lista'}
+            onClick={onExpandChange}
+          >
             <IconExpand
               color="var(--black)"
               sx={{

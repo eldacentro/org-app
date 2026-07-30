@@ -37,7 +37,7 @@ const SongSelector = (props: SongSelectorProps) => {
         >
           <Typography className="h3">{t('tr_selectSong')}</Typography>
 
-          <IconButton sx={{ padding: 0 }} onClick={handleClose}>
+          <IconButton aria-label="Cerrar" sx={{ padding: 0 }} onClick={handleClose}>
             <IconClose color="var(--grey-400)" />
           </IconButton>
         </Box>

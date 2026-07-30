@@ -136,7 +136,7 @@ const MFAEnable = ({ open, onClose }: MFAEnableType) => {
                         value={token}
                         slotProps={{ input: { readOnly: true } }}
                         endIcon={
-                          <IconButton
+                          <IconButton aria-label="Copiar"
                             sx={{ padding: 0 }}
                             onClick={handleCopyTokenClipboard}
                           >

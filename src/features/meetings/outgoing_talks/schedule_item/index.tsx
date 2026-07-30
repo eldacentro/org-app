@@ -122,7 +122,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
       >
         <Typography className="h2">{t('tr_outgoingTalk')}</Typography>
         {!schedule.synced && (
-          <IconButton sx={{ padding: '4px' }} onClick={handleOpenDelete}>
+          <IconButton aria-label="Eliminar" sx={{ padding: '4px' }} onClick={handleOpenDelete}>
             <IconDelete width={22} height={22} color="var(--red-dark)" />
           </IconButton>
         )}

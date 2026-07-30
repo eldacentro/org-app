@@ -94,7 +94,7 @@ const GroupHeader = (props: GroupHeaderProps) => {
         )}
         {isServiceCommittee && (
           <Tooltip title={t('tr_edit')}>
-            <IconButton onClick={handleOpenEdit} sx={{ padding: 0 }}>
+            <IconButton aria-label="Editar" onClick={handleOpenEdit} sx={{ padding: 0 }}>
               <IconEdit color={color} />
             </IconButton>
           </Tooltip>

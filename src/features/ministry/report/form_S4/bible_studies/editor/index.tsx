@@ -31,7 +31,7 @@ const BibleStudyEditor = (props: BibleStudyEditorProps) => {
         <Typography className="h2">
           {props.bibleStudy ? t('tr_editBibleStudy') : t('tr_addNewStudy')}
         </Typography>
-        <IconButton onClick={props.onClose}>
+        <IconButton aria-label="Cerrar" onClick={props.onClose}>
           <IconClose color="var(--black)" />
         </IconButton>
       </Box>

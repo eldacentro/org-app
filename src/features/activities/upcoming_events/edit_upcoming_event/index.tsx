@@ -138,7 +138,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
         </Typography>
 
         {props.type === 'edit' && !tabletUp && (
-          <IconButton onClick={handleDeleteEvent} color="error">
+          <IconButton aria-label="Eliminar" onClick={handleDeleteEvent} color="error">
             <IconDelete color="var(--red-main)" height={20} width={20} />
           </IconButton>
         )}

@@ -82,7 +82,7 @@ const IncomingCongregationHeader = ({
           {isPublicTalkCoordinator && (
             <>
               {(laptopDown || showDelete) && (
-                <IconButton onClick={onDelete}>
+                <IconButton aria-label="Eliminar" onClick={onDelete}>
                   <IconDelete color="var(--red-main)" />
                 </IconButton>
               )}

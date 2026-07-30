@@ -44,7 +44,7 @@ const WhatsNew = () => {
           <Typography className="h2">{t('tr_newOrganizedUpdate')}</Typography>
 
           {!isLoading && images.length > 0 && (
-            <IconButton onClick={handleClose}>
+            <IconButton aria-label="Cerrar" onClick={handleClose}>
               <IconClose color="var(--black)" />
             </IconButton>
           )}

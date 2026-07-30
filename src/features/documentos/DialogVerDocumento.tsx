@@ -228,7 +228,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   >
                     Descargar
                   </Button>
-                  <IconButton onClick={handleClose} sx={{ color: 'var(--ink-2)', ml: 1 }}>
+                  <IconButton aria-label="Cerrar" onClick={handleClose} sx={{ color: 'var(--ink-2)', ml: 1 }}>
                     <IconClose color="var(--ink-2)" />
                   </IconButton>
                 </Stack>
@@ -291,7 +291,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               alignItems: 'center',
             }}
           >
-            <IconButton
+            <IconButton aria-label="Cerrar"
               onClick={handleClose}
               sx={{
                 position: 'absolute',

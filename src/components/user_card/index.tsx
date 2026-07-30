@@ -69,6 +69,10 @@ const UserCard = ({
                     >
                       <StyledBox gap="16px">
                         <StyledIconWrapper
+                          // Con el nombre dentro: en la lista de personas hay
+                          // uno de estos por fila, y "Eliminar" cien veces
+                          // seguidas no distingue a quién se borra.
+                          aria-label={`Eliminar a ${name}`}
                           hoverBackgrColor="var(--red-secondary)"
                           iconColor="var(--red-main)"
                           onClick={(e) => {

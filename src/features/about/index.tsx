@@ -143,7 +143,7 @@ const About = (props: AboutProps) => {
           }}
         >
           <Typography className="h2">{t('tr_about')}</Typography>
-          <IconButton onClick={handleClose}>
+          <IconButton aria-label="Cerrar" onClick={handleClose}>
             <IconClose color="var(--black)" />
           </IconButton>
         </Box>

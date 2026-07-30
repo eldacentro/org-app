@@ -71,13 +71,13 @@ const MonthView = () => {
         )}
 
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <IconButton onClick={goToPreviousMonth}>
+          <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
           <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
             {monthLabel}
           </Typography>
-          <IconButton onClick={goToNextMonth}>
+          <IconButton aria-label="Mes siguiente" onClick={goToNextMonth}>
             <IconChevronRight color="var(--ink)" />
           </IconButton>
         </Stack>
@@ -108,7 +108,7 @@ const MonthView = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '2px',
-                  borderRadius: 'var(--radius-m, 8px)',
+                  borderRadius: 'var(--shape-sm)',
                   cursor: cell.date ? 'pointer' : 'default',
                   backgroundColor: isSelected
                     ? 'var(--brand)'

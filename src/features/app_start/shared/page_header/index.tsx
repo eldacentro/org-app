@@ -24,7 +24,7 @@ const PageHeader = ({
         }}
       >
         {onClick && (
-          <IconButton
+          <IconButton aria-label="Atrás"
             sx={{
               margin: 0,
               marginLeft: '-8px',

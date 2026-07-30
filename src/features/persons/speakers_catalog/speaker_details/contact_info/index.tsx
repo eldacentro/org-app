@@ -60,7 +60,7 @@ const ContactPhoneRow = ({
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconButton
+        <IconButton aria-label="Llamar"
           component="a"
           href={`tel:${phone}`}
           sx={{
@@ -88,7 +88,7 @@ const ContactPhoneRow = ({
         >
           <IconCall width={20} height={20} color="var(--accent-main)" />
         </IconButton>
-        <IconButton
+        <IconButton aria-label="Abrir WhatsApp"
           component="a"
           href={`https://wa.me/${cleanPhone}`}
           target="_blank"
@@ -166,7 +166,7 @@ const ContactEmailRow = ({
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconButton
+        <IconButton aria-label="Enviar correo"
           component="a"
           href={`mailto:${email}`}
           sx={{
