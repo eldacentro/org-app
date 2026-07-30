@@ -420,12 +420,16 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       Salidas cambian de control según el ancho de la ventana
 - [ ] **Elegir una semana** (4) → `week_selector` + `week_navigator`; borrar la
       copia con prefijo `Dept` y la tercera de Oradores salientes
-- [ ] **Reordenar** (2) → *ver bloque 0*
+- [x] **Reordenar** (2) → hecho, ver bloque 0: los cuatro sitios a
+      `@components/drag_handle`
 - [ ] **Confirmar acción destructiva** (3) → `useConfirm()` repintado por
       dentro; luego colapsar las once carpetas `*_delete`
 - [ ] **Pie de diálogo** (2) → el pie apilado de `@components/dialog`
 - [ ] **Subir un fichero** (5) → `@components/file_picker`
-- [ ] **Indicador de carga** (4) → quitar los 8 `CircularProgress` de MUI
+- [x] **Indicador de carga** → 5 de los 8 `CircularProgress` a `IconLoading`.
+      Los otros 3 se quedan: NO son indicadores de carga, son anillos
+      decorativos alrededor de un avatar, con `thickness` y posición absoluta,
+      y el componente compartido no sabe hacer eso.
 - [ ] **Contador junto a título** (4) → `@components/badge`
 - [ ] **Elegir una hora** (4) → `time_picker` para reloj, `timefield` solo para
       duraciones
