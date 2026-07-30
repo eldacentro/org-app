@@ -100,8 +100,26 @@ Rompe algo, no solo se ve mal. **Cerrado salvo lo marcado.**
       filas de historial de Discursos públicos, que repiten el mismo toggle de
       la fila de arriba — una segunda parada de tabulador para la misma acción
       es peor que ninguna.
-- [ ] **Márgenes de iOS: el resto.** Solo 16 ficheros de ~94 con diálogo los
-      tienen en cuenta. Peligroso solo cuando algo se ancla abajo.
+- [x] **Márgenes de iOS.** El "16 de ~94 ficheros con diálogo" del inventario
+      era una forma engañosa de contarlo: un diálogo CENTRADO no toca ningún
+      borde de la pantalla, así que no necesita el área segura para nada. Solo
+      la necesita lo que se ancla al borde del VIEWPORT.
+      Contado así, son cinco cosas en toda la app, y tres ya la tenían: la
+      bandeja de acciones, el aviso de navegador no compatible y los
+      recordatorios (más el selector de fecha, arreglado antes).
+      Faltaban dos, y las dos son reales:
+      · **El visor de documentos.** Va a PANTALLA COMPLETA en móvil y reparte
+        su contenido con `space-between`, así que lo último queda pegado abajo.
+        Tenía el área segura ARRIBA y no abajo: en un iPhone el botón de
+        descargar caía bajo la barra del gesto de inicio — se veía, pero el
+        dedo no llegaba.
+      · **El mapa de territorios** usaba `calc(100vh - 150px)` en móvil. En
+        Safari de iOS `100vh` es el viewport GRANDE (el que habría con la barra
+        de direcciones oculta), así que el mapa salía más alto que lo que se ve
+        y su borde inferior quedaba cortado. Ahora `dvh`.
+      El detector bueno para esto: buscar `safe-area-inset-top` SIN
+      `safe-area-inset-bottom` en el mismo fichero. Los dos que quedan con solo
+      arriba anclan al techo, no al suelo, y están bien.
 - [x] ~~Traducción de los 5 módulos sin `t()`~~ — **descartado a propósito**:
       la app es solo para Elda Centro, en español. No re-abrir.
 - [ ] Fuga del blob del avatar (`states/settings.ts`) — es un átomo derivado,

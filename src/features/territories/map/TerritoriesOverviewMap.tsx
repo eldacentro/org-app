@@ -220,7 +220,11 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       sx={{
         position: 'relative',
         width: '100%',
-        height: { mobile: 'calc(100vh - 150px)', tablet600: '70vh' },
+        // `dvh` y no `vh`: en Safari de iOS, `100vh` es el viewport GRANDE —
+        // el que habría si la barra de direcciones estuviera oculta—, así que
+        // el mapa salía más alto que lo que se ve y su borde inferior quedaba
+        // cortado por debajo de la pantalla. `dvh` sigue al viewport real.
+        height: { mobile: 'calc(100dvh - 150px)', tablet600: '70vh' },
         borderRadius: 'var(--shape-sm)',
         overflow: 'hidden',
         '& .leaflet-container': { height: '100%', width: '100%' },

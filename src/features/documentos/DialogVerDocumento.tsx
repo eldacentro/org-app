@@ -284,7 +284,12 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               background: `linear-gradient(135deg, color-mix(in srgb, ${accentColor} 3%, transparent) 0%, color-mix(in srgb, ${accentColor} 9%, transparent) 100%)`,
               position: 'relative',
               px: 3,
-              pb: 3,
+              // Este diálogo va a PANTALLA COMPLETA en móvil y reparte su
+              // contenido con `space-between`, así que lo último queda pegado
+              // al borde de abajo. Tenía el área segura arriba y no abajo: en
+              // un iPhone, el botón de descargar caía bajo la barra del gesto
+              // de inicio — se veía, pero el dedo no llegaba.
+              pb: 'max(24px, env(safe-area-inset-bottom, 0px))',
               pt: 'calc(max(24px, env(safe-area-inset-top, 0px)) + 16px)',
               boxSizing: 'border-box',
               justifyContent: 'space-between',
