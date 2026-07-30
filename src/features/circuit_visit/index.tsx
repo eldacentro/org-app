@@ -73,51 +73,84 @@ const DocRow = ({
   onClick?: () => void;
   exportButton?: ReactNode;
 }) => (
+  // En móvil el texto va DEBAJO del icono y las acciones en su propia fila.
+  // Antes iba todo en una sola línea —icono, texto, botón de exportar y
+  // flecha— y en una pantalla de 375 al texto le quedaban unos 130px: el
+  // título "Registro de publicadores (S-21)" se partía en cuatro líneas y su
+  // descripción en seis. La fila medía más de alto que de ancho.
   <Box
     sx={{
       display: 'flex',
-      alignItems: 'center',
+      flexDirection: { mobile: 'column', tablet600: 'row' },
+      alignItems: { mobile: 'stretch', tablet600: 'center' },
       gap: '12px',
-      padding: '10px 8px',
+      padding: '12px 8px',
     }}
   >
     <Box
       sx={{
-        width: 36,
-        height: 36,
-        borderRadius: 'var(--radius-l)',
-        backgroundColor: 'var(--accent-150, rgba(59,114,196,0.1))',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
+        gap: '12px',
+        flex: 1,
+        minWidth: 0,
       }}
     >
-      {icon}
-    </Box>
-    <Stack spacing="1px" flex={1}>
-      <Typography
-        className="body-regular-semibold"
-        color="var(--ink, var(--black))"
-      >
-        {title}
-      </Typography>
-      <Typography className="body-small-regular" color="var(--grey-400)">
-        {subtitle}
-      </Typography>
-    </Stack>
-    {exportButton}
-    {onClick && (
       <Box
-        onClick={onClick}
         sx={{
-          cursor: 'pointer',
+          width: 36,
+          height: 36,
+          borderRadius: 'var(--shape-sm)',
+          backgroundColor: 'var(--accent-150)',
           display: 'flex',
           alignItems: 'center',
-          p: '4px',
+          justifyContent: 'center',
+          flexShrink: 0,
         }}
       >
-        <IconChevronRight color="var(--grey-350)" />
+        {icon}
+      </Box>
+      <Stack spacing="2px" flex={1} minWidth={0}>
+        <Typography className="body-regular-semibold" color="var(--ink)">
+          {title}
+        </Typography>
+        <Typography className="body-small-regular" color="var(--ink-2)">
+          {subtitle}
+        </Typography>
+      </Stack>
+    </Box>
+
+    {(exportButton || onClick) && (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: { mobile: 'flex-start', tablet600: 'flex-end' },
+          gap: '4px',
+          flexShrink: 0,
+          // En móvil la fila de acciones se alinea con el texto, no con el
+          // icono, para que no quede colgando bajo el cuadradito.
+          paddingLeft: { mobile: '48px', tablet600: 0 },
+        }}
+      >
+        {exportButton}
+        {onClick && (
+          <Box
+            onClick={onClick}
+            sx={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              p: '4px',
+              borderRadius: 'var(--shape-full)',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
+              '&:hover': { backgroundColor: 'var(--state-hover)' },
+            }}
+          >
+            <IconChevronRight color="var(--ink-3)" />
+          </Box>
+        )}
       </Box>
     )}
   </Box>
@@ -847,7 +880,10 @@ const CircuitVisitDashboard = () => {
         width: '100%',
         maxWidth: '760px',
         margin: '0 auto',
-        padding: '16px',
+        // Sin sangrado lateral propio: el layout ya da 16px a todas las
+        // páginas. Sumando el suyo, esta tenía 32 y sus tarjetas empezaban el
+        // doble de adentro que las del resto de la app.
+        paddingBottom: '16px',
       }}
     >
       <PageTitle
@@ -861,6 +897,9 @@ const CircuitVisitDashboard = () => {
                 variant="small"
                 startIcon={<IconAdd color="var(--accent-main)" />}
                 onClick={() => setShowNewVisit((p) => !p)}
+                // La etiqueta de un botón no se parte: "Nueva visita" salía en
+                // dos líneas dentro de la barra flotante.
+                sx={{ whiteSpace: 'nowrap' }}
               >
                 Nueva visita
               </Button>
