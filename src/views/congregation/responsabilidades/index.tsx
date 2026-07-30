@@ -335,9 +335,9 @@ const TemplateResponsabilidades = ({
 
           <Text style={styles.pageTitle}>Responsabilidades</Text>
 
-          {/* ── Cuerpo de Ancianos ───────────────── */}
+          {/* ── Cuerpo de ancianos ───────────────── */}
           <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>Cuerpo de Ancianos</Text>
+            <Text style={styles.sectionTitle}>Cuerpo de ancianos</Text>
             <View style={styles.chipsRow}>
               {data.cuerpoAncianos.map((uid, i) => (
                 <View key={i} style={styles.chip}>
@@ -349,7 +349,7 @@ const TemplateResponsabilidades = ({
 
           {/* ── Cargos ──────────────────────────── */}
           <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>Responsabilidades de Ancianos</Text>
+            <Text style={styles.sectionTitle}>Responsabilidades de ancianos</Text>
             <View style={styles.table}>
               {data.cargosAncianos.map((item, i) => (
                 <View

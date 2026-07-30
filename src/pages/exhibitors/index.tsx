@@ -4064,7 +4064,7 @@ const Exhibitors = () => {
             disabled={isSavingTurn}
             onClick={handleSaveWeekTurn}
           >
-            Guardar cambios
+            Guardar
           </AppButton>
         </DialogActions>
       </Dialog>
@@ -4341,7 +4341,7 @@ const Exhibitors = () => {
             </Box>
           )}
         </DialogContent>
-        {/* "Restaurar al Global" es la acción de reset (destructiva), separada
+        {/* "Restaurar a global" es la acción de reset (destructiva), separada
             a la izquierda; "Cerrar" es la única acción de confirmación — no
             hay un borrador pendiente que requiera un "Guardar" aparte aquí
             (los cambios de este diálogo se aplican al instante). */}
@@ -4355,7 +4355,7 @@ const Exhibitors = () => {
               disableAutoStretch
               onClick={handleRestoreGlobal}
             >
-              Restaurar al global
+              Restaurar a global
             </AppButton>
           ) : (
             <Box /> // Spacer

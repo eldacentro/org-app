@@ -36,7 +36,7 @@ const GoogleDriveTab = () => {
       if (success) {
         displaySnackNotification({
           severity: 'success',
-          header: 'Google Drive Conectado',
+          header: 'Google Drive conectado',
           message: 'La vinculación de la cuenta se realizó con éxito.',
         });
       } else {
@@ -57,7 +57,7 @@ const GoogleDriveTab = () => {
     await googleDriveDisconnect();
     displaySnackNotification({
       severity: 'success',
-      header: 'Google Drive Desconectado',
+      header: 'Google Drive desconectado',
       message: 'Se ha desvinculado la cuenta correctamente.',
     });
   };
@@ -147,7 +147,7 @@ const GoogleDriveTab = () => {
           </Box>
           <Stack>
             <Typography className="h3">
-              Google Drive: {isConnected ? (isTokenExpired ? 'Sesión Expirada' : 'Conectado') : 'Desconectado'}
+              Google Drive: {isConnected ? (isTokenExpired ? 'Sesión expirada' : 'Conectado') : 'Desconectado'}
             </Typography>
             <Typography className="label-small-regular" color="var(--grey-400)">
               {isConnected
@@ -171,7 +171,7 @@ const GoogleDriveTab = () => {
             </Stack>
           ) : (
             <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
-              {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Vincular Cuenta'}
+              {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Vincular cuenta'}
             </Button>
           )}
         </Box>
@@ -242,7 +242,7 @@ const GoogleDriveTab = () => {
               onClick={handleManualUpload}
               disabled={isUploading}
             >
-              {isUploading ? 'Subiendo...' : 'Subir a Drive'}
+              {isUploading ? 'Subiendo…' : 'Subir a Drive'}
             </Button>
           </Box>
         </Stack>

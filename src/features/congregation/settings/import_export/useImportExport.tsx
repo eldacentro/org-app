@@ -27,7 +27,7 @@ const useImportExport = ({ onClose }: ImportExportType) => {
           Component: <ManualTab onClose={onClose} onNext={handleOpenConfirm} />,
         },
         {
-          label: 'Copias Locales',
+          label: 'Copias locales',
           Component: <LocalBackupsTab />,
         },
         {

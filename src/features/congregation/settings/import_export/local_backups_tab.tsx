@@ -246,7 +246,7 @@ const LocalBackupsTab = () => {
           disabled={isCreating}
           startIcon={<IconAdd />}
         >
-          {isCreating ? 'Generando...' : 'Crear Copia Ahora'}
+          {isCreating ? 'Generando…' : 'Crear copia ahora'}
         </Button>
       </Box>
 

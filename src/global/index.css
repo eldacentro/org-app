@@ -1391,6 +1391,40 @@ body {
   --preaching-tint: rgba(251, 191, 36, 0.12) !important;
   --preaching-border: rgba(251, 191, 36, 0.25) !important;
 }
+
+/* ═══ EL TEXTO DE UN BOTÓN ══════════════════════════════════════════════════
+   El nombre de la clase miente y se queda: la genera `npm run generate:css`
+   desde los tokens, y renombrarla obligaría a tocar el generador, el tipo
+   `CustomClassName` y 300 sitios. Lo que cambia es lo que hace.
+
+   ANTES: 12px, versalitas (`uppercase`), peso 450.
+   AHORA: 14px, tal como se escribe, peso 600.
+
+   Por qué:
+
+   · La app ya se contradecía. Los botones `variant="small"` (61 en uso) usan
+     `body-small-semibold`, que NO transforma nada: en la misma pantalla
+     convivían "Categorías" y "CANCELAR".
+   · En español las etiquetas son largas, y en versalitas se alargan más y
+     pierden la silueta de la palabra, que es por donde se reconocen de un
+     vistazo: "NOMBRAR COMO PRECURSOR AUXILIAR EN ESTE MES".
+   · A 12px las versalitas se sostienen; en minúscula no, se quedan pequeñas
+     al lado de una fila de lista de 13. De ahí el salto a 14 y a peso 600,
+     que es lo que iguala su presencia con la de los botones `small`.
+
+   El escalón de tablet, más abajo, lo lleva a 16px — sigue siendo el mismo
+   ×1,15 de siempre, ahora sobre 14 en vez de sobre 12.
+
+   `h2-caps` SÍ se queda en versalitas: ahí las mayúsculas separan la cabecera
+   de una sección del texto que va dentro, que es otro trabajo. */
+.button-caps {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 18px;
+  text-transform: none;
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    ESCALÓN DE TABLET  ·  táctil grande (iPad, plegable abierto)
    ══════════════════════════════════════════════════════════════════════════

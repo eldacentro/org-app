@@ -340,7 +340,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
             Cancelar
           </Button>
           <Button variant="main" disableAutoStretch onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+            {saving ? 'Guardando…' : 'Guardar'}
           </Button>
         </Stack>
       </DialogContent>

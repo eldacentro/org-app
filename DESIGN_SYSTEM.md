@@ -316,14 +316,37 @@ palabra de una frase y los nombres propios — el resto en minúscula.
 - ✅ "Ajustes del mes", "Restaurar a global", "Mantener activas estas salidas"
 - ❌ "Ajustes Del Mes", "Restaurar A Global", "Mantener Activas Estas Salidas"
 
-**El `text-transform: uppercase` como estilo SÍ es correcto** cuando lo aplica
-una clase del sistema a propósito (`h2-caps` para cabeceras de sección con
-fondo de color, `button-caps` para el texto de todos los botones). Eso es
-CSS puro sobre texto normal en Frase-caso — el HTML/JSX debajo sigue
-escribiéndose en minúsculas salvo la primera letra; es el navegador quien lo
-muestra en mayúscula. **Lo que hay que corregir es texto escrito a mano
-en mayúsculas o en Title Case dentro del JSX/strings**, no las clases CSS
-`uppercase` en sí.
+**Los botones ya NO van en versalitas (2026-07-30).** `button-caps` conserva el
+nombre —lo genera el conversor de tokens— pero se redefine en
+`global/index.css`: 14px, peso 600, tal como se escribe. El motivo es que la
+app ya se contradecía sola: los botones `variant="small"` nunca transformaron
+nada, así que en la misma pantalla convivían "Categorías" y "CANCELAR". Y en
+español las etiquetas son largas: en versalitas se alargan más y pierden la
+silueta de la palabra, que es por donde se reconocen de un vistazo.
+
+**El `text-transform: uppercase` sigue siendo correcto en `h2-caps`**, y solo
+ahí: la mayúscula separa la cabecera de una sección del texto que va dentro,
+que es un trabajo distinto de etiquetar un botón. Eso es CSS puro sobre texto
+escrito en Frase-caso — el JSX debajo sigue en minúsculas salvo la primera
+letra. **Lo que hay que corregir es texto escrito a mano en mayúsculas o en
+Title Case dentro del JSX/strings**, no esa clase.
+
+### Un verbo por acción, y el más corto que se entienda
+
+"Guardar", nunca "Guardar cambios" — si el botón está en un formulario, ya se
+sabe qué guarda. Lo mismo con el resto: `Eliminar` para borrar un registro,
+`Borrar` **solo** para vaciar algo que sigue existiendo (`tr_clearAll`,
+"Borrar semanas seleccionadas"), `Añadir` para meter algo en una lista,
+`Crear` para hacer algo que no existía, `Aceptar` para cerrar dando el
+enterado (nunca "OK", que además es un anglicismo).
+
+Y el nombre de una cosa se escribe **igual en todas partes**: la app decía
+"llave maestra" en 21 sitios y "clave maestra" en uno — justo el botón que la
+establece. Antes de inventar una etiqueta, `grep` de cómo se llama ya.
+
+**La Ayuda cita botones: tiene que citarlos literalmente.** Decía "Restaurar
+Fijos" y "Restaurar al Global" cuando los botones dicen otra cosa; y las dos
+páginas gemelas (Exhibidores y Salidas) llamaban distinto a la misma acción.
 
 Comprobar siempre: si el texto fuente en el string ya está en mayúsculas y NO
 pasa por una clase `-caps`, es casi seguro un error a corregir.

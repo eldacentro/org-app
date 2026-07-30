@@ -79,7 +79,7 @@ const EvacuacionConfigDialog = ({
       ...plan,
       estructuraMando: [
         ...plan.estructuraMando,
-        { rol: 'Nuevo Rol', nombre: '', responsabilidades: [] },
+        { rol: 'Nuevo rol', nombre: '', responsabilidades: [] },
       ],
     });
   };
@@ -115,7 +115,7 @@ const EvacuacionConfigDialog = ({
         ...plan.equipos,
         {
           id: `eq-${Date.now()}`,
-          nombre: 'Nuevo Equipo',
+          nombre: 'Nuevo equipo',
           // El azul del propio plano, no un índigo suelto de Material que no
           // aparece en ninguna otra parte de la app. Es un dato que se guarda,
           // así que va en hexadecimal a propósito: un `var()` no sobrevive a
@@ -439,7 +439,7 @@ const EvacuacionConfigDialog = ({
               Cancelar
             </Button>
             <Button onClick={handleSave} variant="main" disabled={isSaving}>
-              {isSaving ? 'Guardando…' : 'Guardar cambios'}
+              {isSaving ? 'Guardando…' : 'Guardar'}
             </Button>
           </Box>
         </Box>

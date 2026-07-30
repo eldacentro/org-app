@@ -125,8 +125,30 @@ Entre los cinco son el **56%** del total.
       gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las
       pantallas de arranque, el desvanecido del avatar), que además ya usan
       tokens del tema. Regla escrita en DESIGN_SYSTEM §6.7.
-- [ ] **B5 · Redacción** (95) — los 7 arrays de meses/días a mano, plurales
-      concatenados, códigos en pantalla
+- [~] **B5 · Redacción** — hecha la parte de los BOTONES, que era la que Carlos
+      pidió: una sola forma de escribirlos y un solo verbo por acción.
+      · **Fuera las versalitas.** La app se contradecía sola: los botones
+        `variant="small"` (61) nunca transformaron nada, así que en la misma
+        pantalla convivían "Categorías" y "CANCELAR". Ahora `button-caps` es
+        14px / peso 600 / tal como se escribe. `h2-caps` SÍ se queda en
+        mayúscula: ahí separan cabecera de contenido, que es otro trabajo.
+      · "Guardar cambios" → **"Guardar"** en los 5 sitios. "OK" → "Aceptar"
+        (anglicismo). "Añadir orador nuevo" → "Añadir orador".
+      · **"clave maestra" contra "llave maestra"**: la app la llamaba de las
+        dos formas, y la rara estaba justo en el botón que la establece.
+      · **La Ayuda citaba botones que no existen** — decía "Restaurar Fijos" y
+        "Restaurar al Global"; y Exhibidores y Salidas, que son gemelas,
+        llamaban distinto a la MISMA acción ("al global" / "a global").
+      · Title Case en español: ~90 sitios (los 14 turnos de Salidas × 4 copias,
+        "Copias Locales", "Sesión Expirada", "Crear Copia Ahora", "Cuerpo de
+        Ancianos", "Sin Asignar" en el PDF de invitación…).
+      · "..." → "…" en las 8 cadenas que se habían quedado con tres puntos.
+      **NO se tocan**, y son a propósito: las cabeceras en inglés del CSV de
+      oradores (es el formato de intercambio con otras congregaciones) y
+      "Visita del Superintendente" de Documentos (es un DATO ya guardado en el
+      servidor; renombrarlo dejaría los documentos existentes descolgados).
+      **Queda**: los 7 arrays de meses/días a mano, plurales concatenados,
+      códigos en pantalla.
 - [ ] **B6 · Accesibilidad** (161) — `aria-label` en botones de solo icono
 - [ ] **B7 · MUI en crudo** (108) — el último: `confirm_dialog` primero, que es
       lo más reutilizado y lo que menos se parece a la app

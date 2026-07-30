@@ -28,7 +28,7 @@ const LogoLarge = () => (
 const CoordinatorBox = ({ title, info }: { title: string; info: VisitingSpeakerInvitationProps['publicTalkCoordinator'] }) => (
   <View style={styles.coordinatorCard}>
     <Text style={styles.coordinatorTitle}>{title}</Text>
-    <Text style={styles.coordinatorName}>{info.name || 'Sin Asignar'}</Text>
+    <Text style={styles.coordinatorName}>{info.name || 'Sin asignar'}</Text>
     {info.phone ? <Text style={styles.coordinatorContact}>{info.phone}</Text> : null}
     {info.email ? <Text style={styles.coordinatorContact}>{info.email}</Text> : null}
   </View>
@@ -118,7 +118,7 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
             {props.assistants.map((assistant, index) => (
               <CoordinatorBox
                 key={`assistant-${index}`}
-                title="Auxiliar Discursos"
+                title="Auxiliar de discursos"
                 info={assistant}
               />
             ))}

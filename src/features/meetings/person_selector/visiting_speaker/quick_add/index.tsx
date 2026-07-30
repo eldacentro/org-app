@@ -38,7 +38,7 @@ const QuickAddSpeaker = (props: QuickAddSpeakerType) => {
   return (
     <Dialog open={props.open} onClose={handleClose} sx={{ padding: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography className="h2">Añadir orador nuevo</Typography>
+        <Typography className="h2">Añadir orador</Typography>
 
         {step === 'congregation' && (
           <>

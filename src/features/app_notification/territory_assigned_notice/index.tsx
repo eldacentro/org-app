@@ -66,7 +66,7 @@ const TerritoryAssignedNotice = ({
             }
           }}
         >
-          Ver Territorio
+          Ver territorio
         </Button>
       </Stack>
     </Box>

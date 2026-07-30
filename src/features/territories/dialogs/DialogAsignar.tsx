@@ -296,7 +296,7 @@ const DialogAsignar = ({
               `<p>Hola <strong>${escapeHTML(resolveName(personUid))}</strong>,</p>
                <p>Se te han asignado <strong>${toAssign.length} territorios</strong>: ${escapeHTML(labelsList)}.</p>
                <div style="text-align: center; margin-top: 30px;">
-                 <a href="https://eldacentro.com/congregation/territories" class="btn">Ver Territorios</a>
+                 <a href="https://eldacentro.com/congregation/territories" class="btn">Ver territorios</a>
                </div>`
             );
           } catch (err) {
@@ -428,7 +428,7 @@ const DialogAsignar = ({
               `<p>Hola <strong>${escapeHTML(resolveName(personUid))}</strong>,</p>
                <p>Se te ha asignado el territorio <strong>${escapeHTML(territoryLabel(effectiveTerritory))}</strong>.</p>
                <div style="text-align: center; margin-top: 30px;">
-                 <a href="https://eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver Territorio</a>
+                 <a href="https://eldacentro.com/congregation/territories?view=${effectiveTerritory.id}" class="btn">Ver territorio</a>
                </div>`
             );
           } catch (err) {

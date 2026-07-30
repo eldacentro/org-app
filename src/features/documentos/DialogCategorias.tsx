@@ -347,7 +347,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
             Cancelar
           </Button>
           <Button variant="main" onClick={handleSave} disabled={isSaving}>
-            Guardar cambios
+            Guardar
           </Button>
         </Stack>
       </Box>

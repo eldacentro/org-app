@@ -359,7 +359,7 @@ const OutgoingSpeakersPage = () => {
     worker.postMessage('startWorker');
     displaySnackNotification({
       header: t('tr_done', 'Hecho'),
-      message: t('tr_syncInProgress', 'Sincronización en curso...'),
+      message: t('tr_syncInProgress', 'Sincronización en curso…'),
       severity: 'success',
     });
   };

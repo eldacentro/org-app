@@ -44,7 +44,7 @@ const BibleStudyEditor = (props: BibleStudyEditorProps) => {
 
       <Stack spacing="8px">
         <Button variant="main" onClick={handleSave}>
-          {props.bibleStudy ? t('tr_saveChanges') : t('tr_save')}
+          {t('tr_save')}
         </Button>
         <Button
           variant="secondary"

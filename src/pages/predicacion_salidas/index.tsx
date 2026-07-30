@@ -114,20 +114,20 @@ const MONTH_NAMES = [
 // Los 14 turnos (7 días × mañana/tarde) con su etiqueta. Fuente única para el
 // diálogo de "Ajustes del mes" (horarios y excepciones de la suspensión).
 const OUTING_SLOTS: { key: string; label: string }[] = [
-  { key: 'monday_morning', label: 'Lunes Mañana' },
-  { key: 'monday_afternoon', label: 'Lunes Tarde' },
-  { key: 'tuesday_morning', label: 'Martes Mañana' },
-  { key: 'tuesday_afternoon', label: 'Martes Tarde' },
-  { key: 'wednesday_morning', label: 'Miércoles Mañana' },
-  { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
-  { key: 'thursday_morning', label: 'Jueves Mañana' },
-  { key: 'thursday_afternoon', label: 'Jueves Tarde' },
-  { key: 'friday_morning', label: 'Viernes Mañana' },
-  { key: 'friday_afternoon', label: 'Viernes Tarde' },
-  { key: 'saturday_morning', label: 'Sábado Mañana' },
-  { key: 'saturday_afternoon', label: 'Sábado Tarde' },
-  { key: 'sunday_morning', label: 'Domingo Mañana' },
-  { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+  { key: 'monday_morning', label: 'Lunes mañana' },
+  { key: 'monday_afternoon', label: 'Lunes tarde' },
+  { key: 'tuesday_morning', label: 'Martes mañana' },
+  { key: 'tuesday_afternoon', label: 'Martes tarde' },
+  { key: 'wednesday_morning', label: 'Miércoles mañana' },
+  { key: 'wednesday_afternoon', label: 'Miércoles tarde' },
+  { key: 'thursday_morning', label: 'Jueves mañana' },
+  { key: 'thursday_afternoon', label: 'Jueves tarde' },
+  { key: 'friday_morning', label: 'Viernes mañana' },
+  { key: 'friday_afternoon', label: 'Viernes tarde' },
+  { key: 'saturday_morning', label: 'Sábado mañana' },
+  { key: 'saturday_afternoon', label: 'Sábado tarde' },
+  { key: 'sunday_morning', label: 'Domingo mañana' },
+  { key: 'sunday_afternoon', label: 'Domingo tarde' },
 ];
 
 // Los 7 días (sin turno) — para agrupar "Ajustes del mes" en filas de
@@ -3248,20 +3248,20 @@ const PredicacionSalidas = () => {
                             displayName.charAt(0).toUpperCase() || 'H';
 
                           const ALL_SLOTS = [
-                            { key: 'monday_morning', label: 'Lun Mañ' },
-                            { key: 'monday_afternoon', label: 'Lun Tar' },
-                            { key: 'tuesday_morning', label: 'Mar Mañ' },
-                            { key: 'tuesday_afternoon', label: 'Mar Tar' },
-                            { key: 'wednesday_morning', label: 'Mié Mañ' },
-                            { key: 'wednesday_afternoon', label: 'Mié Tar' },
-                            { key: 'thursday_morning', label: 'Jue Mañ' },
-                            { key: 'thursday_afternoon', label: 'Jue Tar' },
-                            { key: 'friday_morning', label: 'Vie Mañ' },
-                            { key: 'friday_afternoon', label: 'Vie Tar' },
-                            { key: 'saturday_morning', label: 'Sáb Mañ' },
-                            { key: 'saturday_afternoon', label: 'Sáb Tar' },
-                            { key: 'sunday_morning', label: 'Dom Mañ' },
-                            { key: 'sunday_afternoon', label: 'Dom Tar' },
+                            { key: 'monday_morning', label: 'Lun mañ' },
+                            { key: 'monday_afternoon', label: 'Lun tar' },
+                            { key: 'tuesday_morning', label: 'Mar mañ' },
+                            { key: 'tuesday_afternoon', label: 'Mar tar' },
+                            { key: 'wednesday_morning', label: 'Mié mañ' },
+                            { key: 'wednesday_afternoon', label: 'Mié tar' },
+                            { key: 'thursday_morning', label: 'Jue mañ' },
+                            { key: 'thursday_afternoon', label: 'Jue tar' },
+                            { key: 'friday_morning', label: 'Vie mañ' },
+                            { key: 'friday_afternoon', label: 'Vie tar' },
+                            { key: 'saturday_morning', label: 'Sáb mañ' },
+                            { key: 'saturday_afternoon', label: 'Sáb tar' },
+                            { key: 'sunday_morning', label: 'Dom mañ' },
+                            { key: 'sunday_afternoon', label: 'Dom tar' },
                           ];
 
                           const activeSlots = ALL_SLOTS.filter(
@@ -3469,32 +3469,32 @@ const PredicacionSalidas = () => {
                           }
                         >
                           {[
-                            { key: 'monday_morning', label: 'Lunes Mañana' },
-                            { key: 'monday_afternoon', label: 'Lunes Tarde' },
-                            { key: 'tuesday_morning', label: 'Martes Mañana' },
-                            { key: 'tuesday_afternoon', label: 'Martes Tarde' },
+                            { key: 'monday_morning', label: 'Lunes mañana' },
+                            { key: 'monday_afternoon', label: 'Lunes tarde' },
+                            { key: 'tuesday_morning', label: 'Martes mañana' },
+                            { key: 'tuesday_afternoon', label: 'Martes tarde' },
                             {
                               key: 'wednesday_morning',
-                              label: 'Miércoles Mañana',
+                              label: 'Miércoles mañana',
                             },
                             {
                               key: 'wednesday_afternoon',
-                              label: 'Miércoles Tarde',
+                              label: 'Miércoles tarde',
                             },
-                            { key: 'thursday_morning', label: 'Jueves Mañana' },
+                            { key: 'thursday_morning', label: 'Jueves mañana' },
                             {
                               key: 'thursday_afternoon',
-                              label: 'Jueves Tarde',
+                              label: 'Jueves tarde',
                             },
-                            { key: 'friday_morning', label: 'Viernes Mañana' },
-                            { key: 'friday_afternoon', label: 'Viernes Tarde' },
-                            { key: 'saturday_morning', label: 'Sábado Mañana' },
+                            { key: 'friday_morning', label: 'Viernes mañana' },
+                            { key: 'friday_afternoon', label: 'Viernes tarde' },
+                            { key: 'saturday_morning', label: 'Sábado mañana' },
                             {
                               key: 'saturday_afternoon',
-                              label: 'Sábado Tarde',
+                              label: 'Sábado tarde',
                             },
-                            { key: 'sunday_morning', label: 'Domingo Mañana' },
-                            { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+                            { key: 'sunday_morning', label: 'Domingo mañana' },
+                            { key: 'sunday_afternoon', label: 'Domingo tarde' },
                           ].map((s) => (
                             <MenuItem key={s.key} value={s.key}>
                               {s.label}
@@ -3538,20 +3538,20 @@ const PredicacionSalidas = () => {
                     >
                       {settings?.sharedSlots?.map((slot) => {
                         const slotLabels: Record<string, string> = {
-                          monday_morning: 'Lunes Mañana',
-                          monday_afternoon: 'Lunes Tarde',
-                          tuesday_morning: 'Martes Mañana',
-                          tuesday_afternoon: 'Martes Tarde',
-                          wednesday_morning: 'Miércoles Mañana',
-                          wednesday_afternoon: 'Miércoles Tarde',
-                          thursday_morning: 'Jueves Mañana',
-                          thursday_afternoon: 'Jueves Tarde',
-                          friday_morning: 'Viernes Mañana',
-                          friday_afternoon: 'Viernes Tarde',
-                          saturday_morning: 'Sábado Mañana',
-                          saturday_afternoon: 'Sábado Tarde',
-                          sunday_morning: 'Domingo Mañana',
-                          sunday_afternoon: 'Domingo Tarde',
+                          monday_morning: 'Lunes mañana',
+                          monday_afternoon: 'Lunes tarde',
+                          tuesday_morning: 'Martes mañana',
+                          tuesday_afternoon: 'Martes tarde',
+                          wednesday_morning: 'Miércoles mañana',
+                          wednesday_afternoon: 'Miércoles tarde',
+                          thursday_morning: 'Jueves mañana',
+                          thursday_afternoon: 'Jueves tarde',
+                          friday_morning: 'Viernes mañana',
+                          friday_afternoon: 'Viernes tarde',
+                          saturday_morning: 'Sábado mañana',
+                          saturday_afternoon: 'Sábado tarde',
+                          sunday_morning: 'Domingo mañana',
+                          sunday_afternoon: 'Domingo tarde',
                         };
                         return (
                           <Card
@@ -4539,20 +4539,20 @@ const PredicacionSalidas = () => {
                 Horarios específicos de esta semana
               </Typography>
               {[
-                { key: 'monday_morning', label: 'Lunes Mañana' },
-                { key: 'monday_afternoon', label: 'Lunes Tarde' },
-                { key: 'tuesday_morning', label: 'Martes Mañana' },
-                { key: 'tuesday_afternoon', label: 'Martes Tarde' },
-                { key: 'wednesday_morning', label: 'Miércoles Mañana' },
-                { key: 'wednesday_afternoon', label: 'Miércoles Tarde' },
-                { key: 'thursday_morning', label: 'Jueves Mañana' },
-                { key: 'thursday_afternoon', label: 'Jueves Tarde' },
-                { key: 'friday_morning', label: 'Viernes Mañana' },
-                { key: 'friday_afternoon', label: 'Viernes Tarde' },
-                { key: 'saturday_morning', label: 'Sábado Mañana' },
-                { key: 'saturday_afternoon', label: 'Sábado Tarde' },
-                { key: 'sunday_morning', label: 'Domingo Mañana' },
-                { key: 'sunday_afternoon', label: 'Domingo Tarde' },
+                { key: 'monday_morning', label: 'Lunes mañana' },
+                { key: 'monday_afternoon', label: 'Lunes tarde' },
+                { key: 'tuesday_morning', label: 'Martes mañana' },
+                { key: 'tuesday_afternoon', label: 'Martes tarde' },
+                { key: 'wednesday_morning', label: 'Miércoles mañana' },
+                { key: 'wednesday_afternoon', label: 'Miércoles tarde' },
+                { key: 'thursday_morning', label: 'Jueves mañana' },
+                { key: 'thursday_afternoon', label: 'Jueves tarde' },
+                { key: 'friday_morning', label: 'Viernes mañana' },
+                { key: 'friday_afternoon', label: 'Viernes tarde' },
+                { key: 'saturday_morning', label: 'Sábado mañana' },
+                { key: 'saturday_afternoon', label: 'Sábado tarde' },
+                { key: 'sunday_morning', label: 'Domingo mañana' },
+                { key: 'sunday_afternoon', label: 'Domingo tarde' },
               ].map((slot) => {
                 const isSlotDisabled = settings?.disabledSlots?.includes(
                   slot.key

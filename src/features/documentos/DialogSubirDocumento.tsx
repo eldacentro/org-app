@@ -241,7 +241,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         {isBusy && (
           <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
             <CircularProgress size={24} />
-            <Typography>{isCompressing ? 'Comprimiendo PDF...' : 'Subiendo documento...'}</Typography>
+            <Typography>{isCompressing ? 'Comprimiendo PDF…' : 'Subiendo documento…'}</Typography>
           </Stack>
         )}
 

@@ -17,7 +17,7 @@ const ButtonsAction = ({
       {slides.length > 1 && (
         <>
           <Button variant="main" onClick={onNext}>
-            {current === slides.length - 1 ? t('tr_ok') : t('tr_next')}
+            {current === slides.length - 1 ? t('tr_accept') : t('tr_next')}
           </Button>
 
           {current > 0 && (
@@ -36,7 +36,7 @@ const ButtonsAction = ({
 
       {slides.length <= 1 && (
         <Button variant="main" onClick={onClose}>
-          {t('tr_ok')}
+          {t('tr_accept')}
         </Button>
       )}
     </Stack>

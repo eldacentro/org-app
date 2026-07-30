@@ -120,7 +120,7 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
             sx={{ alignSelf: 'flex-start', padding: '4px 16px' }}
             onClick={handleOpenQuickAdd}
           >
-            Añadir orador nuevo
+            Añadir orador
           </Button>
         </Box>
       )}

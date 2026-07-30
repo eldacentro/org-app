@@ -550,7 +550,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           { type: 'steps', items: [
             'Toca "Autocompletar" para generar de golpe todo el mes según las asignaciones fijas.',
             'Toca un turno concreto para cambiar a los hermanos, cambiar la ubicación de ese día, o "Suspender turno para esta semana".',
-            '"Restaurar Fijos" borra el cambio puntual y vuelve a heredar de la plantilla fija.',
+            '"Restaurar fijos" borra el cambio puntual y vuelve a heredar de la plantilla fija.',
             'Cuando esté listo, toca "Publicar".',
           ] },
           { type: 'tip', text: 'Si alguno de los hermanos elegidos tiene una ausencia registrada ese día, la aplicación te avisa al momento de asignar.' },
@@ -564,7 +564,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           { type: 'steps', items: [
             '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero. Puedes añadir un texto explicando el motivo.',
             '"Personalizar turnos para este mes": crea una copia de los turnos solo para ese mes, que puedes editar libremente (añadir, quitar, cambiar horas) sin afectar a los demás meses.',
-            '"Restaurar al Global" deshace la personalización y ese mes vuelve a usar la configuración normal.',
+            '"Restaurar a global" deshace la personalización y ese mes vuelve a usar la configuración normal.',
           ] },
         ],
       },
@@ -616,7 +616,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         id: 'sal-ajustes-mes-semana',
         title: '"Ajustes del mes" y ajustes de una semana concreta',
         blocks: [
-          { type: 'p', text: 'El botón "Ajustes del mes" funciona igual que en Exhibidores: puedes "Suspender salidas todo el mes" o "Personalizar horarios para este mes" (por ejemplo, para adelantar la salida de la tarde en verano por el calor), con "Restaurar a Global" para deshacerlo.' },
+          { type: 'p', text: 'El botón "Ajustes del mes" funciona igual que en Exhibidores: puedes "Suspender salidas todo el mes" o "Personalizar horarios para este mes" (por ejemplo, para adelantar la salida de la tarde en verano por el calor), con "Restaurar a global" para deshacerlo.' },
           { type: 'p', text: 'Además, cada semana tiene su propio icono de ajustes, con dos cosas exclusivas de esa semana: marcarla como "Semana del superintendente de circuito" (para poder asignarle su propia salida) y, si hace falta, un horario especial solo para esa semana concreta.' },
         ],
       },

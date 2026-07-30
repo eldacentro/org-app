@@ -527,8 +527,8 @@ const ResponsabilidadesFeature = ({
   const { resolveName, ancianos, varones } = usePersonOptions();
 
   const [abiertas, setAbiertas] = useState<string[]>([
-    'Cuerpo de Ancianos',
-    'Responsabilidades de Ancianos',
+    'Cuerpo de ancianos',
+    'Responsabilidades de ancianos',
     'Departamentos',
   ]);
 
@@ -600,9 +600,9 @@ const ResponsabilidadesFeature = ({
     // esta app— y, encima, el título se escribía DOS veces: una en la cabecera
     // del acordeón y otra dentro del propio contenido.
     const secciones = [
-      { label: 'Cuerpo de Ancianos', content: secCuerpo, icon: IconGroups },
+      { label: 'Cuerpo de ancianos', content: secCuerpo, icon: IconGroups },
       {
-        label: 'Responsabilidades de Ancianos',
+        label: 'Responsabilidades de ancianos',
         content: secCargos,
         icon: IconAssignment,
       },
@@ -671,7 +671,7 @@ const ResponsabilidadesFeature = ({
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-        {/* Cuerpo de Ancianos (Read Only View) */}
+        {/* Cuerpo de ancianos (Read Only View) */}
         <ReadCuerpoAncianos
           uids={draft.cuerpoAncianos || []}
           resolveName={resolveName}
@@ -681,7 +681,7 @@ const ResponsabilidadesFeature = ({
         <Box>
           <SectionHeader
             icon={IconAssignment}
-            title="Responsabilidades de Ancianos"
+            title="Responsabilidades de ancianos"
           />
           <Box
             sx={{
