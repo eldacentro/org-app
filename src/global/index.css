@@ -480,6 +480,18 @@ body iframe {
   box-sizing: border-box;
 }
 
+/* Y el sangrado lateral, para TODO campo tenga etiqueta o no. Venía del 14px
+   por defecto de MUI, que coincidía con `--campo-pad-x` por casualidad; en
+   cuanto una pantalla lo pisaba (el registro de asistencia lo bajaba a 2px), el
+   valor se pegaba al canto mientras su etiqueta seguía en su sitio. */
+.MuiOutlinedInput-root.MuiOutlinedInput-root > .MuiOutlinedInput-input,
+.MuiOutlinedInput-root.MuiOutlinedInput-root > .MuiSelect-select,
+.MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root
+  > .MuiPickersInputBase-input {
+  padding-left: var(--campo-pad-x);
+  padding-right: var(--campo-pad-x);
+}
+
 /* ─── Dark mode semantic overrides ─────────────────────────────────────── */
 [data-theme$='dark'] {
   --line: rgba(255, 255, 255, 0.08);

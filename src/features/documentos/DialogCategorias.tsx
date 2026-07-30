@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Box, Stack, IconButton, Grid } from '@mui/material';
+import { Box, Stack, Grid } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { displaySnackNotification } from '@services/states/app';
 import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconDelete } from '@components/icons';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { IconDelete, IconDown, IconUp } from '@components/icons';
+import IconButton from '@components/icon_button';
+import accentSurface from '@components/accent_surface';
 import { DocumentoCategoria } from '@definition/documentos';
 import { saveCategoriasFirestore } from '@services/firebase/documentos';
 import { congIDState } from '@states/settings';
@@ -92,7 +92,10 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
   const handleMoveUp = (index: number) => {
     if (index === 0) return;
     const newDrafts = [...drafts];
-    [newDrafts[index - 1], newDrafts[index]] = [newDrafts[index], newDrafts[index - 1]];
+    [newDrafts[index - 1], newDrafts[index]] = [
+      newDrafts[index],
+      newDrafts[index - 1],
+    ];
     newDrafts.forEach((d, i) => (d.orden = i));
     setDrafts(newDrafts);
   };
@@ -100,7 +103,10 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
   const handleMoveDown = (index: number) => {
     if (index === drafts.length - 1) return;
     const newDrafts = [...drafts];
-    [newDrafts[index + 1], newDrafts[index]] = [newDrafts[index], newDrafts[index + 1]];
+    [newDrafts[index + 1], newDrafts[index]] = [
+      newDrafts[index],
+      newDrafts[index + 1],
+    ];
     newDrafts.forEach((d, i) => (d.orden = i));
     setDrafts(newDrafts);
   };
@@ -143,7 +149,11 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography variant="h6" className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+        <Typography
+          variant="h6"
+          className="h2"
+          sx={{ mb: 1, color: 'var(--ink)' }}
+        >
           Gestionar categorías
         </Typography>
         <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
@@ -151,7 +161,10 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
         </Typography>
 
         {/* Lista de categorías actuales */}
-        <Stack spacing={1.5} sx={{ mb: 4, maxHeight: '280px', overflowY: 'auto', pr: '4px' }}>
+        <Stack
+          spacing={1.5}
+          sx={{ mb: 4, maxHeight: '280px', overflowY: 'auto', pr: '4px' }}
+        >
           {drafts.length === 0 ? (
             <Box
               sx={{
@@ -172,77 +185,56 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  p: '10px 14px',
+                  gap: '8px',
+                  padding: '8px 12px',
                   border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-sm)',
-                  background: 'var(--card)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '5px',
-                    height: '100%',
-                    backgroundColor: cat.color,
-                  },
+                  borderRadius: 'var(--shape-sm)',
+                  transition:
+                    'background-color var(--motion-fast) var(--ease-standard)',
+                  // La cápsula del color de la categoría, no la "uñita": el
+                  // borde de 5px iba pegado al canto y la esquina redondeada lo
+                  // cortaba en seco, dejando dos muescas. Ver §6.3.
+                  ...accentSurface(cat.color),
                   '&:hover': {
-                    borderColor: cat.color,
-                    background: 'rgba(0, 0, 0, 0.02)',
-                    boxShadow: 'var(--shadow-sm)',
+                    backgroundColor: `color-mix(in srgb, ${cat.color} 12%, var(--card))`,
                   },
                 }}
               >
                 <Typography
-                  sx={{ flex: 1, fontWeight: 600, color: 'var(--ink)', fontSize: '14.5px', pl: 1 }}
+                  className="body-regular-semibold"
+                  color="var(--ink)"
+                  sx={{ flex: 1, minWidth: 0 }}
                 >
                   {cat.nombre}
                 </Typography>
 
-                <Stack direction="row" spacing={0.5}>
+                <Stack direction="row" spacing="4px">
                   <IconButton
-                    size="small"
+                    edge={false}
                     onClick={() => handleMoveUp(index)}
                     disabled={index === 0}
-                    sx={{
-                      color: 'var(--ink-3)',
-                      backgroundColor: 'var(--paper)',
-                      padding: '5px',
-                      borderRadius: 'var(--r-sm)',
-                      '&:hover': { color: 'var(--ink)', backgroundColor: 'rgba(0,0,0,0.06)' },
-                    }}
+                    title="Subir"
+                    sx={{ padding: '6px' }}
                   >
-                    <ArrowUpwardIcon sx={{ fontSize: '16px' }} />
+                    <IconUp color="currentColor" width={18} height={18} />
                   </IconButton>
                   <IconButton
-                    size="small"
+                    edge={false}
                     onClick={() => handleMoveDown(index)}
                     disabled={index === drafts.length - 1}
-                    sx={{
-                      color: 'var(--ink-3)',
-                      backgroundColor: 'var(--paper)',
-                      padding: '5px',
-                      borderRadius: 'var(--r-sm)',
-                      '&:hover': { color: 'var(--ink)', backgroundColor: 'rgba(0,0,0,0.06)' },
-                    }}
+                    title="Bajar"
+                    sx={{ padding: '6px' }}
                   >
-                    <ArrowDownwardIcon sx={{ fontSize: '16px' }} />
+                    <IconDown color="currentColor" width={18} height={18} />
                   </IconButton>
                   <IconButton
-                    size="small"
+                    edge={false}
+                    color="error"
                     onClick={() => handleRemove(cat.id)}
-                    sx={{
-                      color: 'var(--red-main)',
-                      backgroundColor: 'rgba(239, 68, 68, 0.04)',
-                      padding: '5px',
-                      borderRadius: 'var(--r-sm)',
-                      ml: 1,
-                      '&:hover': { color: 'var(--red-main)', backgroundColor: 'var(--red-secondary)' },
-                    }}
+                    title="Eliminar"
+                    sx={{ padding: '6px', color: 'var(--red-main)' }}
                   >
-                    <IconDelete color="currentColor" width={16} height={16} />
+                    <IconDelete color="currentColor" width={18} height={18} />
                   </IconButton>
                 </Stack>
               </Box>
@@ -251,17 +243,24 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
         </Stack>
 
         <Box sx={{ borderTop: '1px solid var(--line)', pt: 3, mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'var(--ink)' }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1.5, fontWeight: 700, color: 'var(--ink)' }}
+          >
             Crear nueva categoría
           </Typography>
 
           <Stack spacing={2}>
             <Box>
+              {/* En minúscula: las mayúsculas escritas a mano están
+                  prohibidas (DESIGN_SYSTEM §5); solo las pone una clase
+                  `-caps` cuando toca, y aquí no toca. */}
               <Typography
-                variant="caption"
-                sx={{ display: 'block', mb: 1, color: 'var(--ink-3)', fontWeight: 600 }}
+                className="label-small-semibold"
+                color="var(--ink-3)"
+                sx={{ display: 'block', mb: 1 }}
               >
-                SELECCIONA UN COLOR
+                Selecciona un color
               </Typography>
               <Grid container spacing={1}>
                 {PALETA_COLORES.map((color) => (
@@ -277,25 +276,20 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: nuevoColor === color ? '3px solid var(--card)' : 'none',
-                        outline: nuevoColor === color ? `2.5px solid ${color}` : 'none',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
-                        '&:hover': { transform: 'scale(1.15)' },
+                        // El elegido, con un anillo separado del propio color.
+                        // Antes llevaba borde blanco de 3px MÁS un `outline` de
+                        // 2,5 MÁS un puntito dentro: tres señales para decir lo
+                        // mismo, y la sombra interior ensuciaba todos los
+                        // colores.
+                        boxShadow:
+                          nuevoColor === color
+                            ? `0 0 0 3px var(--card), 0 0 0 5px ${color}`
+                            : 'none',
+                        transition:
+                          'transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
+                        '&:hover': { transform: 'scale(1.12)' },
                       }}
-                    >
-                      {nuevoColor === color && (
-                        <Box
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--card)',
-                            boxShadow: '0 0 2px rgba(0,0,0,0.3)',
-                          }}
-                        />
-                      )}
-                    </Box>
+                    ></Box>
                   </Grid>
                 ))}
               </Grid>
@@ -319,16 +313,21 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                 variant="main"
                 onClick={handleAdd}
                 disabled={!nuevaCategoria.trim()}
+                // Se pinta del color elegido —es la única pista de qué color
+                // va a tener la categoría— pero sin sombra de colorines: eran
+                // dos sombras a mano con el color en hexadecimal + alfa, que
+                // ningún otro botón de la app lleva. La forma y el alto los
+                // pone el componente.
                 sx={{
-                  height: { mobile: '48px', tablet600: '42px' },
+                  flexShrink: 0,
                   backgroundColor: nuevoColor,
                   color: 'var(--always-white) !important',
-                  borderRadius: 'var(--r-sm)',
-                  boxShadow: `0 4px 10px -2px ${nuevoColor}40`,
-                  '&:hover': {
-                    backgroundColor: nuevoColor,
-                    opacity: 0.9,
-                    boxShadow: `0 6px 14px -2px ${nuevoColor}50`,
+                  '&:hover': { backgroundColor: nuevoColor, opacity: 0.9 },
+                  // Desactivado tenía pinta de campo vacío: un bloque pálido a
+                  // todo lo ancho, indistinguible del recuadro de al lado.
+                  '&.Mui-disabled': {
+                    backgroundColor: 'var(--accent-200)',
+                    color: 'var(--ink-3) !important',
                   },
                 }}
               >

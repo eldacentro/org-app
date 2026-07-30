@@ -28,29 +28,30 @@ const CustomFilterChip = ({
       onClick={onClick}
       className={selected ? 'body-small-semibold' : 'body-small-regular'}
       sx={{
+        // El MISMO dibujo de "elegido" que las pestañas, la tira de semanas y
+        // el segmented control: tinte de marca y texto en azul oscuro.
+        //
+        // Este chip tenía el suyo propio —borde de 1,5px, sombra cuando NO
+        // estaba elegido, y un hover de negro al 4%— o sea un séptimo dialecto
+        // para la misma idea. Y la sombra en el no elegido lo hacía parecer
+        // más "botón" que el elegido, que es justo al revés.
         fontFeatureSettings: '"cv05"',
         textTransform: 'none',
         padding: '6px 14px',
-        color: selected ? 'var(--brand-deep)' : 'var(--ink-2)',
-        borderRadius: 'var(--r-sm)',
-        border: selected
-          ? '1.5px solid var(--brand-deep)'
-          : '1px solid var(--line)',
-        backgroundColor: selected ? 'var(--brand-tint)' : 'var(--card)',
         minHeight: '34px',
         flexShrink: 0,
         whiteSpace: 'nowrap',
-        boxShadow: selected ? 'none' : 'var(--shadow-sm)',
-        transition: 'all 0.2s ease',
+        border: 'none',
+        boxShadow: 'none',
+        borderRadius: 'var(--shape-full)',
+        color: selected ? 'var(--state-selected-ink)' : 'var(--ink-3)',
+        backgroundColor: selected ? 'var(--state-selected)' : 'transparent',
+        transition:
+          'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
         '&:hover': {
-          color: selected ? 'var(--brand-deep)' : 'var(--ink)',
-          backgroundColor: selected ? 'var(--brand-tint)' : 'rgba(0, 0, 0, 0.04)',
-          borderColor: selected ? 'var(--brand-deep)' : 'var(--ink-3)',
-          '@media (hover: none)': {
-            backgroundColor: selected ? 'var(--brand-tint)' : 'var(--card)',
-            color: selected ? 'var(--brand-deep)' : 'var(--ink-2)',
-            borderColor: selected ? 'var(--brand-deep)' : 'var(--line)',
-          },
+          backgroundColor: selected
+            ? 'var(--state-selected-strong)'
+            : 'var(--state-hover)',
         },
       }}
     >
