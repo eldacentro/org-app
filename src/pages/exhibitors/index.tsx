@@ -4546,7 +4546,13 @@ const Exhibitors = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                // Dos columnas SIEMPRE dejaban ~150px por ubicación en un
+                // móvil, y un nombre como "La Paella (Calle Padre Manjón con
+                // Avenida de Ronda)" se partía en cinco renglones con la
+                // casilla flotando a media altura al lado. Las otras cinco
+                // rejillas de esta pantalla ya bajaban a una columna en
+                // móvil; esta era la única que no.
+                gridTemplateColumns: { mobile: '1fr', tablet: '1fr 1fr' },
                 gap: '4px',
                 mb: '8px',
               }}
@@ -4593,7 +4599,10 @@ const Exhibitors = () => {
             }}
           >
             <TextField
-              placeholder="Nueva ubicación rápida..."
+              // "Nueva ubicación rápida..." no cabía al lado del botón en un
+              // móvil y se leía "Nueva ubicación ráp". Es el mismo campo que
+              // el de la pestaña de Ubicaciones, que ya se llama así.
+              placeholder="Nueva ubicación"
               value={turnConfigDialog.newLocationText}
               onChange={(e) =>
                 setTurnConfigDialog({

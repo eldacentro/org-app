@@ -33,7 +33,28 @@ const Checkbox = (props: CheckboxPropsType) => {
         padding: '4px 0px',
         marginLeft: '-4px',
         display: 'flex',
-        alignItems: 'center',
+        // La casilla se alinea con la PRIMERA LÍNEA del texto, no con el centro
+        // del bloque. Con `center` a secas, una etiqueta que se parte en varias
+        // líneas —"La Paella (Calle Padre Manjón con Avenida de Ronda)" en el
+        // diálogo de turnos de Exhibidores— dejaba la casilla flotando a media
+        // altura, sin nada a lo que pertenecer.
+        //
+        // El truco de abajo es lo que hace que esto NO mueva las de una sola
+        // línea: al texto se le da el alto de la casilla como MÍNIMO y se
+        // centra dentro. Con una línea, el bloque mide 24 y el texto queda
+        // centrado en él, exactamente donde estaba; con dos o más, el bloque ya
+        // es más alto que 24 y el centrado no hace nada, así que el texto
+        // empieza arriba y la casilla le queda al lado.
+        //
+        // Comprobado midiendo el texto (no la caja) en diez casillas de una
+        // línea antes y después: cero movimiento.
+        alignItems: 'flex-start',
+        '& > .MuiFormControlLabel-label': {
+          minHeight: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        },
         gap: '8px',
         opacity: disabled ? '24%' : 1,
         width: 'fit-content',
