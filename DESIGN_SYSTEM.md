@@ -362,6 +362,70 @@ cápsula. Pasa `{ tint: false }` si la tarjeta ya tiene fondo propio.
 > banner inline en toda la app — antes de esto, cada página que necesitaba un
 > aviso de color usaba `<Alert>` de MUI en crudo.
 
+### 6.4 Etiquetas de estado: `Badge` si el significado es fijo, chip de color si el color es un DATO
+
+Regla de decisión, y no hay tercera opción:
+
+| El color viene de… | Qué se usa |
+|---|---|
+| El **significado** (atrasado, libre, en curso, campaña, caducado…) | `Badge` de `@components/badge`, con `color` de la paleta de tokens |
+| Un **dato** que alguien eligió (color de una zona, de una etiqueta) | Un chip que reciba ese color como prop — ej. `TagChip` de Territorios |
+
+Por qué importa: en Territorios había **ocho** maneras distintas de pintar la
+misma idea de "etiqueta de estado", cada una con su `fontSize` (`0.75rem`,
+`11px`, `12px`, `13px`) y su `fontWeight` a pelo. Puestas dos en la misma
+pantalla no parecían de la misma aplicación.
+
+Y un aviso concreto: **el fondo de un chip NUNCA se construye pegando dígitos
+hexadecimales al final del color** (`` `${color}15` ``, `` `${color}1A` ``).
+Ese truco solo funciona si el color es un HEX literal de 6 dígitos; con
+`var(--ink-2)` produce una cadena inválida y el elemento sale **sin fondo y
+sin borde**. Pasó de verdad en las campañas "pasadas". Para mezclar, se usa
+`color-mix(in srgb, <color> N%, transparent)`, que funciona con cualquier
+color, tokens incluidos.
+
+### 6.5 Un campo con un botón al lado: NUNCA se estira el botón al alto del campo
+
+Un campo mide 56px (etiqueta dentro) y un botón mide 40. Puestos en la misma
+fila de flexbox, `align-items` vale `stretch` por defecto, así que el botón
+crece hasta los 56 y los dos acaban con **el mismo borde superior y el mismo
+borde inferior, al píxel**. Ahí es donde nace la sensación de que "no
+combinan": el ojo deja de ver dos controles y ve UNO solo, y un solo objeto
+con dos radios distintos canta.
+
+El arreglo no es igualar los radios, es dejar de soldarlos:
+
+```tsx
+<Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+  <TextField label="Nueva ubicación" … />   {/* 56 de alto, --shape-sm */}
+  <Button variant="main" …>Añadir</Button>   {/* 40 de alto, --shape-full */}
+</Box>
+```
+
+Con el botón a su alto de siempre son dos cosas separadas y cada una se queda
+con la forma que le toca por su papel (§2.3): el campo cuadradito porque
+**contiene** algo, el botón píldora porque **hace** algo. De paso, el botón
+deja de ser un 40% más alto que todos los demás botones de la app.
+
+**No** se resuelve al contrario. Redondear el campo del todo lo convierte en
+una caja de búsqueda —que es otra cosa— y lo separa de los otros ~600 campos.
+Y bajar el botón a 12px solo porque tiene un campo al lado convierte la regla
+en "píldora, salvo cuando…", y por ese camino se vuelve a los nueve dialectos.
+
+La excepción real serían dos controles **pegados sin hueco**, como un buscador
+con su lupa dentro: ahí sí son un objeto y comparten un solo radio. Ese patrón
+no existe en esta app, y no conviene introducirlo.
+
+### 6.6 Los plurales se escriben, no se concatenan
+
+`` `${n} territorios` `` escribe "1 territorios". Siempre la forma completa:
+
+```tsx
+{n === 1 ? '1 territorio' : `${n} territorios`}
+```
+
+Aparecía en cuatro sitios del módulo de Territorios a la vez.
+
 ### 6.1 Patrón canónico de un diálogo con formulario (referencia: `DialogZonas`, Territorios)
 
 ```tsx
