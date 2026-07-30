@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import Badge from '@components/badge';
 import AutoComplete from '@components/autocomplete';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
@@ -1703,17 +1704,11 @@ const PredicacionSalidas = () => {
                             );
                             return (
                               weekRecord?.isCircuitOverseerWeek && (
-                                <Chip
-                                  label="Semana del superintendente"
-                                  size="small"
-                                  sx={{
-                                    backgroundColor: 'var(--accent-main)',
-                                    color: 'var(--always-white)',
-                                    fontWeight: '700',
-                                    fontSize: '12px',
-                                    height: '20px',
-                                  }}
-                                />
+                                <Badge
+                      size="small"
+                      color="accent"
+                      text="Semana del superintendente"
+                    />
                               )
                             );
                           })()}
@@ -1904,19 +1899,13 @@ const PredicacionSalidas = () => {
                                       {/* Hermano asignado */}
                                       <Box sx={{ flex: 1 }}>
                                         {isCancelled ? (
-                                          <Chip
-                                            icon={
-                                              <IconCancelFilled color="var(--error-main)" />
-                                            }
-                                            label="Suspendida"
-                                            size="small"
-                                            sx={{
-                                              backgroundColor:
-                                                'var(--error-150)',
-                                              color: 'var(--error-dark)',
-                                              fontWeight: '600',
-                                            }}
-                                          />
+                                          <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendida"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                                         ) : (
                                           <Typography
                                             style={{
@@ -2665,19 +2654,13 @@ const PredicacionSalidas = () => {
 
                                       <Box sx={{ flex: 1 }}>
                                         {isCancelled ? (
-                                          <Chip
-                                            icon={
-                                              <IconCancelFilled color="var(--error-main)" />
-                                            }
-                                            label="Suspendida"
-                                            size="small"
-                                            sx={{
-                                              backgroundColor:
-                                                'var(--error-150)',
-                                              color: 'var(--error-dark)',
-                                              fontWeight: '600',
-                                            }}
-                                          />
+                                          <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendida"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                                         ) : (
                                           <Typography
                                             style={{

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
+import Badge from '@components/badge';
 import { capitalizarPrimera } from '@utils/common';
-import { Box, Card, Stack, Chip } from '@mui/material';
+import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
@@ -330,16 +331,13 @@ const ServiceOutingsMeeting = ({
                       }}
                     >
                       {isCancelled ? (
-                        <Chip
-                          icon={<IconCancelFilled color="var(--error-main)" />}
-                          label="Suspendida"
-                          size="small"
-                          sx={{
-                            backgroundColor: 'var(--error-150)',
-                            color: 'var(--error-dark)',
-                            fontWeight: '700',
-                          }}
-                        />
+                        <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendida"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                       ) : (
                         <AssigneeName
                           name={brotherName}

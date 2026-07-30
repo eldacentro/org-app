@@ -299,6 +299,18 @@ Entre los cinco son el **56%** del total.
       · Salidas · "Suspender/Reactivar salida".
       · El botón de Google del arranque: a píldora, con el movimiento por
         tokens y sin la fuente escrita a mano.
+      **Los `Chip` (2026-07-30).** Eran 16, y de esos, ocho eran INSIGNIAS de
+      estado escritas a mano: "Suspendido/Suspendida" copiado SEIS veces entre
+      Exhibidores y Salidas con los mismos tokens, "En preparación" en Ayuda y
+      "Semana del superintendente" en Salidas. Significado fijo → `Badge`
+      (§6.4). Los ocho que quedan NO son insignias: son controles que se pulsan
+      (elegir turno, alternar simple/compleja), las etiquetas del propio
+      `Autocomplete` de MUI, o `mini_chip`, que es la primitiva.
+      **Los 22 `TextField` de MUI no son un fallo visual**, y esto es útil
+      saberlo: medido en el navegador, uno crudo y uno de la app salen
+      IDÉNTICOS —mismo radio, mismo fondo, mismo alto— porque el bloque «EL
+      CAMPO» apunta a las clases de MUI y alcanza a los dos. Es deuda de
+      código, no algo que se vea.
       Los `CircularProgress` sueltos pasan a `IconLoading` (5 de 8). Los otros
       tres se quedan: NO son indicadores de carga, son anillos decorativos
       alrededor de un avatar, con `thickness` y posición absoluta, y el

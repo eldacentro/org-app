@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
+import Badge from '@components/badge';
 import { capitalizarPrimera } from '@utils/common';
-import { Box, Card, Stack, Chip } from '@mui/material';
+import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
@@ -427,17 +428,13 @@ const ExhibitorsMeeting = ({
                       }}
                     >
                       {isCancelled ? (
-                        <Chip
-                          icon={<IconCancelFilled color="var(--error-main)" />}
-                          label="Suspendido"
-                          size="small"
-                          sx={{
-                            backgroundColor: 'var(--error-150)',
-                            color: 'var(--error-dark)',
-                            fontWeight: '700',
-                            alignSelf: 'flex-start',
-                          }}
-                        />
+                        <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendido"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                       ) : (
                         // Uno por línea: en horizontal, dos nombres sin nada
                         // que los separe se leían como uno solo.

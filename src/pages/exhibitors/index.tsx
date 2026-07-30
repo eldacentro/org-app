@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import Badge from '@components/badge';
 import EmptyState from '@components/empty_state';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
@@ -1714,19 +1715,13 @@ const Exhibitors = () => {
 
                                           <Box sx={{ flex: 1 }}>
                                             {isCancelled ? (
-                                              <Chip
-                                                icon={
-                                                  <IconCancelFilled color="var(--error-main)" />
-                                                }
-                                                label="Suspendido"
-                                                size="small"
-                                                sx={{
-                                                  backgroundColor:
-                                                    'var(--error-150)',
-                                                  color: 'var(--error-dark)',
-                                                  fontWeight: '600',
-                                                }}
-                                              />
+                                              <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendido"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                                             ) : (
                                               <Typography
                                                 style={{
@@ -2465,19 +2460,13 @@ const Exhibitors = () => {
 
                                           <Box sx={{ flex: 1 }}>
                                             {isCancelled ? (
-                                              <Chip
-                                                icon={
-                                                  <IconCancelFilled color="var(--error-main)" />
-                                                }
-                                                label="Suspendido"
-                                                size="small"
-                                                sx={{
-                                                  backgroundColor:
-                                                    'var(--error-150)',
-                                                  color: 'var(--error-dark)',
-                                                  fontWeight: '600',
-                                                }}
-                                              />
+                                              <Badge
+                            size="small"
+                            color="red"
+                            text="Suspendido"
+                            icon={<IconCancelFilled color="var(--red-main)" />}
+                            sx={{ alignSelf: 'flex-start' }}
+                          />
                                             ) : (
                                               <Typography
                                                 style={{

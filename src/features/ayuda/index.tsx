@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
+import Badge from '@components/badge';
 import { useNavigate } from 'react-router';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Chip, CircularProgress, Stack } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, CircularProgress, Stack } from '@mui/material';
 import { IconArrowLink, IconCollapse, IconLightbulb, IconError } from '@icons/index';
 import { AyudaBlock, AyudaSection } from '@definition/ayuda';
 import PageTitle from '@components/page_title';
@@ -269,16 +270,7 @@ const SectionView = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Typography className="h3">{section.title}</Typography>
             {section.comingSoon && (
-              <Chip
-                label="En preparación"
-                size="small"
-                sx={{
-                  backgroundColor: 'var(--orange-secondary)',
-                  color: 'var(--orange-dark)',
-                  fontSize: '12px',
-                  height: '20px',
-                }}
-              />
+              <Badge size="small" color="orange" text="En preparación" />
             )}
           </Box>
           <Typography className="body-small-regular" color="var(--grey-350)">
