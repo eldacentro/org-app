@@ -332,7 +332,7 @@ const DialogCompartir = ({
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--shape-md)',
           backgroundColor: 'var(--card)',
         },
       }}
@@ -454,7 +454,7 @@ const DialogCompartir = ({
             <Box
               sx={{
                 padding: '12px',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 backgroundColor: 'var(--accent-100)',
                 border: '1px solid var(--line)',
               }}
@@ -472,7 +472,7 @@ const DialogCompartir = ({
               <Box
                 sx={{
                   padding: '12px',
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                   backgroundColor: 'var(--orange-secondary)',
                   border: '1px solid var(--orange-dark)',
                 }}
@@ -515,7 +515,7 @@ const DialogCompartir = ({
               key={share.token}
               sx={{
                 border: '1px solid var(--line)',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 padding: '12px',
               }}
             >

@@ -57,7 +57,7 @@ const TerritoryThumbnail = ({ geometry, color, size = 56 }: Props) => {
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: '10px',
+        borderRadius: 'var(--shape-sm)',
         backgroundColor: `${color}14`,
         border: `1px solid ${color}33`,
         overflow: 'hidden',

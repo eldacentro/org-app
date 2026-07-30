@@ -14,8 +14,10 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import Tooltip from '@components/tooltip';
 import { IconEdit, IconClose, IconMapOverview, IconHousehold } from '@components/icons';
+import { TagChip } from './ui';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import DialogCompartir from './dialogs/DialogCompartir';
@@ -125,7 +127,7 @@ const AssignedDot = ({ status }: { status: AssignedStatus }) => (
       sx={{
         width: 8,
         height: 8,
-        borderRadius: '50%',
+        borderRadius: 'var(--shape-full)',
         flexShrink: 0,
         backgroundColor: ASSIGNED_STATUS_COLOR[status],
         ...(status === 'asignado' && {
@@ -147,27 +149,16 @@ const AssignedDot = ({ status }: { status: AssignedStatus }) => (
 const SIZE_TAG_NAMES = new Set(['Pequeño', 'Mediano', 'Grande', 'Extra grande']);
 
 // ─── Tag de número de viviendas ───────────────────────────────────────────
+// El `Badge` compartido, no una caja propia: la de antes traía su
+// `fontSize: 12px` y su `fontWeight: 600` a pelo, así que al lado de
+// cualquier otra etiqueta de la app cantaba.
 const ViviendasTag = ({ count }: { count: number }) => (
-  <Box
-    sx={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '6px',
-      px: '10px',
-      py: '4px',
-      borderRadius: '20px',
-      backgroundColor: 'var(--accent-100)',
-      border: '1px solid var(--line)',
-    }}
-  >
-    <IconHousehold width={14} height={14} color="var(--accent-main)" />
-    <Typography
-      component="span"
-      sx={{ fontSize: '12px', fontWeight: 600, lineHeight: 1, color: 'var(--ink)' }}
-    >
-      {count} {count === 1 ? 'vivienda' : 'viviendas'}
-    </Typography>
-  </Box>
+  <Badge
+    size="small"
+    color="accent"
+    icon={<IconHousehold />}
+    text={`${count} ${count === 1 ? 'vivienda' : 'viviendas'}`}
+  />
 );
 
 // ─── Pestaña combinada "Info": viviendas + notas + Direcciones (No visitar) ──
@@ -181,31 +172,26 @@ const InfoTabContent = ({
   territory: Territory;
   canManage: boolean;
 }) => (
+  // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
+  // identidad, tres centímetros más arriba en móvil y en la ficha sobre el
+  // mapa en escritorio. Salía dos veces en la misma pantalla, en las dos.
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-    {territory.numeroViviendas != null && (
-      <Box>
-        <ViviendasTag count={territory.numeroViviendas} />
-      </Box>
-    )}
     {territory.notas && (
       <Box
         sx={{
-          p: '14px 16px',
+          padding: '12px 16px',
           backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
-          borderRadius: '14px',
+          borderRadius: 'var(--shape-md)',
           border: '1px solid rgba(var(--orange-main-base), 0.3)',
         }}
       >
+        {/* El rótulo estaba a 10px con 0,6 de espaciado entre letras y en
+            mayúsculas — un tamaño que no existe en la escala de la app y que,
+            en mayúsculas, es directamente ilegible. */}
         <Typography
-          sx={{
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '0.6px',
-            textTransform: 'uppercase',
-            color: 'var(--orange-dark)',
-            mb: '6px',
-            display: 'block',
-          }}
+          className="label-small-semibold"
+          color="var(--orange-dark)"
+          sx={{ display: 'block', mb: '4px' }}
         >
           Notas
         </Typography>
@@ -227,7 +213,17 @@ const InfoTabContent = ({
   </Box>
 );
 
-// ─── Botón de acción principal (grande, pill) ─────────────────────────────
+// ─── Botón de acción principal (a lo ancho, en la hoja de móvil) ──────────
+//
+// Era un botón inventado desde cero: fondo en degradado de 135°, sombra de
+// color, 16px a peso 700, −0,2px de espaciado entre letras y un radio propio.
+// O sea, el único botón así de TODA la app — y encima el degradado se
+// construía pegando `ee` y `bb` al final del color de la zona, un truco que
+// solo funciona si ese color es un HEX de 6 dígitos.
+//
+// Ahora es el `Button` compartido. Lo único que se conserva es lo que aquí sí
+// hace falta: que ocupe el ancho de la hoja, que sea más alto de lo normal
+// (es el objetivo principal de un pulgar) y que pueda ir del color de la zona.
 const ActionButton = ({
   label,
   onClick,
@@ -246,60 +242,37 @@ const ActionButton = ({
   disabledReason?: string;
 }) => (
   <Box>
-    <Box
-      component="button"
-      type="button"
+    <Button
+      variant={variant === 'primary' ? 'main' : 'tertiary'}
       disabled={disabled}
-      onClick={disabled ? undefined : onClick}
-      title={disabled ? disabledReason : undefined}
+      onClick={onClick}
+      minHeight={variant === 'primary' ? 52 : 44}
+      ariaLabel={disabled ? `${label} — ${disabledReason ?? ''}` : undefined}
       sx={{
-        ...buttonReset,
         width: '100%',
-        py: '15px',
-        borderRadius: 'var(--radius-xxl)',
-        textAlign: 'center',
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        fontWeight: 700,
-        fontSize: '16px',
-        letterSpacing: '-0.2px',
-        transition: 'transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease',
-        '&:active': disabled ? undefined : { transform: 'scale(0.97)', opacity: 0.85 },
-        ...(variant === 'primary'
-          ? {
-              background: color
-                ? `linear-gradient(135deg, ${color}ee 0%, ${color}bb 100%)`
-                : 'linear-gradient(135deg, var(--accent-main) 0%, var(--brand) 100%)',
-              // El color de zona lo elige un responsable en un selector
-              // libre. Con un amarillo o un cian, el texto blanco sobre él
-              // quedaba por debajo de 2:1 de contraste — ilegible al sol o
-              // con vista cansada, y de forma permanente para TODOS los
-              // territorios de esa zona. Se calcula la luminancia y se pone
-              // texto oscuro cuando el fondo es claro.
-              color: color && isLightColor(color) ? 'var(--black)' : 'var(--always-white)',
-              boxShadow: color
-                ? `0 4px 16px ${color}50`
-                : '0 4px 16px rgba(var(--accent-main-base), 0.35)',
-            }
-          : {
-              backgroundColor: 'var(--accent-100)',
-              color: 'var(--ink-2)',
-              fontSize: '14px',
-              fontWeight: 500,
-              py: '11px',
-            }),
+        ...(variant === 'primary' &&
+          color && {
+            backgroundColor: color,
+            // El color de zona lo elige un responsable en un selector libre.
+            // Con un amarillo o un cian, el texto blanco encima quedaba por
+            // debajo de 2:1 de contraste — ilegible al sol o con vista
+            // cansada, y de forma permanente para TODOS los territorios de
+            // esa zona. Se mide la luminancia y se pone texto oscuro cuando
+            // el fondo es claro.
+            color: isLightColor(color) ? 'var(--black)' : 'var(--always-white)',
+            '&:hover': {
+              backgroundColor: `color-mix(in srgb, ${color} 88%, var(--black))`,
+            },
+          }),
       }}
     >
       {label}
-    </Box>
+    </Button>
     {disabled && disabledReason && (
       <Typography
         className="label-small-regular"
-        sx={{
-          color: 'var(--ink-2)',
-          textAlign: 'center',
-          mt: '6px',
-        }}
+        color="var(--ink-2)"
+        sx={{ textAlign: 'center', mt: '6px', display: 'block' }}
       >
         {disabledReason}
       </Typography>
@@ -572,7 +545,7 @@ const DialogVerTerritorio = ({
             ...buttonReset,
             width: 44,
             height: 44,
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             // Negro literal a propósito: va SOBRE las teselas del mapa,
             // que siempre son claras, no sobre el fondo del tema.
             backgroundColor: 'rgba(0,0,0,0.45)',
@@ -605,20 +578,21 @@ const DialogVerTerritorio = ({
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'var(--white)',
-          borderRadius: '28px 28px 0 0',
+          borderRadius: 'var(--shape-xl) var(--shape-xl) 0 0',
           boxShadow: '0 -12px 48px rgba(0,0,0,0.25)',
           overflow: 'hidden',
         }}
       >
-        {/* Accent de color de zona */}
-        <Box
-          sx={{
-            flexShrink: 0,
-            height: '4px',
-            borderRadius: '28px 28px 0 0',
-            background: `linear-gradient(to right, ${color} 0%, ${color}80 60%, transparent 100%)`,
-          }}
-        />
+        {/* Aquí iba una franja de 4px con el color de la zona en degradado
+            hacia transparente, pegada al canto superior de la hoja. Es la
+            uñita otra vez, tumbada: un borde recto contra dos esquinas
+            redondeadas, que además se desvanecía por la derecha y hacía que
+            la hoja pareciera torcida.
+
+            No se sustituye por nada, se quita: el color de la zona ya lo
+            dicen el punto que hay justo debajo, junto al nombre de la zona, y
+            el propio polígono del mapa. Era la tercera vez que se decía lo
+            mismo en la misma pantalla, y la más fea de las tres. */}
 
         {/* Drag handle pill */}
         <Box
@@ -634,7 +608,7 @@ const DialogVerTerritorio = ({
             sx={{
               width: 40,
               height: 4,
-              borderRadius: 'var(--radius-xs)',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: 'var(--line)',
             }}
           />
@@ -645,13 +619,13 @@ const DialogVerTerritorio = ({
           <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
             <Box sx={{ flex: 1, minWidth: 0 }}>
               {/* Número del territorio */}
+              {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
+                  y un peso que no existen en la escala de la app. `h1` es
+                  el equivalente que sí está. */}
               <Typography
+                className="h1"
+                color="var(--ink)"
                 sx={{
-                  fontSize: '28px',
-                  fontWeight: 800,
-                  letterSpacing: '-0.8px',
-                  lineHeight: 1.1,
-                  color: 'var(--ink)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -668,15 +642,13 @@ const DialogVerTerritorio = ({
                     sx={{
                       width: 9,
                       height: 9,
-                      borderRadius: '50%',
+                      borderRadius: 'var(--shape-full)',
                       backgroundColor: color,
                       boxShadow: `0 0 0 2.5px ${color}25`,
                       flexShrink: 0,
                     }}
                   />
-                  <Typography
-                    sx={{ fontSize: '13px', fontWeight: 500, color: 'var(--ink-2)' }}
-                  >
+                  <Typography className="label-small-medium" color="var(--ink-2)">
                     {zoneName}
                   </Typography>
                   {canManage && <AssignedDot status={assignedStatus} />}
@@ -699,7 +671,7 @@ const DialogVerTerritorio = ({
                     sx={{
                       width: 9,
                       height: 9,
-                      borderRadius: '50%',
+                      borderRadius: 'var(--shape-full)',
                       backgroundColor: tag.color,
                     }}
                   />
@@ -717,7 +689,7 @@ const DialogVerTerritorio = ({
                     ml: 0.5,
                     width: 28,
                     height: 28,
-                    borderRadius: '50%',
+                    borderRadius: 'var(--shape-full)',
                     backgroundColor: editingTags ? `${color}15` : 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
@@ -741,7 +713,7 @@ const DialogVerTerritorio = ({
                 mt: 1.5,
                 p: '12px',
                 backgroundColor: 'var(--accent-100)',
-                borderRadius: '14px',
+                borderRadius: 'var(--shape-md)',
               }}
             >
               {allTags.length === 0 ? (
@@ -753,29 +725,13 @@ const DialogVerTerritorio = ({
                   {allTags.map((tag) => {
                     const active = (liveTerritory.tags || []).includes(tag.id);
                     return (
-                      <Box
-                        component="button"
-                        type="button"
+                      <TagChip
                         key={tag.id}
+                        label={tag.nombre}
+                        color={tag.color}
+                        selected={active}
                         onClick={() => handleToggleTag(tag.id)}
-                        aria-pressed={active}
-                        sx={{
-                          ...buttonReset,
-                          px: '12px',
-                          py: '5px',
-                          borderRadius: '20px',
-                          border: `1.5px solid ${tag.color}`,
-                          backgroundColor: active ? tag.color : 'transparent',
-                          color: active ? 'var(--always-white)' : tag.color,
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                          fontSize: '12px',
-                          transition: 'all 0.12s ease',
-                          '&:active': { transform: 'scale(0.93)' },
-                        }}
-                      >
-                        {tag.nombre}
-                      </Box>
+                      />
                     );
                   })}
                 </Stack>
@@ -837,7 +793,7 @@ const DialogVerTerritorio = ({
                       alt={label}
                       sx={{
                         width: '100%',
-                        borderRadius: 'var(--radius-xxl)',
+                        borderRadius: 'var(--shape-lg)',
                         cursor: 'zoom-in',
                         display: 'block',
                         // Limitar altura para que no sea interminable en scroll
@@ -852,7 +808,7 @@ const DialogVerTerritorio = ({
                 <Box
                   sx={{
                     height: 200,
-                    borderRadius: 'var(--radius-xxl)',
+                    borderRadius: 'var(--shape-lg)',
                     border: '1.5px dashed var(--line)',
                     backgroundColor: 'var(--accent-100)',
                     display: 'flex',
@@ -877,17 +833,20 @@ const DialogVerTerritorio = ({
                       <Box
                         sx={{
                           width: '100%',
-                          py: '11px',
-                          borderRadius: 'var(--radius-xl)',
-                          border: `1.5px solid ${color}`,
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 'var(--shape-full)',
+                          border: `1px solid ${color}`,
                           color: color,
-                          fontWeight: 600,
-                          fontSize: 14,
                           textAlign: 'center',
                           cursor: 'pointer',
-                          transition: 'background 0.15s ease',
-                          '&:active': { backgroundColor: `${color}10` },
+                          transition:
+                            'background-color var(--motion-fast) var(--ease-standard)',
+                          '&:active': { backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)` },
                         }}
+                        className="button-caps"
                       >
                         {uploading
                           ? 'Subiendo…'
@@ -924,12 +883,10 @@ const DialogVerTerritorio = ({
                         ...buttonReset,
                         width: 'auto',
                         px: 2,
-                        py: '11px',
-                        borderRadius: 'var(--radius-xl)',
+                        minHeight: '44px',
+                        borderRadius: 'var(--shape-full)',
                         backgroundColor: 'rgba(var(--red-main-base), 0.1)',
                         color: 'var(--red-main)',
-                        fontWeight: 600,
-                        fontSize: 14,
                         textAlign: 'center',
                         cursor: uploading ? 'default' : 'pointer',
                         transition: 'background 0.15s ease',
@@ -1029,7 +986,7 @@ const DialogVerTerritorio = ({
           flexShrink: 0,
           position: 'relative',
           backgroundColor: 'var(--accent-200)',
-          borderRadius: '24px 0 0 24px',
+          borderRadius: 'var(--shape-xl) 0 0 var(--shape-xl)',
           overflow: 'hidden',
         }}
       >
@@ -1052,7 +1009,7 @@ const DialogVerTerritorio = ({
             backgroundColor: 'rgba(255,255,255,0.88)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '20px',
+            borderRadius: 'var(--shape-lg)',
             p: '14px 18px',
             border: '0.5px solid rgba(255,255,255,0.65)',
             boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
@@ -1060,15 +1017,7 @@ const DialogVerTerritorio = ({
         >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Box>
-              <Typography
-                sx={{
-                  fontSize: '19px',
-                  fontWeight: 800,
-                  color: 'var(--ink)',
-                  letterSpacing: '-0.4px',
-                  lineHeight: 1.15,
-                }}
-              >
+              <Typography className="h4" color="var(--ink)">
                 {label}
               </Typography>
               <Stack direction="row" alignItems="center" spacing={'6px'} sx={{ mt: '4px' }}>
@@ -1076,11 +1025,11 @@ const DialogVerTerritorio = ({
                   sx={{
                     width: 7,
                     height: 7,
-                    borderRadius: '50%',
+                    borderRadius: 'var(--shape-full)',
                     backgroundColor: color,
                   }}
                 />
-                <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'var(--ink-2)' }}>
+                <Typography className="label-small-medium" color="var(--ink-2)">
                   {zoneName}
                 </Typography>
                 {canManage && <AssignedDot status={assignedStatus} />}
@@ -1101,7 +1050,7 @@ const DialogVerTerritorio = ({
           flexDirection: 'column',
           minWidth: 0,
           backgroundColor: 'var(--white)',
-          borderRadius: '0 24px 24px 0',
+          borderRadius: '0 var(--shape-xl) var(--shape-xl) 0',
         }}
       >
         {/* Header */}
@@ -1120,13 +1069,13 @@ const DialogVerTerritorio = ({
                 sx={{
                   width: 12,
                   height: 12,
-                  borderRadius: '50%',
+                  borderRadius: 'var(--shape-full)',
                   backgroundColor: color,
                   boxShadow: `0 0 0 3px ${color}22`,
                   flexShrink: 0,
                 }}
               />
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+              <Typography className="body-small-semibold" color="var(--ink)">
                 {label}
               </Typography>
             </Stack>
@@ -1159,21 +1108,7 @@ const DialogVerTerritorio = ({
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
                 return (
-                  <Box
-                    key={tag.id}
-                    sx={{
-                      px: '10px',
-                      py: '3px',
-                      borderRadius: '20px',
-                      backgroundColor: `${tag.color}15`,
-                      border: `1px solid ${tag.color}35`,
-                      color: tag.color,
-                      fontSize: '11px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {tag.nombre}
-                  </Box>
+                  <TagChip key={tag.id} label={tag.nombre} color={tag.color} />
                 );
               })}
               {canManage && (
@@ -1185,26 +1120,34 @@ const DialogVerTerritorio = ({
                   aria-expanded={editingTags}
                   sx={{
                     ...buttonReset,
-                    px: '10px',
-                    py: '3px',
-                    borderRadius: '20px',
-                    backgroundColor: editingTags ? `${color}12` : 'var(--accent-100)',
-                    border: `1px solid ${editingTags ? color + '45' : 'var(--line)'}`,
-                    color: editingTags ? color : 'var(--ink-2)',
-                    fontSize: '11px',
-                    fontWeight: 600,
+                    padding: '2px 10px',
+                    minHeight: '22px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    borderRadius: 'var(--shape-full)',
+                    backgroundColor: editingTags
+                      ? 'var(--state-selected)'
+                      : 'var(--accent-100)',
+                    border: `1px solid ${editingTags ? 'var(--accent-main)' : 'var(--line)'}`,
+                    color: editingTags ? 'var(--state-selected-ink)' : 'var(--ink-2)',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition:
+                      'background-color var(--motion-fast) var(--ease-standard)',
                   }}
                 >
-                  + Etiquetas
+                  {/* Iba a 11px con peso 600 — un tamaño que no está en la
+                      escala, y además distinto del de las etiquetas que tiene
+                      al lado. */}
+                  <Typography component="span" className="body-small-semibold" color="inherit">
+                    + Etiquetas
+                  </Typography>
                 </Box>
               )}
             </Stack>
           ) : null}
 
           {editingTags && canManage && (
-            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'var(--accent-100)', borderRadius: 'var(--radius-xl)' }}>
+            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'var(--accent-100)', borderRadius: 'var(--shape-md)' }}>
               {allTags.length === 0 ? (
                 <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                   No hay etiquetas creadas.
@@ -1214,29 +1157,13 @@ const DialogVerTerritorio = ({
                 {allTags.map((tag) => {
                   const active = (liveTerritory.tags || []).includes(tag.id);
                   return (
-                    <Box
-                      component="button"
-                      type="button"
+                    <TagChip
                       key={tag.id}
+                      label={tag.nombre}
+                      color={tag.color}
+                      selected={active}
                       onClick={() => handleToggleTag(tag.id)}
-                      aria-pressed={active}
-                      sx={{
-                        ...buttonReset,
-                        px: '12px',
-                        py: '5px',
-                        borderRadius: '20px',
-                        border: `1.5px solid ${tag.color}`,
-                        backgroundColor: active ? tag.color : 'transparent',
-                        color: active ? 'var(--always-white)' : tag.color,
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        transition: 'all 0.12s ease',
-                        '&:hover': { opacity: 0.85 },
-                      }}
-                    >
-                      {tag.nombre}
-                    </Box>
+                    />
                   );
                 })}
                 </Stack>
@@ -1272,7 +1199,7 @@ const DialogVerTerritorio = ({
                       alt={label}
                       sx={{
                         width: '100%',
-                        borderRadius: 'var(--radius-xl)',
+                        borderRadius: 'var(--shape-md)',
                         cursor: 'zoom-in',
                         boxShadow: 'var(--small-card-shadow)',
                         mb: 1.5,
@@ -1284,7 +1211,7 @@ const DialogVerTerritorio = ({
                 <Box
                   sx={{
                     height: 160,
-                    borderRadius: 'var(--radius-xl)',
+                    borderRadius: 'var(--shape-md)',
                     backgroundColor: 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1303,19 +1230,27 @@ const DialogVerTerritorio = ({
                       <Box
                         sx={{
                           ...buttonReset,
+                          // Tiene que ser un <Box> dentro de un <label> (es lo
+                          // que dispara el selector de archivos), pero se
+                          // dibuja con la misma geometría que el botón
+                          // "tertiary" compartido: píldora, 40 de alto, borde
+                          // de 1px.
                           width: '100%',
-                          py: '7px',
-                          borderRadius: 'var(--r-md, 12px)',
-                          border: '1.5px solid var(--accent-main)',
-                          color: 'var(--accent-main)',
-                          fontWeight: 600,
-                          fontSize: 14,
+                          minHeight: '40px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 'var(--shape-full)',
+                          border: '1px solid var(--accent-dark)',
+                          color: 'var(--accent-dark)',
                           textAlign: 'center',
                           cursor: uploading ? 'default' : 'pointer',
                           opacity: uploading ? 0.6 : 1,
-                          transition: 'background 0.15s ease',
-                          '&:active': uploading ? undefined : { backgroundColor: 'var(--accent-100)' },
+                          transition:
+                            'background-color var(--motion-fast) var(--ease-standard)',
+                          '&:hover': uploading ? undefined : { backgroundColor: 'var(--accent-200)' },
                         }}
+                        className="button-caps"
                       >
                         {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
                       </Box>
@@ -1396,7 +1331,7 @@ const DialogVerTerritorio = ({
           : {
               maxWidth: '860px',
               width: 'calc(100% - 32px)',
-              borderRadius: '24px',
+              borderRadius: 'var(--shape-xl)',
               overflow: 'hidden',
               backgroundColor: 'transparent',
               boxShadow: 'var(--pop-up-shadow), 0 0 0 0.5px rgba(0,0,0,0.06)',

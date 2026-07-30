@@ -4,7 +4,9 @@ import { Box, Stack, Collapse } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import { IconDelete } from '@components/icons';
+import { TerritoryCard } from '@features/territories/ui';
 import { congIDState } from '@states/settings';
 import {
   territoriesState,
@@ -31,8 +33,25 @@ type Props = {
 
 const estadoColor: Record<string, string> = {
   activa: 'var(--green-main)',
-  planificada: 'var(--blue-main)',
-  pasada: 'var(--ink-2)',
+  planificada: 'var(--accent-main)',
+  pasada: 'var(--grey-400)',
+};
+
+/** El estado de la campaña, con la misma etiqueta que todo lo demás. Antes
+ *  era una caja a medida que se pintaba mezclando el color con `1A` y `33`
+ *  en hexadecimal — un truco que solo funciona si el color es un HEX
+ *  literal, y `var(--ink-2)` no lo es: en las campañas pasadas el fondo
+ *  salía transparente y el borde, invisible. */
+const ESTADO_BADGE: Record<string, 'green' | 'accent' | 'grey'> = {
+  activa: 'green',
+  planificada: 'accent',
+  pasada: 'grey',
+};
+
+const ESTADO_TEXTO: Record<string, string> = {
+  activa: 'Activa',
+  planificada: 'Planificada',
+  pasada: 'Pasada',
 };
 
 const CampanasTab = ({ onAsignarCampana }: Props) => {
@@ -180,47 +199,32 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
         const addable = territories.filter((t) => !c.territoryIds.includes(t.id));
 
         return (
-          <Box
-            key={c.id}
-            sx={{
-              p: 2,
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--line)',
-              borderLeft: `5px solid ${estadoColor[c.estado]}`,
-              backgroundColor: 'var(--card)',
-              boxShadow: 'var(--small-card-shadow)',
-              transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-              '&:hover': {
-                boxShadow: 'var(--hover-shadow)'
-              }
-            }}
-          >
+          <TerritoryCard key={c.id} accent={estadoColor[c.estado]}>
             <Stack direction={{ mobile: 'column', tablet600: 'row' }} alignItems={{ mobile: 'flex-start', tablet600: 'center' }} justifyContent="space-between" spacing={1.5}>
-              <Box>
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-                  <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  sx={{ mb: 0.5, flexWrap: 'wrap', rowGap: '4px' }}
+                >
+                  <Typography className="body-regular-semibold" color="var(--ink)">
                     {c.nombre}
                   </Typography>
-                  <Box
-                    sx={{
-                      px: 1,
-                      py: 0.25,
-                      borderRadius: 'var(--radius-xl)',
-                      backgroundColor: `${estadoColor[c.estado]}1A`,
-                      color: estadoColor[c.estado],
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      border: `1px solid ${estadoColor[c.estado]}33`,
-                      textTransform: 'capitalize'
-                    }}
-                  >
-                    {c.estado}
-                  </Box>
+                  <Badge
+                    size="small"
+                    color={ESTADO_BADGE[c.estado]}
+                    text={ESTADO_TEXTO[c.estado] ?? c.estado}
+                  />
                 </Stack>
                 <Typography className="label-small-regular" color="var(--ink-2)">
                   {formatTerritoryDate(c.fechaInicio, settings.dateFormat)} →{' '}
                   {formatTerritoryDate(c.fechaFin, settings.dateFormat)} ·{' '}
-                  <span style={{ color: 'var(--ink)' }}>{c.territoryIds.length} territorios</span>
+                  <span style={{ color: 'var(--ink)' }}>
+                    {c.territoryIds.length === 1
+                      ? '1 territorio'
+                      : `${c.territoryIds.length} territorios`}
+                  </span>
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
@@ -296,7 +300,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                           spacing={1}
                           sx={{
                             p: 1.5,
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                             border: '1px solid var(--line)',
                             backgroundColor: open ? 'var(--orange-secondary)' : 'transparent',
                           }}
@@ -350,7 +354,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                 </Stack>
               </Box>
             </Collapse>
-          </Box>
+          </TerritoryCard>
         );
       })}
 

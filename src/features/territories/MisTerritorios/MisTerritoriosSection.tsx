@@ -3,8 +3,10 @@ import { Box, Stack, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import InfoTip from '@components/info_tip';
 import { IconClose } from '@components/icons';
+import { TerritoryCard, MetaItem } from '@features/territories/ui';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { fieldGroupsState } from '@states/field_service_groups';
 import { markNoticeRead } from '@services/firebase/territories';
@@ -24,7 +26,6 @@ import {
   getZoneColor,
   getZoneName,
   isOverdue,
-  territoryLabel,
   computeDueAt,
 } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
@@ -37,23 +38,12 @@ type Props = {
 
 /** Insignia "Campaña" — antes solo se mostraba en la lista personal; los
  *  compañeros de grupo (publishersCanSeeGroup) veían una asignación de
- *  campaña como si fuera normal, sin poder distinguirla. */
-const CampanaBadge = () => (
-  <Box
-    sx={{
-      px: 1,
-      py: 0.25,
-      borderRadius: 'var(--radius-xl)',
-      backgroundColor: 'rgba(var(--blue-main-base), 0.1)',
-      color: 'var(--blue-main)',
-      fontWeight: 600,
-      fontSize: '0.75rem',
-      border: '1px solid rgba(var(--blue-main-base), 0.2)',
-    }}
-  >
-    Campaña
-  </Box>
-);
+ *  campaña como si fuera normal, sin poder distinguirla.
+ *
+ *  Es el `Badge` compartido de la app, no una caja a medida: la de antes
+ *  tenía su propio `fontSize: 0.75rem` y `fontWeight: 600` sueltos, así que
+ *  no encajaba con ninguna otra etiqueta de la aplicación. */
+const CampanaBadge = () => <Badge size="small" color="accent" text="Campaña" />;
 
 /** Sección "Mis territorios": territorios actualmente asignados al usuario. */
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
@@ -162,10 +152,15 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
             >
               <IconClose color="var(--ink-2)" width={16} height={16} />
             </IconButton>
+            {/* El botón iba SUELTO debajo del aviso, con `variant="small"` —
+                que se pinta sin fondo ni borde. Fuera de la caja del aviso y
+                sin nada que lo dibujara, se leía como una línea de texto
+                perdida entre el aviso y la lista, no como algo que se pulsa.
+                Va dentro del aviso y con la forma de un botón de verdad. */}
             {matchingRow && (
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: '-4px', mb: '12px', pl: '16px' }}>
                 <Button
-                  variant="small"
+                  variant="tertiary"
                   disableAutoStretch
                   onClick={() => onEntregar(matchingRow.assignment)}
                   disabled={!settings.publishersCanReturn}
@@ -199,38 +194,34 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         {groupRows.map(({ assignment, territory }) => {
           const color = getZoneColor(territory.zoneId, zones);
           return (
-            <Box
-              key={assignment.id}
-              sx={{
-                p: 2,
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--line)',
-                borderLeft: `5px solid ${color}`,
-                backgroundColor: 'var(--card)',
-                boxShadow: 'var(--small-card-shadow)',
-                opacity: 0.85,
-              }}
-            >
-              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                <Box sx={{ flex: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
-                      {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
-                      <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
-                        {resolveName(assignment.personUid)}
-                      </span>
+            // Es de un compañero, no mío: se distingue con el borde
+            // discontinuo de `muted`. Antes se bajaba la opacidad al 85%, que
+            // apaga por igual el texto y lo deja por debajo del contraste
+            // mínimo — la diferencia se nota mejor en el trazo que en la
+            // legibilidad.
+            <TerritoryCard key={assignment.id} accent={color} muted>
+              <Stack
+                direction={{ mobile: 'column', tablet600: 'row' }}
+                alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+                spacing={1.5}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    <Typography className="body-regular-semibold" color="var(--ink)">
+                      {getZoneName(territory.zoneId, zones)} {territory.numero}
                     </Typography>
                     {assignment.isCampaign && <CampanaBadge />}
                   </Stack>
-                  <Typography className="label-small-regular" color="var(--ink-2)">
-                    Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                  <Typography className="body-small-regular" color="var(--ink-2)">
+                    {resolveName(assignment.personUid)} · desde el{' '}
+                    {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
                   </Typography>
                 </Box>
-                <Button variant="tertiary" onClick={() => onView(territory)}>
+                <Button variant="tertiary" disableAutoStretch onClick={() => onView(territory)}>
                   Ver
                 </Button>
               </Stack>
-            </Box>
+            </TerritoryCard>
           );
         })}
       </Stack>
@@ -265,89 +256,106 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
           const overdue = isOverdue(assignment.assignedAt, settings.daysUntilOverdue);
           const color = getZoneColor(territory.zoneId, zones);
           return (
-            <Box
-              key={assignment.id}
-              sx={{
-                p: 2,
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--line)',
-                borderLeft: `5px solid ${color}`,
-                backgroundColor: 'var(--card)',
-                boxShadow: 'var(--small-card-shadow)',
-                transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-                '&:hover': {
-                  boxShadow: 'var(--hover-shadow)'
-                }
-              }}
-            >
+            <TerritoryCard key={assignment.id} accent={color}>
+              {/* Una sola fila: identidad, datos y acciones. Antes las
+                  acciones colgaban DEBAJO de todo a lo ancho de la tarjeta,
+                  así que en un portátil quedaban dos botones pequeños
+                  pegados al margen izquierdo y ochocientos píxeles de vacío
+                  a su derecha. Aquí se van al extremo contrario en cuanto
+                  hay sitio, y solo bajan cuando de verdad no cabe. */}
               <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                spacing={1.5}
+                direction={{ mobile: 'column', tablet600: 'row' }}
+                alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+                spacing={2}
               >
-                <TerritoryThumbnail geometry={territory.geometry} color={color} />
-                <Box sx={{ flex: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
-                      {getZoneName(territory.zoneId, zones)} {territoryLabel(territory)}
-                    </Typography>
-                    {assignment.isCampaign && <CampanaBadge />}
-                    {overdue && (
-                        <Box
-                          sx={{
-                            px: 1,
-                            py: 0.25,
-                            borderRadius: 'var(--radius-xl)',
-                            backgroundColor: 'rgba(var(--red-main-base), 0.1)',
-                            color: 'var(--red-main)',
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                            border: '1px solid rgba(var(--red-main-base), 0.2)'
-                          }}
-                        >
-                          Atrasado
-                        </Box>
-                    )}
-                  </Stack>
-                  {/* Antes iba todo corrido en una sola línea ("Entregado: ... ·
-                      Vence: ..."), que se leía como un bloque denso de texto.
-                      También decía "Entregado" — ese verbo se reserva para
-                      cuando el publicador devuelve el territorio, así que aquí
-                      (fecha en que se LE entregó a él) confundía. */}
-                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block' }}>
-                    Asignado: {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
-                  </Typography>
-                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block' }}>
-                    Vence: {formatTerritoryDate(assignment.dueAt || computeDueAt(assignment.assignedAt, settings.daysUntilOverdue), settings.dateFormat)}
-                  </Typography>
-                </Box>
-              </Stack>
-              {/* "Ver territorio" es el botón principal (variant="main"): es
-                  el que más se usa, con diferencia — "Entregar" es una
-                  acción puntual, así que va como secundario aunque siga
-                  primero en el orden de lectura. */}
-              <Stack direction={{ mobile: 'column', tablet600: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
-                <Button variant="main" onClick={() => onView(territory)}>
-                  Ver territorio
-                </Button>
-                {/* Antes este botón simplemente desaparecía si la opción
-                    estaba desactivada, sin explicar por qué — ahora se ve
-                    pero deshabilitado, con el motivo. */}
-                <Button
-                  variant="tertiary"
-                  onClick={() => onEntregar(assignment)}
-                  disabled={!settings.publishersCanReturn}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  sx={{ flex: 1, minWidth: 0 }}
                 >
-                  Entregar
-                </Button>
+                  <TerritoryThumbnail geometry={territory.geometry} color={color} />
+
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', rowGap: '4px' }}
+                    >
+                      {/* El nombre propio del territorio ya no se cose al
+                          título con un guion largo: "Elda - Urbano 3 —
+                          Barrio de las Trescientas y pico viviendas" era una
+                          línea de sesenta caracteres con dos separadores
+                          distintos. El número identifica, el nombre describe;
+                          son dos niveles y ahora se ven como dos. */}
+                      <Typography className="body-regular-semibold" color="var(--ink)">
+                        {getZoneName(territory.zoneId, zones)} {territory.numero}
+                      </Typography>
+                      {assignment.isCampaign && <CampanaBadge />}
+                      {overdue && <Badge size="small" color="red" text="Atrasado" />}
+                    </Stack>
+
+                    {territory.nombre && (
+                      <Typography className="body-small-regular" color="var(--ink-2)">
+                        {territory.nombre}
+                      </Typography>
+                    )}
+
+                    {/* Antes iba todo corrido ("Asignado: … / Vence: …") con
+                        el rótulo pesando lo mismo que el dato. */}
+                    <Stack direction="row" spacing={3} sx={{ mt: '8px' }}>
+                      <MetaItem
+                        label="Asignado"
+                        value={formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                      />
+                      <MetaItem
+                        label="Vence"
+                        tone={overdue ? 'danger' : undefined}
+                        value={formatTerritoryDate(
+                          assignment.dueAt ||
+                            computeDueAt(assignment.assignedAt, settings.daysUntilOverdue),
+                          settings.dateFormat
+                        )}
+                      />
+                    </Stack>
+                  </Box>
+                </Stack>
+
+                {/* "Ver territorio" es el principal: es el que más se usa,
+                    con diferencia — "Entregar" es una acción puntual. */}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexShrink: 0, alignItems: 'center' }}
+                >
+                  <Button variant="main" disableAutoStretch onClick={() => onView(territory)}>
+                    Ver territorio
+                  </Button>
+                  {/* Antes este botón simplemente desaparecía si la opción
+                      estaba desactivada, sin explicar por qué — ahora se ve
+                      pero deshabilitado, con el motivo. */}
+                  <Button
+                    variant="tertiary"
+                    disableAutoStretch
+                    onClick={() => onEntregar(assignment)}
+                    disabled={!settings.publishersCanReturn}
+                  >
+                    Entregar
+                  </Button>
+                </Stack>
               </Stack>
+
               {!settings.publishersCanReturn && (
-                <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
+                <Typography
+                  className="label-small-regular"
+                  color="var(--ink-2)"
+                  sx={{ display: 'block', mt: 1 }}
+                >
                   Solo un responsable puede marcar este territorio como entregado.
                 </Typography>
               )}
-            </Box>
+            </TerritoryCard>
           );
         })}
       </Stack>

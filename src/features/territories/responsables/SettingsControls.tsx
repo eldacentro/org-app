@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Box, Stack } from '@mui/material';
 import Typography from '@components/typography';
+import FilterChip from '@components/filter_chip';
+import SwitchWithLabel from '@components/switch_with_label';
 
 /**
  * Piezas de UI compartidas entre ConfiguracionTab e ImportExportTab — antes
@@ -27,7 +29,7 @@ export const SectionCard = ({
 }) => (
   <Box
     sx={{
-      borderRadius: 'var(--radius-xxl)',
+      borderRadius: 'var(--shape-lg)',
       border: '1px solid var(--line)',
       backgroundColor: 'var(--card)',
       boxShadow: 'var(--small-card-shadow)',
@@ -43,14 +45,18 @@ export const SectionCard = ({
         px: { mobile: 2, tablet600: 2.5 },
         py: '14px',
         borderBottom: '1px solid var(--line)',
-        background: 'linear-gradient(to right, rgba(0,0,0,0.02), transparent)',
+        // Era un degradado de negro al 2% hacia transparente. En modo oscuro
+        // eso es echar negro sobre una tarjeta ya oscura: no se ve nada y, si
+        // se ve, ensucia. Un tinte plano del tema hace el mismo trabajo de
+        // separar la cabecera del cuerpo, y funciona en los dos temas.
+        backgroundColor: 'var(--accent-100)',
       }}
     >
       <Box
         sx={{
           width: 36,
           height: 36,
-          borderRadius: '10px',
+          borderRadius: 'var(--shape-sm)',
           backgroundColor: iconBg,
           display: 'flex',
           alignItems: 'center',
@@ -80,67 +86,58 @@ export const SectionCard = ({
   </Box>
 );
 
-/** Selector de opciones en forma de píldoras. */
+/**
+ * Selector de opciones en forma de píldoras.
+ *
+ * Es el `FilterChip` compartido, el mismo dibujo de "elegido" que las
+ * pestañas, la tira de semanas y los filtros de Historial. Antes tenía el
+ * suyo: borde de 1,5px, fondo hecho pegando `15` y `22` al final del color
+ * (que solo funciona si el color es un HEX literal), 13px de letra y un
+ * `scale(0.96)` al pulsar. Con eso, dos filtros con la misma función se
+ * pintaban distinto según en qué pestaña estuvieras.
+ *
+ * `accent` desaparece a propósito: el color de "elegido" es UNO en toda la
+ * app, no una decisión por pantalla.
+ */
 export const PillGroup = ({
   value,
   onChange,
   options,
-  accent = 'var(--accent-main)',
 }: {
   value: string;
   onChange: (val: string) => void;
   options: PillOption[];
-  accent?: string;
 }) => (
   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-    {options.map((opt) => {
-      const active = opt.value === value;
-      return (
-        <Box
-          component="button"
-          type="button"
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          sx={{
-            appearance: 'none',
-            border: 'none',
-            background: 'none',
-            font: 'inherit',
-            px: '12px',
-            py: '6px',
-            borderRadius: 'var(--radius-max)',
-            borderWidth: '1.5px',
-            borderStyle: 'solid',
-            borderColor: active ? accent : 'var(--line)',
-            backgroundColor: active ? `${accent}15` : 'transparent',
-            color: active ? accent : 'var(--ink-2)',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: active ? 600 : 400,
-            transition: 'all 0.15s ease',
-            userSelect: 'none',
-            '&:hover': {
-              borderColor: active ? accent : 'var(--ink-3)',
-              backgroundColor: active ? `${accent}22` : 'var(--accent-100)',
-            },
-            '&:active': { transform: 'scale(0.96)' },
-            '&:focus-visible': {
-              outline: '2px solid var(--accent-main)',
-              outlineOffset: '2px',
-            },
-          }}
-        >
-          {opt.label}
-        </Box>
-      );
-    })}
+    {options.map((opt) => (
+      <FilterChip
+        key={opt.value}
+        label={opt.label}
+        selected={opt.value === value}
+        onClick={() => onChange(opt.value)}
+      />
+    ))}
   </Box>
 );
 
-/** Fila toggle: label + descripción a la izquierda, interruptor iOS a la
- *  derecha. `divider` controla dónde va la línea separadora (cada consumidor
- *  la necesitaba en un lado distinto según si la fila va antes o después de
- *  otro contenido). */
+/**
+ * Fila de interruptor.
+ *
+ * Es `SwitchWithLabel`, EL MISMO componente que usa Ajustes en toda la app.
+ * Aquí había uno propio, y no se parecía en dos cosas de fondo:
+ *
+ *  1. El interruptor estaba dibujado a mano — una caja de 44×26 con un
+ *     círculo blanco de 22 deslizándose por dentro, y en verde. El único de
+ *     la aplicación con esa forma y ese color.
+ *  2. El interruptor iba a la DERECHA y la etiqueta a la izquierda; en
+ *     Ajustes es al contrario (interruptor primero en escritorio, y solo en
+ *     móvil se da la vuelta, que es lo que hace `SwitcherContainer`). Con lo
+ *     cual, al pasar de Ajustes a esta pantalla, todos los interruptores
+ *     saltaban de lado.
+ *
+ * `divider` se queda: cada consumidor necesita la línea separadora en un lado
+ * distinto según si la fila va antes o después de otro contenido.
+ */
 export const ToggleRow = ({
   label,
   description,
@@ -155,77 +152,17 @@ export const ToggleRow = ({
   divider?: 'top' | 'bottom' | 'none';
 }) => (
   <Box
-    component="button"
-    type="button"
-    onClick={() => onChange(!checked)}
-    aria-pressed={checked}
     sx={{
-      appearance: 'none',
-      border: 'none',
-      background: 'none',
-      font: 'inherit',
-      textAlign: 'inherit',
-      width: '100%',
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      gap: 2,
       py: '14px',
-      cursor: 'pointer',
       borderBottom: divider === 'bottom' ? '0.5px solid var(--line)' : 'none',
       borderTop: divider === 'top' ? '0.5px solid var(--line)' : 'none',
-      WebkitTapHighlightColor: 'transparent',
-      '&:active': { backgroundColor: 'rgba(0,0,0,0.03)' },
-      '&:focus-visible': {
-        outline: '2px solid var(--accent-main)',
-        outlineOffset: '2px',
-      },
-      mx: -0.5,
-      px: 0.5,
-      borderRadius: 'var(--radius-l)',
-      transition: 'background 0.1s ease',
     }}
   >
-    <Box sx={{ flex: 1 }}>
-      <Typography
-        className="body-small-medium"
-        sx={{ color: 'var(--ink)', lineHeight: 1.3 }}
-      >
-        {label}
-      </Typography>
-      {description && (
-        <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', mt: '3px', lineHeight: 1.4 }}>
-          {description}
-        </Typography>
-      )}
-    </Box>
-
-    {/* Interruptor iOS */}
-    <Box
-      sx={{
-        width: 44,
-        height: 26,
-        borderRadius: '13px',
-        backgroundColor: checked ? 'var(--green-main)' : 'var(--grey-300)',
-        position: 'relative',
-        flexShrink: 0,
-        mt: '2px',
-        transition: 'background 0.22s ease',
-      }}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          backgroundColor: 'var(--white)',
-          top: 2,
-          left: checked ? 20 : 2,
-          boxShadow: '0 1.5px 4px rgba(0,0,0,0.22)',
-          transition: 'left 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        }}
-      />
-    </Box>
+    <SwitchWithLabel
+      label={label}
+      helper={description}
+      checked={checked}
+      onChange={onChange}
+    />
   </Box>
 );

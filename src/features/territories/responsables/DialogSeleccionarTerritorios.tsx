@@ -98,7 +98,7 @@ const DialogSeleccionarTerritorios = ({
         style: {
           maxWidth: '560px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '16px',
         },
@@ -131,12 +131,12 @@ const DialogSeleccionarTerritorios = ({
             indeterminate={someSelected}
             onChange={toggleAll}
             label={
-              <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2)' }}>
+              <Typography className="label-small-semibold" color="var(--ink-3)">
                 Territorio
               </Typography>
             }
           />
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2)' }}>
+          <Typography className="label-small-semibold" color="var(--ink-3)">
             Sin asignar desde
           </Typography>
         </Box>
@@ -158,7 +158,7 @@ const DialogSeleccionarTerritorios = ({
                     justifyContent: 'space-between',
                     px: 1,
                     py: 0.5,
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     '&:hover': { backgroundColor: 'var(--accent-100)' },
                     cursor: 'pointer',
                   }}
@@ -170,17 +170,21 @@ const DialogSeleccionarTerritorios = ({
                       onChange={() => toggleOne(t.id)}
                       label={
                         <Box sx={{ pointerEvents: 'auto' }}>
-                          <Typography sx={{ fontSize: 14, color: 'var(--ink)' }}>
+                          <Typography className="body-small-regular" color="var(--ink)">
                             {territoryLabel(t)}
                           </Typography>
-                          <Typography sx={{ fontSize: 12, color: 'var(--ink-2)' }}>
+                          <Typography className="label-small-regular" color="var(--ink-2)">
                             {getZoneName(t.zoneId, zones)}
                           </Typography>
                         </Box>
                       }
                     />
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: info?.status === 'assigned' ? 'var(--orange-main)' : 'var(--ink-2)', flexShrink: 0, ml: 1, textAlign: 'right' }}>
+                  <Typography
+                    className="label-small-regular"
+                    color={info?.status === 'assigned' ? 'var(--orange-main)' : 'var(--ink-2)'}
+                    sx={{ flexShrink: 0, ml: 1, textAlign: 'right' }}
+                  >
                     {info?.status === 'assigned'
                       ? 'Asignado act.'
                       : info?.date

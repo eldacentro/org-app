@@ -6,7 +6,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
-import { IconAssignment, IconStats, IconMapView, IconPerson, IconLocation, IconCheck } from '@components/icons';
+import { IconAssignment, IconStats, IconMapView, IconPerson, IconLocation, IconCheck, IconAdd, IconRemove } from '@components/icons';
 import { congIDState } from '@states/settings';
 import { territorySettingsState } from '@states/territories';
 import { TerritorySettings } from '@definition/territories';
@@ -68,20 +68,30 @@ const NumberStepper = ({
     setLocalVal(String(value));
   }, [value]);
 
+  // Los dos extremos eran `<Box onClick>` con un "−" y un "+" escritos como
+  // texto a 20px y peso 300: no se podían usar con el teclado, un lector de
+  // pantalla no los anunciaba, y "−" a peso 300 se veía como una rayita
+  // perdida. Ahora son botones de verdad con los iconos de la app.
   const btnSx = {
+    appearance: 'none',
+    border: 'none',
+    background: 'none',
     width: 36,
     height: 36,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    fontSize: '20px',
-    fontWeight: 300,
-    color: 'var(--ink-2)',
     flexShrink: 0,
-    userSelect: 'none' as const,
-    transition: 'background 0.12s ease',
-    '&:active': { backgroundColor: 'rgba(0,0,0,0.07)' },
+    padding: 0,
+    transition: 'background-color var(--motion-fast) var(--ease-standard)',
+    '&:hover': { backgroundColor: 'var(--state-hover)' },
+    '&:active': { backgroundColor: 'var(--state-pressed)' },
+    '&:focus-visible': {
+      outline: '2px solid var(--accent-main)',
+      outlineOffset: '-2px',
+    },
+    '& svg, & svg g, & svg g path': { fill: 'var(--ink-2)' },
   };
 
   const handleMinus = () => {
@@ -99,14 +109,20 @@ const NumberStepper = ({
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         border: '1.5px solid var(--line)',
         backgroundColor: 'var(--accent-100)',
         overflow: 'hidden',
       }}
     >
-      <Box onClick={handleMinus} sx={btnSx}>
-        −
+      <Box
+        component="button"
+        type="button"
+        onClick={handleMinus}
+        aria-label="Restar uno"
+        sx={btnSx}
+      >
+        <IconRemove width={20} height={20} />
       </Box>
 
       <Box
@@ -156,8 +172,14 @@ const NumberStepper = ({
         )}
       </Box>
 
-      <Box onClick={handlePlus} sx={btnSx}>
-        +
+      <Box
+        component="button"
+        type="button"
+        onClick={handlePlus}
+        aria-label="Sumar uno"
+        sx={btnSx}
+      >
+        <IconAdd width={20} height={20} />
       </Box>
     </Box>
   );
@@ -244,7 +266,6 @@ const ConfiguracionTab = () => {
                 { value: 'yyyy-MM-dd', label: 'aaaa-mm-dd' },
                 { value: 'MM/dd/yyyy', label: 'mm/dd/aaaa' },
               ]}
-              accent="var(--accent-main)"
             />
           </FieldRow>
           <ToggleRow
@@ -317,7 +338,6 @@ const ConfiguracionTab = () => {
                 { value: 'one_year', label: '12 meses' },
                 { value: 'all', label: 'Todo' },
               ]}
-              accent="var(--green-main)"
             />
           </FieldRow>
 
@@ -329,7 +349,6 @@ const ConfiguracionTab = () => {
                 { value: 'zone', label: 'Por zona' },
                 { value: 'none', label: 'Sin agrupar' },
               ]}
-              accent="var(--green-main)"
             />
           </FieldRow>
         </SectionCard>
@@ -407,7 +426,7 @@ const ConfiguracionTab = () => {
             position: 'sticky',
             bottom: 16,
             zIndex: 10,
-            borderRadius: 'var(--radius-xxl)',
+            borderRadius: 'var(--shape-lg)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--big-card-shadow)',
@@ -428,7 +447,7 @@ const ConfiguracionTab = () => {
                   sx={{
                     width: 7,
                     height: 7,
-                    borderRadius: '50%',
+                    borderRadius: 'var(--shape-full)',
                     backgroundColor: 'var(--orange-main)',
                     flexShrink: 0,
                   }}
@@ -458,7 +477,7 @@ const ConfiguracionTab = () => {
             onClick={handleSave}
             disabled={saving || !hasChanges}
             disableAutoStretch
-            sx={{ borderRadius: 'var(--radius-max)', px: 3, flexShrink: 0 }}
+            sx={{ borderRadius: 'var(--shape-full)', px: 3, flexShrink: 0 }}
           >
             {saving ? 'Guardando…' : 'Guardar'}
           </Button>

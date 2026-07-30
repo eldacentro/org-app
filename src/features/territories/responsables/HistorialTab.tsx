@@ -5,6 +5,8 @@ import FilterChip from '@components/filter_chip';
 import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Button from '@components/button';
+import Badge from '@components/badge';
+import { TerritoryCard } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -135,60 +137,58 @@ const HistorialTab = () => {
             // Misma marca "(C)" que usan el historial de Asignaciones y el
             // S-13: sin ella no habría forma de distinguir aquí una entrega
             // normal de una de campaña.
+            // La "(C)" azul suelta pegada a un nombre no la entiende nadie:
+            // se convierte en la misma etiqueta "Campaña" que el resto de la
+            // app. Va al final de la frase, no incrustada en medio.
             const marcaCampana = a.isCampaign ? (
-              <span style={{ color: 'var(--blue-main)' }} title="Asignación de campaña">
-                {' '}(C)
-              </span>
+              <Badge size="small" color="accent" text="Campaña" />
             ) : null;
 
             return (
-              <Box
-                key={a.id}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 'var(--radius-xl)',
-                  border: '1px solid var(--line)',
-                  borderLeft: `5px solid ${color}`,
-                  backgroundColor: 'var(--card)',
-                }}
-              >
+              <TerritoryCard key={a.id} accent={color}>
                 <Stack
                   direction={{ mobile: 'column', tablet600: 'row' }}
                   justifyContent="space-between"
                   alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
                   spacing={1}
                 >
-                  <Box>
-                    <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
-                      {abierta ? (
-                        quienAsigno ? (
-                          seLoDioASiMismo ? (
-                            <>
-                              <strong>{quienAsigno}</strong>
-                              {marcaCampana} tomó el <strong>{tName}</strong>
-                            </>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', rowGap: '4px' }}
+                    >
+                      <Typography className="body-small-regular" color="var(--ink)">
+                        {abierta ? (
+                          quienAsigno ? (
+                            seLoDioASiMismo ? (
+                              <>
+                                <strong>{quienAsigno}</strong> tomó el <strong>{tName}</strong>
+                              </>
+                            ) : (
+                              <>
+                                <strong>{quienAsigno}</strong> le asignó el{' '}
+                                <strong>{tName}</strong> a{' '}
+                                <strong>{resolveName(a.personUid)}</strong>
+                              </>
+                            )
                           ) : (
                             <>
-                              <strong>{quienAsigno}</strong> le asignó el{' '}
-                              <strong>{tName}</strong> a{' '}
-                              <strong>{resolveName(a.personUid)}</strong>
-                              {marcaCampana}
+                              <strong>{resolveName(a.personUid)}</strong> tiene el{' '}
+                              <strong>{tName}</strong>
                             </>
                           )
                         ) : (
                           <>
-                            <strong>{resolveName(a.personUid)}</strong>
-                            {marcaCampana} tiene el <strong>{tName}</strong>
+                            <strong>{resolveName(a.personUid)}</strong> devolvió el{' '}
+                            <strong>{tName}</strong> como{' '}
+                            <strong>{trabajado ? 'trabajado' : 'no trabajado'}</strong>
                           </>
-                        )
-                      ) : (
-                        <>
-                          <strong>{resolveName(a.personUid)}</strong>
-                          {marcaCampana} devolvió el <strong>{tName}</strong> como{' '}
-                          <strong>{trabajado ? 'trabajado' : 'no trabajado'}</strong>
-                        </>
-                      )}
-                    </Typography>
+                        )}
+                      </Typography>
+                      {marcaCampana}
+                    </Stack>
                     <Typography className="label-small-regular" color="var(--ink-2)">
                       {abierta ? (
                         <>Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)}</>
@@ -216,26 +216,10 @@ const HistorialTab = () => {
                         &quot;{displayText(a.notas)}&quot;
                       </Typography>
                     )}
-                    {abierta && (
-                      <Box
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: 'var(--radius-max)',
-                          backgroundColor: 'var(--orange-secondary)',
-                        }}
-                      >
-                        <Typography
-                          className="label-small-medium"
-                          sx={{ color: 'var(--orange-dark)', whiteSpace: 'nowrap' }}
-                        >
-                          En curso
-                        </Typography>
-                      </Box>
-                    )}
+                    {abierta && <Badge size="small" color="orange" text="En curso" />}
                   </Stack>
                 </Stack>
-              </Box>
+              </TerritoryCard>
             );
           })}
 

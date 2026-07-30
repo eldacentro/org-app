@@ -4,7 +4,9 @@ import { useAtomValue } from 'jotai';
 import { useConfirm } from '@components/confirm_dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
+import { TerritoryCard } from '@features/territories/ui';
 import { congIDState, shortDateFormatState } from '@states/settings';
 import {
   territoriesState,
@@ -160,71 +162,81 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
       <Stack spacing={1.5}>
         {rows.map(({ share, territory, live }) => {
           const label = territory ? territoryLabel(territory) : 'Territorio borrado';
+          // El motivo por el que un enlace ya no vale es un DATO, no una
+          // frase escondida en medio de tres renglones de texto gris. Antes
+          // el estado se deducía leyendo "Anulado" / "Caducó el …" enterrado
+          // entre la fecha de caducidad y la de creación.
+          const caducado =
+            share.expiresAt?.toDate?.() && share.expiresAt.toDate() <= new Date();
+          const estado = live
+            ? { color: 'green' as const, texto: 'Activo' }
+            : share.revoked
+              ? { color: 'red' as const, texto: 'Anulado' }
+              : caducado
+                ? { color: 'grey' as const, texto: 'Caducado' }
+                : { color: 'grey' as const, texto: 'Territorio entregado' };
+
           return (
-            <Box
+            // Los caducados llevaban `opacity: 0.7`, que apaga el texto por
+            // igual y lo baja del contraste mínimo. Se distinguen por la
+            // etiqueta de estado y por el color de la cápsula.
+            <TerritoryCard
               key={share.token}
-              sx={{
-                p: 2,
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--line)',
-                borderLeft: `5px solid ${live ? 'var(--green-main)' : 'var(--ink-3)'}`,
-                backgroundColor: 'var(--card)',
-                boxShadow: 'var(--small-card-shadow)',
-                opacity: live ? 1 : 0.7,
-              }}
+              accent={live ? 'var(--green-main)' : 'var(--grey-400)'}
             >
               <Stack
                 direction={{ mobile: 'column', tablet600: 'row' }}
                 justifyContent="space-between"
-                alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
-                spacing={1}
+                alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+                spacing={2}
               >
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    className="body-regular-semibold"
-                    sx={{ color: 'var(--ink)' }}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                   >
-                    {label}
+                    <Typography className="body-regular-semibold" color="var(--ink)">
+                      {label}
+                    </Typography>
+                    <Badge size="small" color={estado.color} text={estado.texto} />
+                  </Stack>
+
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-2)"
+                    sx={{ display: 'block', mt: '4px' }}
+                  >
+                    Se ve: {describeIncludes(share.includes)} ·{' '}
+                    {share.assignmentId ? 'atado a una asignación' : 'sin asignación'}
                   </Typography>
                   <Typography
                     className="label-small-regular"
-                    sx={{ color: 'var(--ink-2)', display: 'block' }}
+                    color="var(--ink-3)"
+                    sx={{ display: 'block' }}
                   >
-                    Se ve: {describeIncludes(share.includes)}
-                  </Typography>
-                  <Typography
-                    className="label-small-regular"
-                    sx={{ color: 'var(--ink-2)', display: 'block' }}
-                  >
-                    {live
+                    {live && share.expiresAt?.toDate?.()
                       ? `Caduca el ${formatTerritoryDate(
-                          share.expiresAt?.toDate?.()?.toISOString(),
+                          share.expiresAt.toDate().toISOString(),
                           dateFormat
-                        )}`
-                      : share.revoked
-                        ? 'Anulado'
-                        : share.expiresAt?.toDate?.() &&
-                            share.expiresAt.toDate() <= new Date()
-                          ? `Caducó el ${formatTerritoryDate(
-                              share.expiresAt.toDate().toISOString(),
-                              dateFormat
-                            )}`
-                          : 'Terminó al entregarse el territorio'}
-                    {' · '}
-                    {share.assignmentId
-                      ? 'atado a una asignación'
-                      : 'sin asignación'}
-                  </Typography>
-                  <Typography
-                    className="label-small-regular"
-                    sx={{ color: 'var(--ink-2)', display: 'block' }}
-                  >
+                        )} · `
+                      : !live && caducado
+                        ? `Caducó el ${formatTerritoryDate(
+                            share.expiresAt.toDate().toISOString(),
+                            dateFormat
+                          )} · `
+                        : ''}
                     Creado el {formatTerritoryDate(share.createdAt, dateFormat)} por{' '}
                     {resolveName(share.createdBy)}
                   </Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexShrink: 0, alignItems: 'center' }}
+                >
                   {territory && (
                     <Button
                       variant="tertiary"
@@ -236,7 +248,7 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                   )}
                   {live && (
                     <Button
-                      variant="secondary"
+                      variant="tertiary"
                       color="red"
                       disableAutoStretch
                       disabled={working === share.token}
@@ -247,7 +259,7 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                   )}
                 </Stack>
               </Stack>
-            </Box>
+            </TerritoryCard>
           );
         })}
       </Stack>

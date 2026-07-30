@@ -185,7 +185,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
           },
         }}
     >
@@ -203,7 +203,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
           <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
             <Stack spacing={2.5}>
               <Box>
-                <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
+                <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 1 }}>
                   Zona *
                 </Typography>
                 <Select
@@ -234,7 +234,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
               />
 
               <Box>
-                <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 1, fontWeight: 500 }}>
+                <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 1 }}>
                   Etiquetas
                 </Typography>
                 <AutocompleteMultiple
@@ -293,7 +293,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
 
           <Grid size={{ mobile: 12, tablet600: 8, desktop: 9 }}>
             <Box sx={{ 
-              borderRadius: 'var(--radius-xxl)', 
+              borderRadius: 'var(--shape-lg)', 
               border: '1px solid var(--line)', 
               overflow: 'hidden',
               height: { mobile: '400px', tablet600: '100%' },
@@ -313,7 +313,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                 right: 16,
                 backgroundColor: 'var(--card)',
                 p: 1.5,
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 boxShadow: 'var(--small-card-shadow)',
                 border: '1px solid var(--line)',
                 zIndex: 1000,

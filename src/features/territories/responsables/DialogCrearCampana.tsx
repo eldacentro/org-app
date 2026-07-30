@@ -87,7 +87,7 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         style: {
           maxWidth: '460px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },
@@ -98,7 +98,7 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
           Crear campaña
         </Typography>
         {errorMsg && (
-          <Box sx={{ mb: 2, p: 1, backgroundColor: 'var(--red-secondary)', borderRadius: 'var(--r-sm)' }}>
+          <Box sx={{ mb: 2, p: 1, backgroundColor: 'var(--red-secondary)', borderRadius: 'var(--shape-md)' }}>
             <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
               {errorMsg}
             </Typography>

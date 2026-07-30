@@ -16,6 +16,7 @@ import { atenderRequest } from '@services/firebase/territories';
 import { formatTerritoryDate } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
 import { usePersonName } from '@features/territories/usePersonName';
+import { TerritoryCard } from '@features/territories/ui';
 
 type Props = {
   /** Abre el asignador preseleccionando al solicitante y marcando la solicitud
@@ -60,35 +61,53 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
           .map((req) => (
-            <Box
-              key={req.id}
-              sx={{
-                p: 1.5,
-                borderRadius: 'var(--r-sm)',
-                border: '1px solid var(--line)',
-                borderLeft: '4px solid var(--blue-main)',
-              }}
-            >
-              <Typography className="body-regular" sx={{ color: 'var(--ink)' }}>
-                {resolveName(req.personUid)} pidió un territorio
-              </Typography>
-              <Typography className="label-small-regular" color="var(--ink-2)">
-                {formatTerritoryDate(req.createdAt, settings.dateFormat)}
-              </Typography>
-              {req.nota && (
-                <Typography className="body-small-regular" sx={{ mt: 0.5, color: 'var(--ink)' }}>
-                  &quot;{req.nota}&quot;
-                </Typography>
-              )}
-              <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
-                <Button variant="main" disableAutoStretch onClick={() => onAsignarParaSolicitud(req)}>
-                  Asignar territorio
-                </Button>
-                <Button variant="tertiary" disableAutoStretch onClick={() => handleDescartar(req)}>
-                  Descartar
-                </Button>
+            <TerritoryCard key={req.id} accent="var(--accent-main)">
+              <Stack
+                direction={{ mobile: 'column', tablet600: 'row' }}
+                alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+                spacing={2}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography className="body-regular-semibold" color="var(--ink)">
+                    {resolveName(req.personUid)} pidió un territorio
+                  </Typography>
+                  <Typography className="label-small-regular" color="var(--ink-3)">
+                    {formatTerritoryDate(req.createdAt, settings.dateFormat)}
+                  </Typography>
+                  {/* La nota del hermano es lo único que ayuda a decidir qué
+                      territorio darle, y estaba con el mismo peso que la
+                      fecha. Va entrecomillada y sobre su propio fondo para
+                      que se lea como una cita suya, no como texto de la app. */}
+                  {req.nota && (
+                    <Typography
+                      className="body-small-regular"
+                      color="var(--ink)"
+                      sx={{
+                        mt: 1,
+                        // Se ajusta al texto: como bloque ocupaba los ochocientos
+                        // píxeles de la columna y una frase de diez palabras
+                        // quedaba flotando en una franja larguísima.
+                        display: 'inline-block',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--shape-sm)',
+                        backgroundColor: 'var(--accent-100)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      &laquo;{req.nota}&raquo;
+                    </Typography>
+                  )}
+                </Box>
+                <Stack direction="row" spacing={1} sx={{ flexShrink: 0, alignItems: 'center' }}>
+                  <Button variant="main" disableAutoStretch onClick={() => onAsignarParaSolicitud(req)}>
+                    Asignar territorio
+                  </Button>
+                  <Button variant="tertiary" disableAutoStretch onClick={() => handleDescartar(req)}>
+                    Descartar
+                  </Button>
+                </Stack>
               </Stack>
-            </Box>
+            </TerritoryCard>
           ))}
       </Stack>
     </>

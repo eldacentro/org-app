@@ -4,7 +4,8 @@ import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import FilterChip from '@components/filter_chip';
-import { IconArrowBack } from '@components/icons';
+import { IconArrowBack, IconChevronRight } from '@components/icons';
+import { EstadoBadge } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignedIdsState,
@@ -112,7 +113,7 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
           alignItems: 'center',
           gap: 1.5,
           p: '12px 14px',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--shape-md)',
           border: '1px solid var(--accent-200)',
           backgroundColor: 'var(--accent-100)',
         }}
@@ -171,13 +172,28 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
                 p: '14px 16px',
                 textAlign: 'left',
                 cursor: 'pointer',
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-md)',
                 border: '1px solid var(--accent-200)',
                 backgroundColor: 'var(--white)',
                 transition: 'background-color .15s',
                 '&:hover': { backgroundColor: 'var(--accent-100)' },
               }}
             >
+              {/* El punto de color de la zona. En TODO el módulo una zona se
+                  reconoce por su color —la cápsula de las tarjetas, el
+                  polígono del mapa, la cabecera de la lista—; justo aquí, en
+                  el momento de ELEGIR una, era la única lista donde no
+                  aparecía. */}
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 'var(--shape-full)',
+                  flexShrink: 0,
+                  backgroundColor: z.color,
+                  boxShadow: `0 0 0 3px color-mix(in srgb, ${z.color} 20%, transparent)`,
+                }}
+              />
               <Typography
                 className="body-regular-semibold"
                 sx={{ flex: 1, color: 'var(--ink)' }}
@@ -187,7 +203,10 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
               <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
                 {n} {n === 1 ? 'libre' : 'libres'}
               </Typography>
-              <Typography sx={{ color: 'var(--ink-3)', lineHeight: 1 }}>›</Typography>
+              {/* Era el carácter "›" escrito a pelo: hereda el tipo de letra,
+                  así que su grosor y su tamaño no coincidían con ninguna otra
+                  flecha de la app. */}
+              <IconChevronRight color="var(--ink-3)" width={20} height={20} />
             </Box>
           );
         })}
@@ -250,7 +269,7 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
                 p: '10px 14px',
                 textAlign: 'left',
                 cursor: 'pointer',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--white)',
                 transition: 'background-color .15s',
@@ -270,31 +289,14 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
                   sx={{ color: 'var(--ink-2)' }}
                 >
                   {typeof t.numeroViviendas === 'number'
-                    ? `${t.numeroViviendas} viviendas · `
+                    ? `${t.numeroViviendas} ${t.numeroViviendas === 1 ? 'vivienda' : 'viviendas'} · `
                     : ''}
                   {desdeUltimoTrabajo(t)}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  flex: '0 0 auto',
-                  px: 1,
-                  py: 0.25,
-                  borderRadius: 'var(--radius-max)',
-                  backgroundColor: descansando
-                    ? 'var(--grey-150)'
-                    : 'var(--green-secondary)',
-                }}
-              >
-                <Typography
-                  className="label-small-medium"
-                  sx={{
-                    color: descansando ? 'var(--grey-400)' : 'var(--green-main)',
-                  }}
-                >
-                  {descansando ? 'En descanso' : 'Libre'}
-                </Typography>
-              </Box>
+              {/* Cuarta copia del mismo chip de estado, esta con sus propios
+                  `--grey-150` y `label-small-medium`. */}
+              <EstadoBadge estado={descansando ? 'descanso' : 'libre'} />
             </Box>
           );
         })}

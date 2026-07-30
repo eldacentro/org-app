@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Box, Stack, Grid, Badge } from '@mui/material';
+import { Box, Stack, Grid } from '@mui/material';
 import ScrollableTabs from '@components/scrollable_tabs';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import Checkbox from '@components/checkbox';
 import { IconAdd, IconMapOverview, IconCustom } from '@components/icons';
 import Accordion from '@components/accordion';
+import accentSurface from '@components/accent_surface';
+import TabLabelWithBadge from '@components/tab_label_with_badge';
+import { EstadoBadge, estadoDeTerritorio } from '@features/territories/ui';
 import {
   territoriesState,
   territoryZonesSortedState,
@@ -66,18 +70,29 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const label = (
-    <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
+    // Ni `h2` con el tamaño pisado a mano (`1.1rem`, que no está en la escala
+    // y por eso no seguía a ningún punto de ruptura), ni un contador con su
+    // propio `0.85rem`: el título es el de una sección y el contador es la
+    // misma etiqueta gris que se usa en el resto de la app.
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: '100%' }}>
       <Box
-        sx={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: zone.color, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }}
+        sx={{
+          width: 12,
+          height: 12,
+          borderRadius: 'var(--shape-full)',
+          flexShrink: 0,
+          backgroundColor: zone.color,
+          boxShadow: `0 0 0 3px color-mix(in srgb, ${zone.color} 20%, transparent)`,
+        }}
       />
-      <Typography className="h2" sx={{ color: 'var(--ink)', fontSize: '1.1rem' }}>
+      <Typography className="h4" color="var(--ink)">
         {zone.nombre}
       </Typography>
-      <Box sx={{ backgroundColor: 'var(--accent-150)', px: 1.5, py: 0.5, borderRadius: '24px' }}>
-        <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', fontSize: '0.85rem' }}>
-          {items.length} territorios
-        </Typography>
-      </Box>
+      <Badge
+        size="small"
+        color="grey"
+        text={items.length === 1 ? '1 territorio' : `${items.length} territorios`}
+      />
     </Stack>
   );
 
@@ -90,28 +105,27 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
         onChange={(val) => setExpanded(val !== false)}
         sx={{
           backgroundColor: 'var(--card)',
-          borderRadius: '16px !important',
+          borderRadius: 'var(--shape-lg) !important',
           border: '1px solid var(--line)',
           boxShadow: 'var(--small-card-shadow)',
           overflow: 'hidden',
-          transition: 'box-shadow 0.2s ease, transform 0.2s ease',
           '&:before': { display: 'none' },
-          '&:hover': {
-            boxShadow: 'var(--hover-shadow)',
-          },
         }}
         summaryProps={{
           sx: {
-            p: 2,
-            px: 2.5,
+            padding: '12px 20px',
             minHeight: '64px !important',
             borderBottom: expanded ? '1px solid var(--line)' : 'none',
-          }
+            // El hover vivía en la tarjeta ENTERA, cuerpo desplegado
+            // incluido: al pasar el ratón por una lista de territorios se
+            // encendía la sombra de todo el bloque. Lo que se pulsa es la
+            // cabecera, así que la cabecera es lo que reacciona.
+            transition: 'background-color var(--motion-fast) var(--ease-standard)',
+            '&:hover': { backgroundColor: 'var(--state-hover)' },
+          },
         }}
         detailsProps={{
-          sx: {
-            pt: 2, pb: 1, pl: 2, pr: 2
-          }
+          sx: { padding: '16px 16px 12px' },
         }}
       >
         <Grid container spacing={1.5}>
@@ -140,22 +154,37 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
                       font: 'inherit',
                       textAlign: 'left',
                       width: '100%',
+                      // Sin esto, en una fila con un territorio de nombre
+                      // largo las demás fichas quedaban más bajas y la rejilla
+                      // salía escalonada.
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
                       '&:focus-visible': {
                         outline: '2px solid var(--accent-main)',
                         outlineOffset: '2px',
                       },
-                      p: 2,
-                      borderRadius: 'var(--radius-xl)',
+                      padding: '16px',
+                      borderRadius: 'var(--shape-lg)',
                       border: '1px solid var(--line)',
-                      borderLeft: `5px solid ${zone.color}`,
                       cursor: 'pointer',
-                      backgroundColor: selected ? 'var(--accent-150)' : 'var(--card)',
                       boxShadow: 'var(--small-card-shadow)',
-                      transition: 'box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s',
-                      position: 'relative',
+                      transition:
+                        'background-color var(--motion-fast) var(--ease-standard)',
+                      // Esta sí se pulsa (abre el territorio o lo marca), así
+                      // que sí reacciona — pero con la capa de estado del
+                      // sistema, no levantándose 2px. El salto obligaba al ojo
+                      // a recolocar toda la rejilla al pasar por encima.
+                      ...(accentSurface(zone.color) as object),
+                      ...(selected && {
+                        backgroundColor: 'var(--state-selected)',
+                        borderColor: 'var(--accent-main)',
+                      }),
                       '&:hover': {
-                        boxShadow: 'var(--hover-shadow)',
-                        transform: 'translateY(-2px)',
+                        backgroundColor: selected
+                          ? 'var(--state-selected-strong)'
+                          : `color-mix(in srgb, ${zone.color} 14%, var(--card))`,
                       },
                     }}
                   >
@@ -172,34 +201,8 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
                       {territoryLabel(t)}
                     </Typography>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                      <Box
-                        sx={
-                          resting
-                            ? {
-                                px: 1,
-                                py: 0.25,
-                                borderRadius: 'var(--radius-xl)',
-                                backgroundColor: 'var(--grey-100)',
-                                color: 'var(--grey-600)',
-                                fontWeight: 600,
-                                fontSize: '0.75rem',
-                                border: '1px solid var(--line)',
-                              }
-                            : {
-                                px: 1,
-                                py: 0.25,
-                                borderRadius: 'var(--radius-xl)',
-                                backgroundColor: assigned ? 'var(--orange-secondary)' : 'var(--green-secondary)',
-                                color: assigned ? 'var(--orange-dark)' : 'var(--green-main)',
-                                fontWeight: 600,
-                                fontSize: '0.75rem',
-                                border: `1px solid ${assigned ? 'var(--orange-main)' : 'var(--green-main)'}33`,
-                              }
-                        }
-                      >
-                        {resting ? 'En descanso' : assigned ? 'Asignado' : 'Libre'}
-                      </Box>
-                      
+                      <EstadoBadge estado={estadoDeTerritorio(assigned, resting)} />
+
                       {/* Tags indicators */}
                       {t.tags && t.tags.length > 0 && (
                         <Stack direction="row" spacing={0.5}>
@@ -213,7 +216,7 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
                                 sx={{
                                   width: 8,
                                   height: 8,
-                                  borderRadius: '50%',
+                                  borderRadius: 'var(--shape-full)',
                                   backgroundColor: tag.color,
                                 }}
                               />
@@ -404,11 +407,17 @@ const ResponsablesPanel = ({
             ),
           },
           {
-            label: (
-              <Badge badgeContent={pending.length} color="primary">
-                <span style={{ paddingRight: pending.length ? 12 : 0 }}>Solicitudes</span>
-              </Badge>
-            ),
+            // El contador iba en un Badge de MUI (paleta de MUI, no la
+            // nuestra) colgado sobre la esquina, y el hueco para que no
+            // tapara la letra se hacía con un `<span style>` a mano. Es la
+            // misma pastilla de contador que usan las demás pestañas de la
+            // app; sin solicitudes, ni pastilla ni hueco.
+            label:
+              pending.length > 0 ? (
+                <TabLabelWithBadge label="Solicitudes" count={pending.length} />
+              ) : (
+                'Solicitudes'
+              ),
             Component: (
               <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
             ),

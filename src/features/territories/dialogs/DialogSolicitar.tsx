@@ -183,7 +183,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         style: {
           maxWidth: '460px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },
@@ -236,7 +236,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           </>
         ) : (
           <>
-            <Typography className="body-small-regular" sx={{ color: 'var(--ink)', mb: 0.5, fontSize: '0.85rem' }}>
+            <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 0.5 }}>
               Nota (opcional)
             </Typography>
             <TextField

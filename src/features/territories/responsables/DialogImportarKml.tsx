@@ -99,7 +99,7 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },

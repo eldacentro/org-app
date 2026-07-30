@@ -97,7 +97,7 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },
@@ -128,7 +128,7 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
                   spacing={1.5}
                   sx={{
                     p: 1,
-                    borderRadius: 'var(--radius-xl)',
+                    borderRadius: 'var(--shape-md)',
                     border: '1px solid var(--line)',
                   }}
                 >

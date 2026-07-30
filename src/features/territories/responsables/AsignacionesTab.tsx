@@ -14,9 +14,15 @@ import {
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
 import SearchField from '@components/textfield';
 import { IconDelete } from '@components/icons';
+import {
+  TerritoryCard,
+  EstadoBadge,
+  estadoDeTerritorio,
+} from '@features/territories/ui';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import {
   territoriesState,
@@ -81,52 +87,13 @@ const TerritoryAssignmentCard = ({
   const resting = !open && isInCooldown(t, daysUntilReassignable);
 
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--line)',
-        borderLeft: `5px solid ${zone.color}`,
-        backgroundColor: 'var(--card)',
-        boxShadow: 'var(--small-card-shadow)',
-        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-        '&:hover': {
-          boxShadow: 'var(--hover-shadow)',
-        },
-      }}
-    >
+    <TerritoryCard accent={zone.color}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: history.length > 0 ? 1.5 : 0 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
             {territoryLabel(t)}
           </Typography>
-          <Box
-            sx={
-              resting
-                ? {
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: 'var(--radius-xl)',
-                    backgroundColor: 'var(--grey-100)',
-                    color: 'var(--grey-600)',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    border: '1px solid var(--line)',
-                  }
-                : {
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: 'var(--radius-xl)',
-                    backgroundColor: open ? 'var(--orange-secondary)' : 'var(--green-secondary)',
-                    color: open ? 'var(--orange-dark)' : 'var(--green-main)',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    border: `1px solid rgba(var(--${open ? 'orange' : 'green'}-main-base), 0.2)`,
-                  }
-            }
-          >
-            {resting ? 'En descanso' : open ? 'Asignado' : 'Libre'}
-          </Box>
+          <EstadoBadge estado={estadoDeTerritorio(open, resting)} />
         </Stack>
         <Stack direction="row" spacing={1}>
           <Button variant="secondary" disableAutoStretch onClick={() => onView(t)}>
@@ -154,19 +121,24 @@ const TerritoryAssignmentCard = ({
             sx={{
               py: 1,
               px: 1.5,
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               backgroundColor: open ? 'var(--orange-secondary)' : 'var(--accent-100)',
               border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.2)' : 'var(--line)'}`,
             }}
             spacing={1}
           >
-            <Box sx={{ flex: 1 }}>
-              <Typography className="body-small-semibold" sx={{ color: 'var(--ink)' }}>
-                {resolveName(activeOrLatest.personUid)}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* "(Campaña)" iba escrito DENTRO del nombre con un `<span>` de
+                  color azul suelto: se leía como si el hermano se apellidara
+                  así. Es una etiqueta, y se pinta como todas las demás. */}
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                <Typography className="body-small-semibold" color="var(--ink)">
+                  {resolveName(activeOrLatest.personUid)}
+                </Typography>
                 {activeOrLatest.isCampaign && (
-                  <span style={{ color: 'var(--blue-main)' }}> (Campaña)</span>
+                  <Badge size="small" color="accent" text="Campaña" />
                 )}
-              </Typography>
+              </Stack>
               <Typography className="label-small-regular" color="var(--ink-2)">
                 {formatTerritoryDate(activeOrLatest.assignedAt, dateFormat)}
                 {' → '}
@@ -222,13 +194,15 @@ const TerritoryAssignmentCard = ({
                       }}
                       spacing={1}
                     >
-                      <Box sx={{ flex: 1 }}>
-                        <Typography className="body-small-regular" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
-                          {resolveName(a.personUid)}
-                          {a.isCampaign && (
-                            <span style={{ color: 'var(--blue-main)' }}> (C)</span>
-                          )}
-                        </Typography>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                          <Typography className="body-small-semibold" color="var(--ink)">
+                            {resolveName(a.personUid)}
+                          </Typography>
+                          {/* Era una "(C)" azul pegada al apellido. Nadie
+                              sabe qué significa una C suelta. */}
+                          {a.isCampaign && <Badge size="small" color="accent" text="Campaña" />}
+                        </Stack>
                         <Typography className="label-small-regular" color="var(--ink-2)">
                           {formatTerritoryDate(a.assignedAt, dateFormat)}
                           {' → '}
@@ -259,7 +233,7 @@ const TerritoryAssignmentCard = ({
           )}
         </Box>
       )}
-    </Box>
+    </TerritoryCard>
   );
 };
 
@@ -444,7 +418,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         <Box key={zone.id}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
             <Box
-              sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: zone.color }}
+              sx={{ width: 14, height: 14, borderRadius: 'var(--shape-full)', backgroundColor: zone.color }}
             />
             <Typography className="h2" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
               {zone.nombre}
@@ -483,7 +457,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         onClose={closeNoteDialog}
         PaperProps={{
           sx: {
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
             boxShadow: 'var(--pop-up-shadow)',

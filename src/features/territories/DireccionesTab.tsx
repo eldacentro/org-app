@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { displaySnackNotification } from '@services/states/app';
-import { Box, Stack, Chip } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useConfirm } from '@components/confirm_dialog';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
+import accentSurface from '@components/accent_surface';
 import { IconDelete } from '@components/icons';
 import {
   congIDState,
@@ -182,44 +183,66 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
     }
   };
 
+  // Esta fila vive en la columna derecha del diálogo del territorio, que en
+  // un portátil mide unos 300px. Estaba montada como UNA sola línea: chip
+  // rojo + dirección + "Aprobar" + papelera, y ninguna de las tres piezas de
+  // los extremos podía encogerse. La dirección, que era la única flexible,
+  // se comprimía hasta su ancho mínimo y "Avenida de Chapí 122, escalera 2,
+  // puerta 7 bis" acababa partida en SEIS renglones de una palabra.
+  //
+  // Ahora la dirección manda: ocupa la línea entera y las acciones bajan
+  // debajo, alineadas a la derecha. Y "NO VISITAR" deja de ser un rótulo rojo
+  // en mayúsculas del ancho de media fila: es el marcador de la categoría, o
+  // sea la cápsula lateral que ya usa todo lo demás.
   const renderRow = (l: TerritoryLocation, isPending = false) => (
-    <Stack
+    <Box
       key={l.id}
-      direction="row"
-      alignItems="center"
-      spacing={1}
-      sx={{ p: 1, borderRadius: 'var(--radius-xl)', border: '1px solid var(--line)' }}
+      sx={{
+        padding: '12px',
+        borderRadius: 'var(--shape-md)',
+        border: '1px solid var(--line)',
+        ...(accentSurface('var(--red-main)') as object),
+      }}
     >
-      <Chip
-        label="No visitar"
-        size="small"
-        sx={{
-          backgroundColor: 'var(--red-main)',
-          color: 'var(--always-white)',
-          textTransform: 'uppercase',
-        }}
-      />
-      <Box sx={{ flex: 1 }}>
-        <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
-          {displayText(l.direccion)}
-        </Typography>
-        {l.nota && (
-          <Typography className="label-small-regular" color="var(--ink-2)">
-            {displayText(l.nota)}
+      <Stack direction="row" alignItems="flex-start" spacing={1}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography className="body-small-semibold" color="var(--ink)">
+            {displayText(l.direccion)}
           </Typography>
+          <Typography className="label-small-regular" color="var(--ink-3)">
+            No visitar{l.nota ? ` · ${displayText(l.nota)}` : ''}
+          </Typography>
+        </Box>
+
+        {/* La papelera es pequeña y cabe en la misma línea. Puesta en su
+            propia fila —como estaba "Aprobar"— dejaba media tarjeta vacía en
+            las direcciones ya aprobadas, que son la mayoría. */}
+        {canManage && (
+          <Button
+            variant="small"
+            disableAutoStretch
+            onClick={() => handleDelete(l)}
+            ariaLabel="Borrar dirección"
+            sx={{ flexShrink: 0, mt: '-4px' }}
+          >
+            <IconDelete color="var(--red-main)" width={20} height={20} />
+          </Button>
         )}
-      </Box>
+      </Stack>
+
       {isPending && canManage && (
-        <Button variant="small" onClick={() => handleApprove(l)} disabled={approvingId === l.id}>
-          {approvingId === l.id ? 'Aprobando…' : 'Aprobar'}
-        </Button>
+        <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
+          <Button
+            variant="tertiary"
+            disableAutoStretch
+            onClick={() => handleApprove(l)}
+            disabled={approvingId === l.id}
+          >
+            {approvingId === l.id ? 'Aprobando…' : 'Aprobar'}
+          </Button>
+        </Stack>
       )}
-      {canManage && (
-        <Button variant="small" onClick={() => handleDelete(l)} ariaLabel="Borrar">
-          <IconDelete color="var(--red-main)" width={20} height={20} />
-        </Button>
-      )}
-    </Stack>
+    </Box>
   );
 
   return (

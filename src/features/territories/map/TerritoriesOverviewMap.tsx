@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import Typography from '@components/typography';
+import accentSurface from '@components/accent_surface';
 import Button from '@components/button';
 import { IconClose } from '@components/icons';
 import { Territory } from '@definition/territories';
@@ -66,6 +67,31 @@ const FitAll = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
 };
 
 // ─── Control de Zoom personalizado (estilo glass) ───────────────────────────
+const zoomBtnSx = {
+  appearance: 'none',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  width: 40,
+  height: 40,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  fontSize: '20px',
+  fontWeight: 300,
+  // Negro literal a propósito: estos controles van SOBRE las teselas del
+  // mapa, que siempre son claras, no sobre el fondo del tema.
+  color: 'rgba(0,0,0,0.75)',
+  borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+  transition: 'background-color var(--motion-fast) var(--ease-standard)',
+  '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
+  '&:focus-visible': {
+    outline: '2px solid var(--accent-main)',
+    outlineOffset: '-2px',
+  },
+} as const;
+
 const CustomZoomControl = () => {
   const map = useMap();
   return (
@@ -77,7 +103,7 @@ const CustomZoomControl = () => {
         zIndex: 1000,
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         overflow: 'hidden',
         backgroundColor: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
@@ -86,42 +112,27 @@ const CustomZoomControl = () => {
         boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
       }}
     >
+      {/* Botones de verdad, con nombre. Eran `<Box onClick>` con un "+" y un
+          "−" escritos como texto: no se podía acercar el mapa con el teclado y
+          un lector de pantalla no los anunciaba. El mapa de un territorio
+          suelto (TerritoryMap) ya lo hacía bien; este se había quedado atrás. */}
       <Box
+        component="button"
+        type="button"
         onClick={() => map.zoomIn()}
-        sx={{
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: '20px',
-          fontWeight: 300,
-          color: 'rgba(0,0,0,0.75)',
-          borderBottom: '0.5px solid rgba(0,0,0,0.1)',
-          transition: 'background 0.15s ease',
-          '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
-        }}
+        aria-label="Acercar"
+        sx={zoomBtnSx}
       >
-        +
+        <span aria-hidden="true">+</span>
       </Box>
       <Box
+        component="button"
+        type="button"
         onClick={() => map.zoomOut()}
-        sx={{
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: '20px',
-          fontWeight: 300,
-          color: 'rgba(0,0,0,0.75)',
-          transition: 'background 0.15s ease',
-          '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
-        }}
+        aria-label="Alejar"
+        sx={{ ...zoomBtnSx, borderBottom: 'none' }}
       >
-        −
+        <span aria-hidden="true">−</span>
       </Box>
     </Box>
   );
@@ -210,7 +221,7 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
         position: 'relative',
         width: '100%',
         height: { mobile: 'calc(100vh - 150px)', tablet600: '70vh' },
-        borderRadius: 'var(--radius-l, 16px)',
+        borderRadius: 'var(--shape-sm)',
         overflow: 'hidden',
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
@@ -264,7 +275,7 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
           zIndex: 1000,
           backgroundColor: 'rgba(255,255,255,0.9)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '10px',
+          borderRadius: 'var(--shape-sm)',
           px: '12px',
           py: '8px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
@@ -272,11 +283,11 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       >
         <Stack direction="row" spacing={2}>
           <Stack direction="row" spacing={0.75} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: ASSIGNED_COLOR }} />
+            <Box sx={{ width: 9, height: 9, borderRadius: 'var(--shape-full)', backgroundColor: ASSIGNED_COLOR }} />
             <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Asignado</Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: FREE_COLOR }} />
+            <Box sx={{ width: 9, height: 9, borderRadius: 'var(--shape-full)', backgroundColor: FREE_COLOR }} />
             <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Libre</Typography>
           </Stack>
         </Stack>
@@ -292,10 +303,12 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
             right: 12,
             zIndex: 1000,
             backgroundColor: 'var(--white)',
-            borderRadius: 'var(--radius-xxl)',
+            borderRadius: 'var(--shape-lg)',
             boxShadow: '0 -4px 24px rgba(0,0,0,0.18)',
-            p: '16px',
-            borderLeft: `5px solid ${getZoneColor(selected.zoneId, zones)}`,
+            padding: '16px',
+            ...(accentSurface(getZoneColor(selected.zoneId, zones), {
+              tint: false,
+            }) as object),
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">

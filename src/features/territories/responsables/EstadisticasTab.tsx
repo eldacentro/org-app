@@ -6,6 +6,8 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Tooltip from '@components/tooltip';
+import accentSurface from '@components/accent_surface';
+import { EstadoBadge } from '@features/territories/ui';
 import { IconCheckCircle, IconInfo } from '@components/icons';
 import {
   territoriesState,
@@ -57,24 +59,21 @@ const KpiCard = ({
    *  para entenderla a simple vista — ej. distinguir "Vencidos" de "Atrasados". */
   info?: string;
 }) => (
+  // Una cifra no se pulsa. Se levantaba 2px y encendía sombra al pasar el
+  // ratón, así que las cuatro tarjetas de la cuadrícula parecían botones.
+  // Y la barra de color iba pegada al canto izquierdo, cortada en seco por
+  // las dos esquinas redondeadas: es la misma cápsula que el resto.
   <Box
     sx={{
-      p: '14px 16px',
-      borderRadius: 'var(--radius-xl)',
+      padding: '14px 16px',
+      borderRadius: 'var(--shape-lg)',
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
       boxShadow: 'var(--small-card-shadow)',
-      position: 'relative',
-      overflow: 'hidden',
       minWidth: 0,
-      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-      '&:hover': {
-        boxShadow: 'var(--hover-shadow)',
-        transform: 'translateY(-2px)',
-      },
+      ...(accentSurface(color, { tint: false }) as object),
     }}
   >
-    <Box sx={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: color }} />
     <Stack direction="row" alignItems="center" spacing={'4px'} sx={{ mb: '6px' }}>
       <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)' }}>
         {title}
@@ -99,13 +98,13 @@ const KpiCard = ({
     </Stack>
     {total !== undefined && total > 0 && (
       <Stack direction="row" alignItems="center" spacing={'8px'} sx={{ mt: '10px' }}>
-        <Box sx={{ flex: 1, height: 4, borderRadius: 'var(--radius-xs)', backgroundColor: 'var(--line)', overflow: 'hidden' }}>
+        <Box sx={{ flex: 1, height: 4, borderRadius: 'var(--shape-full)', backgroundColor: 'var(--line)', overflow: 'hidden' }}>
           <Box
             sx={{
               height: '100%',
               width: `${Math.round((value / total) * 100)}%`,
               backgroundColor: color,
-              borderRadius: 'var(--radius-xs)',
+              borderRadius: 'var(--shape-full)',
             }}
           />
         </Box>
@@ -151,48 +150,37 @@ const NoAsignadoRow = ({
       alignItems="center"
       justifyContent="space-between"
       sx={{
-        p: 2,
-        borderRadius: 'var(--radius-xl)',
+        padding: '16px',
+        borderRadius: 'var(--shape-lg)',
         border: '1px solid var(--line)',
-        borderLeft: resting ? '4px solid var(--grey-400)' : '1px solid var(--line)',
         backgroundColor: 'var(--card)',
-        transition: 'border-color 0.15s ease',
-        '&:hover': { borderColor: 'var(--accent-main)' },
+        // El borde izquierdo pasaba de 1 a 4px según estuviera en descanso o
+        // no, así que las filas de una misma lista NO empezaban a la misma
+        // altura: el texto de unas iba 3px más a la derecha que el de otras.
+        // Y el borde se ponía azul al pasar el ratón por una fila que no se
+        // pulsa — lo que se pulsa es el botón "Asignar".
+        ...(resting ? (accentSurface('var(--grey-400)') as object) : {}),
       }}
     >
-      <Box>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          <Typography className="body-regular-semibold" color="var(--ink)">
             {territoryLabel(t)}
-            {showZone && (
-              <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
-                {getZoneName(t.zoneId, zones)}
-              </span>
-            )}
           </Typography>
-          {resting && (
-            <Box
-              sx={{
-                px: 1,
-                py: 0.25,
-                borderRadius: 'var(--radius-xl)',
-                backgroundColor: 'var(--grey-100)',
-                border: '1px solid var(--line)',
-              }}
-            >
-              <Typography className="label-small-semibold" sx={{ color: 'var(--grey-600)' }}>
-                En descanso
-              </Typography>
-            </Box>
+          {showZone && (
+            <Typography className="body-small-regular" color="var(--ink-2)">
+              {getZoneName(t.zoneId, zones)}
+            </Typography>
           )}
+          {resting && <EstadoBadge estado="descanso" />}
         </Stack>
-        <Typography className="label-small-regular" color="var(--ink-2)">
+        <Typography className="label-small-regular" color="var(--ink-3)">
           {t.lastWorkedAt
             ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, dateFormat)}`
             : 'Nunca trabajado'}
         </Typography>
       </Box>
-      <Button variant="small" onClick={() => onAsignar(t)}>
+      <Button variant="tertiary" disableAutoStretch onClick={() => onAsignar(t)}>
         Asignar
       </Button>
     </Stack>
@@ -227,7 +215,7 @@ const ZoneGroup = ({
           sx={{
             width: 10,
             height: 10,
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: zone.color,
             flexShrink: 0,
           }}
@@ -248,7 +236,7 @@ const ZoneGroup = ({
             color: 'var(--ink-2)',
           }}
         >
-          · {territories.length} territorios
+          · {territories.length === 1 ? '1 territorio' : `${territories.length} territorios`}
         </Typography>
       </Stack>
 
@@ -464,7 +452,11 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           value={stats.asignados}
           total={stats.total}
           color="var(--accent-main)"
-          subtext={`${stats.noAsignados} territorios libres`}
+          subtext={
+            stats.noAsignados === 1
+              ? '1 territorio libre'
+              : `${stats.noAsignados} territorios libres`
+          }
         />
         <KpiCard
           title="Trabajados"
@@ -495,7 +487,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           Territorios atrasados ({stats.atrasados.length})
         </Typography>
         {stats.atrasados.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--shape-md)', border: '1px dashed var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <IconCheckCircle width={24} height={24} color="var(--green-main)" />
             <Typography className="body-small-regular" color="var(--ink-2)">
               No hay territorios atrasados. ¡Gran trabajo!
@@ -513,26 +505,28 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   justifyContent="space-between"
                   spacing={1}
                   sx={{
-                    p: 2,
-                    borderRadius: 'var(--radius-xl)',
+                    padding: '16px',
+                    borderRadius: 'var(--shape-lg)',
                     border: '1px solid var(--line)',
-                    borderLeft: '4px solid var(--red-main)',
                     backgroundColor: 'var(--card)',
+                    ...(accentSurface('var(--red-main)') as object),
                   }}
                 >
-                  <Box>
-                    <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
-                      {t ? territoryLabel(t) : '—'}
-                      <span style={{ fontWeight: 400, color: 'var(--ink-2)', marginLeft: '8px' }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                      <Typography className="body-regular-semibold" color="var(--ink)">
+                        {t ? territoryLabel(t) : '—'}
+                      </Typography>
+                      <Typography className="body-small-regular" color="var(--ink-2)">
                         {resolveName(a.personUid)}
-                      </span>
-                    </Typography>
-                    <Typography className="label-small-regular" color="var(--ink-2)">
+                      </Typography>
+                    </Stack>
+                    <Typography className="label-small-regular" color="var(--ink-3)">
                       Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
                       Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
                     </Typography>
                   </Box>
-                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 }, flexWrap: 'wrap' }}>
+                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 }, flexShrink: 0 }}>
                     <Button variant="tertiary" disableAutoStretch onClick={() => notificar(a)}>
                       Notificar
                     </Button>
@@ -554,7 +548,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         </Typography>
 
         {stats.noAsignadosLista.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: 'var(--radius-xl)', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box sx={{ p: 3, borderRadius: 'var(--shape-md)', border: '1px dashed var(--line)', textAlign: 'center' }}>
             <Typography className="body-small-regular" color="var(--ink-2)">
               Todos los territorios están asignados actualmente.
             </Typography>

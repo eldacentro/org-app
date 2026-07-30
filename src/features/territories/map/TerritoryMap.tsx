@@ -942,7 +942,7 @@ const TerritoryMap = ({
           sx={{
             ...mapButtonReset,
             ...glass,
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             px: '16px',
             py: '10px',
             cursor: 'pointer',
@@ -1013,7 +1013,7 @@ const TerritoryMap = ({
               ...glass,
               width: 44,
               height: 44,
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1042,7 +1042,7 @@ const TerritoryMap = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             overflow: 'hidden',
             ...glass,
           }}
@@ -1106,14 +1106,14 @@ const TerritoryMap = ({
               sx={{
                 width: 18,
                 height: 18,
-                borderRadius: '50%',
+                borderRadius: 'var(--shape-full)',
                 border: '2px solid var(--accent-main)',
                 position: 'relative',
                 '&::after': {
                   content: '""',
                   position: 'absolute',
                   inset: '4px',
-                  borderRadius: '50%',
+                  borderRadius: 'var(--shape-full)',
                   backgroundColor: 'var(--accent-main)',
                 },
               }}
@@ -1126,7 +1126,7 @@ const TerritoryMap = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             overflow: 'hidden',
             ...glass,
           }}
@@ -1194,7 +1194,7 @@ const TerritoryMap = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: 'var(--shape-md)',
               overflow: 'hidden',
               color: 'rgba(0,0,0,0.75)',
               ...glass,

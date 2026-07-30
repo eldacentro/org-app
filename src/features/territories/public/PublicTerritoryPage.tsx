@@ -189,7 +189,7 @@ const Card = ({ children }: { children: ReactNode }) => (
     sx={{
       backgroundColor: 'var(--white)',
       border: '1px solid var(--line)',
-      borderRadius: 'var(--radius-l)',
+      borderRadius: 'var(--shape-sm)',
       padding: '16px',
     }}
   >
@@ -306,7 +306,7 @@ const PublicTerritoryView = ({
           <>
             <Box
               sx={{
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 overflow: 'hidden',
                 border: '1px solid var(--line)',
               }}
@@ -346,7 +346,7 @@ const PublicTerritoryView = ({
             sx={{
               width: '100%',
               height: 'auto',
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               border: '1px solid var(--line)',
               backgroundColor: 'var(--card)',
               display: 'block',
@@ -373,7 +373,7 @@ const PublicTerritoryView = ({
                       key={tag.nombre}
                       sx={{
                         padding: '2px 10px',
-                        borderRadius: 'var(--radius-max)',
+                        borderRadius: 'var(--shape-full)',
                         backgroundColor: 'var(--accent-150)',
                       }}
                     >
@@ -411,7 +411,7 @@ const PublicTerritoryView = ({
                     key={`${location.direccion}-${index}`}
                     sx={{
                       padding: '10px 12px',
-                      borderRadius: 'var(--radius-m)',
+                      borderRadius: 'var(--shape-sm)',
                       backgroundColor: 'var(--red-secondary)',
                       border: '1px solid var(--red-main)',
                     }}

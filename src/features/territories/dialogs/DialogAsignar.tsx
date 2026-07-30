@@ -4,6 +4,7 @@ import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import accentSurface from '@components/accent_surface';
 import TextField from '@components/textfield';
 import { personsActiveState } from '@states/persons';
 import { buildPersonFullname, escapeHTML } from '@utils/common';
@@ -463,7 +464,7 @@ const DialogAsignar = ({
         style: {
           maxWidth: '460px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },
@@ -481,7 +482,7 @@ const DialogAsignar = ({
             <Box
               sx={{
                 p: 1.5,
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-md)',
                 backgroundColor: 'var(--accent-100)',
                 maxHeight: 140,
                 overflowY: 'auto',
@@ -553,10 +554,12 @@ const DialogAsignar = ({
           {solicitudPendiente && !requestId && (
             <Box
               sx={{
-                p: '12px 14px',
-                borderRadius: 'var(--radius-xl)',
+                padding: '12px 14px',
+                borderRadius: 'var(--shape-md)',
                 backgroundColor: 'var(--accent-100)',
-                borderLeft: '3px solid var(--accent-main)',
+                ...(accentSurface('var(--accent-main)', {
+                  tint: false,
+                }) as object),
               }}
             >
               <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>

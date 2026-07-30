@@ -8,16 +8,14 @@ import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 import { displaySnackNotification } from '@services/states/app';
 import { SectionCard, PillGroup, ToggleRow, PillOption } from './SettingsControls';
 
+// Estaba a 11px, peso 700, en mayúsculas y con 0,6px de espaciado entre
+// letras: un tamaño que no existe en la escala, y en mayúsculas cuesta
+// leerlo. Es el mismo rótulo de campo que usan Responsabilidades y el resto.
 const FieldLabel = ({ children }: { children: string }) => (
   <Typography
-    sx={{
-      fontSize: '11px',
-      fontWeight: 700,
-      color: 'var(--ink-2)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.6px',
-      mb: '8px',
-    }}
+    className="label-small-semibold"
+    color="var(--ink-3)"
+    sx={{ display: 'block', mb: '8px' }}
   >
     {children}
   </Typography>
@@ -78,7 +76,6 @@ const ImportExportTab = () => {
               value={yearIdx}
               onChange={setYearIdx}
               options={yearOptions}
-              accent="var(--accent-main)"
             />
           </Box>
 
@@ -109,7 +106,7 @@ const ImportExportTab = () => {
                   });
                 }
               }}
-              sx={{ borderRadius: 'var(--radius-max)', px: 3, gap: 1 }}
+              sx={{ borderRadius: 'var(--shape-full)', px: 3, gap: 1 }}
             >
               {busy ? <CircularProgress size={16} color="inherit" /> : null}
               {busy ? 'Generando…' : 'Exportar S-13'}
@@ -132,7 +129,6 @@ const ImportExportTab = () => {
               value={filter}
               onChange={(v) => setFilter(v as ExcelFilter)}
               options={filterOptions}
-              accent="var(--green-main)"
             />
           </Box>
 
@@ -141,7 +137,7 @@ const ImportExportTab = () => {
               variant="secondary"
               disabled={busy}
               onClick={() => run(() => exportExcel(filter), 'Archivo Excel generado correctamente.')}
-              sx={{ borderRadius: 'var(--radius-max)' }}
+              sx={{ borderRadius: 'var(--shape-full)' }}
             >
               Excel (.xlsx)
             </Button>
@@ -149,7 +145,7 @@ const ImportExportTab = () => {
               variant="tertiary"
               disabled={busy}
               onClick={() => run(() => exportCsv(filter), 'Archivo CSV generado correctamente.')}
-              sx={{ borderRadius: 'var(--radius-max)' }}
+              sx={{ borderRadius: 'var(--shape-full)' }}
             >
               CSV (.csv)
             </Button>
@@ -170,7 +166,7 @@ const ImportExportTab = () => {
               variant="secondary"
               disabled={busy}
               onClick={() => run(exportKml, 'KML generado correctamente.')}
-              sx={{ borderRadius: 'var(--radius-max)' }}
+              sx={{ borderRadius: 'var(--shape-full)' }}
             >
               Exportar KML
             </Button>
@@ -178,7 +174,7 @@ const ImportExportTab = () => {
               variant="tertiary"
               disabled={busy}
               onClick={() => run(exportGeoJson, 'GeoJSON generado correctamente.')}
-              sx={{ borderRadius: 'var(--radius-max)' }}
+              sx={{ borderRadius: 'var(--shape-full)' }}
             >
               Exportar GeoJSON
             </Button>
@@ -190,7 +186,7 @@ const ImportExportTab = () => {
               alignItems: 'flex-start',
               gap: 1,
               backgroundColor: 'var(--accent-100)',
-              borderRadius: '10px',
+              borderRadius: 'var(--shape-sm)',
               px: 1.5,
               py: 1.25,
             }}
