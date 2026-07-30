@@ -868,7 +868,8 @@ const Dashboard = () => {
       )}
 
       {/* MY ASSIGNMENTS SHORTCUT */}
-      <div
+      <button
+        type="button"
         className="assign-card active-press"
         onClick={handleOpenMyAssignments}
       >
@@ -914,7 +915,7 @@ const Dashboard = () => {
         >
           <path d="M9 6l6 6-6 6" />
         </svg>
-      </div>
+      </button>
 
       {/* PROGRAM SECTION */}
       {showMeetingCard && (
@@ -1041,7 +1042,8 @@ const Dashboard = () => {
                   if (isEvent) badgeClass += ' ev';
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={item.id}
                       className={`meeting-row active-press${item.isPast ? ' past' : ''}`}
                       onClick={item.onClick}
@@ -1084,7 +1086,7 @@ const Dashboard = () => {
                       {item.time && (
                         <div className="meeting-time">{item.time}</div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </>

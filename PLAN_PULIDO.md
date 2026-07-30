@@ -207,8 +207,18 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
 
 - [ ] Borrar los ~19 ficheros muertos del panel viejo (ninguna ruta los monta;
       hoy inflan el recuento de la peor zona)
-- [ ] **Inicio** y pantallas de categoría (206) — la primera pantalla de todas
-      las sesiones y la única que no comparte nada con el sistema
+- [~] **Inicio** — Carlos apostaba a que no había nada, y de forma medible
+      casi acierta: ni un radio fuera de escala, ni un color fijo. Pero había
+      un fallo que no se ve MIRANDO, sino tabulando: la tarjeta de "Mis
+      asignaciones" y las dos filas de reunión eran `div` con `onClick`, o sea
+      que con el teclado no se llegaba a ellas. Y en la barra de arriba había
+      DOS zonas pulsables pegadas —el logotipo y el nombre— que hacían lo
+      mismo, ninguna alcanzable. Ahora las once cosas pulsables del Inicio son
+      botones de verdad, con nombre y anillo de foco.
+      Ojo con el detalle que casi se me cuela: un `<button>` NO se estira al
+      ancho del padre aunque sea `display: flex`, y trae fondo gris de fábrica.
+      Lo primero lo cazó una medición; lo segundo, una captura.
+      Queda el repaso visual de las pantallas de categoría.
 - [ ] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
       decenas de pantallas
 - [ ] **Mis asignaciones** — la abre cualquier publicador; 44 defectos en dos
@@ -235,9 +245,18 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
 La misma tarea resuelta de varias maneras. Esto es lo que un repaso pantalla a
 pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
 
-- [ ] **Sección plegable** (5 formas, ~18 copias) → `@components/accordion`.
-      Es el dibujo más copiado de la app y **ninguna copia funciona con
-      teclado**. `card_header` no lo importa nadie: se borra
+- [~] **Sección plegable** — hecha la copia GORDA: `MeetingSection`, que la
+      usan **14 pantallas** (Programas semanales entero, Responsabilidades, la
+      visita del superintendente, Departamentos, Discursos salientes, los dos
+      editores). Su cabecera era un `div` con `onClick`: con el ratón se
+      plegaba y con el teclado no había manera.
+      El disparador va como una CAPA que cubre la franja, no envolviendo el
+      contenido, por un motivo concreto: el editor de fin de semana mete un
+      botón dentro de la cabecera, y un botón dentro de otro botón no es HTML
+      válido. Con la capa debajo, ese botón sigue siendo suyo.
+      Lleva `aria-expanded`, así que además ANUNCIA si está abierta.
+      Quedan las copias sueltas (spiritual_status, import_export, week_selector,
+      delegate_reports, pending_slips, month_item de asistencia…).
 - [ ] **Elegir persona** (6) → `@components/autocomplete` para lo sencillo,
       `person_selector` cuando haga falta historial
 - [ ] **Estado vacío** (8) → extraer `@components/empty_state`; el patrón bueno

@@ -257,14 +257,37 @@ const NavBar = ({ isSupported }: NavBarType) => {
             {!navBarOptions.title && !navBarOptions.buttons ? (
               <>
                 <div className="topbar" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <div className="logo-container" onClick={handleGoDashboard} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  {/* Eran DOS zonas pulsables pegadas —el logotipo y el
+                      nombre— que hacían exactamente lo mismo, y ninguna de las
+                      dos se alcanzaba con el teclado (eran `div` con
+                      `onClick`). Ahora es un solo botón que abarca las dos, con
+                      su nombre para quien no ve el logotipo. */}
+                  <button
+                    type="button"
+                    aria-label="Ir al inicio"
+                    className="logo-container"
+                    onClick={handleGoDashboard}
+                    style={{
+                      appearance: 'none',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      flex: 1,
+                      minWidth: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      borderRadius: 'var(--shape-sm)',
+                    }}
+                  >
                     <IconLogo width={40} height={40} color="var(--brand)" />
-                  </div>
-                  <div style={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '12px' }} onClick={handleGoDashboard}>
                     <div className="cong-name" style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 900, fontSize: '24px', letterSpacing: '-0.5px', color: 'var(--ink)' }}>
                       {congName ? congName.replace(/-/g, ' ') : 'Elda Centro'}
                     </div>
-                  </div>
+                  </button>
                   
                   <Box
                     sx={{

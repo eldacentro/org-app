@@ -833,6 +833,48 @@ body {
 }
 
 /* ---------- ASSIGNMENTS SHORTCUT ---------- */
+/* Reset de <button>. Las casillas de "Explorar" ya eran botones de verdad;
+   estas dos —la tarjeta de asignaciones y cada fila de reunión— seguían siendo
+   `div` con un `onClick`, o sea que con el teclado NO se llegaba a ellas. Y son
+   lo primero que se ve al abrir la app. */
+.assign-card,
+.meeting-row {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  border: none;
+  /* Un <button> trae fondo gris de fábrica (`buttonface`). La fila de reunión
+     era transparente siendo un `div`, y al convertirla salieron dos rectángulos
+     grises dentro de la tarjeta. La tarjeta de asignaciones vuelve a poner su
+     degradado unas líneas más abajo, así que a ella no le afecta. */
+  background: none;
+}
+/* Un <button> NO se estira al ancho del padre aunque sea `display: flex`: la
+   caja de un control de formulario se ajusta a su contenido. Medido en el
+   navegador — al pasar de `div` a `button` la tarjeta se quedó en 412 sobre un
+   contenedor de 545. Así que el ancho se pide a mano. */
+.assign-card {
+  width: 100%;
+}
+/* La fila sí lleva el `margin: 0 -8px` que derrama el fondo del hover hacia el
+   margen de la tarjeta, así que su ancho es el del contenido MÁS ese derrame:
+   511 + 8 + 8 = 527, que es lo que medía siendo un div. */
+.meeting-row {
+  width: calc(100% + 16px);
+}
+.assign-card:focus-visible,
+.meeting-row:focus-visible {
+  outline: 2px solid var(--accent-main);
+  outline-offset: 2px;
+}
+/* La tarjeta va sobre el color de marca, así que el anillo del acento se
+   pierde encima. Ahí el anillo es blanco. */
+.assign-card:focus-visible {
+  outline-color: var(--always-white);
+}
+
 .assign-card {
   display: flex;
   align-items: center;

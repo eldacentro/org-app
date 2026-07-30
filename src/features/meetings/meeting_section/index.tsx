@@ -30,6 +30,7 @@ const MeetingSection = ({
     >
       <Box
         sx={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           backgroundColor: color,
@@ -47,8 +48,43 @@ const MeetingSection = ({
             '&:active': { filter: 'brightness(0.90)' },
           }),
         }}
-        onClick={onToggle}
       >
+        {/* La cabecera era un `div` con `onClick`: se plegaba con el ratón y
+            con el teclado no había manera. Y esta sección la usan CATORCE
+            pantallas —Programas semanales entero, Responsabilidades, la visita
+            del superintendente, Departamentos, los editores—, así que era el
+            plegable más copiado de la app y ninguna copia funcionaba.
+
+            El disparador va como una capa que cubre toda la franja, y no
+            envolviendo el contenido, por una razón concreta: una de las
+            secciones (el editor de fin de semana) mete un BOTÓN dentro de la
+            cabecera, y un botón dentro de otro botón no es HTML válido. Con la
+            capa debajo, ese botón sigue siendo suyo —le basta con
+            `position: relative` para quedar por encima— y el resto de la
+            franja sigue plegando al pulsarla, como antes. */}
+        {onToggle && (
+          <Box
+            component="button"
+            type="button"
+            aria-expanded={expanded}
+            aria-label={typeof part === 'string' ? part : undefined}
+            onClick={onToggle}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              appearance: 'none',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              '&:focus-visible': {
+                outline: '2px solid var(--always-white)',
+                outlineOffset: '-3px',
+              },
+            }}
+          />
+        )}
         <Box
           sx={{
             display: 'flex',
@@ -70,7 +106,11 @@ const MeetingSection = ({
           </Typography>
         </Box>
         {actionButton && (
-          <Box sx={{ marginRight: alwaysExpanded ? 0 : '12px' }}>
+          /* `position: relative` para quedar POR ENCIMA de la capa de arriba;
+             si no, la capa se comería sus pulsaciones. */
+          <Box
+            sx={{ position: 'relative', marginRight: alwaysExpanded ? 0 : '12px' }}
+          >
             {actionButton}
           </Box>
         )}
