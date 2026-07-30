@@ -19,7 +19,10 @@ import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
 import DialogSolicitar from '@features/territories/dialogs/DialogSolicitar';
 import MisTerritoriosSection from '@features/territories/MisTerritorios/MisTerritoriosSection';
 import { Territory, TerritoryAssignment } from '@definition/territories';
-import { territoriesState, territoryPendingRequestsState } from '@states/territories';
+import {
+  territoriesState,
+  territoryPendingRequestsState,
+} from '@states/territories';
 
 type AsignarState = {
   open: boolean;
@@ -39,7 +42,9 @@ const TerritoriesPage = () => {
   useTerritories();
   const canManage = useIsTerritoryManager();
   const territories = useAtomValue(territoriesState);
-  const pendingRequestsCount = useAtomValue(territoryPendingRequestsState).length;
+  const pendingRequestsCount = useAtomValue(
+    territoryPendingRequestsState
+  ).length;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [openZonas, setOpenZonas] = useState(false);
@@ -47,9 +52,12 @@ const TerritoriesPage = () => {
   const [openImport, setOpenImport] = useState(false);
   const [openSolicitar, setOpenSolicitar] = useState(false);
   const [viewing, setViewing] = useState<Territory | null>(null);
+  const [creando, setCreando] = useState(false);
   const [editing, setEditing] = useState<Territory | null>(null);
   const [asignar, setAsignar] = useState<AsignarState>(CLOSED_ASIGNAR);
-  const [entregando, setEntregando] = useState<TerritoryAssignment | null>(null);
+  const [entregando, setEntregando] = useState<TerritoryAssignment | null>(
+    null
+  );
   // "Responsables" ya no es una pestaña siempre visible — vive detrás del
   // icono de engranaje (quickSettings, el mismo mecanismo compartido del
   // nav bar que ya usa "Reunión de entre semana"), para que un publicador
@@ -97,7 +105,9 @@ const TerritoriesPage = () => {
               main
             />
           }
-          quickSettings={canManage ? () => setShowResponsables(true) : undefined}
+          quickSettings={
+            canManage ? () => setShowResponsables(true) : undefined
+          }
           quickSettingsBadge={canManage && pendingRequestsCount > 0}
           quickSettingsLabel="Panel de responsables de territorios"
         />
@@ -131,6 +141,7 @@ const TerritoriesPage = () => {
           onOpenZonas={() => setOpenZonas(true)}
           onOpenEtiquetas={() => setOpenEtiquetas(true)}
           onOpenImport={() => setOpenImport(true)}
+          onOpenCrear={() => setCreando(true)}
         />
       ) : (
         <MisTerritoriosSection
@@ -143,11 +154,20 @@ const TerritoriesPage = () => {
       {canManage && (
         <>
           <DialogZonas open={openZonas} onClose={() => setOpenZonas(false)} />
-          <DialogEtiquetas open={openEtiquetas} onClose={() => setOpenEtiquetas(false)} />
-          <DialogImportarKml open={openImport} onClose={() => setOpenImport(false)} />
+          <DialogEtiquetas
+            open={openEtiquetas}
+            onClose={() => setOpenEtiquetas(false)}
+          />
+          <DialogImportarKml
+            open={openImport}
+            onClose={() => setOpenImport(false)}
+          />
         </>
       )}
-      <DialogSolicitar open={openSolicitar} onClose={() => setOpenSolicitar(false)} />
+      <DialogSolicitar
+        open={openSolicitar}
+        onClose={() => setOpenSolicitar(false)}
+      />
       <DialogVerTerritorio
         territory={viewing}
         onClose={() => setViewing(null)}
@@ -168,6 +188,17 @@ const TerritoriesPage = () => {
           open={!!editing}
           territory={editing}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {/* El MISMO diálogo, en blanco. Se monta aparte del de editar para que
+          cada uno arranque con su estado limpio: compartiendo instancia, abrir
+          "Añadir" justo después de editar habría heredado los campos del
+          territorio anterior. */}
+      {creando && (
+        <DialogEditarTerritorio
+          open={creando}
+          modo="crear"
+          onClose={() => setCreando(false)}
         />
       )}
       <DialogEntregar

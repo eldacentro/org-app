@@ -24,7 +24,13 @@ import { congIDState } from '@states/settings';
 import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
 import { deleteTerritoryCompleto } from '@services/firebase/territories';
-import { Territory, TerritoryAssignment, TerritoryRequest, TerritoryZone, TerritoryTag } from '@definition/territories';
+import {
+  Territory,
+  TerritoryAssignment,
+  TerritoryRequest,
+  TerritoryZone,
+  TerritoryTag,
+} from '@definition/territories';
 import { isInCooldown, territoryLabel } from '@services/app/territories';
 import AsignacionesTab from './AsignacionesTab';
 import SolicitudesTab from './SolicitudesTab';
@@ -52,6 +58,7 @@ type Props = {
   onOpenZonas: () => void;
   onOpenEtiquetas: () => void;
   onOpenImport: () => void;
+  onOpenCrear: () => void;
 };
 
 type ZoneSectionProps = {
@@ -66,7 +73,17 @@ type ZoneSectionProps = {
   onView: (t: Territory) => void;
 };
 
-const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, selectionMode, selectedIds, onToggleSelect, onView }: ZoneSectionProps) => {
+const ZoneSection = ({
+  zone,
+  items,
+  assignedIds,
+  daysUntilReassignable,
+  tags,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  onView,
+}: ZoneSectionProps) => {
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const label = (
@@ -74,7 +91,12 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
     // y por eso no seguía a ningún punto de ruptura), ni un contador con su
     // propio `0.85rem`: el título es el de una sección y el contador es la
     // misma etiqueta gris que se usa en el resto de la app.
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: '100%' }}>
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1.5}
+      sx={{ width: '100%' }}
+    >
       <Box
         sx={{
           width: 12,
@@ -91,7 +113,9 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
       <Badge
         size="small"
         color="grey"
-        text={items.length === 1 ? '1 territorio' : `${items.length} territorios`}
+        text={
+          items.length === 1 ? '1 territorio' : `${items.length} territorios`
+        }
       />
     </Stack>
   );
@@ -120,7 +144,8 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
             // incluido: al pasar el ratón por una lista de territorios se
             // encendía la sombra de todo el bloque. Lo que se pulsa es la
             // cabecera, así que la cabecera es lo que reacciona.
-            transition: 'background-color var(--motion-fast) var(--ease-standard)',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard)',
             '&:hover': { backgroundColor: 'var(--state-hover)' },
           },
         }}
@@ -129,107 +154,126 @@ const ZoneSection = ({ zone, items, assignedIds, daysUntilReassignable, tags, se
         }}
       >
         <Grid container spacing={1.5}>
-            {items.map((t: Territory) => {
-              const assigned = assignedIds.has(t.id);
-              const resting = !assigned && isInCooldown(t, daysUntilReassignable);
-              const selected = selectedIds.has(t.id);
-              return (
-                <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
-                  <Box
-                    // Botón real: antes era un Box con onClick, así que no se
-                    // podía abrir ningún territorio con el teclado y para un
-                    // lector de pantalla era un div mudo.
-                    component="button"
-                    type="button"
-                    aria-label={
-                      selectionMode
-                        ? `Seleccionar ${territoryLabel(t)}`
-                        : `Ver ${territoryLabel(t)}`
-                    }
-                    aria-pressed={selectionMode ? selected : undefined}
-                    onClick={() => selectionMode ? onToggleSelect(t.id) : onView(t)}
-                    className="active-press"
+          {items.map((t: Territory) => {
+            const assigned = assignedIds.has(t.id);
+            const resting = !assigned && isInCooldown(t, daysUntilReassignable);
+            const selected = selectedIds.has(t.id);
+            return (
+              <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
+                <Box
+                  // Botón real: antes era un Box con onClick, así que no se
+                  // podía abrir ningún territorio con el teclado y para un
+                  // lector de pantalla era un div mudo.
+                  component="button"
+                  type="button"
+                  aria-label={
+                    selectionMode
+                      ? `Seleccionar ${territoryLabel(t)}`
+                      : `Ver ${territoryLabel(t)}`
+                  }
+                  aria-pressed={selectionMode ? selected : undefined}
+                  onClick={() =>
+                    selectionMode ? onToggleSelect(t.id) : onView(t)
+                  }
+                  className="active-press"
+                  sx={{
+                    appearance: 'none',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    width: '100%',
+                    // Sin esto, en una fila con un territorio de nombre
+                    // largo las demás fichas quedaban más bajas y la rejilla
+                    // salía escalonada.
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    '&:focus-visible': {
+                      outline: '2px solid var(--accent-main)',
+                      outlineOffset: '2px',
+                    },
+                    padding: '16px',
+                    borderRadius: 'var(--shape-lg)',
+                    border: '1px solid var(--line)',
+                    cursor: 'pointer',
+                    boxShadow: 'var(--small-card-shadow)',
+                    transition:
+                      'background-color var(--motion-fast) var(--ease-standard)',
+                    // Esta sí se pulsa (abre el territorio o lo marca), así
+                    // que sí reacciona — pero con la capa de estado del
+                    // sistema, no levantándose 2px. El salto obligaba al ojo
+                    // a recolocar toda la rejilla al pasar por encima.
+                    ...(accentSurface(zone.color) as object),
+                    ...(selected && {
+                      backgroundColor: 'var(--state-selected)',
+                      borderColor: 'var(--accent-main)',
+                    }),
+                    '&:hover': {
+                      backgroundColor: selected
+                        ? 'var(--state-selected-strong)'
+                        : `color-mix(in srgb, ${zone.color} 14%, var(--card))`,
+                    },
+                  }}
+                >
+                  {selectionMode && (
+                    <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
+                      {/* Decorativo: el estado real lo anuncia el
+                            aria-pressed del botón que lo contiene. */}
+                      <Box aria-hidden sx={{ pointerEvents: 'none' }}>
+                        <Checkbox checked={selected} readOnly sx={{ p: 0.5 }} />
+                      </Box>
+                    </Box>
+                  )}
+                  <Typography
+                    className="body-regular"
                     sx={{
-                      appearance: 'none',
-                      font: 'inherit',
-                      textAlign: 'left',
-                      width: '100%',
-                      // Sin esto, en una fila con un territorio de nombre
-                      // largo las demás fichas quedaban más bajas y la rejilla
-                      // salía escalonada.
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      '&:focus-visible': {
-                        outline: '2px solid var(--accent-main)',
-                        outlineOffset: '2px',
-                      },
-                      padding: '16px',
-                      borderRadius: 'var(--shape-lg)',
-                      border: '1px solid var(--line)',
-                      cursor: 'pointer',
-                      boxShadow: 'var(--small-card-shadow)',
-                      transition:
-                        'background-color var(--motion-fast) var(--ease-standard)',
-                      // Esta sí se pulsa (abre el territorio o lo marca), así
-                      // que sí reacciona — pero con la capa de estado del
-                      // sistema, no levantándose 2px. El salto obligaba al ojo
-                      // a recolocar toda la rejilla al pasar por encima.
-                      ...(accentSurface(zone.color) as object),
-                      ...(selected && {
-                        backgroundColor: 'var(--state-selected)',
-                        borderColor: 'var(--accent-main)',
-                      }),
-                      '&:hover': {
-                        backgroundColor: selected
-                          ? 'var(--state-selected-strong)'
-                          : `color-mix(in srgb, ${zone.color} 14%, var(--card))`,
-                      },
+                      color: 'var(--ink)',
+                      fontWeight: 500,
+                      mb: 1,
+                      pr: selectionMode ? 3 : 0,
                     }}
                   >
-                    {selectionMode && (
-                      <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
-                        {/* Decorativo: el estado real lo anuncia el
-                            aria-pressed del botón que lo contiene. */}
-                        <Box aria-hidden sx={{ pointerEvents: 'none' }}>
-                          <Checkbox checked={selected} readOnly sx={{ p: 0.5 }} />
-                        </Box>
-                      </Box>
-                    )}
-                    <Typography className="body-regular" sx={{ color: 'var(--ink)', fontWeight: 500, mb: 1, pr: selectionMode ? 3 : 0 }}>
-                      {territoryLabel(t)}
-                    </Typography>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                      <EstadoBadge estado={estadoDeTerritorio(assigned, resting)} />
+                    {territoryLabel(t)}
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ mt: 0.5 }}
+                  >
+                    <EstadoBadge
+                      estado={estadoDeTerritorio(assigned, resting)}
+                    />
 
-                      {/* Tags indicators */}
-                      {t.tags && t.tags.length > 0 && (
-                        <Stack direction="row" spacing={0.5}>
-                          {t.tags.map((tagId) => {
-                            const tag = tags.find((tt: TerritoryTag) => tt.id === tagId);
-                            if (!tag) return null;
-                            return (
-                              <Box
-                                key={tag.id}
-                                title={tag.nombre}
-                                sx={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: 'var(--shape-full)',
-                                  backgroundColor: tag.color,
-                                }}
-                              />
-                            );
-                          })}
-                        </Stack>
-                      )}
-                    </Stack>
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
+                    {/* Tags indicators */}
+                    {t.tags && t.tags.length > 0 && (
+                      <Stack direction="row" spacing={0.5}>
+                        {t.tags.map((tagId) => {
+                          const tag = tags.find(
+                            (tt: TerritoryTag) => tt.id === tagId
+                          );
+                          if (!tag) return null;
+                          return (
+                            <Box
+                              key={tag.id}
+                              title={tag.nombre}
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 'var(--shape-full)',
+                                backgroundColor: tag.color,
+                              }}
+                            />
+                          );
+                        })}
+                      </Stack>
+                    )}
+                  </Stack>
+                </Box>
+              </Grid>
+            );
+          })}
+        </Grid>
       </Accordion>
     </Box>
   );
@@ -246,6 +290,7 @@ const ResponsablesPanel = ({
   onOpenZonas,
   onOpenEtiquetas,
   onOpenImport,
+  onOpenCrear,
 }: Props) => {
   const congId = useAtomValue(congIDState);
   const loading = useAtomValue(territoriesLoadingState);
@@ -260,7 +305,7 @@ const ResponsablesPanel = ({
   // "Solicitudes" (pestaña 2). La insignia roja del engranaje solo se
   // enciende por eso, y antes te dejaba en "Estadísticas": había que
   // descubrir y deslizar hasta la tercera pestaña de nueve cada vez.
-  const [tab, setTab] = useState(() => (initialTab ?? 0));
+  const [tab, setTab] = useState(() => initialTab ?? 0);
 
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [selectionMode, setSelectionMode] = useState(false);
@@ -313,17 +358,18 @@ const ResponsablesPanel = ({
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    
+
     const selectedArr = Array.from(selectedIds);
     // Filtrar los que tienen asignación abierta
-    const toDelete = selectedArr.filter(id => !assignedIds.has(id));
+    const toDelete = selectedArr.filter((id) => !assignedIds.has(id));
     const skipped = selectedArr.length - toDelete.length;
 
     if (toDelete.length === 0) {
       displaySnackNotification({
         severity: 'error',
         header: 'Acción no permitida',
-        message: 'Todos los territorios seleccionados están asignados. No se pueden borrar.',
+        message:
+          'Todos los territorios seleccionados están asignados. No se pueden borrar.',
       });
       return;
     }
@@ -354,7 +400,9 @@ const ResponsablesPanel = ({
 
     setDeleting(true);
     try {
-      await Promise.all(toDelete.map(id => deleteTerritoryCompleto(congId, id)));
+      await Promise.all(
+        toDelete.map((id) => deleteTerritoryCompleto(congId, id))
+      );
       displaySnackNotification({
         severity: 'success',
         header: 'Territorios eliminados',
@@ -367,7 +415,11 @@ const ResponsablesPanel = ({
       setSelectedIds(new Set());
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudieron eliminar todos los territorios.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudieron eliminar todos los territorios.',
+      });
     } finally {
       setDeleting(false);
     }
@@ -403,7 +455,11 @@ const ResponsablesPanel = ({
           {
             label: 'Asignaciones',
             Component: (
-              <AsignacionesTab onView={onView} onAsignar={onAsignar} onEntregar={onEntregar} />
+              <AsignacionesTab
+                onView={onView}
+                onAsignar={onAsignar}
+                onEntregar={onEntregar}
+              />
             ),
           },
           {
@@ -430,21 +486,79 @@ const ResponsablesPanel = ({
             label: 'Territorios',
             Component: (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-                  <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-                    <Button variant="tertiary" onClick={onOpenZonas} disableAutoStretch>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{ flexWrap: 'wrap', gap: 1.5 }}
+                >
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    sx={{ flexWrap: 'wrap', gap: 1.5 }}
+                  >
+                    <Button
+                      variant="tertiary"
+                      onClick={onOpenZonas}
+                      disableAutoStretch
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                        }}
+                      >
                         <IconMapOverview width={18} height={18} /> Zonas
                       </Box>
                     </Button>
-                    <Button variant="tertiary" onClick={onOpenEtiquetas} disableAutoStretch>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Button
+                      variant="tertiary"
+                      onClick={onOpenEtiquetas}
+                      disableAutoStretch
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                        }}
+                      >
                         <IconCustom width={18} height={18} /> Etiquetas
                       </Box>
                     </Button>
-                    <Button variant="main" onClick={onOpenImport} disableAutoStretch>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <IconAdd width={18} height={18} /> Importar KML
+                    {/* Hasta ahora un territorio SOLO podía nacer importando
+                        un KML. Borrarlo sí se podía —y en bloque—, así que se
+                        podía deshacer algo que no había forma de volver a
+                        hacer desde la app. */}
+                    <Button
+                      variant="main"
+                      onClick={onOpenCrear}
+                      disableAutoStretch
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                        }}
+                      >
+                        <IconAdd width={18} height={18} /> Añadir territorio
+                      </Box>
+                    </Button>
+                    <Button
+                      variant="tertiary"
+                      onClick={onOpenImport}
+                      disableAutoStretch
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                        }}
+                      >
+                        <IconMapOverview width={18} height={18} /> Importar KML
                       </Box>
                     </Button>
                   </Stack>
@@ -466,7 +580,12 @@ const ResponsablesPanel = ({
                         disableAutoStretch
                         onClick={handleBulkDelete}
                         disabled={deleting}
-                        sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.1)' } }}
+                        sx={{
+                          color: 'var(--red-main)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(var(--red-main-base), 0.1)',
+                          },
+                        }}
                       >
                         Eliminar ({selectedIds.size})
                       </Button>
@@ -484,10 +603,13 @@ const ResponsablesPanel = ({
                 </Stack>
 
                 {territories.length === 0 && (
-                  <Typography className="body-small-regular" color="var(--ink-2)">
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--ink-2)"
+                  >
                     {loading
                       ? 'Cargando territorios…'
-                      : 'Aún no hay territorios. Crea una zona e importa tu archivo KML.'}
+                      : 'Aún no hay territorios. Crea una zona y luego añade territorios a mano o importa un archivo KML.'}
                   </Typography>
                 )}
 

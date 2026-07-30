@@ -14,11 +14,16 @@ import {
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import {
+  territoriesState,
   territoryZonesSortedState,
   territoryTagsState,
 } from '@states/territories';
 import { congIDState, congMasterKeyState } from '@states/settings';
-import { updateTerritoryEditableFields, deleteTerritoryCompleto } from '@services/firebase/territories';
+import {
+  saveTerritory,
+  updateTerritoryEditableFields,
+  deleteTerritoryCompleto,
+} from '@services/firebase/territories';
 import { Territory, TerritoryTag } from '@definition/territories';
 import { isStillEncrypted } from '@services/app/territories';
 import Typography from '@components/typography';
@@ -31,15 +36,48 @@ import type { Polygon, MultiPolygon } from 'geojson';
 
 type Props = {
   open: boolean;
-  territory: Territory;
+  /** El territorio a editar. En modo "crear" no se pasa. */
+  territory?: Territory;
   onClose: () => void;
+  /**
+   * "crear" abre este mismo diálogo en blanco y guarda un territorio nuevo.
+   *
+   * Hasta ahora un territorio SOLO podía nacer importando un KML: `saveTerritory`
+   * existía en el servicio y no lo llamaba nadie. Y borrar sí se podía —incluso
+   * en bloque desde el panel—, así que se podía deshacer algo que no había forma
+   * de volver a hacer desde la app.
+   *
+   * Se reutiliza este diálogo y no se escribe otro porque ya tiene TODO lo que
+   * hace falta: número, nombre, zona, notas, viviendas, etiquetas y el editor
+   * de mapa con la barra de dibujo. Un formulario nuevo sería el mismo
+   * formulario otra vez, con sus propias diferencias a los tres meses.
+   */
+  modo?: 'crear' | 'editar';
 };
 
-const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
+/** El territorio de partida cuando se está creando uno. */
+const EN_BLANCO: Territory = {
+  id: '',
+  zoneId: '',
+  numero: '',
+  geometry: null,
+  tags: [],
+  updatedAt: '',
+};
+
+const DialogEditarTerritorio = ({
+  open,
+  territory: territoryProp,
+  onClose,
+  modo = 'editar',
+}: Props) => {
+  const esCrear = modo === 'crear';
+  const territory = territoryProp ?? EN_BLANCO;
   const congId = useAtomValue(congIDState);
   const masterKey = useAtomValue(congMasterKeyState);
   const zones = useAtomValue(territoryZonesSortedState);
   const tags = useAtomValue(territoryTagsState);
+  const territories = useAtomValue(territoriesState);
 
   const [numero, setNumero] = useState(territory.numero);
   const [nombre, setNombre] = useState(territory.nombre || '');
@@ -52,7 +90,9 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   );
   const [zoneId, setZoneId] = useState(territory.zoneId);
   const [tagIds, setTagIds] = useState<string[]>(territory.tags || []);
-  const [geometry, setGeometry] = useState<Polygon | MultiPolygon | null>(territory.geometry);
+  const [geometry, setGeometry] = useState<Polygon | MultiPolygon | null>(
+    territory.geometry
+  );
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -68,7 +108,8 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     }
     const ok = await confirm({
       title: 'Descartar cambios',
-      message: 'Tienes cambios sin guardar en este territorio. Si sales ahora se perderán.',
+      message:
+        'Tienes cambios sin guardar en este territorio. Si sales ahora se perderán.',
       confirmLabel: 'Salir sin guardar',
       destructive: true,
     });
@@ -95,20 +136,71 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       nombre !== (territory.nombre || '') ||
       (!notasLocked && notas !== (territory.notas || '')) ||
       numeroViviendas !==
-        (territory.numeroViviendas != null ? String(territory.numeroViviendas) : '') ||
+        (territory.numeroViviendas != null
+          ? String(territory.numeroViviendas)
+          : '') ||
       zoneId !== territory.zoneId ||
       JSON.stringify(tagIds) !== JSON.stringify(territory.tags || []) ||
       JSON.stringify(geometry) !== JSON.stringify(territory.geometry)
     );
-  }, [numero, nombre, notas, notasLocked, numeroViviendas, zoneId, tagIds, geometry, territory]);
+  }, [
+    numero,
+    nombre,
+    notas,
+    notasLocked,
+    numeroViviendas,
+    zoneId,
+    tagIds,
+    geometry,
+    territory,
+  ]);
+
+  // Dos territorios con el mismo número en la misma zona no son un error de
+  // base de datos —cada uno tiene su id— pero sí uno de los gordos en la
+  // práctica: la lista, el mapa y el S-13 los llaman igual y no hay forma de
+  // saber cuál te han asignado. Se avisa antes de guardar, no después.
+  const numeroRepetido = useMemo(() => {
+    const limpio = numero.trim();
+    if (!limpio || !zoneId) return false;
+
+    return territories.some(
+      (t) =>
+        t.id !== territory.id &&
+        t.zoneId === zoneId &&
+        t.numero.trim().toLowerCase() === limpio.toLowerCase()
+    );
+  }, [territories, numero, zoneId, territory.id]);
 
   const handleSave = async () => {
-    if (!numero.trim() || !zoneId) return;
+    if (!numero.trim() || !zoneId || numeroRepetido) return;
     setSaving(true);
     try {
       const parsedViviendas = numeroViviendas.trim()
         ? Number(numeroViviendas)
         : undefined;
+      if (esCrear) {
+        await saveTerritory(
+          congId,
+          {
+            id: crypto.randomUUID(),
+            zoneId,
+            numero: numero.trim(),
+            nombre: nombre.trim() || undefined,
+            notas: notas.trim() || undefined,
+            numeroViviendas:
+              parsedViviendas !== undefined && !Number.isNaN(parsedViviendas)
+                ? parsedViviendas
+                : undefined,
+            tags: tagIds,
+            geometry,
+            updatedAt: new Date().toISOString(),
+          },
+          masterKey ?? ''
+        );
+        onClose();
+        return;
+      }
+
       await updateTerritoryEditableFields(
         congId,
         territory.id,
@@ -133,7 +225,9 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
       console.error(e);
       displaySnackNotification({
         header: 'Error',
-        message: 'Error guardando territorio',
+        message: esCrear
+          ? 'Error creando el territorio'
+          : 'Error guardando territorio',
         severity: 'error',
       });
     } finally {
@@ -144,7 +238,8 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
   const handleDelete = async () => {
     const ok = await confirm({
       title: 'Eliminar territorio',
-      message: '¿Eliminar este territorio por completo? Esta acción NO se puede deshacer.',
+      message:
+        '¿Eliminar este territorio por completo? Esta acción NO se puede deshacer.',
       confirmLabel: 'Eliminar',
       destructive: true,
     });
@@ -170,15 +265,20 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
     () => tags.filter((t) => tagIds.includes(t.id)),
     [tags, tagIds]
   );
-  
+
   const zoneColor = useMemo(() => {
-    return zones.find(z => z.id === zoneId)?.color || 'var(--accent-main)';
+    return zones.find((z) => z.id === zoneId)?.color || 'var(--accent-main)';
   }, [zones, zoneId]);
 
   return (
     <>
       {ConfirmDialogNode}
-      <Dialog open={open} onClose={handleRequestClose} maxWidth={false} fullWidth scroll="paper"
+      <Dialog
+        open={open}
+        onClose={handleRequestClose}
+        maxWidth={false}
+        fullWidth
+        scroll="paper"
         PaperProps={{
           sx: {
             maxWidth: '1100px',
@@ -199,21 +299,28 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
             borderRadius: 'var(--shape-xl)',
           },
         }}
-    >
-      <DialogTitle sx={{ p: 0 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>Editar territorio</Typography>
-          <IconButton aria-label="Cerrar" onClick={handleRequestClose}>
-            <IconClose color="var(--black)" />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-      
-      <DialogContent sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-        <Grid container spacing={3}>
-          <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
-            <Stack spacing={2.5}>
-              {/* El desplegable se alimentaba con `<option>` en crudo. Un
+      >
+        <DialogTitle sx={{ p: 0 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ p: 2, pb: 0 }}
+          >
+            <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+              {esCrear ? 'Añadir territorio' : 'Editar territorio'}
+            </Typography>
+            <IconButton aria-label="Cerrar" onClick={handleRequestClose}>
+              <IconClose color="var(--black)" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+          <Grid container spacing={3}>
+            <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
+              <Stack spacing={2.5}>
+                {/* El desplegable se alimentaba con `<option>` en crudo. Un
                   Select de MUI no los estila: se pintan como los del navegador
                   —escuetos, de otra aplicación— y encima la etiqueta flotante
                   no encontraba su sitio, así que el valor elegido caía
@@ -223,137 +330,202 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
                   diálogo ("Número", "Nombre") la llevan dentro, así que tener
                   el rótulo de la Zona fuera y encima era mezclar las dos
                   convenciones en la misma columna. */}
-              <Select
-                label="Zona *"
-                value={zoneId}
-                onChange={(e) => setZoneId(e.target.value as string)}
-              >
-                {zones.map((z) => (
-                  <MenuItem key={z.id} value={z.id}>
-                    {z.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
+                <Select
+                  label="Zona *"
+                  value={zoneId}
+                  onChange={(e) => setZoneId(e.target.value as string)}
+                >
+                  {zones.map((z) => (
+                    <MenuItem key={z.id} value={z.id}>
+                      {z.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
 
-              <TextField
-                label="Número *"
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-                fullWidth
-                size="small"
-              />
-
-              <TextField
-                label="Nombre (opcional)"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                fullWidth
-                size="small"
-              />
-
-              <Box>
-                <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 1 }}>
-                  Etiquetas
-                </Typography>
-                <AutocompleteMultiple
-                  options={tags}
-                  getOptionLabel={(t: TerritoryTag) => t.nombre}
-                  value={selectedTags}
-                  onChange={(_, v) => setTagIds((v as TerritoryTag[]).map((t) => t.id))}
-                  placeholder="Añadir etiqueta..."
+                <TextField
+                  label="Número *"
+                  value={numero}
+                  onChange={(e) => setNumero(e.target.value)}
+                  fullWidth
+                  size="small"
+                  error={numeroRepetido}
+                  helperText={
+                    numeroRepetido
+                      ? 'Ya hay un territorio con este número en esta zona.'
+                      : undefined
+                  }
                 />
-              </Box>
 
-              <TextField
-                label="Número de viviendas (aprox.)"
-                value={numeroViviendas}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === '' || /^\d+$/.test(v)) setNumeroViviendas(v);
-                }}
-                fullWidth
-                size="small"
-                inputMode="numeric"
-              />
+                <TextField
+                  label="Nombre (opcional)"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
 
-              <TextField
-                label="Notas del territorio"
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                disabled={notasLocked}
-                helperText={
-                  notasLocked
-                    ? 'Las notas están cifradas y este dispositivo no puede leerlas, así que no se pueden editar desde aquí.'
-                    : undefined
-                }
-                fullWidth
-                multiline
-                rows={3}
-                size="small"
-              />
+                <Box>
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--ink-3)"
+                    sx={{ display: 'block', mb: 1 }}
+                  >
+                    Etiquetas
+                  </Typography>
+                  <AutocompleteMultiple
+                    options={tags}
+                    getOptionLabel={(t: TerritoryTag) => t.nombre}
+                    value={selectedTags}
+                    onChange={(_, v) =>
+                      setTagIds((v as TerritoryTag[]).map((t) => t.id))
+                    }
+                    placeholder="Añadir etiqueta..."
+                  />
+                </Box>
 
-              <Button
-                variant="tertiary"
-                onClick={handleDelete}
-                disabled={deleting || saving}
-                sx={{ 
-                  color: 'var(--red-main) !important',
-                  mt: 2
+                <TextField
+                  label="Número de viviendas (aprox.)"
+                  value={numeroViviendas}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '' || /^\d+$/.test(v)) setNumeroViviendas(v);
+                  }}
+                  fullWidth
+                  size="small"
+                  inputMode="numeric"
+                />
+
+                <TextField
+                  label="Notas del territorio"
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  disabled={notasLocked}
+                  helperText={
+                    notasLocked
+                      ? 'Las notas están cifradas y este dispositivo no puede leerlas, así que no se pueden editar desde aquí.'
+                      : undefined
+                  }
+                  fullWidth
+                  multiline
+                  rows={3}
+                  size="small"
+                />
+
+                {/* Creando no hay nada que borrar. */}
+                {!esCrear && (
+                  <Button
+                    variant="tertiary"
+                    onClick={handleDelete}
+                    disabled={deleting || saving}
+                    sx={{
+                      color: 'var(--red-main) !important',
+                      mt: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        color: 'var(--red-main)',
+                      }}
+                    >
+                      <IconDelete color="var(--red-main)" />
+                      Eliminar territorio
+                    </Box>
+                  </Button>
+                )}
+              </Stack>
+            </Grid>
+
+            <Grid size={{ mobile: 12, tablet600: 8, desktop: 9 }}>
+              <Box
+                sx={{
+                  borderRadius: 'var(--shape-lg)',
+                  border: '1px solid var(--line)',
+                  overflow: 'hidden',
+                  height: { mobile: '400px', tablet600: '100%' },
+                  minHeight: '400px',
+                  position: 'relative',
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'var(--red-main)' }}>
-                  <IconDelete color="var(--red-main)" />
-                  Eliminar territorio
+                <TerritoryMap
+                  geometry={geometry}
+                  color={zoneColor}
+                  height="100%"
+                  editable
+                  onGeometryChange={setGeometry}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    backgroundColor: 'var(--card)',
+                    p: 1.5,
+                    borderRadius: 'var(--shape-sm)',
+                    boxShadow: 'var(--small-card-shadow)',
+                    border: '1px solid var(--line)',
+                    zIndex: 1000,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--ink-2)"
+                    sx={{}}
+                  >
+                    Modo edición: activo
+                  </Typography>
                 </Box>
-              </Button>
-            </Stack>
-          </Grid>
-
-          <Grid size={{ mobile: 12, tablet600: 8, desktop: 9 }}>
-            <Box sx={{ 
-              borderRadius: 'var(--shape-lg)', 
-              border: '1px solid var(--line)', 
-              overflow: 'hidden',
-              height: { mobile: '400px', tablet600: '100%' },
-              minHeight: '400px',
-              position: 'relative'
-            }}>
-              <TerritoryMap
-                geometry={geometry}
-                color={zoneColor}
-                height="100%"
-                editable
-                onGeometryChange={setGeometry}
-              />
-              <Box sx={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                backgroundColor: 'var(--card)',
-                p: 1.5,
-                borderRadius: 'var(--shape-sm)',
-                boxShadow: 'var(--small-card-shadow)',
-                border: '1px solid var(--line)',
-                zIndex: 1000,
-                pointerEvents: 'none'
-              }}>
-                <Typography className="label-small-semibold" color="var(--ink-2)" sx={{}}>
-                  Modo edición: activo
-                </Typography>
               </Box>
-            </Box>
+            </Grid>
           </Grid>
-        </Grid>
 
-        <Stack direction="row" justifyContent="flex-end" spacing={1} sx={{ mt: 3, pt: 2, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
-          <Button variant="tertiary" disableAutoStretch onClick={handleRequestClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button variant="main" disableAutoStretch onClick={handleSave} disabled={!hasChanges || saving || !numero.trim() || !zoneId}>
-            {saving ? 'Guardando…' : 'Guardar'}
-          </Button>
-        </Stack>
-      </DialogContent>
+          <Stack
+            direction="row"
+            justifyContent="flex-end"
+            spacing={1}
+            sx={{
+              mt: 3,
+              pt: 2,
+              borderTop: '1px solid var(--line)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Button
+              variant="tertiary"
+              disableAutoStretch
+              onClick={handleRequestClose}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="main"
+              disableAutoStretch
+              onClick={handleSave}
+              // Creando no se pide `hasChanges`: un territorio nuevo con su
+              // número y su zona ya es guardable aunque no se haya tocado nada
+              // más.
+              disabled={
+                saving ||
+                !numero.trim() ||
+                !zoneId ||
+                numeroRepetido ||
+                (!esCrear && !hasChanges)
+              }
+            >
+              {saving
+                ? esCrear
+                  ? 'Creando…'
+                  : 'Guardando…'
+                : esCrear
+                  ? 'Crear territorio'
+                  : 'Guardar'}
+            </Button>
+          </Stack>
+        </DialogContent>
       </Dialog>
     </>
   );
