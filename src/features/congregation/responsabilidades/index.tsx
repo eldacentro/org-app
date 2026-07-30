@@ -352,9 +352,19 @@ const EditSummaryCard = ({
   subtitle: string;
   onClick: () => void;
 }) => (
+  // Era un `Box` con `onClick`: en modo edición, TODAS las fichas de cargo
+  // —coordinador, secretario, los superintendentes— se abrían con el ratón y
+  // con el teclado no se llegaba a ninguna. Es la pantalla entera.
   <Box
+    component="button"
+    type="button"
     onClick={onClick}
     sx={{
+      appearance: 'none',
+      font: 'inherit',
+      color: 'inherit',
+      textAlign: 'left',
+      width: '100%',
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
       borderRadius: 'var(--shape-lg)',
@@ -363,7 +373,12 @@ const EditSummaryCard = ({
       justifyContent: 'space-between',
       alignItems: 'center',
       cursor: 'pointer',
-      transition: 'all 0.2s',
+      transition:
+        'border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
+      '&:focus-visible': {
+        outline: '2px solid var(--accent-main)',
+        outlineOffset: '2px',
+      },
       '&:hover': {
         borderColor: 'var(--accent-main)',
         boxShadow: 'var(--shadow-sm)',

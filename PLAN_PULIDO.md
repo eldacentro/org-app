@@ -215,7 +215,17 @@ Entre los cinco son el **56%** del total.
         Comprobado en el navegador por las dos caras: ni un mes en mayúscula a
         mitad de frase en 14 rutas, ni uno en minúscula abriendo una.
       **Queda**: plurales concatenados y códigos en pantalla.
-- [~] **B6 · Accesibilidad** — casi cerrado, pero mi propia comprobación tenía
+- [x] **B6 · Accesibilidad** — CERRADO, incluidos los diálogos, que era el
+      agujero que quedaba. Se abrieron uno a uno y se midió toda la página
+      DESPUÉS de abrirlos (no solo el diálogo), que es como salen también los
+      cajones y los cambios de modo. Lo único que apareció: en modo edición de
+      Responsabilidades, TODAS las fichas de cargo eran `div` pulsables — la
+      pantalla entera sin teclado.
+      Los botones de scroll de las pestañas de MUI se quedan como están: son
+      `div`, sí, pero las pestañas siguen el patrón ARIA correcto (solo la
+      activa en el tabulador, el resto con flechas), así que esos botones son
+      un atajo de ratón que no quita nada.
+      Antes de esto, mi propia comprobación tenía
       un AGUJERO: excluía `[role=button]` del barrido de "div pulsables", dando
       por hecho que ese papel implicaba ser alcanzable. No lo implica. Había
       tres sitios con `role="button"` y SIN `tabIndex` —el botón de acción de
