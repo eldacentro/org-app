@@ -313,8 +313,31 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
 - [ ] **Importar/exportar** — muy malo, pero solo lo ven administradores
 - [ ] **Informes** — estructura sana; su deuda es duplicación
 - [ ] Ayuda, Materiales de reunión, Perfil, Recordatorios
-- [ ] **Territorios** — nunca se auditó por zona (se quedó fuera del reparto
-      del inventario); hace falta la barrida antes de planificarlo
+- [x] **Territorios** — auditado por fin (27 ficheros, 12.330 líneas). El susto
+      era mayor que la realidad: de 213 marcas brutas, **111 eran FALSAS de
+      golpe** — mi comprobación de "MUI en crudo" miraba el nombre de la
+      etiqueta (`<Button`, `<TextField`) sin mirar de dónde venía, y resulta que
+      **ni un solo fichero de Territorios importa esos componentes de MUI**:
+      son todos los de la app.
+      Y otros tantos son correctos a propósito:
+      · **Los 22 colores del mapa.** Los controles flotan sobre las teselas de
+        OpenStreetMap y del satélite, que NO cambian con el tema (comprobado:
+        no hay teselas oscuras para el modo oscuro). Un control blanco
+        translúcido con texto casi negro es legible sobre el mapa en los dos
+        modos; con tokens, se volvería invisible en oscuro. Varios ya lo
+        llevaban comentado.
+      · Los 24 "div pulsables": ya son botones con `component="button"`,
+        `aria-label`, `aria-pressed` y anillo de foco, o envuelven un `<input>`
+        de verdad. Cero.
+      · Los `fontSize` del mapa son el tamaño de los signos +/−, no tipografía;
+        y el `16` de Configuración es justo el umbral por debajo del cual
+        Safari en iOS hace zoom al enfocar un campo.
+      **Lo real, y arreglado**: las 13 transiciones a mano pasan a tokens de
+      movimiento, y el cian `#3FA9D9` de Configuración —el ÚNICO de las cinco
+      tarjetas con el color escrito a mano, y encima al 0,15 mientras las otras
+      cuatro van al 0,10— pasa a `--blue-main`, que existía y era el hueco.
+      **No verificado en pantalla**: los territorios vienen de Firestore y la
+      semilla de prueba no los trae, así que el módulo no se pudo VER.
 
 ---
 

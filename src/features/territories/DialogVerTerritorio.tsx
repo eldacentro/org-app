@@ -556,7 +556,8 @@ const DialogVerTerritorio = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'transform 0.1s ease, background 0.15s ease',
+            transition:
+              'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
             '&:active': { transform: 'scale(0.88)' },
             '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
           }}
@@ -574,7 +575,10 @@ const DialogVerTerritorio = ({
           right: 0,
           height: sheetHeight,
           zIndex: 100,
-          transition: 'height 0.38s cubic-bezier(0.4, 0, 0.2, 1)',
+          // 380ms, más que `--motion-medium`, a propósito: una hoja que ocupa media
+          // pantalla necesita más recorrido que un color de fondo. La CURVA sí es
+          // la del sistema.
+          transition: 'height 380ms var(--ease-emphasized)',
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'var(--white)',
@@ -696,7 +700,8 @@ const DialogVerTerritorio = ({
                     justifyContent: 'center',
                     cursor: 'pointer',
                     color: editingTags ? color : 'var(--ink-2)',
-                    transition: 'all 0.15s ease',
+                    transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
                     '&:active': { transform: 'scale(0.88)' },
                   }}
                 >
@@ -889,7 +894,8 @@ const DialogVerTerritorio = ({
                         color: 'var(--red-main)',
                         textAlign: 'center',
                         cursor: uploading ? 'default' : 'pointer',
-                        transition: 'background 0.15s ease',
+                        transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
                         '&:active': { backgroundColor: uploading ? undefined : 'rgba(var(--red-main-base), 0.2)' },
                         display: 'flex',
                         alignItems: 'center',

@@ -175,7 +175,8 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
                 borderRadius: 'var(--shape-md)',
                 border: '1px solid var(--accent-200)',
                 backgroundColor: 'var(--white)',
-                transition: 'background-color .15s',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard)',
                 '&:hover': { backgroundColor: 'var(--accent-100)' },
               }}
             >
@@ -272,7 +273,8 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
                 borderRadius: 'var(--shape-sm)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--white)',
-                transition: 'background-color .15s',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard)',
                 '&:hover': { backgroundColor: 'var(--accent-100)' },
               }}
             >

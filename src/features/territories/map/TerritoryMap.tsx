@@ -950,7 +950,8 @@ const TerritoryMap = ({
             fontWeight: 600,
             color: 'rgba(0,0,0,0.78)',
             letterSpacing: '-0.1px',
-            transition: 'transform 0.1s ease, background 0.2s ease',
+            transition:
+              'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
             '&:active': { transform: 'scale(0.94)' },
             display: 'flex',
             alignItems: 'center',
@@ -1018,7 +1019,8 @@ const TerritoryMap = ({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              transition: 'transform 0.1s ease, background 0.2s ease',
+              transition:
+              'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { transform: 'scale(0.94)' },
             }}
           >
@@ -1062,7 +1064,8 @@ const TerritoryMap = ({
               justifyContent: 'center',
               cursor: 'pointer',
               borderBottom: '0.5px solid rgba(0,0,0,0.1)',
-              transition: 'background 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
@@ -1097,7 +1100,8 @@ const TerritoryMap = ({
               justifyContent: 'center',
               cursor: livePos ? 'pointer' : 'default',
               opacity: livePos ? 1 : 0.35,
-              transition: 'background 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:active': livePos ? { backgroundColor: 'rgba(0,0,0,0.08)' } : undefined,
             }}
           >
@@ -1148,7 +1152,8 @@ const TerritoryMap = ({
               fontWeight: 300,
               color: 'rgba(0,0,0,0.75)',
               borderBottom: '0.5px solid rgba(0,0,0,0.1)',
-              transition: 'background 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
@@ -1170,7 +1175,8 @@ const TerritoryMap = ({
               fontSize: '22px',
               fontWeight: 300,
               color: 'rgba(0,0,0,0.75)',
-              transition: 'background 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
@@ -1198,7 +1204,8 @@ const TerritoryMap = ({
               overflow: 'hidden',
               color: 'rgba(0,0,0,0.75)',
               ...glass,
-              transition: 'background 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >

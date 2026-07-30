@@ -379,10 +379,14 @@ const ConfiguracionTab = () => {
         </SectionCard>
 
         {/* ── 4 · Publicador ────────────────────────────────────────────────── */}
+        {/* Era el ÚNICO de las cinco tarjetas con el color a mano: un cian
+            (#3FA9D9 sobre rgba(90,200,250,.15)) que no está en la paleta de la
+            app, y encima al 0,15 mientras las otras cuatro van al 0,10.
+            `--blue-main` sí existe y es el hueco que faltaba. */}
         <SectionCard
-          icon={<IconPerson width={20} height={20} color="#3FA9D9" />}
+          icon={<IconPerson width={20} height={20} color="var(--blue-main)" />}
           title="Configuración de publicador"
-          iconBg="rgba(90, 200, 250, 0.15)"
+          iconBg="rgba(var(--blue-main-base), 0.1)"
         >
           <ToggleRow
             label="Publicadores pueden devolver territorios"
