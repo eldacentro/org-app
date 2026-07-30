@@ -245,7 +245,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   display: 'block',
                   borderRadius: 'var(--shape-lg)',
                   border: '1px solid var(--line)',
-                  boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.06)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <Box
@@ -298,7 +298,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
                 right: 16,
                 color: 'var(--ink-2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                backgroundColor: 'color-mix(in srgb, var(--card) 80%, transparent)',
                 backdropFilter: 'blur(8px)',
                 boxShadow: 'var(--shadow-sm)',
                 '&:hover': { backgroundColor: 'var(--card)' },
@@ -340,7 +340,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 borderRadius: 'var(--shape-lg)',
                 p: 4,
                 boxSizing: 'border-box',
-                boxShadow: '0 12px 32px -8px rgba(48, 108, 180, 0.08)',
+                boxShadow: 'var(--shadow-md)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',

@@ -1,6 +1,9 @@
 import { Box, Stack, IconButton, Tooltip } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { IconDelete } from '@components/icons';
+import Badge from '@components/badge';
+import { accentSurface } from '@components/accent_surface';
+import { dateFormatFriendly, formatDate } from '@utils/date';
 import Typography from '@components/typography';
 import { DocumentoArchivo, DocumentoCategoria } from '@definition/documentos';
 import useCurrentUser from '@hooks/useCurrentUser';
@@ -20,90 +23,57 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
     ? !documento.vistoPor?.includes(person.person_uid)
     : false;
 
+  // Eran TRES copias de quince líneas de la misma etiqueta, distintas solo en
+  // el color y el texto — y la del aviso llevaba el ámbar CONGELADO
+  // (`#D97706`, `rgba(245,158,11,…)`), que no sigue al tema. El Badge del
+  // sistema ya sabe pintar las tres.
   const renderVigenciaBadge = () => {
     if (documento.vigencia === 'indefinido') {
+      return <Badge size="small" color="accent" text="Indefinido" />;
+    }
+
+    if (!documento.fechaExpiracion) return null;
+
+    const dias = Math.ceil(
+      (new Date(documento.fechaExpiracion).getTime() - Date.now()) /
+        (1000 * 3600 * 24)
+    );
+
+    if (dias <= 7) {
       return (
-        <Box
-          className="label-small-medium"
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            lineHeight: 1,
-            background: 'var(--brand-tint)',
-            color: 'var(--brand-deep)',
-            border: '1px solid var(--line)',
-            px: 1.2,
-            py: 0.6,
-            borderRadius: 'var(--shape-md)',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-          }}
-        >
-          Indefinido
-        </Box>
+        <Badge
+          size="small"
+          color="orange"
+          text={`Expira en ${dias} ${dias === 1 ? 'día' : 'días'}`}
+        />
       );
     }
-    if (documento.fechaExpiracion) {
-      const diff = new Date(documento.fechaExpiracion).getTime() - new Date().getTime();
-      const days = Math.ceil(diff / (1000 * 3600 * 24));
-      if (days <= 7) {
-        return (
-          <Box
-            className="label-small-medium"
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              lineHeight: 1,
-              background: 'rgba(245, 158, 11, 0.08)',
-              color: '#D97706',
-              border: '1px solid rgba(245, 158, 11, 0.15)',
-              px: 1.2,
-              py: 0.6,
-              borderRadius: 'var(--shape-md)',
-              fontWeight: 600,
-              whiteSpace: 'nowrap',
-              letterSpacing: '0.02em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Expira en {days} d
-          </Box>
-        );
-      }
-      return (
-        <Box
-          className="label-small-medium"
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            lineHeight: 1,
-            background: 'rgba(var(--accent-main-base), 0.08)',
-            color: 'var(--accent-main)',
-            border: '1px solid rgba(var(--accent-main-base), 0.15)',
-            px: 1.2,
-            py: 0.6,
-            borderRadius: 'var(--shape-md)',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-          }}
-        >
-          Expira el {new Date(documento.fechaExpiracion).toLocaleDateString()}
-        </Box>
-      );
-    }
-    return null;
+
+    return (
+      <Badge
+        size="small"
+        color="accent"
+        text={`Expira el ${dateFormatFriendly(formatDate(new Date(documento.fechaExpiracion), 'yyyy/MM/dd'))}`}
+      />
+    );
   };
 
   const accentColor = categoria?.color || 'var(--accent-main)';
 
   return (
+    // Era un `div` con `onClick`: con el ratón se abría el documento y con el
+    // teclado no había forma. Como <button> hace falta el reset (fondo, borde,
+    // fuente y alineación vienen puestos de fábrica) y `width: 100%`, porque un
+    // control de formulario NO se estira al ancho del padre aunque sea flex.
     <Box
+      component="button"
+      type="button"
       className="active-press"
       sx={{
+        appearance: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
@@ -112,26 +82,27 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
         border: '1px solid var(--line)',
         background: 'var(--card)',
         boxShadow: 'var(--shadow-sm)',
-        position: 'relative',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',
         overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '5px',
-          height: '100%',
-          backgroundColor: accentColor,
-          opacity: 0.8,
-          transition: 'all 0.3s ease',
-        },
+        transition:
+          'box-shadow var(--motion-medium) var(--ease-standard), transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
+        // La UÑITA que señaló Carlos: era un `::before` de 5px pegado al canto
+        // izquierdo, y la esquina redondeada lo cortaba en seco dejando dos
+        // muescas. La cápsula del sistema (§6.3) va DENTRO del margen, con su
+        // propio radio, y encima trae el lavado del color que hace que la
+        // tarjeta entera se lea "de esta categoría".
+        ...accentSurface(accentColor),
+        paddingTop: '20px',
+        paddingRight: '20px',
+        paddingBottom: '20px',
         '&:hover': {
           boxShadow: 'var(--shadow-md)',
           transform: 'translateY(-4px)',
           borderColor: accentColor,
-          '&::before': { width: '8px', opacity: 1 },
+        },
+        '&:focus-visible': {
+          outline: '2px solid var(--accent-main)',
+          outlineOffset: '2px',
         },
       }}
       onClick={() => onView(documento)}
@@ -166,7 +137,8 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             borderRadius: 'var(--shape-md)',
             border: `1.5px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
             flexShrink: 0,
-            transition: 'all 0.3s ease',
+            transition:
+              'background-color var(--motion-medium) var(--ease-standard)',
           }}
         >
           <PictureAsPdfIcon sx={{ color: accentColor, fontSize: 30 }} />
@@ -186,7 +158,9 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
                   border: `1px solid color-mix(in srgb, ${categoria.color} 21%, transparent)`,
                   px: 1.2,
                   py: 0.6,
-                  borderRadius: 'var(--shape-md)',
+                  // Píldora, como el Badge que va justo al lado: son dos
+                  // etiquetas de la misma fila y llevaban formas distintas.
+                  borderRadius: 'var(--shape-full)',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                   textTransform: 'uppercase',
@@ -243,7 +217,7 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
           <Typography className="label-small-regular" color="var(--ink-3)">
-            {new Date(documento.fechaSubida).toLocaleDateString()}
+            {dateFormatFriendly(formatDate(new Date(documento.fechaSubida), 'yyyy/MM/dd'))}
           </Typography>
           <Typography className="label-small-regular" color="var(--ink-3)">•</Typography>
           <Typography className="label-small-regular" color="var(--ink-3)">
@@ -260,10 +234,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
                 sx={{
                   color: 'var(--red-main)',
                   padding: '6px',
-                  borderRadius: 'var(--shape-md)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.04)',
-                  transition: 'all 0.2s',
-                  '&:hover': { color: '#EF4444', background: 'rgba(239, 68, 68, 0.1)' },
+                  borderRadius: 'var(--shape-full)',
+                  backgroundColor: 'color-mix(in srgb, var(--red-main) 6%, transparent)',
+                  transition:
+                    'background-color var(--motion-fast) var(--ease-standard)',
+                  '&:hover': {
+                    background:
+                      'color-mix(in srgb, var(--red-main) 14%, transparent)',
+                  },
                 }}
               >
                 <IconDelete color="currentColor" width={18} height={18} />

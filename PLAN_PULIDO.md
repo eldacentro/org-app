@@ -240,7 +240,33 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       decenas de pantallas
 - [ ] **Mis asignaciones** — la abre cualquier publicador; 44 defectos en dos
       ficheros
-- [ ] **Documentos** (127 en 26 ficheros: la peor densidad, 4,9 por fichero)
+- [~] **Documentos** — el inventario decía "127 en 26 ficheros"; son **6
+      ficheros y 1.713 líneas**, y midiendo salen 69 marcas, varias de ellas
+      datos (la paleta de colores de las categorías no es un color a mano).
+      Hecho:
+      · **La uñita de la izquierda de cada tarjeta**, que Carlos ya había
+        señalado. Era un `::before` de 5px pegado al canto, y la esquina
+        redondeada lo cortaba en seco dejando dos muescas. Pasa a la cápsula
+        del sistema (`accentSurface`, §6.3).
+      · **Tres copias de quince líneas de la misma etiqueta de estado**, y la
+        del aviso con el ámbar CONGELADO (`#D97706`) — el `Badge` del sistema
+        ya sabía pintar las tres.
+      · La tarjeta era un `div` con `onClick`: no se abría con el teclado.
+      · `toLocaleDateString()` daba "30/7/2026", el formato del NAVEGADOR,
+        distinto del resto de la app.
+      · Tres colores congelados más en el visor: una sombra en negro puro y un
+        blanco al 80% (los dos invisibles o manchas en modo oscuro) y una
+        sombra con el azul del tema por defecto metido a mano.
+      · Cuatro `transition: all 0.Xs` a tokens de movimiento.
+      **No verificado en pantalla**: la semilla de prueba no trae documentos
+      (vienen de Firestore), así que la tarjeta no se pudo VER. Lo que sí se
+      vio es `accentSurface` renderizando bien en el diálogo de categorías, que
+      usa la misma función.
+      **Queda**: `PictureAsPdfIcon` de Material Icons — es un hueco real (la
+      app no tiene icono de documento entre sus 308), no un descuido. Pero hay
+      **9 ficheros con iconos de Material** y varios SÍ tienen equivalente
+      propio (`ExpandMoreIcon`, `ArrowBackIos/ForwardIos`, `KeyboardArrowUp/
+      Down`, `ArrowDropDown`) — barrido aparte.
 - [ ] Exhibidores y Salidas, **pestañas de Programas semanales** (son ficheros
       DISTINTOS de las páginas ya repasadas, con el mismo nombre)
 - [ ] **Oradores salientes** — panel lateral entero de divs
