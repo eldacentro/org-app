@@ -3,11 +3,22 @@ import IconLoading from '@components/icon_loading';
 import { Box, Stack } from '@mui/material';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconS21Page, IconSpreadsheet, IconMapOverview, IconLightbulb } from '@components/icons';
+import { conCuenta, enPlural } from '@utils/plural';
+import {
+  IconS21Page,
+  IconSpreadsheet,
+  IconMapOverview,
+  IconLightbulb,
+} from '@components/icons';
 import { serviceYearRange } from '@services/app/territories';
 import { useTerritoryExport, ExcelFilter } from './useTerritoryExport';
 import { displaySnackNotification } from '@services/states/app';
-import { SectionCard, PillGroup, ToggleRow, PillOption } from './SettingsControls';
+import {
+  SectionCard,
+  PillGroup,
+  ToggleRow,
+  PillOption,
+} from './SettingsControls';
 
 // Estaba a 11px, peso 700, en mayúsculas y con 0,6px de espaciado entre
 // letras: un tamaño que no existe en la escala, y en mayúsculas cuesta
@@ -24,7 +35,8 @@ const FieldLabel = ({ children }: { children: string }) => (
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 const ImportExportTab = () => {
-  const { exportS13, exportExcel, exportCsv, exportGeoJson, exportKml } = useTerritoryExport();
+  const { exportS13, exportExcel, exportCsv, exportGeoJson, exportKml } =
+    useTerritoryExport();
 
   const years = Array.from({ length: 5 }).map((_, i) => {
     const ref = new Date();
@@ -41,18 +53,30 @@ const ImportExportTab = () => {
     setBusy(true);
     try {
       const result = await fn();
-      if (successMsg) displaySnackNotification({ severity: 'success', header: 'Listo', message: successMsg });
+      if (successMsg)
+        displaySnackNotification({
+          severity: 'success',
+          header: 'Listo',
+          message: successMsg,
+        });
       return result;
     } catch (e) {
       console.error(e);
-      displaySnackNotification({ severity: 'error', header: 'Error al exportar', message: 'No se pudo generar el archivo. Inténtalo de nuevo.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error al exportar',
+        message: 'No se pudo generar el archivo. Inténtalo de nuevo.',
+      });
       return undefined;
     } finally {
       setBusy(false);
     }
   };
 
-  const yearOptions: PillOption[] = years.map((y, i) => ({ value: String(i), label: y.label }));
+  const yearOptions: PillOption[] = years.map((y, i) => ({
+    value: String(i),
+    label: y.label,
+  }));
 
   const filterOptions: PillOption[] = [
     { value: 'all', label: 'Todas' },
@@ -103,7 +127,7 @@ const ImportExportTab = () => {
                   displaySnackNotification({
                     severity: 'success',
                     header: 'Se añadieron hojas de continuación',
-                    message: `${result.continuedTerritories} territorio(s) tuvieron más de 4 asignaciones este año. Como indica el propio formulario, siguen en una hoja de continuación con la última fecha en que se completaron.`,
+                    message: `${conCuenta(result.continuedTerritories, 'territorio')} ${enPlural(result.continuedTerritories, 'tuvo', 'tuvieron')} más de 4 asignaciones este año. Como indica el propio formulario, siguen en una hoja de continuación con la última fecha en que se completaron.`,
                   });
                 }
               }}
@@ -118,7 +142,9 @@ const ImportExportTab = () => {
 
       {/* ── Hoja de cálculo ──────────────────────────────────────────────────── */}
       <SectionCard
-        icon={<IconSpreadsheet width={20} height={20} color="var(--green-main)" />}
+        icon={
+          <IconSpreadsheet width={20} height={20} color="var(--green-main)" />
+        }
         title="Hoja de cálculo"
         subtitle="Datos de asignaciones en formato Excel o CSV"
         iconBg="rgba(var(--green-main-base), 0.1)"
@@ -137,7 +163,12 @@ const ImportExportTab = () => {
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => run(() => exportExcel(filter), 'Archivo Excel generado correctamente.')}
+              onClick={() =>
+                run(
+                  () => exportExcel(filter),
+                  'Archivo Excel generado correctamente.'
+                )
+              }
               sx={{ borderRadius: 'var(--shape-full)' }}
             >
               Excel (.xlsx)
@@ -145,7 +176,12 @@ const ImportExportTab = () => {
             <Button
               variant="tertiary"
               disabled={busy}
-              onClick={() => run(() => exportCsv(filter), 'Archivo CSV generado correctamente.')}
+              onClick={() =>
+                run(
+                  () => exportCsv(filter),
+                  'Archivo CSV generado correctamente.'
+                )
+              }
               sx={{ borderRadius: 'var(--shape-full)' }}
             >
               CSV (.csv)
@@ -156,7 +192,9 @@ const ImportExportTab = () => {
 
       {/* ── Geometría ───────────────────────────────────────────────────────── */}
       <SectionCard
-        icon={<IconMapOverview width={20} height={20} color="var(--orange-main)" />}
+        icon={
+          <IconMapOverview width={20} height={20} color="var(--orange-main)" />
+        }
         title="Geometría (mapas)"
         subtitle="Coordenadas y polígonos de los territorios"
         iconBg="rgba(var(--orange-main-base), 0.1)"
@@ -174,7 +212,9 @@ const ImportExportTab = () => {
             <Button
               variant="tertiary"
               disabled={busy}
-              onClick={() => run(exportGeoJson, 'GeoJSON generado correctamente.')}
+              onClick={() =>
+                run(exportGeoJson, 'GeoJSON generado correctamente.')
+              }
               sx={{ borderRadius: 'var(--shape-full)' }}
             >
               Exportar GeoJSON
@@ -193,7 +233,10 @@ const ImportExportTab = () => {
             }}
           >
             <IconLightbulb width={16} height={16} color="var(--ink-2)" />
-            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
+            <Typography
+              className="label-small-regular"
+              sx={{ color: 'var(--ink-2)', lineHeight: 1.5 }}
+            >
               Para importar desde KML/KMZ, usa el botón{' '}
               <strong>&quot;Importar KML&quot;</strong> en la pestaña{' '}
               <strong>Territorios</strong>.

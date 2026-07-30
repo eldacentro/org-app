@@ -1,7 +1,7 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useEffect, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
-import { Box, Stack, Grid } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
@@ -13,7 +13,10 @@ import { saveTag, deleteTag } from '@services/firebase/territories';
 import { congIDState } from '@states/settings';
 import { territoryTagsState } from '@states/territories';
 import { territoriesState } from '@states/territories';
-import { PALETA_COLORES } from './colorPalette';
+import ColorPicker from '@components/color_picker';
+import IconButton from '@components/icon_button';
+import { PALETA_COLORES } from '@components/color_picker/palette';
+import { conCuenta } from '@utils/plural';
 import { useDebouncedColorSave } from './useDebouncedColorSave';
 
 type Props = { open: boolean; onClose: () => void };
@@ -25,17 +28,26 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
 
   const { confirm, ConfirmDialogNode } = useConfirm();
   const [nombre, setNombre] = useState('');
-  const [color, setColor] = useState('#EC4899');
+  const [color, setColor] = useState(PALETA_COLORES[4]);
   const [saving, setSaving] = useState(false);
-  const { getColor, handleColorChange, reset: resetColors } = useDebouncedColorSave<TerritoryTag>(
-    (tag, newColor) => saveTag(congId, { ...tag, color: newColor, updatedAt: new Date().toISOString() }),
+  const {
+    getColor,
+    handleColorChange,
+    reset: resetColors,
+  } = useDebouncedColorSave<TerritoryTag>(
+    (tag, newColor) =>
+      saveTag(congId, {
+        ...tag,
+        color: newColor,
+        updatedAt: new Date().toISOString(),
+      }),
     'No se pudo guardar el color.'
   );
 
   useEffect(() => {
     if (open) {
       setNombre('');
-      setColor('#EC4899');
+      setColor(PALETA_COLORES[4]);
       resetColors();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +69,11 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       setColor(PALETA_COLORES[(idx + 1) % PALETA_COLORES.length]);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la etiqueta.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo crear la etiqueta.',
+      });
     } finally {
       setSaving(false);
     }
@@ -68,7 +84,7 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
     if (count > 0) {
       displaySnackNotification({
         header: 'Error',
-        message: `No puedes borrar "${tag.nombre}": está asignada a ${count} territorio(s). Quítala de los territorios primero.`,
+        message: `No puedes borrar «${tag.nombre}»: está asignada a ${conCuenta(count, 'territorio')}. Quítala de ${count === 1 ? 'él' : 'ellos'} primero.`,
         severity: 'error',
       });
       return;
@@ -83,7 +99,11 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       await deleteTag(congId, tag.id);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo borrar la etiqueta.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo borrar la etiqueta.',
+      });
     }
   };
 
@@ -93,116 +113,137 @@ const DialogEtiquetas = ({ open, onClose }: Props) => {
       <Dialog
         open={open}
         onClose={saving ? undefined : onClose}
-      PaperProps={{
-        style: {
-          maxWidth: '520px',
-          width: '100%',
-          borderRadius: 'var(--shape-xl)',
-          backgroundColor: 'var(--card)',
-          padding: '10px',
-        },
-      }}
-    >
-      <Box sx={{ width: '100%' }}>
-        <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
-          Etiquetas
-        </Typography>
-        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 3 }}>
-          Crea etiquetas para clasificar tus territorios (ej. Comercial, Escaleras, 
-          Urbano denso). Luego podrás asignarlas a cada territorio.
-        </Typography>
+        PaperProps={{
+          style: {
+            maxWidth: '520px',
+            width: '100%',
+            borderRadius: 'var(--shape-xl)',
+            backgroundColor: 'var(--card)',
+            padding: '10px',
+          },
+        }}
+      >
+        <Box sx={{ width: '100%' }}>
+          <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
+            Etiquetas
+          </Typography>
+          <Typography
+            className="body-small-regular"
+            color="var(--ink-2)"
+            sx={{ mb: 3 }}
+          >
+            Crea etiquetas para clasificar tus territorios (ej. Comercial,
+            Escaleras, Urbano denso). Luego podrás asignarlas a cada territorio.
+          </Typography>
 
-        <Stack spacing={1.5} sx={{ mb: 3, maxHeight: 280, overflowY: 'auto', pr: '4px' }}>
-          {tags.length === 0 ? (
-            <Typography className="body-small-regular" color="var(--ink-2)">
-              Aún no hay etiquetas. Crea la primera abajo.
-            </Typography>
-          ) : (
-            tags.map((tag) => {
-              const count = territories.filter((t) => t.tags?.includes(tag.id)).length;
-              return (
-                <Stack
-                  key={tag.id}
-                  direction="row"
-                  alignItems="center"
-                  spacing={1.5}
-                  sx={{
-                    p: 1,
-                    borderRadius: 'var(--shape-md)',
-                    border: '1px solid var(--line)',
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={getColor(tag)}
-                    onChange={(e) => handleColorChange(tag, e.target.value)}
-                    aria-label={`Color de la etiqueta ${tag.nombre}`}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      border: 'none',
-                      background: 'none',
-                      cursor: 'pointer',
+          <Stack
+            spacing={1.5}
+            sx={{ mb: 3, maxHeight: 280, overflowY: 'auto', pr: '4px' }}
+          >
+            {tags.length === 0 ? (
+              <Typography className="body-small-regular" color="var(--ink-2)">
+                Aún no hay etiquetas. Crea la primera abajo.
+              </Typography>
+            ) : (
+              tags.map((tag) => {
+                const count = territories.filter((t) =>
+                  t.tags?.includes(tag.id)
+                ).length;
+                return (
+                  <Stack
+                    key={tag.id}
+                    direction="row"
+                    alignItems="center"
+                    spacing={1.5}
+                    sx={{
+                      p: 1,
+                      borderRadius: 'var(--shape-md)',
+                      border: '1px solid var(--line)',
                     }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography className="body-regular" sx={{ color: 'var(--ink)' }}>
-                      {tag.nombre}
-                    </Typography>
-                    <Typography className="label-small-regular" color="var(--ink-2)">
-                      {count} territorio(s)
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="small"
-                    onClick={() => handleDelete(tag)}
-                    ariaLabel="Borrar etiqueta"
                   >
-                    <IconDelete color="var(--red-main)" width={20} height={20} />
-                  </Button>
-                </Stack>
-              );
-            })
-          )}
-        </Stack>
+                    <ColorPicker
+                      value={getColor(tag)}
+                      onChange={(nuevo) => handleColorChange(tag, nuevo)}
+                      ariaLabel={`Color de la etiqueta ${tag.nombre}`}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        className="body-regular"
+                        sx={{ color: 'var(--ink)' }}
+                      >
+                        {tag.nombre}
+                      </Typography>
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-2)"
+                      >
+                        {conCuenta(count, 'territorio')}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      onClick={() => handleDelete(tag)}
+                      aria-label={`Borrar la etiqueta ${tag.nombre}`}
+                    >
+                      <IconDelete
+                        color="var(--red-main)"
+                        width={20}
+                        height={20}
+                      />
+                    </IconButton>
+                  </Stack>
+                );
+              })
+            )}
+          </Stack>
 
-        <Grid container spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-          <Grid size={{ mobile: 12, tablet600: 7 }}>
-            <TextField
-              label="Nueva etiqueta"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-            />
-          </Grid>
-          <Grid size={{ mobile: 8, tablet600: 3 }}>
-            <input
-              type="color"
+          {/* Una fila que se ordena sola: el campo crece, y la pastilla del
+              color y el botón se quedan al final. Cuando no cabe, el campo se
+              queda con su línea y los otros dos bajan juntos. Antes era una
+              rejilla de doce columnas con los tamaños puestos a ojo, y dejaba
+              la pastilla pegada al margen y el botón flotando en medio de un
+              hueco vacío. */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              mb: 1,
+            }}
+          >
+            <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
+              <TextField
+                label="Nueva etiqueta"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
+            </Box>
+            <ColorPicker
               value={color}
-              onChange={(e) => setColor(e.target.value)}
-              style={{ width: '100%', height: 42, cursor: 'pointer' }}
+              onChange={setColor}
+              ariaLabel="Color de la etiqueta nueva"
+              size={40}
             />
-          </Grid>
-          <Grid size={{ mobile: 4, tablet600: 2 }}>
             <Button
               variant="main"
+              disableAutoStretch
               onClick={handleAdd}
               disabled={!nombre.trim() || saving}
             >
               Añadir
             </Button>
-          </Grid>
-        </Grid>
+          </Box>
 
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          sx={{ borderTop: '1px solid var(--line)', pt: 2.5, mt: 2 }}
-        >
-          <Button variant="tertiary" onClick={onClose} disabled={saving}>
-            Cerrar
-          </Button>
-        </Stack>
-      </Box>
+          <Stack
+            direction="row"
+            justifyContent="flex-end"
+            sx={{ borderTop: '1px solid var(--line)', pt: 2.5, mt: 2 }}
+          >
+            <Button variant="tertiary" onClick={onClose} disabled={saving}>
+              Cerrar
+            </Button>
+          </Stack>
+        </Box>
       </Dialog>
     </>
   );

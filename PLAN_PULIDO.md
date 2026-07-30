@@ -55,8 +55,33 @@ pero sin arreglar.
       ↑ y ↓ mueven la fila. Una sola cosa en pantalla, las dos formas de usarla.
       De paso, Grupos de predicación —que ya arrastraba— GANA el teclado, que
       nunca tuvo, y su asa deja de ser un icono mudo.
-- [ ] **Territorios · DialogZonas y DialogEtiquetas.** Se quedaron a medias:
-      solo se les pasaron los radios.
+- [x] **Territorios · DialogZonas y DialogEtiquetas.** Cerrados. Lo que había
+      debajo de los radios:
+      · **Cuatro `<input type="color">` a pelo** — los únicos de toda la app.
+        Ese control no lo dibuja la app, lo dibuja el sistema, y al pulsarlo se
+        abre el selector del sistema operativo: mil millones de colores para
+        elegir uno de DIEZ. `PALETA_COLORES` ya existía y ya se usaba para ir
+        proponiendo el siguiente al crear, pero no se le enseñaba a nadie.
+        Ahora la paleta ES el selector (`@components/color_picker`): diez
+        pastillas, la elegida con su marca, y botones de verdad a los que se
+        llega tabulando.
+      · **"3 territorio(s)"** en seis sitios de cuatro ficheros → `@utils/plural`.
+      · Los botones de solo icono, que eran `Button variant="small"`, a
+        `@components/icon_button`, y su etiqueta dice de QUÉ zona ("Borrar la
+        zona Elda - Urbano", no "Borrar zona").
+      · El formulario de añadir era una rejilla de doce columnas con los
+        tamaños a ojo: dejaba la pastilla pegada al margen y el botón flotando
+        en un hueco vacío. Ahora es una fila que se ordena sola.
+      · El color inicial de Etiquetas estaba a fuego (`'#EC4899'`).
+      · Y el gordo, que salió tirando del hilo: **`PaperProps` REEMPLAZABA** al
+        del componente `Dialog` en vez de sumarse, y lo primero que se llevaba
+        por delante era la sombra. **Once diálogos** —los nueve de Territorios,
+        las categorías de Documentos y las responsabilidades— pasaban su
+        `PaperProps` solo para cambiar el ancho máximo y se quedaban PLANOS
+        sobre el fondo mientras el resto de la app levantaba los suyos.
+        Arreglado en el componente, así que los once a la vez. Comprobado
+        montando el diálogo en una pantalla accesible (Territorios no carga en
+        modo de prueba): sombra puesta, ancho propio respetado.
 
 ---
 

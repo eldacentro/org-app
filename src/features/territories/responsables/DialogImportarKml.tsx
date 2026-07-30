@@ -2,12 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
+import { conCuenta, enPlural } from '@utils/plural';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Select from '@components/select';
 import MenuItem from '@components/menuitem';
 import { congIDState, congMasterKeyState } from '@states/settings';
-import { territoryZonesSortedState, territoriesState } from '@states/territories';
+import {
+  territoryZonesSortedState,
+  territoriesState,
+} from '@states/territories';
 import { parseKmlFile, ParsedTerritory } from '@utils/kml';
 import { Territory } from '@definition/territories';
 import { saveTerritoriesBatch } from '@services/firebase/territories';
@@ -109,7 +113,11 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
         <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Importar territorios (KML/KMZ)
         </Typography>
-        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 3 }}>
+        <Typography
+          className="body-small-regular"
+          color="var(--ink-2)"
+          sx={{ mb: 3 }}
+        >
           Sube el archivo exportado desde Territory Helper o Google Earth. Cada
           polígono se importará como un territorio en la zona seleccionada.
         </Typography>
@@ -140,26 +148,39 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
                 type="file"
                 accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz"
                 hidden
-                onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }}
+                onChange={(e) => {
+                  handleFile(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
               />
             </label>
           </Button>
 
           {parsed.length > 0 && (
-            <Typography className="body-small-regular" sx={{ color: 'var(--green-main)' }}>
-              {parsed.length} territorio(s) detectado(s).
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--green-main)' }}
+            >
+              {conCuenta(parsed.length, 'territorio')}{' '}
+              {enPlural(parsed.length, 'detectado', 'detectados')}.
             </Typography>
           )}
           {duplicateNumeros.length > 0 && (
-            <Typography className="body-small-regular" sx={{ color: 'var(--orange-main)' }}>
-              {duplicateNumeros.length} número(s) ya existen en esta zona o se repiten
-              en el archivo ({duplicateNumeros.slice(0, 6).join(', ')}
-              {duplicateNumeros.length > 6 ? '…' : ''}). Si importas, se crearán como
-              territorios nuevos y duplicados.
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--orange-main)' }}
+            >
+              {duplicateNumeros.length} número(s) ya existen en esta zona o se
+              repiten en el archivo ({duplicateNumeros.slice(0, 6).join(', ')}
+              {duplicateNumeros.length > 6 ? '…' : ''}). Si importas, se crearán
+              como territorios nuevos y duplicados.
             </Typography>
           )}
           {error && (
-            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--red-main)' }}
+            >
               {error}
             </Typography>
           )}
@@ -169,9 +190,19 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
           direction="row"
           spacing={1.5}
           justifyContent="flex-end"
-          sx={{ borderTop: '1px solid var(--line)', pt: 2.5, mt: 3, flexWrap: 'wrap' }}
+          sx={{
+            borderTop: '1px solid var(--line)',
+            pt: 2.5,
+            mt: 3,
+            flexWrap: 'wrap',
+          }}
         >
-          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={importing}>
+          <Button
+            variant="tertiary"
+            disableAutoStretch
+            onClick={onClose}
+            disabled={importing}
+          >
             Cancelar
           </Button>
           <Button

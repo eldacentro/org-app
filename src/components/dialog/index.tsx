@@ -34,10 +34,29 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
           margin: { mobile: '16px', tablet: '24px', desktop: '32px' },
         },
       }}
-      PaperProps={
-        PaperProps || {
-          className: 'pop-up-shadow',
-          style: {
+      PaperProps={{
+        ...PaperProps,
+        // El `PaperProps` de quien llama SE SUMA al de aquí; antes lo
+        // REEMPLAZABA. Y lo primero que se llevaba por delante era la sombra:
+        // once diálogos —los nueve de Territorios, las categorías de
+        // Documentos y las responsabilidades— pasaban su `PaperProps` solo
+        // para cambiar el ancho máximo, y se quedaban planos sobre el fondo
+        // mientras el resto de la app levantaba los suyos. Todos repetían
+        // además el mismo radio, el mismo fondo y un `width: 100%` que ya da
+        // el `fullWidth` de arriba.
+        className: [
+          ...new Set([
+            'pop-up-shadow',
+            ...(PaperProps?.className ?? '').split(' '),
+          ]),
+        ]
+          .filter(Boolean)
+          .join(' '),
+        // Los valores por defecto van en `sx` y no en `style` a propósito: así
+        // el `style` en línea de quien llama —que es como lo pasan diez de los
+        // once— sigue ganando, y el `sx` del que falta se fusiona detrás.
+        sx: [
+          {
             maxWidth: '560px',
             // Un diálogo es la superficie más grande que se levanta sobre la
             // página: le toca la curva más generosa de la escala, la misma que
@@ -45,8 +64,9 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
             borderRadius: 'var(--shape-xl)',
             backgroundColor: 'var(--white)',
           },
-        }
-      }
+          ...(Array.isArray(PaperProps?.sx) ? PaperProps.sx : [PaperProps?.sx]),
+        ],
+      }}
       slotProps={{
         backdrop: {
           style: {
