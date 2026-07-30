@@ -1,5 +1,5 @@
 import { useAppTranslation } from '@hooks/index';
-import { IconExport } from '@components/icons';
+import { IconPrint } from '@components/icons';
 import IconLoading from '@components/icon_loading';
 import useExportS88 from './useExportS88';
 import NavBarButton from '@components/nav_bar_button';
@@ -14,7 +14,7 @@ const ExportS88 = () => {
       text={t('tr_export')}
       main
       onClick={handleExportS88}
-      icon={isProcessing ? <IconLoading /> : <IconExport />}
+      icon={isProcessing ? <IconLoading /> : <IconPrint />}
       disabled={isProcessing}
     ></NavBarButton>
   );

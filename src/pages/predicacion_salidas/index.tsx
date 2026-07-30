@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   FormControlLabel,
   TextField,
   Tabs,
@@ -54,7 +53,6 @@ import {
   IconCancelFilled,
   IconCalendar,
   IconPrint,
-  IconSparkles,
   IconGenerate,
   IconLocation,
   IconInfo,
@@ -110,6 +108,49 @@ const MONTH_NAMES = [
   'Noviembre',
   'Diciembre',
 ];
+
+const MESES_ES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+
+/**
+ * "Semana del 29 de junio al 5 de julio" a partir de un `weekOf` (2026/06/29).
+ *
+ * Estaba escrita DENTRO del render de la lista, así que el diálogo de "Ajustes
+ * de la semana" no la alcanzaba y enseñaba la fecha en crudo: "la semana del
+ * 2026/06/29". Un identificador interno colado en una frase.
+ */
+export const getWeekLabel = (weekOfStr: string): string => {
+  const [year, month, day] = weekOfStr.split('/').map(Number);
+  const monday = new Date(year, month - 1, day);
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+
+  const monDayNum = monday.getDate();
+  const monMonth = MESES_ES[monday.getMonth()];
+  const sunDayNum = sunday.getDate();
+  const sunMonth = MESES_ES[sunday.getMonth()];
+
+  if (monday.getMonth() === sunday.getMonth()) {
+    return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
+  }
+  return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
+};
+
+/** Lo mismo sin el "Semana del", para meterlo dentro de una frase. */
+export const getWeekRange = (weekOfStr: string): string =>
+  getWeekLabel(weekOfStr).replace(/^Semana del /, '');
 
 // Los 14 turnos (7 días × mañana/tarde) con su etiqueta. Fuente única para el
 // diálogo de "Ajustes del mes" (horarios y excepciones de la suspensión).
@@ -1604,40 +1645,6 @@ const PredicacionSalidas = () => {
                     if (slotType.endsWith('_morning')) return 'Mañana';
                     if (slotType.endsWith('_afternoon')) return 'Tarde';
                     return '';
-                  };
-
-                  const getWeekLabel = (weekOfStr: string): string => {
-                    const [year, month, day] = weekOfStr.split('/').map(Number);
-                    const monday = new Date(year, month - 1, day);
-                    const sunday = new Date(monday);
-                    sunday.setDate(sunday.getDate() + 6);
-
-                    const months = [
-                      'enero',
-                      'febrero',
-                      'marzo',
-                      'abril',
-                      'mayo',
-                      'junio',
-                      'julio',
-                      'agosto',
-                      'septiembre',
-                      'octubre',
-                      'noviembre',
-                      'diciembre',
-                    ];
-
-                    const monDayNum = monday.getDate();
-                    const monMonth = months[monday.getMonth()];
-
-                    const sunDayNum = sunday.getDate();
-                    const sunMonth = months[sunday.getMonth()];
-
-                    if (monday.getMonth() === sunday.getMonth()) {
-                      return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
-                    } else {
-                      return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
-                    }
                   };
 
                   return sortedWeeks.map(([weekOf, days]) => {
@@ -3774,35 +3781,17 @@ const PredicacionSalidas = () => {
           <Box
             sx={{ display: 'flex', justifyContent: 'flex-start', mt: '4px' }}
           >
-            <Button
-              variant="outlined"
+            {/* El color lo decide el estado —rojo para suspender, acento para
+                reactivar— pero la FORMA la pone el botón de la app, no un `sx`
+                a mano: era el único botón de esta tarjeta que no era píldora. */}
+            <AppButton
+              variant="tertiary"
+              color={editCancelled ? undefined : 'red'}
+              disableAutoStretch
               onClick={() => setEditCancelled(!editCancelled)}
-              sx={{
-                borderRadius: 'var(--shape-sm)',
-                fontWeight: '600',
-                textTransform: 'none',
-                fontSize: '13.5px',
-                py: '6px',
-                px: '16px',
-                boxShadow: 'none',
-                borderColor: editCancelled
-                  ? 'var(--accent-main)'
-                  : 'var(--error-main)',
-                color: editCancelled
-                  ? 'var(--accent-main)'
-                  : 'var(--error-main)',
-                '&:hover': {
-                  backgroundColor: editCancelled
-                    ? 'var(--accent-150)'
-                    : 'var(--error-150)',
-                  borderColor: editCancelled
-                    ? 'var(--accent-main)'
-                    : 'var(--error-main)',
-                },
-              }}
             >
               {editCancelled ? 'Reactivar salida' : 'Suspender salida'}
-            </Button>
+            </AppButton>
           </Box>
 
           {!editCancelled && (
@@ -4430,8 +4419,13 @@ const PredicacionSalidas = () => {
               marginBottom: '8px',
             }}
           >
-            Personaliza el comportamiento y los horarios de la semana del{' '}
-            <strong>{weekSettingsDialog.weekOf}</strong>.
+            Personaliza el comportamiento y los horarios de la{' '}
+            <strong>
+              {weekSettingsDialog.weekOf
+                ? `semana del ${getWeekRange(weekSettingsDialog.weekOf)}`
+                : 'semana'}
+            </strong>
+            .
           </Typography>
 
           <FormControlLabel
@@ -4494,22 +4488,20 @@ const PredicacionSalidas = () => {
                 >
                   Sí
                 </AppButton>
-                <Button
-                  size="small"
-                  variant="outlined"
+                {/* Era un <Button> de MUI en crudo con el borde, el color y el
+                    radio escritos a mano, justo al lado de un botón de la app:
+                    uno salía píldora y el otro un rectángulo de 12px, y uno más
+                    pequeño que el otro. Dos botones de la MISMA pregunta no
+                    pueden ser de dos juegos distintos. */}
+                <AppButton
+                  variant="tertiary"
+                  disableAutoStretch
                   onClick={() => {
                     setShowAdjustHours(false);
                   }}
-                  sx={{
-                    borderColor: 'var(--accent-main)',
-                    color: 'var(--accent-main)',
-                    textTransform: 'none',
-                    fontWeight: '700',
-                    borderRadius: 'var(--shape-sm)',
-                  }}
                 >
                   No
-                </Button>
+                </AppButton>
               </Box>
             </Box>
           )}
@@ -4617,10 +4609,19 @@ const PredicacionSalidas = () => {
         </DialogContent>
 
         <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+          {/* Dos arreglos aquí:
+              · El icono. Los cinco "Autocompletar" de la app usan
+                `IconGenerate`; este era el único con otro, y encima el de la
+                bandeja flotante se ve DETRÁS de este diálogo — los dos iconos
+                de la misma acción, a la vez, en la misma pantalla.
+              · El peso. Iba en `tertiary`, igual que "Cancelar", así que la
+                acción que RELLENA la semana entera se leía igual que la que se
+                limpia las manos. En `secondary` (sin contorno) queda claro que
+                es un atajo y no una salida. */}
           <AppButton
-            variant="tertiary"
+            variant="secondary"
             disableAutoStretch
-            startIcon={<IconSparkles />}
+            startIcon={<IconGenerate />}
             onClick={handleAutofillWeek}
           >
             Autocompletar

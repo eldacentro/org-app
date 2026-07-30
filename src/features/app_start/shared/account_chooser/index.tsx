@@ -1,4 +1,5 @@
-import { Box, Button, CircularProgress, Fade } from '@mui/material';
+import { Box, Button, Fade } from '@mui/material';
+import IconLoading from '@components/icon_loading';
 import { IconError, IconGoogle } from '@icons/index';
 import useAccountChooser from './useAccountChooser';
 import InfoMessage from '@components/info-message';
@@ -48,7 +49,7 @@ const AccountChooser = () => {
           disabled={isAuthProcessing}
           startIcon={
             isAuthProcessing ? (
-              <CircularProgress size={20} sx={{ color: 'var(--black)' }} />
+              <IconLoading width={20} color="var(--black)" />
             ) : (
               <IconGoogle width={24} height={24} />
             )
@@ -59,16 +60,16 @@ const AccountChooser = () => {
             justifyContent: 'center',
             gap: '12px',
             padding: '14px 24px',
-            borderRadius: 'var(--shape-sm)',
+            borderRadius: 'var(--shape-full)',
             border: '1px solid var(--line)',
             background: 'var(--card)',
             textTransform: 'none',
-            fontFamily: "'Figtree', sans-serif",
             fontWeight: 600,
             fontSize: '16px',
             color: 'var(--black)',
             boxShadow: 'var(--btn-shadow)',
-            transition: 'all 0.2s ease-in-out',
+            transition:
+              'border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
             '&.Mui-disabled': {
               opacity: 0.7,
               border: '1px solid var(--line)',

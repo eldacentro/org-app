@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Stack, CircularProgress } from '@mui/material';
+import IconLoading from '@components/icon_loading';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { congIDState, settingsState } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
@@ -162,7 +163,7 @@ const GoogleDriveTab = () => {
             <Stack direction="row" spacing={1} alignItems="center">
               {isTokenExpired && (
                 <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
-                  {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Reautorizar'}
+                  {isConnecting ? <IconLoading width={20} color="inherit" /> : 'Reautorizar'}
                 </Button>
               )}
               <Button variant="secondary" onClick={handleDisconnect}>
@@ -171,7 +172,7 @@ const GoogleDriveTab = () => {
             </Stack>
           ) : (
             <Button variant="main" onClick={handleConnect} disabled={isConnecting}>
-              {isConnecting ? <CircularProgress size={20} color="inherit" /> : 'Vincular cuenta'}
+              {isConnecting ? <IconLoading width={20} color="inherit" /> : 'Vincular cuenta'}
             </Button>
           )}
         </Box>

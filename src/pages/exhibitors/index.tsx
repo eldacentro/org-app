@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
-  Button,
   Card,
   Dialog,
   DialogActions,
@@ -3083,9 +3082,14 @@ const Exhibitors = () => {
                                   pt: '12px',
                                 }}
                               >
-                                <Button
+                                {/* Eran <Button> de MUI con el color, el peso
+                                    y el radio a mano, en una tarjeta donde el
+                                    resto de los botones SÍ son de la app: dos
+                                    juegos distintos a un centímetro. */}
+                                <AppButton
+                                  variant="secondary"
+                                  disableAutoStretch
                                   onClick={() => handleOpenTurnConfig(turn)}
-                                  size="small"
                                   startIcon={
                                     <IconSettings
                                       width={16}
@@ -3093,42 +3097,26 @@ const Exhibitors = () => {
                                       color="var(--accent-main)"
                                     />
                                   }
-                                  sx={{
-                                    textTransform: 'none',
-                                    fontWeight: '700',
-                                    color: 'var(--accent-main)',
-                                    '&:hover': {
-                                      backgroundColor: 'var(--accent-100)',
-                                    },
-                                    borderRadius: 'var(--shape-sm)',
-                                  }}
                                 >
                                   Editar
-                                </Button>
-                                <Button
+                                </AppButton>
+                                <AppButton
+                                  variant="secondary"
+                                  color="red"
+                                  disableAutoStretch
                                   onClick={() =>
                                     handleDeleteGlobalTurn(turn.id)
                                   }
-                                  size="small"
                                   startIcon={
                                     <IconDelete
                                       width={16}
                                       height={16}
-                                      color="var(--error-main)"
+                                      color="var(--red-main)"
                                     />
                                   }
-                                  sx={{
-                                    textTransform: 'none',
-                                    fontWeight: '700',
-                                    color: 'var(--error-main)',
-                                    '&:hover': {
-                                      backgroundColor: 'var(--error-150)',
-                                    },
-                                    borderRadius: 'var(--shape-sm)',
-                                  }}
                                 >
                                   Eliminar
-                                </Button>
+                                </AppButton>
                               </Box>
                             </Card>
                           );
@@ -4273,9 +4261,9 @@ const Exhibitors = () => {
                       </Box>
                       {isCurrentlyOverridden && (
                         <Box sx={{ display: 'flex', gap: '8px' }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
+                          <AppButton
+                            variant="tertiary"
+                            disableAutoStretch
                             onClick={() => {
                               setTurnConfigDialog({
                                 open: true,
@@ -4291,10 +4279,10 @@ const Exhibitors = () => {
                             }}
                           >
                             Editar
-                          </Button>
+                          </AppButton>
                           <IconButton
+                            aria-label="Eliminar el turno"
                             size="small"
-                            color="error"
                             onClick={() =>
                               handleDeleteGlobalTurn(turn.id, true)
                             }

@@ -1,5 +1,6 @@
 import { useState, useRef, ChangeEvent } from 'react';
-import { Box, Stack, CircularProgress } from '@mui/material';
+import IconLoading from '@components/icon_loading';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { PDFDocument } from 'pdf-lib';
 import Dialog from '@components/dialog';
@@ -240,7 +241,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
 
         {isBusy && (
           <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
-            <CircularProgress size={24} />
+            <IconLoading width={24} color="var(--accent-main)" />
             <Typography>{isCompressing ? 'Comprimiendo PDF…' : 'Subiendo documento…'}</Typography>
           </Stack>
         )}

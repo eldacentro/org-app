@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import IconLoading from '@components/icon_loading';
 import { useAtomValue } from 'jotai';
-import { Box, Stack, Grid, CircularProgress } from '@mui/material';
+import { Box, Stack, Grid } from '@mui/material';
 import { saveAs } from 'file-saver';
 import backupsDb, { SnapshotType } from '@db/backupsDb';
 import {
@@ -252,7 +253,7 @@ const LocalBackupsTab = () => {
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress color="inherit" />
+          <IconLoading width={40} height={40} color="var(--accent-main)" />
         </Box>
       ) : snapshots.length === 0 ? (
         <Box

@@ -1,4 +1,5 @@
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
+import IconLoading from '@components/icon_loading';
 import { useNavigate } from 'react-router';
 import { IconImportFile } from '@components/icons';
 import WeekSelector from '../week_selector';
@@ -60,7 +61,7 @@ const ExhibitorsWeeklyContainer = () => {
 
       {week === null ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
+          <IconLoading width={40} height={40} color="var(--accent-main)" />
         </Box>
       ) : noSchedule ? (
         <Box

@@ -20,8 +20,7 @@ import IconButton from '@components/icon_button';
 import {
   IconAdd,
   IconDelete,
-  IconExport,
-  IconDownload,
+  IconPrint,
   IconPerson,
   IconAssignment,
   IconMapOverview,
@@ -561,7 +560,7 @@ const S21DirectExportButton = ({ disabled }: { disabled: boolean }) => {
   return (
     <Button
       variant="secondary"
-      startIcon={<IconDownload />}
+      startIcon={<IconPrint />}
       disabled={disabled}
       onClick={() => handleExportCards([], 'all')}
     >
@@ -575,7 +574,7 @@ const S88DirectExportButton = ({ disabled }: { disabled: boolean }) => {
   return (
     <Button
       variant="secondary"
-      startIcon={<IconDownload />}
+      startIcon={<IconPrint />}
       disabled={disabled}
       onClick={handleExportS88}
     >
@@ -589,7 +588,7 @@ const S13DirectExportButton = ({ disabled }: { disabled: boolean }) => {
   return (
     <Button
       variant="secondary"
-      startIcon={<IconDownload />}
+      startIcon={<IconPrint />}
       disabled={disabled}
       onClick={() => exportS13(new Date(), false)}
     >
@@ -907,7 +906,7 @@ const CircuitVisitDashboard = () => {
             {working && (
               <Button
                 variant="main"
-                startIcon={<IconExport color="var(--always-white)" />}
+                startIcon={<IconPrint color="var(--always-white)" />}
                 onClick={handleExportPdf}
               >
                 Exportar

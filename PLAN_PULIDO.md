@@ -167,8 +167,28 @@ Entre los cinco son el **56%** del total.
       `styled(IconButton)` con otro nombre. Lo cazó el navegador, contando
       botones sin nombre accesible. **Falta pasar esa cuenta por el resto de
       las rutas**; sólo se comprobaron Inicio, Personas e Informe.
-- [ ] **B7 · MUI en crudo** (108) — el último: `confirm_dialog` primero, que es
-      lo más reutilizado y lo que menos se parece a la app
+- [~] **B7 · MUI en crudo** — hecha la parte de los BOTONES, que es donde se
+      veía. De 108 quedan **cinco** `<Button>` de MUI en toda la app, y los
+      cinco son legítimos: son componentes compartidos que CONSTRUYEN su propio
+      control sobre la base de MUI (`filter_chip`, `timer_button`, el botón del
+      selector de fecha, `account_type`) — eso no es "MUI en crudo en una
+      página", eso es la primitiva.
+      Lo que se quitó, encontrado tirando del hilo de lo que vio Carlos:
+      · Salidas · "¿Deseas ajustar el horario?" — el "Sí" era de la app y el
+        "No" un `<Button>` de MUI con el borde, el color y el radio a mano:
+        uno píldora, el otro un rectángulo de 12px, y de distinto tamaño.
+      · Exhibidores · "Editar"/"Eliminar" de cada turno, y el "Editar" del
+        override mensual, que no llevaba NI UN estilo — o sea, con los colores
+        por defecto de MUI, que no son los del tema.
+      · Salidas · "Suspender/Reactivar salida".
+      · El botón de Google del arranque: a píldora, con el movimiento por
+        tokens y sin la fuente escrita a mano.
+      Los `CircularProgress` sueltos pasan a `IconLoading` (5 de 8). Los otros
+      tres se quedan: NO son indicadores de carga, son anillos decorativos
+      alrededor de un avatar, con `thickness` y posición absoluta, y el
+      componente compartido no sabe hacer eso. Nota: `IconLoading` ES un
+      `CircularProgress` por dentro, así que esto nunca se vio distinto — era
+      deuda de código, no un fallo visual.
 
 ---
 

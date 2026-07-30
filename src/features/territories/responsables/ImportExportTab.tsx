@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Stack, CircularProgress } from '@mui/material';
+import IconLoading from '@components/icon_loading';
+import { Box, Stack } from '@mui/material';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { IconS21Page, IconSpreadsheet, IconMapOverview, IconLightbulb } from '@components/icons';
@@ -108,7 +109,7 @@ const ImportExportTab = () => {
               }}
               sx={{ borderRadius: 'var(--shape-full)', px: 3, gap: 1 }}
             >
-              {busy ? <CircularProgress size={16} color="inherit" /> : null}
+              {busy ? <IconLoading width={16} color="inherit" /> : null}
               {busy ? 'Generando…' : 'Exportar S-13'}
             </Button>
           </Box>
