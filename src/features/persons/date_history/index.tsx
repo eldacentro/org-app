@@ -18,18 +18,31 @@ const DateHistory = ({
 }: DateHistoryType) => {
   const { t } = useAppTranslation();
 
-  const { tabletDown, tablet600Down } = useBreakpoints();
+  const { tablet600Down } = useBreakpoints();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Las dos fechas, y quien decide si caben lado a lado es el SITIO, no
+          el ancho de la ventana.
+
+          Antes esto era `flexWrap: tabletDown ? 'wrap' : 'nowrap'`, y con
+          `nowrap` los dos campos se salían de la tarjeta: un campo de fecha no
+          baja de 254px de ancho —los tres huecos de la fecha, la etiqueta y el
+          botón del calendario—, así que dos no caben en una tarjeta de 480 por
+          mucho que el navegador quiera encogerlos. Medido: se salía 27px por
+          la derecha.
+
+          Y el ancho de la ventana no sirve para decidirlo, porque esta fila
+          vive dentro de una tarjeta que puede ser estrecha en una pantalla
+          ancha (dos columnas). Con `wrap` y una base de 200 lo decide el hueco
+          real: caben, y si no, se apilan a lo ancho. */}
       <Box
         sx={{
           display: 'flex',
           gap: '16px',
-          flexWrap: tabletDown ? 'wrap' : 'nowrap',
-          justifyContent: 'space-between',
-          flexDirection: 'row',
+          flexWrap: 'wrap',
           width: '100%',
+          '& > *': { flex: '1 1 200px', minWidth: 0 },
         }}
       >
         <DatePicker

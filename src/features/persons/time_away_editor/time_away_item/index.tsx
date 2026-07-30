@@ -13,7 +13,7 @@ import {
 } from '@services/app/time_away';
 import { addDays, formatDateShortMonth } from '@utils/date';
 import { TimeAwayItemType } from './index.types';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { useAppTranslation } from '@hooks/index';
 
 /**
  * Un periodo de ausencia.
@@ -53,8 +53,6 @@ const TimeAwayItem = ({
   readOnly,
 }: TimeAwayItemType) => {
   const { t } = useAppTranslation();
-
-  const { tabletDown } = useBreakpoints();
 
   const startDate = safeDate(start_date);
   const endDate = end_date ? safeDate(end_date) : null;
@@ -121,14 +119,16 @@ const TimeAwayItem = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Lo decide el hueco, no el ancho de la ventana: ver la nota larga en
+          `persons/date_history`, que tenía esta misma fila y el mismo
+          desbordamiento. */}
       <Box
         sx={{
           display: 'flex',
           gap: '16px',
-          flexWrap: tabletDown ? 'wrap' : 'nowrap',
-          justifyContent: 'space-between',
-          flexDirection: 'row',
+          flexWrap: 'wrap',
           width: '100%',
+          '& > *': { flex: '1 1 200px', minWidth: 0 },
         }}
       >
         <DatePicker

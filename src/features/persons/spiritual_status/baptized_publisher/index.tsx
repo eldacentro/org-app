@@ -15,6 +15,7 @@ import Radio from '@components/radio';
 import SpiritualStatusTitle from '../title';
 import StatusHistory from '../history';
 import Typography from '@components/typography';
+import YearsCount from '@components/years_count';
 
 const BaptizedPublisher = ({
   checked,
@@ -111,7 +112,9 @@ const BaptizedPublisher = ({
             sx={{
               display: 'flex',
               gap: '8px',
-              alignItems: tabletDown ? 'flex-start' : 'center',
+              // `stretch` para que el recuadro de años tome el alto del campo
+              // (en fila) o su ancho (cuando se apila en móvil).
+              alignItems: 'stretch',
               flexWrap: 'wrap',
               width: '100%',
               flexDirection: tabletDown ? 'column' : 'row',
@@ -133,22 +136,7 @@ const BaptizedPublisher = ({
                 readOnly={!isPersonEditor}
               />
             </Box>
-            <Box
-              sx={{
-                backgroundColor: 'var(--accent-150)',
-                padding: '8px 16px',
-                borderRadius: 'var(--shape-sm)',
-                height: tabletDown ? 'auto' : '48px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '120px',
-              }}
-            >
-              <Typography className="h4" color="var(--accent-dark)">
-                {t('tr_yearsNumber', { yearsCount: age })}
-              </Typography>
-            </Box>
+            <YearsCount>{t('tr_yearsNumber', { yearsCount: age })}</YearsCount>
           </Box>
 
           <FirstReport />

@@ -10,6 +10,7 @@ import DatePicker from '@components/date_picker';
 import Radio from '@components/radio';
 import TextField from '@components/textfield';
 import Typography from '@components/typography';
+import YearsCount from '@components/years_count';
 import Tooltip from '@components/tooltip';
 
 const PersonBasicInfo = () => {
@@ -224,23 +225,7 @@ const PersonBasicInfo = () => {
           title={t('tr_ageInYearsAndMonths', ageToYearsAndMonths(age))}
           show={age !== '0'}
         >
-          <Box
-            sx={{
-              backgroundColor: 'var(--accent-150)',
-              padding: '8px 16px',
-              borderRadius: 'var(--shape-sm)',
-              minHeight: '48px',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Typography className="h4" color="var(--accent-dark)">
-              {t('tr_userAge', { userAge: age })}
-            </Typography>
-          </Box>
+          <YearsCount>{t('tr_userAge', { userAge: age })}</YearsCount>
         </Tooltip>
       </Box>
 

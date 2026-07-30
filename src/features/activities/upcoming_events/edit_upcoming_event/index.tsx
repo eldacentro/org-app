@@ -172,7 +172,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             flexDirection: 'row',
             gap: '16px',
             flexWrap: !desktopUp ? 'wrap' : 'nowrap',
-            '& > *': { flex: !desktopUp ? 'none' : '1' },
+            '& > *': { flex: !desktopUp ? 'none' : '1', minWidth: 0 },
           }}
         >
           <Select
@@ -256,13 +256,18 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
 
         <Typography className="h4">{t('tr_dateAndTime')}</Typography>
 
+        {/* Duración + fecha + hora. En escritorio esto era `nowrap` y sin
+            permiso para encoger: un selector de fecha no baja de 254px, así que
+            dos seguidos pedían 540 dentro de un hueco de 480 y se salían del
+            diálogo (medido). Lo decide el sitio, no el ancho de la ventana —
+            un diálogo puede ser estrecho en una pantalla ancha. */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'row',
             gap: '16px',
-
-            flexWrap: !desktopUp ? 'wrap' : 'nowrap',
+            flexWrap: 'wrap',
+            '& > *': { flex: '1 1 200px', minWidth: 0 },
           }}
         >
           <Select
@@ -405,7 +410,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
             flexDirection: 'row',
             gap: '16px',
             flexWrap: !desktopUp ? 'wrap' : 'nowrap',
-            '& > *': { flex: !desktopUp ? 'none' : '1' },
+            '& > *': { flex: !desktopUp ? 'none' : '1', minWidth: 0 },
           }}
         >
           <TextField

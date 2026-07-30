@@ -4,7 +4,7 @@ import { CardContainer } from '../shared_styles';
 import usePublisherDetails from './usePublisherDetails';
 import PersonDetails from '@features/persons/person_details';
 import TextField from '@components/textfield';
-import YearsCount from '../years_count';
+import YearsCount from '@components/years_count';
 import DatePicker from '@components/date_picker';
 import Typography from '@components/typography';
 
@@ -67,7 +67,7 @@ const PublisherDetails = () => {
               onChange={handleChangeFirstReport}
             />
 
-            {laptopUp && <Box sx={{ width: '155px' }} />}
+            {laptopUp && <Box sx={{ width: '120px' }} />}
           </Box>
         </Stack>
       </Stack>
