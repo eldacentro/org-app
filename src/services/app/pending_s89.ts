@@ -1,5 +1,7 @@
-import { AssignmentFieldType } from '@definition/assignment';
+import { AssignmentCode, AssignmentFieldType } from '@definition/assignment';
 import { AssignmentCongregation, SchedWeekType } from '@definition/schedules';
+import { SourceWeekType } from '@definition/sources';
+import { S89_ASSIGNMENTS } from '@constants/index';
 
 /**
  * Las hojitas que quedan por confirmar.
@@ -73,4 +75,48 @@ export const pendingS89Slips = ({
   }
 
   return result;
+};
+
+/**
+ * ¿Esta asignación concreta lleva hoja S-89?
+ *
+ * La S-89 es la papeleta de la Escuela del Ministerio, y se le da a un
+ * ESTUDIANTE. Las partes de "Seamos mejores maestros" de tipo «Análisis»
+ * (`MM_Discussion`) no las hace un estudiante: las dirige un anciano o un
+ * siervo ministerial, y por eso el propio selector de persona las manda al
+ * selector de hermanos y no al de estudiantes. No llevan papeleta.
+ *
+ * Pero se guardan en el mismo campo que las demás (`MM_AYFPartN_Student_A`),
+ * que está en `S89_ASSIGNMENTS`. Consecuencia: el contador de "hojitas
+ * pendientes" las contaba, se imprimía una S-89 para ellas, y la casilla de
+ * "entregada" no se dibujaba nunca —porque el selector de hermanos no la
+ * tiene—, así que quedaban pendientes PARA SIEMPRE y el número nunca bajaba
+ * a cero.
+ *
+ * El tipo de parte no está en el programa, está en el material de la reunión,
+ * así que hace falta el `source` de esa semana. Sin él se responde que sí,
+ * que es como se comportaba antes: es preferible una hojita de más a que
+ * desaparezca una que sí tocaba.
+ */
+export const schedulesS89AssignmentCarriesSlip = (
+  assignment: AssignmentFieldType,
+  source: SourceWeekType | undefined,
+  lang: string
+): boolean => {
+  if (!(S89_ASSIGNMENTS as readonly string[]).includes(assignment)) {
+    return false;
+  }
+
+  // La lectura de la Biblia siempre es de un estudiante.
+  if (!assignment.includes('AYFPart')) return true;
+
+  const partNum = assignment.match(/\d+/)?.at(0);
+  if (!partNum) return true;
+
+  const code: AssignmentCode =
+    source?.midweek_meeting?.[`ayf_part${partNum}`]?.type?.[lang];
+
+  if (!code) return true;
+
+  return code !== AssignmentCode.MM_Discussion;
 };

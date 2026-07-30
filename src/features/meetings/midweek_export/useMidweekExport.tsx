@@ -97,7 +97,14 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
     const S89: S89DataType[] = [];
 
     for (const schedule of weeks) {
-      const data = schedulesS89Data(schedule, dataView);
+      // Con el material de la semana, para no imprimir una S-89 de una parte
+      // de «Análisis»: esas las dirige un hermano, no un estudiante.
+      const data = schedulesS89Data(
+        schedule,
+        dataView,
+        sources.find((record) => record.weekOf === schedule.weekOf),
+        lang
+      );
       S89.push(...data);
     }
 

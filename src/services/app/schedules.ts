@@ -33,6 +33,7 @@ import {
   schedulesState,
 } from '@states/schedules';
 import { AssignmentCode, AssignmentFieldType } from '@definition/assignment';
+import { schedulesS89AssignmentCarriesSlip } from './pending_s89';
 import {
   ApplyMinistryType,
   LivingAsChristiansType,
@@ -2360,7 +2361,9 @@ export const schedulesS89DataForAssignment = (
  */
 export const schedulesS89AssignmentsForWeek = (
   schedule: SchedWeekType,
-  dataView: string
+  dataView: string,
+  source?: SourceWeekType,
+  lang?: string
 ): AssignmentFieldType[] => {
   const weekType =
     schedule.midweek_meeting.week_type.find(
@@ -2386,14 +2389,32 @@ export const schedulesS89AssignmentsForWeek = (
       return false;
     }
 
+    // Las partes de «Análisis» no llevan papeleta (ver el comentario de
+    // `schedulesS89AssignmentCarriesSlip`). Sin el material de la semana no
+    // se puede saber el tipo, y entonces se dejan pasar todas, que es como
+    // se comportaba antes.
+    if (source && !schedulesS89AssignmentCarriesSlip(assignment, source, lang)) {
+      return false;
+    }
+
     return true;
   });
 };
 
-export const schedulesS89Data = (schedule: SchedWeekType, dataView: string) => {
+export const schedulesS89Data = (
+  schedule: SchedWeekType,
+  dataView: string,
+  source?: SourceWeekType,
+  lang?: string
+) => {
   const result: S89DataType[] = [];
 
-  for (const assignment of schedulesS89AssignmentsForWeek(schedule, dataView)) {
+  for (const assignment of schedulesS89AssignmentsForWeek(
+    schedule,
+    dataView,
+    source,
+    lang
+  )) {
     const obj = schedulesS89DataForAssignment(schedule, dataView, assignment);
 
     if (obj) result.push(obj);

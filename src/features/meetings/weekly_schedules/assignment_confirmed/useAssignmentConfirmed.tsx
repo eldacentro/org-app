@@ -2,13 +2,15 @@ import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { AssignmentFieldType } from '@definition/assignment';
 import { AssignmentCongregation } from '@definition/schedules';
-import { ASSIGNMENT_PATH, S89_ASSIGNMENTS } from '@constants/index';
+import { ASSIGNMENT_PATH } from '@constants/index';
 import {
   schedulesGetData,
   schedulesToggleAssignmentConfirmed,
 } from '@services/app/schedules';
+import { schedulesS89AssignmentCarriesSlip } from '@services/app/pending_s89';
 import { schedulesState } from '@states/schedules';
-import { userDataViewState } from '@states/settings';
+import { sourcesState } from '@states/sources';
+import { JWLangState, userDataViewState } from '@states/settings';
 import useCurrentUser from '@hooks/useCurrentUser';
 
 /**
@@ -29,6 +31,8 @@ const useAssignmentConfirmed = ({
   dataView?: string;
 }) => {
   const schedules = useAtomValue(schedulesState);
+  const sources = useAtomValue(sourcesState);
+  const lang = useAtomValue(JWLangState);
   const currentDataView = useAtomValue(userDataViewState);
   const { isMidweekEditor } = useCurrentUser();
 
@@ -36,15 +40,22 @@ const useAssignmentConfirmed = ({
 
   const view = dataView ?? currentDataView;
 
-  const llevaHojita = useMemo(() => {
-    if (!assignment) return false;
-
-    return (S89_ASSIGNMENTS as readonly string[]).includes(assignment);
-  }, [assignment]);
-
   const schedule = useMemo(() => {
     return schedules.find((record) => record.weekOf === week);
   }, [schedules, week]);
+
+  // La MISMA pregunta que se hacen el contador de pendientes y la impresión,
+  // y ahora con la misma respuesta: antes aquí se miraba `S89_ASSIGNMENTS` a
+  // pelo, sin el tipo de parte. Tres sitios preguntando lo mismo por su
+  // cuenta es exactamente cómo se llega a que el contador diga que falta una
+  // hojita que no existe.
+  const llevaHojita = useMemo(() => {
+    if (!assignment) return false;
+
+    const source = sources.find((record) => record.weekOf === week);
+
+    return schedulesS89AssignmentCarriesSlip(assignment, source, lang);
+  }, [assignment, sources, week, lang]);
 
   const assigned = useMemo(() => {
     if (!llevaHojita || !schedule) return null;

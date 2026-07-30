@@ -12,10 +12,12 @@ import { buildWeekRangeLabel } from '@services/app/week_range';
 import { formatDate, getWeekDate } from '@utils/date';
 import { monthNamesState } from '@states/app';
 import { personsState } from '@states/persons';
+import { sourcesState } from '@states/sources';
 import { schedulesState, selectedWeekState } from '@states/schedules';
 import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  JWLangState,
   userDataViewState,
 } from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
@@ -41,6 +43,8 @@ const usePendingSlips = () => {
   const schedules = useAtomValue(schedulesState);
   const selectedWeek = useAtomValue(selectedWeekState);
   const persons = useAtomValue(personsState);
+  const sources = useAtomValue(sourcesState);
+  const lang = useAtomValue(JWLangState);
   const dataView = useAtomValue(userDataViewState);
   const monthNames = useAtomValue(monthNamesState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
@@ -53,7 +57,16 @@ const usePendingSlips = () => {
       schedules,
       dataView,
       fromWeek,
-      assignmentsForWeek: schedulesS89AssignmentsForWeek,
+      // El material de la semana hace falta para saber el TIPO de cada parte
+      // de "Seamos mejores maestros": las de «Análisis» las dirige un hermano
+      // y no llevan papeleta, así que tampoco cuentan como pendientes.
+      assignmentsForWeek: (schedule, view) =>
+        schedulesS89AssignmentsForWeek(
+          schedule,
+          view,
+          sources.find((record) => record.weekOf === schedule.weekOf),
+          lang
+        ),
       getAssignment: (
         schedule: SchedWeekType,
         assignment: AssignmentFieldType,
@@ -90,6 +103,8 @@ const usePendingSlips = () => {
     });
   }, [
     schedules,
+    sources,
+    lang,
     dataView,
     persons,
     displayNameEnabled,
