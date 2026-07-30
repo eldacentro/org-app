@@ -197,8 +197,16 @@ Entre los cinco son el **56%** del total.
         Comprobado en el navegador por las dos caras: ni un mes en mayúscula a
         mitad de frase en 14 rutas, ni uno en minúscula abriendo una.
       **Queda**: plurales concatenados y códigos en pantalla.
-- [x] **B6 · Accesibilidad** — cerrado y **comprobado en el navegador, no con
-      `grep`**: las 43 rutas de `App.tsx`, contando botones sin nombre
+- [~] **B6 · Accesibilidad** — casi cerrado, pero mi propia comprobación tenía
+      un AGUJERO: excluía `[role=button]` del barrido de "div pulsables", dando
+      por hecho que ese papel implicaba ser alcanzable. No lo implica. Había
+      tres sitios con `role="button"` y SIN `tabIndex` —el botón de acción de
+      la bandeja móvil (que sale en todas las pantallas) y las dos flechas del
+      navegador de semanas—: se anunciaban como botón a un lector de pantalla y
+      no se podían enfocar ni pulsar con el teclado. Eso es PEOR que un `div` a
+      secas, porque prometen algo que no cumplen. Los tres son ya `<button>`.
+      Lo anterior sigue en pie: comprobado en el navegador, no con
+      `grep`: las 43 rutas de `App.tsx`, contando botones sin nombre
       accesible. Cero.
       El método importa, porque `grep` falló DOS veces:
       · El borrar de la lista de personas (100 botones, uno por hermano) va

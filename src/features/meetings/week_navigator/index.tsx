@@ -44,7 +44,16 @@ const WeekNavigator = ({
   const canBack = index > 0;
   const canNext = index !== -1 && index < ordenadas.length - 1;
 
+  // Las dos flechas llevaban `role="button"` SIN `tabIndex`: se anunciaban
+  // como botón y no se podían enfocar ni pulsar con el teclado — peor que un
+  // `div` a secas, porque prometen algo que no cumplen. Siendo <button> de
+  // verdad, el foco y el Intro/Espacio vienen de fábrica, y `disabled` hace
+  // solo lo que hacía `aria-disabled` a mano.
   const flecha = (activa: boolean) => ({
+    appearance: 'none',
+    background: 'none',
+    border: 'none',
+    padding: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -55,6 +64,10 @@ const WeekNavigator = ({
     cursor: activa ? 'pointer' : 'default',
     transition: 'background-color var(--motion-fast) var(--ease-standard)',
     '&:hover': { backgroundColor: activa ? 'var(--accent-150)' : 'unset' },
+    '&:focus-visible': {
+      outline: '2px solid var(--accent-main)',
+      outlineOffset: '2px',
+    },
   });
 
   return (
@@ -68,11 +81,12 @@ const WeekNavigator = ({
       }}
     >
       <Box
+        component="button"
+        type="button"
+        disabled={!canBack}
         onClick={canBack ? () => onChange(ordenadas[index - 1]) : undefined}
         sx={flecha(canBack)}
-        role="button"
         aria-label="Semana anterior"
-        aria-disabled={!canBack}
       >
         <IconNavigateLeft
           color={canBack ? 'var(--black)' : 'var(--grey-300)'}
@@ -84,11 +98,12 @@ const WeekNavigator = ({
       </Typography>
 
       <Box
+        component="button"
+        type="button"
+        disabled={!canNext}
         onClick={canNext ? () => onChange(ordenadas[index + 1]) : undefined}
         sx={flecha(canNext)}
-        role="button"
         aria-label="Semana siguiente"
-        aria-disabled={!canNext}
       >
         <IconNavigateRight
           color={canNext ? 'var(--black)' : 'var(--grey-300)'}
