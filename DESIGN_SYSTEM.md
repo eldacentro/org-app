@@ -110,6 +110,20 @@ los datos. El radio del esqueleto se saca del elemento real, no a ojo: la
 tarjeta del día es `--shape-sm` porque `.meeting-row .day-badge` lo es, y la
 píldora de la hora es `--shape-full` porque `.meeting-row .meeting-time` lo es.
 
+#### Un texto recortado por su propia caja
+
+`line-height: 1` deja la caja con EXACTAMENTE el alto de la fuente. Si encima
+hay `overflow: hidden` —que es lo normal cuando se quieren puntos suspensivos—
+los rabitos que bajan (g, p, q, y, j) se cortan por debajo. A 16px la caja da
+16 y el texto necesita 19.
+
+Se arregla con **relleno**, no subiendo el interlineado: el recorte de
+`overflow` ocurre en el borde del RELLENO, así que la letra gana sitio y el
+texto no se mueve ni un píxel. Subir el interlineado lo baja y devuelve el aire
+que casi siempre se quitó a propósito.
+
+Pasaba en la etiqueta de TODOS los campos con rótulo de la app (2026-07-30).
+
 #### Concentricidad — manda sobre la tabla de arriba
 
 Cuando un elemento **comparte esquina con el contenedor que lo envuelve**, su

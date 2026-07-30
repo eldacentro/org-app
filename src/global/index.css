@@ -437,6 +437,19 @@ body iframe {
   /* Sin interlineado sobrante: la caja de la etiqueta se ceñía a 1,4 líneas y
      ese aire invisible se comía la separación con el nombre de debajo. */
   line-height: 1;
+  /* …pero `line-height: 1` deja la caja de la etiqueta con EXACTAMENTE el alto
+     de la fuente (16px), y MUI le pone `overflow: hidden` para los puntos
+     suspensivos. El resultado: los rabitos que bajan —la g, la p, la y, la j—
+     se cortaban por debajo. Medido: la caja daba 16px y el texto necesita 19.
+     Pasaba en TODOS los campos con etiqueta de la app.
+
+     Se arregla con relleno y no subiendo el interlineado porque el recorte de
+     `overflow` ocurre en el borde del RELLENO, no en el del contenido: así la
+     letra gana sitio y el texto no se mueve ni un píxel. Subir el interlineado
+     lo habría bajado 2px y habría vuelto el aire que quitaba la línea de
+     arriba. Y como la etiqueta va posicionada en absoluto, crecer hacia abajo
+     no puede empujar nada. */
+  padding-bottom: 4px;
   transition:
     transform var(--motion-fast) var(--ease-standard),
     color var(--motion-fast) var(--ease-standard);
