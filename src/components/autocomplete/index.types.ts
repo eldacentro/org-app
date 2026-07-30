@@ -34,6 +34,13 @@ export type AutocompletePropsType<T> = Omit<
   label?: string;
 
   /**
+   * Texto de ayuda dentro del campo, para cuando NO se usa etiqueta: en una
+   * columna estrecha una etiqueta dentro se recorta ("Herma…"), y a veces el
+   * rótulo de verdad ya está encima de la columna.
+   */
+  placeholder?: string;
+
+  /**
    * Deja que el valor seleccionado ocupe varias líneas en vez de cortarse.
    *
    * Un `<input>` no parte el texto por naturaleza: lo que no cabe se corta y

@@ -14,7 +14,6 @@ import {
   IconButton,
   MenuItem,
   Select,
-  ListSubheader,
   Grid,
   Chip,
   List,
@@ -40,6 +39,8 @@ import { Typography } from '@components/index';
 // usa el Button de MUI en el cuerpo; los pies de diálogo ya migran al del
 // sistema (mismo tratamiento que predicacion_salidas).
 import AppButton from '@components/button';
+import AutoComplete from '@components/autocomplete';
+import { PersonType } from '@definition/person';
 import SegmentedControl from '@components/segmented_control';
 import accentSurface from '@components/accent_surface';
 import Checkbox from '@components/checkbox';
@@ -3503,46 +3504,59 @@ const Exhibitors = () => {
                                               >
                                                 {labelText}
                                               </Typography>
-                                              <Select
-                                                value={currentVal}
-                                                onChange={(e) =>
+                                              {/* Un buscador, no un desplegable.
+                                                  Era un Select con la lista
+                                                  entera de hermanos
+                                                  habilitados —en una
+                                                  congregación mediana pasan
+                                                  de cien— sin agrupar y sin
+                                                  forma de escribir: con el
+                                                  dedo hay que arrastrar por
+                                                  una lista de cien nombres
+                                                  para encontrar uno. En
+                                                  Reuniones el mismo acto ya
+                                                  se hace escribiendo. */}
+                                              <AutoComplete
+                                                fullWidth
+                                                // Sin etiqueta dentro: cada
+                                                // columna ya se titula
+                                                // "Posición 1/2/3" encima, así
+                                                // que "Hermano" lo decía dos
+                                                // veces — y en una columna de
+                                                // un tercio de ancho ni
+                                                // siquiera cabía: salía
+                                                // recortada a "Herma…".
+                                                placeholder="Buscar hermano…"
+                                                options={candidates}
+                                                value={
+                                                  candidates.find(
+                                                    (b) =>
+                                                      b.person_uid ===
+                                                      currentVal
+                                                  ) ?? null
+                                                }
+                                                isOptionEqualToValue={(
+                                                  o: PersonType,
+                                                  v: PersonType
+                                                ) => o.person_uid === v.person_uid}
+                                                getOptionLabel={(o: PersonType) =>
+                                                  personGetDisplayName(
+                                                    o,
+                                                    displayNameEnabled,
+                                                    fullnameOption
+                                                  )
+                                                }
+                                                onChange={(_, v) =>
                                                   handleFixedAssignmentChange(
                                                     turn.id,
                                                     day,
                                                     idx,
-                                                    e.target.value
+                                                    (v as PersonType)
+                                                      ?.person_uid ?? ''
                                                   )
                                                 }
-                                                size="small"
-                                                displayEmpty
-                                                fullWidth
-                                                sx={{
-                                                  backgroundColor:
-                                                    'var(--card)',
-                                                  borderRadius:
-                                                    'var(--radius-l)',
-                                                }}
-                                              >
-                                                <MenuItem value="">
-                                                  <em>Vacío / sin asignar</em>
-                                                </MenuItem>
-                                                {candidates.map((bro) => {
-                                                  const name =
-                                                    personGetDisplayName(
-                                                      bro,
-                                                      displayNameEnabled,
-                                                      fullnameOption
-                                                    );
-                                                  return (
-                                                    <MenuItem
-                                                      key={bro.person_uid}
-                                                      value={bro.person_uid}
-                                                    >
-                                                      {name}
-                                                    </MenuItem>
-                                                  );
-                                                })}
-                                              </Select>
+                                                noOptionsText="Ningún hermano habilitado"
+                                              />
                                             </Box>
                                           );
                                         })}
@@ -3940,69 +3954,45 @@ const Exhibitors = () => {
                       {labelText}
                     </Typography>
 
-                    <Select
-                      value={currentVal}
-                      onChange={(e) =>
-                        handleAssignmentChange(idx, e.target.value)
-                      }
-                      size="small"
-                      displayEmpty
+                    {/* Un buscador con los recomendados arriba, no un
+                        desplegable. Agrupar ya ayudaba, pero seguía sin poder
+                        escribirse: con más de cien hermanos habilitados hay
+                        que recorrer la lista entera con el dedo. `groupBy`
+                        conserva los dos apartados que ya había. */}
+                    <AutoComplete
                       fullWidth
-                    >
-                      <MenuItem value="">
-                        <em>Ninguno / Sin asignar</em>
-                      </MenuItem>
-                      {recommended.length > 0 && (
-                        <ListSubheader
-                          sx={{
-                            fontWeight: '800',
-                            lineHeight: '30px',
-                            color: 'var(--accent-dark)',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {/* Mayúsculas por CSS (textTransform), no en el texto
-                              fuente — ver DESIGN_SYSTEM.md §5. */}
-                          Recomendados (tienen este turno de preferencia)
-                        </ListSubheader>
-                      )}
-                      {recommended.map((bro) => {
-                        const name = personGetDisplayName(
-                          bro,
+                      label="Hermano"
+                      options={[...recommended, ...others]}
+                      value={
+                        [...recommended, ...others].find(
+                          (b) => b.person_uid === currentVal
+                        ) ?? null
+                      }
+                      isOptionEqualToValue={(o: PersonType, v: PersonType) =>
+                        o.person_uid === v.person_uid
+                      }
+                      getOptionLabel={(o: PersonType) =>
+                        personGetDisplayName(
+                          o,
                           displayNameEnabled,
                           fullnameOption
-                        );
-                        return (
-                          <MenuItem key={bro.person_uid} value={bro.person_uid}>
-                            {name}
-                          </MenuItem>
-                        );
-                      })}
-                      {others.length > 0 && (
-                        <ListSubheader
-                          sx={{
-                            fontWeight: '800',
-                            lineHeight: '30px',
-                            color: 'var(--grey-600)',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          Otros hermanos habilitados
-                        </ListSubheader>
-                      )}
-                      {others.map((bro) => {
-                        const name = personGetDisplayName(
-                          bro,
-                          displayNameEnabled,
-                          fullnameOption
-                        );
-                        return (
-                          <MenuItem key={bro.person_uid} value={bro.person_uid}>
-                            {name}
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
+                        )
+                      }
+                      groupBy={(o: PersonType) =>
+                        recommended.some(
+                          (r) => r.person_uid === o.person_uid
+                        )
+                          ? 'Recomendados (tienen este turno de preferencia)'
+                          : 'Otros hermanos habilitados'
+                      }
+                      onChange={(_, v) =>
+                        handleAssignmentChange(
+                          idx,
+                          (v as PersonType)?.person_uid ?? ''
+                        )
+                      }
+                      noOptionsText="Ningún hermano habilitado"
+                    />
                   </Box>
                 );
               })}
