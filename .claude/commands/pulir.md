@@ -98,6 +98,28 @@ pantallas repasadas hasta ahora:
     territorios"), rótulos que dicen lo mismo dos veces, códigos que no
     entiende nadie (una "(C)" suelta), y mayúsculas donde la app usa caja
     normal.
+11. **Márgenes seguros de iOS.** Esto es una PWA que se instala en el móvil.
+    Un diálogo a pantalla completa, una hoja inferior o una barra fija tienen
+    que respetar `env(safe-area-inset-*)` o se meten debajo de la muesca o de
+    la barra del gesto de inicio. Ahora mismo solo **10 ficheros** en toda la
+    app lo tienen en cuenta, y hay diálogos en unos **80**. Revisa el de la
+    pantalla que estés tocando.
+12. **Un control alimentado con los hijos que no son.** Un `Select` de MUI
+    con `<option>` dentro en vez de `MenuItem` pinta las opciones **sin
+    estilar** — se ve escueto y nativo, y el valor elegido queda descolocado
+    porque la etiqueta flotante no encuentra su sitio. Pasa en el diálogo de
+    editar territorio, con la Zona.
+13. **Un dato importante sin superficie.** Un número grande suelto entre dos
+    botones no es un campo: no tiene fondo, ni radio, ni hueco, así que no se
+    lee como algo que se puede tocar ni como un valor. Es lo que pasa en el
+    editor de horas del Informe de predicación, donde además `MinusButton` y
+    `PlusButton` son los ÚNICOS botones de la app que no son píldora (llevan
+    `--radius-m`, o sea 12px).
+14. **Degradados.** En toda la app quedan **cinco**, y ninguno se gana el
+    sitio. Uno está en el gráfico anual de estadísticas (`yearly_chart`, un
+    `<linearGradient>` de SVG). Los demás: la portada de arranque, el círculo
+    del avatar y un divisor. Un color plano del tema hace el mismo trabajo,
+    sigue al modo oscuro solo, y no compite con el dato.
 
 ---
 
@@ -119,17 +141,46 @@ se salta. Cuando encuentres **la misma tarea resuelta de dos maneras**,
 
 ## Puntos de partida conocidos
 
-Ya detectados y sin arreglar. No te limites a estos:
+Ya detectados y sin arreglar. **Son el punto de partida, no la lista de la
+compra**: cada uno de estos apareció mirando de cerca una pantalla, así que
+donde hay uno hay más. No des una pantalla por repasada por haber tachado el
+punto que aparece aquí.
 
 - **Documentos**: sigue teniendo la uñita a la izquierda, y su diálogo de
   categorías usa flechas para ordenar.
 - **Territorios**: los diálogos de **Zonas** y de **Etiquetas** se quedaron a
-  medias (solo se les pasaron los radios).
+  medias (solo se les pasaron los radios). Y en **editar territorio**, el
+  selector de Zona es un `Select` alimentado con `<option>` en crudo: se ve
+  escueto, nativo, y el valor elegido queda demasiado abajo.
 - **Exhibidores → Crear turno**: "Hora de inicio" y "Hora de finalización" son
   `<TextField type="time">`, o sea el control **nativo del navegador**, no el
   `TimePicker` de la app.
+- **Informe de predicación**: el editor de horas (el número entre el − y el +)
+  no tiene superficie de campo, y esos dos botones son los únicos de la app
+  que no son píldora.
+- **Informe de predicación → Año**: el gráfico anual lleva un degradado SVG.
+- **Diálogos y márgenes de iOS**: repásalo en cada pantalla (defecto 11).
 - Pantallas aún sin repasar a fondo: Personas, Informes, Discursos,
   Programas de fin de semana, Asistencia, Ayuda, Ajustes.
+
+---
+
+## No te conformes con la lista
+
+La lista de arriba es lo que YA se ha visto. Tu trabajo es encontrar lo que
+todavía no. Una pantalla está repasada cuando puedes decir, con medidas
+delante:
+
+- has abierto **todos** sus diálogos, uno por uno;
+- has probado cada **estado**: vacío, con un elemento, con muchos, cargando,
+  con error, con textos largos, y sin permisos;
+- la has visto en **móvil, tablet y escritorio**, y en **claro y oscuro**;
+- has recorrido la pantalla **solo con el teclado**;
+- y has comparado la misma tarea con **cómo la resuelve otra pantalla**.
+
+Si al terminar solo has arreglado lo que ponía en la lista, no has repasado la
+pantalla: has tachado una lista. Di explícitamente qué has encontrado por tu
+cuenta.
 
 ---
 
