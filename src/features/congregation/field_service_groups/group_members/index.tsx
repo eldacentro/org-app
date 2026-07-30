@@ -18,6 +18,7 @@ const GroupMembers = (props: GroupMembersProps) => {
     handleRemove,
     handleInputChange,
     inputValue,
+    handleMove,
   } = useGroupMembers(props);
 
   return (
@@ -29,11 +30,13 @@ const GroupMembers = (props: GroupMembersProps) => {
             setList={handleDragChange}
             handle=".scrollable-icon"
           >
-            {members.map((member) => (
+            {members.map((member, i) => (
               <MemberItem
                 key={member.id}
                 member={member.id}
                 onDelete={handleRemove}
+                onSubir={() => handleMove(i, -1)}
+                onBajar={() => handleMove(i, 1)}
               />
             ))}
           </ReactSortable>

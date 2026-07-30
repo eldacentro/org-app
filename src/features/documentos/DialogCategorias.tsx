@@ -6,7 +6,9 @@ import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconDelete, IconDown, IconUp } from '@components/icons';
+import { IconDelete } from '@components/icons';
+import { ReactSortable } from 'react-sortablejs';
+import DragHandle from '@components/drag_handle';
 import IconButton from '@components/icon_button';
 import accentSurface from '@components/accent_surface';
 import { DocumentoCategoria } from '@definition/documentos';
@@ -157,7 +159,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
           Gestionar categorías
         </Typography>
         <Typography variant="body2" color="var(--ink-2)" sx={{ mb: 3 }}>
-          Organiza, crea y colorea las categorías de tus documentos pastorales.
+          Organiza, crea y colorea las categorías de tus documentos.
         </Typography>
 
         {/* Lista de categorías actuales */}
@@ -179,7 +181,20 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
               </Typography>
             </Box>
           ) : (
-            drafts.map((cat, index) => (
+            /* `handle` apunta al asa: así el dedo solo arrastra si empieza
+               sobre ella, y el resto de la fila deja que la lista siga
+               haciendo scroll — que es lo delicado de arrastrar en un móvil.
+               `setList` recibe el orden ya movido y solo hay que renumerar. */
+            <ReactSortable
+              list={drafts}
+              setList={(nuevo) =>
+                setDrafts(nuevo.map((d, i) => ({ ...d, orden: i })))
+              }
+              handle=".scrollable-icon"
+              animation={150}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
+              {drafts.map((cat, index) => (
               <Box
                 key={cat.id}
                 sx={{
@@ -200,6 +215,13 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                   },
                 }}
               >
+                <DragHandle
+                  etiqueta={cat.nombre}
+                  onSubir={() => handleMoveUp(index)}
+                  onBajar={() => handleMoveDown(index)}
+                  sx={{ padding: '6px' }}
+                />
+
                 <Typography
                   className="body-regular-semibold"
                   color="var(--ink)"
@@ -211,24 +233,6 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                 <Stack direction="row" spacing="4px">
                   <IconButton
                     edge={false}
-                    onClick={() => handleMoveUp(index)}
-                    disabled={index === 0}
-                    title="Subir"
-                    sx={{ padding: '6px' }}
-                  >
-                    <IconUp color="currentColor" width={18} height={18} />
-                  </IconButton>
-                  <IconButton
-                    edge={false}
-                    onClick={() => handleMoveDown(index)}
-                    disabled={index === drafts.length - 1}
-                    title="Bajar"
-                    sx={{ padding: '6px' }}
-                  >
-                    <IconDown color="currentColor" width={18} height={18} />
-                  </IconButton>
-                  <IconButton
-                    edge={false}
                     color="error"
                     onClick={() => handleRemove(cat.id)}
                     title="Eliminar"
@@ -238,7 +242,8 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                   </IconButton>
                 </Stack>
               </Box>
-            ))
+              ))}
+            </ReactSortable>
           )}
         </Stack>
 

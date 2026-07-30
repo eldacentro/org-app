@@ -109,6 +109,15 @@ const useGroupMembers = ({ group, onChange }: GroupMembersProps) => {
     onChange(newGroup);
   };
 
+  // Lo mismo que arrastrar, de una en una: lo dispara el asa con ↑ y ↓.
+  const handleMove = (index: number, delta: number) => {
+    const destino = index + delta;
+    if (destino < 0 || destino > members.length - 1) return;
+    const next = [...members];
+    [next[index], next[destino]] = [next[destino], next[index]];
+    handleDragChange(next);
+  };
+
   const handleDragChange = (value: MemberType[]) => {
     setMembers(value);
 
@@ -185,6 +194,7 @@ const useGroupMembers = ({ group, onChange }: GroupMembersProps) => {
     handleAddPublisher,
     members,
     handleDragChange,
+    handleMove,
     handleRemove,
     handleInputChange,
     inputValue,

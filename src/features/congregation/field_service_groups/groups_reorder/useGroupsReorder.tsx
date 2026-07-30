@@ -46,6 +46,16 @@ const useGroupsReorder = ({ onClose }: GroupsReorderProps) => {
     setGroups(value);
   };
 
+  // Lo mismo que hace arrastrar, pero de una en una: es lo que dispara el asa
+  // cuando está enfocada y se pulsa ↑ o ↓.
+  const handleMove = (index: number, delta: number) => {
+    const destino = index + delta;
+    if (destino < 0 || destino > groups.length - 1) return;
+    const next = [...groups];
+    [next[index], next[destino]] = [next[destino], next[index]];
+    setGroups(next);
+  };
+
   const handleSaveChanges = async () => {
     try {
       await dbFieldServiceGroupBulkSave(groups_sorted);
@@ -64,7 +74,7 @@ const useGroupsReorder = ({ onClose }: GroupsReorderProps) => {
     }
   };
 
-  return { groups, handleDragChange, handleSaveChanges };
+  return { groups, handleDragChange, handleMove, handleSaveChanges };
 };
 
 export default useGroupsReorder;

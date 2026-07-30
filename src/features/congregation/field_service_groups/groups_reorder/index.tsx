@@ -12,7 +12,7 @@ import Typography from '@components/typography';
 const GroupsReorder = (props: GroupsReorderProps) => {
   const { t } = useAppTranslation();
 
-  const { groups, handleDragChange, handleSaveChanges } =
+  const { groups, handleDragChange, handleMove, handleSaveChanges } =
     useGroupsReorder(props);
 
   return (
@@ -25,8 +25,13 @@ const GroupsReorder = (props: GroupsReorderProps) => {
           setList={handleDragChange}
           handle=".scrollable-icon"
         >
-          {groups.map((group) => (
-            <GroupItem key={group.id} name={group.name} />
+          {groups.map((group, i) => (
+            <GroupItem
+              key={group.id}
+              name={group.name}
+              onSubir={() => handleMove(i, -1)}
+              onBajar={() => handleMove(i, 1)}
+            />
           ))}
         </ReactSortable>
       </GroupsContainer>

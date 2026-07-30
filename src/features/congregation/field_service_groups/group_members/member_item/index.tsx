@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
-import { IconDragHandle, IconRemovePerson } from '@components/icons';
+import { IconRemovePerson } from '@components/icons';
+import DragHandle from '@components/drag_handle';
 import { MemberItemProps } from './index.types';
 import useMemberItem from './useMemberItem';
 import IconButton from '@components/icon_button';
@@ -20,9 +21,11 @@ const MemberItem = (props: MemberItemProps) => {
       }}
     >
       <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <IconDragHandle
-          color="var(--accent-main)"
-          className="scrollable-icon"
+        <DragHandle
+          etiqueta={name}
+          onSubir={props.onSubir}
+          onBajar={props.onBajar}
+          sx={{ padding: 0 }}
         />
         <Typography>{name}</Typography>
       </Box>

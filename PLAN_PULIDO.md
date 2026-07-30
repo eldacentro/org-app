@@ -45,10 +45,16 @@ pero sin arreglar.
       type="time">`, el control NATIVO del navegador. Pasan al `TimePicker` de
       la app, como ya hacía su pantalla gemela (Salidas). Hizo falta `minWidth:
       0` en las dos columnas: es más ancho que el nativo y desbordaba.
-- [ ] **Reordenar, dos maneras.** Arrastrar con `react-sortablejs` (Grupos de
-      predicación, 2 ficheros) frente a flechas arriba/abajo (Documentos →
-      categorías, Responsabilidades, 2 ficheros). Hay que elegir UNA. Ojo: una
-      lista que además hace scroll en el móvil es delicada de arrastrar.
+- [x] **Reordenar: se arrastra.** Decidido por Carlos. Los cuatro sitios pasan
+      a `@components/drag_handle`, un asa única.
+      Mi reparo —arrastrar se pelea con el scroll del dedo— lo resolvía ya la
+      app sin saberlo: `handle=".scrollable-icon"` hace que solo arrastre si el
+      dedo EMPIEZA sobre el asa; el resto de la fila sigue haciendo scroll.
+      Lo que sí se perdía al quitar las flechas era el teclado, que no puede
+      arrastrar. Así que el asa es un BOTÓN: se enfoca con el tabulador y, ahí,
+      ↑ y ↓ mueven la fila. Una sola cosa en pantalla, las dos formas de usarla.
+      De paso, Grupos de predicación —que ya arrastraba— GANA el teclado, que
+      nunca tuvo, y su asa deja de ser un icono mudo.
 - [ ] **Territorios · DialogZonas y DialogEtiquetas.** Se quedaron a medias:
       solo se les pasaron los radios.
 

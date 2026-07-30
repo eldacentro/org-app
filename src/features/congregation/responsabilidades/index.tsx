@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect, ElementType } from 'react';
-import { Box, Stack, Chip, IconButton } from '@mui/material';
+import { Box, Stack, Chip } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import { ReactSortable } from 'react-sortablejs';
+import DragHandle from '@components/drag_handle';
 import {
   IconAdd,
   IconGroups,
   IconAssignment,
   IconCongregation,
   IconReorder,
-  IconUp,
-  IconDown,
   IconEdit,
 } from '@components/icons';
 import { responsabilidadesState } from '@states/responsabilidades';
@@ -437,7 +437,18 @@ const ReorderDialog = ({
           pr: '8px',
         }}
       >
-        {list.map((dep, i) => (
+        {/* Igual que en Documentos: se arrastra por el asa —así la lista
+            sigue haciendo scroll con el dedo— y el asa entiende ↑ y ↓ para
+            quien va con el teclado, que es lo que hacían las dos flechas que
+            había aquí. */}
+        <ReactSortable
+          list={list}
+          setList={setList}
+          handle=".scrollable-icon"
+          animation={150}
+          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+        >
+          {list.map((dep, i) => (
           <Box
             key={dep.id}
             sx={{
@@ -454,6 +465,11 @@ const ReorderDialog = ({
               },
             }}
           >
+            <DragHandle
+              etiqueta={dep.name || 'este departamento'}
+              onSubir={() => moveUp(i)}
+              onBajar={() => moveDown(i)}
+            />
             <Typography
               className="body-regular-semibold"
               sx={{ flex: 1 }}
@@ -461,32 +477,9 @@ const ReorderDialog = ({
             >
               {dep.name || '(Sin nombre)'}
             </Typography>
-            <Stack direction="row" spacing="4px">
-              <IconButton
-                size="small"
-                onClick={() => moveUp(i)}
-                disabled={i === 0}
-                sx={{
-                  border: '1px solid var(--line)',
-                  backgroundColor: 'var(--white)',
-                }}
-              >
-                <IconUp color="var(--accent-dark)" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => moveDown(i)}
-                disabled={i === list.length - 1}
-                sx={{
-                  border: '1px solid var(--line)',
-                  backgroundColor: 'var(--white)',
-                }}
-              >
-                <IconDown color="var(--accent-dark)" />
-              </IconButton>
-            </Stack>
           </Box>
-        ))}
+          ))}
+        </ReactSortable>
       </Box>
 
       <Stack
