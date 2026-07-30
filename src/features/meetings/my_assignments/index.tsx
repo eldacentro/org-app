@@ -1,4 +1,5 @@
 import { Box, Stack } from '@mui/material';
+import EmptyState from '@components/empty_state';
 import { useAppTranslation, useCalendarExportPreference } from '@hooks/index';
 import { IconAddMonth, IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
 import { AssignmentHistoryType } from '@definition/schedules';
@@ -138,23 +139,13 @@ const MyAssignments = () => {
       )}
 
       {assignments.length === 0 ? (
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '24px',
-          }}
-        >
-          <NoAssigmentsImg viewBox="0 0 128 128" />
-          <Stack spacing="8px">
-            <Typography className="h2">{t('tr_noAssignmentsYet')}</Typography>
-            <Typography color="var(--grey-400)" sx={{ maxWidth: '350px' }}>
-              {t('tr_noAssignmentsYetDesc')}
-            </Typography>
-          </Stack>
-        </Box>
+        <EmptyState
+          surface={false}
+          icon={<NoAssigmentsImg viewBox="0 0 128 128" />}
+          title={t('tr_noAssignmentsYet')}
+          description={t('tr_noAssignmentsYetDesc')}
+          sx={{ height: '100%' }}
+        />
       ) : (
         <Stack spacing={2.3} sx={{ pb: '24px' }}>
           {assignments.map((month) => (

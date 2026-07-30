@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import EmptyState from '@components/empty_state';
 import { Box, Stack } from '@mui/material';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
@@ -143,9 +144,7 @@ const DialogSeleccionarTerritorios = ({
 
         <Box sx={{ maxHeight: '50vh', overflowY: 'auto' }}>
           {filtered.length === 0 ? (
-            <Typography className="body-small-regular" color="var(--ink-2)" sx={{ p: 2, textAlign: 'center' }}>
-              No hay territorios disponibles.
-            </Typography>
+            <EmptyState compact title="No hay territorios disponibles" />
           ) : (
             filtered.map((t) => {
               const info = territoryStatusMap.get(t.id);

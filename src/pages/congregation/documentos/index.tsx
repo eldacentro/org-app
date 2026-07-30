@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import EmptyState from '@components/empty_state';
 import { useSearchParams } from 'react-router';
 import { useConfirm } from '@components/confirm_dialog';
 import { Box, Typography, Grid, Stack } from '@mui/material';
@@ -132,29 +133,11 @@ const DocumentosPage = () => {
 
       {/* Lista de documentos o empty state */}
       {docsFiltrados.length === 0 ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            py: 8,
-            px: 2,
-            background: 'var(--card)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: 'var(--shape-xl)',
-            border: '1px dashed var(--line)',
-            textAlign: 'center',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <Box sx={{ mb: 1 }}>
-            <IconInfo width={48} height={48} color="var(--grey-400)" />
-          </Box>
-          <Typography color="var(--ink-2)" className="body-regular">
-            No hay documentos en esta categoría
-          </Typography>
-        </Box>
+        <EmptyState
+          icon={<IconInfo color="var(--accent-dark)" />}
+          title="No hay documentos en esta categoría"
+          description="Cuando se suba uno, aparecerá aquí."
+        />
       ) : filtroCategoria === 'all' ? (
         <Stack spacing={4}>
           {categorias.map((cat) => {

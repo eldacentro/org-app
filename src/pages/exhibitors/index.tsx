@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import EmptyState from '@components/empty_state';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
@@ -1474,27 +1475,14 @@ const Exhibitors = () => {
               </Box>
 
               {!effectiveTurns || effectiveTurns.length === 0 ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    padding: '24px',
-                    backgroundColor: 'var(--card)',
-                    border: '1px solid var(--line)',
-                    borderRadius: 'var(--shape-lg)',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <IconInfo color="var(--grey-400)" />
-                  <Typography
-                    sx={{ color: 'var(--grey-400)', fontWeight: '600' }}
-                  >
-                    {monthCancelled
-                      ? 'Los exhibidores están suspendidos para este mes.'
-                      : 'No hay turnos configurados.'}
-                  </Typography>
-                </Box>
+                <EmptyState
+                  icon={<IconInfo color="var(--accent-dark)" />}
+                  title={
+                    monthCancelled
+                      ? 'Los exhibidores están suspendidos este mes'
+                      : 'No hay turnos configurados'
+                  }
+                />
               ) : (
                 /* Vista de Planificador (Grid/Lista) */
                 <Box>

@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
+import EmptyState from '@components/empty_state';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
-  Card,
   CardContent,
   Divider,
   List,
@@ -635,14 +635,11 @@ const OutgoingSpeakersPage = () => {
           </Box>
 
           {filteredSpeakers.length === 0 ? (
-            <Card sx={{ border: '1px solid var(--line)', borderRadius: 'var(--shape-xl)', p: 3, textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <IconOutgoindSpeaker width={48} height={48} color="var(--grey-400)" />
-              </Box>
-              <Typography className="h2" color="var(--grey-400)">
-                No hay oradores que coincidan con la búsqueda
-              </Typography>
-            </Card>
+            <EmptyState
+              icon={<IconOutgoindSpeaker color="var(--accent-dark)" />}
+              title="No hay oradores que coincidan con la búsqueda"
+              description="Prueba con otro nombre, o con el número del discurso."
+            />
           ) : (
             <Box
               sx={{

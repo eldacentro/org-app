@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo, cloneElement, useCallback } from 'react';
+import { IconCalendarWeek } from '@components/icons';
+import EmptyState from '@components/empty_state';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
@@ -980,55 +982,19 @@ const Dashboard = () => {
             )}
 
             {agendaItems.length === 0 ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '32px 16px',
-                  textAlign: 'center',
-                  background: 'rgba(59, 114, 196, 0.03)',
-                  borderRadius: 'var(--shape-lg)',
-                  margin: '12px',
-                  border: '1px dashed rgba(59, 114, 196, 0.15)',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{
-                    width: '42px',
-                    height: '42px',
-                    opacity: 0.6,
-                    color: 'var(--brand)',
-                    marginBottom: '12px',
-                  }}
-                >
-                  <path d="M8 2v4M16 2v4M3 10h18" />
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <path d="m14 14-4 4M10 14l4 4" />
-                </svg>
-                <Typography
-                  className="body-regular-semibold"
-                  sx={{ color: 'var(--ink)', marginBottom: '4px' }}
-                >
-                  {t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
-                </Typography>
-                <Typography
-                  className="body-small-regular"
-                  sx={{ color: 'var(--grey-400)', maxWidth: '300px' }}
-                >
-                  {t(
-                    'tr_noMeetingsScheduledDesc',
-                    'Esta semana no hay reuniones debido a eventos especiales o asambleas.'
-                  )}
-                </Typography>
-              </Box>
+              /* Era el único de los siete con el borde en
+                 `rgba(59,114,196,.15)`: el azul del tema por defecto
+                 CONGELADO — con cualquier otro tema el recuadro se quedaba
+                 azul. Y el icono era un `<svg>` escrito a mano en vez de uno
+                 de los 308 de la app. */
+              <EmptyState
+                icon={<IconCalendarWeek color="var(--accent-dark)" />}
+                title={t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
+                description={t(
+                  'tr_noMeetingsScheduledDesc',
+                  'Esta semana no hay reuniones debido a eventos especiales o asambleas.'
+                )}
+              />
             ) : (
               <>
                 {agendaItems.map((item) => {

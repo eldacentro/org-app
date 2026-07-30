@@ -337,8 +337,19 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       delegate_reports, pending_slips, month_item de asistencia…).
 - [ ] **Elegir persona** (6) → `@components/autocomplete` para lo sencillo,
       `person_selector` cuando haga falta historial
-- [ ] **Estado vacío** (8) → extraer `@components/empty_state`; el patrón bueno
-      ya está escrito dos veces idéntico
+- [x] **Estado vacío** → `@components/empty_state`. No eran "8 copias del
+      patrón bueno": eran **SIETE dibujos distintos** que no coincidían en
+      nada — borde punteado o sólido, tres radios, tres clases de texto, dos
+      tamaños de icono, uno en horizontal, dos sin caja, y uno que era un
+      `Typography` a secas. El de Inicio llevaba además el borde en
+      `rgba(59,114,196,.15)` —el azul del tema por defecto CONGELADO— y un
+      `<svg>` escrito a mano en vez de uno de los 308 iconos de la app.
+      Se conserva lo mejor de los siete: el círculo con lavado del acento que
+      tenía Avisos. Fuera el borde punteado (significa "aquí se suelta algo").
+      Ojo con lo que casi se me escapa: al quitar la caja, el círculo del icono
+      quedaba casi del color del fondo y no se veía. Se cazó en una captura, no
+      razonando. La caja vuelve por defecto y solo la quitan las de pantalla
+      completa.
 - [ ] **Elegir un mes** (5) → `@components/month_selector`. Exhibidores y
       Salidas cambian de control según el ancho de la ventana
 - [ ] **Elegir una semana** (4) → `week_selector` + `week_navigator`; borrar la

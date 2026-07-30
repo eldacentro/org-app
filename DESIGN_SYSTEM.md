@@ -331,6 +331,36 @@ escrito en Frase-caso — el JSX debajo sigue en minúsculas salvo la primera
 letra. **Lo que hay que corregir es texto escrito a mano en mayúsculas o en
 Title Case dentro del JSX/strings**, no esa clase.
 
+### "Aquí todavía no hay nada" — `@components/empty_state`
+
+Una lista vacía nunca se deja en blanco: se dice qué falta y, si se puede, qué
+hacer. Pero con UN dibujo, no siete.
+
+```tsx
+<EmptyState
+  icon={<IconInfo color="var(--accent-dark)" />}
+  title="No hay documentos en esta categoría"
+  description="Cuando se suba uno, aparecerá aquí."
+/>
+```
+
+- **Lleva la superficie de tarjeta por defecto**, y no es adorno: este bloque
+  ocupa el sitio de la tarjeta que habría si hubiese contenido. Sin ella, el
+  círculo del icono —un lavado del acento— queda casi del color del fondo de la
+  página y el texto flota sin nada que lo sujete. Se comprobó mirándolo.
+- `surface={false}` **solo** cuando el estado vacío ES la pantalla entera
+  (Avisos, Mis asignaciones): ahí no sustituye a ninguna tarjeta.
+- `compact` para dentro de un diálogo o de una lista con scroll, donde un
+  bloque alto no cabe.
+- **Nunca borde punteado.** Un recuadro punteado significa "aquí se suelta
+  algo" (arrastrar y soltar); para una lista vacía es ruido.
+
+A 2026-07-30 había SIETE dibujos distintos y no diferían en un detalle:
+diferían en todo — borde punteado o sólido, tres radios, tres clases de texto,
+dos tamaños de icono, uno en horizontal, dos sin caja, uno que era un
+`Typography` a secas, y el de Inicio con el borde en `rgba(59,114,196,.15)`: el
+azul del tema por defecto congelado.
+
 ### Meses y días: en minúscula, salvo que abran la etiqueta
 
 En español "el 27 de julio", no "el 27 de Julio". La mayúscula solo la lleva la

@@ -1,4 +1,5 @@
 import { Box, Stack } from '@mui/material';
+import EmptyState from '@components/empty_state';
 import { NotificationContainerType } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import useContainer from './useContainer';
@@ -72,45 +73,13 @@ const NotificationContainer = ({
         }}
       >
         {notifications.length === 0 && (
-          <Box
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '20px',
-              pb: '40px',
-            }}
-          >
-            <Box
-              sx={{
-                width: '96px',
-                height: '96px',
-                borderRadius: '50%',
-                background: 'var(--accent-200)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.7,
-              }}
-            >
-              <NoNotificationImg
-                viewBox="0 0 128 128"
-                style={{ width: '64px', height: '64px' }}
-              />
-            </Box>
-            <Stack spacing="6px" alignItems="center" textAlign="center">
-              <Typography className="h2" sx={{ fontWeight: 700 }}>
-                {t('tr_noNotifications')}
-              </Typography>
-              <Typography
-                sx={{ color: 'var(--grey-400)', maxWidth: '220px', lineHeight: 1.5 }}
-              >
-                {t('tr_noNotificationsDesc')}
-              </Typography>
-            </Stack>
-          </Box>
+          <EmptyState
+            surface={false}
+            icon={<NoNotificationImg viewBox="0 0 128 128" />}
+            title={t('tr_noNotifications')}
+            description={t('tr_noNotificationsDesc')}
+            sx={{ height: '100%', pb: '40px' }}
+          />
         )}
 
         {notifications.length > 0 && (
