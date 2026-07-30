@@ -19,8 +19,6 @@ import {
   Grid,
   Chip,
   List,
-  ListItemButton,
-  ListItemText,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import {
@@ -1281,7 +1279,7 @@ const Exhibitors = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: desktopUp ? 'row' : 'column',
+          flexDirection: 'column',
           gap: '24px',
           alignItems: 'flex-start',
           width: '100%',
@@ -1289,111 +1287,29 @@ const Exhibitors = () => {
         }}
       >
         {/* PANEL IZQUIERDO: Selector de Meses y Años */}
-        {activeTab === 'planner' &&
-          (desktopUp ? (
-            <Box
-              sx={{
-                width: '280px',
-                flexShrink: 0,
-                borderRadius: 'var(--shape-md)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                position: 'sticky',
-                top: 70,
-              }}
-            >
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
-              >
-                <Typography className="h3" color="var(--ink)">
-                  Seleccionar año
-                </Typography>
-                <Select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  size="small"
-                  fullWidth
-                  sx={{
-                    borderRadius: 'var(--shape-sm)',
-                    borderColor: 'var(--line)',
-                  }}
-                >
-                  {[new Date().getFullYear(), new Date().getFullYear() + 1].map(
-                    (yr) => (
-                      <MenuItem key={yr} value={yr}>
-                        {yr}
-                      </MenuItem>
-                    )
-                  )}
-                </Select>
-              </Box>
-
-              <Box sx={{ borderTop: '1px solid var(--line)', my: '4px' }} />
-
-              <Typography className="h3" color="var(--ink)">
-                Meses
-              </Typography>
-              <List
-                disablePadding
-                sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
-              >
-                {MONTH_NAMES.map((monthName, idx) => {
-                  const isSelected = selectedMonth === idx;
-                  return (
-                    <ListItemButton
-                      key={monthName}
-                      selected={isSelected}
-                      onClick={() => setSelectedMonth(idx)}
-                      sx={{
-                        borderRadius: 'var(--shape-sm)',
-                        backgroundColor: isSelected
-                          ? 'var(--accent-150)'
-                          : 'transparent',
-                        '&.Mui-selected': {
-                          backgroundColor: 'var(--accent-150)',
-                          '&:hover': {
-                            backgroundColor: 'var(--line)',
-                          },
-                        },
-                        '&:hover': {
-                          backgroundColor: 'var(--accent-100)',
-                        },
-                      }}
-                    >
-                      <ListItemText
-                        primary={monthName}
-                        primaryTypographyProps={{
-                          style: {
-                            fontWeight: isSelected ? '600' : '500',
-                            color: isSelected
-                              ? 'var(--accent-dark)'
-                              : 'var(--black)',
-                          },
-                        }}
-                      />
-                    </ListItemButton>
-                  );
-                })}
-              </List>
-            </Box>
-          ) : (
-            <MonthSelector
-              monthNames={MONTH_NAMES}
-              year={selectedYear}
-              month={selectedMonth}
-              years={[new Date().getFullYear(), new Date().getFullYear() + 1]}
-              expanded={monthsExpanded}
-              onToggle={() => setMonthsExpanded(!monthsExpanded)}
-              onChange={({ year, month }) => {
-                setSelectedYear(year);
-                setSelectedMonth(month);
-              }}
-            />
-          ))}
+        {/* El MISMO selector de mes a cualquier ancho.
+            En escritorio (≥1200) esta página pintaba OTRO control: una barra
+            lateral de 280px, pegajosa, con un desplegable de año y una lista de
+            los doce meses — cien líneas escritas a mano, con sus radios y sus
+            títulos propios, y copiadas enteras en la página gemela. La misma
+            tarea, dos controles distintos, y cuál te tocaba dependía de lo
+            ancho que tuvieras la ventana.
+            Se queda el compartido, que es el que ya usaban esta página en
+            móvil, su gemela y Limpieza del salón. */}
+        {activeTab === 'planner' && (
+          <MonthSelector
+            monthNames={MONTH_NAMES}
+            year={selectedYear}
+            month={selectedMonth}
+            years={[new Date().getFullYear(), new Date().getFullYear() + 1]}
+            expanded={monthsExpanded}
+            onToggle={() => setMonthsExpanded(!monthsExpanded)}
+            onChange={({ year, month }) => {
+              setSelectedYear(year);
+              setSelectedMonth(month);
+            }}
+          />
+        )}
 
         {/* PANEL PRINCIPAL */}
         <Box sx={{ flexGrow: 1, width: '100%', overflow: 'hidden' }}>

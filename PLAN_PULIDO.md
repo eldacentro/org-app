@@ -507,8 +507,23 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       quedaba casi del color del fondo y no se veía. Se cazó en una captura, no
       razonando. La caja vuelve por defecto y solo la quitan las de pantalla
       completa.
-- [ ] **Elegir un mes** (5) → `@components/month_selector`. Exhibidores y
-      Salidas cambian de control según el ancho de la ventana
+- [x] **Elegir un mes** — cerrado con matiz: no eran 5 copias del mismo
+      control, eran DOS controles distintos para dos trabajos distintos, y uno
+      de ellos estaba roto.
+      · **El roto**: Exhibidores y Salidas pintaban OTRO selector a partir de
+        1200px — una barra lateral de 280px, pegajosa, con desplegable de año y
+        lista de los doce meses. Cien líneas a mano, con sus radios y sus
+        títulos propios, COPIADAS enteras entre las dos páginas. La misma
+        tarea, dos controles, y cuál te tocaba dependía de lo ancho que
+        tuvieras la ventana. Fuera las dos: se queda el compartido, que es el
+        que ya usaban ellas mismas en móvil y Limpieza del salón a cualquier
+        ancho. 215 líneas menos.
+      · **El que se queda**: el de Informes (`service_year_month_selector`) es
+        otro control a propósito. Ahí el mes es un FILTRO dentro de un
+        formulario, no la navegación de la página, y encima lo que se elige es
+        el año de SERVICIO, no el natural. Ya está hecho con el `Select` y el
+        `MenuItem` de la app. Convertirlo en el panel plegable grande sería
+        empeorarlo.
 - [ ] **Elegir una semana** (4) → `week_selector` + `week_navigator`; borrar la
       copia con prefijo `Dept` y la tercera de Oradores salientes
 - [x] **Reordenar** (2) → hecho, ver bloque 0: los cuatro sitios a
