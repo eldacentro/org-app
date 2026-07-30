@@ -49,7 +49,7 @@ const PersonBasicInfo = () => {
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         flex: 1,
         width: '100%',
       }}
@@ -105,7 +105,7 @@ const PersonBasicInfo = () => {
             sx={{
               padding: '4px 8px',
               backgroundColor: 'var(--line)',
-              borderRadius: 'var(--radius-xs)',
+              borderRadius: 'var(--shape-full)',
               display: 'flex',
               alignItems: 'center',
               width: 'fit-content',

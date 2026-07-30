@@ -26,7 +26,7 @@ const CustomThemeSwitch = ({
         alignItems: 'center',
         overflow: 'hidden',
         justifyContent: 'center',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
       }}
     >
       <Box
@@ -76,12 +76,12 @@ const CustomThemeSwitch = ({
             '& svg, & svg g, & svg ellipse, & svg g path': {
               fill: 'var(--always-white)',
               filter: 'drop-shadow(0px 2px 3px rgba(86, 107, 208, 0.16))',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
             },
           },
           '& .MuiSwitch-track': {
             backgroundColor: 'var(--accent-200)',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             opacity: 1,
           },
         }}

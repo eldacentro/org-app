@@ -91,7 +91,7 @@ const TalksTableView = (props: TalksTableViewType) => {
                     padding: '4px',
                     ':hover': {
                       backgroundColor: 'var(--accent-150)',
-                      borderRadius: 'var(--radius-s)',
+                      borderRadius: 'var(--shape-xs)',
                       color: 'var(--accent-dark)',
                     },
                   }}

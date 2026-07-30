@@ -21,7 +21,7 @@ const EquiposCard = ({ equipos }: Props) => {
           key={equipo.id}
           sx={{
             border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             overflow: 'hidden',
             backgroundColor: 'var(--card)',
           }}
@@ -46,7 +46,7 @@ const EquiposCard = ({ equipos }: Props) => {
                 sx={{
                   color: 'var(--always-white)',
                   backgroundColor: equipo.color,
-                  borderRadius: 'var(--radius-max)',
+                  borderRadius: 'var(--shape-full)',
                   padding: '2px 10px',
                 }}
               >
@@ -71,7 +71,7 @@ const EquiposCard = ({ equipos }: Props) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--shape-sm)',
                         backgroundColor: equipo.color,
                         color: 'var(--always-white)',
                         padding: '0 6px',

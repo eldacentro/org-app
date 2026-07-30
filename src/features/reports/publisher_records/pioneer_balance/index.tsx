@@ -38,7 +38,7 @@ const PioneerBalance = () => {
                 justifyContent: 'space-between',
                 gap: '16px',
                 padding: '8px 12px',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 backgroundColor:
                   pioneer.balance < 0
                     ? 'var(--red-secondary)'

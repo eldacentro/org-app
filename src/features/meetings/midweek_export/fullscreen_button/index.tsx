@@ -31,7 +31,7 @@ const FullscreenButton = ({ show }: { show: boolean }) => {
         alignItems: 'center',
         justifyContent: 'center',
         border: '1px solid var(--accent-dark)',
-        borderRadius: 'var(--radius-m)',
+        borderRadius: 'var(--shape-sm)',
         cursor: 'pointer',
       }}
     >

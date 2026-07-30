@@ -28,7 +28,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
         padding: props.small ? '4px 4px 4px 8px' : '8px 8px 8px 16px',
         height: '100%',
         minHeight: props.height ? props.height : '40px',
-        borderRadius: 'var(--radius-s)',
+        borderRadius: 'var(--shape-xs)',
         transition: 'background 0.1s ease',
         '&:hover': {
           background: hoverBgColor,
@@ -73,7 +73,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             justifyContent: 'center',
             width: '44px',
             height: '44px',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             background: isGroup ? 'var(--red-secondary)' : 'var(--accent-100)',
             marginRight: '12px',
             transition: 'background 0.2s ease',
@@ -122,7 +122,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
                   className="menu-secondary"
                   sx={{
                     padding: '2px 12px',
-                    borderRadius: 'var(--radius-xxl)',
+                    borderRadius: 'var(--shape-lg)',
                     background: isNegativeBadge
                       ? 'var(--red-secondary)'
                       : isGroup

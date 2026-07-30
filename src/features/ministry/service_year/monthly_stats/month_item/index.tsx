@@ -59,7 +59,7 @@ const MonthItem = (props: MonthItemProps) => {
               className="label-small-medium"
               size="big"
               color="orange"
-              sx={{ borderRadius: 'var(--radius-xs)', padding: '2px 6px' }}
+              sx={{ borderRadius: 'var(--shape-full)', padding: '2px 6px' }}
               text={t('tr_AP')}
             />
           )}
@@ -78,7 +78,7 @@ const MonthItem = (props: MonthItemProps) => {
             className="body-small-semibold"
             size="big"
             color="grey"
-            sx={{ borderRadius: 'var(--radius-s)' }}
+            sx={{ borderRadius: 'var(--shape-xs)' }}
             text={t('tr_inProgress')}
           />
         )}
@@ -89,7 +89,7 @@ const MonthItem = (props: MonthItemProps) => {
             className="body-small-semibold"
             size="big"
             color="grey"
-            sx={{ borderRadius: 'var(--radius-s)' }}
+            sx={{ borderRadius: 'var(--shape-xs)' }}
             text={t('tr_ahead')}
           />
         )}
@@ -101,7 +101,7 @@ const MonthItem = (props: MonthItemProps) => {
                 className="body-small-semibold"
                 size="big"
                 color="grey"
-                sx={{ borderRadius: 'var(--radius-s)' }}
+                sx={{ borderRadius: 'var(--shape-xs)' }}
                 text={t('tr_bibleStudyCountAbbreviated', {
                   count: bible_studies,
                 })}
@@ -113,7 +113,7 @@ const MonthItem = (props: MonthItemProps) => {
                 className="body-small-semibold"
                 size="big"
                 color="grey"
-                sx={{ borderRadius: 'var(--radius-s)' }}
+                sx={{ borderRadius: 'var(--shape-xs)' }}
                 text={t('tr_hoursList', {
                   Hours: total_hours,
                 })}

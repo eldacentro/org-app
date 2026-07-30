@@ -85,7 +85,7 @@ const ActivityRow = ({ item }: { item: ActivityItem }) => {
           width: '8px',
           height: '8px',
           marginTop: '7px',
-          borderRadius: 'var(--radius-max)',
+          borderRadius: 'var(--shape-full)',
           backgroundColor: CATEGORY_TONES[item.category],
         }}
       />
@@ -125,7 +125,7 @@ const PersonActivity = () => {
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
       }}
     >
       <Box

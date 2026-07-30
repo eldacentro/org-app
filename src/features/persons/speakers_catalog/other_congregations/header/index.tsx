@@ -56,7 +56,7 @@ const IncomingCongregationHeader = ({
             className="body-small-semibold"
             color="var(--grey-400)"
             sx={{
-              borderRadius: 'var(--radius-s)',
+              borderRadius: 'var(--shape-xs)',
               padding: '2px 8px',
               backgroundColor: 'var(--grey-150)',
             }}

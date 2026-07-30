@@ -41,7 +41,7 @@ const IncomingCongregation = ({
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
         padding: '8px 16px',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         width: '100%',
       }}
     >

@@ -71,7 +71,7 @@ const ExhibitorsWeeklyContainer = () => {
             padding: '24px',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
             marginTop: '16px',
             justifyContent: 'center',
           }}

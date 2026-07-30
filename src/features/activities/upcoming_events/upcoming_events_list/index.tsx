@@ -66,7 +66,7 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    borderRadius: 'var(--radius-max)',
+                    borderRadius: 'var(--shape-full)',
                     padding: '6px 18px',
                     pointerEvents: 'auto',
                   }}

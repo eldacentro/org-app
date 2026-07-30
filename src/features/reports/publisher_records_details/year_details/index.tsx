@@ -37,7 +37,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
             gap: laptopDown ? '8px' : '16px',
             justifyContent: 'space-between',
             padding: '8px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: 'var(--accent-100)',
           }}
         >
@@ -51,7 +51,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
               color="var(--accent-dark)"
               sx={{
                 backgroundColor: 'var(--line)',
-                borderRadius: 'var(--radius-s)',
+                borderRadius: 'var(--shape-xs)',
                 padding: '4px 8px',
               }}
             >
@@ -64,7 +64,7 @@ const YearDetails = ({ year }: YearDetailsProps) => {
                 color="var(--accent-dark)"
                 sx={{
                   backgroundColor: 'var(--line)',
-                  borderRadius: 'var(--radius-s)',
+                  borderRadius: 'var(--shape-xs)',
                   padding: '4px 8px',
                 }}
               >

@@ -71,7 +71,7 @@ const Tarjeta = ({ children }: { children: ReactNode }) => (
     sx={{
       padding: '16px',
       border: '1px solid var(--line)',
-      borderRadius: 'var(--radius-l)',
+      borderRadius: 'var(--shape-sm)',
       backgroundColor: 'var(--card)',
       display: 'flex',
       flexDirection: 'column',
@@ -172,7 +172,7 @@ const MeetingMaterials = () => {
     gap: '12px',
     padding: '14px 16px',
     border: '1px solid var(--accent-200)',
-    borderRadius: 'var(--radius-l)',
+    borderRadius: 'var(--shape-sm)',
     backgroundColor: 'var(--accent-100)',
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',

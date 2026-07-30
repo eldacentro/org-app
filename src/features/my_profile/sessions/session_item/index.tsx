@@ -32,7 +32,7 @@ const SessionItem = (props: SessionItemType) => {
       <Box
         sx={{
           padding: '8px',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           backgroundColor: 'var(--accent-150)',
           display: 'flex',
           boxSizing: 'content-box',

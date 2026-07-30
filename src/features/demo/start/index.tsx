@@ -17,7 +17,7 @@ const DemoStartup = () => {
           margin: 'auto',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           padding: '24px',
           display: 'flex',
           gap: '24px',

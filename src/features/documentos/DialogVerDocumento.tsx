@@ -112,7 +112,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
             variant="rectangular"
             width={80}
             height={36}
-            sx={{ borderRadius: 'var(--r-sm)' }}
+            sx={{ borderRadius: 'var(--shape-md)' }}
           />
         </Toolbar>
       </AppBar>
@@ -121,7 +121,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
           variant="rectangular"
           width="100%"
           height="100%"
-          sx={{ borderRadius: 'var(--r-md)', minHeight: 300 }}
+          sx={{ borderRadius: 'var(--shape-lg)', minHeight: 300 }}
         />
       </Box>
     </Box>
@@ -138,7 +138,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
           maxWidth: tablet688Up ? '850px' : 'none',
           width: tablet688Up ? '90vw' : '100%',
           height: tablet688Up ? '85vh' : '100%',
-          borderRadius: tablet688Up ? 'var(--r-lg)' : 0,
+          borderRadius: tablet688Up ? 'var(--shape-xl)' : 0,
           margin: tablet688Up ? 'auto' : 0,
           overflow: 'hidden',
         },
@@ -166,7 +166,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                       height: 42,
                       background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
                       border: `1px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
-                      borderRadius: 'var(--r-sm)',
+                      borderRadius: 'var(--shape-md)',
                       color: accentColor,
                       flexShrink: 0,
                     }}
@@ -211,7 +211,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     variant="tertiary"
                     onClick={() => window.open(pdfUrl, '_blank')}
                     startIcon={<IconFullscreen />}
-                    sx={{ borderRadius: 'var(--r-sm)' }}
+                    sx={{ borderRadius: 'var(--shape-md)' }}
                   >
                     Pantalla completa
                   </Button>
@@ -220,7 +220,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     onClick={handleDownload}
                     startIcon={<IconCloudDownload />}
                     sx={{
-                      borderRadius: 'var(--r-sm)',
+                      borderRadius: 'var(--shape-md)',
                       backgroundColor: accentColor,
                       color: 'var(--always-white) !important',
                       '&:hover': { backgroundColor: accentColor, opacity: 0.9 },
@@ -243,7 +243,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   width: '100%',
                   height: '100%',
                   display: 'block',
-                  borderRadius: 'var(--r-md)',
+                  borderRadius: 'var(--shape-lg)',
                   border: '1px solid var(--line)',
                   boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.06)',
                 }}
@@ -320,7 +320,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     px: 2,
                     py: 0.8,
                     lineHeight: 1,
-                    borderRadius: 'var(--radius-max)',
+                    borderRadius: 'var(--shape-full)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -337,7 +337,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 maxWidth: '340px',
                 backgroundColor: 'var(--card)',
                 border: '1px solid var(--line)',
-                borderRadius: 'var(--r-md)',
+                borderRadius: 'var(--shape-lg)',
                 p: 4,
                 boxSizing: 'border-box',
                 boxShadow: '0 12px 32px -8px rgba(48, 108, 180, 0.08)',
@@ -357,7 +357,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   justifyContent: 'center',
                   background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
                   border: `1.5px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
-                  borderRadius: 'var(--r-sm)',
+                  borderRadius: 'var(--shape-md)',
                   color: accentColor,
                   boxShadow: `0 8px 20px -6px color-mix(in srgb, ${accentColor} 19%, transparent)`,
                 }}
@@ -419,7 +419,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 startIcon={<IconFullscreen />}
                 sx={{
                   height: '46px',
-                  borderRadius: 'var(--r-sm)',
+                  borderRadius: 'var(--shape-md)',
                   fontWeight: 700,
                   backgroundColor: accentColor,
                   color: 'var(--always-white) !important',
@@ -435,7 +435,7 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                 startIcon={<IconCloudDownload />}
                 sx={{
                   height: '46px',
-                  borderRadius: 'var(--r-sm)',
+                  borderRadius: 'var(--shape-md)',
                   fontWeight: 600,
                   borderColor: `color-mix(in srgb, ${accentColor} 50%, transparent) !important`,
                   color: `${accentColor} !important`,

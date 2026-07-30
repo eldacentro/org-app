@@ -39,7 +39,7 @@ const SelectorStats = () => {
           {month_locked && (
             <Box
               sx={{
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--shape-md)',
                 padding: '16px',
                 backgroundColor: 'var(--orange-secondary)',
                 display: 'flex',

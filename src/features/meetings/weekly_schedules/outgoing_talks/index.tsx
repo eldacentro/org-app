@@ -66,7 +66,7 @@ const OutgoingTalks = () => {
                 padding: '32px 16px',
                 backgroundColor: 'var(--card)',
                 border: '1px dashed var(--line)',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
               }}
             >
               {t(

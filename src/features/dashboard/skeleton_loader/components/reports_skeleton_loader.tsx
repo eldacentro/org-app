@@ -45,7 +45,7 @@ const ReportCardSkeletonLoader = () => {
             sx={{
               width: '48px',
               height: '24px',
-              borderRadius: 'var(--radius-xxl)',
+              borderRadius: 'var(--shape-lg)',
               backgroundColor: 'var(--accent-150)',
             }}
           />

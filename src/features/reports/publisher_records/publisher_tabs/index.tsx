@@ -30,7 +30,7 @@ const PublisherTabs = () => {
               background: 'unset',
               borderRadius: 'unset',
             },
-            '& span.MuiTouchRipple-root': { borderRadius: 'var(--radius-l)' },
+            '& span.MuiTouchRipple-root': { borderRadius: 'var(--shape-sm)' },
           }}
         />
       </Stack>

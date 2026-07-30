@@ -79,7 +79,7 @@ const DrawerEditDepartamento = ({
           fullWidth
         />
         
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--accent-100)', borderRadius: 'var(--r-md)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--accent-100)', borderRadius: 'var(--shape-lg)' }}>
           <Typography className="body-regular-semibold" color="var(--black)">
             Tipo de Estructura
           </Typography>

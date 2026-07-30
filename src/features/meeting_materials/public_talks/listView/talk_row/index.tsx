@@ -241,7 +241,7 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '6px 8px',
-                          borderRadius: 'var(--radius-s)',
+                          borderRadius: 'var(--shape-xs)',
                           '&:hover': {
                             backgroundColor: 'var(--line)',
                           },

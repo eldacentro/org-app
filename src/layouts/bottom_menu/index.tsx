@@ -102,7 +102,7 @@ const BottomMenu = (props: BottomMenuProps) => {
           WebkitBackdropFilter: 'blur(22px) saturate(1.6)',
 
           border: '1px solid rgba(var(--accent-200-base), 0.7)',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--shape-md)',
           boxShadow: 'var(--shadow-md)',
 
           padding: '5px',

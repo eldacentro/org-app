@@ -13,7 +13,7 @@ const DemoBanner = ({
       sx={{
         backgroundColor:
           environment === 'TEST' ? 'var(--accent-main)' : 'var(--green-main)',
-        borderRadius: '10px',
+        borderRadius: 'var(--shape-full)',
         padding: '1px 0',
         marginTop: '-2px',
       }}

@@ -5,7 +5,7 @@ import { ButtonPropsType } from '@components/button/index.types';
 import Button from '@components/button';
 
 export const LabelContainer: FC<BoxProps> = styled(Box)(({ theme }) => ({
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
   padding: '8px 32px',
   display: 'flex',
   alignItems: 'center',

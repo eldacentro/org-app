@@ -25,7 +25,7 @@ const ImageViewer = ({
           display: 'flex',
           flexDirection: 'column',
           gap: '24px',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           backgroundColor: 'var(--accent-150)',
           width: '100%',
           height: tablet500Down ? 'unset' : '340px',

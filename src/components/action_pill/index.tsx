@@ -82,7 +82,7 @@ const ActionPill = ({
         // Un solo tamaño para las tres: antes cada copia tenía el suyo
         // (9/3, 12/6 y 14/7) y se notaba al verlas en la misma pantalla.
         padding: '6px 12px',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         textDecoration: 'none',
         cursor: 'pointer',
         transition: 'background-color 0.2s ease',

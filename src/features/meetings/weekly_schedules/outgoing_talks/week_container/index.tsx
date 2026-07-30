@@ -17,7 +17,7 @@ const WeekContainer = ({ talkSchedules }: WeekContainerProps) => {
         flex={1}
         sx={{
           padding: '4px 16px',
-          borderRadius: 'var(--radius-s)',
+          borderRadius: 'var(--shape-xs)',
           backgroundColor: 'var(--weekend-meeting)',
         }}
       >

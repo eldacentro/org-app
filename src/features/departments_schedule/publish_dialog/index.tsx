@@ -50,7 +50,7 @@ const DeptPublishDialog = ({
       sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
       PaperProps={{
         style: {
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--shape-xl)',
           border: '1px solid var(--line)',
           backgroundColor: 'var(--card)',
           boxShadow: 'var(--pop-up-shadow)',

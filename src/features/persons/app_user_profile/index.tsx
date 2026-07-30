@@ -18,7 +18,7 @@ const PersonAppUserProfile = () => {
         gap: '16px',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         backgroundColor: user ? 'var(--card)' : 'var(--accent-150)',
         border: `1px ${user ? 'solid' : 'dashed'} var(--line)`,
       }}

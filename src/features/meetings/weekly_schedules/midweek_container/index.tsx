@@ -85,7 +85,7 @@ const MidweekContainer = ({
                 px: '10px',
                 py: '4px',
                 marginBottom: '12px',
-                borderRadius: 'var(--radius-max)',
+                borderRadius: 'var(--shape-full)',
                 border: '1px solid var(--accent-200)',
                 backgroundColor: 'var(--accent-100)',
                 cursor: 'pointer',

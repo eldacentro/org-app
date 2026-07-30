@@ -13,7 +13,7 @@ import { Box, styled } from '@mui/material';
  */
 export const StyledBoxWrapper = styled(Box)({
   width: '100%',
-  borderRadius: 'var(--radius-l)',
+  borderRadius: 'var(--shape-sm)',
   border: '1px solid var(--accent-300)',
   backgroundColor: 'var(--white)',
   padding: '8px 16px 8px 16px',

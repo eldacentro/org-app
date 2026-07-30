@@ -332,7 +332,7 @@ const DialogCompartir = ({
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--shape-md)',
+          borderRadius: 'var(--shape-xl)',
           backgroundColor: 'var(--card)',
         },
       }}

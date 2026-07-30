@@ -2,7 +2,7 @@ import { styled } from '@mui/system';
 import { Box } from '@mui/material';
 
 export const EditorContainer = styled(Box)({
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--shape-xl)',
   padding: '16px',
   backgroundColor: 'var(--card)',
   border: '1px solid var(--line)',

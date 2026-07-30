@@ -27,7 +27,7 @@ const TimeAwayEditor = ({
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
       }}
     >
       <Typography className="h2">{t('tr_timeAway')}</Typography>

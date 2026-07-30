@@ -54,7 +54,7 @@ const ServerSnapshotsTab = () => {
           flexDirection: 'column',
           gap: '8px',
           padding: '12px',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           border: `1px solid ${scheduleLocked ? 'var(--red-main)' : 'var(--accent-200)'}`,
           backgroundColor: 'var(--accent-100)',
         }}

@@ -99,7 +99,7 @@ const RequestAccess = () => {
         <Box
           sx={{
             padding: '16px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             background: 'var(--red-secondary)',
             border: '1px solid var(--red-secondary)',
           }}
@@ -117,7 +117,7 @@ const RequestAccess = () => {
         <Box
           sx={{
             padding: '16px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             background: 'var(--red-secondary)',
             border: '1px solid var(--red-secondary)',
           }}

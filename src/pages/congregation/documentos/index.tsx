@@ -142,7 +142,7 @@ const DocumentosPage = () => {
             px: 2,
             background: 'var(--card)',
             backdropFilter: 'blur(8px)',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px dashed var(--line)',
             textAlign: 'center',
             boxShadow: 'var(--shadow-sm)',

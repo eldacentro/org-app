@@ -237,7 +237,7 @@ const ExhibitorsMeeting = ({
           padding: '24px',
           backgroundColor: CANCELLED_ROW_BG,
           border: '1px solid var(--error-main)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           marginTop: '16px',
         }}
       >
@@ -277,7 +277,7 @@ const ExhibitorsMeeting = ({
           padding: '24px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           marginTop: '16px',
           justifyContent: 'center',
         }}
@@ -304,7 +304,7 @@ const ExhibitorsMeeting = ({
             padding: '12px 16px',
             backgroundColor: 'var(--orange-secondary)',
             border: '1px solid var(--orange-dark)',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
           }}
         >
           <IconInfo color="var(--orange-dark)" />
@@ -323,7 +323,7 @@ const ExhibitorsMeeting = ({
             key={date}
             sx={{
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: 'var(--shape-md)',
               boxShadow: 'var(--small-card-shadow)',
               overflow: 'hidden',
               transition: 'box-shadow 0.25s ease, transform 0.25s ease',
@@ -486,7 +486,7 @@ const ExhibitorsMeeting = ({
                                           flexShrink: 0,
                                           color: 'var(--always-white)',
                                           backgroundColor: 'var(--brand)',
-                                          borderRadius: 'var(--radius-s)',
+                                          borderRadius: 'var(--shape-xs)',
                                           padding: '2px 8px',
                                           textTransform: 'uppercase',
                                           letterSpacing: '0.4px',
@@ -506,7 +506,7 @@ const ExhibitorsMeeting = ({
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                borderRadius: 'var(--radius-xl)',
+                                borderRadius: 'var(--shape-md)',
                                 border: '1px dashed var(--line)',
                                 borderLeft: '4px dashed var(--grey-300)',
                                 backgroundColor:

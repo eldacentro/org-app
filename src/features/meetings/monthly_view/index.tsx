@@ -76,7 +76,7 @@ const MonthlyView = () => {
           display: 'flex',
           flexDirection: 'column',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           backgroundColor: 'var(--card)',
         }}
       >

@@ -643,7 +643,7 @@ const OutgoingSpeakersPage = () => {
           </Box>
 
           {filteredSpeakers.length === 0 ? (
-            <Card sx={{ border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', p: 3, textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
+            <Card sx={{ border: '1px solid var(--line)', borderRadius: 'var(--shape-xl)', p: 3, textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <IconOutgoindSpeaker width={48} height={48} color="var(--grey-400)" />
               </Box>
@@ -680,7 +680,7 @@ const OutgoingSpeakersPage = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '16px',
-                      borderRadius: 'var(--r-lg)',
+                      borderRadius: 'var(--shape-xl)',
                       backgroundColor: 'var(--card)',
                       padding: '20px',
                       border: '1px solid var(--line)',
@@ -715,7 +715,7 @@ const OutgoingSpeakersPage = () => {
                             cursor: 'pointer',
                             py: 0.5,
                             px: 1,
-                            borderRadius: 'var(--radius-m)',
+                            borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
                           }}
                         >
@@ -758,7 +758,7 @@ const OutgoingSpeakersPage = () => {
                             cursor: 'pointer',
                             py: 0.5,
                             px: 1,
-                            borderRadius: 'var(--radius-m)',
+                            borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
                           }}
                         >
@@ -820,7 +820,7 @@ const OutgoingSpeakersPage = () => {
                             flex: 1,
                             height: '38px',
                             minHeight: '38px',
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                           }}
                           onClick={() => navigate('/speakers-catalog')}
                         >
@@ -832,7 +832,7 @@ const OutgoingSpeakersPage = () => {
                             flex: 1,
                             height: '38px',
                             minHeight: '38px',
-                            borderRadius: 'var(--radius-l)',
+                            borderRadius: 'var(--shape-sm)',
                           }}
                           onClick={() => {
                             const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
@@ -874,7 +874,7 @@ const OutgoingSpeakersPage = () => {
               onClick={() => setExpanded(true)}
               sx={{
                 width: '100%',
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--shape-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '10px 16px',
@@ -924,7 +924,7 @@ const OutgoingSpeakersPage = () => {
               sx={{
                 width: desktopUp ? '300px' : '100%',
                 flexShrink: 0,
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--shape-xl)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -1003,7 +1003,7 @@ const OutgoingSpeakersPage = () => {
                             cursor: 'pointer',
                             py: 1,
                             px: 1,
-                            borderRadius: 'var(--radius-m)',
+                            borderRadius: 'var(--shape-sm)',
                             '&:hover': { backgroundColor: 'var(--accent-100)' },
                           }}
                         >
@@ -1060,7 +1060,7 @@ const OutgoingSpeakersPage = () => {
                                     setExpandedMonth(group.month);
                                   }}
                                   sx={{
-                                    borderRadius: 'var(--radius-l)',
+                                    borderRadius: 'var(--shape-sm)',
                                     backgroundColor: isSelected ? 'var(--accent-100)' : 'transparent',
                                     border: isSelected
                                       ? '1px solid var(--line)'
@@ -1112,7 +1112,7 @@ const OutgoingSpeakersPage = () => {
           {/* Right Main Editor Container */}
           <Box
             sx={{
-              borderRadius: 'var(--r-lg)',
+              borderRadius: 'var(--shape-xl)',
               padding: '20px',
               backgroundColor: 'var(--card)',
               border: '1px solid var(--line)',
@@ -1134,7 +1134,7 @@ const OutgoingSpeakersPage = () => {
                     gap: 1,
                     px: 2,
                     py: 1.5,
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     backgroundColor: 'var(--accent-100)',
                     border: '1px solid var(--line)',
                   }}

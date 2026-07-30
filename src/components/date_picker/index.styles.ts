@@ -48,7 +48,7 @@ export const StyleDatePickerDay = {
 
 export const StyleDatePickerDesktopPaper = {
   sx: {
-    borderRadius: 'var(--radius-xxl)',
+    borderRadius: 'var(--shape-lg)',
     border: '1px solid var(--accent-200)',
     backgroundColor: 'var(--white)',
     // En móvil esto ya no es una tarjeta flotando junto al campo — es una
@@ -56,7 +56,7 @@ export const StyleDatePickerDesktopPaper = {
     // sentido las esquinas redondeadas arriba; abajo toca el borde de la
     // pantalla, igual que cualquier hoja nativa de iOS/Android.
     '@media (max-width:430px)': {
-      borderRadius: 'var(--radius-xxl) var(--radius-xxl) 0 0',
+      borderRadius: 'var(--shape-lg) var(--shape-lg) 0 0',
       borderBottom: 'none',
       boxShadow: '0 -8px 32px rgba(15, 23, 42, 0.18)',
     },

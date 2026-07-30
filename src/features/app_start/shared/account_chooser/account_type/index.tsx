@@ -31,7 +31,7 @@ const AccountType = ({
         '&:focus-visible': {
           outline: 'var(--accent-main) auto 1px',
         },
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         border: '1px solid var(--line)',
         textAlign: 'left',
         '&:hover': {

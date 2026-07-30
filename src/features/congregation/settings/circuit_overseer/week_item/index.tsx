@@ -73,7 +73,7 @@ const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItem
         <IconButton
           color="error"
           sx={{
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             width: '48px',
             height: '48px',
           }}

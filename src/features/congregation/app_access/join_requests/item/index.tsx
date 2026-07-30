@@ -31,7 +31,7 @@ const JoinRequest = (props: JoinRequestProps) => {
             ? '1px dashed var(--line)'
             : '1px solid var(--line)',
         padding: '8px 15px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         flexDirection: { mobile: 'column', tablet: 'row' },
       }}
     >

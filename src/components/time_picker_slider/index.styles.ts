@@ -22,7 +22,7 @@ export const DefaultCaseFilter: SxProps<Theme> = {
 export const ActiveCaseFilter: SxProps<Theme> = {
   ...DefaultCaseFilter,
   backgroundColor: 'var(--accent-150)',
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
 };
 
 export const CaseContainerStyle: CSSProperties = {

@@ -186,7 +186,7 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
           },
         }}
     >

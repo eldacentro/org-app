@@ -67,7 +67,7 @@ const NavBarButton = (props: NavBarButtonProps) => {
         gap: '5px',
         px: '12px',
         height: '36px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         cursor: 'pointer',
         flexShrink: 0,
         userSelect: 'none',

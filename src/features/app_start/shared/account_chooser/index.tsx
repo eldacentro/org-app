@@ -59,7 +59,7 @@ const AccountChooser = () => {
             justifyContent: 'center',
             gap: '12px',
             padding: '14px 24px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             border: '1px solid var(--line)',
             background: 'var(--card)',
             textTransform: 'none',

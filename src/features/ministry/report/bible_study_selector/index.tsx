@@ -75,7 +75,7 @@ const BibleStudySelector = (props: BibleStudySelectorProps) => {
           slotProps={{
             paper: {
               style: {
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 width: props.anchorEl.current.clientWidth,

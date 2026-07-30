@@ -215,7 +215,7 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           ))}
         </Select>
 
-        <Box sx={{ border: '1px dashed var(--accent-main)', p: 2, borderRadius: 'var(--r-md)', textAlign: 'center' }}>
+        <Box sx={{ border: '1px dashed var(--accent-main)', p: 2, borderRadius: 'var(--shape-lg)', textAlign: 'center' }}>
           <input
             type="file"
             accept=".pdf"

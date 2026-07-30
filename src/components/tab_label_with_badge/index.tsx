@@ -12,7 +12,7 @@ const LabelBadge = ({
   <Box
     sx={{
       backgroundColor: 'var(--accent-150)',
-      borderRadius: 'var(--radius-s)',
+      borderRadius: 'var(--shape-xs)',
       width: '24px',
       display: 'flex',
       justifyContent: 'center',

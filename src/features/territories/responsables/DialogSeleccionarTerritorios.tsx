@@ -98,7 +98,7 @@ const DialogSeleccionarTerritorios = ({
         style: {
           maxWidth: '560px',
           width: '100%',
-          borderRadius: 'var(--shape-lg)',
+          borderRadius: 'var(--shape-xl)',
           backgroundColor: 'var(--card)',
           padding: '16px',
         },

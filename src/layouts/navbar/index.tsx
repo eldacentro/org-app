@@ -278,13 +278,13 @@ const NavBar = ({ isSupported }: NavBarType) => {
                     <ThemeSwitcher />
 
                     {!FORCED_UI_LANG && tabletUp && (isAppLoad || isTest) && (
-                      <Box sx={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--line)', padding: '2px 4px', boxShadow: 'var(--shadow-sm)' }}>
+                      <Box sx={{ background: 'var(--card)', borderRadius: 'var(--shape-sm)', border: '1px solid var(--line)', padding: '2px 4px', boxShadow: 'var(--shadow-sm)' }}>
                         <LanguageSwitcher
                           menuStyle={{
                             ...baseMenuStyle,
                             '&:hover': {
                               backgroundColor: 'var(--accent-200)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                             },
                             '&:focus-visible': {
                               outline: 'var(--accent-main) auto 1px',
@@ -334,7 +334,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           paper: {
                             className: 'small-card-shadow profile-menu-glass',
                             style: {
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               // Ancho FIJO, no mínimo: con `minWidth` el menú
                               // se ensanchaba o se encogía según lo largo que
                               // fuera el estado de la sincronización, y cambiar

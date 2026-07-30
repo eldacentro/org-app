@@ -15,7 +15,7 @@ const NoCongregations = () => {
         padding: '16px',
         backgroundColor: 'var(--accent-150)',
         border: '1px dashed var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
       }}
     >
       <IconInfo color="var(--accent-400)" />

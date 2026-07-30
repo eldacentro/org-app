@@ -17,19 +17,19 @@ export const StyledProgressBarSmall = styled(Box)({
   height: '8px',
   display: 'flex',
   alignItems: 'center',
-  borderRadius: 'var(--radius-xs)',
+  borderRadius: 'var(--shape-full)',
   background: 'var(--accent-200)',
 });
 
 export const StyledProgressBarSmallFill = styled(Box)({
   height: '100%',
-  borderRadius: 'var(--radius-xs)',
+  borderRadius: 'var(--shape-full)',
   background: 'var(--accent-main)',
 });
 
 export const StyledProgressBarSmallFilled = styled(Box)({
   display: 'flex',
   height: '100%',
-  borderRadius: 'var(--radius-xs)',
+  borderRadius: 'var(--shape-full)',
   background: 'var(--accent-main)',
 });

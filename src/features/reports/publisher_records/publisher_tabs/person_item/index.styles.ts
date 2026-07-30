@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 
 export const UserCard = styled(Box)({
   border: '1px solid var(--line)',
-  borderRadius: 'var(--radius-l)',
+  borderRadius: 'var(--shape-sm)',
   display: 'flex',
   gap: '16px',
   backgroundColor: 'var(--card)',

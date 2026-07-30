@@ -33,7 +33,7 @@ const MinistryCardSkeletonLoader = () => {
         >
           <Box
             sx={{
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               padding: '12px 8px 12px 8px',
               backgroundColor: 'var(--accent-150)',
               width: '103px',
@@ -43,7 +43,7 @@ const MinistryCardSkeletonLoader = () => {
           <Skeleton
             variant="rectangular"
             sx={{
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--shape-sm)',
               background: 'var(--line)',
               width: '64px',
               height: '20px',
@@ -51,7 +51,7 @@ const MinistryCardSkeletonLoader = () => {
           />
           <Box
             sx={{
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               padding: '12px 8px 12px 8px',
               backgroundColor: 'var(--accent-150)',
               width: '103px',
@@ -69,7 +69,7 @@ const MinistryCardSkeletonLoader = () => {
             sx={{
               width: '48px',
               height: '24px',
-              borderRadius: 'var(--radius-xxl)',
+              borderRadius: 'var(--shape-lg)',
               backgroundColor: 'var(--accent-150)',
             }}
           />

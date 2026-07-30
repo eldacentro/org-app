@@ -14,7 +14,7 @@ const WeekBadge = (props: WeekBadgeType) => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'var(--accent-150)',
-        borderRadius: 'var(--radius-s)',
+        borderRadius: 'var(--shape-xs)',
       }}
     >
       <Typography color={'var(--accent-dark)'} className="h4">

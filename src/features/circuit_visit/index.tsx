@@ -380,7 +380,7 @@ const PreachingSection = ({
                 <Box
                   key={outing.outingKey}
                   sx={{
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     border: '1px solid var(--line)',
                     overflow: 'hidden',
                   }}
@@ -400,7 +400,7 @@ const PreachingSection = ({
                     <Box
                       sx={{
                         backgroundColor: 'var(--accent-150)',
-                        borderRadius: 'var(--radius-s)',
+                        borderRadius: 'var(--shape-xs)',
                         padding: '2px 10px',
                       }}
                     >
@@ -974,7 +974,7 @@ const CircuitVisitDashboard = () => {
             sx={{
               backgroundColor: 'var(--card)',
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               boxShadow: 'var(--big-card-shadow)',
               padding: '18px 20px',
             }}
@@ -1002,7 +1002,7 @@ const CircuitVisitDashboard = () => {
                       <Box
                         sx={{
                           backgroundColor: visitStatus.bg,
-                          borderRadius: 'var(--radius-max)',
+                          borderRadius: 'var(--shape-full)',
                           padding: '2px 10px',
                         }}
                       >
@@ -1101,7 +1101,7 @@ const CircuitVisitDashboard = () => {
                   key={meal.id}
                   sx={{
                     padding: '10px 12px 12px',
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     border: '1px solid var(--line)',
                   }}
                 >
@@ -1173,7 +1173,7 @@ const CircuitVisitDashboard = () => {
                   key={sv.id}
                   sx={{
                     padding: '10px 12px 12px',
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     border: '1px solid var(--line)',
                   }}
                 >
@@ -1333,7 +1333,7 @@ const CircuitVisitDashboard = () => {
                     sx={{
                       backgroundColor: 'var(--card)',
                       border: '1px solid var(--line)',
-                      borderRadius: 'var(--radius-l)',
+                      borderRadius: 'var(--shape-sm)',
                       padding: '14px 18px',
                       opacity: 0.85,
                     }}

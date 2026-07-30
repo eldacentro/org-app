@@ -8,14 +8,14 @@ export const StyledProgressBar = styled(Box)({
   height: '24px',
   display: 'flex',
   alignItems: 'center',
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
   background: 'var(--accent-200)',
 });
 
 export const StyledProgressBarFill = styled(Box)({
   padding: '0 8px',
   height: '100%',
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
   background: 'var(--accent-main)',
   color: 'var(--always-white)',
   display: 'flex',
@@ -28,7 +28,7 @@ export const StyledProgressBarToFill = styled(Box)({
   height: '100%',
   flexGrow: 1,
   minWidth: 'fit-content',
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
   color: 'var(--accent-dark)',
   display: 'flex',
   justifyContent: 'center',

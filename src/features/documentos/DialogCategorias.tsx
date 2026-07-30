@@ -142,7 +142,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
         style: {
           maxWidth: '520px',
           width: '100%',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-xl)',
           backgroundColor: 'var(--card)',
           padding: '10px',
         },
@@ -170,7 +170,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
               sx={{
                 p: 3,
                 border: '1px dashed var(--line)',
-                borderRadius: 'var(--r-sm)',
+                borderRadius: 'var(--shape-md)',
                 textAlign: 'center',
               }}
             >

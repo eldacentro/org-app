@@ -30,7 +30,7 @@ const UpcomingEventDate = ({
             : 'auto',
           minWidth: '88px',
           padding: '6px 12px',
-          borderRadius: 'var(--radius-s)',
+          borderRadius: 'var(--shape-xs)',
           alignItems: 'center',
           justifyContent: 'center',
           border: disabled ? '1px dashed var(--line)' : 'none',

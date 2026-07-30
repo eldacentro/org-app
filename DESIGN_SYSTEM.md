@@ -74,15 +74,41 @@ proporción**; los contenedores grandes se quedan en una curva generosa pero
 contenida. Todo lo que se pulsa y no es un contenedor tiende a `--shape-full`
 — así "esto se toca" se reconoce por la forma, antes de leer nada.
 
-Los nombres viejos (`--radius-*`, `--r-*`) **siguen existiendo como alias** de
-esta escala: están en cientos de sitios y cambiarlos de golpe sería una
-migración a ciegas. Con el alias, toda la app adoptó la escala nueva a la vez.
-En código nuevo usa siempre los `--shape-*`; los `--radius-*` se van
-sustituyendo al tocar cada página. `--radius-none` se queda como está: 0 no es
-una forma, es su ausencia.
+Los nombres viejos (`--radius-*`, `--r-*`) **ya no los usa nadie**: los 396
+sitios se migraron de una vez el 2026-07-30, con el valor intacto (cada alias
+tenía un equivalente exacto en la tabla, así que no cambió un solo píxel). Las
+definiciones se quedan en `global/index.css` **de red**: `global.css` lo genera
+`npm run generate:css` y allí siguen declarados con los valores ANTIGUOS
+(`--radius-l: 8px`), así que sin esa red un `var(--radius-l)` escrito por
+descuido cogería el valor viejo sin avisar. En código nuevo, `--shape-*`
+siempre. `--radius-none` se queda: 0 no es una forma, es su ausencia.
 
 **Nunca un píxel suelto.** Si ninguno de los seis encaja, casi siempre es que
 el elemento está mal clasificado, no que falte un token.
+
+#### Un diálogo es `--shape-xl`; un MENÚ no
+
+Es la confusión que más veces se coló: `<Dialog>` y `<Menu>` se estilan igual
+(`PaperProps` / `slotProps.paper`), así que se copiaban el uno del otro. Pero
+no son lo mismo:
+
+- **`<Dialog>` → `--shape-xl`.** Es una superficie que se apodera de la
+  pantalla; las esquinas marcan que está por encima de todo lo demás.
+- **`<Menu>` / `<Popover>` / el desplegable de un `Select` → `--shape-sm`.**
+  Es la continuación del control que lo abrió — sale pegado a él, y con 28px
+  parece una hoja aparte flotando encima en vez de la lista de ese campo.
+
+A 2026-07-30 había **cuatro** radios distintos repartidos por los ~30 diálogos
+escritos a mano (16, 20, 12 y 28px) y solo UNO coincidía con
+`@components/dialog`. Todos pasaron a `--shape-xl`. Si escribes un diálogo a
+mano, mejor no lo hagas: usa `@components/dialog`.
+
+#### Los esqueletos de carga copian la forma de lo que sustituyen
+
+Un `<Skeleton>` con un radio inventado hace que la pantalla **salte** al llegar
+los datos. El radio del esqueleto se saca del elemento real, no a ojo: la
+tarjeta del día es `--shape-sm` porque `.meeting-row .day-badge` lo es, y la
+píldora de la hora es `--shape-full` porque `.meeting-row .meeting-time` lo es.
 
 #### Concentricidad — manda sobre la tabla de arriba
 
@@ -210,6 +236,14 @@ estos.
 **Todo el texto de la app usa una de estas clases vía `className` en
 `@components/typography` (o `<Typography className="...">`). Nunca
 `fontSize`/`fontWeight` sueltos en `sx` salvo un ajuste real y puntual.**
+
+La razón NO es sólo el orden: **un `fontSize` a mano se queda fuera de los dos
+escalones de texto**. La app agranda el texto ×1,15 en dos situaciones —tablet
+táctil, y la página de Programas semanales— y lo hace redefiniendo estas clases
+dentro de una media query (`global/index.css`, al final). Los estilos de `sx`
+son clases de emotion que ese CSS no alcanza, así que un `fontSize: '13.5px'`
+escrito a mano **no crece en una tablet** y acaba más pequeño que el texto de al
+lado. A 2026-07-30 quedan ~150 sitios así, casi todos en Exhibidores y Salidas.
 
 | Clase | Tamaño (móvil → escritorio) | Uso |
 |---|---|---|

@@ -118,7 +118,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       sx={{
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         padding: tabletUp ? '24px' : '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -163,7 +163,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             // de escritorio (24px) esa resta da apenas 2px, que en una foto
             // de este tamaño se ve completamente cuadrada en vez de con
             // esquinas curvas.
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--shape-md)',
           }}
         />
       )}

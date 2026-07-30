@@ -38,7 +38,7 @@ const ConfirmDialog = ({
     onClose={onCancel}
     PaperProps={{
       sx: {
-        borderRadius: '20px',
+        borderRadius: 'var(--shape-xl)',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
         boxShadow: 'var(--pop-up-shadow)',

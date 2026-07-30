@@ -84,7 +84,7 @@ const About = (props: AboutProps) => {
         alignItems: 'center',
         gap: '12px',
         padding: '10px 12px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--accent-100)',
         cursor: busy ? 'default' : 'pointer',

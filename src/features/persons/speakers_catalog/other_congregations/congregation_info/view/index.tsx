@@ -34,7 +34,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
           sx={{
             padding: '12px',
             backgroundColor: 'var(--accent-150)',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
           }}
         >
           <Typography className="label-small-regular" color="var(--accent-400)">
@@ -63,7 +63,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
               gap: '2px',
               flex: 1,
               width: '100%',
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
             }}
           >
             <Typography
@@ -86,7 +86,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
               gap: '2px',
               flex: 1,
               width: '100%',
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
             }}
           >
             <Typography
@@ -109,7 +109,7 @@ const CongregationInfoView = ({ congregation }: CongregationInfoViewType) => {
               gap: '2px',
               flex: 1,
               width: '100%',
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
             }}
           >
             <Typography

@@ -108,7 +108,7 @@ const SpeakersCatalog = (props: SpeakersCatalogType) => {
                       onClick={() => handleSelectSpeaker(talk, speaker)}
                       sx={{
                         padding: '2px 4px',
-                        borderRadius: 'var(--radius-s)',
+                        borderRadius: 'var(--shape-xs)',
                         userSelect: 'none',
                         '&:hover': {
                           backgroundColor: 'var(--accent-150)',

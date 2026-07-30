@@ -86,11 +86,40 @@ Entre los cinco son el **56%** del total.
       Barrida de tokens fantasma en toda la app: **cero**. Lo de los "nombres
       CSS crudos" del inventario era casi todo FALSO — eran props `color="red"`
       de componentes de la app, que sí mapean a tokens.
-- [ ] **B2 · Radios** (437) — primero `global/index.css` y `src/components`
-      (66), luego los seis `shared_styles` de zona, luego el resto
-- [ ] **B3 · Tipografía** (194) — primero la escala paralela de
-      `global/index.css` (41 tamaños a mano). Sin eso, el Inicio no se puede
-      migrar
+- [x] **B2 · Radios** — 396 alias viejos (`--radius-*`, `--r-*`) migrados de
+      una vez a la escala por rol, con el valor INTACTO: cada alias tenía un
+      equivalente exacto, comprobado token a token en el navegador antes de
+      tocar nada. Verificado sobre el diff, par por par, no sólo compilando.
+      Lo que sí cambió de aspecto, y era lo que valía la pena:
+      · **Los diálogos.** Había CUATRO radios distintos entre los ~30 escritos
+        a mano (16, 20, 12, 28) y sólo uno coincidía con `@components/dialog`.
+        Todos a `--shape-xl`. Ojo: el mismo patrón (`slotProps.paper`) lo usan
+        los `<Menu>`, y ésos NO son diálogos — se quedan en `--shape-sm`.
+      · **El esqueleto de carga del Inicio** tenía 15/10/17px inventados donde
+        lo real es 12 / píldora / 12: la pantalla saltaba al llegar los datos.
+      · El `<Button>` crudo de MUI iba a 17px por el tema, cuando el botón de
+        la app es píldora.
+      Se queda a propósito el píxel suelto de: las plantillas PDF (`src/views`,
+      react-pdf no entiende custom properties), el correo de `firebase/email`
+      (ídem los clientes de correo), la pantalla de "sin JavaScript" de
+      `index.html` (isla autosuficiente a propósito), el rectángulo de 3px del
+      mapa (es un GLIFO de herramienta, no una superficie) y el aviso de enlace
+      roto de `main.tsx` (se dibuja sin CSS a propósito).
+- [~] **B3 · Tipografía** — el titular del inventario ("41 tamaños a mano")
+      resultó **FALSO en su mayor parte**: son dos escalones ×1,15 deliberados
+      y documentados (tablet táctil y Programas semanales), y por eso salen los
+      medios píxeles (12×1,15 = 13,8 → 13,5). No se tocan.
+      Lo que sí había, y era un fallo de verdad: **`label-small-semibold` se
+      quedaba fuera del escalón de tablet**. Sus dos hermanas (`-medium`,
+      `-regular`) subían a 13,5 y ella se quedaba en 12 — la misma etiqueta con
+      distinto peso, una más pequeña que su vecina. Comprobado leyendo el CSSOM
+      del navegador, no el fichero. Arreglado.
+      Comprobado también que no queda ninguna clase de texto declarada sin CSS
+      (el fallo de 2026-07-14 no ha vuelto).
+      **Queda**: ~150 `fontSize` a mano en `sx`, casi todos en Exhibidores y
+      Salidas. NO es un barrido: cada uno lleva su `fontWeight`/`fontStyle`
+      pegado y hay que decidir clase por clase. Y hay un motivo real para
+      hacerlo — un `fontSize` en `sx` no crece en tablet (ver DESIGN_SYSTEM §3).
 - [x] **B4 · Degradados** — cerrado con matiz: "los 14 fuera" era demasiado
       grueso. Fuera los que caen sobre CONTENIDO (cabeceras, botones, barras de
       gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las

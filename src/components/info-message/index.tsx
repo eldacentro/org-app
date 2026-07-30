@@ -65,7 +65,7 @@ const InfoMessage = (props: InfoMessagePropsType) => {
           : variant === 'message-with-button'
             ? '16px 16px 16px 24px'
             : '16px 24px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         ...props.sx,
       }}
       className={getEffect()}

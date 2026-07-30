@@ -23,7 +23,7 @@ const StatusRow = ({ row }: { row: DeviceStatusRow }) => {
         alignItems: 'center',
         gap: '12px',
         padding: '10px 12px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         border: '1px solid var(--accent-200)',
         backgroundColor: 'var(--accent-100)',
       }}
@@ -110,7 +110,7 @@ const DevicesStatus = () => {
         sx={{
           width: '100%',
           padding: '12px 16px',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
           display: 'flex',

@@ -87,7 +87,7 @@ export const StyleTimePickerToolbar: SxProps<Theme> = {
   button: {
     width: '100%',
     height: '100%',
-    borderRadius: 'var(--radius-l)',
+    borderRadius: 'var(--shape-sm)',
     backgroundColor: 'var(--accent-150)',
     ':hover': {
       backgroundColor: 'var(--accent-300)',

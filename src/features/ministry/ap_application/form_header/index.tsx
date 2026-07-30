@@ -17,7 +17,7 @@ const FormHeader = (props: FormHeaderProps) => {
       {approved && (
         <Box
           sx={{
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             padding: '16px',
             backgroundColor: 'var(--green-secondary)',
             border: '1px solid var(--green-main)',
@@ -38,7 +38,7 @@ const FormHeader = (props: FormHeaderProps) => {
       {pending && (
         <Box
           sx={{
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-md)',
             padding: '16px',
             backgroundColor: 'var(--orange-secondary)',
             border: '1px solid var(--orange-main)',

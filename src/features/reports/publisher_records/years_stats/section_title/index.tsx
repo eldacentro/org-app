@@ -7,7 +7,7 @@ const SectionTitle = ({ children }: PropsWithChildren) => {
       className="h4"
       color="var(--accent-dark)"
       sx={{
-        borderRadius: 'var(--radius-s)',
+        borderRadius: 'var(--shape-xs)',
         padding: '4px 8px',
         backgroundColor: 'var(--accent-150)',
       }}

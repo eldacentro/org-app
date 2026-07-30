@@ -10,7 +10,7 @@ export const CardSection = styled(Box)({
   backgroundColor: 'var(--card)',
   padding: '20px',
   border: '1px solid var(--line)',
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--shape-xl)',
   boxShadow: 'var(--shadow-sm)',
   display: 'flex',
   flexDirection: 'column',

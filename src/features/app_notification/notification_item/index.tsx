@@ -76,7 +76,7 @@ const NotificationItem = ({
       className="notif-card"
       sx={{
         position: 'relative',
-        borderRadius: 'var(--radius-xxl)',
+        borderRadius: 'var(--shape-lg)',
         p: '16px',
         mb: '12px',
         backgroundColor: notification.read ? 'var(--white)' : 'var(--accent-100)',
@@ -118,7 +118,7 @@ const NotificationItem = ({
             flexShrink: 0,
             width: '38px',
             height: '38px',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: iconDef.bg,
             display: 'flex',
             alignItems: 'center',

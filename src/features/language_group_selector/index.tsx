@@ -26,7 +26,7 @@ const LanguageGroupSelector = () => {
           width: tablet688Up ? '250px' : '100%',
           '&.MuiInputBase-root': {
             backgroundColor: 'var(--card)',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             '& > .MuiSelect-select': {
               color: 'var(--accent-dark)',
             },

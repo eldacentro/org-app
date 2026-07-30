@@ -28,7 +28,7 @@ const MonthItem = (props: MonthItemType) => {
           {assignComplete && (
             <Box
               sx={{
-                borderRadius: 'var(--radius-max)',
+                borderRadius: 'var(--shape-full)',
                 width: '18.4px',
                 height: '18.4px',
                 padding: '2px',

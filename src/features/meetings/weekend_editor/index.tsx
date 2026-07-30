@@ -239,7 +239,7 @@ const WeekendEditor = () => {
                         sx={{
                           backgroundColor: 'rgba(255, 255, 255, 0.15)',
                           border: '1px solid rgba(255, 255, 255, 0.30)',
-                          borderRadius: 'var(--radius-l)',
+                          borderRadius: 'var(--shape-sm)',
                           color: 'var(--always-white)',
                           padding: { mobile: '4px 10px', tablet: '6px 14px' },
                           textTransform: 'none',

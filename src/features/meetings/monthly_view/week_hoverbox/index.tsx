@@ -15,7 +15,7 @@ const WeekHoverBox = (props: WeekHoverBoxType) => {
         tooltip: {
           sx: {
             padding: '16px',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
             display: 'flex',

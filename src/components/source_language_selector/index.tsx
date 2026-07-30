@@ -23,7 +23,7 @@ const SourceLanguageSelector = (props: SelectPropsType) => {
                 sx={{
                   backgroundColor: 'var(--accent-200)',
                   padding: '2px 3px',
-                  borderRadius: 'var(--radius-s)',
+                  borderRadius: 'var(--shape-xs)',
                 }}
               >
                 {language.code.toUpperCase()}

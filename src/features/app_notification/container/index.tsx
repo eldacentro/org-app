@@ -46,7 +46,7 @@ const NotificationContainer = ({
                   justifyContent: 'center',
                   minWidth: '22px',
                   height: '22px',
-                  borderRadius: 'var(--radius-max)',
+                  borderRadius: 'var(--shape-full)',
                   backgroundColor: 'var(--accent-main)',
                   px: '6px',
                 }}

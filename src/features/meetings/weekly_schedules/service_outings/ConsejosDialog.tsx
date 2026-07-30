@@ -43,7 +43,7 @@ const Idea = ({ numero, texto }: { numero: number; texto: string }) => (
       alignItems: 'flex-start',
       gap: '12px',
       padding: '12px 14px',
-      borderRadius: 'var(--radius-l)',
+      borderRadius: 'var(--shape-sm)',
       backgroundColor: 'var(--accent-100)',
       border: '1px solid var(--accent-200)',
     }}
@@ -91,7 +91,7 @@ const ConsejosDialog = ({
       className: 'pop-up-shadow',
       style: {
         maxWidth: '640px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-xl)',
         backgroundColor: 'var(--white)',
         marginLeft: '16px',
         marginRight: '16px',
@@ -149,7 +149,7 @@ const ConsejosDialog = ({
           alignItems: 'baseline',
           gap: '10px',
           padding: '14px 16px',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           backgroundColor: 'var(--orange-secondary)',
           border: '1px solid var(--orange-dark)',
         }}

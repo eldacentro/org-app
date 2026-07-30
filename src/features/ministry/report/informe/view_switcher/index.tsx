@@ -58,7 +58,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 18px',
-          borderRadius: 'var(--r-md)',
+          borderRadius: 'var(--shape-lg)',
           border: '1px solid var(--line)',
           backgroundColor: 'var(--card)',
           cursor: 'pointer',
@@ -95,7 +95,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
         sx={{
           marginTop: '6px',
           '& .MuiPaper-root': {
-            borderRadius: 'var(--r-md)',
+            borderRadius: 'var(--shape-lg)',
             border: '1px solid var(--line)',
             boxShadow: 'var(--shadow-md)',
             backgroundColor: 'var(--card)',
@@ -104,7 +104,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
           '& li': {
             padding: '14px 18px',
             margin: '6px 8px',
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--shape-md)',
             transition: 'all 0.15s ease',
             color: 'var(--ink-2)',
             '&:hover': {

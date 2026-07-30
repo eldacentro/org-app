@@ -63,7 +63,7 @@ const EnrollmentItem = ({
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: 'var(--green-secondary)',
             alignSelf: 'flex-start',
           }}

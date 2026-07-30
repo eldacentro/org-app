@@ -74,7 +74,7 @@ const InfoTip: React.FC<InfoTipProps> = ({
     <Box
       sx={{
         padding: '16px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         border: style.border,
         bgcolor: style.background,
         ...sx,

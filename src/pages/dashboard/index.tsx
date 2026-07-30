@@ -838,7 +838,7 @@ const Dashboard = () => {
             gap: '12px',
             padding: '12px 16px',
             marginBottom: '16px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
           }}
@@ -943,7 +943,7 @@ const Dashboard = () => {
                   gap: '12px',
                   margin: '12px',
                   padding: '12px 14px',
-                  borderRadius: 'var(--radius-xxl)',
+                  borderRadius: 'var(--shape-lg)',
                   background: 'rgba(59, 114, 196, 0.06)',
                   border: '1px solid var(--accent-200)',
                   cursor: 'pointer',
@@ -988,7 +988,7 @@ const Dashboard = () => {
                   padding: '32px 16px',
                   textAlign: 'center',
                   background: 'rgba(59, 114, 196, 0.03)',
-                  borderRadius: 'var(--radius-xxl)',
+                  borderRadius: 'var(--shape-lg)',
                   margin: '12px',
                   border: '1px dashed rgba(59, 114, 196, 0.15)',
                 }}

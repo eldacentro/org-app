@@ -525,7 +525,7 @@ const SpeakersCatalog = () => {
                     paper: {
                       className: 'small-card-shadow',
                       style: {
-                        borderRadius: 'var(--radius-l)',
+                        borderRadius: 'var(--shape-sm)',
                       },
                     },
                   }}
@@ -582,7 +582,7 @@ const SpeakersCatalog = () => {
           justifyContent: 'space-between',
           flexDirection: 'column',
           gap: '16px',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           padding: '20px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',

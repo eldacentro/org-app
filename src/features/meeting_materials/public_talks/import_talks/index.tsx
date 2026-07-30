@@ -83,7 +83,7 @@ const ImportTalks = () => {
                   flexDirection: 'column',
                   gap: '4px',
                   padding: '8px 12px',
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                   border: '1px solid var(--accent-200)',
                 }}
               >

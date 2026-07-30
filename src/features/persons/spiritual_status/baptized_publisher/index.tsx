@@ -137,7 +137,7 @@ const BaptizedPublisher = ({
               sx={{
                 backgroundColor: 'var(--accent-150)',
                 padding: '8px 16px',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 height: tabletDown ? 'auto' : '48px',
                 display: 'flex',
                 alignItems: 'center',

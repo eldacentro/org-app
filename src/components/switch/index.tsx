@@ -38,7 +38,7 @@ const Switch: FC<SwitchProps> = (props) => {
         '& .MuiSwitch-track': {
           backgroundColor: 'unset',
           border: '1px solid var(--accent-350)',
-          borderRadius: 'var(--radius-max)',
+          borderRadius: 'var(--shape-full)',
         },
         ...props.sx,
       }}

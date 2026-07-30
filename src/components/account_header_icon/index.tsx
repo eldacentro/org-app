@@ -75,7 +75,7 @@ const AccountHeaderIcon = ({
         display: 'flex',
         flexDirection: 'row',
         gap: '2px',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         border: `1px solid ${isRed ? 'var(--red-main)' : 'var(--accent-200)'}`,
         backgroundColor: 'var(--accent-150)',
         padding: '4px 6px 4px 4px',
@@ -107,7 +107,7 @@ const AccountHeaderIcon = ({
           sx={{
             width: '24px',
             height: '24px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             overflow: 'hidden',
             position: 'relative',
           }}

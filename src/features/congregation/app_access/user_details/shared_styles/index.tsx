@@ -3,7 +3,7 @@ import { Box, styled } from '@mui/material';
 export const DetailsContainer = styled(Box)({
   flex: 1,
   width: '100%',
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--shape-xl)',
   border: '1px solid var(--line)',
   padding: '16px',
   display: 'flex',

@@ -471,7 +471,7 @@ const Limpieza = () => {
                                 minHeight: desktopUp ? '110px' : 'auto',
                                 backgroundColor: 'var(--accent-100)',
                                 border: '1px solid var(--line)',
-                                borderRadius: 'var(--radius-m)',
+                                borderRadius: 'var(--shape-sm)',
                                 opacity: 0.3,
                               }}
                             />
@@ -500,7 +500,7 @@ const Limpieza = () => {
                                 minHeight: desktopUp ? '110px' : 'auto',
                                 backgroundColor: 'var(--accent-100)',
                                 border: '1px solid var(--line)',
-                                borderRadius: 'var(--radius-m)',
+                                borderRadius: 'var(--shape-sm)',
                                 opacity: 0.3,
                               }}
                             />
@@ -520,7 +520,7 @@ const Limpieza = () => {
                               minHeight: desktopUp ? '110px' : '90px',
                               backgroundColor: 'var(--card)',
                               border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               p: '10px',
                               display: 'flex',
                               flexDirection: 'column',
@@ -623,7 +623,7 @@ const Limpieza = () => {
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               border: '1px solid var(--line)',
-                              borderRadius: 'var(--radius-l)',
+                              borderRadius: 'var(--shape-sm)',
                               boxShadow: 'none',
                               transition: 'all 0.2s ease',
                               '&:hover': {
@@ -654,7 +654,7 @@ const Limpieza = () => {
                                 backgroundColor: 'var(--accent-main)',
                                 px: 2,
                                 py: 1,
-                                borderRadius: 'var(--radius-m)',
+                                borderRadius: 'var(--shape-sm)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
@@ -704,7 +704,7 @@ const Limpieza = () => {
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--shape-xl)',
           },
         }}
       >
@@ -779,7 +779,7 @@ const Limpieza = () => {
                         gap: '8px',
                         p: '8px 12px',
                         backgroundColor: 'var(--accent-150)',
-                        borderRadius: 'var(--radius-m)',
+                        borderRadius: 'var(--shape-sm)',
                       }}
                     >
                       <Typography fontWeight={600} color="var(--black)">

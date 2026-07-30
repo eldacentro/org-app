@@ -42,7 +42,7 @@ const StatusChip = ({
       sx={{
         flexShrink: 0,
         padding: '4px 8px',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         backgroundColor: palette.bg,
       }}
     >
@@ -74,7 +74,7 @@ const AwayRow = ({ row }: { row: TimeAwayRow }) => {
         flexDirection: 'column',
         gap: '4px',
         padding: '12px 16px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         cursor: 'pointer',
@@ -200,7 +200,7 @@ const AusenciasPage = () => {
             alignItems: 'center',
             gap: '16px',
             padding: tabletUp ? '20px 24px' : '16px',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
           }}
@@ -210,7 +210,7 @@ const AusenciasPage = () => {
               flexShrink: 0,
               width: '44px',
               height: '44px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: 'var(--brand-tint)',
               display: 'flex',
               alignItems: 'center',

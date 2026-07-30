@@ -2,7 +2,7 @@ import { Box, Skeleton, styled } from '@mui/material';
 
 export const SkeletonLoaderCardContainer = styled(Box)({
   width: '100%',
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--shape-xl)',
   border: '1px solid var(--line)',
   backgroundColor: 'var(--card)',
 });
@@ -13,14 +13,14 @@ export const SkeletonLoaderCardTitle = styled(Box)({
 
 export const SkeletonLoaderCardBlueArea = styled(Box)({
   background: 'var(--line)',
-  borderRadius: 'var(--radius-m)',
+  borderRadius: 'var(--shape-sm)',
   display: 'flex',
   justifyContent: 'center',
   padding: '16px 0px 16px 0px',
 });
 
 export const SkeletonLoaderCardBlueAreaRect = styled(Skeleton)({
-  borderRadius: 'var(--radius-m)',
+  borderRadius: 'var(--shape-sm)',
   background: 'var(--line)',
   width: '128px',
   height: '24px',
@@ -29,13 +29,13 @@ export const SkeletonLoaderCardBlueAreaRect = styled(Skeleton)({
 export const SkeletonLoaderCardItems = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  borderRadius: '0px 0px 8px 8px',
+  borderRadius: '0 0 var(--shape-xs) var(--shape-xs)',
   padding: '8px',
   gap: '2px',
 });
 
 export const SkeletonLoaderCardItem = styled(Box)({
-  borderRadius: 'var(--radius-s)',
+  borderRadius: 'var(--shape-xs)',
   justifyContent: 'space-between',
   padding: '10px 8px 10px 16px',
   display: 'flex',
@@ -53,7 +53,7 @@ export const SkeletonLoaderCardCircle = styled(Skeleton)({
 
 export const SkeletonLoaderCardText = styled(Skeleton)({
   background: 'var(--line)',
-  borderRadius: 'var(--radius-max)',
+  borderRadius: 'var(--shape-full)',
   height: '20px',
 });
 

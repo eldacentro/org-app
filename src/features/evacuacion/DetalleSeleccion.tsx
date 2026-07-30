@@ -146,7 +146,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
         // solo servía para transparentar el plano de debajo.
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -155,7 +155,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
             sx={{
               display: 'inline-block',
               padding: '2px 8px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: contenido.color,
               marginBottom: '4px',
             }}
@@ -185,7 +185,7 @@ const DetalleSeleccion = ({ plan, seleccion, onClose }: Props) => {
             flexShrink: 0,
             width: '28px',
             height: '28px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--accent-150)',
             display: 'flex',
             alignItems: 'center',

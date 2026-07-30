@@ -41,7 +41,7 @@ const PublicTalks = ({ view }: PublicTalksType) => {
     <Box
       sx={{
         border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',

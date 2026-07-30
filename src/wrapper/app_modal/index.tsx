@@ -20,7 +20,7 @@ const AppModalWrapper = ({ children }: { children?: ReactNode }) => {
               color: 'unset',
               backgroundColor: 'unset',
               boxShadow: 'none',
-              borderRadius: 'var(--radius-xxl)',
+              borderRadius: 'var(--shape-xl)',
             },
             className: 'pop-up-shadow',
           }}

@@ -101,7 +101,7 @@ const SectionHeader = ({
         justifyContent: 'center',
         width: '40px',
         height: '40px',
-        borderRadius: 'var(--r-md)',
+        borderRadius: 'var(--shape-lg)',
         backgroundColor: 'var(--accent-100)',
         border: '1px solid var(--accent-200)',
       }}
@@ -324,7 +324,7 @@ const ReadDepartamentos = ({
                             fontSize: '11px',
                             backgroundColor: 'var(--accent-100)',
                             color: 'var(--accent-dark)',
-                            borderRadius: 'var(--r-sm)',
+                            borderRadius: 'var(--shape-md)',
                             fontWeight: 500,
                             '&:hover': { backgroundColor: 'var(--accent-200)' },
                           }}
@@ -357,7 +357,7 @@ const EditSummaryCard = ({
     sx={{
       backgroundColor: 'var(--card)',
       border: '1px solid var(--line)',
-      borderRadius: 'var(--r-md)',
+      borderRadius: 'var(--shape-lg)',
       padding: '16px',
       display: 'flex',
       justifyContent: 'space-between',
@@ -447,7 +447,7 @@ const ReorderDialog = ({
               padding: '12px 16px',
               backgroundColor: 'var(--accent-100)',
               border: '1px solid var(--accent-200)',
-              borderRadius: 'var(--r-md)',
+              borderRadius: 'var(--shape-lg)',
               transition: 'background-color 0.2s',
               '&:hover': {
                 backgroundColor: 'var(--accent-150)',

@@ -27,7 +27,7 @@ const AddTimeDialog = (props: AddTimeDialogProps) => {
         sx={{
           width: '100%',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           padding: '16px',
           display: 'flex',
           justifyContent: 'center',

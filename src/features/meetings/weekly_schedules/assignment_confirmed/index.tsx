@@ -47,7 +47,7 @@ const AssignmentConfirmed = (props: {
         flexShrink: 0,
         width: '24px',
         height: '24px',
-        borderRadius: 'var(--radius-s)',
+        borderRadius: 'var(--shape-xs)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

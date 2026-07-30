@@ -10,6 +10,6 @@ export const StyledContentBox = styled(Box, {
   justifyContent: 'space-between',
   padding: '4px 8px',
   alignSelf: 'stretch',
-  borderRadius: 'var(--radius-m)',
+  borderRadius: 'var(--shape-sm)',
   background: size === 'small' ? `var(--${color}-150)` : `var(--${color})`,
 }));

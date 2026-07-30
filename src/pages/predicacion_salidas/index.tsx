@@ -3679,7 +3679,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -3752,7 +3752,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             padding: '8px',
           },
         }}
@@ -3993,7 +3993,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4274,7 +4274,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             padding: '12px',
           },
         }}
@@ -4400,7 +4400,7 @@ const PredicacionSalidas = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             padding: '12px',
           },
         }}

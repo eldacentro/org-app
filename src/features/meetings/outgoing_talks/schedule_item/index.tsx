@@ -79,7 +79,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
         width: '100%',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -231,7 +231,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
                 gap: '16px',
                 flexWrap: 'wrap',
                 p: 1.5,
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 backgroundColor: 'var(--accent-100)',
                 border: '1px solid var(--line)',
               }}

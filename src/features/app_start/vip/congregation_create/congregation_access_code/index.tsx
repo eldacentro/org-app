@@ -67,7 +67,7 @@ const CongregationAccessCode = () => {
             padding: '8px 16px',
             alignItems: 'center',
             gap: '8px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             background: 'var(--orange-secondary)',
             marginBottom: '32px',
           }}

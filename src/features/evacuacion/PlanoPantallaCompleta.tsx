@@ -172,7 +172,7 @@ const PlanoPantallaCompleta = ({
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--card)',
             color: 'var(--ink-2)',
             '&:hover': { color: 'var(--ink)' },
@@ -209,7 +209,7 @@ const PlanoPantallaCompleta = ({
               maxHeight: 'calc(100% - 20px)',
               overflowY: 'auto',
               boxShadow: 'var(--pop-up-shadow)',
-              borderRadius: 'var(--r-lg)',
+              borderRadius: 'var(--shape-xl)',
             }}
           >
             <DetalleSeleccion
@@ -240,7 +240,7 @@ const PlanoPantallaCompleta = ({
         <Box
           sx={{
             padding: '6px 14px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
           }}

@@ -40,7 +40,7 @@ const TerritoryAssignedNotice = ({
       sx={{
         mt: '12px',
         p: '16px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         border: '1px solid var(--accent-200)',
         backgroundColor: 'var(--white)',
         boxShadow: 'var(--small-card-shadow)',
@@ -54,7 +54,7 @@ const TerritoryAssignedNotice = ({
             height: '38px',
             minHeight: '38px',
             px: '20px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             fontWeight: 600,
             fontSize: '14px',
             letterSpacing: '0.01em',

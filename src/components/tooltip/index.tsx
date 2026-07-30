@@ -50,7 +50,7 @@ const Tooltip: FC<CustomTooltipProps> = ({
         tooltip: {
           sx: {
             backgroundColor: 'var(--grey-400)',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             padding: '4px 8px 4px 8px',
             maxWidth: '360px',
             color: 'var(--white)',

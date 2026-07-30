@@ -31,7 +31,7 @@ const DayRow = ({
         gap: '12px',
         padding: '12px 14px',
         cursor: 'pointer',
-        borderRadius: 'var(--r-md)',
+        borderRadius: 'var(--shape-lg)',
         border: '1px solid var(--line)',
         backgroundColor: cell.isToday ? 'var(--brand-tint)' : 'var(--card)',
       }}

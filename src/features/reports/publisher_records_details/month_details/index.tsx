@@ -18,7 +18,7 @@ const MonthDetails = ({
           className="body-small-semibold"
           size="big"
           color="grey"
-          sx={{ borderRadius: 'var(--radius-s)' }}
+          sx={{ borderRadius: 'var(--shape-xs)' }}
           text={t('tr_inProgress')}
         />
       )}
@@ -29,7 +29,7 @@ const MonthDetails = ({
           className="body-small-semibold"
           size="big"
           color="grey"
-          sx={{ borderRadius: 'var(--radius-s)' }}
+          sx={{ borderRadius: 'var(--shape-xs)' }}
           text={t('tr_ahead')}
         />
       )}
@@ -41,7 +41,7 @@ const MonthDetails = ({
               className="body-small-semibold"
               size="big"
               color="grey"
-              sx={{ borderRadius: 'var(--radius-s)' }}
+              sx={{ borderRadius: 'var(--shape-xs)' }}
               text={t('tr_bibleStudyCountAbbreviated', {
                 count: bible_studies,
               })}
@@ -53,7 +53,7 @@ const MonthDetails = ({
               className="body-small-semibold"
               size="big"
               color="grey"
-              sx={{ borderRadius: 'var(--radius-s)' }}
+              sx={{ borderRadius: 'var(--shape-xs)' }}
               text={t('tr_hoursList', {
                 Hours: field_hours,
               })}
@@ -65,7 +65,7 @@ const MonthDetails = ({
               className="body-small-semibold"
               size="big"
               color="grey"
-              sx={{ borderRadius: 'var(--radius-s)' }}
+              sx={{ borderRadius: 'var(--shape-xs)' }}
               text={`${t('tr_credit')}: ${credit_hours}`}
             />
           )}

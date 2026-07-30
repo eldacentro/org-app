@@ -32,7 +32,7 @@ const UsersContainer = ({
       sx={{
         width: '100%',
         padding: '16px',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         gap: gap,
         display: 'flex',
         flexDirection: 'column',

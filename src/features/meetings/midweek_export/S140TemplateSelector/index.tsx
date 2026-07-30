@@ -38,7 +38,7 @@ const S140TemplateItem = ({
             style={{
               width: 'auto',
               height: '240px',
-              borderRadius: '2.97px',
+              borderRadius: 'var(--shape-xs)',
               cursor: 'pointer',
               border:
                 selected === item.id

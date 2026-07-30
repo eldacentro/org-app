@@ -37,7 +37,7 @@ const TermsUse = () => {
         <Box
           sx={{
             backgroundColor: 'var(--orange-secondary)',
-            borderRadius: 'var(--radius-s)',
+            borderRadius: 'var(--shape-xs)',
             padding: '16px',
           }}
         >

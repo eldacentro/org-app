@@ -45,7 +45,7 @@ const ServiceTime = (props: ServiceTimeProps) => {
       sx={{
         padding: '24px',
         backgroundColor: 'var(--card)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',

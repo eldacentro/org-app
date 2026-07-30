@@ -94,7 +94,7 @@ span .text-markup:last-child {
 
 .pop-up {
   background-color: var(--white);
-  border-radius: var(--radius-xxl);
+  border-radius: var(--shape-lg);
 }
 
 @keyframes fade-out-top {
@@ -275,10 +275,13 @@ body iframe {
   --campo-pad-top: 24px;
   --campo-pad-bottom: 9px;
 
-  /* Los nombres viejos pasan a ser alias de la escala nueva. Se conservan
-     porque están en ~600 sitios y borrarlos de golpe sería una migración a
-     ciegas; con el alias, toda la app adopta la escala nueva a la vez y luego
-     cada página se va pasando a los nombres nuevos al tocarla.
+  /* Los nombres viejos: ya NO los usa nadie (396 sitios migrados de golpe, con
+     el valor intacto, porque cada alias tenía un equivalente exacto arriba).
+     No se borran porque `global.css` lo genera `npm run generate:css` y allí
+     siguen definidos con los valores ANTIGUOS (--radius-l: 8px, etc.); sin
+     estas líneas, un `var(--radius-l)` escrito por descuido mañana no fallaría
+     — cogería el valor viejo en silencio. Aquí quedan de red.
+     No usarlos en código nuevo: el nombre bueno dice el rol, no un tamaño.
      `--radius-none` se queda como está: 0 no es una forma, es su ausencia. */
   --radius-xs: var(--shape-full);   /* solo lo usan barras de progreso y micro-badges */
   --radius-s: var(--shape-xs);
@@ -837,7 +840,7 @@ body {
   cursor: pointer;
   background: linear-gradient(135deg, var(--brand-deep), var(--brand));
   color: #fff;
-  border-radius: var(--r-md);
+  border-radius: var(--shape-lg);
   padding: 15px 16px;
   margin-bottom: 22px;
   box-shadow: 0 14px 28px -12px rgba(var(--accent-dark-base), .65);
@@ -923,7 +926,7 @@ body {
 /* ---------- WEEK PROGRAM ---------- */
 .week-card {
   background: var(--card);
-  border-radius: var(--r-lg);
+  border-radius: var(--shape-xl);
   /* UN solo margen interior para todo lo que va dentro: título, filas y botón
      arrancan de la misma línea. Antes la tarjeta tenía 8 y luego el título y
      las filas se metían 13 más por su cuenta (21 en total), mientras el botón
@@ -1138,7 +1141,7 @@ body {
   width: 100%;
   margin: 0;
   background: var(--card);
-  border-radius: var(--r-md);
+  border-radius: var(--shape-lg);
   padding: 17px 16px 16px;
   cursor: pointer;
   border: 1px solid var(--line);
@@ -1553,6 +1556,12 @@ body {
   .body-small-medium { font-size: 16px; line-height: 20.5px; }
   .body-small-regular { font-size: 16px; line-height: 20.5px; }
   .label-small-medium { font-size: 13.5px; }
+  /* Faltaba, y era la única de las tres que se quedaba fuera: en una tablet,
+     "medium" y "regular" subían a 13,5 y "semibold" se quedaba en 12. Son la
+     MISMA etiqueta con distinto peso —van juntas en la misma fila muchas
+     veces— así que se veía una más pequeña que su vecina sin motivo. Los tres
+     bloques de Programas semanales sí la tenían; este no. */
+  .label-small-semibold { font-size: 13.5px; }
   .label-small-regular { font-size: 13.5px; }
   .huge-numbers { font-size: 73.5px; }
   .big-numbers { font-size: 55px; }

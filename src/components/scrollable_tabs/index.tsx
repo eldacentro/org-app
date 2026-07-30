@@ -116,7 +116,7 @@ function ScrollableTabs({
                 color: 'var(--accent-main)',
               },
               '& span.MuiTouchRipple-root': {
-                borderRadius: 'var(--radius-max)',
+                borderRadius: 'var(--shape-full)',
               },
               '& .MuiSvgIcon-root g path': {
                 fill: 'var(--accent-400)',

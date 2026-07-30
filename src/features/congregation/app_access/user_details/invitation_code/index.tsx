@@ -78,7 +78,7 @@ const InvitationCode = () => {
               >
                 <IconButton
                   title={t('tr_regenerateInvitationCode')}
-                  sx={{ borderRadius: 'var(--radius-max)' }}
+                  sx={{ borderRadius: 'var(--shape-full)' }}
                   onClick={handleRegenerateCode}
                 >
                   <IconSync
@@ -88,7 +88,7 @@ const InvitationCode = () => {
                 </IconButton>
                 <IconButton
                   title={t('tr_copy')}
-                  sx={{ borderRadius: 'var(--radius-max)' }}
+                  sx={{ borderRadius: 'var(--shape-full)' }}
                   onClick={() => copyToClipboard(code)}
                 >
                   <IconCopy color="var(--accent-400)" />

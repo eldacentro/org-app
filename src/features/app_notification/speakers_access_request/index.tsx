@@ -23,7 +23,7 @@ const SpeakerAccessRequest = ({ request }: SpeakerAccessRequestType) => {
         backgroundColor: 'var(--accent-150)',
         border: '1px solid var(--line)',
         padding: '8px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         flexDirection: { mobile: 'column', tablet: 'row' },
       }}
     >

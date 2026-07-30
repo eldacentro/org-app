@@ -2142,7 +2142,7 @@ const Exhibitors = () => {
                                                     color: textColor,
                                                     border: 'none',
                                                     borderRadius:
-                                                      'var(--radius-l)',
+                                                      'var(--shape-sm)',
                                                     p: '6px 8px',
                                                     cursor: isServiceCommittee
                                                       ? 'pointer'
@@ -3860,7 +3860,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4080,7 +4080,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4153,7 +4153,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',
@@ -4381,7 +4381,7 @@ const Exhibitors = () => {
         sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
         PaperProps={{
           style: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',

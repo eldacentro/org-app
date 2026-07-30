@@ -55,7 +55,7 @@ export const StyledMultiSelect = styled(
 )(({ theme }) => ({
   background: 'var(--white)',
   backgroundColor: 'var(--white)',
-  borderRadius: 'var(--radius-l)',
+  borderRadius: 'var(--shape-sm)',
   border: '1px solid var(--accent-200)',
   padding: '8px 0px',
   marginTop: '2px',

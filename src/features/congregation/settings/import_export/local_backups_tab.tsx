@@ -283,7 +283,7 @@ const LocalBackupsTab = () => {
               px: 2,
               py: 1,
               bgcolor: 'var(--accent-150)',
-              borderRadius: 'var(--radius-m) var(--radius-m) 0 0',
+              borderRadius: 'var(--shape-sm) var(--shape-sm) 0 0',
               fontWeight: 'bold',
             }}
           >
@@ -433,7 +433,7 @@ const LocalBackupsTab = () => {
                 <Box
                   sx={{
                     backgroundColor: 'var(--accent-100)',
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     padding: '12px',
                   }}
                 >

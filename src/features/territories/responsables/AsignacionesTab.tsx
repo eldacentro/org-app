@@ -457,7 +457,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         onClose={closeNoteDialog}
         PaperProps={{
           sx: {
-            borderRadius: 'var(--shape-md)',
+            borderRadius: 'var(--shape-xl)',
             backgroundColor: 'var(--card)',
             border: '1px solid var(--line)',
             boxShadow: 'var(--pop-up-shadow)',

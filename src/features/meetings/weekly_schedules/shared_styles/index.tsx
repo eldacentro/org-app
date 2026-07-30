@@ -40,7 +40,7 @@ export const SecondaryFieldContainer = styled(Box, {
  */
 export const PlainCard = styled(Box)({
   border: '1px solid var(--line)',
-  borderRadius: 'var(--radius-xl)',
+  borderRadius: 'var(--shape-md)',
   backgroundColor: 'var(--card)',
   boxShadow: 'var(--small-card-shadow)',
   padding: '16px',

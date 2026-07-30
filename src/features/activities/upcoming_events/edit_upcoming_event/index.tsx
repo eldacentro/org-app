@@ -115,7 +115,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
     <Box
       sx={{
         border: '1px solid var(--line)',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
@@ -465,7 +465,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                   <Box
                     sx={{
                       padding: '8px 16px',
-                      borderRadius: 'var(--r-sm)',
+                      borderRadius: 'var(--shape-md)',
                       border: '1.5px solid var(--accent-main)',
                       color: 'var(--accent-main)',
                       fontWeight: 600,
@@ -515,7 +515,7 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                     aspectRatio: '16 / 9',
                     objectFit: 'cover',
                     objectPosition: 'center',
-                    borderRadius: 'var(--r-sm)',
+                    borderRadius: 'var(--shape-md)',
                   }}
                 />
               )}

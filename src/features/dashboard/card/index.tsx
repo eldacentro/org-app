@@ -29,7 +29,7 @@ const DashboardCard = ({
         minWidth: '300px',
         width: '100%',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         border: color
           ? `1px solid ${color}`
           : `1px solid ${isGroup ? 'var(--red-secondary)' : 'var(--line)'}`,

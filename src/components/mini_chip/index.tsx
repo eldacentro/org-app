@@ -24,7 +24,7 @@ const MiniChip = ({
       sx={{
         padding: edit ? '4px 4px 4px 12px' : '4px 12px',
         color: 'var(--accent-dark)',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         border: '1px solid var(--accent-dark)',
         background: 'var(--accent-150)',
         minHeight: '26px',

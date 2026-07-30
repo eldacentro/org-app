@@ -85,7 +85,7 @@ export const appThemeState = atom((get) => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 'var(--r-md)',
+            borderRadius: 'var(--shape-lg)',
             boxShadow: 'var(--shadow-sm)',
             border: '1px solid var(--line)',
             backgroundImage: 'none',
@@ -95,7 +95,7 @@ export const appThemeState = atom((get) => {
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: '17px',
+            borderRadius: 'var(--shape-full)',
             textTransform: 'none',
             fontWeight: 700,
           },
@@ -104,7 +104,7 @@ export const appThemeState = atom((get) => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: 'var(--r-md)',
+            borderRadius: 'var(--shape-lg)',
             backgroundImage: 'none',
           },
         },
@@ -112,7 +112,7 @@ export const appThemeState = atom((get) => {
       MuiDialog: {
         styleOverrides: {
           paper: {
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
             boxShadow: 'var(--shadow-md)',
           },
         },
@@ -120,7 +120,7 @@ export const appThemeState = atom((get) => {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
-            borderRadius: 'var(--r-sm)',
+            borderRadius: 'var(--shape-md)',
           },
         },
       },

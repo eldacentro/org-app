@@ -79,7 +79,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
       alignItems={cardAlignItems}
       sx={(theme) => ({
         padding: '12px 14px',
-        borderRadius: 'var(--r-md)',
+        borderRadius: 'var(--shape-lg)',
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
         boxShadow: 'var(--shadow-sm)',
@@ -105,7 +105,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           textAlign: 'center',
           width: '46px',
           height: '56px',
-          borderRadius: 'var(--r-sm)',
+          borderRadius: 'var(--shape-md)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -163,7 +163,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
               right: '-6px',
               minWidth: '18px',
               height: '18px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: isPreaching
                 ? 'var(--preaching-color)'
                 : 'var(--brand)',
@@ -349,7 +349,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
                     handleAddToCalendar(history, { personGetName, userUID, t })
                   }
                   sx={(theme) => ({
-                    borderRadius: 'var(--r-sm)',
+                    borderRadius: 'var(--shape-md)',
                     border: '1px solid var(--line)',
                     padding: '6px',
                     [theme.breakpoints.up('tablet')]: {

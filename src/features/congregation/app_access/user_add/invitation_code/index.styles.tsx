@@ -1,7 +1,7 @@
 import { IconButton, styled } from '@mui/material';
 
 export const StyledIconButton = styled(IconButton)({
-  borderRadius: 'var(--radius-max)',
+  borderRadius: 'var(--shape-full)',
   '&:hover': {
     backgroundColor: 'var(--accent-150)',
   },

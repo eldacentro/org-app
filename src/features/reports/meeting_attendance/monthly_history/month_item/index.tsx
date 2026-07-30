@@ -21,7 +21,7 @@ const MonthItem = ({ data }: MonthItemProps) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '4px 8px',
-          borderRadius: 'var(--radius-s)',
+          borderRadius: 'var(--shape-xs)',
           backgroundColor: 'var(--accent-150)',
           cursor: 'pointer',
           userSelect: 'none',

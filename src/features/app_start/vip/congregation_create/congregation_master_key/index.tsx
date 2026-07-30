@@ -66,7 +66,7 @@ const CongregationMasterKey = () => {
             padding: '8px 16px',
             alignItems: 'center',
             gap: '8px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             background: 'var(--red-secondary)',
             marginBottom: '32px',
           }}

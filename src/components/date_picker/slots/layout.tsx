@@ -26,7 +26,7 @@ const Layout = (props: PickersLayoutProps<Date>) => {
           sx={{
             width: '36px',
             height: '4px',
-            borderRadius: 'var(--radius-max)',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--accent-200)',
           }}
         />

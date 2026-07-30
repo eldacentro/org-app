@@ -12,7 +12,7 @@ const AddToCalendar = (props: AddToCalendarProps) => {
       className="upc-add-to-calendar-btn"
       onClick={handleAddToCalendar}
       sx={{
-        borderRadius: 'var(--r-sm)',
+        borderRadius: 'var(--shape-md)',
         border: '1px solid var(--line)',
         padding: '6px',
         flexShrink: 0,

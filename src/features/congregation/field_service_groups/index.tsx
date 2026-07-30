@@ -25,7 +25,7 @@ const FieldServiceGroupsContainer = () => {
         <Box
           sx={{
             width: desktopUp ? '50%' : '100%',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
             padding: '16px',
             display: 'flex',
             alignItems: 'center',

@@ -214,7 +214,7 @@ const CircuitVisitWeek = ({
       <Card
         sx={{
           border: '1px solid var(--accent-200)',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--shape-md)',
           boxShadow: 'var(--small-card-shadow)',
           overflow: 'hidden',
         }}
@@ -354,7 +354,7 @@ const CircuitVisitWeek = ({
                   key={day.dateStr}
                   sx={{
                     border: '1px solid var(--line)',
-                    borderRadius: 'var(--radius-l)',
+                    borderRadius: 'var(--shape-sm)',
                     overflow: 'hidden',
                   }}
                 >

@@ -133,7 +133,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
           padding: '24px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           marginTop: '16px',
           justifyContent: 'center',
         }}
@@ -156,7 +156,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
             padding: '12px 16px',
             backgroundColor: 'var(--orange-secondary)',
             border: '1px solid var(--orange-dark)',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
           }}
         >
           <Typography className="body-small-regular" color="var(--orange-dark)">

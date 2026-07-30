@@ -5,7 +5,7 @@ import { CustomAccordionVariant } from './public_witnessing_card.types';
 
 export const StyledIconWrapper = styled(ButtonBase)<ButtonBaseProps>(
   (props) => ({
-    borderRadius: 'var(--radius-l)',
+    borderRadius: 'var(--shape-sm)',
     padding: '2.5px',
     color: props.color,
   })
@@ -50,7 +50,7 @@ export const CardWrapper = styled(ButtonBase)<
   borderWidth: '1px',
   borderColor: borderViews[view],
   borderStyle: view === 'dashed' || view === 'silver' ? 'dashed' : 'solid',
-  borderRadius: 'var(--radius-l)',
+  borderRadius: 'var(--shape-sm)',
   padding: '10px',
   backgroundColor: bgColorView[view],
   pointerEvents: view === 'disabled' ? 'none' : null,

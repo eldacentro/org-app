@@ -40,7 +40,7 @@ import { ALL_DEPARTMENT_TYPES, DepartmentType } from '@definition/person';
  */
 const PAPER_STYLE: CSSProperties = {
   maxWidth: '560px',
-  borderRadius: 'var(--radius-xl)',
+  borderRadius: 'var(--shape-md)',
   backgroundColor: 'var(--white)',
   marginLeft: '16px',
   marginRight: '16px',
@@ -165,7 +165,7 @@ const DeptConfigDialog = ({
                 gap: '12px',
                 padding: '16px',
                 border: '1px solid var(--line)',
-                borderRadius: 'var(--radius-l)',
+                borderRadius: 'var(--shape-sm)',
                 backgroundColor: 'var(--accent-100)',
               }}
             >

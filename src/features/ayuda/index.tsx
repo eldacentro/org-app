@@ -19,7 +19,7 @@ const SyncDot = ({ children }: { children?: ReactNode }) => (
       width: '28px',
       height: '28px',
       flexShrink: 0,
-      borderRadius: 'var(--radius-max)',
+      borderRadius: 'var(--shape-full)',
       backgroundColor: 'var(--accent-150)',
       border: '1px solid var(--accent-200)',
     }}
@@ -92,7 +92,7 @@ const SyncDiagram = () => {
         flexDirection: 'column',
         gap: '12px',
         padding: '14px 16px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         backgroundColor: 'var(--accent-100)',
         border: '1px solid var(--accent-200)',
       }}
@@ -126,7 +126,7 @@ const LinkButton = ({ to, label }: { to: string; label: string }) => {
         alignItems: 'center',
         gap: '8px',
         padding: '8px 14px',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         backgroundColor: 'var(--accent-main)',
         cursor: 'pointer',
         transition: 'opacity 0.15s',
@@ -175,7 +175,7 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
     return (
       <Box
         sx={{
-          borderRadius: 'var(--radius-m)',
+          borderRadius: 'var(--shape-sm)',
           padding: '10px 12px',
           backgroundColor: isTip ? 'var(--green-secondary)' : 'var(--orange-secondary)',
           borderLeft: `3px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
@@ -206,7 +206,7 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
           flexDirection: 'column',
           gap: '10px',
           padding: '12px 14px',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           backgroundColor: 'var(--accent-100)',
           border: '1px solid var(--accent-200)',
         }}
@@ -254,7 +254,7 @@ const SectionView = ({
   return (
     <Box
       sx={{
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--shape-md)',
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         padding: '16px',

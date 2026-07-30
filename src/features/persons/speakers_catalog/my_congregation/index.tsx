@@ -46,7 +46,7 @@ const MyCongregation = () => {
                 background: 'unset',
                 borderRadius: 'unset',
               },
-              '& span.MuiTouchRipple-root': { borderRadius: 'var(--radius-l)' },
+              '& span.MuiTouchRipple-root': { borderRadius: 'var(--shape-sm)' },
             }}
           />
         </Box>

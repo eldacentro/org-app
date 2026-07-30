@@ -46,7 +46,7 @@ const PersonSpecialCircumstances = () => {
         display: 'flex',
         padding: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         flex: 1,
         width: '100%',
         gap: '16px',

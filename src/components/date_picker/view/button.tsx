@@ -33,7 +33,7 @@ const ButtonField = (props: DatePickerFieldProps) => {
       sx={{
         textTransform: 'unset',
         color: 'var(--accent-dark)',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         ':hover': {
           backgroundColor: 'rgba(var(--accent-main-base), 0.1)',
         },

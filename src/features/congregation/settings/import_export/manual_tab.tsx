@@ -15,7 +15,7 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
           sx={{
             p: 3,
             border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             bgcolor: 'var(--accent-100)',
             height: '100%',
           }}
@@ -36,7 +36,7 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
           sx={{
             p: 3,
             border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             bgcolor: 'var(--accent-100)',
             height: '100%',
           }}

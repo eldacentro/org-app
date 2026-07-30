@@ -71,7 +71,7 @@ const LanguageSwitcher = ({ menuStyle }: { menuStyle: SxProps }) => {
           paper: {
             className: 'small-card-shadow',
             style: {
-              borderRadius: 'var(--radius-l)',
+              borderRadius: 'var(--shape-sm)',
               border: '1px solid var(--line)',
               backgroundColor: 'var(--card)',
             },
@@ -91,7 +91,7 @@ const LanguageSwitcher = ({ menuStyle }: { menuStyle: SxProps }) => {
                   sx={{
                     backgroundColor: 'var(--line)',
                     padding: '2px 3px',
-                    borderRadius: 'var(--radius-s)',
+                    borderRadius: 'var(--shape-xs)',
                   }}
                 >
                   {lang.code.toUpperCase()}

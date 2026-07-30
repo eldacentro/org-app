@@ -14,7 +14,7 @@ export const StyledReminderBox = styled(Box)({
   gap: '8px',
   padding: '8px',
 
-  borderRadius: 'var(--radius-m)',
+  borderRadius: 'var(--shape-sm)',
 
   '&:hover': {
     backgroundColor: 'var(--white-semi-s)',

@@ -18,7 +18,7 @@ const PanelInformacion = ({ plan }: Props) => {
     <Box
       sx={{
         border: '1px solid var(--line)',
-        borderRadius: 'var(--radius-xxl)',
+        borderRadius: 'var(--shape-lg)',
         backgroundColor: 'var(--card)',
         overflow: 'hidden',
         height: '100%',

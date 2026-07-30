@@ -12,7 +12,7 @@ const AttendanceSummary = (props: AttendanceSummaryProps) => {
   return (
     <Stack
       spacing="2px"
-      borderRadius="var(--radius-l)"
+      borderRadius="var(--shape-sm)"
       padding="4px 8px"
       bgcolor={
         props.type === 'midweek'

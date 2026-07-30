@@ -150,7 +150,7 @@ const ServiceOutingsMeeting = ({
           padding: '24px',
           backgroundColor: 'var(--card)',
           border: '1px solid var(--line)',
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           marginTop: '16px',
           justifyContent: 'center',
         }}
@@ -177,7 +177,7 @@ const ServiceOutingsMeeting = ({
             padding: '12px 16px',
             backgroundColor: 'var(--orange-secondary)',
             border: '1px solid var(--orange-dark)',
-            borderRadius: 'var(--r-lg)',
+            borderRadius: 'var(--shape-xl)',
           }}
         >
           <IconInfo color="var(--orange-dark)" />
@@ -192,7 +192,7 @@ const ServiceOutingsMeeting = ({
         <Card
           sx={{
             border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: 'var(--accent-100)',
             px: '16px',
             py: '12px',
@@ -219,7 +219,7 @@ const ServiceOutingsMeeting = ({
             key={date}
             sx={{
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: 'var(--shape-md)',
               boxShadow: 'var(--small-card-shadow)',
               overflow: 'hidden',
               transition: 'box-shadow 0.25s ease, transform 0.25s ease',

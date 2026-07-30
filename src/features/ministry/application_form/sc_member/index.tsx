@@ -30,7 +30,7 @@ const CommitteeMember = (props: CommitteeMemberProps) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderRadius: 'var(--radius-l)',
+          borderRadius: 'var(--shape-sm)',
           padding: '8px 8px 8px 16px',
           border: '1px solid var(--line)',
           gap: '8px',

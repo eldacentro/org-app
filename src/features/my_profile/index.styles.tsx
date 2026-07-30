@@ -1,7 +1,7 @@
 import { Box, styled } from '@mui/material';
 
 export const ProfileItemContainer = styled(Box)({
-  borderRadius: 'var(--r-lg)',
+  borderRadius: 'var(--shape-xl)',
   border: '1px solid var(--line)',
   padding: '16px',
   display: 'flex',

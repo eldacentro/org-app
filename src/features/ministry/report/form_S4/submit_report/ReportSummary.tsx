@@ -60,7 +60,7 @@ const ReportSummary = ({
       sx={{
         width: '100%',
         padding: '12px 16px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         border: '1px solid var(--accent-200)',
         backgroundColor: 'var(--accent-100)',
       }}

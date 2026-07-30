@@ -37,7 +37,7 @@ const PersonDepartments = () => {
         padding: '16px',
         gap: '16px',
         flexDirection: 'column',
-        borderRadius: 'var(--r-lg)',
+        borderRadius: 'var(--shape-xl)',
         width: '100%',
       }}
     >

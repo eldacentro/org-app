@@ -27,7 +27,7 @@ const PlanHeader = ({ tiempoMaximo }: Props) => {
               alignItems: 'center',
               gap: '6px',
               padding: '4px 12px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               color: 'var(--always-white)',
               backgroundColor: 'var(--red-main)',
             }}
@@ -45,7 +45,7 @@ const PlanHeader = ({ tiempoMaximo }: Props) => {
               alignItems: 'center',
               gap: '6px',
               padding: '4px 12px',
-              borderRadius: 'var(--radius-max)',
+              borderRadius: 'var(--shape-full)',
               color: 'var(--ink-2)',
               backgroundColor: 'var(--accent-150)',
               border: '1px solid var(--line)',

@@ -76,7 +76,7 @@ const HoursFields = (props: FormS4Props) => {
                   className="body-small-semibold"
                   color="var(--accent-dark)"
                   sx={{
-                    borderRadius: 'var(--radius-s)',
+                    borderRadius: 'var(--shape-xs)',
                     padding: '2px 8px',
                     backgroundColor: 'var(--accent-150)',
                   }}

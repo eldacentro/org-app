@@ -61,13 +61,13 @@ const MonthlyReport = (props: MonthlyReportProps) => {
               <Stack
                 key={section.section}
                 spacing="4px"
-                borderRadius="var(--radius-l)"
+                borderRadius="var(--shape-sm)"
               >
                 <Typography
                   className="h4"
                   color="var(--accent-dark)"
                   sx={{
-                    borderRadius: 'var(--radius-s)',
+                    borderRadius: 'var(--shape-xs)',
                     padding: '4px 8px',
                     backgroundColor: 'var(--accent-150)',
                   }}

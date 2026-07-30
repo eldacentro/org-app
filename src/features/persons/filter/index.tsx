@@ -115,7 +115,7 @@ const PersonsFilter = () => {
         {filters.length > 0 && (
           <Box
             sx={{
-              borderRadius: 'var(--radius-s)',
+              borderRadius: 'var(--shape-xs)',
               padding: '4px 8px',
               backgroundColor: 'var(--line)',
             }}

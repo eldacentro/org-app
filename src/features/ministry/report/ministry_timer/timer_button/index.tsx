@@ -24,7 +24,7 @@ const TimerButton = ({
         justifyContent: 'center',
         gap: '2px',
         flex: '1 0 0',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         background: isGroup ? 'var(--red-secondary)' : 'var(--accent-150)',
         padding: '12px 8px',
         '&:hover': {

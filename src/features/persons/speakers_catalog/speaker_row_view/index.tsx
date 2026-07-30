@@ -47,7 +47,7 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
           justifyContent: 'space-between',
           '&:hover': {
             backgroundColor: 'var(--accent-150)',
-            borderRadius: 'var(--radius-s)',
+            borderRadius: 'var(--shape-xs)',
             '> p, .MuiBox-root > p:first-of-type': {
               color: 'var(--accent-dark)',
             },

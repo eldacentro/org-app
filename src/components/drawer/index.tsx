@@ -89,9 +89,9 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           width: laptopUp ? '600px' : '100%',
           margin: laptopUp ? '10px' : 'unset',
           borderRadius: laptopUp
-            ? 'var(--r-lg)'
+            ? 'var(--shape-xl)'
             : props.anchor === 'bottom'
-            ? 'var(--r-lg) var(--r-lg) 0 0'
+            ? 'var(--shape-xl) var(--shape-xl) 0 0'
             : 'unset',
           border: laptopUp
             ? '1px solid rgba(255,255,255,0.18)'
@@ -112,7 +112,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
               width: '40px',
               height: '4px',
               backgroundColor: 'var(--grey-300)',
-              borderRadius: 'var(--radius-xs)',
+              borderRadius: 'var(--shape-full)',
               alignSelf: 'center',
               mb: '16px',
               mt: '-8px',
@@ -144,7 +144,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
               onClick={handleClose}
               sx={{
                 border: '1px solid var(--line)',
-                borderRadius: 'var(--r-sm)',
+                borderRadius: 'var(--shape-md)',
                 transition: 'background 0.15s ease, transform 0.15s ease',
                 '&:hover': {
                   backgroundColor: 'rgba(127,127,160,0.10)',

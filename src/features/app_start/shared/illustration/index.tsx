@@ -27,7 +27,7 @@ const StartupIllustration = () => {
       sx={{
         flex: 1,
         background: 'var(--accent-main)',
-        borderRadius: 'var(--radius-xxl)',
+        borderRadius: 'var(--shape-lg)',
         padding: { mobile: '24px 0px', laptop: '48px 0px' },
         minWidth: '0px',
         width: '100%',

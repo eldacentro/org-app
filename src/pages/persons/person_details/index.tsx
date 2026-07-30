@@ -39,7 +39,7 @@ const PersonDetails = () => {
 
       <Box
         sx={{
-          borderRadius: 'var(--r-lg)',
+          borderRadius: 'var(--shape-xl)',
           display: 'flex',
           gap: '16px',
           flexDirection: desktopUp ? 'row' : 'column',
@@ -76,7 +76,7 @@ const PersonDetails = () => {
                 padding: '16px',
                 gap: '16px',
                 flexDirection: 'column',
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--shape-xl)',
                 flex: 1,
                 width: '100%',
               }}

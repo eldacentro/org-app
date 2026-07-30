@@ -157,7 +157,7 @@ const DepartmentEditor = () => {
                 p: 2,
                 backgroundColor: 'var(--card)',
                 border: '1px solid var(--line)',
-                borderRadius: 'var(--r-lg)',
+                borderRadius: 'var(--shape-xl)',
               }}
             >
               <Typography className="h3" sx={{ mb: 2 }}>

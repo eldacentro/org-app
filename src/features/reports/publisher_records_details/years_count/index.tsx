@@ -9,7 +9,7 @@ const YearsCount = ({ children }: PropsWithChildren) => {
       align="center"
       sx={{
         padding: '8px 16px',
-        borderRadius: 'var(--radius-l)',
+        borderRadius: 'var(--shape-sm)',
         backgroundColor: 'var(--accent-150)',
         width: '150px',
         display: 'flex',

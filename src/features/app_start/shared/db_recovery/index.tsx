@@ -51,7 +51,7 @@ const DbRecoveryScreen = () => {
           width: '100%',
           maxWidth: '420px',
           padding: { mobile: '24px 16px', tablet: '40px 32px' },
-          borderRadius: 'var(--radius-xxl)',
+          borderRadius: 'var(--shape-lg)',
           border: '1px solid var(--line)',
           background: 'var(--card)',
           boxShadow: 'var(--big-card-shadow)',

@@ -38,7 +38,7 @@ const CreditBreakdown = ({
             alignItems: 'center',
             gap: '8px',
             padding: '6px 10px',
-            borderRadius: 'var(--radius-l)',
+            borderRadius: 'var(--shape-sm)',
             backgroundColor: 'var(--accent-100)',
             border: '1px solid var(--accent-200)',
           }}

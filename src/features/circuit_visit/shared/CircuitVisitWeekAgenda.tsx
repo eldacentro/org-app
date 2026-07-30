@@ -166,7 +166,7 @@ const CircuitVisitWeekAgenda = ({
                 sx={{
                   width: '52px',
                   padding: '6px 0 8px',
-                  borderRadius: 'var(--radius-l)',
+                  borderRadius: 'var(--shape-sm)',
                   textAlign: 'center',
                   backgroundColor: isToday
                     ? 'var(--accent-main)'
@@ -209,7 +209,7 @@ const CircuitVisitWeekAgenda = ({
                     flex: 1,
                     minHeight: '14px',
                     backgroundColor: 'var(--line)',
-                    borderRadius: 'var(--radius-max)',
+                    borderRadius: 'var(--shape-full)',
                     my: '4px',
                   }}
                 />

@@ -56,7 +56,7 @@ const ConfirmImport = (props: ConfirmImportProps) => {
       <Stack
         spacing="16px"
         padding="16px"
-        borderRadius="var(--radius-m)"
+        borderRadius="var(--shape-sm)"
         bgcolor="var(--accent-150)"
         divider={<Divider color="var(--line)" />}
       >

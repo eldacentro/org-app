@@ -127,7 +127,7 @@ const GoogleDriveTab = () => {
           justifyContent: 'space-between',
           p: 3,
           border: '1px solid var(--line)',
-          borderRadius: 'var(--radius-m)',
+          borderRadius: 'var(--shape-sm)',
           bgcolor: isConnected ? (isTokenExpired ? 'rgba(255, 152, 0, 0.03)' : 'var(--accent-100)') : 'var(--accent-100)',
         }}
       >
@@ -183,7 +183,7 @@ const GoogleDriveTab = () => {
           sx={{
             p: 2.5,
             border: '1px dashed var(--orange-main)',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             bgcolor: 'rgba(255, 152, 0, 0.04)',
           }}
         >
@@ -207,7 +207,7 @@ const GoogleDriveTab = () => {
             sx={{
               p: 2,
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--shape-sm)',
               bgcolor: 'var(--accent-100)',
             }}
           >
@@ -227,7 +227,7 @@ const GoogleDriveTab = () => {
               justifyContent: 'space-between',
               p: 2,
               border: '1px solid var(--line)',
-              borderRadius: 'var(--radius-m)',
+              borderRadius: 'var(--shape-sm)',
               bgcolor: 'var(--accent-100)',
             }}
           >
@@ -251,7 +251,7 @@ const GoogleDriveTab = () => {
           sx={{
             p: 3,
             bgcolor: 'var(--accent-100)',
-            borderRadius: 'var(--radius-m)',
+            borderRadius: 'var(--shape-sm)',
             border: '1px solid var(--line)',
           }}
         >

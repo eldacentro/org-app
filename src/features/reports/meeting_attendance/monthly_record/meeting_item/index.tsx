@@ -21,7 +21,7 @@ const MeetingItem = (props: MeetingItemProps) => {
     <Stack spacing="16px">
       <Box
         sx={{
-          borderRadius: 'var(--radius-s)',
+          borderRadius: 'var(--shape-xs)',
           padding: '4px 8px',
           backgroundColor:
             type === 'midweek'

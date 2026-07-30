@@ -11,7 +11,7 @@ const PartTiming = ({ time }: PartTimingProps) => {
       className="label-small-medium"
       sx={{
         width: '45px',
-        borderRadius: 'var(--radius-max)',
+        borderRadius: 'var(--shape-full)',
         padding: '12px 6px',
       }}
     />
