@@ -623,12 +623,21 @@ body {
 /* 2. STATE: Scrolled (scrolled is true)
    It transitions beautifully into the slim, bottom-rounded glassmorphic panel! */
 /* Light mode Glassmorphic AppBar */
+/* ─── El armazón sigue al tema de color ────────────────────────────────────
+   Estos bloques llevaban el azul del tema por defecto CONGELADO en
+   `rgba(59, 114, 196, x)` — que es exactamente el valor de
+   `--accent-main-base` del tema azul. Resultado: con el tema verde, naranja,
+   morado o rojo, la barra superior, el cajón, el menú de perfil, las tarjetas
+   de aviso y los botones de acción seguían tirando a azul, mientras el resto
+   de la app cambiaba de color. Comprobado en el navegador: con el acento en
+   `90, 155, 74` la píldora seguía proyectando `rgba(59, 114, 196, 0.1)`.
+   Con el token, el mismo bloque sirve para los cinco temas.                */
 [data-theme$='-light'] .appbar-scrolled {
   background: rgba(255, 255, 255, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
-  border-bottom: 1px solid rgba(59, 114, 196, 0.08) !important;
-  box-shadow: 0 8px 32px -8px rgba(59, 114, 196, 0.06) !important;
+  border-bottom: 1px solid rgba(var(--accent-main-base), 0.08) !important;
+  box-shadow: 0 8px 32px -8px rgba(var(--accent-main-base), 0.06) !important;
   border-radius: 0 0 var(--shape-md) var(--shape-md) !important;
 }
 
@@ -687,8 +696,8 @@ body {
   background: rgba(255, 255, 255, 0.78) !important;
   backdrop-filter: blur(20px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.9) !important;
-  border: 1px solid rgba(59, 114, 196, 0.08) !important;
-  box-shadow: 0 10px 40px -10px rgba(59, 114, 196, 0.16) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.08) !important;
+  box-shadow: 0 10px 40px -10px rgba(var(--accent-main-base), 0.16) !important;
 }
 
 /* Dark theme Glassmorphic Profile Dropdown Menu */
@@ -702,7 +711,7 @@ body {
 
 /* Make inner MenuItem dividers translucent rather than solid grey */
 .profile-menu-glass li {
-  border-bottom: 1px solid rgba(59, 114, 196, 0.08) !important;
+  border-bottom: 1px solid rgba(var(--accent-main-base), 0.08) !important;
 }
 [data-theme$='-dark'] .profile-menu-glass li {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -1230,7 +1239,7 @@ body {
   background: rgba(248, 250, 255, 0.88) !important;
   backdrop-filter: blur(24px) saturate(1.8) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
-  box-shadow: -8px 0 40px rgba(59, 114, 196, 0.08), 0 0 0 1px rgba(59, 114, 196, 0.08) !important;
+  box-shadow: -8px 0 40px rgba(var(--accent-main-base), 0.08), 0 0 0 1px rgba(var(--accent-main-base), 0.08) !important;
 }
 
 [data-theme$='-dark'] .drawer-glass-panel {
@@ -1243,16 +1252,16 @@ body {
 /* ─── Notification Cards ─────────────────────────────────────────── */
 [data-theme$='-light'] .notif-card {
   background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(59, 114, 196, 0.10) !important;
-  box-shadow: 0 2px 12px -4px rgba(59, 114, 196, 0.06) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.10) !important;
+  box-shadow: 0 2px 12px -4px rgba(var(--accent-main-base), 0.06) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
 [data-theme$='-light'] .notif-card:hover {
   background: rgba(255, 255, 255, 0.90) !important;
-  box-shadow: 0 6px 20px -6px rgba(59, 114, 196, 0.12), 0 2px 8px -3px rgba(59, 114, 196, 0.07) !important;
-  border-color: rgba(59, 114, 196, 0.22) !important;
+  box-shadow: 0 6px 20px -6px rgba(var(--accent-main-base), 0.12), 0 2px 8px -3px rgba(var(--accent-main-base), 0.07) !important;
+  border-color: rgba(var(--accent-main-base), 0.22) !important;
 }
 
 [data-theme$='-dark'] .notif-card {
@@ -1274,8 +1283,8 @@ body {
 /* Secondary pill (Exportar, Autocompletar, etc.) */
 [data-theme$='-light'] .nav-action-pill {
   background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(59, 114, 196, 0.16) !important;
-  box-shadow: 0 2px 8px -3px rgba(59, 114, 196, 0.10) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.16) !important;
+  box-shadow: 0 2px 8px -3px rgba(var(--accent-main-base), 0.10) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
 }
@@ -1291,23 +1300,23 @@ body {
 /* Main / primary pill (Publicar, etc.) */
 [data-theme$='-light'] .nav-action-pill-main {
   background: var(--accent-main) !important;
-  box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.45) !important;
-  border: 1px solid rgba(59, 114, 196, 0.20) !important;
+  box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.45) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.20) !important;
 }
 
 [data-theme$='-dark'] .nav-action-pill-main {
   background: var(--accent-main) !important;
-  box-shadow: 0 4px 14px -4px rgba(59, 114, 196, 0.55) !important;
+  box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.55) !important;
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
 }
 
 /* ─── Desktop Navbar Actions Container ───────────────────────────── */
 [data-theme$='-light'] .navbar-actions-container {
   background: rgba(255, 255, 255, 0.60) !important;
-  border: 1px solid rgba(59, 114, 196, 0.12) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.12) !important;
   backdrop-filter: blur(12px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
-  box-shadow: 0 2px 10px -4px rgba(59, 114, 196, 0.08) !important;
+  box-shadow: 0 2px 10px -4px rgba(var(--accent-main-base), 0.08) !important;
 }
 
 [data-theme$='-dark'] .navbar-actions-container {

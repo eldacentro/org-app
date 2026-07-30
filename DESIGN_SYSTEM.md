@@ -63,11 +63,11 @@ rgba en una página — siempre a través de `var(--token)`, para que los 8 tema
 | Token | Valor | Para qué |
 |---|---|---|
 | `--shape-xs` | 8px | Casillas, badges, cuadraditos de fecha |
-| `--shape-sm` | 12px | Campos, desplegables, filas de lista, botón-icono |
+| `--shape-sm` | 12px | Campos, desplegables, filas de lista |
 | `--shape-md` | 16px | Paneles anidados, barras (selector plegado), tarjeta pequeña |
 | `--shape-lg` | 20px | **La** tarjeta estándar de una página |
 | `--shape-xl` | 28px | Diálogos, hojas, tarjeta destacada del inicio |
-| `--shape-full` | 999px | Botones, píldoras, chips, pestañas, buscador, barras de progreso |
+| `--shape-full` | 999px | Botones (**también los de icono**), píldoras, chips, pestañas, buscador, barras de progreso |
 
 La regla en una frase: **cuanto más pequeño y más interactivo, más redondo en
 proporción**; los contenedores grandes se quedan en una curva generosa pero
@@ -415,6 +415,27 @@ en "píldora, salvo cuando…", y por ese camino se vuelve a los nueve dialectos
 La excepción real serían dos controles **pegados sin hueco**, como un buscador
 con su lupa dentro: ahí sí son un objeto y comparten un solo radio. Ese patrón
 no existe en esta app, y no conviene introducirlo.
+
+### 6.7 Degradados: fuera del contenido, permitidos como ambiente
+
+No es "ningún degradado nunca". La línea está en QUÉ pinta:
+
+**Fuera** — sobre una superficie de contenido: cabeceras de tarjeta, botones,
+barras de una gráfica, franjas de acento. Compiten con lo que hay encima, y en
+una gráfica además engañan: el ojo lee el degradado como si el valor cambiara
+a lo alto de la barra, cuando lo que mide es la altura. Se quitaron de las
+cabeceras de Exhibidores y Salidas, del botón de la ficha de territorio y del
+gráfico anual del Informe.
+
+**Permitidos** — como fondo ambiental de una pantalla o de una hoja: el lavado
+de `.screen`, el aura de `.glow`, el fondo de las pantallas de arranque, el
+desvanecido sobre una foto de perfil. Ahí no hay nada debajo que estorbar y
+dan profundidad.
+
+**Con una condición, siempre**: los colores salen de tokens
+(`rgba(var(--x-base), a)` o `color-mix`). Un degradado con un HEX dentro es un
+color congelado que ignora los cinco temas — pasó con el azul del armazón y
+con el rojo del aviso de "sin conexión".
 
 ### 6.6 Los plurales se escriben, no se concatenan
 

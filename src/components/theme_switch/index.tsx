@@ -52,7 +52,9 @@ const CustomThemeSwitch = ({
         onChange={(e) => onChange(e.target.checked)}
         disableRipple
         icon={<IconToggle width={18} height={18} />}
-        checkedIcon={<IconToggle width={18} height={18} color="white" />}
+        checkedIcon={
+          <IconToggle width={18} height={18} color="var(--always-white)" />
+        }
         sx={{
           padding: 0,
           width: '40px',
@@ -62,12 +64,17 @@ const CustomThemeSwitch = ({
             '&.Mui-checked': {
               transform: 'translateX(16px)',
               '& + .MuiSwitch-track': {
+                // Negro literal A PROPÓSITO, y por eso se queda escrito así:
+                // este interruptor DIBUJA el modo claro y el oscuro, de modo
+                // que su vía tiene que ser negra en el oscuro pase lo que
+                // pase. No hay token para esto —existe `--always-white` pero
+                // no su pareja— y no merece inventarlo por un solo uso.
                 backgroundColor: '#000',
                 opacity: 1,
               },
             },
             '& svg, & svg g, & svg ellipse, & svg g path': {
-              fill: 'white',
+              fill: 'var(--always-white)',
               filter: 'drop-shadow(0px 2px 3px rgba(86, 107, 208, 0.16))',
               borderRadius: 'var(--radius-max)',
             },

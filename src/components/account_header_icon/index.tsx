@@ -140,8 +140,13 @@ const AccountHeaderIcon = ({
                 flexDirection: 'row',
                 justifyContent: 'center',
                 alignItems: 'center',
+                // El rojo iba congelado en `#CA2626`, que es el valor del
+                // tema azul: en los demás temas este aviso de "sin conexión"
+                // se salía de la paleta. El degradado sí se queda: aquí hace
+                // de desvanecido sobre la foto de perfil, no es una
+                // superficie de contenido.
                 background:
-                  'linear-gradient(180deg, rgba(202, 38, 38, 0) 0%, #CA2626 100%)',
+                  'linear-gradient(180deg, rgba(var(--red-main-base), 0) 0%, var(--red-main) 100%)',
               }}
             >
               <IconNoConnection color="var(--always-white)" width={12} height={12} />

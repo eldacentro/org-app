@@ -78,15 +78,24 @@ Son los que se encuentran Y se verifican sin abrir la pantalla: el grep prueba
 que no queda ninguno, y `tsc` + tests + build prueban que no se rompió nada.
 Entre los cinco son el **56%** del total.
 
-- [ ] **B1 · Colores fijos** (128) — empezar por los ~19 `rgba(59,114,196)` de
-      `global/index.css`: un solo fichero deja el armazón azul en los temas
-      verde, morado y naranja
+- [x] **B1 · Colores fijos** — los 19 `rgba(59,114,196)` del armazón (barra
+      superior, cajón, menú de perfil, avisos, botones de acción) iban con el
+      azul del tema por defecto CONGELADO. Comprobado en el navegador: con el
+      acento en `90,155,74` la píldora seguía proyectando azul. Ahora los cinco
+      temas dan su color. También el rojo fijo del aviso de "sin conexión".
+      Barrida de tokens fantasma en toda la app: **cero**. Lo de los "nombres
+      CSS crudos" del inventario era casi todo FALSO — eran props `color="red"`
+      de componentes de la app, que sí mapean a tokens.
 - [ ] **B2 · Radios** (437) — primero `global/index.css` y `src/components`
       (66), luego los seis `shared_styles` de zona, luego el resto
 - [ ] **B3 · Tipografía** (194) — primero la escala paralela de
       `global/index.css` (41 tamaños a mano). Sin eso, el Inicio no se puede
       migrar
-- [ ] **B4 · Degradados** (14) — quedan 5 en `src` + los de `global/index.css`
+- [x] **B4 · Degradados** — cerrado con matiz: "los 14 fuera" era demasiado
+      grueso. Fuera los que caen sobre CONTENIDO (cabeceras, botones, barras de
+      gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las
+      pantallas de arranque, el desvanecido del avatar), que además ya usan
+      tokens del tema. Regla escrita en DESIGN_SYSTEM §6.7.
 - [ ] **B5 · Redacción** (95) — los 7 arrays de meses/días a mano, plurales
       concatenados, códigos en pantalla
 - [ ] **B6 · Accesibilidad** (161) — `aria-label` en botones de solo icono
