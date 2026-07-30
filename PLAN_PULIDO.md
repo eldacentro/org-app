@@ -216,7 +216,12 @@ Entre los cinco son el **56%** del total.
       **Lo que NO cubre esta comprobación**: los diálogos y cajones, que solo
       se abren a mano. Se revisaron los de Salidas (semana y mes), Exhibidores
       y el de categorías de Documentos; el resto queda sin barrer.
-- [~] **B7 · MUI en crudo** — hecha la parte de los BOTONES, que es donde se
+- [~] **B7 · MUI en crudo** — MEDIDO BIEN (2026-07-30): no son 108, son **51**,
+      y ya no queda ninguno de botón. El recuento viejo contaba etiquetas
+      (`<Button`, `<TextField`) sin mirar si venían de `@mui/material` o de
+      `@components`. Lo que queda de verdad: TextField 22, Chip 16, Select 8,
+      Tabs 3, Checkbox 1, Switch 1.
+      Hecha la parte de los BOTONES, que es donde se
       veía. De 108 quedan **cinco** `<Button>` de MUI en toda la app, y los
       cinco son legítimos: son componentes compartidos que CONSTRUYEN su propio
       control sobre la base de MUI (`filter_chip`, `timer_button`, el botón del
@@ -375,8 +380,21 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       la lista sale con UNA opción y no se puede comprobar que funcione. Es el
       control con el que se asignan las salidas: si se rompe, no se puede
       asignar a nadie.
-      Quedan también los dos `<MenuItem>` sueltos con personas (Limpieza y
-      catálogo de oradores).
+      **HECHO** (Carlos: "toma la mejor decisión"): Salidas pasa al mismo
+      buscador que Exhibidores, con `groupBy`. Las tres entradas que no son
+      personas van como opciones SINTÉTICAS en la misma lista, bajo su propio
+      apartado — si fueran un control aparte habría dos sitios donde mirar para
+      una sola decisión.
+      De paso, en ese diálogo los dos campos llevaban el rótulo FUERA, encima,
+      cuando la app lo lleva dentro (ver «EL CAMPO»); y el de lugar era un
+      `Select` de MUI en crudo, así que el `label` que le puse no pintaba nada.
+      Ahora los dos campos son idénticos.
+      **Verificado en pantalla** que el buscador se pinta, agrupa y guarda; NO
+      verificado con una lista larga de hermanos, porque la semilla de prueba
+      no trae ninguno habilitado para Salidas (hay que marcarlo en la ficha de
+      cada persona).
+      Quedan los dos `<MenuItem>` sueltos con personas (Limpieza y catálogo de
+      oradores).
 - [x] **Estado vacío** → `@components/empty_state`. No eran "8 copias del
       patrón bueno": eran **SIETE dibujos distintos** que no coincidían en
       nada — borde punteado o sólido, tres radios, tres clases de texto, dos

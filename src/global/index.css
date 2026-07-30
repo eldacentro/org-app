@@ -676,6 +676,14 @@ body {
   ) !important;
 }
 
+/* Hueco para la barra de acciones flotante. Lo publica `layouts/bottom_menu`
+   al medirse (varía con los botones y con el área segura del teléfono) y vale
+   0 cuando esa página no tiene barra. Sin esto, lo último de cada página queda
+   DEBAJO de la barra y no hay scroll que lo saque. */
+.screen {
+  padding-bottom: var(--bottom-bar-space, 0px);
+}
+
 /* `body`'s own background (set in global.css) is accent-100, but .screen's
    gradient settles into accent-150 past its first ~180-280px. On iOS the
    dynamic toolbar can make 100dvh settle a few px short of the real

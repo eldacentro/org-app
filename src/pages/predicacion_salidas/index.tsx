@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import AutoComplete from '@components/autocomplete';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
@@ -19,7 +20,6 @@ import {
   Tab,
   IconButton,
   Chip,
-  ListSubheader,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import {
@@ -125,6 +125,17 @@ export const getWeekLabel = (weekOfStr: string): string => {
 /** Lo mismo sin el "Semana del", para meterlo dentro de una frase. */
 export const getWeekRange = (weekOfStr: string): string =>
   getWeekLabel(weekOfStr).replace(/^Semana del /, '');
+
+/** Una opción del selector de conductor: un hermano, o una de las entradas
+ *  que NO son personas (ninguno, salida compartida, superintendente). Van
+ *  todas en la misma lista para que haya UN sitio donde decidir. */
+type OpcionConductor = {
+  /** Lo que se guarda: el uid del hermano, '' o un código especial. */
+  id: string;
+  etiqueta: string;
+  /** El apartado bajo el que la agrupa el buscador. */
+  grupo: string;
+};
 
 // Los 14 turnos (7 días × mañana/tarde) con su etiqueta. Fuente única para el
 // diálogo de "Ajustes del mes" (horarios y excepciones de la suspensión).
@@ -1302,6 +1313,63 @@ const PredicacionSalidas = () => {
 
     return { recommended, others };
   }, [editDialog.open, editDialog.timeKey, enabledBrothers, settings]);
+
+  // Una sola lista para el selector de conductor: primero lo que NO es una
+  // persona (ninguno, salida compartida, superintendente), luego los
+  // recomendados —los que tienen ESTE turno marcado como disponible— y por
+  // último el resto. El `groupBy` del buscador pinta los tres apartados, así
+  // que se conserva la ayuda que ya daba el desplegable y encima se puede
+  // escribir para filtrar.
+  const opcionesConductor: OpcionConductor[] = useMemo(() => {
+    const nombre = (b: (typeof enabledBrothers)[number]) =>
+      `${b.person_data.person_firstname.value} ${b.person_data.person_lastname.value}`;
+
+    const especiales: OpcionConductor[] = [
+      { id: '', etiqueta: 'Ninguno / Sin asignar', grupo: 'Sin asignar' },
+    ];
+
+    const weekOf = editDialog.date ? getWeekOfDate(editDialog.date) : '';
+    const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+    const sharedSlot = settings?.sharedSlots?.find(
+      (slot) => slot.slotKey === editDialog.timeKey
+    );
+
+    if (sharedSlot) {
+      especiales.push({
+        id: `SHARED_CONG:${sharedSlot.congregation}`,
+        etiqueta: `Compartido: ${sharedSlot.congregation}`,
+        grupo: 'Sin asignar',
+      });
+    }
+
+    if (weekRecord?.isCircuitOverseerWeek) {
+      especiales.push({
+        id: 'CIRCUIT_OVERSEER',
+        etiqueta: 'Superintendente de circuito',
+        grupo: 'Sin asignar',
+      });
+    }
+
+    return [
+      ...especiales,
+      ...sortedBrothersForSlot.recommended.map((b) => ({
+        id: b.person_uid,
+        etiqueta: nombre(b),
+        grupo: 'Recomendados (disponibles hoy)',
+      })),
+      ...sortedBrothersForSlot.others.map((b) => ({
+        id: b.person_uid,
+        etiqueta: nombre(b),
+        grupo: 'Otros hermanos',
+      })),
+    ];
+  }, [
+    sortedBrothersForSlot,
+    editDialog.date,
+    editDialog.timeKey,
+    outingsWeeks,
+    settings,
+  ]);
 
   // Igual que en las asignaciones de reunión: si el hermano elegido tiene un
   // período de ausencia que cubre el día de esta salida, se avisa aquí
@@ -3813,115 +3881,38 @@ const PredicacionSalidas = () => {
               <Box
                 sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
               >
-                <Typography
-                  style={{
-                    fontWeight: '600',
-                    fontSize: '13.5px',
-                    color: 'var(--accent-dark)',
-                  }}
-                >
-                  Asignar conductor
-                </Typography>
-                <Select
-                  value={editPerson}
-                  onChange={(e) => setEditPerson(e.target.value)}
+                {/* El rótulo suelto "Asignar conductor" que había aquí sobra:
+                    el campo lleva su etiqueta DENTRO, como el resto de la app
+                    (ver el bloque «EL CAMPO»). Con los dos, el mismo campo se
+                    presentaba dos veces. */}
+                {/* Era un desplegable SIN buscador con la lista entera de
+                    hermanos habilitados. Exhibidores —la página gemela, misma
+                    acción— ya usa un buscador con `groupBy`, que conserva los
+                    apartados "recomendados / otros" Y deja escribir; esta se
+                    había quedado atrás.
+
+                    Las tres entradas que NO son personas (ninguno, salida
+                    compartida, superintendente de circuito) van como opciones
+                    sintéticas en la misma lista, bajo su propio apartado: si
+                    fueran un control aparte habría dos sitios donde mirar para
+                    una sola decisión. */}
+                <AutoComplete
                   fullWidth
-                  size="small"
-                  sx={{ borderRadius: 'var(--shape-sm)' }}
-                >
-                  <MenuItem value="">
-                    <em>Ninguno / Sin asignar</em>
-                  </MenuItem>
-
-                  {(() => {
-                    const weekOf = editDialog.date
-                      ? getWeekOfDate(editDialog.date)
-                      : '';
-                    const weekRecord = outingsWeeks.find(
-                      (w) => w.weekOf === weekOf
-                    );
-                    const isCOWeek = weekRecord?.isCircuitOverseerWeek ?? false;
-                    const sharedSlot = settings?.sharedSlots?.find(
-                      (s) => s.slotKey === editDialog.timeKey
-                    );
-
-                    const list = [];
-                    if (sharedSlot) {
-                      list.push(
-                        <MenuItem
-                          key="shared-cong"
-                          value={`SHARED_CONG:${sharedSlot.congregation}`}
-                        >
-                          <strong>Compartido: {sharedSlot.congregation}</strong>
-                        </MenuItem>
-                      );
-                    }
-                    if (isCOWeek) {
-                      list.push(
-                        <MenuItem
-                          key="circuit-overseer"
-                          value="CIRCUIT_OVERSEER"
-                        >
-                          <strong>Superintendente de circuito</strong>
-                        </MenuItem>
-                      );
-                    }
-                    return list;
-                  })()}
-
-                  {/* Grupo Recomendados */}
-                  {sortedBrothersForSlot.recommended.length > 0 && (
-                    <ListSubheader
-                      key="header-recommended"
-                      sx={{
-                        color: 'var(--accent-main)',
-                        fontWeight: '700',
-                        lineHeight: '36px',
-                        backgroundColor: 'var(--card)',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {/* Mayúsculas por CSS (textTransform), no en el texto
-                          fuente — así el español de abajo sigue siendo
-                          correcto (ver DESIGN_SYSTEM.md §5). */}
-                      Recomendados (disponibles hoy)
-                    </ListSubheader>
-                  )}
-                  {sortedBrothersForSlot.recommended.map((bro) => (
-                    <MenuItem
-                      key={bro.person_uid}
-                      value={bro.person_uid}
-                      sx={{ pl: '24px' }}
-                    >
-                      {`${bro.person_data.person_firstname.value} ${bro.person_data.person_lastname.value}`}
-                    </MenuItem>
-                  ))}
-
-                  {/* Grupo Otros */}
-                  {sortedBrothersForSlot.others.length > 0 && (
-                    <ListSubheader
-                      key="header-others"
-                      sx={{
-                        color: 'var(--grey-600)',
-                        fontWeight: '700',
-                        lineHeight: '36px',
-                        backgroundColor: 'var(--card)',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Otros hermanos
-                    </ListSubheader>
-                  )}
-                  {sortedBrothersForSlot.others.map((bro) => (
-                    <MenuItem
-                      key={bro.person_uid}
-                      value={bro.person_uid}
-                      sx={{ pl: '24px' }}
-                    >
-                      {`${bro.person_data.person_firstname.value} ${bro.person_data.person_lastname.value}`}
-                    </MenuItem>
-                  ))}
-                </Select>
+                  label="Conductor"
+                  options={opcionesConductor}
+                  value={
+                    opcionesConductor.find((o) => o.id === editPerson) ?? null
+                  }
+                  isOptionEqualToValue={(
+                    o: OpcionConductor,
+                    v: OpcionConductor
+                  ) => o.id === v.id}
+                  getOptionLabel={(o: OpcionConductor) => o.etiqueta}
+                  groupBy={(o: OpcionConductor) => o.grupo}
+                  onChange={(_, value: OpcionConductor | null) =>
+                    setEditPerson(value?.id ?? '')
+                  }
+                />
 
                 {editPersonAwayWarning && (
                   <InfoTip
@@ -3936,28 +3927,21 @@ const PredicacionSalidas = () => {
               <Box
                 sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
               >
-                <Typography
-                  style={{
-                    fontWeight: '600',
-                    fontSize: '13.5px',
-                    color: 'var(--accent-dark)',
-                  }}
-                >
-                  Lugar de reunión
-                </Typography>
-                <Select
+                {/* `Select` de MUI en crudo: el `label` no le hacía nada
+                    porque el rótulo lo pinta un `InputLabel` que MUI no añade
+                    solo. El de la app sí lo hace, y de paso trae el radio, el
+                    relleno y el estilo del desplegable de toda la app. */}
+                <AppSelect
+                  label="Lugar de reunión"
                   value={editLocation}
-                  onChange={(e) => setEditLocation(e.target.value)}
-                  fullWidth
-                  size="small"
-                  sx={{ borderRadius: 'var(--shape-sm)' }}
+                  onChange={(e) => setEditLocation(e.target.value as string)}
                 >
                   {settings?.locations?.map((loc) => (
                     <MenuItem key={loc} value={loc}>
                       {loc}
                     </MenuItem>
                   ))}
-                </Select>
+                </AppSelect>
               </Box>
             </>
           )}

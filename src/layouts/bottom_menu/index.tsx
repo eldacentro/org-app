@@ -70,6 +70,25 @@ const BottomMenu = (props: BottomMenuProps) => {
     return () => observer.disconnect();
   }, []);
 
+  // La barra FLOTA sobre el contenido, así que lo último de cada página quedaba
+  // debajo de ella: en la visita del superintendente, los últimos 36px del
+  // contenido no se podían leer ni con el scroll al final. Aquí se publica su
+  // altura y `.screen` la reserva como relleno de abajo (ver `global/index.css`).
+  // Se hace con una variable CSS y no con un hueco en el DOM porque la barra la
+  // pinta el LAYOUT, fuera del contenedor que hace scroll: un `<div>` de relleno
+  // aquí no empujaría nada.
+  useEffect(() => {
+    if (!barHeight) return;
+    const total = barHeight + BAR_MARGIN * 2 + safeAreaInsetBottom;
+    document.documentElement.style.setProperty(
+      '--bottom-bar-space',
+      `${total}px`
+    );
+    return () => {
+      document.documentElement.style.removeProperty('--bottom-bar-space');
+    };
+  }, [barHeight, safeAreaInsetBottom]);
+
   const barTop =
     windowHeight - barHeight - BAR_MARGIN - safeAreaInsetBottom;
 
