@@ -3,6 +3,7 @@ import { IconExpand } from '@components/icons';
 import { AutocompleteMutilePropsType } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import Typography from '@components/typography';
+import MiniChip from '@components/mini_chip';
 import { CustomListBoxComponent, CustomPaper } from '@components/autocomplete';
 
 CustomListBoxComponent.displayName = 'CustomListBoxComponent';
@@ -44,6 +45,30 @@ const AutocompleteMultiple = <T,>({
     <Autocomplete
       multiple
       {...props}
+      // Las píldoras de lo elegido son las de la app, se pidan o no.
+      //
+      // Seis de los siete sitios pasaban su propio `renderValue` con un
+      // `MiniChip` dentro —porque su aspa tiene que llamar a SU manejador, no
+      // al genérico— y el séptimo, Editar territorio, no pasaba nada. Y quien
+      // no pasa nada no se queda sin píldoras: se queda con las de MUI, que
+      // son grises fijas y no saben de modo oscuro. El mismo componente
+      // pintando dos chips distintos según quién lo llamara.
+      renderValue={
+        props.renderValue ??
+        ((value, getItemProps) =>
+          (value as T[]).map((option, index) => {
+            const { onDelete } = getItemProps({ index });
+
+            return (
+              <MiniChip
+                key={`${index}-${props.getOptionLabel?.(option) ?? ''}`}
+                label={props.getOptionLabel?.(option) ?? String(option)}
+                edit={true}
+                onDelete={() => onDelete(undefined)}
+              />
+            );
+          }))
+      }
       clearIcon={false}
       popupIcon={<IconExpand color="var(--ink-2)" width={20} height={20} />}
       PaperComponent={CustomPaper}

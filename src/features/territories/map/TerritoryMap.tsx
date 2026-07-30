@@ -199,7 +199,11 @@ const MapInstanceCapture = ({ onReady }: { onReady: (m: L.Map) => void }) => {
 // Para saber cuándo mostrar el botón de brújula (solo si el mapa está
 // rotado) — separado de MapInstanceCapture para no tocar su efecto ya
 // existente (ResizeObserver) con una dependencia que cambia cada render.
-const BearingTracker = ({ onChange }: { onChange: (bearing: number) => void }) => {
+const BearingTracker = ({
+  onChange,
+}: {
+  onChange: (bearing: number) => void;
+}) => {
   const map = useMap();
   useEffect(() => {
     const handleRotate = () => onChange(map.getBearing?.() ?? 0);
@@ -268,7 +272,12 @@ const TwistDeadzone = () => {
 
     gestos._onTouchMove = function (this: typeof gestos, e: TouchEvent) {
       try {
-        if (!enganchado && this._rotating && e.touches?.length === 2 && this._map) {
+        if (
+          !enganchado &&
+          this._rotating &&
+          e.touches?.length === 2 &&
+          this._map
+        ) {
           const m = this._map;
           const p1 = m.mouseEventToContainerPoint(
             e.touches[0] as unknown as MouseEvent
@@ -319,7 +328,8 @@ const TouchGestureRecovery = () => {
     const container = map.getContainer();
     const handler = (e: TouchEvent) => {
       if (e.touches.length > 0) return; // todavía hay dedos: gesto en curso
-      const gestures = (map as unknown as Record<string, unknown>).touchGestures as
+      const gestures = (map as unknown as Record<string, unknown>)
+        .touchGestures as
         | { _zooming?: boolean; _rotating?: boolean; _moved?: boolean }
         | undefined;
       if (!gestures) return;
@@ -365,7 +375,8 @@ const VectorGestureSync = () => {
     const collect = () => {
       const found = new Set<{ _reset: () => void }>();
       map.eachLayer((layer) => {
-        const r = (layer as unknown as { _renderer?: { _reset: () => void } })._renderer;
+        const r = (layer as unknown as { _renderer?: { _reset: () => void } })
+          ._renderer;
         if (r) found.add(r);
       });
       renderers = [...found];
@@ -552,11 +563,23 @@ const useDeviceHeading = (enabled: boolean) => {
       }
     };
 
-    window.addEventListener('deviceorientationabsolute', onOrientation as EventListener);
-    window.addEventListener('deviceorientation', onOrientation as EventListener);
+    window.addEventListener(
+      'deviceorientationabsolute',
+      onOrientation as EventListener
+    );
+    window.addEventListener(
+      'deviceorientation',
+      onOrientation as EventListener
+    );
     return () => {
-      window.removeEventListener('deviceorientationabsolute', onOrientation as EventListener);
-      window.removeEventListener('deviceorientation', onOrientation as EventListener);
+      window.removeEventListener(
+        'deviceorientationabsolute',
+        onOrientation as EventListener
+      );
+      window.removeEventListener(
+        'deviceorientation',
+        onOrientation as EventListener
+      );
     };
   }, [enabled]);
 
@@ -633,20 +656,15 @@ const GeomanControl = ({
     map.setBearing?.(0);
     map.touchRotate?.disable();
 
-    map.pm.addControls({
-      position: 'topleft',
-      drawMarker: false,
-      drawCircleMarker: false,
-      drawPolyline: false,
-      drawRectangle: false,
-      drawCircle: false,
-      drawText: false,
-      editMode: true,
-      dragMode: true,
-      cutPolygon: true,
-      removalMode: true,
-      drawPolygon: true,
-    });
+    // NO se añade la barra de Geoman: la pinta la app (ver `GeomanToolbar`).
+    //
+    // La suya es la de un plugin y se nota: caja blanca cuadrada pegada a la
+    // esquina, iconos propios en blanco y negro, sus sombras y sus tamaños. Al
+    // lado de los otros controles del mapa —que son píldoras de cristal con
+    // los radios y las sombras de la app— parecía otra aplicación metida
+    // dentro. Geoman deja manejar los modos por código (`enableDraw`,
+    // `toggleGlobalEditMode`…), así que la barra es nuestra y las teclas las
+    // sigue poniendo él.
     map.pm.setLang('es');
 
     const fg = new L.FeatureGroup();
@@ -661,7 +679,10 @@ const GeomanControl = ({
 
     const handleChange = () => {
       const layers = fg.getLayers() as L.Polygon[];
-      if (layers.length === 0) { onChange(null); return; }
+      if (layers.length === 0) {
+        onChange(null);
+        return;
+      }
 
       // Una capa de Leaflet puede ser Polygon O MultiPolygon (al reabrir un
       // territorio de varias piezas, Leaflet lo carga como UNA sola capa).
@@ -676,7 +697,10 @@ const GeomanControl = ({
         if (g.type === 'Polygon') polygons.push(g.coordinates);
         else if (g.type === 'MultiPolygon') polygons.push(...g.coordinates);
       }
-      if (polygons.length === 0) { onChange(null); return; }
+      if (polygons.length === 0) {
+        onChange(null);
+        return;
+      }
 
       onChange(
         polygons.length === 1
@@ -694,11 +718,21 @@ const GeomanControl = ({
     fg.on('layerremove', handleChange);
     fg.on('pm:cut', () => setTimeout(handleChange, 50));
     map.on('pm:remove', (e) => {
-      if (fg.hasLayer(e.layer)) { fg.removeLayer(e.layer); handleChange(); }
+      if (fg.hasLayer(e.layer)) {
+        fg.removeLayer(e.layer);
+        handleChange();
+      }
     });
 
     return () => {
-      map.pm.removeControls();
+      // Nunca se añadió la barra, pero sí pueden quedar modos activos si se
+      // cierra el diálogo a media edición: apagarlos deja el mapa limpio para
+      // la próxima vez que se abra.
+      map.pm.disableDraw();
+      if (map.pm.globalEditModeEnabled()) map.pm.disableGlobalEditMode();
+      if (map.pm.globalDragModeEnabled()) map.pm.disableGlobalDragMode();
+      if (map.pm.globalCutModeEnabled?.()) map.pm.disableGlobalCutMode();
+      if (map.pm.globalRemovalModeEnabled()) map.pm.disableGlobalRemovalMode();
       map.off('pm:create');
       map.off('pm:remove');
       fg.remove();
@@ -710,13 +744,129 @@ const GeomanControl = ({
   return null;
 };
 
+// ─── La barra de dibujo, la de la app ────────────────────────────────────
+//
+// Sustituye a la de Leaflet-Geoman. Los modos son los mismos —Geoman los
+// expone por código— pero el dibujo es el de aquí: píldoras de cristal, los
+// radios de la escala y el acento de la app cuando un modo está puesto.
+//
+// Va FUERA del `MapContainer`, como el resto de controles de este fichero:
+// dentro habría que ir peleando la propagación de clics al mapa.
+//
+// Solo hay un modo puesto a la vez, que es como funciona Geoman por dentro;
+// aquí se hace explícito apagando todo antes de encender lo que se pide, para
+// que el estado de los botones y el del plugin no puedan discrepar.
+type PmMode = 'draw' | 'edit' | 'drag' | 'cut' | 'remove';
+
+const PM_MODES: { id: PmMode; label: string; ayuda: string }[] = [
+  { id: 'draw', label: 'Dibujar', ayuda: 'Dibujar una zona nueva' },
+  { id: 'edit', label: 'Vértices', ayuda: 'Mover los vértices de la zona' },
+  { id: 'drag', label: 'Mover', ayuda: 'Mover la zona entera' },
+  { id: 'cut', label: 'Recortar', ayuda: 'Quitarle un trozo a la zona' },
+  { id: 'remove', label: 'Borrar', ayuda: 'Borrar una zona entera' },
+];
+
+const GeomanToolbar = ({ map }: { map: L.Map }) => {
+  const [mode, setMode] = useState<PmMode | null>(null);
+
+  const apagarTodo = useCallback(() => {
+    map.pm.disableDraw();
+    if (map.pm.globalEditModeEnabled()) map.pm.disableGlobalEditMode();
+    if (map.pm.globalDragModeEnabled()) map.pm.disableGlobalDragMode();
+    if (map.pm.globalCutModeEnabled?.()) map.pm.disableGlobalCutMode();
+    if (map.pm.globalRemovalModeEnabled()) map.pm.disableGlobalRemovalMode();
+  }, [map]);
+
+  // Dibujar se apaga SOLO al cerrar el polígono, sin pasar por aquí. Sin
+  // escuchar esto, el botón se quedaba encendido sobre un modo ya apagado.
+  useEffect(() => {
+    const alTerminar = () => setMode(null);
+    map.on('pm:drawend', alTerminar);
+    return () => {
+      map.off('pm:drawend', alTerminar);
+    };
+  }, [map]);
+
+  const alPulsar = (id: PmMode) => {
+    const yaEstaba = mode === id;
+    apagarTodo();
+
+    if (yaEstaba) {
+      setMode(null);
+      return;
+    }
+
+    if (id === 'draw') map.pm.enableDraw('Polygon');
+    if (id === 'edit') map.pm.enableGlobalEditMode();
+    if (id === 'drag') map.pm.enableGlobalDragMode();
+    if (id === 'cut') map.pm.enableGlobalCutMode();
+    if (id === 'remove') map.pm.enableGlobalRemovalMode();
+
+    setMode(id);
+  };
+
+  return (
+    <Box
+      role="group"
+      aria-label="Herramientas de dibujo"
+      sx={{
+        ...glass,
+        borderRadius: 'var(--shape-full)',
+        padding: '4px',
+        display: 'flex',
+        gap: '2px',
+        flexWrap: 'wrap',
+        maxWidth: 'calc(100vw - 32px)',
+      }}
+    >
+      {PM_MODES.map((m) => {
+        const activo = mode === m.id;
+
+        return (
+          <Box
+            key={m.id}
+            component="button"
+            type="button"
+            onClick={() => alPulsar(m.id)}
+            aria-pressed={activo}
+            title={m.ayuda}
+            sx={{
+              ...mapButtonReset,
+              cursor: 'pointer',
+              px: '12px',
+              py: '7px',
+              borderRadius: 'var(--shape-full)',
+              fontSize: '13px',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              backgroundColor: activo ? 'var(--accent-main)' : 'transparent',
+              color: activo ? 'var(--always-white)' : 'rgba(0,0,0,0.78)',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard)',
+              '&:hover': {
+                backgroundColor: activo
+                  ? 'var(--accent-main)'
+                  : 'rgba(0,0,0,0.06)',
+              },
+              '&:active': { transform: 'scale(0.94)' },
+            }}
+          >
+            {m.label}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
+
 // ─── Estilo glassmorphism compartido ─────────────────────────────────────────
 const glass = {
   backgroundColor: 'rgba(255, 255, 255, 0.78)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
   border: '0.5px solid rgba(255, 255, 255, 0.6)',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
+  boxShadow:
+    '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
 } as const;
 
 // Reset de estilos nativos de <button> — los controles del mapa usan
@@ -766,8 +916,13 @@ const TerritoryMap = ({
       : '#1f6fd0';
 
   const geometryKey = JSON.stringify(geometry);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const bounds = useMemo(() => (geometry ? geometryBounds(geometry) : null), [geometryKey]);
+  const bounds = useMemo(
+    () => (geometry ? geometryBounds(geometry) : null),
+    // A propósito por la CLAVE y no por `geometry`: el objeto se recrea en
+    // cada render aunque las coordenadas sean las mismas.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [geometryKey]
+  );
   const center = (geometry && geometryCenter(geometry)) || [40.4168, -3.7038];
   const livePos = useLiveLocation(showLiveLocation);
   const heading = useDeviceHeading(showLiveLocation);
@@ -798,6 +953,10 @@ const TerritoryMap = ({
 
   // Referencia al mapa Leaflet para controlar zoom desde fuera del MapContainer
   const mapRef = useRef<L.Map | null>(null);
+  // El ref por sí solo no vuelve a pintar, y la barra de dibujo se monta FUERA
+  // del MapContainer: sin este estado se quedaría esperando un mapa que ya
+  // existe.
+  const [mapListo, setMapListo] = useState(false);
   const fitFnRef = useRef<() => void>(() => {});
 
   // Vuelve suavemente a "norte arriba" — leaflet-rotate no anima setBearing
@@ -873,14 +1032,23 @@ const TerritoryMap = ({
         )}
 
         {/* Captura la instancia del mapa para el zoom externo */}
-        <MapInstanceCapture onReady={(m) => { mapRef.current = m; }} />
+        <MapInstanceCapture
+          onReady={(m) => {
+            mapRef.current = m;
+            setMapListo(true);
+          }}
+        />
         <BearingTracker onChange={handleBearingChange} />
         <TouchGestureRecovery />
         <TwistDeadzone />
         <VectorGestureSync />
 
         {editable && onGeometryChange ? (
-          <GeomanControl geometry={geometry} color={color} onChange={onGeometryChange} />
+          <GeomanControl
+            geometry={geometry}
+            color={color}
+            onChange={onGeometryChange}
+          />
         ) : geometry ? (
           <GeoJSON
             // Por la geometría COMPLETA, no solo por el encuadre: `data` de
@@ -906,13 +1074,30 @@ const TerritoryMap = ({
         <FitBounds
           bounds={bounds}
           bottomInset={bottomInset}
-          onReady={(fit) => { fitFnRef.current = fit; }}
+          onReady={(fit) => {
+            fitFnRef.current = fit;
+          }}
         />
       </MapContainer>
 
       {/* ─── Controles flotantes FUERA del MapContainer ────────────────────
           Posicionados relativos al wrapper Box → sin problemas de z-index
           ni de contexto de posicionamiento.                                */}
+      {/* La barra de dibujo, abajo a la izquierda: arriba a la derecha ya
+          están el satélite y el norte, y abajo a la derecha el zoom. */}
+      {editable && mapListo && mapRef.current && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 16,
+            bottom: `calc(16px + ${bottomInset ?? 0}px + env(safe-area-inset-bottom))`,
+            zIndex: 1000,
+          }}
+        >
+          <GeomanToolbar map={mapRef.current} />
+        </Box>
+      )}
+
       <Box
         sx={{
           position: 'absolute',
@@ -938,7 +1123,9 @@ const TerritoryMap = ({
           type="button"
           onClick={() => setIsSatellite(!isSatellite)}
           aria-pressed={isSatellite}
-          aria-label={isSatellite ? 'Cambiar a vista de mapa' : 'Cambiar a vista satélite'}
+          aria-label={
+            isSatellite ? 'Cambiar a vista de mapa' : 'Cambiar a vista satélite'
+          }
           sx={{
             ...mapButtonReset,
             ...glass,
@@ -1020,7 +1207,7 @@ const TerritoryMap = ({
               justifyContent: 'center',
               cursor: 'pointer',
               transition:
-              'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
+                'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
               '&:active': { transform: 'scale(0.94)' },
             }}
           >
@@ -1102,7 +1289,9 @@ const TerritoryMap = ({
               opacity: livePos ? 1 : 0.35,
               transition:
                 'background-color var(--motion-fast) var(--ease-standard)',
-              '&:active': livePos ? { backgroundColor: 'rgba(0,0,0,0.08)' } : undefined,
+              '&:active': livePos
+                ? { backgroundColor: 'rgba(0,0,0,0.08)' }
+                : undefined,
             }}
           >
             <Box
@@ -1219,7 +1408,8 @@ const TerritoryMap = ({
         sx={{
           position: 'absolute',
           inset: 0,
-          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05), inset 0 2px 12px rgba(0,0,0,0.06)',
+          boxShadow:
+            'inset 0 0 0 1px rgba(0,0,0,0.05), inset 0 2px 12px rgba(0,0,0,0.06)',
           pointerEvents: 'none',
           zIndex: 500,
         }}

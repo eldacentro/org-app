@@ -182,7 +182,17 @@ const DialogEditarTerritorio = ({ open, territory, onClose }: Props) => {
         PaperProps={{
           sx: {
             maxWidth: '1100px',
+            // Los márgenes seguros de iOS. Este diálogo es casi de pantalla
+            // completa en un móvil, así que su borde de abajo caía DEBAJO de
+            // la barra de inicio del iPhone y el de arriba se metía en la
+            // muesca. Los 16 de siempre siguen valiendo en todo lo demás
+            // —`env(...)` vale 0 donde no hay muesca—, así que el `max` deja
+            // el mismo diálogo de antes en escritorio y en Android.
             width: 'calc(100% - 32px)',
+            marginTop: 'max(32px, env(safe-area-inset-top))',
+            marginBottom: 'max(32px, env(safe-area-inset-bottom))',
+            maxHeight:
+              'calc(100% - max(64px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card)',
             boxShadow: 'var(--pop-up-shadow)',

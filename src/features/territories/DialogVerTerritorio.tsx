@@ -1,5 +1,13 @@
 import { displaySnackNotification } from '@services/states/app';
-import { useEffect, useMemo, useRef, useState, forwardRef, type ReactElement, type Ref } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  forwardRef,
+  type ReactElement,
+  type Ref,
+} from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import {
   Box,
@@ -15,9 +23,15 @@ import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import Tooltip from '@components/tooltip';
-import { IconEdit, IconClose, IconMapOverview, IconHousehold } from '@components/icons';
+import {
+  IconEdit,
+  IconClose,
+  IconMapOverview,
+  IconHousehold,
+} from '@components/icons';
 import { TagChip } from './ui';
+import { usePersonName } from './usePersonName';
+import { BadgeColor } from '@definition/app';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import DialogCompartir from './dialogs/DialogCompartir';
@@ -30,10 +44,7 @@ import {
   territorySettingsState,
   territoriesState,
 } from '@states/territories';
-import {
-  congIDState,
-  userLocalUIDState,
-} from '@states/settings';
+import { congIDState, userLocalUIDState } from '@states/settings';
 import {
   uploadTerritoryImage,
   deleteTerritoryImage,
@@ -45,6 +56,7 @@ import {
   isInCooldown,
   territoryLabel,
   displayText,
+  formatTerritoryDate,
   isStillEncrypted,
   isLightColor,
 } from '@services/app/territories';
@@ -62,7 +74,7 @@ type Props = {
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & { children: ReactElement },
-  ref: Ref<unknown>,
+  ref: Ref<unknown>
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -100,53 +112,64 @@ const visuallyHidden = {
   border: 0,
 } as const;
 
-// ─── Indicador sutil de asignado/libre — solo para responsables ──────────
-// Antes el StatusChip grande (con texto "Asignado"/"Libre") lo veía
-// cualquier publicador, aunque no le aporta nada saber que SU territorio
-// está "asignado" — ya lo sabe. Ahora ese hueco lo ocupa la cantidad de
-// viviendas (útil para todos) y esto queda como un punto discreto con
-// tooltip, visible solo para quien gestiona territorios.
+// ─── Asignado / libre — solo para responsables ───────────────────────────
+//
+// Esto era un PUNTO de 8px con un tooltip. Tres problemas:
+//
+//   · En la cabecera había ya otros dos puntos del mismo tamaño y forma —el
+//     color de la zona, a la izquierda del nombre, y los colores de las
+//     etiquetas, arriba a la derecha—. Tres puntos idénticos queriendo decir
+//     tres cosas que no tienen nada que ver.
+//   · Lo que decía SOLO estaba en el tooltip, y un tooltip en un móvil no
+//     existe: no hay dónde posar el dedo.
+//   · Y lo que un responsable necesita saber de un territorio abierto no es
+//     "está asignado" —eso ya lo dice el botón de Entregar— sino A QUIÉN.
+//
+// Ahora es el `Badge` de la app, con el nombre dentro, en la misma fila que
+// la zona y las viviendas. El punto de la zona se queda: ese está pegado a su
+// propia etiqueta, así que no hay nada que adivinar.
 type AssignedStatus = 'asignado' | 'descanso' | 'libre';
 
 const ASSIGNED_STATUS_LABEL: Record<AssignedStatus, string> = {
   asignado: 'Asignado',
-  descanso: 'En descanso (recién trabajado)',
+  descanso: 'En descanso',
   libre: 'Libre',
 };
 
-const ASSIGNED_STATUS_COLOR: Record<AssignedStatus, string> = {
-  asignado: 'var(--orange-main)',
-  descanso: 'var(--grey-400)',
-  libre: 'var(--green-main)',
+const ASSIGNED_STATUS_COLOR: Record<AssignedStatus, BadgeColor> = {
+  asignado: 'orange',
+  descanso: 'grey',
+  libre: 'green',
 };
 
-const AssignedDot = ({ status }: { status: AssignedStatus }) => (
-  <Tooltip title={ASSIGNED_STATUS_LABEL[status]}>
-    <Box
-      aria-label={ASSIGNED_STATUS_LABEL[status]}
-      sx={{
-        width: 8,
-        height: 8,
-        borderRadius: 'var(--shape-full)',
-        flexShrink: 0,
-        backgroundColor: ASSIGNED_STATUS_COLOR[status],
-        ...(status === 'asignado' && {
-          animation: 'pulse 2s ease-in-out infinite',
-          '@keyframes pulse': {
-            '0%, 100%': { boxShadow: '0 0 0 0 rgba(var(--orange-main-base), 0.4)' },
-            '50%': { boxShadow: '0 0 0 4px rgba(var(--orange-main-base), 0)' },
-          },
-        }),
-      }}
-    />
-  </Tooltip>
+const AssignedBadge = ({
+  status,
+  personName,
+}: {
+  status: AssignedStatus;
+  personName?: string;
+}) => (
+  <Badge
+    size="small"
+    color={ASSIGNED_STATUS_COLOR[status]}
+    text={
+      status === 'asignado' && personName
+        ? `Asignado a ${personName}`
+        : ASSIGNED_STATUS_LABEL[status]
+    }
+  />
 );
 
 // Etiquetas de tamaño (creadas en la unificación de 2026) — para un
 // publicador, verlas junto a la cantidad de viviendas es redundante (misma
 // información dos veces); para un responsable sí aporta al gestionar, así
 // que solo se filtran de la vista de un publicador (ver `visibleHeaderTags`).
-const SIZE_TAG_NAMES = new Set(['Pequeño', 'Mediano', 'Grande', 'Extra grande']);
+const SIZE_TAG_NAMES = new Set([
+  'Pequeño',
+  'Mediano',
+  'Grande',
+  'Extra grande',
+]);
 
 // ─── Tag de número de viviendas ───────────────────────────────────────────
 // El `Badge` compartido, no una caja propia: la de antes traía su
@@ -168,14 +191,54 @@ const ViviendasTag = ({ count }: { count: number }) => (
 const InfoTabContent = ({
   territory,
   canManage,
+  assignment,
+  assignedName,
+  dateFormat,
 }: {
   territory: Territory;
   canManage: boolean;
+  /** La asignación abierta, si la hay. Solo se pinta para responsables. */
+  assignment?: TerritoryAssignment | null;
+  assignedName?: string;
+  dateFormat: string;
 }) => (
   // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
   // identidad, tres centímetros más arriba en móvil y en la ficha sobre el
   // mapa en escritorio. Salía dos veces en la misma pantalla, en las dos.
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    {/* Quién lo tiene y desde cuándo.
+        La chapa de la cabecera dice A QUIÉN de un vistazo; esto es el detalle,
+        que es lo que antes obligaba a cerrar el territorio, ir a la lista de
+        asignaciones, buscarlo y volver. */}
+    {canManage && assignment && (
+      <Box
+        sx={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(var(--orange-main-base), 0.08)',
+          borderRadius: 'var(--shape-md)',
+          border: '1px solid rgba(var(--orange-main-base), 0.25)',
+        }}
+      >
+        <Typography
+          className="label-small-semibold"
+          color="var(--orange-dark)"
+          sx={{ display: 'block', mb: '4px' }}
+        >
+          Asignación
+        </Typography>
+        <Typography className="body-small-regular" color="var(--ink)">
+          {assignedName}
+          {assignment.isCampaign ? ' · campaña' : ''}
+        </Typography>
+        <Typography className="label-small-regular" color="var(--ink-2)">
+          Entregado el {formatTerritoryDate(assignment.assignedAt, dateFormat)}
+          {assignment.dueAt
+            ? ` · vence el ${formatTerritoryDate(assignment.dueAt, dateFormat)}`
+            : ''}
+        </Typography>
+      </Box>
+    )}
+
     {territory.notas && (
       <Box
         sx={{
@@ -202,7 +265,10 @@ const InfoTabContent = ({
             lineHeight: 1.5,
             // Si este dispositivo no puede descifrar la nota, se avisa en
             // vez de enseñar el texto cifrado en crudo.
-            ...(isStillEncrypted(territory.notas) && { fontStyle: 'italic', opacity: 0.75 }),
+            ...(isStillEncrypted(territory.notas) && {
+              fontStyle: 'italic',
+              opacity: 0.75,
+            }),
           }}
         >
           {displayText(territory.notas)}
@@ -312,7 +378,7 @@ const DialogVerTerritorio = ({
   const allTags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const territories = useAtomValue(territoriesState);
-  
+
   // LIVE TERRITORY: El prop 'territory' puede ser un snapshot estático (ej. del state de índice).
   // Buscamos el objeto vivo en jotai para que los cambios (como subir imagen) se reflejen al instante.
   const liveTerritory = useMemo(() => {
@@ -339,13 +405,18 @@ const DialogVerTerritorio = ({
     // (tras Mapa e Imagen) pero la primera en escritorio (no hay pestaña Mapa
     // aparte: el mapa siempre está visible en la columna izquierda).
     const defaultTab = mobile
-      ? s.expandMap  ? 0
-      : s.expandImage ? 1
-      : s.expandInfo ? 2
-      : 0
-      : s.expandInfo  ? 0
-      : s.expandImage ? 1
-      : 0;
+      ? s.expandMap
+        ? 0
+        : s.expandImage
+          ? 1
+          : s.expandInfo
+            ? 2
+            : 0
+      : s.expandInfo
+        ? 0
+        : s.expandImage
+          ? 1
+          : 0;
     setTab(defaultTab);
     setEditingTags(false);
   }, [territory?.id]);
@@ -365,6 +436,8 @@ const DialogVerTerritorio = ({
   // transacción, y solo puede haber UNA abierta). Excluirlas hacía que un
   // territorio ocupado por campaña se viera como "Libre" y no se pudiera
   // entregar desde aquí.
+  const resolveName = usePersonName();
+
   const relevantAssignment = useMemo(() => {
     if (!liveTerritory) return null;
     return openAssignments.find((a) => a.territoryId === liveTerritory.id);
@@ -379,8 +452,8 @@ const DialogVerTerritorio = ({
   const assignedStatus: AssignedStatus = isOpen
     ? 'asignado'
     : isInCooldown(liveTerritory, settings.daysUntilReassignable)
-    ? 'descanso'
-    : 'libre';
+      ? 'descanso'
+      : 'libre';
 
   // ¿Puede QUIEN ESTÁ MIRANDO entregar este territorio? Un responsable
   // siempre; un publicador solo SU PROPIO territorio (y si la congregación
@@ -389,7 +462,9 @@ const DialogVerTerritorio = ({
   // enlace directo a un territorio ajeno, el botón salía activo y un
   // publicador podía cerrar la asignación de otro hermano.
   const isMine = Boolean(
-    relevantAssignment && currentUid && relevantAssignment.personUid === currentUid
+    relevantAssignment &&
+    currentUid &&
+    relevantAssignment.personUid === currentUid
   );
   const canReturnThis = canManage || (settings.publishersCanReturn && isMine);
 
@@ -421,7 +496,10 @@ const DialogVerTerritorio = ({
     });
     const lat = latSum / coords.length;
     const lng = lngSum / coords.length;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      '_blank'
+    );
   };
 
   const handleUploadImage = async (file?: File) => {
@@ -450,7 +528,8 @@ const DialogVerTerritorio = ({
 
   const handleDeleteImage = async () => {
     const ok = await confirm({
-      message: '¿Eliminar la imagen de este territorio? Esta acción no se puede deshacer.',
+      message:
+        '¿Eliminar la imagen de este territorio? Esta acción no se puede deshacer.',
       confirmLabel: 'Eliminar',
       destructive: true,
     });
@@ -458,7 +537,9 @@ const DialogVerTerritorio = ({
     setUploading(true);
     try {
       await deleteTerritoryImage(congID, liveTerritory.id);
-      await updateTerritoryPartial(congID, liveTerritory.id, { imageURL: null });
+      await updateTerritoryPartial(congID, liveTerritory.id, {
+        imageURL: null,
+      });
     } catch (e) {
       console.error(e);
       displaySnackNotification({
@@ -533,7 +614,7 @@ const DialogVerTerritorio = ({
           position: 'absolute',
           top: 'max(16px, env(safe-area-inset-top))',
           left: 16,
-          zIndex: 1200,  // Encima de controles del mapa (z:1000) y del sheet (z:100)
+          zIndex: 1200, // Encima de controles del mapa (z:1000) y del sheet (z:100)
         }}
       >
         <Box
@@ -620,7 +701,11 @@ const DialogVerTerritorio = ({
 
         {/* IDENTITY BLOCK */}
         <Box sx={{ flexShrink: 0, px: 3, pb: '12px' }}>
-          <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            justifyContent="space-between"
+          >
             <Box sx={{ flex: 1, minWidth: 0 }}>
               {/* Número del territorio */}
               {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
@@ -640,7 +725,13 @@ const DialogVerTerritorio = ({
               </Typography>
 
               {/* Zona + estado */}
-              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" gap={0.75}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                flexWrap="wrap"
+                gap={0.75}
+              >
                 <Stack direction="row" alignItems="center" spacing={'5px'}>
                   <Box
                     sx={{
@@ -652,35 +743,54 @@ const DialogVerTerritorio = ({
                       flexShrink: 0,
                     }}
                   />
-                  <Typography className="label-small-medium" color="var(--ink-2)">
+                  <Typography
+                    className="label-small-medium"
+                    color="var(--ink-2)"
+                  >
                     {zoneName}
                   </Typography>
-                  {canManage && <AssignedDot status={assignedStatus} />}
                 </Stack>
                 {liveTerritory.numeroViviendas != null && (
                   <ViviendasTag count={liveTerritory.numeroViviendas} />
                 )}
+                {canManage && (
+                  <AssignedBadge
+                    status={assignedStatus}
+                    personName={
+                      relevantAssignment
+                        ? resolveName(relevantAssignment.personUid)
+                        : undefined
+                    }
+                  />
+                )}
+                {/* Las etiquetas, con su nombre.
+                    Eran puntos de color de 9px arriba a la derecha, con el
+                    nombre solo en el `title` — o sea, en ningún sitio para
+                    quien va con el dedo. Un punto naranja no dice "Comercial";
+                    hay que saberlo de antes. Aquí abajo caben con su nombre y
+                    su color, en la misma fila que todo lo demás que describe
+                    el territorio, y la fila ya envolvía. */}
+                {visibleHeaderTags.map((tagId) => {
+                  const tag = allTags.find((t) => t.id === tagId);
+                  if (!tag) return null;
+                  return (
+                    <TagChip
+                      key={tag.id}
+                      label={tag.nombre}
+                      color={tag.color}
+                    />
+                  );
+                })}
               </Stack>
             </Box>
 
-            {/* Tags dots + edit button */}
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: '2px', flexShrink: 0 }}>
-              {visibleHeaderTags.slice(0, 4).map((tagId) => {
-                const tag = allTags.find((t) => t.id === tagId);
-                if (!tag) return null;
-                return (
-                  <Box
-                    key={tag.id}
-                    title={tag.nombre}
-                    sx={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: 'var(--shape-full)',
-                      backgroundColor: tag.color,
-                    }}
-                  />
-                );
-              })}
+            {/* Botón de editar etiquetas */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={0.5}
+              sx={{ mt: '2px', flexShrink: 0 }}
+            >
               {canManage && (
                 <Box
                   component="button"
@@ -694,14 +804,16 @@ const DialogVerTerritorio = ({
                     width: 28,
                     height: 28,
                     borderRadius: 'var(--shape-full)',
-                    backgroundColor: editingTags ? `color-mix(in srgb, ${color} 8%, transparent)` : 'var(--accent-100)',
+                    backgroundColor: editingTags
+                      ? `color-mix(in srgb, ${color} 8%, transparent)`
+                      : 'var(--accent-100)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
                     color: editingTags ? color : 'var(--ink-2)',
                     transition:
-              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
+                      'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
                     '&:active': { transform: 'scale(0.88)' },
                   }}
                 >
@@ -722,7 +834,10 @@ const DialogVerTerritorio = ({
               }}
             >
               {allTags.length === 0 ? (
-                <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                <Typography
+                  className="label-small-regular"
+                  sx={{ color: 'var(--ink-2)' }}
+                >
                   No hay etiquetas creadas.
                 </Typography>
               ) : (
@@ -823,8 +938,15 @@ const DialogVerTerritorio = ({
                     gap: 1,
                   }}
                 >
-                  <IconMapOverview width={32} height={32} color="var(--ink-2)" />
-                  <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                  <IconMapOverview
+                    width={32}
+                    height={32}
+                    color="var(--ink-2)"
+                  />
+                  <Typography
+                    className="body-small-regular"
+                    sx={{ color: 'var(--ink-2)' }}
+                  >
                     Sin imagen adjunta
                   </Typography>
                 </Box>
@@ -849,15 +971,17 @@ const DialogVerTerritorio = ({
                           cursor: 'pointer',
                           transition:
                             'background-color var(--motion-fast) var(--ease-standard)',
-                          '&:active': { backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)` },
+                          '&:active': {
+                            backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
+                          },
                         }}
                         className="button-caps"
                       >
                         {uploading
                           ? 'Subiendo…'
                           : liveTerritory.imageURL
-                          ? 'Cambiar imagen'
-                          : 'Subir imagen (PNG/JPG)'}
+                            ? 'Cambiar imagen'
+                            : 'Subir imagen (PNG/JPG)'}
                       </Box>
                       {/* `hidden` saca el input del orden de tabulación —
                           nadie podía llegar aquí con teclado. Se oculta
@@ -872,7 +996,10 @@ const DialogVerTerritorio = ({
                         // esto, si la subida falla, volver a elegir EL MISMO
                         // fichero no dispara 'change' y parece que la app
                         // ignora el intento.
-                        onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }}
+                        onChange={(e) => {
+                          handleUploadImage(e.target.files?.[0]);
+                          e.target.value = '';
+                        }}
                         sx={visuallyHidden}
                       />
                     </label>
@@ -895,11 +1022,15 @@ const DialogVerTerritorio = ({
                         textAlign: 'center',
                         cursor: uploading ? 'default' : 'pointer',
                         transition:
-                'background-color var(--motion-fast) var(--ease-standard)',
-                        '&:active': { backgroundColor: uploading ? undefined : 'rgba(var(--red-main-base), 0.2)' },
+                          'background-color var(--motion-fast) var(--ease-standard)',
+                        '&:active': {
+                          backgroundColor: uploading
+                            ? undefined
+                            : 'rgba(var(--red-main-base), 0.2)',
+                        },
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
                       }}
                     >
                       Borrar
@@ -912,7 +1043,17 @@ const DialogVerTerritorio = ({
 
           {/* TAB 2: Info (viviendas + notas + Direcciones) */}
           {tab === 2 && (
-            <InfoTabContent territory={liveTerritory} canManage={canManage} />
+            <InfoTabContent
+              territory={liveTerritory}
+              canManage={canManage}
+              assignment={relevantAssignment}
+              assignedName={
+                relevantAssignment
+                  ? resolveName(relevantAssignment.personUid)
+                  : undefined
+              }
+              dateFormat={settings.dateFormat}
+            />
           )}
         </Box>
 
@@ -937,16 +1078,41 @@ const DialogVerTerritorio = ({
               variant="primary"
             />
           )}
-          {/* Compartir: un responsable puede mandar CUALQUIER territorio, esté
+          {/* Las dos secundarias comparten fila.
+              Apiladas eran TRES botones a lo ancho, y en la pestaña Mapa —donde
+              el sheet se queda corto a propósito, para que se vea el mapa— el
+              tercero, "Editar", caía por debajo del pliegue: no existía a menos
+              que arrastraras el sheet hacia arriba. En una fila caben las dos y
+              la cuenta baja a dos alturas.
+              Compartir: un responsable puede mandar CUALQUIER territorio, esté
               asignado o no (p. ej. para dárselo por WhatsApp a alguien sin
               cuenta); un publicador, solo el suyo. Cuando va atado a una
               asignación, el enlace muere al entregar el territorio. */}
-          {(canManage || (relevantAssignment && isMine)) && (
-            <ActionButton
-              label="Compartir enlace"
-              onClick={() => setShareOpen(true)}
-              variant="secondary"
-            />
+          {(canManage ||
+            (relevantAssignment && isMine) ||
+            (canManage && onEdit)) && (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: '8px',
+                '& > *': { flex: 1, minWidth: 0 },
+              }}
+            >
+              {(canManage || (relevantAssignment && isMine)) && (
+                <ActionButton
+                  label="Compartir enlace"
+                  onClick={() => setShareOpen(true)}
+                  variant="secondary"
+                />
+              )}
+              {canManage && onEdit && (
+                <ActionButton
+                  label="Editar"
+                  onClick={onEdit}
+                  variant="secondary"
+                />
+              )}
+            </Box>
           )}
           {/* Antes este botón solo desaparecía sin explicar nada cuando un
               publicador no podía entregar por sí mismo. */}
@@ -970,13 +1136,6 @@ const DialogVerTerritorio = ({
               variant="primary"
             />
           )}
-          {canManage && onEdit && (
-            <ActionButton
-              label="Editar"
-              onClick={onEdit}
-              variant="secondary"
-            />
-          )}
         </Box>
       </Box>
     </Box>
@@ -984,7 +1143,9 @@ const DialogVerTerritorio = ({
 
   // ── LAYOUT ESCRITORIO (2 columnas) ─────────────────────────────────────────
   const desktopContent = (
-    <Box sx={{ display: 'flex', width: '100%', height: '100%', minHeight: 540 }}>
+    <Box
+      sx={{ display: 'flex', width: '100%', height: '100%', minHeight: 540 }}
+    >
       {/* Columna izquierda: MAPA */}
       <Box
         sx={{
@@ -1021,12 +1182,21 @@ const DialogVerTerritorio = ({
             boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Box>
               <Typography className="h4" color="var(--ink)">
                 {label}
               </Typography>
-              <Stack direction="row" alignItems="center" spacing={'6px'} sx={{ mt: '4px' }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={'6px'}
+                sx={{ mt: '4px' }}
+              >
                 <Box
                   sx={{
                     width: 7,
@@ -1038,11 +1208,20 @@ const DialogVerTerritorio = ({
                 <Typography className="label-small-medium" color="var(--ink-2)">
                   {zoneName}
                 </Typography>
-                {canManage && <AssignedDot status={assignedStatus} />}
               </Stack>
             </Box>
             {liveTerritory.numeroViviendas != null && (
               <ViviendasTag count={liveTerritory.numeroViviendas} />
+            )}
+            {canManage && (
+              <AssignedBadge
+                status={assignedStatus}
+                personName={
+                  relevantAssignment
+                    ? resolveName(relevantAssignment.personUid)
+                    : undefined
+                }
+              />
             )}
           </Stack>
         </Box>
@@ -1069,7 +1248,11 @@ const DialogVerTerritorio = ({
             flexShrink: 0,
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Stack direction="row" alignItems="center" spacing={'8px'}>
               <Box
                 sx={{
@@ -1091,7 +1274,12 @@ const DialogVerTerritorio = ({
                   size="small"
                   onClick={onEdit}
                   aria-label="Editar territorio"
-                  sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--accent-100)' } }}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    color: 'var(--ink-2)',
+                    '&:hover': { backgroundColor: 'var(--accent-100)' },
+                  }}
                 >
                   <IconEdit width={15} height={15} />
                 </IconButton>
@@ -1100,7 +1288,12 @@ const DialogVerTerritorio = ({
                 size="small"
                 onClick={onClose}
                 aria-label="Cerrar"
-                sx={{ width: 32, height: 32, color: 'var(--ink-2)', '&:hover': { backgroundColor: 'var(--accent-100)' } }}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  color: 'var(--ink-2)',
+                  '&:hover': { backgroundColor: 'var(--accent-100)' },
+                }}
               >
                 <IconClose width={15} height={15} />
               </IconButton>
@@ -1109,7 +1302,11 @@ const DialogVerTerritorio = ({
 
           {/* Tags */}
           {visibleHeaderTags.length > 0 || canManage ? (
-            <Stack direction="row" alignItems="center" sx={{ mt: 1.25, flexWrap: 'wrap', gap: 0.5 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              sx={{ mt: 1.25, flexWrap: 'wrap', gap: 0.5 }}
+            >
               {visibleHeaderTags.map((tagId) => {
                 const tag = allTags.find((t) => t.id === tagId);
                 if (!tag) return null;
@@ -1135,7 +1332,9 @@ const DialogVerTerritorio = ({
                       ? 'var(--state-selected)'
                       : 'var(--accent-100)',
                     border: `1px solid ${editingTags ? 'var(--accent-main)' : 'var(--line)'}`,
-                    color: editingTags ? 'var(--state-selected-ink)' : 'var(--ink-2)',
+                    color: editingTags
+                      ? 'var(--state-selected-ink)'
+                      : 'var(--ink-2)',
                     cursor: 'pointer',
                     transition:
                       'background-color var(--motion-fast) var(--ease-standard)',
@@ -1144,7 +1343,11 @@ const DialogVerTerritorio = ({
                   {/* Iba a 11px con peso 600 — un tamaño que no está en la
                       escala, y además distinto del de las etiquetas que tiene
                       al lado. */}
-                  <Typography component="span" className="body-small-semibold" color="inherit">
+                  <Typography
+                    component="span"
+                    className="body-small-semibold"
+                    color="inherit"
+                  >
                     + Etiquetas
                   </Typography>
                 </Box>
@@ -1153,25 +1356,35 @@ const DialogVerTerritorio = ({
           ) : null}
 
           {editingTags && canManage && (
-            <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: 'var(--accent-100)', borderRadius: 'var(--shape-md)' }}>
+            <Box
+              sx={{
+                mt: 1.5,
+                p: 1.5,
+                backgroundColor: 'var(--accent-100)',
+                borderRadius: 'var(--shape-md)',
+              }}
+            >
               {allTags.length === 0 ? (
-                <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                <Typography
+                  className="label-small-regular"
+                  sx={{ color: 'var(--ink-2)' }}
+                >
                   No hay etiquetas creadas.
                 </Typography>
               ) : (
                 <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                {allTags.map((tag) => {
-                  const active = (liveTerritory.tags || []).includes(tag.id);
-                  return (
-                    <TagChip
-                      key={tag.id}
-                      label={tag.nombre}
-                      color={tag.color}
-                      selected={active}
-                      onClick={() => handleToggleTag(tag.id)}
-                    />
-                  );
-                })}
+                  {allTags.map((tag) => {
+                    const active = (liveTerritory.tags || []).includes(tag.id);
+                    return (
+                      <TagChip
+                        key={tag.id}
+                        label={tag.nombre}
+                        color={tag.color}
+                        selected={active}
+                        onClick={() => handleToggleTag(tag.id)}
+                      />
+                    );
+                  })}
                 </Stack>
               )}
             </Box>
@@ -1184,14 +1397,27 @@ const DialogVerTerritorio = ({
             ariaLabel="Vistas del territorio"
             tabs={['Info', 'Imagen']}
             active={tab}
-            onChange={(i) => { setTab(i); setEditingTags(false); }}
+            onChange={(i) => {
+              setTab(i);
+              setEditingTags(false);
+            }}
           />
         </Box>
 
         {/* Contenido scrollable */}
         <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 1 }}>
           {tab === 0 && (
-            <InfoTabContent territory={liveTerritory} canManage={canManage} />
+            <InfoTabContent
+              territory={liveTerritory}
+              canManage={canManage}
+              assignment={relevantAssignment}
+              assignedName={
+                relevantAssignment
+                  ? resolveName(relevantAssignment.personUid)
+                  : undefined
+              }
+              dateFormat={settings.dateFormat}
+            />
           )}
 
           {tab === 1 && (
@@ -1226,7 +1452,12 @@ const DialogVerTerritorio = ({
                     mb: 1.5,
                   }}
                 >
-                  <Typography className="body-small-regular" color="var(--ink-2)">Sin imagen</Typography>
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--ink-2)"
+                  >
+                    Sin imagen
+                  </Typography>
                 </Box>
               )}
               {canManage && (
@@ -1254,24 +1485,44 @@ const DialogVerTerritorio = ({
                           opacity: uploading ? 0.6 : 1,
                           transition:
                             'background-color var(--motion-fast) var(--ease-standard)',
-                          '&:hover': uploading ? undefined : { backgroundColor: 'var(--accent-200)' },
+                          '&:hover': uploading
+                            ? undefined
+                            : { backgroundColor: 'var(--accent-200)' },
                         }}
                         className="button-caps"
                       >
-                        {uploading ? 'Subiendo…' : liveTerritory.imageURL ? 'Cambiar imagen' : 'Subir imagen (PNG/JPG)'}
+                        {uploading
+                          ? 'Subiendo…'
+                          : liveTerritory.imageURL
+                            ? 'Cambiar imagen'
+                            : 'Subir imagen (PNG/JPG)'}
                       </Box>
                       <Box
                         component="input"
                         type="file"
                         accept="image/png,image/jpeg"
                         disabled={uploading}
-                        onChange={(e) => { handleUploadImage(e.target.files?.[0]); e.target.value = ''; }}
+                        onChange={(e) => {
+                          handleUploadImage(e.target.files?.[0]);
+                          e.target.value = '';
+                        }}
                         sx={visuallyHidden}
                       />
                     </label>
                   </Box>
                   {liveTerritory.imageURL && (
-                    <Button variant="tertiary" disableAutoStretch disabled={uploading} onClick={handleDeleteImage} sx={{ color: 'var(--red-main)', '&:hover': { backgroundColor: 'rgba(var(--red-main-base), 0.08)' } }}>
+                    <Button
+                      variant="tertiary"
+                      disableAutoStretch
+                      disabled={uploading}
+                      onClick={handleDeleteImage}
+                      sx={{
+                        color: 'var(--red-main)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(var(--red-main-base), 0.08)',
+                        },
+                      }}
+                    >
                       Borrar
                     </Button>
                   )}
@@ -1282,10 +1533,26 @@ const DialogVerTerritorio = ({
         </Box>
 
         {/* Acciones inferiores */}
-        <Box sx={{ px: 3, pb: 2.5, pt: 1.5, borderTop: '0.5px solid var(--line)', flexShrink: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="flex-end">
+        <Box
+          sx={{
+            px: 3,
+            pb: 2.5,
+            pt: 1.5,
+            borderTop: '0.5px solid var(--line)',
+            flexShrink: 0,
+          }}
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.5}
+            justifyContent="flex-end"
+          >
             {relevantAssignment && onEntregar && !canReturnThis && (
-              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="label-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 {isMine
                   ? 'Solo un responsable puede marcar este territorio como entregado.'
                   : 'Este territorio lo tiene asignado otro publicador.'}
@@ -1323,27 +1590,27 @@ const DialogVerTerritorio = ({
         fullScreen={tabletDown}
         open={!!territory}
         onClose={onClose}
-      TransitionComponent={tabletDown ? Transition : undefined}
-      PaperProps={{
-        sx: tabletDown
-          ? {
-              backgroundColor: 'var(--white)',
-              overflow: 'hidden',
-              // Quitar sombra y bordes del Paper para que el diseño propio tome el control
-              boxShadow: 'none',
-              borderRadius: 0,
-              margin: 0,
-            }
-          : {
-              maxWidth: '860px',
-              width: 'calc(100% - 32px)',
-              borderRadius: 'var(--shape-xl)',
-              overflow: 'hidden',
-              backgroundColor: 'transparent',
-              boxShadow: 'var(--pop-up-shadow), 0 0 0 0.5px rgba(0,0,0,0.06)',
-            },
-      }}
-    >
+        TransitionComponent={tabletDown ? Transition : undefined}
+        PaperProps={{
+          sx: tabletDown
+            ? {
+                backgroundColor: 'var(--white)',
+                overflow: 'hidden',
+                // Quitar sombra y bordes del Paper para que el diseño propio tome el control
+                boxShadow: 'none',
+                borderRadius: 0,
+                margin: 0,
+              }
+            : {
+                maxWidth: '860px',
+                width: 'calc(100% - 32px)',
+                borderRadius: 'var(--shape-xl)',
+                overflow: 'hidden',
+                backgroundColor: 'transparent',
+                boxShadow: 'var(--pop-up-shadow), 0 0 0 0.5px rgba(0,0,0,0.06)',
+              },
+        }}
+      >
         {tabletDown ? mobileContent : desktopContent}
       </MUIDialog>
 
