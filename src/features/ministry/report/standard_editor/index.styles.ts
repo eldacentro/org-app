@@ -8,9 +8,9 @@ export const TextFieldStandard = styled(TextField)({
   '.MuiOutlinedInput-root': {
     paddingRight: 'unset !important',
   },
-  '& fieldset': {
-    border: 'none !important',
-  },
+  // El `& fieldset { border: none }` que había aquí ya no hace falta: los
+  // campos no llevan contorno dibujado. Este editor pedía "sin borde" y ahora
+  // lo es por defecto.
   '& input::-webkit-outer-spin-button': {
     WebkitAppearance: 'none',
     margin: 0,

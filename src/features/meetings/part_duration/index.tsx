@@ -21,9 +21,6 @@ const PartDuration = (props: PartDurationType) => {
           alignItems: 'center !important',
         },
 
-        '& .MuiInputBase-root': {
-          height: '44px',
-        },
       }}
       value={value}
       onChange={(e) => handleChangeDuration(+e.target.value)}

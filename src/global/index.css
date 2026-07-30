@@ -362,8 +362,6 @@ body iframe {
 
 .MuiOutlinedInput-root.MuiOutlinedInput-root,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
-  min-height: 56px;
-  height: auto;
   border-radius: var(--shape-sm);
   background-color: var(--accent-100);
   /* El anillo del foco va por DENTRO. Como borde empujaría el contenido un
@@ -372,6 +370,20 @@ body iframe {
   transition:
     background-color var(--motion-fast) var(--ease-standard),
     box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+/* Los 56 de alto son para que quepa la ETIQUETA dentro. Un campo sin etiqueta
+   no tiene nada que meter, así que se queda con el alto que le pida su sitio:
+   las casillas de la rejilla de asistencia, el +/- del informe de predicación o
+   el renombrar de una zona son compactos a propósito, y forzarlos a 56 los
+   habría hinchado sin motivo. Siguen teniendo el mismo relleno, el mismo radio
+   y el mismo anillo de foco — cambia el alto, no el idioma. */
+.MuiFormControl-root:has(> .MuiInputLabel-root)
+  .MuiOutlinedInput-root.MuiOutlinedInput-root,
+.MuiFormControl-root:has(> .MuiInputLabel-root)
+  .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
+  min-height: 56px;
+  height: auto;
 }
 
 /* Fuera el recuadro dibujado: ya no hay contorno ni muesca. */

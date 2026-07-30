@@ -35,16 +35,10 @@ const LanguageGroupSelector = () => {
             },
           },
         }}
-        slotProps={{
-          notchedOutline: {
-            className: 'big-card-shadow',
-            sx: {
-              borderRadius: 'var(--radius-max) !important',
-              borderColor: 'var(--line) !important',
-            },
-          },
-          root: {},
-        }}
+        // Sin `notchedOutline`: los campos ya no dibujan contorno. Este
+        // selector conserva su forma de píldora y su fondo de tarjeta porque no
+        // es un campo de formulario, es el conmutador de la cabecera.
+        slotProps={{ root: {} }}
         startAdornment={
           <InputAdornment position="start">
             {value === 'main' && <IconJwHome color="var(--accent-dark)" />}
