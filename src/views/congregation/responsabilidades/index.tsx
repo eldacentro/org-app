@@ -1,6 +1,6 @@
 import { Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
-import { PdfSection, Sheet, fechaCorta } from '@views/design';
+import { PdfSection, Sheet, fechaCorta, fechaMes } from '@views/design';
 import { StyleSheet } from '@react-pdf/renderer';
 import registerFonts from '@views/registerFonts';
 import {
@@ -151,21 +151,6 @@ const styles = StyleSheet.create({
   // Footer
 });
 
-const MONTHS_ES = [
-  'ENERO',
-  'FEBRERO',
-  'MARZO',
-  'ABRIL',
-  'MAYO',
-  'JUNIO',
-  'JULIO',
-  'AGOSTO',
-  'SEPTIEMBRE',
-  'OCTUBRE',
-  'NOVIEMBRE',
-  'DICIEMBRE',
-];
-
 export type TemplateResponsabilidadesProps = {
   data: ResponsabilidadesType;
   congregation: string;
@@ -179,7 +164,7 @@ const TemplateResponsabilidades = ({
   resolveName,
 }: TemplateResponsabilidadesProps) => {
   const now = new Date();
-  const monthYear = `${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
+  const monthYear = fechaMes(now);
 
   // Fecha de "Última actualización" tomada del registro guardado (igual que el
   // PDF de Grupos de predicación), no de la fecha actual.

@@ -1,24 +1,9 @@
 import { View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
-import { PdfEmpty, Sheet, space, fechaCorta } from '@views/design';
+import { PdfEmpty, Sheet, space, fechaCorta, fechaMes } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
 import { TemplateFieldServiceGroupsProps } from './index.types';
 import FSGGroup from './FSGGroup';
-
-const MESES_ES = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
 
 /**
  * Grupos de predicación.
@@ -39,12 +24,7 @@ const TemplateFieldServiceGroups = ({
     ? 'Grupos de predicación'
     : t('tr_fieldServiceGroups', { lng: lang });
 
-  const monthYear = updatedAt
-    ? (() => {
-        const d = new Date(updatedAt);
-        return `${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`;
-      })()
-    : '';
+  const monthYear = fechaMes(updatedAt);
 
   const footerDate = fechaCorta(updatedAt);
 

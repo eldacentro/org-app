@@ -1,12 +1,5 @@
 import { View, Text } from '@react-pdf/renderer';
-import {
-  PdfBadge,
-  PdfCard,
-  PdfKeyValue,
-  color,
-  space,
-  text,
-} from '@views/design';
+import { PdfCard, PdfKeyValue, color, space, text } from '@views/design';
 import { FSGGroupProps } from './index.types';
 
 /**
@@ -16,9 +9,7 @@ import { FSGGroupProps } from './index.types';
  * en dos columnas y con punto delante — sin él, dos nombres en dos líneas se
  * leen como uno partido en dos.
  *
- * Los precursores se marcan con una etiqueta, no poniéndoles el nombre en
- * negrita: la negrita ya la usa el nombre del responsable, y dos cosas
- * distintas con el mismo recurso no se distinguen.
+ * Los precursores van en negrita, con su puntito en el azul de marca.
  */
 const FSGGroup = ({ group }: FSGGroupProps) => {
   const total =
@@ -54,23 +45,24 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
         />
       ) : null}
 
-      <View
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-        }}
-      >
+      {/* Una sola columna. La tarjeta ya ocupa media hoja, así que partirla
+          otra vez en dos dejaba unos 90 puntos por nombre: los largos se
+          amontonaban en dos líneas y se montaban con lo de al lado. Un nombre
+          necesita su renglón.
+
+          Y el precursor va en NEGRITA, no con etiqueta: una etiqueta cada dos
+          o tres nombres es más ruido que información, y en una lista de quince
+          el ojo ya distingue el peso. */}
+      <View>
         {group.publishers.map((publisher) => (
           <View
             key={publisher.name}
             style={{
-              width: '50%',
               display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
-              gap: space.sm - 1,
-              paddingVertical: 1.4,
+              gap: space.sm + 1,
+              paddingVertical: 1.6,
             }}
           >
             <View
@@ -78,19 +70,21 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
                 width: 2.6,
                 height: 2.6,
                 borderRadius: 999,
-                backgroundColor: color.muted,
+                backgroundColor: publisher.isPioneer
+                  ? color.accent
+                  : color.muted,
               }}
             />
-            {/* `flex: 1` y no `flexShrink`: con lo segundo, un nombre largo
-                al lado de la etiqueta de precursor se recortaba a media
-                palabra ("Miguel Ángel Navarr") en vez de pasar a la línea
-                siguiente. */}
-            <Text style={{ ...text.body, fontSize: 8.8, flex: 1 }}>
+            <Text
+              style={{
+                ...text.body,
+                fontSize: 9,
+                fontWeight: publisher.isPioneer ? 700 : 400,
+                flex: 1,
+              }}
+            >
               {publisher.name}
             </Text>
-            {publisher.isPioneer ? (
-              <PdfBadge tone="accent">Prec.</PdfBadge>
-            ) : null}
           </View>
         ))}
       </View>

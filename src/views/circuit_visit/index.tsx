@@ -9,10 +9,11 @@ import {
   color,
   space,
   text,
+  fechaRango,
 } from '@views/design';
 import type { PdfTableColumn } from '@views/design';
 import { CircuitVisitType } from '@definition/circuit_visit';
-import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
+import { fmtDayEs } from '@features/circuit_visit/shared/fmtDayEs';
 
 export type CircuitVisitPdfPreachingRow = {
   date: string;
@@ -232,11 +233,11 @@ const CircuitVisitProgramDoc = ({
     <Document title="Visita del Superintendente de Circuito" lang={lang}>
       <Sheet
         congregation={congregation}
-        meta={fmtRangeEs(visit.date_start, visit.date_end)}
+        meta={fechaRango(visit.date_start, visit.date_end)}
         title="Visita del superintendente de circuito"
         subtitle={visitorName}
         paginated
-        footerMeta={fmtRangeEs(visit.date_start, visit.date_end)}
+        footerMeta={fechaRango(visit.date_start, visit.date_end)}
       >
         <PdfSection title="Itinerario de reuniones" dense={dense}>
           {hayItinerario ? (

@@ -47,6 +47,7 @@ const PdfGrid = ({
   weekdays,
   cells,
   rowHeight,
+  dense = false,
 }: {
   /** Las cabeceras de columna. Su número manda: define el ancho de columna. */
   weekdays: string[];
@@ -57,6 +58,8 @@ const PdfGrid = ({
    * que es lo que se quiere cuando hay pocas semanas.
    */
   rowHeight?: number;
+  /** Aprieta la cuadrícula para que un mes largo quepa en una hoja. */
+  dense?: boolean;
 }) => {
   const columnas = weekdays.length;
   const filas: PdfGridCell[][] = [];
@@ -95,8 +98,8 @@ const PdfGrid = ({
             style={{
               width: anchoColumna,
               textAlign: 'center',
-              paddingVertical: space.sm,
-              fontSize: 8.6,
+              paddingVertical: dense ? space.xs + 1 : space.sm,
+              fontSize: dense ? 8 : 8.6,
               fontWeight: 700,
               color: color.white,
             }}
@@ -144,7 +147,7 @@ const PdfGrid = ({
                 key={celdaIdx}
                 style={{
                   width: anchoColumna,
-                  padding: space.xs,
+                  padding: dense ? 2 : space.xs,
                   display: 'flex',
                   flexDirection: 'column',
                   // Las celdas NO pintan fondo ni bordes. Ni el hueco: un gris

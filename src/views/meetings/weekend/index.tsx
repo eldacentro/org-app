@@ -1,5 +1,5 @@
 import { Document } from '@views/components';
-import { Sheet, fechaCorta } from '@views/design';
+import { Sheet, fechaCorta, fechaRango } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
 import { WeekendMeetingTemplateType } from './index.types';
 import registerFonts from '@views/registerFonts';
@@ -32,7 +32,7 @@ const WeekendMeetingTemplate = ({
   // El rango que cubre la hoja, para la barra de marca.
   const rango =
     data.length > 0
-      ? `${data.at(0).date_formatted} – ${data.at(-1).date_formatted}`
+      ? fechaRango(data.at(0).date_raw, data.at(-1).date_raw)
       : '';
 
   return (

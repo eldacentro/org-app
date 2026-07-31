@@ -24,9 +24,11 @@ import { OutingsPDFProps, OutingPDFItem } from './index.types';
 const Salida = ({
   outing,
   showLocation,
+  dense,
 }: {
   outing: OutingPDFItem;
   showLocation: boolean;
+  dense: boolean;
 }) => {
   // El color dice el ESTADO, no adorna: azul asignada, ámbar sin asignar,
   // rojo suspendida.
@@ -41,9 +43,9 @@ const Salida = ({
       accent={estado.acento}
       soft={estado.fondo}
       style={{
-        paddingVertical: space.xs,
+        paddingVertical: dense ? 1.4 : space.xs,
         paddingRight: space.sm,
-        marginBottom: space.xs,
+        marginBottom: dense ? 1.6 : space.xs,
       }}
     >
       <View
@@ -54,13 +56,19 @@ const Salida = ({
           gap: space.sm - 1,
         }}
       >
-        <Text style={{ ...text.label, fontSize: 7.2, color: estado.tinta }}>
+        <Text
+          style={{
+            ...text.label,
+            fontSize: dense ? 6.6 : 7.2,
+            color: estado.tinta,
+          }}
+        >
           {outing.time}
         </Text>
         <Text
           style={{
             ...text.body,
-            fontSize: 8,
+            fontSize: dense ? 7.4 : 8,
             fontWeight: 600,
             color: estado.tinta,
             flex: 1,
@@ -91,64 +99,55 @@ const OutingsSchedulePDF = ({
 }: OutingsPDFProps) => {
   const footerDate = fechaCorta(updatedAt);
 
-  // Un mes no cabe de una vez en apaisado: se parte en hojas de tres semanas.
-  // El corte va por SEMANAS enteras, nunca por la mitad de una — medido: con
-  // cuatro filas la última se salía por abajo y el marco quedaba cortado.
-  const SEMANAS_POR_HOJA = 3;
-  const semanas: (typeof cells)[] = [];
-  for (let i = 0; i < cells.length; i += weekdays.length) {
-    semanas.push(cells.slice(i, i + weekdays.length));
-  }
-  const hojas: (typeof cells)[] = [];
-  for (let i = 0; i < semanas.length; i += SEMANAS_POR_HOJA) {
-    hojas.push(semanas.slice(i, i + SEMANAS_POR_HOJA).flat());
-  }
+  // El mes entero en UNA hoja: es lo que se cuelga en el tablón, y partido en
+  // dos deja de servir para eso.
+  //
+  // Como el número de semanas no lo decide el diseño —hay meses de cuatro
+  // filas y de seis—, la hoja se aprieta sola cuando hay más (regla §5.6 del
+  // sistema).
+  const semanas = Math.ceil(cells.length / weekdays.length);
+  const dense = semanas > 4;
 
   return (
     <Document title={`Salidas de predicación - ${monthName}`} lang="es-ES">
-      {hojas.map((celdasHoja, hojaIdx) => (
-        <Sheet
-          key={hojaIdx}
-          congregation={cong_name}
-          meta={
-            hojas.length > 1
-              ? `${monthName} · Hoja ${hojaIdx + 1} de ${hojas.length}`
-              : monthName
-          }
-          title="Salidas de predicación"
-          landscape
-          footerMeta={
-            footerDate ? `Última actualización · ${footerDate}` : monthName
-          }
-        >
-          <PdfGrid
-            weekdays={weekdays}
-            cells={celdasHoja.map((cell, i) =>
-              cell.type === 'empty'
-                ? {}
-                : {
-                    dayNum: cell.dayNum,
-                    content: (
-                      <View>
-                        {cell.outings.map((outing) => (
-                          <Salida
-                            key={outing.id}
-                            outing={outing}
-                            // El punto de salida, solo en domingo: entre semana
-                            // es siempre el mismo, y repetirlo en cada celda
-                            // llena la hoja de una línea que nadie lee.
-                            showLocation={weekdays[i % weekdays.length]
-                              .toLowerCase()
-                              .startsWith('d')}
-                          />
-                        ))}
-                      </View>
-                    ),
-                  }
-            )}
-          />
-        </Sheet>
-      ))}
+      <Sheet
+        congregation={cong_name}
+        meta={monthName}
+        title="Salidas de predicación"
+        landscape
+        footerMeta={
+          footerDate ? `Última actualización · ${footerDate}` : monthName
+        }
+      >
+        <PdfGrid
+          weekdays={weekdays}
+          dense={dense}
+          cells={cells.map((cell, i) =>
+            cell.type === 'empty'
+              ? {}
+              : {
+                  dayNum: cell.dayNum,
+                  content: (
+                    <View>
+                      {cell.outings.map((outing) => (
+                        <Salida
+                          key={outing.id}
+                          outing={outing}
+                          dense={dense}
+                          // El punto de salida, solo en domingo: entre semana
+                          // es siempre el mismo, y repetirlo en cada celda
+                          // llena la hoja de una línea que nadie lee.
+                          showLocation={weekdays[i % weekdays.length]
+                            .toLowerCase()
+                            .startsWith('d')}
+                        />
+                      ))}
+                    </View>
+                  ),
+                }
+          )}
+        />
+      </Sheet>
     </Document>
   );
 };

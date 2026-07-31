@@ -28,6 +28,6 @@ export {
 } from './Blocks';
 export { withCapsule } from './capsule';
 export { color, text, space, radius, stroke, page } from './tokens';
-export { fechaCorta } from './fecha';
+export { fechaCorta, fechaMes, fechaLarga, fechaRango } from './fecha';
 export type { PdfTableColumn, PdfTableRow } from './Table';
 export type { PdfGridCell } from './Grid';
