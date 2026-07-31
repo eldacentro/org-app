@@ -9,6 +9,10 @@ import {
   congFullnameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  midweekMeetingTimeState,
+  midweekMeetingWeekdayState,
+  weekendMeetingTimeState,
+  weekendMeetingWeekdayState,
 } from '@states/settings';
 import {
   serviceOutingsListState,
@@ -48,6 +52,10 @@ const useCircuitVisitDashboard = () => {
   const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const midweekWeekday = useAtomValue(midweekMeetingWeekdayState);
+  const midweekTime = useAtomValue(midweekMeetingTimeState);
+  const weekendWeekday = useAtomValue(weekendMeetingWeekdayState);
+  const weekendTime = useAtomValue(weekendMeetingTimeState);
 
   // Más recientes primero.
   const sortedVisits = useMemo(
@@ -426,6 +434,45 @@ const useCircuitVisitDashboard = () => {
       }))
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
+    // Las dos reuniones de siempre también son parte del itinerario de la
+    // semana: el programa listaba solo las especiales —precursores, ancianos—
+    // y quien lo leía tenía que acordarse por su cuenta de cuándo son las otras
+    // dos, que son a las que va TODA la congregación.
+    //
+    // No se guardan en la visita: el día y la hora viven en Ajustes de
+    // congregación. `weekday` es el índice del selector de día, 0 = lunes, y
+    // `weekOf` es justo ese lunes, así que la fecha es una suma. Si el ajuste
+    // viniera fuera de rango se deja fuera antes que enseñar un día inventado.
+    const meetingFromSettings = (
+      label: string,
+      weekday: number,
+      time: string
+    ) => {
+      if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) return null;
+
+      return {
+        label,
+        date: formatDate(
+          addDays(new Date(working.weekOf), weekday),
+          'yyyy/MM/dd'
+        ),
+        time,
+      };
+    };
+
+    const regularMeetings = [
+      meetingFromSettings(
+        'Reunión de entre semana',
+        midweekWeekday,
+        midweekTime
+      ),
+      meetingFromSettings(
+        'Reunión del fin de semana',
+        weekendWeekday,
+        weekendTime
+      ),
+    ].filter((meeting) => meeting !== null);
+
     const { effectiveCoName, effectiveCoSpouseName } = getEffectiveCoName(
       working,
       coName,
@@ -442,6 +489,7 @@ const useCircuitVisitDashboard = () => {
         mealsRows={mealsRows}
         shepherdingRows={shepherdingRows}
         preachingRows={preachingRows}
+        regularMeetings={regularMeetings}
       />
     ).toBlob();
 
@@ -461,6 +509,10 @@ const useCircuitVisitDashboard = () => {
     outingsSettings,
     displayNameEnabled,
     fullnameOption,
+    midweekWeekday,
+    midweekTime,
+    weekendWeekday,
+    weekendTime,
   ]);
 
   return {

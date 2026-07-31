@@ -31,6 +31,17 @@ export type CircuitVisitPdfShepherdingRow = {
   elderName: string;
 };
 
+/**
+ * Las reuniones de siempre —entre semana y fin de semana— durante la semana de
+ * la visita. No se guardan en la visita: el día y la hora salen de Ajustes de
+ * congregación, y quien monta el PDF ya las trae resueltas a fecha.
+ */
+export type CircuitVisitPdfMeetingRow = {
+  label: string;
+  date: string;
+  time: string;
+};
+
 type Props = {
   visit: CircuitVisitType;
   coName: string;
@@ -40,6 +51,7 @@ type Props = {
   mealsRows: CircuitVisitPdfMealRow[];
   shepherdingRows: CircuitVisitPdfShepherdingRow[];
   preachingRows: CircuitVisitPdfPreachingRow[];
+  regularMeetings: CircuitVisitPdfMeetingRow[];
 };
 
 const fmtDay = fmtDayEs;
@@ -80,19 +92,38 @@ const Empty = ({ children }: { children: string }) => (
   <Text style={styles.empty}>{children}</Text>
 );
 
-const SpecialMeetingRow = ({
-  label,
-  when,
-}: {
+/** Una cita del itinerario: qué reunión es y cuándo (y dónde, si se sabe). */
+type Cita = {
   label: string;
-  when: { date: string; time: string; place: string } | null;
-}) => {
-  if (!when) return null;
-  const parts = [fmtDay(when.date), when.time, when.place].filter(Boolean);
+  date: string;
+  time: string;
+  place?: string;
+  /** Las de siempre se pintan más discretas que las especiales. */
+  habitual?: boolean;
+};
+
+const ItineraryRow = ({ cita }: { cita: Cita }) => {
+  const cuando = [fmtDay(cita.date), cita.time, cita.place].filter(Boolean);
+
   return (
-    <View style={styles.itineraryItem} wrap={false}>
-      <Text style={styles.itineraryLabel}>{label}</Text>
-      <Text style={styles.itineraryWhen}>{parts.join('  ·  ')}</Text>
+    <View
+      style={
+        cita.habitual
+          ? [styles.itineraryItem, styles.itineraryItemHabitual]
+          : styles.itineraryItem
+      }
+      wrap={false}
+    >
+      <Text style={styles.itineraryLabel}>{cita.label}</Text>
+      <Text
+        style={
+          cita.habitual
+            ? [styles.itineraryWhen, styles.itineraryWhenHabitual]
+            : styles.itineraryWhen
+        }
+      >
+        {cuando.join('  ·  ')}
+      </Text>
     </View>
   );
 };
@@ -106,11 +137,30 @@ const CircuitVisitProgramDoc = ({
   mealsRows,
   shepherdingRows,
   preachingRows,
+  regularMeetings,
 }: Props) => {
   const coName = sinTratamiento(coNameRaw);
   const coSpouseName = sinTratamiento(coSpouseNameRaw);
 
-  const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
+  // El itinerario lleva las cuatro reuniones de la semana juntas y en orden:
+  // las dos de siempre —a las que va toda la congregación— y las especiales de
+  // la visita. Antes solo salían las especiales, y quien leía el programa tenía
+  // que acordarse por su cuenta de cuándo eran las otras dos.
+  const itinerario: Cita[] = [
+    ...regularMeetings.map((meeting) => ({ ...meeting, habitual: true })),
+    ...(visit.meeting_pioneers
+      ? [{ label: 'Reunión con precursores', ...visit.meeting_pioneers }]
+      : []),
+    ...(visit.meeting_elders
+      ? [
+          {
+            label: 'Reunión con ancianos y siervos ministeriales',
+            ...visit.meeting_elders,
+          },
+        ]
+      : []),
+  ].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+
   const range = fmtRange(visit);
   const congName = congregation || 'Elda Centro';
 
@@ -150,21 +200,19 @@ const CircuitVisitProgramDoc = ({
           </Text>
           <Text style={styles.subtitle}>{visitorName}</Text>
 
-          {/* ── Itinerario de reuniones especiales ─────────────────── */}
+          {/* ── Itinerario de reuniones ────────────────────────────── */}
           <Section title="Itinerario de reuniones">
-            {hasItinerary ? (
+            {itinerario.length > 0 ? (
               <View>
-                <SpecialMeetingRow
-                  label="Reunión con precursores"
-                  when={visit.meeting_pioneers}
-                />
-                <SpecialMeetingRow
-                  label="Reunión con ancianos y siervos ministeriales"
-                  when={visit.meeting_elders}
-                />
+                {itinerario.map((cita, idx) => (
+                  <ItineraryRow
+                    key={`${cita.date}_${cita.time}_${idx}`}
+                    cita={cita}
+                  />
+                ))}
               </View>
             ) : (
-              <Empty>Sin reuniones especiales programadas.</Empty>
+              <Empty>Sin reuniones programadas.</Empty>
             )}
           </Section>
 

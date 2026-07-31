@@ -158,6 +158,16 @@ export const styles = StyleSheet.create({
     color: ACCENT,
     fontWeight: 500,
   },
+  // Las dos reuniones de siempre van en el mismo itinerario que las especiales,
+  // pero más calladas: son las de todas las semanas, no una cita que haya que
+  // apuntarse. Mismo bloque y mismo sitio, gris en vez de azul.
+  itineraryItemHabitual: {
+    backgroundColor: 'transparent',
+    borderLeft: `2px solid ${LINE}`,
+  },
+  itineraryWhenHabitual: {
+    color: MUTED,
+  },
 
   // ── Pie ────────────────────────────────────────────────────────────────
   footer: {
