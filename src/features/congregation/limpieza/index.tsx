@@ -10,9 +10,9 @@ import {
   Grid,
   List,
   MenuItem,
-  Select,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import AppSelect from '@components/select';
 import MonthSelector from '@components/month_selector';
 import SegmentedControl from '@components/segmented_control';
 import {
@@ -727,9 +727,11 @@ const Limpieza = () => {
             Grupo asignado
           </Typography>
           {isManager ? (
-            <Select
+            <AppSelect
               value={selectedOverrideGroup}
-              onChange={(e) => setSelectedOverrideGroup(e.target.value)}
+              onChange={(e) =>
+                setSelectedOverrideGroup(e.target.value as string)
+              }
               fullWidth
               size="small"
               sx={{ mb: 3 }}
@@ -739,7 +741,7 @@ const Limpieza = () => {
                   {getGroupName(g)}
                 </MenuItem>
               ))}
-            </Select>
+            </AppSelect>
           ) : (
             <Typography sx={{ mb: 3, fontWeight: 600 }}>
               {activeGroups.find((g) => g.group_id === selectedOverrideGroup)

@@ -379,6 +379,14 @@ Entre los cinco son el **56%** del total.
       · Salidas · "Suspender/Reactivar salida".
       · El botón de Google del arranque: a píldora, con el movimiento por
         tokens y sin la fuente escrita a mano.
+      **Los `Select` (2026-07-31).** Quedaban cinco de MUI en crudo en
+      páginas: dos en Exhibidores, dos en Salidas y uno en Limpieza. Y en
+      Salidas convivían con el de la app EN EL MISMO FICHERO —importaba los
+      dos—, así que dos desplegables del mismo diálogo se dibujaban distinto.
+      Los cinco al de la app, que además les da el chevrón en vez del triángulo
+      de MUI, el panel del menú con su sombra y la flecha centrada de verdad
+      (§6.4d de esta misma vuelta). Hizo falta convertir el valor a `string`
+      en tres sitios, porque el de la app lo tipa como `unknown`.
       **Los `Chip` (2026-07-30).** Eran 16, y de esos, ocho eran INSIGNIAS de
       estado escritas a mano: "Suspendido/Suspendida" copiado SEIS veces entre
       Exhibidores y Salidas con los mismos tokens, "En preparación" en Ayuda y

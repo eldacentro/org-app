@@ -15,7 +15,6 @@ import {
   Tab,
   IconButton,
   MenuItem,
-  Select,
   Grid,
   Chip,
   List,
@@ -101,6 +100,7 @@ import {
   getMonthCancelledMessage,
   isMonthCancelled,
 } from '../../utils/exhibitors';
+import AppSelect from '@components/select';
 import MonthSelector from '@components/month_selector';
 
 const weekdaysOrder = [
@@ -3912,10 +3912,13 @@ const Exhibitors = () => {
                   encima, que es la convención de ESTE diálogo (y tiene que
                   serlo: "Días aplicables" rotula un grupo de casillas, y eso
                   no puede ir dentro de ningún campo). */}
-              <Select
+              <AppSelect
                 value={editDialog.location}
                 onChange={(e) =>
-                  setEditDialog({ ...editDialog, location: e.target.value })
+                  setEditDialog({
+                    ...editDialog,
+                    location: e.target.value as string,
+                  })
                 }
                 size="small"
                 fullWidth
@@ -3927,7 +3930,7 @@ const Exhibitors = () => {
                       {loc}
                     </MenuItem>
                   ))}
-              </Select>
+              </AppSelect>
             </>
           )}
         </DialogContent>
@@ -4514,12 +4517,12 @@ const Exhibitors = () => {
               >
                 Ubicación por defecto
               </Typography>
-              <Select
+              <AppSelect
                 value={turnConfigDialog.defaultLocation}
                 onChange={(e) =>
                   setTurnConfigDialog({
                     ...turnConfigDialog,
-                    defaultLocation: e.target.value,
+                    defaultLocation: e.target.value as string,
                   })
                 }
                 size="small"
@@ -4530,7 +4533,7 @@ const Exhibitors = () => {
                     {loc}
                   </MenuItem>
                 ))}
-              </Select>
+              </AppSelect>
             </Box>
           )}
         </DialogContent>

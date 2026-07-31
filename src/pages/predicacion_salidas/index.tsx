@@ -6,7 +6,6 @@ import {
   Box,
   Card,
   Grid,
-  Select,
   MenuItem,
   Dialog,
   DialogTitle,
@@ -4292,7 +4291,7 @@ const PredicacionSalidas = () => {
               >
                 Mes
               </Typography>
-              <Select
+              <AppSelect
                 value={pdfExportMonth}
                 onChange={(e) => setPdfExportMonth(Number(e.target.value))}
                 fullWidth
@@ -4304,7 +4303,7 @@ const PredicacionSalidas = () => {
                     {name}
                   </MenuItem>
                 ))}
-              </Select>
+              </AppSelect>
             </Box>
 
             {/* Selector de Año */}
@@ -4325,7 +4324,7 @@ const PredicacionSalidas = () => {
               >
                 Año
               </Typography>
-              <Select
+              <AppSelect
                 value={pdfExportYear}
                 onChange={(e) => setPdfExportYear(Number(e.target.value))}
                 fullWidth
@@ -4337,7 +4336,7 @@ const PredicacionSalidas = () => {
                     {y}
                   </MenuItem>
                 ))}
-              </Select>
+              </AppSelect>
             </Box>
           </Box>
         </DialogContent>
