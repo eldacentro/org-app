@@ -20,7 +20,7 @@ import {
 import { personGetDisplayName } from '@utils/common';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { DepartmentType, PersonType } from '@definition/person';
-import { buildDeptSlots } from '@services/app/departments_slots';
+import { buildDeptSlotGroups } from '@services/app/departments_slots';
 import MeetingSection from '@features/meetings/meeting_section';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import { useCurrentUser } from '@hooks/index';
@@ -174,13 +174,33 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
           icon={icon}
           alwaysExpanded
         >
-          {buildDeptSlots(departmentsConfig, dept).map((slot) => (
-            <DeptPersonComponent
-              key={slot.key}
-              label={slot.label}
-              person={personsStateFind(schedule?.[dept]?.[slot.key]?.value)}
-              fallbackName={schedule?.[dept]?.[slot.key]?.name}
-            />
+          {/* Agrupados por reunión o por turno, con su rótulo, igual que en
+              el editor: antes cada campo repetía el sufijo al final de su
+              propia etiqueta ("Micro 1 · Entre semana") y había que leerse los
+              seis para saber cuál era cuál. */}
+          {buildDeptSlotGroups(departmentsConfig, dept).map((grupo) => (
+            <Box
+              key={grupo.titulo ?? 'unico'}
+              sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+            >
+              {grupo.titulo && (
+                <Typography
+                  className="label-small-semibold"
+                  color="var(--ink-3)"
+                >
+                  {grupo.titulo}
+                </Typography>
+              )}
+
+              {grupo.slots.map((slot) => (
+                <DeptPersonComponent
+                  key={slot.key}
+                  label={slot.label}
+                  person={personsStateFind(schedule?.[dept]?.[slot.key]?.value)}
+                  fallbackName={schedule?.[dept]?.[slot.key]?.name}
+                />
+              ))}
+            </Box>
           ))}
         </MeetingSection>
       ))}

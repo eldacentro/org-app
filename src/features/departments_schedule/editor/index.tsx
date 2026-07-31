@@ -7,7 +7,7 @@ import Badge from '@components/badge';
 import PersonSelector from '@features/meetings/person_selector';
 import { personsStateFind } from '@services/states/persons';
 import useDepartmentEditor from './useDepartmentEditor';
-import { buildDeptSlots } from '@services/app/departments_slots';
+import { buildDeptSlotGroups } from '@services/app/departments_slots';
 import { DepartmentType } from '@definition/person';
 
 const DEPARTMENTS: {
@@ -91,6 +91,11 @@ const DepartmentEditor = () => {
   }
 
   return (
+    // UNA tarjeta que contiene la semana y todos los departamentos, igual que
+    // el editor de entre semana y el de fin de semana. Aquí el navegador de
+    // semana flotaba suelto sobre el fondo de la página y cada departamento
+    // era su propia tarjeta aparte, así que no se leía como "el programa de
+    // esta semana" sino como cuatro cosas sin relación.
     <Box
       sx={{
         display: 'flex',
@@ -98,6 +103,10 @@ const DepartmentEditor = () => {
         flexDirection: 'column',
         gap: '16px',
         width: '100%',
+        borderRadius: 'var(--shape-xl)',
+        padding: '16px',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -152,30 +161,53 @@ const DepartmentEditor = () => {
       <Grid container spacing={2}>
         {DEPARTMENTS.map(({ dept, label }) => (
           <Grid key={dept} size={{ mobile: 12, laptop: 6 }}>
-            <Box
-              sx={{
-                p: 2,
-                backgroundColor: 'var(--card)',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--shape-xl)',
-              }}
-            >
+            {/* Ya NO es una tarjeta: ahora la tarjeta es la de fuera, y una
+                dentro de otra es el anti-patrón del doble anidado
+                (DESIGN_SYSTEM.md §8). Se separa con el rótulo y el aire. */}
+            <Box>
               <Typography className="h3" sx={{ mb: 2 }}>
                 {t(label.key, label.fallback)}
               </Typography>
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {buildDeptSlots(departmentsConfig, dept).map((slot) => (
-                  <PersonSelector
-                    key={slot.key}
-                    label={slot.label}
-                    week={selectedWeek}
-                    dept={dept}
-                    assignment="MM_Other"
-                    personValue={personsStateFind(
-                      schedule?.[dept]?.[slot.key]?.value
+                {buildDeptSlotGroups(departmentsConfig, dept).map((grupo) => (
+                  <Box
+                    key={grupo.titulo ?? 'unico'}
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+                  >
+                    {/* De qué reunión —o de qué turno— son los campos de
+                        debajo. Antes esto iba pegado al final de la etiqueta de
+                        CADA campo ("Micro 1 · Entre semana"), así que había que
+                        leerse el final de los seis para saber cuál era cuál. */}
+                    {grupo.titulo && (
+                      <Typography
+                        className="label-small-semibold"
+                        color="var(--ink-3)"
+                      >
+                        {grupo.titulo}
+                      </Typography>
                     )}
-                    onSelect={(p) => handleSaveAssignment(dept, slot.key, p)}
-                  />
+
+                    {grupo.slots.map((slot) => (
+                      <PersonSelector
+                        key={slot.key}
+                        label={slot.label}
+                        week={selectedWeek}
+                        dept={dept}
+                        assignment="MM_Other"
+                        // En Departamentos el historial de asignaciones no
+                        // aporta: aquí se reparten puestos fijos de la semana,
+                        // no se elige a quien lleva más tiempo sin participar.
+                        showAssignmentsHistory={false}
+                        personValue={personsStateFind(
+                          schedule?.[dept]?.[slot.key]?.value
+                        )}
+                        onSelect={(p) =>
+                          handleSaveAssignment(dept, slot.key, p)
+                        }
+                      />
+                    ))}
+                  </Box>
                 ))}
               </Box>
             </Box>

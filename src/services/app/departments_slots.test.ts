@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildAllDeptSlots,
   buildDeptSlots,
+  buildDeptSlotGroups,
   DEFAULT_DEPT_CONFIG,
   DEPT_LABEL,
   deptSlotKey,
@@ -225,5 +226,52 @@ describe('la clave de guardado', () => {
     expect(deptSlotKey('exterior', 'midweek')).toBe('exterior__midweek');
     expect(deptSlotKey('exterior', undefined, 2)).toBe('exterior__t2');
     expect(deptSlotKey('exterior', 'weekend', 2)).toBe('exterior__weekend__t2');
+  });
+});
+
+describe('buildDeptSlotGroups — los puestos, agrupados para pintarlos', () => {
+  it('sin reuniones ni turnos, un solo grupo SIN rótulo', () => {
+    const grupos = buildDeptSlotGroups(null, 'acomodadores');
+
+    expect(grupos).toHaveLength(1);
+    expect(grupos[0].titulo).toBeNull();
+    // Y las etiquetas se quedan como están: no hay sufijo que quitar.
+    expect(grupos[0].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
+  });
+
+  it('por reunión: dos grupos, y la etiqueta del campo pierde el sufijo', () => {
+    const config = {
+      acomodadores: { scope: 'meeting' as const, turns: 1 },
+    };
+
+    const grupos = buildDeptSlotGroups(config, 'acomodadores');
+
+    expect(grupos.map((g) => g.titulo)).toEqual([
+      'Entre semana',
+      'Fin de semana',
+    ]);
+    // Lo que se ve en el campo es el puesto y nada más — la reunión la dice el
+    // rótulo de arriba.
+    expect(grupos[0].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
+    expect(grupos[1].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
+  });
+
+  it('las CLAVES no cambian: son las que guardan la asignación', () => {
+    const config = { acomodadores: { scope: 'meeting' as const, turns: 1 } };
+
+    const planas = buildDeptSlots(config, 'acomodadores').map((s) => s.key);
+    const agrupadas = buildDeptSlotGroups(config, 'acomodadores').flatMap((g) =>
+      g.slots.map((s) => s.key)
+    );
+
+    expect(agrupadas).toEqual(planas);
+  });
+
+  it('y `buildDeptSlots` sigue devolviendo la etiqueta larga, que es la que viaja a la exportación', () => {
+    const config = { acomodadores: { scope: 'meeting' as const, turns: 1 } };
+
+    expect(buildDeptSlots(config, 'acomodadores')[0].label).toBe(
+      'Exterior · Entre semana'
+    );
   });
 });

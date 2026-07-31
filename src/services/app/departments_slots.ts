@@ -158,7 +158,10 @@ export const buildDeptSlots = (
           roleLabel: role.label,
           meeting,
           turn,
-          label: extra.length > 0 ? `${role.label} · ${extra.join(' · ')}` : role.label,
+          label:
+            extra.length > 0
+              ? `${role.label} · ${extra.join(' · ')}`
+              : role.label,
         });
       }
     }
@@ -190,3 +193,64 @@ export const buildAllDeptSlots = (
   (Object.keys(DEPT_ROLES) as DepartmentType[]).flatMap((dept) =>
     buildDeptSlots(config, dept).map((slot) => ({ dept, ...slot }))
   );
+
+/**
+ * Los mismos puestos, pero AGRUPADOS para pintarlos.
+ *
+ * `buildDeptSlots` mete la reunión y el turno DENTRO de la etiqueta de cada
+ * campo —"Micro 1 · Entre semana", "Micro 1 · Fin de semana"— y eso está bien
+ * para lo que no se ve: la exportación del S-140, el autocompletado y las
+ * notificaciones, que necesitan una etiqueta que se explique sola.
+ *
+ * En pantalla no. Ahí quedan seis campos seguidos repitiendo el mismo sufijo,
+ * y hay que leer el final de cada uno para saber de qué reunión es. Esto los
+ * parte en grupos con un rótulo encima —"Reunión de entre semana", "Turno 1"—
+ * y devuelve las etiquetas limpias, con el nombre del puesto y nada más.
+ *
+ * NO sustituye a `buildDeptSlots`: esa la usan ocho sitios y sus claves y
+ * etiquetas viajan a la exportación y a las notificaciones. Esta es solo para
+ * pintar.
+ */
+export type DeptSlotGroup = {
+  /** El rótulo del grupo, o `null` cuando no hace falta (un solo grupo). */
+  titulo: string | null;
+  slots: DeptSlot[];
+};
+
+export const buildDeptSlotGroups = (
+  config: DepartmentsConfig | null | undefined,
+  dept: DepartmentType
+): DeptSlotGroup[] => {
+  const { scope, turns } = readDeptConfig(config, dept);
+  const slots = buildDeptSlots(config, dept);
+
+  const porReunion = scope === 'meeting';
+  const porTurno = turns > 1;
+
+  // Sin reuniones ni turnos que separar, un solo grupo sin rótulo: la sección
+  // ya se llama "Micrófonos", no hace falta decir nada más.
+  if (!porReunion && !porTurno) {
+    return [{ titulo: null, slots }];
+  }
+
+  const grupos: DeptSlotGroup[] = [];
+
+  for (const slot of slots) {
+    const titulo = [
+      slot.meeting ? MEETING_LABEL[slot.meeting] : '',
+      porTurno ? TURN_LABEL[slot.turn] : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+    const ultimo = grupos[grupos.length - 1];
+
+    // El puesto pierde el sufijo: ya lo dice el rótulo de su grupo.
+    const limpio = { ...slot, label: slot.roleLabel };
+
+    if (ultimo && ultimo.titulo === titulo) ultimo.slots.push(limpio);
+    else grupos.push({ titulo, slots: [limpio] });
+  }
+
+  return grupos;
+};
