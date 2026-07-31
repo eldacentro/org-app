@@ -214,45 +214,49 @@ const InfoTabContent = ({
   allTags: TerritoryTag[];
   /** Solo se pasa si quien mira puede cambiarlas. */
   onToggleTag?: (tagId: string) => void;
-}) => (
-  // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
-  // identidad, tres centímetros más arriba en móvil y en la ficha sobre el
-  // mapa en escritorio. Salía dos veces en la misma pantalla, en las dos.
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-    {/* Quién lo tiene y desde cuándo.
+}) => {
+  const [editandoEtiquetas, setEditandoEtiquetas] = useState(false);
+
+  return (
+    // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
+    // identidad, tres centímetros más arriba en móvil y en la ficha sobre el
+    // mapa en escritorio. Salía dos veces en la misma pantalla, en las dos.
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Quién lo tiene y desde cuándo.
         La chapa de la cabecera dice A QUIÉN de un vistazo; esto es el detalle,
         que es lo que antes obligaba a cerrar el territorio, ir a la lista de
         asignaciones, buscarlo y volver. */}
-    {canManage && assignment && (
-      <Box
-        sx={{
-          padding: '12px 16px',
-          backgroundColor: 'rgba(var(--orange-main-base), 0.08)',
-          borderRadius: 'var(--shape-md)',
-          border: '1px solid rgba(var(--orange-main-base), 0.25)',
-        }}
-      >
-        <Typography
-          className="label-small-semibold"
-          color="var(--orange-dark)"
-          sx={{ display: 'block', mb: '4px' }}
+      {canManage && assignment && (
+        <Box
+          sx={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(var(--orange-main-base), 0.08)',
+            borderRadius: 'var(--shape-md)',
+            border: '1px solid rgba(var(--orange-main-base), 0.25)',
+          }}
         >
-          Asignación
-        </Typography>
-        <Typography className="body-small-regular" color="var(--ink)">
-          {assignedName}
-          {assignment.isCampaign ? ' · campaña' : ''}
-        </Typography>
-        <Typography className="label-small-regular" color="var(--ink-2)">
-          Entregado el {formatTerritoryDate(assignment.assignedAt, dateFormat)}
-          {assignment.dueAt
-            ? ` · vence el ${formatTerritoryDate(assignment.dueAt, dateFormat)}`
-            : ''}
-        </Typography>
-      </Box>
-    )}
+          <Typography
+            className="label-small-semibold"
+            color="var(--orange-dark)"
+            sx={{ display: 'block', mb: '4px' }}
+          >
+            Asignación
+          </Typography>
+          <Typography className="body-small-regular" color="var(--ink)">
+            {assignedName}
+            {assignment.isCampaign ? ' · campaña' : ''}
+          </Typography>
+          <Typography className="label-small-regular" color="var(--ink-2)">
+            Entregado el{' '}
+            {formatTerritoryDate(assignment.assignedAt, dateFormat)}
+            {assignment.dueAt
+              ? ` · vence el ${formatTerritoryDate(assignment.dueAt, dateFormat)}`
+              : ''}
+          </Typography>
+        </Box>
+      )}
 
-    {/* Las etiquetas viven AQUÍ, no en la cabecera.
+      {/* Las etiquetas viven AQUÍ, no en la cabecera.
         Estuvieron un rato arriba, con su nombre y su color, y la cabecera se
         quedó cargada: la zona, las viviendas, a quién está asignado y encima
         todas las etiquetas, en una fila que en un móvil se iba a tres líneas.
@@ -260,77 +264,125 @@ const InfoTabContent = ({
         característica del territorio, que es exactamente lo que esta pestaña
         guarda. Arriba se queda lo que se mira de un vistazo; aquí, lo que se
         consulta. */}
-    {(tags.length > 0 || (canManage && allTags.length > 0)) && (
-      <Box>
-        <Typography
-          className="label-small-semibold"
-          color="var(--ink-3)"
-          sx={{ display: 'block', mb: '8px' }}
-        >
-          Etiquetas
-        </Typography>
+      {(tags.length > 0 || (canManage && allTags.length > 0)) && (
+        <Box>
+          <Typography
+            className="label-small-semibold"
+            color="var(--ink-3)"
+            sx={{ display: 'block', mb: '8px' }}
+          >
+            Etiquetas
+          </Typography>
 
-        {/* Para un responsable salen TODAS y se encienden o apagan pulsando;
-            para quien solo mira, únicamente las que tiene puestas. Sin modo de
-            edición aparte: si puedes cambiarlas, están cambiables. */}
-        <Stack direction="row" flexWrap="wrap" gap={0.75}>
-          {(canManage
-            ? allTags
-            : allTags.filter((t) => tags.includes(t.id))
-          ).map((tag) => (
-            <TagChip
-              key={tag.id}
-              label={tag.nombre}
-              color={tag.color}
-              selected={tags.includes(tag.id)}
-              onClick={
-                canManage && onToggleTag ? () => onToggleTag(tag.id) : undefined
-              }
-            />
-          ))}
-        </Stack>
-      </Box>
-    )}
+          {/* Las etiquetas NO se tocan hasta que se pide.
+            Estuvieron un rato encendiéndose y apagándose al pulsarlas, con la
+            idea de que "si puedes cambiarlas, están cambiables". Pero esto se
+            lee mucho más de lo que se edita, y un roce con el pulgar mientras
+            se consulta le pone —o le quita— una etiqueta al territorio sin
+            avisar, se guarda en el momento y se sincroniza a toda la
+            congregación. No hay deshacer.
+            Así que por defecto son un DATO: se ven las que tiene y no responden
+            al tacto. Para cambiarlas hay que decirlo, y entonces salen todas
+            las de la congregación como interruptores. */}
+          <Stack direction="row" flexWrap="wrap" gap={0.75} alignItems="center">
+            {(editandoEtiquetas
+              ? allTags
+              : allTags.filter((t) => tags.includes(t.id))
+            ).map((tag) => (
+              <TagChip
+                key={tag.id}
+                label={tag.nombre}
+                color={tag.color}
+                selected={tags.includes(tag.id)}
+                onClick={
+                  editandoEtiquetas && onToggleTag
+                    ? () => onToggleTag(tag.id)
+                    : undefined
+                }
+              />
+            ))}
 
-    {territory.notas && (
-      <Box
-        sx={{
-          padding: '12px 16px',
-          backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
-          borderRadius: 'var(--shape-md)',
-          border: '1px solid rgba(var(--orange-main-base), 0.3)',
-        }}
-      >
-        {/* El rótulo estaba a 10px con 0,6 de espaciado entre letras y en
-            mayúsculas — un tamaño que no existe en la escala de la app y que,
-            en mayúsculas, es directamente ilegible. */}
-        <Typography
-          className="label-small-semibold"
-          color="var(--orange-dark)"
-          sx={{ display: 'block', mb: '4px' }}
-        >
-          Notas
-        </Typography>
-        <Typography
-          className="body-small-regular"
+            {tags.length === 0 && !editandoEtiquetas && (
+              <Typography className="label-small-regular" color="var(--ink-2)">
+                Sin etiquetas
+              </Typography>
+            )}
+
+            {canManage && onToggleTag && (
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setEditandoEtiquetas(!editandoEtiquetas)}
+                aria-pressed={editandoEtiquetas}
+                sx={{
+                  appearance: 'none',
+                  border: 'none',
+                  background: 'none',
+                  padding: '2px 8px',
+                  marginLeft: '4px',
+                  cursor: 'pointer',
+                  borderRadius: 'var(--shape-full)',
+                  color: 'var(--accent-main)',
+                  '&:hover': { backgroundColor: 'var(--state-hover)' },
+                  '&:focus-visible': {
+                    outline: '2px solid var(--accent-main)',
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
+                <Typography
+                  component="span"
+                  className="label-small-semibold"
+                  color="inherit"
+                >
+                  {editandoEtiquetas ? 'Listo' : 'Editar'}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      )}
+
+      {territory.notas && (
+        <Box
           sx={{
-            color: 'var(--orange-dark)',
-            lineHeight: 1.5,
-            // Si este dispositivo no puede descifrar la nota, se avisa en
-            // vez de enseñar el texto cifrado en crudo.
-            ...(isStillEncrypted(territory.notas) && {
-              fontStyle: 'italic',
-              opacity: 0.75,
-            }),
+            padding: '12px 16px',
+            backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
+            borderRadius: 'var(--shape-md)',
+            border: '1px solid rgba(var(--orange-main-base), 0.3)',
           }}
         >
-          {displayText(territory.notas)}
-        </Typography>
-      </Box>
-    )}
-    <DireccionesTab territoryId={territory.id} canManage={canManage} />
-  </Box>
-);
+          {/* El rótulo estaba a 10px con 0,6 de espaciado entre letras y en
+            mayúsculas — un tamaño que no existe en la escala de la app y que,
+            en mayúsculas, es directamente ilegible. */}
+          <Typography
+            className="label-small-semibold"
+            color="var(--orange-dark)"
+            sx={{ display: 'block', mb: '4px' }}
+          >
+            Notas
+          </Typography>
+          <Typography
+            className="body-small-regular"
+            sx={{
+              color: 'var(--orange-dark)',
+              lineHeight: 1.5,
+              // Si este dispositivo no puede descifrar la nota, se avisa en
+              // vez de enseñar el texto cifrado en crudo.
+              ...(isStillEncrypted(territory.notas) && {
+                fontStyle: 'italic',
+                opacity: 0.75,
+              }),
+            }}
+          >
+            {displayText(territory.notas)}
+          </Typography>
+        </Box>
+      )}
+      <DireccionesTab territoryId={territory.id} canManage={canManage} />
+    </Box>
+  );
+};
 
 // ─── Botón de acción principal (a lo ancho, en la hoja de móvil) ──────────
 //
@@ -431,10 +483,24 @@ const DialogVerTerritorio = ({
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const territories = useAtomValue(territoriesState);
 
+  // Al cerrar, el territorio que se estaba viendo se RETIENE.
+  //
+  // Aquí había un `if (!liveTerritory) return null` a secas, y por eso cerrar
+  // no tenía animación: en cuanto el padre pone `viewing` a null, este
+  // componente devolvía null, se iba del árbol de una vez y el diálogo
+  // desaparecía de golpe. La transición de salida no llegaba ni a empezar,
+  // porque no quedaba nada que animar.
+  // Reteniendo el último, el diálogo sigue pintado —con su contenido— mientras
+  // se desliza hacia abajo, y solo entonces se desmonta.
+  const ultimoRef = useRef<Territory | null>(null);
+
   // LIVE TERRITORY: El prop 'territory' puede ser un snapshot estático (ej. del state de índice).
   // Buscamos el objeto vivo en jotai para que los cambios (como subir imagen) se reflejen al instante.
   const liveTerritory = useMemo(() => {
-    return territories.find((t) => t.id === territory?.id) || territory;
+    const vivo = territories.find((t) => t.id === territory?.id) || territory;
+    if (vivo) ultimoRef.current = vivo;
+
+    return vivo ?? ultimoRef.current;
   }, [territories, territory]);
 
   const congID = useAtomValue(congIDState);
@@ -1467,7 +1533,14 @@ const DialogVerTerritorio = ({
         fullScreen={tabletDown}
         open={!!territory}
         onClose={onClose}
-        TransitionComponent={tabletDown ? Transition : undefined}
+        // El deslizamiento, a cualquier ancho. Estaba atado a `tabletDown`,
+        // así que en una ventana grande el territorio aparecía y desaparecía
+        // de golpe. Sube desde abajo y baja al cerrarse: es la misma hoja,
+        // ocupe toda la pantalla o no.
+        //
+        // Por `slots` y no por `TransitionComponent`: ese prop está marcado
+        // como obsoleto en MUI 7 y desaparece en la siguiente mayor.
+        slots={{ transition: Transition }}
         PaperProps={{
           sx: tabletDown
             ? {
