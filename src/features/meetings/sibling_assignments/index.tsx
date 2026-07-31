@@ -54,10 +54,15 @@ const SiblingAssignment = ({
           ) : (
             <IconLanguageGroup color="var(--always-white)" />
           )}
+          {/* 700, como todas las bandas blancas sobre color de la app
+              (`MeetingSection` y las de día de Exhibidores y Salidas). Esta se
+              quedaba con el peso propio de la clase `h2-caps`, que es 450, así
+              que era la única del mismo dibujo que salía fina. */}
           <Typography
             className="h2-caps"
             color="var(--always-white)"
             align="center"
+            sx={{ fontWeight: 700, letterSpacing: '0.5px' }}
           >
             {label}
           </Typography>
