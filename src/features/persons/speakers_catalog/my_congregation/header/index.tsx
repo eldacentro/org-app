@@ -1,9 +1,5 @@
 import { Box, IconButton } from '@mui/material';
-import {
-  IconCheck,
-  IconEdit,
-  IconExpand,
-} from '@components/icons';
+import { IconCheck, IconEdit, IconExpand } from '@components/icons';
 import {
   useAppTranslation,
   useBreakpoints,
@@ -11,6 +7,7 @@ import {
 } from '@hooks/index';
 import { OutgoingSpeakersHeaderType } from './index.types';
 import useHeader from './useHeader';
+import CountBadge from '@components/count_badge';
 import Typography from '@components/typography';
 import Tooltip from '@components/tooltip';
 
@@ -29,6 +26,7 @@ const OutgoingSpeakersHeader = ({
     congNumber,
     circuitNumber,
     headerTitle,
+    headerCount,
     isGroup,
   } = useHeader();
 
@@ -60,7 +58,10 @@ const OutgoingSpeakersHeader = ({
             alignItems: 'center',
           }}
         >
-          <Typography className="h2">{headerTitle}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Typography className="h2">{headerTitle}</Typography>
+            {headerCount !== null && <CountBadge value={headerCount} />}
+          </Box>
           {tablet600Down && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {isPublicTalkCoordinator && (
@@ -78,9 +79,9 @@ const OutgoingSpeakersHeader = ({
               )}
 
               <IconButton
-            aria-label={expanded ? 'Ocultar la lista' : 'Mostrar la lista'}
-            onClick={onExpandChange}
-          >
+                aria-label={expanded ? 'Ocultar la lista' : 'Mostrar la lista'}
+                onClick={onExpandChange}
+              >
                 <IconExpand
                   color="var(--black)"
                   sx={{
@@ -141,11 +142,11 @@ const OutgoingSpeakersHeader = ({
           {isPublicTalkCoordinator && (
             <Tooltip title={t('tr_edit')} delaySpeed="slow">
               <IconButton
-                    aria-label={
-                      editMode ? 'Guardar los cambios' : 'Editar los oradores'
-                    }
-                    onClick={onEditModeChange}
-                  >
+                aria-label={
+                  editMode ? 'Guardar los cambios' : 'Editar los oradores'
+                }
+                onClick={onEditModeChange}
+              >
                 {!editMode && <IconEdit color="var(--accent-main)" />}
                 {editMode && <IconCheck color="var(--accent-main)" />}
               </IconButton>

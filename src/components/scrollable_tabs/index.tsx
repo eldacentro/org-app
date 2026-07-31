@@ -162,12 +162,21 @@ function ScrollableTabs({
                         ? `calc(100% / ${tabsCountOnScreen})`
                         : 'auto',
                     minWidth: '20px',
+                    // La elegida cambia de PESO, no de tamaño.
+                    //
+                    // Iba de 16 a 18 al elegirla, y eso en una tira que se
+                    // desplaza no es un detalle: la pestaña crece, empuja a
+                    // las de al lado y la tira entera se recoloca justo
+                    // después de tocarla — en un móvil, debajo del dedo. Y
+                    // ninguna otra pestaña de la app cambia de tamaño: se
+                    // marcan con el tinte y el peso.
+                    // Se veía sobre todo en Plan de evacuación, pero esto lo
+                    // usan quince pantallas.
                     fontSize: 16,
                     textTransform: 'none',
                     ':not(&.Mui-selected)': { fontWeight: 400 },
                     '&.Mui-selected': {
                       fontWeight: 600,
-                      fontSize: 18,
                     },
                   }}
                 />

@@ -26,15 +26,19 @@ const useHeader = () => {
 
   const [openAccess, setOpenAccess] = useState(false);
 
+  // El título, sin el contador dentro: el número va al lado, en su chapa,
+  // como en "Tu circuito" y "Otras congregaciones" tres centímetros más abajo.
+  // Aquí se quedó con paréntesis.
   const headerTitle = useMemo(() => {
-    if (dataView === 'main') {
-      return `${t('tr_yourCongregation')} (${myCongSpeakers.length})`;
-    }
+    if (dataView === 'main') return t('tr_yourCongregation');
 
     const group = groups.find((record) => record.group_id === dataView);
 
     return group?.group_data.name ?? '';
-  }, [dataView, t, groups, myCongSpeakers]);
+  }, [dataView, t, groups]);
+
+  // Solo la congregación propia lleva cuenta; un grupo de idioma no.
+  const headerCount = dataView === 'main' ? myCongSpeakers.length : null;
 
   const handleOpenAccess = () => setOpenAccess(true);
 
@@ -49,6 +53,7 @@ const useHeader = () => {
     openAccess,
     congAccountConnected,
     headerTitle,
+    headerCount,
     isGroup,
   };
 };

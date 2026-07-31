@@ -903,21 +903,42 @@ const OutgoingSpeakersPage = () => {
         >
           {/* Left Sidebar (Week Selector) */}
           {!desktopUp && selectedWeek && !expanded ? (
+            // La MISMA barra que la de `@components/collapsible_selector`, que
+            // es la que sale plegada en Exhibidores, en Salidas, en Limpieza y
+            // en los editores de reunión. Aquí estaba escrita a mano y no
+            // coincidía: medido, salía con fondo blanco, radio 28 y 40 de alto
+            // donde las otras van con el tinte del acento, radio 16 y 46 de
+            // alto. Plegado es una BARRA, no una tarjeta — un escalón menos de
+            // curva que el panel abierto.
+            // (Sigue siendo una copia: el panel de dentro es propio de esta
+            // pantalla —pestañas de año y meses plegables— y pasarlo al
+            // componente compartido es una reestructuración aparte.)
             <Box
+              component="button"
+              type="button"
+              aria-expanded={false}
               onClick={() => setExpanded(true)}
               sx={{
+                appearance: 'none',
+                font: 'inherit',
+                color: 'inherit',
+                textAlign: 'left',
                 width: '100%',
-                borderRadius: 'var(--shape-xl)',
+                borderRadius: 'var(--shape-md)',
                 border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
+                backgroundColor: 'var(--accent-100)',
                 padding: '10px 16px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: 'var(--accent-150)',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard)',
+                '&:hover': { backgroundColor: 'var(--accent-150)' },
+                '&:focus-visible': {
+                  outline: '2px solid var(--accent-main)',
+                  outlineOffset: '2px',
                 },
               }}
             >
