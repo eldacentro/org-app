@@ -1,11 +1,9 @@
 import { PersonSelectorType } from '../index.types';
-import { IconClose, IconMale } from '@components/icons';
+import { IconClose } from '@components/icons';
 import useCircuitOverseer from './useCircuitOverseer';
 import AutoComplete from '@components/autocomplete';
 
 const CircuitOverseer = (props: PersonSelectorType) => {
-  const showIcon = props.showIcon;
-
   const { value, handleValueChange, valueOverride, handleValueSave } =
     useCircuitOverseer(props);
 
@@ -27,7 +25,6 @@ const CircuitOverseer = (props: PersonSelectorType) => {
       onKeyUp={handleValueSave}
       fullWidth={true}
       styleIcon={false}
-      startIcon={showIcon ? <IconMale /> : null}
     />
   );
 };

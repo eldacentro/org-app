@@ -1,11 +1,9 @@
 import { PersonSelectorType } from '../index.types';
-import { IconClose, IconMale } from '@components/icons';
+import { IconClose } from '@components/icons';
 import useStreamSpeaker from './useStreamSpeaker';
 import AutoComplete from '@components/autocomplete';
 
 const StreamSpeaker = (props: PersonSelectorType) => {
-  const showIcon = props.showIcon;
-
   const { value, handleValueChange, handleValueSave } = useStreamSpeaker(props);
 
   return (
@@ -26,7 +24,6 @@ const StreamSpeaker = (props: PersonSelectorType) => {
       onKeyUp={handleValueSave}
       fullWidth={true}
       styleIcon={false}
-      startIcon={showIcon ? <IconMale /> : null}
     />
   );
 };

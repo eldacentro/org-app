@@ -93,7 +93,6 @@ const OutgoingSpeaker = (props: PersonSelectorType) => {
         </>
       }
       styleIcon={false}
-      startIcon={showIcon ? <IconMale /> : null}
       clearIcon={<IconClose width={20} height={20} />}
     />
   );

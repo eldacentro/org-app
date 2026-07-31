@@ -10,6 +10,16 @@ import QuickAddSpeaker from './quick_add';
 import OptionsPopper from '@components/options_popper';
 
 const VisitingSpeaker = (props: PersonSelectorType) => {
+  /**
+   * Solo para la LISTA desplegable. En el campo NO va: el muñequito lo quitó
+   * de ahí `9cd2e4b29` —"el nombre elegido no necesita que un icono lo
+   * repita"— de los selectores de hermano y de estudiante, pero los cuatro de
+   * orador se quedaron fuera de aquel barrido.
+   *
+   * En tres no se notaba porque su `showIcon` no traía valor por defecto y
+   * nadie se lo pasa. Este sí lo traía, así que en Reunión de fin de semana
+   * salía un muñequito montado encima del rótulo "Orador".
+   */
   const showIcon = props.showIcon ?? true;
 
   const { t } = useAppTranslation();
@@ -108,7 +118,6 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
           </>
         }
         styleIcon={false}
-        startIcon={showIcon ? <IconMale /> : null}
         clearIcon={<IconClose width={20} height={20} />}
       />
 
