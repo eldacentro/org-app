@@ -16,7 +16,8 @@ import { personGetDisplayName, speakerGetDisplayName } from '@utils/common';
 const useTalkRow = (defaultExpand: boolean, talk: TalkItemType) => {
   const [collapseOpen, setCollapseOpen] = useState(defaultExpand);
   const [isHistoryFocused, setIsHistoryFocused] = useState(false);
-  const [selectedSpeaker, setSelectedSpeaker] = useState<VisitingSpeakerType | null>(null);
+  const [selectedSpeaker, setSelectedSpeaker] =
+    useState<VisitingSpeakerType | null>(null);
 
   const speakers = useAtomValue(visitingSpeakersActiveState);
   const persons = useAtomValue(personsAllState);
@@ -87,9 +88,8 @@ const useTalkRow = (defaultExpand: boolean, talk: TalkItemType) => {
       const speakerCongName =
         localId === speaker.speaker_data.cong_id
           ? congName
-          : congregations.find(
-              (c) => c.id === speaker.speaker_data.cong_id
-            )?.cong_data.cong_name.value || '';
+          : congregations.find((c) => c.id === speaker.speaker_data.cong_id)
+              ?.cong_data.cong_name.value || '';
 
       return {
         speaker,

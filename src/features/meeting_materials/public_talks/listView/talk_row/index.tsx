@@ -30,7 +30,8 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
     handleCloseDetails,
   } = useTalkRow(isExpandAll, talk);
 
-  const canExpand = talk.history.slice(1).length > 0 || speakersWithTalk.length > 0;
+  const canExpand =
+    talk.history.slice(1).length > 0 || speakersWithTalk.length > 0;
 
   return (
     <>
@@ -96,16 +97,48 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
         >
           <Typography className="h4">{talk.talk_number}</Typography>
         </TableCell>
-        <TableCell sx={{ minWidth: '138px' }}>
+        <TableCell sx={{ minWidth: { mobile: 0, tablet600: '138px' } }}>
           <Typography className="h4">{talk.talk_title}</Typography>
+
+          {/* En un móvil, la fecha y el orador van AQUÍ, debajo del título,
+              porque sus columnas no caben (ver la nota de `useListView`). No
+              se pierde el dato: cambia de sitio. */}
+          <Typography
+            className="body-small-regular"
+            color="var(--ink-2)"
+            sx={{ display: { mobile: 'block', tablet600: 'none' } }}
+          >
+            {[
+              talk.last_date.length > 0 &&
+                formatDate(
+                  new Date(talk.last_date),
+                  t('tr_shortDateFormatAlt')
+                ),
+              talk.last_speaker,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Typography>
         </TableCell>
-        <TableCell sx={{ width: '50px', minWidth: '50px' }}>
+        <TableCell
+          sx={{
+            width: '50px',
+            minWidth: '50px',
+            display: { mobile: 'none', tablet600: 'table-cell' },
+          }}
+        >
           <Typography className="body-small-regular">
             {talk.last_date.length > 0 &&
               formatDate(new Date(talk.last_date), t('tr_shortDateFormatAlt'))}
           </Typography>
         </TableCell>
-        <TableCell sx={{ width: '205px', minWidth: '205px' }}>
+        <TableCell
+          sx={{
+            width: '205px',
+            minWidth: '205px',
+            display: { mobile: 'none', tablet600: 'table-cell' },
+          }}
+        >
           <Typography className="body-small-regular">
             {talk.last_speaker}
           </Typography>
@@ -140,11 +173,7 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
         onMouseLeave={canExpand ? handleHistoryUnfocused : null}
       >
         <TableCell style={{ padding: 0 }} colSpan={5}>
-          <Collapse
-            in={canExpand && collapseOpen}
-            timeout="auto"
-            unmountOnExit
-          >
+          <Collapse in={canExpand && collapseOpen} timeout="auto" unmountOnExit>
             <Box
               onClick={(e) => e.stopPropagation()}
               sx={{
@@ -241,7 +270,9 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
                     className="h4"
                     sx={{ color: 'var(--grey-400)', marginBottom: '4px' }}
                   >
-                    {t('tr_availableSpeakers', { defaultValue: 'Oradores disponibles' })}
+                    {t('tr_availableSpeakers', {
+                      defaultValue: 'Oradores disponibles',
+                    })}
                   </Typography>
                   <Box
                     sx={{
