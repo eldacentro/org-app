@@ -27,6 +27,12 @@ export type MeetingAttendanceType = {
 export type MeetingAttendanceExport = {
   lang: string;
   locale: string;
+  /**
+   * El nombre de la congregación, para el pie del S-88. Estaba escrito a pelo
+   * en la plantilla —"Elda Centro"— así que cualquier otra congregación
+   * imprimía su registro de asistencia con nuestro nombre.
+   */
+  congregation: string;
   data: {
     name: string;
     years: string[];

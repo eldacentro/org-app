@@ -21,12 +21,14 @@ import {
   languageGroupEnabledState,
 } from '@states/settings';
 import { meetingAttendanceState } from '@states/meeting_attendance';
+import { congNameState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
 import { MeetingType } from '@definition/app';
 import TemplateS88 from '@views/reports/attendance';
 
 const useExportS88 = () => {
   const attendances = useAtomValue(meetingAttendanceState);
+  const congName = useAtomValue(congNameState);
   const lang = useAtomValue(JWLangState);
   const locale = useAtomValue(JWLangLocaleState);
   const languageGroups = useAtomValue(languageGroupsState);
@@ -398,6 +400,7 @@ const useExportS88 = () => {
       const finalData: MeetingAttendanceExport = {
         lang,
         locale,
+        congregation: congName,
         data: resultClean
           .filter((record) => record.data.length > 0)
           .map((category) => {

@@ -6,3 +6,6 @@ export { default as PageBottom } from './page_bottom';
 export { default as Checkbox } from './checkbox';
 export { default as AccentCapsule } from './accent_capsule';
 export { accentCapsuleSurface } from './accent_capsule/surface';
+export { PDF, PDF_PADDING } from './pdf_theme';
+export { PdfHeader, PdfFooter } from './pdf_chrome';
+export { fechaCorta } from './pdf_chrome/fecha';

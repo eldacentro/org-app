@@ -1,7 +1,11 @@
 import { Page, Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
-import { Document } from '@views/components';
-import { IconLogo } from '@views/components/icons';
+import {
+  Document,
+  PdfFooter,
+  PdfHeader,
+  fechaCorta,
+} from '@views/components';
 import styles from './index.styles';
 
 /**
@@ -57,15 +61,11 @@ const DeptSchedulePDF = ({
   return (
     <Document title={`Programa Departamentos - ${monthName}`} lang="es-ES">
       <Page size="A4" style={styles.body}>
-        <View style={styles.headerContainer}>
-          <View style={styles.logoTitleContainer}>
-            <IconLogo />
-            <View>
-              <Text style={styles.title}>Programa de departamentos</Text>
-              <Text style={styles.subtitle}>{cong_name || `Elda Centro`}</Text>
-            </View>
-          </View>
-        </View>
+        <PdfHeader
+          congregation={cong_name || 'Elda Centro'}
+          meta={monthName}
+          title="Programa de departamentos"
+        />
 
         {data.map((week) => {
           const date = new Date(week.weekOf);
@@ -97,23 +97,14 @@ const DeptSchedulePDF = ({
           );
         })}
 
-        {lastUpdate?.updatedAt && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 20,
-              left: 20,
-              right: 20,
-              textAlign: 'center',
-            }}
-          >
-            <Text style={{ fontSize: '8px', color: '#666' }}>
-              {lastUpdate.lastModifiedBy
-                ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
-                : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
-            </Text>
-          </View>
-        )}
+        <PdfFooter
+          congregation={cong_name || 'Elda Centro'}
+          meta={
+            lastUpdate?.updatedAt
+              ? `Última actualización · ${fechaCorta(lastUpdate.updatedAt)}`
+              : ''
+          }
+        />
       </Page>
     </Document>
   );

@@ -5,7 +5,7 @@ import { IconLogo } from '@views/components/icons';
 import styles from './index.styles';
 import { applyRTL, isRTL } from '@views/utils/pdf_utils';
 
-const S140Header = ({ lang }: S140HeaderType) => {
+const S140Header = ({ cong_name, lang }: S140HeaderType) => {
   const { t } = useAppTranslation();
   const stylesSmart = applyRTL(styles, lang);
   const rtl = isRTL(lang);
@@ -21,7 +21,9 @@ const S140Header = ({ lang }: S140HeaderType) => {
           </Text>
           <Text style={stylesSmart.headerCongregation}>
             {rtl && '\u200f'}
-            {`Elda Centro`}
+            {/* Recibía `cong_name` y luego escribía "Elda Centro" a pelo: en
+                cualquier otra congregación la hoja salía con nuestro nombre. */}
+            {cong_name || 'Elda Centro'}
           </Text>
         </View>
       </View>

@@ -1,15 +1,16 @@
 import { StyleSheet } from '@react-pdf/renderer';
+import { PDF, PDF_PADDING } from '@views/components/pdf_theme';
 import registerFonts from '@views/registerFonts';
 
 registerFonts();
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 24,
-    paddingBottom: 38,
-    paddingHorizontal: 30,
+    padding: PDF_PADDING,
+    // Sitio para el pie, que va en absoluto.
+    paddingBottom: PDF_PADDING + 8,
     fontFamily: 'Figtree',
-    backgroundColor: '#ffffff',
+    backgroundColor: PDF.white,
   },
   contentWrapper: {
     display: 'flex',
@@ -49,14 +50,14 @@ const styles = StyleSheet.create({
   },
   weekContainer: {
     marginBottom: 10,
-    border: '1 solid #e0e0e0',
+    border: `1 solid ${PDF.line}`,
     borderRadius: 12,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
   },
   dateContainer: {
-    backgroundColor: '#306CB4',
+    backgroundColor: PDF.accent,
     padding: 6,
   },
   dateText: {
@@ -81,36 +82,38 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 0,
   },
+  // Cada fila llevaba una rayita por debajo, como un impreso para rellenar a
+  // mano. En la app —y en los demás PDF— una etiqueta y su valor no necesitan
+  // una línea que los sostenga: los separa el color y el peso. Era el único
+  // sitio con ese recurso, y encima con el gris más claro de todos (#eee).
   meetingPartContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
-    borderBottom: '0.5 solid #eeeeee',
-    paddingBottom: 2,
+    paddingVertical: 3,
   },
   meetingPartLabel: {
     width: 90,
-    color: '#666666',
-    fontSize: 10,
+    color: PDF.muted,
+    fontSize: 9.6,
   },
   meetingPartName: {
-    color: '#333333',
-    fontSize: 11,
-    fontWeight: 700,
+    color: PDF.ink,
+    fontSize: 10.5,
+    fontWeight: 600,
   },
   meetingPartSong: {
-    color: '#333333',
-    fontSize: 11,
-    fontWeight: 700,
+    color: PDF.ink,
+    fontSize: 10.5,
+    fontWeight: 600,
   },
   lineHorizontal: {
-    borderBottom: '1px solid #eeeeee',
-    marginTop: 2,
-    marginBottom: 4,
+    borderBottom: `1px solid ${PDF.line}`,
+    marginTop: 3,
+    marginBottom: 5,
   },
   lineVertical: {
-    borderLeft: '1px solid #e0e0e0',
+    borderLeft: `1px solid ${PDF.line}`,
     marginVertical: 4,
   },
   talkContainer: {

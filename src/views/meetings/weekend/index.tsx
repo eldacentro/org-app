@@ -1,9 +1,13 @@
-import { Page, View, Text } from '@react-pdf/renderer';
-import { Document } from '@views/components';
+import { Page, View } from '@react-pdf/renderer';
+import {
+  Document,
+  PdfFooter,
+  PdfHeader,
+  fechaCorta,
+} from '@views/components';
 import { useAppTranslation } from '@hooks/index';
 import { WeekendMeetingTemplateType } from './index.types';
 import registerFonts from '@views/registerFonts';
-import Header from './Header';
 import WeekData from './WeekData';
 import styles from './index.styles';
 
@@ -29,20 +33,23 @@ const WeekendMeetingTemplate = ({
     return acc;
   }, null);
 
-  const footerDate = lastUpdate?.updatedAt
-    ? (() => {
-        const d = new Date(lastUpdate.updatedAt);
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        return `${dd}/${mm}/${d.getFullYear()}`;
-      })()
-    : '';
+  const footerDate = fechaCorta(lastUpdate?.updatedAt);
+
+  // El rango que cubre la hoja, para la barra de marca.
+  const rango =
+    data.length > 0
+      ? `${data.at(0).date_formatted} – ${data.at(-1).date_formatted}`
+      : '';
 
   return (
     <Document title={t('tr_weekendMeetingPrint', { lng: lang })} lang={lang}>
       <Page size="A4" style={styles.page}>
         <View style={styles.contentWrapper}>
-          <Header cong_name={cong_name} lang={lang} />
+          <PdfHeader
+            congregation={cong_name || 'Elda Centro'}
+            meta={rango}
+            title={t('tr_weekendMeetingPrint', { lng: lang })}
+          />
           {data.map((meetingData) => (
             <WeekData
               key={meetingData.weekOf}
@@ -52,14 +59,10 @@ const WeekendMeetingTemplate = ({
           ))}
         </View>
 
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerLeft}>Elda Centro</Text>
-          {footerDate ? (
-            <Text style={styles.footerRight}>
-              Última actualización · {footerDate}
-            </Text>
-          ) : null}
-        </View>
+        <PdfFooter
+          congregation={cong_name || 'Elda Centro'}
+          meta={footerDate ? `Última actualización · ${footerDate}` : ''}
+        />
       </Page>
     </Document>
   );

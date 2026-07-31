@@ -1,4 +1,5 @@
 import { StyleSheet } from '@react-pdf/renderer';
+import { PDF } from '@views/components/pdf_theme';
 import registerFonts from '@views/registerFonts';
 
 registerFonts();
@@ -39,14 +40,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 2,
   },
+  // El contacto del superintendente ya no va apretado en la esquina de la
+  // barra de marca: es un dato de la hoja, no parte de la identidad.
+  coContact: {
+    backgroundColor: PDF.accentSoft,
+    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
   coContactName: {
-    fontSize: 8.7,
+    fontSize: 9,
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: PDF.ink,
   },
   coContactLine: {
-    fontSize: 7.5,
-    color: '#555555',
+    fontSize: 8.2,
+    color: PDF.muted,
+    marginTop: 1,
   },
   headerDivider: {
     borderBottom: '1 solid #d0d7e8',
