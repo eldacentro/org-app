@@ -232,9 +232,26 @@ Entre los cinco son el **56%** del total.
       `minWidth: 120px` FIJO, así que en un móvil de 375 las tres columnas no
       cabían y esa se salía 1px del relleno de la fila. Ahora encoge y corta
       con puntos.
-      **Queda**: pasarlos a las CLASES de tipografía (que es lo que además los
-      haría crecer en tablet). Eso ya no es un barrido: 92 de los 140 llevan un
-      `fontWeight` pegado al lado y hay que decidir clase por clase.
+      **Y lo que faltaba por ver, que salió mirando Mis asignaciones: 150 de
+      esas declaraciones NO PINTABAN NADA.** Todo `<Typography>` de la app
+      lleva una clase de texto —la que le pasen o `body-regular`—, y esa clase
+      declara tamaño, peso, espaciado, interlineado y caja de mayúsculas. La
+      clase y la que genera `sx` valen lo mismo, así que decide el orden de la
+      hoja y `global.css` va la última: el `sx` perdía siempre.
+      Ni error ni aviso. 54 pesos, 26 interlineados, 26 espaciados, 21 cajas de
+      mayúsculas y 21 tamaños escritos y tirados a la basura. La baldosa de
+      fecha de Mis asignaciones pedía su abreviatura a 8px extranegrita en
+      mayúscula y se veía a 15px, peso normal y tal cual.
+      Por eso los que SÍ funcionaban llevaban `!important` (6) o iban en
+      `style=` en línea (124) — entre ellos los 65 de Exhibidores y Salidas, o
+      sea que aquel ajuste a la escala sí surtió efecto.
+      Arreglado en el componente: sube la especificidad de esas nueve
+      propiedades cuando vienen en `sx`. Regla en DESIGN_SYSTEM §6.4d.
+      **Comprobado que activar las 150 no rompe nada**: se midió el recuento de
+      desbordes con y sin el arreglo en nueve pantallas, en escritorio y en
+      móvil, y sale EXACTAMENTE el mismo (1/0/0/0/7/1 y 3/13/24).
+      **Queda**: pasar a CLASES los que se apartan de la escala sin motivo.
+      Ahora ya es un trabajo distinto, porque ya se ve lo que hacen.
 - [x] **B4 · Degradados** — cerrado con matiz: "los 14 fuera" era demasiado
       grueso. Fuera los que caen sobre CONTENIDO (cabeceras, botones, barras de
       gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las
@@ -407,8 +424,17 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       círculo y la app no tiene ese icono) y `PictureAsPdfIcon`/`DirectionsIcon`
       (huecos reales del juego propio).
       **Queda** el resto del repaso de `src/components`.
-- [ ] **Mis asignaciones** — la abre cualquier publicador; 44 defectos en dos
-      ficheros
+- [x] **Mis asignaciones** — el inventario decía 44 defectos; medidos son 8, y
+      de esos 8 la mitad eran falsos otra vez (el `Select` y el `Button` son de
+      la app, no de MUI; el "color a fuego" estaba dentro de un comentario que
+      dice que se quitó).
+      Lo real: las transiciones a mano pasan a tokens de movimiento —y una
+      animaba `border-color` en una caja que ya no tiene borde—, el `7.5px` de
+      la abreviatura de las de departamento se va (medido: "SEM." ocupa 21,8 en
+      una baldosa de 46, o sea que cabía a 8), y el fichero `indextypes.ts`
+      recupera su punto.
+      **Y tirando de ese hilo salió lo gordo, que no es de esta pantalla sino
+      de toda la app** — ver la línea de abajo.
 - [~] **Documentos** — el inventario decía "127 en 26 ficheros"; son **6
       ficheros y 1.713 líneas**, y midiendo salen 69 marcas, varias de ellas
       datos (la paleta de colores de las categorías no es un color a mano).

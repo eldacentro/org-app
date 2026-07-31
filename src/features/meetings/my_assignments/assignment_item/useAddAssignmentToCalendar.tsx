@@ -5,7 +5,10 @@ import { AssignmentHistoryType } from '@definition/schedules';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { upsertCalendarExportEntry } from '@services/calendar_export/tracking';
-import { buildAssignmentEvent, BuildEventContext } from './buildAssignmentEvent';
+import {
+  buildAssignmentEvent,
+  BuildEventContext,
+} from './buildAssignmentEvent';
 
 /**
  * Generates and downloads an .ics for a single "Mis asignaciones" row.
@@ -29,10 +32,8 @@ const useAddAssignmentToCalendar = () => {
     setIsProcessingId(history.id);
 
     try {
-      const { eventDetails, icsUid, sequence, contentHash } = buildAssignmentEvent(
-        history,
-        context
-      );
+      const { eventDetails, icsUid, sequence, contentHash } =
+        buildAssignmentEvent(history, context);
 
       createEvent(eventDetails, (error, value) => {
         if (error) {

@@ -41,7 +41,9 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
   // heredada sin fecha real; con actualDate ya se muestra como el día
   // normal de la reunión (entre semana o fin de semana).
   const isDept = useMemo(() => {
-    return (first.assignment.key?.startsWith('DEPT_') ?? false) && !first.actualDate;
+    return (
+      (first.assignment.key?.startsWith('DEPT_') ?? false) && !first.actualDate
+    );
   }, [first]);
 
   const assignmentDate = useMemo(() => {
@@ -152,7 +154,9 @@ const useAssignmentItem = ({ items }: AssignmentItemProps) => {
     return items.map((history) => ({
       history,
       badges: getBadges(history),
-      isDept: (history.assignment.key?.startsWith('DEPT_') ?? false) && !history.actualDate,
+      isDept:
+        (history.assignment.key?.startsWith('DEPT_') ?? false) &&
+        !history.actualDate,
       jwLibraryUrl: computeJwLibraryUrl(history),
     }));
   }, [items, dataView, t, sources, jwLang]);

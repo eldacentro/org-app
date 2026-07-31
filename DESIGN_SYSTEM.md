@@ -619,6 +619,35 @@ Y una consecuencia práctica: si una pantalla no tiene ninguna acción que
 cumpla el punto 2, **se queda sin botón azul**. No hay que ascender el que
 haya para llenar el hueco.
 
+### 6.4d El texto: la CLASE manda, y quien la contradice tiene que ganarle
+
+Todo `<Typography>` de la app lleva una clase de texto: la que se le pase o,
+si no se pasa ninguna, `body-regular`. Esa clase declara nueve propiedades —
+tamaño, peso, estilo, anchura, espaciado, interlineado, caja de mayúsculas,
+decoración y sangría.
+
+Lo primero es la regla de siempre: **para cambiar cómo se ve un texto se
+elige otra clase**, no se ajustan números sueltos. La escala existe para que
+el mismo tipo de texto se vea igual en toda la app.
+
+Lo segundo es un filo que costó encontrar. La clase de la app y la que genera
+`sx` valen lo mismo —una clase cada una—, así que decide el orden de la hoja,
+y `global.css` se carga la última. Es decir: **un `sx={{ fontWeight: 600 }}`
+sobre un `<Typography>` no hacía nada de nada.** Ni error, ni aviso: el texto
+salía con el peso de su clase y el código decía otra cosa.
+
+Había 150 declaraciones así repartidas por la app. La baldosa de fecha de Mis
+asignaciones pedía su abreviatura a 8px, extranegrita y en mayúscula, y se veía
+a 15px, peso normal y sin mayúscula.
+
+Ya no: el componente sube la especificidad de esas nueve propiedades cuando
+vienen en `sx`, así que **lo que se escribe es lo que se ve**. Sigue siendo
+mejor elegir la clase correcta; pero apartarse de ella a propósito ahora
+funciona, y no hace falta `!important` ni `style=` en línea para conseguirlo.
+
+Comprobado que activar las 150 no rompió nada: mismo recuento exacto de
+desbordes antes y después, en nueve pantallas, en escritorio y en móvil.
+
 ### 6.5 Un campo con un botón al lado: NUNCA se estira el botón al alto del campo
 
 Un campo mide 56px (etiqueta dentro) y un botón mide 40. Puestos en la misma

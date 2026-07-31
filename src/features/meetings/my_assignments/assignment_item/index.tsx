@@ -121,20 +121,27 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           // De paso se va un azul de marca CONGELADO —`rgba(59,114,196,.12)`—
           // que no seguía al tema.
           flexShrink: 0,
-          transition: 'background-color 0.2s ease, border-color 0.2s ease',
+          // Por tokens, y sin `border-color`: esta caja ya no tiene borde
+          // (ver el comentario de arriba), así que esa mitad de la transición
+          // no animaba nada.
+          transition:
+            'background-color var(--motion-fast) var(--ease-standard)',
         }}
       >
         {/* Day label: weekday abbreviation OR 'SEM' for dept assignments */}
         <Typography
           sx={{
-            fontSize: isDept ? '7.5px' : '8px',
+            // 8px los dos. El 7,5 de las de departamento existía por si
+            // "SEM." no cabía, y sí cabe: medido, ocupa 21,8 en una baldosa de
+            // 46. Medio píxel que nadie ve y una condición que mantener.
+            fontSize: '8px',
             fontWeight: '800 !important', // ExtraBold
             letterSpacing: '0.8px',
             textTransform: 'uppercase',
             color: isPreaching ? 'var(--preaching-color)' : 'var(--brand)',
             opacity: isDept ? 0.65 : 0.75,
             lineHeight: 1,
-            transition: 'color 0.2s ease',
+            transition: 'color var(--motion-fast) var(--ease-standard)',
           }}
         >
           {isDept ? 'SEM.' : assignmentDayName}
@@ -149,7 +156,7 @@ const AssignmentItem = (props: AssignmentItemProps) => {
             fontSize: isDept ? '15px !important' : '22px !important',
             lineHeight: 1,
             letterSpacing: '-0.5px',
-            transition: 'color 0.2s ease',
+            transition: 'color var(--motion-fast) var(--ease-standard)',
           }}
         >
           {assignmentDate}

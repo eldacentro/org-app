@@ -8,12 +8,15 @@ import {
   userLocalUIDState,
   userMembersDelegateState,
 } from '@states/settings';
-import { DisplayRange } from './indextypes';
+import { DisplayRange } from './index.types';
 import { localStorageGetItem } from '@utils/common';
 import { assignmentsHistoryState, schedulesState } from '@states/schedules';
 import { deptScheduleState } from '@states/departments_schedule';
 import { addWeeks, formatDate, getWeekDate } from '@utils/date';
-import { AssignmentDescItem, AssignmentHistoryType } from '@definition/schedules';
+import {
+  AssignmentDescItem,
+  AssignmentHistoryType,
+} from '@definition/schedules';
 import {
   serviceOutingsListState,
   serviceOutingsSettingsState,
@@ -21,7 +24,10 @@ import {
 import { circuitVisitsState } from '@states/circuit_visit';
 import { ACTIVITY_LABELS } from '@features/circuit_visit/shared/activityLabels';
 import { personsStateFind } from '@services/states/persons';
-import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
+import {
+  exhibitorsListState,
+  exhibitorsSettingsState,
+} from '@states/exhibitors';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
@@ -30,7 +36,10 @@ import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { personsState } from '@states/persons';
 import { useEffect } from 'react';
-import { schedulesGetMeetingDate, schedulesWeekNoMeeting } from '@services/app/schedules';
+import {
+  schedulesGetMeetingDate,
+  schedulesWeekNoMeeting,
+} from '@services/app/schedules';
 import { Week } from '@definition/week_type';
 import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
@@ -65,8 +74,12 @@ const useMyAssignments = () => {
     : DisplayRange.MONTHS_12;
 
   const [displayRange, setDisplayRange] = useState(intialValue);
-  const [filterType, setFilterType] = useState<'all' | 'meetings' | 'preaching' | 'limpieza'>('all');
-  const [limpiezaConfig, setLimpiezaConfig] = useState<LimpiezaConfig | null>(null);
+  const [filterType, setFilterType] = useState<
+    'all' | 'meetings' | 'preaching' | 'limpieza'
+  >('all');
+  const [limpiezaConfig, setLimpiezaConfig] = useState<LimpiezaConfig | null>(
+    null
+  );
 
   const groups = useAtomValue(fieldServiceGroupsState);
   const circuitVisits = useAtomValue(circuitVisitsState);
@@ -86,7 +99,9 @@ const useMyAssignments = () => {
   // disparador: se actualiza cada minuto y al volver a la pestaña, y entra en
   // las dependencias del useMemo para forzar la reevaluación real cuando
   // cambia el día calendario.
-  const [dayTick, setDayTick] = useState(() => formatDate(new Date(), 'yyyy/MM/dd'));
+  const [dayTick, setDayTick] = useState(() =>
+    formatDate(new Date(), 'yyyy/MM/dd')
+  );
 
   useEffect(() => {
     const checkDay = () => {
@@ -241,7 +256,9 @@ const useMyAssignments = () => {
       return results;
     };
 
-    const getServiceOutingsAssignments = (uid: string): AssignmentHistoryType[] => {
+    const getServiceOutingsAssignments = (
+      uid: string
+    ): AssignmentHistoryType[] => {
       const results: AssignmentHistoryType[] = [];
 
       for (const week of serviceOutings) {
@@ -283,7 +300,10 @@ const useMyAssignments = () => {
                 title: 'Salida de predicación',
                 descItems: [
                   { icon: 'clock', text: outing.time },
-                  { icon: 'location', text: outing.location || 'Salón del Reino' },
+                  {
+                    icon: 'location',
+                    text: outing.location || 'Salón del Reino',
+                  },
                 ],
                 startTime: outing.time || undefined,
               },
@@ -302,7 +322,11 @@ const useMyAssignments = () => {
     // eso aquí se limita aparte a "el mes corriente + uno más", sin importar
     // el rango elegido para el resto de "Mis asignaciones".
     const getExhibitorsAssignments = (uid: string): AssignmentHistoryType[] => {
-      const exhibitorMaxDate = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+      const exhibitorMaxDate = new Date(
+        now.getFullYear(),
+        now.getMonth() + 2,
+        0
+      );
       const exhibitorMaxDateStr = formatDate(exhibitorMaxDate, 'yyyy/MM/dd');
 
       const turns = getMyExhibitorTurns(
@@ -315,7 +339,9 @@ const useMyAssignments = () => {
       );
 
       return turns.map((turn) => {
-        const roleTitle = turn.isResponsible ? 'Exhibidores: Responsable de turno' : 'Exhibidores';
+        const roleTitle = turn.isResponsible
+          ? 'Exhibidores: Responsable de turno'
+          : 'Exhibidores';
         const timeRange = `${turn.startTime}-${turn.endTime}`;
         const companionNames = turn.companions
           .map((companionUid) => {
@@ -331,7 +357,10 @@ const useMyAssignments = () => {
           { icon: 'location', text: turn.location },
         ];
         if (companionNames.length > 0) {
-          descItems.push({ icon: 'people', text: `Con ${companionNames.join(', ')}` });
+          descItems.push({
+            icon: 'people',
+            text: `Con ${companionNames.join(', ')}`,
+          });
         }
 
         return {
@@ -358,13 +387,21 @@ const useMyAssignments = () => {
       if (!limpiezaConfig) return results;
 
       // Find user's group using the reliable groups data
-      const userGroup = groups.find(g => !g.group_data._deleted && g.group_data.members?.some(m => m.person_uid === uid));
+      const userGroup = groups.find(
+        (g) =>
+          !g.group_data._deleted &&
+          g.group_data.members?.some((m) => m.person_uid === uid)
+      );
       const userGroupId = userGroup?.group_id;
       if (!userGroupId) return results;
 
       // Generar semanas y filtrar para mostrar solo los próximos 7 días
       const nowMs = now.getTime();
-      const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const todayMs = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      ).getTime();
       const sevenDaysFromNowMs = nowMs + 7 * 24 * 60 * 60 * 1000;
       const limpiezaMaxMs = nowMs + 14 * 24 * 60 * 60 * 1000; // Solo buscar hasta 2 semanas adelante
       const maxMs = Math.min(maxDate.getTime(), limpiezaMaxMs);
@@ -378,20 +415,35 @@ const useMyAssignments = () => {
         const wOf = getWeekDate(d);
         const weekOfStr = formatDate(wOf, 'yyyy/MM/dd');
 
-        const schedule = schedules.find(s => s.weekOf === weekOfStr);
+        const schedule = schedules.find((s) => s.weekOf === weekOfStr);
 
-        const midweekType = schedule?.midweek_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
+        const midweekType =
+          schedule?.midweek_meeting?.week_type?.find((r) => r.type === 'main')
+            ?.value ?? Week.NORMAL;
         if (!schedulesWeekNoMeeting(midweekType)) {
-          const meetingDateStr = schedulesGetMeetingDate({ week: weekOfStr, meeting: 'midweek', dataView: 'main' }).date;
+          const meetingDateStr = schedulesGetMeetingDate({
+            week: weekOfStr,
+            meeting: 'midweek',
+            dataView: 'main',
+          }).date;
           const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
-          
+
           if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
-            const midGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'midweek', groups, schedules);
+            const midGroupId = calcularGrupoReunion(
+              limpiezaConfig,
+              weekOfStr,
+              'midweek',
+              groups,
+              schedules
+            );
             if (midGroupId === userGroupId) {
               results.push({
                 id: `LIMPIEZA_${weekOfStr}_midweek`,
                 weekOf: weekOfStr,
-                weekOfFormatted: formatDate(new Date(weekOfStr), shortDateFormat),
+                weekOfFormatted: formatDate(
+                  new Date(weekOfStr),
+                  shortDateFormat
+                ),
                 actualDate: meetingDateStr || weekOfStr,
                 assignment: {
                   code: 0 as AssignmentHistoryType['assignment']['code'],
@@ -399,25 +451,45 @@ const useMyAssignments = () => {
                   key: `LIMPIEZA_${weekOfStr}_midweek` as AssignmentHistoryType['assignment']['key'],
                   dataView: 'main',
                   title: 'Limpieza del Salón (Entre semana)',
-                  descItems: [{ icon: 'clean', text: 'Tu grupo tiene el turno de limpieza' }],
+                  descItems: [
+                    {
+                      icon: 'clean',
+                      text: 'Tu grupo tiene el turno de limpieza',
+                    },
+                  ],
                 },
               });
             }
           }
         }
 
-        const weekendType = schedule?.weekend_meeting?.week_type?.find((r) => r.type === 'main')?.value ?? Week.NORMAL;
+        const weekendType =
+          schedule?.weekend_meeting?.week_type?.find((r) => r.type === 'main')
+            ?.value ?? Week.NORMAL;
         if (!schedulesWeekNoMeeting(weekendType)) {
-          const meetingDateStr = schedulesGetMeetingDate({ week: weekOfStr, meeting: 'weekend', dataView: 'main' }).date;
+          const meetingDateStr = schedulesGetMeetingDate({
+            week: weekOfStr,
+            meeting: 'weekend',
+            dataView: 'main',
+          }).date;
           const meetingMs = new Date(meetingDateStr || weekOfStr).getTime();
 
           if (meetingMs >= todayMs && meetingMs <= sevenDaysFromNowMs) {
-            const weekendGroupId = calcularGrupoReunion(limpiezaConfig, weekOfStr, 'weekend', groups, schedules);
+            const weekendGroupId = calcularGrupoReunion(
+              limpiezaConfig,
+              weekOfStr,
+              'weekend',
+              groups,
+              schedules
+            );
             if (weekendGroupId === userGroupId) {
               results.push({
                 id: `LIMPIEZA_${weekOfStr}_weekend`,
                 weekOf: weekOfStr,
-                weekOfFormatted: formatDate(new Date(weekOfStr), shortDateFormat),
+                weekOfFormatted: formatDate(
+                  new Date(weekOfStr),
+                  shortDateFormat
+                ),
                 actualDate: meetingDateStr || weekOfStr,
                 assignment: {
                   code: 0 as AssignmentHistoryType['assignment']['code'],
@@ -425,7 +497,12 @@ const useMyAssignments = () => {
                   key: `LIMPIEZA_${weekOfStr}_weekend` as AssignmentHistoryType['assignment']['key'],
                   dataView: 'main',
                   title: 'Limpieza del Salón (Fin de semana)',
-                  descItems: [{ icon: 'clean', text: 'Tu grupo tiene el turno de limpieza' }],
+                  descItems: [
+                    {
+                      icon: 'clean',
+                      text: 'Tu grupo tiene el turno de limpieza',
+                    },
+                  ],
                 },
               });
             }
@@ -438,7 +515,9 @@ const useMyAssignments = () => {
 
     // Visitas de pastoreo: le aparece al anciano acompañante (NO al hermano visitado).
     // Comidas de la visita del CO: le aparece al anfitrión.
-    const getCircuitVisitAssignments = (uid: string): AssignmentHistoryType[] => {
+    const getCircuitVisitAssignments = (
+      uid: string
+    ): AssignmentHistoryType[] => {
       const results: AssignmentHistoryType[] = [];
       const maxDateStr = formatDate(maxDate, 'yyyy/MM/dd');
 
@@ -482,7 +561,9 @@ const useMyAssignments = () => {
         // Compañía del superintendente en la predicación: aparece al hermano
         // que le acompaña, y a las hermanas que acompañan a su esposa.
         for (const companion of (visit.co_companions ?? []).filter(Boolean)) {
-          const [outingDate, outingTime] = (companion.outingKey ?? '').split('_');
+          const [outingDate, outingTime] = (companion.outingKey ?? '').split(
+            '_'
+          );
           if (outingDate < currentDayStr || outingDate > maxDateStr) continue;
 
           const activityLabel = ACTIVITY_LABELS[companion.activity] ?? '';
@@ -491,7 +572,10 @@ const useMyAssignments = () => {
             results.push({
               id: `COVISIT_COMPANION_${visit.id}_${companion.outingKey}`,
               weekOf: visit.weekOf,
-              weekOfFormatted: formatDate(new Date(outingDate), shortDateFormat),
+              weekOfFormatted: formatDate(
+                new Date(outingDate),
+                shortDateFormat
+              ),
               actualDate: outingDate,
               assignment: {
                 code: 0 as AssignmentHistoryType['assignment']['code'],
@@ -501,7 +585,14 @@ const useMyAssignments = () => {
                 title: 'Acompañar al superintendente en la predicación',
                 descItems: [
                   { icon: 'clock', text: outingTime },
-                  ...(activityLabel ? [{ icon: 'person', text: activityLabel } as AssignmentDescItem] : []),
+                  ...(activityLabel
+                    ? [
+                        {
+                          icon: 'person',
+                          text: activityLabel,
+                        } as AssignmentDescItem,
+                      ]
+                    : []),
                 ],
                 startTime: outingTime || undefined,
               },
@@ -512,7 +603,10 @@ const useMyAssignments = () => {
             results.push({
               id: `COVISIT_SPOUSE_${visit.id}_${companion.outingKey}`,
               weekOf: visit.weekOf,
-              weekOfFormatted: formatDate(new Date(outingDate), shortDateFormat),
+              weekOfFormatted: formatDate(
+                new Date(outingDate),
+                shortDateFormat
+              ),
               actualDate: outingDate,
               assignment: {
                 code: 0 as AssignmentHistoryType['assignment']['code'],
@@ -550,7 +644,9 @@ const useMyAssignments = () => {
                 dataView: 'main',
                 title: 'Visita de pastoreo (CO)',
                 descItems: [
-                  ...(sv.time ? [{ icon: 'clock', text: sv.time } as AssignmentDescItem] : []),
+                  ...(sv.time
+                    ? [{ icon: 'clock', text: sv.time } as AssignmentDescItem]
+                    : []),
                   { icon: 'person', text: brotherName },
                 ],
                 startTime: sv.time || undefined,
@@ -573,13 +669,32 @@ const useMyAssignments = () => {
                 record.weekOf <= formatDate(maxDate, 'yyyy/MM/dd')
             );
 
-      const deptAssignments = type === 'preaching' || type === 'limpieza' ? [] : getDeptAssignments(uid);
-      const outingAssignments = type === 'meetings' || type === 'limpieza' ? [] : getServiceOutingsAssignments(uid);
-      const exhibitorAssignments = type === 'meetings' || type === 'limpieza' ? [] : getExhibitorsAssignments(uid);
-      const limpiezaAssign = type === 'meetings' || type === 'preaching' ? [] : getLimpiezaAssignments(uid);
+      const deptAssignments =
+        type === 'preaching' || type === 'limpieza'
+          ? []
+          : getDeptAssignments(uid);
+      const outingAssignments =
+        type === 'meetings' || type === 'limpieza'
+          ? []
+          : getServiceOutingsAssignments(uid);
+      const exhibitorAssignments =
+        type === 'meetings' || type === 'limpieza'
+          ? []
+          : getExhibitorsAssignments(uid);
+      const limpiezaAssign =
+        type === 'meetings' || type === 'preaching'
+          ? []
+          : getLimpiezaAssignments(uid);
 
       const circuitAssignments = getCircuitVisitAssignments(uid);
-      return [...meetingAssignments, ...deptAssignments, ...outingAssignments, ...exhibitorAssignments, ...limpiezaAssign, ...circuitAssignments];
+      return [
+        ...meetingAssignments,
+        ...deptAssignments,
+        ...outingAssignments,
+        ...exhibitorAssignments,
+        ...limpiezaAssign,
+        ...circuitAssignments,
+      ];
     };
 
     const ownAssignments = filterAssignments(userUID);

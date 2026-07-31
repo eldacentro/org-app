@@ -1,9 +1,14 @@
 import { Box, Stack } from '@mui/material';
 import EmptyState from '@components/empty_state';
 import { useAppTranslation, useCalendarExportPreference } from '@hooks/index';
-import { IconAddMonth, IconInfo, IconCart, IconTreasuresPart } from '@components/icons';
+import {
+  IconAddMonth,
+  IconInfo,
+  IconCart,
+  IconTreasuresPart,
+} from '@components/icons';
 import { AssignmentHistoryType } from '@definition/schedules';
-import { DisplayRange } from './indextypes';
+import { DisplayRange } from './index.types';
 import useMyAssignments from './useAssignments';
 import useAddAllAssignmentsToCalendar from './useAddAllAssignmentsToCalendar';
 import Button from '@components/button';
@@ -34,9 +39,12 @@ const MyAssignments = () => {
   } = useMyAssignments();
 
   const { enabled: calendarExportEnabled } = useCalendarExportPreference();
-  const { isProcessing, handleAddAllToCalendar } = useAddAllAssignmentsToCalendar();
+  const { isProcessing, handleAddAllToCalendar } =
+    useAddAllAssignmentsToCalendar();
 
-  const ownAssignmentsFlat = ownAssignments.byDate.flatMap((month) => month.children);
+  const ownAssignmentsFlat = ownAssignments.byDate.flatMap(
+    (month) => month.children
+  );
 
   const hasDelegatedAssignments = delegateAssignments.total > 0;
 
@@ -76,7 +84,9 @@ const MyAssignments = () => {
         <Select
           label="Categoría"
           value={filterType}
-          onChange={(e) => setFilterType(e.target.value as 'all' | 'meetings' | 'preaching')}
+          onChange={(e) =>
+            setFilterType(e.target.value as 'all' | 'meetings' | 'preaching')
+          }
         >
           <MenuItem value="all">
             <Typography>Todas</Typography>
