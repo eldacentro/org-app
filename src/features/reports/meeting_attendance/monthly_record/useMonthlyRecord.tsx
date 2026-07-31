@@ -1,18 +1,22 @@
+import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
-import { buildServiceYearsList } from '@utils/date';
+import { buildServiceYearsFor } from '@utils/date';
 import useSharedHook from '../useSharedHook';
+import { serviceYearsWithAttendanceState } from '@states/meeting_attendance';
 
 const useMonthlyRecord = () => {
+  const años = useAtomValue(serviceYearsWithAttendanceState);
+
   const { meetings } = useSharedHook();
 
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
 
   const serviceYears = useMemo(() => {
-    const result = buildServiceYearsList();
+    const result = buildServiceYearsFor(años);
 
     return result;
-  }, []);
+  }, [años]);
 
   const handleYearChange = (value: string) => {
     setYear(value);

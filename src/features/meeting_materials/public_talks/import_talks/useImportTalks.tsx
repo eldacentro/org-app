@@ -29,9 +29,7 @@ const useImportTalks = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = async (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     // Para que volver a elegir el MISMO archivo dispare onChange otra vez.
     event.target.value = '';

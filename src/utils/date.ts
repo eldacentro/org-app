@@ -320,22 +320,58 @@ export const lastDayOfReportMonth = (month: string) => {
   return new Date(year, monthNumber, 0).toISOString();
 };
 
+/**
+ * 'YYYY/MM' → el año de servicio al que pertenece, con la etiqueta que usa la
+ * app (la del año en que TERMINA: septiembre de 2025 es del año «2026»).
+ */
+export const serviceYearOfMonth = (month: string) => {
+  const year = Number(month.slice(0, 4));
+  const monthNumber = Number(month.slice(5, 7));
+
+  return String(monthNumber >= 9 ? year + 1 : year);
+};
+
+/**
+ * La ventana de conservación, en etiquetas de año: el año en curso y el
+ * anterior.
+ *
+ * Es lo que la norma de la sucursal deja guardar de un publicador activo (ver
+ * `services/app/retention.ts`), y por eso estos dos años se ofrecen SIEMPRE,
+ * aunque estén vacíos: son los que se pueden escribir.
+ */
+export const retentionServiceYears = () => {
+  const current = +currentServiceYear();
+
+  return [String(current - 1), String(current)];
+};
+
 export const buildServiceYearsList = (count = 4) => {
-  const monthNames = generateMonthNames();
-  const currentSY = currentServiceYear();
+  const currentSY = +currentServiceYear();
 
   const years: string[] = [];
 
-  let year = +currentSY;
-  years.push(year.toString());
+  for (let i = 0; i < Math.max(1, count); i++) {
+    years.push(String(currentSY - i));
+  }
 
-  do {
-    year = year - 1;
+  return buildServiceYearsFor(years);
+};
 
-    years.push(year.toString());
-  } while (years.length < Math.max(1, count));
+/**
+ * Los mismos años de servicio, pero para una lista EXPLÍCITA en vez de "los
+ * últimos N".
+ *
+ * Existe porque contar hacia atrás desde hoy no sabe nada de la norma de
+ * conservación: pedía cuatro años y pintaba cuatro pestañas, y las dos más
+ * viejas estaban vacías porque la purga diaria ya se había llevado sus
+ * informes. Quien tiene los datos delante puede decir exactamente qué años
+ * hay, y eso es lo que se enseña.
+ */
+export const buildServiceYearsFor = (yearLabels: string[]) => {
+  const monthNames = generateMonthNames();
+  const currentSY = currentServiceYear();
 
-  years.sort();
+  const years = [...new Set(yearLabels)].sort();
 
   const result: ServiceYearType[] = [];
 

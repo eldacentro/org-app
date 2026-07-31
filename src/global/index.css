@@ -489,14 +489,21 @@ body iframe {
    porque el autocompletado de MUI clava el padding de su input con
    `!important` y no hay selector que le gane. Consumiendo la variable sigue
    habiendo UN solo número; si fuera un literal repetido, en la próxima vuelta
-   uno de los dos se quedaría atrás. */
-.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+   uno de los dos se quedaría atrás.
+
+   El `:not(:empty)` es el filo de esto: un campo SIN etiqueta igual lleva su
+   `<label>` en el HTML —MUI lo pinta siempre, vacío— y encima con
+   `data-shrink="true"` en cuanto tiene valor. Sin ese filtro, el campo
+   reservaba los 24 de arriba para una etiqueta que no existe y el valor caía
+   7,5px por debajo del centro. Se veía en el selector de año que hay dentro
+   del de mes, en Exhibidores y en Salidas de predicación. */
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
   .MuiOutlinedInput-input,
-.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
   .MuiSelect-select,
-.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
   .MuiPickersInputBase-input,
-.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
   .MuiPickersSectionList-root {
   padding-top: var(--campo-pad-top);
   padding-bottom: var(--campo-pad-bottom);
@@ -523,7 +530,7 @@ body iframe {
 
    Y el `!important` porque MUI le pone a este campo un `padding: 9px` que gana
    la cascada; es el mismo motivo que explica el comentario de aquí arriba. */
-.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true'])
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
   .MuiOutlinedInput-root:has(> .MuiChip-root) {
   padding-top: 26px !important;
   padding-bottom: 4px !important;

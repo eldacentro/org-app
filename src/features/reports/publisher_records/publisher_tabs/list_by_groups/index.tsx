@@ -10,10 +10,7 @@ const ListByGroups = (props: ListByGroupsProps) => {
     useListByGroups(props);
 
   return (
-    <Stack
-      divider={<Divider color="var(--line)" />}
-      margin="0px 0px -24px 0px"
-    >
+    <Stack divider={<Divider color="var(--line)" />} margin="0px 0px -24px 0px">
       {groups.map((group) => (
         <Accordion
           key={group.group_id}

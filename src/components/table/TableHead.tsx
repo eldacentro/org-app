@@ -50,8 +50,11 @@ const TableHead = (props: EnhancedTableProps) => {
                 columnas se envolvían en un control de ordenar. Resultado: un
                 botón de 0×0 al que se llega con el tabulador, que no dice nada
                 y que ordenaría por una columna que no se ordena. Sin título no
-                hay nada por lo que ordenar, así que va la celda a secas. */}
-            {headCell.label ? (
+                hay nada por lo que ordenar, así que va la celda a secas.
+
+                Lo mismo con `sortable: false`: hay tablas que ordenan desde un
+                desplegable, y ahí la cabecera es un rótulo, no un mando. */}
+            {headCell.label && headCell.sortable !== false ? (
               <TableSortLabel
                 active={orderBy === headCell.id}
                 direction={orderBy === headCell.id ? order : 'asc'}
@@ -84,7 +87,19 @@ const TableHead = (props: EnhancedTableProps) => {
                   </Box>
                 ) : null}
               </TableSortLabel>
-            ) : null}
+            ) : (
+              // Sin control de ordenar, pero el título se sigue leyendo: es
+              // lo que dice qué hay en la columna. Solo desaparece cuando la
+              // columna no tiene título, que es el caso de la de acciones.
+              headCell.label && (
+                <Typography
+                  className={'body-small-regular'}
+                  color={'var(--grey-350)'}
+                >
+                  {headCell.label}
+                </Typography>
+              )
+            )}
           </TableCell>
         ))}
       </TableRow>

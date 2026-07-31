@@ -16,6 +16,8 @@ import {
   userDataViewState,
 } from '@states/settings';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
+import useSorting from '@components/table/useSorting';
+import { Order } from '@components/table/index.types';
 
 const usePublicTalks = () => {
   const talksList = useAtomValue(publicTalksLocaleState);
@@ -108,6 +110,72 @@ const usePublicTalks = () => {
     speakers,
   ]);
 
+  /**
+   * El orden de la lista, y su desplegable.
+   *
+   * Vive aquí y no dentro de la vista de lista porque el mando se enseña en la
+   * fila del título, junto al contador — arriba del todo, con el buscador. Si
+   * el estado se quedara abajo, el control tendría que estar abajo también, y
+   * ahí queda descolgado: buscador, título, y solo entonces "ordenar por".
+   *
+   * Cada opción ES un orden entero, no un campo al que después haya que
+   * decidirle la dirección. Por eso la fecha son DOS entradas: las dos se
+   * usan, y para cosas distintas.
+   *
+   * Un discurso que no se ha dado nunca tiene la fecha vacía, y una cadena
+   * vacía va antes que cualquier fecha. O sea que «Fecha más antigua» pone
+   * primero los que no se han dado nunca — que es coherente con lo que dice
+   * (no hay fecha más antigua que ninguna) y es justo lo que se busca al
+   * mirar por aquí: el discurso que hace tiempo que no suena.
+   */
+  const sortOptions: { value: string; label: string; direction: Order }[] = [
+    {
+      value: 'talk_number',
+      label: 'Número',
+      direction: 'asc',
+    },
+    { value: 'talk_title', label: 'Título (A–Z)', direction: 'asc' },
+    {
+      value: 'last_date',
+      label: 'Fecha más reciente',
+      direction: 'desc',
+    },
+    {
+      value: 'last_date_asc',
+      label: 'Fecha más antigua',
+      direction: 'asc',
+    },
+    { value: 'last_speaker', label: 'Orador (A–Z)', direction: 'asc' },
+  ];
+
+  const { order, orderBy, setSorting, visibleRows } = useSorting({
+    initialOrder: 'asc',
+    // Por número, que es el orden en el que se lee un guion de discursos.
+    initialOrderBy: 'talk_number',
+    rows: talks as unknown as { [key: string]: string | number }[],
+  });
+
+  // Lo elegido se LEE del orden que hay puesto, no de un estado aparte. Un
+  // segundo estado que copia al primero es un sitio donde los dos se pueden
+  // separar, y el día que pase el desplegable dirá una cosa y la tabla otra.
+  const claveActual =
+    orderBy === 'last_date' && order === 'asc' ? 'last_date_asc' : orderBy;
+
+  const sortValue =
+    sortOptions.find((option) => option.value === claveActual)?.value ??
+    'talk_number';
+
+  const handleSortChange = (value: string) => {
+    const option = sortOptions.find((record) => record.value === value);
+
+    if (!option) return;
+
+    setSorting(
+      option.value === 'last_date_asc' ? 'last_date' : option.value,
+      option.direction
+    );
+  };
+
   const handleToggleExpandAll = () => {
     setIsExpandAll((prev) => !prev);
   };
@@ -126,6 +194,12 @@ const usePublicTalks = () => {
 
   return {
     talks,
+    // Ordenada, para la vista de lista. La de tabla usa `talks` tal cual: es
+    // una rejilla por años, y ahí el orden lo pone el número del discurso.
+    talksSorted: visibleRows as unknown as typeof talks,
+    sortOptions,
+    sortValue,
+    handleSortChange,
     isExpandAll,
     handleToggleExpandAll,
     handleSearch,

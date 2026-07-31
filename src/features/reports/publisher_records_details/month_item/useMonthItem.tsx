@@ -14,8 +14,13 @@ import usePerson from '@features/persons/hooks/usePerson';
 const useMonthItem = ({ month, person }: MonthItemProps) => {
   const { laptopDown } = useBreakpoints();
 
-  const { isAdmin, isElder, my_group, isGroupOverseer, isLanguageGroupOverseer } =
-    useCurrentUser();
+  const {
+    isAdmin,
+    isElder,
+    my_group,
+    isGroupOverseer,
+    isLanguageGroupOverseer,
+  } = useCurrentUser();
 
   const {
     personIsEnrollmentActive,

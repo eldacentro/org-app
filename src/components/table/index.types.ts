@@ -26,6 +26,17 @@ export interface Column {
   type?: 'number' | 'action';
 
   /**
+   * Si la cabecera ordena al pulsarla. Por defecto sí, que es como se
+   * comportan todas las tablas de la app.
+   *
+   * Se pone a `false` cuando la tabla ordena por otro sitio —un desplegable de
+   * «Ordenar por»—, para que no haya dos mandos para lo mismo. Sin esto la
+   * cabecera seguiría siendo un botón: se llega con el tabulador, se pulsa sin
+   * querer y reordena la tabla a espaldas del control que sí se ve.
+   */
+  sortable?: boolean;
+
+  /**
    * A function to format the value of the column.
    * @param value - The value to be formatted.
    * @returns The formatted string representation of the value.

@@ -64,7 +64,9 @@ const PersonsList = () => {
               <NoSearchResults viewBox="0 0 160 160" width={80} height={80} />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Typography className="h4">{t('tr_searchResultsNone')}</Typography>
+              <Typography className="h4">
+                {t('tr_searchResultsNone')}
+              </Typography>
               <Typography color="var(--grey-400)">
                 {t('tr_searchResultsNoneDesc')}
               </Typography>

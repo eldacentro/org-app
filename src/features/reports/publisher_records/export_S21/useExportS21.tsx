@@ -232,7 +232,9 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       publishers_inactive.some((record) => record.person_uid === value)
     );
 
-    const publishers = publisherUids.map((person_uid) => getCardsData(person_uid));
+    const publishers = publisherUids.map((person_uid) =>
+      getCardsData(person_uid)
+    );
 
     const blob = await pdf(
       <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />
@@ -255,7 +257,9 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
   }) => {
     if (person_uids.length === 0) return;
 
-    const publishers = person_uids.map((person_uid) => getCardsData(person_uid));
+    const publishers = person_uids.map((person_uid) =>
+      getCardsData(person_uid)
+    );
 
     const blob = await pdf(
       <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />

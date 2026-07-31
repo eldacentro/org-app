@@ -5,8 +5,7 @@ import TalkRow from './talk_row';
 import TableHead from '@components/table/TableHead';
 
 const TalksListView = ({ isExpandAll, talks }: TalksListViewType) => {
-  const { talksList, handleRequestSort, order, orderBy, tableColumns } =
-    useListView(talks);
+  const { tableColumns } = useListView();
 
   return (
     <TableContainer>
@@ -24,10 +23,14 @@ const TalksListView = ({ isExpandAll, talks }: TalksListViewType) => {
           },
         }}
       >
+        {/* Los discursos ya vienen ordenados: el orden lo decide el desplegable de
+            arriba, y aquí no se toca. `order`/`orderBy` los pide el componente
+            de cabecera, pero con todas las columnas en `sortable: false` no
+            pintan nada — no hay flecha que colocar. */}
         <TableHead
-          order={order}
-          orderBy={orderBy}
-          onRequestSort={handleRequestSort}
+          order="asc"
+          orderBy=""
+          onRequestSort={() => undefined}
           columns={tableColumns}
         />
         <TableBody
@@ -37,7 +40,7 @@ const TalksListView = ({ isExpandAll, talks }: TalksListViewType) => {
             },
           }}
         >
-          {talksList.map((talk) => (
+          {talks.map((talk) => (
             <TalkRow
               key={talk.talk_number}
               talk={talk}

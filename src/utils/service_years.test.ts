@@ -2,11 +2,19 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 
 vi.mock('@services/i18n/translation', async (importOriginal) => ({
   ...(await importOriginal<object>()),
-  getTranslation: ({ params }: { params?: { month?: string; year?: string } }) =>
-    `${params?.month} ${params?.year}`,
+  getTranslation: ({
+    params,
+  }: {
+    params?: { month?: string; year?: string };
+  }) => `${params?.month} ${params?.year}`,
 }));
 
-const { buildServiceYearsList } = await import('./date');
+const {
+  buildServiceYearsFor,
+  buildServiceYearsList,
+  retentionServiceYears,
+  serviceYearOfMonth,
+} = await import('./date');
 
 /**
  * Meses que se ofrecen para elegir en el informe.
@@ -115,5 +123,79 @@ describe('cierre del periodo al causar baja', () => {
 
   it('febrero de un año normal se cierra el 28', () => {
     expect(new Date(lastDayOfReportMonth('2026/02')).getDate()).toBe(28);
+  });
+});
+
+/**
+ * Qué años de servicio se ofrecen para MIRAR.
+ *
+ * La norma de la sucursal solo conserva el año en curso y el anterior de un
+ * publicador activo, y una purga corre a diario para cumplirlo. Pero la lista
+ * de años se construía contando cuatro hacia atrás sin preguntarle a nadie, así
+ * que en Registros de publicadores salían 2023 y 2024 — dos pestañas vacías,
+ * con la purga habiéndose llevado ya lo que hubiera dentro.
+ */
+describe('el año de servicio al que pertenece un mes', () => {
+  it('septiembre ya es del año SIGUIENTE: el año de servicio empieza ahí', () => {
+    expect(serviceYearOfMonth('2025/09')).toBe('2026');
+  });
+
+  it('agosto todavía es del año que acaba', () => {
+    expect(serviceYearOfMonth('2026/08')).toBe('2026');
+  });
+
+  it('enero es del año en el que cae', () => {
+    expect(serviceYearOfMonth('2026/01')).toBe('2026');
+  });
+});
+
+describe('la ventana de conservación', () => {
+  it('en julio son el año en curso y el anterior', () => {
+    at('2026-07-15T12:00:00Z');
+    expect(retentionServiceYears()).toEqual(['2025', '2026']);
+  });
+
+  it('el 1 de septiembre rueda sola y suelta el año que sale', () => {
+    at('2026-09-01T12:00:00Z');
+    expect(retentionServiceYears()).toEqual(['2026', '2027']);
+  });
+});
+
+describe('los años que se ofrecen salen de los datos, no de un número fijo', () => {
+  it('la lista explícita se respeta y se ordena', () => {
+    at('2026-07-15T12:00:00Z');
+    expect(buildServiceYearsFor(['2026', '2025']).map((y) => y.year)).toEqual([
+      '2025',
+      '2026',
+    ]);
+  });
+
+  it('un año repetido no pinta dos pestañas', () => {
+    at('2026-07-15T12:00:00Z');
+    expect(buildServiceYearsFor(['2026', '2026', '2025'])).toHaveLength(2);
+  });
+
+  it('un año viejo que aún conserva datos SÍ se enseña: no se esconde nada', () => {
+    at('2026-07-15T12:00:00Z');
+    const años = buildServiceYearsFor([...retentionServiceYears(), '2022']);
+
+    expect(años.map((y) => y.year)).toEqual(['2022', '2025', '2026']);
+  });
+
+  it('el año en curso sigue sin ofrecer meses del futuro', () => {
+    at('2026-07-15T12:00:00Z');
+    const enCurso = buildServiceYearsFor(['2026']).at(-1);
+
+    expect(enCurso.months.at(-1).value).toBe('2026/07');
+  });
+
+  it('pedir "los últimos N" sigue funcionando igual que antes', () => {
+    at('2026-07-15T12:00:00Z');
+    expect(buildServiceYearsList(4).map((y) => y.year)).toEqual([
+      '2023',
+      '2024',
+      '2025',
+      '2026',
+    ]);
   });
 });

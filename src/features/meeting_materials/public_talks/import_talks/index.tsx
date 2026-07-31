@@ -60,7 +60,11 @@ const ImportTalks = () => {
       />
 
       {diffs && (
-        <Dialog onClose={handleCancel} open={Boolean(diffs)} sx={{ maxWidth: '100%' }}>
+        <Dialog
+          onClose={handleCancel}
+          open={Boolean(diffs)}
+          sx={{ maxWidth: '100%' }}
+        >
           <Typography className="h2">{t('tr_jwpubImportTitle')}</Typography>
           <Typography className="body-regular" color="var(--grey-400)">
             {t('tr_jwpubImportDesc')}
@@ -138,7 +142,11 @@ const ImportTalks = () => {
             >
               {t('tr_continue')}
             </Button>
-            <Button variant="tertiary" onClick={handleCancel} disabled={isSaving}>
+            <Button
+              variant="tertiary"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
               {t('tr_cancel')}
             </Button>
           </Box>

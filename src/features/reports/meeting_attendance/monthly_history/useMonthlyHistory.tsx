@@ -1,14 +1,18 @@
+import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
-import { buildServiceYearsList, currentServiceYear } from '@utils/date';
+import { buildServiceYearsFor, currentServiceYear } from '@utils/date';
+import { serviceYearsWithAttendanceState } from '@states/meeting_attendance';
 
 const useMonthlyHistory = () => {
+  const años = useAtomValue(serviceYearsWithAttendanceState);
+
   const [value, setValue] = useState<number | boolean>(false);
 
   const serviceYears = useMemo(() => {
-    const result = buildServiceYearsList();
+    const result = buildServiceYearsFor(años);
 
     return result;
-  }, []);
+  }, [años]);
 
   const months = useMemo(() => {
     if (typeof value === 'boolean') return [];

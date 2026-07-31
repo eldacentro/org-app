@@ -7,14 +7,14 @@ import AssignmentItem from '../assignment_item';
 import Typography from '@components/typography';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { getWeekDate, formatDate } from '@utils/date';
-import { monthShortNamesState } from '@states/app';
+import { monthNamesState } from '@states/app';
 import { useAppTranslation } from '@hooks/index';
 import accentSurface from '@components/accent_surface';
 
 const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
   const { monthLocale } = useMonthContainer(monthData.month);
   const { t } = useAppTranslation();
-  const monthShortNames = useAtomValue(monthShortNamesState);
+  const monthNames = useAtomValue(monthNamesState);
 
   // Una asignación de "predicación" nunca debe compartir tarjeta con una de
   // "reuniones" aunque caigan el mismo día — son mundos distintos para quien
@@ -90,13 +90,20 @@ const MonthContainer = ({ monthData }: AssignmentsMonthContainerProps) => {
       });
   }, [monthData.children]);
 
-  // Format the week label: "Semana del DD/MM" e.g. "2 jun"
+  // "Semana del 27 de julio".
+  //
+  // El nombre del mes va ENTERO, no abreviado. La frase lleva un "de" en medio
+  // —"del 27 de julio"—, y con la lista corta salía "del 27 de Jul": una
+  // abreviatura metida dentro de una oración, y encima con mayúscula, que en
+  // español no la lleva. Los nombres cortos siguen bien donde son una fecha
+  // suelta y compacta ("27 Jul 2026", la tira de semanas), que es para lo que
+  // están.
   const formatWeekLabel = (weekOf: string) => {
     const parts = weekOf.split('/');
     if (parts.length < 3) return weekOf;
     const d = parseInt(parts[2], 10);
     const m = parseInt(parts[1], 10);
-    return t('tr_weekOfDay', { day: d, month: monthShortNames[m - 1] });
+    return t('tr_weekOfDay', { day: d, month: monthNames[m - 1] });
   };
 
   return (

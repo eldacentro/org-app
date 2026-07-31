@@ -48,12 +48,25 @@ const useSorting = ({
     setOrderBy(property);
   };
 
+  /**
+   * Poner un orden CONCRETO, sin alternar.
+   *
+   * `handleRequestSort` es el gesto de la cabecera: "otra vez sobre la misma
+   * columna" significa darle la vuelta. Un desplegable no funciona así —cada
+   * opción ES un orden— y si lo llamara, elegir dos veces lo mismo invertiría
+   * la lista sin que nadie lo haya pedido.
+   */
+  const setSorting = (property: string, direction: Order) => {
+    setOrderBy(property);
+    setOrder(direction);
+  };
+
   const visibleRows = useMemo(
     () => stableSort(rows, getComparator(order, orderBy)),
     [order, orderBy, rows]
   );
 
-  return { order, orderBy, handleRequestSort, visibleRows };
+  return { order, orderBy, handleRequestSort, setSorting, visibleRows };
 };
 
 export default useSorting;

@@ -1,12 +1,16 @@
+import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
-import { buildServiceYearsList } from '@utils/date';
+import { buildServiceYearsFor } from '@utils/date';
+import { serviceYearsWithAttendanceState } from '@states/meeting_attendance';
 
 const useYearSelector = () => {
+  const años = useAtomValue(serviceYearsWithAttendanceState);
+
   const serviceYears = useMemo(() => {
-    const result = buildServiceYearsList();
+    const result = buildServiceYearsFor(años);
 
     return result;
-  }, []);
+  }, [años]);
 
   const tabs = useMemo(() => {
     return serviceYears.map((record) => {

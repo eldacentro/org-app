@@ -1,13 +1,17 @@
+import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
-import { buildServiceYearsList, currentServiceYear } from '@utils/date';
+import { buildServiceYearsFor, currentServiceYear } from '@utils/date';
 import YearDetails from './year_details';
+import { serviceYearsWithReportsState } from '@states/field_service_reports';
 
 const useYearsStats = () => {
+  const años = useAtomValue(serviceYearsWithReportsState);
+
   const serviceYears = useMemo(() => {
-    const result = buildServiceYearsList();
+    const result = buildServiceYearsFor(años);
 
     return result;
-  }, []);
+  }, [años]);
 
   const intial_value = useMemo(() => {
     const year = currentServiceYear();
