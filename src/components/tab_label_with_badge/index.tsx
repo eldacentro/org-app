@@ -1,33 +1,7 @@
 import { Box } from '@mui/material';
 import { CustomClassName } from '@definition/app';
+import CountBadge from '@components/count_badge';
 import Typography from '@components/typography';
-
-const LabelBadge = ({
-  value,
-  badgeColor = 'inherit',
-}: {
-  value: number;
-  badgeColor?: string;
-}) => (
-  <Box
-    sx={{
-      backgroundColor: 'var(--accent-150)',
-      borderRadius: 'var(--shape-xs)',
-      width: '24px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '24px',
-      fontSize: '13px',
-      opacity: 1,
-      transition: 'opacity 0.2s',
-    }}
-  >
-    <Typography className="body-small-semibold" sx={{ color: badgeColor }}>
-      {value.toString()}
-    </Typography>
-  </Box>
-);
 
 const TabLabelWithBadge = ({
   label,
@@ -62,7 +36,7 @@ const TabLabelWithBadge = ({
       >
         {label}
       </Typography>
-      <LabelBadge value={count} badgeColor={badgeColor} />
+      <CountBadge value={count} color={badgeColor} />
     </Box>
   );
 };

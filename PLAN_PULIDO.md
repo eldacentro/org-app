@@ -588,7 +588,23 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       Los otros 3 se quedan: NO son indicadores de carga, son anillos
       decorativos alrededor de un avatar, con `thickness` y posición absoluta,
       y el componente compartido no sabe hacer eso.
-- [ ] **Contador junto a título** (4) → `@components/badge`
+- [x] **Contador junto a título** → `@components/count_badge`, no `badge`.
+      Dos de los cinco ya compartían dibujo, pero escondido DENTRO de
+      `tab_label_with_badge`, así que solo lo tenían las pestañas. Los otros
+      metían el número en el propio texto, cada uno con su puntuación:
+      "Personas: 100" con dos puntos, "Tu circuito (12)" y "Otras
+      congregaciones (8)" con paréntesis. Y el número dentro de la frase no es
+      cuestión de gusto: deja de ser un dato y pasa a ser parte del título, así
+      que no se puede mirar de un vistazo.
+      La chapa sale a su propio componente y la usan los tres.
+      NO es `@components/badge`, que es la píldora de un ESTADO ("Suspendido",
+      "Asignado a Juan"). Un estado se lee, un contador se cuenta.
+      De paso, era de ancho FIJO de 24 y "100" pide 22: cabía por un píxel a
+      cada lado y con una cifra más se salía. Ahora el 24 es un mínimo: medido,
+      una y dos cifras miden 24 las dos —el salto de 9 a 10 sigue sin moverse—,
+      tres miden 30 y cuatro, 36.
+      El contador del encabezado de un grupo de predicación se queda como está:
+      va sobre el color del grupo, y ahí una chapa clara no se leería.
 - [ ] **Elegir una hora** (4) → `time_picker` para reloj, `timefield` solo para
       duraciones
 - [ ] **Pestañas** (4) → `segmented_control` o `scrollable_tabs`

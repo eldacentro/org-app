@@ -3,6 +3,7 @@ import { useAppTranslation } from '@hooks/index';
 import useOtherCongregations from './useOtherCongregations';
 import CongregationAdd from './congregation_add';
 import IncomingCongregation from './congregation_item';
+import CountBadge from '@components/count_badge';
 import Typography from '@components/typography';
 
 const OtherCongregations = () => {
@@ -35,7 +36,12 @@ const OtherCongregations = () => {
 
       {/* Tu Circuito Section */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography className="h2">{`Tu circuito (${circuitSpeakersCount})`}</Typography>
+        {/* El contador, fuera del paréntesis: la misma chapa que las
+            pestañas y que la lista de personas. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Typography className="h2">Tu circuito</Typography>
+          <CountBadge value={circuitSpeakersCount} />
+        </Box>
 
         {circuitCongs.length === 0 && (
           <Typography
@@ -62,7 +68,10 @@ const OtherCongregations = () => {
 
       {/* Otras Congregaciones Section */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography className="h2">{`${t('tr_otherCongregations')} (${otherSpeakersCount})`}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Typography className="h2">{t('tr_otherCongregations')}</Typography>
+          <CountBadge value={otherSpeakersCount} />
+        </Box>
 
         {otherCongs.length === 0 && (
           <Typography
