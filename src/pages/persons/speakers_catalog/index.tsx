@@ -1,4 +1,5 @@
-import { useRef, ChangeEvent, useState, Ref } from 'react';
+import { useRef, useState, Ref } from 'react';
+import { useFilePicker } from '@components/file_picker';
 import { useConfirm } from '@components/confirm_dialog';
 import Papa from 'papaparse';
 import { Box, Menu, MenuItem, Typography } from '@mui/material';
@@ -47,8 +48,6 @@ const SpeakersCatalog = () => {
   const { handleIsAddingOpen } = useSpeakersCatalog();
 
   const { exportCSV, downloadTemplate } = useSpeakersImportExport();
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const menuButtonRef = useRef<HTMLElement | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -59,12 +58,17 @@ const SpeakersCatalog = () => {
     setAnchorEl(menuButtonRef.current);
   };
 
+  const { abrir: abrirCSV, input: inputCSV } = useFilePicker({
+    accept: '.csv',
+    onFile: (f) => handleImportCSV(f),
+  });
+
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
   const handleTriggerImport = () => {
-    fileInputRef.current?.click();
+    abrirCSV();
   };
 
   const handleImportClick = () => {
@@ -90,7 +94,8 @@ const SpeakersCatalog = () => {
   const handlePurgeCatalog = async () => {
     const ok = await confirm({
       title: 'Vaciar catálogo',
-      message: '¿Estás seguro de que quieres eliminar COMPLETAMENTE todo el catálogo de oradores y congregaciones? Esta acción es física y no se puede deshacer.',
+      message:
+        '¿Estás seguro de que quieres eliminar COMPLETAMENTE todo el catálogo de oradores y congregaciones? Esta acción es física y no se puede deshacer.',
       confirmLabel: 'Vaciar catálogo',
       destructive: true,
     });
@@ -119,7 +124,8 @@ const SpeakersCatalog = () => {
         displaySnackNotification({
           severity: 'success',
           header: 'Catálogo vaciado',
-          message: 'El catálogo de oradores y congregaciones ha sido eliminado.',
+          message:
+            'El catálogo de oradores y congregaciones ha sido eliminado.',
         });
         setTimeout(() => window.location.reload(), 1000);
       } catch (error) {
@@ -133,10 +139,7 @@ const SpeakersCatalog = () => {
     }
   };
 
-  const handleImportCSV = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleImportCSV = async (file: File) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: 'greedy',
@@ -179,7 +182,8 @@ const SpeakersCatalog = () => {
           // Asegurar que la congregación local existe en speakers_congregations
           const localCong = currentCongs.find(
             (c) =>
-              normalize(c.cong_data.cong_name.value) === normalize(homeCongName) ||
+              normalize(c.cong_data.cong_name.value) ===
+                normalize(homeCongName) ||
               c.cong_data.cong_number.value === homeCongNumber
           );
 
@@ -217,10 +221,10 @@ const SpeakersCatalog = () => {
             } else {
               let cong = currentCongs.find(
                 (c) =>
-                  normalize(c.cong_data.cong_name.value) === normalize(congName) ||
+                  normalize(c.cong_data.cong_name.value) ===
+                    normalize(congName) ||
                   (congNumber && c.cong_data.cong_number.value === congNumber)
               );
-
 
               if (cong && cong._deleted.value) {
                 cong._deleted.value = false;
@@ -258,7 +262,10 @@ const SpeakersCatalog = () => {
               }
 
               if (item['Weekend Meeting Day'] !== undefined) {
-                const dayVal = parseInt(item['Weekend Meeting Day']?.trim() || '', 10);
+                const dayVal = parseInt(
+                  item['Weekend Meeting Day']?.trim() || '',
+                  10
+                );
                 if (!isNaN(dayVal)) {
                   congObj.cong_data.weekend_meeting.weekday = {
                     value: dayVal,
@@ -349,8 +356,12 @@ const SpeakersCatalog = () => {
 
                 const fn = normalize(firstName);
                 const ln = normalize(lastName);
-                const disp = item['Display Name'] ? normalize(item['Display Name']) : '';
-                const genDisp = normalize(generateDisplayName(lastName, firstName));
+                const disp = item['Display Name']
+                  ? normalize(item['Display Name'])
+                  : '';
+                const genDisp = normalize(
+                  generateDisplayName(lastName, firstName)
+                );
 
                 for (const sched of allSchedules) {
                   if (!sched.weekend_meeting) continue;
@@ -358,7 +369,7 @@ const SpeakersCatalog = () => {
                   const speakerParts = [
                     ...(sched.weekend_meeting.speaker?.part_1 || []),
                     ...(sched.weekend_meeting.speaker?.part_2 || []),
-                    ...(sched.weekend_meeting.speaker?.substitute || [])
+                    ...(sched.weekend_meeting.speaker?.substitute || []),
                   ];
 
                   const match = speakerParts.find((sp) => {
@@ -477,122 +488,121 @@ const SpeakersCatalog = () => {
 
   return (
     <>
-    {ConfirmDialogNode}
-    <Box
-      sx={{
-        display: 'flex',
-        gap: '16px',
-        flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
-      }}
-    >
-      <PageTitle
-        title={t('tr_speakersCatalog')}
-        buttons={
-          <>
-            {isPublicTalkCoordinator && (
-              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input
-                  type="file"
-                  accept=".csv"
-                  style={{ display: 'none' }}
-                  ref={fileInputRef}
-                  onChange={handleImportCSV}
-                />
-
-                <Box ref={menuButtonRef as Ref<HTMLDivElement>} sx={{ display: 'inline-flex' }}>
-                  <NavBarButton
-                    text="Importar / Exportar"
-                    icon={<IconSettings color="var(--always-white)" />}
-                    onClick={handleOpenMenu}
-                  />
-                </Box>
-
-                <Menu
-                  anchorEl={anchorEl}
-                  open={openMenu}
-                  onClose={handleCloseMenu}
-                  sx={{
-                    marginTop: '8px',
-                    '& li': {
-                      borderBottom: '1px solid var(--line)',
-                    },
-                    '& li:last-child': {
-                      borderBottom: 'none',
-                    },
-                  }}
-                  slotProps={{
-                    paper: {
-                      className: 'small-card-shadow',
-                      style: {
-                        borderRadius: 'var(--shape-sm)',
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem
-                    onClick={handleImportClick}
-                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <IconImportJson color="var(--black)" />
-                    <Typography>Importar CSV</Typography>
-                  </MenuItem>
-
-                  <MenuItem
-                    onClick={handleExportClick}
-                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <IconExport color="var(--black)" />
-                    <Typography>Exportar CSV</Typography>
-                  </MenuItem>
-
-                  <MenuItem
-                    onClick={handleDownloadTemplateClick}
-                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <IconDownload color="var(--black)" />
-                    <Typography>Descargar plantilla CSV</Typography>
-                  </MenuItem>
-
-                  <MenuItem
-                    onClick={handlePurgeClick}
-                    sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <IconDelete color="var(--red-main)" />
-                    <Typography color="var(--red-main)">Vaciar todo el catálogo</Typography>
-                  </MenuItem>
-                </Menu>
-
-                <NavBarButton
-                  text={t('tr_btnAdd')}
-                  main
-                  icon={<IconAddCongregation color="var(--always-white)" />}
-                  onClick={handleIsAddingOpen}
-                ></NavBarButton>
-              </Box>
-            )}
-          </>
-        }
-      />
-
+      {ConfirmDialogNode}
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexDirection: 'column',
           gap: '16px',
-          borderRadius: 'var(--shape-xl)',
-          padding: '20px',
-          backgroundColor: 'var(--card)',
-          border: '1px solid var(--line)',
-          boxShadow: 'var(--shadow-sm)',
+          flexDirection: 'column',
+          paddingBottom: !tablet688Up ? '60px' : '0px',
         }}
       >
-        <MyCongregation />
-        <OtherCongregations />
+        <PageTitle
+          title={t('tr_speakersCatalog')}
+          buttons={
+            <>
+              {isPublicTalkCoordinator && (
+                <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {inputCSV}
+
+                  <Box
+                    ref={menuButtonRef as Ref<HTMLDivElement>}
+                    sx={{ display: 'inline-flex' }}
+                  >
+                    <NavBarButton
+                      text="Importar / Exportar"
+                      icon={<IconSettings color="var(--always-white)" />}
+                      onClick={handleOpenMenu}
+                    />
+                  </Box>
+
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={openMenu}
+                    onClose={handleCloseMenu}
+                    sx={{
+                      marginTop: '8px',
+                      '& li': {
+                        borderBottom: '1px solid var(--line)',
+                      },
+                      '& li:last-child': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        className: 'small-card-shadow',
+                        style: {
+                          borderRadius: 'var(--shape-sm)',
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      onClick={handleImportClick}
+                      sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <IconImportJson color="var(--black)" />
+                      <Typography>Importar CSV</Typography>
+                    </MenuItem>
+
+                    <MenuItem
+                      onClick={handleExportClick}
+                      sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <IconExport color="var(--black)" />
+                      <Typography>Exportar CSV</Typography>
+                    </MenuItem>
+
+                    <MenuItem
+                      onClick={handleDownloadTemplateClick}
+                      sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <IconDownload color="var(--black)" />
+                      <Typography>Descargar plantilla CSV</Typography>
+                    </MenuItem>
+
+                    <MenuItem
+                      onClick={handlePurgeClick}
+                      sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <IconDelete color="var(--red-main)" />
+                      <Typography color="var(--red-main)">
+                        Vaciar todo el catálogo
+                      </Typography>
+                    </MenuItem>
+                  </Menu>
+
+                  <NavBarButton
+                    text={t('tr_btnAdd')}
+                    main
+                    icon={<IconAddCongregation color="var(--always-white)" />}
+                    onClick={handleIsAddingOpen}
+                  ></NavBarButton>
+                </Box>
+              )}
+            </>
+          }
+        />
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            flexDirection: 'column',
+            gap: '16px',
+            borderRadius: 'var(--shape-xl)',
+            padding: '20px',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <MyCongregation />
+          <OtherCongregations />
+        </Box>
       </Box>
-    </Box>
     </>
   );
 };

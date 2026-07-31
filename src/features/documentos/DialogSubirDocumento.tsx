@@ -1,4 +1,5 @@
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState } from 'react';
+import { useFilePicker } from '@components/file_picker';
 import IconLoading from '@components/icon_loading';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -10,7 +11,11 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import { DocumentoArchivo, DocumentoVigencia } from '@definition/documentos';
 import { dbDocumentosGuardarArchivo } from '@services/dexie/documentos';
-import { uploadDocumentoPDF, saveDocumentoFirestore, deleteDocumentoPDF } from '@services/firebase/documentos';
+import {
+  uploadDocumentoPDF,
+  saveDocumentoFirestore,
+  deleteDocumentoPDF,
+} from '@services/firebase/documentos';
 import useCurrentUser from '@hooks/useCurrentUser';
 import { congIDState } from '@states/settings';
 import { documentoCategoriasState } from '@states/documentos';
@@ -18,7 +23,7 @@ import { displaySnackNotification } from '@services/states/app';
 import MenuItem from '@components/menuitem';
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
-const WARN_FILE_SIZE = 5 * 1024 * 1024;  // 5 MB
+const WARN_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const vigenciaOptions = [
   { value: '1semana', label: '1 semana' },
@@ -30,17 +35,31 @@ const vigenciaOptions = [
   { value: 'indefinido', label: 'Indefinido' },
 ];
 
-const calculateExpiration = (vigencia: DocumentoVigencia): string | undefined => {
+const calculateExpiration = (
+  vigencia: DocumentoVigencia
+): string | undefined => {
   if (vigencia === 'indefinido') return undefined;
 
   const now = new Date();
   switch (vigencia) {
-    case '1semana':  now.setDate(now.getDate() + 7);           break;
-    case '2semanas': now.setDate(now.getDate() + 14);          break;
-    case '1mes':     now.setMonth(now.getMonth() + 1);         break;
-    case '3meses':   now.setMonth(now.getMonth() + 3);         break;
-    case '6meses':   now.setMonth(now.getMonth() + 6);         break;
-    case '1anyo':    now.setFullYear(now.getFullYear() + 1);   break;
+    case '1semana':
+      now.setDate(now.getDate() + 7);
+      break;
+    case '2semanas':
+      now.setDate(now.getDate() + 14);
+      break;
+    case '1mes':
+      now.setMonth(now.getMonth() + 1);
+      break;
+    case '3meses':
+      now.setMonth(now.getMonth() + 3);
+      break;
+    case '6meses':
+      now.setMonth(now.getMonth() + 6);
+      break;
+    case '1anyo':
+      now.setFullYear(now.getFullYear() + 1);
+      break;
   }
   return now.toISOString();
 };
@@ -64,8 +83,6 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
   const congId = useAtomValue(congIDState);
   const categorias = useAtomValue(documentoCategoriasState);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -76,25 +93,28 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selected = e.target.files[0];
-      if (selected.type !== 'application/pdf') {
-        setError('Solo se permiten archivos PDF');
-        return;
-      }
-      if (selected.size > MAX_FILE_SIZE) {
-        setError('El archivo supera el límite de 15 MB');
-        return;
-      }
-      setError(selected.size > WARN_FILE_SIZE ? 'El archivo es grande, la compresión podría tardar' : null);
-      setFile(selected);
+  const handleFileChange = (selected: File) => {
+    if (selected.type !== 'application/pdf') {
+      setError('Solo se permiten archivos PDF');
+      return;
     }
+    if (selected.size > MAX_FILE_SIZE) {
+      setError('El archivo supera el límite de 15 MB');
+      return;
+    }
+    setError(
+      selected.size > WARN_FILE_SIZE
+        ? 'El archivo es grande, la compresión podría tardar'
+        : null
+    );
+    setFile(selected);
   };
 
   const handleSubir = async () => {
     if (!nombre || !categoriaId || !file) {
-      setError('Por favor completa los campos requeridos y selecciona un archivo');
+      setError(
+        'Por favor completa los campos requeridos y selecciona un archivo'
+      );
       return;
     }
 
@@ -109,8 +129,12 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const compressedBytes = await pdfDoc.save({ useObjectStreams: true });
-      const compressedBlob = new Blob([compressedBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
-      const base64Data = arrayBufferToBase64(compressedBytes.buffer as ArrayBuffer);
+      const compressedBlob = new Blob([compressedBytes.buffer as ArrayBuffer], {
+        type: 'application/pdf',
+      });
+      const base64Data = arrayBufferToBase64(
+        compressedBytes.buffer as ArrayBuffer
+      );
 
       setIsCompressing(false);
       setIsUploading(true);
@@ -142,7 +166,11 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
       // Guardar PDF localmente en este dispositivo para acceso instantáneo
       await dbDocumentosGuardarArchivo(id, base64Data);
 
-      displaySnackNotification({ severity: 'success', header: 'Documento publicado', message: 'El documento ya está disponible para todos los dispositivos.' });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Documento publicado',
+        message: 'El documento ya está disponible para todos los dispositivos.',
+      });
       handleClose();
     } catch (err) {
       console.error(err);
@@ -176,9 +204,17 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
 
   const isBusy = isCompressing || isUploading;
 
+  const { abrir, input } = useFilePicker({
+    accept: '.pdf',
+    onFile: handleFileChange,
+    disabled: isBusy,
+  });
+
   return (
     <Dialog open={open} onClose={isBusy ? undefined : handleClose}>
-      <Typography variant="h6" className="h2" sx={{ mb: 2 }}>Subir documento</Typography>
+      <Typography variant="h6" className="h2" sx={{ mb: 2 }}>
+        Subir documento
+      </Typography>
       <Stack spacing={3} sx={{ minWidth: { tablet600: 400 } }}>
         <TextField
           label="Nombre del documento *"
@@ -201,7 +237,9 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           disabled={isBusy}
         >
           {categorias.map((c) => (
-            <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>
+            <MenuItem key={c.id} value={c.id}>
+              {c.nombre}
+            </MenuItem>
           ))}
         </Select>
 
@@ -212,20 +250,26 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
           disabled={isBusy}
         >
           {vigenciaOptions.map((o) => (
-            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+            <MenuItem key={o.value} value={o.value}>
+              {o.label}
+            </MenuItem>
           ))}
         </Select>
 
-        <Box sx={{ border: '1px dashed var(--accent-main)', p: 2, borderRadius: 'var(--shape-lg)', textAlign: 'center' }}>
-          <input
-            type="file"
-            accept=".pdf"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-            disabled={isBusy}
-          />
-          <Button variant="tertiary" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
+        {/* El recuadro era de borde PUNTEADO, y aquí no se puede soltar nada:
+            no hay `onDrop` en toda la pantalla. El punteado promete arrastrar y
+            soltar; sin eso es solo un recuadro raro. Con el borde de siempre se
+            lee como lo que es: un bloque del formulario. */}
+        <Box
+          sx={{
+            border: '1px solid var(--line)',
+            p: 2,
+            borderRadius: 'var(--shape-lg)',
+            textAlign: 'center',
+          }}
+        >
+          {input}
+          <Button variant="tertiary" onClick={abrir} disabled={isBusy}>
             Seleccionar PDF
           </Button>
           {file && (
@@ -236,13 +280,22 @@ const DialogSubirDocumento = ({ open, onClose }: DialogSubirDocumentoProps) => {
         </Box>
 
         {error && (
-          <Typography color="var(--red-main)" className="label-small-regular">{error}</Typography>
+          <Typography color="var(--red-main)" className="label-small-regular">
+            {error}
+          </Typography>
         )}
 
         {isBusy && (
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            justifyContent="center"
+          >
             <IconLoading width={24} color="var(--accent-main)" />
-            <Typography>{isCompressing ? 'Comprimiendo PDF…' : 'Subiendo documento…'}</Typography>
+            <Typography>
+              {isCompressing ? 'Comprimiendo PDF…' : 'Subiendo documento…'}
+            </Typography>
           </Stack>
         )}
 

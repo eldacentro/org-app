@@ -34,7 +34,12 @@ const WeekSelector = () => {
 
   return (
     <CollapsibleSelector
-      title={t('tr_meetings')}
+      // El rótulo del panel dice QUÉ se está eligiendo, y aquí se eligen
+      // semanas: dentro no hay más que la lista de semanas del año. Decía
+      // "Reuniones" —el nombre de la sección, no el del control— mientras el
+      // de Departamentos, que es el mismo panel con la misma lista, decía
+      // "Semanas".
+      title={t('tr_weeks', 'Semanas')}
       valuePrefix={t('tr_week')}
       valueLabel={selectedWeekDateLocale}
       expanded={expanded}

@@ -524,14 +524,41 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
         el año de SERVICIO, no el natural. Ya está hecho con el `Select` y el
         `MenuItem` de la app. Convertirlo en el panel plegable grande sería
         empeorarlo.
-- [ ] **Elegir una semana** (4) → `week_selector` + `week_navigator`; borrar la
-      copia con prefijo `Dept` y la tercera de Oradores salientes
+- [x] **Elegir una semana** — cerrado con matiz, y el inventario volvía a
+      exagerar. No hay tres copias del mismo control:
+      · `weekly_schedules/week_selector` es la TIRA horizontal de semanas, y es
+        distinta a propósito (tiene su nota explicando por qué no usa las
+        pestañas de MUI). La usan las seis pestañas de Programas semanales,
+        Oradores salientes incluida — o sea que no había "una tercera copia".
+      · `meetings/week_selector` y `departments_schedule/week_selector` son el
+        MISMO dibujo, sí, pero porque los dos son ya `CollapsibleSelector` +
+        `ScrollableTabs`: lo compartido está compartido, y lo que queda propio
+        de cada uno son sus datos y, en el de reuniones, ordenar y borrar
+        asignaciones en bloque. Fundirlos sería inventar un componente para
+        ahorrar tres líneas de JSX.
+      Lo que SÍ estaba mal era el rótulo: el panel de reuniones se titulaba
+      "Reuniones" —el nombre de la sección— cuando dentro no hay más que la
+      lista de semanas, mientras el de Departamentos, que es el mismo panel con
+      la misma lista, decía "Semanas". Arreglado.
 - [x] **Reordenar** (2) → hecho, ver bloque 0: los cuatro sitios a
       `@components/drag_handle`
 - [ ] **Confirmar acción destructiva** (3) → `useConfirm()` repintado por
       dentro; luego colapsar las once carpetas `*_delete`
 - [ ] **Pie de diálogo** (2) → el pie apilado de `@components/dialog`
-- [ ] **Subir un fichero** (5) → `@components/file_picker`
+- [x] **Subir un fichero** — eran 7, no 5, y el problema no era el aspecto.
+      Los tres dibujos que hay (panel en Documentos, botón con el nombre del
+      fichero en Importar KML, acción de barra en Importar .jwpub) están bien
+      cada uno en su sitio; un componente único tendría que saber pintar los
+      tres y acabaría siendo un botón con cinco props para disfrazarlo.
+      Lo igual en los siete —y lo que estaba mal en DOS— es la fontanería: un
+      `<input type="file">` solo avisa cuando su valor CAMBIA, así que si
+      eliges un fichero y luego vuelves a elegir EL MISMO, no pasa nada. Cinco
+      lo arreglaban a mano; Documentos y el CSV de oradores, no.
+      Ahora hay `useFilePicker` (`@components/file_picker`), que se queda con
+      el input escondido y vacía el valor siempre. Comprobado en el navegador
+      con un fichero de verdad: llega al diálogo y el input queda vacío.
+      De paso, el recuadro de Documentos era de borde PUNTEADO sin admitir
+      arrastrar y soltar (no hay un `onDrop` en toda la pantalla).
 - [x] **Indicador de carga** → 5 de los 8 `CircularProgress` a `IconLoading`.
       Los otros 3 se quedan: NO son indicadores de carga, son anillos
       decorativos alrededor de un avatar, con `thickness` y posición absoluta,
