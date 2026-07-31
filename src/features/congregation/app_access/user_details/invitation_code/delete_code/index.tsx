@@ -4,6 +4,7 @@ import { useAppTranslation } from '@hooks/index';
 import { DeleteCodeType } from './index.types';
 import useDeleteCode from './useDeleteCode';
 import Button from '@components/button';
+import DialogFooter from '@components/dialog_footer';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 
@@ -22,27 +23,24 @@ const DeleteCode = ({ open, onClose, user }: DeleteCodeType) => {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button
-          variant="main"
-          color="red"
-          disabled={isProcessing}
-          endIcon={isProcessing && <IconLoading />}
-          onClick={handleDeleteCode}
-        >
-          {t('tr_delete')}
-        </Button>
-        <Button variant="tertiary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
-      </Box>
+      <DialogFooter
+        action={
+          <Button
+            variant="main"
+            color="red"
+            disabled={isProcessing}
+            endIcon={isProcessing && <IconLoading />}
+            onClick={handleDeleteCode}
+          >
+            {t('tr_delete')}
+          </Button>
+        }
+        cancel={
+          <Button variant="tertiary" onClick={onClose}>
+            {t('tr_cancel')}
+          </Button>
+        }
+      />
     </Dialog>
   );
 };

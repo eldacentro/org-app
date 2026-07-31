@@ -1,5 +1,5 @@
-import { Box } from '@mui/material';
 import Button from '@components/button';
+import DialogFooter from '@components/dialog_footer';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import { useAppTranslation } from '@hooks/index';
@@ -18,21 +18,18 @@ const DeletePersonConfirm = ({
       <Typography className="body-regular" color="var(--grey-400)">
         {t('tr_deletePersonConfirmation')}
       </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button variant="main" onClick={onConfirm} color="red">
-          {t('tr_delete')}
-        </Button>
-        <Button variant="tertiary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
-      </Box>
+      <DialogFooter
+        action={
+          <Button variant="main" onClick={onConfirm} color="red">
+            {t('tr_delete')}
+          </Button>
+        }
+        cancel={
+          <Button variant="tertiary" onClick={onClose}>
+            {t('tr_cancel')}
+          </Button>
+        }
+      />
     </Dialog>
   );
 };

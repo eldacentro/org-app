@@ -542,9 +542,34 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       la misma lista, decía "Semanas". Arreglado.
 - [x] **Reordenar** (2) → hecho, ver bloque 0: los cuatro sitios a
       `@components/drag_handle`
-- [ ] **Confirmar acción destructiva** (3) → `useConfirm()` repintado por
-      dentro; luego colapsar las once carpetas `*_delete`
-- [ ] **Pie de diálogo** (2) → el pie apilado de `@components/dialog`
+- [~] **Confirmar acción destructiva** — hecha la parte que se VE; queda la
+      que no.
+      `useConfirm()` se pintaba su propio papel con `Dialog` de MUI en crudo
+      —radio, fondo, borde, sombra, velo—, repitiendo lo que `@components/dialog`
+      ya hace, y por eso se quedaba fuera de cualquier arreglo que se hiciera
+      allí (los márgenes seguros de iOS, por ejemplo). Ahora usa el compartido.
+      Y las seis carpetas `*_delete` que son SOLO una confirmación (sin campos)
+      llevan ya el mismo pie. Las otras cinco no se tocan y no es pereza: pedir
+      el nombre escrito a mano, volver a autenticarse o decidir qué pasa con
+      los miembros del grupo no es "confirmar", es un formulario.
+      **Queda**: colapsar esas seis carpetas en llamadas a `useConfirm()`. Ya
+      es puramente mecánico —se ven idénticas—, así que no corre prisa.
+- [x] **Pie de diálogo** → `@components/dialog_footer`. Eran dos idiomas y
+      NINGUNO era minoritario: apilado a lo ancho (las once `*_delete`, enviar
+      el informe, el aviso de modo de prueba…) contra fila a la derecha
+      (Territorios, Documentos, Limpieza y veinticinco ficheros más). Borrar un
+      grupo y borrar un territorio —el mismo acto, con el mismo riesgo— se
+      pedían de dos formas distintas según la pantalla.
+      Se quedan los dos, porque cada uno tiene razón en su sitio: apilado y a
+      lo ancho es lo correcto en un móvil (dos objetivos grandes para el
+      pulgar) y en fila a la derecha lo es en escritorio (un "Cancelar" de
+      496px no parece un botón, parece una barra). El pie es uno solo y cambia
+      con el SITIO, no con la pantalla que lo use.
+      En el código va siempre primero la acción y después "Cancelar"; en fila
+      se le da la vuelta con `row-reverse`. Una forma de escribirlo, las dos
+      convenciones. Medido: a 1280 salen en fila con Eliminar a la derecha, a
+      24px del canto; a 393 se apilan, los dos a 281 de ancho y Eliminar
+      arriba.
 - [x] **Subir un fichero** — eran 7, no 5, y el problema no era el aspecto.
       Los tres dibujos que hay (panel en Documentos, botón con el nombre del
       fichero en Importar KML, acción de barra en Importar .jwpub) están bien

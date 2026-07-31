@@ -1,13 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 // hook + component pair intentionally co-located (ConfirmDialog + useConfirm)
 import { useState, useCallback } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
 import Button from '@components/button';
+import Dialog from '@components/dialog';
+import DialogFooter from '@components/dialog_footer';
 import Typography from '@components/typography';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -33,44 +29,39 @@ const ConfirmDialog = ({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) => (
+  // El `Dialog` de la app, no el de MUI en crudo. Este componente se pintaba
+  // su propio papel a mano —radio, fondo, borde, sombra, velo— repitiendo lo
+  // que el compartido ya hace, y por eso se quedaba fuera de cualquier arreglo
+  // que se hiciera allí (los márgenes seguros de iOS, por ejemplo).
   <Dialog
     open={open}
     onClose={onCancel}
-    PaperProps={{
-      sx: {
-        borderRadius: 'var(--shape-xl)',
-        backgroundColor: 'var(--card)',
-        border: '1px solid var(--line)',
-        boxShadow: 'var(--pop-up-shadow)',
-        maxWidth: '444px',
-        width: '100%',
-        mx: 2,
-      },
-    }}
-    slotProps={{
-      backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
-    }}
+    PaperProps={{ sx: { maxWidth: '444px' } }}
   >
-    <DialogTitle sx={{ color: 'var(--ink)', fontWeight: 700, pb: 0 }}>
+    <Typography className="h2" color="var(--ink)">
       {title}
-    </DialogTitle>
-    <DialogContent sx={{ pt: 1.5 }}>
-      <Typography variant="body2" sx={{ color: 'var(--ink-2)' }}>
-        {message}
-      </Typography>
-    </DialogContent>
-    <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-      <Button variant="tertiary" onClick={onCancel}>
-        {cancelLabel}
-      </Button>
-      <Button
-        variant={destructive ? 'secondary' : 'main'}
-        onClick={onConfirm}
-        sx={destructive ? { color: 'var(--red-main)', borderColor: 'var(--red-main)' } : undefined}
-      >
-        {confirmLabel}
-      </Button>
-    </DialogActions>
+    </Typography>
+
+    <Typography className="body-regular" color="var(--ink-2)">
+      {message}
+    </Typography>
+
+    <DialogFooter
+      action={
+        <Button
+          variant="main"
+          color={destructive ? 'red' : undefined}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </Button>
+      }
+      cancel={
+        <Button variant="tertiary" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+      }
+    />
   </Dialog>
 );
 
@@ -110,7 +101,12 @@ export const useConfirm = () => {
   const [state, setState] = useState<ConfirmState>(INITIAL);
 
   const confirm = useCallback(
-    (opts: { message: string; title?: string; confirmLabel?: string; destructive?: boolean }) =>
+    (opts: {
+      message: string;
+      title?: string;
+      confirmLabel?: string;
+      destructive?: boolean;
+    }) =>
       new Promise<boolean>((resolve) =>
         setState({ open: true, resolve, ...opts })
       ),

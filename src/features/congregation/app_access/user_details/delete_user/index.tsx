@@ -4,6 +4,7 @@ import { useAppTranslation } from '@hooks/index';
 import { DeleteUserType } from './index.types';
 import useDeleteUser from './useDeleteUser';
 import Button from '@components/button';
+import DialogFooter from '@components/dialog_footer';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import Markup from '@components/text_markup';
@@ -25,27 +26,24 @@ const DeleteUser = ({ open, onClose, user }: DeleteUserType) => {
         />
       </Box>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button
-          variant="main"
-          color="red"
-          disabled={isProcessing}
-          endIcon={isProcessing && <IconLoading />}
-          onClick={handleDeleteUser}
-        >
-          {t('tr_delete')}
-        </Button>
-        <Button variant="tertiary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
-      </Box>
+      <DialogFooter
+        action={
+          <Button
+            variant="main"
+            color="red"
+            disabled={isProcessing}
+            endIcon={isProcessing && <IconLoading />}
+            onClick={handleDeleteUser}
+          >
+            {t('tr_delete')}
+          </Button>
+        }
+        cancel={
+          <Button variant="tertiary" onClick={onClose}>
+            {t('tr_cancel')}
+          </Button>
+        }
+      />
     </Dialog>
   );
 };

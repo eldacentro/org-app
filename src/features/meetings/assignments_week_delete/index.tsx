@@ -4,6 +4,7 @@ import { AssignmentsWeekDeleteType } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import useAssignmentsDelete from './useAssignmentsWeekDelete';
 import Button from '@components/button';
+import DialogFooter from '@components/dialog_footer';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 
@@ -34,27 +35,24 @@ const AssignmentsWeekDelete = ({
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button
-          variant="main"
-          color="red"
-          disabled={isProcessing}
-          endIcon={isProcessing && <IconLoading />}
-          onClick={handleClearAssignments}
-        >
-          {t('tr_clear')}
-        </Button>
-        <Button variant="tertiary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
-      </Box>
+      <DialogFooter
+        action={
+          <Button
+            variant="main"
+            color="red"
+            disabled={isProcessing}
+            endIcon={isProcessing && <IconLoading />}
+            onClick={handleClearAssignments}
+          >
+            {t('tr_clear')}
+          </Button>
+        }
+        cancel={
+          <Button variant="tertiary" onClick={onClose}>
+            {t('tr_cancel')}
+          </Button>
+        }
+      />
     </Dialog>
   );
 };
