@@ -7,6 +7,7 @@ import {
   StyledImgContainer,
   StyledCardBox,
 } from './user_card.styles';
+import { Box } from '@mui/material';
 import type { CustomUserCardProps } from './user_card.types';
 import IconDelete from '../icons/IconDelete';
 import IconArrowLink from '../icons/IconArrowLink';
@@ -38,7 +39,44 @@ const UserCard = ({
 }: CustomUserCardProps) => {
   return (
     <StyledCardBox>
-      <StyledCard onClick={() => onClick?.()}>
+      <StyledCard sx={{ position: 'relative' }}>
+        {/* Abrir la ficha, con el TECLADO también.
+            La tarjeta entera era un `div` con `onClick`: con el ratón se abría
+            y tabulando no había manera. En la lista de personas eso son CIEN
+            filas seguidas por las que no se puede pasar, y es la pantalla que
+            usa cualquiera que lleve las publicaciones o los informes.
+
+            Va como una CAPA que cubre la tarjeta y no envolviéndola, por lo
+            mismo que en las secciones plegables: dentro hay otro botón —el de
+            borrar—, y un botón dentro de otro botón no es HTML válido. Con la
+            capa debajo (el de borrar lleva su `position: relative`), ese sigue
+            siendo suyo.
+
+            El nombre va en la etiqueta: cien "Abrir" seguidos no dicen a quién
+            se abre. */}
+        {onClick && (
+          <Box
+            component="button"
+            type="button"
+            aria-label={name}
+            onClick={() => onClick?.()}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              appearance: 'none',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              '&:focus-visible': {
+                outline: '2px solid var(--accent-main)',
+                outlineOffset: '-3px',
+                borderRadius: 'var(--shape-md)',
+              },
+            }}
+          />
+        )}
         <StyledCardContent>
           <StyledBox gap="13px" sx={{ flexWrap: 'nowrap' }}>
             <StyledBox gap="12px" sx={{ width: '100%' }}>

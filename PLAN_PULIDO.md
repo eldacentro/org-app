@@ -310,6 +310,22 @@ Entre los cinco son el **56%** del total.
       navegador de semanas—: se anunciaban como botón a un lector de pantalla y
       no se podían enfocar ni pulsar con el teclado. Eso es PEOR que un `div` a
       secas, porque prometen algo que no cumplen. Los tres son ya `<button>`.
+      **REABIERTO y vuelto a cerrar (2026-07-31): faltaba la lista de
+      Personas.** Se comprobó de una forma nueva —preguntándole a React por sus
+      props (`__reactProps$`) qué elementos tienen `onClick` y no se pueden
+      enfocar— en vez de por el aspecto, y salieron las **100 fichas de la
+      lista de personas**: la pantalla entera, otra vez, sin teclado. El
+      barrido anterior había arreglado la lista de Registros de publicadores y
+      dio por hecho que la de Personas era la misma; no lo es.
+      Va en `@components/user_card`, o sea que lo hereda también la lista de
+      solicitudes. Y va como CAPA que cubre la tarjeta, no envolviéndola,
+      porque dentro hay otro botón —el de borrar—: un botón dentro de otro no
+      es HTML válido. El de borrar lleva `position: relative` para quedar por
+      encima; comprobado con `elementFromPoint` que pulsar el icono llega al
+      icono y pulsar el cuerpo llega a la ficha, que si se cruzaran se borraría
+      a alguien queriendo abrirlo.
+      La etiqueta es el NOMBRE de la persona: cien "Abrir" seguidos no dicen a
+      quién se abre.
       Lo anterior sigue en pie: comprobado en el navegador, no con
       `grep`: las 43 rutas de `App.tsx`, contando botones sin nombre
       accesible. Cero.

@@ -34,6 +34,10 @@ export const StyledIconWrapper = styled(IconButton, {
     !['hoverBackgrColor', 'iconColor'].includes(String(prop)),
 })<{ hoverBackgrColor: string; iconColor: string }>(
   ({ hoverBackgrColor, iconColor }) => ({
+    // Por encima de la capa que abre la ficha. Sin esto, el botón de borrar
+    // quedaría DEBAJO de ella y pulsarlo abriría la persona en vez de
+    // borrarla — que es exactamente el error que no se puede permitir.
+    position: 'relative',
     '& svg:hover': {
       background: hoverBackgrColor,
       borderRadius: 'var(--shape-md)',
