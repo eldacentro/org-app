@@ -12,12 +12,12 @@ import {
   DialogContent,
   DialogActions,
   FormControlLabel,
-  TextField,
   Tabs,
   Tab,
   IconButton,
   Chip,
 } from '@mui/material';
+import TextField from '@components/textfield';
 import { useAtom, useAtomValue } from 'jotai';
 import {
   useAppTranslation,

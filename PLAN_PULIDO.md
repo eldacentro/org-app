@@ -369,6 +369,21 @@ Entre los cinco son el **56%** del total.
       (`<Button`, `<TextField`) sin mirar si venían de `@mui/material` o de
       `@components`. Lo que queda de verdad: TextField 22, Chip 16, Select 8,
       Tabs 3, Checkbox 1, Switch 1.
+      **Los `TextField` (2026-07-31).** De los 14 que contaba el recuento,
+      **cinco eran legítimos**: son el `renderInput` de un `Autocomplete`, y
+      ahí tiene que ser el de MUI —esos ficheros importan los dos, el de la app
+      con su nombre y el de MUI como `MuiTextField`, que es justo lo correcto—.
+      Los otros nueve pasan al de la app y ganan lo que les faltaba: la elipsis
+      cuando el valor no cabe (antes se cortaba en seco), el color apagado del
+      campo vacío y el de los iconos.
+      Para que entraran los cuatro que NO son de ancho completo hubo que
+      arreglar el componente: `fullWidth` estaba clavado DESPUÉS del
+      `{...props}`, así que ganaba siempre y un campo que solo debe ocupar su
+      hueco no podía usarlo. Ahora es `props.fullWidth ?? true` — mismo
+      comportamiento para los 60 sitios que ya lo usaban, y una salida para los
+      que la necesitan.
+      Comprobado escribiendo en uno: 358×56, `text-overflow: ellipsis`, valor
+      en `--black`.
       Hecha la parte de los BOTONES, que es donde se
       veía. De 108 quedan **cinco** `<Button>` de MUI en toda la app, y los
       cinco son legítimos: son componentes compartidos que CONSTRUYEN su propio

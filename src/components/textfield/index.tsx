@@ -56,7 +56,14 @@ const TextField = (props: TextFieldTypeProps) => {
     <MUITextField
       {...defaultProps}
       type={inputType}
-      fullWidth
+      // A lo ancho por defecto, que es lo que quiere casi todo formulario de
+      // la app — pero se puede decir que no. Antes estaba clavado DESPUÉS del
+      // `{...defaultProps}`, así que ganaba siempre y un campo que solo debía
+      // ocupar su hueco (el número de una fila, el minuto de una hora) no
+      // podía usar este componente sin descolocarse. Eso dejaba a esos campos
+      // con el `TextField` de MUI en crudo, sin la elipsis de este ni el color
+      // del valor vacío.
+      fullWidth={defaultProps.fullWidth ?? true}
       sx={{
         // La geometría del campo —alto, radio, relleno, hueco para la etiqueta
         // de dentro— la gobierna el bloque «EL CAMPO» de `global/index.css`,

@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
-  TextField,
   Tabs,
   Tab,
   IconButton,
@@ -19,6 +18,7 @@ import {
   Chip,
   List,
 } from '@mui/material';
+import TextField from '@components/textfield';
 import { useAtom, useAtomValue } from 'jotai';
 import {
   useAppTranslation,
@@ -4493,6 +4493,10 @@ const Exhibitors = () => {
               // "Nueva ubicación rápida..." no cabía al lado del botón en un
               // móvil y se leía "Nueva ubicación ráp". Es el mismo campo que
               // el de la pestaña de Ubicaciones, que ya se llama así.
+              //
+              // Sin estirarse: va en una fila con un botón al lado y ocupa lo
+              // que le toca, no todo el ancho.
+              fullWidth={false}
               placeholder="Nueva ubicación"
               value={turnConfigDialog.newLocationText}
               onChange={(e) =>
