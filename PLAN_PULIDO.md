@@ -358,8 +358,26 @@ Entre los cinco son el **56%** del total.
 
 Necesita ojos encima. Orden por impacto, no por comodidad.
 
-- [ ] Borrar los ~19 ficheros muertos del panel viejo (ninguna ruta los monta;
-      hoy inflan el recuento de la peor zona)
+- [x] **Los ficheros muertos** — no eran ~19: eran **133**, y el panel viejo
+      solo aporta 23 de ellos. Medidos, no contados a ojo: se sigue el grafo de
+      importaciones desde `main.tsx` y `App.tsx` (más `new URL(...)`, que es
+      como se carga el worker de la sincronización) y se marca lo que no
+      alcanza nadie.
+      Lo gordo que había debajo: `whats_new` entero, la vista mensual de
+      reuniones, el cronómetro de predicación, medio catálogo de oradores
+      (accesos por congregación, alternar visibilidad, añadir en línea), el
+      selector de hora por deslizamiento, `multi_select`, `feature_flag` y
+      cinco ilustraciones.
+      **Se conservan siete a propósito**: los cuatro `types/*.d.ts` (los
+      consume tsc por configuración, no por import), el doble de pruebas
+      `test/appDbStub.ts`, y los dos scripts de migración de Territorios —
+      tocan datos reales y borrarlos tira un camino de recuperación.
+      **El efecto de verdad**: los errores de tsc bajan de **419 a 129**. Casi
+      trescientos vivían en ficheros que nadie monta, o sea que la línea base
+      que llevaba meses tapando fallos reales (el de Limpieza salió de ahí) era
+      en sus dos terceras partes ruido de código muerto.
+      Comprobado: build limpio, 438 pruebas, cero errores de eslint, y nueve
+      pantallas recorridas en el navegador.
 - [~] **Inicio** — Carlos apostaba a que no había nada, y de forma medible
       casi acierta: ni un radio fuera de escala, ni un color fijo. Pero había
       un fallo que no se ve MIRANDO, sino tabulando: la tarjeta de "Mis
