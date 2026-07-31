@@ -1,5 +1,11 @@
 # El sistema de diseño de los PDF
 
+> **Origen.** Este sistema lo diseñó Claude Design (proyecto «Sistema PDF Elda
+> Centro»); la especificación completa —paleta, escala, anatomía, piezas y los
+> doce documentos uno a uno— está en `ESPECIFICACION.md` de ese proyecto. Aquí
+> queda lo que hace falta para mantener el código; el código lo implementa en
+> `src/views/design/`.
+
 Este documento gobierna **todo lo que la app imprime**. El código vive en
 [`src/views/design/`](./src/views/design/); aquí está el porqué.
 

@@ -1,13 +1,24 @@
-import { View } from '@react-pdf/renderer';
-import { PdfEmpty, PdfNote, Sheet, color, space, text } from '@views/design';
-import { Text } from '@react-pdf/renderer';
+import { Text, View } from '@react-pdf/renderer';
+import {
+  PdfCard,
+  PdfNote,
+  Sheet,
+  color,
+  periodo,
+  space,
+  stroke,
+  text,
+} from '@views/design';
 import { ECGroupPageProps } from './index.types';
-import ECMember from './ECMember';
 
 /**
- * Una hoja por grupo. Por eso el grupo es el subtítulo y no una banda: el
- * título de la hoja es "Contactos de emergencia", y de qué grupo es va justo
- * debajo, como en todos los demás documentos.
+ * Documento 12 · Contactos de emergencia. Una hoja por grupo.
+ *
+ * Tarjeta única con tabla. La fila lleva el nombre y, debajo, la dirección en
+ * secundaria; a la derecha el teléfono y los contactos de emergencia.
+ *
+ * **Normal hasta 14 filas; de 15 a 18, modo compacto** (la dirección sube a la
+ * misma línea del nombre). Por encima de 18 no cabe en una hoja y se avisa.
  */
 const ECGroupPage = ({
   group,
@@ -15,52 +26,117 @@ const ECGroupPage = ({
   generatedAt,
   coContact,
 }: ECGroupPageProps) => {
-  // El nombre del CO ya existe en Ajustes desde hace tiempo, así que se
-  // muestra en cuanto haya un nombre — no hace falta esperar a que también se
-  // rellenen teléfono y correo, que son los campos nuevos y opcionales.
-  const showCoContact = !!coContact?.name;
-  const total = group.members.length;
+  const dense = group.members.length > 14;
+  const size = dense ? 8.2 : 9;
 
   return (
     <Sheet
       congregation={congregation}
-      meta={generatedAt}
+      period={periodo(new Date())}
       title="Contactos de emergencia"
-      subtitle={`${group.group_name} · ${total} ${
-        total === 1 ? 'publicador' : 'publicadores'
+      subtitle={`${group.group_name} · ${group.members.length} ${
+        group.members.length === 1 ? 'publicador' : 'publicadores'
       }`}
-      paginated
-      footerMeta={generatedAt}
+      documentName="Contactos de emergencia"
+      updatedAt={generatedAt}
+      dense={dense}
     >
-      {showCoContact ? (
-        <PdfNote style={{ marginBottom: space.lg }}>
-          <Text style={{ ...text.body, fontWeight: 700 }}>
-            Superintendente de circuito: {coContact.name}
-          </Text>
-          {[coContact.phone, coContact.email].filter(Boolean).length > 0 ? (
-            <Text style={{ ...text.body, fontSize: 8.6, color: color.muted }}>
-              {[coContact.phone, coContact.email].filter(Boolean).join('  ·  ')}
-            </Text>
-          ) : null}
-        </PdfNote>
-      ) : null}
-
-      {total === 0 ? (
-        <PdfEmpty>Sin publicadores en este grupo.</PdfEmpty>
-      ) : (
+      <PdfCard title={group.group_name} meta="Uso interno" flush>
         <View
           style={{
             display: 'flex',
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: space.lg,
+            paddingVertical: 4,
+            paddingHorizontal: 9,
+            borderBottom: `${stroke.hairline}px solid ${color.border}`,
           }}
         >
-          {group.members.map((member, i) => (
-            <ECMember key={member.name + i} member={member} />
-          ))}
+          <Text style={{ ...text.label, flex: 1 }}>Publicador</Text>
+          <Text style={{ ...text.label, width: 74 }}>Teléfono</Text>
+          <Text style={{ ...text.label, width: 186 }}>
+            Contactos de emergencia
+          </Text>
         </View>
-      )}
+
+        {group.members.map((member, idx) => (
+          <View
+            key={member.name + idx}
+            wrap={false}
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              paddingVertical: dense ? 3 : 4.5,
+              paddingHorizontal: 9,
+              ...(idx % 2 === 1 && { backgroundColor: color.zebra }),
+            }}
+          >
+            <View style={{ flex: 1, paddingRight: space.md }}>
+              {dense ? (
+                <Text style={{ fontSize: size }}>
+                  <Text style={{ fontWeight: 700 }}>{member.name}</Text>
+                  {member.address ? (
+                    <Text style={{ fontSize: 7.5, color: color.secondary }}>
+                      {'  '}
+                      {member.address}
+                    </Text>
+                  ) : null}
+                </Text>
+              ) : (
+                <>
+                  <Text style={{ fontSize: size, fontWeight: 700 }}>
+                    {member.name}
+                  </Text>
+                  {member.address ? (
+                    <Text style={{ ...text.meta, fontSize: 8 }}>
+                      {member.address}
+                    </Text>
+                  ) : null}
+                </>
+              )}
+            </View>
+
+            <Text style={{ width: 74, fontSize: size, fontWeight: 600 }}>
+              {member.phone || '—'}
+            </Text>
+
+            <View style={{ width: 186 }}>
+              {member.emergencyContacts.length === 0 ? (
+                <Text
+                  style={{
+                    fontSize: 8,
+                    fontStyle: 'italic',
+                    color: color.faint,
+                  }}
+                >
+                  Sin contacto registrado
+                </Text>
+              ) : (
+                member.emergencyContacts.map((c, i) => (
+                  <Text key={i} style={{ fontSize: 8, color: color.ink }}>
+                    {c.name}
+                    <Text style={{ color: color.faint }}> · </Text>
+                    {c.contact}
+                  </Text>
+                ))
+              )}
+            </View>
+          </View>
+        ))}
+      </PdfCard>
+
+      <PdfNote style={{ marginTop: space.lg }}>
+        <Text style={{ ...text.body, fontWeight: 600 }}>
+          En una urgencia, llama primero al 112
+        </Text>
+        <Text style={{ ...text.body, color: color.secondary, marginTop: 2 }}>
+          {coContact?.name
+            ? `Avisa después al superintendente de circuito, ${coContact.name}${
+                coContact.phone ? ` (${coContact.phone})` : ''
+              }, y al coordinador del cuerpo de ancianos.`
+            : 'Avisa después al coordinador del cuerpo de ancianos.'}
+        </Text>
+      </PdfNote>
     </Sheet>
   );
 };

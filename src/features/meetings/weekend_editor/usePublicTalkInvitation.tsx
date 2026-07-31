@@ -22,6 +22,8 @@ import { generateAndSharePdf } from './pdfShare';
 import { CoordinatorInfo } from '@views/meetings/weekend/VisitingSpeakerInvitation/index.types';
 
 const usePublicTalkInvitation = (
+  /** La semana en crudo (yyyy/MM/dd), para la cápsula de periodo del PDF. */
+  weekOf: string,
   weekDateLocale: string,
   time: string,
   selectedTalkNumber?: number,
@@ -156,6 +158,7 @@ const usePublicTalkInvitation = (
     const document = (
       <VisitingSpeakerInvitation
         speakerName={speakerName}
+        dateRaw={weekOf}
         dateLocale={weekDateLocale}
         time={time}
         outlineNumber={selectedTalkNumber ? selectedTalkNumber.toString() : ''}

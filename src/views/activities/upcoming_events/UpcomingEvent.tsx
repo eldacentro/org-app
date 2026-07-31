@@ -1,82 +1,89 @@
 import { View, Text } from '@react-pdf/renderer';
-import { cloneElement } from 'react';
 import {
   UpcomingEventCategory,
   UpcomingEventDuration,
 } from '@definition/upcoming_events';
-import { decorationsForEvent } from './decoration_for_event';
+import {
+  PdfCategory,
+  PdfHairline,
+  category,
+  color,
+  space,
+  text,
+} from '@views/design';
 import { useAppTranslation } from '@hooks/index';
-import { color, radius, space, stroke, text } from '@views/design';
+import { decorationsForEvent } from './decoration_for_event';
 import { UpcomingEventProps } from './index.types';
-import UpcomingEventDate from './UpcomingEventDate';
 
-const UpcomingEvent = ({ event }: UpcomingEventProps) => {
+/**
+ * El color de categoría de cada tipo de evento. Los que no encajan en ninguna
+ * de las cuatro familias del sistema se quedan con el de visita, que es el
+ * neutro de la paleta categórica.
+ */
+const colorDe = (cat: UpcomingEventCategory) => {
+  switch (cat) {
+    case UpcomingEventCategory.AssemblyWeek:
+    case UpcomingEventCategory.ConventionWeek:
+    case UpcomingEventCategory.InternationalConventionWeek:
+      return category.assembly;
+    case UpcomingEventCategory.SpecialCampaignWeek:
+    case UpcomingEventCategory.PioneerWeek:
+      return category.campaign;
+    case UpcomingEventCategory.MemorialWeek:
+      return category.memorial;
+    default:
+      return category.visit;
+  }
+};
+
+/**
+ * Una fila de evento: bloque de fecha a la izquierda, categoría y título a la
+ * derecha.
+ */
+const UpcomingEvent = ({
+  event,
+  first,
+}: UpcomingEventProps & { first?: boolean }) => {
   const { t } = useAppTranslation();
 
+  const etiqueta =
+    event.category !== UpcomingEventCategory.Custom
+      ? t(decorationsForEvent[event.category].translationKey)
+      : event.custom;
+
+  const varios =
+    event.duration === UpcomingEventDuration.MultipleDays && event.datesRange;
+
   return (
-    <View
-      wrap={false}
-      style={{
-        border: `${stroke.thin}px solid ${color.line}`,
-        backgroundColor: color.white,
-        borderRadius: radius.lg,
-        padding: space.lg,
-      }}
-    >
-      <View style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <View style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: space.sm,
-            }}
-          >
-            {cloneElement(decorationsForEvent[event.category].icon, {
-              size: 14,
-              backgroundColor: 'none',
-            })}
+    <View wrap={false}>
+      {!first ? <PdfHairline style={{ marginVertical: space.md }} /> : null}
 
-            <Text style={text.heading}>
-              {event.category !== UpcomingEventCategory.Custom
-                ? t(decorationsForEvent[event.category].translationKey)
-                : event.custom}
-            </Text>
-          </View>
-
-          <Text style={{ ...text.body, color: color.muted }}>
-            {event.description}
+      <View style={{ display: 'flex', flexDirection: 'row', gap: space.lg }}>
+        {/* Bloque de fecha */}
+        <View style={{ width: 44 }}>
+          <Text style={text.calendarNumeral}>
+            {varios ? event.dates.length : new Date(event.start).getDate()}
+          </Text>
+          <Text style={text.label}>
+            {varios
+              ? 'días'
+              : new Date(event.start)
+                  .toLocaleDateString('es-ES', { month: 'short' })
+                  .replace('.', '')}
           </Text>
         </View>
 
-        {event.duration === UpcomingEventDuration.SingleDay && (
-          <UpcomingEventDate
-            date={event.date}
-            day={event.day}
-            title={event.time}
-          />
-        )}
-
-        {event.duration === UpcomingEventDuration.MultipleDays &&
-          event.category !== UpcomingEventCategory.SpecialCampaignWeek &&
-          event.dates.map((eventDate, eventDateIndex) => (
-            <UpcomingEventDate
-              key={eventDate.date}
-              date={eventDate.dateFormatted}
-              day={eventDate.day}
-              title={eventDate.time}
-              description={`${t('tr_day')} ${eventDateIndex + 1}/${event.dates.length}`}
-            />
-          ))}
-
-        {event.category === UpcomingEventCategory.SpecialCampaignWeek && (
-          <UpcomingEventDate
-            range={event.datesRange}
-            title={t('tr_everyDay')}
-            description={t('tr_days', { daysCount: event.dates.length })}
-          />
-        )}
+        <View style={{ flex: 1 }}>
+          <PdfCategory color={colorDe(event.category)}>{etiqueta}</PdfCategory>
+          <Text style={{ ...text.heading, marginTop: 2 }}>
+            {event.description || etiqueta}
+          </Text>
+          <Text style={{ fontSize: 8.5, color: color.secondary, marginTop: 1 }}>
+            {[event.datesRange || event.date, event.time]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+        </View>
       </View>
     </View>
   );

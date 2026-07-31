@@ -2,176 +2,188 @@ import { ReactNode } from 'react';
 import { Style } from '@react-pdf/stylesheet';
 import { Text, View } from '@react-pdf/renderer';
 import { color, radius, space, stroke, text } from './tokens';
-import { CAPSULA, withCapsule } from './capsule';
 
 /**
- * Las piezas que van DENTRO de una hoja: sección, tarjeta, bloque destacado,
- * etiqueta de estado y la cápsula de color.
+ * Las piezas que van dentro de una hoja. Implementa `PDF_DESIGN_SYSTEM.md` §3.
  *
- * La regla que las gobierna a todas: **nada rectangular toca la esquina de
- * nada redondeado**, y **ningún borde hace de decoración**. Un borde delimita;
- * si lo que se quiere es marcar con color, eso es una cápsula.
+ * Las dos reglas que las gobiernan a todas:
+ *
+ * - **R4 · La banda de la tarjeta es sagrada.** Lavado + 8,5/700 versalitas en
+ *   acento oscuro. Ni tarjetas sin cabecera ni rellenos de azul intenso.
+ * - **R5 · El fondo nunca toca la curva.** Todo hijo con fondo lleva su propio
+ *   radio (el exterior menos el borde), porque `overflow: hidden` no recorta
+ *   fondos en react-pdf.
  */
 
-// ── Sección ───────────────────────────────────────────────────────────────
+// ── La tarjeta ────────────────────────────────────────────────────────────
 
 /**
- * Un tramo de la hoja con su rótulo en versalitas y su regla.
+ * LA TARJETA, con su banda. Es la decisión que faltaba: **todas** las tarjetas
+ * del sistema llevan banda de lavado, ninguna va sin cabecera y ninguna lleva
+ * relleno azul intenso.
  *
- * `minPresenceAhead` evita que un rótulo se quede solo al final de una página
- * con su contenido en la siguiente.
- */
-export const PdfSection = ({
-  title,
-  dense = false,
-  children,
-}: {
-  title: string;
-  dense?: boolean;
-  children: ReactNode;
-}) => (
-  <View
-    minPresenceAhead={48}
-    style={{ marginBottom: dense ? space.md + 1 : space.lg + 1 }}
-  >
-    <Text
-      style={{
-        ...text.section,
-        borderBottom: `${stroke.thin}px solid ${color.accentLine}`,
-        paddingBottom: space.xs + 1,
-        marginBottom: space.md,
-      }}
-    >
-      {title}
-    </Text>
-    {children}
-  </View>
-);
-
-// ── Cápsula de color ──────────────────────────────────────────────────────
-
-/**
- * La "uñita" de color, hecha cápsula.
- *
- * Un borde recto pegado al canto de una caja redondeada pelea con la propia
- * esquina: el color llega arriba, se corta en seco donde empieza la curva y
- * deja dos muescas. Esto es una barrita con su propio radio, metida dentro del
- * margen y más corta que el bloque, así que no toca ningún canto.
- */
-export const PdfCapsule = ({ color: c }: { color: string }) => (
-  <View
-    style={{
-      position: 'absolute',
-      left: CAPSULA.margen,
-      top: CAPSULA.recorte,
-      bottom: CAPSULA.recorte,
-      width: CAPSULA.ancho,
-      borderRadius: radius.full,
-      backgroundColor: c,
-    }}
-  />
-);
-
-// ── Tarjeta ───────────────────────────────────────────────────────────────
-
-/**
- * Una superficie con su marco. Para agrupar lo que va junto: un grupo de
- * predicación, una semana del programa, una ficha de persona.
+ * `wrap={false}` en la cabecera y en el cuerpo por defecto; una tarjeta que no
+ * quepa entera se lleva a la hoja siguiente antes que partirse por un sitio
+ * cualquiera.
  */
 export const PdfCard = ({
   title,
   meta,
+  /** El cuadradito de categoría, si la tarjeta pertenece a una. */
+  categoryColor,
+  /** Sin relleno lateral: para cuando el cuerpo es una tabla. */
+  flush = false,
+  dense = false,
   children,
   style,
 }: {
-  title?: string;
+  title: string;
   meta?: string;
+  categoryColor?: string;
+  flush?: boolean;
+  dense?: boolean;
   children: ReactNode;
   style?: Style;
 }) => (
   <View
     wrap={false}
     style={{
-      borderRadius: radius.lg,
-      border: `${stroke.thin}px solid ${color.line}`,
+      borderRadius: radius.card,
+      border: `${stroke.hairline}px solid ${color.border}`,
       backgroundColor: color.white,
-      overflow: 'hidden',
       ...style,
     }}
   >
-    {title ? (
+    <View
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: space.md,
+        paddingVertical: dense ? 3.5 : 5,
+        paddingHorizontal: 9,
+        backgroundColor: color.wash,
+        // Radio propio: el de la tarjeta menos el borde. Sin esto asoma el
+        // pico blanco por la curva (R5).
+        borderTopLeftRadius: radius.inner,
+        borderTopRightRadius: radius.inner,
+      }}
+    >
       <View
         style={{
           display: 'flex',
           flexDirection: 'row',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          paddingVertical: space.sm + 1,
-          paddingHorizontal: space.lg,
-          backgroundColor: color.accentSoft,
+          gap: space.sm,
+          flex: 1,
         }}
       >
-        <Text style={text.heading}>{title}</Text>
-        {meta ? <Text style={text.meta}>{meta}</Text> : null}
+        {categoryColor ? (
+          <View
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 2,
+              backgroundColor: categoryColor,
+            }}
+          />
+        ) : null}
+        <Text style={text.cardHeader}>{title}</Text>
       </View>
-    ) : null}
-    <View style={{ padding: space.lg }}>{children}</View>
+      {meta ? (
+        <Text style={{ ...text.meta, fontWeight: 600 }}>{meta}</Text>
+      ) : null}
+    </View>
+
+    <View
+      style={{
+        paddingVertical: flush ? 0 : space.md,
+        paddingHorizontal: flush ? 0 : 9,
+      }}
+    >
+      {children}
+    </View>
   </View>
 );
 
+// ── Bloque destacado ──────────────────────────────────────────────────────
+
 /**
- * Un bloque destacado dentro de una sección: una cita, un aviso, un dato que
- * hay que mirar. Lleva su cápsula de color a la izquierda.
+ * El «mira esto primero». **Máximo uno por hoja**: si hay dos, ninguno
+ * destaca.
+ *
+ * Sin barras laterales de color: el énfasis es la superficie entera.
  */
 export const PdfNote = ({
-  accent = color.accent,
-  soft = color.accentSoft,
   children,
   style,
 }: {
-  accent?: string;
-  soft?: string;
   children: ReactNode;
   style?: Style;
 }) => (
   <View
     wrap={false}
     style={{
-      backgroundColor: soft,
-      borderRadius: radius.md,
-      paddingVertical: space.sm + 2,
-      paddingRight: space.md + 2,
-      marginBottom: space.sm,
-      ...withCapsule(),
+      backgroundColor: color.wash,
+      border: `${stroke.hairline}px solid ${color.accentLine}`,
+      borderRadius: radius.card,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
       ...style,
     }}
   >
-    <PdfCapsule color={accent} />
     {children}
+  </View>
+);
+
+// ── Rótulo / valor ────────────────────────────────────────────────────────
+
+/**
+ * Siempre apilado: el rótulo arriba y el valor debajo. Así se alinean en
+ * columnas sin necesidad de una tabla.
+ */
+export const PdfKeyValue = ({
+  label,
+  children,
+  style,
+}: {
+  label: string;
+  children: ReactNode;
+  style?: Style;
+}) => (
+  <View style={style}>
+    <Text style={text.label}>{label}</Text>
+    {typeof children === 'string' ? (
+      <Text style={{ ...text.body, fontWeight: 500, marginTop: 2 }}>
+        {children || '—'}
+      </Text>
+    ) : (
+      <View style={{ marginTop: 2 }}>{children}</View>
+    )}
   </View>
 );
 
 // ── Etiqueta de estado ────────────────────────────────────────────────────
 
 /**
- * Una píldora de estado: "Suspendido", "Sin asignar", "Precursor".
- *
- * Solo para ESTADOS. Si el color no significa nada, no es una etiqueta: es
- * decoración, y entonces sobra.
+ * «Sin asignar» es la excepción del sistema: borde discontinuo sobre blanco.
+ * No es un estado, es un HUECO — y un hueco no se pinta como si estuviera
+ * resuelto.
  */
 export const PdfBadge = ({
   children,
   tone = 'neutral',
 }: {
   children: string;
-  tone?: 'neutral' | 'accent' | 'ok' | 'warn' | 'danger';
+  tone?: 'neutral' | 'ok' | 'warn' | 'danger' | 'empty';
 }) => {
   const tonos = {
-    neutral: { fg: color.muted, bg: color.surfaceMuted },
-    accent: { fg: color.accentInk, bg: color.accentSoft },
-    ok: { fg: color.ok, bg: color.okSoft },
-    warn: { fg: color.warn, bg: color.warnSoft },
-    danger: { fg: color.danger, bg: color.dangerSoft },
+    neutral: { fg: color.accentDark, bg: color.wash, dashed: false },
+    ok: { fg: color.ok, bg: color.okWash, dashed: false },
+    warn: { fg: color.warn, bg: color.warnWash, dashed: false },
+    danger: { fg: color.danger, bg: color.dangerWash, dashed: false },
+    empty: { fg: color.faint, bg: color.white, dashed: true },
   }[tone];
 
   return (
@@ -180,26 +192,116 @@ export const PdfBadge = ({
         backgroundColor: tonos.bg,
         borderRadius: radius.full,
         paddingVertical: 1.5,
-        paddingHorizontal: space.sm + 1,
+        paddingHorizontal: 7,
+        ...(tonos.dashed && {
+          border: `${stroke.hairline}px dashed ${color.faint}`,
+        }),
       }}
     >
-      <Text style={{ ...text.label, fontSize: 7, color: tonos.fg }}>
+      <Text
+        style={{
+          fontSize: 6.8,
+          fontWeight: 700,
+          letterSpacing: 0.5,
+          textTransform: 'uppercase',
+          color: tonos.fg,
+        }}
+      >
         {children}
       </Text>
     </View>
   );
 };
 
-/** Cuando no hay nada que enseñar. Una sola manera en toda la app. */
-export const PdfEmpty = ({ children }: { children: string }) => (
-  <Text
+// ── Categoría con color ───────────────────────────────────────────────────
+
+/** Cuadradito y rótulo del mismo color. Nunca fondos ni bordes de categoría. */
+export const PdfCategory = ({
+  color: c,
+  children,
+}: {
+  color: string;
+  children: string;
+}) => (
+  <View
     style={{
-      ...text.body,
-      color: color.muted,
-      fontStyle: 'italic',
-      paddingVertical: space.xs + 1,
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.sm,
     }}
   >
-    {children}
-  </Text>
+    <View
+      style={{ width: 6, height: 6, borderRadius: 2, backgroundColor: c }}
+    />
+    <Text
+      style={{
+        fontSize: 7.5,
+        fontWeight: 700,
+        letterSpacing: 0.5,
+        textTransform: 'uppercase',
+        color: c,
+      }}
+    >
+      {children}
+    </Text>
+  </View>
+);
+
+/**
+ * El rombo del responsable —y del precursor—: el único sitio donde el azul de
+ * marca aparece dentro del contenido.
+ */
+export const PdfDiamond = () => (
+  <Text style={{ fontSize: 5, color: color.accent }}> ◆</Text>
+);
+
+// ── El vacío ──────────────────────────────────────────────────────────────
+
+/**
+ * R9 · El vacío se dice. Ninguna celda en blanco: o un guion, o una frase.
+ */
+export const PdfEmpty = ({
+  children,
+  inline = false,
+}: {
+  children?: string;
+  /** Dentro de una celda: solo un guion centrado. */
+  inline?: boolean;
+}) =>
+  inline ? (
+    <Text
+      style={{
+        fontSize: 8.5,
+        fontStyle: 'italic',
+        color: color.faint,
+        textAlign: 'center',
+      }}
+    >
+      —
+    </Text>
+  ) : (
+    <Text
+      style={{
+        fontSize: 8.5,
+        fontWeight: 400,
+        fontStyle: 'italic',
+        color: color.faint,
+        textAlign: 'center',
+        paddingVertical: space.md,
+      }}
+    >
+      {children}
+    </Text>
+  );
+
+/** Una línea interior. A ≥9 pt del canto, nunca contra él (R7). */
+export const PdfHairline = ({ style }: { style?: Style }) => (
+  <View
+    style={{
+      height: stroke.hairline,
+      backgroundColor: color.hairline,
+      ...style,
+    }}
+  />
 );

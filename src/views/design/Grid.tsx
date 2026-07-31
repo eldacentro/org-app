@@ -3,175 +3,132 @@ import { Text, View } from '@react-pdf/renderer';
 import { color, radius, space, stroke, text } from './tokens';
 
 /**
- * LA CUADRÍCULA DE CALENDARIO del sistema — Exhibidores y Salidas de
- * predicación.
+ * LA CUADRÍCULA DE CALENDARIO. Implementa `PDF_DESIGN_SYSTEM.md` §3.4.
  *
- * ── El fallo que arregla ─────────────────────────────────────────────────
+ * Cambia de raíz respecto a la anterior: ya no es una tabla con marco y rayas,
+ * sino **celdas sueltas separadas por un hueco**. Cada celda tiene su propio
+ * borde y su propio radio, así que no hay ninguna línea que recorrer ni
+ * ninguna esquina contra la que pelear — que era de donde salían los dos
+ * defectos de antes (verticales cortas y esquinas blancas).
  *
- * Las dos cuadrículas se dibujaban con el borde de CADA CELDA: cada una ponía
- * su `borderRight` y su `borderBottom`, y a las de la última fila y la última
- * columna se les quitaba. El marco lo ponía el contenedor, con
- * `borderRadius: 16` y `overflow: 'hidden'` para redondear las esquinas.
+ * Las columnas son **solo los días activos**: si la congregación no sale a
+ * predicar los lunes, el lunes no ocupa una columna vacía toda la hoja.
  *
- * Eso daba las dos cosas que se veían mal:
- *
- * 1. **Las líneas verticales no llegaban abajo.** La raya de una columna es el
- *    borde derecho de sus celdas, así que mide lo que mide la celda. Si la
- *    última fila tiene menos contenido que las de arriba, o si sobra alto en
- *    la hoja, la raya se para donde se acaba el contenido en vez de llegar al
- *    marco.
- *
- * 2. **Las esquinas de abajo se veían blancas.** Las celdas pintan su fondo
- *    blanco hasta el canto, en cuadrado. El contenedor redondea con
- *    `overflow: hidden`, pero en react-pdf ese recorte no llega a los fondos
- *    de los hijos: el cuadrado blanco de la celda tapaba la curva del marco y
- *    parecía que la línea se cortaba y se volvía blanca.
- *
- * ── La regla ─────────────────────────────────────────────────────────────
- *
- * **El marco y las rayas los dibuja la cuadrícula, nunca las celdas.** Las
- * verticales son elementos propios que van de la cabecera al suelo, así que
- * son enteras siempre. Y **ningún hijo llega a una esquina redondeada**: el
- * fondo del cuerpo es el de la cuadrícula, y las celdas son transparentes.
- *
- * Vale para cualquier tabla-calendario, no solo para estas dos.
+ * La celda inactiva —un festivo, un día sin turnos— va sobre franja y **sin
+ * borde**: se ve que está ahí y que no hay nada, sin fingir que es una casilla
+ * por rellenar.
  */
 
 export type PdfGridCell = {
-  /** El número del día. Sin él la celda se pinta como hueco. */
   dayNum?: number;
+  /** "mar", "jue"… debajo del numeral. */
+  dayName?: string;
   content?: ReactNode;
+  /** Festivo o día sin actividad: franja, sin borde, y el motivo en cursiva. */
+  inactive?: boolean;
+  inactiveReason?: string;
 };
 
 const PdfGrid = ({
-  weekdays,
+  columns,
   cells,
-  rowHeight,
+  gap = space.sm,
   dense = false,
 }: {
-  /** Las cabeceras de columna. Su número manda: define el ancho de columna. */
-  weekdays: string[];
-  /** En orden de lectura; se parten en filas de `weekdays.length`. */
+  /** Cuántas columnas: tantas como días activos. */
+  columns: number;
+  /** En orden de lectura; se parten en filas de `columns`. */
   cells: PdfGridCell[];
-  /**
-   * Alto fijo de cada fila. Si no se da, cada fila mide lo que su contenido —
-   * que es lo que se quiere cuando hay pocas semanas.
-   */
-  rowHeight?: number;
-  /** Aprieta la cuadrícula para que un mes largo quepa en una hoja. */
+  gap?: number;
   dense?: boolean;
 }) => {
-  const columnas = weekdays.length;
   const filas: PdfGridCell[][] = [];
-  for (let i = 0; i < cells.length; i += columnas) {
-    filas.push(cells.slice(i, i + columnas));
+  for (let i = 0; i < cells.length; i += columns) {
+    filas.push(cells.slice(i, i + columns));
   }
 
-  const anchoColumna = `${100 / columnas}%`;
-
   return (
-    <View
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: radius.lg,
-        border: `${stroke.thin}px solid ${color.line}`,
-        // El fondo lo pone LA CUADRÍCULA, y por eso puede redondear sus
-        // esquinas sin que ningún hijo las pise.
-        backgroundColor: color.white,
-      }}
-    >
-      {/* ── Cabecera de días ─────────────────────────────────────────── */}
-      <View
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          backgroundColor: color.accent,
-          // Solo las esquinas de ARRIBA: es la tapa del marco.
-          borderTopLeftRadius: radius.lg - stroke.thin,
-          borderTopRightRadius: radius.lg - stroke.thin,
-        }}
-      >
-        {weekdays.map((dia) => (
-          <Text
-            key={dia}
-            style={{
-              width: anchoColumna,
-              textAlign: 'center',
-              paddingVertical: dense ? space.xs + 1 : space.sm,
-              fontSize: dense ? 8 : 8.6,
-              fontWeight: 700,
-              color: color.white,
-            }}
-          >
-            {dia}
-          </Text>
-        ))}
-      </View>
-
-      {/* ── Cuerpo ───────────────────────────────────────────────────── */}
-      <View style={{ position: 'relative', display: 'flex' }}>
-        {/* Las verticales, de una pieza y de arriba abajo del cuerpo entero.
-            Van en absoluto justo por eso: como elemento en el flujo medirían
-            lo que midiera su fila. */}
-        {weekdays.slice(1).map((_, i) => (
-          <View
-            key={i}
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: `${(100 / columnas) * (i + 1)}%`,
-              width: stroke.hair,
-              backgroundColor: color.line,
-            }}
-          />
-        ))}
-
-        {filas.map((fila, filaIdx) => (
-          <View
-            key={filaIdx}
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              ...(rowHeight ? { height: rowHeight } : {}),
-              // La horizontal la pone la fila, menos la última: ahí el suelo
-              // ya lo pone el marco, y una raya encima de él se vería doble.
-              ...(filaIdx < filas.length - 1 && {
-                borderBottom: `${stroke.hair}px solid ${color.line}`,
-              }),
-            }}
-          >
-            {fila.map((celda, celdaIdx) => (
-              <View
-                key={celdaIdx}
-                style={{
-                  width: anchoColumna,
-                  padding: dense ? 2 : space.xs,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  // Las celdas NO pintan fondo ni bordes. Ni el hueco: un gris
-                  // cuadrado en la esquina de abajo era justo lo que rompía la
-                  // curva del marco.
-                }}
-              >
-                {celda.dayNum !== undefined && (
+    <View style={{ display: 'flex', flexDirection: 'column', gap }}>
+      {filas.map((fila, filaIdx) => (
+        <View
+          key={filaIdx}
+          wrap={false}
+          style={{ display: 'flex', flexDirection: 'row', gap }}
+        >
+          {fila.map((celda, celdaIdx) => (
+            <View
+              key={celdaIdx}
+              style={{
+                flexGrow: 1,
+                flexBasis: 0,
+                borderRadius: radius.cell,
+                paddingVertical: dense ? 3.5 : space.sm,
+                paddingHorizontal: dense ? 4 : 6,
+                ...(celda.inactive
+                  ? { backgroundColor: color.zebra }
+                  : {
+                      border: `${stroke.hairline}px solid ${color.border}`,
+                    }),
+              }}
+            >
+              {celda.dayNum !== undefined ? (
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'baseline',
+                    gap: 4,
+                    marginBottom: dense ? 2 : space.xs,
+                  }}
+                >
                   <Text
                     style={{
-                      ...text.label,
-                      fontSize: 7.4,
-                      marginBottom: space.xs,
+                      ...text.calendarNumeral,
+                      fontSize: dense ? 11 : text.calendarNumeral.fontSize,
+                      ...(celda.inactive && { color: color.inactive }),
                     }}
                   >
                     {celda.dayNum}
                   </Text>
-                )}
-                {celda.content}
-              </View>
-            ))}
-          </View>
-        ))}
-      </View>
+                  {celda.dayName ? (
+                    <Text
+                      style={{
+                        ...text.label,
+                        ...(celda.inactive && { color: color.inactive }),
+                      }}
+                    >
+                      {celda.dayName}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+
+              {celda.inactive ? (
+                celda.inactiveReason ? (
+                  <Text
+                    style={{
+                      fontSize: 7.5,
+                      fontStyle: 'italic',
+                      color: color.faint,
+                    }}
+                  >
+                    {celda.inactiveReason}
+                  </Text>
+                ) : null
+              ) : (
+                celda.content
+              )}
+            </View>
+          ))}
+
+          {/* Rellena la última fila para que las celdas no se estiren. */}
+          {fila.length < columns
+            ? Array.from({ length: columns - fila.length }, (_, i) => (
+                <View key={`h${i}`} style={{ flexGrow: 1, flexBasis: 0 }} />
+              ))
+            : null}
+        </View>
+      ))}
     </View>
   );
 };

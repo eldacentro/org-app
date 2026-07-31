@@ -1,37 +1,31 @@
 import { Text, View } from '@react-pdf/renderer';
-import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
 import {
   PdfCard,
   PdfEmpty,
-  PdfKeyValue,
   Sheet,
   color,
+  fechaLarga,
+  fechaPie,
+  periodo,
   space,
+  stroke,
   text,
-  fechaCorta,
 } from '@views/design';
 
 /**
- * Programa de departamentos del mes.
+ * Documento 8 · Programa de departamentos.
  *
- * Va sobre el sistema de diseño de los PDF (`PDF_DESIGN_SYSTEM.md`).
+ * Una tarjeta por semana y, dentro, **columnas fijas de departamento**
+ * separadas por hairlines interiores: el mismo departamento cae siempre en la
+ * misma columna, así que quien sirve en audio mira siempre al mismo sitio.
  *
- * Los puestos no están escritos aquí: llegan hechos desde
- * `services/app/departments_slots`, que es quien sabe si un departamento se
- * asigna por semana o por reunión y con cuántos turnos. Este componente solo
- * dibuja lo que le dan.
+ * Los puestos no se deciden aquí: llegan hechos desde
+ * `services/app/departments_slots`, que sabe si un departamento se asigna por
+ * semana o por reunión y con cuántos turnos.
  */
-export type DeptPDFRow = {
-  label: string;
-  name: string;
-};
-
-export type DeptPDFDepartment = {
-  title: string;
-  rows: DeptPDFRow[];
-};
-
+export type DeptPDFRow = { label: string; name: string };
+export type DeptPDFDepartment = { title: string; rows: DeptPDFRow[] };
 export type DeptPDFData = {
   weekOf: string;
   weekOfFormatted: string;
@@ -46,36 +40,29 @@ type DeptSchedulePDFProps = {
   cong_name: string;
 };
 
-const meses = [...MESES_ES];
-
-const fechaDeLaSemana = (weekOf: string) => {
-  const d = new Date(weekOf);
-  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
-};
-
-const DeptSchedulePDF = ({
-  data,
-  monthName,
-  cong_name,
-}: DeptSchedulePDFProps) => {
+const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
   const ultimaFecha = data.reduce<string | undefined>((acc, curr) => {
     if (!curr.updatedAt) return acc;
     if (!acc || new Date(curr.updatedAt) > new Date(acc)) return curr.updatedAt;
     return acc;
   }, undefined);
 
-  const footerDate = fechaCorta(ultimaFecha);
+  // El orden de las columnas lo fija la PRIMERA semana que los tenga todos:
+  // si una semana no usa un departamento, su columna se queda vacía en vez de
+  // correrse y desalinear la hoja.
+  const columnas = Array.from(
+    new Set(data.flatMap((w) => w.departments.map((d) => d.title)))
+  );
 
   return (
-    <Document title={`Programa de departamentos - ${monthName}`} lang="es-ES">
+    <Document title="Programa de departamentos" lang="es-ES">
       <Sheet
         congregation={cong_name}
-        meta={monthName}
+        period={periodo(data.at(0)?.weekOf, data.at(-1)?.weekOf)}
         title="Programa de departamentos"
-        paginated
-        footerMeta={
-          footerDate ? `Última actualización · ${footerDate}` : monthName
-        }
+        subtitle="Acomodadores, audio y vídeo, y demás puestos"
+        documentName="Programa de departamentos"
+        updatedAt={fechaPie(ultimaFecha)}
       >
         {data.length === 0 ? (
           <PdfEmpty>Sin programa para este mes.</PdfEmpty>
@@ -83,45 +70,69 @@ const DeptSchedulePDF = ({
           data.map((week) => (
             <PdfCard
               key={week.weekOf}
-              title={fechaDeLaSemana(week.weekOf)}
+              title={`Semana del ${fechaLarga(week.weekOf)}`}
               style={{ marginBottom: space.lg }}
             >
-              {/* Los departamentos, en dos columnas: son cajas cortas —dos o
-                  tres puestos cada una— y en una sola columna cada semana se
-                  comía media hoja de aire a la derecha. */}
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  gap: space.lg,
-                }}
-              >
-                {week.departments.map((dept) => (
-                  <View
-                    key={dept.title}
-                    style={{ flexGrow: 1, flexBasis: '45%', minWidth: '45%' }}
-                  >
-                    <Text
+              <View style={{ display: 'flex', flexDirection: 'row' }}>
+                {columnas.map((titulo, i) => {
+                  const dept = week.departments.find((d) => d.title === titulo);
+
+                  return (
+                    <View
+                      key={titulo}
                       style={{
-                        ...text.label,
-                        color: color.accent,
-                        marginBottom: space.xs,
+                        flexGrow: 1,
+                        flexBasis: 0,
+                        paddingHorizontal: i === 0 ? 0 : space.lg,
+                        // Hairline interior, nunca contra el canto (R7).
+                        ...(i > 0 && {
+                          borderLeft: `${stroke.hairline}px solid ${color.hairline}`,
+                        }),
                       }}
                     >
-                      {dept.title}
-                    </Text>
-                    {dept.rows.map((row) => (
-                      <PdfKeyValue
-                        key={row.label}
-                        label={row.label}
-                        labelWidth={72}
-                      >
-                        {row.name || '—'}
-                      </PdfKeyValue>
-                    ))}
-                  </View>
-                ))}
+                      <Text style={text.label}>{titulo}</Text>
+
+                      {dept ? (
+                        dept.rows.map((row) => (
+                          <View
+                            key={row.label}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              gap: space.sm,
+                              marginTop: 3,
+                            }}
+                          >
+                            <Text style={{ ...text.meta, flexShrink: 0 }}>
+                              {row.label}
+                            </Text>
+                            <Text
+                              style={{
+                                ...text.bodyStrong,
+                                textAlign: 'right',
+                                flex: 1,
+                              }}
+                            >
+                              {row.name || '—'}
+                            </Text>
+                          </View>
+                        ))
+                      ) : (
+                        <Text
+                          style={{
+                            fontSize: 8.5,
+                            fontStyle: 'italic',
+                            color: color.faint,
+                            marginTop: 3,
+                          }}
+                        >
+                          —
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })}
               </View>
             </PdfCard>
           ))

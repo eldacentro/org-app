@@ -93,6 +93,7 @@ const WeekendEditor = () => {
   const { selectedTalk } = usePublicTalkSelector(selectedWeek);
 
   const { handleGenerate, speakerName } = usePublicTalkInvitation(
+    selectedWeek,
     weekDateLocale,
     weekendMeetingTime,
     selectedTalk?.talk_number,

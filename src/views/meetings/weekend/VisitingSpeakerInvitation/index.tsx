@@ -1,176 +1,142 @@
 import { Text, View, Link } from '@react-pdf/renderer';
-// El `Document` de la app: registra las tipografías y fija el idioma. Esta
-// plantilla usaba el de react-pdf en crudo.
 import { Document } from '@views/components';
-import { PdfCapsule, Sheet, withCapsule } from '@views/design';
-import styles from './index.styles';
+import {
+  PdfHairline,
+  PdfKeyValue,
+  PdfNote,
+  Sheet,
+  color,
+  periodo,
+  space,
+  text,
+} from '@views/design';
 import { VisitingSpeakerInvitationProps } from './index.types';
 
-const CoordinatorBox = ({
-  title,
-  info,
-}: {
-  title: string;
-  info: VisitingSpeakerInvitationProps['publicTalkCoordinator'];
-}) => (
-  <View style={styles.coordinatorCard}>
-    <Text style={styles.coordinatorTitle}>{title}</Text>
-    <Text style={styles.coordinatorName}>{info.name || 'Sin asignar'}</Text>
-    {info.phone ? (
-      <Text style={styles.coordinatorContact}>{info.phone}</Text>
-    ) : null}
-    {info.email ? (
-      <Text style={styles.coordinatorContact}>{info.email}</Text>
-    ) : null}
-  </View>
-);
-
+/**
+ * Documento 5 · Invitación al orador visitante. **Una hoja.**
+ *
+ * Es una carta, no un programa: cuerpo a 9,5 con interlínea holgada, un bloque
+ * destacado con los datos de la asignación, y la firma abajo.
+ *
+ * El texto es el reescrito en la especificación §6: el anterior venía copiado
+ * de otra congregación y sonaba prestado.
+ */
 const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
+  const parrafo = {
+    ...text.body,
+    fontSize: 9.5,
+    lineHeight: 1.6,
+    textAlign: 'justify' as const,
+    marginBottom: space.md,
+  };
+
   return (
     <Document title="Invitación al orador visitante" lang="spa">
-      {/* Es una carta, pero con el membrete de la casa: la misma hoja que el
-          resto de los documentos (`PDF_DESIGN_SYSTEM.md`). Antes no tenía ni
-          título ni pie, y era la única que llevaba su propia barra de marca
-          con una séptima copia del logotipo. */}
       <Sheet
         congregation={props.congregationName}
-        title="Invitación al orador visitante"
-        subtitle={props.dateLocale}
+        period={periodo(props.dateRaw ?? new Date())}
+        title={`Querido hermano ${props.speakerName}:`}
+        subtitle="Invitación para el discurso público"
+        documentName="Invitación al orador visitante"
       >
-        <View style={styles.contentWrapper}>
-          {/* Introduction */}
-          <View style={styles.introSection}>
-            <Text style={styles.greeting}>
-              Querido hermano {props.speakerName}:
-            </Text>
-            <Text style={styles.bodyText}>
-              Nos alegra mucho contar con tu visita y te extendemos una
-              afectuosa invitación para presentar el discurso público en nuestra
-              congregación.
-            </Text>
-            <Text style={styles.bodyText}>
-              Confiamos en que tu esmerada preparación será de gran beneficio
-              para los hermanos y para quienes se están acercando a la verdad.
-              Como oradores públicos, recordamos la importancia de repasar
-              periódicamente las pautas del formulario S-141-S (Puntos que los
-              oradores públicos deben recordar), lo cual nos ayuda a mantener un
-              alto nivel de enseñanza.
-            </Text>
-            <Text style={styles.bodyText}>
-              Agradecemos de corazón tu buena disposición y esfuerzo. Si por
-              alguna causa de fuerza mayor no pudieras cumplir con esta
-              asignación, te rogamos que nos lo comuniques con la mayor
-              antelación posible.
-            </Text>
+        <Text style={parrafo}>
+          Nos alegró mucho saber que podrás visitarnos. Contar contigo para el
+          discurso público es un motivo de alegría para toda la congregación, y
+          estamos seguros de que el domingo que pasemos juntos nos animará a
+          todos.
+        </Text>
+
+        <Text style={parrafo}>
+          Abajo tienes los datos de la asignación. Solo te pedimos dos cosas:
+          repasa el formulario S-141-S para confirmar el bosquejo y la canción,
+          y, si te surgiera cualquier imprevisto, avísanos con la mayor
+          antelación posible para poder buscar un sustituto.
+        </Text>
+
+        <Text style={parrafo}>
+          Si vas a usar imágenes o vídeos, envíanoslos unos días antes o tráelos
+          en un USB; el equipo de audio se encarga del resto.
+        </Text>
+
+        <Text style={{ ...parrafo, marginBottom: space.xl }}>
+          Gracias de corazón por tu tiempo y por el esfuerzo de preparar el
+          discurso y desplazarte. Aquí te esperamos.
+        </Text>
+
+        {/* El único bloque destacado de la hoja */}
+        <PdfNote>
+          <View
+            style={{ display: 'flex', flexDirection: 'row', gap: space.xl }}
+          >
+            <PdfKeyValue label="Fecha" style={{ flex: 1 }}>
+              {props.dateLocale}
+            </PdfKeyValue>
+            <PdfKeyValue label="Hora" style={{ width: 54 }}>
+              {props.time}
+            </PdfKeyValue>
+            <PdfKeyValue label="Bosquejo" style={{ width: 54 }}>
+              {props.outlineNumber
+                ? `N.º ${props.outlineNumber}`
+                : 'Sin definir'}
+            </PdfKeyValue>
           </View>
 
-          {/* Main Card */}
-          <View style={styles.mainCard}>
-            <Text style={styles.mainCardTitle}>
-              Tenemos el gusto de invitarte a discursar el próximo:
+          {props.outlineTitle ? (
+            <Text style={{ ...text.heading, marginTop: space.md }}>
+              {props.outlineTitle}
             </Text>
+          ) : null}
 
-            <View style={styles.detailsRow}>
-              <View style={styles.detailBox}>
-                <Text style={styles.detailLabel}>Fecha</Text>
-                <Text style={styles.detailValue}>{props.dateLocale}</Text>
-              </View>
-              <View style={styles.detailBox}>
-                <Text style={styles.detailLabel}>Hora</Text>
-                <Text style={styles.detailValue}>{props.time}</Text>
-              </View>
-            </View>
+          <PdfHairline style={{ marginVertical: space.md }} />
 
-            <View style={styles.outlineBox}>
-              <Text style={styles.detailLabel}>Bosquejo Asignado</Text>
-              <Text style={styles.outlineValue}>
-                {props.outlineNumber
-                  ? `Núm. ${props.outlineNumber}`
-                  : 'Sin definir'}
-              </Text>
-              {props.outlineTitle && (
-                <Text
-                  style={{
-                    ...styles.bodyText,
-                    marginTop: 4,
-                    textAlign: 'center',
-                    fontWeight: 700,
-                  }}
-                >
-                  {props.outlineTitle}
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.addressBox}>
-              <Text style={styles.addressTitle}>
-                Dirección del Salón del Reino
-              </Text>
-              <Text style={styles.addressValue}>
-                {props.congregationAddress}
-              </Text>
-              {props.congregationAddress && (
-                <Link
-                  src={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(props.congregationAddress)}`}
-                >
-                  <Text
-                    style={{
-                      ...styles.addressValue,
-                      color: '#306CB4',
-                      fontSize: 10,
-                      marginTop: 2,
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Ver en Google Maps
-                  </Text>
-                </Link>
-              )}
-            </View>
-          </View>
-
-          {/* Media Info */}
-          {props.mediaEmail && (
-            <View style={[styles.mediaSection, withCapsule()]}>
-              {/* La uñita, hecha cápsula: ver
-                  `@views/components/accent_capsule`. */}
-              <PdfCapsule color="#EAB308" />
-
-              <Text style={styles.mediaText}>
-                <Text style={styles.boldText}>Contenido multimedia:</Text> Si
-                utilizas imágenes o videos en tu discurso, puedes traerlos en un
-                pendrive o enviarlos con antelación a nuestro correo
-                (preferiblemente en el formato de lista de reproducción de JW
-                Library). Por favor, envíanos también el número de la canción de
-                inicio a:
-              </Text>
+          <PdfKeyValue label="Salón del Reino">
+            <Text style={{ ...text.body, fontWeight: 500 }}>
+              {props.congregationAddress || '—'}
+            </Text>
+          </PdfKeyValue>
+          {props.congregationAddress ? (
+            <Link
+              src={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                props.congregationAddress
+              )}`}
+            >
               <Text
                 style={{
-                  ...styles.mediaText,
-                  fontWeight: 700,
-                  color: '#306CB4',
-                  marginTop: 4,
+                  ...text.meta,
+                  color: color.accent,
+                  textDecoration: 'underline',
+                  marginTop: 2,
                 }}
               >
-                {props.mediaEmail}
+                Ver en Google Maps
               </Text>
-            </View>
-          )}
+            </Link>
+          ) : null}
 
-          {/* Coordinators Contact Info */}
-          <View style={styles.coordinatorsContainer}>
-            {props.assistants.map((assistant, index) => (
-              <CoordinatorBox
-                key={`assistant-${index}`}
-                title="Auxiliar de discursos"
-                info={assistant}
-              />
-            ))}
-            <CoordinatorBox
-              title="Coord. Discursos"
-              info={props.publicTalkCoordinator}
-            />
-          </View>
+          {props.mediaEmail ? (
+            <Text style={{ ...text.meta, marginTop: space.md }}>
+              Contenido multimedia: {props.mediaEmail}
+            </Text>
+          ) : null}
+        </PdfNote>
+
+        {/* Firma */}
+        <View style={{ marginTop: space.xxl }}>
+          <Text style={{ ...text.body, fontSize: 9.5 }}>
+            Un abrazo fuerte de parte de toda la congregación,
+          </Text>
+          <Text style={{ fontSize: 9.5, fontWeight: 700, marginTop: space.lg }}>
+            {props.publicTalkCoordinator.name || 'Coordinador de discursos'}
+          </Text>
+          <Text style={text.meta}>
+            {[
+              'Coordinador de discursos públicos',
+              props.publicTalkCoordinator.phone,
+              props.publicTalkCoordinator.email,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
         </View>
       </Sheet>
     </Document>

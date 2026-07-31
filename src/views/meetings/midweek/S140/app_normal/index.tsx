@@ -1,7 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
-import { Sheet } from '@views/design';
+import { Sheet, periodo } from '@views/design';
 import { Week } from '@definition/week_type';
 import { S140Type } from '../shared/index.types';
 import { useAppTranslation } from '@hooks/index';
@@ -74,8 +74,10 @@ const TemplateS140AppNormal = ({
           `Document`, y Yoga la respeta en las filas. */}
       <Sheet
         congregation={cong_name}
+        period={periodo(data.at(0)?.weekOf, data.at(-1)?.weekOf)}
         title={t('tr_midweekMeetingPrint', { lng: lang })}
-        paginated
+        subtitle="Tesoros de la Biblia · Seamos mejores maestros · Nuestra vida cristiana"
+        documentName={t('tr_midweekMeetingPrint', { lng: lang })}
       >
         {data.map((meetingData) => {
           return (

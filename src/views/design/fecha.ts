@@ -1,15 +1,14 @@
 /**
- * Las fechas de los PDF, en UN solo idioma.
+ * Las fechas del sistema. Implementa la regla **R2 · La fecha es el periodo,
+ * no el día**.
  *
- * La cabecera de cada hoja lleva arriba a la derecha de qué va: un mes, un
- * rango de semanas, el día en que se generó. Cada plantilla se lo escribía a
- * su manera, y en la misma carpeta convivían "julio de 2026",
- * "26 Jul 2026 – 30 Ago 2026", "Julio 2026 · Hoja 1 de 2" y "31 de julio de
- * 2026". El dato es distinto en cada documento —eso está bien—, pero el idioma
- * tiene que ser el mismo.
+ * La cápsula de la cabecera muestra el PERIODO DE VIGENCIA del documento con
+ * granularidad de MES. Nunca días sueltos, nunca rangos con día, nunca
+ * "Hoja 1 de 2": el día exacto vive en el contenido y la numeración, en el pie.
  *
- * La forma de la casa: mes en minúscula y con "de". Nunca abreviado, nunca en
- * versalitas, nunca con el mes en medio de dos números.
+ * Antes cada plantilla escribía la suya, y en la misma carpeta convivían
+ * "julio de 2026", "26 Jul 2026 – 30 Ago 2026", "31 de julio de 2026" y
+ * "Julio 2026 · Hoja 1 de 2".
  */
 
 const MESES = [
@@ -27,51 +26,95 @@ const MESES = [
   'diciembre',
 ];
 
-const aFecha = (valor?: string | Date) => {
+const MESES_CORTOS = [
+  'ene',
+  'feb',
+  'mar',
+  'abr',
+  'may',
+  'jun',
+  'jul',
+  'ago',
+  'sep',
+  'oct',
+  'nov',
+  'dic',
+];
+
+const aFecha = (valor?: string | Date | null) => {
   if (!valor) return null;
   const d = valor instanceof Date ? valor : new Date(valor);
   return Number.isNaN(d.getTime()) ? null : d;
 };
 
-/** "julio de 2026" — para lo que cubre un mes entero. */
-export const fechaMes = (valor?: string | Date) => {
-  const d = aFecha(valor);
-  return d ? `${MESES[d.getMonth()]} de ${d.getFullYear()}` : '';
+const mayus = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * EL PERIODO DE LA CÁPSULA. Un solo formato para los doce documentos:
+ *
+ * - Cabe en un mes → `Agosto 2026`
+ * - Cruza de mes   → `Agosto – Septiembre 2026`
+ * - Cruza de año   → `2026 – 2027`
+ *
+ * Con un solo argumento, el mes de esa fecha.
+ */
+export const periodo = (
+  desde?: string | Date | null,
+  hasta?: string | Date | null
+) => {
+  const a = aFecha(desde);
+  if (!a) return '';
+
+  const b = aFecha(hasta) ?? a;
+
+  if (a.getFullYear() !== b.getFullYear()) {
+    return `${a.getFullYear()} – ${b.getFullYear()}`;
+  }
+  if (a.getMonth() !== b.getMonth()) {
+    return `${mayus(MESES[a.getMonth()])} – ${mayus(MESES[b.getMonth()])} ${a.getFullYear()}`;
+  }
+  return `${mayus(MESES[a.getMonth()])} ${a.getFullYear()}`;
 };
 
-/** "31 de julio de 2026" — para un día concreto. */
-export const fechaLarga = (valor?: string | Date) => {
+/** "1 ago 2026" — para el pie de la hoja. */
+export const fechaPie = (valor?: string | Date | null) => {
+  const d = aFecha(valor);
+  return d
+    ? `${d.getDate()} ${MESES_CORTOS[d.getMonth()]} ${d.getFullYear()}`
+    : '';
+};
+
+/** "31 de julio de 2026" — para el contenido, donde sí va el día. */
+export const fechaLarga = (valor?: string | Date | null) => {
   const d = aFecha(valor);
   return d
     ? `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`
     : '';
 };
 
-/**
- * "13 – 19 de julio de 2026", y si cruza mes o año, lo dice entero en los dos
- * lados: "26 de julio – 30 de agosto de 2026".
- */
-export const fechaRango = (desde?: string | Date, hasta?: string | Date) => {
+/** "13 – 19 de julio" — un rango dentro del contenido. */
+export const fechaRango = (
+  desde?: string | Date | null,
+  hasta?: string | Date | null
+) => {
   const a = aFecha(desde);
   const b = aFecha(hasta);
   if (!a || !b) return '';
 
-  if (a.getFullYear() !== b.getFullYear()) {
-    return `${fechaLarga(a)} – ${fechaLarga(b)}`;
-  }
   if (a.getMonth() !== b.getMonth()) {
-    return `${a.getDate()} de ${MESES[a.getMonth()]} – ${fechaLarga(b)}`;
+    return `${a.getDate()} de ${MESES[a.getMonth()]} – ${b.getDate()} de ${MESES[b.getMonth()]}`;
   }
-  return `${a.getDate()} – ${fechaLarga(b)}`;
+  return `${a.getDate()} – ${b.getDate()} de ${MESES[b.getMonth()]}`;
 };
 
-/** "28/07/2026" — solo para el pie, donde el sitio manda. */
-export const fechaCorta = (valor?: string | Date) => {
+/** "2 ago" — fechas cortas dentro de una tabla. */
+export const fechaCortaTabla = (valor?: string | Date | null) => {
   const d = aFecha(valor);
-  if (!d) return '';
+  return d ? `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}` : '';
+};
 
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-
-  return `${dd}/${mm}/${d.getFullYear()}`;
+/** El nombre del mes suelto: "agosto". */
+export const nombreMes = (valor?: string | Date | null) => {
+  const d = aFecha(valor);
+  return d ? MESES[d.getMonth()] : '';
 };

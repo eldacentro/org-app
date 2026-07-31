@@ -1,15 +1,24 @@
 import { View, Text } from '@react-pdf/renderer';
-import { PdfCard, PdfKeyValue, color, space, text } from '@views/design';
+import {
+  PdfCard,
+  PdfDiamond,
+  PdfKeyValue,
+  PdfHairline,
+  category,
+  space,
+} from '@views/design';
 import { FSGGroupProps } from './index.types';
 
 /**
- * Un grupo de predicación, en tarjeta.
+ * Un grupo de predicación. Documento 9, tarjeta de la rejilla 2×3.
  *
- * El superintendente y su auxiliar van arriba con su rótulo; los publicadores,
- * en dos columnas y con punto delante — sin él, dos nombres en dos líneas se
- * leen como uno partido en dos.
+ * Banda con el cuadradito del color del grupo, «Grupo n» y el recuento.
+ * Dentro: superintendente y auxiliar como par rótulo/valor, hairline, y los
+ * publicadores a dos columnas.
  *
- * Los precursores van en negrita, con su puntito en el azul de marca.
+ * **El precursor se marca con el rombo**, no con una etiqueta ni con negrita:
+ * es la misma marca que el responsable de un turno en Exhibidores, y así el
+ * lector aprende un solo signo para "este destaca".
  */
 const FSGGroup = ({ group }: FSGGroupProps) => {
   const total =
@@ -17,75 +26,47 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
     (group.overseer ? 1 : 0) +
     (group.overseerAssistant ? 1 : 0);
 
+  const colorGrupo =
+    category.groups[(group.group_number - 1) % category.groups.length];
+
   return (
     <PdfCard
-      title={group.group_name}
-      meta={`${total} ${total === 1 ? 'publicador' : 'publicadores'}`}
-      style={{ flexGrow: 1, flexBasis: '47%', minWidth: '47%' }}
+      title={`Grupo ${group.group_number}`}
+      meta={`${total}`}
+      categoryColor={colorGrupo}
+      style={{ flexGrow: 1, flexBasis: '31%', minWidth: '31%' }}
     >
-      {group.overseer ? (
-        <PdfKeyValue label="Superintendente" labelWidth={78}>
-          {group.overseer.name}
-        </PdfKeyValue>
-      ) : null}
-      {group.overseerAssistant ? (
-        <PdfKeyValue label="Auxiliar" labelWidth={78}>
-          {group.overseerAssistant.name}
-        </PdfKeyValue>
-      ) : null}
+      <View style={{ display: 'flex', flexDirection: 'row', gap: space.md }}>
+        {group.overseer ? (
+          <PdfKeyValue label="Superintendente" style={{ flex: 1 }}>
+            {group.overseer.name}
+          </PdfKeyValue>
+        ) : null}
+        {group.overseerAssistant ? (
+          <PdfKeyValue label="Auxiliar" style={{ flex: 1 }}>
+            {group.overseerAssistant.name}
+          </PdfKeyValue>
+        ) : null}
+      </View>
 
-      {(group.overseer || group.overseerAssistant) &&
-      group.publishers.length > 0 ? (
-        <View
-          style={{
-            borderTop: `0.5px solid ${color.lineSoft}`,
-            marginTop: space.sm,
-            marginBottom: space.sm,
-          }}
-        />
+      {group.publishers.length > 0 ? (
+        <PdfHairline style={{ marginVertical: space.md }} />
       ) : null}
 
-      {/* Una sola columna. La tarjeta ya ocupa media hoja, así que partirla
-          otra vez en dos dejaba unos 90 puntos por nombre: los largos se
-          amontonaban en dos líneas y se montaban con lo de al lado. Un nombre
-          necesita su renglón.
-
-          Y el precursor va en NEGRITA, no con etiqueta: una etiqueta cada dos
-          o tres nombres es más ruido que información, y en una lista de quince
-          el ojo ya distingue el peso. */}
-      <View>
+      <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
         {group.publishers.map((publisher) => (
-          <View
+          <Text
             key={publisher.name}
             style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: space.sm + 1,
-              paddingVertical: 1.6,
+              width: '50%',
+              fontSize: 8.5,
+              lineHeight: 1.55,
+              paddingRight: space.sm,
             }}
           >
-            <View
-              style={{
-                width: 2.6,
-                height: 2.6,
-                borderRadius: 999,
-                backgroundColor: publisher.isPioneer
-                  ? color.accent
-                  : color.muted,
-              }}
-            />
-            <Text
-              style={{
-                ...text.body,
-                fontSize: 9,
-                fontWeight: publisher.isPioneer ? 700 : 400,
-                flex: 1,
-              }}
-            >
-              {publisher.name}
-            </Text>
-          </View>
+            {publisher.name}
+            {publisher.isPioneer ? <PdfDiamond /> : null}
+          </Text>
         ))}
       </View>
     </PdfCard>

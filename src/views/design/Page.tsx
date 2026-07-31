@@ -1,58 +1,82 @@
 import { ReactNode } from 'react';
 import { Page as PdfPage, Text, View } from '@react-pdf/renderer';
 import { IconLogo } from '@views/components/icons';
-import { color, page, space, stroke, text } from './tokens';
+import { color, page, radius, space, stroke, text } from './tokens';
 
 /**
- * LA HOJA del sistema: márgenes, cabecera y pie.
- *
- * ── La anatomía ──────────────────────────────────────────────────────────
+ * LA HOJA. Implementa `PDF_DESIGN_SYSTEM.md` §2 — la anatomía que comparten
+ * los doce documentos.
  *
  *   ┌──────────────────────────────────────────────┐
- *   │ [logo] Congregación            julio de 2026 │  barra de marca
- *   │ ──────────────────────────────────────────── │  regla
- *   │                                              │
- *   │ Título de la hoja                            │  display
- *   │ De qué va                                    │  subtitle
- *   │                                              │
- *   │ …secciones…                                  │
+ *   │ ▣ Elda Centro                 ( AGOSTO 2026 )│  firma + cápsula
+ *   │                                              │  +12
+ *   │ Programa de exhibidores                      │  título 16/800
+ *   │ Exhibidores públicos · turnos de dos horas   │  +3, subtítulo 9,5/500
+ *   │ ▬▬▬ ──────────────────────────────────────── │  +10, LA REGLA
+ *   │                                              │  +14
+ *   │ …contenido…                                  │
  *   │                                              │
  *   │ ──────────────────────────────────────────── │
- *   │ Congregación            Página 1 de 2        │  pie (fijo)
+ *   │ Elda Centro · Documento   Hoja 1 de 2 · …    │  pie fijo
  *   └──────────────────────────────────────────────┘
  *
- * Siempre la misma, en las once hojas que diseña la app. Lo que cambia de un
- * documento a otro es lo de en medio — que para eso están las secciones, las
- * tablas, las tarjetas y la cuadrícula.
+ * **La regla es la firma del sistema**: el guion azul de 26 × 2,5 seguido del
+ * hairline hasta el margen. Es lo único gráfico que comparten las doce hojas y
+ * lo que hace que se reconozcan a dos metros en el tablón. No se toca ni
+ * siquiera en modo compacto.
  *
- * El pie va en posición absoluta y se repite en todas las páginas; por eso la
- * hoja le reserva su alto por abajo, para que el contenido no se le eche
- * encima.
+ * **La cápsula lleva el PERIODO DE VIGENCIA, no el día** (regla R2): "Agosto
+ * 2026", "Agosto – Septiembre 2026", "2026 – 2027". Nunca días sueltos, nunca
+ * rangos con día, nunca "Hoja 1 de 2" — la numeración vive en el pie.
  */
+
+/**
+ * El wordmark: la última palabra en 800 y el resto en 500.
+ *
+ * La especificación lo define para "Elda Centro" —«Elda» 500 + «Centro» 800—,
+ * pero el nombre de la congregación es un ajuste y puede ser cualquiera. La
+ * regla generalizada da ese mismo resultado para el nuestro y algo sensato
+ * para cualquier otro; con una sola palabra, va entera en 800.
+ */
+const Wordmark = ({ nombre }: { nombre: string }) => {
+  const palabras = nombre.trim().split(/\s+/);
+  const ultima = palabras.pop() ?? '';
+  const resto = palabras.join(' ');
+
+  return (
+    <Text style={{ fontSize: 10.5, color: color.ink }}>
+      {resto ? <Text style={{ fontWeight: 500 }}>{resto} </Text> : null}
+      <Text style={{ fontWeight: 800 }}>{ultima}</Text>
+    </Text>
+  );
+};
 
 const Sheet = ({
   congregation,
-  meta,
+  period,
   title,
   subtitle,
+  documentName,
+  updatedAt,
   landscape = false,
-  paginated = false,
-  footerMeta,
+  dense = false,
   children,
 }: {
   congregation: string;
-  /** A la derecha de la barra: el mes, el rango de semanas… */
-  meta?: string;
+  /** El periodo de vigencia, ya formateado: "Agosto 2026". */
+  period?: string;
   title: string;
   subtitle?: string;
+  /** Para el pie: "Elda Centro · Programa de exhibidores". */
+  documentName?: string;
+  /** Para el pie: "Actualizado el 1 ago 2026". */
+  updatedAt?: string;
   landscape?: boolean;
-  /** El pie enseña "Página 1 de 2" cuando hay más de una hoja. */
-  paginated?: boolean;
-  /** Lo que va abajo a la derecha cuando no hay paginación. */
-  footerMeta?: string;
+  /** Modo compacto: solo aprieta el contenido, nunca la cabecera ni el pie. */
+  dense?: boolean;
   children: ReactNode;
 }) => {
-  const margin = landscape ? page.marginLandscape : page.margin;
+  const margin = landscape ? page.marginLandscape : dense ? 30 : page.margin;
   const nombre = congregation || 'Elda Centro';
 
   return (
@@ -62,19 +86,18 @@ const Sheet = ({
       style={{
         paddingTop: margin,
         paddingHorizontal: margin,
-        paddingBottom: margin + page.footerSpace,
+        paddingBottom: margin + 14,
         fontFamily: 'Figtree',
         backgroundColor: color.white,
       }}
     >
-      {/* ── Barra de marca ─────────────────────────────────────────── */}
+      {/* ── ① Firma  ②  Cápsula de fecha ─────────────────────────── */}
       <View
         style={{
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: space.sm,
         }}
       >
         <View
@@ -82,66 +105,94 @@ const Sheet = ({
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: space.md - 1,
+            gap: 6,
           }}
         >
-          <IconLogo size={22} />
-          <Text style={{ fontSize: 12.5, fontWeight: 700, color: color.ink }}>
-            {nombre}
-          </Text>
+          <IconLogo size={15} />
+          <Wordmark nombre={nombre} />
         </View>
-        {meta ? <Text style={text.meta}>{meta}</Text> : null}
+
+        {period ? (
+          <View
+            style={{
+              backgroundColor: color.wash,
+              borderRadius: radius.full,
+              paddingVertical: 3.5,
+              paddingHorizontal: 10,
+            }}
+          >
+            <Text style={text.dateCapsule}>{period}</Text>
+          </View>
+        ) : null}
       </View>
 
+      {/* ── ③ Título y subtítulo ─────────────────────────────────── */}
+      <Text style={{ ...text.sheetTitle, marginTop: 12 }}>{title}</Text>
+      {subtitle ? (
+        <Text style={{ ...text.sheetSubtitle, marginTop: 3 }}>{subtitle}</Text>
+      ) : null}
+
+      {/* ── ④ LA REGLA ───────────────────────────────────────────── */}
       <View
         style={{
-          borderBottom: `${stroke.thin}px solid ${color.accentLine}`,
-          marginBottom: space.lg - 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: 10,
+          marginBottom: 14,
         }}
-      />
-
-      {/* ── Título ─────────────────────────────────────────────────── */}
-      <View style={{ marginBottom: space.xl }}>
-        <Text style={text.display}>{title}</Text>
-        {subtitle ? (
-          <Text style={{ ...text.subtitle, marginTop: space.xs - 1 }}>
-            {subtitle}
-          </Text>
-        ) : null}
+      >
+        <View
+          style={{
+            width: 26,
+            height: stroke.dash,
+            borderRadius: radius.dash,
+            backgroundColor: color.accent,
+          }}
+        />
+        <View
+          style={{
+            flex: 1,
+            height: stroke.hairline,
+            backgroundColor: color.hairline,
+            marginLeft: 5,
+          }}
+        />
       </View>
 
       {children}
 
-      {/* ── Pie ────────────────────────────────────────────────────── */}
+      {/* ── ⑤ Pie ────────────────────────────────────────────────── */}
       <View
         fixed
         style={{
           position: 'absolute',
-          bottom: margin - space.lg,
+          bottom: margin - space.xl,
           left: margin,
           right: margin,
-          borderTop: `${stroke.hair}px solid ${color.line}`,
-          paddingTop: space.sm,
+          borderTop: `${stroke.hairline}px solid ${color.hairline}`,
+          paddingTop: 6,
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
-        <Text style={text.footnote}>{nombre}</Text>
-        {paginated ? (
-          <Text
-            fixed
-            style={text.footnote}
-            render={({ pageNumber, totalPages }) =>
-              totalPages > 1
-                ? `Página ${pageNumber} de ${totalPages}`
-                : (footerMeta ?? '')
-            }
-          />
-        ) : footerMeta ? (
-          <Text style={text.footnote}>{footerMeta}</Text>
-        ) : null}
+        <Text style={text.footer}>
+          {documentName ? `${nombre} · ${documentName}` : nombre}
+        </Text>
+        <Text
+          fixed
+          style={text.footer}
+          render={({ pageNumber, totalPages }) =>
+            [
+              `Hoja ${pageNumber} de ${totalPages}`,
+              updatedAt ? `Actualizado el ${updatedAt}` : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          }
+        />
       </View>
     </PdfPage>
   );

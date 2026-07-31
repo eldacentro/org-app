@@ -9,9 +9,15 @@ export const generateAndSharePdf = async (
 ) => {
   try {
     const blob = await pdf(document).toBlob();
-    const file = new File([blob], `${fileName}.pdf`, { type: 'application/pdf' });
+    const file = new File([blob], `${fileName}.pdf`, {
+      type: 'application/pdf',
+    });
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [file] })
+    ) {
       await navigator.share({
         files: [file],
         title: fileName,
@@ -27,7 +33,8 @@ export const generateAndSharePdf = async (
       saveAs(blob, `${fileName}.pdf`);
       displaySnackNotification({
         header: t('tr_done', 'Hecho'),
-        message: 'El navegador no soporta compartir archivos directamente. El PDF ha sido descargado.',
+        message:
+          'El navegador no soporta compartir archivos directamente. El PDF ha sido descargado.',
         severity: 'success',
       });
     }

@@ -1,94 +1,56 @@
 import { Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
-import {
-  PdfGrid,
-  PdfNote,
-  Sheet,
-  color,
-  space,
-  text,
-  fechaCorta,
-} from '@views/design';
+import { PdfBadge, PdfGrid, Sheet, color, fechaPie } from '@views/design';
+import type { PdfGridCell } from '@views/design';
 import { OutingsPDFProps, OutingPDFItem } from './index.types';
 
 /**
- * Salidas de predicación del mes.
+ * Documento 7 · Salidas de predicación. **Un mes, una hoja**, apaisada.
  *
- * Reconstruido sobre el sistema de diseño de los PDF
- * (`PDF_DESIGN_SYSTEM.md`). La cuadrícula la dibuja `PdfGrid`, que es quien
- * arregla los dos defectos que tenía —las verticales que no llegaban abajo y
- * las esquinas de abajo blancas—; están contados en la regla §5.3.
+ * Cuadrícula de celdas sueltas: cada día es una tarjetita con su borde y su
+ * radio, separadas por un hueco. Una línea por salida — hora, punto y quien
+ * dirige.
  */
-
-/** Una salida dentro de una celda del calendario. */
-const Salida = ({
-  outing,
-  showLocation,
-  dense,
-}: {
-  outing: OutingPDFItem;
-  showLocation: boolean;
-  dense: boolean;
-}) => {
-  // El color dice el ESTADO, no adorna: azul asignada, ámbar sin asignar,
-  // rojo suspendida.
-  const estado = outing.isCancelled
-    ? { acento: color.danger, fondo: color.dangerSoft, tinta: color.danger }
-    : outing.isAssigned
-      ? { acento: color.accent, fondo: color.accentSoft, tinta: color.ink }
-      : { acento: color.warn, fondo: color.warnSoft, tinta: color.warn };
-
-  return (
-    <PdfNote
-      accent={estado.acento}
-      soft={estado.fondo}
+const Salida = ({ outing }: { outing: OutingPDFItem }) => (
+  <View style={{ marginTop: 2 }}>
+    <View
       style={{
-        paddingVertical: dense ? 1.4 : space.xs,
-        paddingRight: space.sm,
-        marginBottom: dense ? 1.6 : space.xs,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        gap: 4,
       }}
     >
-      <View
+      <Text style={{ fontSize: 8, fontWeight: 700, color: color.ink }}>
+        {outing.time}
+      </Text>
+      <Text
         style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'baseline',
-          gap: space.sm - 1,
+          fontSize: 8,
+          fontWeight: 500,
+          color: color.secondary,
+          flex: 1,
         }}
       >
-        <Text
-          style={{
-            ...text.label,
-            fontSize: dense ? 6.6 : 7.2,
-            color: estado.tinta,
-          }}
-        >
-          {outing.time}
-        </Text>
-        <Text
-          style={{
-            ...text.body,
-            fontSize: dense ? 7.4 : 8,
-            fontWeight: 600,
-            color: estado.tinta,
-            flex: 1,
-            ...(outing.isCancelled && {
-              textDecoration: 'line-through' as const,
-            }),
-          }}
-        >
-          {outing.isCancelled ? 'Suspendida' : outing.brotherName}
-        </Text>
-      </View>
+        {outing.location}
+      </Text>
+    </View>
 
-      {!outing.isCancelled && showLocation && outing.location ? (
-        <Text style={{ ...text.body, fontSize: 7.4, color: color.muted }}>
-          {outing.location}
-        </Text>
-      ) : null}
-    </PdfNote>
-  );
-};
+    {outing.isCancelled ? (
+      <View style={{ alignSelf: 'flex-start', marginTop: 1 }}>
+        <PdfBadge tone="danger">Suspendida</PdfBadge>
+      </View>
+    ) : outing.isAssigned ? (
+      <Text style={{ fontSize: 8, fontWeight: 600, color: color.ink }}>
+        {outing.brotherName}
+      </Text>
+    ) : (
+      <View style={{ alignSelf: 'flex-start', marginTop: 1 }}>
+        <PdfBadge tone="empty">Sin asignar</PdfBadge>
+      </View>
+    )}
+  </View>
+);
 
 const OutingsSchedulePDF = ({
   monthName,
@@ -97,56 +59,39 @@ const OutingsSchedulePDF = ({
   cells,
   updatedAt,
 }: OutingsPDFProps) => {
-  const footerDate = fechaCorta(updatedAt);
-
-  // El mes entero en UNA hoja: es lo que se cuelga en el tablón, y partido en
-  // dos deja de servir para eso.
-  //
-  // Como el número de semanas no lo decide el diseño —hay meses de cuatro
-  // filas y de seis—, la hoja se aprieta sola cuando hay más (regla §5.6 del
-  // sistema).
   const semanas = Math.ceil(cells.length / weekdays.length);
   const dense = semanas > 4;
 
+  const celdas: PdfGridCell[] = cells.map((cell, i) =>
+    cell.type === 'empty'
+      ? { inactive: true }
+      : {
+          dayNum: cell.dayNum,
+          dayName: weekdays[i % weekdays.length].slice(0, 3),
+          inactive: cell.outings.length === 0,
+          inactiveReason: cell.outings.length === 0 ? 'Sin salidas' : undefined,
+          content: (
+            <View>
+              {cell.outings.map((outing) => (
+                <Salida key={outing.id} outing={outing} />
+              ))}
+            </View>
+          ),
+        }
+  );
+
   return (
-    <Document title={`Salidas de predicación - ${monthName}`} lang="es-ES">
+    <Document title="Salidas de predicación" lang="es-ES">
       <Sheet
         congregation={cong_name}
-        meta={monthName}
+        period={monthName}
         title="Salidas de predicación"
+        subtitle="Puntos de salida y quién dirige cada una"
+        documentName="Salidas de predicación"
+        updatedAt={fechaPie(updatedAt)}
         landscape
-        footerMeta={
-          footerDate ? `Última actualización · ${footerDate}` : monthName
-        }
       >
-        <PdfGrid
-          weekdays={weekdays}
-          dense={dense}
-          cells={cells.map((cell, i) =>
-            cell.type === 'empty'
-              ? {}
-              : {
-                  dayNum: cell.dayNum,
-                  content: (
-                    <View>
-                      {cell.outings.map((outing) => (
-                        <Salida
-                          key={outing.id}
-                          outing={outing}
-                          dense={dense}
-                          // El punto de salida, solo en domingo: entre semana
-                          // es siempre el mismo, y repetirlo en cada celda
-                          // llena la hoja de una línea que nadie lee.
-                          showLocation={weekdays[i % weekdays.length]
-                            .toLowerCase()
-                            .startsWith('d')}
-                        />
-                      ))}
-                    </View>
-                  ),
-                }
-          )}
-        />
+        <PdfGrid columns={weekdays.length} cells={celdas} dense={dense} />
       </Sheet>
     </Document>
   );
