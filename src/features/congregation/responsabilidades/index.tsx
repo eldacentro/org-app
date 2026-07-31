@@ -102,8 +102,10 @@ const SectionHeader = ({
         width: '40px',
         height: '40px',
         borderRadius: 'var(--shape-lg)',
-        backgroundColor: 'var(--accent-100)',
-        border: '1px solid var(--accent-200)',
+        // El relleno separa la caja; el canto sobraba (ver la nota en
+        // `my_assignments/assignment_item`). Sube un escalón para que se lea
+        // sola.
+        backgroundColor: 'var(--accent-150)',
       }}
     >
       <Icon color="var(--accent-main)" width={24} height={24} />
@@ -464,35 +466,35 @@ const ReorderDialog = ({
           style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
         >
           {list.map((dep, i) => (
-          <Box
-            key={dep.id}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: 'var(--accent-100)',
-              border: '1px solid var(--accent-200)',
-              borderRadius: 'var(--shape-lg)',
-              transition: 'background-color 0.2s',
-              '&:hover': {
-                backgroundColor: 'var(--accent-150)',
-              },
-            }}
-          >
-            <DragHandle
-              etiqueta={dep.name || 'este departamento'}
-              onSubir={() => moveUp(i)}
-              onBajar={() => moveDown(i)}
-            />
-            <Typography
-              className="body-regular-semibold"
-              sx={{ flex: 1 }}
-              color="var(--black)"
+            <Box
+              key={dep.id}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                backgroundColor: 'var(--accent-100)',
+                border: '1px solid var(--accent-200)',
+                borderRadius: 'var(--shape-lg)',
+                transition: 'background-color 0.2s',
+                '&:hover': {
+                  backgroundColor: 'var(--accent-150)',
+                },
+              }}
             >
-              {dep.name || '(Sin nombre)'}
-            </Typography>
-          </Box>
+              <DragHandle
+                etiqueta={dep.name || 'este departamento'}
+                onSubir={() => moveUp(i)}
+                onBajar={() => moveDown(i)}
+              />
+              <Typography
+                className="body-regular-semibold"
+                sx={{ flex: 1 }}
+                color="var(--black)"
+              >
+                {dep.name || '(Sin nombre)'}
+              </Typography>
+            </Box>
           ))}
         </ReactSortable>
       </Box>

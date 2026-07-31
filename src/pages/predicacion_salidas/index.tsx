@@ -2110,7 +2110,6 @@ const PredicacionSalidas = () => {
                                       aspectRatio: desktopUp ? 'auto' : '1',
                                       minHeight: desktopUp ? '110px' : 'auto',
                                       backgroundColor: 'var(--accent-150)',
-                                      border: '1px solid var(--line)',
                                       borderRadius: 'var(--shape-sm)',
                                       opacity: 0.3,
                                     }}
@@ -3390,7 +3389,6 @@ const PredicacionSalidas = () => {
                                     height: '32px',
                                     borderRadius: 'var(--shape-full)',
                                     backgroundColor: 'var(--accent-150)',
-                                    border: '1px solid var(--line)',
                                     display: 'flex',
                                     justifyContent: 'center',
                                     alignItems: 'center',
@@ -3658,7 +3656,6 @@ const PredicacionSalidas = () => {
                                   height: '32px',
                                   borderRadius: 'var(--shape-full)',
                                   backgroundColor: 'var(--accent-150)',
-                                  border: '1px solid var(--line)',
                                   display: 'flex',
                                   justifyContent: 'center',
                                   alignItems: 'center',

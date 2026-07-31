@@ -114,9 +114,12 @@ const AssignmentItem = (props: AssignmentItemProps) => {
           backgroundColor: isPreaching
             ? 'var(--preaching-tint)'
             : 'var(--brand-tint)',
-          border: isPreaching
-            ? '1px solid var(--preaching-border)'
-            : '1px solid rgba(59, 114, 196, 0.12)',
+          // Sin borde: una caja que solo sostiene un icono o una fecha se
+          // separa con el RELLENO, no con un canto. Es lo que hace el resto de
+          // la app —el círculo del estado vacío, el recuadro de años— y el
+          // delineado solo estaba en un puñado de sitios.
+          // De paso se va un azul de marca CONGELADO —`rgba(59,114,196,.12)`—
+          // que no seguía al tema.
           flexShrink: 0,
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
         }}

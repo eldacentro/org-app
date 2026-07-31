@@ -511,6 +511,46 @@ sin borde**. Pasó de verdad en las campañas "pasadas". Para mezclar, se usa
 `color-mix(in srgb, <color> N%, transparent)`, que funciona con cualquier
 color, tokens incluidos.
 
+### 6.4b Una caja que sostiene un icono se separa con RELLENO, no con un canto
+
+Un cuadrito de 32–52px cuyo único trabajo es sostener un icono, una inicial o
+una fecha corta: el círculo del estado vacío, el recuadro de "Años: 16", el
+icono de PDF de un documento, la fecha de una asignación.
+
+**Lleva relleno tintado y NO lleva borde.**
+
+```tsx
+// ✅
+<Box sx={{ width: 44, height: 44, borderRadius: 'var(--shape-md)',
+           backgroundColor: 'var(--accent-150)',
+           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+// ❌ el canto sobra: el relleno ya separa la caja del fondo
+<Box sx={{ ..., backgroundColor: `color-mix(in srgb, ${color} 7%, transparent)`,
+           border: `1.5px solid color-mix(in srgb, ${color} 15%, transparent)` }}>
+```
+
+El error típico no es poner el borde: es poner un relleno **demasiado tenue**
+—un 7%, o directamente `--card`, que es el mismo color de la tarjeta de
+detrás— y entonces hacer falta el canto para que la caja se vea. La solución es
+subir el relleno, no dibujar el canto. Con `--accent-150` o un `color-mix` al
+12% la caja se lee sola.
+
+Se cazaron nueve así (Documentos ×2, Mis asignaciones, Responsabilidades, datos
+de contacto del orador ×3, Exhibidores y Salidas), y varias arrastraban además
+un color de marca congelado en el borde.
+
+**Las dos excepciones, y por qué lo son:**
+
+- **Las pastillas de `@components/color_picker`.** El "relleno" ES el dato —el
+  color que se elige—, así que no se puede subir para que destaque. Un color
+  claro sobre la tarjeta blanca no tendría canto, y no se vería dónde acaba la
+  pastilla.
+- **Los controles del mapa** (`DialogVerTerritorio`, `TerritoryMap`). Van
+  encima de una foto de satélite o de un plano, no de una superficie de la app:
+  ahí no hay un fondo conocido contra el que destacar, y la línea de medio
+  píxel es lo que los despega de la imagen.
+
 ### 6.5 Un campo con un botón al lado: NUNCA se estira el botón al alto del campo
 
 Un campo mide 56px (etiqueta dentro) y un botón mide 40. Puestos en la misma

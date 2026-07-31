@@ -3149,7 +3149,6 @@ const Exhibitors = () => {
                                       backgroundColor: isResponsible
                                         ? 'var(--accent-150)'
                                         : 'var(--grey-100)',
-                                      border: `1px solid ${isResponsible ? 'var(--line)' : 'var(--grey-300)'}`,
                                       display: 'flex',
                                       justifyContent: 'center',
                                       alignItems: 'center',

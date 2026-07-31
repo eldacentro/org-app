@@ -1,6 +1,11 @@
 import React from 'react';
 import { Box, Link, IconButton } from '@mui/material';
-import { IconCall, IconMail, IconWhatsApp, IconPerson } from '@components/icons';
+import {
+  IconCall,
+  IconMail,
+  IconWhatsApp,
+  IconPerson,
+} from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { useAtomValue } from 'jotai';
 import { speakersCongregationsState } from '@states/speakers_congregations';
@@ -60,15 +65,19 @@ const ContactPhoneRow = ({
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconButton aria-label="Llamar"
+        <IconButton
+          aria-label="Llamar"
           component="a"
           href={`tel:${phone}`}
           sx={{
             width: '40px',
             height: '40px',
             borderRadius: 'var(--shape-sm)',
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--line)',
+            // Relleno tintado en vez de borde. Aquí el fondo era `--card`,
+            // o sea EL MISMO que la tarjeta de detrás, así que el canto era lo
+            // único que hacía visible la caja — justo el caso que la regla
+            // resuelve al revés.
+            backgroundColor: 'var(--accent-150)',
             color: 'var(--accent-main)',
             padding: 0,
             display: 'flex',
@@ -88,7 +97,8 @@ const ContactPhoneRow = ({
         >
           <IconCall width={20} height={20} color="var(--accent-main)" />
         </IconButton>
-        <IconButton aria-label="Abrir WhatsApp"
+        <IconButton
+          aria-label="Abrir WhatsApp"
           component="a"
           href={`https://wa.me/${cleanPhone}`}
           target="_blank"
@@ -97,8 +107,11 @@ const ContactPhoneRow = ({
             width: '40px',
             height: '40px',
             borderRadius: 'var(--shape-sm)',
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--line)',
+            // Relleno tintado en vez de borde. Aquí el fondo era `--card`,
+            // o sea EL MISMO que la tarjeta de detrás, así que el canto era lo
+            // único que hacía visible la caja — justo el caso que la regla
+            // resuelve al revés.
+            backgroundColor: 'var(--accent-150)',
             color: 'var(--accent-dark)',
             padding: 0,
             display: 'flex',
@@ -166,15 +179,19 @@ const ContactEmailRow = ({
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconButton aria-label="Enviar correo"
+        <IconButton
+          aria-label="Enviar correo"
           component="a"
           href={`mailto:${email}`}
           sx={{
             width: '40px',
             height: '40px',
             borderRadius: 'var(--shape-sm)',
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--line)',
+            // Relleno tintado en vez de borde. Aquí el fondo era `--card`,
+            // o sea EL MISMO que la tarjeta de detrás, así que el canto era lo
+            // único que hacía visible la caja — justo el caso que la regla
+            // resuelve al revés.
+            backgroundColor: 'var(--accent-150)',
             color: 'var(--accent-main)',
             padding: 0,
             display: 'flex',
@@ -230,10 +247,17 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
         >
           <IconCall color="var(--accent-350)" />
           <Box>
-            <Typography className="label-small-regular" color="var(--accent-350)">
+            <Typography
+              className="label-small-regular"
+              color="var(--accent-350)"
+            >
               {t('tr_phoneNumber')}
             </Typography>
-            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px' }}>
+            <Typography
+              className="body-small-semibold"
+              color="var(--accent-350)"
+              sx={{ marginTop: '2px' }}
+            >
               —
             </Typography>
           </Box>
@@ -261,10 +285,17 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
         >
           <IconMail color="var(--accent-350)" />
           <Box>
-            <Typography className="label-small-regular" color="var(--accent-350)">
+            <Typography
+              className="label-small-regular"
+              color="var(--accent-350)"
+            >
               {t('tr_emailAddress')}
             </Typography>
-            <Typography className="body-small-semibold" color="var(--accent-350)" sx={{ marginTop: '2px' }}>
+            <Typography
+              className="body-small-semibold"
+              color="var(--accent-350)"
+              sx={{ marginTop: '2px' }}
+            >
               —
             </Typography>
           </Box>
@@ -273,9 +304,12 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
 
       {speakerCong && (
         <>
-          {(speakerCong.cong_data.public_talk_coordinator.name.value.length > 0 ||
-            speakerCong.cong_data.public_talk_coordinator.phone.value.length > 0 ||
-            speakerCong.cong_data.public_talk_coordinator.email.value.length > 0) && (
+          {(speakerCong.cong_data.public_talk_coordinator.name.value.length >
+            0 ||
+            speakerCong.cong_data.public_talk_coordinator.phone.value.length >
+              0 ||
+            speakerCong.cong_data.public_talk_coordinator.email.value.length >
+              0) && (
             <Box
               sx={{
                 display: 'flex',
@@ -285,10 +319,14 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                 paddingTop: '16px',
               }}
             >
-              <Typography className="body-small-semibold" color="var(--accent-dark)">
+              <Typography
+                className="body-small-semibold"
+                color="var(--accent-dark)"
+              >
                 {t('tr_publicTalkCoordinator')}
               </Typography>
-              {speakerCong.cong_data.public_talk_coordinator.name.value.length > 0 && (
+              {speakerCong.cong_data.public_talk_coordinator.name.value.length >
+                0 && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -301,10 +339,15 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                     width: '100%',
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                  >
                     <IconPerson color="var(--black)" />
                     <Box>
-                      <Typography className="label-small-regular" color="var(--grey-600)">
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--grey-600)"
+                      >
                         {t('tr_name')}
                       </Typography>
                       <Typography
@@ -312,22 +355,31 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                         color="var(--accent-dark)"
                         sx={{ marginTop: '2px' }}
                       >
-                        {speakerCong.cong_data.public_talk_coordinator.name.value}
+                        {
+                          speakerCong.cong_data.public_talk_coordinator.name
+                            .value
+                        }
                       </Typography>
                     </Box>
                   </Box>
                 </Box>
               )}
-              {speakerCong.cong_data.public_talk_coordinator.phone.value.length > 0 && (
+              {speakerCong.cong_data.public_talk_coordinator.phone.value
+                .length > 0 && (
                 <ContactPhoneRow
-                  phone={speakerCong.cong_data.public_talk_coordinator.phone.value}
+                  phone={
+                    speakerCong.cong_data.public_talk_coordinator.phone.value
+                  }
                   label={t('tr_phoneNumber')}
                   icon={<IconCall color="var(--black)" />}
                 />
               )}
-              {speakerCong.cong_data.public_talk_coordinator.email.value.length > 0 && (
+              {speakerCong.cong_data.public_talk_coordinator.email.value
+                .length > 0 && (
                 <ContactEmailRow
-                  email={speakerCong.cong_data.public_talk_coordinator.email.value}
+                  email={
+                    speakerCong.cong_data.public_talk_coordinator.email.value
+                  }
                   label={t('tr_emailAddress')}
                   icon={<IconMail color="var(--black)" />}
                 />
@@ -347,7 +399,10 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                 paddingTop: '16px',
               }}
             >
-              <Typography className="body-small-semibold" color="var(--accent-dark)">
+              <Typography
+                className="body-small-semibold"
+                color="var(--accent-dark)"
+              >
                 {t('tr_coordinator')}
               </Typography>
               {speakerCong.cong_data.coordinator.name.value.length > 0 && (
@@ -363,10 +418,15 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
                     width: '100%',
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                  >
                     <IconPerson color="var(--black)" />
                     <Box>
-                      <Typography className="label-small-regular" color="var(--grey-600)">
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--grey-600)"
+                      >
                         {t('tr_name')}
                       </Typography>
                       <Typography
@@ -399,7 +459,11 @@ const SpeakerContactInfo = ({ speaker, onClose }: SpeakerContactInfoType) => {
         </>
       )}
 
-      <Button variant="main" onClick={onClose} sx={{ width: '100%', marginTop: '8px' }}>
+      <Button
+        variant="main"
+        onClick={onClose}
+        sx={{ width: '100%', marginTop: '8px' }}
+      >
         {t('tr_close')}
       </Button>
     </Box>
