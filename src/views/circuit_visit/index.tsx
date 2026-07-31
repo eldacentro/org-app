@@ -74,15 +74,34 @@ const fmtRange = (visit: CircuitVisitType) =>
 const sinTratamiento = (nombre: string) =>
   nombre.replace(/^\s*(hno\.?|hna\.?|hermano|hermana)\s+/i, '').trim();
 
+/**
+ * A partir de cuántas filas el programa se aprieta para caber en una hoja.
+ *
+ * Medido renderizando el PDF y contando páginas, no calculado: con nombres
+ * largos de verdad ("Familia Martínez Rodríguez", "Rafael Ibáñez Cremades",
+ * que ocupan dos líneas en las columnas estrechas), 15 filas es lo último que
+ * entra en el tamaño normal — con 16 ya se va a una segunda hoja.
+ *
+ * Por encima de 15 la hoja pasa sola a la densidad apretada, que aguanta al
+ * menos 25 filas: cinco comidas, seis visitas de pastoreo y catorce salidas de
+ * predicación, más de lo que trae ninguna visita real.
+ */
+const DENSIDAD = { holgado: 15 };
+
 /** Una sección con su título; el contenido lo pone quien la usa. */
 const Section = ({
   title,
+  compacto,
   children,
 }: {
   title: string;
+  compacto: boolean;
   children: ReactNode;
 }) => (
-  <View style={styles.section} minPresenceAhead={48}>
+  <View
+    style={compacto ? [styles.section, styles.sectionCompact] : styles.section}
+    minPresenceAhead={48}
+  >
     <Text style={styles.sectionTitle}>{title}</Text>
     {children}
   </View>
@@ -102,30 +121,64 @@ type Cita = {
   habitual?: boolean;
 };
 
-const ItineraryRow = ({ cita }: { cita: Cita }) => {
+const ItineraryRow = ({
+  cita,
+  compacto,
+}: {
+  cita: Cita;
+  compacto: boolean;
+}) => {
   const cuando = [fmtDay(cita.date), cita.time, cita.place].filter(Boolean);
 
   return (
     <View
-      style={
-        cita.habitual
-          ? [styles.itineraryItem, styles.itineraryItemHabitual]
-          : styles.itineraryItem
-      }
+      style={[
+        styles.itineraryItem,
+        cita.habitual && styles.itineraryItemHabitual,
+        compacto && styles.itineraryItemCompact,
+      ].filter(Boolean)}
       wrap={false}
     >
-      <Text style={styles.itineraryLabel}>{cita.label}</Text>
       <Text
-        style={
-          cita.habitual
-            ? [styles.itineraryWhen, styles.itineraryWhenHabitual]
-            : styles.itineraryWhen
-        }
+        style={[
+          styles.itineraryLabel,
+          compacto && styles.itineraryLabelCompact,
+        ].filter(Boolean)}
+      >
+        {cita.label}
+      </Text>
+      <Text
+        style={[
+          styles.itineraryWhen,
+          cita.habitual && styles.itineraryWhenHabitual,
+          compacto && styles.itineraryWhenCompact,
+        ].filter(Boolean)}
       >
         {cuando.join('  ·  ')}
       </Text>
     </View>
   );
+};
+
+/**
+ * Reparte las citas en las DOS columnas del itinerario.
+ *
+ * Lo normal es una columna para cada cosa: las reuniones de siempre a un lado y
+ * las especiales de la visita al otro. Pero si un lado se queda vacío —una
+ * visita a la que aún no le han puesto las especiales, o unos ajustes de
+ * reunión que no se pueden leer— dejar media hoja en blanco al lado de dos
+ * bloques queda peor que no tener cuadrícula: en ese caso se parte por la mitad
+ * lo que haya.
+ */
+const repartirEnDosColumnas = (habituales: Cita[], especiales: Cita[]) => {
+  if (habituales.length > 0 && especiales.length > 0) {
+    return [habituales, especiales];
+  }
+
+  const todas = [...habituales, ...especiales];
+  const corte = Math.ceil(todas.length / 2);
+
+  return [todas.slice(0, corte), todas.slice(corte)];
 };
 
 const CircuitVisitProgramDoc = ({
@@ -142,12 +195,21 @@ const CircuitVisitProgramDoc = ({
   const coName = sinTratamiento(coNameRaw);
   const coSpouseName = sinTratamiento(coSpouseNameRaw);
 
-  // El itinerario lleva las cuatro reuniones de la semana juntas y en orden:
-  // las dos de siempre —a las que va toda la congregación— y las especiales de
-  // la visita. Antes solo salían las especiales, y quien leía el programa tenía
-  // que acordarse por su cuenta de cuándo eran las otras dos.
-  const itinerario: Cita[] = [
-    ...regularMeetings.map((meeting) => ({ ...meeting, habitual: true })),
+  // El itinerario lleva las cuatro reuniones de la semana: las dos de siempre
+  // —a las que va toda la congregación— y las especiales de la visita.
+  //
+  // Van en dos columnas, cada grupo en la suya, y no en una sola lista: en
+  // vertical se comían cuatro bloques de alto y empujaban el programa a una
+  // segunda hoja. En dos columnas ocupan dos, y de paso se lee de un vistazo
+  // qué reuniones son las de todas las semanas y cuáles las de esta.
+  const porFecha = (a: Cita, b: Cita) =>
+    `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+
+  const habituales: Cita[] = regularMeetings
+    .map((meeting) => ({ ...meeting, habitual: true }))
+    .sort(porFecha);
+
+  const especiales: Cita[] = [
     ...(visit.meeting_pioneers
       ? [{ label: 'Reunión con precursores', ...visit.meeting_pioneers }]
       : []),
@@ -159,7 +221,13 @@ const CircuitVisitProgramDoc = ({
           },
         ]
       : []),
-  ].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  ].sort(porFecha);
+
+  const [columnaIzquierda, columnaDerecha] = repartirEnDosColumnas(
+    habituales,
+    especiales
+  );
+  const hayItinerario = habituales.length + especiales.length > 0;
 
   const range = fmtRange(visit);
   const congName = congregation || 'Elda Centro';
@@ -177,6 +245,25 @@ const CircuitVisitProgramDoc = ({
     ? ['19%', '11%', '27%', '21.5%', '21.5%']
     : ['24%', '14%', '34%', '28%'];
 
+  // Las filas de las tres tablas son lo único que crece sin control; el resto
+  // de la hoja mide siempre lo mismo. Por eso la cuenta es solo de filas.
+  const compacto =
+    mealsRows.length + shepherdingRows.length + preachingRows.length >
+    DENSIDAD.holgado;
+
+  const estiloCelda = compacto
+    ? [styles.cell, styles.cellCompact]
+    : [styles.cell];
+  const estiloFila = (idx: number) =>
+    [
+      styles.row,
+      idx % 2 === 0 && styles.rowAlt,
+      compacto && styles.rowCompact,
+    ].filter(Boolean);
+  const estiloCabecera = compacto
+    ? [styles.headCell, styles.headCellCompact]
+    : [styles.headCell];
+
   return (
     <Document title="Visita del Superintendente de Circuito" lang={lang}>
       <Page
@@ -193,22 +280,45 @@ const CircuitVisitProgramDoc = ({
             <Text style={styles.topBarDate}>{range}</Text>
           </View>
 
-          <View style={styles.headerDivider} />
+          <View
+            style={
+              compacto
+                ? [styles.headerDivider, styles.headerDividerCompact]
+                : styles.headerDivider
+            }
+          />
 
-          <Text style={styles.title}>
+          <Text
+            style={
+              compacto ? [styles.title, styles.titleCompact] : styles.title
+            }
+          >
             Visita del superintendente de circuito
           </Text>
-          <Text style={styles.subtitle}>{visitorName}</Text>
+          <Text
+            style={
+              compacto
+                ? [styles.subtitle, styles.subtitleCompact]
+                : styles.subtitle
+            }
+          >
+            {visitorName}
+          </Text>
 
           {/* ── Itinerario de reuniones ────────────────────────────── */}
-          <Section title="Itinerario de reuniones">
-            {itinerario.length > 0 ? (
-              <View>
-                {itinerario.map((cita, idx) => (
-                  <ItineraryRow
-                    key={`${cita.date}_${cita.time}_${idx}`}
-                    cita={cita}
-                  />
+          <Section title="Itinerario de reuniones" compacto={compacto}>
+            {hayItinerario ? (
+              <View style={styles.itineraryGrid}>
+                {[columnaIzquierda, columnaDerecha].map((columna, col) => (
+                  <View key={col} style={styles.itineraryColumn}>
+                    {columna.map((cita, idx) => (
+                      <ItineraryRow
+                        key={`${cita.date}_${cita.time}_${idx}`}
+                        cita={cita}
+                        compacto={compacto}
+                      />
+                    ))}
+                  </View>
                 ))}
               </View>
             ) : (
@@ -217,7 +327,7 @@ const CircuitVisitProgramDoc = ({
           </Section>
 
           {/* ── Programa de comidas ────────────────────────────────── */}
-          <Section title="Programa de comidas">
+          <Section title="Programa de comidas" compacto={compacto}>
             {mealsRows.length > 0 ? (
               <View style={styles.table}>
                 {/* `fixed` en la fila de cabecera = si la tabla parte a la
@@ -226,25 +336,23 @@ const CircuitVisitProgramDoc = ({
                     terminó en la página anterior no deja su cabecera suelta
                     (comprobado con un programa de dos páginas). */}
                 <View style={styles.headRow} fixed>
-                  <Text style={[styles.headCell, { width: '30%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '70%' }]}>
+                  <Text style={[...estiloCabecera, { width: '30%' }]}>Día</Text>
+                  <Text style={[...estiloCabecera, { width: '70%' }]}>
                     Anfitrión
                   </Text>
                 </View>
                 {mealsRows.map((meal, idx) => (
                   <View
                     key={`${meal.date}_${idx}`}
-                    style={
-                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
-                    }
+                    style={estiloFila(idx)}
                     wrap={false}
                   >
                     <Text
-                      style={[styles.cell, styles.cellDay, { width: '30%' }]}
+                      style={[...estiloCelda, styles.cellDay, { width: '30%' }]}
                     >
                       {fmtDay(meal.date)}
                     </Text>
-                    <Text style={[styles.cell, { width: '70%' }]}>
+                    <Text style={[...estiloCelda, { width: '70%' }]}>
                       {meal.hostName || '—'}
                     </Text>
                   </View>
@@ -256,44 +364,48 @@ const CircuitVisitProgramDoc = ({
           </Section>
 
           {/* ── Visitas (de pastoreo) ──────────────────────────────── */}
-          <Section title="Visitas">
+          <Section title="Visitas" compacto={compacto}>
             {shepherdingRows.length > 0 ? (
               <View style={styles.table}>
                 <View style={styles.headRow} fixed>
-                  <Text style={[styles.headCell, { width: '19%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '11%' }]}>Hora</Text>
-                  <Text style={[styles.headCell, { width: '35%' }]}>
+                  <Text style={[...estiloCabecera, { width: '19%' }]}>Día</Text>
+                  <Text style={[...estiloCabecera, { width: '11%' }]}>
+                    Hora
+                  </Text>
+                  <Text style={[...estiloCabecera, { width: '35%' }]}>
                     Hermano visitado
                   </Text>
-                  <Text style={[styles.headCell, { width: '35%' }]}>
+                  <Text style={[...estiloCabecera, { width: '35%' }]}>
                     Anciano acompañante
                   </Text>
                 </View>
                 {shepherdingRows.map((sv, idx) => (
                   <View
                     key={`${sv.date}_${sv.time}_${idx}`}
-                    style={
-                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
-                    }
+                    style={estiloFila(idx)}
                     wrap={false}
                   >
                     {/* Día y hora en columnas separadas, como en el programa de
                         predicación: iban juntas en una sola celda y las dos
                         tablas de la misma hoja se leían distinto. */}
                     <Text
-                      style={[styles.cell, styles.cellDay, { width: '19%' }]}
+                      style={[...estiloCelda, styles.cellDay, { width: '19%' }]}
                     >
                       {fmtDay(sv.date)}
                     </Text>
                     <Text
-                      style={[styles.cell, styles.cellMuted, { width: '11%' }]}
+                      style={[
+                        ...estiloCelda,
+                        styles.cellMuted,
+                        { width: '11%' },
+                      ]}
                     >
                       {sv.time || '—'}
                     </Text>
-                    <Text style={[styles.cell, { width: '35%' }]}>
+                    <Text style={[...estiloCelda, { width: '35%' }]}>
                       {sv.brotherName || '—'}
                     </Text>
-                    <Text style={[styles.cell, { width: '35%' }]}>
+                    <Text style={[...estiloCelda, { width: '35%' }]}>
                       {sv.elderName || '—'}
                     </Text>
                   </View>
@@ -305,25 +417,33 @@ const CircuitVisitProgramDoc = ({
           </Section>
 
           {/* ── Programa de predicación ────────────────────────────── */}
-          <Section title="Programa de predicación">
+          <Section title="Programa de predicación" compacto={compacto}>
             {preachingRows.length > 0 ? (
               <View style={styles.table}>
                 <View style={styles.headRow} fixed>
-                  <Text style={[styles.headCell, { width: preachingCols[0] }]}>
+                  <Text
+                    style={[...estiloCabecera, { width: preachingCols[0] }]}
+                  >
                     Día
                   </Text>
-                  <Text style={[styles.headCell, { width: preachingCols[1] }]}>
+                  <Text
+                    style={[...estiloCabecera, { width: preachingCols[1] }]}
+                  >
                     Hora
                   </Text>
-                  <Text style={[styles.headCell, { width: preachingCols[2] }]}>
+                  <Text
+                    style={[...estiloCabecera, { width: preachingCols[2] }]}
+                  >
                     Punto de salida
                   </Text>
-                  <Text style={[styles.headCell, { width: preachingCols[3] }]}>
+                  <Text
+                    style={[...estiloCabecera, { width: preachingCols[3] }]}
+                  >
                     Con {coName}
                   </Text>
                   {coSpouseName ? (
                     <Text
-                      style={[styles.headCell, { width: preachingCols[4] }]}
+                      style={[...estiloCabecera, { width: preachingCols[4] }]}
                     >
                       Con {coSpouseName}
                     </Text>
@@ -332,14 +452,12 @@ const CircuitVisitProgramDoc = ({
                 {preachingRows.map((row, idx) => (
                   <View
                     key={`${row.date}_${row.time}_${idx}`}
-                    style={
-                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
-                    }
+                    style={estiloFila(idx)}
                     wrap={false}
                   >
                     <Text
                       style={[
-                        styles.cell,
+                        ...estiloCelda,
                         styles.cellDay,
                         { width: preachingCols[0] },
                       ]}
@@ -348,21 +466,23 @@ const CircuitVisitProgramDoc = ({
                     </Text>
                     <Text
                       style={[
-                        styles.cell,
+                        ...estiloCelda,
                         styles.cellMuted,
                         { width: preachingCols[1] },
                       ]}
                     >
                       {row.time || '—'}
                     </Text>
-                    <Text style={[styles.cell, { width: preachingCols[2] }]}>
+                    <Text style={[...estiloCelda, { width: preachingCols[2] }]}>
                       {row.location || '—'}
                     </Text>
-                    <Text style={[styles.cell, { width: preachingCols[3] }]}>
+                    <Text style={[...estiloCelda, { width: preachingCols[3] }]}>
                       {row.companionName || '—'}
                     </Text>
                     {coSpouseName ? (
-                      <Text style={[styles.cell, { width: preachingCols[4] }]}>
+                      <Text
+                        style={[...estiloCelda, { width: preachingCols[4] }]}
+                      >
                         {row.spouseCompanions || '—'}
                       </Text>
                     ) : null}

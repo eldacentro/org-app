@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
   },
   headerDivider: {
     borderBottom: `1px solid ${ACCENT_LINE}`,
-    marginBottom: 14,
+    marginBottom: 11,
   },
   title: {
     fontSize: 21,
@@ -68,12 +68,14 @@ export const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: 600,
     color: ACCENT,
-    marginBottom: 22,
+    marginBottom: 16,
   },
 
   // ── Secciones ──────────────────────────────────────────────────────────
+  // El aire entre secciones es lo primero que se recorta cuando el programa
+  // amenaza con irse a una segunda hoja: la raya del rótulo ya separa.
   section: {
-    marginBottom: 18,
+    marginBottom: 13,
   },
   sectionTitle: {
     fontSize: 9.5,
@@ -105,7 +107,7 @@ export const styles = StyleSheet.create({
   row: {
     display: 'flex',
     flexDirection: 'row',
-    paddingVertical: 6.5,
+    paddingVertical: 5,
     borderRadius: 3,
   },
   // La franja va en las filas PARES, empezando por la primera. La cabecera no
@@ -143,9 +145,69 @@ export const styles = StyleSheet.create({
     paddingVertical: 4,
   },
 
-  // ── Itinerario (las dos reuniones especiales) ──────────────────────────
-  // No es una tabla: son una o dos citas concretas, y son lo primero que se
-  // mira. Van en bloques con fondo tenue en vez de en filas de tabla.
+  // ── Densidad apretada ──────────────────────────────────────────────────
+  //
+  // El programa tiene que caber en UNA hoja: es lo que se cuelga en el tablón
+  // y lo que se lleva la gente. Pero el número de filas no lo decide el
+  // diseño: una semana con dos salidas de predicación cada día y cinco
+  // comidas trae el doble de filas que otra normal.
+  //
+  // Así que cuando hay muchas filas, la hoja se aprieta sola: mismo dibujo,
+  // mismos colores y mismas franjas, solo un punto más pequeño y con menos
+  // aire. Es lo mismo que hace el PDF de Responsabilidades. Los números salen
+  // de medir el PDF de verdad, no de calcular: ver `DENSIDAD` en index.tsx.
+  sectionCompact: {
+    marginBottom: 9,
+  },
+  rowCompact: {
+    paddingVertical: 3,
+  },
+  cellCompact: {
+    fontSize: 8.6,
+  },
+  headCellCompact: {
+    fontSize: 7.2,
+  },
+  itineraryItemCompact: {
+    paddingVertical: 4.5,
+    paddingHorizontal: 8,
+    marginBottom: 4,
+  },
+  itineraryLabelCompact: {
+    fontSize: 9.2,
+  },
+  itineraryWhenCompact: {
+    fontSize: 8.6,
+  },
+  titleCompact: {
+    fontSize: 18,
+  },
+  subtitleCompact: {
+    fontSize: 9.6,
+    marginBottom: 11,
+  },
+  headerDividerCompact: {
+    marginBottom: 8,
+  },
+
+  // ── Itinerario ─────────────────────────────────────────────────────────
+  // No es una tabla: son cuatro citas concretas, y son lo primero que se mira.
+  // Van en bloques, y los bloques en dos columnas — las de siempre a un lado y
+  // las especiales de la visita al otro.
+  itineraryGrid: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  itineraryColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    // `flexBasis: 0` obliga a las dos columnas a medir lo mismo. Sin él,
+    // reparten según lo que ocupe su texto y la de las reuniones especiales
+    // —que tiene los rótulos largos— se comía a la otra.
+    flexGrow: 1,
+    flexBasis: 0,
+  },
   itineraryItem: {
     backgroundColor: ACCENT_SOFT,
     borderLeft: `2px solid ${ACCENT}`,
