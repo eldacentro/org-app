@@ -1,8 +1,10 @@
+import { ReactNode } from 'react';
 import { Page, Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
+import { IconLogo } from '@views/components/icons';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
-import { styles } from './index.styles';
+import { PAGE_PADDING, styles } from './index.styles';
 
 export type CircuitVisitPdfPreachingRow = {
   date: string;
@@ -41,6 +43,24 @@ const fmtDay = fmtDayEs;
 const fmtRange = (visit: CircuitVisitType) =>
   fmtRangeEs(visit.date_start, visit.date_end);
 
+/** Una sección con su título; el contenido lo pone quien la usa. */
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) => (
+  <View style={styles.section} minPresenceAhead={48}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {children}
+  </View>
+);
+
+const Empty = ({ children }: { children: string }) => (
+  <Text style={styles.empty}>{children}</Text>
+);
+
 const SpecialMeetingRow = ({
   label,
   when,
@@ -51,9 +71,9 @@ const SpecialMeetingRow = ({
   if (!when) return null;
   const parts = [fmtDay(when.date), when.time, when.place].filter(Boolean);
   return (
-    <View style={styles.itineraryItem}>
+    <View style={styles.itineraryItem} wrap={false}>
       <Text style={styles.itineraryLabel}>{label}</Text>
-      <Text style={styles.itineraryWhen}>{parts.join('  •  ')}</Text>
+      <Text style={styles.itineraryWhen}>{parts.join('  ·  ')}</Text>
     </View>
   );
 };
@@ -69,81 +89,110 @@ const CircuitVisitProgramDoc = ({
   preachingRows,
 }: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
+  const range = fmtRange(visit);
+  const congName = congregation || 'Elda Centro';
+
+  const visitorName = coName
+    ? `${coName}${coSpouseName ? ` y ${coSpouseName}` : ''}`
+    : 'Programa de la visita';
+
+  // Los anchos de la tabla de predicación DEPENDEN de si hay esposa: la columna
+  // "Con ella" solo se pinta cuando la hay. Antes las anchuras estaban escritas
+  // a mano en cada celda y sumaban 100 % con esposa pero solo 80 % sin ella —
+  // en las congregaciones donde el superintendente viaja solo, la tabla se
+  // quedaba corta y dejaba una quinta parte de la hoja en blanco a la derecha.
+  const preachingCols = coSpouseName
+    ? ['19%', '11%', '27%', '21.5%', '21.5%']
+    : ['24%', '14%', '34%', '28%'];
 
   return (
     <Document title="Visita del Superintendente de Circuito" lang={lang}>
-      <Page size={[595.2, 842]} style={styles.body}>
-        {/* Cabecera */}
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>
-            Visita del Superintendente de Circuito
-          </Text>
-          <Text style={styles.title}>
-            {coName || 'Programa de la visita'}
-            {coSpouseName ? ` y ${coSpouseName}` : ''}
-          </Text>
-          <Text style={styles.headerMeta}>{fmtRange(visit)}</Text>
-        </View>
-
-        {/* Itinerario de reuniones especiales */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Itinerario de reuniones</Text>
-          {hasItinerary ? (
-            <View>
-              <SpecialMeetingRow
-                label="Reunión con precursores"
-                when={visit.meeting_pioneers}
-              />
-              <SpecialMeetingRow
-                label="Reunión con ancianos y siervos ministeriales"
-                when={visit.meeting_elders}
-              />
+      <Page
+        size="A4"
+        style={{ padding: PAGE_PADDING, backgroundColor: '#ffffff' }}
+      >
+        <View style={styles.wrapper}>
+          {/* ── Barra de marca ─────────────────────────────────────── */}
+          <View style={styles.topBar}>
+            <View style={styles.topBarBrand}>
+              <IconLogo size={22} />
+              <Text style={styles.topBarBrandName}>{congName}</Text>
             </View>
-          ) : (
-            <Text style={styles.empty}>
-              Sin reuniones especiales programadas.
-            </Text>
-          )}
-        </View>
+            <Text style={styles.topBarDate}>{range}</Text>
+          </View>
 
-        {/* Programa de comidas */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Programa de comidas</Text>
-          {mealsRows.length > 0 ? (
-            <View style={styles.table}>
-              <View style={styles.headRow}>
-                <View style={styles.row}>
-                  <Text style={[styles.headCell, { width: '35%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '65%' }]}>
+          <View style={styles.headerDivider} />
+
+          <Text style={styles.title}>
+            Visita del superintendente de circuito
+          </Text>
+          <Text style={styles.subtitle}>{visitorName}</Text>
+
+          {/* ── Itinerario de reuniones especiales ─────────────────── */}
+          <Section title="Itinerario de reuniones">
+            {hasItinerary ? (
+              <View>
+                <SpecialMeetingRow
+                  label="Reunión con precursores"
+                  when={visit.meeting_pioneers}
+                />
+                <SpecialMeetingRow
+                  label="Reunión con ancianos y siervos ministeriales"
+                  when={visit.meeting_elders}
+                />
+              </View>
+            ) : (
+              <Empty>Sin reuniones especiales programadas.</Empty>
+            )}
+          </Section>
+
+          {/* ── Programa de comidas ────────────────────────────────── */}
+          <Section title="Programa de comidas">
+            {mealsRows.length > 0 ? (
+              <View style={styles.table}>
+                {/* `fixed` en la fila de cabecera = si la tabla parte a la
+                    página siguiente, sus rótulos se repiten arriba. Solo se
+                    repiten mientras SU tabla sigue corriendo: una tabla que
+                    terminó en la página anterior no deja su cabecera suelta
+                    (comprobado con un programa de dos páginas). */}
+                <View style={styles.headRow} fixed>
+                  <Text style={[styles.headCell, { width: '30%' }]}>Día</Text>
+                  <Text style={[styles.headCell, { width: '70%' }]}>
                     Anfitrión
                   </Text>
                 </View>
+                {mealsRows.map((meal, idx) => (
+                  <View
+                    key={`${meal.date}_${idx}`}
+                    style={
+                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                    }
+                    wrap={false}
+                  >
+                    <Text
+                      style={[styles.cell, styles.cellDay, { width: '30%' }]}
+                    >
+                      {fmtDay(meal.date)}
+                    </Text>
+                    <Text style={[styles.cell, { width: '70%' }]}>
+                      {meal.hostName || '—'}
+                      {meal.note ? `  (${meal.note})` : ''}
+                    </Text>
+                  </View>
+                ))}
               </View>
-              {mealsRows.map((meal, idx) => (
-                <View key={`${meal.date}_${idx}`} style={styles.row}>
-                  <Text style={[styles.cell, { width: '35%' }]}>
-                    {fmtDay(meal.date)}
-                  </Text>
-                  <Text style={[styles.cell, { width: '65%' }]}>
-                    {meal.hostName || '—'}
-                    {meal.note ? `  (${meal.note})` : ''}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.empty}>Sin comidas asignadas.</Text>
-          )}
-        </View>
+            ) : (
+              <Empty>Sin comidas asignadas.</Empty>
+            )}
+          </Section>
 
-        {/* Visitas (de pastoreo) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Visitas</Text>
-          {shepherdingRows.length > 0 ? (
-            <View style={styles.table}>
-              <View style={styles.headRow}>
-                <View style={styles.row}>
-                  <Text style={[styles.headCell, { width: '30%' }]}>Día</Text>
+          {/* ── Visitas (de pastoreo) ──────────────────────────────── */}
+          <Section title="Visitas">
+            {shepherdingRows.length > 0 ? (
+              <View style={styles.table}>
+                <View style={styles.headRow} fixed>
+                  <Text style={[styles.headCell, { width: '19%' }]}>Día</Text>
+                  <Text style={[styles.headCell, { width: '11%' }]}>Hora</Text>
                   <Text style={[styles.headCell, { width: '35%' }]}>
                     Hermano visitado
                   </Text>
@@ -151,80 +200,123 @@ const CircuitVisitProgramDoc = ({
                     Anciano acompañante
                   </Text>
                 </View>
+                {shepherdingRows.map((sv, idx) => (
+                  <View
+                    key={`${sv.date}_${sv.time}_${idx}`}
+                    style={
+                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                    }
+                    wrap={false}
+                  >
+                    {/* Día y hora en columnas separadas, como en el programa de
+                        predicación: iban juntas en una sola celda y las dos
+                        tablas de la misma hoja se leían distinto. */}
+                    <Text
+                      style={[styles.cell, styles.cellDay, { width: '19%' }]}
+                    >
+                      {fmtDay(sv.date)}
+                    </Text>
+                    <Text
+                      style={[styles.cell, styles.cellMuted, { width: '11%' }]}
+                    >
+                      {sv.time || '—'}
+                    </Text>
+                    <Text style={[styles.cell, { width: '35%' }]}>
+                      {sv.brotherName || '—'}
+                    </Text>
+                    <Text style={[styles.cell, { width: '35%' }]}>
+                      {sv.elderName || '—'}
+                    </Text>
+                  </View>
+                ))}
               </View>
-              {shepherdingRows.map((sv, idx) => (
-                <View key={`${sv.date}_${sv.time}_${idx}`} style={styles.row}>
-                  <Text style={[styles.cell, { width: '30%' }]}>
-                    {[fmtDay(sv.date), sv.time].filter(Boolean).join('  •  ')}
-                  </Text>
-                  <Text style={[styles.cell, { width: '35%' }]}>
-                    {sv.brotherName || '—'}
-                  </Text>
-                  <Text style={[styles.cell, { width: '35%' }]}>
-                    {sv.elderName || '—'}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.empty}>
-              Sin visitas de pastoreo programadas.
-            </Text>
-          )}
-        </View>
+            ) : (
+              <Empty>Sin visitas de pastoreo programadas.</Empty>
+            )}
+          </Section>
 
-        {/* Programa de predicación (Salidas de predicación de esta semana) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Programa de predicación</Text>
-          {preachingRows.length > 0 ? (
-            <View style={styles.table}>
-              <View style={styles.headRow}>
-                <View style={styles.row}>
-                  <Text style={[styles.headCell, { width: '20%' }]}>Día</Text>
-                  <Text style={[styles.headCell, { width: '12%' }]}>Hora</Text>
-                  <Text style={[styles.headCell, { width: '28%' }]}>
+          {/* ── Programa de predicación ────────────────────────────── */}
+          <Section title="Programa de predicación">
+            {preachingRows.length > 0 ? (
+              <View style={styles.table}>
+                <View style={styles.headRow} fixed>
+                  <Text style={[styles.headCell, { width: preachingCols[0] }]}>
+                    Día
+                  </Text>
+                  <Text style={[styles.headCell, { width: preachingCols[1] }]}>
+                    Hora
+                  </Text>
+                  <Text style={[styles.headCell, { width: preachingCols[2] }]}>
                     Punto de salida
                   </Text>
-                  <Text style={[styles.headCell, { width: '20%' }]}>
+                  <Text style={[styles.headCell, { width: preachingCols[3] }]}>
                     Con {coName}
                   </Text>
                   {coSpouseName ? (
-                    <Text style={[styles.headCell, { width: '20%' }]}>
+                    <Text
+                      style={[styles.headCell, { width: preachingCols[4] }]}
+                    >
                       Con {coSpouseName}
                     </Text>
                   ) : null}
                 </View>
-              </View>
-              {preachingRows.map((row, idx) => (
-                <View key={`${row.date}_${row.time}_${idx}`} style={styles.row}>
-                  <Text style={[styles.cell, { width: '20%' }]}>
-                    {fmtDay(row.date)}
-                  </Text>
-                  <Text style={[styles.cell, { width: '12%' }]}>
-                    {row.time || '—'}
-                  </Text>
-                  <Text style={[styles.cell, { width: '28%' }]}>
-                    {row.location || '—'}
-                  </Text>
-                  <Text style={[styles.cell, { width: '20%' }]}>
-                    {row.companionName || '—'}
-                  </Text>
-                  {coSpouseName ? (
-                    <Text style={[styles.cell, { width: '20%' }]}>
-                      {row.spouseCompanions || '—'}
+                {preachingRows.map((row, idx) => (
+                  <View
+                    key={`${row.date}_${row.time}_${idx}`}
+                    style={
+                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                    }
+                    wrap={false}
+                  >
+                    <Text
+                      style={[
+                        styles.cell,
+                        styles.cellDay,
+                        { width: preachingCols[0] },
+                      ]}
+                    >
+                      {fmtDay(row.date)}
                     </Text>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.empty}>Sin salidas de predicación.</Text>
-          )}
+                    <Text
+                      style={[
+                        styles.cell,
+                        styles.cellMuted,
+                        { width: preachingCols[1] },
+                      ]}
+                    >
+                      {row.time || '—'}
+                    </Text>
+                    <Text style={[styles.cell, { width: preachingCols[2] }]}>
+                      {row.location || '—'}
+                    </Text>
+                    <Text style={[styles.cell, { width: preachingCols[3] }]}>
+                      {row.companionName || '—'}
+                    </Text>
+                    {coSpouseName ? (
+                      <Text style={[styles.cell, { width: preachingCols[4] }]}>
+                        {row.spouseCompanions || '—'}
+                      </Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Empty>Sin salidas de predicación.</Empty>
+            )}
+          </Section>
         </View>
 
-        <Text style={styles.footer} fixed>
-          {congregation}
-        </Text>
+        {/* ── Pie ──────────────────────────────────────────────────── */}
+        <View style={styles.footer} fixed>
+          <Text style={styles.footerText}>{congName}</Text>
+          <Text
+            style={styles.footerText}
+            fixed
+            render={({ pageNumber, totalPages }) =>
+              totalPages > 1 ? `Página ${pageNumber} de ${totalPages}` : range
+            }
+          />
+        </View>
       </Page>
     </Document>
   );

@@ -1,8 +1,19 @@
 import { G, Path, Svg } from '@react-pdf/renderer';
 
-const IconLogo = () => {
+/**
+ * El logotipo, para los PDF.
+ *
+ * `size` es opcional y por omisión vale 40, que es lo que medía antes de tener
+ * el parámetro: las cabeceras grandes lo siguen pintando igual, y las barras de
+ * marca —que son de una línea— pueden pedirlo pequeño sin copiarse los trazos.
+ */
+const IconLogo = ({ size = 40 }: { size?: number }) => {
   return (
-    <Svg viewBox="0 0 2881 2572" fill="none" style={{ width: 40, height: 40 }}>
+    <Svg
+      viewBox="0 0 2881 2572"
+      fill="none"
+      style={{ width: size, height: size }}
+    >
       <G transform="matrix(1,0,0,1,-809.952083,-964.060833)">
         <G transform="matrix(4.166667,0,0,4.166667,0,0)">
           <G>
