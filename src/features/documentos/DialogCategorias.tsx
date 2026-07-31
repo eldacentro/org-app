@@ -17,6 +17,7 @@ import { congIDState } from '@states/settings';
 import { documentoCategoriasState, documentosState } from '@states/documentos';
 import { CATEGORIAS_INICIALES } from './useDocumentos';
 import { getAccentMainHex } from '@utils/color';
+import { conCuenta } from '@utils/plural';
 
 const PALETA_COLORES = [
   '#306CB4',
@@ -85,7 +86,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
       displaySnackNotification({
         severity: 'error',
         header: 'Categoría en uso',
-        message: `Esta categoría tiene ${count} documento(s). Si la eliminas y guardas, esos documentos quedarán sin categoría.`,
+        message: `Esta categoría tiene ${conCuenta(count, 'documento')}. Si la eliminas y guardas, esos documentos quedarán sin categoría.`,
       });
     }
     setDrafts(drafts.filter((d) => d.id !== id));

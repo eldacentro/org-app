@@ -170,8 +170,9 @@ const DialogImportarKml = ({ open, onClose }: Props) => {
               className="body-small-regular"
               sx={{ color: 'var(--orange-main)' }}
             >
-              {duplicateNumeros.length} número(s) ya existen en esta zona o se
-              repiten en el archivo ({duplicateNumeros.slice(0, 6).join(', ')}
+              {conCuenta(duplicateNumeros.length, 'número')} ya existen en esta
+              zona o se repiten en el archivo (
+              {duplicateNumeros.slice(0, 6).join(', ')}
               {duplicateNumeros.length > 6 ? '…' : ''}). Si importas, se crearán
               como territorios nuevos y duplicados.
             </Typography>

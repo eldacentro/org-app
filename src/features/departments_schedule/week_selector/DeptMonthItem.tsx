@@ -26,13 +26,29 @@ const DeptMonthItem = ({
 
   return (
     <Box>
+      {/* La fila del mes es el botón, igual que su gemela del selector de
+          reuniones: era un `Box` con `onClick` y los meses quedaban fuera del
+          tabulador. */}
       <Box
+        component="button"
+        type="button"
+        aria-expanded={expanded}
         sx={{
+          width: '100%',
           padding: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
+          appearance: 'none',
+          background: 'none',
+          border: 'none',
+          textAlign: 'left',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '-2px',
+            borderRadius: 'var(--shape-xs)',
+          },
         }}
         onClick={handleToggleExpand}
       >

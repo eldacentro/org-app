@@ -1178,10 +1178,22 @@ const OutgoingSpeakersPage = () => {
                           '&:last-child': { borderBottom: 'none' },
                         }}
                       >
-                        {/* Month header */}
+                        {/* La cabecera del mes despliega sus semanas, y
+                            ahora también con el teclado: tenía el anillo de
+                            foco puesto pero no era un botón, o sea que ese
+                            anillo no se podía llegar a ver nunca. */}
                         <Box
+                          component="button"
+                          type="button"
+                          aria-expanded={expandedMonth === group.month}
                           onClick={() => handleToggleMonth(group.month)}
                           sx={{
+                            width: '100%',
+                            appearance: 'none',
+                            background: 'none',
+                            border: 'none',
+                            font: 'inherit',
+                            textAlign: 'left',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',

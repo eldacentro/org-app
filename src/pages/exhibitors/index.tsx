@@ -3667,8 +3667,17 @@ const Exhibitors = () => {
                                       pref.includes(col.key) ||
                                       pref.includes(col.turnId);
                                     return (
+                                      // Botón de verdad: marcar la
+                                      // disponibilidad de un hermano en un
+                                      // turno es un interruptor, y era un
+                                      // `Box` mudo. `aria-pressed` dice si
+                                      // está marcado sin tener que ver el
+                                      // color.
                                       <Box
+                                        component="button"
+                                        type="button"
                                         key={col.key}
+                                        aria-pressed={isChecked}
                                         onClick={() =>
                                           handleToggleAvailability(
                                             bro.person_uid,
@@ -3676,6 +3685,9 @@ const Exhibitors = () => {
                                           )
                                         }
                                         sx={{
+                                          appearance: 'none',
+                                          border: 'none',
+                                          font: 'inherit',
                                           cursor: 'pointer',
                                           padding: '6px 14px',
                                           borderRadius: 'var(--shape-full)',

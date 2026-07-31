@@ -10,7 +10,6 @@ import { useBreakpoints } from '@hooks/index';
 import { CustomTabPanel } from '@components/tabs';
 import { CustomTabProps } from '@components/tabs/index.types';
 import { IconChevronLeft, IconChevronRight } from '@components/icons';
-import Typography from '@components/typography';
 
 /**
  * Component that renders scrollable tabs.
@@ -51,13 +50,24 @@ function ScrollableTabs({
     setValueOfActivePanel(value ?? false);
   }, [value]);
 
+  useEffect(() => {
+    if (tabs.length === 0 && import.meta.env.DEV) {
+      console.warn(
+        '[pestañas] se ha montado un ScrollableTabs sin pestañas; la pantalla debería enseñar su propio estado vacío'
+      );
+    }
+  }, [tabs.length]);
+
   return (
     <Box sx={{ width: '100%', minHeight: tabs.length > 0 && '45px' }}>
-      {tabs.length === 0 && (
-        <Typography className="body-small-semibold" color="var(--red-main)">
-          TAB_DATA_EMPTY
-        </Typography>
-      )}
+      {/* Sin pestañas no se pinta nada.
+          Aquí ponía «TAB_DATA_EMPTY» en rojo: un recordatorio de programador
+          que se le estaba enseñando al usuario, en quince pantallas, cada vez
+          que una lista llegaba vacía. Quien decide qué decir cuando no hay
+          nada es la pantalla, que sabe de qué va — no un componente de
+          pestañas.
+          El aviso sigue existiendo, pero donde tiene que estar: en la consola,
+          y solo en desarrollo. */}
 
       {tabs.length > 0 && (
         <Box>

@@ -291,7 +291,13 @@ Entre los cinco son el **56%** del total.
         una pantalla de las trece.
         Comprobado en el navegador por las dos caras: ni un mes en mayúscula a
         mitad de frase en 14 rutas, ni uno en minúscula abriendo una.
-      **Queda**: plurales concatenados y códigos en pantalla.
+      **Cerrado (2026-07-31)**: quedaban DOS plurales con paréntesis
+      ("3 número(s)", "5 documento(s)") → `@utils/plural`. Y un código de
+      programador que se le estaba enseñando al usuario: `TAB_DATA_EMPTY`, en
+      rojo, en las quince pantallas que usan las pestañas desplazables cada vez
+      que una lista llegaba vacía. Ahora no se pinta nada —quien decide qué
+      decir cuando no hay nada es la pantalla, que sabe de qué va— y el aviso
+      vive donde le toca: en la consola, y solo en desarrollo.
 - [x] **B6 · Accesibilidad** — CERRADO, incluidos los diálogos, que era el
       agujero que quedaba. Se abrieron uno a uno y se midió toda la página
       DESPUÉS de abrirlos (no solo el diálogo), que es como salen también los
@@ -578,8 +584,15 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       botón dentro de la cabecera, y un botón dentro de otro botón no es HTML
       válido. Con la capa debajo, ese botón sigue siendo suyo.
       Lleva `aria-expanded`, así que además ANUNCIA si está abierta.
-      Quedan las copias sueltas (spiritual_status, import_export, week_selector,
-      delegate_reports, pending_slips, month_item de asistencia…).
+      **Cerrado (2026-07-31).** La lista de "copias sueltas" que había aquí
+      estaba desfasada: barridas todas las cabeceras plegables de la app con un
+      detector que busca `onClick` de plegar en un elemento que no es botón, y
+      quedaban SEIS, no las de esa lista — las doce filas de mes del selector de
+      reuniones y las doce del de Departamentos, la cabecera del panel abierto,
+      el aviso de hojitas, la cabecera de mes del panel de Oradores salientes
+      (que tenía puesto el anillo de foco sin ser botón, o sea un anillo que
+      nadie podía llegar a ver) y las píldoras de disponibilidad de Exhibidores,
+      que son interruptores y ahora dicen `aria-pressed`.
 - [~] **Elegir persona** — mapeado. NO son 6 maneras arbitrarias: hay tres
       familias con motivo (`person_selector` cuando hace falta historial,
       `AutoComplete` para lo sencillo, `Select` cuando la lista es corta y
