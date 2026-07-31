@@ -16,4 +16,3 @@ export type PersonDataType = {
   active?: boolean;
   congregation?: string;
 };
-

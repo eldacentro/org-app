@@ -222,21 +222,26 @@ const CircuitVisitWeek = ({
             width={26}
             height={26}
           />
-          {/* La misma cabecera que las demás de Programas semanales: `h2-caps`,
-              peso 800 y ese medio punto de separación entre letras. Esta era
-              la única en minúscula de toda la página, con `h3`, y encima
-              escrita entera —"Visita del superintendente de circuito"— se iba
-              a dos líneas en un móvil. En su pestaña ya se sabe que es una
-              visita. */}
+          {/* Mismo peso y mismo espaciado que `MeetingSection`, que es quien
+              dibuja TODAS las demás bandas de la página —incluidas las dos que
+              van justo debajo de esta—: 700 y medio punto. Iba a 800, y al
+              lado de "REUNIÓN DE ENTRE SEMANA" se notaba más gorda.
+
+              Y dice solo "Superintendente". Medido a 20,5px, que es el tamaño
+              en móvil: "SUPERINTENDENTE DE CIRCUITO" pide 359px y en un
+              teléfono de 360 no cabe ni de lejos; "SUPERINTENDENTE" pide 210,
+              menos que "REUNIÓN DE ENTRE SEMANA" (312), que es la banda más
+              larga que ya tiene la página. De qué superintendente hablamos lo
+              dice la pestaña, que se llama "Visita del superintendente". */}
           <Typography
             className="h2-caps"
             sx={{
               color: 'var(--always-white)',
-              fontWeight: 800,
-              letterSpacing: '0.6px',
+              fontWeight: 700,
+              letterSpacing: '0.5px',
             }}
           >
-            Superintendente de circuito
+            Superintendente
           </Typography>
         </Box>
 

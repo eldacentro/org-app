@@ -243,9 +243,11 @@ const ServiceOutingsMeeting = ({
               <Typography
                 className="h2-caps"
                 sx={{
-                  fontWeight: '800',
+                  // 700 y medio punto, como `MeetingSection`: era la otra
+                  // banda blanca sobre color de la página y estaba a 800.
+                  fontWeight: '700',
                   color: 'var(--always-white)',
-                  letterSpacing: '0.6px',
+                  letterSpacing: '0.5px',
                 }}
               >
                 {dayLabel}

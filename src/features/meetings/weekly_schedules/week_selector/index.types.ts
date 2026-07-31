@@ -4,4 +4,8 @@ export type WeekSelectorProps = {
   customWeeksList?: { weekOf: string }[];
 };
 
-export type WeeklySchedulesType = 'midweek' | 'weekend' | 'outgoing' | 'departments';
+export type WeeklySchedulesType =
+  | 'midweek'
+  | 'weekend'
+  | 'outgoing'
+  | 'departments';
