@@ -20,9 +20,27 @@ const DeptWeekItem = ({
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
   const isSelected = selectedWeek === weekOf;
 
+  // Botón de verdad, como su gemela del otro selector. Elegir semana es LA
+  // acción de este panel y era un `Box` con `onClick`: solo con el ratón. No
+  // lo cazó el barrido de teclado porque estas filas viven dentro de un
+  // `Collapse` y solo existen con el mes desplegado — lo que no está pintado
+  // no se puede medir. `aria-current` dice cuál está elegida sin depender del
+  // color.
   return (
     <Box
+      component="button"
+      type="button"
+      aria-current={isSelected ? 'true' : undefined}
       sx={{
+        width: '100%',
+        appearance: 'none',
+        border: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        '&:focus-visible': {
+          outline: '2px solid var(--accent-main)',
+          outlineOffset: '-2px',
+        },
         cursor: 'pointer',
         padding: '8px 8px 8px 16px',
         display: 'flex',

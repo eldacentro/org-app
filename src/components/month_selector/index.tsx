@@ -1,9 +1,8 @@
-import { Box, Grid, MenuItem } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import Button from '@components/button';
 import CollapsibleSelector from '@components/collapsible_selector';
-import Select from '@components/select';
-import Typography from '@components/typography';
+import ScrollableTabs from '@components/scrollable_tabs';
 
 /**
  * Elegir mes y año.
@@ -46,26 +45,20 @@ const MonthSelector = ({
       onToggle={onToggle}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Typography className="label-small-semibold" color="var(--ink-2)">
-            {t('tr_year', 'Año')}
-          </Typography>
-
-          <Select
-            value={year}
-            onChange={(event) =>
-              onChange({ year: Number(event.target.value), month })
-            }
-            size="small"
-            fullWidth
-          >
-            {years.map((value) => (
-              <MenuItem key={value} value={value}>
-                {value}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
+        {/* El año como PESTAÑAS, no como desplegable.
+            Eran dos o tres años en una lista desplegable que, al abrirse, se
+            plantaba encima de la rejilla de meses y tapaba justo lo que venías
+            a elegir. Con dos opciones eso no compensa.
+            Y de paso es el mismo control que usan los otros dos selectores de
+            periodo de la app —el de semanas de Reuniones y el de
+            Departamentos—, que ya enseñan el año en una tira de pestañas. */}
+        <ScrollableTabs
+          tabs={years.map((value) => ({ label: value.toString() }))}
+          value={years.indexOf(year)}
+          onChange={(index) => onChange({ year: years[index], month })}
+          variant="scrollable"
+          hideScrollButtons
+        />
 
         <Grid container spacing={1}>
           {monthNames.map((name, index) => {

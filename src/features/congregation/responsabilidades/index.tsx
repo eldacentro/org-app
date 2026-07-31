@@ -32,6 +32,7 @@ import DrawerEditCargo from './DrawerEditCargo';
 import DrawerEditDepartamento from './DrawerEditDepartamento';
 import MeetingSection from '@features/meetings/meeting_section';
 import accentSurface from '@components/accent_surface';
+import CountBadge from '@components/count_badge';
 
 // ─── Hooks for person lists ──────────────────────────────────────────────────
 
@@ -304,17 +305,33 @@ const ReadDepartamentos = ({
               {dep.type === 'extended' &&
                 (dep as DepartamentoExtended).members.length > 0 && (
                   <Box sx={{ mt: '4px' }}>
-                    <Typography
-                      className="label-small-medium"
-                      color="var(--grey-400)"
+                    {/* El número, en su chapa. Estaba metido DENTRO del texto
+                        —"Equipo (10)"—, que es justo lo que se cambió en los
+                        otros cinco contadores de la app: dentro de la frase
+                        deja de ser un dato y pasa a ser parte del rótulo. */}
+                    <Box
                       sx={{
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
                         mb: '8px',
                       }}
                     >
-                      Equipo ({(dep as DepartamentoExtended).members.length})
-                    </Typography>
+                      <Typography
+                        className="label-small-medium"
+                        color="var(--grey-400)"
+                        sx={{
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Equipo
+                      </Typography>
+                      <CountBadge
+                        value={(dep as DepartamentoExtended).members.length}
+                        color="var(--grey-400)"
+                      />
+                    </Box>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       {(dep as DepartamentoExtended).members.map((uid) => (
                         <Chip

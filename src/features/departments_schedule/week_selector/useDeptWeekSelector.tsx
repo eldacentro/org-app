@@ -67,7 +67,10 @@ const useDeptWeekSelector = () => {
 
         if (weeks.length > 0) {
           yearMonths.push({
-            label: capitalizarPrimera(monthNames[month]),
+            // Con el año, como el selector de reuniones. Decía solo
+            // "Enero" mientras su gemelo decía "Enero 2026", y son el mismo
+            // control haciendo el mismo trabajo en dos pantallas.
+            label: `${capitalizarPrimera(monthNames[month])} ${year}`,
             value: `${year}/${String(month + 1).padStart(2, '0')}`,
             weeks,
           });
