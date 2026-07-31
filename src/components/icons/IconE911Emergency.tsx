@@ -9,7 +9,7 @@ type IconProps = {
 };
 
 const IconE911Emergency = ({
-  color = '#222222',
+  color = 'var(--black)',
   width = 24,
   height = 24,
   sx = {},

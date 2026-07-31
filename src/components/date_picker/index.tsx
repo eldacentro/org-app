@@ -122,7 +122,9 @@ const DatePicker = ({
                   display: 'block',
                   position: 'fixed',
                   inset: 0,
-                  backgroundColor: 'rgba(15, 23, 42, 0.45)',
+                  // El mismo velo que cualquier diálogo de la app, que además
+                  // se aclara u oscurece con el tema.
+                  backgroundColor: 'var(--accent-dark-overlay)',
                   zIndex: 1399,
                 },
               }}

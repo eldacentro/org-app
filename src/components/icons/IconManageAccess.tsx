@@ -9,7 +9,7 @@ type IconProps = {
 };
 
 const IconManageAccess = ({
-  color = '#222222',
+  color = 'var(--black)',
   width = 24,
   height = 24,
   sx = {},

@@ -512,7 +512,7 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       elegir esquema de color —azul, verde, morado, naranja, rojo— y ese trozo
       se quedaba azul con los otros cuatro. Comprobado poniendo el esquema en
       verde: el Inicio entero cambia.
-- [~] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
+- [x] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
       decenas de pantallas. Hecho el **barrido de iconos ajenos**: la app tiene
       308 iconos propios y usaba 9 de Material Icons, con OTRO trazo. Fuera los
       que tenían equivalente (`ExpandMoreIcon`, las flechas de
@@ -528,7 +528,22 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       Se quedan a propósito: los círculos de radio de MUI (un radio ES un
       círculo y la app no tiene ese icono) y `PictureAsPdfIcon`/`DirectionsIcon`
       (huecos reales del juego propio).
-      **Queda** el resto del repaso de `src/components`.
+      **Cerrado (2026-07-31)** el resto del repaso, y con un hallazgo gordo:
+      **los 301 iconos de la app tenían el color por defecto congelado** en
+      `#222222`. Cuando nadie le pasa color a un icono —y hay 287 usos así— en
+      modo oscuro salía casi negro sobre fondo casi negro. Comprobado en el
+      navegador antes de tocar nada: con el tema en oscuro, el fondo es
+      `rgb(20,34,18)` y ese icono se quedaba en `rgb(34,34,34)`.
+      Ahora el defecto es `var(--black)`, que en claro vale EXACTAMENTE
+      `rgb(34,34,34)` —o sea, cero cambio— y en oscuro pasa a `rgb(214,228,212)`.
+      Medido en los dos modos después.
+      Lo demás: los cuatro colores del cajón a `--line`/`--line-2`/
+      `--state-hover`, el velo del selector de fecha al mismo de los diálogos
+      (`--accent-dark-overlay`), la sombra de la tarjeta de persona a
+      `--shadow-sm` y dos círculos con `50%` al token.
+      Se quedan a propósito: el `#000` del interruptor de tema (no hay token
+      para el negro absoluto y no merece inventarlo por un uso, ya está
+      comentado) y la curva propia de la barra que se desliza.
 - [x] **Mis asignaciones** — el inventario decía 44 defectos; medidos son 8, y
       de esos 8 la mitad eran falsos otra vez (el `Select` y el `Button` son de
       la app, no de MUI; el "color a fuego" estaba dentro de un comentario que

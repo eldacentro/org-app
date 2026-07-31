@@ -12,7 +12,7 @@ export const StyledCardBox = styled(Box)({
     '&:hover': {
       background: 'var(--accent-100)',
       border: '1px solid var(--accent-350)',
-      boxShadow: '0px 2px 8px 0px rgba(28, 28, 28, 0.12)',
+      boxShadow: 'var(--shadow-sm)',
       cursor: 'pointer',
     },
   },

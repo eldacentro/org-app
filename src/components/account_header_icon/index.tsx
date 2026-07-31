@@ -182,7 +182,7 @@ const AccountHeaderIcon = ({
               left: -2,
               right: -2,
               bottom: -2,
-              borderRadius: '50%',
+              borderRadius: 'var(--shape-full)',
               border: '2px solid var(--orange-main)',
               zIndex: 1,
             }}
@@ -195,7 +195,7 @@ const AccountHeaderIcon = ({
               right: -1,
               width: '9px',
               height: '9px',
-              borderRadius: '50%',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: 'var(--green-main)',
               border: '1.5px solid var(--white)',
               zIndex: 1,

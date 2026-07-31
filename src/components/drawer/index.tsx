@@ -94,9 +94,9 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
               ? 'var(--shape-xl) var(--shape-xl) 0 0'
               : 'unset',
           border: laptopUp
-            ? '1px solid rgba(255,255,255,0.18)'
+            ? '1px solid var(--line-2)'
             : props.anchor === 'bottom'
-              ? '1px solid rgba(255,255,255,0.18)'
+              ? '1px solid var(--line-2)'
               : 'unset',
           borderBottom: 'none',
           padding: '20px 16px',
@@ -129,7 +129,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
             mb: '16px',
             ml: '4px',
             pb: '14px',
-            borderBottom: '1px solid rgba(127,127,160,0.12)',
+            borderBottom: '1px solid var(--line)',
           }}
         >
           <Typography
@@ -151,7 +151,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
                 transition:
                   'background var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard)',
                 '&:hover': {
-                  backgroundColor: 'rgba(127,127,160,0.10)',
+                  backgroundColor: 'var(--state-hover)',
                   transform: 'rotate(90deg)',
                 },
               }}
