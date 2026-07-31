@@ -8,6 +8,7 @@ import {
   Path,
   Link,
 } from '@react-pdf/renderer';
+import { AccentCapsule, accentCapsuleSurface } from '@views/components';
 import styles from './index.styles';
 import { VisitingSpeakerInvitationProps } from './index.types';
 
@@ -161,7 +162,11 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
 
           {/* Media Info */}
           {props.mediaEmail && (
-            <View style={styles.mediaSection}>
+            <View style={[styles.mediaSection, accentCapsuleSurface()]}>
+              {/* La uñita, hecha cápsula: ver
+                  `@views/components/accent_capsule`. */}
+              <AccentCapsule color="#EAB308" />
+
               <Text style={styles.mediaText}>
                 <Text style={styles.boldText}>Contenido multimedia:</Text> Si
                 utilizas imágenes o videos en tu discurso, puedes traerlos en un

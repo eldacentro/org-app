@@ -11,6 +11,8 @@ const INK = '#1a1a2e';
 const MUTED = '#6b7280';
 const LINE = '#e5e7eb';
 const ACCENT = '#306CB4';
+/** Los dos colores de la cápsula del itinerario. */
+export const COLOR_CAPSULA = { especial: ACCENT, habitual: '#c9ced6' };
 const ACCENT_LINE = '#d0d7e8';
 const ACCENT_SOFT = '#eef4fc';
 const ZEBRA = '#f8fafd';
@@ -208,12 +210,13 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: 0,
   },
+  // El sangrado de la izquierda NO se pone aquí: lo pone
+  // `accentCapsuleSurface()`, que es quien sabe cuánto ocupa la cápsula.
   itineraryItem: {
     backgroundColor: ACCENT_SOFT,
-    borderLeft: `2px solid ${ACCENT}`,
-    borderRadius: 3,
+    borderRadius: 5,
     paddingVertical: 7,
-    paddingHorizontal: 10,
+    paddingRight: 10,
     marginBottom: 5,
   },
   itineraryLabel: {
@@ -232,7 +235,6 @@ export const styles = StyleSheet.create({
   // apuntarse. Mismo bloque y mismo sitio, gris en vez de azul.
   itineraryItemHabitual: {
     backgroundColor: 'transparent',
-    borderLeft: `2px solid ${LINE}`,
   },
   itineraryWhenHabitual: {
     color: MUTED,

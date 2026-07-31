@@ -3,6 +3,15 @@ import registerFonts from '@views/registerFonts';
 
 registerFonts();
 
+/** El color de la uñita de cada estado. Antes era el `borderLeftColor` del
+ *  bloque; ahora se lo lleva la cápsula, que no es un borde: ver
+ *  `@views/components/accent_capsule`. */
+export const COLOR_CAPSULA = {
+  asignado: '#306CB4',
+  sinAsignar: '#d97706',
+  suspendido: '#ef4444',
+};
+
 const styles = StyleSheet.create({
   body: {
     paddingTop: 18,
@@ -53,7 +62,7 @@ const styles = StyleSheet.create({
     borderBottom: '1 solid #d0d7e8',
     marginBottom: 9,
   },
-  
+
   // Estructura del Calendario
   calendarContainer: {
     flexGrow: 1,
@@ -82,13 +91,13 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: 700,
   },
-  
+
   weekRow: {
     flex: 1,
     display: 'flex',
     flexDirection: 'row',
   },
-  
+
   // Celda del Día
   cell: {
     flex: 1,
@@ -111,7 +120,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginBottom: 2.2,
   },
-  
+
   // Salidas individuales dentro de las celdas
   outingsWrapper: {
     display: 'flex',
@@ -121,10 +130,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-start',
   },
+  // El sangrado de la izquierda lo pone `accentCapsuleSurface()`, que es quien
+  // sabe cuánto ocupa la cápsula; aquí solo el resto del relleno.
   outingBadge: {
-    padding: 2.2,
+    paddingVertical: 2.2,
+    paddingRight: 2.2,
     borderRadius: 4,
-    borderLeftWidth: 2,
     display: 'flex',
     flexDirection: 'column',
     gap: 1,
@@ -132,17 +143,14 @@ const styles = StyleSheet.create({
   },
   assignedBadge: {
     backgroundColor: '#f0f7ff',
-    borderLeftColor: '#306CB4',
   },
   unassignedBadge: {
     backgroundColor: '#fffbeb',
-    borderLeftColor: '#d97706',
   },
   cancelledBadge: {
     backgroundColor: '#fef2f2',
-    borderLeftColor: '#ef4444',
   },
-  
+
   // Textos de las salidas
   timeText: {
     fontSize: 8,
@@ -163,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444',
     textDecoration: 'line-through',
   },
-  
+
   infoText: {
     fontSize: 7.5,
     fontWeight: 500,
@@ -178,7 +186,7 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     textDecoration: 'line-through',
   },
-  
+
   brotherText: {
     fontSize: 8.5,
     fontWeight: 700,
@@ -194,7 +202,7 @@ const styles = StyleSheet.create({
     color: '#991b1b',
     textDecoration: 'line-through',
   },
-  
+
   // Pie de Página
   footer: {
     position: 'absolute',

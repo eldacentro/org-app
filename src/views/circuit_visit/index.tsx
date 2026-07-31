@@ -1,10 +1,14 @@
 import { ReactNode } from 'react';
 import { Page, Text, View } from '@react-pdf/renderer';
-import { Document } from '@views/components';
+import {
+  AccentCapsule,
+  Document,
+  accentCapsuleSurface,
+} from '@views/components';
 import { IconLogo } from '@views/components/icons';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
-import { PAGE_PADDING, styles } from './index.styles';
+import { COLOR_CAPSULA, PAGE_PADDING, styles } from './index.styles';
 
 export type CircuitVisitPdfPreachingRow = {
   date: string;
@@ -134,11 +138,20 @@ const ItineraryRow = ({
     <View
       style={[
         styles.itineraryItem,
+        accentCapsuleSurface(),
         cita.habitual && styles.itineraryItemHabitual,
         compacto && styles.itineraryItemCompact,
       ].filter(Boolean)}
       wrap={false}
     >
+      {/* La uñita, hecha cápsula: ver `@views/components/accent_capsule`. Iba
+          como `borderLeft` recto sobre un bloque redondeado, que es justo lo
+          que el sistema de diseño prohíbe — el color se cortaba en seco donde
+          empezaba la curva y dejaba dos muescas. */}
+      <AccentCapsule
+        color={cita.habitual ? COLOR_CAPSULA.habitual : COLOR_CAPSULA.especial}
+      />
+
       <Text
         style={[
           styles.itineraryLabel,

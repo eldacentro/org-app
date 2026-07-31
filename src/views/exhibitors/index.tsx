@@ -1,6 +1,10 @@
 import { G, Path, Svg, Page, Text, View } from '@react-pdf/renderer';
-import { Document } from '@views/components';
-import styles from './index.styles';
+import {
+  AccentCapsule,
+  Document,
+  accentCapsuleSurface,
+} from '@views/components';
+import styles, { COLOR_CAPSULA } from './index.styles';
 import { ExhibitorPDFProps } from './index.types';
 
 // Real logo, same paths as IconLogo but rendered at a larger size
@@ -142,20 +146,31 @@ const ExhibitorsPDF = ({
 
                               let badgeStyle = styles.assignedBadge;
                               let timeStyle = styles.assignedTimeText;
+                              let capsula = COLOR_CAPSULA.asignado;
 
                               if (isCancelled) {
                                 badgeStyle = styles.cancelledBadge;
                                 timeStyle = styles.cancelledTimeText;
+                                capsula = COLOR_CAPSULA.suspendido;
                               } else if (!isAssigned) {
                                 badgeStyle = styles.unassignedBadge;
                                 timeStyle = styles.unassignedTimeText;
+                                capsula = COLOR_CAPSULA.sinAsignar;
                               }
 
                               return (
                                 <View
                                   key={turn.id}
-                                  style={[styles.turnBadge, badgeStyle]}
+                                  style={[
+                                    styles.turnBadge,
+                                    accentCapsuleSurface(),
+                                    badgeStyle,
+                                  ]}
                                 >
+                                  {/* La uñita, hecha cápsula: ver
+                                      `@views/components/accent_capsule`. */}
+                                  <AccentCapsule color={capsula} />
+
                                   <View
                                     style={{
                                       display: 'flex',

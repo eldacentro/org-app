@@ -120,11 +120,14 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     color: '#333333',
   },
+  // El sangrado de la izquierda lo pone `accentCapsuleSurface()`. El borde
+  // recto que había aquí se cortaba contra un radio de 8, que es de los más
+  // redondos de todos los PDF — era donde peor se veían las dos muescas.
   mediaSection: {
     backgroundColor: '#F9F9F9',
     borderRadius: 8,
-    padding: 12,
-    borderLeft: '3 solid #EAB308',
+    paddingVertical: 12,
+    paddingRight: 12,
     marginBottom: 25,
   },
   mediaText: {

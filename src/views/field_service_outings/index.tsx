@@ -1,6 +1,10 @@
 import { G, Path, Svg, Page, Text, View } from '@react-pdf/renderer';
-import { Document } from '@views/components';
-import styles from './index.styles';
+import {
+  AccentCapsule,
+  Document,
+  accentCapsuleSurface,
+} from '@views/components';
+import styles, { COLOR_CAPSULA } from './index.styles';
 import { OutingsPDFProps } from './index.types';
 
 // Real logo, same paths as IconLogo but rendered at a larger size
@@ -141,13 +145,16 @@ const OutingsSchedulePDF = ({
                             let timeStyle = styles.assignedTimeText;
                             let infoStyle = styles.assignedInfoText;
                             let brotherStyle = styles.assignedBrotherText;
+                            let capsula = COLOR_CAPSULA.asignado;
 
                             if (isCancelled) {
                               badgeStyle = styles.cancelledBadge;
                               timeStyle = styles.cancelledTimeText;
                               infoStyle = styles.cancelledInfoText;
                               brotherStyle = styles.cancelledBrotherText;
+                              capsula = COLOR_CAPSULA.suspendido;
                             } else if (!isAssigned) {
+                              capsula = COLOR_CAPSULA.sinAsignar;
                               badgeStyle = styles.unassignedBadge;
                               timeStyle = styles.unassignedTimeText;
                               infoStyle = styles.unassignedInfoText;
@@ -157,8 +164,16 @@ const OutingsSchedulePDF = ({
                             return (
                               <View
                                 key={outing.id}
-                                style={[styles.outingBadge, badgeStyle]}
+                                style={[
+                                  styles.outingBadge,
+                                  accentCapsuleSurface(),
+                                  badgeStyle,
+                                ]}
                               >
+                                {/* La uñita, hecha cápsula: ver
+                                    `@views/components/accent_capsule`. */}
+                                <AccentCapsule color={capsula} />
+
                                 <View
                                   style={{
                                     display: 'flex',
