@@ -625,3 +625,35 @@ export const formatDateShortMonthWithYear = (
     params: { year, month: monthName, date },
   });
 };
+
+/**
+ * Una hora de reloj guardada como texto ("19:30") y el `Date` que pide el
+ * selector de hora de la app, en los dos sentidos.
+ *
+ * La visita del superintendente guarda sus horas como `HH:mm` —es lo que se
+ * sincroniza— pero pintaba ese dato con `TimeField`, que es el campo de
+ * DURACIONES: se escribe a mano, tiene `0:00` de marcador y no abre ningún
+ * reloj. Para una hora de reloj toca `@components/time_picker`, y ese habla
+ * `Date`. Estas dos funciones son el puente.
+ *
+ * La fecha del `Date` da igual y no se guarda: solo se leen la hora y los
+ * minutos. Se ancla al 1 de enero de 1970 para dejar claro que no significa
+ * nada.
+ */
+export const textoAHora = (valor: string | undefined): Date | null => {
+  if (!valor) return null;
+
+  const [horas, minutos] = valor.split(':').map(Number);
+  if (Number.isNaN(horas) || Number.isNaN(minutos)) return null;
+
+  return new Date(1970, 0, 1, horas, minutos);
+};
+
+export const horaATexto = (valor: Date | null | undefined): string => {
+  if (!valor || Number.isNaN(valor.getTime())) return '';
+
+  const horas = String(valor.getHours()).padStart(2, '0');
+  const minutos = String(valor.getMinutes()).padStart(2, '0');
+
+  return `${horas}:${minutos}`;
+};

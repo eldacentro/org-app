@@ -14,7 +14,7 @@ import Button from '@components/button';
 import Checkbox from '@components/checkbox';
 import TextField from '@components/textfield';
 import CustomDatePicker from '@components/date_picker';
-import TimeField from '@components/timefield';
+import TimePicker from '@components/time_picker';
 import Select from '@components/select';
 import IconButton from '@components/icon_button';
 import {
@@ -28,7 +28,7 @@ import {
   IconChevronRight,
   IconHistory,
 } from '@components/icons';
-import { addDays, formatDate } from '@utils/date';
+import { addDays, formatDate, horaATexto, textoAHora } from '@utils/date';
 import { fmtDayEs, fmtDateShortEs, fmtRangeEs } from './shared/fmtDayEs';
 import useExportS21 from '@features/reports/publisher_records/export_S21/useExportS21';
 import useExportS88 from '@features/reports/meeting_attendance/export_S88/useExportS88';
@@ -258,10 +258,18 @@ const SpecialMeetingEditor = ({
           <Box
             sx={{ flex: { tablet: '0 1 110px' }, minWidth: { tablet: '90px' } }}
           >
-            <TimeField
+            {/* Un RELOJ, no un campo de duración.
+                Iba con `TimeField`, que es el de las duraciones del informe:
+                se escribe a mano, pone "0:00" de marcador y no abre nada. Una
+                hora de reunión se elige en un reloj, como en Ajustes o en el
+                catálogo de oradores. El dato se sigue guardando como texto
+                `HH:mm`, que es lo que se sincroniza; el puente son
+                `textoAHora`/`horaATexto`. */}
+            <TimePicker
+              ampm={false}
               label="Hora"
-              value={value.time}
-              onChange={(t) => onChange({ ...value, time: t })}
+              value={textoAHora(value.time)}
+              onChange={(t) => onChange({ ...value, time: horaATexto(t) })}
             />
           </Box>
           <Box
@@ -1250,10 +1258,13 @@ const CircuitVisitDashboard = () => {
                         minWidth: { tablet: '90px' },
                       }}
                     >
-                      <TimeField
+                      <TimePicker
+                        ampm={false}
                         label="Hora"
-                        value={sv.time}
-                        onChange={(t) => updateShepherding(sv.id, { time: t })}
+                        value={textoAHora(sv.time)}
+                        onChange={(t) =>
+                          updateShepherding(sv.id, { time: horaATexto(t) })
+                        }
                       />
                     </Box>
                   </Stack>

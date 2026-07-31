@@ -605,8 +605,18 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       tres miden 30 y cuatro, 36.
       El contador del encabezado de un grupo de predicación se queda como está:
       va sobre el color del grupo, y ahí una chapa clara no se leería.
-- [ ] **Elegir una hora** (4) → `time_picker` para reloj, `timefield` solo para
-      duraciones
+- [x] **Elegir una hora** — el reparto ya era casi correcto: siete pantallas
+      usan `time_picker` (el reloj) y el editor de horas del informe usa
+      `timefield` (la duración), que es lo suyo. El sitio equivocado era la
+      **visita del superintendente**: pintaba la hora de una reunión y de una
+      visita de pastoreo con `TimeField`, o sea el campo de DURACIONES —se
+      escribe a mano, pone "0:00" de marcador y no abre ningún reloj—.
+      El dato se sigue guardando como texto `HH:mm`, que es lo que se
+      sincroniza; el puente son `textoAHora`/`horaATexto` en `@utils/date`.
+      Con prueba propia (`utils/hora.test.ts`), porque lo que devuelve el
+      conversor se escribe en el registro y viaja a todos los dispositivos: un
+      cero perdido o un `Invalid Date` colándose de vuelta se lleva la hora de
+      una reunión.
 - [ ] **Pestañas** (4) → `segmented_control` o `scrollable_tabs`
 - [x] **Nombre de una persona** — investigado: NO era el fallo que parecía. El
       ajuste solo promete abreviar en el programa, y muchas llamadas están bien
