@@ -46,7 +46,30 @@ const WeekSelector = () => {
       onToggle={handleToggleExpand}
       actions={
         <Box
-          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          component="button"
+          type="button"
+          // Botón de verdad, y que dice lo que hace: era un `Box` con
+          // `onClick` y un icono dentro, o sea un control mudo al que no se
+          // llegaba tabulando y que un lector de pantalla no anunciaba.
+          aria-label={
+            sortDown
+              ? 'Ordenar las semanas de la más reciente a la más antigua'
+              : 'Ordenar las semanas de la más antigua a la más reciente'
+          }
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            appearance: 'none',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            '&:focus-visible': {
+              outline: '2px solid var(--accent-main)',
+              outlineOffset: '2px',
+              borderRadius: 'var(--shape-xs)',
+            },
+          }}
           onClick={(event) => {
             event.stopPropagation();
             handleToggleSort();

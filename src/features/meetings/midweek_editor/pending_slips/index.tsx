@@ -31,15 +31,32 @@ const PendingSlips = () => {
         overflow: 'hidden',
       }}
     >
+      {/* Y con el teclado: era un `Box` con `onClick`, o sea que el aviso se
+          abría con el ratón y no había forma de abrirlo tabulando. Cuando no
+          queda ninguna hojita pendiente no despliega nada, así que ahí deja de
+          ser un botón en vez de ser uno que no hace nada. */}
       <Box
+        component={todoConfirmado ? 'div' : 'button'}
+        type={todoConfirmado ? undefined : 'button'}
+        aria-expanded={todoConfirmado ? undefined : open}
         onClick={() => !todoConfirmado && setOpen((value) => !value)}
         sx={{
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
           cursor: todoConfirmado ? 'default' : 'pointer',
           userSelect: 'none',
+          appearance: 'none',
+          background: 'none',
+          border: 'none',
+          textAlign: 'left',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '-3px',
+            borderRadius: 'var(--shape-md)',
+          },
         }}
       >
         <Box

@@ -13,13 +13,31 @@ const MonthItem = (props: MonthItemType) => {
 
   return (
     <Box>
+      {/* La fila del mes despliega sus semanas, y ahora también con el
+          teclado: era un `Box` con `onClick`, así que los doce meses del año
+          quedaban fuera del tabulador. Aquí sí puede ser el botón entero
+          —dentro no hay más que el nombre, la marca de completo y el
+          chevrón—, sin necesidad de la capa que cubre. */}
       <Box
+        component="button"
+        type="button"
+        aria-expanded={expanded}
         sx={{
+          width: '100%',
           padding: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
+          appearance: 'none',
+          background: 'none',
+          border: 'none',
+          textAlign: 'left',
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '-2px',
+            borderRadius: 'var(--shape-xs)',
+          },
         }}
         onClick={handleToggleExpand}
       >

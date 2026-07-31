@@ -326,6 +326,19 @@ Entre los cinco son el **56%** del total.
       a alguien queriendo abrirlo.
       La etiqueta es el NOMBRE de la persona: cien "Abrir" seguidos no dicen a
       quién se abre.
+      Y con el mismo método, cuatro cabeceras más que tampoco se alcanzaban:
+      la del panel de semanas ABIERTO (la plegada ya se arregló en su día; ésta
+      solo se pliega en pantalla estrecha, que es donde nadie la miró), el
+      botón de ordenar las semanas —un icono suelto, mudo—, las doce filas de
+      mes del selector, y el aviso de hojitas pendientes del editor de entre
+      semana. Las tres últimas pueden ser el botón entero; la del panel
+      necesita la capa que cubre, porque a su derecha van `actions`.
+      **Falsos positivos que hubo que descartar midiendo**: los envoltorios de
+      campo de Departamentos y de Discursos salientes (su `input` sí se
+      alcanza, así que el control se puede usar) y las píldoras `MiniChip` —
+      MUI le engancha un manejador al elemento raíz de un `Chip` aunque no sea
+      pulsable.
+      Recorridas diez pantallas con el método nuevo; cero mudos de verdad.
       Lo anterior sigue en pie: comprobado en el navegador, no con
       `grep`: las 43 rutas de `App.tsx`, contando botones sin nombre
       accesible. Cero.

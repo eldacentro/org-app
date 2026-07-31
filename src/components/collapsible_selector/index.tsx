@@ -128,17 +128,58 @@ const CollapsibleSelector = ({
     >
       <Box
         sx={{
+          position: 'relative',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '8px',
           cursor: desktopUp ? 'default' : 'pointer',
         }}
-        onClick={desktopUp ? undefined : onToggle}
       >
+        {/* La cabecera del panel ABIERTO también pliega, y también con el
+            teclado. Era un `Box` con `onClick`: en una pantalla estrecha —que
+            es donde este panel se pliega— no había forma de cerrarlo tabulando.
+            La barra PLEGADA ya se arregló en su día; ésta se quedó.
+
+            Va como capa que cubre la franja, no envolviéndola, porque a la
+            derecha hay `actions` —el orden de las semanas, por ejemplo— y un
+            botón dentro de otro no es HTML válido. Esa zona lleva su
+            `position: relative` para quedar por encima. */}
+        {!desktopUp && (
+          <Box
+            component="button"
+            type="button"
+            aria-expanded={expanded}
+            aria-label={title}
+            onClick={onToggle}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              appearance: 'none',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              '&:focus-visible': {
+                outline: '2px solid var(--accent-main)',
+                outlineOffset: '4px',
+                borderRadius: 'var(--shape-xs)',
+              },
+            }}
+          />
+        )}
+
         <Typography className="h2">{title}</Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Box
+          sx={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
           {actions}
 
           {!desktopUp && (
