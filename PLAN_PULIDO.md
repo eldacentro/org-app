@@ -617,7 +617,20 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       conversor se escribe en el registro y viaja a todos los dispositivos: un
       cero perdido o un `Invalid Date` colándose de vuelta se lleva la hora de
       una reunión.
-- [ ] **Pestañas** (4) → `segmented_control` o `scrollable_tabs`
+- [x] **Pestañas** — cerrado con matiz. Los tres componentes que hay NO son
+      tres copias: `scrollable_tabs` se apoya en `tabs` (le coge el panel) y
+      `segmented_control` es otra cosa —la píldora de dos o tres vistas—. Están
+      en capas, que es como debe ser.
+      Lo que sí estaba mal eran las configuraciones de Exhibidores y Salidas:
+      usan el `<Tabs>` de MUI a pelo (su contenido se pinta en otro sitio, así
+      que los componentes con panel no les sirven) y tenían el MISMO bloque de
+      57 líneas copiado, de las que solo 11 diferían —el estado y las
+      etiquetas—. Ahora el estilo vive en `@components/tabs/app_tabs_sx`. 97
+      líneas fuera, 13 dentro.
+      Y las etiquetas iban ESCRITAS en mayúsculas ("TURNOS", "ASIGNACIONES
+      FIJAS") justo debajo de un `textTransform: 'none'` — o sea que la regla
+      no servía de nada porque la mayúscula no estaba en el estilo, estaba en
+      el texto. Se les escapó al barrido de versalitas por eso mismo.
 - [x] **Nombre de una persona** — investigado: NO era el fallo que parecía. El
       ajuste solo promete abreviar en el programa, y muchas llamadas están bien
       (comparadores de ordenación, formularios oficiales). Se retiró el

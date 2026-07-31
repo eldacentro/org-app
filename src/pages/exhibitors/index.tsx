@@ -41,6 +41,7 @@ import { Typography } from '@components/index';
 import AppButton from '@components/button';
 import AutoComplete from '@components/autocomplete';
 import TimePicker from '@components/time_picker';
+import { appTabsSx } from '@components/tabs/app_tabs_sx';
 import { PersonType } from '@definition/person';
 import { generateDateFromTime } from '@utils/date';
 import { hour24FormatState } from '@states/settings';
@@ -2578,56 +2579,13 @@ const Exhibitors = () => {
                   variant="scrollable"
                   scrollButtons="auto"
                   allowScrollButtonsMobile
-                  sx={{
-                    marginBottom: '24px',
-                    width: '100%',
-                    maxWidth: '100%',
-                    minHeight: 'unset',
-                    // Sin subrayado y sin MAYUSCULAS: lo elegido se marca con
-                    // el tinte de marca, igual que las pestanas del resto de la
-                    // app (`components/tabs`, `scrollable_tabs`, la tira de
-                    // semanas y el selector de vista de esta misma pagina).
-                    // Aqui habia un subrayado azul de 3px con el texto en azul
-                    // — un dibujo de "elegido" mas, y el que menos se parecia
-                    // al de al lado.
-                    padding: '4px 0',
-                    '& .MuiTabs-scroller': { overflowX: 'auto !important' },
-                    '& .MuiTabs-flexContainer': { gap: '4px' },
-                    '& .MuiTabs-indicator': {
-                      backgroundColor: 'transparent',
-                      height: 0,
-                    },
-                    '& .MuiTab-root': {
-                      minHeight: '40px',
-                      textTransform: 'none',
-                      px: '16px',
-                      fontSize: '13px',
-                      transition:
-                        'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
-                    },
-                    '& .MuiTab-root.Mui-selected': {
-                      color: 'var(--state-selected-ink)',
-                      backgroundColor: 'var(--state-selected)',
-                      borderRadius: 'var(--shape-full)',
-                      fontWeight: 600,
-                      '&:hover': {
-                        backgroundColor: 'var(--state-selected-strong)',
-                      },
-                    },
-                    '& .MuiTab-root:not(.Mui-selected)': {
-                      color: 'var(--ink-3)',
-                      '&:hover': {
-                        backgroundColor: 'var(--state-hover)',
-                        borderRadius: 'var(--shape-full)',
-                      },
-                    },
-                  }}
+                  sx={{ ...appTabsSx, marginBottom: '24px' }}
                 >
-                  <Tab label="UBICACIONES" />
-                  <Tab label="TURNOS" />
-                  <Tab label="RESPONSABLES" />
-                  <Tab label="ASIGNACIONES FIJAS" />
-                  <Tab label="DISPONIBILIDAD" />
+                  <Tab label="Ubicaciones" />
+                  <Tab label="Turnos" />
+                  <Tab label="Responsables" />
+                  <Tab label="Asignaciones fijas" />
+                  <Tab label="Disponibilidad" />
                 </Tabs>
 
                 {/* SUB-PESTAÑA 0: UBICACIONES (GLOBAL) */}
