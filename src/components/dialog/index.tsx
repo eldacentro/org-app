@@ -81,7 +81,21 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
           display: 'flex',
           flexDirection: 'column',
           gap: { mobile: '16px', desktop: '24px' },
-          alignItems: 'flex-start',
+          // Lo de dentro ocupa el ANCHO del diálogo.
+          //
+          // Estaba en `flex-start`, así que cada bloque se encogía a su
+          // contenido y no llenaba la caja. Eso obliga a que TODOS los diálogos
+          // se acuerden de pedir `width: 100%` por su cuenta, y diecinueve de
+          // los ochenta no lo hacen. En Subir documento se veía: el formulario
+          // pedía `minWidth: 400` —o sea "al menos 400"— y como nada lo
+          // estiraba, ese mínimo se convertía en el ancho exacto: 400 dentro de
+          // 496 útiles, con 96px de aire a la derecha de cada campo.
+          //
+          // Con `stretch` el ancho lo pone el diálogo, que es quien lo sabe, y
+          // quien de verdad quiera encogerse lo pide con `alignSelf`.
+          // Comprobado en el navegador: 400 → 496, que es exactamente el ancho
+          // útil (560 de diálogo menos 32+32 de relleno).
+          alignItems: 'stretch',
           ...sx,
         }}
       >
