@@ -107,6 +107,23 @@ export type COTalkTitleType = { src: string; updatedAt: string };
 export type SourceImportOriginType = {
   type: 'jw' | 'jwpub';
   updatedAt: string;
+  /**
+   * De qué NÚMERO salió, cuando consta (solo el .jwpub lo trae, en su
+   * manifiesto).
+   *
+   * Hace falta para La Atalaya, cuyo mes de portada NO es el mes en que se
+   * estudia: la de septiembre se estudia del 2 de noviembre al 6 de diciembre.
+   * Sin esto, al importarla no quedaba ni rastro de que fuera la de
+   * septiembre, y la pantalla de materiales solo podía hablar de las semanas.
+   */
+  issue?: {
+    /** 'w26.09' */
+    simbolo: string;
+    /** 'La Atalaya, septiembre de 2026' */
+    titulo: string;
+    /** 'YYYY/MM' de la PORTADA. */
+    mesDePortada?: string;
+  };
 };
 
 /**

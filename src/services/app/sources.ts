@@ -1,8 +1,5 @@
 import { loadPub } from 'meeting-schedules-parser';
-import {
-  extractJwpubDocids,
-  JwpubDocids,
-} from './jwpub_docid_extractor';
+import { extractJwpubDocids, JwpubDocids } from './jwpub_docid_extractor';
 import { store } from '@states/index';
 import {
   ApplyMinistryType,
@@ -98,6 +95,10 @@ const sourcesFormatAndSaveData = async (
   const origen = {
     type: (docids ? 'jwpub' : 'jw') as 'jw' | 'jwpub',
     updatedAt: new Date().toISOString(),
+    // Un .jwpub trae UN número, así que todas sus semanas comparten éste. Va
+    // aquí y no en la semana porque es una propiedad de la importación: quién
+    // trajo este material y de qué número.
+    ...(docids?.numero && { issue: docids.numero }),
   };
 
   // Cada archivo trae una publicación: la Guía va por su cuenta y La Atalaya

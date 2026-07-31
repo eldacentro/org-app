@@ -31,18 +31,82 @@ export type JwpubDocids = {
   mwb: number[];
   /** La Atalaya (estudio): una entrada por artículo de estudio. */
   w: number[];
+  /**
+   * De qué NÚMERO salió el archivo, si consta.
+   *
+   * Un .jwpub trae un número entero, así que todas sus semanas comparten éste.
+   * Hace falta porque el mes de portada de La Atalaya NO es el mes en que se
+   * estudia —la de septiembre se estudia del 2 de noviembre al 6 de
+   * diciembre— y la app solo guardaba las semanas de estudio: al importar la
+   * de septiembre no quedaba ni rastro de que fuera la de septiembre.
+   *
+   * Sale del `manifest.json`, que ya viene en el mismo zip que la base.
+   */
+  numero?: NumeroPublicacion;
+};
+
+export type NumeroPublicacion = {
+  /** 'w26.09' */
+  simbolo: string;
+  /** 'La Atalaya, septiembre de 2026' — tal como lo escribe la publicación. */
+  titulo: string;
+  /** 'YYYY/MM' de la PORTADA, no del estudio. */
+  mesDePortada?: string;
 };
 
 const VACIO: JwpubDocids = { mwb: [], w: [] };
 
-export const extractJwpubDocids = async (
-  file: File
-): Promise<JwpubDocids> => {
+/**
+ * El número de portada, del manifiesto del .jwpub.
+ *
+ * `issueId` viene como 20260900: año, mes y dos dígitos de variación.
+ */
+const leerNumero = (manifest: unknown): NumeroPublicacion | undefined => {
+  const pub = (manifest as { publication?: Record<string, unknown> })
+    ?.publication;
+  if (!pub) return undefined;
+
+  const props = pub.issueProperties as Record<string, string> | undefined;
+  const simbolo = props?.symbol ?? (pub.symbol as string);
+  const titulo = props?.title;
+
+  if (!simbolo && !titulo) return undefined;
+
+  let mesDePortada: string | undefined;
+  const issueId = Number(pub.issueId);
+
+  if (Number.isFinite(issueId) && issueId > 10000000) {
+    const year = Math.floor(issueId / 10000);
+    const mes = Math.floor(issueId / 100) % 100;
+
+    if (mes >= 1 && mes <= 12) {
+      mesDePortada = `${year}/${String(mes).padStart(2, '0')}`;
+    }
+  }
+
+  return { simbolo, titulo: titulo ?? simbolo, mesDePortada };
+};
+
+export const extractJwpubDocids = async (file: File): Promise<JwpubDocids> => {
   try {
     const outerZip = await JSZip.loadAsync(await file.arrayBuffer());
 
+    // El número de portada, del manifiesto: viene en el mismo zip.
+    let numero: NumeroPublicacion | undefined;
+
+    try {
+      const manifestFile = outerZip.file('manifest.json');
+
+      if (manifestFile) {
+        numero = leerNumero(JSON.parse(await manifestFile.async('string')));
+      }
+    } catch {
+      // Un manifiesto ilegible no puede impedir la importación: sin él se
+      // pierde el número de portada, que es un extra, no el material.
+    }
+
     const contentsFile = outerZip.file('contents');
-    if (!contentsFile) return VACIO;
+    if (!contentsFile) return { ...VACIO, numero };
 
     const innerZip = await JSZip.loadAsync(
       await contentsFile.async('arraybuffer')
@@ -52,7 +116,7 @@ export const extractJwpubDocids = async (
     const dbEntryName = Object.keys(innerZip.files).find((name) =>
       name.endsWith('.db')
     );
-    if (!dbEntryName) return VACIO;
+    if (!dbEntryName) return { ...VACIO, numero };
 
     const dbBytes = await innerZip.files[dbEntryName].async('uint8array');
     const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
@@ -69,7 +133,7 @@ export const extractJwpubDocids = async (
         return result[0].values.map((row) => Number(row[0]));
       };
 
-      return { mwb: leerClase('106'), w: leerClase('40') };
+      return { mwb: leerClase('106'), w: leerClase('40'), numero };
     } finally {
       db.close();
     }

@@ -30,6 +30,12 @@ const nombrePeriodo = (p: PeriodoMateriales) =>
     ? `${MESES[p.primerMes - 1]}–${MESES[p.ultimoMes - 1]} ${p.year}`
     : `${MESES[p.primerMes - 1]} ${p.year}`;
 
+/** El mismo periodo, pero metido en una frase: "en noviembre de 2026". */
+const periodoEnFrase = (p: PeriodoMateriales) =>
+  p.cadencia === 'bimestre'
+    ? `${MESES[p.primerMes - 1]} y ${MESES[p.ultimoMes - 1]} de ${p.year}`
+    : `${MESES[p.primerMes - 1]} de ${p.year}`;
+
 /** "del 2 al 30 de noviembre" — las semanas concretas que cubre. */
 const rangoDeSemanas = (semanas: string[]) => {
   if (semanas.length === 0) return '';
@@ -146,21 +152,42 @@ const FilaReunion = ({
  */
 const TarjetaPeriodo = ({ periodo }: { periodo: PeriodoMateriales }) => (
   <Tarjeta>
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'baseline',
-        justifyContent: 'space-between',
-        gap: '12px',
-        flexWrap: 'wrap',
-      }}
-    >
-      <Typography className="h4" color="var(--ink)">
-        {nombrePeriodo(periodo)}
-      </Typography>
-      <Typography className="label-small-regular" color="var(--ink-2)">
-        {rangoDeSemanas(periodo.estado.semanas)}
-      </Typography>
+    <Box>
+      {/* Lo primero, el NÚMERO — que es lo que uno importa y por lo que lo
+          busca. Solo consta si vino de un .jwpub: jw.org no lo dice.
+          Debajo, cuándo se estudia, que es harina de otro costal: la Atalaya
+          de septiembre se estudia del 2 de noviembre al 6 de diciembre. */}
+      {periodo.estado.numeros.length > 0 && (
+        <Typography className="h4" color="var(--ink)">
+          {periodo.estado.numeros.map((n) => n.titulo).join(' · ')}
+        </Typography>
+      )}
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}
+      >
+        <Typography
+          className={
+            periodo.estado.numeros.length > 0 ? 'body-small-regular' : 'h4'
+          }
+          color={
+            periodo.estado.numeros.length > 0 ? 'var(--ink-2)' : 'var(--ink)'
+          }
+        >
+          {periodo.estado.numeros.length > 0
+            ? `Se estudia en ${periodoEnFrase(periodo)}`
+            : nombrePeriodo(periodo)}
+        </Typography>
+        <Typography className="label-small-regular" color="var(--ink-2)">
+          {rangoDeSemanas(periodo.estado.semanas)}
+        </Typography>
+      </Box>
     </Box>
 
     <FilaReunion estado={periodo.estado} />

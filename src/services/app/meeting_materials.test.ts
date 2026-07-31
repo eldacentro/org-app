@@ -295,3 +295,76 @@ describe('qué falta', () => {
     );
   });
 });
+
+/**
+ * El número de portada y el mes de estudio son cosas distintas.
+ *
+ * Comprobado con un archivo real (`w_S_202609.jwpub`, La Atalaya de septiembre
+ * de 2026): su propio manifiesto dice "Artículos de estudio: 2 de noviembre a
+ * 6 de diciembre". Dos meses de diferencia.
+ */
+describe('el número de portada, cuando consta', () => {
+  const deSeptiembre = (weekOf: string) =>
+    ({
+      weekOf,
+      weekend_meeting: { w_study: { S: 'Un artículo' } },
+      import_source: {
+        weekend: {
+          type: 'jwpub',
+          updatedAt: '2026-10-01T00:00:00Z',
+          issue: {
+            simbolo: 'w26.09',
+            titulo: 'La Atalaya, septiembre de 2026',
+            mesDePortada: '2026/09',
+          },
+        },
+      },
+    }) as unknown as SourceWeekType;
+
+  it('el bloque de NOVIEMBRE dice que su material es el de septiembre', () => {
+    const noviembre = agruparMaterial(
+      [deSeptiembre('2026/11/02'), deSeptiembre('2026/11/09')],
+      'weekend',
+      'mes'
+    )[0];
+
+    expect(noviembre.primerMes).toBe(11);
+    expect(noviembre.estado.numeros).toEqual([
+      { simbolo: 'w26.09', titulo: 'La Atalaya, septiembre de 2026' },
+    ]);
+  });
+
+  it('un mes a caballo de dos números los enseña los dos', () => {
+    const deOctubre = {
+      ...deSeptiembre('2026/12/07'),
+      import_source: {
+        weekend: {
+          type: 'jwpub',
+          updatedAt: '2026-11-01T00:00:00Z',
+          issue: { simbolo: 'w26.10', titulo: 'La Atalaya, octubre de 2026' },
+        },
+      },
+    } as unknown as SourceWeekType;
+
+    const diciembre = agruparMaterial(
+      [deSeptiembre('2026/12/01'), deOctubre],
+      'weekend',
+      'mes'
+    )[0];
+
+    expect(diciembre.estado.numeros.map((n) => n.simbolo)).toEqual([
+      'w26.09',
+      'w26.10',
+    ]);
+  });
+
+  it('sin número —lo importado desde jw.org— la lista queda vacía y no rompe', () => {
+    const mes = agruparMaterial(
+      [conAtalaya('2026/11/02')],
+      'weekend',
+      'mes'
+    )[0];
+
+    expect(mes.estado.numeros).toEqual([]);
+  });
+});

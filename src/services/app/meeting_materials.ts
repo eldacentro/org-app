@@ -1,4 +1,4 @@
-import { SourceWeekType } from '@definition/sources';
+import { SourceImportOriginType, SourceWeekType } from '@definition/sources';
 
 /**
  * Qué material de reunión hay, de dónde salió y qué falta.
@@ -57,6 +57,14 @@ export type EstadoReunion = {
    * trae los identificadores; desde jw.org se abre la publicación y ya.
    */
   semanaExacta: boolean;
+  /**
+   * De qué números salió el material de este periodo, si consta.
+   *
+   * Suele ser uno —un .jwpub trae un número— pero un mes de estudio puede
+   * caer a caballo de dos: la última semana de noviembre es todavía del
+   * número de septiembre y la primera de diciembre ya es del de octubre.
+   */
+  numeros: { simbolo: string; titulo: string }[];
 };
 
 export type Cadencia = 'mes' | 'bimestre';
@@ -107,7 +115,12 @@ const origenGuardado = (week: SourceWeekType, meeting: MeetingKind) => {
   // toda la semana. Se acepta para las dos reuniones y no se descarta nada.
   const suelto = guardado as unknown as { type?: string; updatedAt?: string };
   if (suelto.type === 'jw' || suelto.type === 'jwpub') {
-    return { type: suelto.type, updatedAt: suelto.updatedAt };
+    // La forma antigua nunca llevó número: es posterior.
+    return {
+      type: suelto.type,
+      updatedAt: suelto.updatedAt,
+      issue: undefined,
+    } as SourceImportOriginType;
   }
 
   return guardado[meeting];
@@ -209,7 +222,19 @@ const construirEstado = (
     }
   }
 
+  // De qué números salió, sin repetir y en el orden en que aparecen.
+  const numeros: { simbolo: string; titulo: string }[] = [];
+
+  for (const week of conMaterial) {
+    const issue = origenGuardado(week, meeting)?.issue;
+
+    if (issue && !numeros.some((n) => n.simbolo === issue.simbolo)) {
+      numeros.push({ simbolo: issue.simbolo, titulo: issue.titulo });
+    }
+  }
+
   return {
+    numeros,
     semanas: conMaterial.map((week) => week.weekOf).sort(),
     origen,
     importadoEl,
@@ -242,9 +267,7 @@ export const agruparMaterial = (
     if (!partes) continue;
 
     const periodo =
-      cadencia === 'bimestre'
-        ? bimestreDeMes(partes.month)
-        : partes.month;
+      cadencia === 'bimestre' ? bimestreDeMes(partes.month) : partes.month;
 
     const id = `${partes.year}-${periodo}`;
 
