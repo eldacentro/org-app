@@ -20,6 +20,10 @@ const PersonFilter = () => {
 
   return (
     <Select
+      // Con rótulo, como sus dos vecinos de la misma fila ("Año de servicio" y
+      // "Mes"). Iba sin él: cuatro campos seguidos y dos decían qué eligen y
+      // dos no.
+      label={t('tr_publishers')}
       value={filter}
       onChange={(e) => handleChangeFilter(e.target.value as string)}
     >
