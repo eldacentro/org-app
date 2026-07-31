@@ -410,10 +410,10 @@ const useCircuitVisitDashboard = () => {
         : '';
     };
 
+    // Sin `note`: el programa de comidas no distingue comida de cena.
     const mealsRows = working.meals.map((meal) => ({
       date: meal.date,
       hostName: findPersonName(meal.host),
-      note: meal.note,
     }));
 
     // Las visitas de pastoreo no salían en el PDF en absoluto.

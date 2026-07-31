@@ -14,10 +14,14 @@ export type CircuitVisitPdfPreachingRow = {
   spouseCompanions: string; // hermanas con la esposa (texto ya formateado)
 };
 
+// El programa de comidas no distingue entre comida y cena: una comida es una
+// comida, y la sección ya se llama así. `CircuitVisitMeal` tiene un campo
+// `note` que nadie rellena —no hay ningún sitio en la app donde escribirlo— y
+// que aquí salía entre paréntesis detrás del anfitrión; era la única puerta por
+// la que podía colarse un "(Cena)" en la hoja.
 export type CircuitVisitPdfMealRow = {
   date: string;
   hostName: string;
-  note: string;
 };
 
 export type CircuitVisitPdfShepherdingRow = {
@@ -42,6 +46,21 @@ const fmtDay = fmtDayEs;
 
 const fmtRange = (visit: CircuitVisitType) =>
   fmtRangeEs(visit.date_start, visit.date_end);
+
+/**
+ * Quita el tratamiento —"Hno.", "Hermano", "Hna.", "Hermana"— del principio de
+ * un nombre.
+ *
+ * La app nunca lo añade: viene de cómo esté escrito el nombre del
+ * superintendente en Ajustes de congregación. Pero en esta hoja el nombre
+ * aparece también como rótulo de columna, y ahí va en VERSALITAS: un "CON HNO.
+ * JUAN ANTONIO PÉREZ" ocupa dos líneas y grita. En un programa impreso el
+ * tratamiento no aporta nada — se sabe de quién se habla.
+ *
+ * Solo afecta a lo que se imprime; lo guardado en Ajustes no se toca.
+ */
+const sinTratamiento = (nombre: string) =>
+  nombre.replace(/^\s*(hno\.?|hna\.?|hermano|hermana)\s+/i, '').trim();
 
 /** Una sección con su título; el contenido lo pone quien la usa. */
 const Section = ({
@@ -80,14 +99,17 @@ const SpecialMeetingRow = ({
 
 const CircuitVisitProgramDoc = ({
   visit,
-  coName,
-  coSpouseName,
+  coName: coNameRaw,
+  coSpouseName: coSpouseNameRaw,
   congregation,
   lang,
   mealsRows,
   shepherdingRows,
   preachingRows,
 }: Props) => {
+  const coName = sinTratamiento(coNameRaw);
+  const coSpouseName = sinTratamiento(coSpouseNameRaw);
+
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
   const range = fmtRange(visit);
   const congName = congregation || 'Elda Centro';
@@ -176,7 +198,6 @@ const CircuitVisitProgramDoc = ({
                     </Text>
                     <Text style={[styles.cell, { width: '70%' }]}>
                       {meal.hostName || '—'}
-                      {meal.note ? `  (${meal.note})` : ''}
                     </Text>
                   </View>
                 ))}
