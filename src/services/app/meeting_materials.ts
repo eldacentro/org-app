@@ -9,10 +9,28 @@ import { SourceWeekType } from '@definition/sources';
  * importado" sin más manda a alguien al domingo sin material porque solo se
  * bajó la Guía.
  *
- * Las dos se publican por temporadas que no coinciden (la Guía es bimestral y
- * cada número de La Atalaya cubre unas cinco semanas a caballo entre meses),
- * así que se agrupa por BIMESTRE de calendario, que es lo único común, y
- * dentro se dice qué hay de cada reunión.
+ * ── Cada publicación se cuenta en SU cadencia ────────────────────────────
+ *
+ * La Guía de actividades es BIMESTRAL: un cuaderno cubre dos meses, y el
+ * bimestre de la portada es el bimestre en que se usa.
+ *
+ * La Atalaya de estudio es MENSUAL, y —esto es lo que confunde— **el mes de su
+ * portada NO es el mes en que se estudia**: cada número se estudia unos dos
+ * meses después. La de noviembre se estudia en enero.
+ *
+ * Antes se metían las dos en bloques de BIMESTRE "porque era lo único común".
+ * Con la Guía era correcto; con La Atalaya salía un rótulo que describe algo
+ * que no existe: no hay una "Atalaya de noviembre-diciembre". Y peor, se leía
+ * como el número de portada cuando lo que se está contando son las SEMANAS DE
+ * ESTUDIO — así que quien importaba la de noviembre la buscaba en "noviembre"
+ * y no la encontraba, porque sus semanas caen en enero.
+ *
+ * Ahora la Guía se agrupa por bimestre y La Atalaya por MES DE ESTUDIO, y en
+ * los dos casos se dicen las semanas concretas que cubre. Con las fechas
+ * delante no hay nada que interpretar.
+ *
+ * El número de portada NO se puede enseñar: el material importado guarda el
+ * título del artículo de cada semana, no de qué número salió.
  *
  * Todo son funciones puras sobre la tabla de material: se pueden probar, y no
  * hay forma de que un `?.` de más se lleve media lista sin que nadie se entere.
@@ -41,16 +59,20 @@ export type EstadoReunion = {
   semanaExacta: boolean;
 };
 
-export type BimestreMateriales = {
-  /** 'YYYY-N', con N el número de bimestre (1..6). Sirve de clave. */
+export type Cadencia = 'mes' | 'bimestre';
+
+export type PeriodoMateriales = {
+  /** 'YYYY-N'. Sirve de clave. */
   id: string;
   year: number;
-  /** 1..6 */
-  bimestre: number;
-  /** Mes inicial del bimestre (1, 3, 5, 7, 9, 11). */
+  cadencia: Cadencia;
+  /** 1..6 si es bimestre, 1..12 si es mes. */
+  periodo: number;
+  /** Mes inicial del periodo, 1..12. */
   primerMes: number;
-  midweek?: EstadoReunion;
-  weekend?: EstadoReunion;
+  /** Mes final: el mismo que el inicial si es un mes suelto. */
+  ultimoMes: number;
+  estado: EstadoReunion;
 };
 
 /** El bimestre (1..6) al que pertenece un mes 1..12. */
@@ -198,45 +220,62 @@ const construirEstado = (
   };
 };
 
-/** Agrupa el material guardado en bimestres, del más reciente al más antiguo. */
-export const agruparPorBimestre = (
-  sources: SourceWeekType[]
-): BimestreMateriales[] => {
+/**
+ * Agrupa el material de UNA reunión en periodos de su cadencia.
+ *
+ * `cadencia` es 'bimestre' para la Guía de actividades y 'mes' para La
+ * Atalaya, por lo que explica la cabecera de este fichero. El periodo siempre
+ * se calcula sobre la semana en que se ESTUDIA, que es el único dato que
+ * guarda el material importado.
+ */
+export const agruparMaterial = (
+  sources: SourceWeekType[],
+  meeting: MeetingKind,
+  cadencia: Cadencia
+): PeriodoMateriales[] => {
   const grupos = new Map<string, SourceWeekType[]>();
 
   for (const week of sources ?? []) {
-    if (!tieneMaterial(week, 'midweek') && !tieneMaterial(week, 'weekend')) {
-      continue;
-    }
+    if (!tieneMaterial(week, meeting)) continue;
 
     const partes = partesDeSemana(week.weekOf);
     if (!partes) continue;
 
-    const id = `${partes.year}-${bimestreDeMes(partes.month)}`;
+    const periodo =
+      cadencia === 'bimestre'
+        ? bimestreDeMes(partes.month)
+        : partes.month;
+
+    const id = `${partes.year}-${periodo}`;
 
     const actual = grupos.get(id) ?? [];
     actual.push(week);
     grupos.set(id, actual);
   }
 
-  const resultado: BimestreMateriales[] = [];
+  const resultado: PeriodoMateriales[] = [];
 
   for (const [id, semanas] of grupos) {
-    const [yearStr, bimestreStr] = id.split('-');
-    const bimestre = Number(bimestreStr);
+    const [yearStr, periodoStr] = id.split('-');
+    const periodo = Number(periodoStr);
+    const primerMes = cadencia === 'bimestre' ? periodo * 2 - 1 : periodo;
+
+    const estado = construirEstado(semanas, meeting);
+    if (!estado) continue;
 
     resultado.push({
       id,
       year: Number(yearStr),
-      bimestre,
-      primerMes: bimestre * 2 - 1,
-      midweek: construirEstado(semanas, 'midweek'),
-      weekend: construirEstado(semanas, 'weekend'),
+      cadencia,
+      periodo,
+      primerMes,
+      ultimoMes: cadencia === 'bimestre' ? primerMes + 1 : primerMes,
+      estado,
     });
   }
 
   return resultado.sort((a, b) =>
-    a.year === b.year ? b.bimestre - a.bimestre : b.year - a.year
+    a.year === b.year ? b.periodo - a.periodo : b.year - a.year
   );
 };
 

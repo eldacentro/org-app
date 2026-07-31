@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SourceWeekType } from '@definition/sources';
 import {
-  agruparPorBimestre,
+  agruparMaterial,
   bimestreDeMes,
   origenDeSemana,
   primerMesDelBimestre,
@@ -196,35 +196,52 @@ describe('agrupado por cuaderno', () => {
     vacia('2026/05/04'),
   ];
 
-  it('enero y febrero caen juntos y marzo aparte', () => {
-    expect(agruparPorBimestre(sources).map((g) => g.id)).toEqual([
-      '2026-2',
-      '2026-1',
-    ]);
+  const guia = (src = sources) => agruparMaterial(src, 'midweek', 'bimestre');
+  const atalaya = (src = sources) => agruparMaterial(src, 'weekend', 'mes');
+
+  it('la Guía es BIMESTRAL: enero y febrero caen juntos y marzo aparte', () => {
+    expect(guia().map((g) => g.id)).toEqual(['2026-2', '2026-1']);
   });
 
-  it('un bimestre sin nada no aparece', () => {
-    expect(agruparPorBimestre(sources).some((g) => g.id === '2026-3')).toBe(
-      false
-    );
+  it('La Atalaya es MENSUAL: cada mes va por su cuenta', () => {
+    // Éste es el fondo del asunto. La Guía es un cuaderno por bimestre; La
+    // Atalaya, un número por mes. Meter las dos en bloques de bimestre —como
+    // se hacía— inventaba una "Atalaya de enero-febrero", que no existe.
+    const meses = atalaya([
+      conAtalaya('2026/01/05'),
+      conAtalaya('2026/02/02'),
+      conAtalaya('2026/02/09'),
+    ]).map((g) => g.id);
+
+    expect(meses).toEqual(['2026-2', '2026-1']);
   });
 
-  it('dice lo de cada reunión por separado', () => {
-    const eneFeb = agruparPorBimestre(sources).find((g) => g.id === '2026-1')!;
-
-    expect(eneFeb.midweek!.origen).toBe('jwpub');
-    expect(eneFeb.midweek!.semanas).toEqual(['2026/01/05', '2026/02/02']);
-    expect(eneFeb.midweek!.semanaExacta).toBe(true);
-
-    expect(eneFeb.weekend!.origen).toBe('jwpub');
-    expect(eneFeb.weekend!.importadoEl).toBe('2026-01-10T10:00:00Z');
+  it('un periodo sin nada no aparece', () => {
+    expect(guia().some((g) => g.id === '2026-3')).toBe(false);
   });
 
-  it('un bimestre con Guía pero sin Atalaya lo dice', () => {
-    const marAbr = agruparPorBimestre(sources).find((g) => g.id === '2026-2')!;
+  it('un periodo de una publicación no arrastra a la otra', () => {
+    // Marzo tiene Guía pero no Atalaya: la Guía lo enseña y La Atalaya no.
+    expect(guia().some((g) => g.id === '2026-2')).toBe(true);
+    expect(atalaya().some((g) => g.id === '2026-3')).toBe(false);
+  });
 
-    expect(marAbr.midweek!.origen).toBe('jw');
-    expect(marAbr.weekend).toBeUndefined();
+  it('dice las semanas concretas que cubre', () => {
+    // Con las fechas delante no hay que interpretar el rótulo: es lo que
+    // deshace la confusión entre el mes de portada y el mes de estudio.
+    const eneFeb = guia().find((g) => g.id === '2026-1')!;
+
+    expect(eneFeb.estado.semanas).toEqual(['2026/01/05', '2026/02/02']);
+    expect(eneFeb.estado.origen).toBe('jwpub');
+    expect(eneFeb.estado.semanaExacta).toBe(true);
+  });
+
+  it('el periodo sabe qué meses abarca', () => {
+    const bimestre = guia().find((g) => g.id === '2026-1')!;
+    expect([bimestre.primerMes, bimestre.ultimoMes]).toEqual([1, 2]);
+
+    const mes = atalaya([conAtalaya('2026/03/02')])[0];
+    expect([mes.primerMes, mes.ultimoMes]).toEqual([3, 3]);
   });
 
   it('con orígenes mezclados manda el de la mayoría', () => {
@@ -238,12 +255,12 @@ describe('agrupado por cuaderno', () => {
       }),
     ];
 
-    expect(agruparPorBimestre(mezcla)[0].midweek!.origen).toBe('jwpub');
+    expect(guia(mezcla)[0].estado.origen).toBe('jwpub');
   });
 
   it('lo más reciente va primero', () => {
     expect(
-      agruparPorBimestre([
+      guia([
         conGuia('2025/11/03'),
         conGuia('2026/03/02'),
         conGuia('2026/01/05'),
@@ -252,8 +269,10 @@ describe('agrupado por cuaderno', () => {
   });
 
   it('una lista vacía no rompe nada', () => {
-    expect(agruparPorBimestre([])).toEqual([]);
-    expect(agruparPorBimestre(undefined as never)).toEqual([]);
+    expect(guia([])).toEqual([]);
+    expect(agruparMaterial(undefined as never, 'midweek', 'bimestre')).toEqual(
+      []
+    );
   });
 });
 

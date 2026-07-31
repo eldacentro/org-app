@@ -9,8 +9,8 @@ import InfoTip from '@components/info_tip';
 import Badge from '@components/badge';
 import useMeetingMaterialsPage from './useMeetingMaterialsPage';
 import {
-  BimestreMateriales,
   EstadoReunion,
+  PeriodoMateriales,
 } from '@services/app/meeting_materials';
 
 /**
@@ -25,8 +25,20 @@ import {
 
 const MESES = [...MESES_ES];
 
-const nombreBimestre = (grupo: BimestreMateriales) =>
-  `${MESES[grupo.primerMes - 1]}–${MESES[grupo.primerMes]} ${grupo.year}`;
+const nombrePeriodo = (p: PeriodoMateriales) =>
+  p.cadencia === 'bimestre'
+    ? `${MESES[p.primerMes - 1]}–${MESES[p.ultimoMes - 1]} ${p.year}`
+    : `${MESES[p.primerMes - 1]} ${p.year}`;
+
+/** "del 2 al 30 de noviembre" — las semanas concretas que cubre. */
+const rangoDeSemanas = (semanas: string[]) => {
+  if (semanas.length === 0) return '';
+
+  const primera = semanaCorta(semanas[0]);
+  const ultima = semanaCorta(semanas[semanas.length - 1]);
+
+  return primera === ultima ? primera : `del ${primera} al ${ultima}`;
+};
 
 const fechaCorta = (iso?: string) => {
   if (!iso) return '';
@@ -74,7 +86,8 @@ const FilaReunion = ({
   titulo,
   estado,
 }: {
-  titulo: string;
+  /** Opcional: si la sección ya nombra la publicación, aquí sobra. */
+  titulo?: string;
   estado?: EstadoReunion;
 }) => (
   <Box
@@ -87,9 +100,11 @@ const FilaReunion = ({
     }}
   >
     <Box>
-      <Typography className="body-small-semibold" color="var(--ink)">
-        {titulo}
-      </Typography>
+      {titulo && (
+        <Typography className="body-small-semibold" color="var(--ink)">
+          {titulo}
+        </Typography>
+      )}
       <Typography className="label-small-regular" color="var(--ink-2)">
         {estado
           ? `${estado.semanas.length} ${
@@ -121,19 +136,123 @@ const FilaReunion = ({
   </Box>
 );
 
-const TarjetaBimestre = ({ grupo }: { grupo: BimestreMateriales }) => (
+/**
+ * Un periodo de UNA publicación.
+ *
+ * El título es el periodo de ESTUDIO, y debajo van las semanas concretas que
+ * cubre. Las fechas están ahí a propósito: el mes de portada de La Atalaya no
+ * es el mes en que se estudia —la de noviembre se estudia en enero— así que
+ * sin las fechas delante el rótulo se presta a confusión.
+ */
+const TarjetaPeriodo = ({ periodo }: { periodo: PeriodoMateriales }) => (
   <Tarjeta>
-    <Typography className="h4" color="var(--ink)">
-      {nombreBimestre(grupo)}
-    </Typography>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        gap: '12px',
+        flexWrap: 'wrap',
+      }}
+    >
+      <Typography className="h4" color="var(--ink)">
+        {nombrePeriodo(periodo)}
+      </Typography>
+      <Typography className="label-small-regular" color="var(--ink-2)">
+        {rangoDeSemanas(periodo.estado.semanas)}
+      </Typography>
+    </Box>
 
-    <FilaReunion
-      titulo="Entre semana · Guía de actividades"
-      estado={grupo.midweek}
-    />
-    <FilaReunion titulo="Fin de semana · La Atalaya" estado={grupo.weekend} />
+    <FilaReunion estado={periodo.estado} />
   </Tarjeta>
 );
+
+/**
+ * Una publicación: lo que viene primero, y lo pasado plegado.
+ *
+ * Lo pasado ya no se consulta; se guarda detrás de un enlace para no enterrar
+ * lo único que hay que mirar.
+ */
+const ListaPublicacion = ({
+  rotulo,
+  grupos,
+  verAnteriores,
+  onVerAnteriores,
+}: {
+  rotulo: string;
+  grupos: { vigentes: PeriodoMateriales[]; anteriores: PeriodoMateriales[] };
+  verAnteriores: boolean;
+  onVerAnteriores: () => void;
+}) => {
+  if (grupos.vigentes.length === 0 && grupos.anteriores.length === 0) {
+    return null;
+  }
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <Typography
+        className="label-small-semibold"
+        color="var(--ink-2)"
+        sx={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}
+      >
+        {rotulo}
+      </Typography>
+
+      {grupos.vigentes.length === 0 && (
+        <Typography className="body-small-regular" color="var(--grey-400)">
+          No hay material de aquí en adelante.
+        </Typography>
+      )}
+
+      <Stack spacing="12px">
+        {grupos.vigentes.map((periodo) => (
+          <TarjetaPeriodo key={periodo.id} periodo={periodo} />
+        ))}
+      </Stack>
+
+      {grupos.anteriores.length > 0 && (
+        <Box>
+          <Box
+            component="button"
+            type="button"
+            aria-expanded={verAnteriores}
+            onClick={onVerAnteriores}
+            sx={{
+              appearance: 'none',
+              border: 'none',
+              background: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              '&:focus-visible': {
+                outline: '2px solid var(--accent-main)',
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            <Typography
+              className="label-small-semibold"
+              color="var(--accent-main)"
+            >
+              {verAnteriores ? 'Ocultar' : 'Ver'} anteriores (
+              {grupos.anteriores.length})
+            </Typography>
+          </Box>
+
+          {verAnteriores && (
+            <Stack spacing="12px" sx={{ marginTop: '12px' }}>
+              {grupos.anteriores.map((periodo) => (
+                <TarjetaPeriodo key={periodo.id} periodo={periodo} />
+              ))}
+            </Stack>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 const MeetingMaterials = () => {
   const { t } = useAppTranslation();
@@ -142,9 +261,8 @@ const MeetingMaterials = () => {
     handleOpenJWImport,
     isNavigatorOnline,
     handleFileSelected,
-    bimestres,
-    vigentes,
-    anteriores,
+    guia,
+    atalaya,
     semanasQueFaltan,
     autoImport,
     autoImportFrequency,
@@ -152,7 +270,8 @@ const MeetingMaterials = () => {
     semanasVigiladas,
   } = useMeetingMaterialsPage();
 
-  const [verAnteriores, setVerAnteriores] = useState(false);
+  const [verGuia, setVerGuia] = useState(false);
+  const [verAtalaya, setVerAtalaya] = useState(false);
 
   // Reset de <button> incluido: la primera de estas dos tarjetas es un botón
   // de verdad (la segunda lleva un <input type="file"> transparente encima,
@@ -257,7 +376,7 @@ const MeetingMaterials = () => {
 
       {semanasQueFaltan.midweek.length === 0 &&
         semanasQueFaltan.weekend.length === 0 &&
-        bimestres.length > 0 && (
+        (guia.vigentes.length > 0 || atalaya.vigentes.length > 0) && (
           <InfoTip
             isBig={false}
             color="success"
@@ -284,59 +403,42 @@ const MeetingMaterials = () => {
       </Tarjeta>
 
       {/* ── Qué hay importado ───────────────────────────────────────────── */}
-      <Typography className="h4" color="var(--ink)">
-        Material importado
-      </Typography>
-
-      {bimestres.length === 0 && (
-        <Typography className="body-regular" color="var(--grey-400)">
-          Todavía no hay material importado.
+      <Box>
+        <Typography className="h4" color="var(--ink)">
+          Material importado
         </Typography>
-      )}
+        {/* Lo que evita el malentendido, dicho una vez y arriba del todo. */}
+        <Typography className="label-small-regular" color="var(--ink-2)">
+          Las fechas son las semanas en que se ESTUDIA. La Atalaya lleva en la
+          portada un mes anterior: la de noviembre se estudia en enero.
+        </Typography>
+      </Box>
 
-      {/* Lo que viene, primero. Lo pasado ya no se consulta: se guarda
-          plegado para no enterrar lo único que hay que mirar. */}
-      <Stack spacing="12px">
-        {vigentes.map((grupo) => (
-          <TarjetaBimestre key={grupo.id} grupo={grupo} />
-        ))}
-      </Stack>
+      {guia.vigentes.length === 0 &&
+        guia.anteriores.length === 0 &&
+        atalaya.vigentes.length === 0 &&
+        atalaya.anteriores.length === 0 && (
+          <Typography className="body-regular" color="var(--grey-400)">
+            Todavía no hay material importado.
+          </Typography>
+        )}
 
-      {anteriores.length > 0 && (
-        <Box>
-          <Box
-            component="button"
-            type="button"
-            onClick={() => setVerAnteriores((abierto) => !abierto)}
-            sx={{
-              appearance: 'none',
-              border: 'none',
-              background: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Typography
-              className="label-small-semibold"
-              color="var(--accent-main)"
-            >
-              {verAnteriores ? 'Ocultar' : 'Ver'} anteriores (
-              {anteriores.length})
-            </Typography>
-          </Box>
+      {/* Cada publicación por su lado y en su cadencia: la Guía es bimestral y
+          La Atalaya mensual. Juntarlas en un bloque de bimestre —como estaba—
+          hacía aparecer una "Atalaya de noviembre-diciembre", que no existe. */}
+      <ListaPublicacion
+        rotulo="Guía de actividades · entre semana"
+        grupos={guia}
+        verAnteriores={verGuia}
+        onVerAnteriores={() => setVerGuia((v) => !v)}
+      />
 
-          {verAnteriores && (
-            <Stack spacing="12px" sx={{ marginTop: '12px' }}>
-              {anteriores.map((grupo) => (
-                <TarjetaBimestre key={grupo.id} grupo={grupo} />
-              ))}
-            </Stack>
-          )}
-        </Box>
-      )}
+      <ListaPublicacion
+        rotulo="La Atalaya · fin de semana"
+        grupos={atalaya}
+        verAnteriores={verAtalaya}
+        onVerAnteriores={() => setVerAtalaya((v) => !v)}
+      />
     </Box>
   );
 };
