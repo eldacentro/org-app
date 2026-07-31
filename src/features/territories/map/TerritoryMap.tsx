@@ -924,8 +924,22 @@ const TerritoryMap = ({
     [geometryKey]
   );
   const center = (geometry && geometryCenter(geometry)) || [40.4168, -3.7038];
-  const livePos = useLiveLocation(showLiveLocation);
-  const heading = useDeviceHeading(showLiveLocation);
+  // El botón de «Mi ubicación» puede ENCENDERLA él, no solo centrar en ella.
+  //
+  // Antes la ubicación solo se activaba desde fuera, con la prop. Dentro de la
+  // app eso vale —se enciende al abrir el territorio— pero en el enlace
+  // público NO se enciende a propósito: pedir la ubicación nada más abrir un
+  // enlace que llega por mensajería es justo lo que hace desconfiar. El
+  // resultado era que allí este botón no servía para nada: sin posición nunca
+  // se encendía, y se quedaba atenuado para siempre.
+  //
+  // Ahora el botón es el interruptor. Quien lo pulsa está pidiéndola, que es
+  // el gesto explícito que hacía falta.
+  const [ubicacionPedida, setUbicacionPedida] = useState(false);
+  const ubicacionActiva = showLiveLocation || ubicacionPedida;
+
+  const livePos = useLiveLocation(ubicacionActiva);
+  const heading = useDeviceHeading(ubicacionActiva);
   const [isSatellite, setIsSatellite] = useState(false);
   // El ángulo de rotación NO vive en el estado de React.
   //
@@ -1273,6 +1287,7 @@ const TerritoryMap = ({
             // el momento natural para pedir la brújula, y exigir que el GPS
             // haya respondido antes dejaba a mucha gente sin pedirla nunca.
             onClick={() => {
+              setUbicacionPedida(true);
               void requestHeadingPermission();
               if (livePos) mapRef.current?.setView(livePos, 17);
             }}
@@ -1285,13 +1300,17 @@ const TerritoryMap = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: livePos ? 'pointer' : 'default',
-              opacity: livePos ? 1 : 0.35,
+              cursor: 'pointer',
+              // Nunca con pinta de deshabilitado: este botón SIEMPRE hace
+              // algo. Antes bajaba a 0,35 hasta que llegara una posición, y
+              // eso lo apagaba justo cuando es lo que hay que pulsar para que
+              // llegue —en el enlace público se quedaba así para siempre—.
+              // Mientras se espera la señal se atenúa un punto, lo justo para
+              // decir "en ello" sin decir "no se puede".
+              opacity: ubicacionActiva && !livePos ? 0.6 : 1,
               transition:
                 'background-color var(--motion-fast) var(--ease-standard)',
-              '&:active': livePos
-                ? { backgroundColor: 'rgba(0,0,0,0.08)' }
-                : undefined,
+              '&:active': { backgroundColor: 'rgba(0,0,0,0.08)' },
             }}
           >
             <Box

@@ -2,6 +2,7 @@ import { Box, SxProps, Theme } from '@mui/material';
 import { ReactNode } from 'react';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
+import { IconHousehold } from '@components/icons';
 import accentSurface from '@components/accent_surface';
 
 /**
@@ -202,4 +203,21 @@ export const MetaItem = ({
       {value}
     </Typography>
   </Box>
+);
+
+// ─── Tag de número de viviendas ───────────────────────────────────────────
+// El `Badge` compartido, no una caja propia: la de antes traía su
+// `fontSize: 12px` y su `fontWeight: 600` a pelo, así que al lado de
+// cualquier otra etiqueta de la app cantaba.
+//
+// Vive aquí, con `TagChip`, porque lo usan las DOS vistas del territorio: la
+// de dentro de la app y la del enlace público. Estaba suelto en la de dentro,
+// y el enlace se escribía su propia versión.
+export const ViviendasTag = ({ count }: { count: number }) => (
+  <Badge
+    size="small"
+    color="accent"
+    icon={<IconHousehold />}
+    text={`${count} ${count === 1 ? 'vivienda' : 'viviendas'}`}
+  />
 );

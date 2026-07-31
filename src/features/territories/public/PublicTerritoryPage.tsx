@@ -10,6 +10,7 @@ import { Box, Stack } from '@mui/material';
 import { MultiPolygon, Polygon } from 'geojson';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import { TagChip, ViviendasTag } from '@features/territories/ui';
 import TerritoryMap from '@features/territories/map/TerritoryMap';
 import SegmentedControl from '@components/segmented_control';
 import { TerritorySharePayload } from '@definition/territory_shares';
@@ -236,7 +237,6 @@ const PublicTerritoryView = ({
   payload: TerritorySharePayload;
 }) => {
   const geometry = (payload.geometry ?? null) as Polygon | MultiPolygon | null;
-  const [showLocation, setShowLocation] = useState(false);
   const [tab, setTab] = useState(0);
 
   /** Solo se ofrecen las secciones que este enlace trae de verdad. Quien
@@ -271,14 +271,44 @@ const PublicTerritoryView = ({
         spacing="16px"
         sx={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}
       >
-        <Stack spacing="2px">
+        {/* La misma cabecera que la vista de dentro: el número grande, y
+            debajo la zona con su punto de color y la chapa de viviendas. Aquí
+            la zona iba como texto corriente y las viviendas estaban perdidas
+            dentro de la pestaña "Info", que es justo lo que la vista de dentro
+            evita a propósito. */}
+        <Stack spacing="6px">
           <Typography className="body-small-semibold" color="var(--ink-2)">
             {payload.congName}
           </Typography>
           <Typography className="h1">{payload.label}</Typography>
-          <Typography className="body-regular" color="var(--ink-2)">
-            {payload.zoneName}
-          </Typography>
+
+          <Stack
+            direction="row"
+            spacing="10px"
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <Stack direction="row" spacing="6px" alignItems="center">
+              <Box
+                sx={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 'var(--shape-full)',
+                  backgroundColor: payload.zoneColor,
+                  boxShadow: `0 0 0 2.5px color-mix(in srgb, ${payload.zoneColor} 15%, transparent)`,
+                  flexShrink: 0,
+                }}
+              />
+              <Typography className="label-small-medium" color="var(--ink-2)">
+                {payload.zoneName}
+              </Typography>
+            </Stack>
+
+            {payload.numeroViviendas !== undefined && (
+              <ViviendasTag count={payload.numeroViviendas} />
+            )}
+          </Stack>
         </Stack>
 
         {/* Un enlace puede quedarse sin nada que enseñar: territorio sin
@@ -315,30 +345,20 @@ const PublicTerritoryView = ({
                 border: '1px solid var(--line)',
               }}
             >
+              {/* Sin `showLiveLocation`: aquí la ubicación NO se enciende
+                  sola. Pedirla nada más abrir un enlace que llega por
+                  mensajería es justo lo que hace desconfiar.
+                  La enciende quien quiera, con el botón de «Mi ubicación» del
+                  propio mapa — que antes no servía de nada en esta página,
+                  porque la ubicación solo se activaba desde fuera y el botón
+                  se quedaba atenuado esperando una posición que no iba a
+                  llegar nunca. */}
               <TerritoryMap
                 geometry={geometry}
                 color={payload.zoneColor}
                 height={420}
-                // Solo tras pulsarlo. Antes se pedía la ubicación en continuo
-                // y de alta precisión nada más abrir el enlace, sin
-                // explicación ni botón que la hubiera pedido — en un enlace
-                // que llega por mensajería, eso es justo lo que hace
-                // desconfiar.
-                showLiveLocation={showLocation}
               />
             </Box>
-
-            {/* Fuera del contenedor del mapa a propósito: ahí dentro, el
-                borde redondeado y el `overflow: hidden` le comían el pie. */}
-            {!showLocation && (
-              <Button
-                variant="secondary"
-                disableAutoStretch
-                onClick={() => setShowLocation(true)}
-              >
-                Ver mi ubicación en el mapa
-              </Button>
-            )}
           </>
         )}
 
@@ -363,40 +383,66 @@ const PublicTerritoryView = ({
             <Stack spacing="10px">
               <Typography className="h4">Información</Typography>
 
-              {payload.numeroViviendas !== undefined && (
-                <Typography className="body-regular">
-                  {payload.numeroViviendas}{' '}
-                  {payload.numeroViviendas === 1 ? 'vivienda' : 'viviendas'}
-                </Typography>
-              )}
-
+              {/* El MISMO chip que dentro de la app, con el color de cada
+                  etiqueta. Aquí estaban dibujadas a mano, todas del mismo gris
+                  azulado, así que el enlace perdía justo lo que distingue a una
+                  etiqueta de otra. */}
               {payload.tags.length > 0 && (
-                <Stack direction="row" spacing="6px" flexWrap="wrap" useFlexGap>
-                  {payload.tags.map((tag) => (
-                    <Box
-                      key={tag.nombre}
-                      sx={{
-                        padding: '2px 10px',
-                        borderRadius: 'var(--shape-full)',
-                        backgroundColor: 'var(--accent-150)',
-                      }}
-                    >
-                      <Typography className="label-small-medium">
-                        {tag.nombre}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Stack>
+                <Box>
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--ink-3)"
+                    sx={{ display: 'block', mb: '8px' }}
+                  >
+                    Etiquetas
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    spacing="6px"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    {payload.tags.map((tag) => (
+                      <TagChip
+                        key={tag.nombre}
+                        label={tag.nombre}
+                        color={tag.color ?? 'var(--accent-main)'}
+                        selected
+                      />
+                    ))}
+                  </Stack>
+                </Box>
               )}
 
+              {/* El mismo bloque ámbar que dentro de la app: una nota de
+                  territorio es un aviso, y aquí se leía como texto corrido. */}
               {payload.notas && (
-                <Typography
-                  className="body-regular"
-                  color="var(--ink-2)"
-                  sx={{ whiteSpace: 'pre-wrap' }}
+                <Box
+                  sx={{
+                    padding: '12px 16px',
+                    backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
+                    borderRadius: 'var(--shape-md)',
+                    border: '1px solid rgba(var(--orange-main-base), 0.3)',
+                  }}
                 >
-                  {payload.notas}
-                </Typography>
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--orange-dark)"
+                    sx={{ display: 'block', mb: '4px' }}
+                  >
+                    Notas
+                  </Typography>
+                  <Typography
+                    className="body-small-regular"
+                    sx={{
+                      color: 'var(--orange-dark)',
+                      lineHeight: 1.5,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {payload.notas}
+                  </Typography>
+                </Box>
               )}
             </Stack>
           </Card>

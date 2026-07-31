@@ -23,13 +23,8 @@ import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import {
-  IconEdit,
-  IconClose,
-  IconMapOverview,
-  IconHousehold,
-} from '@components/icons';
-import { TagChip } from './ui';
+import { IconEdit, IconClose, IconMapOverview } from '@components/icons';
+import { TagChip, ViviendasTag } from './ui';
 import { usePersonName } from './usePersonName';
 import { BadgeColor } from '@definition/app';
 import TerritoryMap from './map/TerritoryMap';
@@ -174,19 +169,6 @@ const SIZE_TAG_NAMES = new Set([
   'Grande',
   'Extra grande',
 ]);
-
-// ─── Tag de número de viviendas ───────────────────────────────────────────
-// El `Badge` compartido, no una caja propia: la de antes traía su
-// `fontSize: 12px` y su `fontWeight: 600` a pelo, así que al lado de
-// cualquier otra etiqueta de la app cantaba.
-const ViviendasTag = ({ count }: { count: number }) => (
-  <Badge
-    size="small"
-    color="accent"
-    icon={<IconHousehold />}
-    text={`${count} ${count === 1 ? 'vivienda' : 'viviendas'}`}
-  />
-);
 
 // ─── Pestaña combinada "Info": viviendas + notas + Direcciones (No visitar) ──
 // Antes eran 2 pestañas separadas ("Info" solo con notas, y "Direcciones");
