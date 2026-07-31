@@ -77,39 +77,42 @@ const usePersonActivity = (personUid: string) => {
         if (!active) return;
 
         setTerritoryItems(
-          records.reduce<ActivityItem[]>((items, { assignment, territoryLabel }) => {
-            const date = toComparableDate(assignment.assignedAt);
-            if (!date) return items;
+          records.reduce<ActivityItem[]>(
+            (items, { assignment, territoryLabel }) => {
+              const date = toComparableDate(assignment.assignedAt);
+              if (!date) return items;
 
-            // Una sola fecha ilegible no puede llevarse por delante toda la
-            // categoría: `formatDate` lanza con una fecha inválida, y desde
-            // dentro del `.then` eso significaba quedarse sin territorios.
-            const returnedOn = toComparableDate(assignment.returnedAt);
+              // Una sola fecha ilegible no puede llevarse por delante toda la
+              // categoría: `formatDate` lanza con una fecha inválida, y desde
+              // dentro del `.then` eso significaba quedarse sin territorios.
+              const returnedOn = toComparableDate(assignment.returnedAt);
 
-            const returned = assignment.returnedAt
-              ? `devuelto el ${returnedOn ? formatDateShortMonth(returnedOn) : '?'}`
-              : TERRITORY_STATUS_LABELS.asignado;
+              const returned = assignment.returnedAt
+                ? `devuelto el ${returnedOn ? formatDateShortMonth(returnedOn) : '?'}`
+                : TERRITORY_STATUS_LABELS.asignado;
 
-            items.push({
-              key: `TERRITORY:${assignment.id}`,
-              date,
-              category: 'territory',
-              title: territoryLabel
-                ? `Territorio ${territoryLabel}`
-                : 'Territorio',
-              detail: [
-                assignment.isCampaign ? 'Campaña' : '',
-                assignment.returnedAt
-                  ? TERRITORY_STATUS_LABELS[assignment.status] ?? ''
-                  : '',
-                returned,
-              ]
-                .filter(Boolean)
-                .join(' · '),
-            });
+              items.push({
+                key: `TERRITORY:${assignment.id}`,
+                date,
+                category: 'territory',
+                title: territoryLabel
+                  ? `Territorio ${territoryLabel}`
+                  : 'Territorio',
+                detail: [
+                  assignment.isCampaign ? 'Campaña' : '',
+                  assignment.returnedAt
+                    ? (TERRITORY_STATUS_LABELS[assignment.status] ?? '')
+                    : '',
+                  returned,
+                ]
+                  .filter(Boolean)
+                  .join(' · '),
+              });
 
-            return items;
-          }, [])
+              return items;
+            },
+            []
+          )
         );
       })
       .catch((error) => {

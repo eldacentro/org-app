@@ -29,12 +29,22 @@ const NotificationContainer = ({
       disableContentScroll
       headActions={
         unreadCount > 0 || hasMarkableUnread ? (
-          <Stack direction="row" alignItems="center" spacing="8px" sx={{ mr: '4px' }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing="8px"
+            sx={{ mr: '4px' }}
+          >
             {hasMarkableUnread && (
               <Button
                 variant="tertiary"
                 onClick={handleMarkAllAsRead}
-                sx={{ fontSize: '12px', height: '28px', minHeight: '28px', px: '10px' }}
+                sx={{
+                  fontSize: '12px',
+                  height: '28px',
+                  minHeight: '28px',
+                  px: '10px',
+                }}
               >
                 Marcar todas como leídas
               </Button>

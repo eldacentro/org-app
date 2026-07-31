@@ -275,7 +275,7 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
                       sx={{
                         width: 32,
                         height: 32,
-                        borderRadius: '50%',
+                        borderRadius: 'var(--shape-full)',
                         backgroundColor: color,
                         cursor: 'pointer',
                         display: 'flex',

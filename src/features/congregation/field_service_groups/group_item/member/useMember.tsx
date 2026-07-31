@@ -18,7 +18,12 @@ const useMember = ({ member, index, group_id }: GroupMemberProps) => {
 
   const { isServiceCommittee } = useCurrentUser();
 
-  const { personIsElder, personIsMS, personIsBaptizedPublisher, personIsEnrollmentActive } = usePerson();
+  const {
+    personIsElder,
+    personIsMS,
+    personIsBaptizedPublisher,
+    personIsEnrollmentActive,
+  } = usePerson();
 
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);

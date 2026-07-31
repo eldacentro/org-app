@@ -10,7 +10,12 @@ const usePdfExport = () => {
   const [pdfExport, setPdfExport] = useState(pdfExportEnabled);
 
   const handlePdfExportToggle = async () => {
-    const pdfExportObj = structuredClone(settings.cong_settings.pdf_export_enabled || { value: false, updatedAt: '' });
+    const pdfExportObj = structuredClone(
+      settings.cong_settings.pdf_export_enabled || {
+        value: false,
+        updatedAt: '',
+      }
+    );
 
     pdfExportObj.value = !pdfExport;
     pdfExportObj.updatedAt = new Date().toISOString();

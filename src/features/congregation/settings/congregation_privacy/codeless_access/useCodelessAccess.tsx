@@ -5,7 +5,10 @@ import { isOnlineState } from '@states/app';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { useAppTranslation } from '@hooks/index';
-import { apiGetAutoProvision, apiSetAutoProvision } from '@services/api/congregation';
+import {
+  apiGetAutoProvision,
+  apiSetAutoProvision,
+} from '@services/api/congregation';
 
 // Acceso sin código (Mejora 3): permite que los hermanos de solo-lectura entren
 // con Google sin teclear el código de acceso. Al activarlo, el código de acceso

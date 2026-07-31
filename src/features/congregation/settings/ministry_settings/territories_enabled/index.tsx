@@ -5,8 +5,10 @@ import useTerritoriesEnabled from './useTerritoriesEnabled';
 const TerritoriesEnabled = () => {
   const { isServiceCommittee } = useCurrentUser();
 
-  const { territoriesEnabledPublishers, handleTerritoriesEnabledPublishersToggle } =
-    useTerritoriesEnabled();
+  const {
+    territoriesEnabledPublishers,
+    handleTerritoriesEnabledPublishersToggle,
+  } = useTerritoriesEnabled();
 
   return (
     <SwitchWithLabel

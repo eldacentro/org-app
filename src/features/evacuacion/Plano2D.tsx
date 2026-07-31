@@ -545,7 +545,8 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--ink-2)',
-            transition: 'background-color 0.15s, color 0.15s',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
             '&:hover': {
               backgroundColor: 'var(--accent-150)',
               color: 'var(--ink)',

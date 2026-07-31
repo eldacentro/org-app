@@ -476,7 +476,8 @@ const ReorderDialog = ({
                 backgroundColor: 'var(--accent-100)',
                 border: '1px solid var(--accent-200)',
                 borderRadius: 'var(--shape-lg)',
-                transition: 'background-color 0.2s',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard)',
                 '&:hover': {
                   backgroundColor: 'var(--accent-150)',
                 },

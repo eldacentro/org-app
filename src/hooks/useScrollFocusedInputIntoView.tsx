@@ -28,11 +28,15 @@ const useScrollFocusedInputIntoView = () => {
       setTimeout(() => {
         const rect = target.getBoundingClientRect();
         const vv = window.visualViewport;
-        const visibleBottom = vv ? vv.height + vv.offsetTop : window.innerHeight;
+        const visibleBottom = vv
+          ? vv.height + vv.offsetTop
+          : window.innerHeight;
         const visibleTop = vv ? vv.offsetTop : 0;
 
         const margin = 12;
-        const hidden = rect.bottom > visibleBottom - margin || rect.top < visibleTop + margin;
+        const hidden =
+          rect.bottom > visibleBottom - margin ||
+          rect.top < visibleTop + margin;
 
         if (hidden) {
           target.scrollIntoView({ block: 'center', behavior: 'smooth' });

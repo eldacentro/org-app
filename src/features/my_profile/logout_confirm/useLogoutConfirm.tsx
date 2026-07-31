@@ -32,7 +32,10 @@ const useLogoutConfirm = () => {
     try {
       await apiUserLogout();
     } catch (error) {
-      logger.error('app', `failed to revoke backend session on logout: ${error}`);
+      logger.error(
+        'app',
+        `failed to revoke backend session on logout: ${error}`
+      );
     }
 
     await handleDeleteDatabase();

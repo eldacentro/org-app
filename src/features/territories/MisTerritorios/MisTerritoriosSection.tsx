@@ -61,7 +61,9 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
 
   // Ocultar de inmediato el aviso al descartarlo, sin esperar a que el
   // cambio de `leido` en Firestore se propague de vuelta al estado local.
-  const [dismissedNoticeIds, setDismissedNoticeIds] = useState<Set<string>>(new Set());
+  const [dismissedNoticeIds, setDismissedNoticeIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const visibleNotices = useMemo(
     () => notices.filter((n) => !dismissedNoticeIds.has(n.id)),
@@ -94,8 +96,9 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
           assignment: a,
           territory: territories.find((t) => t.id === a.territoryId),
         }))
-        .filter((r): r is { assignment: TerritoryAssignment; territory: Territory } =>
-          Boolean(r.territory)
+        .filter(
+          (r): r is { assignment: TerritoryAssignment; territory: Territory } =>
+            Boolean(r.territory)
         ),
     [myAssignments, territories]
   );
@@ -123,7 +126,13 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         (r): r is { assignment: TerritoryAssignment; territory: Territory } =>
           Boolean(r.territory)
       );
-  }, [settings.publishersCanSeeGroup, uid, fieldGroups, openAssignments, territories]);
+  }, [
+    settings.publishersCanSeeGroup,
+    uid,
+    fieldGroups,
+    openAssignments,
+    territories,
+  ]);
 
   const noticesBanner = visibleNotices.length > 0 && (
     <Stack spacing={1} sx={{ mb: 2 }}>
@@ -168,8 +177,13 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   Entregar territorio
                 </Button>
                 {!settings.publishersCanReturn && (
-                  <Typography className="label-small-regular" color="var(--ink-2)" sx={{ display: 'block', mt: 0.5 }}>
-                    Solo un responsable puede marcar este territorio como entregado.
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-2)"
+                    sx={{ display: 'block', mt: 0.5 }}
+                  >
+                    Solo un responsable puede marcar este territorio como
+                    entregado.
                   </Typography>
                 )}
               </Box>
@@ -206,18 +220,36 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                 spacing={1.5}
               >
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                    <Typography className="body-regular-semibold" color="var(--ink)">
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ flexWrap: 'wrap' }}
+                  >
+                    <Typography
+                      className="body-regular-semibold"
+                      color="var(--ink)"
+                    >
                       {getZoneName(territory.zoneId, zones)} {territory.numero}
                     </Typography>
                     {assignment.isCampaign && <CampanaBadge />}
                   </Stack>
-                  <Typography className="body-small-regular" color="var(--ink-2)">
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--ink-2)"
+                  >
                     {resolveName(assignment.personUid)} · desde el{' '}
-                    {formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                    {formatTerritoryDate(
+                      assignment.assignedAt,
+                      settings.dateFormat
+                    )}
                   </Typography>
                 </Box>
-                <Button variant="tertiary" disableAutoStretch onClick={() => onView(territory)}>
+                <Button
+                  variant="tertiary"
+                  disableAutoStretch
+                  onClick={() => onView(territory)}
+                >
                   Ver
                 </Button>
               </Stack>
@@ -253,7 +285,10 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
       {noticesBanner}
       <Stack spacing={1.5}>
         {rows.map(({ assignment, territory }) => {
-          const overdue = isOverdue(assignment.assignedAt, settings.daysUntilOverdue);
+          const overdue = isOverdue(
+            assignment.assignedAt,
+            settings.daysUntilOverdue
+          );
           const color = getZoneColor(territory.zoneId, zones);
           return (
             <TerritoryCard key={assignment.id} accent={color}>
@@ -274,7 +309,10 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   spacing={1.5}
                   sx={{ flex: 1, minWidth: 0 }}
                 >
-                  <TerritoryThumbnail geometry={territory.geometry} color={color} />
+                  <TerritoryThumbnail
+                    geometry={territory.geometry}
+                    color={color}
+                  />
 
                   <Box sx={{ minWidth: 0 }}>
                     <Stack
@@ -289,15 +327,24 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                           línea de sesenta caracteres con dos separadores
                           distintos. El número identifica, el nombre describe;
                           son dos niveles y ahora se ven como dos. */}
-                      <Typography className="body-regular-semibold" color="var(--ink)">
-                        {getZoneName(territory.zoneId, zones)} {territory.numero}
+                      <Typography
+                        className="body-regular-semibold"
+                        color="var(--ink)"
+                      >
+                        {getZoneName(territory.zoneId, zones)}{' '}
+                        {territory.numero}
                       </Typography>
                       {assignment.isCampaign && <CampanaBadge />}
-                      {overdue && <Badge size="small" color="red" text="Atrasado" />}
+                      {overdue && (
+                        <Badge size="small" color="red" text="Atrasado" />
+                      )}
                     </Stack>
 
                     {territory.nombre && (
-                      <Typography className="body-small-regular" color="var(--ink-2)">
+                      <Typography
+                        className="body-small-regular"
+                        color="var(--ink-2)"
+                      >
                         {territory.nombre}
                       </Typography>
                     )}
@@ -307,14 +354,20 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                     <Stack direction="row" spacing={3} sx={{ mt: '8px' }}>
                       <MetaItem
                         label="Asignado"
-                        value={formatTerritoryDate(assignment.assignedAt, settings.dateFormat)}
+                        value={formatTerritoryDate(
+                          assignment.assignedAt,
+                          settings.dateFormat
+                        )}
                       />
                       <MetaItem
                         label="Vence"
                         tone={overdue ? 'danger' : undefined}
                         value={formatTerritoryDate(
                           assignment.dueAt ||
-                            computeDueAt(assignment.assignedAt, settings.daysUntilOverdue),
+                            computeDueAt(
+                              assignment.assignedAt,
+                              settings.daysUntilOverdue
+                            ),
                           settings.dateFormat
                         )}
                       />
@@ -329,7 +382,11 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   spacing={1}
                   sx={{ flexShrink: 0, alignItems: 'center' }}
                 >
-                  <Button variant="main" disableAutoStretch onClick={() => onView(territory)}>
+                  <Button
+                    variant="main"
+                    disableAutoStretch
+                    onClick={() => onView(territory)}
+                  >
                     Ver territorio
                   </Button>
                   {/* Antes este botón simplemente desaparecía si la opción
@@ -352,7 +409,8 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   color="var(--ink-2)"
                   sx={{ display: 'block', mt: 1 }}
                 >
-                  Solo un responsable puede marcar este territorio como entregado.
+                  Solo un responsable puede marcar este territorio como
+                  entregado.
                 </Typography>
               )}
             </TerritoryCard>

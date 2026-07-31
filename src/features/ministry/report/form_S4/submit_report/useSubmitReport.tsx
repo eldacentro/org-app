@@ -20,10 +20,7 @@ import {
   apiUserFieldServiceReportPost,
   apiValidateMe,
 } from '@services/api/user';
-import {
-  accountTypeState,
-  congAccessCodeState,
-} from '@states/settings';
+import { accountTypeState, congAccessCodeState } from '@states/settings';
 import { handleSaveFieldServiceReports } from '@services/app/cong_field_service_reports';
 import {
   apiPocketFieldServiceReportPost,

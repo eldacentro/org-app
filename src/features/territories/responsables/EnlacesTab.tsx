@@ -143,14 +143,20 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
       {/* Un fallo de la escucha NO es "no hay enlaces": podría haber enlaces
           vivos que nadie podría anular desde aquí. */}
       {sharesStatus === 'error' && (
-        <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
+        <Typography
+          className="body-small-regular"
+          sx={{ color: 'var(--red-main)' }}
+        >
           No se han podido cargar los enlaces. Comprueba tu conexión y vuelve a
           entrar en esta pestaña.
         </Typography>
       )}
 
       {sharesStatus !== 'error' && rows.length === 0 && (
-        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+        <Typography
+          className="body-small-regular"
+          sx={{ color: 'var(--ink-2)' }}
+        >
           {sharesStatus === 'loading'
             ? 'Cargando enlaces…'
             : filter === 'live'
@@ -161,13 +167,16 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
 
       <Stack spacing={1.5}>
         {rows.map(({ share, territory, live }) => {
-          const label = territory ? territoryLabel(territory) : 'Territorio borrado';
+          const label = territory
+            ? territoryLabel(territory)
+            : 'Territorio borrado';
           // El motivo por el que un enlace ya no vale es un DATO, no una
           // frase escondida en medio de tres renglones de texto gris. Antes
           // el estado se deducía leyendo "Anulado" / "Caducó el …" enterrado
           // entre la fecha de caducidad y la de creación.
           const caducado =
-            share.expiresAt?.toDate?.() && share.expiresAt.toDate() <= new Date();
+            share.expiresAt?.toDate?.() &&
+            share.expiresAt.toDate() <= new Date();
           const estado = live
             ? { color: 'green' as const, texto: 'Activo' }
             : share.revoked
@@ -197,10 +206,17 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                     spacing={1}
                     sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                   >
-                    <Typography className="body-regular-semibold" color="var(--ink)">
+                    <Typography
+                      className="body-regular-semibold"
+                      color="var(--ink)"
+                    >
                       {label}
                     </Typography>
-                    <Badge size="small" color={estado.color} text={estado.texto} />
+                    <Badge
+                      size="small"
+                      color={estado.color}
+                      text={estado.texto}
+                    />
                   </Stack>
 
                   <Typography
@@ -209,7 +225,9 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                     sx={{ display: 'block', mt: '4px' }}
                   >
                     Se ve: {describeIncludes(share.includes)} ·{' '}
-                    {share.assignmentId ? 'atado a una asignación' : 'sin asignación'}
+                    {share.assignmentId
+                      ? 'atado a una asignación'
+                      : 'sin asignación'}
                   </Typography>
                   <Typography
                     className="label-small-regular"
@@ -227,8 +245,8 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                             dateFormat
                           )} · `
                         : ''}
-                    Creado el {formatTerritoryDate(share.createdAt, dateFormat)} por{' '}
-                    {resolveName(share.createdBy)}
+                    Creado el {formatTerritoryDate(share.createdAt, dateFormat)}{' '}
+                    por {resolveName(share.createdBy)}
                   </Typography>
                 </Box>
 

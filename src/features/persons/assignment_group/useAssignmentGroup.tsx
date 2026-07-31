@@ -1,10 +1,7 @@
 import { useAtomValue } from 'jotai';
 import { AssignmentCode } from '@definition/assignment';
 import { useAppTranslation } from '@hooks/index';
-import {
-  personIsFR,
-  personIsFS,
-} from '@services/app/persons';
+import { personIsFR, personIsFS } from '@services/app/persons';
 import { personCurrentDetailsState } from '@states/persons';
 import { userDataViewState } from '@states/settings';
 import {

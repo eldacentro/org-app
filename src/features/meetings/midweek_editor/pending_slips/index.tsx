@@ -64,7 +64,7 @@ const PendingSlips = () => {
             flexShrink: 0,
             width: '28px',
             height: '28px',
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

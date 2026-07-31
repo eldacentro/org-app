@@ -7,7 +7,10 @@ import CardS21 from '../shared/Card21';
 
 registerFonts();
 
-const TemplateS21DocMulti = ({ publishers, lang }: TemplateS21DocMultiProps) => {
+const TemplateS21DocMulti = ({
+  publishers,
+  lang,
+}: TemplateS21DocMultiProps) => {
   return (
     <Document title="S-21" lang={lang}>
       {publishers.map((data, index) => (

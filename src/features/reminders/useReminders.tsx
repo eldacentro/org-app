@@ -17,7 +17,6 @@ import { personWasPublisherBy } from '@services/app/publisher_status';
 const useReminders = () => {
   const { t } = useAppTranslation();
 
-
   const currentReport = useMemo(() => currentReportMonth(), []);
 
   const { person } = useCurrentUser();

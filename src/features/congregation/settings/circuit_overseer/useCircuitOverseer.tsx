@@ -17,7 +17,9 @@ const useCircuitOverseer = () => {
     | 'phone'
     | 'email';
 
-  const saveTimers = useRef<Partial<Record<FieldKey, ReturnType<typeof setTimeout>>>>({});
+  const saveTimers = useRef<
+    Partial<Record<FieldKey, ReturnType<typeof setTimeout>>>
+  >({});
 
   const settings = useAtomValue(settingsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
@@ -46,7 +48,11 @@ const useCircuitOverseer = () => {
     }
   };
 
-  const scheduleSave = (key: FieldKey, fn: () => Promise<void>, markCompleteKeys: FieldKey[]) => {
+  const scheduleSave = (
+    key: FieldKey,
+    fn: () => Promise<void>,
+    markCompleteKeys: FieldKey[]
+  ) => {
     clearTimer(key);
 
     saveTimers.current[key] = setTimeout(async () => {
@@ -109,7 +115,10 @@ const useCircuitOverseer = () => {
   };
 
   const handleFirstnameSave = () => {
-    scheduleSave('firstname', handleFirstnameSaveDb, ['firstname', 'displayname']);
+    scheduleSave('firstname', handleFirstnameSaveDb, [
+      'firstname',
+      'displayname',
+    ]);
   };
 
   const handleLastnameSave = () => {
@@ -187,7 +196,10 @@ const useCircuitOverseer = () => {
 
   const handleSpouseNameSaveDb = async () => {
     const existing = structuredClone(
-      settings.cong_settings.circuit_overseer.spouse_name ?? { value: '', updatedAt: '' }
+      settings.cong_settings.circuit_overseer.spouse_name ?? {
+        value: '',
+        updatedAt: '',
+      }
     );
     existing.value = spouseName;
     existing.updatedAt = new Date().toISOString();
@@ -199,7 +211,10 @@ const useCircuitOverseer = () => {
 
   const handlePhoneSaveDb = async () => {
     const existing = structuredClone(
-      settings.cong_settings.circuit_overseer.phone ?? { value: '', updatedAt: '' }
+      settings.cong_settings.circuit_overseer.phone ?? {
+        value: '',
+        updatedAt: '',
+      }
     );
     existing.value = phone;
     existing.updatedAt = new Date().toISOString();
@@ -211,7 +226,10 @@ const useCircuitOverseer = () => {
 
   const handleEmailSaveDb = async () => {
     const existing = structuredClone(
-      settings.cong_settings.circuit_overseer.email ?? { value: '', updatedAt: '' }
+      settings.cong_settings.circuit_overseer.email ?? {
+        value: '',
+        updatedAt: '',
+      }
     );
     existing.value = email;
     existing.updatedAt = new Date().toISOString();
@@ -226,10 +244,14 @@ const useCircuitOverseer = () => {
 
     setFirstname((prev) => (editing.firstname ? prev : co.firstname.value));
     setLastname((prev) => (editing.lastname ? prev : co.lastname.value));
-    setDisplayname((prev) => (editing.displayname ? prev : co.display_name.value));
-    setSpouseName((prev) => (editing.spouse_name ? prev : co.spouse_name?.value ?? ''));
-    setPhone((prev) => (editing.phone ? prev : co.phone?.value ?? ''));
-    setEmail((prev) => (editing.email ? prev : co.email?.value ?? ''));
+    setDisplayname((prev) =>
+      editing.displayname ? prev : co.display_name.value
+    );
+    setSpouseName((prev) =>
+      editing.spouse_name ? prev : (co.spouse_name?.value ?? '')
+    );
+    setPhone((prev) => (editing.phone ? prev : (co.phone?.value ?? '')));
+    setEmail((prev) => (editing.email ? prev : (co.email?.value ?? '')));
   }, [settings, editing]);
 
   useEffect(() => {

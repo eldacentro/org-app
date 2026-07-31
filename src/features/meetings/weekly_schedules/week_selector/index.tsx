@@ -107,7 +107,8 @@ const WeekSelector = (props: WeekSelectorProps) => {
               // aplicación: fondo tintado y texto oscuro, nunca color pleno,
               // que se reserva para los botones de acción.
               backgroundColor: elegida ? 'var(--accent-150)' : 'transparent',
-              transition: 'background-color 0.15s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard)',
               '&:hover': {
                 backgroundColor: elegida
                   ? 'var(--accent-200)'

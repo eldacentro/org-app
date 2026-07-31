@@ -13,7 +13,9 @@ const useOutgoingTalks = () => {
   const schedule = useMemo(() => {
     if (!selectedWeek) return undefined;
     const normSelected = selectedWeek.replace(/\//g, '-');
-    return schedules.find((record) => record.weekOf.replace(/\//g, '-') === normSelected);
+    return schedules.find(
+      (record) => record.weekOf.replace(/\//g, '-') === normSelected
+    );
   }, [schedules, selectedWeek]);
 
   const outgoingTalkSchedules =

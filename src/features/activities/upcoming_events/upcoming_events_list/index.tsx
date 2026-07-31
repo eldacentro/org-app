@@ -43,7 +43,6 @@ const UpcomingEventsList = (props: UpcomingEventsListProps) => {
                 gap: '16px',
               }}
             >
-
               <Box
                 sx={{
                   position: 'sticky',

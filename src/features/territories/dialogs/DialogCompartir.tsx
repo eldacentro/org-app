@@ -98,7 +98,9 @@ const DialogCompartir = ({
    *  nuevo: el anterior seguía vivo, funcionando y ya sin aparecer en la
    *  lista, así que no había forma de anularlo. */
   const [loadFailed, setLoadFailed] = useState(false);
-  const [includes, setIncludes] = useState<TerritoryShareIncludes>(DEFAULT_SHARE_INCLUDES);
+  const [includes, setIncludes] = useState<TerritoryShareIncludes>(
+    DEFAULT_SHARE_INCLUDES
+  );
   const [days, setDays] = useState<number>(DEFAULT_SHARE_DAYS);
 
   // "Activo" = lo mismo que comprueba la regla de seguridad: ni anulado, ni
@@ -141,7 +143,10 @@ const DialogCompartir = ({
     d.setDate(d.getDate() + days);
     return d;
   }, [days]);
-  const expiryPreview = formatTerritoryDate(expiryDate.toISOString(), dateFormat);
+  const expiryPreview = formatTerritoryDate(
+    expiryDate.toISOString(),
+    dateFormat
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -221,10 +226,7 @@ const DialogCompartir = ({
     Promise.race([
       promise,
       new Promise<T>((_, reject) =>
-        setTimeout(
-          () => reject(new Error('SIN_CONFIRMACION_DEL_SERVIDOR')),
-          ms
-        )
+        setTimeout(() => reject(new Error('SIN_CONFIRMACION_DEL_SERVIDOR')), ms)
       ),
     ]);
 
@@ -269,10 +271,13 @@ const DialogCompartir = ({
         })
       );
 
-      await copyUrl(buildShareUrl(window.location.origin, congId, token, keyB64));
+      await copyUrl(
+        buildShareUrl(window.location.origin, congId, token, keyB64)
+      );
       await load();
     } catch (error) {
-      const timedOut = (error as Error)?.message === 'SIN_CONFIRMACION_DEL_SERVIDOR';
+      const timedOut =
+        (error as Error)?.message === 'SIN_CONFIRMACION_DEL_SERVIDOR';
       displaySnackNotification({
         header: 'No se pudo crear el enlace',
         message: timedOut
@@ -352,10 +357,13 @@ const DialogCompartir = ({
           </IconButton>
         </Stack>
 
-        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+        <Typography
+          className="body-small-regular"
+          sx={{ color: 'var(--ink-2)' }}
+        >
           Crea un enlace para enviar{' '}
-          <strong>{territoryLabel(territory)}</strong> por WhatsApp o correo. Quien
-          lo reciba no necesita cuenta ni instalar nada.
+          <strong>{territoryLabel(territory)}</strong> por WhatsApp o correo.
+          Quien lo reciba no necesita cuenta ni instalar nada.
         </Typography>
 
         {loading && (
@@ -369,7 +377,10 @@ const DialogCompartir = ({
             generaría un duplicado imposible de anular desde la interfaz. */}
         {!loading && loadFailed && (
           <Stack spacing="8px">
-            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--red-main)' }}
+            >
               No se han podido cargar los enlaces de este territorio. Puede que
               ya exista uno activo, así que no se ofrece crear otro.
             </Typography>
@@ -383,7 +394,10 @@ const DialogCompartir = ({
           <Stack spacing="16px">
             {/* ── Qué compartir ─────────────────────────────────────────── */}
             <Box>
-              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '8px' }}>
+              <Typography
+                className="label-small-semibold"
+                sx={{ color: 'var(--ink-2)', mb: '8px' }}
+              >
                 Qué se va a ver
               </Typography>
               <Stack spacing="4px">
@@ -396,7 +410,9 @@ const DialogCompartir = ({
                   }
                   checked={includes.mapa && hasGeometry}
                   readOnly={!hasGeometry}
-                  onChange={(v) => setIncludes((prev) => ({ ...prev, mapa: v }))}
+                  onChange={(v) =>
+                    setIncludes((prev) => ({ ...prev, mapa: v }))
+                  }
                 />
                 <SwitchWithLabel
                   label="Imagen de la tarjeta"
@@ -407,7 +423,9 @@ const DialogCompartir = ({
                   }
                   checked={includes.imagen && hasImage}
                   readOnly={!hasImage}
-                  onChange={(v) => setIncludes((prev) => ({ ...prev, imagen: v }))}
+                  onChange={(v) =>
+                    setIncludes((prev) => ({ ...prev, imagen: v }))
+                  }
                 />
                 <SwitchWithLabel
                   label="Notas del territorio"
@@ -418,7 +436,9 @@ const DialogCompartir = ({
                   }
                   checked={includes.notas}
                   readOnly={!canShareEncrypted}
-                  onChange={(v) => setIncludes((prev) => ({ ...prev, notas: v }))}
+                  onChange={(v) =>
+                    setIncludes((prev) => ({ ...prev, notas: v }))
+                  }
                 />
                 <SwitchWithLabel
                   label={'Direcciones de "No visitar"'}
@@ -429,14 +449,19 @@ const DialogCompartir = ({
                   }
                   checked={includes.noVisitar}
                   readOnly={!canShareEncrypted}
-                  onChange={(v) => setIncludes((prev) => ({ ...prev, noVisitar: v }))}
+                  onChange={(v) =>
+                    setIncludes((prev) => ({ ...prev, noVisitar: v }))
+                  }
                 />
               </Stack>
             </Box>
 
             {/* ── Cuánto tiempo ─────────────────────────────────────────── */}
             <Box>
-              <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)', mb: '8px' }}>
+              <Typography
+                className="label-small-semibold"
+                sx={{ color: 'var(--ink-2)', mb: '8px' }}
+              >
                 Cuánto tiempo estará disponible
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -459,7 +484,10 @@ const DialogCompartir = ({
                 border: '1px solid var(--line)',
               }}
             >
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 El enlace caducará el <strong>{expiryPreview}</strong>.
                 {assignment
                   ? ' Y si el territorio se entrega antes de esa fecha, dejará de funcionar en ese mismo momento.'
@@ -477,7 +505,10 @@ const DialogCompartir = ({
                   border: '1px solid var(--orange-dark)',
                 }}
               >
-                <Typography className="body-small-regular" sx={{ color: 'var(--orange-dark)' }}>
+                <Typography
+                  className="body-small-regular"
+                  sx={{ color: 'var(--orange-dark)' }}
+                >
                   El enlace se copiará al crearlo y no se podrá volver a copiar
                   desde aquí, así que pégalo donde vayas a enviarlo antes de
                   cerrar. Si lo pierdes, tendrás que anularlo y crear otro.
@@ -488,7 +519,10 @@ const DialogCompartir = ({
             {/* El motivo va ENCIMA del botón: debajo quedaba fuera de la
                 pantalla en el móvil, así que el botón parecía roto sin más. */}
             {!hasAnySection && (
-              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="label-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 Marca al menos una cosa para poder crear el enlace.
               </Typography>
             )}
@@ -503,13 +537,17 @@ const DialogCompartir = ({
         )}
 
         {!loading && !loadFailed && activeShares.length > 0 && (
-          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+          <Typography
+            className="label-small-regular"
+            sx={{ color: 'var(--ink-2)' }}
+          >
             Solo puede haber un enlace activo por territorio. Para cambiar qué
             se ve o cuánto dura, anula este y crea otro.
           </Typography>
         )}
 
-        {!loading && !loadFailed &&
+        {!loading &&
+          !loadFailed &&
           activeShares.map((share) => (
             <Box
               key={share.token}
@@ -521,15 +559,28 @@ const DialogCompartir = ({
             >
               <Stack spacing="10px">
                 <Stack spacing="4px">
-                  <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
-                    Caduca el {formatTerritoryDate(share.expiresAt.toDate().toISOString(), dateFormat)}
+                  <Typography
+                    className="body-regular-semibold"
+                    sx={{ color: 'var(--ink)' }}
+                  >
+                    Caduca el{' '}
+                    {formatTerritoryDate(
+                      share.expiresAt.toDate().toISOString(),
+                      dateFormat
+                    )}
                   </Typography>
-                  <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                  <Typography
+                    className="label-small-regular"
+                    sx={{ color: 'var(--ink-2)' }}
+                  >
                     Se ve: {describeIncludes(share.includes)}
                   </Typography>
-                  <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
-                    Creado el {formatTerritoryDate(share.createdAt, dateFormat)} por{' '}
-                    {resolveName(share.createdBy)}
+                  <Typography
+                    className="label-small-regular"
+                    sx={{ color: 'var(--ink-2)' }}
+                  >
+                    Creado el {formatTerritoryDate(share.createdAt, dateFormat)}{' '}
+                    por {resolveName(share.createdBy)}
                     {share.assignmentId
                       ? ' · deja de funcionar al entregar el territorio'
                       : ' · no atado a ninguna asignación'}

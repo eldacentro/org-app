@@ -60,7 +60,7 @@ const Procedimientos = ({ estructuraMando, equipos }: Props) => {
                     flexShrink: 0,
                     width: '24px',
                     height: '24px',
-                    borderRadius: '50%',
+                    borderRadius: 'var(--shape-full)',
                     backgroundColor: bloque.color,
                     color: 'var(--always-white)',
                     display: 'flex',

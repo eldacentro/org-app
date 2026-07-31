@@ -81,10 +81,18 @@ function ScrollableTabs({
               // Los de la app, no los de Material: son los mismos chevrones
               // que usa el resto de la interfaz, con su mismo trazo.
               EndScrollButtonIcon: () => (
-                <IconChevronRight color="var(--accent-main)" width={18} height={18} />
+                <IconChevronRight
+                  color="var(--accent-main)"
+                  width={18}
+                  height={18}
+                />
               ),
               StartScrollButtonIcon: () => (
-                <IconChevronLeft color="var(--accent-main)" width={18} height={18} />
+                <IconChevronLeft
+                  color="var(--accent-main)"
+                  width={18}
+                  height={18}
+                />
               ),
             }}
             aria-label="scrollable-auto-tabs"

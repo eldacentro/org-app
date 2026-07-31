@@ -46,7 +46,9 @@ const StatusHistory = ({
           </Tooltip>
         </Box>
         <IconButton
-          aria-label={expanded ? 'Ocultar el historial' : 'Mostrar el historial'}
+          aria-label={
+            expanded ? 'Ocultar el historial' : 'Mostrar el historial'
+          }
           sx={{ padding: 0 }}
           onClick={onExpand}
         >
@@ -54,7 +56,7 @@ const StatusHistory = ({
             color="var(--black)"
             sx={{
               transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.3s',
+              transition: 'transform var(--motion-medium) var(--ease-standard)',
             }}
           />
         </IconButton>

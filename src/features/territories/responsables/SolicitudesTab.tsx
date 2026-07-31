@@ -3,10 +3,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import { useConfirm } from '@components/confirm_dialog';
-import {
-  congIDState,
-  userLocalUIDState,
-} from '@states/settings';
+import { congIDState, userLocalUIDState } from '@states/settings';
 import {
   territoryPendingRequestsState,
   territoriesLoadingState,
@@ -45,7 +42,9 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   if (pending.length === 0) {
     return (
       <Typography className="body-small-regular" color="var(--ink-2)">
-        {loading ? 'Cargando solicitudes…' : 'No hay solicitudes de territorio pendientes.'}
+        {loading
+          ? 'Cargando solicitudes…'
+          : 'No hay solicitudes de territorio pendientes.'}
       </Typography>
     );
   }
@@ -68,10 +67,16 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                 spacing={2}
               >
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography className="body-regular-semibold" color="var(--ink)">
+                  <Typography
+                    className="body-regular-semibold"
+                    color="var(--ink)"
+                  >
                     {resolveName(req.personUid)} pidió un territorio
                   </Typography>
-                  <Typography className="label-small-regular" color="var(--ink-3)">
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-3)"
+                  >
                     {formatTerritoryDate(req.createdAt, settings.dateFormat)}
                   </Typography>
                   {/* La nota del hermano es lo único que ayuda a decidir qué
@@ -98,11 +103,23 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                     </Typography>
                   )}
                 </Box>
-                <Stack direction="row" spacing={1} sx={{ flexShrink: 0, alignItems: 'center' }}>
-                  <Button variant="main" disableAutoStretch onClick={() => onAsignarParaSolicitud(req)}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexShrink: 0, alignItems: 'center' }}
+                >
+                  <Button
+                    variant="main"
+                    disableAutoStretch
+                    onClick={() => onAsignarParaSolicitud(req)}
+                  >
                     Asignar territorio
                   </Button>
-                  <Button variant="tertiary" disableAutoStretch onClick={() => handleDescartar(req)}>
+                  <Button
+                    variant="tertiary"
+                    disableAutoStretch
+                    onClick={() => handleDescartar(req)}
+                  >
                     Descartar
                   </Button>
                 </Stack>

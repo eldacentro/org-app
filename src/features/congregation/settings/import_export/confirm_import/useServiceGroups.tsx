@@ -14,7 +14,6 @@ const useServiceGroups = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(groups, oldGroups)) return [];
 
-
     for (const oldGroup of oldGroups) {
       const newGroup = groups.find(
         (record) => record.group_id === oldGroup.group_id

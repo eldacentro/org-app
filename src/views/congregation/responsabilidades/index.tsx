@@ -2,7 +2,10 @@ import { G, Path, Svg, Text, View } from '@react-pdf/renderer';
 import { Document, Page } from '@views/components';
 import { StyleSheet } from '@react-pdf/renderer';
 import registerFonts from '@views/registerFonts';
-import { ResponsabilidadesType, DepartamentoExtended } from '@definition/responsabilidades';
+import {
+  ResponsabilidadesType,
+  DepartamentoExtended,
+} from '@definition/responsabilidades';
 
 registerFonts();
 
@@ -226,8 +229,18 @@ const styles = StyleSheet.create({
 });
 
 const MONTHS_ES = [
-  'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-  'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+  'ENERO',
+  'FEBRERO',
+  'MARZO',
+  'ABRIL',
+  'MAYO',
+  'JUNIO',
+  'JULIO',
+  'AGOSTO',
+  'SEPTIEMBRE',
+  'OCTUBRE',
+  'NOVIEMBRE',
+  'DICIEMBRE',
 ];
 
 const LogoSmall = () => (
@@ -295,7 +308,10 @@ const TemplateResponsabilidades = ({
   const deptCount = data.departamentos.length;
   const memberTotal = data.departamentos.reduce(
     (n, dep) =>
-      n + (dep.type === 'extended' ? (dep as DepartamentoExtended).members.length : 0),
+      n +
+      (dep.type === 'extended'
+        ? (dep as DepartamentoExtended).members.length
+        : 0),
     0
   );
   const dense = deptCount > 22 || memberTotal > 40;
@@ -312,7 +328,11 @@ const TemplateResponsabilidades = ({
     infoColGap: { gap: r(3) },
     label: { fontSize: Math.max(6, r(6.4)), marginBottom: 0 },
     value: { fontSize: r(9) },
-    membersLabel: { fontSize: Math.max(6, r(6.4)), marginTop: 1, marginBottom: 1.5 },
+    membersLabel: {
+      fontSize: Math.max(6, r(6.4)),
+      marginTop: 1,
+      marginBottom: 1.5,
+    },
     membersWrap: { gap: r(1.8) },
     memberChip: { paddingVertical: r(1.2), paddingHorizontal: r(3) },
     memberText: { fontSize: r(8.5) },
@@ -326,7 +346,9 @@ const TemplateResponsabilidades = ({
           <View style={styles.topBar}>
             <View style={styles.topBarBrand}>
               <LogoSmall />
-              <Text style={styles.topBarBrandName}>{congregation || 'Elda Centro'}</Text>
+              <Text style={styles.topBarBrandName}>
+                {congregation || 'Elda Centro'}
+              </Text>
             </View>
             <Text style={styles.topBarDate}>{monthYear}</Text>
           </View>
@@ -349,15 +371,22 @@ const TemplateResponsabilidades = ({
 
           {/* ── Cargos ──────────────────────────── */}
           <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>Responsabilidades de ancianos</Text>
+            <Text style={styles.sectionTitle}>
+              Responsabilidades de ancianos
+            </Text>
             <View style={styles.table}>
               {data.cargosAncianos.map((item, i) => (
                 <View
                   key={i}
-                  style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
+                  style={[
+                    styles.tableRow,
+                    i % 2 === 1 ? styles.tableRowAlt : {},
+                  ]}
                 >
                   <Text style={styles.tableColLabel}>{item.cargo}</Text>
-                  <Text style={styles.tableColValue}>{resolve(item.responsable)}</Text>
+                  <Text style={styles.tableColValue}>
+                    {resolve(item.responsable)}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -382,13 +411,16 @@ const TemplateResponsabilidades = ({
                 // uno.
                 const COLUMN_COUNT = 3;
 
-                const estimateUnits = (dep: typeof data.departamentos[number]) => {
+                const estimateUnits = (
+                  dep: (typeof data.departamentos)[number]
+                ) => {
                   let units = 1; // encabezado
                   units += 1; // responsable (siempre se muestra)
                   if (dep.auxiliar) units += 1;
 
                   if (dep.type === 'extended') {
-                    const memberCount = (dep as DepartamentoExtended).members.length;
+                    const memberCount = (dep as DepartamentoExtended).members
+                      .length;
                     if (memberCount > 0) {
                       // a 1/3 de ancho de página caben ~2 chips por línea
                       units += 1 + Math.ceil(memberCount / 2);
@@ -398,7 +430,7 @@ const TemplateResponsabilidades = ({
                   return units + 0.8; // borde/padding de la tarjeta
                 };
 
-                const columns: typeof data.departamentos[] = Array.from(
+                const columns: (typeof data.departamentos)[] = Array.from(
                   { length: COLUMN_COUNT },
                   () => []
                 );
@@ -420,12 +452,16 @@ const TemplateResponsabilidades = ({
                       const hasMembers =
                         isExtended &&
                         (dep as DepartamentoExtended).members.length > 0;
-                      const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
+                      const auxiliar = dep.auxiliar
+                        ? resolve(dep.auxiliar)
+                        : '';
 
                       return (
                         <View key={dep.id} style={styles.deptCard}>
                           <View style={[styles.deptHeader, dz.header]}>
-                            <Text style={[styles.deptHeaderText, dz.headerText]}>
+                            <Text
+                              style={[styles.deptHeaderText, dz.headerText]}
+                            >
                               {dep.name}
                             </Text>
                           </View>
@@ -453,20 +489,40 @@ const TemplateResponsabilidades = ({
 
                             {hasMembers ? (
                               <View>
-                                <Text style={[styles.deptMembersLabel, dz.membersLabel]}>
+                                <Text
+                                  style={[
+                                    styles.deptMembersLabel,
+                                    dz.membersLabel,
+                                  ]}
+                                >
                                   Integrantes
                                 </Text>
-                                <View style={[styles.deptMembersWrap, dz.membersWrap]}>
-                                  {(dep as DepartamentoExtended).members.map((uid, i) => (
-                                    <View
-                                      key={i}
-                                      style={[styles.deptMemberChip, dz.memberChip]}
-                                    >
-                                      <Text style={[styles.deptMemberText, dz.memberText]}>
-                                        {resolve(uid)}
-                                      </Text>
-                                    </View>
-                                  ))}
+                                <View
+                                  style={[
+                                    styles.deptMembersWrap,
+                                    dz.membersWrap,
+                                  ]}
+                                >
+                                  {(dep as DepartamentoExtended).members.map(
+                                    (uid, i) => (
+                                      <View
+                                        key={i}
+                                        style={[
+                                          styles.deptMemberChip,
+                                          dz.memberChip,
+                                        ]}
+                                      >
+                                        <Text
+                                          style={[
+                                            styles.deptMemberText,
+                                            dz.memberText,
+                                          ]}
+                                        >
+                                          {resolve(uid)}
+                                        </Text>
+                                      </View>
+                                    )
+                                  )}
                                 </View>
                               </View>
                             ) : null}

@@ -27,7 +27,13 @@ const LogoLarge = () => (
   </Svg>
 );
 
-const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }: OutingsPDFProps) => {
+const OutingsSchedulePDF = ({
+  monthName,
+  cong_name,
+  weekdays,
+  cells,
+  updatedAt,
+}: OutingsPDFProps) => {
   // Fragmentar las celdas en semanas (filas de N días activos)
   const numCols = weekdays.length;
   const rows = [];
@@ -72,97 +78,131 @@ const OutingsSchedulePDF = ({ monthName, cong_name, weekdays, cells, updatedAt }
           {/* ── Dividing line ─────────────────── */}
           <View style={styles.headerDivider} />
 
-        {/* Cuadrícula de Calendario */}
-        <View style={styles.calendarContainer}>
-          {/* Encabezados de los Días de la Semana */}
-          <View style={styles.weekdaysHeader}>
-            {weekdays.map((day, idx) => {
-              const isLastCol = idx === weekdays.length - 1;
-              return (
-                <View key={day} style={[styles.weekdayCell, isLastCol && { borderRight: 0 }]}>
-                  <Text style={styles.weekdayText}>{day}</Text>
-                </View>
-              );
-            })}
-          </View>
-
-          {/* Filas de Semanas */}
-          {rows.map((row, rowIdx) => {
-            const isLastRow = rowIdx === rows.length - 1;
-            return (
-            <View key={rowIdx} style={styles.weekRow}>
-              {row.map((cell, cellIdx) => {
-                const isLastCol = cellIdx === row.length - 1;
-                const cellOuterBorders = {
-                  borderBottom: isLastRow ? 0 : undefined,
-                  borderRight: isLastCol ? 0 : undefined,
-                };
-
-                if (cell.type === 'empty') {
-                  return <View key={`empty-${rowIdx}-${cellIdx}`} style={[styles.emptyCell, cellOuterBorders]} />;
-                }
-
-                const isSunday = weekdays[cellIdx].toLowerCase().startsWith('d');
-
+          {/* Cuadrícula de Calendario */}
+          <View style={styles.calendarContainer}>
+            {/* Encabezados de los Días de la Semana */}
+            <View style={styles.weekdaysHeader}>
+              {weekdays.map((day, idx) => {
+                const isLastCol = idx === weekdays.length - 1;
                 return (
-                  <View key={`day-${cell.dayNum}`} style={[styles.cell, cellOuterBorders]}>
-                    {/* Número del Día */}
-                    <Text style={styles.dayNumber}>{cell.dayNum}</Text>
-
-                    {/* Listado de Salidas para este día */}
-                    <View style={styles.outingsWrapper}>
-                      {cell.outings.map((outing) => {
-                        const isCancelled = outing.isCancelled;
-                        const isAssigned = outing.isAssigned;
-
-                        let badgeStyle = styles.assignedBadge;
-                        let timeStyle = styles.assignedTimeText;
-                        let infoStyle = styles.assignedInfoText;
-                        let brotherStyle = styles.assignedBrotherText;
-
-                        if (isCancelled) {
-                          badgeStyle = styles.cancelledBadge;
-                          timeStyle = styles.cancelledTimeText;
-                          infoStyle = styles.cancelledInfoText;
-                          brotherStyle = styles.cancelledBrotherText;
-                        } else if (!isAssigned) {
-                          badgeStyle = styles.unassignedBadge;
-                          timeStyle = styles.unassignedTimeText;
-                          infoStyle = styles.unassignedInfoText;
-                          brotherStyle = styles.unassignedBrotherText;
-                        }
-
-                        return (
-                          <View key={outing.id} style={[styles.outingBadge, badgeStyle]}>
-                            <View style={{ display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'flex-start' }}>
-                              {/* Hora */}
-                              <Text style={[styles.timeText, timeStyle]}>
-                                {outing.time}
-                              </Text>
-                              
-                              {/* Nombre del Hermano */}
-                              <Text style={[styles.brotherText, brotherStyle, { flex: 1 }]}>
-                                {isCancelled ? 'Suspendida' : outing.brotherName}
-                              </Text>
-                            </View>
-
-                            {/* Lugar de Reunión (Solo Domingos) */}
-                            {!isCancelled && isSunday && (
-                              <Text style={[styles.infoText, infoStyle]}>
-                                {outing.location}
-                              </Text>
-                            )}
-                          </View>
-                        );
-                      })}
-                    </View>
+                  <View
+                    key={day}
+                    style={[
+                      styles.weekdayCell,
+                      isLastCol && { borderRight: 0 },
+                    ]}
+                  >
+                    <Text style={styles.weekdayText}>{day}</Text>
                   </View>
                 );
               })}
             </View>
-            );
-          })}
-        </View>
+
+            {/* Filas de Semanas */}
+            {rows.map((row, rowIdx) => {
+              const isLastRow = rowIdx === rows.length - 1;
+              return (
+                <View key={rowIdx} style={styles.weekRow}>
+                  {row.map((cell, cellIdx) => {
+                    const isLastCol = cellIdx === row.length - 1;
+                    const cellOuterBorders = {
+                      borderBottom: isLastRow ? 0 : undefined,
+                      borderRight: isLastCol ? 0 : undefined,
+                    };
+
+                    if (cell.type === 'empty') {
+                      return (
+                        <View
+                          key={`empty-${rowIdx}-${cellIdx}`}
+                          style={[styles.emptyCell, cellOuterBorders]}
+                        />
+                      );
+                    }
+
+                    const isSunday = weekdays[cellIdx]
+                      .toLowerCase()
+                      .startsWith('d');
+
+                    return (
+                      <View
+                        key={`day-${cell.dayNum}`}
+                        style={[styles.cell, cellOuterBorders]}
+                      >
+                        {/* Número del Día */}
+                        <Text style={styles.dayNumber}>{cell.dayNum}</Text>
+
+                        {/* Listado de Salidas para este día */}
+                        <View style={styles.outingsWrapper}>
+                          {cell.outings.map((outing) => {
+                            const isCancelled = outing.isCancelled;
+                            const isAssigned = outing.isAssigned;
+
+                            let badgeStyle = styles.assignedBadge;
+                            let timeStyle = styles.assignedTimeText;
+                            let infoStyle = styles.assignedInfoText;
+                            let brotherStyle = styles.assignedBrotherText;
+
+                            if (isCancelled) {
+                              badgeStyle = styles.cancelledBadge;
+                              timeStyle = styles.cancelledTimeText;
+                              infoStyle = styles.cancelledInfoText;
+                              brotherStyle = styles.cancelledBrotherText;
+                            } else if (!isAssigned) {
+                              badgeStyle = styles.unassignedBadge;
+                              timeStyle = styles.unassignedTimeText;
+                              infoStyle = styles.unassignedInfoText;
+                              brotherStyle = styles.unassignedBrotherText;
+                            }
+
+                            return (
+                              <View
+                                key={outing.id}
+                                style={[styles.outingBadge, badgeStyle]}
+                              >
+                                <View
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    gap: 3,
+                                    alignItems: 'flex-start',
+                                  }}
+                                >
+                                  {/* Hora */}
+                                  <Text style={[styles.timeText, timeStyle]}>
+                                    {outing.time}
+                                  </Text>
+
+                                  {/* Nombre del Hermano */}
+                                  <Text
+                                    style={[
+                                      styles.brotherText,
+                                      brotherStyle,
+                                      { flex: 1 },
+                                    ]}
+                                  >
+                                    {isCancelled
+                                      ? 'Suspendida'
+                                      : outing.brotherName}
+                                  </Text>
+                                </View>
+
+                                {/* Lugar de Reunión (Solo Domingos) */}
+                                {!isCancelled && isSunday && (
+                                  <Text style={[styles.infoText, infoStyle]}>
+                                    {outing.location}
+                                  </Text>
+                                )}
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
+          </View>
         </View>
 
         {/* ── Footer: fixed at A4 bottom on every page ── */}

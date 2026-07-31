@@ -23,7 +23,9 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
     handleCloseDiagnostics,
   } = useSpeakersOutgoing();
 
-  const getDiagnosticReasonText = (diagnostic: (typeof diagnostics)[number]) => {
+  const getDiagnosticReasonText = (
+    diagnostic: (typeof diagnostics)[number]
+  ) => {
     switch (diagnostic.reason) {
       case 'wrong-congregation':
         return t('tr_speakersDiagnosticReasonWrongCongregation');
@@ -141,7 +143,10 @@ const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
               <Typography className="body-small-semibold">
                 {diagnostic.speakerName}
               </Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography
+                className="body-small-regular"
+                color="var(--grey-400)"
+              >
                 {getDiagnosticReasonText(diagnostic)}
               </Typography>
             </Box>

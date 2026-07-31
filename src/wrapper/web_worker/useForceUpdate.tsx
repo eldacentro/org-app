@@ -3,7 +3,10 @@ import { useAtomValue } from 'jotai';
 import { isTest } from '@constants/index';
 import { congAccountConnectedState } from '@states/app';
 import { congIDState } from '@states/settings';
-import { subscribeForceUpdate, ForceUpdateSignal } from '@services/firebase/force_update';
+import {
+  subscribeForceUpdate,
+  ForceUpdateSignal,
+} from '@services/firebase/force_update';
 import { canAutoReload, forceAppUpdate } from '@services/app/pwa_update';
 import logger from '@services/logger';
 
@@ -101,7 +104,10 @@ const useForceUpdate = () => {
         Math.random() * (REACT_DELAY_MAX_MS - REACT_DELAY_MIN_MS);
 
       idleTimer = setTimeout(() => {
-        logger.info('app', `forced update wave -> build ${target} (tengo ${currentBuild})`);
+        logger.info(
+          'app',
+          `forced update wave -> build ${target} (tengo ${currentBuild})`
+        );
 
         // Sin versión nueva que instalar NO se recarga: recargar en seco deja
         // el dispositivo igual y la oleada volvería a dispararse al arrancar.

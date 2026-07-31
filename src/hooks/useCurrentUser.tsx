@@ -20,10 +20,7 @@ import {
 } from '@services/app/publisher_status';
 
 const useCurrentUser = () => {
-  const {
-    personIsEnrollmentActive,
-    personIsBaptizedPublisher,
-  } = usePerson();
+  const { personIsEnrollmentActive, personIsBaptizedPublisher } = usePerson();
 
   const userUID = useAtomValue(userLocalUIDState);
   const persons = useAtomValue(personsState);

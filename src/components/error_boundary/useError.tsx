@@ -36,7 +36,9 @@ const useError = ({ updatePwa }: ErrorBoundaryProps) => {
         errData.includes('text/html');
 
       if (isChunkError) {
-        const hasReloaded = window.sessionStorage.getItem('chunk-reload-occurred');
+        const hasReloaded = window.sessionStorage.getItem(
+          'chunk-reload-occurred'
+        );
         if (!hasReloaded) {
           window.sessionStorage.setItem('chunk-reload-occurred', 'true');
           window.location.reload();

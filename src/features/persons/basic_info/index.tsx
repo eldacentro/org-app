@@ -38,7 +38,7 @@ const PersonBasicInfo = () => {
     displayNameEnabled,
     isCurrentPersonMemberOfAFamily,
     familyHeadName,
-    isFamilyHead
+    isFamilyHead,
   } = useBasicInfo();
 
   return (

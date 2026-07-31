@@ -7,7 +7,10 @@ type LastModifiedInfoProps = {
   lastModifiedBy: string;
 };
 
-const LastModifiedInfo = ({ updatedAt, lastModifiedBy }: LastModifiedInfoProps) => {
+const LastModifiedInfo = ({
+  updatedAt,
+  lastModifiedBy,
+}: LastModifiedInfoProps) => {
   const { t } = useAppTranslation();
 
   if (!updatedAt || !lastModifiedBy) return null;

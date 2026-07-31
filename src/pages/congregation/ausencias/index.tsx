@@ -56,7 +56,11 @@ const StatusChip = ({
 const AwayRow = ({ row }: { row: TimeAwayRow }) => {
   const navigate = useNavigate();
 
-  const tone = row.openStale ? 'amber' : row.status === 'past' ? 'muted' : 'brand';
+  const tone = row.openStale
+    ? 'amber'
+    : row.status === 'past'
+      ? 'muted'
+      : 'brand';
 
   return (
     <Box
@@ -78,7 +82,8 @@ const AwayRow = ({ row }: { row: TimeAwayRow }) => {
         border: '1px solid var(--line)',
         backgroundColor: 'var(--card)',
         cursor: 'pointer',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+        transition:
+          'border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
         '&:hover': {
           borderColor: 'var(--accent-300)',
           boxShadow: 'var(--hover-shadow)',
@@ -176,7 +181,8 @@ const AwaySection = ({
 
 const AusenciasPage = () => {
   const { tabletUp } = useBreakpoints();
-  const { sections, summary, search, setSearch, hasAny } = useTimeAwayOverview();
+  const { sections, summary, search, setSearch, hasAny } =
+    useTimeAwayOverview();
 
   const [showPast, setShowPast] = useState(false);
 
@@ -291,7 +297,9 @@ const AusenciasPage = () => {
               </Button>
             </Box>
 
-            {showPast && <AwaySection title="Terminadas" rows={sections.past} />}
+            {showPast && (
+              <AwaySection title="Terminadas" rows={sections.past} />
+            )}
           </Stack>
         )}
       </Stack>

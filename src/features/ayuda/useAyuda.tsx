@@ -4,10 +4,7 @@ import { AyudaRoles, AyudaSection } from '@definition/ayuda';
 import { AYUDA_SECTIONS } from './content';
 
 const normalize = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 const useAyuda = () => {
   const user = useCurrentUser();
@@ -53,9 +50,11 @@ const useAyuda = () => {
           article.title,
           ...article.blocks.map((b) => {
             if (b.type === 'faq') return `${b.q} ${b.a}`;
-            if (b.type === 'steps') return `${b.title ?? ''} ${b.items.join(' ')}`;
+            if (b.type === 'steps')
+              return `${b.title ?? ''} ${b.items.join(' ')}`;
             if (b.type === 'link') return b.label;
-            if (b.type === 'iconrow') return b.items.map((i) => i.text).join(' ');
+            if (b.type === 'iconrow')
+              return b.items.map((i) => i.text).join(' ');
             if (b.type === 'diagram') return '';
             return b.text;
           }),

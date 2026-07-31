@@ -27,10 +27,22 @@ import { upcomingEventsDbState } from '@states/upcoming_events';
 import { publicTalksState } from '@states/public_talks';
 import { songsState } from '@states/songs';
 import { deptScheduleState } from '@states/departments_schedule';
-import { serviceOutingsListState, serviceOutingsSettingsState } from '@states/service_outings';
-import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
-import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
-import { ExhibitorWeekType, ExhibitorSettingsType } from '@definition/exhibitors';
+import {
+  serviceOutingsListState,
+  serviceOutingsSettingsState,
+} from '@states/service_outings';
+import {
+  ServiceOutingWeekType,
+  ServiceOutingSettingsType,
+} from '@definition/service_outings';
+import {
+  exhibitorsListState,
+  exhibitorsSettingsState,
+} from '@states/exhibitors';
+import {
+  ExhibitorWeekType,
+  ExhibitorSettingsType,
+} from '@definition/exhibitors';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
@@ -82,12 +94,8 @@ const useIndexedDb = () => {
   const dbDeptSchedules = useLiveQuery(() =>
     appDb.departments_schedule.toArray()
   );
-  const dbServiceOutings = useLiveQuery(() =>
-    appDb.service_outings.toArray()
-  );
-  const dbExhibitors = useLiveQuery(() =>
-    appDb.exhibitors.toArray()
-  );
+  const dbServiceOutings = useLiveQuery(() => appDb.service_outings.toArray());
+  const dbExhibitors = useLiveQuery(() => appDb.exhibitors.toArray());
   const dbResponsabilidades = useLiveQuery(() =>
     appDb.responsabilidades.toArray()
   );
@@ -119,19 +127,39 @@ const useIndexedDb = () => {
   const setSongs = useSetAtom(songsState);
   const setDeptSchedules = useSetAtom(deptScheduleState);
   const [, setServiceOutingsList] = useAtom(
-    serviceOutingsListState as WritableAtom<ServiceOutingWeekType[], [ServiceOutingWeekType[]], void>
+    serviceOutingsListState as WritableAtom<
+      ServiceOutingWeekType[],
+      [ServiceOutingWeekType[]],
+      void
+    >
   );
   const [, setServiceOutingsSettings] = useAtom(
-    serviceOutingsSettingsState as WritableAtom<ServiceOutingSettingsType | null, [ServiceOutingSettingsType | null], void>
+    serviceOutingsSettingsState as WritableAtom<
+      ServiceOutingSettingsType | null,
+      [ServiceOutingSettingsType | null],
+      void
+    >
   );
   const [, setExhibitorsList] = useAtom(
-    exhibitorsListState as WritableAtom<ExhibitorWeekType[], [ExhibitorWeekType[]], void>
+    exhibitorsListState as WritableAtom<
+      ExhibitorWeekType[],
+      [ExhibitorWeekType[]],
+      void
+    >
   );
   const [, setExhibitorsSettings] = useAtom(
-    exhibitorsSettingsState as WritableAtom<ExhibitorSettingsType | null, [ExhibitorSettingsType | null], void>
+    exhibitorsSettingsState as WritableAtom<
+      ExhibitorSettingsType | null,
+      [ExhibitorSettingsType | null],
+      void
+    >
   );
   const [, setResponsabilidades] = useAtom(
-    responsabilidadesState as WritableAtom<ResponsabilidadesType | null, [ResponsabilidadesType | null], void>
+    responsabilidadesState as WritableAtom<
+      ResponsabilidadesType | null,
+      [ResponsabilidadesType | null],
+      void
+    >
   );
   const setCircuitVisits = useSetAtom(circuitVisitsState);
 
@@ -144,8 +172,6 @@ const useIndexedDb = () => {
   const loadPersons = useCallback(() => {
     if (dbPersons) {
       setPersons(dbPersons);
-
-
     }
   }, [dbPersons, setPersons]);
 
@@ -265,8 +291,12 @@ const useIndexedDb = () => {
 
   const loadServiceOutings = useCallback(() => {
     if (dbServiceOutings) {
-      const settings = dbServiceOutings.find((item) => item.weekOf === 'settings');
-      const list = dbServiceOutings.filter((item) => item.weekOf !== 'settings');
+      const settings = dbServiceOutings.find(
+        (item) => item.weekOf === 'settings'
+      );
+      const list = dbServiceOutings.filter(
+        (item) => item.weekOf !== 'settings'
+      );
 
       setServiceOutingsList(list);
       if (settings) {

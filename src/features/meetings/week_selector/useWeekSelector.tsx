@@ -150,42 +150,43 @@ const useWeekSelector = () => {
       return weeksWithoutMemorial.weeksExact;
     }
 
-    const groupedData = weeksWithFuture.reduce<
-      SourcesFormattedType[]
-    >((acc, curr) => {
-      const mtd = schedulesGetMeetingDate({
-        week: curr.weekOf,
-        meeting,
-      });
+    const groupedData = weeksWithFuture.reduce<SourcesFormattedType[]>(
+      (acc, curr) => {
+        const mtd = schedulesGetMeetingDate({
+          week: curr.weekOf,
+          meeting,
+        });
 
-      const date = mtd.date;
-      const year = +date.split('/')[0];
-      const month = date.substring(0, 7);
+        const date = mtd.date;
+        const year = +date.split('/')[0];
+        const month = date.substring(0, 7);
 
-      // Initialize year object if not already present
-      const findYear = acc.find((record) => record.value === year);
-      if (!findYear) {
-        acc.push({ value: year, months: [] });
-      }
+        // Initialize year object if not already present
+        const findYear = acc.find((record) => record.value === year);
+        if (!findYear) {
+          acc.push({ value: year, months: [] });
+        }
 
-      // Initialize month array if not already present
-      const yearRecord = acc.find((record) => record.value === year);
-      const findMonth = yearRecord.months.find(
-        (record) => record.value === month
-      );
-      if (!findMonth) {
-        yearRecord.months.push({ value: month, weeks: [] });
-      }
+        // Initialize month array if not already present
+        const yearRecord = acc.find((record) => record.value === year);
+        const findMonth = yearRecord.months.find(
+          (record) => record.value === month
+        );
+        if (!findMonth) {
+          yearRecord.months.push({ value: month, weeks: [] });
+        }
 
-      // Add current week to the appropriate month array
-      const monthRecord = yearRecord.months.find(
-        (record) => record.value === month
-      );
+        // Add current week to the appropriate month array
+        const monthRecord = yearRecord.months.find(
+          (record) => record.value === month
+        );
 
-      monthRecord.weeks.push(curr.weekOf);
+        monthRecord.weeks.push(curr.weekOf);
 
-      return acc;
-    }, []);
+        return acc;
+      },
+      []
+    );
 
     for (const year in groupedData) {
       groupedData[year].months.sort((a, b) => b.value.localeCompare(a.value));
@@ -223,7 +224,9 @@ const useWeekSelector = () => {
   useEffect(() => {
     if (!currentYear) {
       const realCurrentYear = new Date().getFullYear().toString();
-      const findIndex = tabs.findIndex((record) => record.label === realCurrentYear);
+      const findIndex = tabs.findIndex(
+        (record) => record.label === realCurrentYear
+      );
 
       if (findIndex !== -1) {
         setActiveTab(findIndex);
@@ -254,7 +257,10 @@ const useWeekSelector = () => {
 
   const selectedWeekDateLocale = useMemo(() => {
     if (!selectedWeek || selectedWeek.length === 0) return '';
-    const meetingDate = schedulesGetMeetingDate({ week: selectedWeek, meeting });
+    const meetingDate = schedulesGetMeetingDate({
+      week: selectedWeek,
+      meeting,
+    });
     return meetingDate.locale;
   }, [selectedWeek, meeting]);
 

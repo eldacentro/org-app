@@ -27,9 +27,7 @@ const JoinRequest = (props: JoinRequestProps) => {
       sx={{
         backgroundColor: type === 'page' ? 'var(--card)' : 'var(--accent-150)',
         border:
-          type === 'page'
-            ? '1px dashed var(--line)'
-            : '1px solid var(--line)',
+          type === 'page' ? '1px dashed var(--line)' : '1px solid var(--line)',
         padding: '8px 15px',
         borderRadius: 'var(--shape-sm)',
         flexDirection: { mobile: 'column', tablet: 'row' },

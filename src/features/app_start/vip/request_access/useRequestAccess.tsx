@@ -71,8 +71,6 @@ const useRequestAccess = () => {
 
       setIsProcessing(false);
 
-
-
       setRequestSent(true);
 
       displaySnackNotification({
@@ -83,7 +81,8 @@ const useRequestAccess = () => {
     } catch (error) {
       setIsProcessing(false);
 
-      const errorMessage = getMessageByCode((error as Error).message) || (error as Error).message;
+      const errorMessage =
+        getMessageByCode((error as Error).message) || (error as Error).message;
       setSubmitError(errorMessage);
       console.error(error);
 

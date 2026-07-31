@@ -162,7 +162,7 @@ const MonthView = () => {
                       sx={{
                         width: '5px',
                         height: '5px',
-                        borderRadius: '50%',
+                        borderRadius: 'var(--shape-full)',
                         backgroundColor: cell.hasRecord
                           ? isSelected
                             ? 'var(--always-white)'

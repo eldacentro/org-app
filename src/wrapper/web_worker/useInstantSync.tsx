@@ -81,7 +81,10 @@ const useInstantSync = () => {
     // misma pausa que el ciclo periódico: nunca con una ficha de persona
     // abierta Y alguien delante (la pausa caduca sola, ver sync_pause)
     if (isPersonDetailInUse(pathname)) {
-      logger.info('app', `instant sync skipped (person detail open) - ${reason}`);
+      logger.info(
+        'app',
+        `instant sync skipped (person detail open) - ${reason}`
+      );
       return;
     }
 
@@ -179,7 +182,9 @@ const useInstantSync = () => {
     if (!enabled) return false;
     const metadata = await appDb.metadata.get(1);
     if (!metadata) return false;
-    return Object.values(metadata.metadata).some((table) => table.send_local === true);
+    return Object.values(metadata.metadata).some(
+      (table) => table.send_local === true
+    );
   }, [enabled]);
 
   const prevPendingRef = useRef(false);

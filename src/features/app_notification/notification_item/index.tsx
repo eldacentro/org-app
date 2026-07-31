@@ -21,12 +21,18 @@ import SpeakerAccessRequest from '../speakers_access_request';
 import TerritoryAccessRequest from '../territory_access_request';
 import TerritoryAssignedNotice from '../territory_assigned_notice';
 import UnverifiedReportItem from '../unverified_report_item';
-import { TerritoryRequestNotificationType, TerritoryAssignedNotificationType } from '@definition/notification';
+import {
+  TerritoryRequestNotificationType,
+  TerritoryAssignedNotificationType,
+} from '@definition/notification';
 import TextMarkup from '@components/text_markup';
 import Typography from '@components/typography';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
 
-const ICON_MAP: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+const ICON_MAP: Record<
+  string,
+  { icon: React.ReactNode; color: string; bg: string }
+> = {
   talk: {
     icon: <IconTalk color="var(--accent-main)" />,
     color: 'var(--accent-main)',
@@ -50,7 +56,7 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; color: string; bg: strin
   'join-requests': {
     icon: <IconAccount color="var(--orange-main)" />,
     color: 'var(--orange-main)',
-    bg: 'rgba(234,88,12,0.10)',
+    bg: 'color-mix(in srgb, var(--orange-main) 10%, transparent)',
   },
   'territory-assigned': {
     icon: <IconLocation color="var(--green-main)" />,
@@ -79,14 +85,19 @@ const NotificationItem = ({
         borderRadius: 'var(--shape-lg)',
         p: '16px',
         mb: '12px',
-        backgroundColor: notification.read ? 'var(--white)' : 'var(--accent-100)',
+        backgroundColor: notification.read
+          ? 'var(--white)'
+          : 'var(--accent-100)',
         border: '1px solid',
         // 'var(--brand-main-10)' no existe (huérfano) — el borde de "no
         // leída" no se aplicaba nunca. var(--accent-300) es el tono real más
         // próximo a la intención (borde algo más marcado que el de "leída").
-        borderColor: notification.read ? 'var(--accent-200)' : 'var(--accent-300)',
+        borderColor: notification.read
+          ? 'var(--accent-200)'
+          : 'var(--accent-300)',
         boxShadow: notification.read ? 'none' : 'var(--small-card-shadow)',
-        transition: 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+        transition:
+          'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
         cursor: 'default',
         '&:hover': {
           transform: 'translateY(-2px)',
@@ -104,9 +115,10 @@ const NotificationItem = ({
             right: '14px',
             width: '9px',
             height: '9px',
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: 'var(--accent-main)',
-            boxShadow: '0 0 0 2px var(--accent-main), 0 0 0 4px var(--accent-200)',
+            boxShadow:
+              '0 0 0 2px var(--accent-main), 0 0 0 4px var(--accent-200)',
           }}
         />
       )}
@@ -133,7 +145,10 @@ const NotificationItem = ({
           {/* Title */}
           <Box sx={{ pr: '18px' }}>
             {notification.id !== 'reports-unverified' ? (
-              <Typography className="h4" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+              <Typography
+                className="h4"
+                sx={{ fontWeight: 700, lineHeight: 1.3 }}
+              >
                 {notification.title}
               </Typography>
             ) : (
@@ -158,35 +173,49 @@ const NotificationItem = ({
 
           {/* Nested content */}
           {notification.id === 'reports-unverified' &&
-            (notification as UnverifiedReportNotificationType).reports.map((r) => (
-              <UnverifiedReportItem key={`${r.person_uid}-${r.report_date}`} entry={r} />
-            ))}
+            (notification as UnverifiedReportNotificationType).reports.map(
+              (r) => (
+                <UnverifiedReportItem
+                  key={`${r.person_uid}-${r.report_date}`}
+                  entry={r}
+                />
+              )
+            )}
 
           {notification.id === 'speakers-request' &&
             (notification as SpeakerNotificationType).congs.map((request) => (
-              <SpeakerAccessRequest key={request.request_id} request={request} />
+              <SpeakerAccessRequest
+                key={request.request_id}
+                request={request}
+              />
             ))}
 
-                    {notification.id === 'territory-requests' &&
-            (notification as TerritoryRequestNotificationType).requests.map((request) => (
-              <TerritoryAccessRequest key={request.id} request={request} />
-            ))}
+          {notification.id === 'territory-requests' &&
+            (notification as TerritoryRequestNotificationType).requests.map(
+              (request) => (
+                <TerritoryAccessRequest key={request.id} request={request} />
+              )
+            )}
 
           {notification.icon === 'territory-assigned' && (
-            <TerritoryAssignedNotice notification={notification as TerritoryAssignedNotificationType} />
+            <TerritoryAssignedNotice
+              notification={notification as TerritoryAssignedNotificationType}
+            />
           )}
 
           {notification.id === 'join-requests' &&
-            (notification as JoinRequestNotificationType).requests.map((request) => (
-              <JoinRequest key={request.user} request={request} />
-            ))}
+            (notification as JoinRequestNotificationType).requests.map(
+              (request) => <JoinRequest key={request.user} request={request} />
+            )}
 
           {/* Footer: mark as read + date */}
           <Stack
             direction="row"
             alignItems="center"
             justifyContent={
-              notification.enableRead && !notification.read ? 'space-between' : 'flex-end'
+              notification.enableRead && !notification.read
+                ? 'space-between'
+                : 'flex-end'
             }
             sx={{ pt: '4px' }}
           >
@@ -196,7 +225,12 @@ const NotificationItem = ({
                 startIcon={<IconCheck />}
                 variant="secondary"
                 onClick={handleMarkAsRead}
-                sx={{ fontSize: '12px', height: '28px', minHeight: '28px', px: '10px' }}
+                sx={{
+                  fontSize: '12px',
+                  height: '28px',
+                  minHeight: '28px',
+                  px: '10px',
+                }}
               >
                 {t('tr_markAsRead')}
               </Button>

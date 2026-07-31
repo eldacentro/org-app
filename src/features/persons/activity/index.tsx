@@ -110,7 +110,8 @@ const ActivityRow = ({ item }: { item: ActivityItem }) => {
 const PersonActivity = () => {
   const { id } = useParams();
 
-  const { groups, counts, total, category, setCategory } = usePersonActivity(id);
+  const { groups, counts, total, category, setCategory } =
+    usePersonActivity(id);
 
   const [expanded, setExpanded] = useState(true);
 
@@ -153,7 +154,7 @@ const PersonActivity = () => {
             color="var(--black)"
             sx={{
               transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-              transition: 'transform 0.3s',
+              transition: 'transform var(--motion-medium) var(--ease-standard)',
             }}
           />
         </IconButton>

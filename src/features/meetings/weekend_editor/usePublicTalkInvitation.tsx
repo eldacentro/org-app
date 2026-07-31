@@ -10,7 +10,10 @@ import {
 } from '@states/settings';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { buildPersonFullname } from '@utils/common';
-import { incomingSpeakersState, myCongSpeakersState } from '@states/visiting_speakers';
+import {
+  incomingSpeakersState,
+  myCongSpeakersState,
+} from '@states/visiting_speakers';
 import { publicTalksLocaleState } from '@states/public_talks';
 import { useAppTranslation } from '@hooks/index';
 import React from 'react';
@@ -27,7 +30,7 @@ const usePublicTalkInvitation = (
   speakerNameFallback?: string
 ) => {
   const { t } = useAppTranslation();
-  
+
   const persons = useAtomValue(personsState);
   const settings = useAtomValue(settingsState);
   const congName = useAtomValue(congNameState);
@@ -40,7 +43,7 @@ const usePublicTalkInvitation = (
   // Speaker Info
   const speakerInfo = useMemo(() => {
     if (!speakerUid) return null;
-    
+
     if (talkType === 'localSpeaker') {
       return localSpeakers.find((s) => s.person_uid === speakerUid);
     }
@@ -75,11 +78,15 @@ const usePublicTalkInvitation = (
 
   // Find coordinator of the body of elders
   const congCoordinatorUid = useMemo(() => {
-    if (!responsabilidades) return settings.cong_settings.responsabilities?.coordinator;
+    if (!responsabilidades)
+      return settings.cong_settings.responsabilities?.coordinator;
     const coordinatorCargo = responsabilidades.cargosAncianos.find(
       (c) => normalizeStr(c.cargo) === 'coordinador'
     );
-    return coordinatorCargo?.responsable || settings.cong_settings.responsabilities?.coordinator;
+    return (
+      coordinatorCargo?.responsable ||
+      settings.cong_settings.responsabilities?.coordinator
+    );
   }, [responsabilidades, settings]);
 
   // Find public talk department (e.g. "Discursos públicos")
@@ -99,7 +106,10 @@ const usePublicTalkInvitation = (
     if (publicTalkDept.auxiliar) {
       uids.push(publicTalkDept.auxiliar);
     }
-    if (publicTalkDept.type === 'extended' && Array.isArray(publicTalkDept.members)) {
+    if (
+      publicTalkDept.type === 'extended' &&
+      Array.isArray(publicTalkDept.members)
+    ) {
       publicTalkDept.members.forEach((memberUid) => {
         if (memberUid && !uids.includes(memberUid)) {
           uids.push(memberUid);
@@ -110,20 +120,23 @@ const usePublicTalkInvitation = (
   }, [publicTalkDept]);
 
   // Helper to resolve UIDs to CoordinatorInfo objects
-  const resolveCoordinatorInfo = useCallback((uid?: string): CoordinatorInfo => {
-    if (!uid) return { name: '', email: '', phone: '' };
-    const p = persons.find((x) => x.person_uid === uid);
-    if (!p) return { name: '', email: '', phone: '' };
-    return {
-      name: buildPersonFullname(
-        p.person_data.person_lastname.value,
-        p.person_data.person_firstname.value,
-        fullnameOption
-      ),
-      email: p.person_data.email.value || '',
-      phone: p.person_data.phone.value || '',
-    };
-  }, [persons, fullnameOption]);
+  const resolveCoordinatorInfo = useCallback(
+    (uid?: string): CoordinatorInfo => {
+      if (!uid) return { name: '', email: '', phone: '' };
+      const p = persons.find((x) => x.person_uid === uid);
+      if (!p) return { name: '', email: '', phone: '' };
+      return {
+        name: buildPersonFullname(
+          p.person_data.person_lastname.value,
+          p.person_data.person_firstname.value,
+          fullnameOption
+        ),
+        email: p.person_data.email.value || '',
+        phone: p.person_data.phone.value || '',
+      };
+    },
+    [persons, fullnameOption]
+  );
 
   const congCoordinatorInfo = useMemo(() => {
     return resolveCoordinatorInfo(congCoordinatorUid);
@@ -152,7 +165,10 @@ const usePublicTalkInvitation = (
         publicTalkCoordinator={ptcCoordinatorInfo}
         assistants={assistantsInfo}
         mediaEmail={
-          speakersEmail || ptcCoordinatorInfo.email || congCoordinatorInfo.email || ''
+          speakersEmail ||
+          ptcCoordinatorInfo.email ||
+          congCoordinatorInfo.email ||
+          ''
         }
       />
     );

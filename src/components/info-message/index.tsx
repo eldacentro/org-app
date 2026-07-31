@@ -140,7 +140,11 @@ const InfoMessage = (props: InfoMessagePropsType) => {
         </Box>
 
         {props.onClose && (
-          <IconButton aria-label="Cerrar" onClick={props.onClose} sx={{ padding: 0 }}>
+          <IconButton
+            aria-label="Cerrar"
+            onClick={props.onClose}
+            sx={{ padding: 0 }}
+          >
             <IconClose color="var(--always-white)" />
           </IconButton>
         )}

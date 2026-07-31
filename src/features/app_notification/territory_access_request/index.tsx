@@ -25,9 +25,7 @@ import { useTerritories } from '@features/territories/useTerritories';
  * compartidas, así que montarlo aquí no duplica nada si ya se está en
  * Territorios, y se cierra solo al cerrar el diálogo.
  */
-const DialogAsignarConDatos = (
-  props: ComponentProps<typeof DialogAsignar>
-) => {
+const DialogAsignarConDatos = (props: ComponentProps<typeof DialogAsignar>) => {
   useTerritories();
   return <DialogAsignar {...props} />;
 };
@@ -60,9 +58,16 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
         }}
       >
         <Stack spacing={1.5}>
-          <Typography sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}>{fullname}</Typography>
+          <Typography
+            sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}
+          >
+            {fullname}
+          </Typography>
           {request.nota && (
-            <Typography variant="body2" sx={{ color: 'var(--grey-400)', lineHeight: 1.5 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: 'var(--grey-400)', lineHeight: 1.5 }}
+            >
               <strong>Nota:</strong> {request.nota}
             </Typography>
           )}
@@ -80,11 +85,12 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
                 fontSize: '13px',
                 letterSpacing: '0.01em',
                 boxShadow: 'var(--btn-shadow)',
-                transition: 'all 0.2s ease',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
                 '&:hover': {
                   transform: 'translateY(-1px)',
                   boxShadow: 'var(--hover-shadow)',
-                }
+                },
               }}
             >
               Asignar territorio

@@ -74,7 +74,10 @@ export const SectionCard = ({
           {title}
         </Typography>
         {subtitle && (
-          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', lineHeight: 1.3 }}>
+          <Typography
+            className="label-small-regular"
+            sx={{ color: 'var(--ink-2)', lineHeight: 1.3 }}
+          >
             {subtitle}
           </Typography>
         )}

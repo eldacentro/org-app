@@ -18,7 +18,11 @@ const AddToCalendar = (props: AddToCalendarProps) => {
         flexShrink: 0,
       }}
     >
-      {isProcessing ? <IconLoading color="var(--accent-main)" /> : <IconAddMonth color="var(--brand)" />}
+      {isProcessing ? (
+        <IconLoading color="var(--accent-main)" />
+      ) : (
+        <IconAddMonth color="var(--brand)" />
+      )}
     </IconButton>
   );
 };

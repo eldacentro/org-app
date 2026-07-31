@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import {
-  personsFilterOpenState,
-} from '@states/persons';
+import { personsFilterOpenState } from '@states/persons';
 import { personSchema } from '@services/dexie/schema';
 import { setPersonCurrentDetails } from '@services/states/persons';
 import { apiCongregationUsersGet } from '@services/api/congregation';

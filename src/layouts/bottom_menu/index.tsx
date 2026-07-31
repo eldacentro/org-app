@@ -89,8 +89,7 @@ const BottomMenu = (props: BottomMenuProps) => {
     };
   }, [barHeight, safeAreaInsetBottom]);
 
-  const barTop =
-    windowHeight - barHeight - BAR_MARGIN - safeAreaInsetBottom;
+  const barTop = windowHeight - barHeight - BAR_MARGIN - safeAreaInsetBottom;
 
   return (
     <>
@@ -105,7 +104,9 @@ const BottomMenu = (props: BottomMenuProps) => {
           // Antes de la primera medición (barHeight === 0), nos apoyamos en
           // `bottom` solo para que no aparezca pegada arriba un instante —
           // se corrige en el primer paint útil, así que no se nota.
-          bottom: barHeight ? undefined : `${BAR_MARGIN + safeAreaInsetBottom}px`,
+          bottom: barHeight
+            ? undefined
+            : `${BAR_MARGIN + safeAreaInsetBottom}px`,
           left: '50%',
           transform: keyboardOpen
             ? 'translate(-50%, 16px)'

@@ -7,7 +7,9 @@ const useSpeakersEmail = () => {
   const settings = useAtomValue(settingsState);
   const initialValue = useAtomValue(publicTalkSpeakersEmailState);
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const [email, setEmail] = useState('');
   const [editing, setEditing] = useState(false);

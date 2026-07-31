@@ -50,7 +50,11 @@ const PublicTalk = (props: PublicTalkProps) => {
                 >
                   {talkTitle}
                 </Typography>
-                <IconButton aria-label="Copiar" onClick={handleCopyTalk} sx={{ padding: '2px' }}>
+                <IconButton
+                  aria-label="Copiar"
+                  onClick={handleCopyTalk}
+                  sx={{ padding: '2px' }}
+                >
                   <IconCopy color="var(--black)" />
                 </IconButton>
               </Stack>

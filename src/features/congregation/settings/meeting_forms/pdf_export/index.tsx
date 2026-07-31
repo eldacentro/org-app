@@ -5,7 +5,8 @@ import SwitchWithLabel from '@components/switch_with_label';
 const PdfExport = () => {
   const { t } = useAppTranslation();
 
-  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
+  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator } =
+    useCurrentUser();
 
   const { pdfExport, handlePdfExportToggle } = usePdfExport();
 
@@ -15,7 +16,9 @@ const PdfExport = () => {
       helper={t('tr_pdfExportEnabledDesc')}
       checked={pdfExport}
       onChange={handlePdfExportToggle}
-      readOnly={!isMidweekEditor && !isWeekendEditor && !isPublicTalkCoordinator}
+      readOnly={
+        !isMidweekEditor && !isWeekendEditor && !isPublicTalkCoordinator
+      }
     />
   );
 };

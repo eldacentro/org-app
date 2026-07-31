@@ -41,7 +41,8 @@ const AssignmentGroup = ({
   );
 
   const hasSpeakerRecord = !!speakerRecord;
-  const isOutgoingSpeaker = hasSpeakerRecord && speakerRecord.speaker_data.local.value === false;
+  const isOutgoingSpeaker =
+    hasSpeakerRecord && speakerRecord.speaker_data.local.value === false;
 
   const handleToggleOutgoingSpeaker = async (isOutgoing: boolean) => {
     if (!speakerRecord) return;
@@ -75,7 +76,10 @@ const AssignmentGroup = ({
         readOnly={readOnly}
       >
         {items.map((assignment) => (
-          <Box key={assignment.code} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+          <Box
+            key={assignment.code}
+            sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+          >
             <Checkbox
               readOnly={readOnly}
               label={assignment.name}
@@ -86,7 +90,9 @@ const AssignmentGroup = ({
               }
               onChange={(_, checked) => onItemChange(checked, assignment.code)}
               className="body-small-regular"
-              disabled={disqualified || checkAssignmentDisabled(assignment.code)}
+              disabled={
+                disqualified || checkAssignmentDisabled(assignment.code)
+              }
               sx={
                 assignment.borderTop
                   ? {
@@ -105,7 +111,9 @@ const AssignmentGroup = ({
                   readOnly={readOnly}
                   label={t('tr_outgoingSpeakerOption')}
                   checked={isOutgoingSpeaker}
-                  onChange={(_, checked) => handleToggleOutgoingSpeaker(checked)}
+                  onChange={(_, checked) =>
+                    handleToggleOutgoingSpeaker(checked)
+                  }
                   className="body-small-regular"
                   sx={{
                     marginLeft: '24px',
@@ -124,4 +132,3 @@ const AssignmentGroup = ({
 };
 
 export default AssignmentGroup;
-

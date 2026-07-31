@@ -94,18 +94,21 @@ const useWeeksList = () => {
   };
 
   useEffect(() => {
-    const upcomingVisits = settings.cong_settings.circuit_overseer.visits.filter(
-      (record) =>
-        record._deleted === false &&
-        (record.weekOf.length === 0 ||
-          record.weekOf >= formatDate(getWeekDate(), 'yyyy/MM/dd'))
-    );
+    const upcomingVisits =
+      settings.cong_settings.circuit_overseer.visits.filter(
+        (record) =>
+          record._deleted === false &&
+          (record.weekOf.length === 0 ||
+            record.weekOf >= formatDate(getWeekDate(), 'yyyy/MM/dd'))
+      );
 
     let combined: WeekRecord[] = [];
 
     setWeeks((prev) => {
       const drafts = prev.filter(
-        (record) => record.isDraft && !upcomingVisits.some((visit) => visit.id === record.id)
+        (record) =>
+          record.isDraft &&
+          !upcomingVisits.some((visit) => visit.id === record.id)
       );
 
       combined = [...upcomingVisits, ...drafts];

@@ -1777,7 +1777,8 @@ const PredicacionSalidas = () => {
                                         cursor: isServiceCommittee
                                           ? 'pointer'
                                           : 'default',
-                                        transition: 'background-color 0.15s',
+                                        transition:
+                                          'background-color var(--motion-fast) var(--ease-standard)',
                                         '&:hover': isServiceCommittee
                                           ? {
                                               backgroundColor: isCancelled
@@ -2377,7 +2378,8 @@ const PredicacionSalidas = () => {
                                       justifyContent: 'center',
                                       alignItems: 'center',
                                       cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
+                                      transition:
+                                        'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                       '&:hover': {
                                         borderColor: 'var(--accent-main)',
                                       },
@@ -2583,7 +2585,8 @@ const PredicacionSalidas = () => {
                                         cursor: isServiceCommittee
                                           ? 'pointer'
                                           : 'default',
-                                        transition: 'background-color 0.15s',
+                                        transition:
+                                          'background-color var(--motion-fast) var(--ease-standard)',
                                         '&:hover': isServiceCommittee
                                           ? {
                                               backgroundColor: isCancelled
@@ -3076,7 +3079,8 @@ const PredicacionSalidas = () => {
                                       backgroundColor: isDisabled
                                         ? 'var(--grey-100)'
                                         : 'var(--card)',
-                                      transition: 'background-color 0.2s',
+                                      transition:
+                                        'background-color var(--motion-fast) var(--ease-standard)',
                                     }}
                                   >
                                     <Box

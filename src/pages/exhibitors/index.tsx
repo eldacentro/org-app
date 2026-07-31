@@ -2257,7 +2257,8 @@ const Exhibitors = () => {
                                           justifyContent: 'center',
                                           alignItems: 'center',
                                           cursor: 'pointer',
-                                          transition: 'all 0.15s ease',
+                                          transition:
+                                            'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                           '&:hover': {
                                             borderColor: 'var(--accent-main)',
                                           },
@@ -3150,7 +3151,8 @@ const Exhibitors = () => {
                                       display: 'flex',
                                       justifyContent: 'center',
                                       alignItems: 'center',
-                                      transition: 'all 0.2s',
+                                      transition:
+                                        'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                     }}
                                   >
                                     <Typography
@@ -3312,7 +3314,8 @@ const Exhibitors = () => {
                                         flexDirection: 'column',
                                         gap: '16px',
                                         backgroundColor: 'var(--card)',
-                                        transition: 'all 0.2s',
+                                        transition:
+                                          'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                         '&:hover': {
                                           borderColor: 'var(--line)',
                                           boxShadow:
@@ -3601,7 +3604,8 @@ const Exhibitors = () => {
                                   borderRadius: 'var(--shape-sm)',
                                   backgroundColor: 'var(--card)',
                                   gap: '16px',
-                                  transition: 'all 0.2s ease',
+                                  transition:
+                                    'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                   '&:hover': {
                                     borderColor: 'var(--line)',
                                     boxShadow:
@@ -3681,7 +3685,8 @@ const Exhibitors = () => {
                                           alignItems: 'center',
                                           gap: '6px',
                                           userSelect: 'none',
-                                          transition: 'all 0.2s ease-in-out',
+                                          transition:
+                                            'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                                           ...(isChecked
                                             ? {
                                                 backgroundColor:

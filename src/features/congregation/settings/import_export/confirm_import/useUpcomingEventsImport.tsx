@@ -14,7 +14,6 @@ const useUpcomingEventsImport = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(events, oldEvents)) return [];
 
-
     for (const oldEvent of oldEvents) {
       const newEvent = events.find(
         (record) => record.event_uid === oldEvent.event_uid

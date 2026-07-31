@@ -15,7 +15,7 @@ import { territoriesEnabledPublishersState } from '@states/settings';
 const MinistryDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
-  
+
   const { isPublisher, isServiceCommittee } = useCurrentUser();
   const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
 
@@ -24,68 +24,120 @@ const MinistryDashboard = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: 'var(--dash-measure)',
+        margin: '0 auto',
+        paddingTop: '16px',
+      }}
+    >
       <PageTitle title={t('tr_ministry', 'Predicación')} />
       <div className="tile-grid">
         {(isServiceCommittee || territoriesEnabled) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation/territories')}>
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/congregation/territories')}
+          >
             <div className="ti">
               <IconMapOverview color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Territorios</div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
 
         {/* Exhibidores */}
-        {(isServiceCommittee) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/exhibitors')}>
+        {isServiceCommittee && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/exhibitors')}
+          >
             <div className="ti">
               <IconCart color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Exhibidores</div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
 
         {/* Salidas de predicación */}
-        {(isServiceCommittee) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/predicacion-salidas')}>
+        {isServiceCommittee && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/predicacion-salidas')}
+          >
             <div className="ti">
               <IconInTerritory color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
               <div className="tile-name">Salidas de predicación</div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
 
         {/* Informe */}
-        {(isPublisher) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/ministry-report')}>
+        {isPublisher && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/ministry-report')}
+          >
             <div className="ti">
               <IconMinistryReport color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_report', 'Informe de predicación')}</div>
+              <div className="tile-name">
+                {t('tr_report', 'Informe de predicación')}
+              </div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
-
       </div>
     </Box>
   );

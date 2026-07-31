@@ -50,7 +50,7 @@ const DelegateReports = () => {
           color="var(--black)"
           sx={{
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s',
+            transition: 'transform var(--motion-medium) var(--ease-standard)',
           }}
         />
       </Box>

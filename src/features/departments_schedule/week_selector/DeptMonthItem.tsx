@@ -41,7 +41,7 @@ const DeptMonthItem = ({
           color="var(--black)"
           sx={{
             transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-            transition: 'transform 0.3s',
+            transition: 'transform var(--motion-medium) var(--ease-standard)',
           }}
         />
       </Box>

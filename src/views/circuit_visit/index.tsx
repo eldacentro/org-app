@@ -8,8 +8,8 @@ export type CircuitVisitPdfPreachingRow = {
   date: string;
   time: string;
   location: string;
-  companionName: string;      // hermano que acompaña al CO
-  spouseCompanions: string;   // hermanas con la esposa (texto ya formateado)
+  companionName: string; // hermano que acompaña al CO
+  spouseCompanions: string; // hermanas con la esposa (texto ya formateado)
 };
 
 export type CircuitVisitPdfMealRow = {
@@ -38,7 +38,8 @@ type Props = {
 
 const fmtDay = fmtDayEs;
 
-const fmtRange = (visit: CircuitVisitType) => fmtRangeEs(visit.date_start, visit.date_end);
+const fmtRange = (visit: CircuitVisitType) =>
+  fmtRangeEs(visit.date_start, visit.date_end);
 
 const SpecialMeetingRow = ({
   label,
@@ -57,7 +58,16 @@ const SpecialMeetingRow = ({
   );
 };
 
-const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lang, mealsRows, shepherdingRows, preachingRows }: Props) => {
+const CircuitVisitProgramDoc = ({
+  visit,
+  coName,
+  coSpouseName,
+  congregation,
+  lang,
+  mealsRows,
+  shepherdingRows,
+  preachingRows,
+}: Props) => {
   const hasItinerary = visit.meeting_pioneers || visit.meeting_elders;
 
   return (
@@ -90,7 +100,9 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
               />
             </View>
           ) : (
-            <Text style={styles.empty}>Sin reuniones especiales programadas.</Text>
+            <Text style={styles.empty}>
+              Sin reuniones especiales programadas.
+            </Text>
           )}
         </View>
 
@@ -155,7 +167,9 @@ const CircuitVisitProgramDoc = ({ visit, coName, coSpouseName, congregation, lan
               ))}
             </View>
           ) : (
-            <Text style={styles.empty}>Sin visitas de pastoreo programadas.</Text>
+            <Text style={styles.empty}>
+              Sin visitas de pastoreo programadas.
+            </Text>
           )}
         </View>
 

@@ -89,7 +89,8 @@ const About = (props: AboutProps) => {
         backgroundColor: 'var(--accent-100)',
         cursor: busy ? 'default' : 'pointer',
         opacity: busy ? 0.7 : 1,
-        transition: 'background-color 0.15s, border-color 0.15s, opacity 0.15s',
+        transition:
+          'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard)',
         '&:hover': {
           backgroundColor: 'var(--accent-150)',
           borderColor: 'var(--accent-300)',
@@ -202,11 +203,7 @@ const About = (props: AboutProps) => {
         {isConnected && (
           <MaintenanceRow
             icon={
-              <IconCloudDownload
-                color="var(--black)"
-                width={22}
-                height={22}
-              />
+              <IconCloudDownload color="var(--black)" width={22} height={22} />
             }
             title={t('tr_reDownloadDataTitle')}
             description={t('tr_reDownloadDataDesc')}

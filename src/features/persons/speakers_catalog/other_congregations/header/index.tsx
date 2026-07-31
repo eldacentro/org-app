@@ -1,10 +1,5 @@
 import { Box, IconButton } from '@mui/material';
-import {
-  IconCheck,
-  IconDelete,
-  IconEdit,
-  IconExpand,
-} from '@components/icons';
+import { IconCheck, IconDelete, IconEdit, IconExpand } from '@components/icons';
 import { useBreakpoints, useCurrentUser } from '@hooks/index';
 import { IncomingCongregationHeaderType } from './index.types';
 import useHeader from './useHeader';
@@ -75,7 +70,8 @@ const IncomingCongregationHeader = ({
               color="var(--black)"
               sx={{
                 transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.3s',
+                transition:
+                  'transform var(--motion-medium) var(--ease-standard)',
               }}
             />
           </IconButton>
@@ -114,7 +110,8 @@ const IncomingCongregationHeader = ({
               color="var(--black)"
               sx={{
                 transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.3s',
+                transition:
+                  'transform var(--motion-medium) var(--ease-standard)',
               }}
             />
           </IconButton>

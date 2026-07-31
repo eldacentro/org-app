@@ -62,7 +62,9 @@ const useWeekItem = (visit: CircuitOverseerVisitType) => {
     if (!weekOf) return false;
     return list.some(
       (record) =>
-        record.id !== currentId && record._deleted === false && record.weekOf === weekOf
+        record.id !== currentId &&
+        record._deleted === false &&
+        record.weekOf === weekOf
     );
   };
 

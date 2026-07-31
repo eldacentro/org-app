@@ -6,7 +6,16 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
-import { IconAssignment, IconStats, IconMapView, IconPerson, IconLocation, IconCheck, IconAdd, IconRemove } from '@components/icons';
+import {
+  IconAssignment,
+  IconStats,
+  IconMapView,
+  IconPerson,
+  IconLocation,
+  IconCheck,
+  IconAdd,
+  IconRemove,
+} from '@components/icons';
 import { congIDState } from '@states/settings';
 import { territorySettingsState } from '@states/territories';
 import { TerritorySettings } from '@definition/territories';
@@ -38,7 +47,10 @@ const FieldRow = ({
       {label}
     </Typography>
     {description && (
-      <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', mb: '10px', lineHeight: 1.4 }}>
+      <Typography
+        className="label-small-regular"
+        sx={{ color: 'var(--ink-2)', mb: '10px', lineHeight: 1.4 }}
+      >
         {description}
       </Typography>
     )}
@@ -151,22 +163,27 @@ const NumberStepper = ({
               setLocalVal(String(value));
             }
           }}
-          style={{
-            width: 50,
-            textAlign: 'center',
-            border: 'none',
-            background: 'transparent',
-            fontSize: 16,
-            fontWeight: 700,
-            color: 'var(--ink)',
-            outline: 'none',
-            fontVariantNumeric: 'tabular-nums',
-            MozAppearance: 'textfield',
-            WebkitAppearance: 'none',
-          } as CSSProperties}
+          style={
+            {
+              width: 50,
+              textAlign: 'center',
+              border: 'none',
+              background: 'transparent',
+              fontSize: 16,
+              fontWeight: 700,
+              color: 'var(--ink)',
+              outline: 'none',
+              fontVariantNumeric: 'tabular-nums',
+              MozAppearance: 'textfield',
+              WebkitAppearance: 'none',
+            } as CSSProperties
+          }
         />
         {suffix && (
-          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
+          <Typography
+            className="label-small-regular"
+            sx={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}
+          >
             {suffix}
           </Typography>
         )}
@@ -193,7 +210,9 @@ const ConfiguracionTab = () => {
   const [draft, setDraft] = useState<TerritorySettings>(settings);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   // Solo se adopta lo que llega del servidor si NO hay cambios sin guardar.
   // Antes se sobrescribía siempre: bastaba con que otro responsable guardara
@@ -220,13 +239,18 @@ const ConfiguracionTab = () => {
   );
   hasChangesRef.current = hasChanges;
 
-  const set = <K extends keyof TerritorySettings>(key: K, value: TerritorySettings[K]) =>
-    setDraft((d) => ({ ...d, [key]: value }));
+  const set = <K extends keyof TerritorySettings>(
+    key: K,
+    value: TerritorySettings[K]
+  ) => setDraft((d) => ({ ...d, [key]: value }));
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSettings(congId, { ...draft, updatedAt: new Date().toISOString() });
+      await saveSettings(congId, {
+        ...draft,
+        updatedAt: new Date().toISOString(),
+      });
       setSaved(true);
       savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -237,7 +261,8 @@ const ConfiguracionTab = () => {
       displaySnackNotification({
         severity: 'error',
         header: 'No se pudo guardar',
-        message: 'Comprueba tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.',
+        message:
+          'Comprueba tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.',
       });
     } finally {
       setSaving(false);
@@ -249,7 +274,9 @@ const ConfiguracionTab = () => {
       <Stack spacing={2.5}>
         {/* ── 1 · Asignaciones ──────────────────────────────────────────────── */}
         <SectionCard
-          icon={<IconAssignment width={20} height={20} color="var(--accent-main)" />}
+          icon={
+            <IconAssignment width={20} height={20} color="var(--accent-main)" />
+          }
           title="Ajustes de asignación"
           iconBg="rgba(var(--accent-main-base), 0.1)"
         >
@@ -332,7 +359,9 @@ const ConfiguracionTab = () => {
           <FieldRow label="Rango de estadísticas">
             <PillGroup
               value={draft.statsRange}
-              onChange={(v) => set('statsRange', v as TerritorySettings['statsRange'])}
+              onChange={(v) =>
+                set('statsRange', v as TerritorySettings['statsRange'])
+              }
               options={[
                 { value: 'service_year', label: 'Año servicio' },
                 { value: 'one_year', label: '12 meses' },
@@ -344,7 +373,9 @@ const ConfiguracionTab = () => {
           <FieldRow label="Agrupación de estadísticas" last>
             <PillGroup
               value={draft.statsGrouping}
-              onChange={(v) => set('statsGrouping', v as TerritorySettings['statsGrouping'])}
+              onChange={(v) =>
+                set('statsGrouping', v as TerritorySettings['statsGrouping'])
+              }
               options={[
                 { value: 'zone', label: 'Por zona' },
                 { value: 'none', label: 'Sin agrupar' },
@@ -355,7 +386,9 @@ const ConfiguracionTab = () => {
 
         {/* ── 3 · Vista del territorio ──────────────────────────────────────── */}
         <SectionCard
-          icon={<IconMapView width={20} height={20} color="var(--orange-main)" />}
+          icon={
+            <IconMapView width={20} height={20} color="var(--orange-main)" />
+          }
           title="Vista del territorio"
           subtitle="Secciones expandidas por defecto al abrir un territorio"
           iconBg="rgba(var(--orange-main-base), 0.1)"
@@ -444,7 +477,12 @@ const ConfiguracionTab = () => {
             gap: 2,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{ minWidth: 0 }}
+          >
             {hasChanges && !saved && (
               <>
                 <Box
@@ -456,7 +494,10 @@ const ConfiguracionTab = () => {
                     flexShrink: 0,
                   }}
                 />
-                <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+                <Typography
+                  className="body-small-regular"
+                  sx={{ color: 'var(--ink-2)' }}
+                >
                   Cambios sin guardar
                 </Typography>
               </>
@@ -464,13 +505,19 @@ const ConfiguracionTab = () => {
             {saved && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <IconCheck width={16} height={16} color="var(--green-main)" />
-                <Typography className="body-small-semibold" sx={{ color: 'var(--green-main)' }}>
+                <Typography
+                  className="body-small-semibold"
+                  sx={{ color: 'var(--green-main)' }}
+                >
                   Guardado
                 </Typography>
               </Box>
             )}
             {!hasChanges && !saved && (
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 Todo al día
               </Typography>
             )}

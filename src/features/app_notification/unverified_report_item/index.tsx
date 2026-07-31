@@ -56,7 +56,9 @@ const UnverifiedReportItem = ({ entry }: { entry: UnverifiedReportEntry }) => {
     >
       <Stack spacing={1.5}>
         <Stack spacing="2px">
-          <Typography sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}>
+          <Typography
+            sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}
+          >
             {fullname}
           </Typography>
           <Typography variant="body2" sx={{ color: 'var(--grey-400)' }}>
@@ -77,7 +79,8 @@ const UnverifiedReportItem = ({ entry }: { entry: UnverifiedReportEntry }) => {
               fontSize: '13px',
               letterSpacing: '0.01em',
               boxShadow: 'var(--btn-shadow)',
-              transition: 'all 0.2s ease',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
               '&:hover': {
                 transform: 'translateY(-1px)',
                 boxShadow: 'var(--hover-shadow)',

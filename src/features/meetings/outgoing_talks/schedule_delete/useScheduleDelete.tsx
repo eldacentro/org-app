@@ -21,7 +21,9 @@ const useScheduleDelete = ({
   const schedule = (() => {
     if (!week) return undefined;
     const normWeek = week.replace(/\//g, '-');
-    return schedules.find((record) => record.weekOf.replace(/\//g, '-') === normWeek);
+    return schedules.find(
+      (record) => record.weekOf.replace(/\//g, '-') === normWeek
+    );
   })();
 
   const handleDeleteSchedule = async () => {

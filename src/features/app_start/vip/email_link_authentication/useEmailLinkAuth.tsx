@@ -23,7 +23,8 @@ const useEmailLinkAuth = () => {
 
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } =
+    useFeedback();
 
   const { determineNextStep, updateUserSettings } = useAuth();
 

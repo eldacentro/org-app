@@ -149,8 +149,8 @@ const DeptConfigDialog = ({
       >
         <Typography className="body-small-regular" color="var(--ink-2)">
           Cada departamento se organiza por su cuenta: las mismas personas toda
-          la semana, o unas entre semana y otras el fin de semana. Y el turno
-          se puede partir en dos: principio y final de la reunión.
+          la semana, o unas entre semana y otras el fin de semana. Y el turno se
+          puede partir en dos: principio y final de la reunión.
         </Typography>
 
         {ALL_DEPARTMENT_TYPES.map((dept) => {

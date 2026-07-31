@@ -49,7 +49,11 @@ const GroupDelete = (props: GroupDeleteProps) => {
         </Stack>
       </Dialog>
 
-      <IconButton aria-label="Eliminar" onClick={handleOpen} sx={{ padding: 0.2 }}>
+      <IconButton
+        aria-label="Eliminar"
+        onClick={handleOpen}
+        sx={{ padding: 0.2 }}
+      >
         <IconDelete color="var(--red-main)" />
       </IconButton>
     </>

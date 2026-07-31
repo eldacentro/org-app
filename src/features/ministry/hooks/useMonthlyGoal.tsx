@@ -27,7 +27,9 @@ export const computeMonthlyGoal = (
   const isFR = personIsEnrollmentActive(person, 'FR', month);
 
   if (isAP) {
-    const isSpecial = specialMonths.find((record) => record.months.includes(month));
+    const isSpecial = specialMonths.find((record) =>
+      record.months.includes(month)
+    );
     value = isSpecial ? 15 : 30;
   }
 

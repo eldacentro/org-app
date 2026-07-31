@@ -26,7 +26,15 @@ export const CustomTabPanel = (props: TabsPanelProps) => {
       {...other}
     >
       {value === index && (
-        <Box sx={{ padding: '24px 0', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box
+          sx={{
+            padding: '24px 0',
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {children}
         </Box>
       )}
@@ -80,7 +88,15 @@ const Tabs = ({
   }, [value]);
 
   return (
-    <Box sx={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <Box
+      sx={{
+        width: '100%',
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <Box
         sx={{
           display: 'flex',

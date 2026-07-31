@@ -83,7 +83,8 @@ const ContactPhoneRow = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
             '&:hover': {
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',
@@ -117,7 +118,8 @@ const ContactPhoneRow = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
             '&:hover': {
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',
@@ -197,7 +199,8 @@ const ContactEmailRow = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
             '&:hover': {
               backgroundColor: 'var(--accent-150)',
               borderColor: 'var(--line)',

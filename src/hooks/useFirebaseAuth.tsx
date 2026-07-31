@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { User, getAuth, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+import {
+  User,
+  getAuth,
+  onAuthStateChanged,
+  getRedirectResult,
+} from 'firebase/auth';
 import {
   displaySnackNotification,
   setCurrentProvider,

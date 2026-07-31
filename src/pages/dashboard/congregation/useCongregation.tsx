@@ -19,7 +19,9 @@ const useCongregation = () => {
 
   useEffect(() => {
     if (isConnected) {
-      const svgIcon = document.querySelector<SVGElement>('.organized-sync-icon');
+      const svgIcon = document.querySelector<SVGElement>(
+        '.organized-sync-icon'
+      );
       if (svgIcon) {
         const g = svgIcon.querySelector('g');
         const checkMark = g.querySelector('path');

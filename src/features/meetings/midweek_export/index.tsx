@@ -102,7 +102,10 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
           </>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: 'var(--grey-400)' }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: '500', color: 'var(--grey-400)' }}
+            >
               {t('tr_templateS89')}
             </Typography>
             <S89TemplateSelector

@@ -34,7 +34,11 @@ const VipInfoTip = (props: VipInfoTipProps) => {
             content={message}
           />
 
-          <IconButton aria-label="Cerrar" onClick={handleToggleVisibility} sx={{ padding: 0 }}>
+          <IconButton
+            aria-label="Cerrar"
+            onClick={handleToggleVisibility}
+            sx={{ padding: 0 }}
+          >
             <IconClose color="var(--accent-400)" />
           </IconButton>
         </Box>

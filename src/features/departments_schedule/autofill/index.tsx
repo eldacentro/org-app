@@ -58,7 +58,8 @@ const DeptAutofillDialog = ({
       console.error(error);
       displaySnackNotification({
         header: 'Error',
-        message: 'No se pudo completar el autocompletado. Verifica tu conexión.',
+        message:
+          'No se pudo completar el autocompletado. Verifica tu conexión.',
         severity: 'error',
       });
     } finally {
@@ -69,9 +70,14 @@ const DeptAutofillDialog = ({
   return (
     <Dialog onClose={onClose} open={open} sx={{ padding: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <Typography className="h2">{t('tr_autofill', 'Autocompletar')}</Typography>
+        <Typography className="h2">
+          {t('tr_autofill', 'Autocompletar')}
+        </Typography>
         <Typography color="var(--grey-400)">
-          {t('tr_autofillDesc', 'Selecciona las semanas que deseas autocompletar.')}
+          {t(
+            'tr_autofillDesc',
+            'Selecciona las semanas que deseas autocompletar.'
+          )}
         </Typography>
       </Box>
 

@@ -224,7 +224,11 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
             {canManageEvents &&
               !isDerivedEvent &&
               (!desktopUp || showEditIcon) && (
-                <IconButton aria-label="Editar" sx={{ padding: 0 }} onClick={handleTurnEditMode}>
+                <IconButton
+                  aria-label="Editar"
+                  sx={{ padding: 0 }}
+                  onClick={handleTurnEditMode}
+                >
                   <IconEdit color="var(--accent-main)" />
                 </IconButton>
               )}

@@ -15,7 +15,6 @@ const useMinistryReportsImport = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(reports, oldReports)) return [];
 
-
     for (const oldReport of oldReports) {
       const newReport = reports.find(
         (record) => record.report_date === oldReport.report_date
@@ -44,7 +43,6 @@ const useMinistryReportsImport = () => {
     // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(studies, oldStudies)) return [];
-
 
     for (const oldStudy of oldStudies) {
       const newStudy = studies.find(

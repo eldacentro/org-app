@@ -16,7 +16,6 @@ const useCongReportsImport = () => {
     // "bórralo todo". Ver import_guard.
     if (importWouldWipeTable(reports, oldReports)) return [];
 
-
     for (const oldReport of oldReports) {
       const newReport = reports.find(
         (record) => record.report_date === oldReport.report_date
@@ -48,7 +47,6 @@ const useCongReportsImport = () => {
     // "bórralo todo". Ver import_guard.
     if (importWouldWipeTable(reports, oldReports)) return [];
 
-
     for (const oldReport of oldReports) {
       const newReport = reports.find(
         (record) => record.report_date === oldReport.report_date
@@ -77,7 +75,6 @@ const useCongReportsImport = () => {
     // Una tabla que llega vacía significa "no viene en este archivo", nunca
     // "bórralo todo". Ver import_guard.
     if (importWouldWipeTable(reports, oldReports)) return [];
-
 
     for (const oldReport of oldReports) {
       const newReport = reports.find(

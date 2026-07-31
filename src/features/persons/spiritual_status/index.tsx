@@ -100,9 +100,7 @@ const PersonSpiritualStatus = () => {
         >
           <Checkbox
             label="Mantener visible en Grupos de predicación"
-            checked={
-              person.person_data.grupo_visible_inactivo?.value || false
-            }
+            checked={person.person_data.grupo_visible_inactivo?.value || false}
             onChange={(_, checked) => handleToggleVisibleInGroups(checked)}
             readOnly={!isPersonEditor}
           />
@@ -113,8 +111,8 @@ const PersonSpiritualStatus = () => {
           >
             Al estar inactivo deja de aparecer en su grupo de Grupos de
             predicación. Con esta concesión seguirá apareciendo para toda la
-            congregación. No afecta a los informes: no contará como pendiente
-            de informar.
+            congregación. No afecta a los informes: no contará como pendiente de
+            informar.
           </Typography>
         </Box>
       )}

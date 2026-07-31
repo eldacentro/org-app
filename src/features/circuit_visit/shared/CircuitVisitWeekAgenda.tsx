@@ -42,7 +42,9 @@ const CircuitVisitWeekAgenda = ({
   const midweekTime = useAtomValue(midweekMeetingTimeState);
   const weekendTime = useAtomValue(weekendMeetingTimeState);
 
-  const visitId = event.event_uid.replace(/^covisit_/, '').replace(/_week$/, '');
+  const visitId = event.event_uid
+    .replace(/^covisit_/, '')
+    .replace(/_week$/, '');
   const visit = visits.find((v) => v.id === visitId && !v._deleted);
 
   // Dato desincronizado/borrado: no debe romper la tarjeta. El propio
@@ -50,12 +52,22 @@ const CircuitVisitWeekAgenda = ({
   if (!visit) return null;
 
   const weekRecord = outingsList.find((r) => r.weekOf === visit.weekOf);
-  const midweekDate = schedulesGetMeetingDate({ week: visit.weekOf, meeting: 'midweek' }).date;
-  const weekendDate = schedulesGetMeetingDate({ week: visit.weekOf, meeting: 'weekend' }).date;
+  const midweekDate = schedulesGetMeetingDate({
+    week: visit.weekOf,
+    meeting: 'midweek',
+  }).date;
+  const weekendDate = schedulesGetMeetingDate({
+    week: visit.weekOf,
+    meeting: 'weekend',
+  }).date;
 
   // Turnos efectivos de la semana (configuración + semana del CO con mié–dom
   // forzados), no solo las salidas ya materializadas con asignación.
-  const weekSlots = deriveWeekOutingSlots(outingsSettings, weekRecord, visit.weekOf);
+  const weekSlots = deriveWeekOutingSlots(
+    outingsSettings,
+    weekRecord,
+    visit.weekOf
+  );
 
   const days = getDatesBetweenDates(visit.date_start, visit.date_end);
   const todayStr = formatDate(new Date(), 'yyyy/MM/dd');
@@ -171,9 +183,11 @@ const CircuitVisitWeekAgenda = ({
                   backgroundColor: isToday
                     ? 'var(--accent-main)'
                     : disabled
-                    ? 'var(--accent-100)'
-                    : 'var(--accent-150)',
-                  border: disabled ? '1px dashed var(--line)' : '1px solid transparent',
+                      ? 'var(--accent-100)'
+                      : 'var(--accent-150)',
+                  border: disabled
+                    ? '1px dashed var(--line)'
+                    : '1px solid transparent',
                   boxShadow: isToday ? 'var(--small-card-shadow)' : 'none',
                 }}
               >
@@ -183,8 +197,8 @@ const CircuitVisitWeekAgenda = ({
                     isToday
                       ? 'var(--always-white)'
                       : disabled
-                      ? 'var(--accent-400)'
-                      : 'var(--accent-dark)'
+                        ? 'var(--accent-400)'
+                        : 'var(--accent-dark)'
                   }
                 >
                   {isToday ? 'Hoy' : WEEKDAY_SHORT[date.getDay()]}
@@ -195,8 +209,8 @@ const CircuitVisitWeekAgenda = ({
                     isToday
                       ? 'var(--always-white)'
                       : disabled
-                      ? 'var(--accent-400)'
-                      : 'var(--accent-dark)'
+                        ? 'var(--accent-400)'
+                        : 'var(--accent-dark)'
                   }
                 >
                   {date.getDate()}
@@ -251,14 +265,20 @@ const CircuitVisitWeekAgenda = ({
                       <Stack spacing="1px" sx={{ flex: 1, minWidth: 0 }}>
                         <Typography
                           className="body-regular-semibold"
-                          color={disabled ? 'var(--grey-350)' : 'var(--ink, var(--black))'}
+                          color={
+                            disabled
+                              ? 'var(--grey-350)'
+                              : 'var(--ink, var(--black))'
+                          }
                         >
                           {line.title}
                         </Typography>
                         {line.caption && (
                           <Typography
                             className="body-small-regular"
-                            color={disabled ? 'var(--grey-350)' : 'var(--grey-400)'}
+                            color={
+                              disabled ? 'var(--grey-350)' : 'var(--grey-400)'
+                            }
                           >
                             {line.caption}
                           </Typography>

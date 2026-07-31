@@ -36,13 +36,26 @@ const AccountChooser = () => {
         </Typography>
         <Typography
           className="body-regular"
-          sx={{ fontSize: '15px', color: 'var(--grey-350)', margin: '0 auto', maxWidth: '380px' }}
+          sx={{
+            fontSize: '15px',
+            color: 'var(--grey-350)',
+            margin: '0 auto',
+            maxWidth: '380px',
+          }}
         >
-          Inicia sesión con tu cuenta para acceder a los programas, asignaciones y predicación.
+          Inicia sesión con tu cuenta para acceder a los programas, asignaciones
+          y predicación.
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          marginTop: '8px',
+        }}
+      >
         <Button
           variant="outlined"
           onClick={handleChooseGoogle}

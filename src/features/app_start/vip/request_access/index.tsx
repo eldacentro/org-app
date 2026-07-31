@@ -1,5 +1,10 @@
 import { Box, Stack } from '@mui/material';
-import { IconAccount, IconClock, IconRefresh, IconLogout } from '@components/icons';
+import {
+  IconAccount,
+  IconClock,
+  IconRefresh,
+  IconLogout,
+} from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import useRequestAccess from './useRequestAccess';
 import Button from '@components/button';
@@ -37,7 +42,7 @@ const RequestAccess = () => {
             justifyContent: 'center',
             width: '72px',
             height: '72px',
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             background: 'var(--accent-150)',
             color: 'var(--accent-main)',
             animation: 'requestPulse 2s ease-in-out infinite',
@@ -55,7 +60,10 @@ const RequestAccess = () => {
         </Box>
 
         <Stack spacing="8px" alignItems="center">
-          <Typography className="h2" sx={{ fontWeight: 700, color: 'var(--black)' }}>
+          <Typography
+            className="h2"
+            sx={{ fontWeight: 700, color: 'var(--black)' }}
+          >
             {t('tr_requestSentTitle')}
           </Typography>
           <Typography
@@ -73,9 +81,17 @@ const RequestAccess = () => {
             disabled={isRefreshing}
             startIcon={
               isRefreshing ? (
-                <IconLoading width={22} height={22} color="var(--always-white)" />
+                <IconLoading
+                  width={22}
+                  height={22}
+                  color="var(--always-white)"
+                />
               ) : (
-                <IconRefresh width={22} height={22} color="var(--always-white)" />
+                <IconRefresh
+                  width={22}
+                  height={22}
+                  color="var(--always-white)"
+                />
               )
             }
           >
@@ -84,7 +100,9 @@ const RequestAccess = () => {
           <Button
             variant="secondary"
             onClick={handleSignOut}
-            startIcon={<IconLogout width={22} height={22} color="var(--accent-main)" />}
+            startIcon={
+              <IconLogout width={22} height={22} color="var(--accent-main)" />
+            }
           >
             {t('tr_logOut')}
           </Button>
@@ -104,10 +122,16 @@ const RequestAccess = () => {
             border: '1px solid var(--red-secondary)',
           }}
         >
-          <Typography className="body-regular" sx={{ color: 'var(--red-dark)', fontWeight: 600 }}>
+          <Typography
+            className="body-regular"
+            sx={{ color: 'var(--red-dark)', fontWeight: 600 }}
+          >
             {t('tr_requestErrorConnect')}
           </Typography>
-          <Typography className="body-small-regular" sx={{ color: 'var(--red-dark)', marginTop: '4px' }}>
+          <Typography
+            className="body-small-regular"
+            sx={{ color: 'var(--red-dark)', marginTop: '4px' }}
+          >
             {loadError}
           </Typography>
         </Box>
@@ -122,10 +146,16 @@ const RequestAccess = () => {
             border: '1px solid var(--red-secondary)',
           }}
         >
-          <Typography className="body-regular" sx={{ color: 'var(--red-dark)', fontWeight: 600 }}>
+          <Typography
+            className="body-regular"
+            sx={{ color: 'var(--red-dark)', fontWeight: 600 }}
+          >
             {t('tr_requestErrorSubmit')}
           </Typography>
-          <Typography className="body-small-regular" sx={{ color: 'var(--red-dark)', marginTop: '4px' }}>
+          <Typography
+            className="body-small-regular"
+            sx={{ color: 'var(--red-dark)', marginTop: '4px' }}
+          >
             {submitError}
           </Typography>
         </Box>
@@ -163,7 +193,10 @@ const RequestAccess = () => {
           }}
         >
           <IconLoading width={24} height={24} color="var(--accent-main)" />
-          <Typography className="body-regular" sx={{ color: 'var(--grey-350)' }}>
+          <Typography
+            className="body-regular"
+            sx={{ color: 'var(--grey-350)' }}
+          >
             {t('tr_requestConnecting')}
           </Typography>
         </Box>

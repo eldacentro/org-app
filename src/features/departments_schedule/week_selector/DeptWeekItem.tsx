@@ -48,11 +48,18 @@ const DeptWeekItem = ({
       {/* 'body-semibold' no existía en el sistema tipográfico (sin definición
           CSS) — la semana seleccionada se veía con el mismo peso que el
           resto, sin ningún énfasis visual. */}
-      <Typography className={isSelected ? 'body-regular-semibold' : 'body-regular'}>
+      <Typography
+        className={isSelected ? 'body-regular-semibold' : 'body-regular'}
+      >
         {label}
       </Typography>
       {noMeeting && (
-        <Badge text={t('tr_noMeetingWeek')} color="grey" size="small" filled={false} />
+        <Badge
+          text={t('tr_noMeetingWeek')}
+          color="grey"
+          size="small"
+          filled={false}
+        />
       )}
     </Box>
   );

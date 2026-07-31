@@ -7,7 +7,8 @@ import useEPUBMaterialsImport from './useEPUBMaterialsImport';
 const EPUBMaterialsImport = () => {
   const { t } = useAppTranslation();
 
-  const { isOpen, isCompleted, handleClose, resumen } = useEPUBMaterialsImport();
+  const { isOpen, isCompleted, handleClose, resumen } =
+    useEPUBMaterialsImport();
 
   return (
     <SnackBar

@@ -9,7 +9,10 @@ import { congIDState, userLocalUIDState } from '@states/settings';
 import { deleteRequest, saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
-import { territoryPendingRequestsState, territorySettingsState } from '@states/territories';
+import {
+  territoryPendingRequestsState,
+  territorySettingsState,
+} from '@states/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -49,7 +52,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
       onClose();
       displaySnackNotification({
         header: 'Solicitud retirada',
-        message: 'Ya no consta ninguna solicitud tuya. Puedes volver a pedir un territorio cuando quieras.',
+        message:
+          'Ya no consta ninguna solicitud tuya. Puedes volver a pedir un territorio cuando quieras.',
         severity: 'success',
       });
     } catch (error) {
@@ -96,7 +100,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
       } else if (responsabilidades) {
         targets = getTerritoryManagersUids(responsabilidades);
         targetEmails = targets
-          .map((targetUid) => persons.find((p) => p.person_uid === targetUid)?.person_data?.email?.value)
+          .map(
+            (targetUid) =>
+              persons.find((p) => p.person_uid === targetUid)?.person_data
+                ?.email?.value
+          )
           .filter((email) => !!email) as string[];
       }
 
@@ -107,7 +115,9 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
       if (targets.length > 0) {
         const applicantName = resolveName(uid);
-        const notaHTML = nota.trim() ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>` : '';
+        const notaHTML = nota.trim()
+          ? `<p><strong>Nota:</strong> ${escapeHTML(nota.trim())}</p>`
+          : '';
 
         // No se crea un TerritoryNotice aquí a propósito: el propio
         // TerritoryRequest ya alimenta, vía suscripción en tiempo real, la
@@ -151,7 +161,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         notifyFailed
           ? {
               header: 'Solicitud enviada',
-              message: 'No se pudo avisar a los responsables por correo o notificación push. Tu solicitud ya quedó registrada, pero puede tardar más en que la vean.',
+              message:
+                'No se pudo avisar a los responsables por correo o notificación push. Tu solicitud ya quedó registrada, pero puede tardar más en que la vean.',
               severity: 'error',
             }
           : targets.length === 0
@@ -165,11 +176,19 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                   'No hay ningún responsable de territorios configurado, así que no se ha podido avisar a nadie. Tu solicitud queda guardada; coméntaselo a un responsable.',
                 severity: 'error',
               }
-            : { header: '¡Listo!', message: 'Solicitud enviada correctamente', severity: 'success' }
+            : {
+                header: '¡Listo!',
+                message: 'Solicitud enviada correctamente',
+                severity: 'success',
+              }
       );
     } catch (error) {
       console.error(error);
-      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message: (error as Error).message || 'Ocurrió un error inesperado',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -193,10 +212,14 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         <Typography className="h2" sx={{ mb: 1, color: 'var(--ink)' }}>
           Solicitar territorio
         </Typography>
-        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 2 }}>
-          Tu solicitud llegará a los responsables del departamento de Territorios.
-          Si tienes alguna preferencia (por ejemplo: rural, con casas bajas,
-          con ascensores…), escríbela en la nota.
+        <Typography
+          className="body-small-regular"
+          color="var(--ink-2)"
+          sx={{ mb: 2 }}
+        >
+          Tu solicitud llegará a los responsables del departamento de
+          Territorios. Si tienes alguna preferencia (por ejemplo: rural, con
+          casas bajas, con ascensores…), escríbela en la nota.
         </Typography>
 
         {miSolicitud ? (
@@ -220,7 +243,12 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
               Si ya no la necesitas —porque te han dado un territorio o porque
               la enviaste sin querer— puedes retirarla.
             </Typography>
-            <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              justifyContent="flex-end"
+              sx={{ mt: 2 }}
+            >
               <Button variant="tertiary" onClick={onClose} disabled={saving}>
                 Cerrar
               </Button>
@@ -236,7 +264,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           </>
         ) : (
           <>
-            <Typography className="label-small-semibold" color="var(--ink-3)" sx={{ display: 'block', mb: 0.5 }}>
+            <Typography
+              className="label-small-semibold"
+              color="var(--ink-3)"
+              sx={{ display: 'block', mb: 0.5 }}
+            >
               Nota (opcional)
             </Typography>
             <TextField
@@ -255,7 +287,11 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
               <Button variant="tertiary" onClick={onClose} disabled={saving}>
                 Cancelar
               </Button>
-              <Button variant="main" onClick={handleSolicitar} disabled={saving}>
+              <Button
+                variant="main"
+                onClick={handleSolicitar}
+                disabled={saving}
+              >
                 Solicitar
               </Button>
             </Stack>

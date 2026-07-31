@@ -160,15 +160,14 @@ const useUserAutoLogin = () => {
         }
 
         if (errorVip || dataVip?.result?.message || dataVip?.status >= 500) {
-          const msg = errorVip?.message || dataVip?.result?.message || 'Network Error';
+          const msg =
+            errorVip?.message || dataVip?.result?.message || 'Network Error';
           logger.error('app', msg);
           setOfflineOverride(true);
           return;
         }
 
         if (dataVip && dataVip.status === 200) {
-
-
           // Cambio de congregación → se borra lo local, que es lo correcto.
           // Pero exigiendo que el servidor haya mandado un identificador de
           // verdad: si algún día un 200 llegara con el campo vacío o a medias,
@@ -351,8 +350,15 @@ const useUserAutoLogin = () => {
           return;
         }
 
-        if (errorPocket || dataPocket?.result?.message || dataPocket?.status >= 500) {
-          const msg = errorPocket?.message || dataPocket?.result?.message || 'Network Error';
+        if (
+          errorPocket ||
+          dataPocket?.result?.message ||
+          dataPocket?.status >= 500
+        ) {
+          const msg =
+            errorPocket?.message ||
+            dataPocket?.result?.message ||
+            'Network Error';
           logger.error('app', msg);
           setOfflineOverride(true);
           return;

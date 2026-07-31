@@ -19,7 +19,8 @@ import useFeedback from '@features/app_start/shared/hooks/useFeedback';
 const useVerifyMFA = () => {
   const { t } = useAppTranslation();
 
-  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } =
+    useFeedback();
 
   const setStep = useSetAtom(vipOnboardingStepState);
   const setUnauthorized = useSetAtom(isUnauthorizedRoleState);

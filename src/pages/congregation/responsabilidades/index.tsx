@@ -51,7 +51,13 @@ const ResponsabilidadesPage = () => {
       setDraft(null);
     } catch (err) {
       console.error('No se pudo guardar Responsabilidades:', err);
-      displaySnackNotification({ header: 'Error', message: (err as Error).message || 'Error al guardar. Puede que la información esté corrupta o haya conflicto.', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message:
+          (err as Error).message ||
+          'Error al guardar. Puede que la información esté corrupta o haya conflicto.',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -96,7 +102,16 @@ const ResponsabilidadesPage = () => {
     }
 
     return <>{btns}</>;
-  }, [canEdit, isEditing, saving, isElder, isAdmin, startEdit, cancelEdit, save]);
+  }, [
+    canEdit,
+    isEditing,
+    saving,
+    isElder,
+    isAdmin,
+    startEdit,
+    cancelEdit,
+    save,
+  ]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

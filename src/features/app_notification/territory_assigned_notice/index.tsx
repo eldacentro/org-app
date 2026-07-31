@@ -27,7 +27,7 @@ const TerritoryAssignedNotice = ({
         console.error('Failed to mark notice as read', e);
       }
     }
-    
+
     // Navegar a la página de territorios con el parámetro view
     if (notice.territoryId) {
       handleCloseNotification();
@@ -59,11 +59,12 @@ const TerritoryAssignedNotice = ({
             fontSize: '13px',
             letterSpacing: '0.01em',
             boxShadow: 'var(--btn-shadow)',
-            transition: 'all 0.2s ease',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
             '&:hover': {
               transform: 'translateY(-1px)',
               boxShadow: 'var(--hover-shadow)',
-            }
+            },
           }}
         >
           Ver territorio

@@ -50,14 +50,22 @@ const DrawerEditCargo = ({
       anchor={tabletDown ? 'bottom' : 'right'}
       title="Editar cargo"
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, p: '8px 0' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          flex: 1,
+          p: '8px 0',
+        }}
+      >
         <TextField
           value={localCargo.cargo}
           onChange={(e) => updateField('cargo', e.target.value)}
           label="Nombre del cargo"
           fullWidth
         />
-        
+
         <PersonSelect
           value={localCargo.responsable}
           options={ancianos}
@@ -67,11 +75,7 @@ const DrawerEditCargo = ({
       </Box>
 
       <Stack spacing="16px" sx={{ mt: '32px' }}>
-        <Button
-          variant="main"
-          onClick={handleSave}
-          startIcon={<IconSave />}
-        >
+        <Button variant="main" onClick={handleSave} startIcon={<IconSave />}>
           Aplicar Cambios
         </Button>
         <Button
@@ -88,7 +92,7 @@ const DrawerEditCargo = ({
             '&:hover': {
               backgroundColor: 'var(--red-secondary)',
               borderColor: 'var(--red-main)',
-            }
+            },
           }}
         >
           Eliminar Cargo

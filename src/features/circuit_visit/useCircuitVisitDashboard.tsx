@@ -72,9 +72,7 @@ const useCircuitVisitDashboard = () => {
   // tomando la versión del store (no se pisa mientras editas la misma).
   useEffect(() => {
     const fromStore = sortedVisits.find((v) => v.id === selectedId) ?? null;
-    setWorking((prev) =>
-      prev && prev.id === selectedId ? prev : fromStore
-    );
+    setWorking((prev) => (prev && prev.id === selectedId ? prev : fromStore));
   }, [selectedId, sortedVisits]);
 
   const flushSave = useCallback((record: CircuitVisitType) => {
@@ -197,7 +195,9 @@ const useCircuitVisitDashboard = () => {
         if (!prev) return prev;
         const next = {
           ...prev,
-          meals: prev.meals.map((m) => (m.id === id ? { ...m, ...changes } : m)),
+          meals: prev.meals.map((m) =>
+            m.id === id ? { ...m, ...changes } : m
+          ),
         };
         flushSave(next);
         return next;
@@ -223,10 +223,15 @@ const useCircuitVisitDashboard = () => {
   // aquí solo guardamos con quién sale el CO para una salida ya asignada,
   // identificada por su clave estable `${date}_${time}`.
   const upsertCompanion = useCallback(
-    (outingKey: string, changes: Partial<Omit<CircuitVisitCompanion, 'outingKey'>>) => {
+    (
+      outingKey: string,
+      changes: Partial<Omit<CircuitVisitCompanion, 'outingKey'>>
+    ) => {
       setWorking((prev) => {
         if (!prev) return prev;
-        const existing = prev.co_companions.find((c) => c.outingKey === outingKey);
+        const existing = prev.co_companions.find(
+          (c) => c.outingKey === outingKey
+        );
 
         const updated: CircuitVisitCompanion = existing
           ? { ...existing, ...changes }
@@ -346,8 +351,15 @@ const useCircuitVisitDashboard = () => {
     // página (configuración de la congregación, sin exigir hermano
     // asignado). El programa del CO va de MIÉRCOLES a domingo: el martes es
     // su llegada y la reunión de entre semana.
-    const wednesdayStr = formatDate(addDays(new Date(working.weekOf), 2), 'yyyy/MM/dd');
-    const preachingRows = deriveWeekOutingSlots(outingsSettings, weekRecord, working.weekOf)
+    const wednesdayStr = formatDate(
+      addDays(new Date(working.weekOf), 2),
+      'yyyy/MM/dd'
+    );
+    const preachingRows = deriveWeekOutingSlots(
+      outingsSettings,
+      weekRecord,
+      working.weekOf
+    )
       .filter((o) => !o.cancelled && o.date >= wednesdayStr)
       .map((o) => {
         const outingKey = `${o.date}_${o.time}`;
@@ -359,13 +371,19 @@ const useCircuitVisitDashboard = () => {
           ? personsStateFind(companion.brother)
           : undefined;
         const companionName = companionPerson
-          ? personGetDisplayName(companionPerson, displayNameEnabled, fullnameOption)
+          ? personGetDisplayName(
+              companionPerson,
+              displayNameEnabled,
+              fullnameOption
+            )
           : '';
 
         const spouseNames = (companion?.spouse_companions ?? [])
           .map((uid) => {
             const p = personsStateFind(uid);
-            return p ? personGetDisplayName(p, displayNameEnabled, fullnameOption) : '';
+            return p
+              ? personGetDisplayName(p, displayNameEnabled, fullnameOption)
+              : '';
           })
           .filter(Boolean)
           .join(', ');
@@ -387,7 +405,9 @@ const useCircuitVisitDashboard = () => {
     const findPersonName = (uid: string) => {
       if (!uid) return '';
       const person = personsStateFind(uid);
-      return person ? personGetDisplayName(person, displayNameEnabled, fullnameOption) : '';
+      return person
+        ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
+        : '';
     };
 
     const mealsRows = working.meals.map((meal) => ({
@@ -431,7 +451,17 @@ const useCircuitVisitDashboard = () => {
     link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [working, coName, coSpouseName, congName, jwLang, outingsList, outingsSettings, displayNameEnabled, fullnameOption]);
+  }, [
+    working,
+    coName,
+    coSpouseName,
+    congName,
+    jwLang,
+    outingsList,
+    outingsSettings,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
 
   return {
     visits: sortedVisits,

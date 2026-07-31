@@ -36,7 +36,7 @@ const AccordionLabel = ({ label, value }: { label: string; value: number }) => {
             '.Mui-expanded &': {
               transform: 'rotate(180deg)',
             },
-            transition: 'transform 0.3s',
+            transition: 'transform var(--motion-medium) var(--ease-standard)',
           }}
         />
       </Box>

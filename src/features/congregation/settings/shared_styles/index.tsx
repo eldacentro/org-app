@@ -90,11 +90,7 @@ export const CardSectionContent: FC<StackProps & PropsWithChildren> = ({
   ...props
 }) => {
   return (
-    <Stack
-      spacing="16px"
-      divider={<Divider color="var(--line)" />}
-      {...props}
-    >
+    <Stack spacing="16px" divider={<Divider color="var(--line)" />} {...props}>
       {children}
     </Stack>
   );

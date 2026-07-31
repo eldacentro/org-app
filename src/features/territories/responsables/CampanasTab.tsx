@@ -14,7 +14,11 @@ import {
   territoryAssignmentsState,
   territoryZonesState,
 } from '@states/territories';
-import { Territory, TerritoryAssignment, TerritoryCampaign } from '@definition/territories';
+import {
+  Territory,
+  TerritoryAssignment,
+  TerritoryCampaign,
+} from '@definition/territories';
 import {
   addCampaignTerritories,
   removeCampaignTerritory,
@@ -64,15 +68,22 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [selectingFor, setSelectingFor] = useState<TerritoryCampaign | null>(null);
+  const [selectingFor, setSelectingFor] = useState<TerritoryCampaign | null>(
+    null
+  );
   const { confirm, ConfirmDialogNode } = useConfirm();
 
   // Para cada territorio, determinamos su estado actual para mostrarlo
   // en el diálogo al elegir territorios para una campaña.
   const territoryStatusMap = useMemo(() => {
-    const map = new Map<string, { status: 'assigned' | 'free' | 'never', date: string | null }>();
+    const map = new Map<
+      string,
+      { status: 'assigned' | 'free' | 'never'; date: string | null }
+    >();
     for (const t of territories) {
-      const isOpen = assignments.some((a) => a.territoryId === t.id && !a.returnedAt);
+      const isOpen = assignments.some(
+        (a) => a.territoryId === t.id && !a.returnedAt
+      );
       if (isOpen) {
         map.set(t.id, { status: 'assigned', date: null });
       } else if (t.lastWorkedAt) {
@@ -99,7 +110,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     );
   }, [campaigns]);
 
-  const handleAddTerritories = async (c: TerritoryCampaign, territoryIds: string[]) => {
+  const handleAddTerritories = async (
+    c: TerritoryCampaign,
+    territoryIds: string[]
+  ) => {
     const newIds = territoryIds.filter((id) => !c.territoryIds.includes(id));
     if (newIds.length === 0) return;
     try {
@@ -114,16 +128,24 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       });
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudieron añadir los territorios a la campaña.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudieron añadir los territorios a la campaña.',
+      });
     }
   };
 
-  const handleRemoveTerritory = async (c: TerritoryCampaign, territoryId: string) => {
+  const handleRemoveTerritory = async (
+    c: TerritoryCampaign,
+    territoryId: string
+  ) => {
     // Si el territorio está asignado dentro de esta campaña, quitarlo de la
     // lista lo dejaría asignado pero fuera de la campaña: nadie lo vería
     // aquí y el cierre de la campaña ya no lo devolvería. Hay que avisar.
     const openHere = assignments.some(
-      (a) => a.campaignId === c.id && a.territoryId === territoryId && !a.returnedAt
+      (a) =>
+        a.campaignId === c.id && a.territoryId === territoryId && !a.returnedAt
     );
     if (openHere) {
       const t = territories.find((x) => x.id === territoryId);
@@ -139,7 +161,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       await removeCampaignTerritory(congId, c.id, territoryId);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo quitar el territorio de la campaña.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo quitar el territorio de la campaña.',
+      });
     }
   };
 
@@ -155,7 +181,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
       await closeCampaign(congId, c);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo finalizar la campaña.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo finalizar la campaña.',
+      });
     }
   };
 
@@ -169,10 +199,18 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     if (!ok) return;
     try {
       await deleteCampaign(congId, c.id, territories);
-      displaySnackNotification({ severity: 'success', header: 'Campaña eliminada', message: `La campaña "${c.nombre}" ha sido eliminada.` });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Campaña eliminada',
+        message: `La campaña "${c.nombre}" ha sido eliminada.`,
+      });
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo eliminar la campaña.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo eliminar la campaña.',
+      });
     }
   };
 
@@ -180,7 +218,11 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {ConfirmDialogNode}
       <Box>
-        <Button variant="main" onClick={() => setOpenCrear(true)} disableAutoStretch>
+        <Button
+          variant="main"
+          onClick={() => setOpenCrear(true)}
+          disableAutoStretch
+        >
           Crear campaña
         </Button>
       </Box>
@@ -196,11 +238,18 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
           .map((id) => territories.find((t) => t.id === id))
           .filter((t): t is Territory => Boolean(t));
         const isOpen = expanded === c.id;
-        const addable = territories.filter((t) => !c.territoryIds.includes(t.id));
+        const addable = territories.filter(
+          (t) => !c.territoryIds.includes(t.id)
+        );
 
         return (
           <TerritoryCard key={c.id} accent={estadoColor[c.estado]}>
-            <Stack direction={{ mobile: 'column', tablet600: 'row' }} alignItems={{ mobile: 'flex-start', tablet600: 'center' }} justifyContent="space-between" spacing={1.5}>
+            <Stack
+              direction={{ mobile: 'column', tablet600: 'row' }}
+              alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
+              justifyContent="space-between"
+              spacing={1.5}
+            >
               <Box sx={{ minWidth: 0 }}>
                 <Stack
                   direction="row"
@@ -208,7 +257,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                   alignItems="center"
                   sx={{ mb: 0.5, flexWrap: 'wrap', rowGap: '4px' }}
                 >
-                  <Typography className="body-regular-semibold" color="var(--ink)">
+                  <Typography
+                    className="body-regular-semibold"
+                    color="var(--ink)"
+                  >
                     {c.nombre}
                   </Typography>
                   <Badge
@@ -217,7 +269,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                     text={ESTADO_TEXTO[c.estado] ?? c.estado}
                   />
                 </Stack>
-                <Typography className="label-small-regular" color="var(--ink-2)">
+                <Typography
+                  className="label-small-regular"
+                  color="var(--ink-2)"
+                >
                   {formatTerritoryDate(c.fechaInicio, settings.dateFormat)} →{' '}
                   {formatTerritoryDate(c.fechaFin, settings.dateFormat)} ·{' '}
                   <span style={{ color: 'var(--ink)' }}>
@@ -239,7 +294,12 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                     adelantado puede necesitar cerrarse antes de tiempo, y
                     antes el botón solo salía en las 'activa'. */}
                 {c.estado !== 'pasada' && (
-                  <Button variant="small" color="orange" disableAutoStretch onClick={() => handleFinalizeCampaign(c)}>
+                  <Button
+                    variant="small"
+                    color="orange"
+                    disableAutoStretch
+                    onClick={() => handleFinalizeCampaign(c)}
+                  >
                     Finalizar
                   </Button>
                 )}
@@ -271,7 +331,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
 
                 <Stack spacing={1}>
                   {campTerritories.length === 0 ? (
-                    <Typography className="label-small-regular" color="var(--ink-2)">
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--ink-2)"
+                    >
                       Sin territorios en la campaña.
                     </Typography>
                   ) : (
@@ -284,29 +347,41 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                       // en absoluto. Se busca en su lugar la asignación de
                       // ESTA campaña para ESTE territorio directamente.
                       const campaignAssignments = assignments
-                        .filter((a) => a.campaignId === c.id && a.territoryId === t.id)
+                        .filter(
+                          (a) => a.campaignId === c.id && a.territoryId === t.id
+                        )
                         .sort(
                           (x, y) =>
-                            new Date(y.assignedAt).getTime() - new Date(x.assignedAt).getTime()
+                            new Date(y.assignedAt).getTime() -
+                            new Date(x.assignedAt).getTime()
                         );
-                      const latest: TerritoryAssignment | undefined = campaignAssignments[0];
+                      const latest: TerritoryAssignment | undefined =
+                        campaignAssignments[0];
                       const open = Boolean(latest && !latest.returnedAt);
                       return (
                         <Stack
                           key={t.id}
                           direction={{ mobile: 'column', tablet600: 'row' }}
-                          alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
+                          alignItems={{
+                            mobile: 'flex-start',
+                            tablet600: 'center',
+                          }}
                           justifyContent="space-between"
                           spacing={1}
                           sx={{
                             p: 1.5,
                             borderRadius: 'var(--shape-sm)',
                             border: '1px solid var(--line)',
-                            backgroundColor: open ? 'var(--orange-secondary)' : 'transparent',
+                            backgroundColor: open
+                              ? 'var(--orange-secondary)'
+                              : 'transparent',
                           }}
                         >
                           <Box>
-                            <Typography className="body-small-regular" sx={{ color: 'var(--ink)', fontWeight: 500 }}>
+                            <Typography
+                              className="body-small-regular"
+                              sx={{ color: 'var(--ink)', fontWeight: 500 }}
+                            >
                               {territoryLabel(t)}
                             </Typography>
                             <Typography
@@ -320,13 +395,19 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                               {open
                                 ? 'Asignado (campaña)'
                                 : latest?.returnedAt
-                                ? `Entregado el ${formatTerritoryDate(latest.returnedAt, settings.dateFormat)} (${
-                                    latest.status === 'trabajado' ? 'trabajado' : 'sin trabajar'
-                                  })`
-                                : 'Sin asignar en esta campaña'}
+                                  ? `Entregado el ${formatTerritoryDate(latest.returnedAt, settings.dateFormat)} (${
+                                      latest.status === 'trabajado'
+                                        ? 'trabajado'
+                                        : 'sin trabajar'
+                                    })`
+                                  : 'Sin asignar en esta campaña'}
                             </Typography>
                           </Box>
-                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ flexWrap: 'wrap' }}
+                          >
                             {c.estado !== 'pasada' && !open && (
                               <Button
                                 variant="small"
@@ -358,14 +439,19 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
         );
       })}
 
-      <DialogCrearCampana open={openCrear} onClose={() => setOpenCrear(false)} />
+      <DialogCrearCampana
+        open={openCrear}
+        onClose={() => setOpenCrear(false)}
+      />
 
       <DialogSeleccionarTerritorios
         open={!!selectingFor}
         onClose={() => setSelectingFor(null)}
         territories={
           selectingFor
-            ? territories.filter((t) => !selectingFor.territoryIds.includes(t.id))
+            ? territories.filter(
+                (t) => !selectingFor.territoryIds.includes(t.id)
+              )
             : []
         }
         zones={zones}

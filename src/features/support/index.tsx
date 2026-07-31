@@ -34,7 +34,8 @@ const Support = () => {
             }}
           >
             <Typography className="h2">{t('tr_supportApp')}</Typography>
-            <IconButton aria-label="Cerrar"
+            <IconButton
+              aria-label="Cerrar"
               disableRipple
               sx={{ padding: 0, margin: 0 }}
               onClick={handleClose}

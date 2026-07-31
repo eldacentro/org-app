@@ -47,7 +47,11 @@ const AppReminders = () => {
               {t('tr_reminders')}
             </Typography>
           </Box>
-          <IconButton aria-label="Cerrar" sx={{ padding: 0 }} onClick={reminderMeTomorrow}>
+          <IconButton
+            aria-label="Cerrar"
+            sx={{ padding: 0 }}
+            onClick={reminderMeTomorrow}
+          >
             <IconClose color="var(--always-white)" />
           </IconButton>
         </StyledRemindersTitle>

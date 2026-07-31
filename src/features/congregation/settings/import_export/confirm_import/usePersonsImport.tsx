@@ -14,7 +14,6 @@ const usePersonsImport = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(persons, oldPersons)) return [];
 
-
     for (const oldPerson of oldPersons) {
       const newPerson = persons.find(
         (record) => record.person_uid === oldPerson.person_uid

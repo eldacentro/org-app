@@ -48,7 +48,11 @@ const SpeakersCatalog = (props: SpeakersCatalogType) => {
           </Typography>
         </Box>
 
-        <IconButton aria-label="Cerrar" sx={{ padding: 0 }} onClick={props.onClose}>
+        <IconButton
+          aria-label="Cerrar"
+          sx={{ padding: 0 }}
+          onClick={props.onClose}
+        >
           <IconClose color="var(--grey-400)" />
         </IconButton>
       </Box>

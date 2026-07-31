@@ -7,7 +7,11 @@ import Checkbox from '@components/checkbox';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { Territory, TerritoryZone } from '@definition/territories';
-import { formatTerritoryDate, getZoneName, territoryLabel } from '@services/app/territories';
+import {
+  formatTerritoryDate,
+  getZoneName,
+  territoryLabel,
+} from '@services/app/territories';
 
 type Props = {
   open: boolean;
@@ -15,7 +19,10 @@ type Props = {
   /** Territorios candidatos a añadir (ya filtrados: los que no están en la campaña). */
   territories: Territory[];
   zones: TerritoryZone[];
-  territoryStatusMap: Map<string, { status: 'assigned' | 'free' | 'never', date: string | null }>;
+  territoryStatusMap: Map<
+    string,
+    { status: 'assigned' | 'free' | 'never'; date: string | null }
+  >;
   dateFormat: string;
   onConfirm: (territoryIds: string[]) => void;
 };
@@ -57,11 +64,14 @@ const DialogSeleccionarTerritorios = ({
         if (zoneA?.orden !== zoneB?.orden) {
           return (zoneA?.orden ?? 999) - (zoneB?.orden ?? 999);
         }
-        return territoryLabel(a).localeCompare(territoryLabel(b), undefined, { numeric: true });
+        return territoryLabel(a).localeCompare(territoryLabel(b), undefined, {
+          numeric: true,
+        });
       });
   }, [territories, zones, search]);
 
-  const allSelected = filtered.length > 0 && filtered.every((t) => selected.has(t.id));
+  const allSelected =
+    filtered.length > 0 && filtered.every((t) => selected.has(t.id));
   const someSelected = !allSelected && filtered.some((t) => selected.has(t.id));
 
   const toggleAll = () => {
@@ -169,10 +179,16 @@ const DialogSeleccionarTerritorios = ({
                       onChange={() => toggleOne(t.id)}
                       label={
                         <Box sx={{ pointerEvents: 'auto' }}>
-                          <Typography className="body-small-regular" color="var(--ink)">
+                          <Typography
+                            className="body-small-regular"
+                            color="var(--ink)"
+                          >
                             {territoryLabel(t)}
                           </Typography>
-                          <Typography className="label-small-regular" color="var(--ink-2)">
+                          <Typography
+                            className="label-small-regular"
+                            color="var(--ink-2)"
+                          >
                             {getZoneName(t.zoneId, zones)}
                           </Typography>
                         </Box>
@@ -181,7 +197,11 @@ const DialogSeleccionarTerritorios = ({
                   </Box>
                   <Typography
                     className="label-small-regular"
-                    color={info?.status === 'assigned' ? 'var(--orange-main)' : 'var(--ink-2)'}
+                    color={
+                      info?.status === 'assigned'
+                        ? 'var(--orange-main)'
+                        : 'var(--ink-2)'
+                    }
                     sx={{ flexShrink: 0, ml: 1, textAlign: 'right' }}
                   >
                     {info?.status === 'assigned'
@@ -196,7 +216,12 @@ const DialogSeleccionarTerritorios = ({
           )}
         </Box>
 
-        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 2, flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          justifyContent="flex-end"
+          sx={{ mt: 2, flexWrap: 'wrap' }}
+        >
           <Button variant="tertiary" disableAutoStretch onClick={onClose}>
             Cancelar
           </Button>

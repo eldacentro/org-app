@@ -46,7 +46,8 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
           // semana: tinte de marca y texto en azul oscuro. Antes era una
           // pastilla blanca con sombra propia —un tercer dibujo para la misma
           // idea— y encima esa sombra no se adaptaba al tema oscuro.
-          backgroundColor: active === i ? 'var(--state-selected)' : 'transparent',
+          backgroundColor:
+            active === i ? 'var(--state-selected)' : 'transparent',
           color: active === i ? 'var(--state-selected-ink)' : 'var(--ink-2)',
           fontWeight: active === i ? 600 : 400,
           fontSize: '13px',

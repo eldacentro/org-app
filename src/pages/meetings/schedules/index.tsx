@@ -149,7 +149,8 @@ const WeeklySchedules = () => {
             padding: '14px 18px',
             margin: '6px 8px',
             borderRadius: 'var(--shape-md)',
-            transition: 'all 0.15s ease',
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
             borderBottom: 'none',
             color: 'var(--ink-2)',
             '&:hover': {

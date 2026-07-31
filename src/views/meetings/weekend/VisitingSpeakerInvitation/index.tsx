@@ -1,4 +1,13 @@
-import { Document, Page, Text, View, Svg, G, Path, Link } from '@react-pdf/renderer';
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  Svg,
+  G,
+  Path,
+  Link,
+} from '@react-pdf/renderer';
 import styles from './index.styles';
 import { VisitingSpeakerInvitationProps } from './index.types';
 
@@ -25,12 +34,22 @@ const LogoLarge = () => (
   </Svg>
 );
 
-const CoordinatorBox = ({ title, info }: { title: string; info: VisitingSpeakerInvitationProps['publicTalkCoordinator'] }) => (
+const CoordinatorBox = ({
+  title,
+  info,
+}: {
+  title: string;
+  info: VisitingSpeakerInvitationProps['publicTalkCoordinator'];
+}) => (
   <View style={styles.coordinatorCard}>
     <Text style={styles.coordinatorTitle}>{title}</Text>
     <Text style={styles.coordinatorName}>{info.name || 'Sin asignar'}</Text>
-    {info.phone ? <Text style={styles.coordinatorContact}>{info.phone}</Text> : null}
-    {info.email ? <Text style={styles.coordinatorContact}>{info.email}</Text> : null}
+    {info.phone ? (
+      <Text style={styles.coordinatorContact}>{info.phone}</Text>
+    ) : null}
+    {info.email ? (
+      <Text style={styles.coordinatorContact}>{info.email}</Text>
+    ) : null}
   </View>
 );
 
@@ -43,28 +62,44 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           <View style={styles.headerContainer}>
             <View style={styles.topBarBrand}>
               <LogoLarge />
-              <Text style={styles.topBarBrandName}>{props.congregationName}</Text>
+              <Text style={styles.topBarBrandName}>
+                {props.congregationName}
+              </Text>
             </View>
           </View>
 
           {/* Introduction */}
           <View style={styles.introSection}>
-            <Text style={styles.greeting}>Querido hermano {props.speakerName}:</Text>
-            <Text style={styles.bodyText}>
-              Nos alegra mucho contar con tu visita y te extendemos una afectuosa invitación para presentar el discurso público en nuestra congregación.
+            <Text style={styles.greeting}>
+              Querido hermano {props.speakerName}:
             </Text>
             <Text style={styles.bodyText}>
-              Confiamos en que tu esmerada preparación será de gran beneficio para los hermanos y para quienes se están acercando a la verdad. Como oradores públicos, recordamos la importancia de repasar periódicamente las pautas del formulario S-141-S (Puntos que los oradores públicos deben recordar), lo cual nos ayuda a mantener un alto nivel de enseñanza.
+              Nos alegra mucho contar con tu visita y te extendemos una
+              afectuosa invitación para presentar el discurso público en nuestra
+              congregación.
             </Text>
             <Text style={styles.bodyText}>
-              Agradecemos de corazón tu buena disposición y esfuerzo. Si por alguna causa de fuerza mayor no pudieras cumplir con esta asignación, te rogamos que nos lo comuniques con la mayor antelación posible.
+              Confiamos en que tu esmerada preparación será de gran beneficio
+              para los hermanos y para quienes se están acercando a la verdad.
+              Como oradores públicos, recordamos la importancia de repasar
+              periódicamente las pautas del formulario S-141-S (Puntos que los
+              oradores públicos deben recordar), lo cual nos ayuda a mantener un
+              alto nivel de enseñanza.
+            </Text>
+            <Text style={styles.bodyText}>
+              Agradecemos de corazón tu buena disposición y esfuerzo. Si por
+              alguna causa de fuerza mayor no pudieras cumplir con esta
+              asignación, te rogamos que nos lo comuniques con la mayor
+              antelación posible.
             </Text>
           </View>
 
           {/* Main Card */}
           <View style={styles.mainCard}>
-            <Text style={styles.mainCardTitle}>Tenemos el gusto de invitarte a discursar el próximo:</Text>
-            
+            <Text style={styles.mainCardTitle}>
+              Tenemos el gusto de invitarte a discursar el próximo:
+            </Text>
+
             <View style={styles.detailsRow}>
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>Fecha</Text>
@@ -78,22 +113,45 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
 
             <View style={styles.outlineBox}>
               <Text style={styles.detailLabel}>Bosquejo Asignado</Text>
-              <Text style={styles.outlineValue}>{props.outlineNumber ? `Núm. ${props.outlineNumber}` : 'Sin definir'}</Text>
+              <Text style={styles.outlineValue}>
+                {props.outlineNumber
+                  ? `Núm. ${props.outlineNumber}`
+                  : 'Sin definir'}
+              </Text>
               {props.outlineTitle && (
-                <Text style={{ ...styles.bodyText, marginTop: 4, textAlign: 'center', fontWeight: 700 }}>
+                <Text
+                  style={{
+                    ...styles.bodyText,
+                    marginTop: 4,
+                    textAlign: 'center',
+                    fontWeight: 700,
+                  }}
+                >
                   {props.outlineTitle}
                 </Text>
               )}
             </View>
 
             <View style={styles.addressBox}>
-              <Text style={styles.addressTitle}>Dirección del Salón del Reino</Text>
-              <Text style={styles.addressValue}>{props.congregationAddress}</Text>
+              <Text style={styles.addressTitle}>
+                Dirección del Salón del Reino
+              </Text>
+              <Text style={styles.addressValue}>
+                {props.congregationAddress}
+              </Text>
               {props.congregationAddress && (
                 <Link
                   src={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(props.congregationAddress)}`}
                 >
-                  <Text style={{ ...styles.addressValue, color: '#306CB4', fontSize: 10, marginTop: 2, textDecoration: 'underline' }}>
+                  <Text
+                    style={{
+                      ...styles.addressValue,
+                      color: '#306CB4',
+                      fontSize: 10,
+                      marginTop: 2,
+                      textDecoration: 'underline',
+                    }}
+                  >
                     Ver en Google Maps
                   </Text>
                 </Link>
@@ -105,9 +163,21 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           {props.mediaEmail && (
             <View style={styles.mediaSection}>
               <Text style={styles.mediaText}>
-                <Text style={styles.boldText}>Contenido multimedia:</Text> Si utilizas imágenes o videos en tu discurso, puedes traerlos en un pendrive o enviarlos con antelación a nuestro correo (preferiblemente en el formato de lista de reproducción de JW Library). Por favor, envíanos también el número de la canción de inicio a:
+                <Text style={styles.boldText}>Contenido multimedia:</Text> Si
+                utilizas imágenes o videos en tu discurso, puedes traerlos en un
+                pendrive o enviarlos con antelación a nuestro correo
+                (preferiblemente en el formato de lista de reproducción de JW
+                Library). Por favor, envíanos también el número de la canción de
+                inicio a:
               </Text>
-              <Text style={{ ...styles.mediaText, fontWeight: 700, color: '#306CB4', marginTop: 4 }}>
+              <Text
+                style={{
+                  ...styles.mediaText,
+                  fontWeight: 700,
+                  color: '#306CB4',
+                  marginTop: 4,
+                }}
+              >
                 {props.mediaEmail}
               </Text>
             </View>
@@ -122,7 +192,10 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
                 info={assistant}
               />
             ))}
-            <CoordinatorBox title="Coord. Discursos" info={props.publicTalkCoordinator} />
+            <CoordinatorBox
+              title="Coord. Discursos"
+              info={props.publicTalkCoordinator}
+            />
           </View>
         </View>
       </Page>

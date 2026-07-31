@@ -5,7 +5,11 @@ import TextField from '@components/textfield';
 import Button from '@components/button';
 import { IconSave, IconDelete } from '@components/icons';
 import { useBreakpoints } from '@hooks/index';
-import { Departamento, DepartamentoSimple, DepartamentoExtended } from '@definition/responsabilidades';
+import {
+  Departamento,
+  DepartamentoSimple,
+  DepartamentoExtended,
+} from '@definition/responsabilidades';
 import { PersonSelect, PersonMultiSelect, PersonOption } from './components';
 import Typography from '@components/typography';
 
@@ -38,11 +42,11 @@ const DrawerEditDepartamento = ({
   const isExtended = localDep.type === 'extended';
 
   const updateField = (field: string, val: string) => {
-    setLocalDep((prev) => ({ ...prev, [field]: val } as Departamento));
+    setLocalDep((prev) => ({ ...prev, [field]: val }) as Departamento);
   };
 
   const updateMembers = (members: string[]) => {
-    setLocalDep((prev) => ({ ...prev, members } as DepartamentoExtended));
+    setLocalDep((prev) => ({ ...prev, members }) as DepartamentoExtended);
   };
 
   const toggleType = () => {
@@ -71,15 +75,32 @@ const DrawerEditDepartamento = ({
       anchor={tabletDown ? 'bottom' : 'right'}
       title="Editar departamento"
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, p: '8px 0' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          flex: 1,
+          p: '8px 0',
+        }}
+      >
         <TextField
           value={localDep.name}
           onChange={(e) => updateField('name', e.target.value)}
           label="Nombre del departamento"
           fullWidth
         />
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--accent-100)', borderRadius: 'var(--shape-lg)' }}>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px',
+            backgroundColor: 'var(--accent-100)',
+            borderRadius: 'var(--shape-lg)',
+          }}
+        >
           <Typography className="body-regular-semibold" color="var(--black)">
             Tipo de Estructura
           </Typography>
@@ -103,7 +124,7 @@ const DrawerEditDepartamento = ({
           label="Responsable"
           onChange={(uid) => updateField('responsable', uid)}
         />
-        
+
         <PersonSelect
           value={localDep.auxiliar ?? ''}
           options={varones}
@@ -122,11 +143,7 @@ const DrawerEditDepartamento = ({
       </Box>
 
       <Stack spacing="16px" sx={{ mt: '32px' }}>
-        <Button
-          variant="main"
-          onClick={handleSave}
-          startIcon={<IconSave />}
-        >
+        <Button variant="main" onClick={handleSave} startIcon={<IconSave />}>
           Aplicar Cambios
         </Button>
         <Button
@@ -143,7 +160,7 @@ const DrawerEditDepartamento = ({
             '&:hover': {
               backgroundColor: 'var(--red-secondary)',
               borderColor: 'var(--red-main)',
-            }
+            },
           }}
         >
           Eliminar Departamento

@@ -19,7 +19,6 @@ const useMinistryMonthlyRecord = ({
   person_uid,
   publisher,
 }: MinistryMonthlyRecord) => {
-
   const userReports = useAtomValue(userFieldServiceMonthlyReportsState);
   const delegatedReports = useAtomValue(delegatedFieldServiceReportsState);
   const congReports = useAtomValue(congFieldServiceReportsState);
@@ -376,15 +375,7 @@ const useMinistryMonthlyRecord = ({
     // usar quienes ya tenían el permiso, o sea que no protegía nada y solo
     // sembraba la duda de "¿esto es para mí?".
     return hasAssignment;
-  }, [
-    dataView,
-    hours_credits,
-    person,
-    isSelf,
-    month,
-    publisher,
-    read_only,
-  ]);
+  }, [dataView, hours_credits, person, isSelf, month, publisher, read_only]);
 
   return {
     month_name,

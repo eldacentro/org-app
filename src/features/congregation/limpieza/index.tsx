@@ -519,7 +519,8 @@ const Limpieza = () => {
                               flexDirection: 'column',
                               gap: '8px',
                               cursor: 'pointer',
-                              transition: 'all 0.2s ease',
+                              transition:
+                                'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
                                 backgroundColor: 'var(--accent-150)',
@@ -618,7 +619,8 @@ const Limpieza = () => {
                               border: '1px solid var(--line)',
                               borderRadius: 'var(--shape-sm)',
                               boxShadow: 'none',
-                              transition: 'all 0.2s ease',
+                              transition:
+                                'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
                               '&:hover': {
                                 borderColor: 'var(--accent-main)',
                                 backgroundColor: 'var(--accent-150)',

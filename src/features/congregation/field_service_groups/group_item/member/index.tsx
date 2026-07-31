@@ -120,7 +120,8 @@ const GroupMember = (props: GroupMemberProps) => {
 
       {props.editable && isServiceCommittee && (
         <>
-          <IconButton aria-label="Más opciones"
+          <IconButton
+            aria-label="Más opciones"
             onClick={handleOpenMenu}
             sx={{
               padding: 0,

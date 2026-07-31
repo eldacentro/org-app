@@ -44,7 +44,10 @@ const ScheduleAutofillDialog = ({
         <Checkbox
           checked={skipPublicTalk}
           onChange={handleToggleSkipPublicTalk}
-          label={t('tr_autofillSkipPublicTalk', 'No autocompletar el discurso público')}
+          label={t(
+            'tr_autofillSkipPublicTalk',
+            'No autocompletar el discurso público'
+          )}
           labelDescription={t(
             'tr_autofillSkipPublicTalkDesc',
             'Rellena todo lo demás (presidente, oración, lector de La Atalaya) pero deja sin asignar el orador del discurso público, para que lo coordine otra persona.'

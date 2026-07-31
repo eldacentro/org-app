@@ -65,7 +65,12 @@ const DeptPublishDialog = ({
       </DialogTitle>
 
       <DialogContent
-        sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: '8px' }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          mt: '8px',
+        }}
       >
         {!hasSchedule ? (
           <InfoTip

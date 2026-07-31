@@ -328,7 +328,8 @@ const ExhibitorsMeeting = ({
               borderRadius: 'var(--shape-md)',
               boxShadow: 'var(--small-card-shadow)',
               overflow: 'hidden',
-              transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+              transition:
+                'box-shadow var(--motion-medium) var(--ease-standard), transform var(--motion-medium) var(--ease-standard)',
               '&:hover': {
                 boxShadow: 'var(--hover-shadow)',
               },
@@ -381,7 +382,8 @@ const ExhibitorsMeeting = ({
                         : isAssignedToMe
                           ? 'var(--accent-150)'
                           : 'var(--card)',
-                      transition: 'background-color 0.2s ease',
+                      transition:
+                        'background-color var(--motion-fast) var(--ease-standard)',
                     }}
                   >
                     {/* Hora */}
@@ -429,12 +431,12 @@ const ExhibitorsMeeting = ({
                     >
                       {isCancelled ? (
                         <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendido"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
+                          size="small"
+                          color="red"
+                          text="Suspendido"
+                          icon={<IconCancelFilled color="var(--red-main)" />}
+                          sx={{ alignSelf: 'flex-start' }}
+                        />
                       ) : (
                         // Uno por línea: en horizontal, dos nombres sin nada
                         // que los separe se leían como uno solo.

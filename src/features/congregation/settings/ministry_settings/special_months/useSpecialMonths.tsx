@@ -39,7 +39,10 @@ const useSpecialMonths = () => {
       const months = createArrayFromMonths(startMonth, endMonth).map(
         (month) => {
           const monthIndex = +month.split('/')[1] - 1;
-          return { value: month, label: capitalizarPrimera(monthNames[monthIndex]) };
+          return {
+            value: month,
+            label: capitalizarPrimera(monthNames[monthIndex]),
+          };
         }
       );
 

@@ -6,10 +6,7 @@ import { useAtomValue } from 'jotai';
 import { MonthItemType } from './index.types';
 import { schedulesWeekAssignmentsInfo } from '@services/app/schedules';
 import { schedulesState } from '@states/schedules';
-import {
-  generateMonthNames,
-  getTranslation,
-} from '@services/i18n/translation';
+import { generateMonthNames, getTranslation } from '@services/i18n/translation';
 import { appLangState } from '@states/app';
 
 const useMonthItem = ({

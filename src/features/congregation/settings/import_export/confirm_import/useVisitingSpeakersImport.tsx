@@ -52,7 +52,6 @@ const useVisitingSpeakersImport = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(speakers, oldSpeakers)) return [];
 
-
     for (const oldSpeaker of oldSpeakers) {
       const newSpeaker = reconciledSpeakers.find(
         (record) => record.person_uid === oldSpeaker.person_uid
@@ -85,7 +84,6 @@ const useVisitingSpeakersImport = () => {
     // Un archivo que no trae esta tabla NO significa "bórralo todo": significa
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(congregations, oldCongregations)) return [];
-
 
     for (const oldCongregation of oldCongregations) {
       const newCongregation = congregations.find(

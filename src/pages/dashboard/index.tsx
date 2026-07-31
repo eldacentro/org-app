@@ -950,7 +950,8 @@ const Dashboard = () => {
                   background: 'rgba(59, 114, 196, 0.06)',
                   border: '1px solid var(--accent-200)',
                   cursor: 'pointer',
-                  transition: 'background 0.2s ease',
+                  transition:
+                    'background var(--motion-fast) var(--ease-standard)',
                   '&:hover': { background: 'rgba(59, 114, 196, 0.12)' },
                 }}
               >
@@ -989,7 +990,10 @@ const Dashboard = () => {
                  de los 308 de la app. */
               <EmptyState
                 icon={<IconCalendarWeek color="var(--accent-dark)" />}
-                title={t('tr_noMeetingsScheduled', 'No hay reuniones programadas')}
+                title={t(
+                  'tr_noMeetingsScheduled',
+                  'No hay reuniones programadas'
+                )}
                 description={t(
                   'tr_noMeetingsScheduledDesc',
                   'Esta semana no hay reuniones debido a eventos especiales o asambleas.'
@@ -1083,7 +1087,8 @@ const Dashboard = () => {
       </div>
       <div className="tile-grid">
         {/* 1. REUNIONES (Always visible) */}
-        <button type="button"
+        <button
+          type="button"
           className="tile-item c-blue active-press"
           style={{ animationDelay: '0.26s' }}
           onClick={() => handleTileClick('/dashboard/meetings')}
@@ -1098,7 +1103,8 @@ const Dashboard = () => {
 
         {/* 2. PREDICACIÓN (Visible if publisher) */}
         {isPublisher && (
-          <button type="button"
+          <button
+            type="button"
             className="tile-item c-blue active-press"
             style={{ animationDelay: '0.3s' }}
             onClick={() => handleTileClick('/dashboard/ministry')}
@@ -1113,7 +1119,8 @@ const Dashboard = () => {
         )}
 
         {/* 3. CONGREGACIÓN (Always visible) */}
-        <button type="button"
+        <button
+          type="button"
           className="tile-item c-blue active-press"
           style={{ animationDelay: '0.34s' }}
           onClick={() => handleTileClick('/dashboard/congregation')}
@@ -1131,7 +1138,8 @@ const Dashboard = () => {
         {/* 4. DISCURSOS (Visible if weekend meeting is shown and authorized) */}
         {showWeekend &&
           (isElder || isWeekendEditor || isPublicTalkCoordinator) && (
-            <button type="button"
+            <button
+              type="button"
               className="tile-item c-blue active-press"
               style={{ animationDelay: '0.38s' }}
               onClick={() => handleTileClick('/dashboard/talks')}
@@ -1149,7 +1157,8 @@ const Dashboard = () => {
 
         {/* 5. INFORMES (Full width, visible for elders, secretaries, attendance/group overseers) */}
         {(isElder || isAttendanceEditor || isGroupOverseer || isSecretary) && (
-          <button type="button"
+          <button
+            type="button"
             className="tile-item c-blue full-width active-press"
             style={{ animationDelay: '0.42s' }}
             onClick={() => handleTileClick('/dashboard/reports')}
@@ -1174,7 +1183,8 @@ const Dashboard = () => {
         )}
 
         {/* 6. CONFIGURACIÓN (Full width, always visible) */}
-        <button type="button"
+        <button
+          type="button"
           className="tile-item c-blue full-width active-press"
           style={{ animationDelay: '0.46s' }}
           onClick={() => handleTileClick('/dashboard/settings')}

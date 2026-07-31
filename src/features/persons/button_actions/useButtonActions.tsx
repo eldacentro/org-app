@@ -6,13 +6,19 @@ import { personCurrentDetailsState } from '@states/persons';
 import { useAppTranslation } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
 import { dbPersonsSave } from '@services/dexie/persons';
-import { personAssignmentsRemove, refreshReadOnlyRoles } from '@services/app/persons';
+import {
+  personAssignmentsRemove,
+  refreshReadOnlyRoles,
+} from '@services/app/persons';
 import { getMessageByCode } from '@services/i18n/translation';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { dbFieldServiceGroupSave } from '@services/dexie/field_service_groups';
 import worker from '@services/worker/backupWorker';
 import { congAccessCodeState } from '@states/settings';
-import { apiCreateCongregationInvitation, apiDeleteCongregationInvitation } from '@services/api/congregation';
+import {
+  apiCreateCongregationInvitation,
+  apiDeleteCongregationInvitation,
+} from '@services/api/congregation';
 
 const useButtonActions = () => {
   const { id } = useParams();
@@ -142,16 +148,18 @@ const useButtonActions = () => {
         try {
           await apiDeleteCongregationInvitation(person.person_uid);
         } catch (delErr) {
-          console.error('[handleSavePerson] invitation delete failed (non-critical):', delErr);
+          console.error(
+            '[handleSavePerson] invitation delete failed (non-critical):',
+            delErr
+          );
         }
       }
       if (personEmail && congLocalAccessCode) {
         const roles = refreshReadOnlyRoles(person);
         if (roles.length > 0) {
           try {
-            const { encryptAccessCodeForInvite } = await import(
-              '@services/encryption/deterministic'
-            );
+            const { encryptAccessCodeForInvite } =
+              await import('@services/encryption/deterministic');
             const encrypted_access_code = await encryptAccessCodeForInvite(
               congLocalAccessCode,
               personEmail
@@ -163,7 +171,10 @@ const useButtonActions = () => {
               person_uid: person.person_uid,
             });
           } catch (invErr) {
-            console.error('[handleSavePerson] invitation upsert failed (non-critical):', invErr);
+            console.error(
+              '[handleSavePerson] invitation upsert failed (non-critical):',
+              invErr
+            );
           }
         }
       }
@@ -215,7 +226,10 @@ const useButtonActions = () => {
       try {
         await apiDeleteCongregationInvitation(newPerson.person_uid);
       } catch (delErr) {
-        console.error('[handleDisqualifyConfirm] invitation delete failed (non-critical):', delErr);
+        console.error(
+          '[handleDisqualifyConfirm] invitation delete failed (non-critical):',
+          delErr
+        );
       }
 
       worker.postMessage('startWorker');

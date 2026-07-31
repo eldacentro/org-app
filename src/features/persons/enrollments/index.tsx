@@ -32,10 +32,10 @@ const PersonEnrollments = () => {
 
       <Typography className="label-small-regular" color="var(--grey-350)">
         Para hacer a alguien precursor auxiliar de continuo, añade
-        &laquo;Precursor auxiliar&raquo; con su fecha de inicio y deja la
-        fecha de fin vacía: contará como precursor auxiliar cada mes (y con
-        su meta de horas) hasta que le pongas fecha de fin. Para un solo mes,
-        pon inicio y fin dentro de ese mes.
+        &laquo;Precursor auxiliar&raquo; con su fecha de inicio y deja la fecha
+        de fin vacía: contará como precursor auxiliar cada mes (y con su meta de
+        horas) hasta que le pongas fecha de fin. Para un solo mes, pon inicio y
+        fin dentro de ese mes.
       </Typography>
 
       <Box

@@ -38,7 +38,8 @@ const IconButton: FC<CustomIconButtonProps> = (props) => {
       sx={{
         padding: '8px',
         borderRadius: 'var(--shape-full)',
-        transition: 'transform 100ms ease, background-color 150ms ease',
+        transition:
+          'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
 
         ...(disableHover
           ? {

@@ -13,16 +13,19 @@ import LastModifiedInfo from '@components/last_modified_info';
 const FieldServiceGroups = () => {
   const groups = useAtomValue(fieldGroupsState);
 
-  const lastUpdate = groups.reduce((acc, curr) => {
-    const currDate = curr.group_data.updatedAt;
-    if (!acc || new Date(currDate) > new Date(acc.updatedAt)) {
-      return {
-        updatedAt: currDate,
-        lastModifiedBy: curr.group_data.lastModifiedBy,
-      };
-    }
-    return acc;
-  }, null as { updatedAt: string; lastModifiedBy: string });
+  const lastUpdate = groups.reduce(
+    (acc, curr) => {
+      const currDate = curr.group_data.updatedAt;
+      if (!acc || new Date(currDate) > new Date(acc.updatedAt)) {
+        return {
+          updatedAt: currDate,
+          lastModifiedBy: curr.group_data.lastModifiedBy,
+        };
+      }
+      return acc;
+    },
+    null as { updatedAt: string; lastModifiedBy: string }
+  );
 
   const { t } = useAppTranslation();
 

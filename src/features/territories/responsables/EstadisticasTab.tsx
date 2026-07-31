@@ -16,7 +16,11 @@ import {
   territoriesLoadingState,
   territoryZonesState,
 } from '@states/territories';
-import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
+import {
+  Territory,
+  TerritoryAssignment,
+  TerritoryZone,
+} from '@definition/territories';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveNotice } from '@services/firebase/territories';
 import {
@@ -74,13 +78,27 @@ const KpiCard = ({
       ...(accentSurface(color, { tint: false }) as object),
     }}
   >
-    <Stack direction="row" alignItems="center" spacing={'4px'} sx={{ mb: '6px' }}>
-      <Typography className="label-small-semibold" sx={{ color: 'var(--ink-2)' }}>
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={'4px'}
+      sx={{ mb: '6px' }}
+    >
+      <Typography
+        className="label-small-semibold"
+        sx={{ color: 'var(--ink-2)' }}
+      >
         {title}
       </Typography>
       {info && (
         <Tooltip title={info}>
-          <Box sx={{ display: 'inline-flex', cursor: 'help', color: 'var(--ink-2)' }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              cursor: 'help',
+              color: 'var(--ink-2)',
+            }}
+          >
             <IconInfo width={13} height={13} color="var(--ink-2)" />
           </Box>
         </Tooltip>
@@ -91,14 +109,30 @@ const KpiCard = ({
         {value}
       </Typography>
       {total !== undefined && (
-        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+        <Typography
+          className="body-small-regular"
+          sx={{ color: 'var(--ink-2)' }}
+        >
           / {total}
         </Typography>
       )}
     </Stack>
     {total !== undefined && total > 0 && (
-      <Stack direction="row" alignItems="center" spacing={'8px'} sx={{ mt: '10px' }}>
-        <Box sx={{ flex: 1, height: 4, borderRadius: 'var(--shape-full)', backgroundColor: 'var(--line)', overflow: 'hidden' }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={'8px'}
+        sx={{ mt: '10px' }}
+      >
+        <Box
+          sx={{
+            flex: 1,
+            height: 4,
+            borderRadius: 'var(--shape-full)',
+            backgroundColor: 'var(--line)',
+            overflow: 'hidden',
+          }}
+        >
           <Box
             sx={{
               height: '100%',
@@ -108,13 +142,19 @@ const KpiCard = ({
             }}
           />
         </Box>
-        <Typography className="label-small-semibold" sx={{ color, flexShrink: 0 }}>
+        <Typography
+          className="label-small-semibold"
+          sx={{ color, flexShrink: 0 }}
+        >
           {Math.round((value / total) * 100)}%
         </Typography>
       </Stack>
     )}
     {subtext && (
-      <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)', mt: '8px', display: 'block' }}>
+      <Typography
+        className="label-small-regular"
+        sx={{ color: 'var(--ink-2)', mt: '8px', display: 'block' }}
+      >
         {subtext}
       </Typography>
     )}
@@ -163,7 +203,12 @@ const NoAsignadoRow = ({
       }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          sx={{ flexWrap: 'wrap' }}
+        >
           <Typography className="body-regular-semibold" color="var(--ink)">
             {territoryLabel(t)}
           </Typography>
@@ -180,7 +225,11 @@ const NoAsignadoRow = ({
             : 'Nunca trabajado'}
         </Typography>
       </Box>
-      <Button variant="tertiary" disableAutoStretch onClick={() => onAsignar(t)}>
+      <Button
+        variant="tertiary"
+        disableAutoStretch
+        onClick={() => onAsignar(t)}
+      >
         Asignar
       </Button>
     </Stack>
@@ -236,7 +285,10 @@ const ZoneGroup = ({
             color: 'var(--ink-2)',
           }}
         >
-          · {territories.length === 1 ? '1 territorio' : `${territories.length} territorios`}
+          ·{' '}
+          {territories.length === 1
+            ? '1 territorio'
+            : `${territories.length} territorios`}
         </Typography>
       </Stack>
 
@@ -346,7 +398,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
     // Atrasados
     const atrasados = relevant
-      .filter((a) => !a.returnedAt && isOverdue(a.assignedAt, settings.daysUntilOverdue))
+      .filter(
+        (a) =>
+          !a.returnedAt && isOverdue(a.assignedAt, settings.daysUntilOverdue)
+      )
       .sort(
         (x, y) =>
           new Date(x.assignedAt).getTime() - new Date(y.assignedAt).getTime()
@@ -415,17 +470,27 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         settings.overdueMessage || 'Tienes un territorio atrasado.',
         a.territoryId
       ).catch((err) => console.error('Failed to send push', err));
-      displaySnackNotification({ severity: 'success', header: 'Aviso enviado', message: `Se ha notificado a ${nombre}.` });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Aviso enviado',
+        message: `Se ha notificado a ${nombre}.`,
+      });
     } catch (e) {
       console.error(e);
-      displaySnackNotification({ severity: 'error', header: 'Error al notificar', message: 'No se pudo enviar el aviso. Inténtalo de nuevo.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error al notificar',
+        message: 'No se pudo enviar el aviso. Inténtalo de nuevo.',
+      });
     }
   };
 
   if (stats.total === 0) {
     return (
       <Typography className="body-small-regular" color="var(--ink-2)">
-        {loading ? 'Cargando estadísticas…' : 'Aún no hay territorios para mostrar estadísticas.'}
+        {loading
+          ? 'Cargando estadísticas…'
+          : 'Aún no hay territorios para mostrar estadísticas.'}
       </Typography>
     );
   }
@@ -443,7 +508,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { mobile: '1fr 1fr', tablet600: 'repeat(4, 1fr)' },
+          gridTemplateColumns: {
+            mobile: '1fr 1fr',
+            tablet600: 'repeat(4, 1fr)',
+          },
           gap: '12px',
         }}
       >
@@ -468,15 +536,23 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         <KpiCard
           title="Atrasados"
           value={stats.atrasados.length}
-          color={stats.atrasados.length > 0 ? 'var(--red-main)' : 'var(--green-main)'}
-          subtext={stats.atrasados.length === 0 ? '¡Todo al día!' : 'Requieren atención'}
+          color={
+            stats.atrasados.length > 0 ? 'var(--red-main)' : 'var(--green-main)'
+          }
+          subtext={
+            stats.atrasados.length === 0
+              ? '¡Todo al día!'
+              : 'Requieren atención'
+          }
           info="Llevan asignados más tiempo del normal sin devolverse (umbral configurable en Ajustes)."
         />
         <KpiCard
           title="En descanso"
           value={stats.enDescanso.length}
           color="var(--grey-400)"
-          subtext={stats.enDescanso.length === 0 ? 'Ninguno' : 'Se ven marcados abajo'}
+          subtext={
+            stats.enDescanso.length === 0 ? 'Ninguno' : 'Se ven marcados abajo'
+          }
           info="Territorios libres que se devolvieron trabajados hace poco — todavía dentro del tiempo de descanso configurado (ver «Días de descanso antes de reasignar» en Configuración). Se pueden ver marcados en la lista de «No asignados»."
         />
       </Box>
@@ -487,7 +563,18 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
           Territorios atrasados ({stats.atrasados.length})
         </Typography>
         {stats.atrasados.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: 'var(--shape-md)', border: '1px dashed var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 'var(--shape-md)',
+              border: '1px dashed var(--line)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <IconCheckCircle width={24} height={24} color="var(--green-main)" />
             <Typography className="body-small-regular" color="var(--ink-2)">
               No hay territorios atrasados. ¡Gran trabajo!
@@ -513,24 +600,54 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   }}
                 >
                   <Box sx={{ minWidth: 0 }}>
-                    <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                      <Typography className="body-regular-semibold" color="var(--ink)">
+                    <Stack
+                      direction="row"
+                      alignItems="baseline"
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap' }}
+                    >
+                      <Typography
+                        className="body-regular-semibold"
+                        color="var(--ink)"
+                      >
                         {t ? territoryLabel(t) : '—'}
                       </Typography>
-                      <Typography className="body-small-regular" color="var(--ink-2)">
+                      <Typography
+                        className="body-small-regular"
+                        color="var(--ink-2)"
+                      >
                         {resolveName(a.personUid)}
                       </Typography>
                     </Stack>
-                    <Typography className="label-small-regular" color="var(--ink-3)">
-                      Asignado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
-                      Hace <strong style={{ color: 'var(--red-main)' }}>{daysSince(a.assignedAt)} días</strong>
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--ink-3)"
+                    >
+                      Asignado el{' '}
+                      {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
+                      Hace{' '}
+                      <strong style={{ color: 'var(--red-main)' }}>
+                        {daysSince(a.assignedAt)} días
+                      </strong>
                     </Typography>
                   </Box>
-                  <Stack direction="row" spacing={1} sx={{ mt: { mobile: 1, tablet600: 0 }, flexShrink: 0 }}>
-                    <Button variant="tertiary" disableAutoStretch onClick={() => notificar(a)}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ mt: { mobile: 1, tablet600: 0 }, flexShrink: 0 }}
+                  >
+                    <Button
+                      variant="tertiary"
+                      disableAutoStretch
+                      onClick={() => notificar(a)}
+                    >
                       Notificar
                     </Button>
-                    <Button variant="main" disableAutoStretch onClick={() => onEntregar(a)}>
+                    <Button
+                      variant="main"
+                      disableAutoStretch
+                      onClick={() => onEntregar(a)}
+                    >
                       Entregar
                     </Button>
                   </Stack>
@@ -548,7 +665,14 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
         </Typography>
 
         {stats.noAsignadosLista.length === 0 ? (
-          <Box sx={{ p: 3, borderRadius: 'var(--shape-md)', border: '1px dashed var(--line)', textAlign: 'center' }}>
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 'var(--shape-md)',
+              border: '1px dashed var(--line)',
+              textAlign: 'center',
+            }}
+          >
             <Typography className="body-small-regular" color="var(--ink-2)">
               Todos los territorios están asignados actualmente.
             </Typography>

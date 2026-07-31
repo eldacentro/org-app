@@ -308,7 +308,11 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
       // saber si suspende una reunión).
       const newEnd =
         prev.event_data.duration === UpcomingEventDuration.SingleDay
-          ? stackDatesToOne(value, new Date(prev.event_data.end), true).toISOString()
+          ? stackDatesToOne(
+              value,
+              new Date(prev.event_data.end),
+              true
+            ).toISOString()
           : prev.event_data.end;
 
       return {

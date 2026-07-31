@@ -9,7 +9,10 @@ import {
   applySmartRetentionPolicy,
   restoreFromPayload,
 } from '@services/app/backupScheduler';
-import { googleDriveUploadBackup, googleDriveIsConnected } from '@services/app/googleDriveBackup';
+import {
+  googleDriveUploadBackup,
+  googleDriveIsConnected,
+} from '@services/app/googleDriveBackup';
 import { congIDState, settingsState } from '@states/settings';
 import Checkbox from '@components/checkbox';
 import {
@@ -30,20 +33,27 @@ const LocalBackupsTab = () => {
   const [snapshots, setSnapshots] = useState<SnapshotType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [confirmRestore, setConfirmRestore] = useState<SnapshotType | null>(null);
+  const [confirmRestore, setConfirmRestore] = useState<SnapshotType | null>(
+    null
+  );
   // Qué se restaura. Los datos de la aplicación (personas, informes,
   // programas…) viven en la base local; los territorios viven en Firestore y
   // se restauran con reglas propias, así que se eligen por separado.
   const [restaurarApp, setRestaurarApp] = useState(true);
   const [restaurarTerr, setRestaurarTerr] = useState(true);
-  const [resumenTerr, setResumenTerr] = useState<ResumenRestauracion | null>(null);
+  const [resumenTerr, setResumenTerr] = useState<ResumenRestauracion | null>(
+    null
+  );
   const [calculando, setCalculando] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
 
   const loadSnapshots = async () => {
     try {
       setLoading(true);
-      const data = await backupsDb.snapshots.orderBy('timestamp').reverse().toArray();
+      const data = await backupsDb.snapshots
+        .orderBy('timestamp')
+        .reverse()
+        .toArray();
       setSnapshots(data);
     } catch (err) {
       console.error('Failed to load snapshots:', err);
@@ -114,7 +124,8 @@ const LocalBackupsTab = () => {
       displaySnackNotification({
         severity: 'success',
         header: 'Copia eliminada',
-        message: 'La copia de seguridad ha sido eliminada del almacenamiento local.',
+        message:
+          'La copia de seguridad ha sido eliminada del almacenamiento local.',
       });
     } catch (err) {
       console.error(err);
@@ -129,7 +140,9 @@ const LocalBackupsTab = () => {
   const handleDownloadSnapshot = (snapshot: SnapshotType) => {
     const jsonStr = JSON.stringify(snapshot.data);
     const blob = new Blob([jsonStr], { type: 'application/json' });
-    const formattedDate = new Date(snapshot.timestamp).toISOString().split('T')[0];
+    const formattedDate = new Date(snapshot.timestamp)
+      .toISOString()
+      .split('T')[0];
     saveAs(blob, `Elda_Centro_Backup_${formattedDate}_${snapshot.type}.json`);
   };
 
@@ -209,7 +222,8 @@ const LocalBackupsTab = () => {
       displaySnackNotification({
         severity: 'error',
         header: 'Error de restauración',
-        message: 'No se pudo completar la restauración. No se ha borrado nada; puedes volver a intentarlo.',
+        message:
+          'No se pudo completar la restauración. No se ha borrado nada; puedes volver a intentarlo.',
       });
       setIsRestoring(false);
       setConfirmRestore(null);
@@ -237,9 +251,16 @@ const LocalBackupsTab = () => {
 
   return (
     <Stack spacing="16px" sx={{ mt: 1 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Typography className="body-regular" color="var(--grey-400)">
-          Administra las copias históricas de IndexedDB guardadas localmente en este navegador.
+          Administra las copias históricas de IndexedDB guardadas localmente en
+          este navegador.
         </Typography>
         <Button
           variant="small"
@@ -272,7 +293,8 @@ const LocalBackupsTab = () => {
             No hay copias de seguridad locales
           </Typography>
           <Typography className="body-regular" color="var(--grey-400)">
-            Las copias de seguridad automáticas se crean diariamente de forma silenciosa.
+            Las copias de seguridad automáticas se crean diariamente de forma
+            silenciosa.
           </Typography>
         </Box>
       ) : (
@@ -290,16 +312,36 @@ const LocalBackupsTab = () => {
           >
             <Grid container>
               <Grid size={5}>
-                <Typography className="label-small-regular" color="var(--accent-dark)">Fecha y Hora</Typography>
+                <Typography
+                  className="label-small-regular"
+                  color="var(--accent-dark)"
+                >
+                  Fecha y Hora
+                </Typography>
               </Grid>
               <Grid size={2}>
-                <Typography className="label-small-regular" color="var(--accent-dark)">Frecuencia</Typography>
+                <Typography
+                  className="label-small-regular"
+                  color="var(--accent-dark)"
+                >
+                  Frecuencia
+                </Typography>
               </Grid>
               <Grid size={2}>
-                <Typography className="label-small-regular" color="var(--accent-dark)">Tamaño</Typography>
+                <Typography
+                  className="label-small-regular"
+                  color="var(--accent-dark)"
+                >
+                  Tamaño
+                </Typography>
               </Grid>
               <Grid size={3} sx={{ textAlign: 'right' }}>
-                <Typography className="label-small-regular" color="var(--accent-dark)">Acciones</Typography>
+                <Typography
+                  className="label-small-regular"
+                  color="var(--accent-dark)"
+                >
+                  Acciones
+                </Typography>
               </Grid>
             </Grid>
           </Box>
@@ -318,7 +360,8 @@ const LocalBackupsTab = () => {
                   borderRadius: 'var(--shape-sm)',
                   // Mismo caso: `--accent-50` no existe, la fila salía lisa.
                   bgcolor: 'var(--accent-100)',
-                  transition: 'background-color 0.2s',
+                  transition:
+                    'background-color var(--motion-fast) var(--ease-standard)',
                   '&:hover': {
                     bgcolor: 'var(--accent-100)',
                   },
@@ -339,16 +382,19 @@ const LocalBackupsTab = () => {
                         borderRadius: 'var(--shape-full)',
                         bgcolor:
                           snapshot.type === 'monthly'
-                            // `--accent-250` no existe: la píldora "Mensual"
-                            // salía SIN fondo, que es justo lo contrario de
-                            // lo que busca (distinguirla de las otras dos).
-                            ? 'var(--accent-200)'
+                            ? // `--accent-250` no existe: la píldora "Mensual"
+                              // salía SIN fondo, que es justo lo contrario de
+                              // lo que busca (distinguirla de las otras dos).
+                              'var(--accent-200)'
                             : snapshot.type === 'weekly'
-                            ? 'var(--line)'
-                            : 'var(--accent-150)',
+                              ? 'var(--line)'
+                              : 'var(--accent-150)',
                       }}
                     >
-                      <Typography className="label-small-regular" color="var(--accent-dark)">
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--accent-dark)"
+                      >
                         {translateType(snapshot.type)}
                       </Typography>
                     </Box>
@@ -358,17 +404,36 @@ const LocalBackupsTab = () => {
                       {formatSize(snapshot.size)}
                     </Typography>
                   </Grid>
-                  <Grid size={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <Grid
+                    size={3}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '8px',
+                    }}
+                  >
                     <Button
                       variant="small"
-                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '12px', minHeight: 'auto' }}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1,
+                        py: 0.5,
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                      }}
                       onClick={() => setConfirmRestore(snapshot)}
                     >
                       Restaurar
                     </Button>
                     <Button
                       variant="secondary"
-                      sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '12px', minHeight: 'auto' }}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1,
+                        py: 0.5,
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                      }}
                       onClick={() => handleDownloadSnapshot(snapshot)}
                     >
                       Descargar
@@ -388,7 +453,11 @@ const LocalBackupsTab = () => {
       )}
 
       {/* Confirmation Dialog */}
-      <Dialog open={!!confirmRestore} onClose={() => !isRestoring && setConfirmRestore(null)} sx={{ p: 3 }}>
+      <Dialog
+        open={!!confirmRestore}
+        onClose={() => !isRestoring && setConfirmRestore(null)}
+        sx={{ p: 3 }}
+      >
         <Stack spacing={2} sx={{ p: 2, minWidth: '320px' }}>
           <Typography className="h3" color="var(--red-main)">
             ¿Confirmar restauración?
@@ -396,7 +465,8 @@ const LocalBackupsTab = () => {
           <Typography className="body-regular">
             Vas a restaurar desde la copia del{' '}
             <strong>
-              {confirmRestore && new Date(confirmRestore.timestamp).toLocaleString('es-ES')}
+              {confirmRestore &&
+                new Date(confirmRestore.timestamp).toLocaleString('es-ES')}
             </strong>
             . Elige qué quieres recuperar:
           </Typography>
@@ -407,8 +477,9 @@ const LocalBackupsTab = () => {
             label="Datos de la aplicación (personas, informes, programas, ajustes…)"
           />
           <Typography className="label-small-regular" color="var(--red-main)">
-            Esto sí <strong>reemplaza</strong> todo lo actual: se perderá cualquier
-            cambio hecho después de la copia. La aplicación se recargará al terminar.
+            Esto sí <strong>reemplaza</strong> todo lo actual: se perderá
+            cualquier cambio hecho después de la copia. La aplicación se
+            recargará al terminar.
           </Typography>
 
           {territoriosDeLaCopia && (
@@ -419,13 +490,16 @@ const LocalBackupsTab = () => {
                 label="Territorios (zonas, asignaciones, campañas, direcciones)"
               />
               <Typography className="label-small-regular" color="var(--ink-2)">
-                Los territorios se <strong>fusionan, no se borran</strong>: vuelve lo
-                que falte, se deshacen los cambios sobre lo que estaba en la copia, y
-                lo creado después se conserva.
+                Los territorios se <strong>fusionan, no se borran</strong>:
+                vuelve lo que falte, se deshacen los cambios sobre lo que estaba
+                en la copia, y lo creado después se conserva.
               </Typography>
 
               {calculando && (
-                <Typography className="label-small-regular" color="var(--ink-2)">
+                <Typography
+                  className="label-small-regular"
+                  color="var(--ink-2)"
+                >
                   Calculando qué cambiaría…
                 </Typography>
               )}
@@ -447,7 +521,8 @@ const LocalBackupsTab = () => {
                     >
                       <strong>{c.nombre}:</strong>{' '}
                       {c.crear > 0 && `${c.crear} se recuperan · `}
-                      {c.actualizar > 0 && `${c.actualizar} vuelven a su valor · `}
+                      {c.actualizar > 0 &&
+                        `${c.actualizar} vuelven a su valor · `}
                       {c.conservar > 0 && `${c.conservar} se conservan · `}
                       {c.iguales > 0 && `${c.iguales} ya están igual`}
                     </Typography>
@@ -471,7 +546,12 @@ const LocalBackupsTab = () => {
               Marca al menos una de las dos.
             </Typography>
           )}
-          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="flex-end"
+            sx={{ mt: 2 }}
+          >
             <Button
               variant="tertiary"
               onClick={() => setConfirmRestore(null)}
@@ -483,7 +563,10 @@ const LocalBackupsTab = () => {
               variant="main"
               onClick={handleRestore}
               disabled={isRestoring || (!restaurarApp && !restaurarTerr)}
-              sx={{ bgcolor: 'var(--red-main)', '&:hover': { bgcolor: 'darkred' } }}
+              sx={{
+                bgcolor: 'var(--red-main)',
+                '&:hover': { bgcolor: 'darkred' },
+              }}
             >
               {isRestoring ? 'Restaurando…' : 'Restaurar'}
             </Button>

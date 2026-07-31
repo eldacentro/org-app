@@ -20,7 +20,6 @@ const PartDuration = (props: PartDurationType) => {
           display: 'flex !important',
           alignItems: 'center !important',
         },
-
       }}
       value={value}
       onChange={(e) => handleChangeDuration(+e.target.value)}

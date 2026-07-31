@@ -74,8 +74,10 @@ const useStartup = () => {
       const settings = await dbAppSettingsGet();
       const currentCongName = settings?.cong_settings?.cong_name || '';
       const currentCongRole = settings?.user_settings?.cong_role || [];
-      const currentCongMasterKey = settings?.cong_settings?.cong_master_key || '';
-      const currentCongAccessCode = settings?.cong_settings?.cong_access_code || '';
+      const currentCongMasterKey =
+        settings?.cong_settings?.cong_master_key || '';
+      const currentCongAccessCode =
+        settings?.cong_settings?.cong_access_code || '';
       const currentCongID = settings?.cong_settings?.cong_id || '';
 
       if (isOfflineOverride) {
@@ -109,8 +111,12 @@ const useStartup = () => {
         return;
       }
 
-      const approvedRole = currentCongRole.some((role) => APP_ROLES.includes(role));
-      const masterKeyNeeded = currentCongRole.some((role) => VIP_ROLES.includes(role));
+      const approvedRole = currentCongRole.some((role) =>
+        APP_ROLES.includes(role)
+      );
+      const masterKeyNeeded = currentCongRole.some((role) =>
+        VIP_ROLES.includes(role)
+      );
 
       if (!approvedRole) {
         setIsLoading(false);
@@ -325,7 +331,15 @@ const useStartup = () => {
     if (isStart && !startupCompletedRef.current) {
       runStartupCheck();
     }
-  }, [setStep, cookiesConsent, isStart, runStartupCheck, isAuthLoading, isAuthenticated, apiHost]);
+  }, [
+    setStep,
+    cookiesConsent,
+    isStart,
+    runStartupCheck,
+    isAuthLoading,
+    isAuthenticated,
+    apiHost,
+  ]);
 
   return {
     isUserSignIn: step === 'sign_in',

@@ -1,8 +1,20 @@
 import { ReactNode, useState } from 'react';
 import Badge from '@components/badge';
 import { useNavigate } from 'react-router';
-import { Accordion, AccordionDetails, AccordionSummary, Box, CircularProgress, Stack } from '@mui/material';
-import { IconArrowLink, IconCollapse, IconLightbulb, IconError } from '@icons/index';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  CircularProgress,
+  Stack,
+} from '@mui/material';
+import {
+  IconArrowLink,
+  IconCollapse,
+  IconLightbulb,
+  IconError,
+} from '@icons/index';
 import { AyudaBlock, AyudaSection } from '@definition/ayuda';
 import PageTitle from '@components/page_title';
 import SearchBar from '@components/search_bar';
@@ -38,7 +50,7 @@ const SyncDiagram = () => {
             sx={{
               position: 'absolute',
               inset: '-2px',
-              borderRadius: '50%',
+              borderRadius: 'var(--shape-full)',
               border: '2px solid var(--orange-main)',
             }}
           />
@@ -52,7 +64,12 @@ const SyncDiagram = () => {
           <CircularProgress
             size={30}
             thickness={4}
-            sx={{ position: 'absolute', top: -2, left: -2, color: 'var(--accent-main)' }}
+            sx={{
+              position: 'absolute',
+              top: -2,
+              left: -2,
+              color: 'var(--accent-main)',
+            }}
           />
         </SyncDot>
       ),
@@ -68,7 +85,7 @@ const SyncDiagram = () => {
               right: -1,
               width: '10px',
               height: '10px',
-              borderRadius: '50%',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: 'var(--green-main)',
               // el borde debe fundirse con el fondo de SU PROPIO contenedor
               // (el círculo SyncDot), no con el de la página: así el punto
@@ -99,7 +116,10 @@ const SyncDiagram = () => {
       }}
     >
       {rows.map((row, i) => (
-        <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <Box
+          key={i}
+          sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}
+        >
           {row.visual}
           <Typography className="body-small-regular" color="var(--grey-400)">
             {row.label}
@@ -120,7 +140,9 @@ const LinkButton = ({ to, label }: { to: string; label: string }) => {
       role="button"
       tabIndex={0}
       onClick={() => navigate(to)}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ' ? navigate(to) : null)}
+      onKeyDown={(e) =>
+        e.key === 'Enter' || e.key === ' ' ? navigate(to) : null
+      }
       sx={{
         alignSelf: 'flex-start',
         display: 'inline-flex',
@@ -130,9 +152,12 @@ const LinkButton = ({ to, label }: { to: string; label: string }) => {
         borderRadius: 'var(--shape-full)',
         backgroundColor: 'var(--accent-main)',
         cursor: 'pointer',
-        transition: 'opacity 0.15s',
+        transition: 'opacity var(--motion-fast) var(--ease-standard)',
         '&:hover': { opacity: 0.88 },
-        '&:focus-visible': { outline: 'var(--accent-main) auto 2px', outlineOffset: '2px' },
+        '&:focus-visible': {
+          outline: 'var(--accent-main) auto 2px',
+          outlineOffset: '2px',
+        },
       }}
     >
       <Typography className="body-small-semibold" color="var(--always-white)">
@@ -156,13 +181,30 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
     return (
       <Box>
         {block.title && (
-          <Typography className="body-small-semibold" sx={{ marginBottom: '4px' }}>
+          <Typography
+            className="body-small-semibold"
+            sx={{ marginBottom: '4px' }}
+          >
             {block.title}
           </Typography>
         )}
-        <Box component="ol" sx={{ margin: 0, paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <Box
+          component="ol"
+          sx={{
+            margin: 0,
+            paddingLeft: '22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
           {block.items.map((item, i) => (
-            <Typography key={i} component="li" className="body-regular" color="var(--grey-400)">
+            <Typography
+              key={i}
+              component="li"
+              className="body-regular"
+              color="var(--grey-400)"
+            >
               {item}
             </Typography>
           ))}
@@ -178,7 +220,9 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
         sx={{
           borderRadius: 'var(--shape-sm)',
           padding: '10px 12px',
-          backgroundColor: isTip ? 'var(--green-secondary)' : 'var(--orange-secondary)',
+          backgroundColor: isTip
+            ? 'var(--green-secondary)'
+            : 'var(--orange-secondary)',
           borderLeft: `3px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
           display: 'flex',
           alignItems: 'flex-start',
@@ -186,9 +230,19 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
         }}
       >
         {isTip ? (
-          <IconLightbulb width={16} height={16} color="var(--green-main)" sx={{ flexShrink: 0, mt: '1px' }} />
+          <IconLightbulb
+            width={16}
+            height={16}
+            color="var(--green-main)"
+            sx={{ flexShrink: 0, mt: '1px' }}
+          />
         ) : (
-          <IconError width={16} height={16} color="var(--orange-main)" sx={{ flexShrink: 0, mt: '1px' }} />
+          <IconError
+            width={16}
+            height={16}
+            color="var(--orange-main)"
+            sx={{ flexShrink: 0, mt: '1px' }}
+          />
         )}
         <Typography className="body-small-regular">{block.text}</Typography>
       </Box>
@@ -213,8 +267,18 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
         }}
       >
         {block.items.map((item, i) => (
-          <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Box sx={{ display: 'flex', flexShrink: 0, width: '24px', justifyContent: 'center' }}>
+          <Box
+            key={i}
+            sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexShrink: 0,
+                width: '24px',
+                justifyContent: 'center',
+              }}
+            >
               {item.icon}
             </Box>
             <Typography className="body-small-regular" color="var(--grey-400)">
@@ -297,8 +361,12 @@ const SectionView = ({
                   borderTop: '1px solid var(--line)',
                 }}
               >
-                <AccordionSummary expandIcon={<IconCollapse color="var(--accent-350)" />}>
-                  <Typography className="body-regular-semibold">{article.title}</Typography>
+                <AccordionSummary
+                  expandIcon={<IconCollapse color="var(--accent-350)" />}
+                >
+                  <Typography className="body-regular-semibold">
+                    {article.title}
+                  </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ paddingTop: 0 }}>
                   <Stack spacing="12px">
@@ -339,13 +407,21 @@ const Ayuda = () => {
       />
 
       {sections.length === 0 && (
-        <Typography className="body-regular" color="var(--grey-350)" sx={{ textAlign: 'center', padding: '24px' }}>
+        <Typography
+          className="body-regular"
+          color="var(--grey-350)"
+          sx={{ textAlign: 'center', padding: '24px' }}
+        >
           No se encontró nada con esa búsqueda.
         </Typography>
       )}
 
       {sections.map((section) => (
-        <SectionView key={section.id} section={section} forceExpand={isSearching} />
+        <SectionView
+          key={section.id}
+          section={section}
+          forceExpand={isSearching}
+        />
       ))}
     </Box>
   );

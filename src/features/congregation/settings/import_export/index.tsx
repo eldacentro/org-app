@@ -16,9 +16,12 @@ const ImportExport = (props: ImportExportType) => {
 
   const getDescription = () => {
     if (isAdmin) {
-      if (value === 0) return 'Exporta o importa manualmente el estado completo de la base de datos en archivos JSON.';
-      if (value === 1) return 'Visualiza, descarga o restaura instantáneamente copias locales históricas y automáticas de este navegador.';
-      if (value === 2) return 'Configura y vincula el guardado diario silencioso y automatizado en tu Google Drive.';
+      if (value === 0)
+        return 'Exporta o importa manualmente el estado completo de la base de datos en archivos JSON.';
+      if (value === 1)
+        return 'Visualiza, descarga o restaura instantáneamente copias locales históricas y automáticas de este navegador.';
+      if (value === 2)
+        return 'Configura y vincula el guardado diario silencioso y automatizado en tu Google Drive.';
       return '';
     }
     return value === 0 ? t('tr_exportDesc') : t('tr_importDesc');
@@ -30,9 +33,7 @@ const ImportExport = (props: ImportExportType) => {
         <Stack spacing="16px">
           <Typography className="h2">{t('tr_importExportTitle')}</Typography>
 
-          <Typography color="var(--grey-400)">
-            {getDescription()}
-          </Typography>
+          <Typography color="var(--grey-400)">{getDescription()}</Typography>
 
           <Box sx={{ marginBottom: '-24px !important' }}>
             <Tabs tabs={tabs} onChange={handleTabChange} value={value} />

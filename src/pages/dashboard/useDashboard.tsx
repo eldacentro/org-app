@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  congNewState,
-  firstnameState,
-  settingsState,
-} from '@states/settings';
+import { congNewState, firstnameState, settingsState } from '@states/settings';
 import { isMyAssignmentOpenState, myAssignmentsBadgeState } from '@states/app';
 import { isTest } from '@constants/index';
 

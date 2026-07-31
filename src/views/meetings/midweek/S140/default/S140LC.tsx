@@ -6,7 +6,7 @@ import S140Person from './S140Person';
 import S140SourceExtended from './S140SourceExtended';
 import S140PartMiniLabel from './S140PartMiniLabel';
 
-const LivingPartRow = ({ meetingData,lang }: S140LCType) => {
+const LivingPartRow = ({ meetingData, lang }: S140LCType) => {
   return (
     <>
       {[1, 2, 3].map((index) => {

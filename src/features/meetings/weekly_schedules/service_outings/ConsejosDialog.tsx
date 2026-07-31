@@ -53,7 +53,7 @@ const Idea = ({ numero, texto }: { numero: number; texto: string }) => (
         flexShrink: 0,
         width: '28px',
         height: '28px',
-        borderRadius: '50%',
+        borderRadius: 'var(--shape-full)',
         backgroundColor: 'var(--accent-main)',
         display: 'flex',
         alignItems: 'center',

@@ -68,7 +68,10 @@ const SearchBar = ({ placeholder, onSearch, value }: SearchBarProps) => {
         endAdornment={
           value && (
             <InputAdornment position="end">
-              <StyledButton aria-label="Borrar la búsqueda" onClick={handleClear}>
+              <StyledButton
+                aria-label="Borrar la búsqueda"
+                onClick={handleClear}
+              >
                 <IconClose width={20} height={20} color="var(--grey-350)" />
               </StyledButton>
             </InputAdornment>

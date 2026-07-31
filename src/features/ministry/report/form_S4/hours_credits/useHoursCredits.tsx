@@ -87,7 +87,10 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
    * @param nextEntries si se pasa, sustituye el desglose (se usa al quitar una
    * entrada, para que total y desglose no se queden desacompasados).
    */
-  const handleHoursChange = async (value: string, nextEntries?: CreditEntry[]) => {
+  const handleHoursChange = async (
+    value: string,
+    nextEntries?: CreditEntry[]
+  ) => {
     setHours(value);
 
     try {
@@ -129,7 +132,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
           report.report_data.hours.credit.monthly = `${hours}:${String(remains).padStart(2, '0')}`;
 
-          if (nextEntries) report.report_data.hours.credit.entries = nextEntries;
+          if (nextEntries)
+            report.report_data.hours.credit.entries = nextEntries;
 
           if (value !== '0:00') {
             report.report_data.shared_ministry = true;
@@ -160,7 +164,8 @@ const useHoursCredits = ({ month, person_uid, publisher }: FormS4Props) => {
 
           report.report_data.hours.credit.monthly = value;
 
-          if (nextEntries) report.report_data.hours.credit.entries = nextEntries;
+          if (nextEntries)
+            report.report_data.hours.credit.entries = nextEntries;
           report.report_data.updatedAt = new Date().toISOString();
 
           await dbDelegatedFieldServiceReportsSave(report);

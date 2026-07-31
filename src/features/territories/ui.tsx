@@ -160,14 +160,19 @@ const ESTADO_COLOR: Record<EstadoTerritorio, 'orange' | 'grey' | 'green'> = {
  * ellas los colores no coincidían entre sí.
  */
 export const EstadoBadge = ({ estado }: { estado: EstadoTerritorio }) => (
-  <Badge size="small" color={ESTADO_COLOR[estado]} text={ESTADO_TEXTO[estado]} />
+  <Badge
+    size="small"
+    color={ESTADO_COLOR[estado]}
+    text={ESTADO_TEXTO[estado]}
+  />
 );
 
 /** El estado de un territorio a partir de los dos datos que lo deciden. */
 export const estadoDeTerritorio = (
   asignado: boolean,
   enDescanso: boolean
-): EstadoTerritorio => (asignado ? 'asignado' : enDescanso ? 'descanso' : 'libre');
+): EstadoTerritorio =>
+  asignado ? 'asignado' : enDescanso ? 'descanso' : 'libre';
 
 // ─── El par etiqueta / valor ──────────────────────────────────────────────
 

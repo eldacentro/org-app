@@ -4,7 +4,13 @@ import Export from './export';
 import Import from './import';
 import Typography from '@components/typography';
 
-const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => void }) => {
+const ManualTab = ({
+  onClose,
+  onNext,
+}: {
+  onClose: () => void;
+  onNext: () => void;
+}) => {
   const { t } = useAppTranslation();
 
   return (
@@ -24,7 +30,8 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
             {t('tr_export')}
           </Typography>
           <Typography className="body-regular" color="var(--grey-400)">
-            Descarga una copia de seguridad manual completa en un archivo JSON en tu dispositivo local.
+            Descarga una copia de seguridad manual completa en un archivo JSON
+            en tu dispositivo local.
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Export onClose={onClose} />
@@ -45,7 +52,8 @@ const ManualTab = ({ onClose, onNext }: { onClose: () => void; onNext: () => voi
             {t('tr_import')}
           </Typography>
           <Typography className="body-regular" color="var(--grey-400)">
-            Restaura o combina datos a partir de una copia de seguridad en formato JSON que hayas guardado previamente.
+            Restaura o combina datos a partir de una copia de seguridad en
+            formato JSON que hayas guardado previamente.
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Import onClose={onClose} onNext={onNext} />

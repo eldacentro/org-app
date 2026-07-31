@@ -14,18 +14,10 @@ import useCongregation from '@pages/dashboard/congregation/useCongregation';
 const SettingsDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
-  
-  const {
-    isAdmin,
-    isElder,
-    isMeetingEditor,
-  } = useCurrentUser();
 
-  const {
-    secondaryText,
-    handleManualSync,
-    isConnected,
-  } = useCongregation();
+  const { isAdmin, isElder, isMeetingEditor } = useCurrentUser();
+
+  const { secondaryText, handleManualSync, isConnected } = useCongregation();
 
   // Los dos importadores se fueron a su propia página: allí, además de los
   // botones, se ve QUÉ hay importado, de dónde vino y qué semanas faltan.
@@ -36,48 +28,91 @@ const SettingsDashboard = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 'var(--dash-measure)', margin: '0 auto', paddingTop: '16px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: 'var(--dash-measure)',
+        margin: '0 auto',
+        paddingTop: '16px',
+      }}
+    >
       <PageTitle title={t('tr_settings', 'Configuración')} />
       <div className="tile-grid">
-        
         {/* Mi cuenta */}
-        <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/user-profile')}>
+        <button
+          type="button"
+          className="tile-item c-blue active-press full-width"
+          onClick={() => handleTileClick('/user-profile')}
+        >
           <div className="ti">
             <IconAccount color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">{t('tr_myProfile', 'Mi cuenta')}</div>
           </div>
-          <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="chev-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 6l6 6-6 6" />
           </svg>
         </button>
 
         {/* Ajustes de congregación */}
         {(isAdmin || isElder) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/congregation-settings')}>
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/congregation-settings')}
+          >
             <div className="ti">
               <IconSettings color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_congregationSettings', 'Ajustes de congregación')}</div>
+              <div className="tile-name">
+                {t('tr_congregationSettings', 'Ajustes de congregación')}
+              </div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
 
         {/* Cuentas de usuario */}
-        {(isAdmin) && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={() => handleTileClick('/manage-access')}>
+        {isAdmin && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/manage-access')}
+          >
             <div className="ti">
               <IconManageAccess color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_manageAccess', 'Cuentas de usuario')}</div>
+              <div className="tile-name">
+                {t('tr_manageAccess', 'Cuentas de usuario')}
+              </div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
@@ -85,14 +120,27 @@ const SettingsDashboard = () => {
 
         {/* Materiales de reunión */}
         {isMeetingEditor && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={handleOpenMeetingMaterials}>
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={handleOpenMeetingMaterials}
+          >
             <div className="ti">
               <IconJwOrg color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_meetingMaterials', 'Materiales de reunión')}</div>
+              <div className="tile-name">
+                {t('tr_meetingMaterials', 'Materiales de reunión')}
+              </div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
@@ -100,20 +148,34 @@ const SettingsDashboard = () => {
 
         {/* Sincronizar datos */}
         {isConnected && (
-          <button type="button" className="tile-item c-blue active-press full-width" onClick={handleManualSync}>
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={handleManualSync}
+          >
             <div className="ti">
               <IconSynced color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">{t('tr_syncAppData', 'Sincronizar datos')}</div>
-              <div className="tile-meta">{secondaryText || 'Sincronizar información'}</div>
+              <div className="tile-name">
+                {t('tr_syncAppData', 'Sincronizar datos')}
+              </div>
+              <div className="tile-meta">
+                {secondaryText || 'Sincronizar información'}
+              </div>
             </div>
-            <svg className="chev-icon" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 6l6 6-6 6" />
             </svg>
           </button>
         )}
-
       </div>
     </Box>
   );

@@ -92,7 +92,7 @@ const AssigneeName = ({
             flexShrink: 0,
             width: '5px',
             height: '5px',
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             backgroundColor: isMe ? 'var(--brand)' : 'var(--grey-350)',
             // `baseline` no alinea una caja vacía, así que el punto se sube a
             // mano hasta la altura de la equis del nombre.

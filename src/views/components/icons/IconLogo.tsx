@@ -2,11 +2,7 @@ import { G, Path, Svg } from '@react-pdf/renderer';
 
 const IconLogo = () => {
   return (
-    <Svg
-      viewBox="0 0 2881 2572"
-      fill="none"
-      style={{ width: 40, height: 40 }}
-    >
+    <Svg viewBox="0 0 2881 2572" fill="none" style={{ width: 40, height: 40 }}>
       <G transform="matrix(1,0,0,1,-809.952083,-964.060833)">
         <G transform="matrix(4.166667,0,0,4.166667,0,0)">
           <G>

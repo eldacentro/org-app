@@ -6,17 +6,10 @@ import { WeekendExportType } from './index.types';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
-import {
-  SchedWeekType,
-  WeekendMeetingDataType,
-} from '@definition/schedules';
-import {
-  schedulesWeekendData,
-} from '@services/app/schedules';
+import { SchedWeekType, WeekendMeetingDataType } from '@definition/schedules';
+import { schedulesWeekendData } from '@services/app/schedules';
 import { JWLangLocaleState, userDataViewState } from '@states/settings';
-import {
-  TemplateWeekendMeeting,
-} from '@views/index';
+import { TemplateWeekendMeeting } from '@views/index';
 import { headerForScheduleState } from '@states/field_service_groups';
 import { Week } from '@definition/week_type';
 import { WEEK_TYPE_NO_MEETING } from '@constants/index';
@@ -69,8 +62,7 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
         const normStart = startWeek.replace(/\//g, '-');
         const normEnd = endWeek.replace(/\//g, '-');
         const normWeek = schedule.weekOf.replace(/\//g, '-');
-        const isValid =
-          normWeek >= normStart && normWeek <= normEnd;
+        const isValid = normWeek >= normStart && normWeek <= normEnd;
 
         if (!isValid) return false;
 
@@ -115,4 +107,3 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
 };
 
 export default useWeekendExport;
-

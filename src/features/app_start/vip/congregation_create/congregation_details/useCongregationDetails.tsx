@@ -7,7 +7,11 @@ import {
   setIsNewCongregation,
 } from '@services/states/app';
 import { settingsState } from '@states/settings';
-import { apiCreateCongregation, apiFetchCountries, apiFetchCongregations } from '@services/api/congregation';
+import {
+  apiCreateCongregation,
+  apiFetchCountries,
+  apiFetchCongregations,
+} from '@services/api/congregation';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { getMessageByCode } from '@services/i18n/translation';
 import {
@@ -23,7 +27,8 @@ const useCongregationDetails = () => {
   const { t } = useAppTranslation();
   const hasAutoSubmitted = useRef(false);
 
-  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } =
+    useFeedback();
 
   const setCurrentStep = useSetAtom(congregationCreateStepState);
 
@@ -193,12 +198,19 @@ const useCongregationDetails = () => {
 
       try {
         const countriesResult = await apiFetchCountries();
-        const spain = (countriesResult.data as CountryResponseType[])?.find(c => c.countryCode === 'ES');
+        const spain = (countriesResult.data as CountryResponseType[])?.find(
+          (c) => c.countryCode === 'ES'
+        );
 
         if (spain) {
           setCountry(spain);
-          const congsResult = await apiFetchCongregations(spain.countryGuid, 'Elda Centro');
-          const eldaCentro = (congsResult.data as CongregationResponseType[])?.find(c => c.congName?.includes('Elda Centro'));
+          const congsResult = await apiFetchCongregations(
+            spain.countryGuid,
+            'Elda Centro'
+          );
+          const eldaCentro = (
+            congsResult.data as CongregationResponseType[]
+          )?.find((c) => c.congName?.includes('Elda Centro'));
 
           if (eldaCentro) {
             setCongregation(eldaCentro);
@@ -215,7 +227,14 @@ const useCongregationDetails = () => {
   }, []);
 
   useEffect(() => {
-    if (country && congregation && isElderApproved && userTmpFirstName && !isProcessing && !hasAutoSubmitted.current) {
+    if (
+      country &&
+      congregation &&
+      isElderApproved &&
+      userTmpFirstName &&
+      !isProcessing &&
+      !hasAutoSubmitted.current
+    ) {
       hasAutoSubmitted.current = true;
       handleCongregationAction();
     }

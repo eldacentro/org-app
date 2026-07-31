@@ -112,7 +112,8 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
               </Button>
             )}
             {tabletDown && (
-              <IconButton aria-label="Ver detalles del orador"
+              <IconButton
+                aria-label="Ver detalles del orador"
                 sx={{ padding: 0 }}
                 onClick={handleOpenSpeakerDetails}
               >

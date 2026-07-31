@@ -12,10 +12,7 @@ const HoursStats = ({ year }: HoursStatsProps) => {
 
   return (
     <Stack spacing="8px" divider={<Divider color="var(--line)" />}>
-      <Stack
-        spacing="8px"
-        divider={<Divider dashed color="var(--line)" />}
-      >
+      <Stack spacing="8px" divider={<Divider dashed color="var(--line)" />}>
         <LabelRow
           name={t('tr_totalHours')}
           value={hours.total}

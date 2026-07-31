@@ -246,7 +246,8 @@ const WeekendEditor = () => {
                           fontFamily: 'Figtree, sans-serif',
                           fontWeight: 600,
                           fontSize: { mobile: '11px', tablet: '13px' },
-                          transition: 'all 0.2s ease-in-out',
+                          transition:
+                            'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
                           backdropFilter: 'blur(8px)',
                           '&:hover': {
                             backgroundColor: 'rgba(255, 255, 255, 0.28)',

@@ -30,7 +30,11 @@ const BibleStudyItem = (props: BibleStudyItemProps) => {
             paddingLeft: '12px',
           }}
         >
-          <IconButton aria-label="Editar" onClick={handleEditStudy} sx={{ padding: 0 }}>
+          <IconButton
+            aria-label="Editar"
+            onClick={handleEditStudy}
+            sx={{ padding: 0 }}
+          >
             <IconEdit color="var(--accent-350)" />
           </IconButton>
           <Typography color="var(--accent-dark)">

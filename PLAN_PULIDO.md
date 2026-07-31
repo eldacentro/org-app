@@ -496,17 +496,45 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       usa la misma función.
       **Queda**: `PictureAsPdfIcon` de Material Icons — es un hueco real (la
       app no tiene icono de documento entre sus 308), no un descuido.
-- [ ] Exhibidores y Salidas, **pestañas de Programas semanales** (son ficheros
-      DISTINTOS de las páginas ya repasadas, con el mismo nombre)
-- [ ] **Oradores salientes** — panel lateral entero de divs
-- [ ] **Informe de predicación** (`view_switcher`, `month_view`, `day_view`)
-- [ ] **Limpieza y Responsabilidades** — los repasos fueron quirúrgicos; siguen
-      con MUI en crudo
-- [ ] **Visita del CO** — mezcla 40 y 56px en casi todas las filas
-- [ ] **Personas** y catálogo de oradores
-- [ ] **Importar/exportar** — muy malo, pero solo lo ven administradores
-- [ ] **Informes** — estructura sana; su deuda es duplicación
-- [ ] Ayuda, Materiales de reunión, Perfil, Recordatorios
+- [x] Exhibidores y Salidas, **pestañas de Programas semanales** — ocho
+      transiciones a mano y dos círculos con `50%`. Cero colores a fuego: esos
+      ficheros ya estaban con tokens.
+- [x] **Oradores salientes** — el "panel lateral entero de divs" estaba ya
+      arreglado (cayó con el repaso de la tarjeta). Lo que quedaba, medido:
+      · **Las filas de semana del panel no se alcanzaban con el teclado**, y
+        elegir semana es LA acción de ese panel: sin semana no se programa
+        nada. No lo cazó el barrido porque viven dentro de un `Collapse` y solo
+        existen con el mes desplegado — lo que no está pintado no se mide.
+        Ahora son botones, con `aria-current` en la elegida.
+      · **El decimocuarto array de meses a mano** ('ene.', 'feb.'…), el único
+        que además se saltaba la traducción: en cualquier idioma que no fuera
+        español seguía diciendo "ene.". Al diccionario.
+      · Un `&:hover` cuyas DOS ramas del ternario devolvían el mismo color, o
+        sea un efecto escrito que no existía. Ahora usa `--state-hover`.
+      · `transition: 'all 0.15s'` → tokens y propiedades concretas.
+- [x] **Informe de predicación** — tres cosas: un `fontSize: '17px'` que no
+      existe en la escala (a 16, y hasta el arreglo de §6.4d ni se veía: la
+      clase mandaba y salía a 15), dos transiciones a mano —una con `all`, que
+      animaba también el relleno y el radio— y el punto de "hay informe" con
+      `borderRadius: '50%'` en vez del token.
+- [x] **Limpieza y Responsabilidades** — medidos: cero colores a fuego, cero
+      radios a mano. Lo que había eran tres transiciones (dos con `all`) y el
+      `Select` de MUI de Limpieza, ya convertido más arriba.
+- [x] **Visita del CO** — medido hoy: cero colores a fuego, cero transiciones
+      a mano, cero radios, cero tamaños fuera de escala. Lo de "40 y 56px en
+      casi todas las filas" se arregló en el repaso de márgenes de esa página.
+- [x] **Personas** y catálogo de oradores — lo gordo fue de teclado (las 100
+      fichas, arriba). Lo demás: once transiciones a mano en siete ficheros,
+      todas a tokens.
+- [x] **Importar/exportar** — no era "muy malo": tres naranjas congelados
+      (`rgba(255,152,0,…)`, que no siguen al tema) a `color-mix` sobre
+      `--orange-main`, un círculo con `50%` y una transición.
+- [x] **Informes** — confirmado que la estructura está sana: solo dos
+      transiciones a mano en toda la zona. La duplicación que menciona el
+      inventario es de lógica, no de estilo, y no es este trabajo.
+- [x] Ayuda, Materiales de reunión, Perfil, Recordatorios — dos círculos con
+      `50%`, cinco transiciones (dos con `all` y una con curva de rebote) y un
+      naranja congelado en el aviso de notificación.
 - [x] **Territorios** — auditado por fin (27 ficheros, 12.330 líneas). El susto
       era mayor que la realidad: de 213 marcas brutas, **111 eran FALSAS de
       golpe** — mi comprobación de "MUI en crudo" miraba el nombre de la

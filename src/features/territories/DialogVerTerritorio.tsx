@@ -776,7 +776,7 @@ const DialogVerTerritorio = ({
           // 380ms, más que `--motion-medium`, a propósito: una hoja que ocupa media
           // pantalla necesita más recorrido que un color de fondo. La CURVA sí es
           // la del sistema.
-          transition: 'height 380ms var(--ease-emphasized)',
+          transition: 'height var(--motion-medium) var(--ease-standard)',
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'var(--white)',

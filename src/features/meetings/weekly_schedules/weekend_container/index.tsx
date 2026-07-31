@@ -94,7 +94,8 @@ const WeekendContainer = ({
                 border: '1px solid var(--accent-200)',
                 backgroundColor: 'var(--accent-100)',
                 cursor: 'pointer',
-                transition: 'background-color 0.2s ease',
+                transition:
+                  'background-color var(--motion-fast) var(--ease-standard)',
                 '&:hover': { backgroundColor: 'var(--accent-200)' },
               }}
             >

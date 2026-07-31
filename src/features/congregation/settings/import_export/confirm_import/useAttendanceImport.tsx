@@ -14,7 +14,6 @@ const useAttendanceImport = () => {
     // que no viene. Ver import_guard.
     if (importWouldWipeTable(attendances, oldAttendances)) return [];
 
-
     for (const oldAttendance of oldAttendances) {
       const newAttendance = attendances.find(
         (record) => record.month_date === oldAttendance.month_date

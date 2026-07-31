@@ -96,7 +96,10 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
               fontWeight: 700,
               color: 'var(--ink)',
               letterSpacing: '-0.01em',
-              fontSize: '17px',
+              // 16, que es el escalón de la escala (h3). Decía 17, que no
+              // existe en la app — y hasta el arreglo de §6.4d ni siquiera se
+              // veía: la clase mandaba y salía a 15.
+              fontSize: '16px',
             }}
           >
             {t(activeView.labelKey, activeView.fallback)}
@@ -105,7 +108,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
         <IconArrowDown
           color="var(--ink-3)"
           sx={{
-            transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform var(--motion-fast) var(--ease-standard)',
             transform: openMenu ? 'rotate(180deg)' : 'none',
           }}
         />
@@ -128,10 +131,13 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
             padding: '14px 18px',
             margin: '6px 8px',
             borderRadius: 'var(--shape-md)',
-            transition: 'all 0.15s ease',
+            // Sin `all`: animaba también el relleno y el radio, o sea que
+            // cada apertura del menú traía un temblor de 150ms.
+            transition:
+              'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
             color: 'var(--ink-2)',
             '&:hover': {
-              backgroundColor: 'rgba(var(--black-base), 0.04)',
+              backgroundColor: 'var(--state-hover)',
               color: 'var(--ink)',
             },
             '&.Mui-selected': {

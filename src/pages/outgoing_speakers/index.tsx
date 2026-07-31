@@ -12,6 +12,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
+import { monthShortNamesState } from '@states/app';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
@@ -64,6 +65,7 @@ const OutgoingSpeakersPage = () => {
   const schedules = useAtomValue(schedulesState);
   const publicTalks = useAtomValue(publicTalksState);
   const lang = useAtomValue(JWLangState);
+  const monthShortNames = useAtomValue(monthShortNamesState);
   const sourceLang = useAtomValue(JWLangLocaleState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const congName = useAtomValue(headerForScheduleState);
@@ -72,9 +74,15 @@ const OutgoingSpeakersPage = () => {
   // States
   const [activeTab, setActiveTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'alphabetical' | 'last_assignment'>('alphabetical');
-  const [talksExpanded, setTalksExpanded] = useState<Record<string, boolean>>({});
-  const [historyExpanded, setHistoryExpanded] = useState<Record<string, boolean>>({});
+  const [sortBy, setSortBy] = useState<'alphabetical' | 'last_assignment'>(
+    'alphabetical'
+  );
+  const [talksExpanded, setTalksExpanded] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [historyExpanded, setHistoryExpanded] = useState<
+    Record<string, boolean>
+  >({});
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
@@ -106,7 +114,9 @@ const OutgoingSpeakersPage = () => {
 
       // Check if we have a schedule for the current week
       const exactMatch = schedules.find(
-        (record) => record.weekOf === currentWeekSlash || record.weekOf === currentWeekDash
+        (record) =>
+          record.weekOf === currentWeekSlash ||
+          record.weekOf === currentWeekDash
       );
 
       if (exactMatch) {
@@ -251,7 +261,11 @@ const OutgoingSpeakersPage = () => {
   }, [selectedYear]);
 
   const groupedWeeks = useMemo(() => {
-    const groups: Array<{ month: string; monthLabel: string; weeks: string[] }> = [];
+    const groups: Array<{
+      month: string;
+      monthLabel: string;
+      weeks: string[];
+    }> = [];
 
     const mesesEs = [...MESES_ES];
 
@@ -348,7 +362,6 @@ const OutgoingSpeakersPage = () => {
     return `Semana del ${date.getDate()} de ${mesesEs[date.getMonth()]} de ${date.getFullYear()}`;
   }, [selectedWeek]);
 
-
   // PWA Sync handler
   const handleForceSync = () => {
     worker.postMessage('startWorker');
@@ -440,10 +453,14 @@ const OutgoingSpeakersPage = () => {
           fullnameOption
         ).toLowerCase();
 
-        const preparedTalks = speaker.speaker_data.talks.filter((t) => !t._deleted);
+        const preparedTalks = speaker.speaker_data.talks.filter(
+          (t) => !t._deleted
+        );
         const hasTalkMatch = preparedTalks.some((t) => {
           const numMatch = t.talk_number.toString().includes(q);
-          const pt = publicTalks.find((talk) => talk.talk_number === t.talk_number);
+          const pt = publicTalks.find(
+            (talk) => talk.talk_number === t.talk_number
+          );
           const titleMatch = pt?.talk_title?.[lang]?.toLowerCase().includes(q);
           return numMatch || titleMatch;
         });
@@ -540,11 +557,19 @@ const OutgoingSpeakersPage = () => {
         open={isExportOpen}
         sx={{ padding: '24px', position: 'relative' }}
       >
-        <Box sx={{ display: 'flex', gap: '24px', flexDirection: 'column', width: '100%' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '24px',
+            flexDirection: 'column',
+            width: '100%',
+          }}
+        >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Typography className="h2">{t('tr_export', 'Exportar')}</Typography>
             <Typography color="var(--grey-400)">
-              Selecciona el rango de semanas para el cronograma de salidas de oradores.
+              Selecciona el rango de semanas para el cronograma de salidas de
+              oradores.
             </Typography>
           </Box>
 
@@ -555,7 +580,15 @@ const OutgoingSpeakersPage = () => {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', mt: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
+            mt: 3,
+          }}
+        >
           <Button variant="tertiary" onClick={() => setIsExportOpen(false)}>
             {t('tr_cancel', 'Cancelar')}
           </Button>
@@ -598,7 +631,15 @@ const OutgoingSpeakersPage = () => {
       {activeTab === 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Search and Sort controls */}
-          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', mt: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: '16px',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              mt: 1,
+            }}
+          >
             {/* El MISMO buscador que en Ayuda, Discursos públicos, Personas o
                 Ausencias. Estaba escrito aquí a mano con otro radio, otro
                 fondo y sin botón de limpiar: era el único de la aplicación
@@ -656,7 +697,9 @@ const OutgoingSpeakersPage = () => {
                 );
                 const isElder = speaker.speaker_data.elder.value;
                 const isMS = speaker.speaker_data.ministerial_servant.value;
-                const preparedTalks = speaker.speaker_data.talks.filter((t) => !t._deleted);
+                const preparedTalks = speaker.speaker_data.talks.filter(
+                  (t) => !t._deleted
+                );
                 const history = speakersAssignments[speaker.person_uid] || [];
 
                 const showTalks = !!talksExpanded[speaker.person_uid];
@@ -676,14 +719,35 @@ const OutgoingSpeakersPage = () => {
                       boxShadow: 'var(--shadow-sm)',
                     }}
                   >
-                    <CardContent sx={{ p: 0, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <CardContent
+                      sx={{
+                        p: 0,
+                        flexGrow: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                      }}
+                    >
                       {/* Header: Name and badges */}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          flexWrap: 'wrap',
+                          gap: 1,
+                        }}
+                      >
                         <Box>
-                          <Typography className="h2">
-                            {displayName}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: '8px', mt: 0.5, flexWrap: 'wrap' }}>
+                          <Typography className="h2">{displayName}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              gap: '8px',
+                              mt: 0.5,
+                              flexWrap: 'wrap',
+                            }}
+                          >
                             {isElder && <MiniChip label="Anciano" />}
                             {isMS && <MiniChip label="Siervo ministerial" />}
                             {!isElder && !isMS && <MiniChip label="Orador" />}
@@ -735,20 +799,43 @@ const OutgoingSpeakersPage = () => {
                             }}
                           />
                         </Box>
-                        <Collapse in={showTalks} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
+                        <Collapse
+                          in={showTalks}
+                          timeout="auto"
+                          unmountOnExit
+                          sx={{ mt: 1, px: 1 }}
+                        >
                           {preparedTalks.length === 0 ? (
-                            <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
+                            <Typography
+                              color="var(--grey-400)"
+                              sx={{ fontStyle: 'italic' }}
+                            >
                               Ningún discurso configurado en el catálogo.
                             </Typography>
                           ) : (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.5,
+                              }}
+                            >
                               {preparedTalks.map((t) => {
-                                const pTalk = publicTalks.find((pt) => pt.talk_number === t.talk_number);
+                                const pTalk = publicTalks.find(
+                                  (pt) => pt.talk_number === t.talk_number
+                                );
                                 const title = pTalk?.talk_title?.[lang] ?? '';
                                 return (
-                                  <Tooltip title={title} key={t.talk_number} arrow>
+                                  <Tooltip
+                                    title={title}
+                                    key={t.talk_number}
+                                    arrow
+                                  >
                                     <Box sx={{ display: 'inline-block' }}>
-                                      <MiniChip label={`${t.talk_number}`} edit={false} />
+                                      <MiniChip
+                                        label={`${t.talk_number}`}
+                                        edit={false}
+                                      />
                                     </Box>
                                   </Tooltip>
                                 );
@@ -800,13 +887,28 @@ const OutgoingSpeakersPage = () => {
                             }}
                           />
                         </Box>
-                        <Collapse in={showHistory} timeout="auto" unmountOnExit sx={{ mt: 1, px: 1 }}>
+                        <Collapse
+                          in={showHistory}
+                          timeout="auto"
+                          unmountOnExit
+                          sx={{ mt: 1, px: 1 }}
+                        >
                           {history.length === 0 ? (
-                            <Typography color="var(--grey-400)" sx={{ fontStyle: 'italic' }}>
+                            <Typography
+                              color="var(--grey-400)"
+                              sx={{ fontStyle: 'italic' }}
+                            >
                               Sin salidas programadas.
                             </Typography>
                           ) : (
-                            <List disablePadding sx={{ maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
+                            <List
+                              disablePadding
+                              sx={{
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                pr: 1,
+                              }}
+                            >
                               {history.map((assignment, index) => (
                                 <ListItem
                                   key={`${assignment.weekOf}-${index}`}
@@ -816,19 +918,38 @@ const OutgoingSpeakersPage = () => {
                                     flexDirection: 'column',
                                     alignItems: 'flex-start',
                                     py: 1,
-                                    borderBottom: index < history.length - 1 ? '1px solid var(--accent-100)' : 'none',
+                                    borderBottom:
+                                      index < history.length - 1
+                                        ? '1px solid var(--accent-100)'
+                                        : 'none',
                                   }}
                                 >
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      width: '100%',
+                                      alignItems: 'center',
+                                    }}
+                                  >
                                     <Typography className="h4">
                                       {assignment.congregationName}
                                     </Typography>
-                                    <Typography className="label-small-regular" color="var(--grey-400)">
+                                    <Typography
+                                      className="label-small-regular"
+                                      color="var(--grey-400)"
+                                    >
                                       {assignment.formattedDate}
                                     </Typography>
                                   </Box>
-                                  <Typography className="body-small-regular" color="var(--grey-500)" sx={{ mt: 0.5 }}>
-                                    Tema {assignment.talkNumber}: {assignment.talkTitle || 'Cántico ' + assignment.songNumber}
+                                  <Typography
+                                    className="body-small-regular"
+                                    color="var(--grey-500)"
+                                    sx={{ mt: 0.5 }}
+                                  >
+                                    Tema {assignment.talkNumber}:{' '}
+                                    {assignment.talkTitle ||
+                                      'Cántico ' + assignment.songNumber}
                                   </Typography>
                                 </ListItem>
                               ))}
@@ -868,7 +989,8 @@ const OutgoingSpeakersPage = () => {
                             borderRadius: 'var(--shape-sm)',
                           }}
                           onClick={() => {
-                            const targetWeek = history[0]?.weekOf || (schedules[0]?.weekOf || '');
+                            const targetWeek =
+                              history[0]?.weekOf || schedules[0]?.weekOf || '';
                             if (targetWeek) {
                               setSelectedWeek(targetWeek);
                               const normalised = targetWeek.replace(/\//g, '-');
@@ -944,9 +1066,15 @@ const OutgoingSpeakersPage = () => {
             >
               <Typography
                 className="body-small-semibold"
-                sx={{ color: 'var(--accent-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                sx={{
+                  color: 'var(--accent-dark)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
               >
-                {t('tr_week')}: <span style={{ fontWeight: '700' }}>{selectedWeekLabel}</span>
+                {t('tr_week')}:{' '}
+                <span style={{ fontWeight: '700' }}>{selectedWeekLabel}</span>
               </Typography>
               <Box
                 sx={{
@@ -985,13 +1113,22 @@ const OutgoingSpeakersPage = () => {
                 overflowY: 'auto',
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <Typography className="h2">
-                  Programa
-                </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 0.5,
+                }}
+              >
+                <Typography className="h2">Programa</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <IconButton
-                    onClick={() => setMonthSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                    onClick={() =>
+                      setMonthSortOrder((prev) =>
+                        prev === 'desc' ? 'asc' : 'desc'
+                      )
+                    }
                     sx={{
                       color: 'var(--accent-main)',
                       padding: '4px',
@@ -1084,25 +1221,45 @@ const OutgoingSpeakersPage = () => {
                         </Box>
 
                         {/* Week items inside month */}
-                        <Collapse in={isMonthExpanded} timeout="auto" unmountOnExit>
-                          <List disablePadding sx={{ pb: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <Collapse
+                          in={isMonthExpanded}
+                          timeout="auto"
+                          unmountOnExit
+                        >
+                          <List
+                            disablePadding
+                            sx={{
+                              pb: 1,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px',
+                            }}
+                          >
                             {group.weeks.map((weekOf) => {
                               const normWeekOf = weekOf.replace(/\//g, '-');
-                              const schedule = schedules.find((s) => s.weekOf.replace(/\//g, '-') === normWeekOf);
+                              const schedule = schedules.find(
+                                (s) =>
+                                  s.weekOf.replace(/\//g, '-') === normWeekOf
+                              );
                               const assignmentsCount =
-                                schedule?.weekend_meeting?.outgoing_talks?.filter((t) => !t._deleted).length || 0;
-                              const isSelected = selectedWeek?.replace(/\//g, '-') === normWeekOf;
+                                schedule?.weekend_meeting?.outgoing_talks?.filter(
+                                  (t) => !t._deleted
+                                ).length || 0;
+                              const isSelected =
+                                selectedWeek?.replace(/\//g, '-') ===
+                                normWeekOf;
 
                               // Format date: e.g. "19 may." — normalise YYYY/MM/DD → YYYY-MM-DD
                               const normalisedWeek = weekOf.replace(/\//g, '-');
                               const d = new Date(normalisedWeek + 'T12:00:00');
-                              const mesesCortos = [
-                                'ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.',
-                                'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.',
-                              ];
+                              // Los nombres de mes vienen del diccionario, no
+                              // de un array aquí: éste era el DECIMOCUARTO
+                              // escrito a mano de la app, y encima el único que
+                              // se saltaba la traducción — en cualquier idioma
+                              // que no fuera español seguía diciendo "ene.".
                               const weekLabel = isNaN(d.getTime())
                                 ? weekOf
-                                : `${d.getDate()} ${mesesCortos[d.getMonth()]}`;
+                                : `${d.getDate()} ${monthShortNames[d.getMonth()]}`;
 
                               return (
                                 <ListItem
@@ -1117,20 +1274,48 @@ const OutgoingSpeakersPage = () => {
                                   }}
                                   sx={{
                                     borderRadius: 'var(--shape-sm)',
-                                    backgroundColor: isSelected ? 'var(--accent-100)' : 'transparent',
+                                    backgroundColor: isSelected
+                                      ? 'var(--accent-100)'
+                                      : 'transparent',
                                     border: isSelected
                                       ? '1px solid var(--line)'
                                       : '1px solid transparent',
                                     cursor: 'pointer',
-                                    transition: 'all 0.15s',
+                                    // Por tokens, y no `all`: `all` anima
+                                    // también el tamaño y la posición, así que
+                                    // cualquier recolocación de la lista se
+                                    // convierte en un temblor de 150ms.
+                                    transition:
+                                      'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
+                                    // El pasar el ratón se NOTA. Las dos ramas
+                                    // del ternario que había aquí devolvían el
+                                    // mismo color, así que sobre una semana sin
+                                    // elegir no cambiaba nada: el efecto estaba
+                                    // escrito y no existía.
                                     '&:hover': {
                                       backgroundColor: isSelected
-                                        ? 'var(--accent-100)'
-                                        : 'var(--accent-100)',
+                                        ? 'var(--accent-150)'
+                                        : 'var(--state-hover)',
                                     },
                                   }}
                                 >
+                                  {/* La fila entera es el botón. Era un `Box`
+                                      dentro de un `ListItem` con `onClick`, o
+                                      sea que elegir una semana solo se podía
+                                      con el ratón — y es LA acción de este
+                                      panel: sin elegir semana no se programa
+                                      nada.
+                                      No lo cazó el barrido de teclado porque
+                                      estas filas viven dentro de un `Collapse`
+                                      y solo existen cuando el mes está
+                                      desplegado; lo que no está pintado no se
+                                      puede medir. */}
                                   <Box
+                                    component="button"
+                                    type="button"
+                                    aria-current={
+                                      isSelected ? 'true' : undefined
+                                    }
                                     sx={{
                                       display: 'flex',
                                       justifyContent: 'space-between',
@@ -1138,18 +1323,34 @@ const OutgoingSpeakersPage = () => {
                                       width: '100%',
                                       px: 2,
                                       py: 1,
+                                      appearance: 'none',
+                                      background: 'none',
+                                      border: 'none',
+                                      font: 'inherit',
+                                      cursor: 'pointer',
+                                      '&:focus-visible': {
+                                        outline: '2px solid var(--accent-main)',
+                                        outlineOffset: '-2px',
+                                        borderRadius: 'var(--shape-sm)',
+                                      },
                                     }}
                                   >
                                     <Typography
-                                      className={isSelected ? 'body-small-semibold' : 'body-small-regular'}
-                                      color={isSelected ? 'var(--accent-main)' : 'var(--black)'}
+                                      className={
+                                        isSelected
+                                          ? 'body-small-semibold'
+                                          : 'body-small-regular'
+                                      }
+                                      color={
+                                        isSelected
+                                          ? 'var(--accent-main)'
+                                          : 'var(--black)'
+                                      }
                                     >
                                       {weekLabel}
                                     </Typography>
                                     {assignmentsCount > 0 && (
-                                      <MiniChip
-                                        label={`${assignmentsCount}`}
-                                      />
+                                      <MiniChip label={`${assignmentsCount}`} />
                                     )}
                                   </Box>
                                 </ListItem>
@@ -1195,7 +1396,10 @@ const OutgoingSpeakersPage = () => {
                     border: '1px solid var(--line)',
                   }}
                 >
-                  <Typography className="body-regular-semibold" color="var(--accent-main)">
+                  <Typography
+                    className="body-regular-semibold"
+                    color="var(--accent-main)"
+                  >
                     {selectedWeekLabel}
                   </Typography>
                 </Box>
@@ -1205,7 +1409,8 @@ const OutgoingSpeakersPage = () => {
             ) : (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <Typography color="var(--grey-400)">
-                  Selecciona una semana en la lista lateral para programar las salidas.
+                  Selecciona una semana en la lista lateral para programar las
+                  salidas.
                 </Typography>
               </Box>
             )}

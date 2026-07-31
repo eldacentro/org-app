@@ -4,11 +4,7 @@ import { useAtomValue } from 'jotai';
 import { isAppDataSyncingState, lastAppDataSyncState } from '@states/app';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
-import {
-  IconExpand,
-  IconHeaderAccount,
-  IconNoConnection,
-} from '@icons/index';
+import { IconExpand, IconHeaderAccount, IconNoConnection } from '@icons/index';
 import { useAccountHeaderIcon } from './useAccountHeaderIcon';
 import { isTest } from '@constants/index';
 
@@ -42,7 +38,9 @@ const AccountHeaderIcon = ({
   const isPendingSync = useLiveQuery(async () => {
     const metadata = await appDb.metadata.get(1);
     if (!metadata) return false;
-    return Object.values(metadata.metadata).some((table) => table.send_local === true);
+    return Object.values(metadata.metadata).some(
+      (table) => table.send_local === true
+    );
   }, []);
 
   // Confirmación sutil de "todo actualizado": al terminar CUALQUIER ciclo de
@@ -150,7 +148,11 @@ const AccountHeaderIcon = ({
                   'linear-gradient(180deg, rgba(var(--red-main-base), 0) 0%, var(--red-main) 100%)',
               }}
             >
-              <IconNoConnection color="var(--always-white)" width={12} height={12} />
+              <IconNoConnection
+                color="var(--always-white)"
+                width={12}
+                height={12}
+              />
             </Box>
           )}
         </Box>
@@ -169,17 +171,20 @@ const AccountHeaderIcon = ({
               top: -2,
               left: -2,
               color: 'var(--accent-main)',
-              zIndex: 1
+              zIndex: 1,
             }}
           />
         ) : isPendingSync ? (
           <Box
             sx={{
               position: 'absolute',
-              top: -2, left: -2, right: -2, bottom: -2,
+              top: -2,
+              left: -2,
+              right: -2,
+              bottom: -2,
               borderRadius: '50%',
               border: '2px solid var(--orange-main)',
-              zIndex: 1
+              zIndex: 1,
             }}
           />
         ) : showSynced ? (
@@ -202,7 +207,7 @@ const AccountHeaderIcon = ({
         width={16}
         color="var(--accent-400)"
         sx={{
-          transition: 'transform 0.3s',
+          transition: 'transform var(--motion-medium) var(--ease-standard)',
           transform: isMoreOpen ? 'rotate(180deg)' : 'none',
         }}
       />

@@ -28,13 +28,27 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
               {group.overseer && (
                 <View style={styles.overseerRow}>
                   <Text style={styles.overseerLabel}>SUP.</Text>
-                  <Text style={[styles.overseerName, group.overseer.isPioneer && { fontWeight: 700 }]}>{group.overseer.name}</Text>
+                  <Text
+                    style={[
+                      styles.overseerName,
+                      group.overseer.isPioneer && { fontWeight: 700 },
+                    ]}
+                  >
+                    {group.overseer.name}
+                  </Text>
                 </View>
               )}
               {group.overseerAssistant && (
                 <View style={styles.overseerRow}>
                   <Text style={styles.overseerLabel}>AUX.</Text>
-                  <Text style={[styles.overseerName, group.overseerAssistant.isPioneer && { fontWeight: 700 }]}>{group.overseerAssistant.name}</Text>
+                  <Text
+                    style={[
+                      styles.overseerName,
+                      group.overseerAssistant.isPioneer && { fontWeight: 700 },
+                    ]}
+                  >
+                    {group.overseerAssistant.name}
+                  </Text>
                 </View>
               )}
             </View>

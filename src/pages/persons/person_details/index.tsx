@@ -107,8 +107,6 @@ const PersonDetails = () => {
           <PersonEmergencyContacts />
         </Box>
       </Box>
-
-
     </Box>
   );
 };

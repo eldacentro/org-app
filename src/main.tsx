@@ -94,7 +94,10 @@ if (window.location.hash.startsWith('#/t/')) {
       const body = document.createElement('p');
       body.textContent =
         'Comprueba tu conexión y vuelve a intentarlo. Si acaba de actualizarse la aplicación, recargar suele bastar.';
-      body.setAttribute('style', 'font-size:15px;margin:0;max-width:34ch;line-height:1.5;');
+      body.setAttribute(
+        'style',
+        'font-size:15px;margin:0;max-width:34ch;line-height:1.5;'
+      );
       const retry = document.createElement('button');
       retry.textContent = 'Reintentar';
       retry.setAttribute(
@@ -111,53 +114,53 @@ if (window.location.hash.startsWith('#/t/')) {
 }
 
 function bootstrapApp() {
-// Fire-and-forget: opens the local DB early so a fatal VersionError can
-// auto-recover (delete + reload) before it bricks startup. Not awaited so a
-// healthy DB never delays first paint — see initDbWithRecovery.
-initDbWithRecovery();
+  // Fire-and-forget: opens the local DB early so a fatal VersionError can
+  // auto-recover (delete + reload) before it bricks startup. Not awaited so a
+  // healthy DB never delays first paint — see initDbWithRecovery.
+  initDbWithRecovery();
 
-const root = createRoot(container, {
-  onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
-    console.warn('Uncaught error', error, errorInfo.componentStack);
-  }),
-  onCaughtError: Sentry.reactErrorHandler(),
-  onRecoverableError: Sentry.reactErrorHandler(),
-});
+  const root = createRoot(container, {
+    onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
+      console.warn('Uncaught error', error, errorInfo.componentStack);
+    }),
+    onCaughtError: Sentry.reactErrorHandler(),
+    onRecoverableError: Sentry.reactErrorHandler(),
+  });
 
-if (navigator.storage && navigator.storage.persist) {
-  navigator.storage.persist().then((granted) => {
-    if (granted) {
-      console.info('Storage persistence granted.');
-    } else {
-      console.warn('Storage persistence not granted.');
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().then((granted) => {
+      if (granted) {
+        console.info('Storage persistence granted.');
+      } else {
+        console.warn('Storage persistence not granted.');
+      }
+    });
+  }
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const errorName = event.reason?.name || event.reason?.inner?.name || '';
+    if (
+      errorName === 'QuotaExceededError' ||
+      errorName === 'DexieError' ||
+      event.reason?.message?.includes('QuotaExceededError')
+    ) {
+      import('@services/states/app').then(
+        ({ displaySnackNotification, setOfflineOverride }) => {
+          displaySnackNotification({
+            header: 'Almacenamiento lleno',
+            message:
+              'No hay espacio en el dispositivo. Libere espacio para asegurar el guardado de datos.',
+            severity: 'error',
+          });
+          setOfflineOverride(true);
+        }
+      );
     }
   });
-}
 
-window.addEventListener('unhandledrejection', (event) => {
-  const errorName = event.reason?.name || event.reason?.inner?.name || '';
-  if (
-    errorName === 'QuotaExceededError' ||
-    errorName === 'DexieError' ||
-    event.reason?.message?.includes('QuotaExceededError')
-  ) {
-    import('@services/states/app').then(
-      ({ displaySnackNotification, setOfflineOverride }) => {
-        displaySnackNotification({
-          header: 'Almacenamiento lleno',
-          message:
-            'No hay espacio en el dispositivo. Libere espacio para asegurar el guardado de datos.',
-          severity: 'error',
-        });
-        setOfflineOverride(true);
-      }
-    );
-  }
-});
-
-root.render(
-  <React.StrictMode>
-    <AppRoot />
-  </React.StrictMode>
-);
+  root.render(
+    <React.StrictMode>
+      <AppRoot />
+    </React.StrictMode>
+  );
 }

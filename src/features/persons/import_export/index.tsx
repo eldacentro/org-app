@@ -151,7 +151,8 @@ const ImportExport = (props: ImportExportType) => {
                     order: 1,
                     flexGrow: 0,
                     transform: tipsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
+                    transition:
+                      'transform var(--motion-fast) var(--ease-standard)',
                   }}
                 />
               </Box>

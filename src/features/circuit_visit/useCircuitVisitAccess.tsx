@@ -37,8 +37,7 @@ export const useCircuitVisitAccess = () => {
       relevantVisit.meals.some((m) => m.host === myUid) ||
       relevantVisit.co_companions.some(
         (c) =>
-          c.brother === myUid ||
-          (c.spouse_companions ?? []).includes(myUid)
+          c.brother === myUid || (c.spouse_companions ?? []).includes(myUid)
       ) ||
       (relevantVisit.shepherding_visits ?? []).some(
         (s) => s.brother === myUid || s.elder === myUid
@@ -52,7 +51,10 @@ export const useCircuitVisitAccess = () => {
     if (!relevantVisit) return 'none';
     if (hasPersonalAssignment) return 'public';
 
-    const unlockDate = addDays(new Date(relevantVisit.date_start), -PUBLIC_PREVIEW_DAYS);
+    const unlockDate = addDays(
+      new Date(relevantVisit.date_start),
+      -PUBLIC_PREVIEW_DAYS
+    );
     return new Date() >= unlockDate ? 'public' : 'none';
   }, [canManage, isElder, relevantVisit, hasPersonalAssignment]);
 

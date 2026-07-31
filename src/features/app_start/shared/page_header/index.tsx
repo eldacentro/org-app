@@ -24,7 +24,8 @@ const PageHeader = ({
         }}
       >
         {onClick && (
-          <IconButton aria-label="Atrás"
+          <IconButton
+            aria-label="Atrás"
             sx={{
               margin: 0,
               marginLeft: '-8px',
@@ -38,7 +39,7 @@ const PageHeader = ({
                 },
               },
               '& svg': {
-                transition: 'transform 0.2s ease-in-out',
+                transition: 'transform var(--motion-fast) var(--ease-standard)',
               },
             }}
             onClick={onClick}

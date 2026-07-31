@@ -9,7 +9,10 @@ import { IconClose } from '@components/icons';
 import { congIDState, congMasterKeyState } from '@states/settings';
 import { territoriesState, territorySettingsState } from '@states/territories';
 import { TerritoryAssignment } from '@definition/territories';
-import { finalizeAssignmentBatch, saveNotice } from '@services/firebase/territories';
+import {
+  finalizeAssignmentBatch,
+  saveNotice,
+} from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -52,7 +55,9 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
     // No cargar una nota que este dispositivo no puede descifrar: al
     // guardar se cifraría por segunda vez y quedaría ilegible.
     if (assignment)
-      setNota(isStillEncrypted(assignment.notas) ? '' : (assignment.notas ?? ''));
+      setNota(
+        isStillEncrypted(assignment.notas) ? '' : (assignment.notas ?? '')
+      );
   }, [assignment]);
 
   if (!assignment) return null;
@@ -83,7 +88,8 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
     try {
       const now = new Date().toISOString();
       const key = masterKey ?? '';
-      const territory = territories.find((t) => t.id === assignment.territoryId) ?? null;
+      const territory =
+        territories.find((t) => t.id === assignment.territoryId) ?? null;
 
       // Un único batch garantiza que la asignación y lastWorkedAt se actualizan
       // de forma atómica — sin riesgo de inconsistencia si falla la red entre writes.
@@ -115,7 +121,9 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
         }
 
         if (targets.length > 0) {
-          const tLabel = territory ? territoryLabel(territory) : 'Un territorio';
+          const tLabel = territory
+            ? territoryLabel(territory)
+            : 'Un territorio';
           const msg = `${resolveName(assignment.personUid)} devolvió ${tLabel} sin trabajar.${nota.trim() ? ' Hay una nota.' : ''}`;
 
           try {
@@ -155,13 +163,18 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
       if (notifyManagersFailed) {
         displaySnackNotification({
           header: 'Territorio devuelto',
-          message: 'No se pudo avisar a los responsables. La devolución ya quedó registrada, pero conviene avisarles por otra vía.',
+          message:
+            'No se pudo avisar a los responsables. La devolución ya quedó registrada, pero conviene avisarles por otra vía.',
           severity: 'error',
         });
       }
     } catch (error) {
       console.error(error);
-      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message: (error as Error).message || 'Ocurrió un error inesperado',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -182,7 +195,12 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Stack
+          direction="row"
+          alignItems="flex-start"
+          justifyContent="space-between"
+          sx={{ mb: 1 }}
+        >
           <Typography className="h2" sx={{ color: 'var(--ink)' }}>
             Entregar territorio
           </Typography>
@@ -203,7 +221,11 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
             <IconClose width={15} height={15} />
           </IconButton>
         </Stack>
-        <Typography className="body-small-regular" color="var(--ink-2)" sx={{ mb: 2 }}>
+        <Typography
+          className="body-small-regular"
+          color="var(--ink-2)"
+          sx={{ mb: 2 }}
+        >
           Indica si el territorio fue trabajado o si lo devuelves sin trabajar.
           Puedes añadir una nota opcional.
         </Typography>

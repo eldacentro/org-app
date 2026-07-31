@@ -138,7 +138,11 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
         </Typography>
 
         {props.type === 'edit' && !tabletUp && (
-          <IconButton aria-label="Eliminar" onClick={handleDeleteEvent} color="error">
+          <IconButton
+            aria-label="Eliminar"
+            onClick={handleDeleteEvent}
+            color="error"
+          >
             <IconDelete color="var(--red-main)" height={20} width={20} />
           </IconButton>
         )}
@@ -345,7 +349,8 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
           />
         )}
 
-        {localEvent.event_data.duration === UpcomingEventDuration.MultipleDays &&
+        {localEvent.event_data.duration ===
+          UpcomingEventDuration.MultipleDays &&
           dailyTimesList.length > 0 && (
             <Box
               sx={{
@@ -354,7 +359,10 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                 gap: '12px',
               }}
             >
-              <Typography className="body-small-semibold" color="var(--grey-400)">
+              <Typography
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
                 {t('tr_dailyTimesTitle', 'Horario de cada día')}
               </Typography>
 
@@ -453,7 +461,10 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                 gap: '12px',
               }}
             >
-              <Typography className="body-small-semibold" color="var(--grey-400)">
+              <Typography
+                className="body-small-semibold"
+                color="var(--grey-400)"
+              >
                 {t('tr_coverPhoto')}
               </Typography>
 
@@ -466,7 +477,11 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
                   flexWrap: 'wrap',
                 }}
               >
-                <label style={{ cursor: uploadingCoverPhoto ? 'default' : 'pointer' }}>
+                <label
+                  style={{
+                    cursor: uploadingCoverPhoto ? 'default' : 'pointer',
+                  }}
+                >
                   <Box
                     sx={{
                       padding: '8px 16px',

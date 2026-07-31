@@ -34,7 +34,10 @@ const YearlyChart = ({ year }: { year: string }) => {
 
   if (months.length === 0) return null;
 
-  const maxHours = Math.max(1, ...months.map((m) => Math.max(m.hours, m.goal || 0)));
+  const maxHours = Math.max(
+    1,
+    ...months.map((m) => Math.max(m.hours, m.goal || 0))
+  );
   const colWidth = CHART_W / months.length;
   const barWidth = Math.min(26, colWidth * 0.5);
   const barRadius = 5;
@@ -66,7 +69,6 @@ const YearlyChart = ({ year }: { year: string }) => {
           role="img"
           aria-label={t('tr_yearlyChartTitle', 'Horas por mes')}
         >
-
           <line
             x1={0}
             y1={BASELINE}
@@ -78,7 +80,10 @@ const YearlyChart = ({ year }: { year: string }) => {
 
           {months.map((item, idx) => {
             const x = idx * colWidth + colWidth / 2;
-            const barH = item.hours > 0 ? Math.max(3, (item.hours / maxHours) * BAR_AREA) : 0;
+            const barH =
+              item.hours > 0
+                ? Math.max(3, (item.hours / maxHours) * BAR_AREA)
+                : 0;
             const barY = BASELINE - barH;
             const state = barState(item);
 

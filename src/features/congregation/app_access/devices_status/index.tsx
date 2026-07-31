@@ -33,7 +33,7 @@ const StatusRow = ({ row }: { row: DeviceStatusRow }) => {
           width: '8px',
           height: '8px',
           minWidth: '8px',
-          borderRadius: '50%',
+          borderRadius: 'var(--shape-full)',
           backgroundColor: color,
         }}
       />
@@ -126,7 +126,7 @@ const DevicesStatus = () => {
             width: '8px',
             height: '8px',
             minWidth: '8px',
-            borderRadius: '50%',
+            borderRadius: 'var(--shape-full)',
             backgroundColor:
               needAttention.length === 0
                 ? 'var(--green-main)'

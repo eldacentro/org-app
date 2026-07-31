@@ -123,8 +123,9 @@ const useSpiritualStatus = () => {
     }
 
     if (!checked) {
-      const current =
-        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
+      const current = findOpenPeriod(
+        newPerson.person_data.midweek_meeting_student.history
+      );
 
       if (current && isAddPerson) {
         newPerson.person_data.midweek_meeting_student.history =
@@ -158,8 +159,9 @@ const useSpiritualStatus = () => {
 
     // update meeting student status if checked is true
     if (checked) {
-      const currentMidweek =
-        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
+      const currentMidweek = findOpenPeriod(
+        newPerson.person_data.midweek_meeting_student.history
+      );
 
       if (currentMidweek) {
         const start_date = formatDate(
@@ -207,7 +209,9 @@ const useSpiritualStatus = () => {
     }
 
     if (!checked) {
-      const current = findOpenPeriod(newPerson.person_data.publisher_unbaptized.history);
+      const current = findOpenPeriod(
+        newPerson.person_data.publisher_unbaptized.history
+      );
 
       if (current && isAddPerson) {
         newPerson.person_data.publisher_unbaptized.history =
@@ -230,8 +234,9 @@ const useSpiritualStatus = () => {
 
     // update previous status if checked is true
     if (checked) {
-      const currentUnbaptized =
-        findOpenPeriod(newPerson.person_data.publisher_unbaptized.history);
+      const currentUnbaptized = findOpenPeriod(
+        newPerson.person_data.publisher_unbaptized.history
+      );
 
       if (currentUnbaptized) {
         const start_date = formatDate(
@@ -266,8 +271,9 @@ const useSpiritualStatus = () => {
           new Date().toISOString();
       }
 
-      const currentMidweek =
-        findOpenPeriod(newPerson.person_data.midweek_meeting_student.history);
+      const currentMidweek = findOpenPeriod(
+        newPerson.person_data.midweek_meeting_student.history
+      );
 
       if (currentMidweek) {
         const start_date = formatDate(
@@ -317,7 +323,9 @@ const useSpiritualStatus = () => {
     }
 
     if (!checked) {
-      const current = findOpenPeriod(newPerson.person_data.publisher_baptized.history);
+      const current = findOpenPeriod(
+        newPerson.person_data.publisher_baptized.history
+      );
 
       if (current && isAddPerson) {
         newPerson.person_data.publisher_baptized.history =

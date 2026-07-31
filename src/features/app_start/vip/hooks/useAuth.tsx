@@ -13,7 +13,10 @@ import {
   vipOnboardingStepState,
 } from '@states/app';
 import { settingsState } from '@states/settings';
-import { dbAppSettingsGet, dbAppSettingsUpdate } from '@services/dexie/settings';
+import {
+  dbAppSettingsGet,
+  dbAppSettingsUpdate,
+} from '@services/dexie/settings';
 import { NextStepType } from './index.types';
 import { settingSchema } from '@services/dexie/schema';
 import { apiSendAuthorization } from '@services/api/user';
@@ -38,15 +41,18 @@ const useAuth = () => {
   const setIsAuthProcessing = useSetAtom(isAuthProcessingState);
   const setSettings = useSetAtom(settingsState);
 
-  const handleAuthorizationError = useCallback(async (message: string) => {
-    displaySnackNotification({
-      header: getTranslation({ key: 'tr_errorTitle' }),
-      message: getMessageByCode(message),
-      severity: 'error',
-    });
+  const handleAuthorizationError = useCallback(
+    async (message: string) => {
+      displaySnackNotification({
+        header: getTranslation({ key: 'tr_errorTitle' }),
+        message: getMessageByCode(message),
+        severity: 'error',
+      });
 
-    setIsAuthProcessing(false);
-  }, [setIsAuthProcessing]);
+      setIsAuthProcessing(false);
+    },
+    [setIsAuthProcessing]
+  );
 
   const handleUnauthorizedUser = useCallback(() => {
     setStep('none');
@@ -175,14 +181,16 @@ const useAuth = () => {
           : app_settings.user_settings.lastname;
 
         await dbAppSettingsUpdate({
-          'user_settings.account_type': app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip',
+          'user_settings.account_type':
+            app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip',
           'user_settings.lastname': lastnameToSave,
           'user_settings.firstname': firstnameToSave,
         });
 
         setSettings((prev) => {
           const next = structuredClone(prev);
-          next.user_settings.account_type = app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip';
+          next.user_settings.account_type =
+            app_settings.user_settings.role === 'pocket' ? 'pocket' : 'vip';
           next.user_settings.lastname = lastnameToSave;
           next.user_settings.firstname = firstnameToSave;
           return next;
@@ -194,7 +202,8 @@ const useAuth = () => {
           freshSettings?.cong_settings?.midweek_meeting ?? []
         );
 
-        for (const midweekRemote of app_settings.cong_settings.midweek_meeting) {
+        for (const midweekRemote of app_settings.cong_settings
+          .midweek_meeting) {
           const midweekLocal = midweekMeeting.find(
             (record) => record.type === midweekRemote.type
           );
@@ -216,7 +225,8 @@ const useAuth = () => {
           freshSettings?.cong_settings?.weekend_meeting ?? []
         );
 
-        for (const weekendRemote of app_settings.cong_settings.weekend_meeting) {
+        for (const weekendRemote of app_settings.cong_settings
+          .weekend_meeting) {
           const weekendLocal = weekendMeeting.find(
             (record) => record.type === weekendRemote.type
           );
@@ -240,9 +250,13 @@ const useAuth = () => {
           'cong_settings.cong_name': app_settings.cong_settings.cong_name,
           'user_settings.cong_role': app_settings.user_settings.cong_role,
           ...(app_settings.user_settings.user_local_uid
-            ? { 'user_settings.user_local_uid': app_settings.user_settings.user_local_uid }
+            ? {
+                'user_settings.user_local_uid':
+                  app_settings.user_settings.user_local_uid,
+              }
             : {}),
-          'cong_settings.cong_location': app_settings.cong_settings.cong_location,
+          'cong_settings.cong_location':
+            app_settings.cong_settings.cong_location,
           'cong_settings.cong_circuit': app_settings.cong_settings.cong_circuit,
           'cong_settings.midweek_meeting': midweekMeeting,
           'cong_settings.weekend_meeting': weekendMeeting,
@@ -257,20 +271,25 @@ const useAuth = () => {
 
         setSettings((prev) => {
           const next = structuredClone(prev);
-          next.cong_settings.country_code = app_settings.cong_settings.country_code;
+          next.cong_settings.country_code =
+            app_settings.cong_settings.country_code;
           next.cong_settings.cong_id = app_settings.cong_settings.id;
           next.cong_settings.cong_name = app_settings.cong_settings.cong_name;
           next.user_settings.cong_role = app_settings.user_settings.cong_role;
           if (app_settings.user_settings.user_local_uid) {
-            next.user_settings.user_local_uid = app_settings.user_settings.user_local_uid;
+            next.user_settings.user_local_uid =
+              app_settings.user_settings.user_local_uid;
           }
-          next.cong_settings.cong_location = app_settings.cong_settings.cong_location;
-          next.cong_settings.cong_circuit = app_settings.cong_settings.cong_circuit;
+          next.cong_settings.cong_location =
+            app_settings.cong_settings.cong_location;
+          next.cong_settings.cong_circuit =
+            app_settings.cong_settings.cong_circuit;
           next.cong_settings.midweek_meeting = midweekMeeting;
           next.cong_settings.weekend_meeting = weekendMeeting;
           next.cong_settings.cong_new = false;
           if (app_settings.cong_settings.cong_access_code_plain) {
-            next.cong_settings.cong_access_code = app_settings.cong_settings.cong_access_code_plain;
+            next.cong_settings.cong_access_code =
+              app_settings.cong_settings.cong_access_code_plain;
           }
           return next;
         });
@@ -291,7 +310,8 @@ const useAuth = () => {
           freshSettings?.cong_settings?.midweek_meeting ?? []
         );
 
-        for (const midweekRemote of app_settings.cong_settings.midweek_meeting) {
+        for (const midweekRemote of app_settings.cong_settings
+          .midweek_meeting) {
           const midweekLocal = midweekMeeting.find(
             (record) => record.type === midweekRemote.type
           );
@@ -313,7 +333,8 @@ const useAuth = () => {
           freshSettings?.cong_settings?.weekend_meeting ?? []
         );
 
-        for (const weekendRemote of app_settings.cong_settings.weekend_meeting) {
+        for (const weekendRemote of app_settings.cong_settings
+          .weekend_meeting) {
           const weekendLocal = weekendMeeting.find(
             (record) => record.type === weekendRemote.type
           );
@@ -332,7 +353,8 @@ const useAuth = () => {
         }
 
         const congID =
-          (freshSettings?.cong_settings?.cong_id) || app_settings.cong_settings.id;
+          freshSettings?.cong_settings?.cong_id ||
+          app_settings.cong_settings.id;
 
         await dbAppSettingsUpdate({
           'cong_settings.country_code': app_settings.cong_settings.country_code,
@@ -348,26 +370,34 @@ const useAuth = () => {
           // Handshake VIP: save the decrypted access code so CongregationEncryption
           // only needs to ask for the master key, not both keys.
           ...(app_settings.cong_settings.cong_access_code_plain
-            ? { 'cong_settings.cong_access_code': app_settings.cong_settings.cong_access_code_plain }
+            ? {
+                'cong_settings.cong_access_code':
+                  app_settings.cong_settings.cong_access_code_plain,
+              }
             : {}),
         });
 
         setSettings((prev) => {
           const next = structuredClone(prev);
-          next.cong_settings.country_code = app_settings.cong_settings.country_code;
+          next.cong_settings.country_code =
+            app_settings.cong_settings.country_code;
           next.cong_settings.cong_id = congID;
           next.cong_settings.cong_name = app_settings.cong_settings.cong_name;
           next.user_settings.cong_role = app_settings.user_settings.cong_role;
           if (app_settings.user_settings.user_local_uid) {
-            next.user_settings.user_local_uid = app_settings.user_settings.user_local_uid;
+            next.user_settings.user_local_uid =
+              app_settings.user_settings.user_local_uid;
           }
-          next.cong_settings.cong_location = app_settings.cong_settings.cong_location;
-          next.cong_settings.cong_circuit = app_settings.cong_settings.cong_circuit;
+          next.cong_settings.cong_location =
+            app_settings.cong_settings.cong_location;
+          next.cong_settings.cong_circuit =
+            app_settings.cong_settings.cong_circuit;
           next.cong_settings.midweek_meeting = midweekMeeting;
           next.cong_settings.weekend_meeting = weekendMeeting;
           next.cong_settings.cong_new = false;
           if (app_settings.cong_settings.cong_access_code_plain) {
-            next.cong_settings.cong_access_code = app_settings.cong_settings.cong_access_code_plain;
+            next.cong_settings.cong_access_code =
+              app_settings.cong_settings.cong_access_code_plain;
           }
           return next;
         });
@@ -386,73 +416,84 @@ const useAuth = () => {
     ]
   );
 
-  const handlePostLogin = useCallback(async (user?: User): Promise<boolean> => {
-    try {
-      setIsAuthProcessing(true);
+  const handlePostLogin = useCallback(
+    async (user?: User): Promise<boolean> => {
+      try {
+        setIsAuthProcessing(true);
 
-      const { status, data } = await apiSendAuthorization(user);
+        const { status, data } = await apiSendAuthorization(user);
 
-      if (status !== 200) {
-        await handleAuthorizationError(data.message);
-        return false;
-      }
-
-      // --- SILENT AUTO-LOGIN HANDSHAKE INJECTION ---
-      // Si el servidor interceptó una invitación y asignó la congregación,
-      // vendrá con el código de acceso encriptado. Lo desencriptamos ahora.
-      if (data?.app_settings?.cong_settings?.encrypted_access_code && user?.email) {
-        try {
-          const decryptedCode = await decryptAccessCodeFromInvite(
-            data.app_settings.cong_settings.encrypted_access_code,
-            user.email
-          );
-          // Lo inyectamos como texto plano para que determineNextStep sepa
-          // que no es necesario pedir la clave (encryption = false).
-          data.app_settings.cong_settings.cong_access_code_plain = decryptedCode;
-
-          // Lo guardamos silenciosamente en Secure Storage de inmediato
-          if (data.id) {
-            const existingKeys = await loadKeysSecurely(data.id);
-            await saveKeysSecurely(data.id, existingKeys?.masterKey || '', decryptedCode);
-          }
-        } catch (err) {
-          console.error('[handlePostLogin] decrypt FAILED:', err);
+        if (status !== 200) {
+          await handleAuthorizationError(data.message);
+          return false;
         }
+
+        // --- SILENT AUTO-LOGIN HANDSHAKE INJECTION ---
+        // Si el servidor interceptó una invitación y asignó la congregación,
+        // vendrá con el código de acceso encriptado. Lo desencriptamos ahora.
+        if (
+          data?.app_settings?.cong_settings?.encrypted_access_code &&
+          user?.email
+        ) {
+          try {
+            const decryptedCode = await decryptAccessCodeFromInvite(
+              data.app_settings.cong_settings.encrypted_access_code,
+              user.email
+            );
+            // Lo inyectamos como texto plano para que determineNextStep sepa
+            // que no es necesario pedir la clave (encryption = false).
+            data.app_settings.cong_settings.cong_access_code_plain =
+              decryptedCode;
+
+            // Lo guardamos silenciosamente en Secure Storage de inmediato
+            if (data.id) {
+              const existingKeys = await loadKeysSecurely(data.id);
+              await saveKeysSecurely(
+                data.id,
+                existingKeys?.masterKey || '',
+                decryptedCode
+              );
+            }
+          } catch (err) {
+            console.error('[handlePostLogin] decrypt FAILED:', err);
+          }
+        }
+
+        const nextStep: NextStepType = determineNextStep(
+          data as UserLoginResponseType
+        );
+
+        if (
+          nextStep.isVerifyMFA ||
+          nextStep.encryption !== undefined ||
+          nextStep.createCongregation
+        ) {
+          await updateUserSettings(data as UserLoginResponseType, nextStep);
+        }
+
+        if (nextStep.unauthorized) {
+          handleUnauthorizedUser();
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        await handleAuthorizationError(
+          error.code || error.message || 'error_app_generic-desc'
+        );
+        return false;
+      } finally {
+        setIsAuthProcessing(false);
       }
-
-      const nextStep: NextStepType = determineNextStep(
-        data as UserLoginResponseType
-      );
-
-      if (
-        nextStep.isVerifyMFA ||
-        nextStep.encryption !== undefined ||
-        nextStep.createCongregation
-      ) {
-        await updateUserSettings(data as UserLoginResponseType, nextStep);
-      }
-
-      if (nextStep.unauthorized) {
-        handleUnauthorizedUser();
-      }
-
-      return true;
-    } catch (error) {
-      console.error(error);
-      await handleAuthorizationError(
-        error.code || error.message || 'error_app_generic-desc'
-      );
-      return false;
-    } finally {
-      setIsAuthProcessing(false);
-    }
-  }, [
-    setIsAuthProcessing,
-    handleAuthorizationError,
-    determineNextStep,
-    updateUserSettings,
-    handleUnauthorizedUser,
-  ]);
+    },
+    [
+      setIsAuthProcessing,
+      handleAuthorizationError,
+      determineNextStep,
+      updateUserSettings,
+      handleUnauthorizedUser,
+    ]
+  );
 
   return { determineNextStep, updateUserSettings, handlePostLogin };
 };

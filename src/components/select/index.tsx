@@ -16,7 +16,12 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
   const { t } = useAppTranslation();
 
   return (
-    <FormControl fullWidth size="small" sx={props.sx} disabled={props.disabled ?? false}>
+    <FormControl
+      fullWidth
+      size="small"
+      sx={props.sx}
+      disabled={props.disabled ?? false}
+    >
       <InputLabel
         className="body-regular"
         sx={{
@@ -41,7 +46,12 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
         // MUI le pasa su `className`, así que la vuelta de 180° al abrirse
         // (`.MuiSelect-iconOpen`) sigue funcionando sola.
         IconComponent={(iconProps) => (
-          <IconExpand {...iconProps} color="var(--ink-2)" width={20} height={20} />
+          <IconExpand
+            {...iconProps}
+            color="var(--ink-2)"
+            width={20}
+            height={20}
+          />
         )}
         inputProps={{
           ...props.inputProps,

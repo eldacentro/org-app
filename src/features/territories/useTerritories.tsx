@@ -46,7 +46,10 @@ import {
   activateCampaignIfPlanned,
 } from '@services/firebase/territories';
 import { isCampaignOver, isCampaignRunning } from '@services/app/territories';
-import { refreshShare, subscribeShares } from '@services/firebase/territory_shares';
+import {
+  refreshShare,
+  subscribeShares,
+} from '@services/firebase/territory_shares';
 import {
   buildSharePayload,
   shareContentFingerprint,
@@ -200,7 +203,14 @@ export const useTerritories = () => {
   ]);
 
   useEffect(() => {
-    if (!congId || !isManager || !responsabilidades || persons.length === 0 || !settings.id) return;
+    if (
+      !congId ||
+      !isManager ||
+      !responsabilidades ||
+      persons.length === 0 ||
+      !settings.id
+    )
+      return;
 
     // 1. Obtener los UIDs de los encargados de territorios
     const targets = getTerritoryManagersUids(responsabilidades);
@@ -208,29 +218,40 @@ export const useTerritories = () => {
 
     // 2. Resolver emails y nombres desde persons (que el manager tiene cargados localmente)
     const currentManagers = targets
-      .map(uid => {
-        const person = persons.find(p => p.person_uid === uid);
+      .map((uid) => {
+        const person = persons.find((p) => p.person_uid === uid);
         return {
           uid,
           email: person?.person_data?.email?.value || '',
-          name: person ? buildPersonFullname(
-            person.person_data.person_lastname.value,
-            person.person_data.person_firstname.value,
-            fullnameOption
-          ) : '',
+          name: person
+            ? buildPersonFullname(
+                person.person_data.person_lastname.value,
+                person.person_data.person_firstname.value,
+                fullnameOption
+              )
+            : '',
         };
       })
-      .filter(m => !!m.uid);
+      .filter((m) => !!m.uid);
 
     // 3. Comparar con lo almacenado en settings (orden-independiente)
     const storedManagers = settings.managers || [];
-    const sortedStored = [...storedManagers].sort((a, b) => a.uid.localeCompare(b.uid));
-    const sortedCurrent = [...currentManagers].sort((a, b) => a.uid.localeCompare(b.uid));
+    const sortedStored = [...storedManagers].sort((a, b) =>
+      a.uid.localeCompare(b.uid)
+    );
+    const sortedCurrent = [...currentManagers].sort((a, b) =>
+      a.uid.localeCompare(b.uid)
+    );
     const isSame =
       sortedStored.length === sortedCurrent.length &&
       sortedStored.every((sm, i) => {
         const cm = sortedCurrent[i];
-        return cm && sm.uid === cm.uid && sm.email === cm.email && sm.name === cm.name;
+        return (
+          cm &&
+          sm.uid === cm.uid &&
+          sm.email === cm.email &&
+          sm.name === cm.name
+        );
       });
 
     if (!isSame) {
@@ -296,10 +317,11 @@ export const useTerritories = () => {
   // reactivo a ese mismo ajuste). Solo responsables/admin, e idempotente
   // por comparación de valores (no reescribe si ya coincide).
   useEffect(() => {
-    if (!congId || !canManage || assignments.length === 0 || !settings.id) return;
+    if (!congId || !canManage || assignments.length === 0 || !settings.id)
+      return;
 
-    backfillDueAtFormula(congId, assignments, settings.daysUntilOverdue).catch((err) =>
-      console.error('Failed to backfill dueAt formula:', err)
+    backfillDueAtFormula(congId, assignments, settings.daysUntilOverdue).catch(
+      (err) => console.error('Failed to backfill dueAt formula:', err)
     );
   }, [congId, canManage, assignments, settings.id, settings.daysUntilOverdue]);
 
@@ -345,7 +367,8 @@ export const useTerritories = () => {
 
     shares.forEach((share) => {
       if (share.revoked) return;
-      if (share.expiresAt?.toDate?.() && share.expiresAt.toDate() <= now) return;
+      if (share.expiresAt?.toDate?.() && share.expiresAt.toDate() <= now)
+        return;
       // Sin clave envuelta no se puede —ni se debe— reescribir. Lo creó
       // alguien sin la contraseña de la congregación (un publicador), y su
       // enlace no incluye notas ni direcciones porque él no podía
@@ -439,8 +462,9 @@ export const useTerritories = () => {
           isCampaignRunning(c.fechaInicio, c.fechaFin, now)
       )
       .forEach((c) => {
-        activateCampaignIfPlanned(congId, c.id)
-          .catch((err) => console.error('Failed to activate campaign:', err));
+        activateCampaignIfPlanned(congId, c.id).catch((err) =>
+          console.error('Failed to activate campaign:', err)
+        );
       });
   }, [congId, canManage, campaigns, assignments, territories]);
 };

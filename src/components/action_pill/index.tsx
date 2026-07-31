@@ -85,7 +85,7 @@ const ActionPill = ({
         borderRadius: 'var(--shape-full)',
         textDecoration: 'none',
         cursor: 'pointer',
-        transition: 'background-color 0.2s ease',
+        transition: 'background-color var(--motion-fast) var(--ease-standard)',
         ...porVariante,
         ...sx,
       }}

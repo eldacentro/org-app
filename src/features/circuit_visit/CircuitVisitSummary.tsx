@@ -91,23 +91,30 @@ const CircuitVisitSummary = ({
     visit.weekOf
   );
 
-  const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end).map((date) => {
-    const dateStr = formatDate(date, 'yyyy/MM/dd');
-    const slots = weekSlots
-      .filter((slot) => slot.date === dateStr && !slot.cancelled)
-      .toSorted((a, b) => a.time.localeCompare(b.time));
+  const outingDays = getDatesBetweenDates(visit.date_start, visit.date_end).map(
+    (date) => {
+      const dateStr = formatDate(date, 'yyyy/MM/dd');
+      const slots = weekSlots
+        .filter((slot) => slot.date === dateStr && !slot.cancelled)
+        .toSorted((a, b) => a.time.localeCompare(b.time));
 
-    return { dateStr, slots };
-  });
+      return { dateStr, slots };
+    }
+  );
 
-  const midweekTalkTitle = weekSource?.midweek_meeting?.co_talk_title?.src ?? '';
-  const weekendPublicTalkTitle = weekSource?.weekend_meeting?.co_talk_title?.public?.src ?? '';
-  const weekendServiceTalkTitle = weekSource?.weekend_meeting?.co_talk_title?.service?.src ?? '';
+  const midweekTalkTitle =
+    weekSource?.midweek_meeting?.co_talk_title?.src ?? '';
+  const weekendPublicTalkTitle =
+    weekSource?.weekend_meeting?.co_talk_title?.public?.src ?? '';
+  const weekendServiceTalkTitle =
+    weekSource?.weekend_meeting?.co_talk_title?.service?.src ?? '';
 
   const findPersonName = (uid: string) => {
     if (!uid) return '';
     const person = persons.find((p) => p.person_uid === uid);
-    return person ? personGetDisplayName(person, displayNameEnabled, fullnameOption) : '';
+    return person
+      ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
+      : '';
   };
 
   // Asignaciones personales del usuario en ESTA visita. Se muestran en ambos
@@ -179,10 +186,24 @@ const CircuitVisitSummary = ({
     return items;
     // findPersonName depende de persons/displayNameEnabled/fullnameOption.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visit, myUid, effectiveCoSpouseName, persons, displayNameEnabled, fullnameOption]);
+  }, [
+    visit,
+    myUid,
+    effectiveCoSpouseName,
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '760px', margin: '0 auto', padding: '16px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: '760px',
+        margin: '0 auto',
+        padding: '16px',
+      }}
+    >
       <PageTitle title="Visita del Superintendente de Circuito" />
 
       <Stack spacing="16px" mt="16px">
@@ -234,9 +255,19 @@ const CircuitVisitSummary = ({
                 .filter((d) => d.slots.length > 0)
                 .map((d) => (
                   <Stack key={d.dateStr} spacing="2px">
-                    <Typography className="body-regular-semibold">{fmtDay(d.dateStr)}</Typography>
-                    <Typography className="body-small-regular" color="var(--grey-400)">
-                      {d.slots.map((s) => `${s.time} · ${s.location || 'Salón del Reino'}`).join('  •  ')}
+                    <Typography className="body-regular-semibold">
+                      {fmtDay(d.dateStr)}
+                    </Typography>
+                    <Typography
+                      className="body-small-regular"
+                      color="var(--grey-400)"
+                    >
+                      {d.slots
+                        .map(
+                          (s) =>
+                            `${s.time} · ${s.location || 'Salón del Reino'}`
+                        )
+                        .join('  •  ')}
                     </Typography>
                   </Stack>
                 ))
@@ -247,20 +278,35 @@ const CircuitVisitSummary = ({
         <Card title="Discursos del superintendente">
           <Stack spacing="8px">
             <Stack spacing="1px">
-              <Typography className="body-regular-semibold">Entre semana</Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography className="body-regular-semibold">
+                Entre semana
+              </Typography>
+              <Typography
+                className="body-small-regular"
+                color="var(--grey-400)"
+              >
                 {midweekTalkTitle || 'Sin publicar todavía'}
               </Typography>
             </Stack>
             <Stack spacing="1px">
-              <Typography className="body-regular-semibold">Discurso público</Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography className="body-regular-semibold">
+                Discurso público
+              </Typography>
+              <Typography
+                className="body-small-regular"
+                color="var(--grey-400)"
+              >
                 {weekendPublicTalkTitle || 'Sin publicar todavía'}
               </Typography>
             </Stack>
             <Stack spacing="1px">
-              <Typography className="body-regular-semibold">Estudio de La Atalaya</Typography>
-              <Typography className="body-small-regular" color="var(--grey-400)">
+              <Typography className="body-regular-semibold">
+                Estudio de La Atalaya
+              </Typography>
+              <Typography
+                className="body-small-regular"
+                color="var(--grey-400)"
+              >
                 {weekendServiceTalkTitle || 'Sin publicar todavía'}
               </Typography>
             </Stack>
@@ -271,9 +317,13 @@ const CircuitVisitSummary = ({
             son publicadores); la de ancianos y siervos ministeriales solo se
             muestra a ancianos. Las reuniones a medias no se anuncian. */}
         {(isSpecialMeetingComplete(visit.meeting_pioneers) ||
-          (tier === 'elder' && isSpecialMeetingComplete(visit.meeting_elders))) && (
+          (tier === 'elder' &&
+            isSpecialMeetingComplete(visit.meeting_elders))) && (
           <Card title="Reuniones especiales">
-            <SpecialMeetingRow label="Reunión con precursores" when={visit.meeting_pioneers} />
+            <SpecialMeetingRow
+              label="Reunión con precursores"
+              when={visit.meeting_pioneers}
+            />
             {tier === 'elder' && (
               <SpecialMeetingRow
                 label="Reunión con ancianos y siervos ministeriales"
@@ -294,7 +344,10 @@ const CircuitVisitSummary = ({
                 <Stack spacing="6px">
                   {(visit.meals ?? []).filter(Boolean).map((meal) => (
                     <Typography key={meal.id} className="body-small-regular">
-                      {[fmtDay(meal.date), findPersonName(meal.host) || 'Anfitrión pendiente']
+                      {[
+                        fmtDay(meal.date),
+                        findPersonName(meal.host) || 'Anfitrión pendiente',
+                      ]
                         .filter(Boolean)
                         .join(' · ')}
                     </Typography>
@@ -303,7 +356,10 @@ const CircuitVisitSummary = ({
               )}
             </Card>
 
-            <Card title="Compañía del superintendente" subtitle="En las salidas de predicación.">
+            <Card
+              title="Compañía del superintendente"
+              subtitle="En las salidas de predicación."
+            >
               {(visit.co_companions ?? []).length === 0 ? (
                 <Typography className="body-regular" color="var(--grey-400)">
                   Sin compañía asignada todavía.
@@ -329,7 +385,10 @@ const CircuitVisitSummary = ({
                     ].filter(Boolean);
 
                     return (
-                      <Typography key={c.outingKey} className="body-small-regular">
+                      <Typography
+                        key={c.outingKey}
+                        className="body-small-regular"
+                      >
                         {parts.join(' · ')}
                         {wifePart ? `  •  ${wifePart}` : ''}
                       </Typography>
@@ -346,22 +405,28 @@ const CircuitVisitSummary = ({
                 </Typography>
               ) : (
                 <Stack spacing="6px">
-                  {(visit.shepherding_visits ?? []).filter(Boolean).map((sv) => (
-                    <Typography key={sv.id} className="body-small-regular">
-                      {[
-                        `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`,
-                        findPersonName(sv.brother) || 'Pendiente',
-                      ].join(' · ')}
-                      {sv.elder ? ` (con ${findPersonName(sv.elder)})` : ''}
-                    </Typography>
-                  ))}
+                  {(visit.shepherding_visits ?? [])
+                    .filter(Boolean)
+                    .map((sv) => (
+                      <Typography key={sv.id} className="body-small-regular">
+                        {[
+                          `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`,
+                          findPersonName(sv.brother) || 'Pendiente',
+                        ].join(' · ')}
+                        {sv.elder ? ` (con ${findPersonName(sv.elder)})` : ''}
+                      </Typography>
+                    ))}
                 </Stack>
               )}
             </Card>
           </>
         )}
 
-        <Typography className="body-small-regular" color="var(--grey-400)" sx={{ textAlign: 'center', pt: '4px' }}>
+        <Typography
+          className="body-small-regular"
+          color="var(--grey-400)"
+          sx={{ textAlign: 'center', pt: '4px' }}
+        >
           {congName}
         </Typography>
       </Stack>

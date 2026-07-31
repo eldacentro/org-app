@@ -11,8 +11,13 @@ const WeeksList = () => {
 
   const canEdit = useIsCircuitVisitManager();
 
-  const { handleAddVisit, handleVisitDeleted, handleWeekChange, weeks, errors } =
-    useWeeksList();
+  const {
+    handleAddVisit,
+    handleVisitDeleted,
+    handleWeekChange,
+    weeks,
+    errors,
+  } = useWeeksList();
 
   const requiredFieldMessage = t('tr_fillRequiredField');
   const duplicateWeekMessage = t('tr_dateAlreadyExists');

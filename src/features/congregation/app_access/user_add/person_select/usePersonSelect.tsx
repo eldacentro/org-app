@@ -123,9 +123,8 @@ const usePersonSelect = ({
             'access_code'
           );
 
-          const { encryptAccessCodeForInvite } = await import(
-            '@services/encryption/deterministic'
-          );
+          const { encryptAccessCodeForInvite } =
+            await import('@services/encryption/deterministic');
 
           const encrypted_access_code = await encryptAccessCodeForInvite(
             remoteAccessCode,
@@ -141,7 +140,10 @@ const usePersonSelect = ({
 
           displaySnackNotification({
             header: t('tr_done'),
-            message: t('tr_invitationSentDesc', 'Invitation generated and linked.'),
+            message: t(
+              'tr_invitationSentDesc',
+              'Invitation generated and linked.'
+            ),
             severity: 'success',
           });
 

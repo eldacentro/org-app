@@ -17,7 +17,8 @@ import useAppTranslation from '@hooks/useAppTranslation';
 
 const useAccountChooser = () => {
   const { t } = useAppTranslation();
-  const { showMessage, hideMessage, isVisible, title, message, variant } = useFeedback();
+  const { showMessage, hideMessage, isVisible, title, message, variant } =
+    useFeedback();
   const { isAuthenticated, loading: isAuthLoading } = useFirebaseAuth();
 
   const setIsAccountChoose = useSetAtom(isAccountChooseState);
@@ -33,7 +34,9 @@ const useAccountChooser = () => {
 
     const markAccount = async () => {
       try {
-        console.log('[markAccount] isAuthenticated=true → setting account_type=vip');
+        console.log(
+          '[markAccount] isAuthenticated=true → setting account_type=vip'
+        );
         setIsAuthProcessing(true);
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
         setSettings((prev) => {
@@ -111,7 +114,10 @@ const useAccountChooser = () => {
       // to Google and back, immune to all of that — instead of just asking
       // the user to tap the same broken button again is what actually
       // recovers from this on the SAME attempt.
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      if (
+        error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/cancelled-popup-request'
+      ) {
         try {
           await setAuthPersistence();
           await userSignInRedirect(authProvider.Google);
@@ -121,7 +127,10 @@ const useAccountChooser = () => {
           console.error(redirectError);
           displayOnboardingFeedback({
             title: t('tr_signInCancelledTitle', 'Inicio de sesión cancelado'),
-            message: t('tr_signInCancelledDesc', 'Se cerró la ventana de Google antes de terminar. Inténtalo de nuevo.'),
+            message: t(
+              'tr_signInCancelledDesc',
+              'Se cerró la ventana de Google antes de terminar. Inténtalo de nuevo.'
+            ),
           });
           showMessage();
           return;

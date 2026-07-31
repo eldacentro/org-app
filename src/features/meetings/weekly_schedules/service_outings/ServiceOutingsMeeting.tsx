@@ -224,7 +224,8 @@ const ServiceOutingsMeeting = ({
               borderRadius: 'var(--shape-md)',
               boxShadow: 'var(--small-card-shadow)',
               overflow: 'hidden',
-              transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+              transition:
+                'box-shadow var(--motion-medium) var(--ease-standard), transform var(--motion-medium) var(--ease-standard)',
               '&:hover': {
                 boxShadow: 'var(--hover-shadow)',
               },
@@ -276,7 +277,8 @@ const ServiceOutingsMeeting = ({
                         : isAssignedToMe
                           ? 'var(--accent-150)'
                           : 'var(--card)',
-                      transition: 'background-color 0.2s ease',
+                      transition:
+                        'background-color var(--motion-fast) var(--ease-standard)',
                     }}
                   >
                     {/* Hora + Turno */}
@@ -332,12 +334,12 @@ const ServiceOutingsMeeting = ({
                     >
                       {isCancelled ? (
                         <Badge
-                            size="small"
-                            color="red"
-                            text="Suspendida"
-                            icon={<IconCancelFilled color="var(--red-main)" />}
-                            sx={{ alignSelf: 'flex-start' }}
-                          />
+                          size="small"
+                          color="red"
+                          text="Suspendida"
+                          icon={<IconCancelFilled color="var(--red-main)" />}
+                          sx={{ alignSelf: 'flex-start' }}
+                        />
                       ) : (
                         <AssigneeName
                           name={brotherName}

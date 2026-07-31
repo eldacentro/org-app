@@ -27,12 +27,22 @@ import { triggerRetentionPurge } from '@services/app/retention';
 
 // lazy loading
 const Dashboard = lazy(() => import('@pages/dashboard'));
-const MeetingsDashboard = lazy(() => import('@pages/category_dashboards/meetings'));
-const MinistryDashboard = lazy(() => import('@pages/category_dashboards/ministry'));
-const CongregationDashboard = lazy(() => import('@pages/category_dashboards/congregation'));
+const MeetingsDashboard = lazy(
+  () => import('@pages/category_dashboards/meetings')
+);
+const MinistryDashboard = lazy(
+  () => import('@pages/category_dashboards/ministry')
+);
+const CongregationDashboard = lazy(
+  () => import('@pages/category_dashboards/congregation')
+);
 const TalksDashboard = lazy(() => import('@pages/category_dashboards/talks'));
-const ReportsDashboard = lazy(() => import('@pages/category_dashboards/reports'));
-const SettingsDashboard = lazy(() => import('@pages/category_dashboards/settings'));
+const ReportsDashboard = lazy(
+  () => import('@pages/category_dashboards/reports')
+);
+const SettingsDashboard = lazy(
+  () => import('@pages/category_dashboards/settings')
+);
 
 const Documentos = lazy(() => import('@pages/congregation/documentos'));
 const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
@@ -83,15 +93,9 @@ const ApplicationDetails = lazy(
 );
 const UpcomingEvents = lazy(() => import('@pages/activities/upcoming_events'));
 const MeetingMaterials = lazy(() => import('@pages/meeting_materials'));
-const DepartmentsSchedule = lazy(
-  () => import('@pages/departments_schedule')
-);
-const PredicacionSalidas = lazy(
-  () => import('@pages/predicacion_salidas')
-);
-const Exhibitors = lazy(
-  () => import('@pages/exhibitors')
-);
+const DepartmentsSchedule = lazy(() => import('@pages/departments_schedule'));
+const PredicacionSalidas = lazy(() => import('@pages/predicacion_salidas'));
+const Exhibitors = lazy(() => import('@pages/exhibitors'));
 const Evacuacion = lazy(() => import('@pages/congregation/evacuacion'));
 const Responsabilidades = lazy(
   () => import('@pages/congregation/responsabilidades')
@@ -231,11 +235,14 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               { index: true, element: <Dashboard /> },
               { path: '/dashboard/meetings', element: <MeetingsDashboard /> },
               { path: '/dashboard/ministry', element: <MinistryDashboard /> },
-              { path: '/dashboard/congregation', element: <CongregationDashboard /> },
+              {
+                path: '/dashboard/congregation',
+                element: <CongregationDashboard />,
+              },
               { path: '/dashboard/talks', element: <TalksDashboard /> },
               { path: '/dashboard/reports', element: <ReportsDashboard /> },
               { path: '/dashboard/settings', element: <SettingsDashboard /> },
-              
+
               { path: '/user-profile', element: <MyProfile /> },
               { path: '/ayuda', element: <AyudaPage /> },
               { path: '/weekly-schedules', element: <WeeklySchedules /> },
@@ -275,7 +282,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               {
                 element: <ServiceCommitteeRoute />,
                 children: [
-                  { path: '/predicacion-salidas', element: <PredicacionSalidas /> },
+                  {
+                    path: '/predicacion-salidas',
+                    element: <PredicacionSalidas />,
+                  },
                   { path: '/exhibitors', element: <Exhibitors /> },
                 ],
               },
@@ -349,7 +359,9 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
               // person editor routes
               {
                 element: <PersonEditorRoute />,
-                children: [{ path: '/persons/new', element: <PersonDetails /> }],
+                children: [
+                  { path: '/persons/new', element: <PersonDetails /> },
+                ],
               },
 
               // attendance editor routes

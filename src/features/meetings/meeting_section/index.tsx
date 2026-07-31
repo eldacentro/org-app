@@ -109,7 +109,10 @@ const MeetingSection = ({
           /* `position: relative` para quedar POR ENCIMA de la capa de arriba;
              si no, la capa se comería sus pulsaciones. */
           <Box
-            sx={{ position: 'relative', marginRight: alwaysExpanded ? 0 : '12px' }}
+            sx={{
+              position: 'relative',
+              marginRight: alwaysExpanded ? 0 : '12px',
+            }}
           >
             {actionButton}
           </Box>
@@ -119,13 +122,21 @@ const MeetingSection = ({
             color="var(--always-white)"
             sx={{
               transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform var(--motion-medium) var(--ease-emphasized)',
+              transition:
+                'transform var(--motion-medium) var(--ease-emphasized)',
             }}
           />
         )}
       </Box>
       <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            padding: '16px',
+          }}
+        >
           {children}
         </Box>
       </Collapse>

@@ -58,8 +58,10 @@ const getMonthData = (
 
     return {
       hours:
-        dailyMonthlyToHours(hours.field_service.daily, hours.field_service.monthly) +
-        creditToHours(hours.credit),
+        dailyMonthlyToHours(
+          hours.field_service.daily,
+          hours.field_service.monthly
+        ) + creditToHours(hours.credit),
       hasReport: true,
     };
   }
@@ -85,7 +87,11 @@ const useYearlyChart = (year: string) => {
     const currentMonth = currentMonthServiceYear();
 
     return monthsList.map(({ value: month }) => {
-      const { hours, hasReport } = getMonthData(month, yearlyCongReports, yearlyReports);
+      const { hours, hasReport } = getMonthData(
+        month,
+        yearlyCongReports,
+        yearlyReports
+      );
 
       const monthIndex = +month.split('/')[1] - 1;
 
@@ -99,7 +105,14 @@ const useYearlyChart = (year: string) => {
         hasReport,
       };
     });
-  }, [monthsList, yearlyCongReports, yearlyReports, monthShortNames, person, specialMonths]);
+  }, [
+    monthsList,
+    yearlyCongReports,
+    yearlyReports,
+    monthShortNames,
+    person,
+    specialMonths,
+  ]);
 
   return { months };
 };

@@ -45,7 +45,8 @@ const useMeetingHeadline = (
 
       if (!Number.isNaN(d.getTime())) {
         const dia = dayNames[d.getDay()] ?? '';
-        title = `${capitalizarPrimera(dia)} ${d.getDate()} de ${monthNames[d.getMonth()]}`.trim();
+        title =
+          `${capitalizarPrimera(dia)} ${d.getDate()} de ${monthNames[d.getMonth()]}`.trim();
       }
     }
 

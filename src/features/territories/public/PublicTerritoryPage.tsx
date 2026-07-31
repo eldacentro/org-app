@@ -1,4 +1,11 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Box, Stack } from '@mui/material';
 import { MultiPolygon, Polygon } from 'geojson';
 import Button from '@components/button';
@@ -8,10 +15,7 @@ import SegmentedControl from '@components/segmented_control';
 import { TerritorySharePayload } from '@definition/territory_shares';
 import { fetchPublicShare } from '@services/firebase/territory_shares';
 import { SHARE_KEY_LENGTH } from '@services/encryption/share';
-import {
-  ParsedShareLink,
-  parseShareHash,
-} from '@services/app/territory_share';
+import { ParsedShareLink, parseShareHash } from '@services/app/territory_share';
 import { FORCED_UI_LANG, LANGUAGE_LIST } from '@constants/index';
 
 /**

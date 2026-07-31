@@ -92,7 +92,19 @@ export const useTerritoryExport = () => {
       };
 
       // Preparar datos
-      const sheetsData: { zoneName: string; continuation: boolean; rows: { numero: string; lastCompleted: string; assignments: { name: string; dateAssigned: string; dateCompleted: string; }[] }[] }[] = [];
+      const sheetsData: {
+        zoneName: string;
+        continuation: boolean;
+        rows: {
+          numero: string;
+          lastCompleted: string;
+          assignments: {
+            name: string;
+            dateAssigned: string;
+            dateCompleted: string;
+          }[];
+        }[];
+      }[] = [];
       let continuedTerritories = 0;
 
       zones.forEach((zone) => {
@@ -195,7 +207,7 @@ export const useTerritoryExport = () => {
       // Cargar plantilla base
       const templateRes = await fetch('/pdf/S-13_S.pdf');
       const templateBytes = await templateRes.arrayBuffer();
-      
+
       const doc = await PDFDocument.create();
       const baseDoc = await PDFDocument.load(templateBytes);
 
@@ -277,9 +289,15 @@ export const useTerritoryExport = () => {
         // Dibujar cada fila
         sheet.rows.forEach((row, rowIndex) => {
           const rowY = ROW_START_Y - rowIndex * ROW_HEIGHT;
-          
+
           // Centro del número y fecha
-          const drawCentered = (text: string, xPos: number, yPos: number, fontSize: number, bold = false) => {
+          const drawCentered = (
+            text: string,
+            xPos: number,
+            yPos: number,
+            fontSize: number,
+            bold = false
+          ) => {
             if (!text) return;
             const fnt = pickFont(text, bold);
             const textWidth = fnt.widthOfTextAtSize(text, fontSize);
@@ -306,7 +324,7 @@ export const useTerritoryExport = () => {
             // Centrado dentro del grupo o alineado a la izquierda si es muy largo
             let nameX = grpX + HALF_GROUP - nameWidth / 2;
             if (nameWidth > GROUP_WIDTH - 4) nameX = grpX + 2; // Si no cabe centrado, alinear a la izq
-            
+
             // Truncar nombre si sigue siendo muy grande — recorta carácter a
             // carácter y vuelve a medir cada vez (antes cortaba a 20
             // caracteres fijos y añadía "..." sin comprobar si ESO cabía,
@@ -334,8 +352,18 @@ export const useTerritoryExport = () => {
             });
 
             // Fechas (Bottom half)
-            drawCentered(assign.dateAssigned, grpX + HALF_GROUP / 2, rowY - BASELINE_BOTTOM, 8);
-            drawCentered(assign.dateCompleted, grpX + HALF_GROUP + HALF_GROUP / 2, rowY - BASELINE_BOTTOM, 8);
+            drawCentered(
+              assign.dateAssigned,
+              grpX + HALF_GROUP / 2,
+              rowY - BASELINE_BOTTOM,
+              8
+            );
+            drawCentered(
+              assign.dateCompleted,
+              grpX + HALF_GROUP + HALF_GROUP / 2,
+              rowY - BASELINE_BOTTOM,
+              8
+            );
           });
         });
       }
@@ -424,7 +452,10 @@ export const useTerritoryExport = () => {
         headers.map((h) => ({ value: h, fontWeight: 'bold' })) as Row,
         ...rows.map(
           (r) =>
-            headers.map((h) => ({ value: String(r[h] ?? ''), type: String })) as Row
+            headers.map((h) => ({
+              value: String(r[h] ?? ''),
+              type: String,
+            })) as Row
         ),
       ];
 

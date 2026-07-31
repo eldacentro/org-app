@@ -17,7 +17,10 @@ const useWeeklySchedules = () => {
   const { t } = useAppTranslation();
 
   const [scheduleType, setScheduleType] = useState<WeeklySchedulesType>(() => {
-    return (localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType) || 'midweek';
+    return (
+      (localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType) ||
+      'midweek'
+    );
   });
 
   const { isElder, isAdmin } = useCurrentUser();

@@ -121,7 +121,7 @@ const DocumentoCard = ({
               right: 14,
               width: 8,
               height: 8,
-              borderRadius: '50%',
+              borderRadius: 'var(--shape-full)',
               backgroundColor: 'var(--brand)',
               boxShadow: '0 0 8px var(--brand)',
               animation: 'pulse 2.2s infinite',

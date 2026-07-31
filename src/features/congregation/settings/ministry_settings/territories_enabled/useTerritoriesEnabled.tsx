@@ -3,7 +3,9 @@ import { territoriesEnabledPublishersState } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 
 const useTerritoriesEnabled = () => {
-  const territoriesEnabledPublishers = useAtomValue(territoriesEnabledPublishersState);
+  const territoriesEnabledPublishers = useAtomValue(
+    territoriesEnabledPublishersState
+  );
 
   const handleTerritoriesEnabledPublishersToggle = async (
     _: React.ChangeEvent<HTMLInputElement>,
@@ -17,7 +19,10 @@ const useTerritoriesEnabled = () => {
     });
   };
 
-  return { territoriesEnabledPublishers, handleTerritoriesEnabledPublishersToggle };
+  return {
+    territoriesEnabledPublishers,
+    handleTerritoriesEnabledPublishersToggle,
+  };
 };
 
 export default useTerritoriesEnabled;

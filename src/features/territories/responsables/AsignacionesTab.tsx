@@ -31,7 +31,11 @@ import {
   territorySettingsState,
   territoriesLoadingState,
 } from '@states/territories';
-import { Territory, TerritoryAssignment, TerritoryZone } from '@definition/territories';
+import {
+  Territory,
+  TerritoryAssignment,
+  TerritoryZone,
+} from '@definition/territories';
 import {
   deleteAssignment,
   updateAssignmentNote,
@@ -88,19 +92,35 @@ const TerritoryAssignmentCard = ({
 
   return (
     <TerritoryCard accent={zone.color}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: history.length > 0 ? 1.5 : 0 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: history.length > 0 ? 1.5 : 0 }}
+      >
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
+          <Typography
+            className="body-regular-semibold"
+            sx={{ color: 'var(--ink)' }}
+          >
             {territoryLabel(t)}
           </Typography>
           <EstadoBadge estado={estadoDeTerritorio(open, resting)} />
         </Stack>
         <Stack direction="row" spacing={1}>
-          <Button variant="secondary" disableAutoStretch onClick={() => onView(t)}>
+          <Button
+            variant="secondary"
+            disableAutoStretch
+            onClick={() => onView(t)}
+          >
             Ver
           </Button>
           {!open && (
-            <Button variant="main" disableAutoStretch onClick={() => onAsignar(t)}>
+            <Button
+              variant="main"
+              disableAutoStretch
+              onClick={() => onAsignar(t)}
+            >
               Asignar
             </Button>
           )}
@@ -108,7 +128,11 @@ const TerritoryAssignmentCard = ({
       </Stack>
 
       {history.length === 0 ? (
-        <Typography className="label-small-regular" color="var(--ink-2)" sx={{ mt: 1, display: 'block' }}>
+        <Typography
+          className="label-small-regular"
+          color="var(--ink-2)"
+          sx={{ mt: 1, display: 'block' }}
+        >
           Sin asignaciones registradas.
         </Typography>
       ) : (
@@ -122,7 +146,9 @@ const TerritoryAssignmentCard = ({
               py: 1,
               px: 1.5,
               borderRadius: 'var(--shape-sm)',
-              backgroundColor: open ? 'var(--orange-secondary)' : 'var(--accent-100)',
+              backgroundColor: open
+                ? 'var(--orange-secondary)'
+                : 'var(--accent-100)',
               border: `1px solid ${open ? 'rgba(var(--orange-main-base), 0.2)' : 'var(--line)'}`,
             }}
             spacing={1}
@@ -131,7 +157,12 @@ const TerritoryAssignmentCard = ({
               {/* "(Campaña)" iba escrito DENTRO del nombre con un `<span>` de
                   color azul suelto: se leía como si el hermano se apellidara
                   así. Es una etiqueta, y se pinta como todas las demás. */}
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ flexWrap: 'wrap' }}
+              >
                 <Typography className="body-small-semibold" color="var(--ink)">
                   {resolveName(activeOrLatest.personUid)}
                 </Typography>
@@ -145,16 +176,26 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.returnedAt
                   ? formatTerritoryDate(activeOrLatest.returnedAt, dateFormat)
                   : 'En curso'}
-                {activeOrLatest.notas ? ` · ${displayText(activeOrLatest.notas)}` : ''}
+                {activeOrLatest.notas
+                  ? ` · ${displayText(activeOrLatest.notas)}`
+                  : ''}
               </Typography>
             </Box>
             <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
               {!activeOrLatest.returnedAt && (
-                <Button variant="main" disableAutoStretch onClick={() => onEntregar(activeOrLatest)}>
+                <Button
+                  variant="main"
+                  disableAutoStretch
+                  onClick={() => onEntregar(activeOrLatest)}
+                >
                   Entregar
                 </Button>
               )}
-              <Button variant="tertiary" disableAutoStretch onClick={() => onEditNote(activeOrLatest)}>
+              <Button
+                variant="tertiary"
+                disableAutoStretch
+                onClick={() => onEditNote(activeOrLatest)}
+              >
                 Nota
               </Button>
               <Button
@@ -176,9 +217,11 @@ const TerritoryAssignmentCard = ({
                 onClick={() => setExpanded(!expanded)}
                 sx={{ width: '100%', justifyContent: 'center', py: 0.5 }}
               >
-                {expanded ? 'Ocultar historial' : `Ver historial anterior (${pastHistory.length})`}
+                {expanded
+                  ? 'Ocultar historial'
+                  : `Ver historial anterior (${pastHistory.length})`}
               </Button>
-              
+
               <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <Stack spacing={0.5} sx={{ mt: 1 }}>
                   {pastHistory.map((a) => (
@@ -195,15 +238,28 @@ const TerritoryAssignmentCard = ({
                       spacing={1}
                     >
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                          <Typography className="body-small-semibold" color="var(--ink)">
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={1}
+                          sx={{ flexWrap: 'wrap' }}
+                        >
+                          <Typography
+                            className="body-small-semibold"
+                            color="var(--ink)"
+                          >
                             {resolveName(a.personUid)}
                           </Typography>
                           {/* Era una "(C)" azul pegada al apellido. Nadie
                               sabe qué significa una C suelta. */}
-                          {a.isCampaign && <Badge size="small" color="accent" text="Campaña" />}
+                          {a.isCampaign && (
+                            <Badge size="small" color="accent" text="Campaña" />
+                          )}
                         </Stack>
-                        <Typography className="label-small-regular" color="var(--ink-2)">
+                        <Typography
+                          className="label-small-regular"
+                          color="var(--ink-2)"
+                        >
                           {formatTerritoryDate(a.assignedAt, dateFormat)}
                           {' → '}
                           {a.returnedAt
@@ -213,7 +269,11 @@ const TerritoryAssignmentCard = ({
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={0.5}>
-                        <Button variant="small" disableAutoStretch onClick={() => onEditNote(a)}>
+                        <Button
+                          variant="small"
+                          disableAutoStretch
+                          onClick={() => onEditNote(a)}
+                        >
                           Nota
                         </Button>
                         <Button
@@ -222,7 +282,11 @@ const TerritoryAssignmentCard = ({
                           onClick={() => onDelete(a)}
                           ariaLabel="Borrar asignación"
                         >
-                          <IconDelete color="var(--red-main)" width={20} height={20} />
+                          <IconDelete
+                            color="var(--red-main)"
+                            width={20}
+                            height={20}
+                          />
                         </Button>
                       </Stack>
                     </Stack>
@@ -252,7 +316,9 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const { confirm, ConfirmDialogNode } = useConfirm();
 
   // ── Diálogo de edición de nota ──────────────────────────────────────────────
-  const [editTarget, setEditTarget] = useState<TerritoryAssignment | null>(null);
+  const [editTarget, setEditTarget] = useState<TerritoryAssignment | null>(
+    null
+  );
   const [noteValue, setNoteValue] = useState('');
   const noteRef = useRef<HTMLInputElement>(null);
 
@@ -281,7 +347,11 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         noteValue.trim() || undefined,
         masterKey ?? ''
       );
-      displaySnackNotification({ severity: 'success', header: 'Nota guardada', message: 'La nota ha sido guardada correctamente.' });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Nota guardada',
+        message: 'La nota ha sido guardada correctamente.',
+      });
       closeNoteDialog();
     } catch (err) {
       console.error(err);
@@ -325,7 +395,8 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const handleDelete = async (a: TerritoryAssignment) => {
     const ok = await confirm({
       title: 'Borrar asignación',
-      message: '¿Borrar esta asignación? Esta acción no se puede deshacer y afecta al registro del S-13.',
+      message:
+        '¿Borrar esta asignación? Esta acción no se puede deshacer y afecta al registro del S-13.',
       confirmLabel: 'Borrar',
       destructive: true,
     });
@@ -340,33 +411,35 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const byZone = useMemo(() => {
     const lower = search.trim().toLowerCase();
 
-    return zones
-      .map((zone) => ({
-        zone,
-        items: territories
-          .filter((t) => t.zoneId === zone.id)
-          .filter((t) => {
-            if (filter === 'assigned') return isOpenAssigned(t.id);
-            if (filter === 'unassigned') return !isOpenAssigned(t.id);
-            return true;
-          })
-          .filter((t) => {
-            if (!lower) return true;
-            if (territoryLabel(t).toLowerCase().includes(lower)) return true;
-            const history = assignmentsByTerritory.get(t.id) ?? [];
-            return history.some((a) =>
-              resolveName(a.personUid).toLowerCase().includes(lower)
-            );
-          })
-          .sort((a, b) =>
-            a.numero.localeCompare(b.numero, undefined, { numeric: true })
-          ),
-      }))
-      // Ocultar zonas sin resultados, tanto al buscar como al filtrar por
-      // chip. Antes solo se ocultaban al buscar: pulsar "Asignados" un día
-      // sin ninguno dejaba los títulos "Elda - Urbano" y "Elda - Rural" con
-      // nada debajo y ningún texto — parecía un fallo de carga.
-      .filter(({ items }) => items.length > 0);
+    return (
+      zones
+        .map((zone) => ({
+          zone,
+          items: territories
+            .filter((t) => t.zoneId === zone.id)
+            .filter((t) => {
+              if (filter === 'assigned') return isOpenAssigned(t.id);
+              if (filter === 'unassigned') return !isOpenAssigned(t.id);
+              return true;
+            })
+            .filter((t) => {
+              if (!lower) return true;
+              if (territoryLabel(t).toLowerCase().includes(lower)) return true;
+              const history = assignmentsByTerritory.get(t.id) ?? [];
+              return history.some((a) =>
+                resolveName(a.personUid).toLowerCase().includes(lower)
+              );
+            })
+            .sort((a, b) =>
+              a.numero.localeCompare(b.numero, undefined, { numeric: true })
+            ),
+        }))
+        // Ocultar zonas sin resultados, tanto al buscar como al filtrar por
+        // chip. Antes solo se ocultaban al buscar: pulsar "Asignados" un día
+        // sin ninguno dejaba los títulos "Elda - Urbano" y "Elda - Rural" con
+        // nada debajo y ningún texto — parecía un fallo de carga.
+        .filter(({ items }) => items.length > 0)
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zones, territories, filter, search, assignmentsByTerritory, resolveName]);
 
@@ -416,11 +489,24 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
 
       {byZone.map(({ zone, items }) => (
         <Box key={zone.id}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{ mb: 1.5 }}
+          >
             <Box
-              sx={{ width: 14, height: 14, borderRadius: 'var(--shape-full)', backgroundColor: zone.color }}
+              sx={{
+                width: 14,
+                height: 14,
+                borderRadius: 'var(--shape-full)',
+                backgroundColor: zone.color,
+              }}
             />
-            <Typography className="h2" sx={{ color: 'var(--ink)', fontWeight: 600 }}>
+            <Typography
+              className="h2"
+              sx={{ color: 'var(--ink)', fontWeight: 600 }}
+            >
               {zone.nombre}
             </Typography>
           </Stack>
@@ -496,10 +582,20 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
-          <Button variant="tertiary" disableAutoStretch onClick={closeNoteDialog} disabled={savingNote}>
+          <Button
+            variant="tertiary"
+            disableAutoStretch
+            onClick={closeNoteDialog}
+            disabled={savingNote}
+          >
             Cancelar
           </Button>
-          <Button variant="main" disableAutoStretch onClick={saveNote} disabled={savingNote || noteLocked}>
+          <Button
+            variant="main"
+            disableAutoStretch
+            onClick={saveNote}
+            disabled={savingNote || noteLocked}
+          >
             {savingNote ? 'Guardando…' : 'Guardar'}
           </Button>
         </DialogActions>

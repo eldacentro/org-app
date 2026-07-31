@@ -25,7 +25,11 @@ const GroupItem = (props: GroupItemProps) => {
         editable={props.editable}
       />
 
-      <Stack spacing="4px" divider={<Divider color={divider_color} />} sx={{ padding: '16px 12px 12px 12px' }}>
+      <Stack
+        spacing="4px"
+        divider={<Divider color={divider_color} />}
+        sx={{ padding: '16px 12px 12px 12px' }}
+      >
         {members.map((member) => (
           <GroupMember
             key={member.person_uid}

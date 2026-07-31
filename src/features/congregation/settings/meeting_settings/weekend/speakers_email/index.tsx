@@ -17,7 +17,9 @@ const SpeakersEmail = () => {
       value={email}
       onChange={(e) => handleEmailChange(e.target.value)}
       onKeyUp={handleEmailSave}
-      slotProps={{ input: { readOnly: !isWeekendEditor && !isPublicTalkCoordinator } }}
+      slotProps={{
+        input: { readOnly: !isWeekendEditor && !isPublicTalkCoordinator },
+      }}
     />
   );
 };

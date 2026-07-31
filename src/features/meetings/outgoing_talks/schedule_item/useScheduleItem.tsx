@@ -62,4 +62,3 @@ const useScheduleItem = ({ schedule, week }: ScheduleItemType) => {
 };
 
 export default useScheduleItem;
-

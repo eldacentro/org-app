@@ -7,7 +7,6 @@ import { reportUserSelectedMonthState } from '@states/user_field_service_reports
 import { personWasPublisherBy } from '@services/app/publisher_status';
 
 const useDelegateReports = () => {
-
   const persons = useAtomValue(personsActiveState);
   const delegatedPersons = useAtomValue(userMembersDelegateState);
   const month = useAtomValue(reportUserSelectedMonthState);

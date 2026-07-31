@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Autocomplete, Box, Stack, TextField as MuiTextField } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Stack,
+  TextField as MuiTextField,
+} from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
@@ -223,16 +228,21 @@ const DialogAsignar = ({
       );
 
       const toAssign = results
-        .filter((r): r is PromiseFulfilledResult<Territory> => r.status === 'fulfilled')
+        .filter(
+          (r): r is PromiseFulfilledResult<Territory> =>
+            r.status === 'fulfilled'
+        )
         .map((r) => r.value);
       const skipped =
-        bulkTerritories.length - candidates.length +
+        bulkTerritories.length -
+        candidates.length +
         results.filter((r) => r.status === 'rejected').length;
 
       if (toAssign.length === 0) {
         displaySnackNotification({
           header: 'Error',
-          message: 'No se pudo asignar ningún territorio: todos estaban ya ocupados o hubo un error al guardar.',
+          message:
+            'No se pudo asignar ningún territorio: todos estaban ya ocupados o hubo un error al guardar.',
           severity: 'error',
         });
         return;
@@ -244,8 +254,9 @@ const DialogAsignar = ({
       // independientes; si falla, lo peor que pasa es que la solicitud siga
       // pendiente, que es exactamente el estado de antes.
       if (requestIdEfectivo) {
-        await atenderRequest(congId, requestIdEfectivo, currentUid).catch((err) =>
-          console.error('No se pudo marcar la solicitud como atendida', err)
+        await atenderRequest(congId, requestIdEfectivo, currentUid).catch(
+          (err) =>
+            console.error('No se pudo marcar la solicitud como atendida', err)
         );
       }
 
@@ -311,7 +322,8 @@ const DialogAsignar = ({
       if (notificationFailed) {
         displaySnackNotification({
           header: `${toAssign.length} territorios asignados`,
-          message: 'No se pudo enviar el aviso por correo o notificación push. Los territorios ya quedaron asignados, pero conviene avisar al publicador por otra vía.',
+          message:
+            'No se pudo enviar el aviso por correo o notificación push. Los territorios ya quedaron asignados, pero conviene avisar al publicador por otra vía.',
           severity: 'error',
         });
       } else {
@@ -326,7 +338,11 @@ const DialogAsignar = ({
       }
     } catch (error) {
       console.error(error);
-      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message: (error as Error).message || 'Ocurrió un error inesperado',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -340,7 +356,11 @@ const DialogAsignar = ({
       (a) => a.territoryId === effectiveTerritory.id && !a.returnedAt
     );
     if (hasOpenAssignment) {
-      displaySnackNotification({ header: 'Error', message: 'Este territorio ya está asignado', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message: 'Este territorio ya está asignado',
+        severity: 'error',
+      });
       return;
     }
     setSaving(true);
@@ -418,7 +438,7 @@ const DialogAsignar = ({
         });
 
         // Notificación por Correo
-        const assignedPerson = persons.find(p => p.person_uid === personUid);
+        const assignedPerson = persons.find((p) => p.person_uid === personUid);
         const targetEmail = assignedPerson?.person_data?.email?.value;
         if (targetEmail) {
           try {
@@ -443,13 +463,18 @@ const DialogAsignar = ({
       if (notificationFailed) {
         displaySnackNotification({
           header: 'Territorio asignado',
-          message: 'No se pudo enviar el aviso por correo o notificación push. El territorio ya quedó asignado, pero conviene avisar al publicador por otra vía.',
+          message:
+            'No se pudo enviar el aviso por correo o notificación push. El territorio ya quedó asignado, pero conviene avisar al publicador por otra vía.',
           severity: 'error',
         });
       }
     } catch (error) {
       console.error(error);
-      displaySnackNotification({ header: 'Error', message: (error as Error).message || 'Ocurrió un error inesperado', severity: 'error' });
+      displaySnackNotification({
+        header: 'Error',
+        message: (error as Error).message || 'Ocurrió un error inesperado',
+        severity: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -488,7 +513,10 @@ const DialogAsignar = ({
                 overflowY: 'auto',
               }}
             >
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink)' }}
+              >
                 {bulkTerritories!.map((t) => territoryLabel(t)).join(', ')}
               </Typography>
             </Box>
@@ -531,8 +559,18 @@ const DialogAsignar = ({
           />
         </Stack>
 
-        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3, flexWrap: 'wrap' }}>
-          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={saving}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          justifyContent="flex-end"
+          sx={{ mt: 3, flexWrap: 'wrap' }}
+        >
+          <Button
+            variant="tertiary"
+            disableAutoStretch
+            onClick={onClose}
+            disabled={saving}
+          >
             Cancelar
           </Button>
           <Button
@@ -562,9 +600,12 @@ const DialogAsignar = ({
                 }) as object),
               }}
             >
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
-                {resolveName(solicitudPendiente.personUid)} tiene una solicitud de
-                territorio pendiente.
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink)' }}
+              >
+                {resolveName(solicitudPendiente.personUid)} tiene una solicitud
+                de territorio pendiente.
               </Typography>
               <Box sx={{ mt: 0.5 }}>
                 <Checkbox

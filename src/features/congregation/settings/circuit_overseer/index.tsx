@@ -1,8 +1,5 @@
 import { FullnameOption } from '@definition/settings';
-import {
-  useAppTranslation,
-  useBreakpoints,
-} from '@hooks/index';
+import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import {
   CardSection,
   CardSectionContent,

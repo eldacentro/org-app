@@ -91,13 +91,13 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
           borderRadius: laptopUp
             ? 'var(--shape-xl)'
             : props.anchor === 'bottom'
-            ? 'var(--shape-xl) var(--shape-xl) 0 0'
-            : 'unset',
+              ? 'var(--shape-xl) var(--shape-xl) 0 0'
+              : 'unset',
           border: laptopUp
             ? '1px solid rgba(255,255,255,0.18)'
             : props.anchor === 'bottom'
-            ? '1px solid rgba(255,255,255,0.18)'
-            : 'unset',
+              ? '1px solid rgba(255,255,255,0.18)'
+              : 'unset',
           borderBottom: 'none',
           padding: '20px 16px',
           overflow: 'hidden',
@@ -119,7 +119,7 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
             }}
           />
         )}
-        
+
         {/* Header */}
         <Stack
           direction="row"
@@ -145,7 +145,8 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
               sx={{
                 border: '1px solid var(--line)',
                 borderRadius: 'var(--shape-md)',
-                transition: 'background 0.15s ease, transform 0.15s ease',
+                transition:
+                  'background var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard)',
                 '&:hover': {
                   backgroundColor: 'rgba(127,127,160,0.10)',
                   transform: 'rotate(90deg)',
@@ -188,4 +189,3 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
 };
 
 export default Drawer;
-

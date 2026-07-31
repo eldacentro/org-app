@@ -29,7 +29,8 @@ const useSignup = () => {
   const isOnline = useAtomValue(isOnlineState);
   const settings = useAtomValue(settingsState);
 
-  const { hideMessage, message, showMessage, title, variant, isVisible } = useFeedback();
+  const { hideMessage, message, showMessage, title, variant, isVisible } =
+    useFeedback();
 
   const [code, setCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);

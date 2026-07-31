@@ -40,7 +40,7 @@ const SpiritualStatusTitle = ({
           color="var(--black)"
           sx={{
             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s',
+            transition: 'transform var(--motion-medium) var(--ease-standard)',
           }}
         />
       </IconButton>

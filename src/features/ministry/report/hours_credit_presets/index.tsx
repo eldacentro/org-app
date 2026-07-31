@@ -106,7 +106,11 @@ const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
       )}
 
       {/* "Otro": hay que preguntar el motivo y las horas */}
-      <Dialog open={otherOpen} onClose={handleCancelOther} sx={{ padding: '24px' }}>
+      <Dialog
+        open={otherOpen}
+        onClose={handleCancelOther}
+        sx={{ padding: '24px' }}
+      >
         <Typography className="h2">{t('tr_eldaCreditOther')}</Typography>
 
         <Typography color="var(--grey-400)">
@@ -126,7 +130,14 @@ const HoursCreditPresets = (props: HoursCreditPresetsProps) => {
           onChange={(e) => setOtherHours(e.target.value)}
         />
 
-        <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '8px',
+            justifyContent: 'flex-end',
+            width: '100%',
+          }}
+        >
           <Button variant="secondary" onClick={handleCancelOther}>
             {t('tr_cancel')}
           </Button>

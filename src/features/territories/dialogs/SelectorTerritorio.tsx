@@ -119,15 +119,25 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
+          <Typography
+            className="body-regular-semibold"
+            sx={{ color: 'var(--ink)' }}
+          >
             {territoryLabel(elegido)}
           </Typography>
-          <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+          <Typography
+            className="label-small-regular"
+            sx={{ color: 'var(--ink-2)' }}
+          >
             {descansando ? 'En descanso · ' : ''}
             {desdeUltimoTrabajo(elegido)}
           </Typography>
         </Box>
-        <Button variant="tertiary" disableAutoStretch onClick={() => onChange(null)}>
+        <Button
+          variant="tertiary"
+          disableAutoStretch
+          onClick={() => onChange(null)}
+        >
           Cambiar
         </Button>
       </Box>
@@ -136,7 +146,10 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
 
   if (cargando) {
     return (
-      <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)', py: 2 }}>
+      <Typography
+        className="body-small-regular"
+        sx={{ color: 'var(--ink-2)', py: 2 }}
+      >
         Cargando territorios…
       </Typography>
     );
@@ -144,11 +157,16 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
 
   // ── nivel 1: las zonas ──
   if (!zonaAbierta) {
-    const conLibres = zonas.filter((z) => (libresPorZona.get(z.id) ?? []).length > 0);
+    const conLibres = zonas.filter(
+      (z) => (libresPorZona.get(z.id) ?? []).length > 0
+    );
 
     if (conLibres.length === 0) {
       return (
-        <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)', py: 2 }}>
+        <Typography
+          className="body-small-regular"
+          sx={{ color: 'var(--ink-2)', py: 2 }}
+        >
           No hay ningún territorio libre ahora mismo.
         </Typography>
       );
@@ -201,7 +219,10 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
               >
                 {z.nombre}
               </Typography>
-              <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="label-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 {n} {n === 1 ? 'libre' : 'libres'}
               </Typography>
               {/* Era el carácter "›" escrito a pelo: hereda el tipo de letra,

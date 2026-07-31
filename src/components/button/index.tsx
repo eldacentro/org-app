@@ -206,7 +206,8 @@ const Button: FC<ButtonPropsType> = (props) => {
         fontFeatureSettings: '"cv05"',
         padding: variant === 'small' ? '4px 8px' : '8px 16px',
         backgroundColor: getBackgroundColor(),
-        transition: 'transform 100ms ease, background-color 150ms ease',
+        transition:
+          'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
         border:
           internalVariant === 'outlined'
             ? '1px solid var(--accent-dark)'

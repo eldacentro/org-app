@@ -46,7 +46,8 @@ const useSpeakersOutgoing = () => {
   // botón de reconciliar cuando hay algo que arreglar.
   const hasBrokenLinks = useMemo(() => {
     return outgoingSpeakers.some(
-      (record) => !persons.some((person) => person.person_uid === record.person_uid)
+      (record) =>
+        !persons.some((person) => person.person_uid === record.person_uid)
     );
   }, [outgoingSpeakers, persons]);
 

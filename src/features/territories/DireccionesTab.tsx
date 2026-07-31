@@ -13,7 +13,10 @@ import {
   congMasterKeyState,
   userLocalUIDState,
 } from '@states/settings';
-import { territoryLocationsState, territorySettingsState } from '@states/territories';
+import {
+  territoryLocationsState,
+  territorySettingsState,
+} from '@states/territories';
 import { TerritoryLocation } from '@definition/territories';
 import { displayText } from '@services/app/territories';
 import {
@@ -50,7 +53,9 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
   const approved = locations.filter((l) => l.aprobada);
   const pending = locations.filter((l) => !l.aprobada);
   // Un responsable ve todas las pendientes; un publicador, solo las suyas.
-  const visiblePending = canManage ? pending : pending.filter((l) => l.addedBy === uid);
+  const visiblePending = canManage
+    ? pending
+    : pending.filter((l) => l.addedBy === uid);
 
   const { confirm, ConfirmDialogNode } = useConfirm();
 
@@ -162,7 +167,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       await approveLocation(congId, l.id, uid);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo aprobar la dirección.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo aprobar la dirección.',
+      });
     } finally {
       setApprovingId(null);
     }
@@ -179,7 +188,11 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
       await deleteLocation(congId, l.id);
     } catch (err) {
       console.error(err);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo eliminar la dirección.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo eliminar la dirección.',
+      });
     }
   };
 
@@ -265,7 +278,10 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
           o tres veces más. */}
       {visiblePending.length > 0 && (
         <Box>
-          <Typography className="label-small-regular" color="var(--orange-main)">
+          <Typography
+            className="label-small-regular"
+            color="var(--orange-main)"
+          >
             {canManage
               ? `Pendientes de aprobación (${visiblePending.length})`
               : 'Enviado — pendiente de que un responsable lo apruebe'}
@@ -297,13 +313,17 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
               Añadir
             </Button>
             {saveError && (
-              <Typography className="label-small-regular" color="var(--red-main)">
+              <Typography
+                className="label-small-regular"
+                color="var(--red-main)"
+              >
                 {saveError}
               </Typography>
             )}
             {!canManage && settings.locationsRequireApproval && (
               <Typography className="label-small-regular" color="var(--ink-2)">
-                La dirección quedará pendiente hasta que un responsable la apruebe.
+                La dirección quedará pendiente hasta que un responsable la
+                apruebe.
               </Typography>
             )}
           </Stack>

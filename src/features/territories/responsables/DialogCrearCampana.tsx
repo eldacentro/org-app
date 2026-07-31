@@ -7,7 +7,10 @@ import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import DatePicker from '@components/date_picker';
 import { congIDState } from '@states/settings';
-import { TerritoryCampaign, TerritoryCampaignEstado } from '@definition/territories';
+import {
+  TerritoryCampaign,
+  TerritoryCampaignEstado,
+} from '@definition/territories';
 import { saveCampaign } from '@services/firebase/territories';
 import { isCampaignOver } from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
@@ -51,7 +54,9 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
     // campaña con el rango invertido, que además alimenta el cierre
     // (returnedAt = fechaFin) con una fecha anterior a su propio inicio.
     if (new Date(fin) < new Date(inicio)) {
-      setErrorMsg('La fecha de finalización no puede ser anterior a la de inicio.');
+      setErrorMsg(
+        'La fecha de finalización no puede ser anterior a la de inicio.'
+      );
       return;
     }
     setSaving(true);
@@ -67,13 +72,22 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
         updatedAt: new Date().toISOString(),
       };
       await saveCampaign(congId, campaign);
-      displaySnackNotification({ severity: 'success', header: 'Campaña creada', message: `La campaña "${campaign.nombre}" ha sido creada.` });
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Campaña creada',
+        message: `La campaña "${campaign.nombre}" ha sido creada.`,
+      });
       onClose();
     } catch (err) {
       console.error('Error al crear campaña:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
       setErrorMsg(errorMessage);
-      displaySnackNotification({ severity: 'error', header: 'Error', message: 'No se pudo crear la campaña.' });
+      displaySnackNotification({
+        severity: 'error',
+        header: 'Error',
+        message: 'No se pudo crear la campaña.',
+      });
     } finally {
       setSaving(false);
     }
@@ -98,8 +112,18 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
           Crear campaña
         </Typography>
         {errorMsg && (
-          <Box sx={{ mb: 2, p: 1, backgroundColor: 'var(--red-secondary)', borderRadius: 'var(--shape-md)' }}>
-            <Typography className="body-small-regular" sx={{ color: 'var(--red-main)' }}>
+          <Box
+            sx={{
+              mb: 2,
+              p: 1,
+              backgroundColor: 'var(--red-secondary)',
+              borderRadius: 'var(--shape-md)',
+            }}
+          >
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--red-main)' }}
+            >
               {errorMsg}
             </Typography>
           </Box>
@@ -140,8 +164,18 @@ const DialogCrearCampana = ({ open, onClose }: Props) => {
             </Box>
           </Stack>
         </Stack>
-        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3, flexWrap: 'wrap' }}>
-          <Button variant="tertiary" disableAutoStretch onClick={onClose} disabled={saving}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          justifyContent="flex-end"
+          sx={{ mt: 3, flexWrap: 'wrap' }}
+        >
+          <Button
+            variant="tertiary"
+            disableAutoStretch
+            onClick={onClose}
+            disabled={saving}
+          >
             Cancelar
           </Button>
           <Button

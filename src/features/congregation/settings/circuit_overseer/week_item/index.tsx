@@ -8,7 +8,13 @@ import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitM
 import IconButton from '@components/icon_button';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
 
-const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItemType) => {
+const WeekItem = ({
+  visit,
+  error,
+  helperText,
+  onWeekChange,
+  onDelete,
+}: WeekItemType) => {
   const { t } = useAppTranslation();
 
   const canEdit = useIsCircuitVisitManager();
@@ -70,7 +76,8 @@ const WeekItem = ({ visit, error, helperText, onWeekChange, onDelete }: WeekItem
       />
 
       {canEdit && (
-        <IconButton aria-label="Eliminar"
+        <IconButton
+          aria-label="Eliminar"
           color="error"
           sx={{
             borderRadius: 'var(--shape-sm)',

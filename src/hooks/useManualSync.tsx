@@ -85,7 +85,8 @@ const useManualSync = () => {
 
     if (lastSync === 'now') return t('tr_lastSyncAppDataNow');
     if (lastSync === 'recently') return t('tr_lastSyncAppDataRecently');
-    if (lastSync === 'error') return getMessageByCode('error_app_generic-title');
+    if (lastSync === 'error')
+      return getMessageByCode('error_app_generic-title');
     if (typeof lastSync === 'number' && lastSync >= 1) {
       // Hasta una hora, la traducción de siempre ("hace N minutos"). A partir
       // de ahí no sirve: la marca ahora se conserva entre recargas, así que

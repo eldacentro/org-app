@@ -58,7 +58,9 @@ const HistorialTab = () => {
         enCurso: !a.returnedAt,
         fecha: a.returnedAt ?? a.assignedAt,
       }))
-      .sort((x, y) => new Date(y.fecha).getTime() - new Date(x.fecha).getTime());
+      .sort(
+        (x, y) => new Date(y.fecha).getTime() - new Date(x.fecha).getTime()
+      );
   }, [assignments]);
 
   const filtrados = useMemo(() => {
@@ -77,7 +79,10 @@ const HistorialTab = () => {
     });
   }, [movimientos, filtro, search, resolveName, territories]);
 
-  const enCurso = useMemo(() => movimientos.filter((m) => m.enCurso).length, [movimientos]);
+  const enCurso = useMemo(
+    () => movimientos.filter((m) => m.enCurso).length,
+    [movimientos]
+  );
   const visible = filtrados.slice(0, limit);
 
   const vacio = loading
@@ -133,7 +138,9 @@ const HistorialTab = () => {
             // día llega uno importado sin el dato, se cae con elegancia a la
             // frase de antes en vez de dejar un hueco raro.
             const quienAsigno = a.assignedBy ? resolveName(a.assignedBy) : null;
-            const seLoDioASiMismo = Boolean(a.assignedBy && a.assignedBy === a.personUid);
+            const seLoDioASiMismo = Boolean(
+              a.assignedBy && a.assignedBy === a.personUid
+            );
             // Misma marca "(C)" que usan el historial de Asignaciones y el
             // S-13: sin ella no habría forma de distinguir aquí una entrega
             // normal de una de campaña.
@@ -159,12 +166,16 @@ const HistorialTab = () => {
                       spacing={1}
                       sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                     >
-                      <Typography className="body-small-regular" color="var(--ink)">
+                      <Typography
+                        className="body-small-regular"
+                        color="var(--ink)"
+                      >
                         {abierta ? (
                           quienAsigno ? (
                             seLoDioASiMismo ? (
                               <>
-                                <strong>{quienAsigno}</strong> tomó el <strong>{tName}</strong>
+                                <strong>{quienAsigno}</strong> tomó el{' '}
+                                <strong>{tName}</strong>
                               </>
                             ) : (
                               <>
@@ -175,28 +186,48 @@ const HistorialTab = () => {
                             )
                           ) : (
                             <>
-                              <strong>{resolveName(a.personUid)}</strong> tiene el{' '}
-                              <strong>{tName}</strong>
+                              <strong>{resolveName(a.personUid)}</strong> tiene
+                              el <strong>{tName}</strong>
                             </>
                           )
                         ) : (
                           <>
-                            <strong>{resolveName(a.personUid)}</strong> devolvió el{' '}
-                            <strong>{tName}</strong> como{' '}
-                            <strong>{trabajado ? 'trabajado' : 'no trabajado'}</strong>
+                            <strong>{resolveName(a.personUid)}</strong> devolvió
+                            el <strong>{tName}</strong> como{' '}
+                            <strong>
+                              {trabajado ? 'trabajado' : 'no trabajado'}
+                            </strong>
                           </>
                         )}
                       </Typography>
                       {marcaCampana}
                     </Stack>
-                    <Typography className="label-small-regular" color="var(--ink-2)">
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--ink-2)"
+                    >
                       {abierta ? (
-                        <>Entregado el {formatTerritoryDate(a.assignedAt, settings.dateFormat)}</>
+                        <>
+                          Entregado el{' '}
+                          {formatTerritoryDate(
+                            a.assignedAt,
+                            settings.dateFormat
+                          )}
+                        </>
                       ) : (
                         <>
-                          {quienAsigno ? `Se lo asignó ${quienAsigno} el ` : 'Asignado el '}
-                          {formatTerritoryDate(a.assignedAt, settings.dateFormat)} · Devuelto el{' '}
-                          {formatTerritoryDate(a.returnedAt!, settings.dateFormat)}
+                          {quienAsigno
+                            ? `Se lo asignó ${quienAsigno} el `
+                            : 'Asignado el '}
+                          {formatTerritoryDate(
+                            a.assignedAt,
+                            settings.dateFormat
+                          )}{' '}
+                          · Devuelto el{' '}
+                          {formatTerritoryDate(
+                            a.returnedAt!,
+                            settings.dateFormat
+                          )}
                         </>
                       )}
                     </Typography>
@@ -211,12 +242,18 @@ const HistorialTab = () => {
                     {a.notas && (
                       <Typography
                         className="label-small-regular"
-                        sx={{ color: 'var(--ink-2)', fontStyle: 'italic', maxWidth: '300px' }}
+                        sx={{
+                          color: 'var(--ink-2)',
+                          fontStyle: 'italic',
+                          maxWidth: '300px',
+                        }}
                       >
                         &quot;{displayText(a.notas)}&quot;
                       </Typography>
                     )}
-                    {abierta && <Badge size="small" color="orange" text="En curso" />}
+                    {abierta && (
+                      <Badge size="small" color="orange" text="En curso" />
+                    )}
                   </Stack>
                 </Stack>
               </TerritoryCard>

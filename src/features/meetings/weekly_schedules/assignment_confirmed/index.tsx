@@ -57,7 +57,8 @@ const AssignmentConfirmed = (props: {
           ? '1px solid var(--green-main)'
           : '1px solid var(--line-2)',
         backgroundColor: confirmed ? 'var(--green-secondary)' : 'transparent',
-        transition: 'background-color 0.15s ease, border-color 0.15s ease',
+        transition:
+          'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
         '&:hover': {
           borderColor: confirmed ? 'var(--green-main)' : 'var(--grey-350)',
         },

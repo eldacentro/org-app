@@ -67,8 +67,7 @@ const useExportGroups = () => {
 
               // Concesión para inactivos: si está marcada, sale también en
               // el PDF de grupos (mismo criterio que la vista en pantalla).
-              if (person.person_data.grupo_visible_inactivo?.value)
-                return true;
+              if (person.person_data.grupo_visible_inactivo?.value) return true;
 
               return personIsActivePublisher(person, ministryMonths);
             })
@@ -104,19 +103,32 @@ const useExportGroups = () => {
               return 0;
             });
 
-          const overseerMember = group_members.find((record) => record.isOverseer);
+          const overseerMember = group_members.find(
+            (record) => record.isOverseer
+          );
           const overseer = overseerMember
-            ? { name: overseerMember.person_name, isPioneer: overseerMember.isPioneer }
+            ? {
+                name: overseerMember.person_name,
+                isPioneer: overseerMember.isPioneer,
+              }
             : undefined;
 
-          const assistantMember = group_members.find((record) => record.isAssistant);
+          const assistantMember = group_members.find(
+            (record) => record.isAssistant
+          );
           const overseerAssistant = assistantMember
-            ? { name: assistantMember.person_name, isPioneer: assistantMember.isPioneer }
+            ? {
+                name: assistantMember.person_name,
+                isPioneer: assistantMember.isPioneer,
+              }
             : undefined;
 
           const publishers = group_members
             .filter((record) => !record.isOverseer && !record.isAssistant)
-            .map((record) => ({ name: record.person_name, isPioneer: record.isPioneer }));
+            .map((record) => ({
+              name: record.person_name,
+              isPioneer: record.isPioneer,
+            }));
 
           return {
             group_name: final_name,

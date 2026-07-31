@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Marker, useMap } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  GeoJSON,
+  Marker,
+  useMap,
+} from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import type { LatLngBoundsExpression } from 'leaflet';
@@ -109,7 +115,8 @@ const CustomZoomControl = () => {
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '0.5px solid rgba(255, 255, 255, 0.6)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
+        boxShadow:
+          '0 4px 20px rgba(0,0,0,0.13), inset 0 0.5px 0 rgba(255,255,255,0.9)',
       }}
     >
       {/* Botones de verdad, con nombre. Eran `<Box onClick>` con un "+" y un
@@ -170,7 +177,10 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
   }, [openAssignments]);
 
   const overallBounds = useMemo(() => {
-    let south = Infinity, west = Infinity, north = -Infinity, east = -Infinity;
+    let south = Infinity,
+      west = Infinity,
+      north = -Infinity,
+      east = -Infinity;
     let any = false;
     for (const t of withGeometry) {
       const b = t.geometry ? geometryBounds(t.geometry) : null;
@@ -181,7 +191,12 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       if (b[1][0] > north) north = b[1][0];
       if (b[1][1] > east) east = b[1][1];
     }
-    return any ? ([[south, west], [north, east]] as LatLngBoundsExpression) : null;
+    return any
+      ? ([
+          [south, west],
+          [north, east],
+        ] as LatLngBoundsExpression)
+      : null;
   }, [withGeometry]);
 
   // Posición e icono se memorizan por territorio. Antes se creaban objetos
@@ -190,26 +205,32 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
   // quitar+añadir capa completo. Un simple toque en el mapa disparaba ~260
   // operaciones de reagrupado y congelaba la interfaz en móviles normales.
   const markers = useMemo(() => {
-    const out: { t: Territory; center: [number, number]; icon: L.DivIcon }[] = [];
+    const out: { t: Territory; center: [number, number]; icon: L.DivIcon }[] =
+      [];
     for (const t of withGeometry) {
       const center = t.geometry ? geometryCenter(t.geometry) : null;
       if (!center) continue;
       out.push({
         t,
         center,
-        icon: dotIcon(assignmentByTerritory.has(t.id) ? ASSIGNED_COLOR : FREE_COLOR),
+        icon: dotIcon(
+          assignmentByTerritory.has(t.id) ? ASSIGNED_COLOR : FREE_COLOR
+        ),
       });
     }
     return out;
   }, [withGeometry, assignmentByTerritory]);
 
-  const selectedAssignment = selected ? assignmentByTerritory.get(selected.id) : undefined;
+  const selectedAssignment = selected
+    ? assignmentByTerritory.get(selected.id)
+    : undefined;
 
   if (withGeometry.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
         <Typography color="var(--ink-2)">
-          Todavía no hay territorios con geometría importada para mostrar en el mapa.
+          Todavía no hay territorios con geometría importada para mostrar en el
+          mapa.
         </Typography>
       </Box>
     );
@@ -230,9 +251,17 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
     >
-      <MapContainer center={[40.4168, -3.7038]} zoom={13} scrollWheelZoom zoomControl={false}>
+      <MapContainer
+        center={[40.4168, -3.7038]}
+        zoom={13}
+        scrollWheelZoom
+        zoomControl={false}
+      >
         <CustomZoomControl />
-        <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer
+          attribution="&copy; OpenStreetMap"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
         {withGeometry.map((t) => (
           <GeoJSON
@@ -287,12 +316,36 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       >
         <Stack direction="row" spacing={2}>
           <Stack direction="row" spacing={0.75} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: 'var(--shape-full)', backgroundColor: ASSIGNED_COLOR }} />
-            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Asignado</Typography>
+            <Box
+              sx={{
+                width: 9,
+                height: 9,
+                borderRadius: 'var(--shape-full)',
+                backgroundColor: ASSIGNED_COLOR,
+              }}
+            />
+            <Typography
+              className="label-small-regular"
+              sx={{ color: 'var(--ink-2)' }}
+            >
+              Asignado
+            </Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: 'var(--shape-full)', backgroundColor: FREE_COLOR }} />
-            <Typography className="label-small-regular" sx={{ color: 'var(--ink-2)' }}>Libre</Typography>
+            <Box
+              sx={{
+                width: 9,
+                height: 9,
+                borderRadius: 'var(--shape-full)',
+                backgroundColor: FREE_COLOR,
+              }}
+            />
+            <Typography
+              className="label-small-regular"
+              sx={{ color: 'var(--ink-2)' }}
+            >
+              Libre
+            </Typography>
           </Stack>
         </Stack>
       </Box>
@@ -315,12 +368,24 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
             }) as object),
           }}
         >
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="flex-start"
+          >
             <Box>
-              <Typography className="body-regular-semibold" sx={{ color: 'var(--ink)' }}>
-                {selected.nombre ? `${selected.numero} — ${selected.nombre}` : selected.numero}
+              <Typography
+                className="body-regular-semibold"
+                sx={{ color: 'var(--ink)' }}
+              >
+                {selected.nombre
+                  ? `${selected.numero} — ${selected.nombre}`
+                  : selected.numero}
               </Typography>
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink-2)' }}>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink-2)' }}
+              >
                 {getZoneName(selected.zoneId, zones)}
               </Typography>
             </Box>
@@ -349,12 +414,22 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
 
           <Box sx={{ mt: '10px' }}>
             {selectedAssignment ? (
-              <Typography className="body-small-regular" sx={{ color: 'var(--ink)' }}>
-                <strong>{resolveName(selectedAssignment.personUid)}</strong> · desde{' '}
-                {formatTerritoryDate(selectedAssignment.assignedAt, settings.dateFormat)}
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink)' }}
+              >
+                <strong>{resolveName(selectedAssignment.personUid)}</strong> ·
+                desde{' '}
+                {formatTerritoryDate(
+                  selectedAssignment.assignedAt,
+                  settings.dateFormat
+                )}
               </Typography>
             ) : (
-              <Typography className="body-small-semibold" sx={{ color: FREE_COLOR }}>
+              <Typography
+                className="body-small-semibold"
+                sx={{ color: FREE_COLOR }}
+              >
                 Libre — sin asignar
               </Typography>
             )}

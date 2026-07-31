@@ -24,7 +24,9 @@ const useTerritoryRequestsNotifications = () => {
   useEffect(() => {
     // Solo mostrar esta notificación a los responsables de territorios
     if (!isManager) {
-      setNotifications((prev) => prev.filter((record) => record.id !== 'territory-requests'));
+      setNotifications((prev) =>
+        prev.filter((record) => record.id !== 'territory-requests')
+      );
       return;
     }
 
@@ -46,12 +48,16 @@ const useTerritoryRequestsNotifications = () => {
       };
 
       setNotifications((prev) => {
-        const newValue = prev.filter((record) => record.id !== 'territory-requests');
+        const newValue = prev.filter(
+          (record) => record.id !== 'territory-requests'
+        );
         newValue.push(requestNotification);
         return newValue;
       });
     } else {
-      setNotifications((prev) => prev.filter((record) => record.id !== 'territory-requests'));
+      setNotifications((prev) =>
+        prev.filter((record) => record.id !== 'territory-requests')
+      );
     }
   }, [pendingRequests, setNotifications, isManager]);
 };

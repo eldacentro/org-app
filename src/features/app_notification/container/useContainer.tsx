@@ -333,7 +333,9 @@ const useContainer = () => {
 
             if (record.cong_data.request_status === 'pending') return false;
 
-            return !incoming.some((c) => c.cong_id === record.cong_data.cong_id);
+            return !incoming.some(
+              (c) => c.cong_id === record.cong_data.cong_id
+            );
           });
 
           for (const cong of deleted) {
@@ -529,7 +531,9 @@ const useContainer = () => {
 
     const markableIds = new Set(markable.map((record) => record.id));
 
-    setNotifications((prev) => prev.filter((record) => !markableIds.has(record.id)));
+    setNotifications((prev) =>
+      prev.filter((record) => !markableIds.has(record.id))
+    );
   }, [notifications, dbNotifications, setNotifications]);
 
   return { notifications: sortedNotifications, handleMarkAllAsRead };

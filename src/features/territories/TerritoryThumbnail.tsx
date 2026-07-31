@@ -46,7 +46,10 @@ const TerritoryThumbnail = ({ geometry, color, size = 56 }: Props) => {
         })
         .join(' ') + ' Z';
 
-    const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    const polygons =
+      geometry.type === 'Polygon'
+        ? [geometry.coordinates]
+        : geometry.coordinates;
 
     return polygons.map((rings) => rings.map(ringToPath).join(' '));
   }, [geometry]);
@@ -66,7 +69,14 @@ const TerritoryThumbnail = ({ geometry, color, size = 56 }: Props) => {
       {paths.length > 0 ? (
         <svg viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`} width="100%" height="100%">
           {paths.map((d, i) => (
-            <path key={i} d={d} fill={color} fillOpacity={0.28} stroke={color} strokeWidth={1.5} />
+            <path
+              key={i}
+              d={d}
+              fill={color}
+              fillOpacity={0.28}
+              stroke={color}
+              strokeWidth={1.5}
+            />
           ))}
         </svg>
       ) : null}

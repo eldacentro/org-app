@@ -34,10 +34,7 @@ const PioneerStats = ({ year }: PioneerStatsProps) => {
     <Stack spacing="16px" padding="8px 0">
       <Typography className="h3">{t('tr_pioneerServiceStats')}</Typography>
 
-      <Stack
-        spacing="8px"
-        divider={<Divider dashed color="var(--line)" />}
-      >
+      <Stack spacing="8px" divider={<Divider dashed color="var(--line)" />}>
         <LabelRow name={t('tr_goalForYear')} value={goal} />
         <LabelRow
           name={t('tr_hoursLeft')}
