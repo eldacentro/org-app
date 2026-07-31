@@ -24,6 +24,18 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
     >
       <InputLabel
         className="body-regular"
+        // Con `displayEmpty`, el rótulo TIENE que estar arriba.
+        //
+        // MUI decide si encogerlo mirando si el campo tiene valor, y un
+        // `displayEmpty` enseña una opción para el valor VACÍO —"Todos los
+        // informes"—: para MUI sigue vacío, así que dejaba el rótulo dentro,
+        // encima del texto. Se veía en el filtro de Informes de predicación,
+        // con "Informes" escrito sobre "Todos los informes"; medido, el rótulo
+        // caía en el 14 y el valor en el 10, uno sobre otro.
+        //
+        // Va aquí y no en ese sitio porque le pasa a CUALQUIER desplegable que
+        // enseñe su opción vacía, y esa decisión la toma quien lo usa.
+        shrink={props.displayEmpty ? true : undefined}
         sx={{
           color: props.error ? 'var(--red-main)' : 'var(--accent-350)',
           '&.Mui-focused': { color: 'var(--accent-main)' },
