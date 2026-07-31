@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useCurrentUser } from '@hooks/index';
-import NavBarButton from '@components/nav_bar_button';
-import { IconSettings } from '@components/icons';
 import PageTitle from '@components/page_title';
 import PlanHeader from '@features/evacuacion/PlanHeader';
 import Plano2D from '@features/evacuacion/Plano2D';
 import PanelInformacion from '@features/evacuacion/PanelInformacion';
-import DetalleSeleccion, { Seleccion } from '@features/evacuacion/DetalleSeleccion';
+import DetalleSeleccion, {
+  Seleccion,
+} from '@features/evacuacion/DetalleSeleccion';
 import PlanoPantallaCompleta from '@features/evacuacion/PlanoPantallaCompleta';
 import { PLAN_EVACUACION } from '@features/evacuacion/data';
 import { dbEvacuacionGetConfig } from '@services/dexie/evacuacion';
@@ -41,20 +41,19 @@ const EvacuacionPage = () => {
   }, []);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '100%' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        minHeight: '100%',
+      }}
+    >
+      {/* Al engranaje: ver la nota en `congregation/limpieza`. */}
       <PageTitle
         title="Plan de evacuación"
-        buttons={
-          <>
-            {isManager && (
-              <NavBarButton
-                text="Configuración"
-                onClick={() => setIsConfigOpen(true)}
-                icon={<IconSettings />}
-              />
-            )}
-          </>
-        }
+        quickSettings={isManager ? () => setIsConfigOpen(true) : undefined}
+        quickSettingsLabel="Configuración del plan de evacuación"
       />
 
       <PlanHeader tiempoMaximo={plan.tiempoMaximo} />

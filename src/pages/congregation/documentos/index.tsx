@@ -6,7 +6,7 @@ import { Box, Typography, Grid, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
-import { IconAdd, IconSettings, IconInfo } from '@components/icons';
+import { IconAdd, IconInfo } from '@components/icons';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { useCurrentUser, useBreakpoints } from '@hooks/index';
 import DialogSubirDocumento from '@features/documentos/DialogSubirDocumento';
@@ -55,24 +55,34 @@ const DocumentosPage = () => {
         ? documentos
         : documentos.filter((d) => d.categoriaId === filtroCategoria);
     return [...base].sort(
-      (a, b) => new Date(b.fechaSubida).getTime() - new Date(a.fechaSubida).getTime()
+      (a, b) =>
+        new Date(b.fechaSubida).getTime() - new Date(a.fechaSubida).getTime()
     );
   }, [documentos, filtroCategoria]);
 
   const handleDelete = async (doc: DocumentoArchivo) => {
     const ok = await confirm({
       title: 'Eliminar documento',
-      message: '¿Estás seguro de que deseas eliminar este documento permanentemente?',
+      message:
+        '¿Estás seguro de que deseas eliminar este documento permanentemente?',
       confirmLabel: 'Eliminar',
       destructive: true,
     });
     if (ok) {
       try {
         await deleteDocumentoCompleto(congId, doc.id);
-        displaySnackNotification({ severity: 'success', header: 'Documento eliminado', message: `"${doc.fileName}" ha sido eliminado.` });
+        displaySnackNotification({
+          severity: 'success',
+          header: 'Documento eliminado',
+          message: `"${doc.fileName}" ha sido eliminado.`,
+        });
       } catch (err) {
         console.error(err);
-        displaySnackNotification({ severity: 'error', header: 'Error al eliminar', message: 'No se pudo eliminar el documento.' });
+        displaySnackNotification({
+          severity: 'error',
+          header: 'Error al eliminar',
+          message: 'No se pudo eliminar el documento.',
+        });
       }
     }
   };
@@ -81,12 +91,6 @@ const DocumentosPage = () => {
     if (!canManage) return null;
     return (
       <>
-        <NavBarButton
-          key="manage-categories"
-          text={tablet688Up ? 'Gestionar categorías' : 'Categorías'}
-          icon={<IconSettings />}
-          onClick={() => setOpenCategorias(true)}
-        />
         <NavBarButton
           key="upload-document"
           text={tablet688Up ? 'Subir documento' : 'Subir'}
@@ -101,7 +105,17 @@ const DocumentosPage = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {ConfirmDialogNode}
-      <PageTitle title="Documentos" buttons={buttons} />
+      {/* Las categorías son configuración de la pantalla, no una acción sobre
+          los documentos, así que van al engranaje como en el resto de la app.
+          Abajo se queda "Subir documento", que sí es una acción. De paso deja
+          de llamarse "Gestionar categorías" en una pantalla y "Configuración"
+          en las otras cinco. */}
+      <PageTitle
+        title="Documentos"
+        buttons={buttons}
+        quickSettings={canManage ? () => setOpenCategorias(true) : undefined}
+        quickSettingsLabel="Categorías de documentos"
+      />
 
       {/* Filtros por categoría */}
       <Stack
@@ -141,7 +155,9 @@ const DocumentosPage = () => {
       ) : filtroCategoria === 'all' ? (
         <Stack spacing={4}>
           {categorias.map((cat) => {
-            const catDocs = docsFiltrados.filter((d) => d.categoriaId === cat.id);
+            const catDocs = docsFiltrados.filter(
+              (d) => d.categoriaId === cat.id
+            );
             if (catDocs.length === 0) return null;
             return (
               <Box key={cat.id}>
@@ -159,7 +175,10 @@ const DocumentosPage = () => {
                 </Typography>
                 <Grid container spacing={2}>
                   {catDocs.map((doc) => (
-                    <Grid size={{ mobile: 12, tablet600: 6, laptop: 4 }} key={doc.id}>
+                    <Grid
+                      size={{ mobile: 12, tablet600: 6, laptop: 4 }}
+                      key={doc.id}
+                    >
                       <DocumentoCard
                         documento={doc}
                         categoria={cat}
@@ -188,8 +207,14 @@ const DocumentosPage = () => {
         </Grid>
       )}
 
-      <DialogSubirDocumento open={openSubir} onClose={() => setOpenSubir(false)} />
-      <DialogCategorias open={openCategorias} onClose={() => setOpenCategorias(false)} />
+      <DialogSubirDocumento
+        open={openSubir}
+        onClose={() => setOpenSubir(false)}
+      />
+      <DialogCategorias
+        open={openCategorias}
+        onClose={() => setOpenCategorias(false)}
+      />
       <DialogVerDocumento
         open={!!docToView}
         documento={docToView}

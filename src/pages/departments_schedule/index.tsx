@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box } from '@mui/material';
-import {
-  IconPrint,
-  IconGenerate,
-  IconPublish,
-  IconSettings,
-} from '@components/icons';
+import { IconPrint, IconGenerate, IconPublish } from '@components/icons';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
@@ -15,7 +10,10 @@ import useDeptExport from '@features/departments_schedule/useDeptExport';
 import NavBarButton from '@components/nav_bar_button';
 import DeptAutofillDialog from '@features/departments_schedule/autofill';
 import { displaySnackNotification } from '@services/states/app';
-import { deptScheduleState, selectedDeptWeekState } from '@states/departments_schedule';
+import {
+  deptScheduleState,
+  selectedDeptWeekState,
+} from '@states/departments_schedule';
 import {
   departmentsConfigState,
   pdfExportEnabledState,
@@ -141,6 +139,9 @@ const DepartmentsSchedule = () => {
 
       <PageTitle
         title={t('tr_departmentsSchedule', 'Programa de departamentos')}
+        // Al engranaje: ver la nota en `congregation/limpieza`.
+        quickSettings={() => setConfigDialog(true)}
+        quickSettingsLabel="Configuración de los departamentos"
         buttons={
           <>
             {pdfExportEnabled && (
@@ -150,11 +151,6 @@ const DepartmentsSchedule = () => {
                 icon={<IconPrint />}
               />
             )}
-            <NavBarButton
-              text="Configuración"
-              onClick={() => setConfigDialog(true)}
-              icon={<IconSettings />}
-            />
             <NavBarButton
               text={t('tr_autofill', 'Autocompletar')}
               onClick={() => setIsAutofillOpen(true)}
@@ -172,7 +168,10 @@ const DepartmentsSchedule = () => {
         }
       />
 
-      <LastModifiedInfo updatedAt={currentSched?.updatedAt} lastModifiedBy={currentSched?.lastModifiedBy} />
+      <LastModifiedInfo
+        updatedAt={currentSched?.updatedAt}
+        lastModifiedBy={currentSched?.lastModifiedBy}
+      />
 
       <Box
         sx={{

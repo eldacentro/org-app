@@ -511,6 +511,43 @@ sin borde**. Pasó de verdad en las campañas "pasadas". Para mezclar, se usa
 `color-mix(in srgb, <color> N%, transparent)`, que funciona con cualquier
 color, tokens incluidos.
 
+### 6.4a Dónde vive la configuración: en el ENGRANAJE, siempre
+
+La barra de abajo es para **hacer cosas con el contenido** de la pantalla:
+Añadir, Autocompletar, Exportar, Publicar, Subir. El engranaje de la cabecera
+(`quickSettings` de `PageTitle`) es para **cambiar cómo funciona** la pantalla.
+
+La regla NO depende de si se abre un diálogo o se cambia de pantalla: eso es un
+detalle de implementación que nadie ve desde fuera, y partir por ahí obliga a
+buscar "configurar" en dos sitios distintos según la pantalla.
+
+```tsx
+<PageTitle
+  title="Exhibidores"
+  buttons={<NavBarButton text="Autocompletar" icon={<IconGenerate />} />}
+  quickSettings={puedeGestionar ? () => abrirConfig() : undefined}
+  quickSettingsLabel="Configuración de exhibidores"
+/>
+```
+
+Antes de esta regla no había ninguna: los DOS controles se usaban para las DOS
+cosas —el engranaje abría un diálogo en Grupos de predicación y cambiaba de
+pantalla en Territorios; el botón de abajo abría un diálogo en Limpieza y
+cambiaba de pantalla en Exhibidores—. Y dos pantallas lo llamaban por otro
+nombre ("Gestionar categorías", "Importar / Exportar").
+
+En Exhibidores y Salidas era peor: el MISMO botón se llamaba "Configuración"
+para ir y "Programa" para volver, así que un botón de la barra de acciones
+cambiaba de significado según dónde estuvieras.
+
+`quickSettingsLabel` es obligatorio en la práctica: el nombre por defecto es
+"Ajustes rápidos" y con lector de pantalla eso no distingue una pantalla de
+otra.
+
+**Lo que NO va al engranaje**: lo que actúa sobre el contenido aunque suene a
+configuración. "Importar / Exportar" del catálogo de oradores se queda abajo —
+mueve datos, no cambia cómo funciona la pantalla.
+
 ### 6.4b Una caja que sostiene un icono se separa con RELLENO, no con un canto
 
 Un cuadrito de 32–52px cuyo único trabajo es sostener un icono, una inicial o

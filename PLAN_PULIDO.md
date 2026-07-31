@@ -647,6 +647,27 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
 
 ---
 
+## 5 · Dónde vive la configuración — CERRADO
+
+No había regla: los dos controles se usaban para las dos cosas.
+
+  · engranaje → diálogo: Grupos de predicación, Reunión de fin de semana
+  · engranaje → otra pantalla: Territorios
+  · botón abajo → diálogo: Limpieza, Evacuación, Departamentos
+  · botón abajo → otra pantalla: Exhibidores, Salidas
+
+Y dos lo llamaban distinto ("Gestionar categorías", "Importar / Exportar").
+
+Regla elegida (ver DESIGN_SYSTEM.md §6.4a): **la barra de abajo es para HACER
+cosas con el contenido; el engranaje, para cambiar cómo funciona la pantalla.**
+No depende de si abre diálogo o pantalla — eso no se ve desde fuera.
+
+Movidas seis: Limpieza, Evacuación, Departamentos, Exhibidores, Salidas y las
+categorías de Documentos. Se queda abajo "Importar / Exportar" del catálogo de
+oradores, que mueve datos y no configura nada.
+
+---
+
 ## Reglas de este fichero
 
 1. Una casilla se marca **cuando está verificada**, no cuando compila.

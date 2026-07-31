@@ -1390,25 +1390,23 @@ const PredicacionSalidas = () => {
     <Box sx={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
       <PageTitle
         title="Salidas de predicación"
+        // La configuración va en el ENGRANAJE, no en la barra de abajo: la
+        // barra es para HACER cosas con el contenido —autocompletar, exportar,
+        // publicar— y el engranaje para cambiar cómo funciona la pantalla.
+        // Aquí además el mismo botón hacía las dos cosas: se llamaba
+        // "Configuración" para ir y "Programa" para volver, o sea que el botón
+        // de una acción cambiaba de significado según dónde estuvieras.
+        quickSettings={
+          isServiceCommittee
+            ? () =>
+                setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')
+            : undefined
+        }
+        quickSettingsLabel="Configuración de las salidas de predicación"
         buttons={
           <>
             {isServiceCommittee && (
               <>
-                <NavBarButton
-                  text={activeTab === 'planner' ? 'Configuración' : 'Programa'}
-                  onClick={() =>
-                    setActiveTab(
-                      activeTab === 'planner' ? 'settings' : 'planner'
-                    )
-                  }
-                  icon={
-                    activeTab === 'planner' ? (
-                      <IconSettings />
-                    ) : (
-                      <IconCalendar />
-                    )
-                  }
-                />
                 {activeTab === 'planner' && (
                   <>
                     <NavBarButton

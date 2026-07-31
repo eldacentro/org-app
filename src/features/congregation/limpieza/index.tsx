@@ -42,14 +42,12 @@ import {
 } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
 import PageTitle from '@components/page_title';
-import NavBarButton from '@components/nav_bar_button';
 import { Typography } from '@components/index';
 // Alias porque esta página todavía usa el Button de MUI en crudo para el
 // selector de mes/vista (fuera del alcance de esta migración); el pie del
 // diálogo de excepciones sí migra al botón del sistema de diseño.
 import AppButton from '@components/button';
 import { displaySnackNotification } from '@services/states/app';
-import { IconSettings } from '@components/icons';
 import LimpiezaConfigDialog from './LimpiezaConfigDialog';
 
 const MONTH_NAMES = [...MESES_ES];
@@ -307,19 +305,16 @@ const Limpieza = () => {
 
   return (
     <Box sx={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+      {/* La configuración va en el ENGRANAJE de la cabecera, no en la barra
+          de abajo. La barra de abajo es para HACER cosas con el contenido de
+          la pantalla —añadir, autocompletar, exportar—; el engranaje, para
+          cambiar cómo funciona la pantalla. Antes cada sitio lo ponía donde le
+          pareció: dos pantallas usaban el engranaje y cinco un botón abajo,
+          para exactamente lo mismo. */}
       <PageTitle
         title="Limpieza del Salón"
-        buttons={
-          <>
-            {isManager && (
-              <NavBarButton
-                text="Configuración"
-                onClick={() => setIsConfigOpen(true)}
-                icon={<IconSettings />}
-              />
-            )}
-          </>
-        }
+        quickSettings={isManager ? () => setIsConfigOpen(true) : undefined}
+        quickSettingsLabel="Configuración de la limpieza"
       />
 
       {!config && (
