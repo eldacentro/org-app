@@ -227,14 +227,14 @@ body iframe {
   --brand-deep: var(--accent-dark);
   --brand-tint: var(--accent-150);
   --card: var(--white);
-  --surface-2: var(--accent-200);     /* elevated inputs, popovers         */
-  --line: rgba(var(--accent-main-base), 0.10);
+  --surface-2: var(--accent-200); /* elevated inputs, popovers         */
+  --line: rgba(var(--accent-main-base), 0.1);
   --line-2: rgba(var(--accent-main-base), 0.15);
   --ok: var(--green-main);
   --ok-tint: var(--green-secondary);
   --amber: var(--orange-main);
   --amber-tint: var(--orange-secondary);
-  --badge: #ff5a4d;                    /* notification badge (semantic)     */
+  --badge: #ff5a4d; /* notification badge (semantic)     */
 
   /* Color propio de las canciones en Programas semanales. Un violeta que no
      usa ninguna sección del programa (turquesa, ámbar, rojo, azul, verde), y
@@ -243,7 +243,7 @@ body iframe {
      `npm run generate:css` reescribe ese fichero entero. */
   --song: #7255a8;
   --song-text: #5b4287;
-  --song-tint: rgba(114, 85, 168, 0.10);
+  --song-tint: rgba(114, 85, 168, 0.1);
 
   /* ─── Forma ──────────────────────────────────────────────────────────────
      UNA escala, elegida por el ROL del elemento, nunca por la página.
@@ -256,12 +256,12 @@ body iframe {
      La regla, en una frase: cuanto más pequeño y más interactivo, más redondo
      en proporción; los contenedores grandes se quedan en una curva generosa
      pero contenida. */
-  --shape-xs: 8px;      /* casillas, badges, cuadraditos de fecha            */
-  --shape-sm: 12px;     /* campos, desplegables, filas de lista              */
-  --shape-md: 16px;     /* paneles anidados, barras, tarjeta pequeña         */
-  --shape-lg: 20px;     /* LA tarjeta estándar de una página                 */
-  --shape-xl: 28px;     /* diálogos, hojas, tarjeta destacada del inicio     */
-  --shape-full: 999px;  /* botones (también los de icono), chips, pestañas   */
+  --shape-xs: 8px; /* casillas, badges, cuadraditos de fecha            */
+  --shape-sm: 12px; /* campos, desplegables, filas de lista              */
+  --shape-md: 16px; /* paneles anidados, barras, tarjeta pequeña         */
+  --shape-lg: 20px; /* LA tarjeta estándar de una página                 */
+  --shape-xl: 28px; /* diálogos, hojas, tarjeta destacada del inicio     */
+  --shape-full: 999px; /* botones (también los de icono), chips, pestañas   */
 
   /* Ritmo de un campo con la etiqueta dentro. Ver el bloque «EL CAMPO».
      El de los lados lo usan la etiqueta Y el valor, para que arranquen de la
@@ -283,7 +283,9 @@ body iframe {
      — cogería el valor viejo en silencio. Aquí quedan de red.
      No usarlos en código nuevo: el nombre bueno dice el rol, no un tamaño.
      `--radius-none` se queda como está: 0 no es una forma, es su ausencia. */
-  --radius-xs: var(--shape-full);   /* solo lo usan barras de progreso y micro-badges */
+  --radius-xs: var(
+    --shape-full
+  ); /* solo lo usan barras de progreso y micro-badges */
   --radius-s: var(--shape-xs);
   --radius-m: var(--shape-sm);
   --radius-l: var(--shape-sm);
@@ -417,7 +419,6 @@ body iframe {
   box-shadow: inset 0 0 0 2px var(--red-main);
 }
 
-
 /* Deshabilitado: no reacciona al ratón, y se apaga sin llegar a desaparecer
    (sigue siendo un dato que hay que poder leer). */
 .MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-disabled,
@@ -454,7 +455,8 @@ body iframe {
     transform var(--motion-fast) var(--ease-standard),
     color var(--motion-fast) var(--ease-standard);
 }
-.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
+.MuiFormControl-root
+  .MuiInputLabel-root.MuiInputLabel-root[data-shrink='false'] {
   top: 0;
   transform: translate(var(--campo-pad-x), 22px);
   /* SIN encoger, la etiqueta se dibuja a tamaño real, así que el tope es el
@@ -463,7 +465,8 @@ body iframe {
      derecha del campo vacío. */
   max-width: calc(100% - 44px);
 }
-.MuiFormControl-root .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
+.MuiFormControl-root
+  .MuiInputLabel-root.MuiInputLabel-root[data-shrink='true'] {
   top: 0;
   transform: translate(var(--campo-pad-x), 8px) scale(0.75);
   /* Encogida SÍ se dibuja al 75%, así que el tope se divide por la escala: con
@@ -556,7 +559,7 @@ body iframe {
 [data-theme$='dark'] {
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.12);
-  --badge: #ff7272;                    /* softer notification red in dark   */
+  --badge: #ff7272; /* softer notification red in dark   */
 
   /* En oscuro el violeta hay que subirlo o se hunde en el fondo, y el texto
      tiene que ser MÁS claro que el icono, no más oscuro. */
@@ -598,11 +601,22 @@ body {
 }
 
 @keyframes wave {
-  0%, 100% { transform: rotate(0deg); }
-  20% { transform: rotate(-10deg); }
-  40% { transform: rotate(14deg); }
-  60% { transform: rotate(-10deg); }
-  80% { transform: rotate(8deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  40% {
+    transform: rotate(14deg);
+  }
+  60% {
+    transform: rotate(-10deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
 }
 
 .waving-hand {
@@ -625,9 +639,17 @@ body {
   height: 380px;
   z-index: 0;
   pointer-events: none;
-  background: 
-    radial-gradient(120% 80% at 80% -10%, rgba(var(--accent-main-base), 0.15), transparent 60%),
-    radial-gradient(90% 70% at 0% 0%, rgba(var(--accent-dark-base), 0.10), transparent 55%);
+  background:
+    radial-gradient(
+      120% 80% at 80% -10%,
+      rgba(var(--accent-main-base), 0.15),
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 70% at 0% 0%,
+      rgba(var(--accent-dark-base), 0.1),
+      transparent 55%
+    );
 }
 
 /* ---------- TOP BAR ---------- */
@@ -636,7 +658,7 @@ body {
   align-items: center;
   gap: 0 !important;
   margin-bottom: 0 !important;
-  animation: rise .6s .02s both cubic-bezier(.22,1,.36,1);
+  animation: rise 0.6s 0.02s both cubic-bezier(0.22, 1, 0.36, 1);
 }
 .topbar .logo-container svg {
   width: 36px !important;
@@ -647,12 +669,17 @@ body {
 .MuiAppBar-root {
   /* Pull to the top and handle safe-area padding */
   padding-top: env(safe-area-inset-top) !important;
-  
+
   /* Overwrite overflow: hidden so nothing gets clipped or hidden */
   overflow: visible !important;
-  
+
   /* Smooth transitions */
-  transition: background-color 0.25s ease, backdrop-filter 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, border-radius 0.25s ease !important;
+  transition:
+    background-color 0.25s ease,
+    backdrop-filter 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    border-radius 0.25s ease !important;
 }
 
 /* 1. STATE: At the very top (scrolled is false)
@@ -804,7 +831,7 @@ body {
 .cong-name {
   font-weight: 700;
   font-size: 16.5px;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   line-height: 1;
   color: var(--ink);
 }
@@ -828,7 +855,7 @@ body {
   transition: transform var(--motion-fast) var(--ease-standard);
 }
 .icon-btn:active {
-  transform: scale(.92);
+  transform: scale(0.92);
 }
 .icon-btn svg {
   width: 20px;
@@ -862,13 +889,13 @@ body {
 
 /* ---------- GREETING ---------- */
 .hello-greeting {
-  animation: rise .6s .08s both cubic-bezier(.22,1,.36,1);
+  animation: rise 0.6s 0.08s both cubic-bezier(0.22, 1, 0.36, 1);
   margin-bottom: 18px;
 }
 .hello-greeting h1 {
   font-weight: 500;
   font-size: 30px;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
   line-height: 1.04;
   color: var(--ink);
 }
@@ -936,31 +963,31 @@ body {
   border-radius: var(--shape-lg);
   padding: 15px 16px;
   margin-bottom: 22px;
-  box-shadow: 0 14px 28px -12px rgba(var(--accent-dark-base), .65);
+  box-shadow: 0 14px 28px -12px rgba(var(--accent-dark-base), 0.65);
   position: relative;
   overflow: hidden;
-  animation: rise .6s .14s both cubic-bezier(.22,1,.36,1);
+  animation: rise 0.6s 0.14s both cubic-bezier(0.22, 1, 0.36, 1);
   transition: transform var(--motion-fast) var(--ease-standard);
 }
 .assign-card:active {
-  transform: scale(.98);
+  transform: scale(0.98);
 }
 .assign-card::after {
-  content: "";
+  content: '';
   position: absolute;
   right: -30px;
   top: -30px;
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: rgba(255,255,255,.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 .assign-card .ic {
   width: 44px;
   height: 44px;
   border-radius: var(--shape-sm);
   flex: 0 0 auto;
-  background: rgba(255,255,255,.16);
+  background: rgba(255, 255, 255, 0.16);
   display: grid;
   place-items: center;
   backdrop-filter: blur(4px);
@@ -978,14 +1005,14 @@ body {
   font-size: 11px;
   font-weight: 700;
   color: var(--accent-200);
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .assign-card .txt .big {
   font-size: 17px;
   font-weight: 700;
   margin-top: 2px;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
 }
 .assign-card .count-val {
   font-size: 34px;
@@ -1011,7 +1038,7 @@ body {
 .section-label .t {
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
@@ -1032,7 +1059,7 @@ body {
   box-shadow: var(--shadow-md);
   border: 1px solid var(--line);
   overflow: hidden;
-  animation: rise .6s .2s both cubic-bezier(.22,1,.36,1);
+  animation: rise 0.6s 0.2s both cubic-bezier(0.22, 1, 0.36, 1);
 }
 .week-head-section {
   display: flex;
@@ -1044,7 +1071,7 @@ body {
 .week-head-section .ttl {
   font-size: 21px;
   font-weight: 600;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .count-pill {
@@ -1089,7 +1116,7 @@ body {
   position: relative;
 }
 .meeting-row:active {
-  transform: scale(.985);
+  transform: scale(0.985);
 }
 .meeting-row + .meeting-row {
   margin-top: 2px;
@@ -1100,7 +1127,7 @@ body {
 /* Ya pasó (esta semana) — se atenúa en vez de desaparecer, así se ve de
    un vistazo qué ya se hizo sin perder el contexto de la semana. */
 .meeting-row.past {
-  opacity: .5;
+  opacity: 0.5;
 }
 .meeting-row.past:hover {
   background: none;
@@ -1125,8 +1152,8 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   margin-top: 3px;
-  letter-spacing: .04em;
-  opacity: .7;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
 }
 .day-badge.mid {
   background: var(--brand-tint);
@@ -1138,7 +1165,7 @@ body {
 }
 [data-theme$='dark'] .day-badge.wknd {
   background: rgba(242, 166, 72, 0.14);
-  color: #F5B860;
+  color: #f5b860;
 }
 .day-badge.ev {
   background: #f3e8ff;
@@ -1146,7 +1173,7 @@ body {
 }
 [data-theme$='dark'] .day-badge.ev {
   background: rgba(152, 116, 218, 0.16);
-  color: #C4A8F4;
+  color: #c4a8f4;
 }
 .meeting-row .meeting-info {
   flex: 1;
@@ -1155,7 +1182,7 @@ body {
 .meeting-row .meeting-info .nm {
   font-weight: 700;
   font-size: 15.5px;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .meeting-row .meeting-info .sub {
@@ -1202,8 +1229,8 @@ body {
   gap: 8px;
 }
 .week-cta-btn:active {
-  transform: scale(.98);
-  opacity: .92;
+  transform: scale(0.98);
+  opacity: 0.92;
 }
 .week-cta-btn svg {
   width: 18px;
@@ -1248,10 +1275,10 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  animation: rise .55s both cubic-bezier(.22,1,.36,1);
+  animation: rise 0.55s both cubic-bezier(0.22, 1, 0.36, 1);
 }
 .tile-item:active {
-  transform: scale(.96);
+  transform: scale(0.96);
 }
 .tile-item:hover {
   box-shadow: var(--shadow-md);
@@ -1277,7 +1304,7 @@ body {
   font-family: 'Figtree', sans-serif;
   font-weight: 700;
   font-size: 16px;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
   line-height: 1.15;
   color: var(--ink);
 }
@@ -1305,10 +1332,16 @@ body {
 }
 
 /* Tile color themes */
-.c-blue .ti { background: var(--brand-tint); }
+.c-blue .ti {
+  background: var(--brand-tint);
+}
 
-.c-slate .ti { background: #eef0f4; }
-[data-theme$='dark'] .c-slate .ti { background: rgba(var(--accent-200-base), 1); }
+.c-slate .ti {
+  background: #eef0f4;
+}
+[data-theme$='dark'] .c-slate .ti {
+  background: rgba(var(--accent-200-base), 1);
+}
 
 .tile-item.full-width {
   grid-column: 1 / -1;
@@ -1335,28 +1368,34 @@ body {
   background: rgba(248, 250, 255, 0.88) !important;
   backdrop-filter: blur(24px) saturate(1.8) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
-  box-shadow: -8px 0 40px rgba(var(--accent-main-base), 0.08), 0 0 0 1px rgba(var(--accent-main-base), 0.08) !important;
+  box-shadow:
+    -8px 0 40px rgba(var(--accent-main-base), 0.08),
+    0 0 0 1px rgba(var(--accent-main-base), 0.08) !important;
 }
 
 [data-theme$='-dark'] .drawer-glass-panel {
   background: rgba(18, 18, 28, 0.88) !important;
   backdrop-filter: blur(24px) saturate(1.9) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.9) !important;
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+  box-shadow:
+    -8px 0 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) !important;
 }
 
 /* ─── Notification Cards ─────────────────────────────────────────── */
 [data-theme$='-light'] .notif-card {
   background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(var(--accent-main-base), 0.10) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.1) !important;
   box-shadow: 0 2px 12px -4px rgba(var(--accent-main-base), 0.06) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
 [data-theme$='-light'] .notif-card:hover {
-  background: rgba(255, 255, 255, 0.90) !important;
-  box-shadow: 0 6px 20px -6px rgba(var(--accent-main-base), 0.12), 0 2px 8px -3px rgba(var(--accent-main-base), 0.07) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow:
+    0 6px 20px -6px rgba(var(--accent-main-base), 0.12),
+    0 2px 8px -3px rgba(var(--accent-main-base), 0.07) !important;
   border-color: rgba(var(--accent-main-base), 0.22) !important;
 }
 
@@ -1370,7 +1409,9 @@ body {
 
 [data-theme$='-dark'] .notif-card:hover {
   background: rgba(40, 40, 58, 0.85) !important;
-  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45), 0 2px 8px -3px rgba(0, 0, 0, 0.3) !important;
+  box-shadow:
+    0 6px 20px -6px rgba(0, 0, 0, 0.45),
+    0 2px 8px -3px rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
@@ -1380,15 +1421,15 @@ body {
 [data-theme$='-light'] .nav-action-pill {
   background: rgba(255, 255, 255, 0.72) !important;
   border: 1px solid rgba(var(--accent-main-base), 0.16) !important;
-  box-shadow: 0 2px 8px -3px rgba(var(--accent-main-base), 0.10) !important;
+  box-shadow: 0 2px 8px -3px rgba(var(--accent-main-base), 0.1) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
 }
 
 [data-theme$='-dark'] .nav-action-pill {
   background: rgba(40, 40, 58, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.30) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.3) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
 }
@@ -1397,18 +1438,18 @@ body {
 [data-theme$='-light'] .nav-action-pill-main {
   background: var(--accent-main) !important;
   box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.45) !important;
-  border: 1px solid rgba(var(--accent-main-base), 0.20) !important;
+  border: 1px solid rgba(var(--accent-main-base), 0.2) !important;
 }
 
 [data-theme$='-dark'] .nav-action-pill-main {
   background: var(--accent-main) !important;
   box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 /* ─── Desktop Navbar Actions Container ───────────────────────────── */
 [data-theme$='-light'] .navbar-actions-container {
-  background: rgba(255, 255, 255, 0.60) !important;
+  background: rgba(255, 255, 255, 0.6) !important;
   border: 1px solid rgba(var(--accent-main-base), 0.12) !important;
   backdrop-filter: blur(12px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
@@ -1416,7 +1457,7 @@ body {
 }
 
 [data-theme$='-dark'] .navbar-actions-container {
-  background: rgba(28, 28, 40, 0.60) !important;
+  background: rgba(28, 28, 40, 0.6) !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   backdrop-filter: blur(12px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
@@ -1560,45 +1601,131 @@ body {
   }
 
   /* ---------- Barra superior ---------- */
-  .logo-container svg { width: 38px; height: 38px; }
-  .cong-name { font-size: 19px; }
-  .cong-sub { font-size: 13.5px; margin-top: 4px; }
-  .icon-btn { width: 48px; height: 48px; }
-  .icon-btn svg { width: 23px; height: 23px; }
-  .dot { top: 11px; right: 11px; width: 9px; height: 9px; }
-  .avatar-circle { width: 48px; height: 48px; font-size: 18px; }
+  .logo-container svg {
+    width: 38px;
+    height: 38px;
+  }
+  .cong-name {
+    font-size: 19px;
+  }
+  .cong-sub {
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+  .icon-btn {
+    width: 48px;
+    height: 48px;
+  }
+  .icon-btn svg {
+    width: 23px;
+    height: 23px;
+  }
+  .dot {
+    top: 11px;
+    right: 11px;
+    width: 9px;
+    height: 9px;
+  }
+  .avatar-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
 
   /* ---------- Saludo ---------- */
-  .hello-greeting { margin-bottom: 26px; }
-  .hello-greeting h1 { font-size: 38px; }
-  .hello-greeting .date-string { font-size: 15.5px; margin-top: 8px; }
+  .hello-greeting {
+    margin-bottom: 26px;
+  }
+  .hello-greeting h1 {
+    font-size: 38px;
+  }
+  .hello-greeting .date-string {
+    font-size: 15.5px;
+    margin-top: 8px;
+  }
 
   /* ---------- Acceso a asignaciones ---------- */
-  .assign-card { gap: 18px; padding: 20px 22px; margin-bottom: 28px; }
-  .assign-card .ic { width: 52px; height: 52px; }
-  .assign-card .ic svg { width: 27px; height: 27px; }
-  .assign-card .txt .lab { font-size: 12.5px; }
-  .assign-card .txt .big { font-size: 20px; margin-top: 3px; }
-  .assign-card .count-val { font-size: 42px; }
-  .assign-card .chev-icon { width: 24px; height: 24px; }
+  .assign-card {
+    gap: 18px;
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+  .assign-card .ic {
+    width: 52px;
+    height: 52px;
+  }
+  .assign-card .ic svg {
+    width: 27px;
+    height: 27px;
+  }
+  .assign-card .txt .lab {
+    font-size: 12.5px;
+  }
+  .assign-card .txt .big {
+    font-size: 20px;
+    margin-top: 3px;
+  }
+  .assign-card .count-val {
+    font-size: 42px;
+  }
+  .assign-card .chev-icon {
+    width: 24px;
+    height: 24px;
+  }
 
   /* ---------- Rótulo de sección ---------- */
-  .section-label { margin: 0 6px 16px; }
-  .section-label .t { font-size: 14.5px; }
+  .section-label {
+    margin: 0 6px 16px;
+  }
+  .section-label .t {
+    font-size: 14.5px;
+  }
 
   /* ---------- Programa de la semana ---------- */
-  .week-card { margin-bottom: 34px; }
-  .week-head-section { padding: 0 0 14px; }
-  .week-head-section .ttl { font-size: 25px; }
-  .count-pill { font-size: 14px; padding: 9px 14px; gap: 8px; }
-  .count-pill .pulse-indicator { width: 8px; height: 8px; }
-  .assignment-dot { width: 8px; height: 8px; }
-  .meeting-row { gap: 18px; margin: 0 -8px; padding: 18px 8px; }
-  .meeting-row .day-badge { width: 64px; height: 68px; }
-  .meeting-row .day-badge .d { font-size: 26px; }
-  .meeting-row .day-badge .m { font-size: 12.5px; }
-  .meeting-row .meeting-info .nm { font-size: 18px; }
-  .meeting-row .meeting-info .sub { font-size: 14.5px; margin-top: 4px; }
+  .week-card {
+    margin-bottom: 34px;
+  }
+  .week-head-section {
+    padding: 0 0 14px;
+  }
+  .week-head-section .ttl {
+    font-size: 25px;
+  }
+  .count-pill {
+    font-size: 14px;
+    padding: 9px 14px;
+    gap: 8px;
+  }
+  .count-pill .pulse-indicator {
+    width: 8px;
+    height: 8px;
+  }
+  .assignment-dot {
+    width: 8px;
+    height: 8px;
+  }
+  .meeting-row {
+    gap: 18px;
+    margin: 0 -8px;
+    padding: 18px 8px;
+  }
+  .meeting-row .day-badge {
+    width: 64px;
+    height: 68px;
+  }
+  .meeting-row .day-badge .d {
+    font-size: 26px;
+  }
+  .meeting-row .day-badge .m {
+    font-size: 12.5px;
+  }
+  .meeting-row .meeting-info .nm {
+    font-size: 18px;
+  }
+  .meeting-row .meeting-info .sub {
+    font-size: 14.5px;
+    margin-top: 4px;
+  }
   .meeting-row .meeting-time {
     font-size: 16px;
     padding: 8px 12px;
@@ -1607,10 +1734,16 @@ body {
     padding: 18px;
     font-size: 17.5px;
   }
-  .week-cta-btn svg { width: 21px; height: 21px; }
+  .week-cta-btn svg {
+    width: 21px;
+    height: 21px;
+  }
 
   /* ---------- Mosaicos ---------- */
-  .tile-grid { gap: 16px; margin-bottom: 20px; }
+  .tile-grid {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
   /* Sin radio propio: la forma la decide el ROL del elemento, no el tamaño de
      la pantalla. El escalón de tablet agranda cajas y texto, no esquinas. */
   .tile-item {
@@ -1622,9 +1755,17 @@ body {
     height: 56px;
     margin-bottom: 18px;
   }
-  .tile-item .ti svg { width: 29px; height: 29px; }
-  .tile-item .tile-name { font-size: 19px; }
-  .tile-item .tile-meta { font-size: 14px; margin-top: 4px; }
+  .tile-item .ti svg {
+    width: 29px;
+    height: 29px;
+  }
+  .tile-item .tile-name {
+    font-size: 19px;
+  }
+  .tile-item .tile-meta {
+    font-size: 14px;
+    margin-top: 4px;
+  }
   .tile-item .badge-count {
     top: 18px;
     right: 18px;
@@ -1632,8 +1773,14 @@ body {
     height: 26px;
     font-size: 13.5px;
   }
-  .tile-item.full-width { gap: 18px; padding: 20px 22px; }
-  .tile-item.full-width .chev-icon { width: 24px; height: 24px; }
+  .tile-item.full-width {
+    gap: 18px;
+    padding: 20px 22px;
+  }
+  .tile-item.full-width .chev-icon {
+    width: 24px;
+    height: 24px;
+  }
 
   /* ---------- Controles compartidos de MUI ----------
      El resto de la app se dibuja con componentes de MUI y estilos en `sx`,
@@ -1671,27 +1818,70 @@ body {
 
      Gana por orden de carga: `global.css` se importa antes que este fichero
      en RootWrap y PublicWrap, así que a igual especificidad manda este. */
-  .h1 { font-size: 27.5px; line-height: 32px; }
-  .h2 { font-size: 23px; line-height: 27.5px; }
-  .h2-caps { font-size: 23px; line-height: 27.5px; }
-  .h3 { font-size: 20.5px; line-height: 27.5px; }
-  .h4 { font-size: 18.5px; line-height: 23px; }
-  .button-caps { font-size: 16px; line-height: 20.5px; }
-  .body-regular { font-size: 18.5px; line-height: 23px; }
-  .body-regular-semibold { font-size: 18.5px; line-height: 23px; }
-  .body-small-semibold { font-size: 16px; line-height: 20.5px; }
-  .body-small-medium { font-size: 16px; line-height: 20.5px; }
-  .body-small-regular { font-size: 16px; line-height: 20.5px; }
-  .label-small-medium { font-size: 13.5px; }
+  .h1 {
+    font-size: 27.5px;
+    line-height: 32px;
+  }
+  .h2 {
+    font-size: 23px;
+    line-height: 27.5px;
+  }
+  .h2-caps {
+    font-size: 23px;
+    line-height: 27.5px;
+  }
+  .h3 {
+    font-size: 20.5px;
+    line-height: 27.5px;
+  }
+  .h4 {
+    font-size: 18.5px;
+    line-height: 23px;
+  }
+  .button-caps {
+    font-size: 16px;
+    line-height: 20.5px;
+  }
+  .body-regular {
+    font-size: 18.5px;
+    line-height: 23px;
+  }
+  .body-regular-semibold {
+    font-size: 18.5px;
+    line-height: 23px;
+  }
+  .body-small-semibold {
+    font-size: 16px;
+    line-height: 20.5px;
+  }
+  .body-small-medium {
+    font-size: 16px;
+    line-height: 20.5px;
+  }
+  .body-small-regular {
+    font-size: 16px;
+    line-height: 20.5px;
+  }
+  .label-small-medium {
+    font-size: 13.5px;
+  }
   /* Faltaba, y era la única de las tres que se quedaba fuera: en una tablet,
      "medium" y "regular" subían a 13,5 y "semibold" se quedaba en 12. Son la
      MISMA etiqueta con distinto peso —van juntas en la misma fila muchas
      veces— así que se veía una más pequeña que su vecina sin motivo. Los tres
      bloques de Programas semanales sí la tenían; este no. */
-  .label-small-semibold { font-size: 13.5px; }
-  .label-small-regular { font-size: 13.5px; }
-  .huge-numbers { font-size: 73.5px; }
-  .big-numbers { font-size: 55px; }
+  .label-small-semibold {
+    font-size: 13.5px;
+  }
+  .label-small-regular {
+    font-size: 13.5px;
+  }
+  .huge-numbers {
+    font-size: 73.5px;
+  }
+  .big-numbers {
+    font-size: 55px;
+  }
 }
 
 /* ================================================================
@@ -1717,52 +1907,196 @@ body {
 
 /* Régimen móvil (≤768px) */
 @media (max-width: 768px) {
-  .programas-semanales .h1 { font-size: 23px; line-height: 1.2; }
-  .programas-semanales .h2 { font-size: 20.5px; line-height: 1.33; }
-  .programas-semanales .h2-caps { font-size: 20.5px; line-height: 1.22; }
-  .programas-semanales .h3 { font-size: 18.5px; line-height: 1.25; }
-  .programas-semanales .h4 { font-size: 17px; line-height: 1.33; }
-  .programas-semanales .body-regular { font-size: 17px; line-height: 1.33; }
-  .programas-semanales .body-regular-semibold { font-size: 17px; line-height: 1.33; }
-  .programas-semanales .body-small-semibold { font-size: 15px; line-height: 1.23; }
-  .programas-semanales .body-small-medium { font-size: 15px; line-height: 1.23; }
-  .programas-semanales .body-small-regular { font-size: 15px; line-height: 1.23; }
-  .programas-semanales .label-small-medium { font-size: 13.5px; line-height: 1.17; }
-  .programas-semanales .label-small-semibold { font-size: 13.5px; line-height: 1.17; }
-  .programas-semanales .label-small-regular { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .h1 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+  .programas-semanales .h2 {
+    font-size: 20.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .h2-caps {
+    font-size: 20.5px;
+    line-height: 1.22;
+  }
+  .programas-semanales .h3 {
+    font-size: 18.5px;
+    line-height: 1.25;
+  }
+  .programas-semanales .h4 {
+    font-size: 17px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular {
+    font-size: 17px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular-semibold {
+    font-size: 17px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-small-semibold {
+    font-size: 15px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-medium {
+    font-size: 15px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-regular {
+    font-size: 15px;
+    line-height: 1.23;
+  }
+  .programas-semanales .label-small-medium {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-semibold {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-regular {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
 }
 
 /* Régimen escritorio (≥768px) */
 @media (min-width: 768px) {
-  .programas-semanales .h1 { font-size: 27.5px; line-height: 1.2; }
-  .programas-semanales .h2 { font-size: 23px; line-height: 1.33; }
-  .programas-semanales .h2-caps { font-size: 23px; line-height: 1.22; }
-  .programas-semanales .h3 { font-size: 20.5px; line-height: 1.25; }
-  .programas-semanales .h4 { font-size: 18.5px; line-height: 1.33; }
-  .programas-semanales .body-regular { font-size: 18.5px; line-height: 1.33; }
-  .programas-semanales .body-regular-semibold { font-size: 18.5px; line-height: 1.33; }
-  .programas-semanales .body-small-semibold { font-size: 16px; line-height: 1.23; }
-  .programas-semanales .body-small-medium { font-size: 16px; line-height: 1.23; }
-  .programas-semanales .body-small-regular { font-size: 16px; line-height: 1.23; }
-  .programas-semanales .label-small-medium { font-size: 13.5px; line-height: 1.17; }
-  .programas-semanales .label-small-semibold { font-size: 13.5px; line-height: 1.17; }
-  .programas-semanales .label-small-regular { font-size: 13.5px; line-height: 1.17; }
+  .programas-semanales .h1 {
+    font-size: 27.5px;
+    line-height: 1.2;
+  }
+  .programas-semanales .h2 {
+    font-size: 23px;
+    line-height: 1.33;
+  }
+  .programas-semanales .h2-caps {
+    font-size: 23px;
+    line-height: 1.22;
+  }
+  .programas-semanales .h3 {
+    font-size: 20.5px;
+    line-height: 1.25;
+  }
+  .programas-semanales .h4 {
+    font-size: 18.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular {
+    font-size: 18.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular-semibold {
+    font-size: 18.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-small-semibold {
+    font-size: 16px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-medium {
+    font-size: 16px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-regular {
+    font-size: 16px;
+    line-height: 1.23;
+  }
+  .programas-semanales .label-small-medium {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-semibold {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-regular {
+    font-size: 13.5px;
+    line-height: 1.17;
+  }
 }
 
 /* Régimen tablet táctil — el mismo predicado que el escalón de arriba, para
    que el escalón de la página se sume al de la tablet y no lo pise. */
 @media (any-pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
-  .programas-semanales .h1 { font-size: 31.5px; line-height: 1.2; }
-  .programas-semanales .h2 { font-size: 26.5px; line-height: 1.33; }
-  .programas-semanales .h2-caps { font-size: 26.5px; line-height: 1.22; }
-  .programas-semanales .h3 { font-size: 23.5px; line-height: 1.25; }
-  .programas-semanales .h4 { font-size: 21.5px; line-height: 1.33; }
-  .programas-semanales .body-regular { font-size: 21.5px; line-height: 1.33; }
-  .programas-semanales .body-regular-semibold { font-size: 21.5px; line-height: 1.33; }
-  .programas-semanales .body-small-semibold { font-size: 18.5px; line-height: 1.23; }
-  .programas-semanales .body-small-medium { font-size: 18.5px; line-height: 1.23; }
-  .programas-semanales .body-small-regular { font-size: 18.5px; line-height: 1.23; }
-  .programas-semanales .label-small-medium { font-size: 15.5px; line-height: 1.17; }
-  .programas-semanales .label-small-semibold { font-size: 15.5px; line-height: 1.17; }
-  .programas-semanales .label-small-regular { font-size: 15.5px; line-height: 1.17; }
+  .programas-semanales .h1 {
+    font-size: 31.5px;
+    line-height: 1.2;
+  }
+  .programas-semanales .h2 {
+    font-size: 26.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .h2-caps {
+    font-size: 26.5px;
+    line-height: 1.22;
+  }
+  .programas-semanales .h3 {
+    font-size: 23.5px;
+    line-height: 1.25;
+  }
+  .programas-semanales .h4 {
+    font-size: 21.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular {
+    font-size: 21.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-regular-semibold {
+    font-size: 21.5px;
+    line-height: 1.33;
+  }
+  .programas-semanales .body-small-semibold {
+    font-size: 18.5px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-medium {
+    font-size: 18.5px;
+    line-height: 1.23;
+  }
+  .programas-semanales .body-small-regular {
+    font-size: 18.5px;
+    line-height: 1.23;
+  }
+  .programas-semanales .label-small-medium {
+    font-size: 15.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-semibold {
+    font-size: 15.5px;
+    line-height: 1.17;
+  }
+  .programas-semanales .label-small-regular {
+    font-size: 15.5px;
+    line-height: 1.17;
+  }
+}
+
+/* ─── El «semibold» de 13px, que no era semibold ──────────────────────────
+   `body-small-semibold` pesaba 450 mientras su hermana `body-small-medium`
+   pesaba 500. O sea que en ese tamaño el semibold era MÁS LIGERO que el
+   medium, al revés que en el resto de la escala (`label-small` va 400 / 500 /
+   600, como debe ser).
+
+   Y peor: Figtree está cargada en cortes ESTÁTICOS —300, 400, 500, 600, 700,
+   800—, así que 450 no dibuja un 450: el navegador redondea al corte más
+   cercano y sale Medium. Medido comparando el ancho del mismo texto: 450 y 500
+   miden exactamente lo mismo (165,09), y 550 y 600 también (166,77). Es decir
+   que `body-small-semibold` y `body-small-medium` se veían IDÉNTICAS y ninguna
+   de las dos era semibold.
+
+   Por eso la semana elegida de Programas semanales no acababa de leerse como
+   elegida: su texto está a "semibold" y salía Medium, un solo escalón por
+   encima del resto.
+
+   Subirlo a 600 es UN corte de la fuente, no dos —de Medium a SemiBold—, así
+   que el cambio se nota sin dar un salto brusco. Toca 163 usos, la mayoría las
+   etiquetas de la lista de personas.
+
+   Va aquí y no en `global.css` porque ese fichero lo regenera
+   `npm run generate:css` y se llevaría el arreglo por delante. */
+.body-small-semibold {
+  font-weight: 600;
 }

@@ -208,6 +208,15 @@ Entre los cinco son el **56%** del total.
       del navegador, no el fichero. Arreglado.
       Comprobado también que no queda ninguna clase de texto declarada sin CSS
       (el fallo de 2026-07-14 no ha vuelto).
+      **Y un peso que mentía**: `body-small-semibold` iba a 450 mientras su
+      hermana `body-small-medium` iba a 500 — el semibold más ligero que el
+      medium, al revés que en el resto de la escala. Peor: Figtree está en
+      cortes ESTÁTICOS, así que 450 no dibuja un 450, redondea. Medido con el
+      mismo texto: 450 y 500 miden lo mismo (165,09) y 550 y 600 también
+      (166,77), o sea que las dos clases se veían IDÉNTICAS y ninguna era
+      semibold. Por eso la semana elegida de Programas semanales no se leía
+      como elegida. Corregido a 600 —un solo corte de la fuente— en
+      `index.css`, que es donde sobrevive a `npm run generate:css`.
       **Los `fontSize` a mano: 76 AJUSTADOS A LA ESCALA.** Eran 140 (no ~150) y
       82 estaban en las dos páginas gemelas. Lo grave no era el escalón de
       tablet: era que esas dos páginas usaban CINCO tamaños (11, 12, 13'5, 14 y
