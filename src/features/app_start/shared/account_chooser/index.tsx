@@ -30,7 +30,9 @@ const AccountChooser = () => {
         <Typography
           className="h1"
           color="var(--black)"
-          sx={{ fontWeight: 800, fontSize: '28px', lineHeight: 1.2 }}
+          // Ídem: `h1` ya trae el tamaño. El 28 se salía de la escala por
+          // cuatro píxeles y tampoco se aplicaba.
+          sx={{ fontWeight: 800, lineHeight: 1.2 }}
         >
           Bienvenido a Elda Centro
         </Typography>

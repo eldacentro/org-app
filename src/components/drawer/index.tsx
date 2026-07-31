@@ -134,7 +134,10 @@ const Drawer: FC<DrawerProps & CustomDrawerProps> = ({
         >
           <Typography
             className="h1"
-            sx={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)' }}
+            // Sin tamaño propio: la clase `h1` ya lo dice. Llevaba 22 —dos
+            // píxeles por debajo de la escala, sin motivo— y hasta el arreglo
+            // de §6.4d ni siquiera se aplicaba.
+            sx={{ fontWeight: 800, color: 'var(--ink)' }}
           >
             {title}
           </Typography>

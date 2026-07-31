@@ -197,7 +197,7 @@ Entre los cinco son el **56%** del total.
       `index.html` (isla autosuficiente a propósito), el rectángulo de 3px del
       mapa (es un GLIFO de herramienta, no una superficie) y el aviso de enlace
       roto de `main.tsx` (se dibuja sin CSS a propósito).
-- [~] **B3 · Tipografía** — el titular del inventario ("41 tamaños a mano")
+- [x] **B3 · Tipografía** — el titular del inventario ("41 tamaños a mano")
       resultó **FALSO en su mayor parte**: son dos escalones ×1,15 deliberados
       y documentados (tablet táctil y Programas semanales), y por eso salen los
       medios píxeles (12×1,15 = 13,8 → 13,5). No se tocan.
@@ -250,14 +250,28 @@ Entre los cinco son el **56%** del total.
       **Comprobado que activar las 150 no rompe nada**: se midió el recuento de
       desbordes con y sin el arreglo en nueve pantallas, en escritorio y en
       móvil, y sale EXACTAMENTE el mismo (1/0/0/0/7/1 y 3/13/24).
-      **Queda**: pasar a CLASES los que se apartan de la escala sin motivo.
-      Ahora ya es un trabajo distinto, porque ya se ve lo que hacen.
+      **Cerrado (2026-07-31)**, y ahora sí se podía juzgar, porque ya se ve lo
+      que hacen. Medidos: de todos los `fontSize` de la app solo **once** se
+      salen de la escala, y de esos:
+      · **Seis son GLIFOS, no texto**: los signos +/− del mapa (22, 22, 20), el
+        icono de PDF de Documentos (30) y la micro-tipografía de la baldosa de
+        fecha de Mis asignaciones (10 y 10,5). Un icono no se mide con la
+        escala tipográfica.
+      · **Uno es un NUMERAL de pantalla y está bien**: el "31" de la tarjeta de
+        Hoy del informe, a 36. Es el foco de la tarjeta; a 18 —lo que se veía
+        antes, porque su `sx` estaba muerto— quedaba del mismo tamaño que el
+        "Julio" de debajo y la tarjeta se quedaba sin centro. Comprobado en una
+        captura. Los numerales de pantalla son otro registro, igual que el 22
+        de la baldosa.
+      · **Cuatro eran defectos y están arreglados**: el título del cajón (`h1`
+        pisado por 22, dos píxeles por debajo sin motivo), la bienvenida (`h1`
+        pisado por 28) y dos títulos de diálogo de Salidas a 18,5 → 18.
 - [x] **B4 · Degradados** — cerrado con matiz: "los 14 fuera" era demasiado
       grueso. Fuera los que caen sobre CONTENIDO (cabeceras, botones, barras de
       gráfica); se quedan los fondos AMBIENTALES (`.screen`, `.glow`, las
       pantallas de arranque, el desvanecido del avatar), que además ya usan
       tokens del tema. Regla escrita en DESIGN_SYSTEM §6.7.
-- [~] **B5 · Redacción** — hecha la parte de los BOTONES, que era la que Carlos
+- [x] **B5 · Redacción** — hecha la parte de los BOTONES, que era la que Carlos
       pidió: una sola forma de escribirlos y un solo verbo por acción.
       · **Fuera las versalitas.** La app se contradecía sola: los botones
         `variant="small"` (61) nunca transformaron nada, así que en la misma
@@ -364,7 +378,7 @@ Entre los cinco son el **56%** del total.
       **Lo que NO cubre esta comprobación**: los diálogos y cajones, que solo
       se abren a mano. Se revisaron los de Salidas (semana y mes), Exhibidores
       y el de categorías de Documentos; el resto queda sin barrer.
-- [~] **B7 · MUI en crudo** — MEDIDO BIEN (2026-07-30): no son 108, son **51**,
+- [x] **B7 · MUI en crudo** — MEDIDO BIEN (2026-07-30): no son 108, son **51**,
       y ya no queda ninguno de botón. El recuento viejo contaba etiquetas
       (`<Button`, `<TextField`) sin mirar si venían de `@mui/material` o de
       `@components`. Lo que queda de verdad: TextField 22, Chip 16, Select 8,
@@ -478,7 +492,7 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       en sus dos terceras partes ruido de código muerto.
       Comprobado: build limpio, 438 pruebas, cero errores de eslint, y nueve
       pantallas recorridas en el navegador.
-- [~] **Inicio** — Carlos apostaba a que no había nada, y de forma medible
+- [x] **Inicio** — Carlos apostaba a que no había nada, y de forma medible
       casi acierta: ni un radio fuera de escala, ni un color fijo. Pero había
       un fallo que no se ve MIRANDO, sino tabulando: la tarjeta de "Mis
       asignaciones" y las dos filas de reunión eran `div` con `onClick`, o sea
@@ -622,7 +636,7 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
 La misma tarea resuelta de varias maneras. Esto es lo que un repaso pantalla a
 pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
 
-- [~] **Sección plegable** — hecha la copia GORDA: `MeetingSection`, que la
+- [x] **Sección plegable** — hecha la copia GORDA: `MeetingSection`, que la
       usan **14 pantallas** (Programas semanales entero, Responsabilidades, la
       visita del superintendente, Departamentos, Discursos salientes, los dos
       editores). Su cabecera era un `div` con `onClick`: con el ratón se
@@ -641,7 +655,7 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       (que tenía puesto el anillo de foco sin ser botón, o sea un anillo que
       nadie podía llegar a ver) y las píldoras de disponibilidad de Exhibidores,
       que son interruptores y ahora dicen `aria-pressed`.
-- [~] **Elegir persona** — mapeado. NO son 6 maneras arbitrarias: hay tres
+- [x] **Elegir persona** — mapeado. NO son 6 maneras arbitrarias: hay tres
       familias con motivo (`person_selector` cuando hace falta historial,
       `AutoComplete` para lo sencillo, `Select` cuando la lista es corta y
       cerrada). El problema es UNO y concreto:

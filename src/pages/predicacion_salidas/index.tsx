@@ -4257,7 +4257,7 @@ const PredicacionSalidas = () => {
           style={{
             fontWeight: '700',
             color: 'var(--accent-dark)',
-            fontSize: '18.5px',
+            fontSize: '18px',
           }}
         >
           Exportar programa a PDF
@@ -4383,7 +4383,7 @@ const PredicacionSalidas = () => {
           style={{
             fontWeight: '700',
             color: 'var(--accent-dark)',
-            fontSize: '18.5px',
+            fontSize: '18px',
           }}
         >
           Ajustes de la semana
