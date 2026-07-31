@@ -32,6 +32,37 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
         boxSizing: 'border-box',
         '.MuiPaper-root': {
           margin: { mobile: '16px', tablet: '24px', desktop: '32px' },
+          // Los márgenes seguros de iOS, para TODOS los diálogos de la app.
+          //
+          // El margen de arriba se quedaba en 16 y en un iPhone eso mete el
+          // borde del diálogo debajo de la muesca; el de abajo, debajo de la
+          // barra de inicio. Se veía en los Ajustes rápidos de Reunión de fin
+          // de semana, pero no era cosa de ese diálogo: son ochenta los que
+          // pasan por aquí.
+          //
+          // `max` y no una suma: donde no hay muesca —escritorio, Android—
+          // `env(...)` vale 0 y queda el margen de siempre, así que esto no
+          // cambia nada fuera de un iPhone.
+          marginTop: {
+            mobile: 'max(16px, env(safe-area-inset-top))',
+            tablet: 'max(24px, env(safe-area-inset-top))',
+            desktop: 'max(32px, env(safe-area-inset-top))',
+          },
+          marginBottom: {
+            mobile: 'max(16px, env(safe-area-inset-bottom))',
+            tablet: 'max(24px, env(safe-area-inset-bottom))',
+            desktop: 'max(32px, env(safe-area-inset-bottom))',
+          },
+          // Y el alto máximo baja lo mismo, porque si no un diálogo largo
+          // crece por debajo de la barra de inicio aunque su margen esté bien.
+          maxHeight: {
+            mobile:
+              'calc(100% - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
+            tablet:
+              'calc(100% - max(48px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
+            desktop:
+              'calc(100% - max(64px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
+          },
         },
       }}
       PaperProps={{

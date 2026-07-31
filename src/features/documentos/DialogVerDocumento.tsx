@@ -3,7 +3,11 @@ import { Box, Stack, Skeleton, Dialog, AppBar, Toolbar } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import IconButton from '@components/icon_button';
-import { IconClose, IconCloudDownload, IconFullscreen } from '@components/icons';
+import {
+  IconClose,
+  IconCloudDownload,
+  IconFullscreen,
+} from '@components/icons';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import { dbDocumentosGetLocalFile } from '@services/dexie/documentos';
@@ -20,7 +24,11 @@ interface DialogVerDocumentoProps {
   onClose: () => void;
 }
 
-const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProps) => {
+const DialogVerDocumento = ({
+  open,
+  documento,
+  onClose,
+}: DialogVerDocumentoProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { person } = useCurrentUser();
@@ -70,7 +78,9 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
   const handleClose = () => {
     // Fire-and-forget — marcar como visto no bloquea el cierre del diálogo
     if (documento && person?.person_uid && congId && pdfUrl) {
-      marcarDocumentoVisto(congId, documento.id, person.person_uid).catch(console.error);
+      marcarDocumentoVisto(congId, documento.id, person.person_uid).catch(
+        console.error
+      );
     }
     setPdfUrl(null);
     onClose();
@@ -92,7 +102,11 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
       <AppBar
         position="static"
         elevation={0}
-        sx={{ background: 'var(--card)', borderBottom: '1px solid var(--line)', color: 'var(--black)' }}
+        sx={{
+          background: 'var(--card)',
+          borderBottom: '1px solid var(--line)',
+          color: 'var(--black)',
+        }}
       >
         <Toolbar
           sx={{
@@ -101,7 +115,12 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
             minHeight: '64px !important',
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            sx={{ flex: 1 }}
+          >
             <Skeleton variant="circular" width={40} height={40} />
             <Box sx={{ flex: 1 }}>
               <Skeleton variant="text" width="60%" height={24} />
@@ -149,14 +168,31 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
       ) : documento && pdfUrl ? (
         tablet688Up ? (
           /* ── Vista escritorio: visor embebido ── */
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box
+            sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+          >
             <AppBar
               position="static"
               elevation={0}
-              sx={{ background: 'var(--card)', borderBottom: '1px solid var(--line)', color: 'var(--ink)' }}
+              sx={{
+                background: 'var(--card)',
+                borderBottom: '1px solid var(--line)',
+                color: 'var(--ink)',
+              }}
             >
-              <Toolbar sx={{ justifyContent: 'space-between', padding: '8px 24px', minHeight: '64px !important' }}>
-                <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1, minWidth: 0, mr: 2 }}>
+              <Toolbar
+                sx={{
+                  justifyContent: 'space-between',
+                  padding: '8px 24px',
+                  minHeight: '64px !important',
+                }}
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={2}
+                  sx={{ flex: 1, minWidth: 0, mr: 2 }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -164,8 +200,8 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                       justifyContent: 'center',
                       width: 42,
                       height: 42,
-                      background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
-                      border: `1px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
+                      // Sin borde, igual que en la tarjeta: ver la nota allí.
+                      background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
                       borderRadius: 'var(--shape-md)',
                       color: accentColor,
                       flexShrink: 0,
@@ -186,7 +222,12 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     >
                       {documento.nombre}
                     </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.25 }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      sx={{ mt: 0.25 }}
+                    >
                       {categoria && (
                         <Typography
                           className="label-small-medium"
@@ -200,7 +241,10 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                           {categoria.nombre} •
                         </Typography>
                       )}
-                      <Typography className="label-small-regular" color="var(--ink-2)">
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-2)"
+                      >
                         {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
                       </Typography>
                     </Stack>
@@ -228,14 +272,25 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   >
                     Descargar
                   </Button>
-                  <IconButton aria-label="Cerrar" onClick={handleClose} sx={{ color: 'var(--ink-2)', ml: 1 }}>
+                  <IconButton
+                    aria-label="Cerrar"
+                    onClick={handleClose}
+                    sx={{ color: 'var(--ink-2)', ml: 1 }}
+                  >
                     <IconClose color="var(--ink-2)" />
                   </IconButton>
                 </Stack>
               </Toolbar>
             </AppBar>
 
-            <Box sx={{ flex: 1, position: 'relative', background: 'var(--paper)', p: 1.5 }}>
+            <Box
+              sx={{
+                flex: 1,
+                position: 'relative',
+                background: 'var(--paper)',
+                p: 1.5,
+              }}
+            >
               <object
                 data={pdfUrl}
                 type="application/pdf"
@@ -259,14 +314,19 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography sx={{ mb: 2, color: 'var(--ink)', fontWeight: 600 }}>
+                  <Typography
+                    sx={{ mb: 2, color: 'var(--ink)', fontWeight: 600 }}
+                  >
                     El visor de PDF no se cargó correctamente en el navegador.
                   </Typography>
                   <Button
                     variant="main"
                     onClick={handleDownload}
                     startIcon={<IconCloudDownload />}
-                    sx={{ backgroundColor: accentColor, color: 'var(--always-white) !important' }}
+                    sx={{
+                      backgroundColor: accentColor,
+                      color: 'var(--always-white) !important',
+                    }}
                   >
                     Descargar documento
                   </Button>
@@ -296,14 +356,16 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               alignItems: 'center',
             }}
           >
-            <IconButton aria-label="Cerrar"
+            <IconButton
+              aria-label="Cerrar"
               onClick={handleClose}
               sx={{
                 position: 'absolute',
                 top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
                 right: 16,
                 color: 'var(--ink-2)',
-                backgroundColor: 'color-mix(in srgb, var(--card) 80%, transparent)',
+                backgroundColor:
+                  'color-mix(in srgb, var(--card) 80%, transparent)',
                 backdropFilter: 'blur(8px)',
                 boxShadow: 'var(--shadow-sm)',
                 '&:hover': { backgroundColor: 'var(--card)' },
@@ -373,12 +435,21 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               <Box>
                 <Typography
                   className="h2"
-                  sx={{ color: 'var(--ink)', fontWeight: 700, lineHeight: 1.3, mb: 1 }}
+                  sx={{
+                    color: 'var(--ink)',
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    mb: 1,
+                  }}
                 >
                   {documento.nombre}
                 </Typography>
                 {documento.descripcion && (
-                  <Typography className="body-small-regular" color="var(--ink-2)" sx={{ lineHeight: 1.45 }}>
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--ink-2)"
+                    sx={{ lineHeight: 1.45 }}
+                  >
                     {documento.descripcion}
                   </Typography>
                 )}
@@ -387,17 +458,30 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
               <Stack
                 direction="row"
                 spacing={2.5}
-                sx={{ width: '100%', justifyContent: 'center', pt: 2, borderTop: '1px solid var(--line)' }}
+                sx={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  pt: 2,
+                  borderTop: '1px solid var(--line)',
+                }}
               >
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography
                     className="label-small-regular"
                     color="var(--ink-3)"
-                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}
+                    sx={{
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.02em',
+                    }}
                   >
                     TAMAÑO
                   </Typography>
-                  <Typography className="body-small-semibold" sx={{ color: 'var(--ink)', mt: 0.25 }}>
+                  <Typography
+                    className="body-small-semibold"
+                    sx={{ color: 'var(--ink)', mt: 0.25 }}
+                  >
                     {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
                   </Typography>
                 </Box>
@@ -406,18 +490,29 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   <Typography
                     className="label-small-regular"
                     color="var(--ink-3)"
-                    sx={{ display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}
+                    sx={{
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.02em',
+                    }}
                   >
                     FECHA
                   </Typography>
-                  <Typography className="body-small-semibold" sx={{ color: 'var(--ink)', mt: 0.25 }}>
+                  <Typography
+                    className="body-small-semibold"
+                    sx={{ color: 'var(--ink)', mt: 0.25 }}
+                  >
                     {new Date(documento.fechaSubida).toLocaleDateString()}
                   </Typography>
                 </Box>
               </Stack>
             </Box>
 
-            <Stack spacing={1.5} sx={{ width: '100%', maxWidth: '340px', mb: 3 }}>
+            <Stack
+              spacing={1.5}
+              sx={{ width: '100%', maxWidth: '340px', mb: 3 }}
+            >
               <Button
                 variant="main"
                 onClick={() => window.open(pdfUrl, '_blank')}
@@ -444,7 +539,10 @@ const DialogVerDocumento = ({ open, documento, onClose }: DialogVerDocumentoProp
                   fontWeight: 600,
                   borderColor: `color-mix(in srgb, ${accentColor} 50%, transparent) !important`,
                   color: `${accentColor} !important`,
-                  '&:hover': { borderColor: accentColor, backgroundColor: `color-mix(in srgb, ${accentColor} 3%, transparent)` },
+                  '&:hover': {
+                    borderColor: accentColor,
+                    backgroundColor: `color-mix(in srgb, ${accentColor} 3%, transparent)`,
+                  },
                 }}
               >
                 Descargar archivo

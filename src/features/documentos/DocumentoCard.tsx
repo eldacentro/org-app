@@ -15,7 +15,12 @@ interface DocumentoCardProps {
   onDelete: (doc: DocumentoArchivo) => void;
 }
 
-const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCardProps) => {
+const DocumentoCard = ({
+  documento,
+  categoria,
+  onView,
+  onDelete,
+}: DocumentoCardProps) => {
   const { isElder, isAdmin, person } = useCurrentUser();
   const canManage = isElder || isAdmin;
 
@@ -125,7 +130,12 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
         </Tooltip>
       )}
 
-      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ pl: '4px' }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="flex-start"
+        sx={{ pl: '4px' }}
+      >
         <Box
           sx={{
             width: 52,
@@ -133,9 +143,14 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
+            // Sin borde: en toda la app una caja de icono es relleno tintado
+            // y nada más —el círculo del estado vacío, el recuadro de años—.
+            // El delineado solo estaba aquí y en el diálogo de ver documento,
+            // y con el 7% de relleno que tenía, el borde era casi lo único que
+            // se veía de la caja. Subiendo el relleno al 12% la caja se lee
+            // sola, que es lo que hace el resto.
+            background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
             borderRadius: 'var(--shape-md)',
-            border: `1.5px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
             flexShrink: 0,
             transition:
               'background-color var(--motion-medium) var(--ease-standard)',
@@ -147,25 +162,27 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px', mb: 1 }}>
             {categoria && (
+              // Las MISMAS medidas que el `Badge` de al lado, que es el que
+              // dice la vigencia: alto 20, relleno 2/6, y el texto tal como se
+              // escribe. Iba en VERSALITAS a peso 700 y con espaciado propio,
+              // así que dos etiquetas de la misma fila —"REUNIONES" y "1 mes"—
+              // no se parecían en nada.
+              // El color sí es propio, y a propósito: es de la categoría, y es
+              // lo que distingue una de otra de un vistazo.
               <Box
                 className="label-small-medium"
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  lineHeight: 1,
-                  backgroundColor: `color-mix(in srgb, ${categoria.color} 8%, transparent)`,
+                  height: '20px',
+                  padding: '2px 6px',
+                  backgroundColor: `color-mix(in srgb, ${categoria.color} 12%, transparent)`,
                   color: categoria.color,
-                  border: `1px solid color-mix(in srgb, ${categoria.color} 21%, transparent)`,
-                  px: 1.2,
-                  py: 0.6,
-                  // Píldora, como el Badge que va justo al lado: son dos
-                  // etiquetas de la misma fila y llevaban formas distintas.
                   borderRadius: 'var(--shape-full)',
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'normal',
-                  wordBreak: 'break-word',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
                 }}
               >
                 {categoria.nombre}
@@ -213,20 +230,33 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
         direction="row"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ mt: 'auto', pt: 1.5, pl: '4px', borderTop: '1px solid var(--line)' }}
+        sx={{
+          mt: 'auto',
+          pt: 1.5,
+          pl: '4px',
+          borderTop: '1px solid var(--line)',
+        }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
           <Typography className="label-small-regular" color="var(--ink-3)">
-            {dateFormatFriendly(formatDate(new Date(documento.fechaSubida), 'yyyy/MM/dd'))}
+            {dateFormatFriendly(
+              formatDate(new Date(documento.fechaSubida), 'yyyy/MM/dd')
+            )}
           </Typography>
-          <Typography className="label-small-regular" color="var(--ink-3)">•</Typography>
+          <Typography className="label-small-regular" color="var(--ink-3)">
+            •
+          </Typography>
           <Typography className="label-small-regular" color="var(--ink-3)">
             {(documento.fileSize / 1024 / 1024).toFixed(2)} MB
           </Typography>
         </Stack>
 
         {canManage && (
-          <Stack direction="row" spacing={0.5} onClick={(e) => e.stopPropagation()}>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            onClick={(e) => e.stopPropagation()}
+          >
             <Tooltip title="Eliminar documento">
               <IconButton
                 onClick={() => onDelete(documento)}
@@ -235,7 +265,8 @@ const DocumentoCard = ({ documento, categoria, onView, onDelete }: DocumentoCard
                   color: 'var(--red-main)',
                   padding: '6px',
                   borderRadius: 'var(--shape-full)',
-                  backgroundColor: 'color-mix(in srgb, var(--red-main) 6%, transparent)',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--red-main) 6%, transparent)',
                   transition:
                     'background-color var(--motion-fast) var(--ease-standard)',
                   '&:hover': {

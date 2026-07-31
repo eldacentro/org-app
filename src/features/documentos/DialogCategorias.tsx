@@ -195,53 +195,53 @@ const DialogCategorias = ({ open, onClose }: DialogCategoriasProps) => {
               style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
               {drafts.map((cat, index) => (
-              <Box
-                key={cat.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--shape-sm)',
-                  transition:
-                    'background-color var(--motion-fast) var(--ease-standard)',
-                  // La cápsula del color de la categoría, no la "uñita": el
-                  // borde de 5px iba pegado al canto y la esquina redondeada lo
-                  // cortaba en seco, dejando dos muescas. Ver §6.3.
-                  ...accentSurface(cat.color),
-                  '&:hover': {
-                    backgroundColor: `color-mix(in srgb, ${cat.color} 12%, var(--card))`,
-                  },
-                }}
-              >
-                <DragHandle
-                  etiqueta={cat.nombre}
-                  onSubir={() => handleMoveUp(index)}
-                  onBajar={() => handleMoveDown(index)}
-                  sx={{ padding: '6px' }}
-                />
-
-                <Typography
-                  className="body-regular-semibold"
-                  color="var(--ink)"
-                  sx={{ flex: 1, minWidth: 0 }}
+                <Box
+                  key={cat.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    border: '1px solid var(--line)',
+                    borderRadius: 'var(--shape-sm)',
+                    transition:
+                      'background-color var(--motion-fast) var(--ease-standard)',
+                    // La cápsula del color de la categoría, no la "uñita": el
+                    // borde de 5px iba pegado al canto y la esquina redondeada lo
+                    // cortaba en seco, dejando dos muescas. Ver §6.3.
+                    ...accentSurface(cat.color),
+                    '&:hover': {
+                      backgroundColor: `color-mix(in srgb, ${cat.color} 12%, var(--card))`,
+                    },
+                  }}
                 >
-                  {cat.nombre}
-                </Typography>
+                  <DragHandle
+                    etiqueta={cat.nombre}
+                    onSubir={() => handleMoveUp(index)}
+                    onBajar={() => handleMoveDown(index)}
+                    sx={{ padding: '6px' }}
+                  />
 
-                <Stack direction="row" spacing="4px">
-                  <IconButton
-                    edge={false}
-                    color="error"
-                    onClick={() => handleRemove(cat.id)}
-                    title="Eliminar"
-                    sx={{ padding: '6px', color: 'var(--red-main)' }}
+                  <Typography
+                    className="body-regular-semibold"
+                    color="var(--ink)"
+                    sx={{ flex: 1, minWidth: 0 }}
                   >
-                    <IconDelete color="currentColor" width={18} height={18} />
-                  </IconButton>
-                </Stack>
-              </Box>
+                    {cat.nombre}
+                  </Typography>
+
+                  <Stack direction="row" spacing="4px">
+                    <IconButton
+                      edge={false}
+                      color="error"
+                      onClick={() => handleRemove(cat.id)}
+                      title="Eliminar"
+                      sx={{ padding: '6px', color: 'var(--red-main)' }}
+                    >
+                      <IconDelete color="currentColor" width={18} height={18} />
+                    </IconButton>
+                  </Stack>
+                </Box>
               ))}
             </ReactSortable>
           )}
