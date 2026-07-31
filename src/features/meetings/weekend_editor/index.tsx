@@ -243,7 +243,6 @@ const WeekendEditor = () => {
                           color: 'var(--always-white)',
                           padding: { mobile: '4px 10px', tablet: '6px 14px' },
                           textTransform: 'none',
-                          fontFamily: 'Figtree, sans-serif',
                           fontWeight: 600,
                           fontSize: { mobile: '11px', tablet: '13px' },
                           transition:

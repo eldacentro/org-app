@@ -569,6 +569,23 @@ body iframe {
   padding-right: 0;
 }
 
+/* El `Chip` de MUI se cae a la fuente de fábrica de Material.
+ *
+ * `typography.fontFamily` está puesto en el tema y vale para todo lo demás,
+ * pero al chip no le llega — probado también con `styleOverrides` en el tema,
+ * que tampoco gana. Medido en el navegador, no deducido: `.MuiChip-root` daba
+ * "Roboto, Helvetica, Arial" mientras el `body` daba "Figtree".
+ *
+ * No se notaba porque cada sitio se escribía su `fontFamily` a mano —seis
+ * veces repartidas por la app—. Al quitar esas seis (la fuente se hereda en
+ * todo lo demás) salieron a la luz diecisiete píldoras de nombres en
+ * Responsabilidades escritas en Roboto.
+ *
+ * Aquí sí manda, porque esta hoja se carga la última. */
+.MuiChip-root {
+  font-family: 'Figtree', sans-serif;
+}
+
 /* ─── Dark mode semantic overrides ─────────────────────────────────────── */
 [data-theme$='dark'] {
   --line: rgba(255, 255, 255, 0.08);

@@ -322,7 +322,6 @@ const ReadDepartamentos = ({
                           label={resolveName(uid)}
                           size="small"
                           sx={{
-                            fontFamily: 'Figtree, sans-serif',
                             fontSize: '12px',
                             backgroundColor: 'var(--accent-100)',
                             color: 'var(--accent-dark)',

@@ -297,7 +297,6 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       <div
                         className="cong-name"
                         style={{
-                          fontFamily: 'Figtree, sans-serif',
                           fontWeight: 900,
                           fontSize: '24px',
                           letterSpacing: '-0.5px',

@@ -36,7 +36,7 @@ export const PersonSelect = ({
         // en dos líneas, un <textarea> sí.
         <TextField {...params} label={label} multiline />
       )}
-      sx={{ flex: 1, fontFamily: 'Figtree, sans-serif' }}
+      sx={{ flex: 1 }}
       noOptionsText="Sin resultados"
     />
   );
@@ -75,7 +75,7 @@ export const PersonMultiSelect = ({
       onChange={(_, v) => onChange(v.map((o) => o.uid))}
       size="medium"
       renderInput={(params) => <TextField {...params} label={label} />}
-      sx={{ width: '100%', fontFamily: 'Figtree, sans-serif' }}
+      sx={{ width: '100%' }}
       noOptionsText="Sin resultados"
       renderTags={(tagValue, getTagProps) =>
         tagValue.map((option, index) => {
@@ -86,7 +86,7 @@ export const PersonMultiSelect = ({
               label={option.label}
               size="medium"
               {...tagProps}
-              sx={{ fontFamily: 'Figtree, sans-serif', fontSize: '13px' }}
+              sx={{ fontSize: '13px' }}
             />
           );
         })

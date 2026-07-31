@@ -408,6 +408,18 @@ Entre los cinco son el **56%** del total.
       de MUI, el panel del menú con su sombra y la flecha centrada de verdad
       (§6.4d de esta misma vuelta). Hizo falta convertir el valor a `string`
       en tres sitios, porque el de la app lo tipa como `unknown`.
+      **La fuente (2026-07-31).** Había SEIS `fontFamily: 'Figtree'` escritos
+      a mano en la app. La fuente se hereda —comprobado en el navegador— así
+      que parecían redundantes… y al quitarlos aparecieron **diecisiete
+      píldoras de Responsabilidades escritas en el Roboto de fábrica de
+      Material**: el `Chip` de MUI no recoge la fuente del tema, y esas seis
+      líneas lo estaban tapando sin que nadie lo supiera.
+      El tema ya declara `typography.fontFamily` y vale para todo lo demás; un
+      `styleOverrides` de `MuiChip` tampoco gana. La regla acaba en
+      `global/index.css`, que se carga la última, y ahí sí. Comprobado: cero
+      elementos en Roboto en cinco pantallas.
+      Se queda la del PDF de responsabilidades: react-pdf no hereda nada del
+      navegador y ahí la fuente hay que declararla.
       **Los `Chip` (2026-07-30).** Eran 16, y de esos, ocho eran INSIGNIAS de
       estado escritas a mano: "Suspendido/Suspendida" copiado SEIS veces entre
       Exhibidores y Salidas con los mismos tokens, "En preparación" en Ayuda y
