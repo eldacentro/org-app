@@ -222,11 +222,21 @@ const CircuitVisitWeek = ({
             width={26}
             height={26}
           />
+          {/* La misma cabecera que las demás de Programas semanales: `h2-caps`,
+              peso 800 y ese medio punto de separación entre letras. Esta era
+              la única en minúscula de toda la página, con `h3`, y encima
+              escrita entera —"Visita del superintendente de circuito"— se iba
+              a dos líneas en un móvil. En su pestaña ya se sabe que es una
+              visita. */}
           <Typography
-            className="h3"
-            sx={{ color: 'var(--always-white)', fontWeight: 800 }}
+            className="h2-caps"
+            sx={{
+              color: 'var(--always-white)',
+              fontWeight: 800,
+              letterSpacing: '0.6px',
+            }}
           >
-            Visita del superintendente de circuito
+            Superintendente de circuito
           </Typography>
         </Box>
 

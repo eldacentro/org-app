@@ -100,11 +100,11 @@ const usePersonCard = (person: PersonType) => {
       isFS;
 
     if (!hasSpecialBadge || disqualified) {
+      // Una sola etiqueta de clase de publicador: gana bautizado. Mismo
+      // criterio y mismo motivo que en `usePerson.tsx` — ahí está contado.
       if (isBaptized) {
         badges.push({ name: t('tr_baptizedPublisher'), color: 'grey' });
-      }
-
-      if (isUnbaptized) {
+      } else if (isUnbaptized) {
         badges.push({ name: t('tr_unbaptizedPublisher'), color: 'grey' });
       }
 

@@ -517,6 +517,28 @@ body iframe {
   box-sizing: border-box;
 }
 
+/* …y el icono de la izquierda baja CON el valor. Si no, se queda centrado en
+   la caja mientras el texto se ha ido abajo: exactamente los mismos 7,5px del
+   comentario de arriba, pero al revés — el icono por encima de la línea del
+   texto. Se veía en el campo de la llave maestra al entrar en la app, y en
+   todos los de Privacidad de la congregación.
+
+   El icono no lo baja el relleno porque no está dentro del `input`: es un
+   adorno hermano, y MUI lo centra en la fila (`align-items: center`). Encima
+   su caja mide CERO de alto (se la fija el propio componente de campo), así
+   que tampoco hay relleno que darle — hay que moverlo.
+
+   La cuenta va con las variables, no con un 7,5 escrito a mano: es la mitad de
+   lo que se han desequilibrado los rellenos. Si mañana cambian, el icono sigue
+   al texto solo. Y va bajo el mismo `:has()` que el relleno, así que en un
+   campo sin etiqueta —donde el texto no baja— el icono tampoco se mueve. */
+.MuiFormControl-root:has(> .MuiInputLabel-root[data-shrink='true']:not(:empty))
+  .MuiInputAdornment-positionStart {
+  transform: translateY(
+    calc((var(--campo-pad-top) - var(--campo-pad-bottom)) / 2)
+  );
+}
+
 /* Un campo de VARIOS valores no baja su texto: baja sus PÍLDORAS, que no son
    el `input` y por eso la regla de arriba no las alcanzaba. Se veía en
    "Miembros de familia": la píldora se sentaba centrada en la caja y cruzaba

@@ -286,11 +286,24 @@ const usePerson = () => {
       isFS;
 
     if (!hasSpecialBadge || isDisqualified) {
+      /**
+       * UNA sola etiqueta de clase de publicador. Nadie es bautizado y no
+       * bautizado a la vez, pero las dos condiciones se miraban por separado y
+       * en la lista aparecían las dos pegadas: "Publicador bautizado" encima
+       * de "Publicador no bautizado".
+       *
+       * Pasa cuando el registro dice las dos cosas. Marcar la casilla de
+       * bautizado desde la ficha SÍ cierra el tramo de no bautizado y apaga su
+       * casilla (`handleToggleBaptizedPublisher`), así que por la app no se
+       * llega aquí: los registros que lo tienen vienen de una importación, que
+       * escribe los campos directamente sin pasar por ese camino.
+       *
+       * Gana bautizado, que es lo que la persona es ahora: el bautismo cierra
+       * la etapa anterior, no convive con ella.
+       */
       if (isBaptized) {
         badges.push({ name: t('tr_baptizedPublisher'), color: 'grey' });
-      }
-
-      if (isUnbaptized) {
+      } else if (isUnbaptized) {
         badges.push({ name: t('tr_unbaptizedPublisher'), color: 'grey' });
       }
 

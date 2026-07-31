@@ -542,13 +542,22 @@ const ExhibitorsMeeting = ({
                         alignSelf: { mobile: 'flex-start', laptop: 'center' },
                       }}
                     >
+                      {/* La dirección va por DEBAJO del nombre en la jerarquía:
+                          quién hace el turno importa más que dónde, y el dónde
+                          se repite turno tras turno.
+
+                          Iba a peso 600 — más gruesa que los propios nombres,
+                          que son `h3` a 500 — y en `--grey-600`, que es casi
+                          tinta. Con los dos números escritos a mano, además,
+                          no seguía ninguna escala. Ahora es
+                          `body-small-regular` (mismo cuerpo, trazo normal) en
+                          el gris de texto secundario de la app. */}
                       <Typography
+                        className="body-small-regular"
                         sx={{
-                          fontSize: '13px',
-                          fontWeight: 600,
                           color: isCancelled
-                            ? 'var(--grey-400)'
-                            : 'var(--grey-600)',
+                            ? 'var(--grey-350)'
+                            : 'var(--ink-2)',
                           wordBreak: 'break-word',
                           whiteSpace: 'normal',
                           mt: { mobile: '4px', laptop: '0px' },
