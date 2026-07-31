@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Autocomplete,
-  Box,
-  Stack,
-  TextField as MuiTextField,
-} from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import accentSurface from '@components/accent_surface';
+import Autocomplete from '@components/autocomplete';
+
+/** Un publicador en el desplegable: lo que se guarda y lo que se lee. */
+type PersonaOpcion = { uid: string; label: string };
 import TextField from '@components/textfield';
 import { personsActiveState } from '@states/persons';
 import { buildPersonFullname, escapeHTML } from '@utils/common';
@@ -543,12 +542,13 @@ const DialogAsignar = ({
           <Autocomplete
             options={personOptions}
             value={selectedPerson}
-            onChange={(_, v) => setPersonUid(v?.uid ?? null)}
-            getOptionLabel={(o) => o.label}
-            isOptionEqualToValue={(o, v) => o.uid === v.uid}
-            renderInput={(params) => (
-              <MuiTextField {...params} label="Publicador" size="small" />
-            )}
+            onChange={(_, v) => setPersonUid((v as PersonaOpcion)?.uid ?? null)}
+            getOptionLabel={(o: PersonaOpcion) => o.label}
+            isOptionEqualToValue={(o: PersonaOpcion, v: PersonaOpcion) =>
+              o.uid === v.uid
+            }
+            size="small"
+            label="Publicador"
           />
           <TextField
             label="Nota (opcional)"

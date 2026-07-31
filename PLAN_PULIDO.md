@@ -408,6 +408,19 @@ Entre los cinco son el **56%** del total.
       de MUI, el panel del menú con su sombra y la flecha centrada de verdad
       (§6.4d de esta misma vuelta). Hizo falta convertir el valor a `string`
       en tres sitios, porque el de la app lo tipa como `unknown`.
+      **Los `Autocomplete` (2026-07-31).** Quedaban siete de MUI en crudo, y
+      se veían distintos: el triángulo de Material en vez del chevrón de la
+      app, y el panel de opciones sin su radio ni su borde. Los siete al
+      componente de la app —o a `autocomplete_multiple` los dos que eligen
+      varios, que además pintan lo elegido con el `MiniChip` en vez de un
+      `Chip` gris escrito a mano—.
+      El cambio es quitar el `renderInput` y pasar `label`/`multiline`, porque
+      el tipo del componente es `Omit<AutocompleteProps, 'renderInput'>`. Hubo
+      que anotar los tipos de las funciones, como ya hacen los otros diez
+      consumidores: el componente admite `freeSolo`, así que MUI tipa el valor
+      como `T | string`.
+      Comprobado en Responsabilidades: campo de 56 con radio 12 y fondo de la
+      app, y `organized-icon-expand` en vez del triángulo.
       **La fuente (2026-07-31).** Había SEIS `fontFamily: 'Figtree'` escritos
       a mano en la app. La fuente se hereda —comprobado en el navegador— así
       que parecían redundantes… y al quitarlos aparecieron **diecisiete

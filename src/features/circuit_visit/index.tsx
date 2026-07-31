@@ -1,17 +1,16 @@
 import { ReactNode, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
-import {
-  Box,
-  Stack,
-  Autocomplete,
-  TextField as MuiTextField,
-  MenuItem,
-} from '@mui/material';
+import { Box, Stack, MenuItem } from '@mui/material';
 import PageTitle from '@components/page_title';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Checkbox from '@components/checkbox';
+import Autocomplete from '@components/autocomplete';
+import AutocompleteMultiple from '@components/autocomplete_multiple';
+
+/** Un hermano en un desplegable: lo que se guarda y lo que se lee. */
+type PersonaOpcion = { uid: string; label: string };
 import TextField from '@components/textfield';
 import CustomDatePicker from '@components/date_picker';
 import TimePicker from '@components/time_picker';
@@ -471,7 +470,7 @@ const PreachingSection = ({
                         onChange={(_, v) => {
                           if (v) {
                             onUpsertCompanion(outing.outingKey, {
-                              brother: v.uid,
+                              brother: (v as PersonaOpcion).uid,
                             });
                             return;
                           }
@@ -486,19 +485,16 @@ const PreachingSection = ({
                             onRemoveCompanion(outing.outingKey);
                           }
                         }}
-                        getOptionLabel={(o) => o.label}
-                        isOptionEqualToValue={(o, v) => o.uid === v.uid}
-                        renderInput={(params) => (
-                          <MuiTextField
-                            {...params}
-                            label={`Acompañante de ${effectiveCoName || 'superintendente'}`}
-                            size="small"
-                            // Los nombres largos se cortaban: un <input> no
-                            // puede partir el texto en dos líneas, un
-                            // <textarea> sí.
-                            multiline
-                          />
-                        )}
+                        getOptionLabel={(o: PersonaOpcion) => o.label}
+                        isOptionEqualToValue={(
+                          o: PersonaOpcion,
+                          v: PersonaOpcion
+                        ) => o.uid === v.uid}
+                        size="small"
+                        label={`Acompañante de ${effectiveCoName || 'superintendente'}`}
+                        // Los nombres largos se cortaban: un <input> no puede
+                        // partir el texto en dos líneas, un <textarea> sí.
+                        multiline
                       />
                       {companion?.brother && (
                         <Select
@@ -530,37 +526,37 @@ const PreachingSection = ({
                         SIEMPRE visible (si tiene nombre en Ajustes). Vacío =
                         no sale ese turno — sin casillas que marcar. */}
                     {effectiveCoSpouseName && (
-                      <Autocomplete
+                      <AutocompleteMultiple<PersonaOpcion>
                         // OJO: este selector es hijo directo de un Stack en
                         // COLUMNA — un flex-basis aquí reservaría 220px de
                         // ALTO vacío (bug visual real).
                         sx={{ width: '100%' }}
-                        multiple
                         options={personOptions}
                         value={personOptions.filter((o) =>
                           (companion?.spouse_companions ?? []).includes(o.uid)
                         )}
                         onChange={(_, selected) => {
-                          if (selected.length === 0 && !companion?.brother) {
+                          const elegidos = selected as PersonaOpcion[];
+                          if (elegidos.length === 0 && !companion?.brother) {
                             // Sin acompañantes de nadie: no queda nada que
                             // guardar para este turno.
                             if (companion) onRemoveCompanion(outing.outingKey);
                             return;
                           }
                           onUpsertCompanion(outing.outingKey, {
-                            spouse_companions: selected.map((s) => s.uid),
-                            withWife: selected.length > 0,
+                            spouse_companions: (
+                              selected as PersonaOpcion[]
+                            ).map((s) => s.uid),
+                            withWife: elegidos.length > 0,
                           });
                         }}
-                        getOptionLabel={(o) => o.label}
-                        isOptionEqualToValue={(o, v) => o.uid === v.uid}
-                        renderInput={(params) => (
-                          <MuiTextField
-                            {...params}
-                            label={`Acompañante de ${effectiveCoSpouseName}`}
-                            size="small"
-                          />
-                        )}
+                        getOptionLabel={(o: PersonaOpcion) => o.label}
+                        isOptionEqualToValue={(
+                          o: PersonaOpcion,
+                          v: PersonaOpcion
+                        ) => o.uid === v.uid}
+                        size="small"
+                        label={`Acompañante de ${effectiveCoSpouseName}`}
                       />
                     )}
                   </Stack>
@@ -633,7 +629,7 @@ const PersonPicker = ({
 }: {
   label: string;
   value: string;
-  options: { uid: string; label: string }[];
+  options: PersonaOpcion[];
   onChange: (uid: string) => void;
 }) => {
   const selected = options.find((o) => o.uid === value) ?? null;
@@ -642,12 +638,13 @@ const PersonPicker = ({
       sx={{ flex: 1, minWidth: '180px' }}
       options={options}
       value={selected}
-      onChange={(_, v) => onChange(v?.uid ?? '')}
-      getOptionLabel={(o) => o.label}
-      isOptionEqualToValue={(o, v) => o.uid === v.uid}
-      renderInput={(params) => (
-        <MuiTextField {...params} label={label} size="small" />
-      )}
+      onChange={(_, v) => onChange((v as PersonaOpcion)?.uid ?? '')}
+      getOptionLabel={(o: PersonaOpcion) => o.label}
+      isOptionEqualToValue={(o: PersonaOpcion, v: PersonaOpcion) =>
+        o.uid === v.uid
+      }
+      size="small"
+      label={label}
     />
   );
 };

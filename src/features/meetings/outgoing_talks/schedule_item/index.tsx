@@ -1,4 +1,5 @@
-import { Box, Autocomplete, TextField as MuiTextField } from '@mui/material';
+import { Box } from '@mui/material';
+import Autocomplete from '@components/autocomplete';
 import {
   IconClose,
   IconDelete,
@@ -31,6 +32,7 @@ import Typography from '@components/typography';
 import TimePicker from '@components/time_picker';
 import CongregationSelector from '@components/congregation_selector';
 import SongSelector from '@features/meetings/weekend_editor/song_selector';
+import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 
 const ScheduleItem = (props: ScheduleItemType) => {
   const { t } = useAppTranslation();
@@ -199,7 +201,7 @@ const ScheduleItem = (props: ScheduleItemType) => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Autocomplete
             options={catalogCongregations}
-            getOptionLabel={(option) =>
+            getOptionLabel={(option: SpeakersCongregationsType) =>
               `${option.cong_data.cong_name.value}${
                 option.cong_data.cong_number.value
                   ? ` (${option.cong_data.cong_number.value})`
@@ -207,19 +209,19 @@ const ScheduleItem = (props: ScheduleItemType) => {
               }`
             }
             value={selectedCatalogCong ?? null}
-            onChange={(_e, val) => handleSelectFromCatalog(val)}
+            onChange={(_e, val) =>
+              handleSelectFromCatalog(val as SpeakersCongregationsType)
+            }
             readOnly={schedule.synced}
-            renderInput={(params) => (
-              <MuiTextField
-                {...params}
-                label={t('tr_congregation')}
-                size="small"
-                // Los nombres de congregación largos se cortaban: un <input>
-                // no puede partir el texto en dos líneas, un <textarea> sí.
-                multiline
-              />
-            )}
-            isOptionEqualToValue={(option, value) =>
+            size="small"
+            label={t('tr_congregation')}
+            // Los nombres de congregación largos se cortaban: un <input> no
+            // puede partir el texto en dos líneas, un <textarea> sí.
+            multiline
+            isOptionEqualToValue={(
+              option: SpeakersCongregationsType,
+              value: SpeakersCongregationsType
+            ) =>
               option.id === value?.id ||
               option.cong_data.cong_name.value ===
                 value?.cong_data.cong_name.value

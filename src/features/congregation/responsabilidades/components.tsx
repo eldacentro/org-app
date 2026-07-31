@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { Autocomplete, Chip, TextField } from '@mui/material';
+import Autocomplete from '@components/autocomplete';
+import AutocompleteMultiple from '@components/autocomplete_multiple';
 
 export type PersonOption = { uid: string; label: string };
 
@@ -24,18 +25,22 @@ export const PersonSelect = ({
   const selected = allOptions.find((o) => o.uid === value) ?? null;
 
   return (
-    <Autocomplete
+    <Autocomplete<PersonOption>
       value={selected}
       options={allOptions}
-      getOptionLabel={(o) => o.label}
-      isOptionEqualToValue={(a, b) => a.uid === b.uid}
-      onChange={(_, v) => onChange(v?.uid ?? '')}
+      getOptionLabel={(o: PersonOption) => o.label}
+      isOptionEqualToValue={(a: PersonOption, b: PersonOption) =>
+        a.uid === b.uid
+      }
+      onChange={(_, v) => onChange((v as PersonOption)?.uid ?? '')}
       size="medium"
-      renderInput={(params) => (
-        // Los nombres largos se cortaban: un <input> no puede partir el texto
-        // en dos líneas, un <textarea> sí.
-        <TextField {...params} label={label} multiline />
-      )}
+      // El de la app, no el de MUI: trae el chevrón de la interfaz en vez del
+      // triángulo de Material, el panel de opciones con su radio y su borde, y
+      // el campo de la app por dentro.
+      label={label}
+      // Los nombres largos se cortaban: un <input> no puede partir el texto en
+      // dos líneas, un <textarea> sí.
+      multiline
       sx={{ flex: 1 }}
       noOptionsText="Sin resultados"
     />
@@ -66,31 +71,22 @@ export const PersonMultiSelect = ({
     .filter(Boolean) as PersonOption[];
 
   return (
-    <Autocomplete
-      multiple
+    <AutocompleteMultiple<PersonOption>
       value={selected}
       options={allOptions}
-      getOptionLabel={(o) => o.label}
-      isOptionEqualToValue={(a, b) => a.uid === b.uid}
-      onChange={(_, v) => onChange(v.map((o) => o.uid))}
+      getOptionLabel={(o: PersonOption) => o.label}
+      isOptionEqualToValue={(a: PersonOption, b: PersonOption) =>
+        a.uid === b.uid
+      }
+      onChange={(_, v) => onChange((v as PersonOption[]).map((o) => o.uid))}
       size="medium"
-      renderInput={(params) => <TextField {...params} label={label} />}
+      // `AutocompleteMultiple`, que es el componente que existe justo para
+      // esto: pinta lo elegido con el `MiniChip` de la app —que sí sabe de
+      // modo oscuro— en vez del `Chip` gris de MUI que había aquí escrito a
+      // mano con su tamaño de letra propio.
+      label={label}
       sx={{ width: '100%' }}
       noOptionsText="Sin resultados"
-      renderTags={(tagValue, getTagProps) =>
-        tagValue.map((option, index) => {
-          const { key, ...tagProps } = getTagProps({ index });
-          return (
-            <Chip
-              key={key}
-              label={option.label}
-              size="medium"
-              {...tagProps}
-              sx={{ fontSize: '13px' }}
-            />
-          );
-        })
-      }
     />
   );
 };
