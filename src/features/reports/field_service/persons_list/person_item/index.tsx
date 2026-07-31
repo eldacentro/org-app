@@ -17,13 +17,7 @@ const PersonItem = (props: PersonItemProps) => {
   const { t } = useAppTranslation();
 
   return (
-    <CardButton
-      onClick={handleToggleSelect}
-      sx={{
-        borderColor: isSelected && 'var(--accent-main)',
-        backgroundColor: isSelected && 'var(--accent-100)',
-      }}
-    >
+    <CardButton onClick={handleToggleSelect} selected={isSelected}>
       <PersonDetails person={props.person} month={currentMonth} />
 
       {report_status === 'confirmed' && (

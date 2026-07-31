@@ -8,7 +8,11 @@ export const StyledCardBox = styled(Box)({
     borderRadius: 'var(--shape-sm)',
     boxShadow: 'none',
     height: '100%',
-    border: '1px solid var(--accent-300)',
+    // El borde suave de cualquier tarjeta de la app, no uno propio.
+    // Llevaba `--accent-300`, bastante más marcado, así que la misma persona
+    // se veía con un canto verde en Personas y con el canto de siempre en
+    // Informes de predicación. Es la misma ficha en dos listas.
+    border: '1px solid var(--line)',
     '&:hover': {
       background: 'var(--accent-100)',
       border: '1px solid var(--accent-350)',

@@ -13,4 +13,7 @@ export type CardButtonProps = {
   ariaLabel?: string;
 
   sx?: SxProps<Theme>;
+
+  /** La fila está elegida: se marca con el tinte del acento. */
+  selected?: boolean;
 };

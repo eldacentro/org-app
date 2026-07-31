@@ -23,7 +23,13 @@ import { CardButtonProps } from './index.types';
  * aunque sea `display: flex`). Todo eso se resetea aquí, una vez, para que
  * quien lo use no tenga que acordarse.
  */
-const CardButton = ({ children, onClick, sx, ariaLabel }: CardButtonProps) => {
+const CardButton = ({
+  children,
+  onClick,
+  sx,
+  ariaLabel,
+  selected,
+}: CardButtonProps) => {
   return (
     <Box
       component="button"
@@ -39,10 +45,19 @@ const CardButton = ({ children, onClick, sx, ariaLabel }: CardButtonProps) => {
         width: '100%',
 
         border: '1px solid var(--line)',
+        borderColor: selected ? 'var(--accent-main)' : 'var(--line)',
         borderRadius: 'var(--shape-sm)',
         display: 'flex',
         gap: '16px',
-        backgroundColor: 'var(--card)',
+        // El estado "elegida" lo decide ESTE componente, no quien lo usa.
+        //
+        // Quien lo usaba escribía `backgroundColor: isSelected && '...'` en su
+        // `sx`, y ese `sx` se aplica DESPUÉS del fondo de aquí: cuando la fila
+        // no estaba elegida, ese `false` pisaba el token y el navegador ponía
+        // el gris de fábrica de un `<button>`. Por eso las filas de personas
+        // de Informes de predicación y de Registros de publicadores salían
+        // grises mientras las de Personas salían blancas.
+        backgroundColor: selected ? 'var(--accent-100)' : 'var(--card)',
         cursor: 'pointer',
         padding: '24px',
         justifyContent: 'space-between',
