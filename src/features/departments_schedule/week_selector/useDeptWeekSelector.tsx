@@ -55,7 +55,10 @@ const useDeptWeekSelector = () => {
 
             weeks.push({
               weekOf,
-              label: `${formatDateShortMonth(currentMonday)} - ${formatDateShortMonth(endOfWeek)}`,
+              // La fecha del lunes, corta y a secas — la misma que los otros
+              // dos selectores de semana. Antes era un RANGO ("5 Ene - 11
+              // Ene"): más largo, y distinto de sus dos gemelos sin motivo.
+              label: formatDateShortMonth(currentMonday),
               noMeeting: schedulesWeekHasNoMeetingAtAll(
                 weekOf,
                 meetingSchedules
@@ -67,10 +70,8 @@ const useDeptWeekSelector = () => {
 
         if (weeks.length > 0) {
           yearMonths.push({
-            // Con el año, como el selector de reuniones. Decía solo
-            // "Enero" mientras su gemelo decía "Enero 2026", y son el mismo
-            // control haciendo el mismo trabajo en dos pantallas.
-            label: `${capitalizarPrimera(monthNames[month])} ${year}`,
+            // Solo el nombre del mes: el año lo dice la pestaña de encima.
+            label: capitalizarPrimera(monthNames[month]),
             value: `${year}/${String(month + 1).padStart(2, '0')}`,
             weeks,
           });

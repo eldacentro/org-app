@@ -648,6 +648,40 @@ funciona, y no hace falta `!important` ni `style=` en línea para conseguirlo.
 Comprobado que activar las 150 no rompió nada: mismo recuento exacto de
 desbordes antes y después, en nueve pantallas, en escritorio y en móvil.
 
+### 6.4e Elegir un periodo: TRES familias, y no se mezclan
+
+La app pide "¿qué semana?" o "¿qué mes?" en muchos sitios. Hay tres controles
+distintos y cada uno tiene su motivo; lo que no puede pasar es que dos
+pantallas resuelvan lo MISMO de dos maneras.
+
+**1 · El panel de periodo** (`@components/collapsible_selector` + las filas de
+`@components/period_selector`). Es el de Reunión de entre semana y de fin de
+semana, Departamentos, Oradores salientes, Exhibidores, Salidas de predicación
+y Limpieza del Salón. En escritorio es una tarjeta pegada al lado, de 360 y con
+el radio de tarjeta; en móvil se pliega en una barra que dice qué hay elegido.
+
+Dentro, siempre igual:
+
+  · el **año**, en una tira de pestañas — nunca en un desplegable, que al
+    abrirse tapa justo la lista que vas a usar
+  · el **mes**, en versalitas pequeñas y SIN año (el año ya lo dice la pestaña
+    de arriba), con el chevrón a la derecha → `MonthRow`
+  · la **semana**, con la fecha corta ("3 Dic") y lo que haya que contar a la
+    derecha → `WeekRow`
+
+Las dos filas son botones de verdad, con `aria-expanded` el mes y
+`aria-current` la semana elegida.
+
+**2 · La tira horizontal de semanas** de Programas semanales. Ahí no se
+NAVEGA a una semana: se hojea el programa, y la tira deja ver las de al lado.
+Tiene su propia nota explicando por qué no usa pestañas de MUI.
+
+**3 · El año de servicio + mes de Informes**
+(`features/reports/service_year_month_selector`). Ahí el periodo es un FILTRO
+dentro de un formulario, no la navegación de la página, y lo que se elige es el
+año de SERVICIO, que no empieza en enero. Va con el campo desplegable de la
+app, como cualquier otro filtro.
+
 ### 6.5 Un campo con un botón al lado: NUNCA se estira el botón al alto del campo
 
 Un campo mide 56px (etiqueta dentro) y un botón mide 40. Puestos en la misma

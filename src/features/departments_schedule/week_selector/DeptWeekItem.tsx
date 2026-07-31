@@ -1,8 +1,7 @@
-import { Box } from '@mui/material';
 import { useAtom } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
-import Typography from '@components/typography';
 import Badge from '@components/badge';
+import WeekRow from '@components/period_selector/WeekRow';
 import { useAppTranslation } from '@hooks/index';
 
 const DeptWeekItem = ({
@@ -20,66 +19,28 @@ const DeptWeekItem = ({
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
   const isSelected = selectedWeek === weekOf;
 
-  // Botón de verdad, como su gemela del otro selector. Elegir semana es LA
-  // acción de este panel y era un `Box` con `onClick`: solo con el ratón. No
-  // lo cazó el barrido de teclado porque estas filas viven dentro de un
-  // `Collapse` y solo existen con el mes desplegado — lo que no está pintado
-  // no se puede medir. `aria-current` dice cuál está elegida sin depender del
-  // color.
+  // La fila compartida por los tres selectores de semana de la app. Antes cada
+  // uno tenía la suya: su propio relleno, su propia forma de marcar la elegida
+  // y su propio formato de fecha.
   return (
-    <Box
-      component="button"
-      type="button"
-      aria-current={isSelected ? 'true' : undefined}
-      sx={{
-        width: '100%',
-        appearance: 'none',
-        border: 'none',
-        font: 'inherit',
-        textAlign: 'left',
-        '&:focus-visible': {
-          outline: '2px solid var(--accent-main)',
-          outlineOffset: '-2px',
-        },
-        cursor: 'pointer',
-        padding: '8px 8px 8px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderTop: '1px solid var(--line)',
-        backgroundColor: isSelected ? 'var(--accent-150)' : 'unset',
-        '.MuiTypography-root': {
-          color: isSelected ? 'var(--accent-dark)' : 'var(--black)',
-        },
-        '&:hover': {
-          backgroundColor: 'var(--accent-150)',
-          '.MuiTypography-root': {
-            color: 'var(--accent-dark)',
-          },
-        },
-      }}
-      onClick={() => {
+    <WeekRow
+      label={label}
+      selected={isSelected}
+      onSelect={() => {
         setSelectedWeek(weekOf);
         onWeekSelect?.();
       }}
-    >
-      {/* 'body-semibold' no existía en el sistema tipográfico (sin definición
-          CSS) — la semana seleccionada se veía con el mismo peso que el
-          resto, sin ningún énfasis visual. */}
-      <Typography
-        className={isSelected ? 'body-regular-semibold' : 'body-regular'}
-      >
-        {label}
-      </Typography>
-      {noMeeting && (
-        <Badge
-          text={t('tr_noMeetingWeek')}
-          color="grey"
-          size="small"
-          filled={false}
-        />
-      )}
-    </Box>
+      trailing={
+        noMeeting && (
+          <Badge
+            text={t('tr_noMeetingWeek')}
+            color="grey"
+            size="small"
+            filled={false}
+          />
+        )
+      }
+    />
   );
 };
 

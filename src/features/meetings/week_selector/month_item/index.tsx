@@ -1,8 +1,8 @@
 import { Box, Collapse } from '@mui/material';
-import { IconCheck, IconCollapse } from '@components/icons';
+import { IconCheck } from '@components/icons';
 import { MonthItemType } from './index.types';
 import useMonthItem from './useMonthItem';
-import Typography from '@components/typography';
+import MonthRow from '@components/period_selector/MonthRow';
 import WeekItem from '../week_item';
 
 const MonthItem = (props: MonthItemType) => {
@@ -13,37 +13,15 @@ const MonthItem = (props: MonthItemType) => {
 
   return (
     <Box>
-      {/* La fila del mes despliega sus semanas, y ahora también con el
-          teclado: era un `Box` con `onClick`, así que los doce meses del año
-          quedaban fuera del tabulador. Aquí sí puede ser el botón entero
-          —dentro no hay más que el nombre, la marca de completo y el
-          chevrón—, sin necesidad de la capa que cubre. */}
-      <Box
-        component="button"
-        type="button"
-        aria-expanded={expanded}
-        sx={{
-          width: '100%',
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'pointer',
-          appearance: 'none',
-          background: 'none',
-          border: 'none',
-          textAlign: 'left',
-          '&:focus-visible': {
-            outline: '2px solid var(--accent-main)',
-            outlineOffset: '-2px',
-            borderRadius: 'var(--shape-xs)',
-          },
-        }}
-        onClick={handleToggleExpand}
-      >
-        <Typography className="h4">{monthName}</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {assignComplete && (
+      {/* La fila compartida de los tres selectores de semana de la app. Antes
+          este pintaba el mes con la clase `h4` y el año pegado, y los otros dos
+          de otras dos maneras. */}
+      <MonthRow
+        label={monthName}
+        expanded={expanded}
+        onToggle={handleToggleExpand}
+        trailing={
+          assignComplete && (
             <Box
               sx={{
                 borderRadius: 'var(--shape-full)',
@@ -58,21 +36,23 @@ const MonthItem = (props: MonthItemType) => {
             >
               <IconCheck color="var(--card)" height={14.4} width={14.4} />
             </Box>
-          )}
+          )
+        }
+      />
 
-          <IconCollapse
-            color="var(--black)"
-            sx={{
-              transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-              transition: 'transform var(--motion-medium) var(--ease-standard)',
-            }}
-          />
-        </Box>
-      </Box>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        {weeks.map((week) => (
-          <WeekItem key={week} week={week} />
-        ))}
+        <Box
+          sx={{
+            pb: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          {weeks.map((week) => (
+            <WeekItem key={week} week={week} />
+          ))}
+        </Box>
       </Collapse>
     </Box>
   );

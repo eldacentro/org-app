@@ -46,7 +46,11 @@ const useWeekItem = (week: string) => {
   }, [schedule, dataView]);
 
   const weekDateLocale = useMemo(() => {
-    const meetingDate = schedulesGetMeetingDate({ week, meeting });
+    // Corta ("3 Dic"), como los otros dos selectores de semana de la app.
+    // Salía "3 diciembre" mientras Departamentos y Oradores salientes decían
+    // "5 Ene" y "28 Dic". Se sigue enseñando la fecha de la REUNIÓN, que es el
+    // dato útil aquí, no el lunes de la semana.
+    const meetingDate = schedulesGetMeetingDate({ week, meeting, short: true });
 
     return meetingDate.locale;
     // eslint-disable-next-line react-hooks/exhaustive-deps

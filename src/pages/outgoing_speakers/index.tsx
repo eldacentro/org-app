@@ -55,6 +55,8 @@ import { displaySnackNotification } from '@services/states/app';
 import { useNavigate } from 'react-router';
 import OutgoingTalksEditor from '@features/meetings/outgoing_talks';
 import ScrollableTabs from '@components/scrollable_tabs';
+import MonthRow from '@components/period_selector/MonthRow';
+import WeekRow from '@components/period_selector/WeekRow';
 
 const OutgoingSpeakersPage = () => {
   const { t } = useAppTranslation();
@@ -1101,9 +1103,15 @@ const OutgoingSpeakersPage = () => {
           ) : (
             <Box
               sx={{
-                width: desktopUp ? '300px' : '100%',
+                // Las mismas medidas que `@components/collapsible_selector`,
+                // que es el panel de periodo del resto de la app: 360 de ancho
+                // y el radio de una tarjeta, no el de un diálogo. Este panel no
+                // usa aquel componente porque necesita desplazamiento propio
+                // (la lista de semanas del año es larga) y dos acciones en la
+                // cabecera, pero no hay razón para que se vea distinto.
+                width: desktopUp ? '360px' : '100%',
                 flexShrink: 0,
-                borderRadius: 'var(--shape-xl)',
+                borderRadius: 'var(--shape-lg)',
                 border: '1px solid var(--line)',
                 backgroundColor: 'var(--card)',
                 padding: '16px',
@@ -1124,7 +1132,12 @@ const OutgoingSpeakersPage = () => {
                   mb: 0.5,
                 }}
               >
-                <Typography className="h2">Programa</Typography>
+                {/* "Semanas", como los otros dos paneles de periodo: el
+                    rótulo dice QUÉ se elige aquí dentro, y aquí se eligen
+                    semanas. "Programa" es el nombre de la pestaña. */}
+                <Typography className="h2">
+                  {t('tr_weeks', 'Semanas')}
+                </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <IconButton
                     onClick={() =>
@@ -1181,59 +1194,11 @@ const OutgoingSpeakersPage = () => {
                           '&:last-child': { borderBottom: 'none' },
                         }}
                       >
-                        {/* La cabecera del mes despliega sus semanas, y
-                            ahora también con el teclado: tenía el anillo de
-                            foco puesto pero no era un botón, o sea que ese
-                            anillo no se podía llegar a ver nunca. */}
-                        <Box
-                          component="button"
-                          type="button"
-                          aria-expanded={expandedMonth === group.month}
-                          onClick={() => handleToggleMonth(group.month)}
-                          sx={{
-                            width: '100%',
-                            appearance: 'none',
-                            background: 'none',
-                            border: 'none',
-                            font: 'inherit',
-                            textAlign: 'left',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            cursor: 'pointer',
-                            py: 1,
-                            px: 1,
-                            borderRadius: 'var(--shape-sm)',
-                            '&:hover': { backgroundColor: 'var(--accent-100)' },
-                            '&:focus-visible': {
-                              outline: '2px solid var(--accent-main)',
-                              outlineOffset: '-2px',
-                            },
-                          }}
-                        >
-                          <Typography
-                            className="label-small-semibold"
-                            sx={{
-                              color: 'var(--grey-600)',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px',
-                            }}
-                          >
-                            {group.monthLabel}
-                          </Typography>
-                          <IconExpand
-                            color="var(--ink-2)"
-                            width={18}
-                            height={18}
-                            sx={{
-                              transform: isMonthExpanded
-                                ? 'rotate(180deg)'
-                                : 'rotate(0deg)',
-                              transition:
-                                'transform var(--motion-medium) var(--ease-emphasized)',
-                            }}
-                          />
-                        </Box>
+                        <MonthRow
+                          label={group.monthLabel}
+                          expanded={isMonthExpanded}
+                          onToggle={() => handleToggleMonth(group.month)}
+                        />
 
                         {/* Week items inside month */}
                         <Collapse
@@ -1277,98 +1242,24 @@ const OutgoingSpeakersPage = () => {
                                 : `${d.getDate()} ${monthShortNames[d.getMonth()]}`;
 
                               return (
-                                <ListItem
+                                <WeekRow
                                   key={weekOf}
-                                  disablePadding
-                                  onClick={async () => {
-                                    // Ensure a schedule record exists for this week
-                                    // (it may be a generated Monday without imported source data)
+                                  label={weekLabel}
+                                  selected={isSelected}
+                                  onSelect={async () => {
+                                    // Puede ser un lunes generado sin material
+                                    // importado: hay que asegurar que su
+                                    // registro existe antes de abrirlo.
                                     await dbSchedCheck(weekOf);
                                     setSelectedWeek(weekOf);
                                     setExpandedMonth(group.month);
                                   }}
-                                  sx={{
-                                    borderRadius: 'var(--shape-sm)',
-                                    backgroundColor: isSelected
-                                      ? 'var(--accent-100)'
-                                      : 'transparent',
-                                    border: isSelected
-                                      ? '1px solid var(--line)'
-                                      : '1px solid transparent',
-                                    cursor: 'pointer',
-                                    // Por tokens, y no `all`: `all` anima
-                                    // también el tamaño y la posición, así que
-                                    // cualquier recolocación de la lista se
-                                    // convierte en un temblor de 150ms.
-                                    transition:
-                                      'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
-                                    // El pasar el ratón se NOTA. Las dos ramas
-                                    // del ternario que había aquí devolvían el
-                                    // mismo color, así que sobre una semana sin
-                                    // elegir no cambiaba nada: el efecto estaba
-                                    // escrito y no existía.
-                                    '&:hover': {
-                                      backgroundColor: isSelected
-                                        ? 'var(--accent-150)'
-                                        : 'var(--state-hover)',
-                                    },
-                                  }}
-                                >
-                                  {/* La fila entera es el botón. Era un `Box`
-                                      dentro de un `ListItem` con `onClick`, o
-                                      sea que elegir una semana solo se podía
-                                      con el ratón — y es LA acción de este
-                                      panel: sin elegir semana no se programa
-                                      nada.
-                                      No lo cazó el barrido de teclado porque
-                                      estas filas viven dentro de un `Collapse`
-                                      y solo existen cuando el mes está
-                                      desplegado; lo que no está pintado no se
-                                      puede medir. */}
-                                  <Box
-                                    component="button"
-                                    type="button"
-                                    aria-current={
-                                      isSelected ? 'true' : undefined
-                                    }
-                                    sx={{
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center',
-                                      width: '100%',
-                                      px: 2,
-                                      py: 1,
-                                      appearance: 'none',
-                                      background: 'none',
-                                      border: 'none',
-                                      font: 'inherit',
-                                      cursor: 'pointer',
-                                      '&:focus-visible': {
-                                        outline: '2px solid var(--accent-main)',
-                                        outlineOffset: '-2px',
-                                        borderRadius: 'var(--shape-sm)',
-                                      },
-                                    }}
-                                  >
-                                    <Typography
-                                      className={
-                                        isSelected
-                                          ? 'body-small-semibold'
-                                          : 'body-small-regular'
-                                      }
-                                      color={
-                                        isSelected
-                                          ? 'var(--accent-main)'
-                                          : 'var(--black)'
-                                      }
-                                    >
-                                      {weekLabel}
-                                    </Typography>
-                                    {assignmentsCount > 0 && (
+                                  trailing={
+                                    assignmentsCount > 0 && (
                                       <MiniChip label={`${assignmentsCount}`} />
-                                    )}
-                                  </Box>
-                                </ListItem>
+                                    )
+                                  }
+                                />
                               );
                             })}
                           </List>

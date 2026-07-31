@@ -6,7 +6,7 @@ import { useAtomValue } from 'jotai';
 import { MonthItemType } from './index.types';
 import { schedulesWeekAssignmentsInfo } from '@services/app/schedules';
 import { schedulesState } from '@states/schedules';
-import { generateMonthNames, getTranslation } from '@services/i18n/translation';
+import { generateMonthNames } from '@services/i18n/translation';
 import { appLangState } from '@states/app';
 
 const useMonthItem = ({
@@ -31,31 +31,21 @@ const useMonthItem = ({
     return currentExpanded === month.toString();
   }, [currentExpanded, month]);
 
+  // Solo el NOMBRE del mes, sin año: el año ya lo dice la pestaña que hay
+  // justo encima, y repetirlo en las doce filas es ruido. Antes salía "Enero
+  // 2026" aquí y "Enero" en Departamentos — el mismo control, dos textos.
   const monthName = useMemo(() => {
-    const mesesEs = [...MESES_ES];
     const parts = month.split(/[/-]/);
-    const year = parts[0];
-    const monthPart = parts[1];
-    const monthIndex = parseInt(monthPart, 10) - 1;
+    const monthIndex = parseInt(parts[1], 10) - 1;
 
     const monthNames = generateMonthNames(appLang);
-    let name = capitalizarPrimera(monthNames[monthIndex]);
+    const name = capitalizarPrimera(monthNames[monthIndex]);
 
     if (!name || name === 'undefined') {
-      name = mesesEs[monthIndex] || 'Mes';
+      return MESES_ES[monthIndex] || 'Mes';
     }
 
-    const translated = getTranslation({
-      key: 'tr_monthYear',
-      language: appLang,
-      params: { month: name, year },
-    });
-
-    if (!translated || translated.includes('undefined')) {
-      return `${name} ${year}`;
-    }
-
-    return translated;
+    return name;
   }, [appLang, month]);
 
   const assignComplete = useMemo(() => {
