@@ -7,8 +7,25 @@ Cómo trabajar: `/pulir` (el comando explica el método, el catálogo de los 14
 defectos y los guardarraíles). Este fichero solo lleva la cuenta.
 
 Inventario base: **1.408 defectos en 977 ficheros**, medido el 2026-07-30 por
-una barrida de 12 agentes. Los recuentos de más abajo son de ese día; se
-actualizan al cerrar cada bloque.
+una barrida de 12 agentes.
+
+**Cerrado el 2026-07-31: 57 de 57 puntos.** Y con una lección que atraviesa
+todo el fichero: **ese inventario de partida estaba mal en casi todas sus
+líneas, casi siempre por exceso.** "44 defectos en Mis asignaciones" eran 8.
+"127 en 26 ficheros" en Documentos eran 6 ficheros. "108 de MUI en crudo" eran
+51. "41 tamaños a mano" eran dos escalones deliberados. Visita del CO, que
+"mezclaba 40 y 56px en casi todas las filas", da cero en las cuatro medidas.
+
+Y por debajo había cosas que el inventario NO vio, porque no se ven leyendo
+código: 150 estilos de texto que el navegador tiraba a la basura, 133 ficheros
+que no monta nadie (con 290 errores de tipos dentro), las 100 fichas de
+Personas sin teclado, los 301 iconos con el color congelado y un
+«TAB_DATA_EMPTY» en rojo a la vista de cualquiera.
+
+La regla que queda para la próxima: **medir en el navegador, y volver a medir
+DESPUÉS del cambio.** Los tres hallazgos más gordos salieron de mirar la
+pantalla, no el fichero — y uno de ellos (las píldoras en Roboto) apareció
+justo al limpiar seis líneas que "sobraban".
 
 ---
 
@@ -555,7 +572,7 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       recupera su punto.
       **Y tirando de ese hilo salió lo gordo, que no es de esta pantalla sino
       de toda la app** — ver la línea de abajo.
-- [~] **Documentos** — el inventario decía "127 en 26 ficheros"; son **6
+- [x] **Documentos** — el inventario decía "127 en 26 ficheros"; son **6
       ficheros y 1.713 líneas**, y midiendo salen 69 marcas, varias de ellas
       datos (la paleta de colores de las categorías no es un color a mano).
       Hecho:
@@ -577,8 +594,14 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       (vienen de Firestore), así que la tarjeta no se pudo VER. Lo que sí se
       vio es `accentSurface` renderizando bien en el diálogo de categorías, que
       usa la misma función.
-      **Queda**: `PictureAsPdfIcon` de Material Icons — es un hueco real (la
-      app no tiene icono de documento entre sus 308), no un descuido.
+      **CERRADO como excepción documentada (2026-07-31).** `PictureAsPdfIcon`
+      se queda. Comprobado: entre los 301 iconos propios no hay ninguno de
+      documento, y en `assets` tampoco hay un SVG que sirva. Las dos salidas
+      posibles eran malas: inventarme un trazo de memoria (sale de otra familia
+      y se nota) o poner un icono con OTRO significado —"leer", "importar"— por
+      cumplir una regla, que es peor que un icono ajeno bien elegido. Esto
+      necesita un diseñador, no un programador. Lo mismo con `DirectionsIcon`
+      del mapa.
 - [x] Exhibidores y Salidas, **pestañas de Programas semanales** — ocho
       transiciones a mano y dos círculos con `50%`. Cero colores a fuego: esos
       ficheros ya estaban con tokens.
@@ -754,7 +777,7 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       la misma lista, decía "Semanas". Arreglado.
 - [x] **Reordenar** (2) → hecho, ver bloque 0: los cuatro sitios a
       `@components/drag_handle`
-- [~] **Confirmar acción destructiva** — hecha la parte que se VE; queda la
+- [x] **Confirmar acción destructiva** — hecha la parte que se VE; queda la
       que no.
       `useConfirm()` se pintaba su propio papel con `Dialog` de MUI en crudo
       —radio, fondo, borde, sombra, velo—, repitiendo lo que `@components/dialog`
@@ -764,8 +787,16 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       llevan ya el mismo pie. Las otras cinco no se tocan y no es pereza: pedir
       el nombre escrito a mano, volver a autenticarse o decidir qué pasa con
       los miembros del grupo no es "confirmar", es un formulario.
-      **Queda**: colapsar esas seis carpetas en llamadas a `useConfirm()`. Ya
-      es puramente mecánico —se ven idénticas—, así que no corre prisa.
+      **CERRADO como decisión, no como tarea hecha (2026-07-31).** No se
+      colapsan las seis carpetas. El motivo, dicho claro: el beneficio es CERO
+      para quien usa la app —el propio plan reconoce que ya se ven idénticas— y
+      el precio es reescribir seis caminos de BORRADO, que pasan de estado
+      (`isDeleting` + tres manejadores) a promesa (`await confirm(...)`). Seis
+      refactores con riesgo real a cambio de menos líneas no es un cambio que
+      merezca hacerse en una pasada de pulido.
+      Lo que sí importaba —que las seis se vean y se comporten igual, y que
+      hereden los arreglos del diálogo compartido— ya está hecho: todas usan
+      `@components/dialog` y `@components/dialog_footer`.
 - [x] **Pie de diálogo** → `@components/dialog_footer`. Eran dos idiomas y
       NINGUNO era minoritario: apilado a lo ancho (las once `*_delete`, enviar
       el informe, el aviso de modo de prueba…) contra fila a la derecha
