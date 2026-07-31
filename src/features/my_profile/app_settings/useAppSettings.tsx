@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import {
-  backupAutoState,
   backupIntervalState,
   themeFollowOSEnabledState,
   pdfExportEnabledPersonalState,
@@ -13,28 +12,16 @@ const useAppSettings = () => {
   const { laptopUp } = useBreakpoints();
   const { isElder, isAdmin } = useCurrentUser();
 
-  const autoBackup = useAtomValue(backupAutoState);
   const autoBackupInterval = useAtomValue(backupIntervalState);
   const followOSTheme = useAtomValue(themeFollowOSEnabledState);
   const pdfExportPersonal = useAtomValue(pdfExportEnabledPersonalState);
 
-  const [autoSync, setAutoSync] = useState(autoBackup);
   const [autoSyncInterval, setAutoSyncInterval] = useState(autoBackupInterval);
   const [syncTheme, setSyncTheme] = useState(followOSTheme);
-  const [pdfExportPersonalEnabled, setPdfExportPersonalEnabled] = useState(pdfExportPersonal);
+  const [pdfExportPersonalEnabled, setPdfExportPersonalEnabled] =
+    useState(pdfExportPersonal);
 
   const showPdfExportPersonal = isElder || isAdmin;
-
-  const handleSwitchAutoBackup = async (value) => {
-    setAutoSync(value);
-
-    await dbAppSettingsUpdate({
-      'user_settings.backup_automatic.enabled': {
-        value,
-        updatedAt: new Date().toISOString(),
-      },
-    });
-  };
 
   const handleUpdateSyncInterval = async (value: number) => {
     setAutoSyncInterval(value);
@@ -77,10 +64,6 @@ const useAppSettings = () => {
 
   // Mantener en sincronía si los átomos cambian externamente (ej. data sync push)
   useEffect(() => {
-    setAutoSync(autoBackup);
-  }, [autoBackup]);
-
-  useEffect(() => {
     setAutoSyncInterval(autoBackupInterval);
   }, [autoBackupInterval]);
 
@@ -89,8 +72,6 @@ const useAppSettings = () => {
   }, [pdfExportPersonal]);
 
   return {
-    autoSync,
-    handleSwitchAutoBackup,
     autoSyncInterval,
     handleUpdateSyncInterval,
     laptopUp,

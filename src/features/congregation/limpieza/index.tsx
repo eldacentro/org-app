@@ -387,7 +387,17 @@ const Limpieza = () => {
                 ariaLabel="Vista del calendario"
                 tabs={['Lista', 'Mensual']}
                 active={viewMode === 'list' ? 0 : 1}
-                onChange={(i) => setViewMode(i === 0 ? 'list' : 'month')}
+                // `'grid'`, no `'month'`. Los dos valores que existen son
+                // `grid` y `list`, y escribir `month` no rompía nada de forma
+                // visible: simplemente dejaba de coincidir con las DOS ramas
+                // que pintan, así que la pantalla se quedaba en blanco.
+                // Y solo pasaba al VOLVER: al entrar el estado vale `grid` de
+                // fábrica y la cuadrícula sale bien; hacía falta ir a Lista y
+                // volver para verlo.
+                // El compilador lo avisaba desde el principio —"'month' no es
+                // asignable a 'grid' | 'list'"— pero estaba escondido entre los
+                // errores de tipos que este repo arrastra.
+                onChange={(i) => setViewMode(i === 0 ? 'list' : 'grid')}
               />
             </Box>
 

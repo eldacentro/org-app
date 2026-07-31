@@ -259,8 +259,9 @@ export const JWLangState = atom((get) => {
     );
   }
 
-  const sourceLang = sourceLanguages.find((record) => record.type === dataView)
-    ?.value;
+  const sourceLang = sourceLanguages.find(
+    (record) => record.type === dataView
+  )?.value;
 
   if (sourceLang) return sourceLang;
 
@@ -585,7 +586,8 @@ export const pdfExportEnabledState = atom((get) => {
   const isAdmin = role.some(
     (r) => r === 'admin' || r === 'coordinator' || r === 'secretary'
   );
-  const isElder = isAdmin || (accountType !== 'pocket' && role.includes('elder'));
+  const isElder =
+    isAdmin || (accountType !== 'pocket' && role.includes('elder'));
 
   return isElder;
 });
@@ -665,7 +667,10 @@ export const userAvatarUrlState = atom((get) => {
 
   const anterior = fotoCache;
   fotoCache = avatarBuffer
-    ? { buffer: avatarBuffer, url: URL.createObjectURL(new Blob([avatarBuffer])) }
+    ? {
+        buffer: avatarBuffer,
+        url: URL.createObjectURL(new Blob([avatarBuffer])),
+      }
     : null;
 
   // La anterior se suelta DESPUÉS, no aquí mismo: en el momento de este
@@ -679,10 +684,22 @@ export const userAvatarUrlState = atom((get) => {
   return fotoCache?.url ?? '';
 });
 
-export const backupAutoState = atom((get) => {
-  const settings = get(settingsState);
-
-  return settings.user_settings.backup_automatic.enabled.value;
+export const backupAutoState = atom(() => {
+  // La sincronización automática está SIEMPRE puesta, para todo el mundo.
+  //
+  // Este átomo es el que cortaba las dos sincronizaciones —la instantánea y la
+  // periódica—, y colgaba de un interruptor en Ajustes de mi cuenta. O sea que
+  // un toque por error dejaba a esa persona con sus datos solo en su
+  // dispositivo, sin nada que se lo dijera: la app sigue funcionando igual, y
+  // lo que escribe simplemente no llega a nadie. En una app de congregación
+  // eso es un informe que no le consta al secretario o una asignación que
+  // nadie ve.
+  //
+  // El interruptor se retiró de la pantalla; esto es lo que garantiza que
+  // quien ya lo tuviera apagado vuelva a sincronizar. El valor guardado sigue
+  // ahí y se sigue sincronizando como antes —no se toca el registro— pero ya
+  // no decide nada.
+  return true;
 });
 
 export const backupIntervalState = atom((get) => {

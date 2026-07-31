@@ -1,9 +1,9 @@
-import { Box } from '@mui/material';
 import { LogoutConfirmType } from './index.types';
 import { useAppTranslation } from '@hooks/index';
 import useLogoutConfirm from './useLogoutConfirm';
 import Button from '@components/button';
 import Dialog from '@components/dialog';
+import DialogFooter from '@components/dialog_footer';
 import Typography from '@components/typography';
 
 const LogoutConfirm = ({ open, onClose }: LogoutConfirmType) => {
@@ -17,21 +17,18 @@ const LogoutConfirm = ({ open, onClose }: LogoutConfirmType) => {
       <Typography className="body-regular" color="var(--grey-400)">
         {t('tr_logoutClearDataDesc')}
       </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button variant="main" color="red" onClick={handleLogout}>
-          {t('tr_logOut')}
-        </Button>
-        <Button variant="tertiary" onClick={onClose}>
-          {t('tr_cancel')}
-        </Button>
-      </Box>
+      <DialogFooter
+        action={
+          <Button variant="main" color="red" onClick={handleLogout}>
+            {t('tr_logOut')}
+          </Button>
+        }
+        cancel={
+          <Button variant="tertiary" onClick={onClose}>
+            {t('tr_cancel')}
+          </Button>
+        }
+      />
     </Dialog>
   );
 };

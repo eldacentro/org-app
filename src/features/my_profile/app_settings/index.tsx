@@ -2,7 +2,6 @@ import { Box } from '@mui/material';
 import ColorSchemeSwitcher from '@features/color_scheme_selector';
 import MenuItem from '@components/menuitem';
 import Select from '@components/select';
-import Switch from '@components/switch';
 import SwitcherContainer from '@components/switcher_container';
 import SwitchWithLabel from '@components/switch_with_label';
 import Typography from '@components/typography';
@@ -17,8 +16,6 @@ const AppSettings = () => {
   const { t } = useAppTranslation();
 
   const {
-    autoSync,
-    handleSwitchAutoBackup,
     autoSyncInterval,
     handleUpdateSyncInterval,
     laptopUp,
@@ -34,11 +31,12 @@ const AppSettings = () => {
       <Typography className="h2">{t('tr_organizedSettings')}</Typography>
 
       <SettingWithBorderContainer>
+        {/* Sin interruptor: la sincronización automática va siempre puesta.
+            Apagarla dejaba a esa persona con sus datos solo en su dispositivo,
+            sin nada que se lo dijera —la app sigue funcionando igual—, y lo que
+            escribiera no llegaba a nadie. Aquí queda cada cuánto se hace, que
+            eso sí es una preferencia. */}
         <SwitcherContainer>
-          <Switch
-            checked={autoSync}
-            onChange={(e) => handleSwitchAutoBackup(e.target.checked)}
-          />
           <Box
             sx={{
               display: 'flex',
@@ -84,7 +82,10 @@ const AppSettings = () => {
 
         {showPdfExportPersonal && (
           <SwitchWithLabel
-            label={t('tr_pdfExportPersonalEnabled', 'Habilitar exportación a PDF para mi cuenta')}
+            label={t(
+              'tr_pdfExportPersonalEnabled',
+              'Habilitar exportación a PDF para mi cuenta'
+            )}
             helper={t(
               'tr_pdfExportPersonalEnabledDesc',
               'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
