@@ -1,31 +1,32 @@
 import { View } from '@react-pdf/renderer';
-import {
-  Document,
-  Page,
-  PdfFooter,
-  PdfHeader,
-  fechaCorta,
-} from '@views/components';
+import { Document } from '@views/components';
+import { PdfEmpty, Sheet, space, fechaCorta } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
 import { TemplateFieldServiceGroupsProps } from './index.types';
-import styles from './index.styles';
 import FSGGroup from './FSGGroup';
 
-const MONTHS_ES = [
-  'ENERO',
-  'FEBRERO',
-  'MARZO',
-  'ABRIL',
-  'MAYO',
-  'JUNIO',
-  'JULIO',
-  'AGOSTO',
-  'SEPTIEMBRE',
-  'OCTUBRE',
-  'NOVIEMBRE',
-  'DICIEMBRE',
+const MESES_ES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
 ];
 
+/**
+ * Grupos de predicación.
+ *
+ * Va sobre el sistema de diseño de los PDF (`PDF_DESIGN_SYSTEM.md`): las
+ * tarjetas en dos columnas, porque un grupo es una lista corta y en una sola
+ * columna la hoja se alargaba el doble para la misma información.
+ */
 const TemplateFieldServiceGroups = ({
   groups,
   congregation,
@@ -41,7 +42,7 @@ const TemplateFieldServiceGroups = ({
   const monthYear = updatedAt
     ? (() => {
         const d = new Date(updatedAt);
-        return `${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+        return `${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`;
       })()
     : '';
 
@@ -49,31 +50,32 @@ const TemplateFieldServiceGroups = ({
 
   return (
     <Document title={title} lang={lang}>
-      <Page>
-        {/*
-         * All non-footer content wrapped in one View so the Page's
-         * justifyContent: 'space-between' doesn't push elements apart.
-         */}
-        <View style={styles.contentWrapper}>
-          <PdfHeader
-            congregation={congregation || 'Elda Centro'}
-            meta={monthYear}
-            title={title}
-          />
-
-          {/* ── Groups grid ───────────────────── */}
-          <View style={styles.groupsContainer}>
+      <Sheet
+        congregation={congregation}
+        meta={monthYear}
+        title={title}
+        paginated
+        footerMeta={
+          footerDate ? `Última actualización · ${footerDate}` : monthYear
+        }
+      >
+        {groups.length === 0 ? (
+          <PdfEmpty>Todavía no hay grupos.</PdfEmpty>
+        ) : (
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: space.lg,
+            }}
+          >
             {groups.map((group) => (
               <FSGGroup key={group.group_name} group={group} />
             ))}
           </View>
-        </View>
-
-        <PdfFooter
-          congregation={congregation || 'Elda Centro'}
-          meta={footerDate ? `Última actualización · ${footerDate}` : ''}
-        />
-      </Page>
+        )}
+      </Sheet>
     </Document>
   );
 };

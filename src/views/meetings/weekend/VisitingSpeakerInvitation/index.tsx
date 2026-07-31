@@ -1,12 +1,8 @@
-import { Page, Text, View, Link } from '@react-pdf/renderer';
+import { Text, View, Link } from '@react-pdf/renderer';
 // El `Document` de la app: registra las tipografías y fija el idioma. Esta
 // plantilla usaba el de react-pdf en crudo.
-import {
-  AccentCapsule,
-  Document,
-  accentCapsuleSurface,
-} from '@views/components';
-import { IconLogo } from '@views/components/icons';
+import { Document } from '@views/components';
+import { PdfCapsule, Sheet, withCapsule } from '@views/design';
 import styles from './index.styles';
 import { VisitingSpeakerInvitationProps } from './index.types';
 
@@ -32,21 +28,16 @@ const CoordinatorBox = ({
 const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
   return (
     <Document title="Invitación al orador visitante" lang="spa">
-      <Page size="A4" style={styles.page}>
+      {/* Es una carta, pero con el membrete de la casa: la misma hoja que el
+          resto de los documentos (`PDF_DESIGN_SYSTEM.md`). Antes no tenía ni
+          título ni pie, y era la única que llevaba su propia barra de marca
+          con una séptima copia del logotipo. */}
+      <Sheet
+        congregation={props.congregationName}
+        title="Invitación al orador visitante"
+        subtitle={props.dateLocale}
+      >
         <View style={styles.contentWrapper}>
-          {/* Header */}
-          <View style={styles.headerContainer}>
-            <View style={styles.topBarBrand}>
-              {/* Es una carta, no un programa: no lleva título de hoja, así
-                  que no usa `PdfHeader`. Pero el logotipo sí es el compartido
-                  — era la sexta copia de los mismos trazos SVG. */}
-              <IconLogo size={36} />
-              <Text style={styles.topBarBrandName}>
-                {props.congregationName}
-              </Text>
-            </View>
-          </View>
-
           {/* Introduction */}
           <View style={styles.introSection}>
             <Text style={styles.greeting}>
@@ -140,10 +131,10 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
 
           {/* Media Info */}
           {props.mediaEmail && (
-            <View style={[styles.mediaSection, accentCapsuleSurface()]}>
+            <View style={[styles.mediaSection, withCapsule()]}>
               {/* La uñita, hecha cápsula: ver
                   `@views/components/accent_capsule`. */}
-              <AccentCapsule color="#EAB308" />
+              <PdfCapsule color="#EAB308" />
 
               <Text style={styles.mediaText}>
                 <Text style={styles.boldText}>Contenido multimedia:</Text> Si
@@ -181,7 +172,7 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
             />
           </View>
         </View>
-      </Page>
+      </Sheet>
     </Document>
   );
 };

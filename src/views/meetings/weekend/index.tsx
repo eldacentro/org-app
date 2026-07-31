@@ -1,15 +1,9 @@
-import { Page, View } from '@react-pdf/renderer';
-import {
-  Document,
-  PdfFooter,
-  PdfHeader,
-  fechaCorta,
-} from '@views/components';
+import { Document } from '@views/components';
+import { Sheet, fechaCorta } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
 import { WeekendMeetingTemplateType } from './index.types';
 import registerFonts from '@views/registerFonts';
 import WeekData from './WeekData';
-import styles from './index.styles';
 
 registerFonts();
 
@@ -43,27 +37,21 @@ const WeekendMeetingTemplate = ({
 
   return (
     <Document title={t('tr_weekendMeetingPrint', { lng: lang })} lang={lang}>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.contentWrapper}>
-          <PdfHeader
-            congregation={cong_name || 'Elda Centro'}
-            meta={rango}
-            title={t('tr_weekendMeetingPrint', { lng: lang })}
+      <Sheet
+        congregation={cong_name}
+        meta={rango}
+        title={t('tr_weekendMeetingPrint', { lng: lang })}
+        paginated
+        footerMeta={footerDate ? `Última actualización · ${footerDate}` : rango}
+      >
+        {data.map((meetingData) => (
+          <WeekData
+            key={meetingData.weekOf}
+            meetingData={meetingData}
+            lang={lang}
           />
-          {data.map((meetingData) => (
-            <WeekData
-              key={meetingData.weekOf}
-              meetingData={meetingData}
-              lang={lang}
-            />
-          ))}
-        </View>
-
-        <PdfFooter
-          congregation={cong_name || 'Elda Centro'}
-          meta={footerDate ? `Última actualización · ${footerDate}` : ''}
-        />
-      </Page>
+        ))}
+      </Sheet>
     </Document>
   );
 };

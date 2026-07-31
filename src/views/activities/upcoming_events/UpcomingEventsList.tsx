@@ -1,40 +1,32 @@
-import { View, Text } from '@react-pdf/renderer';
+import { View } from '@react-pdf/renderer';
+import { PdfSection, space } from '@views/design';
 import { UpcomingEventsListProps } from './index.types';
 import UpcomingEvent from './UpcomingEvent';
 
-const UpcomingEventsList = ({ events }: UpcomingEventsListProps) => {
-  return (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {events.map((events) => (
+/**
+ * Los eventos, agrupados por año.
+ *
+ * El año era una pastilla azul centrada; ahora es un rótulo de sección, que es
+ * lo que la app usa para "aquí empieza otro tramo".
+ */
+const UpcomingEventsList = ({ events }: UpcomingEventsListProps) => (
+  <View>
+    {events.map((delAño) => (
+      <PdfSection key={delAño[0].year} title={String(delAño[0].year)}>
         <View
-          key={events[0].year}
-          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: space.md,
+          }}
         >
-          <View
-            style={{
-              border: '1px solid #D5DFFD',
-              padding: '5px 8px',
-              borderRadius: '4px',
-              backgroundColor: '#F2F5FF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text
-              style={{ fontWeight: 600, fontSize: '12px', color: '#5065D0' }}
-            >
-              {events[0].year}
-            </Text>
-          </View>
-
-          {events.map((eventData) => (
+          {delAño.map((eventData) => (
             <UpcomingEvent key={eventData.uid} event={eventData} />
           ))}
         </View>
-      ))}
-    </View>
-  );
-};
+      </PdfSection>
+    ))}
+  </View>
+);
 
 export default UpcomingEventsList;

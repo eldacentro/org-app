@@ -1,10 +1,14 @@
-import { View } from '@react-pdf/renderer';
-import { Document, Page, PdfFooter, PdfHeader } from '@views/components';
+import { Document } from '@views/components';
+import { PdfEmpty, Sheet } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
 import { TemplateUpcomingEventsProps } from './index.types';
 import UpcomingEventsList from './UpcomingEventsList';
-import styles from './index.styles';
 
+/**
+ * Próximos eventos.
+ *
+ * Va sobre el sistema de diseño de los PDF (`PDF_DESIGN_SYSTEM.md`).
+ */
 const TemplateUpcomingEvents = ({
   events,
   congregation,
@@ -15,21 +19,13 @@ const TemplateUpcomingEvents = ({
 
   return (
     <Document title={title} lang={lang}>
-      <Page>
-        <View style={styles.contentWrapper}>
-          <PdfHeader
-            congregation={congregation || 'Elda Centro'}
-            title={title}
-          />
-
+      <Sheet congregation={congregation} title={title} paginated>
+        {events.length === 0 ? (
+          <PdfEmpty>No hay ningún evento próximo.</PdfEmpty>
+        ) : (
           <UpcomingEventsList events={events} />
-        </View>
-
-        <PdfFooter
-          congregation={congregation || 'Elda Centro'}
-          paginado
-        />
-      </Page>
+        )}
+      </Sheet>
     </Document>
   );
 };

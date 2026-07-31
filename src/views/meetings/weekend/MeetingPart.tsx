@@ -39,7 +39,9 @@ const MeetingPart = ({ meetingData, lang }: MeetingPartType) => {
         meetingData.wtstudy_conductor_name) && (
         <>
           {/* Horizontal separator */}
-          {!meetingData.wt_study_only && <View style={styles.lineHorizontal} />}
+          {/* Sin raya entre los dos bloques: pegada debajo de un valor se
+              leía como el subrayado de un impreso para rellenar (regla §5.2).
+              El aire ya los separa. */}
 
           {/* Middle song */}
           {meetingData.show_songs && Boolean(meetingData.middle_song) && (

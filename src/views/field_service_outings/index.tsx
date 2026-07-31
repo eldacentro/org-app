@@ -1,6 +1,14 @@
 import { Text, View } from '@react-pdf/renderer';
-import { Document, fechaCorta } from '@views/components';
-import { PdfGrid, PdfNote, Sheet, color, space, text } from '@views/design';
+import { Document } from '@views/components';
+import {
+  PdfGrid,
+  PdfNote,
+  Sheet,
+  color,
+  space,
+  text,
+  fechaCorta,
+} from '@views/design';
 import { OutingsPDFProps, OutingPDFItem } from './index.types';
 
 /**

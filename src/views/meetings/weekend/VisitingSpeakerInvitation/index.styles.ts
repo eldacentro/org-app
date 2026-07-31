@@ -4,37 +4,10 @@ import registerFonts from '@views/registerFonts';
 registerFonts();
 
 const styles = StyleSheet.create({
-  page: {
-    paddingTop: 30,
-    paddingBottom: 40,
-    paddingHorizontal: 40,
-    fontFamily: 'Figtree',
-    backgroundColor: '#FAFAFA',
-  },
   contentWrapper: {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-  },
-  headerContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderBottom: '2 solid #306CB4',
-    paddingBottom: 15,
-  },
-  topBarBrand: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  topBarBrandName: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: '#1a1a2e',
   },
   introSection: {
     marginTop: 10,

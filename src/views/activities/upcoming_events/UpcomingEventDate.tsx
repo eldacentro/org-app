@@ -1,60 +1,63 @@
 import { View, Text } from '@react-pdf/renderer';
-import { getCSSPropertyValue } from '@utils/common';
+import { color, radius, space, text } from '@views/design';
 import { UpcomingEventDateProps } from './index.types';
 
+/**
+ * Una fecha de un evento: la pastilla con el día a la izquierda y la hora —o
+ * lo que sea— a la derecha.
+ *
+ * Iba con una segunda familia de azules propia (`#F2F5FF`, `#3B4CA3`,
+ * `#5065D0`) que no existe en ningún otro sitio de la app. El sistema tiene UN
+ * azul (regla §5.8).
+ */
 const UpcomingEventDate = ({
   date,
   title,
   description,
   range,
   day,
-}: UpcomingEventDateProps) => {
-  return (
-    <View style={{ display: 'flex', gap: '8px', flexDirection: 'row' }}>
-      <View
-        style={{
-          borderRadius: getCSSPropertyValue('--radius-xs'),
-          padding: '4px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '2px',
-          minWidth: '90px',
-          backgroundColor: '#F2F5FF',
-        }}
-      >
-        <Text style={{ fontWeight: 500, fontSize: '10px', color: '#3B4CA3' }}>
-          {range || date}
+}: UpcomingEventDateProps) => (
+  <View style={{ display: 'flex', gap: space.md, flexDirection: 'row' }}>
+    <View
+      style={{
+        borderRadius: radius.md,
+        paddingVertical: space.xs + 1,
+        paddingHorizontal: space.lg,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 92,
+        backgroundColor: color.accentSoft,
+      }}
+    >
+      <Text style={{ ...text.body, fontWeight: 600, color: color.accentInk }}>
+        {range || date}
+      </Text>
+
+      {!range && day ? (
+        <Text style={{ ...text.label, fontSize: 7, color: color.accent }}>
+          {day}
         </Text>
-
-        {!range && (
-          <Text style={{ fontWeight: 400, fontSize: '8px', color: '#3B4CA3' }}>
-            {day}
-          </Text>
-        )}
-      </View>
-
-      <View
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          gap: '4px',
-        }}
-      >
-        <Text style={{ fontWeight: 500, fontSize: '10px', color: '#222222' }}>
-          {title}
-        </Text>
-
-        {description && (
-          <Text style={{ fontWeight: 400, fontSize: '8px', color: '#505050' }}>
-            {description}
-          </Text>
-        )}
-      </View>
+      ) : null}
     </View>
-  );
-};
+
+    <View
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 2,
+      }}
+    >
+      <Text style={text.bodyStrong}>{title}</Text>
+      {description ? (
+        <Text style={{ ...text.body, fontSize: 8.2, color: color.muted }}>
+          {description}
+        </Text>
+      ) : null}
+    </View>
+  </View>
+);
 
 export default UpcomingEventDate;

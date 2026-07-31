@@ -1,15 +1,23 @@
-import { Page, Text, View } from '@react-pdf/renderer';
+import { Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
+import { Document } from '@views/components';
 import {
-  Document,
-  PdfFooter,
-  PdfHeader,
+  PdfCard,
+  PdfEmpty,
+  PdfKeyValue,
+  Sheet,
+  color,
+  space,
+  text,
   fechaCorta,
-} from '@views/components';
-import styles from './index.styles';
+} from '@views/design';
 
 /**
- * Los puestos ya no están escritos aquí: llegan hechos desde
+ * Programa de departamentos del mes.
+ *
+ * Va sobre el sistema de diseño de los PDF (`PDF_DESIGN_SYSTEM.md`).
+ *
+ * Los puestos no están escritos aquí: llegan hechos desde
  * `services/app/departments_slots`, que es quien sabe si un departamento se
  * asigna por semana o por reunión y con cuántos turnos. Este componente solo
  * dibuja lo que le dan.
@@ -40,72 +48,85 @@ type DeptSchedulePDFProps = {
 
 const meses = [...MESES_ES];
 
+const fechaDeLaSemana = (weekOf: string) => {
+  const d = new Date(weekOf);
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+};
+
 const DeptSchedulePDF = ({
   data,
   monthName,
   cong_name,
 }: DeptSchedulePDFProps) => {
-  const lastUpdate = data.reduce((acc, curr) => {
-    if (
-      !acc ||
-      (curr.updatedAt && new Date(curr.updatedAt) > new Date(acc.updatedAt))
-    ) {
-      return {
-        updatedAt: curr.updatedAt,
-        lastModifiedBy: curr.lastModifiedBy,
-      };
-    }
+  const ultimaFecha = data.reduce<string | undefined>((acc, curr) => {
+    if (!curr.updatedAt) return acc;
+    if (!acc || new Date(curr.updatedAt) > new Date(acc)) return curr.updatedAt;
     return acc;
-  }, null);
+  }, undefined);
+
+  const footerDate = fechaCorta(ultimaFecha);
 
   return (
-    <Document title={`Programa Departamentos - ${monthName}`} lang="es-ES">
-      <Page size="A4" style={styles.body}>
-        <PdfHeader
-          congregation={cong_name || 'Elda Centro'}
-          meta={monthName}
-          title="Programa de departamentos"
-        />
-
-        {data.map((week) => {
-          const date = new Date(week.weekOf);
-          const dia = date.getDate();
-          const mes = date.getMonth();
-          const año = date.getFullYear();
-          const fechaFormateada = `${dia} de ${meses[mes]} de ${año}`;
-
-          return (
-            <View key={week.weekOf} style={styles.weekContainer} wrap={false}>
-              <View style={styles.weekTitleContainer}>
-                <Text style={styles.weekTitle}>{fechaFormateada}</Text>
-              </View>
-
-              <View style={styles.grid}>
+    <Document title={`Programa de departamentos - ${monthName}`} lang="es-ES">
+      <Sheet
+        congregation={cong_name}
+        meta={monthName}
+        title="Programa de departamentos"
+        paginated
+        footerMeta={
+          footerDate ? `Última actualización · ${footerDate}` : monthName
+        }
+      >
+        {data.length === 0 ? (
+          <PdfEmpty>Sin programa para este mes.</PdfEmpty>
+        ) : (
+          data.map((week) => (
+            <PdfCard
+              key={week.weekOf}
+              title={fechaDeLaSemana(week.weekOf)}
+              style={{ marginBottom: space.lg }}
+            >
+              {/* Los departamentos, en dos columnas: son cajas cortas —dos o
+                  tres puestos cada una— y en una sola columna cada semana se
+                  comía media hoja de aire a la derecha. */}
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: space.lg,
+                }}
+              >
                 {week.departments.map((dept) => (
-                  <View key={dept.title} style={styles.deptBox}>
-                    <Text style={styles.deptTitle}>{dept.title}</Text>
+                  <View
+                    key={dept.title}
+                    style={{ flexGrow: 1, flexBasis: '45%', minWidth: '45%' }}
+                  >
+                    <Text
+                      style={{
+                        ...text.label,
+                        color: color.accent,
+                        marginBottom: space.xs,
+                      }}
+                    >
+                      {dept.title}
+                    </Text>
                     {dept.rows.map((row) => (
-                      <View key={row.label} style={styles.roleRow}>
-                        <Text style={styles.roleLabel}>{row.label}:</Text>
-                        <Text style={styles.personName}>{row.name}</Text>
-                      </View>
+                      <PdfKeyValue
+                        key={row.label}
+                        label={row.label}
+                        labelWidth={72}
+                      >
+                        {row.name || '—'}
+                      </PdfKeyValue>
                     ))}
                   </View>
                 ))}
               </View>
-            </View>
-          );
-        })}
-
-        <PdfFooter
-          congregation={cong_name || 'Elda Centro'}
-          meta={
-            lastUpdate?.updatedAt
-              ? `Última actualización · ${fechaCorta(lastUpdate.updatedAt)}`
-              : ''
-          }
-        />
-      </Page>
+            </PdfCard>
+          ))
+        )}
+      </Sheet>
     </Document>
   );
 };

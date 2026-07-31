@@ -1,14 +1,18 @@
-import { ReactNode } from 'react';
-import { Page, Text, View } from '@react-pdf/renderer';
+import { Text, View } from '@react-pdf/renderer';
+import { Document } from '@views/components';
 import {
-  AccentCapsule,
-  Document,
-  accentCapsuleSurface,
-} from '@views/components';
-import { IconLogo } from '@views/components/icons';
+  PdfEmpty,
+  PdfNote,
+  PdfSection,
+  PdfTable,
+  Sheet,
+  color,
+  space,
+  text,
+} from '@views/design';
+import type { PdfTableColumn } from '@views/design';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { fmtDayEs, fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
-import { COLOR_CAPSULA, PAGE_PADDING, styles } from './index.styles';
 
 export type CircuitVisitPdfPreachingRow = {
   date: string;
@@ -19,10 +23,7 @@ export type CircuitVisitPdfPreachingRow = {
 };
 
 // El programa de comidas no distingue entre comida y cena: una comida es una
-// comida, y la sección ya se llama así. `CircuitVisitMeal` tiene un campo
-// `note` que nadie rellena —no hay ningún sitio en la app donde escribirlo— y
-// que aquí salía entre paréntesis detrás del anfitrión; era la única puerta por
-// la que podía colarse un "(Cena)" en la hoja.
+// comida, y la sección ya se llama así.
 export type CircuitVisitPdfMealRow = {
   date: string;
   hostName: string;
@@ -60,62 +61,26 @@ type Props = {
 
 const fmtDay = fmtDayEs;
 
-const fmtRange = (visit: CircuitVisitType) =>
-  fmtRangeEs(visit.date_start, visit.date_end);
-
 /**
  * Quita el tratamiento —"Hno.", "Hermano", "Hna.", "Hermana"— del principio de
  * un nombre.
  *
- * La app nunca lo añade: viene de cómo esté escrito el nombre del
- * superintendente en Ajustes de congregación. Pero en esta hoja el nombre
- * aparece también como rótulo de columna, y ahí va en VERSALITAS: un "CON HNO.
- * JUAN ANTONIO PÉREZ" ocupa dos líneas y grita. En un programa impreso el
- * tratamiento no aporta nada — se sabe de quién se habla.
- *
- * Solo afecta a lo que se imprime; lo guardado en Ajustes no se toca.
+ * La app nunca lo añade: viene de cómo esté escrito el nombre en Ajustes. Pero
+ * en esta hoja el nombre aparece también como rótulo de columna, y ahí va en
+ * versalitas: un "CON HNO. JUAN ANTONIO PÉREZ" ocupa dos líneas y grita. Solo
+ * afecta a lo que se imprime; lo guardado no se toca.
  */
 const sinTratamiento = (nombre: string) =>
   nombre.replace(/^\s*(hno\.?|hna\.?|hermano|hermana)\s+/i, '').trim();
 
 /**
  * A partir de cuántas filas el programa se aprieta para caber en una hoja.
- *
- * Medido renderizando el PDF y contando páginas, no calculado: con nombres
- * largos de verdad ("Familia Martínez Rodríguez", "Rafael Ibáñez Cremades",
- * que ocupan dos líneas en las columnas estrechas), 15 filas es lo último que
- * entra en el tamaño normal — con 16 ya se va a una segunda hoja.
- *
- * Por encima de 15 la hoja pasa sola a la densidad apretada, que aguanta al
- * menos 25 filas: cinco comidas, seis visitas de pastoreo y catorce salidas de
- * predicación, más de lo que trae ninguna visita real.
+ * Medido renderizando y contando páginas, no calculado (regla §5.6 del
+ * sistema): con 15 filas entra holgado y con 16 se iba a una segunda hoja.
  */
 const DENSIDAD = { holgado: 15 };
 
-/** Una sección con su título; el contenido lo pone quien la usa. */
-const Section = ({
-  title,
-  compacto,
-  children,
-}: {
-  title: string;
-  compacto: boolean;
-  children: ReactNode;
-}) => (
-  <View
-    style={compacto ? [styles.section, styles.sectionCompact] : styles.section}
-    minPresenceAhead={48}
-  >
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {children}
-  </View>
-);
-
-const Empty = ({ children }: { children: string }) => (
-  <Text style={styles.empty}>{children}</Text>
-);
-
-/** Una cita del itinerario: qué reunión es y cuándo (y dónde, si se sabe). */
+/** Una cita del itinerario. */
 type Cita = {
   label: string;
   date: string;
@@ -125,63 +90,43 @@ type Cita = {
   habitual?: boolean;
 };
 
-const ItineraryRow = ({
-  cita,
-  compacto,
-}: {
-  cita: Cita;
-  compacto: boolean;
-}) => {
-  const cuando = [fmtDay(cita.date), cita.time, cita.place].filter(Boolean);
-
-  return (
-    <View
-      style={[
-        styles.itineraryItem,
-        accentCapsuleSurface(),
-        cita.habitual && styles.itineraryItemHabitual,
-        compacto && styles.itineraryItemCompact,
-      ].filter(Boolean)}
-      wrap={false}
+const CitaBloque = ({ cita, dense }: { cita: Cita; dense: boolean }) => (
+  <PdfNote
+    accent={cita.habitual ? color.line : color.accent}
+    soft={cita.habitual ? color.white : color.accentSoft}
+    style={{
+      paddingVertical: dense ? space.xs + 1 : space.sm + 1,
+      marginBottom: space.sm - 1,
+    }}
+  >
+    <Text
+      style={{
+        ...text.body,
+        fontSize: dense ? 9 : 9.8,
+        fontWeight: 700,
+      }}
     >
-      {/* La uñita, hecha cápsula: ver `@views/components/accent_capsule`. Iba
-          como `borderLeft` recto sobre un bloque redondeado, que es justo lo
-          que el sistema de diseño prohíbe — el color se cortaba en seco donde
-          empezaba la curva y dejaba dos muescas. */}
-      <AccentCapsule
-        color={cita.habitual ? COLOR_CAPSULA.habitual : COLOR_CAPSULA.especial}
-      />
-
-      <Text
-        style={[
-          styles.itineraryLabel,
-          compacto && styles.itineraryLabelCompact,
-        ].filter(Boolean)}
-      >
-        {cita.label}
-      </Text>
-      <Text
-        style={[
-          styles.itineraryWhen,
-          cita.habitual && styles.itineraryWhenHabitual,
-          compacto && styles.itineraryWhenCompact,
-        ].filter(Boolean)}
-      >
-        {cuando.join('  ·  ')}
-      </Text>
-    </View>
-  );
-};
+      {cita.label}
+    </Text>
+    <Text
+      style={{
+        ...text.body,
+        fontSize: dense ? 8.4 : 9.2,
+        fontWeight: 500,
+        color: cita.habitual ? color.muted : color.accent,
+        marginTop: 1,
+      }}
+    >
+      {[fmtDay(cita.date), cita.time, cita.place].filter(Boolean).join('  ·  ')}
+    </Text>
+  </PdfNote>
+);
 
 /**
- * Reparte las citas en las DOS columnas del itinerario.
- *
- * Lo normal es una columna para cada cosa: las reuniones de siempre a un lado y
- * las especiales de la visita al otro. Pero si un lado se queda vacío —una
- * visita a la que aún no le han puesto las especiales, o unos ajustes de
- * reunión que no se pueden leer— dejar media hoja en blanco al lado de dos
- * bloques queda peor que no tener cuadrícula: en ese caso se parte por la mitad
- * lo que haya.
+ * Reparte las citas en las DOS columnas del itinerario: las de siempre a un
+ * lado y las especiales al otro. Si un lado se queda vacío, media hoja en
+ * blanco al lado de dos bloques queda peor que no tener cuadrícula, así que se
+ * parte por la mitad lo que haya.
  */
 const repartirEnDosColumnas = (habituales: Cita[], especiales: Cita[]) => {
   if (habituales.length > 0 && especiales.length > 0) {
@@ -209,12 +154,9 @@ const CircuitVisitProgramDoc = ({
   const coSpouseName = sinTratamiento(coSpouseNameRaw);
 
   // El itinerario lleva las cuatro reuniones de la semana: las dos de siempre
-  // —a las que va toda la congregación— y las especiales de la visita.
-  //
-  // Van en dos columnas, cada grupo en la suya, y no en una sola lista: en
-  // vertical se comían cuatro bloques de alto y empujaban el programa a una
-  // segunda hoja. En dos columnas ocupan dos, y de paso se lee de un vistazo
-  // qué reuniones son las de todas las semanas y cuáles las de esta.
+  // —a las que va toda la congregación— y las especiales de la visita. En dos
+  // columnas y no en lista: en vertical se comían cuatro bloques de alto y
+  // empujaban el programa a una segunda hoja.
   const porFecha = (a: Cita, b: Cita) =>
     `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
 
@@ -236,290 +178,137 @@ const CircuitVisitProgramDoc = ({
       : []),
   ].sort(porFecha);
 
-  const [columnaIzquierda, columnaDerecha] = repartirEnDosColumnas(
-    habituales,
-    especiales
-  );
+  const [izquierda, derecha] = repartirEnDosColumnas(habituales, especiales);
   const hayItinerario = habituales.length + especiales.length > 0;
-
-  const range = fmtRange(visit);
-  const congName = congregation || 'Elda Centro';
 
   const visitorName = coName
     ? `${coName}${coSpouseName ? ` y ${coSpouseName}` : ''}`
     : 'Programa de la visita';
 
-  // Los anchos de la tabla de predicación DEPENDEN de si hay esposa: la columna
-  // "Con ella" solo se pinta cuando la hay. Antes las anchuras estaban escritas
-  // a mano en cada celda y sumaban 100 % con esposa pero solo 80 % sin ella —
-  // en las congregaciones donde el superintendente viaja solo, la tabla se
-  // quedaba corta y dejaba una quinta parte de la hoja en blanco a la derecha.
-  const preachingCols = coSpouseName
-    ? ['19%', '11%', '27%', '21.5%', '21.5%']
-    : ['24%', '14%', '34%', '28%'];
-
   // Las filas de las tres tablas son lo único que crece sin control; el resto
-  // de la hoja mide siempre lo mismo. Por eso la cuenta es solo de filas.
-  const compacto =
+  // de la hoja mide siempre lo mismo.
+  const dense =
     mealsRows.length + shepherdingRows.length + preachingRows.length >
     DENSIDAD.holgado;
 
-  const estiloCelda = compacto
-    ? [styles.cell, styles.cellCompact]
-    : [styles.cell];
-  const estiloFila = (idx: number) =>
-    [
-      styles.row,
-      idx % 2 === 0 && styles.rowAlt,
-      compacto && styles.rowCompact,
-    ].filter(Boolean);
-  const estiloCabecera = compacto
-    ? [styles.headCell, styles.headCellCompact]
-    : [styles.headCell];
+  // Los anchos de la tabla de predicación dependen de si hay esposa: la
+  // columna "con ella" solo existe cuando la hay, y si no se recalculan, la
+  // tabla se queda corta y deja una quinta parte de la hoja en blanco.
+  const columnasPredicacion: PdfTableColumn[] = [
+    {
+      key: 'dia',
+      header: 'Día',
+      width: coSpouseName ? '19%' : '24%',
+      emphasis: true,
+    },
+    {
+      key: 'hora',
+      header: 'Hora',
+      width: coSpouseName ? '11%' : '14%',
+      muted: true,
+    },
+    {
+      key: 'lugar',
+      header: 'Punto de salida',
+      width: coSpouseName ? '27%' : '34%',
+    },
+    {
+      key: 'con',
+      header: `Con ${coName}`,
+      width: coSpouseName ? '21.5%' : '28%',
+    },
+    ...(coSpouseName
+      ? [
+          {
+            key: 'conElla',
+            header: `Con ${coSpouseName}`,
+            width: '21.5%',
+          } as PdfTableColumn,
+        ]
+      : []),
+  ];
 
   return (
     <Document title="Visita del Superintendente de Circuito" lang={lang}>
-      <Page
-        size="A4"
-        style={{ padding: PAGE_PADDING, backgroundColor: '#ffffff' }}
+      <Sheet
+        congregation={congregation}
+        meta={fmtRangeEs(visit.date_start, visit.date_end)}
+        title="Visita del superintendente de circuito"
+        subtitle={visitorName}
+        paginated
+        footerMeta={fmtRangeEs(visit.date_start, visit.date_end)}
       >
-        <View style={styles.wrapper}>
-          {/* ── Barra de marca ─────────────────────────────────────── */}
-          <View style={styles.topBar}>
-            <View style={styles.topBarBrand}>
-              <IconLogo size={22} />
-              <Text style={styles.topBarBrandName}>{congName}</Text>
+        <PdfSection title="Itinerario de reuniones" dense={dense}>
+          {hayItinerario ? (
+            <View
+              style={{ display: 'flex', flexDirection: 'row', gap: space.md }}
+            >
+              {[izquierda, derecha].map((columna, col) => (
+                <View key={col} style={{ flexGrow: 1, flexBasis: 0 }}>
+                  {columna.map((cita, idx) => (
+                    <CitaBloque
+                      key={`${cita.date}_${cita.time}_${idx}`}
+                      cita={cita}
+                      dense={dense}
+                    />
+                  ))}
+                </View>
+              ))}
             </View>
-            <Text style={styles.topBarDate}>{range}</Text>
-          </View>
+          ) : (
+            <PdfEmpty>Sin reuniones programadas.</PdfEmpty>
+          )}
+        </PdfSection>
 
-          <View
-            style={
-              compacto
-                ? [styles.headerDivider, styles.headerDividerCompact]
-                : styles.headerDivider
-            }
+        <PdfSection title="Programa de comidas" dense={dense}>
+          <PdfTable
+            dense={dense}
+            emptyText="Sin comidas asignadas."
+            columns={[
+              { key: 'dia', header: 'Día', width: '30%', emphasis: true },
+              { key: 'quien', header: 'Anfitrión', width: '70%' },
+            ]}
+            rows={mealsRows.map((meal) => ({
+              dia: fmtDay(meal.date),
+              quien: meal.hostName,
+            }))}
           />
+        </PdfSection>
 
-          <Text
-            style={
-              compacto ? [styles.title, styles.titleCompact] : styles.title
-            }
-          >
-            Visita del superintendente de circuito
-          </Text>
-          <Text
-            style={
-              compacto
-                ? [styles.subtitle, styles.subtitleCompact]
-                : styles.subtitle
-            }
-          >
-            {visitorName}
-          </Text>
-
-          {/* ── Itinerario de reuniones ────────────────────────────── */}
-          <Section title="Itinerario de reuniones" compacto={compacto}>
-            {hayItinerario ? (
-              <View style={styles.itineraryGrid}>
-                {[columnaIzquierda, columnaDerecha].map((columna, col) => (
-                  <View key={col} style={styles.itineraryColumn}>
-                    {columna.map((cita, idx) => (
-                      <ItineraryRow
-                        key={`${cita.date}_${cita.time}_${idx}`}
-                        cita={cita}
-                        compacto={compacto}
-                      />
-                    ))}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Empty>Sin reuniones programadas.</Empty>
-            )}
-          </Section>
-
-          {/* ── Programa de comidas ────────────────────────────────── */}
-          <Section title="Programa de comidas" compacto={compacto}>
-            {mealsRows.length > 0 ? (
-              <View style={styles.table}>
-                {/* `fixed` en la fila de cabecera = si la tabla parte a la
-                    página siguiente, sus rótulos se repiten arriba. Solo se
-                    repiten mientras SU tabla sigue corriendo: una tabla que
-                    terminó en la página anterior no deja su cabecera suelta
-                    (comprobado con un programa de dos páginas). */}
-                <View style={styles.headRow} fixed>
-                  <Text style={[...estiloCabecera, { width: '30%' }]}>Día</Text>
-                  <Text style={[...estiloCabecera, { width: '70%' }]}>
-                    Anfitrión
-                  </Text>
-                </View>
-                {mealsRows.map((meal, idx) => (
-                  <View
-                    key={`${meal.date}_${idx}`}
-                    style={estiloFila(idx)}
-                    wrap={false}
-                  >
-                    <Text
-                      style={[...estiloCelda, styles.cellDay, { width: '30%' }]}
-                    >
-                      {fmtDay(meal.date)}
-                    </Text>
-                    <Text style={[...estiloCelda, { width: '70%' }]}>
-                      {meal.hostName || '—'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Empty>Sin comidas asignadas.</Empty>
-            )}
-          </Section>
-
-          {/* ── Visitas (de pastoreo) ──────────────────────────────── */}
-          <Section title="Visitas" compacto={compacto}>
-            {shepherdingRows.length > 0 ? (
-              <View style={styles.table}>
-                <View style={styles.headRow} fixed>
-                  <Text style={[...estiloCabecera, { width: '19%' }]}>Día</Text>
-                  <Text style={[...estiloCabecera, { width: '11%' }]}>
-                    Hora
-                  </Text>
-                  <Text style={[...estiloCabecera, { width: '35%' }]}>
-                    Hermano visitado
-                  </Text>
-                  <Text style={[...estiloCabecera, { width: '35%' }]}>
-                    Anciano acompañante
-                  </Text>
-                </View>
-                {shepherdingRows.map((sv, idx) => (
-                  <View
-                    key={`${sv.date}_${sv.time}_${idx}`}
-                    style={estiloFila(idx)}
-                    wrap={false}
-                  >
-                    {/* Día y hora en columnas separadas, como en el programa de
-                        predicación: iban juntas en una sola celda y las dos
-                        tablas de la misma hoja se leían distinto. */}
-                    <Text
-                      style={[...estiloCelda, styles.cellDay, { width: '19%' }]}
-                    >
-                      {fmtDay(sv.date)}
-                    </Text>
-                    <Text
-                      style={[
-                        ...estiloCelda,
-                        styles.cellMuted,
-                        { width: '11%' },
-                      ]}
-                    >
-                      {sv.time || '—'}
-                    </Text>
-                    <Text style={[...estiloCelda, { width: '35%' }]}>
-                      {sv.brotherName || '—'}
-                    </Text>
-                    <Text style={[...estiloCelda, { width: '35%' }]}>
-                      {sv.elderName || '—'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Empty>Sin visitas de pastoreo programadas.</Empty>
-            )}
-          </Section>
-
-          {/* ── Programa de predicación ────────────────────────────── */}
-          <Section title="Programa de predicación" compacto={compacto}>
-            {preachingRows.length > 0 ? (
-              <View style={styles.table}>
-                <View style={styles.headRow} fixed>
-                  <Text
-                    style={[...estiloCabecera, { width: preachingCols[0] }]}
-                  >
-                    Día
-                  </Text>
-                  <Text
-                    style={[...estiloCabecera, { width: preachingCols[1] }]}
-                  >
-                    Hora
-                  </Text>
-                  <Text
-                    style={[...estiloCabecera, { width: preachingCols[2] }]}
-                  >
-                    Punto de salida
-                  </Text>
-                  <Text
-                    style={[...estiloCabecera, { width: preachingCols[3] }]}
-                  >
-                    Con {coName}
-                  </Text>
-                  {coSpouseName ? (
-                    <Text
-                      style={[...estiloCabecera, { width: preachingCols[4] }]}
-                    >
-                      Con {coSpouseName}
-                    </Text>
-                  ) : null}
-                </View>
-                {preachingRows.map((row, idx) => (
-                  <View
-                    key={`${row.date}_${row.time}_${idx}`}
-                    style={estiloFila(idx)}
-                    wrap={false}
-                  >
-                    <Text
-                      style={[
-                        ...estiloCelda,
-                        styles.cellDay,
-                        { width: preachingCols[0] },
-                      ]}
-                    >
-                      {fmtDay(row.date)}
-                    </Text>
-                    <Text
-                      style={[
-                        ...estiloCelda,
-                        styles.cellMuted,
-                        { width: preachingCols[1] },
-                      ]}
-                    >
-                      {row.time || '—'}
-                    </Text>
-                    <Text style={[...estiloCelda, { width: preachingCols[2] }]}>
-                      {row.location || '—'}
-                    </Text>
-                    <Text style={[...estiloCelda, { width: preachingCols[3] }]}>
-                      {row.companionName || '—'}
-                    </Text>
-                    {coSpouseName ? (
-                      <Text
-                        style={[...estiloCelda, { width: preachingCols[4] }]}
-                      >
-                        {row.spouseCompanions || '—'}
-                      </Text>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Empty>Sin salidas de predicación.</Empty>
-            )}
-          </Section>
-        </View>
-
-        {/* ── Pie ──────────────────────────────────────────────────── */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>{congName}</Text>
-          <Text
-            style={styles.footerText}
-            fixed
-            render={({ pageNumber, totalPages }) =>
-              totalPages > 1 ? `Página ${pageNumber} de ${totalPages}` : range
-            }
+        <PdfSection title="Visitas" dense={dense}>
+          <PdfTable
+            dense={dense}
+            emptyText="Sin visitas de pastoreo programadas."
+            columns={[
+              { key: 'dia', header: 'Día', width: '19%', emphasis: true },
+              { key: 'hora', header: 'Hora', width: '11%', muted: true },
+              { key: 'hermano', header: 'Hermano visitado', width: '35%' },
+              { key: 'anciano', header: 'Anciano acompañante', width: '35%' },
+            ]}
+            rows={shepherdingRows.map((sv) => ({
+              dia: fmtDay(sv.date),
+              hora: sv.time,
+              hermano: sv.brotherName,
+              anciano: sv.elderName,
+            }))}
           />
-        </View>
-      </Page>
+        </PdfSection>
+
+        <PdfSection title="Programa de predicación" dense={dense}>
+          <PdfTable
+            dense={dense}
+            emptyText="Sin salidas de predicación."
+            columns={columnasPredicacion}
+            rows={preachingRows.map((row) => ({
+              dia: fmtDay(row.date),
+              hora: row.time,
+              lugar: row.location,
+              con: row.companionName,
+              conElla: row.spouseCompanions,
+            }))}
+          />
+        </PdfSection>
+      </Sheet>
     </Document>
   );
 };

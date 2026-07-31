@@ -1,69 +1,100 @@
 import { View, Text } from '@react-pdf/renderer';
+import {
+  PdfBadge,
+  PdfCard,
+  PdfKeyValue,
+  color,
+  space,
+  text,
+} from '@views/design';
 import { FSGGroupProps } from './index.types';
-import FSGGroupMember from './FSGGroupMember';
-import styles from './index.styles';
 
+/**
+ * Un grupo de predicación, en tarjeta.
+ *
+ * El superintendente y su auxiliar van arriba con su rótulo; los publicadores,
+ * en dos columnas y con punto delante — sin él, dos nombres en dos líneas se
+ * leen como uno partido en dos.
+ *
+ * Los precursores se marcan con una etiqueta, no poniéndoles el nombre en
+ * negrita: la negrita ya la usa el nombre del responsable, y dos cosas
+ * distintas con el mismo recurso no se distinguen.
+ */
 const FSGGroup = ({ group }: FSGGroupProps) => {
-  const groupMembersCount =
+  const total =
     group.publishers.length +
     (group.overseer ? 1 : 0) +
     (group.overseerAssistant ? 1 : 0);
 
   return (
-    <View style={styles.groupContainer} wrap={false}>
-      {/* Card header */}
-      <View style={styles.groupHeader}>
-        <Text style={styles.groupTitle}>{group.group_name}</Text>
-        <View style={styles.membersCountBadge}>
-          <Text style={styles.membersCount}>{groupMembersCount}</Text>
-        </View>
-      </View>
+    <PdfCard
+      title={group.group_name}
+      meta={`${total} ${total === 1 ? 'publicador' : 'publicadores'}`}
+      style={{ flexGrow: 1, flexBasis: '47%', minWidth: '47%' }}
+    >
+      {group.overseer ? (
+        <PdfKeyValue label="Superintendente" labelWidth={78}>
+          {group.overseer.name}
+        </PdfKeyValue>
+      ) : null}
+      {group.overseerAssistant ? (
+        <PdfKeyValue label="Auxiliar" labelWidth={78}>
+          {group.overseerAssistant.name}
+        </PdfKeyValue>
+      ) : null}
 
-      {/* Card body */}
-      <View style={styles.groupBody}>
-        {/* Overseers block */}
-        {(group.overseer || group.overseerAssistant) && (
-          <>
-            <View style={styles.overseerBlock}>
-              {group.overseer && (
-                <View style={styles.overseerRow}>
-                  <Text style={styles.overseerLabel}>SUP.</Text>
-                  <Text
-                    style={[
-                      styles.overseerName,
-                      group.overseer.isPioneer && { fontWeight: 700 },
-                    ]}
-                  >
-                    {group.overseer.name}
-                  </Text>
-                </View>
-              )}
-              {group.overseerAssistant && (
-                <View style={styles.overseerRow}>
-                  <Text style={styles.overseerLabel}>AUX.</Text>
-                  <Text
-                    style={[
-                      styles.overseerName,
-                      group.overseerAssistant.isPioneer && { fontWeight: 700 },
-                    ]}
-                  >
-                    {group.overseerAssistant.name}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.divider} />
-          </>
-        )}
+      {(group.overseer || group.overseerAssistant) &&
+      group.publishers.length > 0 ? (
+        <View
+          style={{
+            borderTop: `0.5px solid ${color.lineSoft}`,
+            marginTop: space.sm,
+            marginBottom: space.sm,
+          }}
+        />
+      ) : null}
 
-        {/* Member list */}
-        <View style={styles.memberList}>
-          {group.publishers.map((publisher) => (
-            <FSGGroupMember key={publisher.name} member={publisher} />
-          ))}
-        </View>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}
+      >
+        {group.publishers.map((publisher) => (
+          <View
+            key={publisher.name}
+            style={{
+              width: '50%',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: space.sm - 1,
+              paddingVertical: 1.4,
+            }}
+          >
+            <View
+              style={{
+                width: 2.6,
+                height: 2.6,
+                borderRadius: 999,
+                backgroundColor: color.muted,
+              }}
+            />
+            {/* `flex: 1` y no `flexShrink`: con lo segundo, un nombre largo
+                al lado de la etiqueta de precursor se recortaba a media
+                palabra ("Miguel Ángel Navarr") en vez de pasar a la línea
+                siguiente. */}
+            <Text style={{ ...text.body, fontSize: 8.8, flex: 1 }}>
+              {publisher.name}
+            </Text>
+            {publisher.isPioneer ? (
+              <PdfBadge tone="accent">Prec.</PdfBadge>
+            ) : null}
+          </View>
+        ))}
       </View>
-    </View>
+    </PdfCard>
   );
 };
 

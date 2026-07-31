@@ -1,53 +1,10 @@
 import { StyleSheet } from '@react-pdf/renderer';
-import { PDF, PDF_PADDING } from '@views/components/pdf_theme';
+import { color as PDF } from '@views/design/tokens';
 import registerFonts from '@views/registerFonts';
 
 registerFonts();
 
 const styles = StyleSheet.create({
-  page: {
-    padding: PDF_PADDING,
-    // Sitio para el pie, que va en absoluto.
-    paddingBottom: PDF_PADDING + 8,
-    fontFamily: 'Figtree',
-    backgroundColor: PDF.white,
-  },
-  contentWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  headerContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  topBar: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  topBarBrand: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  topBarBrandName: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: '#1a1a2e',
-  },
-  pageTitle: {
-    fontSize: 26,
-    fontWeight: 700,
-    color: '#1a1a2e',
-    marginBottom: 8,
-  },
-  headerDivider: {
-    borderBottom: '1 solid #d0d7e8',
-    marginBottom: 14,
-  },
   weekContainer: {
     marginBottom: 10,
     border: `1 solid ${PDF.line}`,
@@ -55,15 +12,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-  },
-  dateContainer: {
-    backgroundColor: PDF.accent,
-    padding: 6,
-  },
-  dateText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 700,
   },
   contentContainer: {
     display: 'flex',
@@ -138,7 +86,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   talkNumber: {
-    color: '#666666',
+    color: PDF.muted,
     fontSize: 9,
     fontWeight: 400,
   },
@@ -151,12 +99,12 @@ const styles = StyleSheet.create({
   speaker: {
     fontSize: 11,
     fontWeight: 700,
-    color: '#333333',
+    color: PDF.ink,
   },
   speakerCongregation: {
     fontSize: 9,
     fontWeight: 400,
-    color: '#666666',
+    color: PDF.muted,
   },
   substituteSpeakerContainer: {
     flexDirection: 'row',
@@ -168,12 +116,12 @@ const styles = StyleSheet.create({
   },
   labelDefault: {
     fontSize: 9,
-    color: '#666666',
+    color: PDF.muted,
   },
   substituteName: {
     fontSize: 9,
     fontWeight: 700,
-    color: '#333333',
+    color: PDF.ink,
   },
   songContainer: {
     display: 'flex',
@@ -190,27 +138,7 @@ const styles = StyleSheet.create({
   openingSongTitle: {
     fontWeight: 400,
     fontSize: 10,
-    color: '#666666',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
-    borderTop: '0.5 solid #e0e0e0',
-    paddingTop: 7,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  footerLeft: {
-    fontSize: 8,
-    color: '#aaaaaa',
-  },
-  footerRight: {
-    fontSize: 8,
-    color: '#aaaaaa',
+    color: PDF.muted,
   },
 });
 

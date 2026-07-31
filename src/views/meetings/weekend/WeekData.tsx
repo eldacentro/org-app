@@ -1,4 +1,5 @@
-import { Text, View } from '@react-pdf/renderer';
+import { View } from '@react-pdf/renderer';
+import { PdfCard, space } from '@views/design';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Week } from '@definition/week_type';
 import { WeekDataType } from './index.types';
@@ -23,11 +24,7 @@ const WeekData = ({ meetingData, lang }: WeekDataType) => {
   const fechaCompleta = `${dia} de ${meses[mes]} de ${año}`;
 
   return (
-    <View style={styles.weekContainer} wrap={false}>
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateText}>{fechaCompleta}</Text>
-      </View>
-
+    <PdfCard title={fechaCompleta} style={{ marginBottom: space.lg }}>
       <View style={styles.contentContainer}>
         {/* 1st part: opening & WT study & closing prayer */}
         <View style={styles.meetingPartSection}>
@@ -56,7 +53,7 @@ const WeekData = ({ meetingData, lang }: WeekDataType) => {
           )}
         </View>
       </View>
-    </View>
+    </PdfCard>
   );
 };
 

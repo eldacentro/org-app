@@ -1,6 +1,7 @@
-import { Page, Text, View } from '@react-pdf/renderer';
+import { Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
+import { Sheet } from '@views/design';
 import { Week } from '@definition/week_type';
 import { S140Type } from '../shared/index.types';
 import { useAppTranslation } from '@hooks/index';
@@ -10,7 +11,6 @@ import IconLiving from '@views/components/icons/IconLiving';
 import IconMinistry from '@views/components/icons/IconMinistry';
 import S140AYF from './S140AYF';
 import S140Hall from './S140Hall';
-import S140Header from './S140Header';
 import S140LC from './S140LC';
 import S140PartTime from './S140PartTime';
 import S140Person from './S140Person';
@@ -68,9 +68,15 @@ const TemplateS140AppNormal = ({
 
   return (
     <Document title={t('tr_midweekMeetingPrint')} lang={lang}>
-      <Page size="A4" style={stylesSmart.page}>
-        <S140Header cong_name={cong_name} lang={lang} />
-
+      {/* La hoja es la misma que la de los demás documentos de la app
+          (`PDF_DESIGN_SYSTEM.md`). La barra de marca se voltea sola en los
+          idiomas que se leen de derecha a izquierda: la dirección la fija el
+          `Document`, y Yoga la respeta en las filas. */}
+      <Sheet
+        congregation={cong_name}
+        title={t('tr_midweekMeetingPrint', { lng: lang })}
+        paginated
+      >
         {data.map((meetingData) => {
           return (
             <View
@@ -475,7 +481,7 @@ const TemplateS140AppNormal = ({
             </Text>
           </View>
         )}
-      </Page>
+      </Sheet>
     </Document>
   );
 };

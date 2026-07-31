@@ -1,11 +1,6 @@
 import { Text, View } from '@react-pdf/renderer';
-import {
-  Document,
-  Page,
-  PdfFooter,
-  PdfHeader,
-  fechaCorta,
-} from '@views/components';
+import { Document } from '@views/components';
+import { PdfSection, Sheet, fechaCorta } from '@views/design';
 import { StyleSheet } from '@react-pdf/renderer';
 import registerFonts from '@views/registerFonts';
 import {
@@ -17,70 +12,8 @@ registerFonts();
 
 // ─── inline styles (no StyleSheet import needed above – registerFonts does it) ──
 const styles = StyleSheet.create({
-  page: {
-    padding: 20,
-    fontFamily: 'Figtree',
-    backgroundColor: '#ffffff',
-  },
-  contentWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    // Reserva el alto del footer (absoluto) para que el contenido no se le solape.
-    paddingBottom: 10,
-  },
-  topBar: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4.5,
-  },
-  topBarBrand: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7.5,
-  },
-  topBarBrandName: {
-    fontSize: 13.5,
-    fontWeight: 700,
-    color: '#1a1a2e',
-  },
-  topBarDate: {
-    fontSize: 8.5,
-    fontWeight: 500,
-    color: '#888888',
-  },
-  pageTitle: {
-    fontSize: 23.5,
-    fontWeight: 700,
-    color: '#1a1a2e',
-    marginBottom: 3,
-  },
-  pageSubtitle: {
-    fontSize: 9.3,
-    color: '#306CB4',
-    marginBottom: 9,
-  },
-  headerDivider: {
-    borderBottom: '1 solid #d0d7e8',
-    marginBottom: 10.5,
-  },
   // Section
-  sectionTitle: {
-    fontSize: 10,
-    fontWeight: 700,
-    color: '#306CB4',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 4.5,
-    borderBottom: '1 solid #d0d7e8',
-    paddingBottom: 3,
-  },
 
-  sectionWrapper: {
-    marginBottom: 7.5,
-  },
   // Chips row (cuerpo de ancianos)
   chipsRow: {
     display: 'flex',
@@ -216,22 +149,6 @@ const styles = StyleSheet.create({
     color: '#2c2c2c',
   },
   // Footer
-  footer: {
-    position: 'absolute',
-    bottom: 15,
-    left: 20,
-    right: 20,
-    borderTop: '0.5 solid #e0e0e0',
-    paddingTop: 5,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 7,
-    color: '#aaaaaa',
-  },
 });
 
 const MONTHS_ES = [
@@ -316,199 +233,179 @@ const TemplateResponsabilidades = ({
 
   return (
     <Document title="Responsabilidades" lang="es">
-      <Page>
-        <View style={styles.contentWrapper}>
-          <PdfHeader
-            congregation={congregation || 'Elda Centro'}
-            meta={monthYear}
-            title="Responsabilidades"
-          />
-
-          {/* ── Cuerpo de ancianos ───────────────── */}
-          <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>Cuerpo de ancianos</Text>
-            <View style={styles.chipsRow}>
-              {data.cuerpoAncianos.map((uid, i) => (
-                <View key={i} style={styles.chip}>
-                  <Text style={styles.chipText}>{resolve(uid)}</Text>
-                </View>
-              ))}
-            </View>
+      <Sheet
+        congregation={congregation}
+        meta={monthYear}
+        title="Responsabilidades"
+        paginated
+        footerMeta={
+          footerDate ? `Última actualización · ${footerDate}` : monthYear
+        }
+      >
+        {/* ── Cuerpo de ancianos ───────────────── */}
+        <PdfSection title="Cuerpo de ancianos" dense={dense}>
+          <View style={styles.chipsRow}>
+            {data.cuerpoAncianos.map((uid, i) => (
+              <View key={i} style={styles.chip}>
+                <Text style={styles.chipText}>{resolve(uid)}</Text>
+              </View>
+            ))}
           </View>
+        </PdfSection>
 
-          {/* ── Cargos ──────────────────────────── */}
-          <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>
-              Responsabilidades de ancianos
-            </Text>
-            <View style={styles.table}>
-              {data.cargosAncianos.map((item, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.tableRow,
-                    i % 2 === 1 ? styles.tableRowAlt : {},
-                  ]}
-                >
-                  <Text style={styles.tableColLabel}>{item.cargo}</Text>
-                  <Text style={styles.tableColValue}>
-                    {resolve(item.responsable)}
-                  </Text>
-                </View>
-              ))}
-            </View>
+        {/* ── Cargos ──────────────────────────── */}
+        <PdfSection title="Responsabilidades de ancianos" dense={dense}>
+          <View style={styles.table}>
+            {data.cargosAncianos.map((item, i) => (
+              <View
+                key={i}
+                style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
+              >
+                <Text style={styles.tableColLabel}>{item.cargo}</Text>
+                <Text style={styles.tableColValue}>
+                  {resolve(item.responsable)}
+                </Text>
+              </View>
+            ))}
           </View>
+        </PdfSection>
 
-          {/* ── Departamentos ────────────────────── */}
-          <View style={styles.sectionWrapper}>
-            <Text style={styles.sectionTitle}>Departamentos</Text>
-            <View style={styles.masonryContainer}>
-              {(() => {
-                // Antes esto repartía los departamentos alternando por
-                // posición (i % 2) sin importar cuánto contenido tenía cada
-                // uno — una columna podía terminar mucho más larga que la
-                // otra, empujando los últimos departamentos (los más
-                // pequeños) a una segunda página aunque sobrara espacio en
-                // la otra columna. Ahora cada departamento se asigna a la
-                // columna que en ese momento tenga MENOS contenido
-                // acumulado (estimado en "líneas"), y usamos 3 columnas en
-                // vez de 2 para aprovechar mejor el ancho — así los
-                // departamentos chicos (Territorios, Cuentas, etc.) se
-                // empaquetan juntos en vez de ocupar una fila completa cada
-                // uno.
-                const COLUMN_COUNT = 3;
+        {/* ── Departamentos ────────────────────── */}
+        <PdfSection title="Departamentos" dense={dense}>
+          <View style={styles.masonryContainer}>
+            {(() => {
+              // Antes esto repartía los departamentos alternando por
+              // posición (i % 2) sin importar cuánto contenido tenía cada
+              // uno — una columna podía terminar mucho más larga que la
+              // otra, empujando los últimos departamentos (los más
+              // pequeños) a una segunda página aunque sobrara espacio en
+              // la otra columna. Ahora cada departamento se asigna a la
+              // columna que en ese momento tenga MENOS contenido
+              // acumulado (estimado en "líneas"), y usamos 3 columnas en
+              // vez de 2 para aprovechar mejor el ancho — así los
+              // departamentos chicos (Territorios, Cuentas, etc.) se
+              // empaquetan juntos en vez de ocupar una fila completa cada
+              // uno.
+              const COLUMN_COUNT = 3;
 
-                const estimateUnits = (
-                  dep: (typeof data.departamentos)[number]
-                ) => {
-                  let units = 1; // encabezado
-                  units += 1; // responsable (siempre se muestra)
-                  if (dep.auxiliar) units += 1;
+              const estimateUnits = (
+                dep: (typeof data.departamentos)[number]
+              ) => {
+                let units = 1; // encabezado
+                units += 1; // responsable (siempre se muestra)
+                if (dep.auxiliar) units += 1;
 
-                  if (dep.type === 'extended') {
-                    const memberCount = (dep as DepartamentoExtended).members
-                      .length;
-                    if (memberCount > 0) {
-                      // a 1/3 de ancho de página caben ~2 chips por línea
-                      units += 1 + Math.ceil(memberCount / 2);
-                    }
+                if (dep.type === 'extended') {
+                  const memberCount = (dep as DepartamentoExtended).members
+                    .length;
+                  if (memberCount > 0) {
+                    // a 1/3 de ancho de página caben ~2 chips por línea
+                    units += 1 + Math.ceil(memberCount / 2);
                   }
+                }
 
-                  return units + 0.8; // borde/padding de la tarjeta
-                };
+                return units + 0.8; // borde/padding de la tarjeta
+              };
 
-                const columns: (typeof data.departamentos)[] = Array.from(
-                  { length: COLUMN_COUNT },
-                  () => []
-                );
-                const columnUnits = new Array(COLUMN_COUNT).fill(0);
+              const columns: (typeof data.departamentos)[] = Array.from(
+                { length: COLUMN_COUNT },
+                () => []
+              );
+              const columnUnits = new Array(COLUMN_COUNT).fill(0);
 
-                data.departamentos.forEach((dep) => {
-                  let shortest = 0;
-                  for (let c = 1; c < COLUMN_COUNT; c++) {
-                    if (columnUnits[c] < columnUnits[shortest]) shortest = c;
-                  }
-                  columns[shortest].push(dep);
-                  columnUnits[shortest] += estimateUnits(dep);
-                });
+              data.departamentos.forEach((dep) => {
+                let shortest = 0;
+                for (let c = 1; c < COLUMN_COUNT; c++) {
+                  if (columnUnits[c] < columnUnits[shortest]) shortest = c;
+                }
+                columns[shortest].push(dep);
+                columnUnits[shortest] += estimateUnits(dep);
+              });
 
-                return columns.map((colItems, colIndex) => (
-                  <View key={colIndex} style={styles.masonryColumn}>
-                    {colItems.map((dep) => {
-                      const isExtended = dep.type === 'extended';
-                      const hasMembers =
-                        isExtended &&
-                        (dep as DepartamentoExtended).members.length > 0;
-                      const auxiliar = dep.auxiliar
-                        ? resolve(dep.auxiliar)
-                        : '';
+              return columns.map((colItems, colIndex) => (
+                <View key={colIndex} style={styles.masonryColumn}>
+                  {colItems.map((dep) => {
+                    const isExtended = dep.type === 'extended';
+                    const hasMembers =
+                      isExtended &&
+                      (dep as DepartamentoExtended).members.length > 0;
+                    const auxiliar = dep.auxiliar ? resolve(dep.auxiliar) : '';
 
-                      return (
-                        <View key={dep.id} style={styles.deptCard}>
-                          <View style={[styles.deptHeader, dz.header]}>
-                            <Text
-                              style={[styles.deptHeaderText, dz.headerText]}
-                            >
-                              {dep.name}
-                            </Text>
-                          </View>
-                          <View style={[styles.deptBody, dz.body]}>
-                            <View style={[styles.deptInfoCol, dz.infoColGap]}>
+                    return (
+                      <View key={dep.id} style={styles.deptCard}>
+                        <View style={[styles.deptHeader, dz.header]}>
+                          <Text style={[styles.deptHeaderText, dz.headerText]}>
+                            {dep.name}
+                          </Text>
+                        </View>
+                        <View style={[styles.deptBody, dz.body]}>
+                          <View style={[styles.deptInfoCol, dz.infoColGap]}>
+                            <View style={styles.deptPerson}>
+                              <Text style={[styles.deptLabel, dz.label]}>
+                                Responsable
+                              </Text>
+                              <Text style={[styles.deptValue, dz.value]}>
+                                {resolve(dep.responsable) || '—'}
+                              </Text>
+                            </View>
+                            {auxiliar ? (
                               <View style={styles.deptPerson}>
                                 <Text style={[styles.deptLabel, dz.label]}>
-                                  Responsable
+                                  Auxiliar
                                 </Text>
                                 <Text style={[styles.deptValue, dz.value]}>
-                                  {resolve(dep.responsable) || '—'}
+                                  {auxiliar}
                                 </Text>
-                              </View>
-                              {auxiliar ? (
-                                <View style={styles.deptPerson}>
-                                  <Text style={[styles.deptLabel, dz.label]}>
-                                    Auxiliar
-                                  </Text>
-                                  <Text style={[styles.deptValue, dz.value]}>
-                                    {auxiliar}
-                                  </Text>
-                                </View>
-                              ) : null}
-                            </View>
-
-                            {hasMembers ? (
-                              <View>
-                                <Text
-                                  style={[
-                                    styles.deptMembersLabel,
-                                    dz.membersLabel,
-                                  ]}
-                                >
-                                  Integrantes
-                                </Text>
-                                <View
-                                  style={[
-                                    styles.deptMembersWrap,
-                                    dz.membersWrap,
-                                  ]}
-                                >
-                                  {(dep as DepartamentoExtended).members.map(
-                                    (uid, i) => (
-                                      <View
-                                        key={i}
-                                        style={[
-                                          styles.deptMemberChip,
-                                          dz.memberChip,
-                                        ]}
-                                      >
-                                        <Text
-                                          style={[
-                                            styles.deptMemberText,
-                                            dz.memberText,
-                                          ]}
-                                        >
-                                          {resolve(uid)}
-                                        </Text>
-                                      </View>
-                                    )
-                                  )}
-                                </View>
                               </View>
                             ) : null}
                           </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                ));
-              })()}
-            </View>
-          </View>
-        </View>
 
-        <PdfFooter
-          congregation={congregation || 'Elda Centro'}
-          meta={footerDate ? `Última actualización · ${footerDate}` : ''}
-        />
-      </Page>
+                          {hasMembers ? (
+                            <View>
+                              <Text
+                                style={[
+                                  styles.deptMembersLabel,
+                                  dz.membersLabel,
+                                ]}
+                              >
+                                Integrantes
+                              </Text>
+                              <View
+                                style={[styles.deptMembersWrap, dz.membersWrap]}
+                              >
+                                {(dep as DepartamentoExtended).members.map(
+                                  (uid, i) => (
+                                    <View
+                                      key={i}
+                                      style={[
+                                        styles.deptMemberChip,
+                                        dz.memberChip,
+                                      ]}
+                                    >
+                                      <Text
+                                        style={[
+                                          styles.deptMemberText,
+                                          dz.memberText,
+                                        ]}
+                                      >
+                                        {resolve(uid)}
+                                      </Text>
+                                    </View>
+                                  )
+                                )}
+                              </View>
+                            </View>
+                          ) : null}
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ));
+            })()}
+          </View>
+        </PdfSection>
+      </Sheet>
     </Document>
   );
 };

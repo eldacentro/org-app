@@ -6,6 +6,7 @@ import {
 } from '@definition/upcoming_events';
 import { decorationsForEvent } from './decoration_for_event';
 import { useAppTranslation } from '@hooks/index';
+import { color, radius, space, stroke, text } from '@views/design';
 import { UpcomingEventProps } from './index.types';
 import UpcomingEventDate from './UpcomingEventDate';
 
@@ -16,10 +17,10 @@ const UpcomingEvent = ({ event }: UpcomingEventProps) => {
     <View
       wrap={false}
       style={{
-        border: '1px solid #D5DFFD',
-        backgroundColor: '#FEFEFE',
-        borderRadius: '4px',
-        padding: '8px',
+        border: `${stroke.thin}px solid ${color.line}`,
+        backgroundColor: color.white,
+        borderRadius: radius.lg,
+        padding: space.lg,
       }}
     >
       <View style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -29,7 +30,7 @@ const UpcomingEvent = ({ event }: UpcomingEventProps) => {
               display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
-              gap: '2px',
+              gap: space.sm,
             }}
           >
             {cloneElement(decorationsForEvent[event.category].icon, {
@@ -37,16 +38,14 @@ const UpcomingEvent = ({ event }: UpcomingEventProps) => {
               backgroundColor: 'none',
             })}
 
-            <Text
-              style={{ fontWeight: 500, fontSize: '11px', color: '#222222' }}
-            >
+            <Text style={text.heading}>
               {event.category !== UpcomingEventCategory.Custom
                 ? t(decorationsForEvent[event.category].translationKey)
                 : event.custom}
             </Text>
           </View>
 
-          <Text style={{ fontWeight: 400, fontSize: '9px', color: '#505050' }}>
+          <Text style={{ ...text.body, color: color.muted }}>
             {event.description}
           </Text>
         </View>

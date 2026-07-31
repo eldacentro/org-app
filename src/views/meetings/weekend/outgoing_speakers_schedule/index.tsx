@@ -1,13 +1,16 @@
-import { Page } from '@react-pdf/renderer';
-// El `Document` de la app, no el de react-pdf en crudo: es el que registra las
-// tipografías y fija el idioma y la dirección del texto. Esta plantilla era la
-// única que usaba el de react-pdf directamente.
-import { Document, PdfFooter, PdfHeader } from '@views/components';
-import { TemplateOutgoingSpeakersProps } from './index.types';
+import { Document } from '@views/components';
+import { PdfEmpty, PdfTable, Sheet } from '@views/design';
 import useAppTranslation from '@hooks/useAppTranslation';
-import OSScheduleContainer from './OSScheduleContainer';
-import styles from './index.styles';
+import { TemplateOutgoingSpeakersProps } from './index.types';
 
+/**
+ * Discursos salientes: quién va a discursar fuera, cuándo y con qué bosquejo.
+ *
+ * Va sobre el sistema de diseño de los PDF (`PDF_DESIGN_SYSTEM.md`). Es una
+ * LISTA de cinco datos por fila, así que es una tabla y no una tarjeta por
+ * discurso: en tarjetas, veinte discursos ocupaban tres hojas para decir lo
+ * mismo que cabe en una.
+ */
 const TemplateOutgoingSpeakersSchedule = ({
   congregation,
   data,
@@ -15,18 +18,41 @@ const TemplateOutgoingSpeakersSchedule = ({
 }: TemplateOutgoingSpeakersProps) => {
   const { t } = useAppTranslation();
 
+  // `data` llega agrupada por semanas; aquí se aplana, porque en una tabla el
+  // agrupamiento lo hace ya la columna de la fecha.
+  const filas = data.flat().map((item) => ({
+    fecha: item.date?.formatted ?? item.weekOfFormatted,
+    orador: item.speaker,
+    congregacion: item.congregation_name,
+    discurso: item.public_talk?.number
+      ? `${item.public_talk.number}. ${item.public_talk.title}`
+      : '',
+    cancion: item.opening_song?.number ? `${item.opening_song.number}` : '',
+  }));
+
   return (
     <Document title={t('tr_outgoingSpeakersSchedule')} lang={lang}>
-      <Page size="A4" style={styles.body}>
-        <PdfHeader
-          congregation={congregation || 'Elda Centro'}
-          title={t('tr_outgoingSpeakersSchedule')}
-        />
-
-        <OSScheduleContainer data={data} />
-
-        <PdfFooter congregation={congregation || 'Elda Centro'} paginado />
-      </Page>
+      <Sheet
+        congregation={congregation}
+        title={t('tr_outgoingSpeakersSchedule')}
+        paginated
+      >
+        {filas.length === 0 ? (
+          <PdfEmpty>Todavía no hay discursos salientes programados.</PdfEmpty>
+        ) : (
+          <PdfTable
+            dense={filas.length > 18}
+            columns={[
+              { key: 'fecha', header: 'Fecha', width: '20%', emphasis: true },
+              { key: 'orador', header: 'Orador', width: '22%' },
+              { key: 'congregacion', header: 'Congregación', width: '20%' },
+              { key: 'discurso', header: 'Discurso', width: '31%' },
+              { key: 'cancion', header: 'Canción', width: '7%', muted: true },
+            ]}
+            rows={filas}
+          />
+        )}
+      </Sheet>
     </Document>
   );
 };

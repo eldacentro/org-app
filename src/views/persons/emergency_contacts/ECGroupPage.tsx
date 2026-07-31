@@ -1,69 +1,67 @@
-import { Text, View } from '@react-pdf/renderer';
-import { Page, PdfFooter, PdfHeader } from '@views/components';
+import { View } from '@react-pdf/renderer';
+import { PdfEmpty, PdfNote, Sheet, color, space, text } from '@views/design';
+import { Text } from '@react-pdf/renderer';
 import { ECGroupPageProps } from './index.types';
 import ECMember from './ECMember';
-import styles from './index.styles';
 
-// Una página completa por grupo — antes se empaquetaban varios grupos por
-// hoja en una cuadrícula y, con congregaciones/grupos grandes, el contenido
-// se salía por debajo del margen. Ahora cada grupo tiene su propia página (o
-// varias, si no cabe), así el contenido nunca se corta.
+/**
+ * Una hoja por grupo. Por eso el grupo es el subtítulo y no una banda: el
+ * título de la hoja es "Contactos de emergencia", y de qué grupo es va justo
+ * debajo, como en todos los demás documentos.
+ */
 const ECGroupPage = ({
   group,
   congregation,
   generatedAt,
   coContact,
 }: ECGroupPageProps) => {
-  // El nombre del CO ya existe en Ajustes desde hace tiempo (se usa en los
-  // programas de reunión), así que se muestra en cuanto haya un nombre —
-  // no hace falta esperar a que también se rellenen teléfono/correo, que
-  // son los campos nuevos y opcionales.
+  // El nombre del CO ya existe en Ajustes desde hace tiempo, así que se
+  // muestra en cuanto haya un nombre — no hace falta esperar a que también se
+  // rellenen teléfono y correo, que son los campos nuevos y opcionales.
   const showCoContact = !!coContact?.name;
+  const total = group.members.length;
 
   return (
-    <Page>
-      <View style={styles.contentWrapper}>
-        {/* Una hoja por grupo, así que el grupo es el subtítulo: antes el
-            título de la hoja solo existía dentro de una banda azul, y la hoja
-            no tenía ni cabecera de marca ni pie como las demás. */}
-        <PdfHeader
-          congregation={congregation || 'Elda Centro'}
-          meta={generatedAt}
-          title="Contactos de emergencia"
-          subtitle={`${group.group_name} · ${group.members.length} ${
-            group.members.length === 1 ? 'publicador' : 'publicadores'
-          }`}
-        />
-
-        {showCoContact && (
-          <View style={styles.coContact}>
-            <Text style={styles.coContactName}>
-              Superintendente de circuito: {coContact.name}
+    <Sheet
+      congregation={congregation}
+      meta={generatedAt}
+      title="Contactos de emergencia"
+      subtitle={`${group.group_name} · ${total} ${
+        total === 1 ? 'publicador' : 'publicadores'
+      }`}
+      paginated
+      footerMeta={generatedAt}
+    >
+      {showCoContact ? (
+        <PdfNote style={{ marginBottom: space.lg }}>
+          <Text style={{ ...text.body, fontWeight: 700 }}>
+            Superintendente de circuito: {coContact.name}
+          </Text>
+          {[coContact.phone, coContact.email].filter(Boolean).length > 0 ? (
+            <Text style={{ ...text.body, fontSize: 8.6, color: color.muted }}>
+              {[coContact.phone, coContact.email].filter(Boolean).join('  ·  ')}
             </Text>
-            {[coContact.phone, coContact.email].filter(Boolean).length > 0 && (
-              <Text style={styles.coContactLine}>
-                {[coContact.phone, coContact.email].filter(Boolean).join('  ·  ')}
-              </Text>
-            )}
-          </View>
-        )}
+          ) : null}
+        </PdfNote>
+      ) : null}
 
-        {group.members.length === 0 ? (
-          <Text style={styles.emptyGroupText}>Sin publicadores</Text>
-        ) : (
-          <View style={styles.memberGrid}>
-            {group.members.map((member, i) => (
-              <ECMember key={member.name + i} member={member} />
-            ))}
-          </View>
-        )}
-      </View>
-
-      <PdfFooter
-        congregation={congregation || 'Elda Centro'}
-        meta={generatedAt}
-      />
-    </Page>
+      {total === 0 ? (
+        <PdfEmpty>Sin publicadores en este grupo.</PdfEmpty>
+      ) : (
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: space.lg,
+          }}
+        >
+          {group.members.map((member, i) => (
+            <ECMember key={member.name + i} member={member} />
+          ))}
+        </View>
+      )}
+    </Sheet>
   );
 };
 
