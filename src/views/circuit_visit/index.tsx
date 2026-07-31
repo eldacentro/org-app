@@ -235,7 +235,7 @@ const CircuitVisitProgramDoc = ({
                   <View
                     key={`${meal.date}_${idx}`}
                     style={
-                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
                     }
                     wrap={false}
                   >
@@ -273,7 +273,7 @@ const CircuitVisitProgramDoc = ({
                   <View
                     key={`${sv.date}_${sv.time}_${idx}`}
                     style={
-                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
                     }
                     wrap={false}
                   >
@@ -333,7 +333,7 @@ const CircuitVisitProgramDoc = ({
                   <View
                     key={`${row.date}_${row.time}_${idx}`}
                     style={
-                      idx % 2 === 1 ? [styles.row, styles.rowAlt] : styles.row
+                      idx % 2 === 0 ? [styles.row, styles.rowAlt] : styles.row
                     }
                     wrap={false}
                   >

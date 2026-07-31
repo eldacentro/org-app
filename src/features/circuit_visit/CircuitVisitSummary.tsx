@@ -7,7 +7,7 @@ import { CircuitVisitType } from '@definition/circuit_visit';
 import {
   COFullnameState,
   COSpouseNameState,
-  congFullnameState,
+  congNameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
   userLocalUIDState,
@@ -61,7 +61,7 @@ const CircuitVisitSummary = ({
 }) => {
   const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
-  const congName = useAtomValue(congFullnameState);
+  const congName = useAtomValue(congNameState);
   const persons = useAtomValue(personsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);

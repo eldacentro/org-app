@@ -6,7 +6,7 @@ import {
   COFullnameState,
   COSpouseNameState,
   JWLangState,
-  congFullnameState,
+  congNameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
   midweekMeetingTimeState,
@@ -46,7 +46,11 @@ const useCircuitVisitDashboard = () => {
   const visits = useAtomValue(circuitVisitsState);
   const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
-  const congName = useAtomValue(congFullnameState);
+  // El NOMBRE, no `congFullnameState`, que le pega detrás el número de
+  // congregación: en la cabecera y el pie del programa salía "Elda Centro,
+  // 9357". Ese número es para los informes que van a la sucursal, no para una
+  // hoja que se reparte en el Salón. El PDF de Responsabilidades ya usa este.
+  const congName = useAtomValue(congNameState);
   const jwLang = useAtomValue(JWLangState);
   const outingsList = useAtomValue(serviceOutingsListState);
   const outingsSettings = useAtomValue(serviceOutingsSettingsState);

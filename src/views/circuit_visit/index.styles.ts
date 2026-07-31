@@ -87,6 +87,12 @@ export const styles = StyleSheet.create({
   },
 
   // ── Tablas ─────────────────────────────────────────────────────────────
+  //
+  // Solo franjas: ni una raya. Antes cada fila llevaba su línea por debajo Y su
+  // franja, dos maneras de decir lo mismo — y con las líneas puestas, la franja
+  // se veía como suciedad en vez de como ayuda. Quitadas las líneas, la franja
+  // sola separa las filas, y la cabecera se distingue porque es lo único que
+  // queda en blanco arriba del todo.
   table: {
     display: 'flex',
     flexDirection: 'column',
@@ -94,17 +100,18 @@ export const styles = StyleSheet.create({
   headRow: {
     display: 'flex',
     flexDirection: 'row',
-    paddingBottom: 4,
-    borderBottom: `1px solid ${LINE}`,
+    paddingBottom: 5,
   },
   row: {
     display: 'flex',
     flexDirection: 'row',
-    paddingVertical: 5.5,
-    borderBottom: `1px solid ${LINE}`,
+    paddingVertical: 6.5,
+    borderRadius: 3,
   },
-  // Franja tenue en las filas alternas: en una tabla de cinco columnas es lo
-  // que permite seguir una fila de lado a lado sin perderla.
+  // La franja va en las filas PARES, empezando por la primera. La cabecera no
+  // tiene fondo, así que si la primera fila tampoco lo tuviera, arriba
+  // quedarían dos blancos seguidos y la cuenta empezaba mal: parecía que la
+  // cabecera formaba pareja con la primera fila.
   rowAlt: {
     backgroundColor: ZEBRA,
   },

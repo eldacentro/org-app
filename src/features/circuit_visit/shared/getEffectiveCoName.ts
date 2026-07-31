@@ -30,7 +30,9 @@ export const getEffectiveCoName = (
   coSpouseName: string
 ) => {
   const effectiveCoName =
-    visit.is_substitute && visit.substitute_name ? visit.substitute_name : coName;
+    visit.is_substitute && visit.substitute_name
+      ? visit.substitute_name
+      : coName;
   const effectiveCoSpouseName = visit.is_substitute
     ? visit.substitute_spouse_name || ''
     : coSpouseName;
