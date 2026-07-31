@@ -449,7 +449,15 @@ Necesita ojos encima. Orden por impacto, no por comodidad.
       Ojo con el detalle que casi se me cuela: un `<button>` NO se estira al
       ancho del padre aunque sea `display: flex`, y trae fondo gris de fábrica.
       Lo primero lo cazó una medición; lo segundo, una captura.
-      Queda el repaso visual de las pantallas de categoría.
+      **Cerrado (2026-07-31)** el repaso de las pantallas de categoría. Lo que
+      había: dos círculos con `50%` en vez del token, cuatro blancos escritos a
+      mano en el esqueleto de carga (van sobre la tarjeta de marca, donde un
+      gris desaparecería, así que el blanco apagado es correcto — ahora es un
+      token) y, el de verdad, **el azul de marca CONGELADO** en un bloque del
+      Inicio: `rgba(59,114,196,.06)` y `.12` al pasar el ratón. La app deja
+      elegir esquema de color —azul, verde, morado, naranja, rojo— y ese trozo
+      se quedaba azul con los otros cuatro. Comprobado poniendo el esquema en
+      verde: el Inicio entero cambia.
 - [~] **`src/components` + armazón** (244) — cada arreglo aquí se cobra en
       decenas de pantallas. Hecho el **barrido de iconos ajenos**: la app tiene
       308 iconos propios y usaba 9 de Material Icons, con OTRO trazo. Fuera los
@@ -623,8 +631,12 @@ pantalla **no puede ver**, por definición. Decisión ya tomada en cada línea.
       verificado con una lista larga de hermanos, porque la semilla de prueba
       no trae ninguno habilitado para Salidas (hay que marcarlo en la ficha de
       cada persona).
-      Quedan los dos `<MenuItem>` sueltos con personas (Limpieza y catálogo de
-      oradores).
+      **Cerrado (2026-07-31)**: los dos que quedaban NO son el mismo caso. El
+      de Limpieza elige GRUPO de limpieza, no persona — lista corta y cerrada,
+      que es justo donde la regla dice `Select`. Y el del catálogo elige entre
+      los oradores DE LA PROPIA congregación (una o dos docenas de ancianos y
+      siervos), no entre los cien y pico publicadores: no es el caso de Salidas.
+      Los dos se quedan como están, y ahora está escrito por qué.
 - [x] **Estado vacío** → `@components/empty_state`. No eran "8 copias del
       patrón bueno": eran **SIETE dibujos distintos** que no coincidían en
       nada — borde punteado o sólido, tres radios, tres clases de texto, dos

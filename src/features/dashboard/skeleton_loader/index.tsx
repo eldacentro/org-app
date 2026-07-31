@@ -38,7 +38,7 @@ const DashboardSkeletonLoader = () => {
             height={24}
             sx={{
               borderRadius: 'var(--shape-sm)',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              backgroundColor: 'var(--skeleton-sobre-marca)',
             }}
           />
         </div>
@@ -47,14 +47,14 @@ const DashboardSkeletonLoader = () => {
             variant="text"
             width="30%"
             height={16}
-            sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            sx={{ backgroundColor: 'var(--skeleton-sobre-marca)' }}
           />
           <Skeleton
             variant="text"
             width="70%"
             height={24}
             sx={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              backgroundColor: 'var(--skeleton-sobre-marca)',
               marginTop: '4px',
             }}
           />
@@ -64,7 +64,7 @@ const DashboardSkeletonLoader = () => {
           width={24}
           height={34}
           sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            backgroundColor: 'var(--skeleton-sobre-marca)',
             marginRight: '2px',
           }}
         />

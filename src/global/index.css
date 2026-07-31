@@ -324,6 +324,13 @@ body iframe {
   --state-selected-ink: var(--accent-dark);
   --state-disabled-opacity: 0.38;
 
+  /* El hueco que deja lo que se está cargando, cuando va SOBRE la tarjeta de
+     marca del Inicio y no sobre el fondo de la página. Ahí el esqueleto no
+     puede ser gris —desaparecería contra el color— así que es blanco muy
+     apagado. Estaba escrito a mano cuatro veces como `rgba(255,255,255,.2)`;
+     como token, si algún día la tarjeta cambia de color se cambia en un sitio. */
+  --skeleton-sobre-marca: rgba(255, 255, 255, 0.2);
+
   /* Ancho máximo de la columna de contenido del panel principal y de los
      menús de categoría. Es una variable y no un 600px suelto repetido en
      siete ficheros porque el escalón de tablet (al final de este fichero)

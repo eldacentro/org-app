@@ -244,7 +244,7 @@ const CongregationDashboard = () => {
                   sx={{
                     width: 8,
                     height: 8,
-                    borderRadius: '50%',
+                    borderRadius: 'var(--shape-full)',
                     backgroundColor: 'var(--blue-main)',
                   }}
                 />

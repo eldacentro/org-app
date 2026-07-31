@@ -851,7 +851,7 @@ const Dashboard = () => {
                 flexShrink: 0,
                 width: '8px',
                 height: '8px',
-                borderRadius: '50%',
+                borderRadius: 'var(--shape-full)',
                 backgroundColor: 'var(--brand)',
                 // `pulse` es global (index.css) y es la misma señal de "vivo"
                 // que la cuenta atrás de la tarjeta del programa. `eldaPulse`
@@ -947,12 +947,21 @@ const Dashboard = () => {
                   margin: '12px',
                   padding: '12px 14px',
                   borderRadius: 'var(--shape-lg)',
-                  background: 'rgba(59, 114, 196, 0.06)',
+                  // El azul de marca estaba CONGELADO aquí. La app deja
+                  // elegir esquema de color —azul, verde, morado, naranja,
+                  // rojo— y este trozo se quedaba azul con cualquiera de los
+                  // otros cuatro. Con `color-mix` sobre el acento sigue al
+                  // que esté puesto.
+                  background:
+                    'color-mix(in srgb, var(--accent-main) 6%, transparent)',
                   border: '1px solid var(--accent-200)',
                   cursor: 'pointer',
                   transition:
                     'background var(--motion-fast) var(--ease-standard)',
-                  '&:hover': { background: 'rgba(59, 114, 196, 0.12)' },
+                  '&:hover': {
+                    background:
+                      'color-mix(in srgb, var(--accent-main) 12%, transparent)',
+                  },
                 }}
               >
                 <Box sx={{ flex: 1, minWidth: 0 }}>
