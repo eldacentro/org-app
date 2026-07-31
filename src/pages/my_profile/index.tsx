@@ -40,7 +40,11 @@ const MyProfile = () => {
         buttons={
           <NavBarButton
             text={t('tr_logOut')}
-            main
+            // Sin `main`: el azul relleno es para LA acción a la que uno viene
+            // a la pantalla, y a tu perfil no vienes a cerrar sesión. Era el
+            // botón más gritón de la página —relleno, y encima rojo— para la
+            // única acción de la que uno se puede arrepentir. El rojo se
+            // queda, que ese sí dice la verdad.
             color="red"
             icon={<IconLogout />}
             onClick={handleOpenLogoutConfirm}

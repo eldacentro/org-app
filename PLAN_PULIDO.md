@@ -668,6 +668,35 @@ oradores, que mueve datos y no configura nada.
 
 ---
 
+## 6 · El botón azul relleno — CERRADO
+
+Recuento de los 30 ficheros con `<NavBarButton>` (57 botones). El sistema
+estaba **mucho mejor** de lo que parecía: 25 de las 30 pantallas ya cumplían,
+y las tres que usan `main={!monthIsPublished}` —Departamentos, Exhibidores,
+Salidas— lo hacen exactamente bien, con el azul apagándose solo al publicar.
+
+Regla escrita en DESIGN_SYSTEM.md §6.4c: **uno por pantalla, y es a lo que
+vienes**. Nunca navegar, nunca cambiar de vista, nunca destruir.
+
+Tres arreglados:
+
+  · Mi cuenta → "Cerrar sesión" era azul relleno Y rojo
+  · Ficha de usuario → "Eliminar" igual
+  · Lista de discursos públicos → el azul era el conmutador lista/tabla, y
+    dejaba en gris a "Importar", que sí es una acción
+
+Dos que **no** se tocan aunque exporten: Registros de publicador (S-21) y
+Asistencia (S-88). Ahí exportar es el producto de la pantalla y está solo.
+
+**Dos falsas alarmas del primer barrido**, anotadas para no repetirlas: mi
+detector no cerraba los botones escritos `></NavBarButton>` y se comía el
+siguiente, así que marcaba como azules a "Descalificar", "Reordenar grupos" y
+"Exportar" de entre semana — ninguno lo era. Y antes de eso, `\bmain\b` casaba
+con `var(--accent-main)`. Los inventarios a ojo de este fichero hay que
+medirlos siempre.
+
+---
+
 ## Reglas de este fichero
 
 1. Una casilla se marca **cuando está verificada**, no cuando compila.

@@ -25,7 +25,7 @@
   "tr_partnerSearchDesc": "Recibe una notificación en cuanto alguien publique una solicitud de compañero",
   "tr_organizedSettings": "Ajustes de la aplicación",
   "tr_autoSync": "Sincronización automática",
-  "tr_autoSyncDesc": "Sincroniza automáticamente los datos entre la congregación y tus dispositivos conectados a ",
+  "tr_autoSyncDesc": "Sincroniza automáticamente los datos entre la congregación y tus dispositivos conectados a Elda Centro",
   "tr_syncInterval": "Intervalo de sincronización",
   "tr_customLinkInMobilePanel": "Enlace personalizado en el panel de navegación móvil",
   "tr_customLinkInMobilePanelDesc": "Reemplaza el botón de ‘Tablero de anuncios’ con otra función para acceso rápido desde la página de inicio",

@@ -588,6 +588,37 @@ un color de marca congelado en el borde.
   ahí no hay un fondo conocido contra el que destacar, y la línea de medio
   píxel es lo que los despega de la imagen.
 
+### 6.4c El botón azul relleno: UNO por pantalla, y es a lo que vienes
+
+`<NavBarButton main>` pinta el botón azul relleno de la barra de título. Es el
+único elemento de la app que se pinta así, y por eso vale: dice, sin leerlo,
+**a qué has venido a esta pantalla**.
+
+La regla, entera:
+
+1. **Como mucho uno visible a la vez.** Dos azules no son dos acciones
+   importantes; son ninguna, porque el ojo ya no sabe dónde ir.
+2. **Es el verbo de la pantalla.** Subir en Documentos, Añadir en Personas,
+   Solicitar en Territorios, Publicar en las reuniones, Crear S-1 en el
+   informe. Si al describir la pantalla en una frase el botón no aparece en
+   ella, no es el principal.
+3. **Nunca lo es**: navegar («Volver»), cambiar de vista (lista ↔ tabla),
+   exportar o imprimir *cuando hay otra acción en la pantalla*, ni **ninguna
+   acción destructiva** — borrar, descalificar, cerrar sesión. Una destructiva
+   se marca con `color="red"`, que avisa; rellenarla además de azul la
+   convierte en el camino ancho, que es justo lo contrario de lo que queremos.
+4. **Exportar sí puede serlo si es el producto de la pantalla y está solo.**
+   Registros de publicador existe para sacar el S-21, y Asistencia para sacar
+   el S-88: ahí el botón único de exportar sí es el verbo. En Reunión entre
+   semana no, porque compite con Publicar.
+5. **Si la acción deja de tener sentido, deja de ser azul**, no se esconde:
+   `main={!monthIsPublished}` en Publicar. Un mes ya publicado enseña
+   «Publicado» en gris, y el azul vuelve solo cuando hay algo que publicar.
+
+Y una consecuencia práctica: si una pantalla no tiene ninguna acción que
+cumpla el punto 2, **se queda sin botón azul**. No hay que ascender el que
+haya para llenar el hueco.
+
 ### 6.5 Un campo con un botón al lado: NUNCA se estira el botón al alto del campo
 
 Un campo mide 56px (etiqueta dentro) y un botón mide 40. Puestos en la misma

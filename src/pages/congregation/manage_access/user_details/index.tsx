@@ -44,7 +44,9 @@ const UserDetails = () => {
           buttons={
             <NavBarButton
               text={t('tr_delete')}
-              main
+              // Sin `main`: una acción destructiva nunca es la principal.
+              // A la ficha de un usuario se viene a mirarla y a cambiarle
+              // permisos; borrarlo es la salida de emergencia, no el camino.
               color="red"
               icon={<IconDelete />}
               disabled={deleteDisabled}

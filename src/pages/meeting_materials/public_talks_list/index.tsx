@@ -1,6 +1,10 @@
 import { Box } from '@mui/material';
 import { IconListView, IconSpreadsheet } from '@components/icons';
-import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
+import {
+  useAppTranslation,
+  useBreakpoints,
+  useCurrentUser,
+} from '@hooks/index';
 import usePublicTalksList from './usePublicTalksList';
 import PageTitle from '@components/page_title';
 import PublicTalks from '@features/meeting_materials/public_talks';
@@ -29,7 +33,10 @@ const PublicTalksList = () => {
           <>
             {isPublicTalkCoordinator && <ImportTalks />}
             <NavBarButton
-              main
+              // Sin `main`: cambiar entre lista y tabla no es una acción, es
+              // una preferencia de cómo mirar lo mismo. Encima se lo llevaba
+              // por delante a Importar, que sí es una acción de verdad y que
+              // quedaba al lado en gris.
               text={
                 currentView === 'list' ? t('tr_tableView') : t('tr_listView')
               }
