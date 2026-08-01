@@ -37,6 +37,7 @@ import {
 import { buildVisitForWeek } from '@services/app/circuit_visit';
 import { addDays, formatDate } from '@utils/date';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
+import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 export type CircuitVisitSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -500,7 +501,10 @@ const useCircuitVisitDashboard = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Visita_CO_${working.weekOf.replace(/\//g, '-')}.pdf`;
+    link.download = nombreArchivo(
+      'Visita del superintendente de circuito',
+      diaArchivo(working.weekOf)
+    );
     link.click();
     URL.revokeObjectURL(url);
   }, [

@@ -51,7 +51,6 @@ const TemplateOutgoingSpeakersSchedule = ({
         congregation={congregation}
         period={periodo(primera, ultima)}
         title="Discursos salientes"
-        subtitle="Hermanos que discursan en otras congregaciones"
         documentName="Discursos salientes"
       >
         <PdfCard title="Programa" meta={`${filas.length} discursos`} flush>

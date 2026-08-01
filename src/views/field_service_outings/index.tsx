@@ -105,7 +105,6 @@ const OutingsSchedulePDF = ({
         congregation={cong_name}
         period={monthName}
         title="Salidas de predicación"
-        subtitle="Hora · punto de encuentro · quién dirige"
         documentName="Salidas de predicación"
         updatedAt={fechaPie(updatedAt)}
         landscape

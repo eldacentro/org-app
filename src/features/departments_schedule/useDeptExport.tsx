@@ -13,6 +13,7 @@ import { buildDeptSlots, DEPT_LABEL } from '@services/app/departments_slots';
 import { DepartmentType } from '@definition/person';
 import { formatDateShortMonth, weeksInMonth } from '@utils/date';
 import DeptSchedulePDF, { DeptPDFData } from '@views/departments';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const useDeptExport = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
@@ -71,7 +72,10 @@ const useDeptExport = () => {
     const meses = [...MESES_ES];
     const monthIndex = parseInt(month) - 1;
     const monthName = meses[monthIndex];
-    const fileName = `Departamentos_${monthName}_${year}.pdf`;
+    const fileName = nombreArchivo(
+      'Programa de departamentos',
+      `${year}-${month.padStart(2, '0')}`
+    );
 
     try {
       const doc = (

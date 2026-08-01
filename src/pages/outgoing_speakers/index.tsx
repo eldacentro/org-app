@@ -57,6 +57,7 @@ import OutgoingTalksEditor from '@features/meetings/outgoing_talks';
 import ScrollableTabs from '@components/scrollable_tabs';
 import MonthRow from '@components/period_selector/MonthRow';
 import WeekRow from '@components/period_selector/WeekRow';
+import { nombreArchivo, rangoArchivo } from '@utils/nombre_pdf';
 
 const OutgoingSpeakersPage = () => {
   const { t } = useAppTranslation();
@@ -536,7 +537,10 @@ const OutgoingSpeakersPage = () => {
         />
       ).toBlob();
 
-      saveAs(blob, `Salidas_Oradores_${startWeek}_${endWeek}.pdf`);
+      saveAs(
+        blob,
+        nombreArchivo('Discursos salientes', rangoArchivo(startWeek, endWeek))
+      );
 
       setIsProcessing(false);
       setIsExportOpen(false);

@@ -39,6 +39,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { formatDate } from '@utils/date';
 import { personIsAway } from '@services/app/persons';
+import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
   const location = useLocation();
@@ -496,7 +497,10 @@ const useStudentSelector = ({ type, assignment, week }: PersonSelectorType) => {
         <TemplateS89 data={data} lang={sourceLocale} />
       ).toBlob();
 
-      const filename = `S-89_${data.weekOf.replaceAll('/', '')}_${data.student_name.replace(' ', '_')}.pdf`;
+      const filename = nombreArchivo(
+        'S-89',
+        `${diaArchivo(data.weekOf)} ${data.student_name}`
+      );
 
       saveAs(blob, filename);
     } catch (error) {

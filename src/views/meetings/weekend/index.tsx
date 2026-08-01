@@ -158,8 +158,6 @@ const WeekendMeetingTemplate = ({
   data,
   cong_name,
   lang,
-  meetingDay,
-  meetingTime,
 }: WeekendMeetingTemplateType) => {
   const { t } = useAppTranslation();
 
@@ -186,15 +184,6 @@ const WeekendMeetingTemplate = ({
         congregation={cong_name}
         period={periodo(data.at(0)?.date_raw, data.at(-1)?.date_raw)}
         title="Programa de la reunión del fin de semana"
-        subtitle={[
-          'Discurso público y Estudio de La Atalaya',
-          meetingDay
-            ? meetingDay.charAt(0).toUpperCase() + meetingDay.slice(1)
-            : '',
-          meetingTime,
-        ]
-          .filter(Boolean)
-          .join(' · ')}
         documentName="Programa de la reunión del fin de semana"
         updatedAt={fechaPie(ultimaFecha)}
       >

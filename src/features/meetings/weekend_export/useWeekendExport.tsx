@@ -8,25 +8,18 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
 import { SchedWeekType, WeekendMeetingDataType } from '@definition/schedules';
 import { schedulesWeekendData } from '@services/app/schedules';
-import {
-  JWLangLocaleState,
-  userDataViewState,
-  weekendMeetingTimeState,
-  weekendMeetingWeekdayState,
-} from '@states/settings';
-import { DIAS_ES } from '@utils/nombres_fecha';
+import { JWLangLocaleState, userDataViewState } from '@states/settings';
 import { TemplateWeekendMeeting } from '@views/index';
 import { headerForScheduleState } from '@states/field_service_groups';
 import { Week } from '@definition/week_type';
 import { WEEK_TYPE_NO_MEETING } from '@constants/index';
+import { nombreArchivo, rangoArchivo } from '@utils/nombre_pdf';
 
 const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
   const schedules = useAtomValue(schedulesState);
   const dataView = useAtomValue(userDataViewState);
   const congName = useAtomValue(headerForScheduleState);
   const sourceLang = useAtomValue(JWLangLocaleState);
-  const meetingWeekday = useAtomValue(weekendMeetingWeekdayState);
-  const meetingTime = useAtomValue(weekendMeetingTimeState);
 
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');
@@ -44,20 +37,18 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
       meetingData.push(data);
     }
 
-    const firstWeek = meetingData.at(0).weekOf.replaceAll('/', '');
-    const lastWeek = meetingData.at(-1).weekOf.replaceAll('/', '');
-
     const blob = await pdf(
       <TemplateWeekendMeeting
         data={meetingData}
         cong_name={congName}
         lang={sourceLang}
-        meetingDay={DIAS_ES[meetingWeekday - 1]}
-        meetingTime={meetingTime}
       />
     ).toBlob();
 
-    const filename = `WM_${firstWeek}-${lastWeek}.pdf`;
+    const filename = nombreArchivo(
+      'Programa de la reunión del fin de semana',
+      rangoArchivo(meetingData.at(0).weekOf, meetingData.at(-1).weekOf)
+    );
 
     saveAs(blob, filename);
   };

@@ -23,6 +23,8 @@ export type S140SourceType = {
 
 export type S140SongType = {
   song: string;
+  /** El título, cuando el catálogo de canciones lo tiene. */
+  title?: string;
   lang: string;
 };
 

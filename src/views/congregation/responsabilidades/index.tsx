@@ -70,7 +70,6 @@ const TemplateResponsabilidades = ({
         congregation={congregation}
         period={periodo(data.updatedAt ?? new Date())}
         title="Responsabilidades"
-        subtitle="Cuerpo de ancianos, cargos y departamentos"
         documentName="Responsabilidades"
         updatedAt={fechaPie(data.updatedAt)}
       >

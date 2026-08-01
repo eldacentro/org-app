@@ -25,7 +25,6 @@ const TemplateUpcomingEvents = ({
         congregation={congregation}
         period={periodo(primero, ultimo)}
         title={title}
-        subtitle="Asambleas, visitas y campañas"
         documentName={title}
       >
         {events.length === 0 ? (

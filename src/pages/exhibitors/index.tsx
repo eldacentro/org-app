@@ -102,6 +102,7 @@ import {
 } from '../../utils/exhibitors';
 import AppSelect from '@components/select';
 import MonthSelector from '@components/month_selector';
+import { mesArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 const weekdaysOrder = [
   'monday',
@@ -641,7 +642,10 @@ const Exhibitors = () => {
 
       saveAs(
         blob,
-        `Exhibidores_${monthNames[selectedMonth]}_${selectedYear}.pdf`
+        nombreArchivo(
+          'Programa de exhibidores',
+          mesArchivo(new Date(selectedYear, selectedMonth, 1))
+        )
       );
 
       displaySnackNotification({

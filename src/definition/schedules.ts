@@ -245,6 +245,11 @@ export type MidweekMeetingDataType = {
     pgm_end: string;
   };
   song_first: string;
+  /**
+   * El título de la canción, aparte del número. Solo lo usa el programa de la
+   * app: el formulario oficial S-140 lleva el número a secas y no se toca.
+   */
+  song_first_title?: string;
   opening_prayer_name: string;
   tgw_talk_src: string;
   tgw_talk_time: string;
@@ -296,6 +301,7 @@ export type MidweekMeetingDataType = {
   ayf_part4_B_student_name?: string;
   ayf_part4_B_assistant_name?: string;
   lc_middle_song: string;
+  lc_middle_song_title?: string;
   lc_count: number;
   lc_part1_time: string;
   lc_part1_src: string;
@@ -314,6 +320,7 @@ export type MidweekMeetingDataType = {
   lc_cbs_conductor_name?: string;
   lc_cbs_reader_name?: string;
   lc_concluding_song: string;
+  lc_concluding_song_title?: string;
   lc_concluding_prayer: string;
   co_name?: string;
   full: boolean;

@@ -147,6 +147,11 @@ const styles: Record<string, Style> = {
     fontWeight: 600,
     color: color.ink,
   },
+  songTitle: {
+    fontSize: size.body,
+    color: color.ink,
+    textAlign: 'left',
+  },
 
   // ── El separador de sección ────────────────────────────────────────────
   //

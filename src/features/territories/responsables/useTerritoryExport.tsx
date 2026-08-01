@@ -20,6 +20,7 @@ import { territoriesToKml } from '@utils/kml';
 import { usePersonName } from '@features/territories/usePersonName';
 import { PDFDocument, PDFFont, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const S13_DATE = 'dd-MM-yyyy';
 const ROWS_PER_SHEET = 20;
@@ -371,7 +372,7 @@ export const useTerritoryExport = () => {
       // Descargar el PDF final
       const pdfBytes = await doc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      saveAs(blob, `S-13_${safeName}_${startYear}.pdf`);
+      saveAs(blob, nombreArchivo('S-13', `${safeName} ${startYear}`));
 
       return { continuedTerritories };
     },

@@ -20,6 +20,7 @@ import usePerson from '@features/persons/hooks/usePerson';
 import { TemplateFieldServiceGroups } from '@views/index';
 import { ministryMonthsState } from '@states/field_service_reports';
 import { personIsActivePublisher } from '@services/app/publisher_status';
+import { mesArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 const useExportGroups = () => {
   const { t } = useAppTranslation();
@@ -165,7 +166,10 @@ const useExportGroups = () => {
         />
       ).toBlob();
 
-      const filename = `Field_Service_Groups.pdf`;
+      const filename = nombreArchivo(
+        'Grupos de predicación',
+        mesArchivo(new Date())
+      );
 
       saveAs(blob, filename);
 

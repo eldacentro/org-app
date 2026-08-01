@@ -25,7 +25,7 @@ import { CoordinatorInfo, VisitingSpeakerInvitationProps } from './index.types';
  * 2. Una **tarjeta de contenido multimedia**: antes era una línea suelta al
  *    final del bloque destacado y se perdía; ahora dice a dónde enviar las
  *    imágenes y la canción, que es lo que de verdad hace falta que se lea.
- * 3. Una **tarjeta de contactos** con los auxiliares primero y el coordinador
+ * 3. Una **tarjeta de contacto** con los auxiliares primero y el coordinador
  *    al final. Sustituye a la firma: quien recibe esta hoja no necesita una
  *    rúbrica, necesita a quién llamar.
  */
@@ -177,7 +177,7 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           </PdfCard>
         ) : null}
 
-        <PdfCard title="A quién avisar">
+        <PdfCard title="Contacto">
           <View
             style={{ display: 'flex', flexDirection: 'row', gap: space.lg }}
           >

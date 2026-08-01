@@ -147,11 +147,17 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
   escribe: Figtree no trae U+25C6 y react-pdf no tiene fuente de reserva, así
   que lo que salía en el papel era un cuadrado vacío. Lo mismo vale para
   cualquier símbolo fuera del latín básico.
-- **R14 · En un calendario, el día va arriba.** El nombre del día es el
+- **R14 · El subtítulo es para decir algo, no para contar.** Solo lo llevan
+  cuatro documentos, y en los cuatro añade lo que el título no dice: quién
+  visita y qué semana, de quién es la invitación, qué significa el ◆. Los demás
+  van sin él.
+- **R15 · En un calendario, el día va arriba.** El nombre del día es el
   encabezado de su columna, no una línea dentro de cada celda: repetirlo treinta
   veces cuesta una línea por celda, que es justo lo que hace que un mes no quepa
   en la hoja. Un día fuera del mes es un **hueco** (`filler`), y un hueco no se
-  pinta: ni borde ni franja. Franja tiene el día que existe y no tiene nada.
+  pinta: ni borde ni franja. Franja tiene el día que existe y no tiene nada. El
+  rótulo de la fila —«Semana 1»— va girado en un canalón de 14 pt: en
+  horizontal se comía 42.
 
 ### Modo compacto
 
@@ -173,7 +179,26 @@ No se tocan el título, la regla ni el pie. Nada por debajo de 7,2.
 
 ---
 
-## 5. Cómo se comprueba
+## 5. El nombre del archivo → [`nombre_pdf.ts`](./src/utils/nombre_pdf.ts)
+
+Una sola forma para todo lo que la app exporta:
+
+    <Documento> <sufijo>.pdf
+
+El documento **se llama como se llama**: el mismo nombre que lleva impreso en
+su propio pie. El sufijo identifica esa exportación y se escribe para que
+ordene solo — `2026-08` un mes, `2026-08-03 a 2026-08-30` un rango de semanas,
+o el sujeto cuando lo hay. Sin sufijo si el documento es una foto del momento.
+Los formularios oficiales conservan su código delante: `S-89 2026-08-03 a
+2026-08-24.pdf`.
+
+Antes convivían en la misma carpeta `WM_20260803-20260830.pdf`,
+`Field_Service_Groups.pdf`, `Departamentos_agosto_2026.pdf`,
+`UpcomingEvents.pdf` y `Contactos-Emergencia-01-08-26.pdf`.
+
+---
+
+## 6. Cómo se comprueba
 
 **Renderizando el PDF y mirándolo.** Los peores defectos que ha tenido este
 código —verticales cortas, esquinas blancas, uñitas con muescas, columnas que

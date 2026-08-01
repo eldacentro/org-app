@@ -16,6 +16,7 @@ import usePersons from '@features/persons/hooks/usePersons';
 import usePublisherCard from '@features/reports/hooks/usePublisherCard';
 import TemplateS21Doc2in1 from '@views/reports/S21/2in1';
 import TemplateS21DocMulti from '@views/reports/S21/multi';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const useExportS21 = ({ onClose }: ExportS21Props) => {
   const { t } = useAppTranslation();
@@ -101,7 +102,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
       for await (const publisher of publishers_inactive) {
         const data = getCardsData(publisher.person_uid);
-        const name = `S-21_${data.at(0).name}.pdf`;
+        const name = nombreArchivo('S-21', data.at(0).name);
 
         const blob = await pdf(
           <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
@@ -125,7 +126,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
         for await (const publisher of publishers_FTS) {
           const data = getCardsData(publisher.person_uid);
-          const name = `S-21_${data.at(0).name}.pdf`;
+          const name = nombreArchivo('S-21', data.at(0).name);
 
           const blob = await pdf(
             <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
@@ -141,7 +142,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
         for await (const publisher of publishers_AP) {
           const data = getCardsData(publisher.person_uid);
-          const name = `S-21_${data.at(0).name}.pdf`;
+          const name = nombreArchivo('S-21', data.at(0).name);
 
           const blob = await pdf(
             <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
@@ -180,7 +181,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
             if (isPub) {
               const data = getCardsData(publisher.person_uid);
-              const name = `S-21_${data.at(0).name}.pdf`;
+              const name = nombreArchivo('S-21', data.at(0).name);
 
               const blob = await pdf(
                 <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
@@ -197,7 +198,10 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     // get total FTS
     const ftsData = getCongregationCardsData('FTS');
-    let name = `S-21_${t('tr_fulltimeServants', { lng: sourceLocale })}.pdf`;
+    let name = nombreArchivo(
+      'S-21',
+      t('tr_fulltimeServants', { lng: sourceLocale })
+    );
     let blob = await pdf(
       <TemplateS21Doc2in1 data={ftsData} lang={sourceLocale} />
     ).toBlob();
@@ -205,7 +209,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     // get total AP
     const apData = getCongregationCardsData('AP');
-    name = `S-21_${t('tr_APs', { lng: sourceLocale })}.pdf`;
+    name = nombreArchivo('S-21', t('tr_APs', { lng: sourceLocale }));
     blob = await pdf(
       <TemplateS21Doc2in1 data={apData} lang={sourceLocale} />
     ).toBlob();
@@ -213,7 +217,10 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     // get total publishers
     const pubData = getCongregationCardsData('Publishers');
-    name = `S-21_${t('tr_activePublishersAll', { lng: sourceLocale })}.pdf`;
+    name = nombreArchivo(
+      'S-21',
+      t('tr_activePublishersAll', { lng: sourceLocale })
+    );
     blob = await pdf(
       <TemplateS21Doc2in1 data={pubData} lang={sourceLocale} />
     ).toBlob();
@@ -221,7 +228,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    saveAs(content, 'EldaCentro_S-21_Cards.zip');
+    saveAs(content, nombreArchivo('S-21', 'tarjetas', 'zip'));
   };
 
   const handleExportInactive = async (values: string[]) => {
@@ -240,7 +247,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       <TemplateS21DocMulti publishers={publishers} lang={sourceLocale} />
     ).toBlob();
 
-    saveAs(blob, 'EldaCentro_S-21_Cards_Inactives.pdf');
+    saveAs(blob, nombreArchivo('S-21', 'inactivos'));
   };
 
   // Arma un solo Document (una página por publicador) con los publicadores
@@ -309,7 +316,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
       await addCombinedPdfToZip({
         zip,
-        fileName: `S-21_${folderName}.pdf`,
+        fileName: nombreArchivo('S-21', folderName),
         person_uids: groupMembers,
       });
 
@@ -318,7 +325,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    saveAs(content, 'EldaCentro_S-21_Cards_Groups.zip');
+    saveAs(content, nombreArchivo('S-21', 'por grupos', 'zip'));
   };
 
   const handleExportActive = async (values: string[]) => {
@@ -344,19 +351,25 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     await addCombinedPdfToZip({
       zip,
-      fileName: `S-21_${t('tr_fulltimeServants', { lng: sourceLocale })}.pdf`,
+      fileName: nombreArchivo(
+        'S-21',
+        t('tr_fulltimeServants', { lng: sourceLocale })
+      ),
       person_uids: FTS.map((record) => record.person_uid),
     });
 
     await addCombinedPdfToZip({
       zip,
-      fileName: `S-21_${t('tr_APs', { lng: sourceLocale })}.pdf`,
+      fileName: nombreArchivo('S-21', t('tr_APs', { lng: sourceLocale })),
       person_uids: AP.map((record) => record.person_uid),
     });
 
     await addCombinedPdfToZip({
       zip,
-      fileName: `S-21_${t('tr_activePublishersAll', { lng: sourceLocale })}.pdf`,
+      fileName: nombreArchivo(
+        'S-21',
+        t('tr_activePublishersAll', { lng: sourceLocale })
+      ),
       person_uids: publishers.map((record) => record.person_uid),
     });
 
@@ -386,7 +399,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
         await addCombinedPdfToZip({
           zip: byGroupZip,
-          fileName: `S-21_${folderName}.pdf`,
+          fileName: nombreArchivo('S-21', folderName),
           person_uids: groupMembers,
         });
 
@@ -396,7 +409,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
 
     const content = await zip.generateAsync({ type: 'blob' });
 
-    saveAs(content, 'EldaCentro_S-21_Cards_Actives.zip');
+    saveAs(content, nombreArchivo('S-21', 'activos', 'zip'));
   };
 
   const handleExportCards = async (values: string[], type: string) => {
@@ -446,7 +459,7 @@ const useExportS21 = ({ onClose }: ExportS21Props) => {
       <TemplateS21DocMulti publishers={totals} lang={sourceLocale} />
     ).toBlob();
 
-    saveAs(blob, 'EldaCentro_S-21_Totales.pdf');
+    saveAs(blob, nombreArchivo('S-21', 'totales'));
 
     onClose?.();
   };

@@ -21,6 +21,7 @@ import React from 'react';
 import VisitingSpeakerInvitation from '@views/meetings/weekend/VisitingSpeakerInvitation';
 import { generateAndSharePdf } from './pdfShare';
 import { CoordinatorInfo } from '@views/meetings/weekend/VisitingSpeakerInvitation/index.types';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const usePublicTalkInvitation = (
   /** La semana en crudo (yyyy/MM/dd), para la cápsula de periodo del PDF. */
@@ -188,7 +189,12 @@ const usePublicTalkInvitation = (
       />
     );
 
-    const fileName = `Invitacion_Discurso_${speakerName.replace(/\s+/g, '_')}`;
+    // Sin extensión: `generateAndSharePdf` le pone el `.pdf`.
+    const fileName = nombreArchivo(
+      'Invitación al orador visitante',
+      speakerName,
+      ''
+    );
     await generateAndSharePdf(document, fileName, t);
   };
 

@@ -10,6 +10,7 @@ import { personsState } from '@states/persons';
 import { JWLangLocaleState } from '@states/settings';
 import usePublisherCard from '@features/reports/hooks/usePublisherCard';
 import TemplateS21Doc2in1 from '@views/reports/S21/2in1';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const useExportS21 = () => {
   const { id } = useParams();
@@ -48,7 +49,7 @@ const useExportS21 = () => {
         <TemplateS21Doc2in1 data={data} lang={sourceLocale} />
       ).toBlob();
 
-      const filename = `S-21_${data.at(0).name}.pdf`;
+      const filename = nombreArchivo('S-21', data.at(0).name);
 
       saveAs(blob, filename);
 

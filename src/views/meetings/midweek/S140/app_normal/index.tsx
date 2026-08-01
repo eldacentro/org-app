@@ -105,7 +105,6 @@ const TemplateS140AppNormal = ({
         congregation={cong_name}
         period={periodo(data.at(0)?.weekOf, data.at(-1)?.weekOf)}
         title={t('tr_midweekMeetingPrint', { lng: lang })}
-        subtitle="Tesoros de la Biblia · Seamos mejores maestros · Nuestra vida cristiana"
         documentName={t('tr_midweekMeetingPrint', { lng: lang })}
         updatedAt={fechaPie(lastUpdate?.updatedAt)}
       >
@@ -146,7 +145,11 @@ const TemplateS140AppNormal = ({
 
                       <S140Source
                         node={
-                          <S140Song song={meetingData.song_first} lang={lang} />
+                          <S140Song
+                            song={meetingData.song_first}
+                            title={meetingData.song_first_title}
+                            lang={lang}
+                          />
                         }
                         secondary={`${t('tr_prayer', { lng: lang })}:`}
                         lang={lang}
@@ -315,6 +318,7 @@ const TemplateS140AppNormal = ({
                             node={
                               <S140Song
                                 song={meetingData.lc_middle_song}
+                                title={meetingData.lc_middle_song_title}
                                 lang={lang}
                               />
                             }
@@ -428,6 +432,7 @@ const TemplateS140AppNormal = ({
                             node={
                               <S140Song
                                 song={meetingData.lc_concluding_song}
+                                title={meetingData.lc_concluding_song_title}
                                 lang={lang}
                               />
                             }

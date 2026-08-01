@@ -2393,7 +2393,10 @@ export const schedulesS89AssignmentsForWeek = (
     // `schedulesS89AssignmentCarriesSlip`). Sin el material de la semana no
     // se puede saber el tipo, y entonces se dejan pasar todas, que es como
     // se comportaba antes.
-    if (source && !schedulesS89AssignmentCarriesSlip(assignment, source, lang)) {
+    if (
+      source &&
+      !schedulesS89AssignmentCarriesSlip(assignment, source, lang)
+    ) {
       return false;
     }
 
@@ -2563,6 +2566,22 @@ export const schedulesMidweekData = (
   const sourceLocale = store.get(JWLangLocaleState);
   const assignFSG = store.get(midweekMeetingAssigFSGState);
   const fieldGroups = store.get(fieldGroupsState);
+  const songs = store.get(songsLocaleState);
+
+  /**
+   * El título de una canción a partir de su número. El catálogo lo guarda como
+   * «88. Que reine la paz», así que se le quita el número de delante: aquí ya
+   * va en su propio hueco y repetirlo sobraría.
+   */
+  const tituloCancion = (numero: string | number) => {
+    const n = +numero;
+    if (!n) return '';
+
+    const titulo =
+      songs.find((record) => record.song_number === n)?.song_title || '';
+
+    return titulo.replace(/^\d+\.\s*/, '');
+  };
 
   const minLabel = getTranslation({
     key: 'tr_minLabel',
@@ -2703,6 +2722,10 @@ export const schedulesMidweekData = (
     getTranslation({ key: 'tr_song', language: sourceLocale }) +
     ' ' +
     source.midweek_meeting.song_first[lang];
+
+  result.song_first_title = tituloCancion(
+    source.midweek_meeting.song_first[lang]
+  );
 
   if (openingPrayerLinked === '') {
     result.opening_prayer_name = schedulesWeekGetAssigned({
@@ -2861,6 +2884,10 @@ export const schedulesMidweekData = (
     ' ' +
     source.midweek_meeting.song_middle[lang];
 
+  result.lc_middle_song_title = tituloCancion(
+    source.midweek_meeting.song_middle[lang]
+  );
+
   result.lc_count = sourcesCountLC(source, dataView, lang);
 
   for (let i = 1; i < 3; i++) {
@@ -2970,6 +2997,10 @@ export const schedulesMidweekData = (
     : getTranslation({ key: 'tr_song', language: sourceLocale }) +
       ' ' +
       concluding_song;
+
+  result.lc_concluding_song_title = isSongText
+    ? ''
+    : tituloCancion(concluding_song);
 
   if (closingPrayerLinked === '') {
     result.lc_concluding_prayer = schedulesWeekGetAssigned({

@@ -25,6 +25,7 @@ import { congNameState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
 import { MeetingType } from '@definition/app';
 import TemplateS88 from '@views/reports/attendance';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const useExportS88 = () => {
   const attendances = useAtomValue(meetingAttendanceState);
@@ -480,7 +481,7 @@ const useExportS88 = () => {
         <TemplateS88 attendance={finalData} lang={lang} />
       ).toBlob();
 
-      const filename = `S-88.pdf`;
+      const filename = nombreArchivo('S-88');
 
       saveAs(blob, filename);
 

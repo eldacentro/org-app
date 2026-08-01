@@ -42,7 +42,7 @@ export type PdfGridCell = {
 };
 
 /** El ancho del canalón de la izquierda cuando hay rótulos de fila. */
-const CANALON = 42;
+const CANALON = 14;
 
 const PdfGrid = ({
   columns,
@@ -100,14 +100,29 @@ const PdfGrid = ({
           style={{ display: 'flex', flexDirection: 'row', gap }}
         >
           {canalon ? (
+            // El rótulo de la fila va GIRADO, leyéndose de abajo arriba. Ocupa
+            // así 14 pt de ancho en vez de los 42 que necesita en horizontal, y
+            // esos 28 pt se los quedan las celdas, que es donde hacen falta.
+            // El giro no mueve la caja, solo lo que se pinta dentro, así que la
+            // caja se declara ya con la forma que tendrá el texto girado.
             <View
               style={{
                 width: canalon,
                 display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={text.label}>{rowLabels?.[filaIdx] ?? ''}</Text>
+              <Text
+                style={{
+                  ...text.label,
+                  transform: 'rotate(-90deg)',
+                  width: 60,
+                  textAlign: 'center',
+                }}
+              >
+                {rowLabels?.[filaIdx] ?? ''}
+              </Text>
             </View>
           ) : null}
 

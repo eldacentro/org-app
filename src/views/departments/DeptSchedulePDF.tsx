@@ -61,7 +61,6 @@ const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
         congregation={cong_name}
         period={periodo(data.at(0)?.weekOf, data.at(-1)?.weekOf)}
         title="Programa de departamentos"
-        subtitle="Acomodadores, micrófonos, multimedia y plataforma"
         documentName="Programa de departamentos"
         updatedAt={fechaPie(ultimaFecha)}
       >

@@ -18,6 +18,7 @@ import { PublishersSortOption } from '@definition/settings';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import usePerson from '@features/persons/hooks/usePerson';
 import { TemplateEmergencyContacts } from '@views/index';
+import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
 import type {
   EmergencyContactsGroupType,
   PersonContactEntry,
@@ -162,7 +163,10 @@ const useExportEmergencyContacts = () => {
         />
       ).toBlob();
 
-      const filename = `Contactos-Emergencia-${dd}-${mm}-${yy}.pdf`;
+      const filename = nombreArchivo(
+        'Contactos de emergencia',
+        diaArchivo(new Date())
+      );
 
       saveAs(blob, filename);
 

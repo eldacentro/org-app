@@ -9,6 +9,7 @@ import { buildPersonFullname } from '@utils/common';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { TemplateResponsabilidades } from '@views/index';
+import { mesArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 const useResponsabilidadesExport = () => {
   const data = useAtomValue(responsabilidadesState);
@@ -54,7 +55,7 @@ const useResponsabilidadesExport = () => {
         />
       ).toBlob();
 
-      saveAs(blob, `Responsabilidades_${congName.replace(/\s+/g, '_')}.pdf`);
+      saveAs(blob, nombreArchivo('Responsabilidades', mesArchivo(new Date())));
     } catch (error) {
       console.error(error);
 

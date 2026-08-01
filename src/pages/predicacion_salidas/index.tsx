@@ -91,6 +91,7 @@ import {
 } from '@utils/service_outings';
 import { personIsAway } from '@services/app/persons';
 import MonthSelector from '@components/month_selector';
+import { mesArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
 // Nombres de meses en español
 const MONTH_NAMES = [...MESES_ES];
@@ -1257,7 +1258,10 @@ const PredicacionSalidas = () => {
 
       const spanishMonths = [...MESES_ES];
       const monthLabel = `${spanishMonths[pdfExportMonth]} ${pdfExportYear}`;
-      const fileName = `Salidas_${spanishMonths[pdfExportMonth]}_${pdfExportYear}.pdf`;
+      const fileName = nombreArchivo(
+        'Salidas de predicación',
+        mesArchivo(new Date(pdfExportYear, pdfExportMonth, 1))
+      );
 
       const doc = (
         <OutingsSchedulePDF

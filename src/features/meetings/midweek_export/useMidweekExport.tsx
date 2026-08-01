@@ -43,8 +43,8 @@ import { cookiesConsentState } from '@states/app';
 import { addDays } from '@utils/date';
 import { headerForScheduleState } from '@states/field_service_groups';
 import { WEEK_TYPE_NO_MEETING } from '@constants/index';
-import { formatDate } from 'date-fns';
 import { sourcesState } from '@states/sources';
+import { diaArchivo, nombreArchivo, rangoArchivo } from '@utils/nombre_pdf';
 
 const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const [S89Template, setS89Template] = useAtom(S89TemplateState);
@@ -109,15 +109,15 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
     }
 
     if (S89.length > 0) {
-      const firstWeek = S89.at(0).weekOf.replaceAll('/', '');
-      const lastWeek = S89.at(-1).weekOf.replaceAll('/', '');
-
       if (S89Template === 'S89_4x1') {
         const blob = await pdf(
           <TemplateS89Doc4in1 s89Data={S89} lang={sourceLocale} />
         ).toBlob();
 
-        const filename = `S-89_${firstWeek}-${lastWeek}.pdf`;
+        const filename = nombreArchivo(
+          'S-89',
+          rangoArchivo(S89.at(0).weekOf, S89.at(-1).weekOf)
+        );
 
         saveAs(blob, filename);
       }
@@ -130,9 +130,10 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
             <TemplateS89 data={data} lang={sourceLocale} />
           ).toBlob();
 
-          let filename = 'S-89_';
-          filename += data.weekOf.replaceAll('/', '') + '_';
-          filename += data.student_name.replace(' ', '_') + '.pdf';
+          const filename = nombreArchivo(
+            'S-89',
+            `${diaArchivo(data.weekOf)} ${data.student_name}`
+          );
 
           pdfBlobs.push({ pdfBlob: blob, filename });
         }
@@ -145,7 +146,14 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
 
         const content = await zip.generateAsync({ type: 'blob' });
 
-        saveAs(content, `S-89_${firstWeek}-${lastWeek}.zip`);
+        saveAs(
+          content,
+          nombreArchivo(
+            'S-89',
+            rangoArchivo(S89.at(0).weekOf, S89.at(-1).weekOf),
+            'zip'
+          )
+        );
       }
     }
   };
@@ -178,19 +186,17 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
         )
       ).toBlob();
 
+      // Si la congregación imprime con la fecha exacta de la reunión, el
+      // archivo se nombra con ese día y no con el lunes de la semana.
       const toAdd = meetingExactDate ? midweekDay : 0;
 
-      const firstWeek = formatDate(
-        addDays(S140.at(0).weekOf, toAdd),
-        'yyyyMMdd'
+      const filename = nombreArchivo(
+        'Programa de la reunión de entre semana',
+        rangoArchivo(
+          addDays(S140.at(0).weekOf, toAdd),
+          addDays(S140.at(-1).weekOf, toAdd)
+        )
       );
-
-      const lastWeek = formatDate(
-        addDays(S140.at(-1).weekOf, toAdd),
-        'yyyyMMdd'
-      );
-
-      const filename = `MM_${firstWeek}-${lastWeek}.pdf`;
 
       saveAs(blob, filename);
     }

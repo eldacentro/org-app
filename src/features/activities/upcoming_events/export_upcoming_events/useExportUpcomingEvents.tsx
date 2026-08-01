@@ -9,6 +9,7 @@ import { congNameState, JWLangLocaleState } from '@states/settings';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
 import { upcomingEventData } from '@services/app/upcoming_events';
 import TemplateUpcomingEvents from '@views/activities/upcoming_events';
+import { nombreArchivo } from '@utils/nombre_pdf';
 
 const useExportUpcomingEvents = () => {
   const locale = useAtomValue(JWLangLocaleState);
@@ -67,7 +68,7 @@ const useExportUpcomingEvents = () => {
         />
       ).toBlob();
 
-      const filename = 'UpcomingEvents.pdf';
+      const filename = nombreArchivo('Próximos eventos');
 
       saveAs(blob, filename);
       setIsProcessing(false);
