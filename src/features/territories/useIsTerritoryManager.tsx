@@ -23,23 +23,24 @@ export const useIsTerritoryManager = (): boolean => {
 };
 
 /**
- * Determina si el usuario actual debe RECIBIR notificaciones de solicitudes
- * de territorio. Más restrictivo que useIsTerritoryManager:
- *   - Superintendente de servicio (role: service_overseer)
- *   - Admin (coordinador / secretario)
- *   - Miembros del departamento "Territorios" en Responsabilidades
- * Los demás ancianos NO reciben esta notificación.
+ * ¿A este usuario le suenan las solicitudes de territorio?
+ *
+ * Solo a los del departamento "Territorios" de Responsabilidades — responsable,
+ * auxiliar y miembros. NADIE más: ni el administrador, ni el comité de
+ * servicio por serlo. Antes entraban los dos por delante, así que una
+ * solicitud le sonaba a gente que no lleva territorios y a quien de verdad los
+ * lleva le llegaba mezclada con los avisos de todos los demás.
+ *
+ * Mucho más estrecho que `useIsTerritoryManager`, y a propósito: una cosa es
+ * PODER entrar a repartir territorios (los ancianos, siempre) y otra que te
+ * avise el teléfono cada vez que alguien pide uno.
  */
 export const useCanReceiveTerritoryRequestNotifications = (): boolean => {
-  const { isAdmin, isServiceCommittee } = useCurrentUser();
   const responsabilidades = useAtomValue(responsabilidadesState);
   const uid = useAtomValue(userLocalUIDState);
 
-  // Comité de servicio (coordinador, secretario, superv. de servicio) siempre recibe
-  if (isAdmin || isServiceCommittee) return true;
   if (!uid || !responsabilidades) return false;
 
-  // También reciben los miembros del dpto. "Territorios" en Responsabilidades
   return responsabilidades.departamentos
     .filter(isTerritoryDept)
     .some((dep) => deptMemberUids(dep).includes(uid));

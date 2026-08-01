@@ -1,4 +1,7 @@
-import { ResponsabilidadesType, Departamento } from '@definition/responsabilidades';
+import {
+  ResponsabilidadesType,
+  Departamento,
+} from '@definition/responsabilidades';
 
 /**
  * Normaliza texto para comparaciones (quita acentos, minusculas). Antes
@@ -20,39 +23,35 @@ export const isTerritoryDept = (dep: Departamento) =>
 /** uids implicados en un departamento (responsable, auxiliar y miembros). */
 export const deptMemberUids = (dep: Departamento): string[] => {
   const uids = [dep.responsable, dep.auxiliar].filter(Boolean) as string[];
-  if (dep.type === 'extended' && Array.isArray(dep.members)) uids.push(...dep.members);
+  if (dep.type === 'extended' && Array.isArray(dep.members))
+    uids.push(...dep.members);
   return uids;
 };
 
-/** Identifica el cargo del superintendente de servicio por aproximación de texto */
-const isServiceOverseerCargo = (cargo: string) => {
-  const norm = normalize(cargo);
-  return norm.includes('superintendente de servicio') || norm.includes('service overseer') || norm.includes('superintendente do servico');
-};
-
 /**
- * Retorna todos los person_uid de los responsables de territorios:
- * - El superintendente de servicio (buscado en cargosAncianos).
- * - Los responsables, auxiliares y miembros del departamento "Territorios".
+ * A quién se AVISA de lo que pasa en Territorios: solicitudes, entregas y
+ * direcciones nuevas pendientes de aprobar.
+ *
+ * Solo los del departamento "Territorios" de Responsabilidades — responsable,
+ * auxiliar y miembros. Nadie más: ni el administrador, ni el superintendente
+ * de servicio por serlo. Si alguno de ellos tiene que enterarse, se le mete en
+ * el departamento, que es donde se dice quién lleva esto.
+ *
+ * Ojo: si el departamento está vacío no hay a quién avisar, y quien manda una
+ * solicitud recibe un "Solicitud registrada" que se lo dice (ver
+ * `DialogSolicitar`) en vez de quedarse esperando un aviso que no sale.
+ *
+ * Esto NO decide quién puede ENTRAR a gestionar Territorios — eso es
+ * `useIsTerritoryManager`, y ahí los ancianos sí entran siempre.
  */
 export const getTerritoryManagersUids = (
   responsabilidades: ResponsabilidadesType
 ): string[] => {
   const uids = new Set<string>();
 
-  // 1. Añadir al superintendente de servicio (buscando en cargosAncianos)
-  responsabilidades?.cargosAncianos?.forEach((c) => {
-    if (isServiceOverseerCargo(c.cargo) && c.responsable) {
-      uids.add(c.responsable);
-    }
+  responsabilidades?.departamentos?.filter(isTerritoryDept).forEach((dep) => {
+    deptMemberUids(dep).forEach((uid) => uids.add(uid));
   });
-
-  // 2. Añadir miembros del departamento de territorios
-  responsabilidades?.departamentos
-    ?.filter(isTerritoryDept)
-    .forEach((dep) => {
-      deptMemberUids(dep).forEach((uid) => uids.add(uid));
-    });
 
   return Array.from(uids);
 };

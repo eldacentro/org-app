@@ -1573,7 +1573,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'No todos los responsables reciben avisos de solicitudes nuevas: eso solo llega al superintendente de servicio, al admin y a los miembros del departamento Territorios. El resto de ancianos con acceso puede gestionar todo igualmente, pero tendrá que entrar a mirar la pestaña "Solicitudes" en vez de esperar un aviso.',
+            text: 'Los avisos de solicitudes nuevas llegan SOLO a los del departamento "Territorios" de Responsabilidades: su responsable, su auxiliar y sus miembros. A nadie más — tampoco al administrador ni al superintendente de servicio por serlo. Los demás ancianos pueden gestionarlo todo igual, pero tendrán que entrar a mirar la pestaña "Solicitudes" en vez de esperar un aviso.',
+          },
+          {
+            type: 'warn',
+            text: 'De ahí que el departamento tenga que estar puesto en Responsabilidades. Si está vacío no hay a quién avisar, y quien pida un territorio recibirá un "Solicitud registrada" diciéndole justo eso: que ha quedado apuntada, pero que puede tardar en que alguien la vea.',
           },
         ],
       },
@@ -1587,7 +1591,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: '"En descanso" son los territorios que están libres pero se devolvieron trabajados hace poco, todavía dentro de los días de descanso que hayas puesto en Configuración. No es que estén mal: es que aún no toca volver a darlos.',
+            text: '"En descanso" son los territorios que están libres pero se devolvieron trabajados hace poco, todavía dentro de los días de descanso que hayas puesto en Configuración. No es que estén mal: es que aún no toca volver a darlos (aunque se pueden dar igualmente si hace falta — la aplicación no te lo impide, solo te lo señala).',
           },
           {
             type: 'p',

@@ -10,10 +10,7 @@ import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import { buildPersonFullname } from '@utils/common';
 import { getTerritoryManagersUids } from './utils/managers';
-import {
-  useCanReceiveTerritoryRequestNotifications,
-  useIsTerritoryManager,
-} from './useIsTerritoryManager';
+import { useIsTerritoryManager } from './useIsTerritoryManager';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -104,7 +101,6 @@ export const useTerritories = () => {
   const persons = useAtomValue(personsState);
   const settings = useAtomValue(territorySettingsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
-  const isManager = useCanReceiveTerritoryRequestNotifications();
   const canManage = useIsTerritoryManager();
   const assignments = useAtomValue(territoryAssignmentsState);
   const territories = useAtomValue(territoriesState);
@@ -202,10 +198,15 @@ export const useTerritories = () => {
     setLoading,
   ]);
 
+  // Mantener al día la lista de a quién avisar (`settings.managers`) es una
+  // tarea de mantenimiento, no un privilegio: la hace cualquiera que pueda
+  // gestionar Territorios. Iba atada a "¿me llegan a mí los avisos?", y desde
+  // que eso es solo del departamento, la lista se habría quedado sin refrescar
+  // hasta que uno de ellos abriera la pantalla.
   useEffect(() => {
     if (
       !congId ||
-      !isManager ||
+      !canManage ||
       !responsabilidades ||
       persons.length === 0 ||
       !settings.id
@@ -265,7 +266,7 @@ export const useTerritories = () => {
         console.error('Failed to sync managers to settings:', err)
       );
     }
-  }, [congId, isManager, responsabilidades, persons, settings, fullnameOption]);
+  }, [congId, canManage, responsabilidades, persons, settings, fullnameOption]);
 
   // Migración de un solo uso: rellena returnedAt: null en asignaciones
   // abiertas creadas antes de que ese valor se escribiera explícito. Solo
