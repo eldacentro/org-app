@@ -479,7 +479,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'faq',
             q: 'Nada de esto lo arregla.',
-            a: 'Escríbele a Carlos Saca Jr. contándole qué pasa y, si puedes, con una captura de pantalla. Cuanto más concreto, más rápido se arregla.',
+            a: 'Díselo a cualquier anciano, contándole qué pasa y, si puedes, con una captura de pantalla. Él se lo pasará al hermano que pueda echarte una mano. Cuanto más concreto, más rápido se arregla.',
           },
         ],
       },

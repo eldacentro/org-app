@@ -65,12 +65,35 @@ const TOMAS = [
 
 const main = async () => {
   const browser = await chromium.launch();
+  /**
+   * RESOLUCIÓN DE VERDAD.
+   *
+   * El screencast de Chrome entrega los fotogramas al tamaño del viewport EN
+   * PUNTOS e ignora `deviceScaleFactor` —salían a 402x874, y ampliar eso en un
+   * plano cerrado es exactamente lo que se veía blando—. `maxWidth` tampoco lo
+   * arregla: no sube de ahí.
+   *
+   * La vuelta: dar un viewport tres veces mayor y devolver la maquetación a
+   * tamaño de móvil con `zoom`. La aplicación sigue viendo 402 px de ancho —o
+   * sea, sigue siendo la vista de móvil, con sus mismas medias queries— pero
+   * se pinta sobre 1206 píxeles reales.
+   */
   const context = await browser.newContext({
-    viewport: { width: ANCHO, height: ALTO },
-    deviceScaleFactor: ESCALA,
+    viewport: { width: ANCHO * ESCALA, height: ALTO * ESCALA },
+    deviceScaleFactor: 1,
     locale: 'es-ES',
   });
   const page = await context.newPage();
+
+  await page.addInitScript((escala) => {
+    const aplicar = () => {
+      if (document.documentElement) {
+        document.documentElement.style.zoom = String(escala);
+      }
+    };
+    aplicar();
+    document.addEventListener('DOMContentLoaded', aplicar);
+  }, ESCALA);
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   const comenzar = page.getByText('Comenzar prueba', { exact: false }).first();
@@ -149,8 +172,6 @@ const main = async () => {
       format: 'jpeg',
       quality: 92,
       everyNthFrame: 1,
-      maxWidth: ANCHO * ESCALA,
-      maxHeight: ALTO * ESCALA,
     });
 
     /** Dónde está un botón AHORA, en tanto por uno del viewport. */
@@ -163,10 +184,10 @@ const main = async () => {
       if (!caja) return null;
 
       return {
-        x: (caja.x + caja.width / 2) / ANCHO,
-        y: (caja.y + caja.height / 2) / ALTO,
-        ancho: caja.width / ANCHO,
-        alto: caja.height / ALTO,
+        x: (caja.x + caja.width / 2) / (ANCHO * ESCALA),
+        y: (caja.y + caja.height / 2) / (ALTO * ESCALA),
+        ancho: caja.width / (ANCHO * ESCALA),
+        alto: caja.height / (ALTO * ESCALA),
       };
     };
 
