@@ -52,7 +52,19 @@ se puede verificar, decirlo en vez de dejarlo pasar.
 - **El Cronómetro de predicación NO existe.** Solo hay cadenas heredadas
   (`tr_timeInServiceDesc` y el texto de bienvenida). No documentarlo ni
   prometerlo. Si aparece mencionado en algún artículo, quitarlo.
-- **La visita del superintendente en «Guía general»**: corregida.
+- **La visita del superintendente**: reglas cambiadas y verificadas contra el
+  código el 2026-08-01. **No las «corrijas» hacia atrás**: la Ayuda dice lo que
+  hace el código hoy.
+  - La **página** `/congregation/circuit-visit` es SOLO de ancianos, y siempre
+    (`useIsCircuitVisitManager` → `isElder`). Un publicador no entra: la tarjeta
+    de Congregación está tras `isElder` y la página redirige al inicio.
+  - La **pestaña** «Visita del superintendente» de Programas semanales la ve
+    todo el mundo, desde **dos meses** antes de que empiece y hasta el día
+    después de terminar (`useCircuitVisitForBrothers`,
+    `CIRCUIT_VISIT_PREVIEW_DAYS = 60`).
+  - Ya NO existen los niveles `elder` ni `public`, ni el caso especial de quien
+    tenía algo asignado, ni `CircuitVisitSummary`, ni `useCircuitVisitAccess`.
+    Si encuentras texto que los mencione, es texto viejo: quítalo.
 
 ## Mapa de roles
 
@@ -127,6 +139,12 @@ dejado texto obsoleto:
 - Permiso de exportar PDF para quien solo edita Departamentos (`2b2c42830`).
 - Los doce documentos impresos, rehechos: los nombres de fichero cambiaron
   (`231182734`).
+- La visita del superintendente: página solo de ancianos y pestaña a dos meses
+  (`35d60a69f`). Ver arriba.
+
+Los commits de la Ayuda hasta la fecha: `bfb1eb0e0` (los cinco módulos que
+faltaban e iconos), `3ffb45697` (la visita en la Guía general y este
+documento), `35d60a69f` (las reglas nuevas de la visita).
 
 ## Cómo verificar
 
@@ -145,6 +163,23 @@ artículos a la vez (`forceExpand`), que es la forma rápida de revisarlos.
   Ayuda es para hermanos que usan la aplicación, no para quien la programa.
 - No abreviar en el texto de pantalla: «Número», no «Nro.».
 - No prometer lo que no existe.
+
+## Cómo repartir el trabajo
+
+Son 82 artículos: **no cabe en una sola sesión de contexto**. Trabaja por
+tandas y no intentes abarcarlo todo de una vez.
+
+1. Una **sección entera por tanda**, empezando por las de más riesgo (las
+   marcadas «sin tocar» arriba).
+2. **Un commit por sección**, diciendo en el mensaje qué se corrigió y por qué.
+   Así el trabajo sobrevive aunque se acabe el contexto, y se ve el avance.
+3. Al empezar una tanda nueva, `git log --oneline` sobre este fichero dice por
+   dónde ibas. Marca en la tabla de arriba la sección como auditada al
+   terminarla, en el mismo commit.
+
+Si algo no se puede verificar con el código delante, dilo en el informe en vez
+de darlo por bueno. Un artículo que «parece razonable» es exactamente lo que
+metió el fallo que originó esta auditoría.
 
 ## Cuándo está terminado
 
