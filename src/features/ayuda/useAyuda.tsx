@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { AyudaRoles, AyudaSection } from '@definition/ayuda';
+import { languageGroupsState } from '@states/field_service_groups';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 import { AYUDA_SECTIONS } from './content';
 
@@ -14,6 +16,14 @@ const useAyuda = () => {
   // suma de roles parecida: si no, al hermano del departamento "Territorios"
   // que no es anciano se le escondía la sección que más le hace falta.
   const isTerritoryManager = useIsTerritoryManager();
+
+  // `isLanguageGroupOverseer` de `useCurrentUser` le dice que sí a CUALQUIER
+  // administrador, tenga la congregación grupos de idioma o no. En una que no
+  // los tiene, eso le plantaba al administrador una sección sobre "Ajustes de
+  // grupo" que no le sirve de nada. Si no hay ningún grupo configurado, no hay
+  // nada que explicar.
+  const languageGroups = useAtomValue(languageGroupsState);
+  const hasLanguageGroups = languageGroups.length > 0;
 
   const [search, setSearch] = useState('');
 
@@ -32,9 +42,10 @@ const useAyuda = () => {
       isPersonViewer: user.isPersonViewer,
       isSettingsEditor: user.isSettingsEditor,
       isTerritoryManager,
-      isLanguageGroupOverseer: user.isLanguageGroupOverseer,
+      isLanguageGroupOverseer:
+        user.isLanguageGroupOverseer && hasLanguageGroups,
     }),
-    [user, isTerritoryManager]
+    [user, isTerritoryManager, hasLanguageGroups]
   );
 
   const sections = useMemo(() => {

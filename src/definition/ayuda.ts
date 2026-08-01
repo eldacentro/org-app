@@ -31,10 +31,15 @@ export type AyudaRoles = {
    */
   isTerritoryManager: boolean;
   /**
-   * Superintendente de grupo de idioma. Su trabajo del día a día ya está
-   * cubierto por las secciones de reuniones (las banderas de editor le salen
-   * true dentro de su grupo), pero "Ajustes de grupo" (/group-settings) es
-   * SUYA y de nadie más: sin esta bandera, esa pantalla no la explicaba nadie.
+   * Superintendente de grupo de idioma, Y con algún grupo de idioma de verdad
+   * configurado. Su trabajo del día a día ya está cubierto por las secciones
+   * de reuniones (las banderas de editor le salen true dentro de su grupo),
+   * pero "Ajustes de grupo" (/group-settings) es SUYA y de nadie más: sin esta
+   * bandera, esa pantalla no la explicaba nadie.
+   *
+   * Lo del grupo configurado no es un detalle: `useCurrentUser` se la da por
+   * buena a cualquier administrador, así que en una congregación sin grupos de
+   * idioma la sección le salía igual y no le servía de nada.
    */
   isLanguageGroupOverseer: boolean;
 };

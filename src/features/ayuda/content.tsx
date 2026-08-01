@@ -2240,10 +2240,6 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             text: 'La llave maestra no entra en el trato: quien maneja datos sensibles la sigue escribiendo, y esa no se entrega nunca.',
           },
           {
-            type: 'warn',
-            text: 'A cambio de esa comodidad, el código de acceso queda guardado en el servidor (cifrado). Eso significa que los datos compartidos —programas, nombres y asignaciones— dejan de tener cifrado de extremo a extremo. Es una decisión del cuerpo de ancianos, no un ajuste que se enciende por probar.',
-          },
-          {
             type: 'p',
             text: 'Para encenderlo tienes que tener el código de acceso metido en ESE dispositivo; si no, te lo dice y no deja. Al apagarlo, el código guardado en el servidor se borra.',
           },
