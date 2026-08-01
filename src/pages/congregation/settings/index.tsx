@@ -9,7 +9,6 @@ import useCongregationSettings from './useCongregationSettings';
 import CircuitOverseer from '@features/congregation/settings/circuit_overseer';
 import CongregationBasic from '@features/congregation/settings/congregation_basic';
 import CongregationPrivacy from '@features/congregation/settings/congregation_privacy';
-import AccesosExport from '@features/congregation/settings/accesos_export';
 import ImportExport from '@features/congregation/settings/import_export';
 import LanguageGroups from '@features/congregation/settings/language_groups';
 import MeetingForms from '@features/congregation/settings/meeting_forms';
@@ -73,7 +72,6 @@ const CongregationSettings = () => {
               <>
                 <LanguageGroups />
                 <CongregationPrivacy />
-                <AccesosExport />
               </>
             )}
           </Box>
@@ -111,7 +109,6 @@ const CongregationSettings = () => {
               <CircuitOverseer />
               <LanguageGroups />
               <CongregationPrivacy />
-              <AccesosExport />
             </>
           )}
         </Stack>
