@@ -83,10 +83,19 @@ const usePublicTalks = () => {
         };
       });
 
+      // Título, orador Y número. La lista se enseña numerada y los discursos
+      // se nombran por su número ("el 42"), pero teclearlo no encontraba nada:
+      // el número era lo único por lo que no se podía buscar. Casa por el
+      // principio —"4" trae el 4, el 40 y el 42, no el 104—, que es como se
+      // busca en una lista ordenada por número.
+      const search = txtSearch.trim().toLowerCase();
+
       if (
-        talk.talk_title.toLowerCase().includes(txtSearch.toLowerCase()) ||
+        search.length === 0 ||
+        talk.talk_title.toLowerCase().includes(search) ||
+        String(talk.talk_number).startsWith(search) ||
         personsFormatted.find((record) =>
-          record.person.toLowerCase().includes(txtSearch.toLowerCase())
+          record.person.toLowerCase().includes(search)
         )
       ) {
         results.push({

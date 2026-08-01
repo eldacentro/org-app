@@ -92,7 +92,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `informes` | secretario, registro de asistencia | ampliada, sin auditar |
 | `entre-semana` | editor de entre semana | ampliada, sin auditar |
 | `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
-| `discursos` | coordinador de discursos | **sin tocar** |
+| `discursos` | coordinador de discursos | auditada |
 | `departamentos` | editor de departamentos | ampliada, sin auditar |
 | `exhibidores` | comité de servicio | **sin tocar** |
 | `salidas-predicacion` | comité de servicio | **sin tocar** |

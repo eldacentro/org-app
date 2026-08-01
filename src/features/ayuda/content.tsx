@@ -977,47 +977,69 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Discursos → "Catálogo de oradores" mantienes la agenda de oradores: los de nuestra congregación (con los discursos que cada uno tiene preparados) y las congregaciones vecinas con los suyos.',
+            text: 'En Discursos → "Catálogo de oradores" mantienes la agenda de oradores. La pantalla tiene tres bloques: "Tu congregación" (los nuestros), "Tu circuito" (las congregaciones de tu circuito) y "Otras congregaciones" (las de fuera). Cada congregación se despliega y enseña sus oradores con los discursos que tiene preparados.',
           },
           {
             type: 'steps',
             items: [
-              'Para una congregación nueva: toca "Añadir congregación" y rellena sus datos.',
-              'Dentro de cada congregación, "Añadir orador" para registrar a sus discursantes, con sus números de discurso preparados.',
+              'Para una congregación nueva: toca "Añadir" (arriba a la derecha) y rellena los datos en la ventana "Añadir congregación".',
+              'Despliega una congregación, toca "Editar" y usa "Añadir orador" para registrar a sus discursantes, con sus números de discurso preparados. Al terminar, "Hecho".',
+              'En "Tu congregación", el lápiz abre el modo de edición, con dos pestañas: "Oradores salientes" (los nuestros que salen fuera) y "Oradores locales".',
               'Los oradores de este catálogo son los que luego aparecen para elegir al programar la reunión de fin de semana.',
             ],
+          },
+          {
+            type: 'tip',
+            text: 'El botón "Importar / Exportar" trae y saca el catálogo entero en CSV, y tiene una plantilla para empezar. La última opción del menú, "Vaciar todo el catálogo", borra todos los oradores: solo para empezar de cero.',
+          },
+          {
+            type: 'p',
+            text: 'Al programar la reunión con "Orador visitante", cada tema indica debajo cuántos oradores lo tienen preparado. Por eso conviene tener al día los discursos de cada uno: si no, los temas salen con "Aún no hay oradores".',
           },
           {
             type: 'link',
             to: '/speakers-catalog',
             label: 'Abrir Catálogo de oradores',
           },
-          {
-            type: 'tip',
-            text: 'Mantén al día los discursos que tiene preparados cada orador: la aplicación te avisa al programar si un tema se dio hace poco en la congregación, y así evitas repeticiones.',
-          },
         ],
       },
       {
         id: 'disc-salientes',
-        title: 'Discursos salientes (nuestros oradores fuera)',
+        title: 'Oradores salientes (nuestros oradores fuera)',
         blocks: [
           {
             type: 'p',
             text: 'Cuando un orador nuestro va a dar un discurso a otra congregación, se registra como discurso saliente. Así queda en el programa, el hermano lo ve en sus asignaciones y los ancianos saben quién está fuera cada fin de semana.',
           },
           {
+            type: 'p',
+            text: 'La página "Oradores salientes" tiene dos pestañas. En "Oradores" ves a los hermanos de la congregación que salen, con sus discursos y su última salida; puedes buscarlos por nombre o por número de discurso y ordenarlos por "Alfabético" o por "Última salida".',
+          },
+          {
             type: 'steps',
+            title: 'Para apuntar una salida (pestaña "Programa"):',
             items: [
-              'En la semana correspondiente del programa de fin de semana, toca "Añadir discurso saliente".',
-              'Con "Seleccionar orador y discurso" eliges al hermano, su tema y la congregación de destino.',
-              'El "Programa de oradores salientes" recoge todos los envíos y se puede imprimir para repartir o archivar.',
+              'Elige la semana en la lista de la izquierda.',
+              'Toca "Añadir discurso saliente".',
+              'Rellena "Discurso público" y "Orador", y abajo la "Congregación anfitriona": con "Seleccionar del catálogo" la eliges de las que ya tienes, o la escribes a mano.',
             ],
+          },
+          {
+            type: 'p',
+            text: '"Exportar" saca el PDF de un rango de semanas. "Publicar" no abre ninguna ventana: fuerza la sincronización para que los cambios lleguen ya a los demás.',
+          },
+          {
+            type: 'warn',
+            text: 'Si la salida la programó la otra congregación, sale un aviso y los campos quedan bloqueados: hay que hablar con su coordinador de discursos para cambiarla.',
+          },
+          {
+            type: 'tip',
+            text: 'Por defecto este programa solo lo ven los hermanos nombrados. Para que lo vea toda la congregación, enciende "Mostrar programa de oradores salientes a todos los usuarios" en el engranaje de la reunión de fin de semana.',
           },
           {
             type: 'link',
             to: '/outgoing-speakers',
-            label: 'Abrir Discursos salientes',
+            label: 'Abrir Oradores salientes',
           },
         ],
       },
@@ -1027,7 +1049,24 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Discursos → "Lista de discursos públicos" tienes los temas oficiales numerados. Al abrir uno ves su historial: cuándo se dio por última vez aquí y quién lo dio. Es la mejor manera de repartir bien los temas a lo largo del año.',
+            text: 'En Discursos → "Lista de discursos públicos" tienes los temas oficiales numerados. Cada línea lleva ya la fecha en que se dio por última vez aquí y quién lo dio. Es la mejor manera de repartir bien los temas a lo largo del año.',
+          },
+          {
+            type: 'p',
+            text: 'Al desplegar un tema ves las veces anteriores que se dio y, debajo, "Oradores disponibles": los hermanos que lo tienen preparado, con el botón "Detalles" para abrir su ficha de orador.',
+          },
+          {
+            type: 'tip',
+            text: 'El buscador de arriba encuentra por número, por título o por el nombre del hermano que lo dio. Al lado, el botón cambia entre "Vista de lista" y "Vista de tabla".',
+          },
+          {
+            type: 'p',
+            text: '"Importar" trae la lista oficial de temas desde un archivo .jwpub de JW Library: antes de aplicar nada enseña una "Vista previa de importación" con lo que cambiaría (temas nuevos, renombrados, retirados…).',
+          },
+          {
+            type: 'link',
+            to: '/public-talks-list',
+            label: 'Abrir Lista de discursos públicos',
           },
         ],
       },
@@ -1037,14 +1076,19 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Los oradores locales del catálogo están enlazados a su ficha de Personas. Si tras algún cambio de datos ves oradores duplicados o que no encuentran a su persona, hay un arreglo de un toque:',
+            text: 'Los oradores locales del catálogo están enlazados a su ficha de Personas. Si tras algún cambio de datos ves oradores que no encuentran a su persona, hay un arreglo de un toque:',
           },
           {
             type: 'steps',
             items: [
-              'En el catálogo, toca "Reconectar oradores".',
+              'En el catálogo, bloque "Tu congregación", toca el lápiz para entrar en modo de edición.',
+              'En la pestaña "Oradores salientes" aparece en rojo "Reconectar oradores". Si no aparece, es que no hay nada roto que reconectar.',
               'La aplicación re-empareja cada orador con su ficha por el nombre y te dice cuántos quedaron reconectados.',
             ],
+          },
+          {
+            type: 'p',
+            text: 'Si alguno se resiste, se abre la ventana "Oradores que siguen sin reconectarse" y te dice por qué en cada caso: porque la persona está en otra congregación, porque su ficha ya está enlazada a otro orador, porque no hay ninguna que se parezca, o porque hay varias y no está claro cuál es.',
           },
         ],
       },
