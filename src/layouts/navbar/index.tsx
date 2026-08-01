@@ -42,6 +42,7 @@ import BottomMenu from '@layouts/bottom_menu';
 import { hasRenderableContent } from '@utils/common';
 import { FORCED_UI_LANG, isTest } from '@constants/index';
 import { navBarHiddenState } from '@states/app';
+import { partirWordmark } from '@utils/wordmark';
 
 const baseMenuStyle = {
   padding: '8px 12px 8px 16px',
@@ -123,6 +124,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
     navBarOptions,
     handleQuickSettings,
   } = useNavbar();
+
+  const wordmark = partirWordmark(
+    congName ? congName.replace(/-/g, ' ') : 'Elda Centro'
+  );
 
   // --- iOS-Style hide/show por dirección (snap suave) ---
   // El JS SOLO decide si la barra se esconde o se muestra según la dirección
@@ -294,16 +299,21 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       }}
                     >
                       <IconLogo width={40} height={40} color="var(--brand)" />
-                      <div
-                        className="cong-name"
-                        style={{
-                          fontWeight: 900,
-                          fontSize: '24px',
-                          letterSpacing: '-0.5px',
-                          color: 'var(--ink)',
-                        }}
-                      >
-                        {congName ? congName.replace(/-/g, ' ') : 'Elda Centro'}
+                      {/* El logotipo de texto: «Elda» en medium y «Centro» en
+                        extranegrita, como la marca y como la cabecera de los
+                        PDF. Los pesos y el tamaño los pone `.cong-name` en
+                        `global/index.css`; escritos aquí en línea se saltaban
+                        el escalón de texto de la tablet (§3 de
+                        DESIGN_SYSTEM.md). */}
+                      <div className="cong-name">
+                        {wordmark.lugar ? (
+                          <span className="cong-name-lugar">
+                            {wordmark.lugar}{' '}
+                          </span>
+                        ) : null}
+                        <span className="cong-name-marca">
+                          {wordmark.marca}
+                        </span>
                       </div>
                     </button>
 

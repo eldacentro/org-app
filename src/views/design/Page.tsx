@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Page as PdfPage, Text, View } from '@react-pdf/renderer';
 import { IconLogo } from '@views/components/icons';
+import { partirWordmark } from '@utils/wordmark';
 import { color, page, radius, size, space, stroke, text } from './tokens';
 
 /**
@@ -31,22 +32,17 @@ import { color, page, radius, size, space, stroke, text } from './tokens';
  */
 
 /**
- * El wordmark: la última palabra en 800 y el resto en 500.
- *
- * La especificación lo define para "Elda Centro" —«Elda» 500 + «Centro» 800—,
- * pero el nombre de la congregación es un ajuste y puede ser cualquiera. La
- * regla generalizada da ese mismo resultado para el nuestro y algo sensato
- * para cualquier otro; con una sola palabra, va entera en 800.
+ * El logotipo de texto. La regla —última palabra en 800, el resto en 500— vive
+ * en `utils/wordmark`, compartida con la cabecera de la app: es la marca, y la
+ * marca no puede depender de si se mira en pantalla o en papel.
  */
 const Wordmark = ({ nombre }: { nombre: string }) => {
-  const palabras = nombre.trim().split(/\s+/);
-  const ultima = palabras.pop() ?? '';
-  const resto = palabras.join(' ');
+  const { lugar, marca } = partirWordmark(nombre);
 
   return (
     <Text style={{ fontSize: size.heading, color: color.ink }}>
-      {resto ? <Text style={{ fontWeight: 500 }}>{resto} </Text> : null}
-      <Text style={{ fontWeight: 800 }}>{ultima}</Text>
+      {lugar ? <Text style={{ fontWeight: 500 }}>{lugar} </Text> : null}
+      <Text style={{ fontWeight: 800 }}>{marca}</Text>
     </Text>
   );
 };

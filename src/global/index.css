@@ -882,11 +882,20 @@ body {
   height: 32px;
 }
 .cong-name {
-  font-weight: 700;
-  font-size: 16.5px;
-  letter-spacing: -0.01em;
+  font-size: 24px;
+  letter-spacing: -0.5px;
   line-height: 1;
   color: var(--ink);
+}
+/* El logotipo de texto: «Elda» en medium, «Centro» en extranegrita. El peso lo
+   pone cada pieza, no el contenedor. Antes esto iba en un `style` en línea del
+   JSX —nombre entero a 900— y eso ganaba siempre a esta clase, así que el
+   escalón de texto de la tablet de más abajo no llegaba a aplicarse. */
+.cong-name-lugar {
+  font-weight: 500;
+}
+.cong-name-marca {
+  font-weight: 800;
 }
 .cong-sub {
   font-size: 12px;
@@ -1659,7 +1668,7 @@ body {
     height: 38px;
   }
   .cong-name {
-    font-size: 19px;
+    font-size: 27.5px;
   }
   .cong-sub {
     font-size: 13.5px;
