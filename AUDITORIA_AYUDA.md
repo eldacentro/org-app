@@ -96,8 +96,8 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `departamentos` | editor de departamentos | ampliada, sin auditar |
 | `exhibidores` | comité de servicio | auditada |
 | `salidas-predicacion` | comité de servicio | auditada |
-| `grupos` | superintendente de grupo | **sin tocar** |
-| `personas` | quien ve personas | **sin tocar** |
+| `grupos` | superintendente de grupo | auditada |
+| `personas` | quien ve personas | auditada |
 | `territorios` | anciano, comité, admin | **sin tocar** |
 | `limpieza` | anciano, comité | ampliada, sin auditar |
 | `visita-co` | anciano, admin | nueva |

@@ -114,7 +114,6 @@ const useWeeklySchedules = () => {
     });
 
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outgoingVisible, t, upcomingVisit]);
 
   const value = useMemo(() => {

@@ -152,6 +152,19 @@ const PersonEditorRoute = () => {
   return <RouteProtected allowed={isPersonEditor} />;
 };
 
+// La LISTA de personas y la ficha de una: quien ya puede crear una persona
+// (/persons/new, aquí arriba) tiene que poder ver la lista y abrir una ficha.
+// Estaban en el bloque de ancianos, así que un editor de reuniones podía
+// crear una persona nueva y luego no encontrarla: la tarjeta de Congregación
+// le salía (usa `isPersonViewer`) y al tocarla le devolvía al inicio.
+// `isPersonViewer` = editor de programas o anciano, que es el mismo criterio
+// con el que la sincronización ya le manda la tabla de personas a su
+// dispositivo (services/worker/backupUtils.ts).
+const PersonViewerRoute = () => {
+  const { isPersonViewer } = useCurrentUser();
+  return <RouteProtected allowed={isPersonViewer} />;
+};
+
 const AttendanceEditorRoute = () => {
   const { isAttendanceEditor } = useCurrentUser();
   return <RouteProtected allowed={isAttendanceEditor} />;
@@ -322,12 +335,19 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 ],
               },
 
+              // person viewer routes
+              {
+                element: <PersonViewerRoute />,
+                children: [
+                  { path: '/persons', element: <PersonsAll /> },
+                  { path: '/persons/:id', element: <PersonDetails /> },
+                ],
+              },
+
               // elder routes
               {
                 element: <ElderRoute />,
                 children: [
-                  { path: '/persons', element: <PersonsAll /> },
-                  { path: '/persons/:id', element: <PersonDetails /> },
                   { path: '/congregation/ausencias', element: <Ausencias /> },
                   {
                     path: '/congregation-settings',

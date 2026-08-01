@@ -1380,7 +1380,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Congregación → "Grupos de predicación" ves tu grupo con todos sus miembros. Los precursores aparecen con el nombre en negrita, y el superintendente y el auxiliar quedan indicados en la cabecera del grupo.',
+            text: 'En Congregación → "Grupos de predicación" están todos los grupos con sus miembros. Cada cabecera lleva el número del grupo, una chapa con cuántos son y, si se le ha puesto, el nombre del grupo. El tuyo va marcado con "Mi grupo".',
+          },
+          {
+            type: 'p',
+            text: 'Los precursores salen con el nombre en negrita. Debajo del nombre del responsable pone "Superintendente de grupo" (o "Siervo de grupo" si es siervo ministerial), y debajo del suyo, "Auxiliar del superintendente".',
+          },
+          {
+            type: 'warn',
+            text: 'Esta pantalla la ve toda la congregación, pero crear grupos, reordenarlos, cambiar de sitio a un hermano o nombrar responsables es cosa del comité de servicio. Si eres superintendente de grupo y no lo eres también del comité, aquí solo miras.',
+          },
+          {
+            type: 'link',
+            to: '/field-service-groups',
+            label: 'Abrir Grupos de predicación',
           },
         ],
       },
@@ -1390,11 +1403,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Como responsable de grupo puedes ver los informes de predicación de los hermanos de tu grupo en Informes → "Informes de predicación": quién ha enviado ya el suyo y quién no. Así puedes recordárselo con cariño a quien se le pase, o echarle una mano a quien le cueste la aplicación (su informe también se puede apuntar en papel y pasarlo al secretario, como siempre).',
+            text: 'Como responsable de grupo puedes entrar en Informes → "Informes de predicación": quién ha enviado ya el suyo y quién no. Así puedes recordárselo con cariño a quien se le pase, o echarle una mano a quien le cueste la aplicación (su informe también se puede apuntar en papel y pasarlo al secretario, como siempre).',
           },
           {
             type: 'p',
-            text: 'Un matiz según tu responsabilidad: los superintendentes de grupo que son ancianos ven los informes de toda la congregación; los auxiliares ven los de su propio grupo.',
+            text: 'La pantalla no se recorta por grupos: entras y ves a toda la congregación. Para quedarte con los tuyos, usa el filtro y elige tu grupo. Hay otro filtro al lado por estado del informe: "Informes no enviados", "Informes pendientes de verificación" e "Informes verificados".',
+          },
+          {
+            type: 'warn',
+            text: 'Que lo veas todo no quiere decir que sea tuyo para tocarlo: de los informes del resto de grupos se encarga su responsable, y de cerrar el mes, el secretario.',
           },
         ],
       },
@@ -1404,12 +1421,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'El programa de limpieza va por grupos (Congregación → Limpieza del Salón). Cuando le toca al tuyo, a cada miembro del grupo le aparece en "MIS ASIGNACIONES", así que no hace falta que persigas a nadie: la aplicación avisa sola.',
+            text: 'El programa de limpieza va por grupos (Congregación → "Limpieza del Salón"). Cuando le toca al tuyo, a cada miembro del grupo le aparece en "Mis asignaciones" como "Limpieza del Salón (Entre semana)" o "(Fin de semana)", así que no hace falta que persigas a nadie: la aplicación avisa sola.',
           },
           {
-            type: 'link',
-            to: '/field-service-groups',
-            label: 'Abrir Grupos de predicación',
+            type: 'tip',
+            text: 'Ese aviso sale con siete días de antelación, no antes: en "Mis asignaciones" la limpieza solo aparece cuando la reunión que toca cae dentro de la semana siguiente.',
           },
         ],
       },
@@ -1434,9 +1450,9 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Para crear una: "Añadir persona" y rellena al menos nombre y condición.',
+              'Para crear una: "Añadir" (arriba a la derecha) y rellena al menos nombre y condición.',
               'Para editar: abre la ficha, cambia lo que toque y guarda. Los cambios se sincronizan a todos en segundos.',
-              'Usa el filtro (el embudo) para buscar por condición, nombramiento o grupo.',
+              'Usa "Filtros" para acotar la lista: en "Categorías" tienes sexo, ungido, archivado, cabeza de familia, publicadores (bautizado, no bautizado, activo, inactivo), precursorado y nombramientos; en "Asignaciones", por partes de la reunión.',
             ],
           },
           { type: 'link', to: '/persons', label: 'Abrir Personas' },
@@ -1452,7 +1468,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Cada ficha tiene dirección, teléfono y "Contactos de emergencia" (a quién avisar si le pasa algo). Con eso, la aplicación genera el PDF de datos de contacto por grupos, listo para los responsables.',
+            text: 'Cada ficha tiene dirección, teléfono y "Contactos de emergencia" (a quién avisar si le pasa algo). Con eso, la aplicación genera un PDF de datos de contacto ordenado por grupos, listo para los responsables.',
+          },
+          {
+            type: 'steps',
+            title: 'Para sacarlo:',
+            items: [
+              'En Personas, toca "Importar/exportar".',
+              'Dale al botón rojo "Contactos de emergencia (PDF)".',
+            ],
           },
           {
             type: 'tip',
@@ -1466,7 +1490,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Las ausencias que cada hermano apunta en su cuenta (o que tú apuntes en su ficha) se tienen en cuenta al asignar: quien está de viaje no aparece disponible esas fechas. Si un hermano se queja de que le asignaron estando fuera, lo primero es mirar si su ausencia estaba apuntada.',
+            text: 'Las ausencias se apuntan en la ficha de cada persona, y cada hermano puede apuntarse las suyas desde su propio perfil.',
+          },
+          {
+            type: 'warn',
+            text: 'Ojo con lo que hacen y lo que no: al asignar, la aplicación AVISA de que ese hermano está fuera ese día, pero no le esconde ni le impide la asignación. Sale el aviso en las partes de las reuniones, en los turnos de exhibidores y en las salidas de predicación. Si a alguien le asignaron estando fuera, lo más probable es que se pasara el aviso por alto.',
+          },
+          {
+            type: 'p',
+            text: 'Los ancianos tienen además la página Congregación → "Ausencias" (solo ellos, porque los periodos llevan comentarios), con quién está fuera "Ahora mismo", las "Próximas" y las "Terminadas", un buscador por nombre, grupo o comentario, y un aviso de las ausencias que llevan meses abiertas sin fecha de vuelta: mientras sigan así, esa persona sale como ausente en cualquier programa futuro.',
           },
         ],
       },
