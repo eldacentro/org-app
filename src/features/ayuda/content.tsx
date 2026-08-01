@@ -1771,7 +1771,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     title: 'Limpieza y actividades',
     description: 'Configurar la rotación de limpieza y los próximos eventos.',
     icon: <IconClean color="var(--accent-main)" />,
-    visible: (r) => r.isElder || r.isServiceCommittee,
+    // Las dos pantallas de esta sección se configuran con `isElder || isAdmin`
+    // (y `isAdmin` ya entra en `isElder`). Con `isServiceCommittee` se le
+    // enseñaba a un superintendente de servicio que no fuera anciano cómo
+    // cambiar algo que no puede tocar.
+    visible: (r) => r.isElder,
     articles: [
       {
         id: 'limp-config',
@@ -1779,13 +1783,14 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Congregación → Limpieza del Salón, los responsables configuran la rotación: qué grupos participan y desde qué fecha arranca el ciclo. A partir de ahí, la aplicación calcula sola qué grupo toca cada semana, todos pueden consultarlo, y a los miembros del grupo que toca les aparece en "MIS ASIGNACIONES".',
+            text: 'En Congregación → "Limpieza del Salón", los ancianos configuran la rotación: qué grupos participan y desde qué fecha arranca el ciclo. A partir de ahí, la aplicación calcula sola qué grupo toca cada semana, todos pueden consultarlo, y a los miembros del grupo que toca les aparece en "Mis asignaciones".',
           },
           {
             type: 'steps',
             items: [
-              'Abre la configuración (el icono de ajustes de la pantalla de Limpieza).',
-              'Elige los grupos que entran en la rotación y el punto de partida.',
+              'Abre el ENGRANAJE que hay junto al título ("Configuración de la limpieza").',
+              'Pon la "Fecha de inicio" y el "Grupo de inicio", y marca los "Grupos que participan en la rotación".',
+              'Si quieres, escribe unas "Notas generales" (por ejemplo, qué material hay que traer): las ve todo el mundo en la pantalla de Limpieza.',
               'Guarda. El calendario completo se rellena solo, saltando las semanas sin reunión.',
             ],
           },
@@ -1870,15 +1875,21 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Congregación → Próximos eventos, los responsables crean y editan los eventos que ve toda la congregación: asambleas, la visita del superintendente, la Conmemoración, campañas y cualquier evento personalizado.',
+            text: 'En Congregación → "Próximos eventos", los ancianos crean y editan los eventos que ve toda la congregación: asambleas, la visita del superintendente, la Conmemoración, campañas y cualquier evento personalizado.',
           },
           {
             type: 'steps',
             items: [
-              'Añade el evento con su tipo, fechas y horarios (los de varios días pueden tener horario propio por jornada).',
-              'Según el tipo, puedes añadir el lugar (saldrá el botón de Google Maps) y el enlace del programa (saldrá el botón de JW Library).',
-              'Al guardar, aparece para todos en Próximos eventos.',
+              'Toca "Añadir" y elige el "Tipo de evento".',
+              'En "Fecha y hora", di si es de un día o de varios. Si es de varios y cada jornada tiene su horario, rellénalo en "Horario de cada día".',
+              'En "Ubicación" puedes poner la dirección y el enlace de Google Maps; en los eventos que lo admiten, también el enlace de JW Library. Con eso, a los hermanos les salen esos botones.',
+              'Puedes ponerle una foto de portada.',
+              'Toca "Hecho": aparece para todos en Próximos eventos.',
             ],
+          },
+          {
+            type: 'tip',
+            text: 'La pantalla tiene también su botón de exportar, para llevarse la lista de eventos en PDF.',
           },
           {
             type: 'link',

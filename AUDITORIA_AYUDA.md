@@ -99,7 +99,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `grupos` | superintendente de grupo | auditada |
 | `personas` | quien ve personas | auditada |
 | `territorios` | quien gestiona Territorios (`useIsTerritoryManager`) | auditada |
-| `limpieza` | anciano, comité | ampliada, sin auditar |
+| `limpieza` | anciano | auditada |
 | `visita-co` | anciano, admin | nueva |
 | `responsabilidades` | anciano, admin | auditada |
 | `administracion` | admin, editor de ajustes | auditada |
