@@ -95,7 +95,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `discursos` | coordinador de discursos | auditada |
 | `departamentos` | editor de departamentos | ampliada, sin auditar |
 | `exhibidores` | comité de servicio | auditada |
-| `salidas-predicacion` | comité de servicio | **sin tocar** |
+| `salidas-predicacion` | comité de servicio | auditada |
 | `grupos` | superintendente de grupo | **sin tocar** |
 | `personas` | quien ve personas | **sin tocar** |
 | `territorios` | anciano, comité, admin | **sin tocar** |
