@@ -109,7 +109,7 @@ const SyncDiagram = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        padding: '14px 16px',
+        padding: '16px',
         borderRadius: 'var(--shape-sm)',
         backgroundColor: 'var(--accent-100)',
         border: '1px solid var(--accent-200)',
@@ -118,10 +118,10 @@ const SyncDiagram = () => {
       {rows.map((row, i) => (
         <Box
           key={i}
-          sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}
+          sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}
         >
           {row.visual}
-          <Typography className="body-small-regular" color="var(--grey-400)">
+          <Typography className="body-regular" color="var(--ink)">
             {row.label}
           </Typography>
         </Box>
@@ -168,10 +168,29 @@ const LinkButton = ({ to, label }: { to: string; label: string }) => {
   );
 };
 
+/**
+ * Interlineado de LECTURA, para los párrafos largos de la Ayuda.
+ *
+ * `body-regular` va a 15/20px (1,33): bien para una fila de una tabla, apretado
+ * para cuatro renglones seguidos de prosa. Va SIN unidad a propósito: la app
+ * agranda el texto ×1,15 en tablet redefiniendo las clases, y un `line-height`
+ * en píxeles se quedaría clavado mientras la letra crece — justo al revés de lo
+ * que hace falta. El tamaño no se toca: sale de la clase, como manda
+ * DESIGN_SYSTEM §3.
+ */
+const READING = { lineHeight: 1.55 } as const;
+
+/** Ancho de lectura: pasada cierta anchura, un renglón largo cuesta de seguir. */
+const MEASURE = { maxWidth: '68ch' } as const;
+
 const BlockView = ({ block }: { block: AyudaBlock }) => {
   if (block.type === 'p') {
     return (
-      <Typography className="body-regular" color="var(--grey-400)">
+      <Typography
+        className="body-regular"
+        color="var(--ink)"
+        sx={{ ...READING, ...MEASURE }}
+      >
         {block.text}
       </Typography>
     );
@@ -182,8 +201,9 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
       <Box>
         {block.title && (
           <Typography
-            className="body-small-semibold"
-            sx={{ marginBottom: '4px' }}
+            className="body-regular-semibold"
+            color="var(--ink)"
+            sx={{ marginBottom: '8px', ...READING }}
           >
             {block.title}
           </Typography>
@@ -192,10 +212,11 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
           component="ol"
           sx={{
             margin: 0,
-            paddingLeft: '22px',
+            paddingLeft: '24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px',
+            gap: '8px',
+            ...MEASURE,
           }}
         >
           {block.items.map((item, i) => (
@@ -203,7 +224,8 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
               key={i}
               component="li"
               className="body-regular"
-              color="var(--grey-400)"
+              color="var(--ink)"
+              sx={READING}
             >
               {item}
             </Typography>
@@ -219,7 +241,9 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
       <Box
         sx={{
           borderRadius: 'var(--shape-sm)',
-          padding: '10px 12px',
+          // 12/16 de la rejilla de 8 (§4). Estaba en 10/12, que no está en la
+          // escala y con el texto ya a tamaño de cuerpo apretaba.
+          padding: '12px 16px',
           backgroundColor: isTip
             ? 'var(--green-secondary)'
             : 'var(--orange-secondary)',
@@ -231,24 +255,34 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
           display: 'flex',
           alignItems: 'flex-start',
           gap: '8px',
+          // La caja se para donde se paran los párrafos: si no, en escritorio
+          // el consejo cruza toda la tarjeta mientras el texto de alrededor
+          // corta a media anchura, y el ojo tiene que cambiar de recorrido.
+          ...MEASURE,
         }}
       >
         {isTip ? (
           <IconLightbulb
-            width={16}
-            height={16}
+            width={20}
+            height={20}
             color="var(--green-main)"
-            sx={{ flexShrink: 0, mt: '1px' }}
+            sx={{ flexShrink: 0, mt: '2px' }}
           />
         ) : (
           <IconError
-            width={16}
-            height={16}
+            width={20}
+            height={20}
             color="var(--orange-main)"
-            sx={{ flexShrink: 0, mt: '1px' }}
+            sx={{ flexShrink: 0, mt: '2px' }}
           />
         )}
-        <Typography className="body-small-regular">{block.text}</Typography>
+        <Typography
+          className="body-regular"
+          color="var(--ink)"
+          sx={READING}
+        >
+          {block.text}
+        </Typography>
       </Box>
     );
   }
@@ -263,11 +297,12 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
-          padding: '12px 14px',
+          gap: '12px',
+          padding: '16px',
           borderRadius: 'var(--shape-sm)',
           backgroundColor: 'var(--accent-100)',
           border: '1px solid var(--accent-200)',
+          ...MEASURE,
         }}
       >
         {block.items.map((item, i) => (
@@ -285,7 +320,11 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
             >
               {item.icon}
             </Box>
-            <Typography className="body-small-regular" color="var(--grey-400)">
+            <Typography
+              className="body-regular"
+              color="var(--ink)"
+              sx={READING}
+            >
               {item.text}
             </Typography>
           </Box>
@@ -300,9 +339,17 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
 
   // faq
   return (
-    <Box>
-      <Typography className="body-small-semibold">{block.q}</Typography>
-      <Typography className="body-regular" color="var(--grey-400)">
+    <Box sx={MEASURE}>
+      {/* La pregunta es el titular de su respuesta: iba a 13px cuando la
+          respuesta iba a 15, o sea el titular más pequeño que el cuerpo. */}
+      <Typography
+        className="body-regular-semibold"
+        color="var(--ink)"
+        sx={{ marginBottom: '4px', ...READING }}
+      >
+        {block.q}
+      </Typography>
+      <Typography className="body-regular" color="var(--ink)" sx={READING}>
         {block.a}
       </Typography>
     </Box>
@@ -336,12 +383,18 @@ const SectionView = ({
         {section.icon}
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Typography className="h3">{section.title}</Typography>
+            {/* `h2` es "título de sección/tarjeta" (§3), que es exactamente
+                lo que es. Con `h3` la sección y sus artículos quedaban a un
+                paso de distancia y la escalera no se leía. */}
+            <Typography className="h2">{section.title}</Typography>
             {section.comingSoon && (
               <Badge size="small" color="orange" text="En preparación" />
             )}
           </Box>
-          <Typography className="body-small-regular" color="var(--grey-350)">
+          {/* Esta SÍ es secundaria: describe la sección, no la explica. Se
+              queda pequeña y atenuada a propósito, pero con el token
+              semántico (§2.1) en vez del gris de paleta. */}
+          <Typography className="body-small-regular" color="var(--ink-2)">
             {section.description}
           </Typography>
         </Box>
@@ -373,12 +426,13 @@ const SectionView = ({
                 <AccordionSummary
                   expandIcon={<IconExpand color="var(--accent-350)" />}
                 >
-                  <Typography className="body-regular-semibold">
-                    {article.title}
-                  </Typography>
+                  {/* `h3` = "subtítulo" (§3): el artículo cuelga de la
+                      sección. Deja libre `body-regular-semibold` para las
+                      preguntas de dentro, que antes le chocaban. */}
+                  <Typography className="h3">{article.title}</Typography>
                 </AccordionSummary>
-                <AccordionDetails sx={{ paddingTop: 0 }}>
-                  <Stack spacing="12px">
+                <AccordionDetails sx={{ paddingTop: 0, paddingBottom: '20px' }}>
+                  <Stack spacing="16px">
                     {article.blocks.map((block, i) => (
                       <BlockView key={i} block={block} />
                     ))}
@@ -418,7 +472,7 @@ const Ayuda = () => {
       {sections.length === 0 && (
         <Typography
           className="body-regular"
-          color="var(--grey-350)"
+          color="var(--ink-2)"
           sx={{ textAlign: 'center', padding: '24px' }}
         >
           No se encontró nada con esa búsqueda.
