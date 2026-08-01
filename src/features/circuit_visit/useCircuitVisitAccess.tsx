@@ -1,62 +1,44 @@
 import { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
-import { useCurrentUser } from '@hooks/index';
-import { userLocalUIDState } from '@states/settings';
 import { addDays } from '@utils/date';
 import useIsCircuitVisitManager from './useIsCircuitVisitManager';
 import useUpcomingCircuitVisit from './shared/useUpcomingCircuitVisit';
 
-export type CircuitVisitAccessTier = 'full' | 'elder' | 'public' | 'none';
+export type CircuitVisitAccessTier = 'full' | 'public' | 'none';
 
-const PUBLIC_PREVIEW_DAYS = 21;
+/** Dos meses. Lo que ve un publicador antes de que empiece la visita. */
+const PUBLIC_PREVIEW_DAYS = 60;
 
 /**
- * Nivel de acceso a "Visita del Superintendente de Circuito":
- * - 'full': Coordinador/Admin — panel completo, editable, en cualquier momento.
- * - 'elder': el resto de ancianos — resumen completo de solo lectura, en
- *   cualquier momento (isElder ya engloba admin/coordinador/secretario).
- * - 'public': cualquier publicador — resumen limitado de solo lectura, solo
- *   desde 21 días antes de que empiece la visita (y mientras dura).
- * - 'none': no hay nada que mostrar (sin visita relevante, fuera de ventana).
+ * Nivel de acceso a «Visita del Superintendente de Circuito». Dos reglas:
+ *
+ * - `full`: los ancianos. Preparan la visita, y desde siempre.
+ * - `public`: cualquier publicador, desde dos meses antes de que empiece la
+ *   visita y mientras dura. Resumen de solo lectura, y sin lo que no le toca
+ *   —la reunión con ancianos y siervos ministeriales, el programa de comidas—.
+ * - `none`: no hay visita que enseñar, o aún falta más de dos meses.
+ *
+ * Había un tercer nivel intermedio —anciano en solo lectura— y un caso aparte
+ * para quien tuviera algo asignado en la visita, que se adelantaba a la
+ * ventana. Con los ancianos editando siempre, el primero sobra; y con dos
+ * meses en vez de tres semanas, el segundo también: dos meses son aviso de
+ * sobra para una comida o para acompañar en la predicación.
  */
 export const useCircuitVisitAccess = () => {
   const canManage = useIsCircuitVisitManager();
-  const { isElder } = useCurrentUser();
-  const myUid = useAtomValue(userLocalUIDState);
 
   const relevantVisit = useUpcomingCircuitVisit();
 
-  // Un publicador con algo asignado en la visita (anfitrión de comida,
-  // acompañante del CO o de su esposa, visita de pastoreo) debe poder ver
-  // su asignación desde el momento en que existe — sin esperar a la ventana
-  // de 21 días que aplica al resto de publicadores.
-  const hasPersonalAssignment = useMemo(() => {
-    if (!relevantVisit || !myUid) return false;
-
-    return (
-      relevantVisit.meals.some((m) => m.host === myUid) ||
-      relevantVisit.co_companions.some(
-        (c) =>
-          c.brother === myUid || (c.spouse_companions ?? []).includes(myUid)
-      ) ||
-      (relevantVisit.shepherding_visits ?? []).some(
-        (s) => s.brother === myUid || s.elder === myUid
-      )
-    );
-  }, [relevantVisit, myUid]);
-
   const tier = useMemo<CircuitVisitAccessTier>(() => {
     if (canManage) return 'full';
-    if (isElder) return 'elder';
     if (!relevantVisit) return 'none';
-    if (hasPersonalAssignment) return 'public';
 
     const unlockDate = addDays(
       new Date(relevantVisit.date_start),
       -PUBLIC_PREVIEW_DAYS
     );
+
     return new Date() >= unlockDate ? 'public' : 'none';
-  }, [canManage, isElder, relevantVisit, hasPersonalAssignment]);
+  }, [canManage, relevantVisit]);
 
   return { tier, visit: relevantVisit };
 };

@@ -23,7 +23,6 @@ import {
 import { sourcesState } from '@states/sources';
 import { personGetDisplayName } from '@utils/common';
 import { formatDate, getDatesBetweenDates } from '@utils/date';
-import { CircuitVisitAccessTier } from './useCircuitVisitAccess';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
 import { fmtDayEs, fmtRangeEs } from './shared/fmtDayEs';
 import Card from './shared/Card';
@@ -54,10 +53,8 @@ const SpecialMeetingRow = ({
 
 const CircuitVisitSummary = ({
   visit,
-  tier,
 }: {
   visit: CircuitVisitType;
-  tier: Extract<CircuitVisitAccessTier, 'elder' | 'public'>;
 }) => {
   const coName = useAtomValue(COFullnameState);
   const coSpouseName = useAtomValue(COSpouseNameState);
@@ -316,111 +313,15 @@ const CircuitVisitSummary = ({
         {/* La reunión con precursores es de interés general (los precursores
             son publicadores); la de ancianos y siervos ministeriales solo se
             muestra a ancianos. Las reuniones a medias no se anuncian. */}
-        {(isSpecialMeetingComplete(visit.meeting_pioneers) ||
-          (tier === 'elder' &&
-            isSpecialMeetingComplete(visit.meeting_elders))) && (
+        {isSpecialMeetingComplete(visit.meeting_pioneers) && (
           <Card title="Reuniones especiales">
             <SpecialMeetingRow
               label="Reunión con precursores"
               when={visit.meeting_pioneers}
             />
-            {tier === 'elder' && (
-              <SpecialMeetingRow
-                label="Reunión con ancianos y siervos ministeriales"
-                when={visit.meeting_elders}
-              />
-            )}
           </Card>
         )}
 
-        {tier === 'elder' && (
-          <>
-            <Card title="Programa de comidas" subtitle="Anfitriones por día.">
-              {(visit.meals ?? []).length === 0 ? (
-                <Typography className="body-regular" color="var(--grey-400)">
-                  Sin comidas asignadas.
-                </Typography>
-              ) : (
-                <Stack spacing="6px">
-                  {(visit.meals ?? []).filter(Boolean).map((meal) => (
-                    <Typography key={meal.id} className="body-small-regular">
-                      {[
-                        fmtDay(meal.date),
-                        findPersonName(meal.host) || 'Anfitrión pendiente',
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </Typography>
-                  ))}
-                </Stack>
-              )}
-            </Card>
-
-            <Card
-              title="Compañía del superintendente"
-              subtitle="En las salidas de predicación."
-            >
-              {(visit.co_companions ?? []).length === 0 ? (
-                <Typography className="body-regular" color="var(--grey-400)">
-                  Sin compañía asignada todavía.
-                </Typography>
-              ) : (
-                <Stack spacing="6px">
-                  {(visit.co_companions ?? []).filter(Boolean).map((c) => {
-                    const [date, time] = (c.outingKey ?? '').split('_');
-                    const brotherName = findPersonName(c.brother);
-
-                    const sisterNames = (c.spouse_companions ?? [])
-                      .map((uid) => findPersonName(uid))
-                      .filter(Boolean)
-                      .join(', ');
-                    const wifePart =
-                      c.withWife && effectiveCoSpouseName
-                        ? `Con ${effectiveCoSpouseName}${sisterNames ? ` (${sisterNames})` : ''}`
-                        : '';
-
-                    const parts = [
-                      `${fmtDay(date)}${time ? ` · ${time}` : ''}`,
-                      brotherName || (wifePart ? '' : 'Pendiente'),
-                    ].filter(Boolean);
-
-                    return (
-                      <Typography
-                        key={c.outingKey}
-                        className="body-small-regular"
-                      >
-                        {parts.join(' · ')}
-                        {wifePart ? `  •  ${wifePart}` : ''}
-                      </Typography>
-                    );
-                  })}
-                </Stack>
-              )}
-            </Card>
-
-            <Card title="Visitas de pastoreo">
-              {(visit.shepherding_visits ?? []).length === 0 ? (
-                <Typography className="body-regular" color="var(--grey-400)">
-                  Sin visitas de pastoreo programadas.
-                </Typography>
-              ) : (
-                <Stack spacing="6px">
-                  {(visit.shepherding_visits ?? [])
-                    .filter(Boolean)
-                    .map((sv) => (
-                      <Typography key={sv.id} className="body-small-regular">
-                        {[
-                          `${fmtDay(sv.date)}${sv.time ? ` · ${sv.time}` : ''}`,
-                          findPersonName(sv.brother) || 'Pendiente',
-                        ].join(' · ')}
-                        {sv.elder ? ` (con ${findPersonName(sv.elder)})` : ''}
-                      </Typography>
-                    ))}
-                </Stack>
-              )}
-            </Card>
-          </>
-        )}
 
         <Typography
           className="body-small-regular"

@@ -400,16 +400,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'La pestaña se abre tres semanas antes de que empiece la visita y se va sola cuando la visita ha pasado. No hay que hacer nada para que salga ni para que desaparezca.',
+            text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola cuando la visita ha pasado. No hay que hacer nada para que salga ni para que desaparezca.',
+          },
+          {
+            type: 'p',
+            text: 'Durante esos dos meses también te aparece «Visita del superintendente» en Congregación, con el resumen: las fechas, los horarios y la reunión con precursores.',
           },
           {
             type: 'tip',
-            text: 'Si tienes algo asignado en la visita —una comida en tu casa, acompañar al superintendente o a su esposa en la predicación, o una visita de pastoreo— la verás desde el momento en que te la asignan, sin esperar a esas tres semanas.',
-          },
-          {
-            type: 'faq',
-            q: 'En «Congregación» no me sale nada de la visita. ¿Es un fallo?',
-            a: 'No. Esa pantalla es para los ancianos, que son quienes preparan la visita. Lo que te toca saber a ti sale en la pestaña de Programas semanales.',
+            text: 'El programa de comidas y la reunión con ancianos y siervos ministeriales no salen ahí: eso lo llevan los ancianos. Si te toca algo —una comida en tu casa o acompañar en la predicación— te lo dirán ellos.',
           },
         ],
       },
@@ -1694,6 +1693,24 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     visible: (r) => r.isElder || r.isAdmin,
     articles: [
       {
+        id: 'co-quien',
+        title: 'Quién la prepara y quién la ve',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La preparan los ancianos, todos, y en cualquier momento del año: no hace falta esperar a que se acerque la fecha ni pedirle nada al coordinador.',
+          },
+          {
+            type: 'p',
+            text: 'Los demás publicadores la ven desde dos meses antes de que empiece, y en solo lectura: las fechas, los horarios y la reunión con precursores. El programa de comidas y la reunión con ancianos y siervos ministeriales se quedan entre los ancianos.',
+          },
+          {
+            type: 'tip',
+            text: 'Antes de esos dos meses, para los publicadores es como si no existiera: ni la tarjeta en Congregación ni la pestaña en Programas semanales.',
+          },
+        ],
+      },
+      {
         id: 'co-activar',
         title: 'Activar una visita',
         blocks: [
@@ -1789,7 +1806,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Un publicador no entra en esta pantalla. Lo que ve él es una pestaña nueva en «Programas semanales» con el programa de la visita, y esa pestaña aparece sola cuando se acerca la semana y desaparece sola cuando pasa.',
+            text: 'Desde dos meses antes, a los publicadores les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y la tarjeta en Congregación. Las dos desaparecen solas cuando la visita ha pasado.',
           },
           {
             type: 'tip',

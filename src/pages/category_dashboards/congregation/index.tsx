@@ -171,11 +171,12 @@ const CongregationDashboard = () => {
           </svg>
         </button>
 
-        {/* Visita del Superintendente de Circuito — SOLO ancianos: es la
-            herramienta de quien la organiza. Lo que los hermanos necesitan
-            está en su pestaña de Programas semanales, que sale sola mientras
-            hay visita. El tier sigue mandando dentro de la página. */}
-        {isElder && circuitVisitTier !== 'none' && (
+        {/* Visita del Superintendente de Circuito. Manda el nivel de acceso y
+            nada más: los ancianos la preparan y la ven siempre; un publicador
+            la ve desde dos meses antes de que empiece. Estaba además tras
+            `isElder`, así que un publicador con acceso a la página no tenía
+            por dónde llegar a ella. */}
+        {circuitVisitTier !== 'none' && (
           <button
             type="button"
             className="tile-item c-blue active-press full-width"

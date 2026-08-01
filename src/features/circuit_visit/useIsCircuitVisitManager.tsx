@@ -1,22 +1,19 @@
-import { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
-import { settingsState } from '@states/settings';
+import { useCurrentUser } from '@hooks/index';
 
 /**
- * Acceso al módulo "Visita del Superintendente de Circuito".
+ * Quién PREPARA la visita del superintendente de circuito.
  *
- * Estrictamente restringido al Coordinador del cuerpo de ancianos (COBA) y a los
- * Administradores del sistema. A diferencia del `isAdmin` general de
- * useCurrentUser (que también incluye al secretario), aquí solo entran
- * `coordinator` y `admin`.
+ * Los ancianos, y desde siempre — no solo cuando se acerca. Antes esto estaba
+ * restringido al coordinador y a los administradores, y el resto del cuerpo de
+ * ancianos se quedaba en un resumen de solo lectura: tres niveles de acceso
+ * para una pantalla que prepara el cuerpo de ancianos entero.
+ *
+ * `isElder` ya engloba al coordinador, al secretario y a los administradores.
  */
 export const useIsCircuitVisitManager = (): boolean => {
-  const settings = useAtomValue(settingsState);
+  const { isElder } = useCurrentUser();
 
-  return useMemo(() => {
-    const roles = settings.user_settings.cong_role ?? [];
-    return roles.includes('coordinator') || roles.includes('admin');
-  }, [settings]);
+  return isElder;
 };
 
 export default useIsCircuitVisitManager;
