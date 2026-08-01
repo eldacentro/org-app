@@ -47,6 +47,16 @@ const ABIERTAS: string[] = [
  * Lo que pide un encargo. El texto de «quién» describe la puerta tal cual está
  * escrita, incluidas las sumas: donde pone «o», basta con uno de los dos.
  */
+/**
+ * Lo que pide un encargo, agrupado por temas.
+ *
+ * El texto de «quién» describe la puerta tal cual está escrita en el código,
+ * incluidas las sumas: donde pone «o», basta con uno de los dos.
+ *
+ * Los grupos están para que se encuentre lo que se busca. Si algo se mueve de
+ * grupo, comprobar que sigue estando: al partir la tabla, los editores de
+ * reunión se cayeron a «registros» y no había forma de dar con ellos.
+ */
 const PREDICACION: Fila[] = [
   {
     area: 'Informe de predicación',
@@ -58,7 +68,8 @@ const PREDICACION: Fila[] = [
   },
   {
     area: 'Grupos de predicación\nResponsabilidades',
-    quien: 'Publicador, anciano o siervo ministerial, o superintendente de servicio',
+    quien:
+      'Publicador, anciano o siervo ministerial, o superintendente de servicio',
   },
   {
     area: 'Salidas de predicación\nExhibidores',
@@ -66,8 +77,24 @@ const PREDICACION: Fila[] = [
   },
 ];
 
-/** Reuniones, discursos y lo que se programa. */
+/** Preparar los programas de las reuniones, y los discursos. */
 const REUNIONES: Fila[] = [
+  {
+    area: 'Preparar la reunión de entre semana',
+    quien: 'Quien programa la reunión de entre semana',
+  },
+  {
+    area: 'Preparar la reunión de fin de semana',
+    quien: 'Quien la programa, o el coordinador de discursos',
+  },
+  {
+    area: 'Preparar los departamentos',
+    quien: 'Quien programa la reunión de entre semana o los departamentos',
+  },
+  {
+    area: 'Materiales de reunión',
+    quien: 'Quien programa alguna de las dos reuniones',
+  },
   {
     area: 'Lista de discursos públicos',
     quien: 'Anciano o siervo ministerial, o quien programa el fin de semana',
@@ -101,28 +128,15 @@ const REGISTROS: Fila[] = [
     quien: 'Quien lleva el registro de asistencia',
   },
   {
-    area: 'Reunión de entre semana (editor)',
-    quien: 'Quien programa la reunión de entre semana',
-  },
-  {
-    area: 'Reunión de fin de semana (editor)',
-    quien: 'Quien la programa, o el coordinador de discursos',
-  },
-  {
-    area: 'Departamentos (editor)',
-    quien: 'Quien programa la reunión de entre semana o los departamentos',
-  },
-  {
-    area: 'Materiales de reunión',
-    quien: 'Quien programa alguna de las dos reuniones',
-  },
-  {
     area: 'Informes de predicación de la congregación',
     quien: 'Secretario, superintendente de grupo o de grupo de idioma',
   },
   { area: 'Ajustes de grupo', quien: 'Superintendente de grupo de idioma' },
   { area: 'Informe a la sucursal (S-1)', quien: 'Administradores' },
-  { area: 'Gestionar accesos', quien: 'Administradores, con la cuenta conectada' },
+  {
+    area: 'Gestionar accesos',
+    quien: 'Administradores, con la cuenta conectada',
+  },
 ];
 
 const COLUMNAS = [
