@@ -415,10 +415,6 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'p',
             text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola el día después de terminar. No hay que hacer nada para que salga ni para que desaparezca.',
           },
-          {
-            type: 'tip',
-            text: 'Ahí tienes lo que te toca saber: los días, los horarios y el programa de esa semana. Lo que organiza el cuerpo de ancianos —las comidas, los acompañantes, las visitas de pastoreo— se lleva aparte, y si te toca algo te lo dirán ellos.',
-          },
         ],
       },
       {
