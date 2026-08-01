@@ -486,9 +486,14 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     id: 'informes',
     title: 'Informes y asistencia',
     description:
-      'Recibir y verificar informes, registrar la asistencia, S-1, S-21 y S-88.',
+      'Recibir y verificar informes, el S-1, el S-21 y el S-88 de asistencia.',
     icon: <IconPublishersReports color="var(--accent-main)" />,
-    visible: (r) => r.isSecretary || r.isAttendanceEditor,
+    // Solo el secretario (que ya engloba a coordinador y administrador). Antes
+    // también la veía quien solo lleva el registro de asistencia, y de las
+    // nueve cosas que se explican aquí solo podía hacer una: los informes de
+    // predicación, el S-1 y el S-21 no le dejan ni entrar. Lo suyo está en la
+    // sección "Asistencia a las reuniones".
+    visible: (r) => r.isSecretary,
     articles: [
       {
         id: 'flujo-informes',
@@ -514,7 +519,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Los contadores de arriba ("Informes recibidos", "Informes pendientes de verificación") te dicen de un vistazo cuánto falta por hacer del mes.',
+            text: 'El bloque "Informes recibidos" de arriba lleva una barra de cuántos van sobre el total de publicadores, y debajo, en naranja, cuántos están recibidos pero SIN verificar: esos no cuentan en el S-1 hasta que los verifiques.',
           },
           {
             type: 'faq',
@@ -570,52 +575,23 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Los precursores con privilegios especiales de servicio (construcción/LDC, Betel, escuelas teocráticas…) pueden anotar horas de crédito además de las de predicación. En su informe aparecen separadas: horas de predicación por un lado y crédito por otro, normalmente con un comentario del tipo "40 Hrs. LDC".',
+            text: 'Los precursores con privilegios especiales de servicio pueden anotar horas de crédito además de las de predicación. En su informe van separadas: las horas de predicación por un lado y el crédito por otro, y el crédito se desglosa por motivo — "Asignaciones teocráticas", "Escuela de precursor", "Escuela para Evangelizadores del Reino", "Clase de idioma" u "Otro", donde se escribe el motivo a mano.',
           },
           {
             type: 'steps',
             items: [
               'Abre el informe del precursor en el mes correspondiente.',
-              'Revisa las horas de crédito indicadas (o añádelas tú con su comentario).',
-              'Al aprobarlas, el crédito se suma automáticamente donde corresponde: su tarjeta S-21, su saldo de precursor y los totales.',
+              'Revisa las entradas de crédito, cada una con su motivo y sus horas (o añádelas tú).',
+              'El total del crédito es lo que cuenta para el requisito del precursor, y va a su tarjeta S-21 y a su saldo.',
             ],
           },
           {
             type: 'tip',
+            text: 'El motivo ya no se escribe al final del comentario, como se hacía antes con los "25 Hrs. LDC" que venían del programa antiguo. Cada motivo es su propia entrada, así que el comentario queda libre para lo que de verdad haya que explicar.',
+          },
+          {
+            type: 'tip',
             text: 'El crédito cuenta para el requisito del precursor, pero recuerda que en el S-1 las horas de la congregación se informan según las instrucciones de la sucursal, y la aplicación ya lo separa correctamente por ti.',
-          },
-        ],
-      },
-      {
-        id: 'registrar-asistencia',
-        title: 'Registrar la asistencia a las reuniones',
-        blocks: [
-          {
-            type: 'p',
-            text: 'En Informes → "Registros de asistencia" está el registro mensual. Cada mes tiene una casilla por cada reunión: las de entre semana arriba y las de fin de semana debajo, con la fecha de cada una.',
-          },
-          {
-            type: 'steps',
-            items: [
-              'Elige el año de servicio y el mes.',
-              'Escribe el número de presentes en la casilla de cada reunión (la reunión de esta semana aparece marcada con "Ahora").',
-              'Si la congregación registra asistencia en línea por separado, activa "Registrar asistencia a reuniones en línea" en los ajustes rápidos y tendrás una casilla extra por reunión.',
-              'Los totales y promedios del mes se calculan solos, y todo se guarda y sincroniza automáticamente.',
-            ],
-          },
-          {
-            type: 'link',
-            to: '/reports/meeting-attendance',
-            label: 'Abrir Registros de asistencia',
-          },
-          {
-            type: 'warn',
-            text: 'Importante: la asistencia va por MES NATURAL, como la pide la sucursal. Cada reunión cuenta en el mes de su FECHA. Por ejemplo, si el miércoles 1 de julio hay reunión, esa asistencia va en la primera casilla de JULIO, aunque esa semana empezara en junio. La aplicación ya te enseña las casillas correctas de cada mes; solo apunta cada reunión en su fecha.',
-          },
-          {
-            type: 'faq',
-            q: '¿Por qué un mes tiene 4 casillas y otro 5?',
-            a: 'Porque tiene tantas casillas como reuniones de ese tipo caen dentro del mes. Un mes con cinco miércoles tendrá cinco casillas de entre semana.',
           },
         ],
       },
@@ -625,19 +601,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Debajo del registro mensual está el "Registro de asistencia a reunión de congregación (S-88)": el historial por años de servicio con número de reuniones, asistencia total y promedio de cada mes, calculado solo a partir de lo que registras.',
-          },
-          {
-            type: 'steps',
-            items: [
-              'Toca "Exportar" arriba de la página.',
-              'Elige "Exportar S-88" y el año o años de servicio.',
-              'Se genera el PDF oficial listo para archivar o enviar.',
-            ],
+            text: 'Al lado del registro mensual está el historial por años de servicio, con el número de reuniones, la asistencia total y el promedio de cada mes, calculado solo a partir de lo que se registra.',
           },
           {
             type: 'p',
-            text: 'También puedes exportar el "Informe de asistencia a las reuniones (S-3)" del mes desde la misma pantalla.',
+            text: 'El botón "Exportar" de la barra de arriba saca el S-88 en PDF de una vez, sin más preguntas, listo para archivar o enviar. Ese botón es solo del secretario: quien únicamente lleva el registro de asistencia apunta los números, pero no exporta.',
           },
         ],
       },
@@ -652,9 +620,10 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Elige el mes y toca "Crear informe S-1".',
+              'Elige el mes y, en el selector de informe, "Predicación y asistencia a las reuniones (S-1)".',
+              'Toca "Generar". Si ya lo habías generado y después ha cambiado algo, el botón pone "Regenerar".',
               'Revisa las cifras (puedes compararlas con los contadores de Informes de predicación).',
-              'Cópialas o expórtalas para enviarlas por jw.org como siempre.',
+              'El botón "JW Hub" te lleva a enviarlo como siempre. Cuando ya lo hayas mandado, marca "Enviado" para que quede constancia; si te equivocaste, "Deshacer envío".',
             ],
           },
           {
@@ -664,11 +633,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Verifica los informes ANTES de crear el S-1: solo los verificados entran en las cifras. Si después llega uno tardío, quedará como "Informe atrasado" y se suma al mes siguiente según las instrucciones.',
+            text: 'Verifica los informes ANTES de generar el S-1: solo los verificados entran en las cifras. Si después llega uno tardío, márcalo como "Informe atrasado" y se incluirá solo en el envío del mes siguiente.',
           },
           {
             type: 'p',
-            text: 'En la misma zona tienes el "Análisis de la congregación (S-10)" con la evolución anual.',
+            text: 'En el mismo selector tienes el "Análisis de la congregación (S-10)" con la evolución anual.',
           },
         ],
       },
@@ -683,8 +652,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Busca al hermano en la lista y abre su registro.',
-              'Para imprimir o archivar: toca "Exportar S-21" en su tarjeta, o usa "Exportar múltiples registros de publicadores (S-21)" para generar varios de golpe (por grupos, precursores, todos…).',
+              'Busca al hermano en la lista y abre su registro. Desde ahí puedes exportar solo el suyo.',
+              'Para sacar varios de golpe, toca "Exportar S-21" en la barra de arriba: se abre "Exportar múltiples registros de publicadores (S-21)", donde eliges entre "Todos los publicadores", "Publicadores específicos" (los vas marcando uno a uno) o las tarjetas de totales de la congregación.',
             ],
           },
           {
@@ -694,7 +663,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Arriba verás también el "Saldo de precursores": el acumulado de horas de cada precursor regular respecto a su objetivo, para animar o ayudar a quien lo necesite.',
+            text: 'En la misma pantalla está el "Saldo de precursores": el acumulado de horas de cada precursor regular respecto a su objetivo, para animar o ayudar a quien lo necesite.',
           },
         ],
       },
@@ -704,15 +673,68 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Cuando un hermano solicita ser precursor auxiliar desde su aplicación, la solicitud llega a "Solicitudes de precursor" (en Congregación). El comité de servicio la revisa ahí mismo:',
+            text: 'Cuando un hermano solicita ser precursor auxiliar desde su aplicación, la solicitud llega a Congregación → "Solicitudes de precursor" (la pantalla se titula "Solicitudes de precursor auxiliar"). La ven los ancianos, con dos pestañas: las nuevas y las ya aprobadas.',
           },
           {
             type: 'steps',
             items: [
               'Abre la solicitud para ver el mes (o si es de continuo).',
-              'Apruébala o recházala. El hermano recibe la respuesta en su aplicación.',
+              'Toca "Aprobar" o "Rechazar". El hermano recibe la respuesta en su aplicación.',
               'Al aprobarla, el nombramiento queda registrado automáticamente en su ficha con sus fechas, y su informe de ese mes ya pedirá horas.',
             ],
+          },
+        ],
+      },
+    ],
+  },
+  // ════════════════════════════════════════════════════════════════════
+  // ASISTENCIA (quien lleva el registro de asistencia)
+  // ════════════════════════════════════════════════════════════════════
+  // Aparte de "Informes y asistencia" a propósito: el rol de registro de
+  // asistencia solo abre ESTA pantalla. Los informes de predicación, el S-1 y
+  // el S-21 le rebotan al inicio, así que explicárselos era enseñarle puertas
+  // cerradas. El secretario, que ya es editor de asistencia, ve las dos.
+  {
+    id: 'asistencia',
+    title: 'Asistencia a las reuniones',
+    description: 'Apuntar cuántos asisten a cada reunión, mes a mes.',
+    icon: <IconGroups color="var(--accent-main)" />,
+    visible: (r) => r.isAttendanceEditor,
+    articles: [
+      {
+        id: 'registrar-asistencia',
+        title: 'Registrar la asistencia a las reuniones',
+        blocks: [
+          {
+            type: 'p',
+            text: 'En Informes → "Registro de asistencia" está el registro mensual, en el bloque "Registros de asistencia". Cada mes tiene una casilla por cada reunión: las de entre semana arriba y las de fin de semana debajo, con la fecha de cada una.',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Elige el año de servicio y el mes.',
+              'Escribe el número de presentes en la casilla de cada reunión.',
+              'Ya está: no hay botón de guardar. Los totales y promedios del mes se calculan solos y se sincroniza con los demás al momento.',
+            ],
+          },
+          {
+            type: 'link',
+            to: '/reports/meeting-attendance',
+            label: 'Abrir Registro de asistencia',
+          },
+          {
+            type: 'warn',
+            text: 'Importante: la asistencia va por MES NATURAL, como la pide la sucursal. Cada reunión cuenta en el mes de su FECHA. Por ejemplo, si el miércoles 1 de julio hay reunión, esa asistencia va en la primera casilla de JULIO, aunque esa semana empezara en junio. La aplicación ya te enseña las casillas correctas de cada mes; solo apunta cada reunión en su fecha.',
+          },
+          {
+            type: 'faq',
+            q: '¿Por qué un mes tiene 4 casillas y otro 5?',
+            a: 'Porque tiene tantas casillas como reuniones de ese tipo caen dentro del mes. Un mes con cinco miércoles tendrá cinco casillas de entre semana.',
+          },
+          {
+            type: 'faq',
+            q: '¿Y los que siguen la reunión por videoconferencia?',
+            a: 'Se pueden apuntar aparte, pero eso lo enciende el secretario: con "Registrar asistencia a reuniones en línea" cada reunión pasa a tener una casilla "En línea" además de la de presentes.',
           },
         ],
       },

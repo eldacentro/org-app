@@ -2,7 +2,7 @@
 
 ## El objetivo
 
-`src/features/ayuda/content.tsx` tiene 15 secciones y 82 artículos. El
+`src/features/ayuda/content.tsx` tiene 16 secciones y 84 artículos. El
 contenido se ha ido escribiendo por tandas y **nunca se ha comprobado contra el
 código artículo por artículo**. Hay que auditarlo entero hasta que cada frase
 sea cierta hoy.
@@ -84,12 +84,13 @@ ms, group_overseers, language_group_overseers.
 `isLanguageGroupOverseer`**, que sí existe en `useCurrentUser` y no tiene
 sección. Decidir si merece una o si su trabajo ya está cubierto.
 
-## Las 15 secciones
+## Las 16 secciones
 
 | id | visible para | estado |
 |---|---|---|
 | `general` | todos | ampliada, sin auditar |
-| `informes` | secretario, registro de asistencia | ampliada, sin auditar |
+| `informes` | secretario | auditada |
+| `asistencia` | registro de asistencia | **nueva** (salió de `informes`) |
 | `entre-semana` | editor de entre semana | auditada |
 | `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
 | `discursos` | coordinador de discursos | auditada |
