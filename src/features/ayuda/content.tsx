@@ -851,7 +851,10 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     title: 'Reunión de fin de semana',
     description: 'Discursos públicos, presidencias, Atalaya y oradores.',
     icon: <IconPodium color="var(--accent-main)" />,
-    visible: (r) => r.isWeekendEditor,
+    // La pantalla /weekend-meeting la abren los DOS encargos (App.tsx, ruta
+    // protegida con `isWeekendEditor || isPublicTalkCoordinator`), y dentro
+    // cada uno edita una parte distinta. Por eso la sección la ven los dos.
+    visible: (r) => r.isWeekendEditor || r.isPublicTalkCoordinator,
     articles: [
       {
         id: 'fs-programar',
@@ -860,31 +863,75 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Entra en Reuniones → "Reunión de fin de semana" y elige la semana.',
-              'Asigna el presidente y, si corresponde, las oraciones.',
-              'En "Discurso público", elige el orador: "Orador local" (de la congregación) u "Orador visitante" (de otra congregación, del catálogo).',
-              'Al elegir orador, selecciona su discurso; la aplicación te muestra los que tiene preparados y te avisa si un tema se dio hace poco.',
-              'Completa el Estudio de La Atalaya: conductor y lector.',
+              'Entra en Reuniones → "Reunión de fin de semana" y elige la semana en el panel de la izquierda.',
+              'Mira el tipo de semana ("Semana normal", "Asamblea de circuito", "Asamblea regional", "Visita del superintendente de circuito", "Sin reunión"…): de él depende qué partes salen abajo.',
+              'Asigna el "Presidente" y, cuando aparezca, la "Oración".',
+              'Rellena el bloque "Discurso público" (el artículo siguiente lo cuenta entero).',
+              'En "Estudio de La Atalaya" pon el "Conductor" y el "Lector".',
             ],
           },
           {
+            type: 'warn',
+            text: 'El bloque "Discurso público" solo lo puede rellenar quien coordina los discursos. Si tú programas la reunión pero no llevas los discursos, verás esos campos en gris y no podrás cambiarlos; y al revés.',
+          },
+          {
             type: 'tip',
-            text: 'También aquí funciona "Autocompletar" para presidencias y lectores; los oradores conviene elegirlos a mano, porque dependen de acuerdos con otras congregaciones.',
+            text: '"Autocompletar" rellena de una vez el presidente, la oración y el lector de La Atalaya, y también el orador del discurso público. Si de los oradores se encarga otro hermano, marca "No autocompletar el discurso público" antes de darle.',
+          },
+          {
+            type: 'p',
+            text: 'Las canciones vienen con el material. La "Canción de inicio" la puedes cambiar tú; la "Canción de conclusión", solo en la semana de la visita del superintendente. "Borrar todo", al final de la semana, vacía las asignaciones de esa semana.',
           },
         ],
       },
       {
         id: 'fs-visitantes',
-        title: 'Oradores visitantes y semanas sin orador',
+        title: 'El discurso público: tipos de orador y la invitación',
         blocks: [
           {
             type: 'p',
-            text: 'Los oradores visitantes salen del catálogo de congregaciones y oradores (ver la sección "Discursos y oradores" si también coordinas eso). Aquí solo los eliges; si el hermano que esperabas falla, usa "Orador sustituto" para dejar constancia del cambio.',
+            text: 'Arriba del bloque eliges de dónde sale el orador: "Orador local" (de la congregación), "Orador visitante" (de otra congregación, del catálogo) o "Grabación de JW Stream". Si la congregación tiene grupo de idioma, sale además la opción de ese grupo.',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Elige el tipo de orador.',
+              'En "Discurso público" busca el tema por número o por título. Con "Orador visitante", cada tema indica debajo cuántos oradores lo tienen preparado ("Aún no hay oradores" si no lo tiene nadie).',
+              'El botón con el atril, a la derecha del campo, abre el "Catálogo de oradores" para elegir directamente por orador en vez de por tema.',
+              'Pon el nombre en "Orador".',
+            ],
+          },
+          {
+            type: 'tip',
+            text: 'Con el orador ya puesto, en la cabecera azul del bloque aparece "Invitación": genera un PDF de invitación con la fecha, la hora, el tema, la dirección del salón y los datos de quien coordina los discursos, listo para enviárselo.',
           },
           {
             type: 'faq',
             q: '¿Y si una semana no hay discurso público?',
             a: 'Marca el tipo de semana correspondiente (asamblea, visita del superintendente, "Sin reunión"…) y la aplicación ajusta las partes.',
+          },
+          {
+            type: 'faq',
+            q: 'El hermano que esperaba no puede venir. ¿Hay "orador sustituto"?',
+            a: 'No. En Ajustes hay un interruptor llamado "Designar un sustituto para oradores visitantes", pero hoy no abre ningún campo en ninguna pantalla: no hay dónde apuntar al sustituto. Cambia el orador en "Orador" y publica otra vez.',
+          },
+        ],
+      },
+      {
+        id: 'fs-ajustes',
+        title: 'Los ajustes de esta reunión (el engranaje)',
+        blocks: [
+          {
+            type: 'p',
+            text: 'El engranaje, junto al título de la página, abre los ajustes de la reunión de fin de semana sin salir de ella: el día y la hora, el "Conductor principal del estudio", si se muestran los sustitutos de conductor, las canciones, cómo se escriben los nombres y el aviso mensual.',
+          },
+          {
+            type: 'p',
+            text: 'Abajo, en "Preferencias de asignación", está "Autoasignar presidente para la oración de inicio": con él encendido desaparece el campo de la oración de inicio y la hace el presidente.',
+          },
+          {
+            type: 'tip',
+            text: 'Quien coordina los discursos tiene ahí además el interruptor para que el programa de oradores salientes sea visible para toda la congregación.',
           },
         ],
       },
@@ -899,9 +946,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Toca "Publicar" y elige las semanas.',
-              'Para el tablón o el archivo: "Exportar" → "Programa de la reunión del fin de semana" en PDF.',
+              'Toca "Publicar": la ventana lista los MESES por año, con una casilla cada uno. Marca los que quieras y dale a "Publicar". Los meses ya publicados llevan un icono al lado.',
+              'Para el tablón o el archivo: "Exportar" abre "Exportar reunión del fin de semana"; elige "Semana de inicio" y "Semana de finalización" y dale a "Exportar" para sacar el PDF.',
             ],
+          },
+          {
+            type: 'p',
+            text: 'El botón "Publicar" solo aparece si la congregación está conectada, y "Exportar" solo si tienes activada la exportación a PDF.',
           },
           {
             type: 'link',

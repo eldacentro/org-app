@@ -17,8 +17,12 @@ const MeetingsDashboard = () => {
   const navigate = useNavigate();
   const setIsMyAssignmentOpen = useSetAtom(isMyAssignmentOpenState);
 
-  const { isMidweekEditor, isWeekendEditor, isDepartmentsEditor } =
-    useCurrentUser();
+  const {
+    isMidweekEditor,
+    isWeekendEditor,
+    isDepartmentsEditor,
+    isPublicTalkCoordinator,
+  } = useCurrentUser();
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -109,8 +113,12 @@ const MeetingsDashboard = () => {
           </button>
         )}
 
-        {/* Reunión de fin de semana */}
-        {isWeekendEditor && (
+        {/* Reunión de fin de semana.
+            También para quien coordina los discursos: la ruta /weekend-meeting
+            ya le deja entrar (`isWeekendEditor || isPublicTalkCoordinator`) y
+            el bloque "Discurso público" del editor SOLO lo puede rellenar él,
+            pero aquí no tenía ninguna puerta para llegar. */}
+        {(isWeekendEditor || isPublicTalkCoordinator) && (
           <button
             type="button"
             className="tile-item c-blue active-press"

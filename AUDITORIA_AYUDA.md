@@ -91,7 +91,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `general` | todos | ampliada, sin auditar |
 | `informes` | secretario, registro de asistencia | ampliada, sin auditar |
 | `entre-semana` | editor de entre semana | ampliada, sin auditar |
-| `fin-semana` | editor de fin de semana | **sin tocar** |
+| `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
 | `discursos` | coordinador de discursos | **sin tocar** |
 | `departamentos` | editor de departamentos | ampliada, sin auditar |
 | `exhibidores` | comité de servicio | **sin tocar** |
