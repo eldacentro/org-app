@@ -1556,7 +1556,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Cualquier anciano o miembro del cuerpo de gobierno de la aplicación (admin, secretario, coordinador) ya tiene acceso de gestión de Territorios de forma automática. Además, cualquier hermano que figure como responsable, auxiliar o miembro del departamento "Territorios" en Responsabilidades también lo tiene, aunque no sea anciano.',
+            text: 'Cualquier anciano y los administradores de la aplicación (coordinador y secretario incluidos) ya tienen acceso de gestión de Territorios de forma automática. Además, cualquier hermano que figure como responsable, auxiliar o miembro del departamento "Territorios" en Responsabilidades también lo tiene, aunque no sea anciano.',
           },
           {
             type: 'p',
