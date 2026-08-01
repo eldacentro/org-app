@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useCurrentUser } from '@hooks/index';
 import { AyudaRoles, AyudaSection } from '@definition/ayuda';
+import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 import { AYUDA_SECTIONS } from './content';
 
 const normalize = (s: string) =>
@@ -8,6 +9,11 @@ const normalize = (s: string) =>
 
 const useAyuda = () => {
   const user = useCurrentUser();
+
+  // La misma puerta que abre el panel de responsables de Territorios, no una
+  // suma de roles parecida: si no, al hermano del departamento "Territorios"
+  // que no es anciano se le escondía la sección que más le hace falta.
+  const isTerritoryManager = useIsTerritoryManager();
 
   const [search, setSearch] = useState('');
 
@@ -25,8 +31,9 @@ const useAyuda = () => {
       isServiceCommittee: user.isServiceCommittee,
       isPersonViewer: user.isPersonViewer,
       isSettingsEditor: user.isSettingsEditor,
+      isTerritoryManager,
     }),
-    [user]
+    [user, isTerritoryManager]
   );
 
   const sections = useMemo(() => {

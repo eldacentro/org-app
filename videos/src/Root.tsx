@@ -1,6 +1,7 @@
 import React from 'react';
 import { Composition } from 'remotion';
 import { Maestro, DURACION_TOTAL } from './Maestro';
+import { Hero, HERO_DURACION } from './Hero';
 
 /**
  * Las composiciones. Vertical es la principal —así lo ve la gente en
@@ -8,6 +9,16 @@ import { Maestro, DURACION_TOTAL } from './Maestro';
  */
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* El plano de referencia: se decide aquí el lenguaje antes de montar
+        ocho vídeos con él. */}
+    <Composition
+      id="Hero"
+      component={Hero}
+      durationInFrames={HERO_DURACION}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     <Composition
       id="Maestro"
       component={Maestro}

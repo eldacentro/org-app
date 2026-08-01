@@ -23,6 +23,13 @@ export type AyudaRoles = {
   isServiceCommittee: boolean;
   isPersonViewer: boolean;
   isSettingsEditor: boolean;
+  /**
+   * Territorios no se abre por rol: es `useIsTerritoryManager` —anciano o
+   * admin, MÁS quien esté en el departamento "Territorios" de
+   * Responsabilidades aunque no sea anciano—. Con los roles sueltos, la
+   * sección se le escondía justo a ese hermano, que es quien más la necesita.
+   */
+  isTerritoryManager: boolean;
 };
 
 export type AyudaBlock =

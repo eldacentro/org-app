@@ -1510,7 +1510,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     description:
       'Para responsables: asignaciones, solicitudes, campañas, mapa, S-13 y configuración.',
     icon: <IconMapOverview color="var(--accent-main)" />,
-    visible: (r) => r.isElder || r.isServiceCommittee || r.isAdmin,
+    // La MISMA puerta que el panel de responsables (`useIsTerritoryManager`).
+    // Antes era una suma de roles: dejaba fuera al hermano del departamento
+    // "Territorios" que no es anciano, y dentro al superintendente de servicio
+    // que sí lo es pero no gestiona territorios.
+    visible: (r) => r.isTerritoryManager,
     articles: [
       {
         id: 'terr-acceso',
@@ -1522,7 +1526,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Al entrar a Congregación → Territorios, quien tiene gestión ve dos pestañas arriba: "Mis territorios" (lo suyo propio, igual que cualquier publicador) y "Responsables" (el panel completo que se explica en los artículos siguientes).',
+            text: 'Al entrar a Congregación → Territorios ves lo mismo que cualquier publicador: los tuyos, y el botón "Solicitar territorio". Lo de gestionar está detrás del ENGRANAJE que hay junto al título ("Panel de responsables de territorios"): al tocarlo, la pantalla entera pasa a "Responsables", con sus pestañas, y se vuelve con "Volver".',
+          },
+          {
+            type: 'tip',
+            text: 'Cuando hay solicitudes sin resolver, el engranaje lleva un puntito: así se ve desde fuera que hay algo esperando. Y al entrar, el panel abre directamente por "Solicitudes".',
           },
           {
             type: 'link',
@@ -1541,11 +1549,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'La primera pestaña del panel de Responsables. De un vistazo: cuántos territorios están "Asignados" (con su barra de progreso sobre el total), cuántos "Trabajados" en el periodo, cuántos "Atrasados" y cuántos "Vencidos".',
+            text: 'La primera pestaña del panel de Responsables. De un vistazo, cuatro números: "Asignados" (con su barra de progreso sobre el total), "Trabajados" en el periodo, "Atrasados" y "En descanso".',
           },
           {
             type: 'p',
-            text: 'Debajo, tres listas útiles: los territorios atrasados (con botón "Notificar", que avisa al hermano por notificación con el mensaje que hayas configurado, y "Entregar"), los vencidos, y los que llevan más tiempo sin asignarse a nadie (agrupables por zona, con botón "Asignar" directo en cada fila).',
+            text: '"En descanso" son los territorios que están libres pero se devolvieron trabajados hace poco, todavía dentro de los días de descanso que hayas puesto en Configuración. No es que estén mal: es que aún no toca volver a darlos.',
+          },
+          {
+            type: 'p',
+            text: 'Debajo, dos listas: "Territorios atrasados", con el botón "Notificar" (avisa al hermano con el mensaje que hayas configurado) y "Entregar"; y "No asignados durante más tiempo", que se puede agrupar por zona y lleva un botón "Asignar" en cada fila.',
           },
         ],
       },
@@ -1584,7 +1596,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Un número en esta pestaña (y en la pestaña "Responsables" de arriba) te avisa de cuántas solicitudes están pendientes de resolver.',
+            text: 'La pestaña lleva el número de solicitudes pendientes al lado del nombre, y mientras haya alguna el engranaje de Territorios sale con un puntito para que se vea sin entrar.',
           },
         ],
       },
@@ -1612,8 +1624,9 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             items: [
               '"Zonas": crear, renombrar, borrar y reordenar las zonas, y elegir su color.',
               '"Etiquetas": crear y gestionar las etiquetas que se pueden poner a cada territorio (con su color).',
+              '"Añadir territorio": crear uno a mano, sin importar nada.',
               '"Importar KML": trae los límites de territorios desde un archivo KML/KMZ (de Google Earth u otra fuente), eligiendo a qué zona van.',
-              '"Seleccionar": activa el modo de selección múltiple, con acciones en bloque "Asignar (N)" y "Eliminar (N)".',
+              '"Seleccionar": activa el modo de selección múltiple, con acciones en bloque "Asignar (N)" y "Eliminar (N)". Al terminar, el mismo botón pone "Hecho".',
             ],
           },
           {
@@ -1633,6 +1646,28 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'p',
             text: 'Esta vista de conjunto no tiene vista satélite (solo el mapa de calles); la vista satélite está disponible al abrir un territorio individual, igual que la ven los publicadores.',
+          },
+        ],
+      },
+      {
+        id: 'terr-enlaces',
+        title: 'Enlaces (los territorios que se comparten por fuera)',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Desde la ficha de un territorio se puede crear un enlace público para mandárselo a alguien que no tiene cuenta en la aplicación. La pestaña "Enlaces" los reúne todos: de qué territorio es cada uno, con quién se compartió, cuándo se creó y cuándo caduca.',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Los chips de arriba filtran entre "Activos (N)" y "Todos".',
+              '"Ver territorio" abre la ficha del territorio de ese enlace.',
+              '"Anular" corta el enlace al momento: quien lo tenga deja de poder abrirlo.',
+            ],
+          },
+          {
+            type: 'warn',
+            text: 'Quien recibe uno de estos enlaces no necesita cuenta ni contraseña: cualquiera con la dirección entra. Conviene repasarlos de vez en cuando y anular los que ya no hagan falta.',
           },
         ],
       },
@@ -1673,16 +1708,16 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'steps',
-            title: 'Exportar S-13:',
+            title: 'Exportar S-13 (bloque "Formulario S-13 (PDF)"):',
             items: [
-              'Elige el año de servicio (de los últimos 5).',
+              'Elige el "Año de servicio".',
               'Marca "Incluir asignaciones de campaña" si quieres que también salgan.',
               'Toca "Exportar S-13": genera el PDF con el formato oficial.',
             ],
           },
           {
             type: 'tip',
-            text: 'Si un territorio tuvo más de 4 asignaciones en el año, el formulario S-13 solo tiene sitio para las 4 más recientes de ese territorio (así es el formulario oficial); la aplicación te avisa cuando pasa.',
+            text: 'Un territorio con más de 4 asignaciones en el año no cabe en su fila: como indica el propio formulario, sigue en una hoja de continuación. La aplicación las añade sola y te avisa de cuántos territorios han necesitado una.',
           },
           {
             type: 'p',
@@ -1697,23 +1732,23 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           { type: 'p', text: 'Cinco bloques de ajustes del módulo:' },
           {
             type: 'p',
-            text: 'AJUSTES DE ASIGNACIÓN: formato de fecha a usar en toda la pantalla, si las campañas cuentan en las estadísticas, y si "asignado" ya cuenta como "trabajado".',
+            text: '"Ajustes de asignación": formato de fecha a usar en toda la pantalla, si las campañas cuentan en las estadísticas, y si "asignado" ya cuenta como "trabajado".',
           },
           {
             type: 'p',
-            text: 'DASHBOARD Y ESTADÍSTICAS: a partir de cuántos días un territorio se considera atrasado o vencido, el mensaje que se envía al notificar un atraso, el rango de las estadísticas (año de servicio, 12 meses o todo) y si se agrupan por zona.',
+            text: '"Dashboard y estadísticas": a partir de cuántos días un territorio se considera atrasado o vencido, el mensaje que se envía al notificar un atraso, el rango de las estadísticas (año de servicio, 12 meses o todo) y si se agrupan por zona.',
           },
           {
             type: 'p',
-            text: 'VISTA DEL TERRITORIO: qué pestaña aparece abierta por defecto al ver un territorio (información, mapa, imagen o direcciones).',
+            text: '"Vista del territorio": qué secciones salen ya desplegadas al abrir un territorio, con un interruptor para cada una: "Información del territorio (incluye direcciones)", "Mapa del territorio" e "Imagen del territorio".',
           },
           {
             type: 'p',
-            text: 'CONFIGURACIÓN DE PUBLICADOR: si los publicadores pueden devolver sus propios territorios, si pueden ver los territorios de su grupo, y si pueden añadir direcciones a "No visitar" ellos mismos.',
+            text: '"Configuración de publicador": "Publicadores pueden devolver territorios", "Ver territorios del grupo" y "Publicadores pueden añadir ubicaciones" (las direcciones de "No visitar").',
           },
           {
             type: 'p',
-            text: 'CONFIGURACIÓN DE UBICACIONES: si las direcciones que añaden los publicadores necesitan tu aprobación antes de quedar definitivas.',
+            text: '"Configuración de ubicaciones": "Ubicaciones requieren aprobación", para que las direcciones que añaden los publicadores no queden definitivas hasta que las repases.',
           },
           {
             type: 'tip',
