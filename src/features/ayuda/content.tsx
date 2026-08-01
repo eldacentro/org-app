@@ -1112,20 +1112,24 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Entra en Reuniones → "Programación de departamentos" y elige la semana.',
+              'Entra en Reuniones → "Departamentos" y elige la semana. La pantalla se titula "Programa de departamentos".',
               'Asigna a los hermanos de cada departamento tocando cada puesto.',
               'Con "Autocompletar" puedes rellenar varias semanas de golpe, repartiendo según el historial; después repasa y ajusta a mano lo que quieras.',
-              'Cuando publiques, a cada hermano le aparece su asignación en "MIS ASIGNACIONES", como cualquier otra parte.',
+              'Cuando el mes esté listo, toca "Publicar". Entonces a cada hermano le aparece su asignación en "Mis asignaciones", como cualquier otra parte.',
             ],
+          },
+          {
+            type: 'warn',
+            text: 'Se publica por MES, aunque las asignaciones vayan por semana: publicar marca todas las semanas de ese mes. Hasta entonces el mes es un borrador y no lo ve nadie más. Una vez publicado el botón pone "Publicado", y desde ahí se puede retirar para volver a dejarlo en borrador. Si quedan puestos sin nadie, te lo dice, pero te deja publicar igual.',
           },
           {
             type: 'link',
             to: '/departments-schedule',
-            label: 'Abrir Programación de departamentos',
+            label: 'Abrir Programa de departamentos',
           },
           {
             type: 'tip',
-            text: 'Los hermanos disponibles para cada departamento se configuran en su ficha de Personas (apartado de departamentos). Si alguien no te aparece para asignar, revisa que tenga marcado ese departamento.',
+            text: 'Los cuatro departamentos son "Acomodadores", "Micrófonos", "Multimedia" y "Plataforma". Quién puede llevar cada uno se marca en el apartado "Departamentos" de su ficha de Personas: si un hermano no te aparece para asignar, es que no lo tiene marcado.',
           },
         ],
       },
@@ -1135,20 +1139,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En el engranaje de la página de Departamentos decides cómo funciona cada puesto: si se asigna una vez por semana o uno para cada reunión, y si lleva turnos.',
+            text: 'El engranaje junto al título ("Configuración de los departamentos") decide cómo se organiza cada departamento. Está ahí y no en los ajustes de la congregación a propósito: quien lleva los departamentos no tiene por qué tener acceso a aquellos.',
           },
           {
             type: 'steps',
             items: [
-              'Abre el engranaje, arriba en la página de Departamentos.',
-              'Para cada puesto, elige si va por semana o por reunión.',
-              'Si el puesto lleva turnos —por ejemplo dos micrófonos—, indica cuántos.',
+              'Abre el engranaje, arriba en la página.',
+              'Para cada departamento, elige "Por semana" (las mismas personas toda la semana) o "Por reunión" (unas entre semana y otras el fin de semana).',
+              'Si quieres partirlo, enciende "Dividir en dos turnos": uno al principio de la reunión y otro al final.',
               'Guarda. El cuadro de la semana se rehace con los puestos nuevos.',
             ],
           },
           {
             type: 'warn',
-            text: 'Cambiar un puesto de «por semana» a «por reunión» no borra lo ya asignado, pero sí cambia cuántas casillas hay que rellenar de ahí en adelante. Revisa las semanas que ya tenías preparadas.',
+            text: 'Cambiar esto no borra nada, pero las asignaciones hechas con la configuración anterior DEJAN DE VERSE mientras esté cambiada. Si te arrepientes, déjalo como estaba y vuelven a aparecer.',
           },
         ],
       },
@@ -1158,7 +1162,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Si necesitas el programa en papel, actívate la exportación (Configuración → "Ajustes de congregación" → "Materiales de reunión, formularios y programas" → "Habilitar la exportación de programas e informes a PDF") y usa el botón de exportar de la propia pantalla.',
+            text: 'Si necesitas el programa en papel, el botón "Exportar" de la propia pantalla lo saca en PDF. Solo aparece si tienes la exportación activada.',
+          },
+          {
+            type: 'tip',
+            text: 'Si no lo ves, enciéndelo para ti solo en tu cuenta ("Mi cuenta" → "Habilitar exportación a PDF para mi cuenta"): con eso te sale el botón de Departamentos sin abrirle el de las demás pantallas a nadie. Un anciano o el administrador pueden encenderlo para toda la congregación desde "Ajustes de congregación".',
           },
         ],
       },
@@ -2027,21 +2035,21 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Es el cuadro de quién lleva cada departamento del salón: el responsable, su auxiliar y el equipo. Sirve para tenerlo por escrito y para imprimirlo.',
+            text: 'Es el cuadro de quién lleva cada departamento del salón: el responsable, su auxiliar y el equipo. Sirve para tenerlo por escrito y para imprimirlo. La página la puede mirar cualquier hermano; cambiarla, solo los ancianos.',
           },
           {
             type: 'steps',
             title: 'Para cambiar un departamento:',
             items: [
-              'Entra en «Responsabilidades» desde Congregación.',
-              'Pulsa el departamento que quieras.',
-              'Elige el responsable, el auxiliar y los hermanos del equipo.',
-              'Guarda. Se sincroniza con los demás como todo lo demás.',
+              'Entra en "Responsabilidades" desde Congregación.',
+              'Toca "Editar": hasta entonces la página es solo de lectura.',
+              'Pulsa el departamento que quieras y elige el responsable, el auxiliar y los hermanos del equipo.',
+              'Toca "Guardar". Se sincroniza con los demás como todo lo demás. ("Cancelar" deshace lo que hayas tocado.)',
             ],
           },
           {
             type: 'tip',
-            text: 'Tiene su propio PDF, pensado para el tablón: sale cada departamento con su equipo.',
+            text: '"Exportar" saca su propio PDF, pensado para el tablón: cada departamento con su equipo.',
           },
           {
             type: 'link',
@@ -2056,7 +2064,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Recoge las salidas del salón, el punto de reunión de fuera y quién se encarga de qué si hay que desalojar. Es información que casi nunca se usa y que, el día que se usa, tiene que estar a mano y clara.',
+            text: 'Recoge las salidas del salón, el punto de reunión de fuera y quién se encarga de qué si hay que desalojar. Es información que casi nunca se usa y que, el día que se usa, tiene que estar a mano y clara. La ve cualquier hermano: el plano se toca para ver el detalle de cada zona, y al lado están "Estructura de mando", "Equipos", "Procedimientos" y "Reglas del plan".',
+          },
+          {
+            type: 'p',
+            text: 'Los ancianos tienen además el engranaje junto al título ("Configuración del plan de evacuación"), que es donde se cambia el plan.',
           },
           {
             type: 'warn',

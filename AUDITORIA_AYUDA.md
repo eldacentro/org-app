@@ -93,7 +93,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `entre-semana` | editor de entre semana | ampliada, sin auditar |
 | `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
 | `discursos` | coordinador de discursos | auditada |
-| `departamentos` | editor de departamentos | ampliada, sin auditar |
+| `departamentos` | editor de departamentos | auditada |
 | `exhibidores` | comité de servicio | auditada |
 | `salidas-predicacion` | comité de servicio | auditada |
 | `grupos` | superintendente de grupo | auditada |
@@ -101,7 +101,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `territorios` | quien gestiona Territorios (`useIsTerritoryManager`) | auditada |
 | `limpieza` | anciano, comité | ampliada, sin auditar |
 | `visita-co` | anciano, admin | nueva |
-| `responsabilidades` | anciano, admin | nueva |
+| `responsabilidades` | anciano, admin | auditada |
 | `administracion` | admin, editor de ajustes | auditada |
 
 Ya no queda ninguna «sin tocar»: las ocho de más riesgo están auditadas.
