@@ -556,25 +556,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'warn',
-            text: 'Estar inactivo no borra nada suyo: sus informes anteriores, su tarjeta S-21 y su historial siguen enteros. Es una etiqueta que ayuda a ver a quién hay que visitar, no una baja.',
-          },
-        ],
-      },
-      {
-        id: 'informes-redundancia',
-        title: 'Un informe no depende de que una sola persona abra la aplicación',
-        blocks: [
-          {
-            type: 'p',
-            text: 'Cuando un hermano envía su informe, este queda esperando en el servidor hasta que alguien con permiso abre la aplicación y sincroniza. Ese alguien puede ser el secretario, el coordinador o un administrador — el primero que entre.',
-          },
-          {
-            type: 'p',
-            text: 'Quien lo recoge lo convierte en informe de la congregación, y a partir de ahí se sincroniza con todos los demás. Así, si el secretario está de viaje o no abre la aplicación en unos días, el informe no se queda parado.',
-          },
-          {
-            type: 'tip',
-            text: 'Si un hermano dice que envió su informe y no lo ves, lo primero es sincronizar. Si aun así no aparece, pídele que abra su informe y compruebe que pone «Enviado».',
+            text: 'Estar inactivo no borra nada suyo: sus informes anteriores, su tarjeta S-21 y su historial siguen enteros.',
           },
         ],
       },
