@@ -238,10 +238,6 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'p',
             text: 'PLAN DE EVACUACIÓN. El plan de emergencia del Salón del Reino: la estructura de mando, los equipos y lo que hay que saber por si alguna vez hay que desalojar. Merece una lectura tranquila una vez, para que el día que haga falta no sea la primera.',
           },
-          {
-            type: 'p',
-            text: 'VISITA DEL SUPERINTENDENTE. Cuando se acerca una visita del superintendente de circuito (desde unas tres semanas antes y mientras dura), aquí verás el resumen con lo que necesitas saber: fechas, horarios y detalles del programa. Los ancianos ven información más completa, y los responsables la preparan desde aquí mismo.',
-          },
         ],
       },
       {
@@ -400,11 +396,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Cuando se acerca la visita del superintendente de circuito, en «Programas semanales» aparece sola una pestaña con el programa de esa semana: el día en que se traslada la reunión de entre semana, el discurso de servicio y el discurso especial del fin de semana.',
+            text: 'Cuando se acerca la visita del superintendente de circuito, en «Programas semanales» aparece sola una pestaña llamada «Visita del superintendente» con el programa de esa semana: el día al que se traslada la reunión de entre semana, el discurso de servicio y el discurso especial del fin de semana.',
+          },
+          {
+            type: 'p',
+            text: 'La pestaña se abre tres semanas antes de que empiece la visita y se va sola cuando la visita ha pasado. No hay que hacer nada para que salga ni para que desaparezca.',
           },
           {
             type: 'tip',
-            text: 'No tienes que hacer nada para que salga, ni para que se vaya: aparece cuando toca y desaparece cuando la visita ha pasado.',
+            text: 'Si tienes algo asignado en la visita —una comida en tu casa, acompañar al superintendente o a su esposa en la predicación, o una visita de pastoreo— la verás desde el momento en que te la asignan, sin esperar a esas tres semanas.',
+          },
+          {
+            type: 'faq',
+            q: 'En «Congregación» no me sale nada de la visita. ¿Es un fallo?',
+            a: 'No. Esa pantalla es para los ancianos, que son quienes preparan la visita. Lo que te toca saber a ti sale en la pestaña de Programas semanales.',
           },
         ],
       },
