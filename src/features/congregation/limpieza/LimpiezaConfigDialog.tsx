@@ -23,6 +23,14 @@ import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 /**
+ * Deja los días puestos a mano como deben quedar al reconfigurar: los
+ * ANTERIORES al corte se congelan, y los POSTERIORES se sueltan.
+ *
+ * Antes solo hacía la primera mitad, y por eso reconfigurar no servía de nada
+ * hacia delante: las casillas pintadas a mano mandan sobre el cálculo, así que
+ * la rotación nueva quedaba tapada por la vieja y parecía que no se había
+ * guardado.
+ *
  * Congela lo ya asignado como overrides explícitos, para que cambiar la
  * configuración no reescriba hacia atrás lo que la congregación ya dio por
  * bueno.
@@ -38,7 +46,7 @@ import { schedulesGetMeetingDate } from '@services/app/schedules';
  * (asamblea, visita del CO), y sin ellos congelaba valores distintos de los que
  * la gente tenía delante — que es justo cambiar el pasado, no conservarlo.
  */
-const freezePastWeeks = (
+const ajustarOverrides = (
   oldConfig: LimpiezaConfig,
   groups: FieldServiceGroupType[],
   schedules: SchedWeekType[],
@@ -116,7 +124,51 @@ const freezePastWeeks = (
     current.setDate(current.getDate() + 7);
   }
 
+  // Y ahora la otra mitad: soltar lo puesto a mano DESDE el corte. La
+  // configuración nueva manda de ahí en adelante, y una asignación manual la
+  // taparía sin decir nada.
+  for (const clave of Object.keys(overrides)) {
+    const [weekOf, reunionDia] = [clave.slice(0, 10), clave.slice(11)];
+
+    const { date: fechaReunion } = schedulesGetMeetingDate({
+      week: weekOf,
+      meeting: reunionDia as 'midweek' | 'weekend',
+    });
+    if (!fechaReunion) continue;
+
+    const [fy, fm, fd] = fechaReunion.split('/').map(Number);
+    const dReunion = new Date(fy, fm - 1, fd);
+    dReunion.setHours(0, 0, 0, 0);
+
+    if (dReunion >= corte) delete overrides[clave];
+  }
+
   return overrides;
+};
+
+/** Cuántos días puestos a mano se van a soltar. Para avisar antes de hacerlo. */
+const contarManualesASoltar = (
+  oldConfig: LimpiezaConfig | null,
+  nuevaFechaInicio: Date | null
+) => {
+  if (!oldConfig?.overrides || !nuevaFechaInicio) return 0;
+
+  const corte = new Date(nuevaFechaInicio);
+  corte.setHours(0, 0, 0, 0);
+
+  return Object.keys(oldConfig.overrides).filter((clave) => {
+    const { date } = schedulesGetMeetingDate({
+      week: clave.slice(0, 10),
+      meeting: clave.slice(11) as 'midweek' | 'weekend',
+    });
+    if (!date) return false;
+
+    const [y, m, d] = date.split('/').map(Number);
+    const dia = new Date(y, m - 1, d);
+    dia.setHours(0, 0, 0, 0);
+
+    return dia >= corte;
+  }).length;
 };
 
 interface Props {
@@ -146,12 +198,14 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   const [gruposParticipantes, setGruposParticipantes] = useState<string[]>([]);
   const [alternarParejas, setAlternarParejas] = useState(false);
   const [notasGenerales, setNotasGenerales] = useState<string>('');
+  const [configActual, setConfigActual] = useState<LimpiezaConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadConfig = async () => {
       try {
         const config = await dbLimpiezaGetConfig();
+        setConfigActual(config ?? null);
         if (config) {
           setFechaInicio(new Date(config.fechaInicio));
           setGrupoInicio(config.grupoInicio);
@@ -179,6 +233,14 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Cuántos días puestos a mano se van a soltar al guardar. Se avisa ANTES,
+  // en el propio diálogo: guardar borra trabajo que alguien hizo a mano, y
+  // enterarse después es lo peor que puede pasar aquí.
+  const manualesASoltar = React.useMemo(
+    () => contarManualesASoltar(configActual, fechaInicio),
+    [configActual, fechaInicio]
+  );
+
   const handleSave = async () => {
     if (!fechaInicio || !grupoInicio || isSaving) return;
     setIsSaving(true);
@@ -189,7 +251,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
       // Congelar semanas pasadas: convertirlas a overrides explícitos para que
       // el cambio de fechaInicio/grupoInicio no retroafecte el historial.
       const frozenOverrides = existingConfig
-        ? freezePastWeeks(existingConfig, groups, schedules, fechaInicio)
+        ? ajustarOverrides(existingConfig, groups, schedules, fechaInicio)
         : {};
 
       const newConfig: LimpiezaConfig = {
@@ -321,6 +383,29 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
           placeholder="Ej: Traer fregonas, revisar aseos, etc."
         />
       </Box>
+
+      {/* El aviso va JUNTO al botón de guardar, no arriba del formulario: hay
+          que verlo en el momento de decidir, no al abrir el diálogo. */}
+      {manualesASoltar > 0 && (
+        <Box
+          sx={{
+            marginTop: '20px',
+            padding: '10px 12px',
+            borderRadius: 'var(--shape-sm)',
+            backgroundColor: 'var(--orange-secondary)',
+            border: '1px solid var(--orange-main)',
+          }}
+        >
+          <Typography className="body-small-regular">
+            Al guardar, {manualesASoltar}{' '}
+            {manualesASoltar === 1
+              ? 'día que habías puesto a mano volverá'
+              : 'días que habías puesto a mano volverán'}{' '}
+            a la rotación automática. Lo anterior a la fecha de inicio se queda
+            como está.
+          </Typography>
+        </Box>
+      )}
 
       {/* Cancelar a la izquierda y Guardar el más a la derecha, como en todos
           los diálogos de la app. */}
