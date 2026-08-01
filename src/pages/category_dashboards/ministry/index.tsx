@@ -12,16 +12,15 @@ import {
 
 import { useAtomValue } from 'jotai';
 import { territoriesEnabledPublishersState } from '@states/settings';
-import { congAccountConnectedState } from '@states/app';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 
 const MinistryDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
 
-  const { isPublisher, isServiceCommittee } = useCurrentUser();
+  const { isPublisher, isServiceCommittee, enable_AP_application } =
+    useCurrentUser();
   const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
-  const isConnected = useAtomValue(congAccountConnectedState);
 
   // Quien gestiona Territorios tiene que poder entrar SIEMPRE. El interruptor
   // `territories_enabled_publishers` viene apagado de fábrica y decide otra
@@ -154,10 +153,16 @@ const MinistryDashboard = () => {
         {/* Solicitud de precursor auxiliar.
             La página existe y está enrutada desde siempre, pero no había forma
             de llegar a ella: ni tarjeta, ni botón, ni un `navigate` en toda la
-            aplicación. Solo se abría escribiendo la dirección a mano. La ruta
-            pide publicador Y congregación conectada, así que la tarjeta
-            también. */}
-        {isPublisher && isConnected && (
+            aplicación. Solo se abría escribiendo la dirección a mano.
+
+            `enable_AP_application` es la bandera que ya estaba escrita en
+            `useCurrentUser` para justo esto —y que tampoco usaba nadie—: pide
+            congregación conectada, publicador BAUTIZADO y ningún precursorado
+            abierto. Con eso, a un precursor regular (y al especial, al
+            misionero y al auxiliar de continuo) no le sale: no tiene nada que
+            solicitar. Al auxiliar de un mes suelto sí, porque su tramo lleva
+            fecha de fin y no cuenta como abierto. */}
+        {enable_AP_application && (
           <button
             type="button"
             className="tile-item c-blue active-press full-width"

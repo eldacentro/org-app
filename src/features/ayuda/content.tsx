@@ -193,6 +193,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'p',
             text: 'La solicitud les llega a los hermanos del comité de servicio, y recibirás la respuesta en la propia aplicación.',
           },
+          {
+            type: 'faq',
+            q: 'No me sale esa opción en Predicación.',
+            a: 'Es a propósito: solo aparece a quien puede solicitarlo. No sale si ya eres precursor regular, especial, misionero o auxiliar de continuo —no tienes nada que solicitar—, ni a los publicadores no bautizados. Si eres precursor auxiliar de un mes suelto, sí te sale para volver a pedirlo.',
+          },
         ],
       },
       {
