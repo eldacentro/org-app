@@ -47,7 +47,7 @@ const ABIERTAS: string[] = [
  * Lo que pide un encargo. El texto de «quién» describe la puerta tal cual está
  * escrita, incluidas las sumas: donde pone «o», basta con uno de los dos.
  */
-const RESERVADAS: Fila[] = [
+const PREDICACION: Fila[] = [
   {
     area: 'Informe de predicación',
     quien: 'Quien está registrado como publicador',
@@ -64,6 +64,10 @@ const RESERVADAS: Fila[] = [
     area: 'Salidas de predicación\nExhibidores',
     quien: 'Superintendente de servicio',
   },
+];
+
+/** Reuniones, discursos y lo que se programa. */
+const REUNIONES: Fila[] = [
   {
     area: 'Lista de discursos públicos',
     quien: 'Anciano o siervo ministerial, o quien programa el fin de semana',
@@ -72,6 +76,10 @@ const RESERVADAS: Fila[] = [
     area: 'Catálogo de oradores\nDiscursos salientes',
     quien: 'Anciano o siervo ministerial, o el coordinador de discursos',
   },
+];
+
+/** Personas, registros y administración. */
+const REGISTROS: Fila[] = [
   {
     area: 'Personas (fichas y contactos)',
     quien: 'Anciano, o quien programa reuniones o discursos',
@@ -135,10 +143,15 @@ const TemplateAccesos = ({ congregation }: TemplateAccesosProps) => (
       documentName="Accesos por encargo"
       updatedAt={fechaPie()}
     >
+      {/* El texto va dentro de un <Text>: una cadena suelta dentro de un
+          <View> de react-pdf no se dibuja, y el aviso salía como una banda
+          azul vacía. */}
       <PdfNote>
-        Un hermano solo ve aquello para lo que tiene encargo. No es que las
-        pantallas estén escondidas: la aplicación no le deja entrar, y si lo
-        intenta escribiendo la dirección a mano, vuelve al inicio.
+        <Text style={text.body}>
+          Un hermano solo ve aquello para lo que tiene encargo. No es que las
+          pantallas estén escondidas: la aplicación no le deja entrar, y si lo
+          intenta escribiendo la dirección a mano, vuelve al inicio.
+        </Text>
       </PdfNote>
 
       <PdfCard title="Lo que ve cualquier hermano">
@@ -174,8 +187,20 @@ const TemplateAccesos = ({ congregation }: TemplateAccesosProps) => (
         </Text>
       </PdfCard>
 
-      <PdfCard title="Lo que pide un encargo">
-        <PdfTable columns={COLUMNAS} rows={RESERVADAS} />
+      {/* Tres tarjetas y no una: `PdfCard` no se parte entre hojas, así que
+          diecinueve filas de golpe saltaban enteras a la hoja siguiente y
+          dejaban media hoja en blanco. Agrupadas por tema caben, y además se
+          leen mejor que un muro de filas. */}
+      <PdfCard title="Predicación y territorios" flush>
+        <PdfTable columns={COLUMNAS} rows={PREDICACION} />
+      </PdfCard>
+
+      <PdfCard title="Reuniones y discursos" flush>
+        <PdfTable columns={COLUMNAS} rows={REUNIONES} />
+      </PdfCard>
+
+      <PdfCard title="Personas, registros y administración" flush>
+        <PdfTable columns={COLUMNAS} rows={REGISTROS} />
       </PdfCard>
 
       <PdfCard title="Lo que no ve nadie">
