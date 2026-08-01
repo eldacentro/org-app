@@ -53,21 +53,19 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
         r.report_data.person_uid === record.person_uid
     );
 
+    // ¿Llega después de haber enviado el S-1 de ese mes?
+    //
+    // Antes, en ese caso el informe se DESCARTABA en silencio salvo que la
+    // persona ya tuviera uno marcado como tardío. Quien lo mandaba veía
+    // "enviado" en su móvil y el informe no aparecía en ninguna parte, ni
+    // había forma de enterarse. En una congregación eso es un informe perdido.
+    //
+    // Ahora entra igual, marcado como TARDÍO: el secretario lo ve, decide qué
+    // hacer con él y el S-1 ya sabe tratar esa marca. Es mejor un informe
+    // tardío a la vista que un informe que no existe.
+    const llegaTarde = Boolean(branch?.report_data.submitted);
+
     let allowAdd = false;
-
-    // allow add if branch report not created or not submitted
-    if (!branch || branch?.report_data.submitted === false) {
-      allowAdd = true;
-    }
-
-    // allow add if report is late
-    if (branch?.report_data.submitted && findReport?.report_data.late.value) {
-      allowAdd = true;
-    }
-
-    if (!allowAdd) continue;
-
-    allowAdd = false;
 
     if (!findReport) {
       allowAdd = true;
@@ -124,6 +122,13 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
       report.report_data.shared_ministry = record.shared_ministry;
       report.report_data.status = 'received';
       report.report_data._deleted = false;
+
+      if (llegaTarde && !report.report_data.late.value) {
+        report.report_data.late = {
+          value: true,
+          submitted: record.updatedAt,
+        };
+      }
 
       await dbFieldServiceReportsSave(report);
     }

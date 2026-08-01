@@ -58,7 +58,6 @@ import {
   tokenize,
 } from '@services/app/visiting_speakers_reconcile';
 
-
 const personIsMS = (person: PersonType) => {
   const hasActive = person?.person_data.privileges?.find(
     (record) =>
@@ -204,7 +203,18 @@ export const dbGetMetadata = async () => {
     delete result.meeting_attendance;
   }
 
-  if (!isSecretary) {
+  // Los informes que manda un publicador los recoge y los convierte el
+  // dispositivo que se los descarga. Estaba limitado al rol LITERAL de
+  // secretario, así que si el secretario no abría la app el informe se quedaba
+  // en el servidor y no lo veía nadie —ni el administrador— aunque estuviera
+  // entregado. Ahora también los recogen administrador y coordinador: es el
+  // mismo trabajo, hecho por quien llegue primero, y así no depende de una
+  // sola persona.
+  //
+  // Las NOTIFICACIONES de informe siguen siendo solo del secretario: las
+  // decide `useUnverifiedReports` con `secretaryRoleState`, que sí mira el rol
+  // literal, y eso no se toca.
+  if (!isAdmin) {
     delete result.incoming_reports;
   }
 
@@ -843,13 +853,16 @@ const dbRestoreVisitingSpeakers = async (
     // inexistente vuelve a aparecer en el catálogo en la restauración diaria).
     const validCongIds = new Set(congregations.map((record) => record.id));
 
-    const { speakers: remoteSpeakers, reconciledUids, healedCongUids } =
-      reconcileOutgoingSpeakerLinks(
-        decryptedSpeakers,
-        activePersons,
-        localCongId,
-        validCongIds
-      );
+    const {
+      speakers: remoteSpeakers,
+      reconciledUids,
+      healedCongUids,
+    } = reconcileOutgoingSpeakerLinks(
+      decryptedSpeakers,
+      activePersons,
+      localCongId,
+      validCongIds
+    );
 
     const healedCongSet = new Set(healedCongUids);
 
@@ -1419,15 +1432,17 @@ const dbRestoreDepartmentsSchedule = async (
   try {
     if (!backupData.departments_schedule) return;
 
-    const remoteData = (backupData.departments_schedule as DeptWeekType[]).map((data) => {
-      decryptObject({
-        data,
-        table: 'departments_schedule',
-        accessCode,
-      });
+    const remoteData = (backupData.departments_schedule as DeptWeekType[]).map(
+      (data) => {
+        decryptObject({
+          data,
+          table: 'departments_schedule',
+          accessCode,
+        });
 
-      return data;
-    });
+        return data;
+      }
+    );
 
     const localData = await appDb.departments_schedule.toArray();
 
@@ -1484,7 +1499,9 @@ const dbRestoreServiceOutings = async (
   try {
     if (!backupData.service_outings) return;
 
-    const remoteData = (backupData.service_outings as ServiceOutingWeekType[]).map((data) => {
+    const remoteData = (
+      backupData.service_outings as ServiceOutingWeekType[]
+    ).map((data) => {
       decryptObject({
         data,
         table: 'service_outings',
@@ -1495,8 +1512,8 @@ const dbRestoreServiceOutings = async (
     });
 
     const localData = await appDb.service_outings.toArray();
-    const validRemoteData = remoteData.filter((record) =>
-      isMondayDate(record.weekOf) || record.weekOf === 'settings'
+    const validRemoteData = remoteData.filter(
+      (record) => isMondayDate(record.weekOf) || record.weekOf === 'settings'
     );
 
     const dataToUpdate: ServiceOutingWeekType[] = [];
@@ -1563,19 +1580,21 @@ const dbRestoreExhibitors = async (
   try {
     if (!backupData.exhibitors) return;
 
-    const remoteData = (backupData.exhibitors as ExhibitorWeekType[]).map((data) => {
-      decryptObject({
-        data,
-        table: 'exhibitors',
-        accessCode,
-      });
+    const remoteData = (backupData.exhibitors as ExhibitorWeekType[]).map(
+      (data) => {
+        decryptObject({
+          data,
+          table: 'exhibitors',
+          accessCode,
+        });
 
-      return data;
-    });
+        return data;
+      }
+    );
 
     const localData = await appDb.exhibitors.toArray();
-    const validRemoteData = remoteData.filter((record) =>
-      isMondayDate(record.weekOf) || record.weekOf === 'settings'
+    const validRemoteData = remoteData.filter(
+      (record) => isMondayDate(record.weekOf) || record.weekOf === 'settings'
     );
 
     const dataToUpdate: ExhibitorWeekType[] = [];
@@ -1599,7 +1618,10 @@ const dbRestoreExhibitors = async (
         // registro de la semana comparte un solo updatedAt, no hace falta
         // fusionar campo por campo: si el remoto es más nuevo, gana entero.
         // Solo se guarda lo que ha cambiado de verdad: ver isSameRecord.
-        if (remoteUpdated > localUpdated && !isSameRecord(localItem, remoteItem)) {
+        if (
+          remoteUpdated > localUpdated &&
+          !isSameRecord(localItem, remoteItem)
+        ) {
           dataToUpdate.push(remoteItem);
         }
       }
@@ -1912,7 +1934,11 @@ const dbDeduplicateSpeakers = async () => {
   const groups = new Map<string, VisitingSpeakerType[]>();
 
   for (const speaker of speakers) {
-    if (!speaker._deleted || typeof speaker._deleted !== 'object' || speaker._deleted.value === undefined) {
+    if (
+      !speaker._deleted ||
+      typeof speaker._deleted !== 'object' ||
+      speaker._deleted.value === undefined
+    ) {
       continue;
     }
     if (speaker._deleted.value) continue;
@@ -2010,7 +2036,9 @@ const dbDeduplicateSpeakers = async () => {
         // el duplicado más reciente viene sin ellas.
         const winner = talk.updatedAt > existing.updatedAt ? talk : existing;
         const talk_songs =
-          existing.talk_songs.length > 0 ? existing.talk_songs : talk.talk_songs;
+          existing.talk_songs.length > 0
+            ? existing.talk_songs
+            : talk.talk_songs;
 
         mergedTalks.set(talk.talk_number, { ...winner, talk_songs });
       }
@@ -2033,8 +2061,10 @@ const dbDeduplicateSpeakers = async () => {
     }, group[0]);
 
     if (nameDonor !== survivor) {
-      survivor.speaker_data.person_firstname = nameDonor.speaker_data.person_firstname;
-      survivor.speaker_data.person_lastname = nameDonor.speaker_data.person_lastname;
+      survivor.speaker_data.person_firstname =
+        nameDonor.speaker_data.person_firstname;
+      survivor.speaker_data.person_lastname =
+        nameDonor.speaker_data.person_lastname;
     }
 
     speakersToUpdate.push(survivor);
@@ -2044,7 +2074,10 @@ const dbDeduplicateSpeakers = async () => {
       // Los programas que ya tenían asignado a este duplicado en Discursos
       // salientes deben reapuntar al sobreviviente — si no, la asignación
       // queda huérfana en cuanto el duplicado se marca borrado.
-      dedupedUids.push({ oldUid: speaker.person_uid, newUid: survivor.person_uid });
+      dedupedUids.push({
+        oldUid: speaker.person_uid,
+        newUid: survivor.person_uid,
+      });
 
       speaker._deleted = { value: true, updatedAt: new Date().toISOString() };
       speakersToUpdate.push(speaker);
@@ -2079,7 +2112,11 @@ const dbDeduplicateCongregations = async () => {
   const groups = new Map<string, SpeakersCongregationsType[]>();
 
   for (const cong of congregations) {
-    if (!cong._deleted || typeof cong._deleted !== 'object' || cong._deleted.value === undefined) {
+    if (
+      !cong._deleted ||
+      typeof cong._deleted !== 'object' ||
+      cong._deleted.value === undefined
+    ) {
       continue;
     }
     if (cong._deleted.value) continue;
@@ -2166,7 +2203,9 @@ const dbRestoreResponsabilidades = async (
   try {
     if (!backupData.responsabilidades) return;
 
-    const remoteRecord = structuredClone(backupData.responsabilidades) as ResponsabilidadesType;
+    const remoteRecord = structuredClone(
+      backupData.responsabilidades
+    ) as ResponsabilidadesType;
 
     decryptObject({
       data: remoteRecord,
@@ -2193,7 +2232,10 @@ const dbRestoreLimpiezaConfig = async (
   try {
     if (!backupData.limpieza_config) return;
 
-    const remoteRecord = structuredClone(backupData.limpieza_config) as Record<string, unknown>;
+    const remoteRecord = structuredClone(backupData.limpieza_config) as Record<
+      string,
+      unknown
+    >;
 
     decryptObject({
       data: remoteRecord,
@@ -2206,7 +2248,10 @@ const dbRestoreLimpiezaConfig = async (
     const localUpdated = localRecord?.updatedAt || '';
 
     if (!localRecord || remoteUpdated > localUpdated) {
-      await appDb.limpieza_config.put({ ...remoteRecord, id: '1' } as unknown as LimpiezaConfig);
+      await appDb.limpieza_config.put({
+        ...remoteRecord,
+        id: '1',
+      } as unknown as LimpiezaConfig);
     }
   } catch (error) {
     throw new Error(`limpieza_config: ${error.message}`);
@@ -2220,7 +2265,9 @@ const dbRestoreEvacuacionConfig = async (
   try {
     if (!backupData.evacuacion_config) return;
 
-    const remoteRecord = structuredClone(backupData.evacuacion_config) as Record<string, unknown>;
+    const remoteRecord = structuredClone(
+      backupData.evacuacion_config
+    ) as Record<string, unknown>;
 
     decryptObject({
       data: remoteRecord,
@@ -2233,7 +2280,10 @@ const dbRestoreEvacuacionConfig = async (
     const localUpdated = localRecord?.updatedAt || '';
 
     if (!localRecord || remoteUpdated > localUpdated) {
-      await appDb.evacuacion_config.put({ ...remoteRecord, id: '1' } as unknown as PlanEvacuacion);
+      await appDb.evacuacion_config.put({
+        ...remoteRecord,
+        id: '1',
+      } as unknown as PlanEvacuacion);
     }
   } catch (error) {
     throw new Error(`evacuacion_config: ${error.message}`);
@@ -2302,7 +2352,10 @@ const restoreCategorySafely = async (
   try {
     await fn();
   } catch (error) {
-    console.error(`[backup] restore "${name}" falló, se omite esta categoría:`, error);
+    console.error(
+      `[backup] restore "${name}" falló, se omite esta categoría:`,
+      error
+    );
     failedCategories.add(name);
   }
 };
@@ -2352,7 +2405,10 @@ const dbRestoreFromBackup = async (
 
       // Se registra la marca aplicada dentro de la misma transacción: si algo
       // más abajo lanza, todo revierte junto y se reintentará el próximo ciclo.
-      if (resetMetadata && (forceReplaceSpeakers || forceReplaceSpeakersCongs)) {
+      if (
+        resetMetadata &&
+        (forceReplaceSpeakers || forceReplaceSpeakersCongs)
+      ) {
         if (forceReplaceSpeakers) {
           resetMetadata.visiting_speakers_reset_applied = vsResetAt;
         }
@@ -2369,21 +2425,34 @@ const dbRestoreFromBackup = async (
       await dbDeduplicateCongregations();
 
       const reconciledFromDedup = await dbDeduplicateSpeakers();
-      const allReconciledUids = [...(reconciledFromRestore ?? []), ...(reconciledFromDedup ?? [])];
+      const allReconciledUids = [
+        ...(reconciledFromRestore ?? []),
+        ...(reconciledFromDedup ?? []),
+      ];
 
       const failedCategories = new Set<string>();
       const safe = (name: string, fn: () => Promise<void>) =>
         restoreCategorySafely(name, fn, failedCategories);
 
-      await safe('field_service_groups', () => dbRestoreFieldGroups(backupData, accessCode));
+      await safe('field_service_groups', () =>
+        dbRestoreFieldGroups(backupData, accessCode)
+      );
 
-      await safe('cong_field_service_reports', () => dbRestoreCongReports(backupData, accessCode));
+      await safe('cong_field_service_reports', () =>
+        dbRestoreCongReports(backupData, accessCode)
+      );
 
-      await safe('branch_field_service_reports', () => dbRestoreBranchReports(backupData, accessCode));
+      await safe('branch_field_service_reports', () =>
+        dbRestoreBranchReports(backupData, accessCode)
+      );
 
-      await safe('branch_cong_analysis', () => dbRestoreBranchCongAnalysis(backupData, accessCode));
+      await safe('branch_cong_analysis', () =>
+        dbRestoreBranchCongAnalysis(backupData, accessCode)
+      );
 
-      await safe('meeting_attendance', () => dbRestoreMeetingAttendance(backupData, accessCode));
+      await safe('meeting_attendance', () =>
+        dbRestoreMeetingAttendance(backupData, accessCode)
+      );
 
       await safe('sources', () => dbRestoreSources(backupData, accessCode));
 
@@ -2419,31 +2488,58 @@ const dbRestoreFromBackup = async (
       // todavía sin reconciliar) podría deshacer el reapunte.
       if (allReconciledUids.length > 0) {
         const schedules = await appDb.sched.toArray();
-        const changedSchedules = remapOutgoingTalkAssignments(schedules, allReconciledUids);
+        const changedSchedules = remapOutgoingTalkAssignments(
+          schedules,
+          allReconciledUids
+        );
 
         if (changedSchedules.length > 0) {
           await appDb.sched.bulkPut(changedSchedules);
         }
       }
 
-      await safe('departments_schedule', () => dbRestoreDepartmentsSchedule(backupData, accessCode));
+      await safe('departments_schedule', () =>
+        dbRestoreDepartmentsSchedule(backupData, accessCode)
+      );
 
-      await safe('service_outings', () => dbRestoreServiceOutings(backupData, accessCode));
-      await safe('exhibitors', () => dbRestoreExhibitors(backupData, accessCode));
-      await safe('responsabilidades', () => dbRestoreResponsabilidades(backupData, accessCode));
-      await safe('limpieza_config', () => dbRestoreLimpiezaConfig(backupData, accessCode));
-      await safe('evacuacion_config', () => dbRestoreEvacuacionConfig(backupData, accessCode));
-      await safe('public_talks_override', () => dbRestorePublicTalksOverride(backupData, accessCode));
+      await safe('service_outings', () =>
+        dbRestoreServiceOutings(backupData, accessCode)
+      );
+      await safe('exhibitors', () =>
+        dbRestoreExhibitors(backupData, accessCode)
+      );
+      await safe('responsabilidades', () =>
+        dbRestoreResponsabilidades(backupData, accessCode)
+      );
+      await safe('limpieza_config', () =>
+        dbRestoreLimpiezaConfig(backupData, accessCode)
+      );
+      await safe('evacuacion_config', () =>
+        dbRestoreEvacuacionConfig(backupData, accessCode)
+      );
+      await safe('public_talks_override', () =>
+        dbRestorePublicTalksOverride(backupData, accessCode)
+      );
 
-      await safe('circuit_overseer_visits', () => dbRestoreCircuitVisits(backupData, accessCode));
+      await safe('circuit_overseer_visits', () =>
+        dbRestoreCircuitVisits(backupData, accessCode)
+      );
 
-      await safe('user_bible_studies', () => dbRestoreUserStudies(backupData, accessCode));
+      await safe('user_bible_studies', () =>
+        dbRestoreUserStudies(backupData, accessCode)
+      );
 
-      await safe('upcoming_events', () => dbRestoreUpcomingEvents(backupData, accessCode));
+      await safe('upcoming_events', () =>
+        dbRestoreUpcomingEvents(backupData, accessCode)
+      );
 
-      await safe('user_field_service_reports', () => dbRestoreUserReports(backupData, accessCode));
+      await safe('user_field_service_reports', () =>
+        dbRestoreUserReports(backupData, accessCode)
+      );
 
-      await safe('delegated_field_service_reports', () => dbRestoreDelegatedReports(backupData, accessCode));
+      await safe('delegated_field_service_reports', () =>
+        dbRestoreDelegatedReports(backupData, accessCode)
+      );
 
       await safe('outgoing_talks', async () => {
         if (backupData.outgoing_talks) {
@@ -2565,17 +2661,33 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       );
     }
     // Extract remote data before restore, decrypt to compare later
-    const remoteSched = backupData.sched ? (structuredClone(backupData.sched) as SchedWeekType[]) : [];
-    remoteSched.forEach(r => decryptObject({ data: r, table: 'sched', accessCode }));
+    const remoteSched = backupData.sched
+      ? (structuredClone(backupData.sched) as SchedWeekType[])
+      : [];
+    remoteSched.forEach((r) =>
+      decryptObject({ data: r, table: 'sched', accessCode })
+    );
 
-    const remoteDept = backupData.departments_schedule ? (structuredClone(backupData.departments_schedule) as DeptWeekType[]) : [];
-    remoteDept.forEach(r => decryptObject({ data: r, table: 'departments_schedule', accessCode }));
+    const remoteDept = backupData.departments_schedule
+      ? (structuredClone(backupData.departments_schedule) as DeptWeekType[])
+      : [];
+    remoteDept.forEach((r) =>
+      decryptObject({ data: r, table: 'departments_schedule', accessCode })
+    );
 
-    const remoteOuting = backupData.service_outings ? (structuredClone(backupData.service_outings) as ServiceOutingWeekType[]) : [];
-    remoteOuting.forEach(r => decryptObject({ data: r, table: 'service_outings', accessCode }));
+    const remoteOuting = backupData.service_outings
+      ? (structuredClone(backupData.service_outings) as ServiceOutingWeekType[])
+      : [];
+    remoteOuting.forEach((r) =>
+      decryptObject({ data: r, table: 'service_outings', accessCode })
+    );
 
-    const remoteExhibitor = backupData.exhibitors ? (structuredClone(backupData.exhibitors) as ExhibitorWeekType[]) : [];
-    remoteExhibitor.forEach(r => decryptObject({ data: r, table: 'exhibitors', accessCode }));
+    const remoteExhibitor = backupData.exhibitors
+      ? (structuredClone(backupData.exhibitors) as ExhibitorWeekType[])
+      : [];
+    remoteExhibitor.forEach((r) =>
+      decryptObject({ data: r, table: 'exhibitors', accessCode })
+    );
 
     await dbRestoreFromBackup(backupData, accessCode, masterKey);
 
@@ -2627,13 +2739,20 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
     const extractPersonUids = (o: unknown): Set<string> => {
       const uuids = new Set<string>();
-      const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const regex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const traverse = (item: unknown) => {
         if (Array.isArray(item)) {
           item.forEach(traverse);
         } else if (item !== null && typeof item === 'object') {
-          for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
-            if (PERSON_REF_KEYS.has(key) && typeof value === 'string' && regex.test(value)) {
+          for (const [key, value] of Object.entries(
+            item as Record<string, unknown>
+          )) {
+            if (
+              PERSON_REF_KEYS.has(key) &&
+              typeof value === 'string' &&
+              regex.test(value)
+            ) {
               uuids.add(value);
             } else {
               traverse(value);
@@ -2666,18 +2785,26 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         const localUpdated = local.updatedAt || '';
         const remoteUpdated = remote?.updatedAt || '';
         if (!remote || localUpdated > remoteUpdated) {
-          const oldUids = remote ? extractPersonUids(remote) : new Set<string>();
+          const oldUids = remote
+            ? extractPersonUids(remote)
+            : new Set<string>();
           const newUids = extractPersonUids(local);
-          for (const uid of oldUids) if (!newUids.has(uid)) affectedUids.add(uid);
-          for (const uid of newUids) if (!oldUids.has(uid)) affectedUids.add(uid);
+          for (const uid of oldUids)
+            if (!newUids.has(uid)) affectedUids.add(uid);
+          for (const uid of newUids)
+            if (!oldUids.has(uid)) affectedUids.add(uid);
         }
       }
     };
 
-    if (metadata.metadata.schedules?.send_local) checkDiff(sched, remoteSched, 'weekOf');
-    if (metadata.metadata.departments_schedule?.send_local) checkDiff(departments_schedule, remoteDept, 'weekOf');
-    if (metadata.metadata.service_outings?.send_local) checkDiff(service_outings, remoteOuting, 'weekOf');
-    if (metadata.metadata.exhibitors?.send_local) checkDiff(exhibitors, remoteExhibitor, 'weekOf');
+    if (metadata.metadata.schedules?.send_local)
+      checkDiff(sched, remoteSched, 'weekOf');
+    if (metadata.metadata.departments_schedule?.send_local)
+      checkDiff(departments_schedule, remoteDept, 'weekOf');
+    if (metadata.metadata.service_outings?.send_local)
+      checkDiff(service_outings, remoteOuting, 'weekOf');
+    if (metadata.metadata.exhibitors?.send_local)
+      checkDiff(exhibitors, remoteExhibitor, 'weekOf');
 
     if (affectedUids.size > 0) {
       obj.affected_uids = Array.from(affectedUids);
@@ -2973,7 +3100,6 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.sched = backupSched;
-
           }
 
           if (metadata.metadata.sources.send_local) {
@@ -3048,10 +3174,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         }
 
         // include exhibitors data
-        if (
-          serviceCommitteeRole &&
-          metadata.metadata.exhibitors?.send_local
-        ) {
+        if (serviceCommitteeRole && metadata.metadata.exhibitors?.send_local) {
           const backupExhibitors = exhibitors.map((record) => {
             const exhibitor = structuredClone(record);
 
@@ -3088,9 +3211,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         }
 
         // include limpieza_config data
-        if (
-          metadata.metadata.limpieza_config?.send_local
-        ) {
+        if (metadata.metadata.limpieza_config?.send_local) {
           if (limpieza_config) {
             const toBackup = structuredClone(limpieza_config);
 
@@ -3105,9 +3226,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         }
 
         // include evacuacion_config data
-        if (
-          metadata.metadata.evacuacion_config?.send_local
-        ) {
+        if (metadata.metadata.evacuacion_config?.send_local) {
           if (evacuacion_config) {
             const toBackup = structuredClone(evacuacion_config);
 
@@ -3136,10 +3255,12 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           }
         }
 
-
-
         // include territories data
-        if (adminRole || elderRole || metadata.metadata.territories?.send_local) {
+        if (
+          adminRole ||
+          elderRole ||
+          metadata.metadata.territories?.send_local
+        ) {
           const toAdd = [
             { name: 'territories', data: territories },
             { name: 'territory_zones', data: territory_zones },
