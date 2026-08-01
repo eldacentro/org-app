@@ -248,6 +248,9 @@ const ReadDepartamentos = ({
                 alignItems: 'flex-start',
               }}
             >
+              {/* Aquí había un icono de congregación en la esquina, el mismo
+                  en las quince tarjetas: no distinguía un departamento de otro
+                  ni decía nada que el título no dijera ya. */}
               <Typography
                 className="h3"
                 color="var(--black)"
@@ -255,11 +258,6 @@ const ReadDepartamentos = ({
               >
                 {dep.name}
               </Typography>
-              <IconCongregation
-                color="var(--accent-200)"
-                width={24}
-                height={24}
-              />
             </Box>
 
             <Stack spacing="12px">
