@@ -11,6 +11,7 @@ import {
 
 import { useAtomValue } from 'jotai';
 import { territoriesEnabledPublishersState } from '@states/settings';
+import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 
 const MinistryDashboard = () => {
   const { t } = useAppTranslation();
@@ -18,6 +19,14 @@ const MinistryDashboard = () => {
 
   const { isPublisher, isServiceCommittee } = useCurrentUser();
   const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
+
+  // Quien gestiona Territorios tiene que poder entrar SIEMPRE. El interruptor
+  // `territories_enabled_publishers` viene apagado de fábrica y decide otra
+  // cosa —si lo ven los publicadores—, así que con él apagado un anciano que
+  // no esté en el comité de servicio, o el hermano del departamento
+  // "Territorios", se quedaban sin ninguna puerta a un módulo que sí pueden
+  // gestionar.
+  const isTerritoryManager = useIsTerritoryManager();
 
   const handleTileClick = (path: string) => {
     navigate(path);
@@ -34,7 +43,7 @@ const MinistryDashboard = () => {
     >
       <PageTitle title={t('tr_ministry', 'Predicación')} />
       <div className="tile-grid">
-        {(isServiceCommittee || territoriesEnabled) && (
+        {(isServiceCommittee || territoriesEnabled || isTerritoryManager) && (
           <button
             type="button"
             className="tile-item c-blue active-press full-width"

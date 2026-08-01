@@ -98,7 +98,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `salidas-predicacion` | comité de servicio | auditada |
 | `grupos` | superintendente de grupo | auditada |
 | `personas` | quien ve personas | auditada |
-| `territorios` | anciano, comité, admin | **sin tocar** |
+| `territorios` | quien gestiona Territorios (`useIsTerritoryManager`) | auditada |
 | `limpieza` | anciano, comité | ampliada, sin auditar |
 | `visita-co` | anciano, admin | nueva |
 | `responsabilidades` | anciano, admin | nueva |
