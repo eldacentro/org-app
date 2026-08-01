@@ -5,6 +5,7 @@ import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Checkbox from '@components/checkbox';
+import SwitchWithLabel from '@components/switch_with_label';
 import TextField from '@components/textfield';
 import DatePicker from '@components/date_picker';
 import { useAtomValue } from 'jotai';
@@ -89,6 +90,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   const [fechaInicio, setFechaInicio] = useState<Date | null>(new Date());
   const [grupoInicio, setGrupoInicio] = useState<string>('');
   const [gruposParticipantes, setGruposParticipantes] = useState<string[]>([]);
+  const [alternarParejas, setAlternarParejas] = useState(false);
   const [notasGenerales, setNotasGenerales] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -100,6 +102,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
           setFechaInicio(new Date(config.fechaInicio));
           setGrupoInicio(config.grupoInicio);
           setGruposParticipantes(config.gruposParticipantes);
+          setAlternarParejas(config.alternarParejas ?? false);
           setNotasGenerales(config.notasGenerales || '');
         } else {
           // Default values
@@ -108,6 +111,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
             activeGroups.length > 0 ? activeGroups[0].group_id : ''
           );
           setGruposParticipantes(activeGroups.map((g) => g.group_id));
+          setAlternarParejas(false);
           setNotasGenerales('');
         }
       } catch (err) {
@@ -140,6 +144,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
         fechaInicio: fechaInicio.toISOString(),
         grupoInicio,
         gruposParticipantes,
+        alternarParejas,
         notasGenerales,
         overrides: frozenOverrides,
       };
@@ -237,6 +242,18 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
             ))}
           </Box>
         </Box>
+
+        {/* Solo tiene sentido con un número par de grupos: con impar la
+            rotación ya alterna sola y el interruptor no haría nada. */}
+        {gruposParticipantes.length % 2 === 0 &&
+          gruposParticipantes.length > 0 && (
+            <SwitchWithLabel
+              label="Alternar por parejas cada vuelta"
+              helper="Con un número par de grupos, cada grupo acaba limpiando siempre la misma reunión. Con esto, al terminar la vuelta los grupos se intercambian de dos en dos —1, 2, 3, 4, 5, 6 y luego 2, 1, 4, 3, 6, 5— y todos pasan por las dos reuniones."
+              checked={alternarParejas}
+              onChange={(checked) => setAlternarParejas(checked)}
+            />
+          )}
 
         <TextField
           label="Notas generales"

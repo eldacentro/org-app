@@ -31,11 +31,11 @@ import {
 import { resolveAssignmentDate } from '@utils/assignments';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
-import { LimpiezaConfig } from '@definition/limpieza';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { personsState } from '@states/persons';
 import { useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import {
   schedulesGetMeetingDate,
   schedulesWeekNoMeeting,
@@ -77,18 +77,26 @@ const useMyAssignments = () => {
   const [filterType, setFilterType] = useState<
     'all' | 'meetings' | 'preaching' | 'limpieza'
   >('all');
-  const [limpiezaConfig, setLimpiezaConfig] = useState<LimpiezaConfig | null>(
-    null
-  );
+
 
   const groups = useAtomValue(fieldServiceGroupsState);
   const circuitVisits = useAtomValue(circuitVisitsState);
   // Keep this hook to preserve hook call order (Rules of Hooks)
   useAtomValue(personsState);
 
-  useEffect(() => {
-    dbLimpiezaGetConfig().then(setLimpiezaConfig);
-  }, []);
+  /**
+   * La configuración de limpieza, EN VIVO.
+   *
+   * Antes se leía una sola vez al montar. En un dispositivo nuevo eso ocurre
+   * antes de que termine la primera sincronización, así que la tabla estaba
+   * vacía y `limpiezaConfig` se quedaba en null: el resto de asignaciones
+   * aparecían al sincronizar —vienen de átomos que sí reaccionan— y la de
+   * limpieza no salía hasta que algo remontaba este hook, que podía ser mucho
+   * rato después o nunca. Con `useLiveQuery` la fila aparece en cuanto la
+   * escribe la sincronización.
+   */
+  const limpiezaConfig =
+    useLiveQuery(() => dbLimpiezaGetConfig(), [], undefined) ?? null;
 
   // El cálculo de abajo depende de "hoy" (new Date()), pero un useMemo solo
   // se reevalúa cuando cambian sus dependencias — nunca solo porque pasa el

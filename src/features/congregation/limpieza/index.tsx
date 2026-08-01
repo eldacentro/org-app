@@ -451,24 +451,19 @@ const Limpieza = () => {
 
                       const isThisMonth = cellDate.getMonth() === selectedMonth;
 
+                      // Día de otro mes: se reserva la columna para que las
+                      // dos sigan cuadrando, y nada más. Antes se pintaba una
+                      // caja atenuada del alto de una tarjeta —y en móvil
+                      // cuadrada, aún más alta—, así que junto al primer
+                      // domingo del mes quedaba un hueco enorme al lado que no
+                      // significaba nada.
                       if (!isThisMonth) {
                         return (
                           <Grid
                             size={{ mobile: 1 }}
                             key={`${weekKey}-${dayInfo.dayOfWeek}`}
                             sx={{ p: 0.5 }}
-                          >
-                            <Box
-                              sx={{
-                                aspectRatio: desktopUp ? 'auto' : '1',
-                                minHeight: desktopUp ? '110px' : 'auto',
-                                backgroundColor: 'var(--accent-100)',
-                                border: '1px solid var(--line)',
-                                borderRadius: 'var(--shape-sm)',
-                                opacity: 0.3,
-                              }}
-                            />
-                          </Grid>
+                          />
                         );
                       }
 
@@ -476,10 +471,11 @@ const Limpieza = () => {
                         (x) => x.date.getDate() === cellDate.getDate()
                       );
 
-                      // Sin reunión ese día esa semana (p. ej. el miércoles de
-                      // la semana de visita del CO, cuya reunión se movió al
-                      // martes): hueco atenuado, igual que los días de otro
-                      // mes, para no desalinear las columnas del grid.
+                      // Sin reunión ese día esa semana: una semana de asamblea,
+                      // o el miércoles de la visita del CO con la reunión movida
+                      // al martes. La casilla se queda —si no, la columna de al
+                      // lado se descuadra— pero DICE por qué está vacía: un
+                      // hueco mudo se lee como un fallo de la aplicación.
                       if (!m) {
                         return (
                           <Grid
@@ -489,14 +485,25 @@ const Limpieza = () => {
                           >
                             <Box
                               sx={{
-                                aspectRatio: desktopUp ? 'auto' : '1',
-                                minHeight: desktopUp ? '110px' : 'auto',
+                                minHeight: desktopUp ? '110px' : '90px',
+                                height: '100%',
                                 backgroundColor: 'var(--accent-100)',
-                                border: '1px solid var(--line)',
+                                border: '1px dashed var(--line)',
                                 borderRadius: 'var(--shape-sm)',
-                                opacity: 0.3,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                p: '10px',
                               }}
-                            />
+                            >
+                              <Typography
+                                className="label-small-regular"
+                                color="var(--ink-3)"
+                                sx={{ textAlign: 'center' }}
+                              >
+                                Sin reunión
+                              </Typography>
+                            </Box>
                           </Grid>
                         );
                       }
