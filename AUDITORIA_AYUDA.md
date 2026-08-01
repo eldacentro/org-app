@@ -2,7 +2,7 @@
 
 ## El objetivo
 
-`src/features/ayuda/content.tsx` tiene 17 secciones y 88 artículos. El
+`src/features/ayuda/content.tsx` tiene 19 secciones y 91 artículos. El
 contenido se ha ido escribiendo por tandas y **nunca se ha comprobado contra el
 código artículo por artículo**. Hay que auditarlo entero hasta que cada frase
 sea cierta hoy.
@@ -92,7 +92,7 @@ de roles parecida a la puerta real, no por la puerta.
   grupo» es suya y de nadie más, así que sin la bandera esa pantalla no la
   explicaba nadie.
 
-## Las 17 secciones
+## Las 19 secciones
 
 | id | visible para | estado |
 |---|---|---|
@@ -109,8 +109,10 @@ de roles parecida a la puerta real, no por la puerta.
 | `personas` | quien ve personas | auditada |
 | `territorios` | quien gestiona Territorios (`useIsTerritoryManager`) | auditada |
 | `limpieza` | anciano | auditada |
+| `eventos` | anciano | **nueva** (salió de `limpieza`) |
 | `visita-co` | anciano, admin | auditada |
-| `responsabilidades` | anciano, admin | auditada |
+| `responsabilidades` | anciano | auditada |
+| `evacuacion` | anciano | **nueva** (salió de `responsabilidades`) |
 | `administracion` | admin, editor de ajustes | auditada |
 | `grupo-idioma` | superintendente de grupo de idioma | **nueva** (cubre `/group-settings`) |
 

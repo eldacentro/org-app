@@ -1,6 +1,7 @@
 import {
   IconAdmin,
   IconAssignment,
+  IconNextEvents,
   IconCalendarWeek,
   IconClean,
   IconCloudDownload,
@@ -1798,13 +1799,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   },
   {
     id: 'limpieza',
-    title: 'Limpieza y actividades',
-    description: 'Configurar la rotación de limpieza y los próximos eventos.',
+    title: 'Limpieza del Salón',
+    description: 'La rotación de limpieza por grupos, y cómo cambiar un turno.',
     icon: <IconClean color="var(--accent-main)" />,
-    // Las dos pantallas de esta sección se configuran con `isElder || isAdmin`
-    // (y `isAdmin` ya entra en `isElder`). Con `isServiceCommittee` se le
-    // enseñaba a un superintendente de servicio que no fuera anciano cómo
-    // cambiar algo que no puede tocar.
+    // La pantalla se configura con `isElder || isAdmin` (y `isAdmin` ya entra
+    // en `isElder`). Con `isServiceCommittee` se le enseñaba a un
+    // superintendente de servicio que no fuera anciano cómo cambiar algo que
+    // no puede tocar.
     visible: (r) => r.isElder,
     articles: [
       {
@@ -1865,7 +1866,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
       },
       {
         id: 'limp-alternar',
-        title: 'Alternar por parejas (que nadie se quede siempre con la misma reunión)',
+        title:
+          'Alternar por parejas (que nadie se quede siempre con la misma reunión)',
         blocks: [
           {
             type: 'p',
@@ -1899,13 +1901,30 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
         ],
       },
+    ],
+  },
+  // ════════════════════════════════════════════════════════════════════
+  // PRÓXIMOS EVENTOS (ancianos)
+  // ════════════════════════════════════════════════════════════════════
+  // Sección propia, no un artículo colgado de Limpieza: son dos pantallas
+  // distintas que no tienen nada que ver la una con la otra.
+  {
+    id: 'eventos',
+    title: 'Próximos eventos',
+    description:
+      'El calendario de la congregación: asambleas, Conmemoración, campañas…',
+    icon: <IconNextEvents color="var(--accent-main)" />,
+    // La pantalla la ve todo el mundo; crearlos y editarlos es
+    // `isAdmin || isElder` (useUpcomingEvents), y de eso va esta sección.
+    visible: (r) => r.isElder,
+    articles: [
       {
-        id: 'limp-eventos',
-        title: 'Próximos eventos',
+        id: 'ev-crear',
+        title: 'Crear y editar un evento',
         blocks: [
           {
             type: 'p',
-            text: 'En Congregación → "Próximos eventos", los ancianos crean y editan los eventos que ve toda la congregación: asambleas, la visita del superintendente, la Conmemoración, campañas y cualquier evento personalizado.',
+            text: 'En Congregación → "Próximos eventos" están los eventos que ve toda la congregación: asambleas, la visita del superintendente, la Conmemoración, campañas y cualquier evento personalizado. La pantalla la puede mirar cualquier hermano; crearlos y cambiarlos, solo los ancianos.',
           },
           {
             type: 'steps',
@@ -1925,6 +1944,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'link',
             to: '/activities/upcoming-events',
             label: 'Abrir Próximos eventos',
+          },
+        ],
+      },
+      {
+        id: 'ev-visita',
+        title: 'La visita del superintendente entra sola',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La semana de la visita del superintendente no hay que apuntarla aquí a mano: en cuanto se activa la visita en su propia pantalla, aparece sola en Próximos eventos. Y si le pones fecha, hora y lugar a la reunión con precursores o a la de ancianos y siervos ministeriales, esas también salen.',
+          },
+          {
+            type: 'warn',
+            text: 'Por eso no conviene crear a mano un evento para la visita: acabaríais con dos entradas para lo mismo. Actívala en "Visita del superintendente" y deja que se ponga sola.',
           },
         ],
       },
@@ -2107,11 +2140,10 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   },
   {
     id: 'responsabilidades',
-    title: 'Responsabilidades y plan de evacuación',
-    description:
-      'Quién lleva cada departamento y qué hacer si hay que desalojar el salón.',
+    title: 'Responsabilidades',
+    description: 'Quién lleva cada departamento del salón.',
     icon: <IconAssignment color="var(--accent-main)" />,
-    visible: (r) => r.isElder || r.isAdmin,
+    visible: (r) => r.isElder,
     articles: [
       {
         id: 'resp-departamentos',
@@ -2142,26 +2174,53 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
         ],
       },
+    ],
+  },
+  // ════════════════════════════════════════════════════════════════════
+  // PLAN DE EVACUACIÓN (ancianos)
+  // ════════════════════════════════════════════════════════════════════
+  // Sección propia: iba colgado de Responsabilidades y no tienen nada que ver.
+  // El día que haga falta, esto no se busca dentro de otra cosa.
+  {
+    id: 'evacuacion',
+    title: 'Plan de evacuación',
+    description: 'Qué hacer, y quién hace qué, si hay que desalojar el salón.',
+    // El mismo icono que su tarjeta en Congregación. Coincide con el de
+    // Territorios porque la aplicación usa el mismo en las dos tarjetas; los
+    // títulos los distinguen de sobra.
+    icon: <IconMapOverview color="var(--accent-main)" />,
+    visible: (r) => r.isElder,
+    articles: [
       {
-        id: 'resp-evacuacion',
-        title: 'El plan de evacuación',
+        id: 'evac-que-hay',
+        title: 'Qué hay en el plan',
         blocks: [
           {
             type: 'p',
-            text: 'Recoge las salidas del salón, el punto de reunión de fuera y quién se encarga de qué si hay que desalojar. Es información que casi nunca se usa y que, el día que se usa, tiene que estar a mano y clara. La ve cualquier hermano: el plano se toca para ver el detalle de cada zona, y al lado están "Estructura de mando", "Equipos", "Procedimientos" y "Reglas del plan".',
+            text: 'Recoge las salidas del salón, el punto de reunión de fuera y quién se encarga de qué si hay que desalojar. Es información que casi nunca se usa y que, el día que se usa, tiene que estar a mano y clara. La ve cualquier hermano, no solo los ancianos.',
           },
           {
             type: 'p',
-            text: 'Los ancianos tienen además el engranaje junto al título ("Configuración del plan de evacuación"), que es donde se cambia el plan.',
-          },
-          {
-            type: 'warn',
-            text: 'Revísalo al menos una vez al año y cada vez que cambie algo del local o de quien tiene asignado un puesto. Un plan con nombres de hermanos que ya no están no sirve de nada.',
+            text: 'Arriba está el tiempo máximo de evacuación. Debajo, el plano: se toca una zona y aparece su detalle. Y al lado, cuatro apartados: "Estructura de mando" (quién manda y en qué orden), "Equipos" (los grupos con sus miembros y su zona), "Procedimientos" (los pasos de cada uno) y "Reglas del plan".',
           },
           {
             type: 'link',
             to: '/congregation/evacuacion',
             label: 'Abrir Plan de evacuación',
+          },
+        ],
+      },
+      {
+        id: 'evac-mantener',
+        title: 'Mantenerlo al día',
+        blocks: [
+          {
+            type: 'p',
+            text: 'El engranaje junto al título ("Configuración del plan de evacuación") es donde se cambia, y solo lo abren los ancianos. Ahí se editan los puestos de mando —"Puesto / título del rol", "Nombre del encargado" y sus "Responsabilidades"—, los equipos con su nombre, su color, su zona y sus miembros, los procedimientos de cada uno y el "Tiempo máximo de evacuación (minutos)".',
+          },
+          {
+            type: 'warn',
+            text: 'Revísalo al menos una vez al año, y cada vez que cambie algo del local o de quien tiene asignado un puesto. Un plan con nombres de hermanos que ya no están no sirve de nada.',
           },
         ],
       },
