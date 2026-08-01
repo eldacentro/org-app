@@ -509,6 +509,26 @@ export const weekendMeetingSubstituteSpeakerState = atom((get) => {
   ).substitute_speaker_enabled.value;
 });
 
+/**
+ * "Mostrar programa de oradores salientes a todos los usuarios".
+ *
+ * Al publicar ya se decide con este interruptor si los discursos salientes
+ * viajan o no en el programa público (`handleFilterOutgoingTalks`), pero la
+ * pestaña de Programas semanales no lo miraba: era de ancianos y ya está. Con
+ * lo cual encenderlo mandaba el dato a todos los dispositivos y no se lo
+ * enseñaba a nadie nuevo.
+ */
+export const weekendMeetingOutgoingTalksPublicState = atom((get) => {
+  const settings = get(settingsState);
+  const dataView = get(userDataViewState);
+
+  return (
+    settings.cong_settings.weekend_meeting.find(
+      (record) => record.type === dataView
+    )?.outgoing_talks_schedule_public.value ?? false
+  );
+});
+
 export const weekendMeetingWTSubstituteDisplayedState = atom((get) => {
   const settings = get(settingsState);
   const dataView = get(userDataViewState);

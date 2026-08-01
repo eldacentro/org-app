@@ -1034,7 +1034,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Por defecto este programa solo lo ven los hermanos nombrados. Para que lo vea toda la congregación, enciende "Mostrar programa de oradores salientes a todos los usuarios" en el engranaje de la reunión de fin de semana.',
+            text: 'Los demás lo consultan en Programas semanales → pestaña "Discursos salientes", que por defecto solo ven los ancianos. Para que lo vea toda la congregación, enciende "Mostrar programa de oradores salientes a todos los usuarios" en el engranaje de la reunión de fin de semana.',
           },
           {
             type: 'link',
@@ -1178,17 +1178,22 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Predicación → Exhibidores → "Configuración" se prepara todo antes de programar ningún mes:',
+            text: 'Entra en Predicación → "Exhibidores" y toca el ENGRANAJE que hay junto al título: eso abre "Configuración de exhibidores", que es donde se prepara todo antes de programar ningún mes. El mismo engranaje te devuelve al programa.',
           },
           {
             type: 'steps',
+            title: 'Las cinco pestañas de la configuración:',
             items: [
-              'UBICACIONES: la lista de sitios donde se pone el carrito o la mesa (solo el nombre; no hace falta dirección).',
-              'TURNOS: cada turno define en qué días de la semana aparece, su hora de inicio y fin, qué ubicaciones puede usar y cuál es la ubicación por defecto.',
-              'RESPONSABLES: marca qué hermanos (de los que tienen activado "Exhibidores" en su ficha de Personas) pueden ser Responsable de turno.',
-              'ASIGNACIONES FIJAS: la plantilla que se repite cada semana, con hasta 3 posiciones por turno, hasta 3 posiciones, donde la Posición 1 tiene que ser uno de los responsables marcados.',
-              'DISPONIBILIDAD: qué turnos prefiere cada hermano; no bloquea nada, solo hace que aparezca recomendado al asignar.',
+              '"Ubicaciones": la lista de sitios donde se pone el carrito o la mesa (solo el nombre; no hace falta dirección).',
+              '"Turnos": cada turno define en qué días de la semana aparece, su hora de inicio y fin y qué ubicaciones puede usar.',
+              '"Responsables": de los hermanos varones que tienen marcada la casilla "Exhibidores" en su ficha de Personas, aquí eliges cuáles pueden ser responsables de turno.',
+              '"Asignaciones fijas": la plantilla de los tres hermanos que normalmente hacen cada turno. De ahí salen las asignaciones al preparar un mes nuevo.',
+              '"Disponibilidad": una tabla de hermanos por turno con lo que prefiere cada uno. No bloquea nada: sirve para que la aplicación te los recomiende al asignar.',
             ],
+          },
+          {
+            type: 'warn',
+            text: 'La "Posición 1" de cada turno es la del responsable, y solo admite a los hermanos que hayas marcado en "Responsables".',
           },
           { type: 'link', to: '/exhibitors', label: 'Abrir Exhibidores' },
         ],
@@ -1204,15 +1209,24 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
+              'Elige el mes en el panel de la izquierda. Arriba puedes verlo como "Lista" o como "Cuadrícula".',
               'Toca "Autocompletar" para generar de golpe todo el mes según las asignaciones fijas.',
-              'Toca un turno concreto para cambiar a los hermanos, cambiar la ubicación de ese día, o "Suspender turno para esta semana".',
-              '"Restaurar fijos" borra el cambio puntual y vuelve a heredar de la plantilla fija.',
+              'Toca un turno concreto: se abre "Asignar turno de exhibidor", con las tres posiciones, la ubicación de ese día y el interruptor "Suspender turno para esta semana".',
+              '"Restaurar fijos" (en rojo, dentro de esa ventana) borra el cambio puntual y vuelve a heredar de la plantilla fija. Solo aparece si ese turno tiene un cambio a mano.',
               'Cuando esté listo, toca "Publicar".',
             ],
           },
           {
+            type: 'warn',
+            text: 'Mientras no lo publiques, el mes es un BORRADOR: no sale en las asignaciones de los hermanos ni en el programa semanal. Una vez publicado el botón pasa a decir "Publicado", y desde ahí puedes "Retirar" el mes para volver a dejarlo en borrador.',
+          },
+          {
             type: 'tip',
-            text: 'Si alguno de los hermanos elegidos tiene una ausencia registrada ese día, la aplicación te avisa al momento de asignar.',
+            text: 'Al asignar te avisa de tres cosas: si el turno se queda con menos de tres hermanos, si no has puesto a ningún responsable de turno, y si alguno de los elegidos tiene una ausencia registrada ese día. Al publicar también te dice cuántos turnos quedan sin nadie — puedes publicar igualmente.',
+          },
+          {
+            type: 'p',
+            text: '"Exportar" saca el programa del mes en PDF (si tienes activada la exportación a PDF).',
           },
         ],
       },
@@ -1222,13 +1236,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'El botón "Ajustes del mes" (junto al título del programa) sirve para cuando hace falta cambiar algo para un mes entero (por ejemplo, en verano, para adaptar los horarios al calor), sin tocar la configuración de siempre:',
+            text: 'El botón "Ajustes del mes", encima del programa, sirve para cuando hace falta cambiar algo para un mes entero (por ejemplo, en verano, para adaptar los horarios al calor), sin tocar la configuración de siempre. Cuando ese mes tiene una configuración propia, el botón se pone naranja.',
           },
           {
             type: 'steps',
             items: [
-              '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero. Puedes añadir un texto explicando el motivo.',
-              '"Personalizar turnos para este mes": crea una copia de los turnos solo para ese mes, que puedes editar libremente (añadir, quitar, cambiar horas) sin afectar a los demás meses.',
+              '"Suspender exhibidores todo el mes": para cuando no va a haber exhibición ese mes entero. Debajo aparece "Texto adicional (opcional)" para explicar el motivo, y ese texto es el que leen los hermanos en Programas semanales.',
+              '"Personalizar turnos para este mes": crea una copia de los turnos solo para ese mes, que puedes editar libremente (añadir, quitar, cambiar horas) sin afectar a los demás meses. Una vez personalizado, sale además "Añadir turno excepcional".',
               '"Restaurar a global" deshace la personalización y ese mes vuelve a usar la configuración normal.',
             ],
           },
@@ -1240,7 +1254,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Un publicador no entra a la pantalla de gestión de Exhibidores, pero sí ve su propio turno en "MIS ASIGNACIONES" (con el aviso de "Responsable de turno" si le toca serlo), y puede consultar el programa completo del mes, de solo lectura, en "Programas semanales" → pestaña Exhibidores.',
+            text: 'Un publicador no entra a la pantalla de Exhibidores: es solo del comité de servicio. Lo que sí ve es su propio turno en "Mis asignaciones", puesto como "Exhibidores: Responsable de turno" si le toca serlo, o solo "Exhibidores" si no, con la hora, la ubicación y con quién va.',
+          },
+          {
+            type: 'p',
+            text: 'El programa completo del mes lo puede consultar, de solo lectura, en Programas semanales → pestaña "Exhibidores". Ahí el responsable de cada turno lleva una chapa que pone "Resp.".',
+          },
+          {
+            type: 'warn',
+            text: 'Nada de eso aparece hasta que publicas el mes. En "Mis asignaciones" además solo se enseñan el mes en curso y el siguiente, aunque las asignaciones fijas se repitan para siempre.',
           },
         ],
       },

@@ -94,7 +94,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
 | `discursos` | coordinador de discursos | auditada |
 | `departamentos` | editor de departamentos | ampliada, sin auditar |
-| `exhibidores` | comité de servicio | **sin tocar** |
+| `exhibidores` | comité de servicio | auditada |
 | `salidas-predicacion` | comité de servicio | **sin tocar** |
 | `grupos` | superintendente de grupo | **sin tocar** |
 | `personas` | quien ve personas | **sin tocar** |

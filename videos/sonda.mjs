@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const c = await b.newContext({ viewport:{width:402,height:874}, deviceScaleFactor:2, locale:'es-ES' });
+const p = await c.newPage();
+await p.goto('http://localhost:4137', { waitUntil:'networkidle' });
+const cta = p.getByText('Comenzar prueba', {exact:false}).first();
+await cta.waitFor({state:'visible', timeout:90000});
+await cta.click();
+await p.waitForTimeout(3000);
+const txt = await p.evaluate(() => [...document.querySelectorAll('button,a,[role=button]')].map(e=>e.innerText.trim().replace(/\n+/g,' | ')).filter(t=>t&&t.length<60));
+console.log(JSON.stringify(txt, null, 1));
+await b.close();

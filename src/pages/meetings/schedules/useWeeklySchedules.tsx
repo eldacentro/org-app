@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useAtomValue } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { localStorageGetItem } from '@utils/common';
+import { weekendMeetingOutgoingTalksPublicState } from '@states/settings';
 import { WeeklySchedulesType } from './index.types';
 import MidweekContainer from '@features/meetings/weekly_schedules/midweek_container';
 import OutgoingTalks from '@features/meetings/weekly_schedules/outgoing_talks';
@@ -33,9 +35,17 @@ const useWeeklySchedules = () => {
   // aquí no se les hace excepción, porque esta pestaña es la de los hermanos.
   const upcomingVisit = useCircuitVisitForBrothers();
 
+  const outgoingTalksPublic = useAtomValue(
+    weekendMeetingOutgoingTalksPublicState
+  );
+
+  // "Mostrar programa de oradores salientes a todos los usuarios" ya decide si
+  // los salientes viajan en el programa publicado; aquí faltaba mirarlo, así
+  // que el interruptor mandaba el dato a todo el mundo y luego escondía la
+  // pestaña a todo el que no fuera anciano.
   const outgoingVisible = useMemo(() => {
-    return isElder || isAdmin;
-  }, [isElder, isAdmin]);
+    return isElder || isAdmin || outgoingTalksPublic;
+  }, [isElder, isAdmin, outgoingTalksPublic]);
 
   const handleGoToTab = (id: string) => {
     localStorage.setItem(LOCALSTORAGE_KEY, id);
