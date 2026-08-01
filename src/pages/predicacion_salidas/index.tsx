@@ -1447,7 +1447,13 @@ const PredicacionSalidas = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column',
+          // En escritorio, DOS COLUMNAS de verdad. Decía «PANEL IZQUIERDO» y
+          // «PANEL DERECHO» pero apilaba en columna, y como el selector es
+          // `sticky` se quedaba clavado arriba mientras la lista pasaba por
+          // DEBAJO de él: al bajar, el panel de meses tapaba las salidas.
+          // Es la misma fila que usa «Reunión de entre semana» con su selector
+          // de semanas (src/pages/meetings/midweek/index.tsx).
+          flexDirection: desktopUp ? 'row' : 'column',
           gap: '24px',
           alignItems: 'flex-start',
           width: '100%',
@@ -1480,7 +1486,10 @@ const PredicacionSalidas = () => {
         )}
 
         {/* PANEL DERECHO: Planificador o Configuración */}
-        <Box sx={{ flexGrow: 1, width: '100%' }}>
+        {/* `minWidth: 0` para que en fila pueda ENCOGER: sin él, una tabla
+            ancha empuja la columna y saca la página del ancho de la ventana
+            en vez de estrecharse. */}
+        <Box sx={{ flexGrow: 1, width: '100%', minWidth: 0 }}>
           {activeTab === 'planner' ? (
             <Box>
               <Box
