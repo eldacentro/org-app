@@ -41,6 +41,7 @@ import {
   territoryZonesState,
   territoryTagsState,
   territoryOpenAssignmentsState,
+  territoryLocationsState,
   territorySettingsState,
   territoriesState,
 } from '@states/territories';
@@ -473,6 +474,7 @@ const DialogVerTerritorio = ({
   const allTags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const territories = useAtomValue(territoriesState);
+  const allLocations = useAtomValue(territoryLocationsState);
 
   // Al cerrar, el territorio que se estaba viendo se RETIENE.
   //
@@ -550,6 +552,29 @@ const DialogVerTerritorio = ({
     if (!liveTerritory) return null;
     return openAssignments.find((a) => a.territoryId === liveTerritory.id);
   }, [liveTerritory, openAssignments]);
+
+  /**
+   * Cuántas direcciones de «No visitar» hay en este territorio.
+   *
+   * Va como marca en la pestaña «Info» porque es lo ÚNICO de esta pantalla que
+   * hay que ver sí o sí: quien sale a predicar con el territorio necesita saber
+   * que hay puertas donde no se llama, y estaban donde no se ven —dentro de una
+   * pestaña que se puede no abrir nunca—.
+   *
+   * Se cuenta lo que el que mira va a encontrar de verdad, con la misma regla
+   * que la propia lista: las aprobadas siempre, y las pendientes solo si son
+   * suyas o si es responsable. Un número que no cuadre con lo que hay debajo
+   * confunde más que no poner ninguno.
+   */
+  const noVisitarCount = useMemo(() => {
+    if (!liveTerritory) return 0;
+
+    return allLocations.filter((l) => {
+      if (l.territoryId !== liveTerritory.id) return false;
+      if (l.aprobada) return true;
+      return canManage || l.addedBy === currentUid;
+    }).length;
+  }, [allLocations, liveTerritory, canManage, currentUid]);
 
   if (!liveTerritory) return null;
 
@@ -892,6 +917,7 @@ const DialogVerTerritorio = ({
           <SegmentedControl
             ariaLabel="Vistas del territorio"
             tabs={['Mapa', 'Imagen', 'Info']}
+            counts={[undefined, undefined, noVisitarCount]}
             active={tab}
             onChange={(i) => {
               setTab(i);
@@ -1344,6 +1370,7 @@ const DialogVerTerritorio = ({
           <SegmentedControl
             ariaLabel="Vistas del territorio"
             tabs={['Info', 'Imagen']}
+            counts={[noVisitarCount, undefined]}
             active={tab}
             onChange={(i) => {
               setTab(i);

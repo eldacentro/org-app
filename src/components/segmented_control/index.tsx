@@ -6,10 +6,25 @@ type Props = {
   onChange: (idx: number) => void;
   /** Nombre accesible del grupo (p. ej. "Vistas del territorio"). */
   ariaLabel?: string;
+  /**
+   * Un contador por pestaña, en el mismo orden que `tabs`. Cero o ausente = sin
+   * marca. Es para lo que hay que ver SÍ O SÍ aunque no se abra esa pestaña —
+   * las direcciones de «No visitar» de un territorio—, no para decorar.
+   */
+  counts?: (number | undefined)[];
+  /** El color de la marca. Por defecto, el rojo de aviso. */
+  countColor?: string;
 };
 
 /** Pill segmented control estilo iOS, reutilizable. */
-const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
+const SegmentedControl = ({
+  tabs,
+  active,
+  onChange,
+  ariaLabel,
+  counts,
+  countColor = 'var(--red-main)',
+}: Props) => (
   <Box
     role="tablist"
     aria-label={ariaLabel}
@@ -54,6 +69,12 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
           // Sin partir palabras: una opción en dos líneas y la de al lado en
           // una hacen que el control se vea desequilibrado.
           whiteSpace: 'nowrap',
+          // Con contador el rótulo deja de ser una cadena suelta y pasa a ser
+          // texto + marca, así que la caja tiene que colocarlos.
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
           cursor: 'pointer',
           transition:
             'background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
@@ -71,6 +92,27 @@ const SegmentedControl = ({ tabs, active, onChange, ariaLabel }: Props) => (
         }}
       >
         {t}
+        {counts?.[i] ? (
+          <Box
+            component="span"
+            aria-label={`${counts[i]} sin ver`}
+            sx={{
+              minWidth: '16px',
+              height: '16px',
+              px: '4px',
+              borderRadius: 'var(--shape-full)',
+              backgroundColor: countColor,
+              color: 'var(--always-white)',
+              fontSize: '10px',
+              fontWeight: 700,
+              lineHeight: '16px',
+              textAlign: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {counts[i] > 9 ? '9+' : counts[i]}
+          </Box>
+        ) : null}
       </Box>
     ))}
   </Box>
