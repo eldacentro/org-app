@@ -16,6 +16,7 @@ import {
 } from '@definition/settings';
 import { LANGUAGE_LIST } from '@constants/index';
 import { AssignmentFieldType } from '@definition/assignment';
+import { AppRoleType } from '@definition/app';
 
 export const settingsState = atom(settingSchema);
 
@@ -591,6 +592,33 @@ export const pdfExportEnabledState = atom((get) => {
 
   return isElder;
 });
+
+/**
+ * El interruptor personal, ACOTADO al documento del rol que lo posee.
+ *
+ * `pdfExportEnabledState` es un sí o un no para toda la app, y eso está bien
+ * para un anciano: puede ver todos los programas, así que puede imprimirlos
+ * todos. Pero a un hermano que solo edita Departamentos encenderle ese
+ * interruptor le abriría también el botón de exportar de Próximos eventos y de
+ * cualquier otra página a la que sí llega. Este de aquí solo abre el documento
+ * del rol que se le pase.
+ */
+const pdfExportPorRol = (roles: AppRoleType[]) =>
+  atom((get) => {
+    // Quien ya puede exportar todo, puede exportar esto también.
+    if (get(pdfExportEnabledState)) return true;
+
+    if (!get(pdfExportEnabledPersonalState)) return false;
+
+    const userRole = get(settingsState).user_settings.cong_role ?? [];
+
+    return roles.some((role) => userRole.includes(role));
+  });
+
+/** El programa de departamentos: lo exporta quien lo edita. */
+export const pdfExportDepartmentsEnabledState = pdfExportPorRol([
+  'departments_schedule',
+]);
 
 // USER SETTINGS
 

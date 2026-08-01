@@ -16,7 +16,7 @@ import {
 } from '@states/departments_schedule';
 import {
   departmentsConfigState,
-  pdfExportEnabledState,
+  pdfExportDepartmentsEnabledState,
 } from '@states/settings';
 import { buildAllDeptSlots } from '@services/app/departments_slots';
 import LastModifiedInfo from '@components/last_modified_info';
@@ -31,7 +31,10 @@ import DeptPublishDialog from '@features/departments_schedule/publish_dialog';
 import DeptConfigDialog from '@features/departments_schedule/config_dialog';
 
 const DepartmentsSchedule = () => {
-  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
+  // Acotado a este documento: quien solo edita Departamentos puede
+  // exportarlo, y eso no le abre el botón de exportar de ninguna otra
+  // página a la que llegue.
+  const pdfExportEnabled = useAtomValue(pdfExportDepartmentsEnabledState);
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const departmentsConfig = useAtomValue(departmentsConfigState);
   const schedules = useAtomValue(deptScheduleState);
