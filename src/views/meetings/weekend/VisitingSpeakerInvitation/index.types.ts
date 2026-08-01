@@ -6,6 +6,8 @@ export type CoordinatorInfo = {
 
 export type VisitingSpeakerInvitationProps = {
   speakerName: string;
+  /** Su congregación, para la línea secundaria de la cabecera. */
+  speakerCongregation?: string;
   /**
    * La fecha del discurso en crudo, para la cápsula del periodo. `dateLocale`
    * ya viene formateada para leerse y no se puede volver a parsear.

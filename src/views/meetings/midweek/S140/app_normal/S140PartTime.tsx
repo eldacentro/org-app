@@ -3,29 +3,17 @@ import { S140PartTimeType } from './index.types';
 import styles from './index.styles';
 import { applyRTL } from '@views/utils/pdf_utils';
 
-const S140PartTime = ({
-  time,
-  color,
-  backgroundColor,
-  isClosingSong,
-  lang,
-}: S140PartTimeType) => {
+/**
+ * La hora calculada de una parte. Va toda en el mismo gris apagado: es una
+ * columna de apoyo, no la información que se busca. El color de la sección lo
+ * pone el separador, una vez, y no cada fila.
+ */
+const S140PartTime = ({ time, lang }: S140PartTimeType) => {
   const stylesSmart = applyRTL(styles, lang);
 
-  const conditionalStyle = applyRTL(
-    isClosingSong ? { borderBottomLeftRadius: 6 } : {},
-    lang
-  );
-
   return (
-    <View
-      style={{
-        ...stylesSmart.timeContainer,
-        backgroundColor,
-        ...conditionalStyle,
-      }}
-    >
-      <Text style={{ ...stylesSmart.timeText, color }}>{time}</Text>
+    <View style={stylesSmart.timeContainer}>
+      <Text style={stylesSmart.timeText}>{time}</Text>
     </View>
   );
 };

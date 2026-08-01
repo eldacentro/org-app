@@ -3,12 +3,14 @@ import { Document } from '@views/components';
 import {
   PdfCard,
   PdfEmpty,
-  PdfHairline,
-  PdfKeyValue,
   Sheet,
+  color,
   fechaPie,
   periodo,
+  radius,
+  size,
   space,
+  stroke,
   text,
 } from '@views/design';
 import { useAppTranslation } from '@hooks/index';
@@ -20,84 +22,134 @@ registerFonts();
 /**
  * Documento 2 · Programa de la reunión del fin de semana.
  *
- * Una tarjeta por mes y una fila por domingo: el numeral grande a la
- * izquierda, el discurso público como encabezado con su meta, y debajo la
- * rejilla de pares rótulo/valor con presidente, oración, Atalaya y lector.
+ * Una tarjeta por mes y una fila por domingo, con las tres zonas fijas:
+ *
+ *   ┌────┬──────────────────────────────┬───────────────────────┐
+ *   │  2 │ «¿Es este el tiempo del fin?»│ PRESIDENTE  ORACIÓN…  │
+ *   │DOM │ Bosquejo n.º 20 · Canción 22 │ Andrés V.   Luis B.   │
+ *   │    │ · Jonatán Ferrandis · Petrer │ LA ATALAYA  LECTOR    │
+ *   │    │                              │ Joaquín V.  Iván C.   │
+ *   └────┴──────────────────────────────┴───────────────────────┘
+ *
+ * El discurso es lo que la congregación mira, así que se lleva el encabezado y
+ * el ancho. Los cuatro papeles fijos van a la derecha en cuadrícula 2×2 y
+ * **siempre en el mismo sitio de cada fila**: se aprende una vez y se lee para
+ * siempre. Cebra en las filas impares y una línea entre filas; ni una vertical.
  */
+
+/** El ancho de la cuadrícula de papeles. Fijo: es lo que la alinea entre filas. */
+const PAPELES = 176;
+
+const Papel = ({ label, name }: { label: string; name: string }) => (
+  <View style={{ width: (PAPELES - space.md) / 2 }}>
+    <Text style={text.label}>{label}</Text>
+    <Text style={{ fontSize: size.meta, fontWeight: 500, color: color.ink }}>
+      {name || '—'}
+    </Text>
+  </View>
+);
+
 const Domingo = ({
   data,
-  primera,
+  zebra,
+  ultima,
 }: {
   data: WeekendMeetingTemplateType['data'][number];
-  primera: boolean;
+  zebra: boolean;
+  ultima: boolean;
 }) => {
   const dia = new Date(data.date_raw);
   const orador =
     data.substitute_speaker_name || data.speaker_1_name || data.co_name || '';
 
   return (
-    <View wrap={false}>
-      {!primera ? <PdfHairline style={{ marginVertical: space.md }} /> : null}
-
-      <View style={{ display: 'flex', flexDirection: 'row', gap: space.lg }}>
-        <View style={{ width: 34 }}>
-          <Text style={text.calendarNumeral}>
-            {Number.isNaN(dia.getTime()) ? '' : dia.getDate()}
-          </Text>
-        </View>
-
-        <View style={{ flex: 1 }}>
-          {data.no_meeting ? (
-            <Text style={text.heading}>
-              {data.event_name || data.week_type_name || 'Sin reunión'}
-            </Text>
-          ) : (
-            <>
-              <Text style={text.heading}>
-                {data.public_talk_title || 'Discurso sin publicar'}
-              </Text>
-              <Text style={{ ...text.meta, marginTop: 1 }}>
-                {[
-                  data.public_talk_number
-                    ? `N.º ${data.public_talk_number}`
-                    : '',
-                  orador,
-                  data.speaker_cong_name,
-                  data.opening_song ? `Canción ${data.opening_song}` : '',
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
-
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  rowGap: space.sm,
-                  marginTop: space.md,
-                }}
-              >
-                <PdfKeyValue label="Presidente" style={{ width: 168 }}>
-                  {data.chairman_name}
-                </PdfKeyValue>
-                <PdfKeyValue label="Oración" style={{ width: 168 }}>
-                  {data.opening_prayer_name}
-                </PdfKeyValue>
-                <PdfKeyValue
-                  label="Estudio de La Atalaya"
-                  style={{ width: 168 }}
-                >
-                  {data.wtstudy_conductor_name}
-                </PdfKeyValue>
-                <PdfKeyValue label="Lector" style={{ width: 168 }}>
-                  {data.wtstudy_reader_name}
-                </PdfKeyValue>
-              </View>
-            </>
-          )}
-        </View>
+    <View
+      wrap={false}
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: space.md,
+        paddingVertical: 8,
+        paddingHorizontal: 9,
+        ...(zebra && { backgroundColor: color.zebra }),
+        ...(!ultima && {
+          borderBottom: `${stroke.hairline}px solid ${color.hairline}`,
+        }),
+        // La última fila con cebra lleva su propio radio: sin él, el
+        // rectángulo asoma por la curva de la tarjeta (R5).
+        ...(zebra &&
+          ultima && {
+            borderBottomLeftRadius: radius.inner,
+            borderBottomRightRadius: radius.inner,
+          }),
+      }}
+    >
+      <View style={{ width: 32, alignItems: 'center' }}>
+        <Text style={text.calendarNumeral}>
+          {Number.isNaN(dia.getTime()) ? '' : dia.getDate()}
+        </Text>
+        <Text style={{ ...text.label, marginTop: 1 }}>
+          {Number.isNaN(dia.getTime())
+            ? ''
+            : dia
+                .toLocaleDateString('es-ES', { weekday: 'short' })
+                .replace('.', '')}
+        </Text>
       </View>
+
+      <View style={{ flex: 1 }}>
+        {data.no_meeting ? (
+          <Text style={text.heading}>
+            {data.event_name || data.week_type_name || 'Sin reunión'}
+          </Text>
+        ) : (
+          <>
+            <Text style={text.heading}>
+              {data.public_talk_title
+                ? `«${data.public_talk_title}»`
+                : 'Discurso sin publicar'}
+            </Text>
+            <Text style={{ ...text.meta, marginTop: 2 }}>
+              {[
+                data.public_talk_number
+                  ? `Bosquejo n.º ${data.public_talk_number}`
+                  : '',
+                data.opening_song ? `Canción ${data.opening_song}` : '',
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+              {orador ? (
+                <Text style={{ fontWeight: 600, color: color.ink }}>
+                  {' · '}
+                  {orador}
+                </Text>
+              ) : null}
+              {data.speaker_cong_name ? ` · ${data.speaker_cong_name}` : ''}
+            </Text>
+          </>
+        )}
+      </View>
+
+      {data.no_meeting ? null : (
+        <View
+          style={{
+            width: PAPELES,
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: space.sm,
+            columnGap: space.md,
+          }}
+        >
+          <Papel label="Presidente" name={data.chairman_name} />
+          <Papel
+            label="Oración final"
+            name={data.concluding_prayer_name || data.opening_prayer_name}
+          />
+          <Papel label="La Atalaya" name={data.wtstudy_conductor_name} />
+          <Papel label="Lector" name={data.wtstudy_reader_name} />
+        </View>
+      )}
     </View>
   );
 };
@@ -106,6 +158,8 @@ const WeekendMeetingTemplate = ({
   data,
   cong_name,
   lang,
+  meetingDay,
+  meetingTime,
 }: WeekendMeetingTemplateType) => {
   const { t } = useAppTranslation();
 
@@ -131,9 +185,17 @@ const WeekendMeetingTemplate = ({
       <Sheet
         congregation={cong_name}
         period={periodo(data.at(0)?.date_raw, data.at(-1)?.date_raw)}
-        title="Reunión del fin de semana"
-        subtitle="Discurso público y Estudio de La Atalaya"
-        documentName="Reunión del fin de semana"
+        title="Programa de la reunión del fin de semana"
+        subtitle={[
+          'Discurso público y Estudio de La Atalaya',
+          meetingDay
+            ? meetingDay.charAt(0).toUpperCase() + meetingDay.slice(1)
+            : '',
+          meetingTime,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        documentName="Programa de la reunión del fin de semana"
         updatedAt={fechaPie(ultimaFecha)}
       >
         {data.length === 0 ? (
@@ -143,10 +205,7 @@ const WeekendMeetingTemplate = ({
             const d = new Date(semanas[0].date_raw);
             const titulo = Number.isNaN(d.getTime())
               ? 'Programa'
-              : d.toLocaleDateString('es-ES', {
-                  month: 'long',
-                  year: 'numeric',
-                });
+              : d.toLocaleDateString('es-ES', { month: 'long' });
 
             return (
               <PdfCard
@@ -154,12 +213,14 @@ const WeekendMeetingTemplate = ({
                 title={titulo}
                 meta={`${semanas.length} ${semanas.length === 1 ? 'domingo' : 'domingos'}`}
                 style={{ marginBottom: space.lg }}
+                flush
               >
                 {semanas.map((semana, i) => (
                   <Domingo
                     key={semana.weekOf}
                     data={semana}
-                    primera={i === 0}
+                    zebra={i % 2 === 1}
+                    ultima={i === semanas.length - 1}
                   />
                 ))}
               </PdfCard>

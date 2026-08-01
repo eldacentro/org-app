@@ -6,14 +6,17 @@ import {
   PdfTable,
   Sheet,
   color,
-  fechaRango,
   periodo,
+  semanaDel,
   space,
   stroke,
   text,
 } from '@views/design';
 import { CircuitVisitType } from '@definition/circuit_visit';
-import { fmtDayEs } from '@features/circuit_visit/shared/fmtDayEs';
+import {
+  fmtDayLongEs,
+  fmtDayNumEs,
+} from '@features/circuit_visit/shared/fmtDayEs';
 
 export type CircuitVisitPdfPreachingRow = {
   date: string;
@@ -58,6 +61,14 @@ type Props = {
 const sinTratamiento = (nombre: string) =>
   nombre.replace(/^\s*(hno\.?|hna\.?|hermano|hermana)\s+/i, '').trim();
 
+/**
+ * Solo el nombre de pila, para los encabezados de las dos columnas de
+ * acompañantes. Con el nombre entero, «Con Jonatán Ferrer» ocupaba tres líneas
+ * de encabezado y empujaba la tabla hacia abajo; y dentro de la hoja no hay
+ * otro Jonatán con quien confundirlo.
+ */
+const nombreDePila = (nombre: string) => nombre.split(/\s+/)[0] ?? '';
+
 /** Una de las cuatro reuniones de la banda superior. */
 const Reunion = ({
   label,
@@ -72,20 +83,21 @@ const Reunion = ({
     style={{
       flexGrow: 1,
       flexBasis: 0,
-      paddingHorizontal: primera ? 0 : space.lg,
+      paddingLeft: primera ? 0 : space.md,
+      paddingRight: space.md,
       // Hairline INTERIOR, nunca contra el canto de la tarjeta (R7).
       ...(!primera && {
         borderLeft: `${stroke.hairline}px solid ${color.hairline}`,
       }),
     }}
   >
-    <Text style={text.label}>{label}</Text>
-    <Text style={{ ...text.bodyStrong, marginTop: 2 }}>
-      {fmtDayEs(when.date)}
+    <Text style={text.label}>
+      {[fmtDayLongEs(when.date), when.time].filter(Boolean).join(' · ')}
     </Text>
-    <Text style={{ ...text.meta, marginTop: 1 }}>
-      {[when.time, when.place].filter(Boolean).join(' · ')}
-    </Text>
+    <Text style={{ ...text.bodyStrong, marginTop: 2 }}>{label}</Text>
+    {when.place ? (
+      <Text style={{ ...text.meta, marginTop: 1 }}>{when.place}</Text>
+    ) : null}
   </View>
 );
 
@@ -113,10 +125,10 @@ const CircuitVisitProgramDoc = ({
   const reuniones: CircuitVisitPdfMeetingRow[] = [
     ...regularMeetings,
     ...(visit.meeting_pioneers
-      ? [{ label: 'Con precursores', ...visit.meeting_pioneers }]
+      ? [{ label: 'Reunión con los precursores', ...visit.meeting_pioneers }]
       : []),
     ...(visit.meeting_elders
-      ? [{ label: 'Con ancianos y siervos', ...visit.meeting_elders }]
+      ? [{ label: 'Ancianos y siervos ministeriales', ...visit.meeting_elders }]
       : []),
   ].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
 
@@ -134,12 +146,13 @@ const CircuitVisitProgramDoc = ({
         congregation={congregation}
         period={periodo(visit.date_start, visit.date_end)}
         title="Visita del superintendente de circuito"
-        subtitle={`${visitante} · ${fechaRango(visit.date_start, visit.date_end)}`}
+        subtitle={`${visitante} · ${semanaDel(visit.date_start, visit.date_end)}`}
         documentName="Visita del superintendente"
         dense={dense}
       >
         <PdfCard
           title="Reuniones de la semana"
+          meta="Salón del Reino, salvo indicación"
           dense={dense}
           style={{ marginBottom: space.lg }}
         >
@@ -164,7 +177,6 @@ const CircuitVisitProgramDoc = ({
           <View style={{ flexGrow: 1, flexBasis: 0 }}>
             <PdfCard
               title="Comidas"
-              meta={`${mealsRows.length}`}
               flush
               dense={dense}
               style={{ marginBottom: space.lg }}
@@ -173,7 +185,7 @@ const CircuitVisitProgramDoc = ({
                 dense={dense}
                 emptyText="Sin comidas asignadas."
                 columns={[
-                  { key: 'dia', header: 'Día', width: 58, muted: true },
+                  { key: 'dia', header: 'Día', width: 40, muted: true },
                   {
                     key: 'quien',
                     header: 'Anfitrión',
@@ -182,29 +194,24 @@ const CircuitVisitProgramDoc = ({
                   },
                 ]}
                 rows={mealsRows.map((m) => ({
-                  dia: fmtDayEs(m.date),
+                  dia: fmtDayNumEs(m.date),
                   quien: m.hostName,
                 }))}
               />
             </PdfCard>
 
-            <PdfCard
-              title="Visitas de pastoreo"
-              meta={`${shepherdingRows.length}`}
-              flush
-              dense={dense}
-            >
+            <PdfCard title="Visitas de pastoreo" flush dense={dense}>
               <PdfTable
                 dense={dense}
                 emptyText="Sin visitas programadas."
                 columns={[
-                  { key: 'dia', header: 'Día', width: 52, muted: true },
-                  { key: 'hora', header: 'Hora', width: 30, muted: true },
+                  { key: 'dia', header: 'Día', width: 40, muted: true },
+                  { key: 'hora', header: 'Hora', width: 26, muted: true },
                   { key: 'quien', header: 'Hermano', flex: true, strong: true },
-                  { key: 'anciano', header: 'Anciano', flex: true },
+                  { key: 'anciano', header: 'Anciano', width: 50 },
                 ]}
                 rows={shepherdingRows.map((s) => ({
-                  dia: fmtDayEs(s.date),
+                  dia: fmtDayNumEs(s.date),
                   hora: s.time,
                   quien: s.brotherName,
                   anciano: s.elderName,
@@ -214,10 +221,10 @@ const CircuitVisitProgramDoc = ({
           </View>
 
           {/* Derecha, algo más ancha: la predicación, que es lo que más crece */}
-          <View style={{ flexGrow: 1.25, flexBasis: 0 }}>
+          <View style={{ flexGrow: 1.4, flexBasis: 0 }}>
             <PdfCard
               title="Salidas de predicación"
-              meta={`${preachingRows.length}`}
+              meta="acompañantes"
               flush
               dense={dense}
             >
@@ -225,27 +232,28 @@ const CircuitVisitProgramDoc = ({
                 dense={dense}
                 emptyText="Sin salidas de predicación."
                 columns={[
-                  { key: 'dia', header: 'Día', width: 52, muted: true },
-                  { key: 'hora', header: 'Hora', width: 30, muted: true },
-                  { key: 'lugar', header: 'Punto de salida', flex: true },
+                  { key: 'dia', header: 'Día', width: 40, muted: true },
+                  { key: 'hora', header: 'Hora', width: 26, muted: true },
+                  { key: 'lugar', header: 'Punto de encuentro', flex: true },
                   {
                     key: 'con',
-                    header: `Con ${coName || 'él'}`,
-                    flex: true,
+                    header: `Con ${nombreDePila(coName) || 'él'}`,
+                    width: 66,
                     strong: true,
                   },
                   ...(coSpouseName
                     ? [
                         {
                           key: 'conElla',
-                          header: `Con ${coSpouseName}`,
-                          flex: true,
+                          header: `Con ${nombreDePila(coSpouseName)}`,
+                          width: 66,
+                          strong: true,
                         },
                       ]
                     : []),
                 ]}
                 rows={preachingRows.map((p) => ({
-                  dia: fmtDayEs(p.date),
+                  dia: fmtDayNumEs(p.date),
                   hora: p.time,
                   lugar: p.location,
                   con: p.companionName,

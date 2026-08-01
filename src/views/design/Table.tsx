@@ -1,5 +1,14 @@
 import { Text, View } from '@react-pdf/renderer';
-import { color, radius, space, stroke, text } from './tokens';
+import {
+  color,
+  compact,
+  normal,
+  radius,
+  size,
+  space,
+  stroke,
+  text,
+} from './tokens';
 
 /**
  * LA TABLA. Implementa `PDF_DESIGN_SYSTEM.md` §3.2.
@@ -41,8 +50,8 @@ const PdfTable = ({
   dense?: boolean;
   emptyText?: string;
 }) => {
-  const padY = dense ? 3 : 4.5;
-  const size = dense ? 8.2 : text.body.fontSize;
+  const padY = dense ? compact.rowPadding : normal.rowPadding;
+  const cuerpo = dense ? compact.body : normal.body;
 
   const anchoDe = (col: PdfTableColumn) =>
     col.flex ? { flex: 1 } : { width: col.width };
@@ -51,7 +60,7 @@ const PdfTable = ({
     return emptyText ? (
       <Text
         style={{
-          fontSize: 8.5,
+          fontSize: size.meta,
           fontStyle: 'italic',
           color: color.faint,
           textAlign: 'center',
@@ -92,7 +101,10 @@ const PdfTable = ({
       </View>
 
       {rows.map((row, idx) => {
-        const cebra = idx % 2 === 1;
+        // La cebra empieza en la PRIMERA fila, no en la segunda: el encabezado
+        // de columnas ya va en blanco, así que si la primera fila también fuera
+        // blanca serían dos bandas claras seguidas y el ojo perdería el hilo.
+        const cebra = idx % 2 === 0;
         const ultima = idx === rows.length - 1;
 
         return (
@@ -120,11 +132,10 @@ const PdfTable = ({
                 style={{
                   ...(col.strong ? text.bodyStrong : text.body),
                   ...(col.muted && {
-                    fontSize: 8,
                     fontWeight: 600,
                     color: color.secondary,
                   }),
-                  fontSize: col.muted ? 8 : size,
+                  fontSize: col.muted ? size.meta : cuerpo,
                   ...anchoDe(col),
                   textAlign: col.align ?? 'left',
                   // Sin este hueco, un valor largo toca el de la columna de al

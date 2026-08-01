@@ -8,7 +8,13 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
 import { SchedWeekType, WeekendMeetingDataType } from '@definition/schedules';
 import { schedulesWeekendData } from '@services/app/schedules';
-import { JWLangLocaleState, userDataViewState } from '@states/settings';
+import {
+  JWLangLocaleState,
+  userDataViewState,
+  weekendMeetingTimeState,
+  weekendMeetingWeekdayState,
+} from '@states/settings';
+import { DIAS_ES } from '@utils/nombres_fecha';
 import { TemplateWeekendMeeting } from '@views/index';
 import { headerForScheduleState } from '@states/field_service_groups';
 import { Week } from '@definition/week_type';
@@ -19,6 +25,8 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
   const dataView = useAtomValue(userDataViewState);
   const congName = useAtomValue(headerForScheduleState);
   const sourceLang = useAtomValue(JWLangLocaleState);
+  const meetingWeekday = useAtomValue(weekendMeetingWeekdayState);
+  const meetingTime = useAtomValue(weekendMeetingTimeState);
 
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');
@@ -44,6 +52,8 @@ const useWeekendExport = (onClose: WeekendExportType['onClose']) => {
         data={meetingData}
         cong_name={congName}
         lang={sourceLang}
+        meetingDay={DIAS_ES[meetingWeekday - 1]}
+        meetingTime={meetingTime}
       />
     ).toBlob();
 

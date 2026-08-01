@@ -8,6 +8,7 @@ import {
   fechaLarga,
   fechaPie,
   periodo,
+  size,
   space,
   stroke,
   text,
@@ -60,7 +61,7 @@ const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
         congregation={cong_name}
         period={periodo(data.at(0)?.weekOf, data.at(-1)?.weekOf)}
         title="Programa de departamentos"
-        subtitle="Acomodadores, audio y vídeo, y demás puestos"
+        subtitle="Acomodadores, micrófonos, multimedia y plataforma"
         documentName="Programa de departamentos"
         updatedAt={fechaPie(ultimaFecha)}
       >
@@ -83,7 +84,10 @@ const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
                       style={{
                         flexGrow: 1,
                         flexBasis: 0,
-                        paddingHorizontal: i === 0 ? 0 : space.lg,
+                        paddingLeft: i === 0 ? 0 : space.lg,
+                        // Sin este hueco el nombre toca la línea de la
+                        // columna de al lado y las dos se leen como una.
+                        paddingRight: space.md,
                         // Hairline interior, nunca contra el canto (R7).
                         ...(i > 0 && {
                           borderLeft: `${stroke.hairline}px solid ${color.hairline}`,
@@ -104,7 +108,16 @@ const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
                               marginTop: 3,
                             }}
                           >
-                            <Text style={{ ...text.meta, flexShrink: 0 }}>
+                            <Text
+                              style={{
+                                ...text.label,
+                                textTransform: 'none',
+                                letterSpacing: 0,
+                                fontWeight: 500,
+                                color: color.secondary,
+                                flexShrink: 0,
+                              }}
+                            >
                               {row.label}
                             </Text>
                             <Text
@@ -121,7 +134,7 @@ const DeptSchedulePDF = ({ data, cong_name }: DeptSchedulePDFProps) => {
                       ) : (
                         <Text
                           style={{
-                            fontSize: 8.5,
+                            fontSize: size.meta,
                             fontStyle: 'italic',
                             color: color.faint,
                             marginTop: 3,

@@ -8,6 +8,7 @@ import {
   PdfHairline,
   category,
   color,
+  size,
   space,
   text,
 } from '@views/design';
@@ -36,6 +37,12 @@ const colorDe = (cat: UpcomingEventCategory) => {
   }
 };
 
+/** «Ago», «Sep» — el mes en el bloque de fecha. */
+const mesCorto = (d: Date) =>
+  Number.isNaN(d.getTime())
+    ? ''
+    : d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
+
 /**
  * Una fila de evento: bloque de fecha a la izquierda, categoría y título a la
  * derecha.
@@ -54,32 +61,56 @@ const UpcomingEvent = ({
   const varios =
     event.duration === UpcomingEventDuration.MultipleDays && event.datesRange;
 
+  const inicio = new Date(event.start);
+  const ultima = event.dates?.at(-1)?.date;
+  const fin = ultima ? new Date(ultima) : inicio;
+
+  // Un rango dentro del mismo mes se dice con los dos días; si cruza de mes,
+  // solo el primero, y el rango completo ya va en la línea de abajo.
+  const numeral =
+    varios &&
+    !Number.isNaN(fin.getTime()) &&
+    fin.getMonth() === inicio.getMonth()
+      ? `${inicio.getDate()}–${fin.getDate()}`
+      : `${inicio.getDate()}`;
+
   return (
     <View wrap={false}>
       {!first ? <PdfHairline style={{ marginVertical: space.md }} /> : null}
 
       <View style={{ display: 'flex', flexDirection: 'row', gap: space.lg }}>
-        {/* Bloque de fecha */}
+        {/* Bloque de fecha: los días arriba y el mes debajo. Un evento de
+            varios días lleva el rango —«7–9»—, no su duración: lo que se
+            busca en un calendario es cuándo cae, no cuánto dura. */}
         <View style={{ width: 44 }}>
-          <Text style={text.calendarNumeral}>
-            {varios ? event.dates.length : new Date(event.start).getDate()}
-          </Text>
-          <Text style={text.label}>
-            {varios
-              ? 'días'
-              : new Date(event.start)
-                  .toLocaleDateString('es-ES', { month: 'short' })
-                  .replace('.', '')}
-          </Text>
+          <Text style={text.calendarNumeral}>{numeral}</Text>
+          <Text style={text.label}>{mesCorto(inicio)}</Text>
         </View>
 
         <View style={{ flex: 1 }}>
           <PdfCategory color={colorDe(event.category)}>{etiqueta}</PdfCategory>
+          {/*
+           * El titular es el TEMA cuando lo hay: «Adoración pura» dice más que
+           * «Asamblea regional», que ya está dicho arriba en la categoría. Sin
+           * tema, la descripción; y sin ninguna de las dos, el tipo de evento.
+           */}
           <Text style={{ ...text.heading, marginTop: 2 }}>
-            {event.description || etiqueta}
+            {event.topic || event.description || etiqueta}
           </Text>
-          <Text style={{ fontSize: 8.5, color: color.secondary, marginTop: 1 }}>
-            {[event.datesRange || event.date, event.time]
+          <Text
+            style={{
+              fontSize: size.meta,
+              color: color.secondary,
+              marginTop: 1,
+            }}
+          >
+            {[
+              event.datesRange || event.date,
+              // Un evento de varios días no tiene UNA hora: cada jornada lleva
+              // la suya, y poner la del primer día induce a error.
+              varios ? '' : event.time,
+              event.address,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </Text>

@@ -82,6 +82,8 @@ export const upcomingEventData = (event: UpcomingEventType) => {
   result.category = event.event_data.category;
   result.custom = event.event_data.custom;
   result.description = event.event_data.description;
+  result.topic = event.event_data.topic;
+  result.address = event.event_data.address;
   result.duration = event.event_data.duration;
 
   result.year = new Date(event.event_data.start).getFullYear();

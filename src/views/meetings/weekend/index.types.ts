@@ -4,6 +4,10 @@ export type WeekendMeetingTemplateType = {
   data: WeekendMeetingDataType[];
   cong_name: string;
   lang: string;
+  /** «Domingo» — de los ajustes de la congregación, para el subtítulo. */
+  meetingDay?: string;
+  /** «11:00» — ídem. */
+  meetingTime?: string;
 };
 
 export type WeekendMeetingItemType = {

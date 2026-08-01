@@ -7,7 +7,7 @@ import {
   Sheet,
   color,
   fechaPie,
-  space,
+  size,
   text,
 } from '@views/design';
 import type { PdfGridCell } from '@views/design';
@@ -17,19 +17,49 @@ import { ExhibitorPDFProps, ExhibitorPDFTurnItem } from './index.types';
  * Documento 6 · Programa de exhibidores. Un mes, una hoja, apaisada.
  *
  * La misma cuadrícula que Salidas de predicación: son el mismo documento con
- * distinto contenido, así que comparten `PdfGrid`.
+ * distinto contenido, así que comparten `PdfGrid`. Los días van arriba, en el
+ * encabezado; las semanas, en el canalón de la izquierda. La semana se lee en
+ * horizontal y «mi día» en vertical.
  *
  * El responsable del turno lleva el rombo, la misma marca que el precursor en
  * Grupos de predicación.
  */
-const Turno = ({ turn }: { turn: ExhibitorPDFTurnItem }) => {
+const Turno = ({
+  turn,
+  dense,
+}: {
+  turn: ExhibitorPDFTurnItem;
+  dense: boolean;
+}) => {
   const primerResponsable = turn.assignments.findIndex((a) => a.isResponsible);
+  const cuerpo = dense ? size.label : size.meta;
 
   return (
-    <View style={{ marginTop: 2 }}>
-      <Text style={{ fontSize: 8, fontWeight: 700, color: color.ink }}>
-        {turn.time}
-      </Text>
+    <View style={{ marginTop: dense ? 1.5 : 2.5 }}>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: 3,
+        }}
+      >
+        <Text style={{ fontSize: cuerpo, fontWeight: 700, color: color.ink }}>
+          {turn.time}
+        </Text>
+        {turn.location ? (
+          <Text
+            style={{
+              fontSize: cuerpo,
+              fontWeight: 500,
+              color: color.secondary,
+              flex: 1,
+            }}
+          >
+            {turn.location}
+          </Text>
+        ) : null}
+      </View>
 
       {turn.isCancelled ? (
         <View style={{ alignSelf: 'flex-start', marginTop: 1 }}>
@@ -41,13 +71,22 @@ const Turno = ({ turn }: { turn: ExhibitorPDFTurnItem }) => {
         </View>
       ) : (
         turn.assignments.map((ass, idx) => (
-          <Text
+          // Fila y no <Text>: el rombo se dibuja, y un dibujo no cabe dentro
+          // de una línea de texto en react-pdf.
+          <View
             key={idx}
-            style={{ fontSize: 8.5, fontWeight: 600, color: color.ink }}
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 3,
+            }}
           >
-            {ass.name}
+            <Text style={{ fontSize: cuerpo, fontWeight: 600 }}>
+              {ass.name}
+            </Text>
             {idx === primerResponsable ? <PdfDiamond /> : null}
-          </Text>
+          </View>
         ))
       )}
     </View>
@@ -62,25 +101,30 @@ const ExhibitorsPDF = ({
   updatedAt,
 }: ExhibitorPDFProps) => {
   const semanas = Math.ceil(cells.length / weekdays.length);
-  const dense = semanas > 4;
+  const masTurnosEnUnDia = cells.reduce(
+    (n, cell) => (cell.type === 'empty' ? n : Math.max(n, cell.turns.length)),
+    0
+  );
+  const dense = semanas * masTurnosEnUnDia > 8;
 
-  const celdas: PdfGridCell[] = cells.map((cell, i) =>
+  const celdas: PdfGridCell[] = cells.map((cell) =>
     cell.type === 'empty'
-      ? { inactive: true }
+      ? { filler: true }
       : {
           dayNum: cell.dayNum,
-          dayName: weekdays[i % weekdays.length].slice(0, 3),
           inactive: cell.turns.length === 0,
           inactiveReason: cell.turns.length === 0 ? 'Sin turnos' : undefined,
           content: (
             <View>
               {cell.turns.map((turn) => (
-                <Turno key={turn.id} turn={turn} />
+                <Turno key={turn.id} turn={turn} dense={dense} />
               ))}
             </View>
           ),
         }
   );
+
+  const semanaDe = Array.from({ length: semanas }, (_, i) => `Semana ${i + 1}`);
 
   return (
     <Document title="Programa de exhibidores" lang="es-ES">
@@ -88,16 +132,25 @@ const ExhibitorsPDF = ({
         congregation={cong_name}
         period={monthName}
         title="Programa de exhibidores"
-        subtitle="Exhibidores públicos · turnos y responsables"
+        subtitle={
+          <>
+            <Text style={text.sheetSubtitle}>
+              El responsable de turno lleva{' '}
+            </Text>
+            <PdfDiamond size={5.5} />
+          </>
+        }
         documentName="Programa de exhibidores"
         updatedAt={fechaPie(updatedAt)}
         landscape
       >
-        <PdfGrid columns={weekdays.length} cells={celdas} dense={dense} />
-
-        <Text style={{ ...text.meta, color: color.faint, marginTop: space.md }}>
-          <PdfDiamond /> responsable del turno
-        </Text>
+        <PdfGrid
+          columns={weekdays.length}
+          headers={weekdays}
+          rowLabels={semanaDe}
+          cells={celdas}
+          dense={dense}
+        />
       </Sheet>
     </Document>
   );

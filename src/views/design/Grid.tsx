@@ -1,15 +1,21 @@
 import { ReactNode } from 'react';
 import { Text, View } from '@react-pdf/renderer';
-import { color, radius, space, stroke, text } from './tokens';
+import { color, radius, size, space, stroke, text } from './tokens';
 
 /**
  * LA CUADRÍCULA DE CALENDARIO. Implementa `PDF_DESIGN_SYSTEM.md` §3.4.
  *
- * Cambia de raíz respecto a la anterior: ya no es una tabla con marco y rayas,
- * sino **celdas sueltas separadas por un hueco**. Cada celda tiene su propio
- * borde y su propio radio, así que no hay ninguna línea que recorrer ni
- * ninguna esquina contra la que pelear — que era de donde salían los dos
- * defectos de antes (verticales cortas y esquinas blancas).
+ * No es una tabla con marco y rayas, sino **celdas sueltas separadas por un
+ * hueco**. Cada celda tiene su propio borde y su propio radio, así que no hay
+ * ninguna línea que recorrer ni ninguna esquina contra la que pelear — que era
+ * de donde salían los dos defectos de la versión anterior (verticales cortas y
+ * esquinas blancas).
+ *
+ * **El día va arriba, en el encabezado de la columna, no dentro de la celda.**
+ * Una columna es siempre el mismo día de la semana: decirlo treinta veces es
+ * repetir treinta veces lo que se sabe leyendo una. Dentro de la celda quedan
+ * solo el numeral y el contenido, y eso es una línea menos por celda — que es
+ * lo que hace que quepa el mes entero en la hoja.
  *
  * Las columnas son **solo los días activos**: si la congregación no sale a
  * predicar los lunes, el lunes no ocupa una columna vacía toda la hoja.
@@ -21,7 +27,13 @@ import { color, radius, space, stroke, text } from './tokens';
 
 export type PdfGridCell = {
   dayNum?: number;
-  /** "mar", "jue"… debajo del numeral. */
+  /**
+   * Hueco de cuadratura: los días que caen fuera del mes al principio o al
+   * final de la rejilla. No se pinta NADA — ni borde ni franja—, porque no es
+   * un día sin actividad, es un día que no existe.
+   */
+  filler?: boolean;
+  /** Solo cuando la cuadrícula no lleva encabezados de columna. */
   dayName?: string;
   content?: ReactNode;
   /** Festivo o día sin actividad: franja, sin borde, y el motivo en cursiva. */
@@ -29,14 +41,23 @@ export type PdfGridCell = {
   inactiveReason?: string;
 };
 
+/** El ancho del canalón de la izquierda cuando hay rótulos de fila. */
+const CANALON = 42;
+
 const PdfGrid = ({
   columns,
+  headers,
+  rowLabels,
   cells,
   gap = space.sm,
   dense = false,
 }: {
   /** Cuántas columnas: tantas como días activos. */
   columns: number;
+  /** Los días de la semana, arriba. Se repiten en cada hoja. */
+  headers?: string[];
+  /** «Semana 1», «Semana 2»… en el canalón de la izquierda. */
+  rowLabels?: string[];
   /** En orden de lectura; se parten en filas de `columns`. */
   cells: PdfGridCell[];
   gap?: number;
@@ -47,79 +68,120 @@ const PdfGrid = ({
     filas.push(cells.slice(i, i + columns));
   }
 
+  const canalon = rowLabels ? CANALON : 0;
+
   return (
     <View style={{ display: 'flex', flexDirection: 'column', gap }}>
+      {headers ? (
+        <View
+          fixed
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap,
+            // El hueco entre encabezado y primera fila es menor que el que
+            // separa las filas entre sí: el rótulo pertenece a su columna.
+            marginBottom: 3 - gap,
+          }}
+        >
+          {canalon ? <View style={{ width: canalon }} /> : null}
+          {headers.map((dia, i) => (
+            <Text key={i} style={{ ...text.label, flexGrow: 1, flexBasis: 0 }}>
+              {dia}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+
       {filas.map((fila, filaIdx) => (
         <View
           key={filaIdx}
           wrap={false}
           style={{ display: 'flex', flexDirection: 'row', gap }}
         >
-          {fila.map((celda, celdaIdx) => (
+          {canalon ? (
             <View
-              key={celdaIdx}
               style={{
-                flexGrow: 1,
-                flexBasis: 0,
-                borderRadius: radius.cell,
-                paddingVertical: dense ? 3.5 : space.sm,
-                paddingHorizontal: dense ? 4 : 6,
-                ...(celda.inactive
-                  ? { backgroundColor: color.zebra }
-                  : {
-                      border: `${stroke.hairline}px solid ${color.border}`,
-                    }),
+                width: canalon,
+                display: 'flex',
+                justifyContent: 'center',
               }}
             >
-              {celda.dayNum !== undefined ? (
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'baseline',
-                    gap: 4,
-                    marginBottom: dense ? 2 : space.xs,
-                  }}
-                >
-                  <Text
+              <Text style={text.label}>{rowLabels?.[filaIdx] ?? ''}</Text>
+            </View>
+          ) : null}
+
+          {fila.map((celda, celdaIdx) =>
+            celda.filler ? (
+              <View key={celdaIdx} style={{ flexGrow: 1, flexBasis: 0 }} />
+            ) : (
+              <View
+                key={celdaIdx}
+                style={{
+                  flexGrow: 1,
+                  flexBasis: 0,
+                  borderRadius: radius.cell,
+                  paddingVertical: dense ? 3.5 : space.sm,
+                  paddingHorizontal: dense ? 4 : 6,
+                  ...(celda.inactive
+                    ? { backgroundColor: color.zebra }
+                    : {
+                        border: `${stroke.hairline}px solid ${color.border}`,
+                      }),
+                }}
+              >
+                {celda.dayNum !== undefined ? (
+                  <View
                     style={{
-                      ...text.calendarNumeral,
-                      fontSize: dense ? 11 : text.calendarNumeral.fontSize,
-                      ...(celda.inactive && { color: color.inactive }),
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'baseline',
+                      gap: 4,
+                      marginBottom: dense ? 1 : 2,
                     }}
                   >
-                    {celda.dayNum}
-                  </Text>
-                  {celda.dayName ? (
                     <Text
                       style={{
-                        ...text.label,
+                        ...text.calendarNumeral,
+                        fontSize: dense
+                          ? size.heading
+                          : text.calendarNumeral.fontSize,
                         ...(celda.inactive && { color: color.inactive }),
                       }}
                     >
-                      {celda.dayName}
+                      {celda.dayNum}
                     </Text>
-                  ) : null}
-                </View>
-              ) : null}
+                    {celda.dayName ? (
+                      <Text
+                        style={{
+                          ...text.label,
+                          ...(celda.inactive && { color: color.inactive }),
+                        }}
+                      >
+                        {celda.dayName}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
 
-              {celda.inactive ? (
-                celda.inactiveReason ? (
-                  <Text
-                    style={{
-                      fontSize: 7.5,
-                      fontStyle: 'italic',
-                      color: color.faint,
-                    }}
-                  >
-                    {celda.inactiveReason}
-                  </Text>
-                ) : null
-              ) : (
-                celda.content
-              )}
-            </View>
-          ))}
+                {celda.inactive ? (
+                  celda.inactiveReason ? (
+                    <Text
+                      style={{
+                        fontSize: size.label,
+                        fontStyle: 'italic',
+                        color: color.faint,
+                      }}
+                    >
+                      {celda.inactiveReason}
+                    </Text>
+                  ) : null
+                ) : (
+                  celda.content
+                )}
+              </View>
+            )
+          )}
 
           {/* Rellena la última fila para que las celdas no se estiren. */}
           {fila.length < columns

@@ -6,6 +6,7 @@ import {
   PdfTable,
   Sheet,
   color,
+  fechaCortaTabla,
   periodo,
   space,
   text,
@@ -32,11 +33,11 @@ const TemplateOutgoingSpeakersSchedule = ({
   const items = data.flat();
 
   const filas = items.map((item) => ({
-    fecha: item.date?.formatted ?? item.weekOfFormatted,
+    fecha: fechaCortaTabla(item.date?.date) || item.weekOfFormatted,
     orador: item.speaker,
     congregacion: item.congregation_name,
     discurso: item.public_talk?.number
-      ? `${item.public_talk.number}. ${item.public_talk.title}`
+      ? `${item.public_talk.number} · ${item.public_talk.title}`
       : '',
     cancion: item.opening_song?.number ? `${item.opening_song.number}` : '',
   }));

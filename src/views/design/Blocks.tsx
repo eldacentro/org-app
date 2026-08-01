@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Style } from '@react-pdf/stylesheet';
-import { Text, View } from '@react-pdf/renderer';
-import { color, radius, space, stroke, text } from './tokens';
+import { Polygon, Svg, Text, View } from '@react-pdf/renderer';
+import { color, radius, size, space, stroke, text } from './tokens';
 
 /**
  * Las piezas que van dentro de una hoja. Implementa `PDF_DESIGN_SYSTEM.md` §3.
@@ -145,17 +145,22 @@ export const PdfNote = ({
  */
 export const PdfKeyValue = ({
   label,
+  strong = false,
   children,
   style,
 }: {
   label: string;
+  /** Para el valor que se busca —un nombre—, no el que solo se comprueba. */
+  strong?: boolean;
   children: ReactNode;
   style?: Style;
 }) => (
   <View style={style}>
     <Text style={text.label}>{label}</Text>
     {typeof children === 'string' ? (
-      <Text style={{ ...text.body, fontWeight: 500, marginTop: 2 }}>
+      <Text
+        style={{ ...text.body, fontWeight: strong ? 600 : 500, marginTop: 2 }}
+      >
         {children || '—'}
       </Text>
     ) : (
@@ -200,7 +205,7 @@ export const PdfBadge = ({
     >
       <Text
         style={{
-          fontSize: 6.8,
+          fontSize: size.badge,
           fontWeight: 700,
           letterSpacing: 0.5,
           textTransform: 'uppercase',
@@ -236,7 +241,7 @@ export const PdfCategory = ({
     />
     <Text
       style={{
-        fontSize: 7.5,
+        fontSize: size.category,
         fontWeight: 700,
         letterSpacing: 0.5,
         textTransform: 'uppercase',
@@ -251,9 +256,16 @@ export const PdfCategory = ({
 /**
  * El rombo del responsable —y del precursor—: el único sitio donde el azul de
  * marca aparece dentro del contenido.
+ *
+ * Se DIBUJA, no se escribe. Figtree no trae el glifo ◆ (U+25C6) y react-pdf no
+ * tiene fuente de reserva: lo que salía en la hoja era un cuadrado vacío. Un
+ * polígono de cuatro puntos da el mismo rombo en cualquier tamaño y no depende
+ * de que ninguna fuente lo lleve.
  */
-export const PdfDiamond = () => (
-  <Text style={{ fontSize: 5, color: color.accent }}> ◆</Text>
+export const PdfDiamond = ({ size: lado = 4.6 }: { size?: number }) => (
+  <Svg width={lado} height={lado} viewBox="0 0 10 10">
+    <Polygon points="5,0 10,5 5,10 0,5" fill={color.accent} />
+  </Svg>
 );
 
 // ── El vacío ──────────────────────────────────────────────────────────────
@@ -272,7 +284,7 @@ export const PdfEmpty = ({
   inline ? (
     <Text
       style={{
-        fontSize: 8.5,
+        fontSize: size.meta,
         fontStyle: 'italic',
         color: color.faint,
         textAlign: 'center',
@@ -283,7 +295,7 @@ export const PdfEmpty = ({
   ) : (
     <Text
       style={{
-        fontSize: 8.5,
+        fontSize: size.meta,
         fontWeight: 400,
         fontStyle: 'italic',
         color: color.faint,

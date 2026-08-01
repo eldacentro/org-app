@@ -2,15 +2,14 @@ import { ReactNode } from 'react';
 
 export type S140WeekHeaderType = {
   title: string;
+  /** A la derecha de la banda: la lectura de la semana, el presidente… */
+  meta?: string;
   secondary?: string;
   lang: string;
 };
 
 export type S140PartTimeType = {
   time: string;
-  color: string;
-  backgroundColor: string;
-  isClosingSong?: boolean;
   lang: string;
 };
 
@@ -18,7 +17,6 @@ export type S140SourceType = {
   source?: string;
   node?: ReactNode;
   secondary?: string;
-  color?: string;
   duration?: string;
   lang: string;
 };
@@ -36,7 +34,6 @@ export type S140PersonType = {
 };
 
 export type S140SectionType = {
-  icon: ReactNode;
   section: string;
   color: string;
   secondary?: ReactNode;

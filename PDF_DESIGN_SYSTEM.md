@@ -44,12 +44,28 @@ Estados: `ok` · `warn` · `danger`, cada uno con su lavado.
 grupos; asamblea, visita, campaña, conmemoración. **Solo clasifican**: se usan
 en un cuadradito de 6×6 y su rótulo, nunca como fondo ni como borde.
 
-### Tipografía — once estilos, cada uno con un trabajo
+### Tipografía
 
-`sheetTitle` 16/800 · `sheetSubtitle` 9,5/500 · `dateCapsule` 8/700 versalitas ·
-`cardHeader` 8,5/700 versalitas · `heading` 10,5/700 · `body` 9/400 ·
-`bodyStrong` 9/600 · `label` 7/700 versalitas · `meta` 8/500 ·
-`calendarNumeral` 13/800 · `footer` 7/400
+**La escala es `size`: diez números y ni uno más.** Es el único sitio de todo el
+sistema donde se escribe un tamaño de letra; ninguna plantilla pone un
+`fontSize` a mano, pide un estilo de `text`. Así una hoja no puede llevar el
+cuerpo a 9 mientras la de al lado lo lleva a 8,5.
+
+| | | |
+|---|---|---|
+| `badge` **7,2** | `label` **7,5** | `category` **8** |
+| `meta` **8,5** | `cardHeader` **9** | `body` **9,5** |
+| `subtitle` **10** | `heading` **11** | `numeral` **14** |
+| `title` **17,5** | | |
+
+Un escalón por encima de la especificación original (cuerpo 9 → 9,5): en papel
+y a la luz de un tablón, el 9 se leía justo. **Para subir o bajar el sistema
+entero se tocan esos diez números y nada más.**
+
+Los estilos, cada uno con un trabajo: `sheetTitle` 17,5/800 · `sheetSubtitle`
+10/500 · `dateCapsule` 8,5/700 versalitas · `cardHeader` 9/700 versalitas ·
+`heading` 11/700 · `body` 9,5/400 · `bodyStrong` 9,5/600 · `label` 7,5/700
+versalitas · `meta` 8,5/500 · `calendarNumeral` 14/800 · `footer` 7,5/400
 
 ### Escalas
 
@@ -64,7 +80,7 @@ cápsula — Líneas 0,5 y 2,5 — Márgenes 36 vertical · 26 apaisado
 ┌──────────────────────────────────────────────┐
 │ ▣ Elda Centro                 ( AGOSTO 2026 )│  firma + cápsula
 │                                              │  +12
-│ Programa de exhibidores                      │  título 16/800
+│ Programa de exhibidores                      │  título 17,5/800
 │ Turnos y responsables                        │  +3, subtítulo
 │ ▬▬▬ ──────────────────────────────────────── │  +10, LA REGLA
 │                                              │  +14
@@ -101,7 +117,10 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
 
 ## 4. Las reglas (citables)
 
-- **R1 · Una cabecera, doce documentos.** Firma + cápsula + título 16 + regla.
+- **R1 · Una cabecera, doce documentos.** Firma + cápsula + título 17,5 +
+  regla. El subtítulo dice de qué va la hoja (día, hora, alcance), **no cuántas
+  filas tiene**: un recuento no es un subtítulo, y donde hace falta va en la
+  banda de la tarjeta.
 - **R2 · La fecha es el periodo, no el día.** La cápsula va a mes: «Agosto
   2026», «Agosto – Septiembre 2026», «2026 – 2027». La numeración y la fecha de
   actualización, en el pie. → [`fecha.ts`](./src/views/design/fecha.ts)
@@ -115,20 +134,42 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
 - **R6 · Profundidad = superficie + línea.** Sin sombras ni degradados.
 - **R7 · Los bordes no se parten.** Nada de bordes rectos contra el canto de una
   caja redondeada; separar con hairlines interiores a ≥9 pt del canto.
-- **R8 · Tablas sin jaula.** Cebra en las filas pares; **nunca** verticales.
+- **R8 · Tablas sin jaula.** **La cebra empieza en la primera fila**, porque
+  el encabezado de columnas ya va en blanco y dos bandas claras seguidas hacen
+  perder el hilo. **Nunca** verticales, y hueco entre columnas para que un
+  valor largo no toque el de al lado.
 - **R9 · El vacío se dice.** `—`, «Sin asignar», «Sin salidas este día».
 - **R10 · Lo que se busca, en 600.** Nombre y hora, siempre.
 - **R11 · Los bloques no se parten a ciegas.** `wrap={false}`,
   `minPresenceAhead={40}`, pie `fixed`.
-- **R12 · Versalitas solo para rótulos** (7–8,5 pt). Nunca en títulos ni cuerpo.
+- **R12 · Versalitas solo para rótulos** (7,2–9 pt). Nunca en títulos ni cuerpo.
+- **R13 · Nada que dependa de un glifo raro.** El ◆ se DIBUJA (`Polygon`), no se
+  escribe: Figtree no trae U+25C6 y react-pdf no tiene fuente de reserva, así
+  que lo que salía en el papel era un cuadrado vacío. Lo mismo vale para
+  cualquier símbolo fuera del latín básico.
+- **R14 · En un calendario, el día va arriba.** El nombre del día es el
+  encabezado de su columna, no una línea dentro de cada celda: repetirlo treinta
+  veces cuesta una línea por celda, que es justo lo que hace que un mes no quepa
+  en la hoja. Un día fuera del mes es un **hueco** (`filler`), y un hueco no se
+  pinta: ni borde ni franja. Franja tiene el día que existe y no tiene nada.
 
 ### Modo compacto
 
 Para los que **deben caber en una hoja** (4, 5, 7, 10, 12). Se aplica UNA escala
-global, nunca ajustes sueltos: cuerpo 9 → 8,2 · relleno de fila 4,5 → 3 · banda
-5 → 3,5 · hueco entre tarjetas 12 → 8 · margen 36 → 30.
+global, nunca ajustes sueltos: cuerpo 9,5 → 8,7 · relleno de fila 4,5 → 3 ·
+banda 5 → 3,5 · hueco entre tarjetas 12 → 8 · margen 36 → 30.
 
-No se tocan el título, la regla ni el pie. Nada por debajo de 7,5.
+**El modo compacto aprieta la escala, no la estructura.** La versión anterior de
+Contactos de emergencia subía la dirección a la línea del nombre a partir de 15
+filas, y el resultado era que unas hojas se leían de una manera y otras de otra
+según cuánta gente hubiera en el grupo. Ahora la hoja es siempre la misma, más
+junta.
+
+Y no lo decide el calendario, lo decide el **contenido**: un mes de seis semanas
+con una salida al día cabe de sobra y uno de cuatro con tres al día no cabe, así
+que el disparador es `semanas × lo más lleno que esté un día`.
+
+No se tocan el título, la regla ni el pie. Nada por debajo de 7,2.
 
 ---
 

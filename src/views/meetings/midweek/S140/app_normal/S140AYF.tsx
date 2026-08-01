@@ -32,23 +32,12 @@ const ApplyMinistryRow = ({
         return (
           <Fragment key={`ayf-${meetingData.weekOf}-${index}`}>
             {ayfType && (
-              <View
-                style={{
-                  ...stylesSmart.rowContainer,
-                  backgroundColor: index % 2 === 0 ? '#FDF5E4' : '',
-                }}
-              >
-                <S140PartTime
-                  time={ayfTiming}
-                  color="#956711"
-                  backgroundColor="rgba(194, 130, 0, 0.08)"
-                  lang={lang}
-                />
+              <View style={stylesSmart.rowContainer}>
+                <S140PartTime time={ayfTiming} lang={lang} />
 
                 <S140Source
                   source={ayfTypeName}
                   duration={ayfTime}
-                  color="#956711"
                   lang={lang}
                 />
 

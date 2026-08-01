@@ -14,6 +14,7 @@ import {
   incomingSpeakersState,
   myCongSpeakersState,
 } from '@states/visiting_speakers';
+import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 import { publicTalksLocaleState } from '@states/public_talks';
 import { useAppTranslation } from '@hooks/index';
 import React from 'react';
@@ -41,6 +42,7 @@ const usePublicTalkInvitation = (
   const localSpeakers = useAtomValue(myCongSpeakersState);
   const talksData = useAtomValue(publicTalksLocaleState);
   const speakersEmail = useAtomValue(publicTalkSpeakersEmailState);
+  const speakersCongregations = useAtomValue(speakersCongregationsActiveState);
 
   // Speaker Info
   const speakerInfo = useMemo(() => {
@@ -60,6 +62,15 @@ const usePublicTalkInvitation = (
     : speakerUid
       ? speakerNameFallback || ''
       : '';
+
+  // La congregación del orador — para la línea secundaria de la invitación.
+  const speakerCongregation = useMemo(() => {
+    const congId = speakerInfo?.speaker_data.cong_id;
+    if (!congId) return '';
+
+    const cong = speakersCongregations.find((record) => record.id === congId);
+    return cong?.cong_data.cong_name.value ?? '';
+  }, [speakerInfo, speakersCongregations]);
 
   // Outline Info
   const outlineTitle = useMemo(() => {
@@ -158,6 +169,7 @@ const usePublicTalkInvitation = (
     const document = (
       <VisitingSpeakerInvitation
         speakerName={speakerName}
+        speakerCongregation={speakerCongregation}
         dateRaw={weekOf}
         dateLocale={weekDateLocale}
         time={time}

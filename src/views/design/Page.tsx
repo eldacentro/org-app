@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Page as PdfPage, Text, View } from '@react-pdf/renderer';
 import { IconLogo } from '@views/components/icons';
-import { color, page, radius, space, stroke, text } from './tokens';
+import { color, page, radius, size, space, stroke, text } from './tokens';
 
 /**
  * LA HOJA. Implementa `PDF_DESIGN_SYSTEM.md` §2 — la anatomía que comparten
@@ -10,8 +10,8 @@ import { color, page, radius, space, stroke, text } from './tokens';
  *   ┌──────────────────────────────────────────────┐
  *   │ ▣ Elda Centro                 ( AGOSTO 2026 )│  firma + cápsula
  *   │                                              │  +12
- *   │ Programa de exhibidores                      │  título 16/800
- *   │ Exhibidores públicos · turnos de dos horas   │  +3, subtítulo 9,5/500
+ *   │ Programa de exhibidores                      │  título 17,5/800
+ *   │ Exhibidores públicos · turnos y responsables │  +3, subtítulo 10/500
  *   │ ▬▬▬ ──────────────────────────────────────── │  +10, LA REGLA
  *   │                                              │  +14
  *   │ …contenido…                                  │
@@ -44,7 +44,7 @@ const Wordmark = ({ nombre }: { nombre: string }) => {
   const resto = palabras.join(' ');
 
   return (
-    <Text style={{ fontSize: 10.5, color: color.ink }}>
+    <Text style={{ fontSize: size.heading, color: color.ink }}>
       {resto ? <Text style={{ fontWeight: 500 }}>{resto} </Text> : null}
       <Text style={{ fontWeight: 800 }}>{ultima}</Text>
     </Text>
@@ -66,7 +66,8 @@ const Sheet = ({
   /** El periodo de vigencia, ya formateado: "Agosto 2026". */
   period?: string;
   title: string;
-  subtitle?: string;
+  /** Texto, o piezas en fila cuando lleva dentro un rombo o una marca. */
+  subtitle?: ReactNode;
   /** Para el pie: "Elda Centro · Programa de exhibidores". */
   documentName?: string;
   /** Para el pie: "Actualizado el 1 ago 2026". */
@@ -128,8 +129,22 @@ const Sheet = ({
 
       {/* ── ③ Título y subtítulo ─────────────────────────────────── */}
       <Text style={{ ...text.sheetTitle, marginTop: 12 }}>{title}</Text>
-      {subtitle ? (
+      {typeof subtitle === 'string' ? (
         <Text style={{ ...text.sheetSubtitle, marginTop: 3 }}>{subtitle}</Text>
+      ) : subtitle ? (
+        // Un subtítulo con piezas dentro (el rombo del precursor, por ejemplo)
+        // se compone en fila: el rombo se DIBUJA y no cabe dentro de un <Text>.
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+            marginTop: 3,
+          }}
+        >
+          {subtitle}
+        </View>
       ) : null}
 
       {/* ── ④ LA REGLA ───────────────────────────────────────────── */}

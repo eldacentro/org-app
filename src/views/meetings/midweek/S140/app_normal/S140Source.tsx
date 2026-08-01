@@ -7,7 +7,6 @@ const S140Source = ({
   node,
   secondary,
   source,
-  color,
   duration,
   lang,
 }: S140SourceType) => {
@@ -18,7 +17,7 @@ const S140Source = ({
     <View style={stylesSmart.sourceContainer}>
       {source && (
         <View style={[stylesSmart.sourceTextContainer, { maxWidth: 330 }]}>
-          <Text style={{ ...stylesSmart.sourceText, color }}>
+          <Text style={stylesSmart.sourceText}>
             {rtl && '\u200f'}
             {source}
           </Text>

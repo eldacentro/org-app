@@ -1,14 +1,18 @@
 import { Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
-import { Sheet, periodo } from '@views/design';
+import {
+  PdfCategory,
+  Sheet,
+  category,
+  fechaPie,
+  periodo,
+  space,
+} from '@views/design';
 import { Week } from '@definition/week_type';
 import { S140Type } from '../shared/index.types';
 import { useAppTranslation } from '@hooks/index';
 import registerFonts from '@views/registerFonts';
-import IconDiamond from '@views/components/icons/IconDiamond';
-import IconLiving from '@views/components/icons/IconLiving';
-import IconMinistry from '@views/components/icons/IconMinistry';
 import S140AYF from './S140AYF';
 import S140Hall from './S140Hall';
 import S140LC from './S140LC';
@@ -49,21 +53,46 @@ const TemplateS140AppNormal = ({
     return acc;
   }, null);
 
-  const formatTitle = (title: string) => {
+  /**
+   * El título de la semana llega como «agosto 3 | Proverbios 30»: a la
+   * izquierda la fecha y, tras la barra, la lectura de la semana. La banda de
+   * la tarjeta reparte las dos partes en sus dos extremos, así que aquí se
+   * separan en vez de imprimirse juntas con una barra en medio.
+   */
+  const partirTitulo = (title: string) => {
     const meses = [...MESES_ES];
-    const parts = title.split('|');
-    const datePart = parts[0].trim();
-    const rest = parts.slice(1).join('|');
-    const dateWords = datePart.split(' ');
-    if (dateWords.length === 2) {
-      const mesNombre = dateWords[0].toLowerCase();
-      const dia = dateWords[1];
-      const mesIndex = meses.indexOf(mesNombre);
+    const [fecha, ...resto] = title.split('|');
+    const palabras = fecha.trim().split(' ');
+    const lectura = resto.join('|').trim();
+
+    if (palabras.length === 2) {
+      const mesIndex = meses.indexOf(palabras[0].toLowerCase());
       if (mesIndex !== -1) {
-        return `${dia} de ${meses[mesIndex]}${rest ? ' |' + rest : ''}`;
+        return { dia: palabras[1], mes: meses[mesIndex], lectura };
       }
     }
-    return title;
+
+    return { dia: fecha.trim(), mes: '', lectura };
+  };
+
+  /** «Semana del 3 de agosto». */
+  const tituloSemana = (title: string) => {
+    const { dia, mes } = partirTitulo(title);
+
+    return mes ? t('tr_weekOfDay', { lng: lang, day: dia, month: mes }) : dia;
+  };
+
+  /** A la derecha de la banda: la lectura de la semana y quién preside. */
+  const metaSemana = (meetingData: S140Type['data'][number]) => {
+    const { lectura } = partirTitulo(meetingData.schedule_title);
+    const presidente = meetingData.chairman_A_name;
+
+    return [
+      lectura,
+      presidente ? `${t('tr_chairman', { lng: lang })}: ${presidente}` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
   };
 
   return (
@@ -78,6 +107,7 @@ const TemplateS140AppNormal = ({
         title={t('tr_midweekMeetingPrint', { lng: lang })}
         subtitle="Tesoros de la Biblia · Seamos mejores maestros · Nuestra vida cristiana"
         documentName={t('tr_midweekMeetingPrint', { lng: lang })}
+        updatedAt={fechaPie(lastUpdate?.updatedAt)}
       >
         {data.map((meetingData) => {
           return (
@@ -87,7 +117,8 @@ const TemplateS140AppNormal = ({
               wrap={false}
             >
               <S140WeekHeader
-                title={formatTitle(meetingData.schedule_title)}
+                title={tituloSemana(meetingData.schedule_title)}
+                meta={metaSemana(meetingData)}
                 secondary={
                   meetingData.week_type === Week.CO_VISIT &&
                   meetingData.week_type_name
@@ -110,8 +141,6 @@ const TemplateS140AppNormal = ({
                     <View style={stylesSmart.rowContainer}>
                       <S140PartTime
                         time={meetingData.timing.pgm_start}
-                        color="#3B4CA3"
-                        backgroundColor="#F2F5FF"
                         lang={lang}
                       />
 
@@ -136,8 +165,6 @@ const TemplateS140AppNormal = ({
                       time={
                         meetingData.full && meetingData.timing.opening_comments
                       }
-                      color={meetingData.full && '#3B4CA3'}
-                      backgroundColor={meetingData.full && '#F2F5FF'}
                       lang={lang}
                     />
 
@@ -160,8 +187,7 @@ const TemplateS140AppNormal = ({
                   {/* TGW */}
                   {(meetingData.treasures || meetingData.students) && (
                     <S140Section
-                      color="#3C7F8B"
-                      icon={<IconDiamond />}
+                      color={category.treasures}
                       section={t('tr_treasuresPart', { lng: lang })}
                       lang={lang}
                       secondary={
@@ -188,15 +214,12 @@ const TemplateS140AppNormal = ({
                           <View style={stylesSmart.rowContainer}>
                             <S140PartTime
                               time={meetingData.timing.tgw_talk}
-                              color="#306CB4"
-                              backgroundColor="rgba(60, 127, 139, 0.08)"
                               lang={lang}
                             />
 
                             <S140Source
                               source={meetingData.tgw_talk_src}
                               duration={meetingData.tgw_talk_time}
-                              color="#306CB4"
                               lang={lang}
                             />
 
@@ -207,23 +230,15 @@ const TemplateS140AppNormal = ({
                           </View>
 
                           {/* TGW Gems */}
-                          <View
-                            style={{
-                              ...stylesSmart.rowContainer,
-                              backgroundColor: '#ECF6F8',
-                            }}
-                          >
+                          <View style={stylesSmart.rowContainer}>
                             <S140PartTime
                               time={meetingData.timing.tgw_gems}
-                              color="#306CB4"
-                              backgroundColor="rgba(60, 127, 139, 0.08)"
                               lang={lang}
                             />
 
                             <S140Source
                               source={meetingData.tgw_gems_src}
                               duration={meetingData.tgw_gems_time}
-                              color="#306CB4"
                               lang={lang}
                             />
 
@@ -240,15 +255,12 @@ const TemplateS140AppNormal = ({
                         <View style={stylesSmart.rowContainer}>
                           <S140PartTime
                             time={meetingData.timing.tgw_bible_reading}
-                            color="#306CB4"
-                            backgroundColor="rgba(60, 127, 139, 0.08)"
                             lang={lang}
                           />
 
                           <S140Source
                             source={meetingData.tgw_bible_reading_src}
                             duration={`4 ${minLabel}`}
-                            color="#306CB4"
                             lang={lang}
                           />
 
@@ -271,8 +283,7 @@ const TemplateS140AppNormal = ({
                   {/* AYF */}
                   {meetingData.students && (
                     <S140Section
-                      color="#C28200"
-                      icon={<IconMinistry />}
+                      color={category.teachers}
                       section={t('tr_applyFieldMinistryPart', { lng: lang })}
                       lang={lang}
                     >
@@ -288,8 +299,7 @@ const TemplateS140AppNormal = ({
                   {/* LC */}
                   {meetingData.living && (
                     <S140Section
-                      color="#B82B10"
-                      icon={<IconLiving />}
+                      color={category.living}
                       section={t('tr_livingPart', { lng: lang })}
                       lang={lang}
                     >
@@ -298,8 +308,6 @@ const TemplateS140AppNormal = ({
                         <View style={stylesSmart.rowContainer}>
                           <S140PartTime
                             time={meetingData.timing.lc_middle_song}
-                            color="#942926"
-                            backgroundColor="rgba(184, 43, 16, 0.08)"
                             lang={lang}
                           />
 
@@ -325,8 +333,6 @@ const TemplateS140AppNormal = ({
                           <View style={stylesSmart.rowContainer}>
                             <S140PartTime
                               time={meetingData.timing.concluding_comments}
-                              color="#942926"
-                              backgroundColor="rgba(184, 43, 16, 0.08)"
                               lang={lang}
                             />
 
@@ -342,16 +348,9 @@ const TemplateS140AppNormal = ({
                           </View>
 
                           {/* Talk by CO */}
-                          <View
-                            style={{
-                              ...stylesSmart.rowContainer,
-                              backgroundColor: '#FFF3F1',
-                            }}
-                          >
+                          <View style={stylesSmart.rowContainer}>
                             <S140PartTime
                               time={meetingData.timing.co_talk}
-                              color="#942926"
-                              backgroundColor="rgba(184, 43, 16, 0.08)"
                               lang={lang}
                             />
 
@@ -372,19 +371,9 @@ const TemplateS140AppNormal = ({
                       {meetingData.cbs && (
                         <>
                           {/* CBS */}
-                          <View
-                            style={{
-                              ...stylesSmart.rowContainer,
-                              backgroundColor:
-                                (meetingData.lc_count + 1) % 2 === 0
-                                  ? ''
-                                  : '#FFF3F1',
-                            }}
-                          >
+                          <View style={stylesSmart.rowContainer}>
                             <S140PartTime
                               time={meetingData.timing.cbs}
-                              color="#942926"
-                              backgroundColor="rgba(184, 43, 16, 0.08)"
                               lang={lang}
                             />
 
@@ -392,7 +381,6 @@ const TemplateS140AppNormal = ({
                               source={meetingData.lc_cbs_title}
                               duration={meetingData.lc_cbs_time}
                               secondary={meetingData.lc_cbs_label}
-                              color="#942926"
                               lang={lang}
                             />
 
@@ -409,8 +397,6 @@ const TemplateS140AppNormal = ({
                             <View style={stylesSmart.rowContainer}>
                               <S140PartTime
                                 time={meetingData.timing.concluding_comments}
-                                color="#942926"
-                                backgroundColor="rgba(184, 43, 16, 0.08)"
                                 lang={lang}
                               />
 
@@ -435,9 +421,6 @@ const TemplateS140AppNormal = ({
                         <View style={stylesSmart.rowContainer}>
                           <S140PartTime
                             time={meetingData.timing.pgm_end}
-                            color="#942926"
-                            backgroundColor="rgba(184, 43, 16, 0.08)"
-                            isClosingSong={true}
                             lang={lang}
                           />
 
@@ -466,23 +449,26 @@ const TemplateS140AppNormal = ({
           );
         })}
 
-        {lastUpdate?.updatedAt && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 20,
-              left: 30,
-              right: 30,
-              textAlign: 'center',
-            }}
-          >
-            <Text style={{ fontSize: '8px', color: '#666' }}>
-              {lastUpdate.lastModifiedBy
-                ? `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()} (${lastUpdate.lastModifiedBy})`
-                : `Última actualización: ${new Date(lastUpdate.updatedAt).toLocaleString()}`}
-            </Text>
-          </View>
-        )}
+        {/* La leyenda de los tres colores: el lector aprende de una vez qué
+            significa cada cuadradito y ya no vuelve a preguntárselo. */}
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: space.xl,
+            marginTop: space.xs,
+          }}
+        >
+          <PdfCategory color={category.treasures}>
+            {t('tr_treasuresPart', { lng: lang })}
+          </PdfCategory>
+          <PdfCategory color={category.teachers}>
+            {t('tr_applyFieldMinistryPart', { lng: lang })}
+          </PdfCategory>
+          <PdfCategory color={category.living}>
+            {t('tr_livingPart', { lng: lang })}
+          </PdfCategory>
+        </View>
       </Sheet>
     </Document>
   );

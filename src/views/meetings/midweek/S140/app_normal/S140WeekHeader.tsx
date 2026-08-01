@@ -5,7 +5,16 @@ import { applyRTL, isRTL } from '@views/utils/pdf_utils';
 
 import IconWavingHand from '@views/components/icons/IconWavingHand';
 
-const S140WeekHeader = ({ title, secondary, lang }: S140WeekHeaderType) => {
+/**
+ * La banda de la tarjeta de una semana: la semana a la izquierda, su meta a la
+ * derecha, y la etiqueta de la visita del superintendente cuando toca.
+ */
+const S140WeekHeader = ({
+  title,
+  meta,
+  secondary,
+  lang,
+}: S140WeekHeaderType) => {
   const stylesSmart = applyRTL(styles, lang);
   const rtl = isRTL(lang);
 
@@ -18,12 +27,17 @@ const S140WeekHeader = ({ title, secondary, lang }: S140WeekHeaderType) => {
         </Text>
       </View>
 
-      {secondary && (
+      {secondary ? (
         <View style={stylesSmart.coWeekTypeContainer}>
-          <IconWavingHand size={10} />
+          <IconWavingHand size={9} />
           <Text style={stylesSmart.coWeekType}>{secondary}</Text>
         </View>
-      )}
+      ) : meta ? (
+        <Text style={stylesSmart.weekMeta}>
+          {rtl && '\u200f'}
+          {meta}
+        </Text>
+      ) : null}
     </View>
   );
 };

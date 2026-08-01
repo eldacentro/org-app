@@ -78,6 +78,10 @@ export type UpcomingEventDataType = {
   dates: { date: string; dateFormatted: string; day: string; time: string }[];
   custom: string;
   description: string;
+  /** «Tema (opcional)»: el titular real cuando lo hay. */
+  topic?: string;
+  /** Dirección del lugar, si se guardó. */
+  address?: string;
   category: UpcomingEventCategory;
   duration: UpcomingEventDuration;
   start: string;

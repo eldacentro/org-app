@@ -1,5 +1,45 @@
 import { store } from '@states/index';
-import { dayNamesShortState, monthShortNamesState } from '@states/app';
+import {
+  dayNamesShortState,
+  dayNamesState,
+  monthShortNamesState,
+} from '@states/app';
+
+const mayus = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+/**
+ * "Mar 15" — el día dentro de las tablas de la hoja de la visita.
+ *
+ * Sin mes a propósito: el mes ya está arriba, en la línea que dice de qué
+ * semana va la hoja. Repetirlo en cada una de las veinte filas es gastar ancho
+ * en decir lo mismo veinte veces.
+ */
+export const fmtDayNumEs = (date: string) => {
+  if (!date) return '—';
+
+  try {
+    const d = new Date(date);
+    const dayNames = store.get(dayNamesShortState);
+
+    return `${mayus(dayNames[d.getDay()])} ${d.getDate()}`;
+  } catch {
+    return date;
+  }
+};
+
+/** "Martes 15" — el día en el encabezado de una de las cuatro reuniones. */
+export const fmtDayLongEs = (date: string) => {
+  if (!date) return '—';
+
+  try {
+    const d = new Date(date);
+    const dayNames = store.get(dayNamesState);
+
+    return `${mayus(dayNames[d.getDay()])} ${d.getDate()}`;
+  } catch {
+    return date;
+  }
+};
 
 // formatDate(date, 'EEE d MMM') usa el locale por defecto de date-fns
 // (inglés) porque la app nunca configura un locale global — el resto de

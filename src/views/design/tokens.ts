@@ -88,23 +88,54 @@ export const category = {
 } as const;
 
 // ── Tipografía ────────────────────────────────────────────────────────────
-//
-// Once estilos, cada uno con UN trabajo. Las versalitas son SOLO para rótulos
-// de 7 a 8,5 pt: nunca en títulos, nombres ni cuerpo.
 
+/**
+ * LA ESCALA. Diez tamaños y ni uno más, cada uno con un papel y un solo papel.
+ *
+ * Es el único sitio del sistema donde se escribe un tamaño de letra. Ningún
+ * documento pone un `fontSize` a mano: pide un estilo de `text` y se acabó. Así
+ * una hoja no puede tener el cuerpo a 9 mientras la de al lado lo tiene a 8,5.
+ *
+ * Subida un escalón sobre la especificación original (cuerpo 9 → 9,5): en papel
+ * y a la luz de un tablón, el 9 se leía justo. El suelo del sistema es 7,2 y
+ * solo lo pisa la etiqueta de estado, que son dos palabras en versalitas.
+ *
+ * Para subir o bajar el sistema entero, se tocan estos diez números. Nada más.
+ */
+export const size = {
+  badge: 7.2,
+  label: 7.5,
+  category: 8,
+  meta: 8.5,
+  cardHeader: 9,
+  body: 9.5,
+  subtitle: 10,
+  heading: 11,
+  numeral: 14,
+  title: 17.5,
+} as const;
+
+/**
+ * Los estilos. Las versalitas son SOLO para rótulos de 7,2 a 9 pt: nunca en
+ * títulos, nombres ni cuerpo.
+ */
 export const text = {
   /** El título de la hoja. Hay uno por documento. */
   sheetTitle: {
-    fontSize: 16,
+    fontSize: size.title,
     fontWeight: 800,
     letterSpacing: -0.2,
     color: color.ink,
   },
   /** Día · hora · lugar, o el alcance del documento. */
-  sheetSubtitle: { fontSize: 9.5, fontWeight: 500, color: color.secondary },
+  sheetSubtitle: {
+    fontSize: size.subtitle,
+    fontWeight: 500,
+    color: color.secondary,
+  },
   /** El periodo de vigencia, en la cápsula de la cabecera. */
   dateCapsule: {
-    fontSize: 8,
+    fontSize: size.meta,
     fontWeight: 700,
     letterSpacing: 0.7,
     textTransform: 'uppercase' as const,
@@ -112,32 +143,41 @@ export const text = {
   },
   /** La banda de una tarjeta. Siempre sobre lavado. */
   cardHeader: {
-    fontSize: 8.5,
+    fontSize: size.cardHeader,
     fontWeight: 700,
     letterSpacing: 0.6,
     textTransform: 'uppercase' as const,
     color: color.accentDark,
   },
   /** Título de un discurso, de un evento. */
-  heading: { fontSize: 10.5, fontWeight: 700, color: color.ink },
+  heading: { fontSize: size.heading, fontWeight: 700, color: color.ink },
   /** El texto normal. */
-  body: { fontSize: 9, fontWeight: 400, lineHeight: 1.35, color: color.ink },
+  body: {
+    fontSize: size.body,
+    fontWeight: 400,
+    lineHeight: 1.35,
+    color: color.ink,
+  },
   /** Lo que se busca: el nombre propio, la hora. */
-  bodyStrong: { fontSize: 9, fontWeight: 600, color: color.ink },
+  bodyStrong: { fontSize: size.body, fontWeight: 600, color: color.ink },
   /** Encabezado de columna, rótulo de un par rótulo/valor. */
   label: {
-    fontSize: 7,
+    fontSize: size.label,
     fontWeight: 700,
     letterSpacing: 0.5,
     textTransform: 'uppercase' as const,
     color: color.faint,
   },
   /** Duración, congregación, accesorios. */
-  meta: { fontSize: 8, fontWeight: 500, color: color.secondary },
+  meta: { fontSize: size.meta, fontWeight: 500, color: color.secondary },
   /** El día del mes en cuadrículas y agendas. */
-  calendarNumeral: { fontSize: 13, fontWeight: 800, color: color.accentDark },
+  calendarNumeral: {
+    fontSize: size.numeral,
+    fontWeight: 800,
+    color: color.accentDark,
+  },
   /** El pie de la hoja. */
-  footer: { fontSize: 7, fontWeight: 400, color: color.faint },
+  footer: { fontSize: size.label, fontWeight: 400, color: color.faint },
 } as const;
 
 // ── Escalas ───────────────────────────────────────────────────────────────
@@ -188,7 +228,8 @@ export const page = {
  * No se tocan el título, la regla ni el pie. Ningún texto baja de 7,5.
  */
 export const compact = {
-  body: 8.2,
+  body: 8.7,
+  label: size.label,
   rowPadding: 3,
   cardHeaderPadding: 3.5,
   cardGap: 8,
@@ -196,7 +237,8 @@ export const compact = {
 } as const;
 
 export const normal = {
-  body: text.body.fontSize,
+  body: size.body,
+  label: size.label,
   rowPadding: 4.5,
   cardHeaderPadding: 5,
   cardGap: 12,

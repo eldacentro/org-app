@@ -33,6 +33,7 @@ export {
 export {
   color,
   category,
+  size,
   text,
   space,
   radius,
@@ -43,6 +44,7 @@ export {
 } from './tokens';
 export {
   periodo,
+  semanaDel,
   fechaPie,
   fechaLarga,
   fechaRango,

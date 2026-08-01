@@ -21,25 +21,10 @@ const LivingPartRow = ({ meetingData, lang }: S140LCType) => {
         return (
           <Fragment key={`lc-${meetingData.weekOf}-${index}`}>
             {lcSrc?.length > 0 && (
-              <View
-                style={{
-                  ...stylesSmart.rowContainer,
-                  backgroundColor: index % 2 === 0 ? '' : '#FFF3F1',
-                }}
-              >
-                <S140PartTime
-                  time={lcTIming}
-                  color="#942926"
-                  backgroundColor="rgba(184, 43, 16, 0.08)"
-                  lang={lang}
-                />
+              <View style={stylesSmart.rowContainer}>
+                <S140PartTime time={lcTIming} lang={lang} />
 
-                <S140Source
-                  source={lcSrc}
-                  duration={lcTime}
-                  color="#942926"
-                  lang={lang}
-                />
+                <S140Source source={lcSrc} duration={lcTime} lang={lang} />
 
                 <S140Person primary={lcName} lang={lang} />
               </View>

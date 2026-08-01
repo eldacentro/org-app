@@ -4,7 +4,6 @@ import {
   PdfDiamond,
   PdfEmpty,
   Sheet,
-  color,
   fechaPie,
   periodo,
   space,
@@ -44,37 +43,33 @@ const TemplateFieldServiceGroups = ({
         congregation={congregation}
         period={periodo(updatedAt ?? new Date())}
         title={title}
-        subtitle={`${groups.length} grupos · ${total} publicadores`}
+        subtitle={
+          <>
+            <Text style={text.sheetSubtitle}>
+              {`${groups.length} ${groups.length === 1 ? 'grupo' : 'grupos'} · ${total} publicadores · `}
+            </Text>
+            <PdfDiamond size={5.5} />
+            <Text style={text.sheetSubtitle}>precursor regular</Text>
+          </>
+        }
         documentName={title}
         updatedAt={fechaPie(updatedAt)}
       >
         {groups.length === 0 ? (
           <PdfEmpty>Todavía no hay grupos.</PdfEmpty>
         ) : (
-          <>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: space.lg,
-              }}
-            >
-              {groups.map((group) => (
-                <FSGGroup key={group.group_name} group={group} />
-              ))}
-            </View>
-
-            <Text
-              style={{
-                ...text.meta,
-                color: color.faint,
-                marginTop: space.lg,
-              }}
-            >
-              <PdfDiamond /> precursor
-            </Text>
-          </>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: space.lg,
+            }}
+          >
+            {groups.map((group) => (
+              <FSGGroup key={group.group_name} group={group} />
+            ))}
+          </View>
         )}
       </Sheet>
     </Document>

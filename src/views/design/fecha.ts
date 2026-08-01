@@ -107,6 +107,28 @@ export const fechaRango = (
   return `${a.getDate()} – ${b.getDate()} de ${MESES[b.getMonth()]}`;
 };
 
+/**
+ * "Semana del 14 al 20 de septiembre" — y, cuando la semana cae a caballo de
+ * dos meses, "Semana del 31 de agosto al 5 de septiembre".
+ *
+ * Esta línea es la que permite que las tablas de dentro escriban solo "Mar 15":
+ * el mes se dice una vez, arriba, y luego ya se sabe.
+ */
+export const semanaDel = (
+  desde?: string | Date | null,
+  hasta?: string | Date | null
+) => {
+  const a = aFecha(desde);
+  const b = aFecha(hasta);
+  if (!a) return '';
+  if (!b) return `Semana del ${a.getDate()} de ${MESES[a.getMonth()]}`;
+
+  if (a.getMonth() !== b.getMonth()) {
+    return `Semana del ${a.getDate()} de ${MESES[a.getMonth()]} al ${b.getDate()} de ${MESES[b.getMonth()]}`;
+  }
+  return `Semana del ${a.getDate()} al ${b.getDate()} de ${MESES[b.getMonth()]}`;
+};
+
 /** "2 ago" — fechas cortas dentro de una tabla. */
 export const fechaCortaTabla = (valor?: string | Date | null) => {
   const d = aFecha(valor);
