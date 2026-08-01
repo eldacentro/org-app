@@ -71,7 +71,13 @@ const PdfGrid = ({
   const canalon = rowLabels ? CANALON : 0;
 
   return (
-    <View style={{ display: 'flex', flexDirection: 'column', gap }}>
+    // La cuadrícula ocupa la hoja y todas las filas miden lo mismo. Sin esto
+    // cada semana medía según lo que tuviera dentro —75,7 · 72,0 · 75,5 · 47,0—
+    // y, con las celdas del mismo ancho, unas cajas salían más achatadas que
+    // otras: el ojo lo lee como si la cuadrícula no cuadrara.
+    <View
+      style={{ display: 'flex', flexDirection: 'column', gap, flexGrow: 1 }}
+    >
       {headers ? (
         <View
           fixed
@@ -97,7 +103,13 @@ const PdfGrid = ({
         <View
           key={filaIdx}
           wrap={false}
-          style={{ display: 'flex', flexDirection: 'row', gap }}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap,
+            flexGrow: 1,
+            flexBasis: 0,
+          }}
         >
           {canalon ? (
             // El rótulo de la fila va GIRADO, leyéndose de abajo arriba. Ocupa

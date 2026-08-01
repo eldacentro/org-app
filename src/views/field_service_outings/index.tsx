@@ -1,6 +1,15 @@
 import { Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
-import { PdfBadge, PdfGrid, Sheet, color, fechaPie, size } from '@views/design';
+import {
+  PdfBadge,
+  PdfBullet,
+  PdfGrid,
+  Sheet,
+  color,
+  fechaPie,
+  size,
+  space,
+} from '@views/design';
 import type { PdfGridCell } from '@views/design';
 import { OutingsPDFProps, OutingPDFItem } from './index.types';
 
@@ -20,14 +29,16 @@ import { OutingsPDFProps, OutingPDFItem } from './index.types';
 const Salida = ({
   outing,
   dense,
+  primero,
 }: {
   outing: OutingPDFItem;
   dense: boolean;
+  primero: boolean;
 }) => {
   const cuerpo = dense ? size.label : size.meta;
 
   return (
-    <View style={{ marginTop: dense ? 1.5 : 2.5 }}>
+    <View style={{ marginTop: primero ? 0 : dense ? space.sm : space.md }}>
       <View
         style={{
           display: 'flex',
@@ -36,7 +47,11 @@ const Salida = ({
           gap: 4,
         }}
       >
-        <Text style={{ fontSize: cuerpo, fontWeight: 700, color: color.ink }}>
+        {/* La hora, en el azul del numeral: es estructura de la salida, no una
+            persona, y así no se confunde con el nombre de debajo. */}
+        <Text
+          style={{ fontSize: cuerpo, fontWeight: 700, color: color.accentDark }}
+        >
           {outing.time}
         </Text>
         <Text
@@ -56,9 +71,20 @@ const Salida = ({
           <PdfBadge tone="danger">Suspendida</PdfBadge>
         </View>
       ) : outing.isAssigned ? (
-        <Text style={{ fontSize: cuerpo, fontWeight: 600, color: color.ink }}>
-          {outing.brotherName}
-        </Text>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+            marginTop: 1,
+          }}
+        >
+          <PdfBullet />
+          <Text style={{ fontSize: cuerpo, fontWeight: 600, color: color.ink }}>
+            {outing.brotherName}
+          </Text>
+        </View>
       ) : (
         <View style={{ alignSelf: 'flex-start', marginTop: 1 }}>
           <PdfBadge tone="empty">Sin asignar</PdfBadge>
@@ -91,8 +117,13 @@ const OutingsSchedulePDF = ({
           inactiveReason: cell.outings.length === 0 ? 'Sin salidas' : undefined,
           content: (
             <View>
-              {cell.outings.map((outing) => (
-                <Salida key={outing.id} outing={outing} dense={dense} />
+              {cell.outings.map((outing, i) => (
+                <Salida
+                  key={outing.id}
+                  outing={outing}
+                  dense={dense}
+                  primero={i === 0}
+                />
               ))}
             </View>
           ),

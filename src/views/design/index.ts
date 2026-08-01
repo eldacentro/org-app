@@ -25,6 +25,7 @@ export {
   PdfNote,
   PdfKeyValue,
   PdfBadge,
+  PdfBullet,
   PdfCategory,
   PdfDiamond,
   PdfEmpty,

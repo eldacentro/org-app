@@ -2,12 +2,14 @@ import { Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
 import {
   PdfBadge,
+  PdfBullet,
   PdfDiamond,
   PdfGrid,
   Sheet,
   color,
   fechaPie,
   size,
+  space,
   text,
 } from '@views/design';
 import type { PdfGridCell } from '@views/design';
@@ -27,15 +29,17 @@ import { ExhibitorPDFProps, ExhibitorPDFTurnItem } from './index.types';
 const Turno = ({
   turn,
   dense,
+  primero,
 }: {
   turn: ExhibitorPDFTurnItem;
   dense: boolean;
+  primero: boolean;
 }) => {
   const primerResponsable = turn.assignments.findIndex((a) => a.isResponsible);
   const cuerpo = dense ? size.label : size.meta;
 
   return (
-    <View style={{ marginTop: dense ? 1.5 : 2.5 }}>
+    <View style={{ marginTop: primero ? 0 : dense ? space.sm : space.md }}>
       <View
         style={{
           display: 'flex',
@@ -44,7 +48,11 @@ const Turno = ({
           gap: 3,
         }}
       >
-        <Text style={{ fontSize: cuerpo, fontWeight: 700, color: color.ink }}>
+        {/* La hora, en el azul del numeral: es estructura del turno, no una
+            persona, y así no se confunde con los nombres de debajo. */}
+        <Text
+          style={{ fontSize: cuerpo, fontWeight: 700, color: color.accentDark }}
+        >
           {turn.time}
         </Text>
         {turn.location ? (
@@ -71,8 +79,8 @@ const Turno = ({
         </View>
       ) : (
         turn.assignments.map((ass, idx) => (
-          // Fila y no <Text>: el rombo se dibuja, y un dibujo no cabe dentro
-          // de una línea de texto en react-pdf.
+          // Fila y no <Text>: la viñeta y el rombo se dibujan, y un dibujo no
+          // cabe dentro de una línea de texto en react-pdf.
           <View
             key={idx}
             style={{
@@ -80,8 +88,10 @@ const Turno = ({
               flexDirection: 'row',
               alignItems: 'center',
               gap: 3,
+              marginTop: 1,
             }}
           >
+            <PdfBullet />
             <Text style={{ fontSize: cuerpo, fontWeight: 600 }}>
               {ass.name}
             </Text>
@@ -116,8 +126,13 @@ const ExhibitorsPDF = ({
           inactiveReason: cell.turns.length === 0 ? 'Sin turnos' : undefined,
           content: (
             <View>
-              {cell.turns.map((turn) => (
-                <Turno key={turn.id} turn={turn} dense={dense} />
+              {cell.turns.map((turn, i) => (
+                <Turno
+                  key={turn.id}
+                  turn={turn}
+                  dense={dense}
+                  primero={i === 0}
+                />
               ))}
             </View>
           ),

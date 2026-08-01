@@ -254,6 +254,24 @@ export const PdfCategory = ({
 );
 
 /**
+ * La viñeta de una lista corta dentro de una celda: un punto y nada más.
+ *
+ * Se dibuja, no se escribe, por lo mismo que el rombo: un carácter depende de
+ * que la fuente lo lleve, y un círculo de 2,2 pt no depende de nada. Sirve para
+ * que dos nombres seguidos se lean como dos y no como una línea partida.
+ */
+export const PdfBullet = () => (
+  <View
+    style={{
+      width: 2.2,
+      height: 2.2,
+      borderRadius: 1.1,
+      backgroundColor: color.faint,
+    }}
+  />
+);
+
+/**
  * El rombo del responsable —y del precursor—: el único sitio donde el azul de
  * marca aparece dentro del contenido.
  *

@@ -110,6 +110,7 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
 | `PdfNote` | El bloque destacado. **Uno por hoja** |
 | `PdfBadge` | Estado, y el hueco «Sin asignar» |
 | `PdfCategory` | Cuadradito + rótulo del color de la categoría |
+| `PdfBullet` | El punto de una lista corta dentro de una celda |
 | `PdfDiamond` | ◆ responsable / precursor |
 | `PdfEmpty` · `PdfHairline` | El vacío y la línea interior |
 
@@ -143,10 +144,16 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
 - **R11 · Los bloques no se parten a ciegas.** `wrap={false}`,
   `minPresenceAhead={40}`, pie `fixed`.
 - **R12 · Versalitas solo para rótulos** (7,2–9 pt). Nunca en títulos ni cuerpo.
-- **R13 · Nada que dependa de un glifo raro.** El ◆ se DIBUJA (`Polygon`), no se
-  escribe: Figtree no trae U+25C6 y react-pdf no tiene fuente de reserva, así
-  que lo que salía en el papel era un cuadrado vacío. Lo mismo vale para
+- **R13 · Nada que dependa de un glifo raro.** El ◆ y la viñeta se DIBUJAN, no
+  se escriben: Figtree no trae U+25C6 y react-pdf no tiene fuente de reserva,
+  así que lo que salía en el papel era un cuadrado vacío. Lo mismo vale para
   cualquier símbolo fuera del latín básico.
+- **R17 · Un `<Text>` no mezcla cadenas sueltas con `<Text>` anidados.** O todos
+  los hijos son elementos o ninguno lo es. Mezclarlos es donde react-pdf se deja
+  piezas por el camino: así desaparecieron el orador del fin de semana y, en
+  otra forma, así se descolgaba el conductor del estudio bíblico —la línea base
+  de un texto de varias líneas es la ÚLTIMA, y una caja de dos `<Text>` hereda
+  la del PRIMERO—.
 - **R14 · El subtítulo es para decir algo, no para contar.** Solo lo llevan
   cuatro documentos, y en los cuatro añade lo que el título no dice: quién
   visita y qué semana, de quién es la invitación, qué significa el ◆. Los demás
@@ -158,6 +165,12 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
   pinta: ni borde ni franja. Franja tiene el día que existe y no tiene nada. El
   rótulo de la fila —«Semana 1»— va girado en un canalón de 14 pt: en
   horizontal se comía 42.
+- **R16 · Todas las filas de la cuadrícula miden lo mismo.** La cuadrícula
+  ocupa la hoja (`flexGrow: 1`) y cada fila se reparte el alto por igual. Sin
+  eso, cada semana medía según lo que tuviera dentro —75,7 · 72,0 · 75,5 ·
+  47,0— y, con las celdas exactamente del mismo ancho, unas cajas salían más
+  achatadas que otras: el ojo lo lee como si la cuadrícula no cuadrara, aunque
+  esté cuadrada al punto.
 
 ### Modo compacto
 
