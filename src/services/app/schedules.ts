@@ -79,7 +79,7 @@ import {
 import { assignmentState } from '@states/assignment';
 import { setAssignmentsHistory } from '@services/states/schedules';
 import { PersonType } from '@definition/person';
-import { Week } from '@definition/week_type';
+import { Week, weekTypeHasNoMeeting } from '@definition/week_type';
 import { dbSchedUpdate } from '@services/dexie/schedules';
 import {
   addDays,
@@ -2218,14 +2218,7 @@ export const schedulesAutofillSaveAssignment = ({
   });
 };
 
-export const schedulesWeekNoMeeting = (week: Week) => {
-  return (
-    week === Week.ASSEMBLY ||
-    week === Week.CONVENTION ||
-    week === Week.MEMORIAL ||
-    week === Week.NO_MEETING
-  );
-};
+export const schedulesWeekNoMeeting = (week: Week) => weekTypeHasNoMeeting(week);
 
 /**
  * Whether weekOf has no regular meeting at the hall at all (assembly,

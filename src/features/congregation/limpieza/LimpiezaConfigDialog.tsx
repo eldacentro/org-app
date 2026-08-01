@@ -20,6 +20,7 @@ import { useAppTranslation } from '@hooks/index';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 /**
  * Congela lo ya asignado como overrides explícitos, para que cambiar la
@@ -60,34 +61,56 @@ const freezePastWeeks = (
   const thisMonday = new Date(today.getFullYear(), today.getMonth(), todayDiff);
   thisMonday.setHours(0, 0, 0, 0);
 
-  // Si la fecha de inicio nueva es posterior, se congela hasta ella.
-  let limite = thisMonday;
+  // El corte: se congela toda reunión ANTERIOR a esta fecha. Por defecto el
+  // lunes de esta semana —la semana en curso no se congela—, y si la fecha de
+  // inicio nueva es posterior, ella misma.
+  //
+  // El corte es una FECHA, no un lunes, y eso importa: poniendo el inicio en
+  // domingo 16 se congelaba por semanas enteras hasta el lunes 10, así que el
+  // miércoles 12 —anterior al 16, y ya asignado— se recalculaba con la
+  // configuración nueva y cambiaba de grupo. Justo lo que no debía pasar.
+  let corte = thisMonday;
 
   if (nuevaFechaInicio) {
     const dNueva = new Date(nuevaFechaInicio);
-    const dayN = dNueva.getDay();
-    const diffN = dNueva.getDate() - dayN + (dayN === 0 ? -6 : 1);
-    const lunesNueva = new Date(dNueva.getFullYear(), dNueva.getMonth(), diffN);
-    lunesNueva.setHours(0, 0, 0, 0);
-
-    if (lunesNueva > limite) limite = lunesNueva;
+    dNueva.setHours(0, 0, 0, 0);
+    if (dNueva > corte) corte = dNueva;
   }
 
-  while (current < limite) {
+  const corteLunes = new Date(corte);
+  const dayC = corteLunes.getDay();
+  corteLunes.setDate(corteLunes.getDate() - (dayC === 0 ? 6 : dayC - 1));
+  corteLunes.setHours(0, 0, 0, 0);
+
+  while (current <= corteLunes) {
     const weekOf = `${current.getFullYear()}/${String(current.getMonth() + 1).padStart(2, '0')}/${String(current.getDate()).padStart(2, '0')}`;
 
     for (const reunionDia of ['midweek', 'weekend'] as const) {
       const key = `${weekOf}-${reunionDia}`;
-      if (!overrides[key]) {
-        const groupId = calcularGrupoReunion(
-          oldConfig,
-          weekOf,
-          reunionDia,
-          groups,
-          schedules
-        );
-        if (groupId) overrides[key] = groupId;
-      }
+      if (overrides[key]) continue;
+
+      // La reunión de la semana del corte solo se congela si cae antes de la
+      // fecha de corte. Se pregunta la fecha REAL (la visita del
+      // superintendente mueve la de entre semana) en vez de suponer el día.
+      const { date: fechaReunion } = schedulesGetMeetingDate({
+        week: weekOf,
+        meeting: reunionDia,
+      });
+      if (!fechaReunion) continue;
+
+      const [fy, fm, fd] = fechaReunion.split('/').map(Number);
+      const dReunion = new Date(fy, fm - 1, fd);
+      dReunion.setHours(0, 0, 0, 0);
+      if (dReunion >= corte) continue;
+
+      const groupId = calcularGrupoReunion(
+        oldConfig,
+        weekOf,
+        reunionDia,
+        groups,
+        schedules
+      );
+      if (groupId) overrides[key] = groupId;
     }
 
     current.setDate(current.getDate() + 7);
@@ -275,9 +298,12 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
         </Box>
 
         {/* Solo tiene sentido con un número par de grupos: con impar la
-            rotación ya alterna sola y el interruptor no haría nada. */}
+            rotación ya alterna sola y el interruptor no haría nada. Y hacen
+            falta cuatro: con dos, el intercambio deja al mismo grupo cerrando
+            una vuelta y abriendo la siguiente, o sea limpiando dos reuniones
+            seguidas. */}
         {gruposParticipantes.length % 2 === 0 &&
-          gruposParticipantes.length > 0 && (
+          gruposParticipantes.length >= 4 && (
             <SwitchWithLabel
               label="Alternar por parejas cada vuelta"
               helper="Con un número par de grupos, cada grupo acaba limpiando siempre la misma reunión. Con esto, al terminar la vuelta los grupos se intercambian de dos en dos —1, 2, 3, 4, 5, 6 y luego 2, 1, 4, 3, 6, 5— y todos pasan por las dos reuniones."

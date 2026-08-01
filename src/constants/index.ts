@@ -260,12 +260,9 @@ export const WEEK_TYPE_WITH_MEETING = [
   Week.SPECIAL_TALK_ONLY,
 ];
 
-export const WEEK_TYPE_NO_MEETING = [
-  Week.ASSEMBLY,
-  Week.CONVENTION,
-  Week.NO_MEETING,
-  Week.MEMORIAL,
-];
+// La lista vive en @definition/week_type, junto al enum. Aquí solo se reexporta
+// para no tocar quien ya la importaba de @constants.
+export { WEEK_TYPES_NO_MEETING as WEEK_TYPE_NO_MEETING } from '@definition/week_type';
 
 // Categorías de "Próximos eventos" que, mientras dura el evento, cancelan
 // AMBAS reuniones de esa semana (entre semana y fin de semana) — a

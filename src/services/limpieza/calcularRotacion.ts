@@ -1,8 +1,7 @@
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { SchedWeekType } from '@definition/schedules';
-import { Week } from '@definition/week_type';
-import { schedulesWeekNoMeeting } from '@services/app/schedules';
+import { Week, weekTypeHasNoMeeting } from '@definition/week_type';
 
 /**
  * Calcula qué grupo le toca limpiar en una reunión específica.
@@ -59,7 +58,7 @@ export const calcularGrupoReunion = (
 
   // ── Contar reuniones que SÍ se celebraron desde inicio hasta la semana objetivo ──
   // Cuando schedules está vacío (freeze de pasado) se usan los valores de fallback
-  // Week.NORMAL, de forma que schedulesWeekNoMeeting devuelve false y se cuentan todas.
+  // Week.NORMAL, de forma que weekTypeHasNoMeeting devuelve false y se cuentan todas.
   let meetingCount = 0;
   const current = new Date(inicioLunes);
 
@@ -70,18 +69,36 @@ export const calcularGrupoReunion = (
     const midweekType =
       schedule?.midweek_meeting?.week_type?.find((r) => r.type === 'main')
         ?.value ?? Week.NORMAL;
-    if (!schedulesWeekNoMeeting(midweekType)) meetingCount++;
+    if (!weekTypeHasNoMeeting(midweekType)) meetingCount++;
 
     const weekendType =
       schedule?.weekend_meeting?.week_type?.find((r) => r.type === 'main')
         ?.value ?? Week.NORMAL;
-    if (!schedulesWeekNoMeeting(weekendType)) meetingCount++;
+    if (!weekTypeHasNoMeeting(weekendType)) meetingCount++;
 
     current.setDate(current.getDate() + 7);
   }
 
-  // Offset dentro de la semana actual: entre semana = +0, fin de semana = +1
-  const meetingOffsetThisWeek = reunionDia === 'midweek' ? 0 : 1;
+  // Offset dentro de la semana actual: entre semana = +0, fin de semana = +1.
+  //
+  // El +1 del fin de semana da por hecho que ESTA semana hubo reunión entre
+  // semana. Cuando no la hubo —la del Memorial, sin ir más lejos, que sustituye
+  // a la de entre semana pero deja la del fin de semana— el fin de semana se
+  // llevaba igualmente el +1 mientras que el bucle de arriba solo había contado
+  // una reunión en esa semana. Resultado: el fin de semana y el entre semana de
+  // la semana siguiente caían en el MISMO número de orden y le tocaba al mismo
+  // grupo dos reuniones seguidas.
+  let meetingOffsetThisWeek = 0;
+
+  if (reunionDia === 'weekend') {
+    const scheduleActual = schedules.find((s) => s.weekOf === weekOf);
+    const midweekTypeActual =
+      scheduleActual?.midweek_meeting?.week_type?.find((r) => r.type === 'main')
+        ?.value ?? Week.NORMAL;
+
+    meetingOffsetThisWeek = weekTypeHasNoMeeting(midweekTypeActual) ? 0 : 1;
+  }
+
   const totalMeetingsOffset = meetingCount + meetingOffsetThisWeek;
 
   // ── Grupo inicial ─────────────────────────────────────────────────────────
@@ -106,7 +123,11 @@ export const calcularGrupoReunion = (
   // `pos ^ 1` es justo ese intercambio: 0↔1, 2↔3, 4↔5. Con un número impar de
   // grupos la rotación ya alterna sola y el último quedaría sin pareja, así
   // que ahí no se toca nada.
-  if (config.alternarParejas && n % 2 === 0 && vuelta % 2 === 1) {
+  //
+  // Con DOS grupos el intercambio se come a sí mismo: la vuelta par da 1,2 y la
+  // impar da 2,1, así que el 2 cierra una vuelta y abre la siguiente y limpia
+  // dos reuniones seguidas. Hacen falta cuatro para que haya algo que alternar.
+  if (config.alternarParejas && n >= 4 && n % 2 === 0 && vuelta % 2 === 1) {
     pos = pos ^ 1;
   }
 

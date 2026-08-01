@@ -127,6 +127,7 @@ const Limpieza = () => {
       weekOf: string;
       reunionDia: 'midweek' | 'weekend';
       group: FieldServiceGroupType | undefined;
+      esManual: boolean;
     }> = [];
 
     const monthStr = `${selectedYear}/${String(selectedMonth + 1).padStart(2, '0')}`;
@@ -186,6 +187,7 @@ const Limpieza = () => {
           weekOf: weekOfStr,
           reunionDia,
           group,
+          esManual: Boolean(config.overrides?.[`${weekOfStr}-${reunionDia}`]),
         });
       }
 
@@ -201,6 +203,7 @@ const Limpieza = () => {
     weekOf: string;
     reunionDia: 'midweek' | 'weekend';
     group: FieldServiceGroupType | undefined;
+    esManual: boolean;
   }) => {
     if (!isManager) return;
     setEditModal({
@@ -210,7 +213,10 @@ const Limpieza = () => {
       reunionDia: m.reunionDia,
       group: m.group,
     });
-    setSelectedOverrideGroup(m.group?.group_id || '');
+    // Vacío significa «rotación automática». Una casilla que nadie ha tocado
+    // se abre en automático, no en el grupo que le tocó: si se abriera en el
+    // grupo, guardar sin cambiar nada la convertiría en manual para siempre.
+    setSelectedOverrideGroup(m.esManual ? m.group?.group_id || '' : '');
   };
 
   const handleSaveOverride = async () => {
@@ -534,12 +540,38 @@ const Limpieza = () => {
                               },
                             }}
                           >
-                            <Typography
-                              className="body-small-semibold"
-                              style={{ color: 'var(--black)' }}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '4px',
+                              }}
                             >
-                              {cellDate.getDate()}
-                            </Typography>
+                              <Typography
+                                className="body-small-semibold"
+                                style={{ color: 'var(--black)' }}
+                              >
+                                {cellDate.getDate()}
+                              </Typography>
+                              {/* Puesto a mano. Sin esta marca, una asignación
+                                  manual y una calculada se ven idénticas: se
+                                  pinta a mano un mes para salir del paso, se
+                                  olvida, y meses después la rotación «falla»
+                                  sin que nada explique por qué. */}
+                              {m.esManual && (
+                                <Box
+                                  title="Asignación puesta a mano"
+                                  sx={{
+                                    width: '6px',
+                                    height: '6px',
+                                    borderRadius: 'var(--shape-full)',
+                                    backgroundColor: 'var(--orange-main)',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              )}
+                            </Box>
                             <Box
                               sx={{
                                 // Rótulo, no botón: tinte y texto oscuro. En
@@ -649,6 +681,9 @@ const Limpieza = () => {
                                 {m.reunionDia === 'midweek'
                                   ? 'Reunión de entre semana'
                                   : 'Reunión de fin de semana'}
+                                {/* Igual que el puntito del calendario: aquí
+                                    hay sitio para decirlo con palabras. */}
+                                {m.esManual && ' · Puesta a mano'}
                               </Typography>
                             </Box>
                             <Box
@@ -745,6 +780,10 @@ const Limpieza = () => {
               size="small"
               sx={{ mb: 3 }}
             >
+              {/* Sin esta opción, una asignación puesta a mano no se podía
+                  deshacer: quedaba fija para siempre y la rotación no volvía
+                  a tocar ese día por mucho que se cambiara la configuración. */}
+              <MenuItem value="">Rotación automática</MenuItem>
               {activeGroups.map((g) => (
                 <MenuItem key={g.group_id} value={g.group_id}>
                   {getGroupName(g)}
