@@ -1282,16 +1282,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Predicación → Salidas de predicación → "Configuración" hay cuatro apartados:',
+            text: 'Entra en Predicación → "Salidas de predicación" y toca el ENGRANAJE que hay junto al título: abre "Configuración de las salidas de predicación", con cuatro pestañas. El mismo engranaje te devuelve al programa.',
           },
           {
             type: 'steps',
             items: [
-              'UBICACIONES: los puntos de salida (por ejemplo, el Salón del Reino).',
-              'HORARIOS: cada día de la semana tiene un turno de mañana y otro de tarde, cada uno con su hora de salida y un interruptor para activarlo o desactivarlo de forma permanente.',
-              'DISPONIBILIDAD DE HERMANOS: qué turnos suele poder cada hermano; se usa para recomendarlo al asignar y para el autocompletado, pero no asigna nada por sí sola.',
-              'SALIDAS COMPARTIDAS: si algún turno se comparte con una congregación vecina (por ejemplo, un sábado en un territorio conjunto), se registra aquí.',
+              '"Ubicaciones": los puntos de salida (por ejemplo, el Salón del Reino).',
+              '"Horarios": cada día de la semana tiene un turno de mañana y otro de tarde, cada uno con su hora de salida y un interruptor para activarlo o desactivarlo de forma permanente.',
+              '"Disponibilidad de hermanos": qué turnos suele poder cada hermano; se usa para recomendarlo al asignar y para el autocompletado, pero no asigna nada por sí sola.',
+              '"Salidas compartidas": si algún turno se comparte con una congregación vecina (por ejemplo, un sábado en un territorio conjunto), se registra aquí.',
             ],
+          },
+          {
+            type: 'p',
+            text: 'Los hermanos que salen en estas listas son los VARONES que tienen marcada la casilla "Salidas" en su ficha de Personas.',
           },
           {
             type: 'link',
@@ -1306,20 +1310,29 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'A diferencia de Exhibidores, aquí no hay una plantilla fija que se repite sola: cada salida se asigna a mano (o con autocompletar) usando como pista la disponibilidad que hayas configurado.',
+            text: 'A diferencia de Exhibidores, aquí no hay una plantilla fija que se repite sola: cada salida se asigna a mano (o con autocompletar) usando como pista la disponibilidad que hayas configurado. El mes se elige en el panel de la izquierda, y arriba puedes verlo como "Lista" o como "Cuadrícula".',
           },
           {
             type: 'steps',
             items: [
-              'Toca un turno para asignarle un conductor: verás primero los hermanos "RECOMENDADOS (DISPONIBLES HOY)" según su disponibilidad, y debajo el resto.',
+              'Toca un turno: se abre una ventana con la fecha y la hora. En "Conductor" están primero los "Recomendados (disponibles hoy)" según su disponibilidad y debajo "Otros hermanos".',
               'Elige también el lugar de reunión de esa salida.',
-              'Usa "Suspender salida" si ese turno concreto no va a haber salida.',
+              'Usa "Suspender salida" si ese turno concreto no va a haber salida ("Reactivar salida" lo deshace).',
               '"Autocompletar" (arriba, para todo el mes, o dentro de los ajustes de una semana, solo para esa semana) reparte los turnos entre quienes los tengan marcados como disponibles, procurando no repetir al mismo hermano semana tras semana y dando prioridad a quien lleva más tiempo sin salir.',
+              'Cuando esté listo, toca "Publicar".',
             ],
           },
           {
+            type: 'warn',
+            text: 'Mientras no lo publiques, el mes es un BORRADOR: no le sale a nadie en "Mis asignaciones" ni en el programa semanal. Una vez publicado el botón pasa a decir "Publicado", y desde ahí puedes "Retirar" el mes.',
+          },
+          {
             type: 'tip',
-            text: 'Si un turno no tiene a nadie marcado como disponible, el autocompletado lo deja vacío a propósito: tendrás que asignarlo a mano.',
+            text: 'Si un turno no tiene a nadie marcado como disponible, el autocompletado lo deja vacío a propósito: tendrás que asignarlo a mano. Los turnos compartidos con otra congregación también los salta. Y si el hermano que eliges tiene una ausencia registrada ese día, te avisa antes de guardar.',
+          },
+          {
+            type: 'p',
+            text: 'Además de los hermanos, en "Conductor" hay tres opciones que no son personas: "Ninguno / Sin asignar", "Compartido: <congregación>" (si ese turno está marcado como compartido) y "Superintendente de circuito" (solo en la semana marcada como suya).',
           },
         ],
       },
@@ -1329,11 +1342,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'El botón "Ajustes del mes" funciona igual que en Exhibidores: puedes "Suspender salidas todo el mes" o "Personalizar horarios para este mes" (por ejemplo, para adelantar la salida de la tarde en verano por el calor), con "Restaurar a global" para deshacerlo.',
+            text: 'El botón "Ajustes del mes" funciona igual que en Exhibidores: puedes "Suspender salidas todo el mes" o "Personalizar horarios para este mes" (por ejemplo, para adelantar la salida de la tarde en verano por el calor), con "Restaurar a global" para deshacerlo. Al suspender el mes aparece "Mantener activas estas salidas", para salvar los turnos sueltos que sí vayan a hacerse.',
           },
           {
             type: 'p',
-            text: 'Además, cada semana tiene su propio icono de ajustes, con dos cosas exclusivas de esa semana: marcarla como "Semana del superintendente de circuito" (para poder asignarle su propia salida) y, si hace falta, un horario especial solo para esa semana concreta.',
+            text: 'Además, cada semana tiene su propio icono de ajustes ("Ajustes de la semana"), con dos cosas exclusivas de esa semana: marcarla como "Semana del superintendente de circuito" (para poder asignarle su propia salida) y, si hace falta, un horario especial solo para esa semana concreta.',
           },
         ],
       },
@@ -1343,7 +1356,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Un publicador no puede asignar ni editar salidas, pero sí ve su propia salida en "MIS ASIGNACIONES" con el día, la hora y el lugar. No existe la opción de que un publicador se apunte él mismo a una salida: siempre las asigna el comité de servicio.',
+            text: 'Un publicador no entra a esta pantalla: es solo del comité de servicio. Lo que sí ve es su propia salida en "Mis asignaciones", puesta como "Salida de predicación" con la hora y el lugar, y el programa completo en Programas semanales → pestaña "Salidas de predicación".',
+          },
+          {
+            type: 'p',
+            text: 'No existe la opción de que un publicador se apunte él mismo a una salida: siempre las asigna el comité de servicio. Y nada de esto aparece hasta que publicas el mes.',
           },
         ],
       },

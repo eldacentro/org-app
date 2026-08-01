@@ -42,3 +42,9 @@ replit.nix
 
 # ShipStudio metadata
 .shipstudio/
+
+# Vídeos: lo pesado se regenera, no se versiona
+videos/node_modules/
+videos/out/
+videos/capturas/
+videos/public/*.png
