@@ -223,7 +223,11 @@ const BlockView = ({ block }: { block: AyudaBlock }) => {
           backgroundColor: isTip
             ? 'var(--green-secondary)'
             : 'var(--orange-secondary)',
-          borderLeft: `3px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
+          // Sin uñita a la izquierda. El sistema de diseño la quitó de toda la
+          // app —Documentos fue el último— y estos avisos se habían quedado con
+          // ella: superficie tintada y su icono, que ya dicen de qué van, y un
+          // canto completo del mismo color en vez de un trocito de un lado.
+          border: `1px solid ${isTip ? 'var(--green-main)' : 'var(--orange-main)'}`,
           display: 'flex',
           alignItems: 'flex-start',
           gap: '8px',

@@ -1,28 +1,37 @@
 import {
   IconAdmin,
   IconAssignment,
-  IconCalendarMonth,
   IconCalendarWeek,
   IconClean,
   IconCloudDownload,
+  IconDuties,
   IconGroups,
   IconCart,
-  IconGroupMeetingsSchedules,
   IconHelp,
-  IconMap,
+  IconInTerritory,
+  IconMapOverview,
   IconPerson,
+  IconPodium,
   IconPublishersReports,
   IconRestart,
   IconTalk,
+  IconTreasuresPart,
 } from '@icons/index';
 import { AyudaSection } from '@definition/ayuda';
 
 /**
- * CONTENIDO DE LA AYUDA. Fase 1: Guía general (para todos) + secciones de rol
- * en preparación (de momento solo las ve el admin, con su etiqueta).
+ * CONTENIDO DE LA AYUDA.
+ *
+ * Una sección por área de la aplicación, y cada una visible solo para quien
+ * tiene ese encargo (ver `visible`). La "Guía general" la ve todo el mundo.
  *
  * Estilo de redacción: llano y directo, nombrando los botones EXACTAMENTE como
  * aparecen en pantalla, con pasos numerados cortos. Nada de jerga técnica.
+ *
+ * **El icono de cada sección es el MISMO que usa la página en su panel de
+ * categoría.** Si en «Predicación» Salidas de predicación se dibuja con
+ * `IconInTerritory`, aquí también: un icono distinto para la misma cosa hace
+ * dudar de si se está hablando de otra pantalla.
  */
 
 export const AYUDA_SECTIONS: AyudaSection[] = [
@@ -367,6 +376,58 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         ],
       },
       {
+        id: 'jw-library',
+        title: 'Abrir la reunión en JW Library',
+        blocks: [
+          {
+            type: 'p',
+            text: 'En «Programas semanales», cada semana lleva un botón de JW Library. Al pulsarlo se abre esa misma semana dentro de la aplicación JW Library, con el material de la reunión.',
+          },
+          {
+            type: 'tip',
+            text: 'Necesitas tener JW Library instalada en el mismo dispositivo. Si no la tienes, el botón no puede hacer nada.',
+          },
+          {
+            type: 'faq',
+            q: 'A veces el botón lleva a la semana y otras veces no. ¿Por qué?',
+            a: 'El identificador exacto de la semana solo viene cuando el material se ha descargado de JW.org. Si esa semana aún no ha llegado, el enlace abre JW Library pero no puede colocarse en la semana concreta.',
+          },
+        ],
+      },
+      {
+        id: 'pestana-visita',
+        title: 'La pestaña de la visita del superintendente',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Cuando se acerca la visita del superintendente de circuito, en «Programas semanales» aparece sola una pestaña con el programa de esa semana: el día en que se traslada la reunión de entre semana, el discurso de servicio y el discurso especial del fin de semana.',
+          },
+          {
+            type: 'tip',
+            text: 'No tienes que hacer nada para que salga, ni para que se vaya: aparece cuando toca y desaparece cuando la visita ha pasado.',
+          },
+        ],
+      },
+      {
+        id: 'limpieza-publicador',
+        title: 'Cuándo le toca limpiar a mi grupo',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Si a tu grupo le toca la limpieza en los próximos días, te sale como una asignación más en «Mis asignaciones», en el inicio. No hay que ir a mirar ninguna lista.',
+          },
+          {
+            type: 'p',
+            text: 'Y en «Limpieza del Salón», dentro de Congregación, tienes el calendario completo del mes con el grupo que le toca cada reunión.',
+          },
+          {
+            type: 'link',
+            to: '/congregation/limpieza',
+            label: 'Abrir Limpieza del Salón',
+          },
+        ],
+      },
+      {
         id: 'perfil',
         title: 'Mi cuenta y ajustes personales',
         blocks: [
@@ -464,6 +525,42 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'faq',
             q: '¿Qué es "Informe atrasado"?',
             a: 'Un informe de un mes anterior que llegó después del envío del S-1. Queda marcado para que sepas que ese mes se informó tarde a la sucursal.',
+          },
+        ],
+      },
+      {
+        id: 'activo-inactivo',
+        title: 'Publicador activo e inactivo',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La aplicación considera inactivo a quien lleva seis meses seguidos sin informar. No hay que marcarlo a mano: se calcula solo a partir de los informes que van llegando.',
+          },
+          {
+            type: 'p',
+            text: 'En cuanto vuelve a entregar un informe, deja de estar inactivo automáticamente. Tampoco hay que deshacer nada.',
+          },
+          {
+            type: 'warn',
+            text: 'Estar inactivo no borra nada suyo: sus informes anteriores, su tarjeta S-21 y su historial siguen enteros. Es una etiqueta que ayuda a ver a quién hay que visitar, no una baja.',
+          },
+        ],
+      },
+      {
+        id: 'informes-redundancia',
+        title: 'Un informe no depende de que una sola persona abra la aplicación',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Cuando un hermano envía su informe, este queda esperando en el servidor hasta que alguien con permiso abre la aplicación y sincroniza. Ese alguien puede ser el secretario, el coordinador o un administrador — el primero que entre.',
+          },
+          {
+            type: 'p',
+            text: 'Quien lo recoge lo convierte en informe de la congregación, y a partir de ahí se sincroniza con todos los demás. Así, si el secretario está de viaje o no abre la aplicación en unos días, el informe no se queda parado.',
+          },
+          {
+            type: 'tip',
+            text: 'Si un hermano dice que envió su informe y no lo ves, lo primero es sincronizar. Si aun así no aparece, pídele que abra su informe y compruebe que pone «Enviado».',
           },
         ],
       },
@@ -626,7 +723,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     title: 'Reunión de entre semana',
     description:
       'Preparar, asignar y publicar el programa Vida y Ministerio Cristianos.',
-    icon: <IconCalendarWeek color="var(--accent-main)" />,
+    icon: <IconTreasuresPart color="var(--accent-main)" />,
     visible: (r) => r.isMidweekEditor,
     articles: [
       {
@@ -694,6 +791,20 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         ],
       },
       {
+        id: 'ms-jwlibrary',
+        title: 'Abrir la semana en JW Library mientras preparas',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Cada semana lleva un botón de JW Library que abre esa misma reunión en la aplicación de JW Library, con el material delante. Es cómodo para comprobar una parte o el tiempo asignado sin salirte de lo que estás preparando.',
+          },
+          {
+            type: 'tip',
+            text: 'Si esa semana aún no ha descargado el material de JW.org, el botón abre JW Library pero no puede colocarse en la semana concreta. Es señal de que todavía falta el material.',
+          },
+        ],
+      },
+      {
         id: 'ms-publicar',
         title: 'Publicar el programa (el paso que lo hace visible)',
         blocks: [
@@ -739,7 +850,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     id: 'fin-semana',
     title: 'Reunión de fin de semana',
     description: 'Discursos públicos, presidencias, Atalaya y oradores.',
-    icon: <IconCalendarMonth color="var(--accent-main)" />,
+    icon: <IconPodium color="var(--accent-main)" />,
     visible: (r) => r.isWeekendEditor,
     articles: [
       {
@@ -892,7 +1003,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     id: 'departamentos',
     title: 'Departamentos',
     description: 'La programación de asignaciones de departamentos.',
-    icon: <IconAssignment color="var(--accent-main)" />,
+    icon: <IconDuties color="var(--accent-main)" />,
     visible: (r) => r.isDepartmentsEditor,
     articles: [
       {
@@ -920,6 +1031,29 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'tip',
             text: 'Los hermanos disponibles para cada departamento se configuran en su ficha de Personas (apartado de departamentos). Si alguien no te aparece para asignar, revisa que tenga marcado ese departamento.',
+          },
+        ],
+      },
+      {
+        id: 'dept-configurar',
+        title: 'Configurar los puestos y los turnos',
+        blocks: [
+          {
+            type: 'p',
+            text: 'En el engranaje de la página de Departamentos decides cómo funciona cada puesto: si se asigna una vez por semana o uno para cada reunión, y si lleva turnos.',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Abre el engranaje, arriba en la página de Departamentos.',
+              'Para cada puesto, elige si va por semana o por reunión.',
+              'Si el puesto lleva turnos —por ejemplo dos micrófonos—, indica cuántos.',
+              'Guarda. El cuadro de la semana se rehace con los puestos nuevos.',
+            ],
+          },
+          {
+            type: 'warn',
+            text: 'Cambiar un puesto de «por semana» a «por reunión» no borra lo ya asignado, pero sí cambia cuántas casillas hay que rellenar de ahí en adelante. Revisa las semanas que ya tenías preparadas.',
           },
         ],
       },
@@ -1022,7 +1156,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     title: 'Salidas de predicación',
     description:
       'Para el superintendente de servicio: ubicaciones, horarios, disponibilidad y el programa mensual.',
-    icon: <IconGroupMeetingsSchedules color="var(--accent-main)" />,
+    icon: <IconInTerritory color="var(--accent-main)" />,
     visible: (r) => r.isServiceCommittee,
     articles: [
       {
@@ -1209,7 +1343,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     title: 'Territorios',
     description:
       'Para responsables: asignaciones, solicitudes, campañas, mapa, S-13 y configuración.',
-    icon: <IconMap color="var(--accent-main)" />,
+    icon: <IconMapOverview color="var(--accent-main)" />,
     visible: (r) => r.isElder || r.isServiceCommittee || r.isAdmin,
     articles: [
       {
@@ -1454,6 +1588,74 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         ],
       },
       {
+        id: 'limp-rotacion',
+        title: 'Cómo se calcula el turno, y cómo cambiarlo',
+        blocks: [
+          {
+            type: 'p',
+            text: 'A partir de la fecha de inicio y del grupo con el que empieza, la aplicación va repartiendo un grupo por reunión. No hay que tocar nada mes a mes: el calendario se rellena solo.',
+          },
+          {
+            type: 'steps',
+            title: 'Si quieres que un día concreto lo lleve otro grupo:',
+            items: [
+              'Pulsa esa fecha en el calendario.',
+              'Elige el grupo que quieras.',
+              'Guarda. Ese día queda fijado a mano y la rotación ya no lo toca.',
+            ],
+          },
+          {
+            type: 'p',
+            text: 'Las fechas puestas a mano llevan un punto naranja en el calendario, y en la vista de lista ponen «Puesta a mano». Así se distingue de un vistazo lo que decidió alguien de lo que calculó la aplicación.',
+          },
+          {
+            type: 'tip',
+            text: 'Para devolver un día a la rotación, ábrelo y elige «Rotación automática» en el selector. Sin eso, un día puesto a mano se queda fijo para siempre y parece que la rotación falla.',
+          },
+          {
+            type: 'faq',
+            q: 'He cambiado la fecha de inicio a un día futuro. ¿Se me estropea lo de antes?',
+            a: 'No. Todo lo anterior a esa fecha se queda tal cual estaba, incluida la reunión de la misma semana que caiga antes del día que elijas. Lo nuevo empieza a contar desde ahí.',
+          },
+        ],
+      },
+      {
+        id: 'limp-alternar',
+        title: 'Alternar por parejas (que nadie se quede siempre con la misma reunión)',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Con un número par de grupos, una rotación normal deja a cada grupo clavado en la misma reunión para siempre: el que limpia entre semana, limpia entre semana toda la vida.',
+          },
+          {
+            type: 'p',
+            text: 'Con «Alternar por parejas cada vuelta» activado, al terminar la vuelta los grupos se intercambian de dos en dos —1, 2, 3, 4, 5, 6 y luego 2, 1, 4, 3, 6, 5— y así todos pasan por las dos reuniones.',
+          },
+          {
+            type: 'tip',
+            text: 'El interruptor solo aparece si participan cuatro grupos o más y son un número par. Con un número impar la rotación ya alterna sola, y con dos no hay nada que intercambiar.',
+          },
+        ],
+      },
+      {
+        id: 'limp-sin-reunion',
+        title: 'Semanas de asamblea y días sin reunión',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Cuando una semana no tiene reunión —asamblea, congreso, Conmemoración— esa casilla del calendario lo dice: pone «Sin reunión» en vez de quedarse en blanco. Un hueco mudo se lee como un fallo de la aplicación.',
+          },
+          {
+            type: 'p',
+            text: 'Esas reuniones no cuentan para la rotación: el grupo que le tocaba no pierde su turno, simplemente le toca la siguiente vez que sí haya reunión.',
+          },
+          {
+            type: 'tip',
+            text: 'En la semana de la visita del superintendente, la reunión de entre semana se mueve al día de la visita y la limpieza se pinta en el día correcto, no en el miércoles de siempre.',
+          },
+        ],
+      },
+      {
         id: 'limp-eventos',
         title: 'Próximos eventos',
         blocks: [
@@ -1473,6 +1675,178 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'link',
             to: '/activities/upcoming-events',
             label: 'Abrir Próximos eventos',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'visita-co',
+    title: 'Visita del superintendente de circuito',
+    description:
+      'Activar la visita, la semana especial, los acompañantes y la documentación.',
+    icon: <IconCalendarWeek color="var(--accent-main)" />,
+    visible: (r) => r.isElder || r.isAdmin,
+    articles: [
+      {
+        id: 'co-activar',
+        title: 'Activar una visita',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La visita se activa una vez y, a partir de ahí, la aplicación se encarga sola: mueve la reunión de entre semana al día de la visita, cambia el programa de esa semana y avisa a quien corresponda.',
+          },
+          {
+            type: 'steps',
+            title: 'Para activarla:',
+            items: [
+              'Entra en «Visita del superintendente» desde Congregación.',
+              'Pulsa «Nueva visita».',
+              'Elige el martes en que empieza la visita. Ese día manda: todo lo demás se calcula a partir de él.',
+              'Escribe el nombre del superintendente y el de su esposa (déjalo vacío si es soltero).',
+              'Guarda.',
+            ],
+          },
+          {
+            type: 'tip',
+            text: 'Si viene un sustituto, activa el interruptor «Viene un superintendente sustituto» y pon su nombre. El programa sale igual, pero con quien de verdad viene.',
+          },
+          {
+            type: 'faq',
+            q: '¿Puedo cambiar la fecha después de activarla?',
+            a: 'Sí. Cambia el martes y todo lo que cuelga de esa semana se recoloca solo. No hace falta borrar la visita y volver a crearla.',
+          },
+          {
+            type: 'link',
+            to: '/congregation/circuit-visit',
+            label: 'Abrir Visita del superintendente',
+          },
+        ],
+      },
+      {
+        id: 'co-semana',
+        title: 'Qué cambia esa semana en las reuniones',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La reunión de entre semana se traslada al día de la visita — normalmente el martes — y su programa cambia: no hay Estudio bíblico de congregación y el superintendente da el discurso de servicio. El fin de semana lleva su discurso especial.',
+          },
+          {
+            type: 'p',
+            text: 'No tienes que tocar nada de eso a mano en los editores de reunión. Al activar la visita, esa semana ya aparece así en «Reunión de entre semana» y en «Reunión de fin de semana».',
+          },
+          {
+            type: 'warn',
+            text: 'Los turnos que dependen de la reunión —acomodadores, micrófonos, exhibidores, limpieza— siguen la fecha nueva, no el miércoles de siempre. Si ves un hueco donde antes había alguien, es porque ese día ya no hay reunión.',
+          },
+        ],
+      },
+      {
+        id: 'co-programa',
+        title: 'El programa de la visita: comidas, acompañantes y predicación',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Dentro de la visita tienes el programa completo de la semana: el programa de comidas, quién acompaña al superintendente cada salida y el programa de predicación de esos días.',
+          },
+          {
+            type: 'tip',
+            text: 'Todo esto sale en el PDF de la visita, que cabe en una sola hoja. Es el que se reparte a los ancianos y el que se cuelga en el tablón.',
+          },
+        ],
+      },
+      {
+        id: 'co-documentacion',
+        title: 'La documentación que hay que tener lista',
+        blocks: [
+          {
+            type: 'p',
+            text: 'La pantalla lleva una lista de lo que el superintendente va a pedir, para que no se quede nada sin preparar:',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Registro de publicadores (S-21): la tarjeta de informe de cada publicador.',
+              'Asistencia a las reuniones (S-88): los registros de entre semana y fin de semana.',
+              'Territorios (S-13): el registro y el estado actual.',
+              'Estado de la contabilidad: esto va aparte, se revisa con el siervo de cuentas.',
+            ],
+          },
+          {
+            type: 'p',
+            text: 'Cada uno de los tres primeros se exporta desde su propia pantalla, y desde aquí tienes el acceso directo.',
+          },
+        ],
+      },
+      {
+        id: 'co-hermanos',
+        title: 'Lo que ven los demás hermanos',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Un publicador no entra en esta pantalla. Lo que ve él es una pestaña nueva en «Programas semanales» con el programa de la visita, y esa pestaña aparece sola cuando se acerca la semana y desaparece sola cuando pasa.',
+          },
+          {
+            type: 'tip',
+            text: 'Por eso no hay que avisar de nada ni publicar nada aparte: en cuanto activas la visita, a su debido tiempo les sale.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'responsabilidades',
+    title: 'Responsabilidades y plan de evacuación',
+    description:
+      'Quién lleva cada departamento y qué hacer si hay que desalojar el salón.',
+    icon: <IconAssignment color="var(--accent-main)" />,
+    visible: (r) => r.isElder || r.isAdmin,
+    articles: [
+      {
+        id: 'resp-departamentos',
+        title: 'La página de Responsabilidades',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Es el cuadro de quién lleva cada departamento del salón: el responsable, su auxiliar y el equipo. Sirve para tenerlo por escrito y para imprimirlo.',
+          },
+          {
+            type: 'steps',
+            title: 'Para cambiar un departamento:',
+            items: [
+              'Entra en «Responsabilidades» desde Congregación.',
+              'Pulsa el departamento que quieras.',
+              'Elige el responsable, el auxiliar y los hermanos del equipo.',
+              'Guarda. Se sincroniza con los demás como todo lo demás.',
+            ],
+          },
+          {
+            type: 'tip',
+            text: 'Tiene su propio PDF, pensado para el tablón: sale cada departamento con su equipo.',
+          },
+          {
+            type: 'link',
+            to: '/congregation/responsabilidades',
+            label: 'Abrir Responsabilidades',
+          },
+        ],
+      },
+      {
+        id: 'resp-evacuacion',
+        title: 'El plan de evacuación',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Recoge las salidas del salón, el punto de reunión de fuera y quién se encarga de qué si hay que desalojar. Es información que casi nunca se usa y que, el día que se usa, tiene que estar a mano y clara.',
+          },
+          {
+            type: 'warn',
+            text: 'Revísalo al menos una vez al año y cada vez que cambie algo del local o de quien tiene asignado un puesto. Un plan con nombres de hermanos que ya no están no sirve de nada.',
+          },
+          {
+            type: 'link',
+            to: '/congregation/evacuacion',
+            label: 'Abrir Plan de evacuación',
           },
         ],
       },
