@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { formatDate, getWeekDate, isMondayDate } from '@utils/date';
-import { WeekSelectorProps } from './index.types';
+import { WeekChipStripProps } from './index.types';
 import { sourcesState } from '@states/sources';
 import {
   schedulesGetMeetingDate,
   weeklySchedulesFirstWeek,
 } from '@services/app/schedules';
 
-const useWeekSelector = ({
+const useWeekChipStrip = ({
   onChange,
   value,
   customWeeksList,
-}: WeekSelectorProps) => {
+}: WeekChipStripProps) => {
   const sources = useAtomValue(sourcesState);
 
   const [currentTab, setCurrentTab] = useState<number | boolean>(false);
@@ -68,4 +68,4 @@ const useWeekSelector = ({
   return { weeksTab, currentTab, handleWeekChange };
 };
 
-export default useWeekSelector;
+export default useWeekChipStrip;

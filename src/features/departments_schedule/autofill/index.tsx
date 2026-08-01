@@ -9,7 +9,7 @@ import Select from '@components/select';
 import MenuItem from '@components/menuitem';
 import IconLoading from '@components/icon_loading';
 import { deptStartAutofill } from '@services/app/deptAutofill';
-import useDeptWeekSelector from '../week_selector/useDeptWeekSelector';
+import useDeptWeekPickerPanel from '../week_picker_panel/useDeptWeekPickerPanel';
 import { getWeekDate, formatDate, dateFormatFriendly } from '@utils/date';
 
 const DeptAutofillDialog = ({
@@ -21,7 +21,7 @@ const DeptAutofillDialog = ({
 }) => {
   const { t } = useAppTranslation();
   const { tabletUp } = useBreakpoints();
-  const { yearsList } = useDeptWeekSelector();
+  const { yearsList } = useDeptWeekPickerPanel();
 
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');

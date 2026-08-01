@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { capitalizarPrimera } from '@utils/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { selectedDeptWeekState } from '@states/departments_schedule';
-import { useBreakpoints } from '@hooks/index';
 import {
   formatDate,
   getWeekDate,
@@ -11,21 +10,18 @@ import {
 } from '@utils/date';
 import { generateMonthNames } from '@services/i18n/translation';
 import { schedulesState } from '@states/schedules';
+import usePanelPlegable from '@components/period_selector/usePanelPlegable';
 import {
   schedulesGetMeetingDate,
   schedulesWeekHasNoMeetingAtAll,
 } from '@services/app/schedules';
 
-const useDeptWeekSelector = () => {
-  const { desktopUp } = useBreakpoints();
-
+const useDeptWeekPickerPanel = () => {
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
-  const [expanded, setExpanded] = useState(true);
   const meetingSchedules = useAtomValue(schedulesState);
 
-  const handleToggleExpand = () => {
-    setExpanded((prev) => !prev);
-  };
+  const { expanded, handleToggleExpand, desktopUp } =
+    usePanelPlegable(selectedWeek);
 
   const yearsList = useMemo(() => {
     const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
@@ -97,12 +93,6 @@ const useDeptWeekSelector = () => {
     }
   }, [selectedWeek, setSelectedWeek, yearsList]);
 
-  useEffect(() => {
-    if (!desktopUp && selectedWeek.length > 0) {
-      setExpanded(false);
-    }
-  }, [selectedWeek, desktopUp]);
-
   const activeTab = useMemo(() => {
     if (selectedWeek === '') return 0;
     const [year] = selectedWeek.split('/');
@@ -135,4 +125,4 @@ const useDeptWeekSelector = () => {
   };
 };
 
-export default useDeptWeekSelector;
+export default useDeptWeekPickerPanel;

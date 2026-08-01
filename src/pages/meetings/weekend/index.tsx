@@ -8,7 +8,7 @@ import PageTitle from '@components/page_title';
 import QuickSettingsWeekendMeeting from '@features/meetings/weekend_editor/quick_settings';
 import SchedulePublish from '@features/meetings/schedule_publish';
 import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
-import WeekSelector from '@features/meetings/week_selector';
+import WeekPickerPanel from '@features/meetings/week_picker_panel';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
 import { useAtomValue } from 'jotai';
@@ -116,7 +116,7 @@ const WeekendMeeting = () => {
           alignItems: desktopUp ? 'flex-start' : 'unset',
         }}
       >
-        <WeekSelector />
+        <WeekPickerPanel />
         <WeekendEditor />
       </Box>
     </Box>

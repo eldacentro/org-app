@@ -1,10 +1,10 @@
 import { useAppTranslation } from '@hooks/index';
 import CollapsibleSelector from '@components/collapsible_selector';
 import ScrollableTabs from '@components/scrollable_tabs';
-import useDeptWeekSelector from './useDeptWeekSelector';
+import useDeptWeekPickerPanel from './useDeptWeekPickerPanel';
 import DeptMonthsContainer from './DeptMonthsContainer';
 
-const DeptWeekSelector = () => {
+const DeptWeekPickerPanel = () => {
   const { t } = useAppTranslation();
   const {
     yearsList,
@@ -12,7 +12,7 @@ const DeptWeekSelector = () => {
     expanded,
     handleToggleExpand,
     selectedWeekLabel,
-  } = useDeptWeekSelector();
+  } = useDeptWeekPickerPanel();
 
   const tabs = yearsList.map((year) => ({
     label: year.label,
@@ -32,4 +32,4 @@ const DeptWeekSelector = () => {
   );
 };
 
-export default DeptWeekSelector;
+export default DeptWeekPickerPanel;

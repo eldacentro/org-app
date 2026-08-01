@@ -5,7 +5,7 @@ import MidweekMeeting from '../midweek_meeting';
 import NoSchedule from '../no_schedule';
 import SiblingAssignment from '../../sibling_assignments';
 import WeekScheduleHeader from '../week_schedule_header';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import Typography from '@components/typography';
 import JwLibraryLink from '@components/jw_library_link';
 import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
@@ -56,7 +56,7 @@ const MidweekContainer = ({
             gap: '16px',
           }}
         >
-          <WeekSelector value={value} onChange={handleValueChange} />
+          <WeekChipStrip value={value} onChange={handleValueChange} />
 
           <WeekScheduleHeader
             currentVisible={currentWeekVisible}

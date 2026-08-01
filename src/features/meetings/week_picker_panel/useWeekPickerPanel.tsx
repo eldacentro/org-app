@@ -5,18 +5,16 @@ import { useResetAtom } from 'jotai/utils';
 import { MeetingType } from '@definition/app';
 import { SourcesFormattedType } from '@definition/sources';
 import { sourcesFormattedState, sourcesValidState } from '@states/sources';
-import { useBreakpoints } from '@hooks/index';
 import { selectedWeekState } from '@states/schedules';
 import { convertStringToBoolean } from '@utils/common';
 import { addMonths, addWeeks, formatDate, getWeekDate } from '@utils/date';
 import { JWLangState, meetingExactDateState } from '@states/settings';
 import MonthsContainer from './months_container';
+import usePanelPlegable from '@components/period_selector/usePanelPlegable';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
-const useWeekSelector = () => {
+const useWeekPickerPanel = () => {
   const location = useLocation();
-
-  const { desktopUp } = useBreakpoints();
 
   const resetSelectedWeek = useResetAtom(selectedWeekState);
 
@@ -26,7 +24,8 @@ const useWeekSelector = () => {
   const meetingExactDate = useAtomValue(meetingExactDateState);
   const lang = useAtomValue(JWLangState);
 
-  const [expanded, setExpanded] = useState(true);
+  const { expanded, handleToggleExpand } = usePanelPlegable(selectedWeek);
+
   const [openDelete, setOpenDelete] = useState(false);
   const [sortDown, setSortDown] = useState(
     convertStringToBoolean(localStorage.getItem('meeting_sort_down'))
@@ -206,10 +205,6 @@ const useWeekSelector = () => {
     return sources.length > 0;
   }, [sources]);
 
-  const handleToggleExpand = () => {
-    setExpanded((prev) => !prev);
-  };
-
   const handleToggleSort = () => {
     setSortDown((prev) => {
       localStorage.setItem('meeting_sort_down', !prev ? 'true' : 'false');
@@ -244,12 +239,6 @@ const useWeekSelector = () => {
   }, [tabs, currentYear]);
 
   useEffect(() => {
-    if (!desktopUp && selectedWeek.length > 0) {
-      setExpanded(false);
-    }
-  }, [selectedWeek, desktopUp]);
-
-  useEffect(() => {
     return () => {
       resetSelectedWeek();
     };
@@ -281,4 +270,4 @@ const useWeekSelector = () => {
   };
 };
 
-export default useWeekSelector;
+export default useWeekPickerPanel;

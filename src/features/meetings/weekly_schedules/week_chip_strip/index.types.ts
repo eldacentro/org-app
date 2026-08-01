@@ -1,4 +1,4 @@
-export type WeekSelectorProps = {
+export type WeekChipStripProps = {
   value: number | boolean;
   onChange?: (value: number) => void;
   customWeeksList?: { weekOf: string }[];

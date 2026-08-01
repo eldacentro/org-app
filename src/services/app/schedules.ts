@@ -3529,7 +3529,7 @@ export const schedulesGetMeetingDate = ({
 
   // Antes esta función exigía que `schedule` Y `source` ya existieran para
   // calcular cualquier fecha, lo que bloqueaba semanas futuras sin material
-  // de JW.org todavía (ver useWeekSelector.tsx / useWeekendContainer.tsx,
+  // de JW.org todavía (ver useWeekPickerPanel.tsx / useWeekendContainer.tsx,
   // donde ahora se generan semanas por fecha en vez de depender de qué
   // `source` ya llegó). En realidad, `source` solo hace falta para el caso
   // muy específico de abajo (fecha textual exacta del midweek para

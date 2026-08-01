@@ -2,7 +2,7 @@ import { Box, Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { IconInfo, IconVisitingSpeaker } from '@components/icons';
 import useOutgoingTalks from './useOutgoingTalks';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import WeekScheduleHeader from '../week_schedule_header';
 import WeekContainer from './week_container';
 import NoSchedule from '../no_schedule';
@@ -38,7 +38,7 @@ const OutgoingTalks = () => {
         gap: '16px',
       }}
     >
-      <WeekSelector value={value} onChange={handleValueChange} />
+      <WeekChipStrip value={value} onChange={handleValueChange} />
 
       <WeekScheduleHeader
         currentVisible={currentWeekVisible}

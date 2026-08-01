@@ -2,7 +2,7 @@ import { Box } from '@mui/material';
 import IconLoading from '@components/icon_loading';
 import { useNavigate } from 'react-router';
 import { IconImportFile } from '@components/icons';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import Accion from '../week_schedule_header/Accion';
 import WeekScheduleHeader from '../week_schedule_header';
 import useExhibitorsContainer from './useExhibitorsContainer';
@@ -26,7 +26,7 @@ const ExhibitorsWeeklyContainer = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <WeekSelector
+      <WeekChipStrip
         value={value}
         onChange={handleValueChange}
         customWeeksList={filteredSources}
@@ -34,7 +34,7 @@ const ExhibitorsWeeklyContainer = () => {
 
       {/* Antes esta pestaña no mostraba el rango de semana, ni el botón
           "ir a la semana actual", ni "última actualización" — currentWeekVisible/
-          onGoCurrent/scheduleLastUpdated se pasaban a WeekSelector, cuyo tipo
+          onGoCurrent/scheduleLastUpdated se pasaban a WeekChipStrip, cuyo tipo
           nunca los declara, así que se descartaban en silencio. Igual que
           Departamentos y Salidas de predicación. */}
       <WeekScheduleHeader

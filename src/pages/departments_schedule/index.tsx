@@ -4,7 +4,7 @@ import { IconPrint, IconGenerate, IconPublish } from '@components/icons';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import PageTitle from '@components/page_title';
-import DeptWeekSelector from '@features/departments_schedule/week_selector';
+import DeptWeekPickerPanel from '@features/departments_schedule/week_picker_panel';
 import DepartmentEditor from '@features/departments_schedule/editor';
 import useDeptExport from '@features/departments_schedule/useDeptExport';
 import NavBarButton from '@components/nav_bar_button';
@@ -184,7 +184,7 @@ const DepartmentsSchedule = () => {
           alignItems: desktopUp ? 'flex-start' : 'unset',
         }}
       >
-        <DeptWeekSelector />
+        <DeptWeekPickerPanel />
         <DepartmentEditor />
       </Box>
     </Box>

@@ -8,12 +8,10 @@ const DeptWeekItem = ({
   weekOf,
   label,
   noMeeting,
-  onWeekSelect,
 }: {
   weekOf: string;
   label: string;
   noMeeting?: boolean;
-  onWeekSelect?: () => void;
 }) => {
   const { t } = useAppTranslation();
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
@@ -26,10 +24,7 @@ const DeptWeekItem = ({
     <WeekRow
       label={label}
       selected={isSelected}
-      onSelect={() => {
-        setSelectedWeek(weekOf);
-        onWeekSelect?.();
-      }}
+      onSelect={() => setSelectedWeek(weekOf)}
       trailing={
         noMeeting && (
           <Badge

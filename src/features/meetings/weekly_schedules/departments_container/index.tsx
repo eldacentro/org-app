@@ -2,7 +2,7 @@ import { Box, Stack } from '@mui/material';
 import useDepartmentsContainer from './useDepartmentsContainer';
 import NoSchedule from '../no_schedule';
 import WeekScheduleHeader from '../week_schedule_header';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import DepartmentsMeeting from './DepartmentsMeeting';
 
 const DepartmentsContainer = () => {
@@ -35,7 +35,7 @@ const DepartmentsContainer = () => {
             gap: '16px',
           }}
         >
-          <WeekSelector value={value} onChange={handleValueChange} />
+          <WeekChipStrip value={value} onChange={handleValueChange} />
 
           <WeekScheduleHeader
             currentVisible={currentWeekVisible}

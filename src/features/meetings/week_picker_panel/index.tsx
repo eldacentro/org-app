@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import { IconClearMultiple, IconSortDown, IconSortUp } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
-import useWeekSelector from './useWeekSelector';
+import useWeekPickerPanel from './useWeekPickerPanel';
 import AssignmentsDelete from '../assignments_delete';
 import Button from '@components/button';
 import CollapsibleSelector from '@components/collapsible_selector';
@@ -14,7 +14,7 @@ import ScrollableTabs from '@components/scrollable_tabs';
  * Departamentos y los selectores de mes. Aquí queda solo lo propio de esta
  * pantalla: ordenar y borrar asignaciones en bloque.
  */
-const WeekSelector = () => {
+const WeekPickerPanel = () => {
   const { t } = useAppTranslation();
 
   const {
@@ -30,7 +30,7 @@ const WeekSelector = () => {
     sortDown,
     handleToggleSort,
     selectedWeekDateLocale,
-  } = useWeekSelector();
+  } = useWeekPickerPanel();
 
   return (
     <CollapsibleSelector
@@ -110,4 +110,4 @@ const WeekSelector = () => {
   );
 };
 
-export default WeekSelector;
+export default WeekPickerPanel;

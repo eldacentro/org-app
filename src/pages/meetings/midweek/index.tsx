@@ -8,7 +8,7 @@ import PageTitle from '@components/page_title';
 import QuickSettingsMidweekMeeting from '@features/meetings/midweek_editor/quick_settings';
 import SchedulePublish from '@features/meetings/schedule_publish';
 import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
-import WeekSelector from '@features/meetings/week_selector';
+import WeekPickerPanel from '@features/meetings/week_picker_panel';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
 import PendingSlips from '@features/meetings/midweek_editor/pending_slips';
@@ -116,7 +116,7 @@ const MidweekMeeting = () => {
           alignItems: desktopUp ? 'flex-start' : 'unset',
         }}
       >
-        <WeekSelector />
+        <WeekPickerPanel />
         <MidweekEditor />
       </Box>
     </Box>

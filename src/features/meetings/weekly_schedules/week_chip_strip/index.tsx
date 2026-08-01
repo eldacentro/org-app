@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
-import { WeekSelectorProps } from './index.types';
-import useWeekSelector from './useWeekSelector';
+import { WeekChipStripProps } from './index.types';
+import useWeekChipStrip from './useWeekChipStrip';
 import Typography from '@components/typography';
 
 /**
@@ -24,8 +24,8 @@ import Typography from '@components/typography';
  * Tampoco lleva flechas: las de MUI DESPLAZAN la tira en vez de cambiar de
  * semana, que no es lo que nadie espera de una flecha ahí.
  */
-const WeekSelector = (props: WeekSelectorProps) => {
-  const { weeksTab, handleWeekChange, currentTab } = useWeekSelector(props);
+const WeekChipStrip = (props: WeekChipStripProps) => {
+  const { weeksTab, handleWeekChange, currentTab } = useWeekChipStrip(props);
 
   const tiraRef = useRef<HTMLDivElement>(null);
   const yaCentrado = useRef(false);
@@ -130,4 +130,4 @@ const WeekSelector = (props: WeekSelectorProps) => {
   );
 };
 
-export default WeekSelector;
+export default WeekChipStrip;

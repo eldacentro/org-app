@@ -4,7 +4,7 @@ import useWeekendContainer from './useWeekendContainer';
 import NoSchedule from '../no_schedule';
 import SiblingAssignment from '../../sibling_assignments';
 import WeekScheduleHeader from '../week_schedule_header';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import Typography from '@components/typography';
 import JwLibraryLink from '@components/jw_library_link';
 import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
@@ -57,7 +57,7 @@ const WeekendContainer = ({
             gap: '16px',
           }}
         >
-          <WeekSelector
+          <WeekChipStrip
             value={value}
             onChange={handleValueChange}
             customWeeksList={weeksRange}

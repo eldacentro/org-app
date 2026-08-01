@@ -6,7 +6,7 @@ import ConsejosDialog from './ConsejosDialog';
 import Accion from '../week_schedule_header/Accion';
 import NoSchedule from '../no_schedule';
 import WeekScheduleHeader from '../week_schedule_header';
-import WeekSelector from '../week_selector';
+import WeekChipStrip from '../week_chip_strip';
 import ServiceOutingsMeeting from './ServiceOutingsMeeting';
 
 const ServiceOutingsContainer = () => {
@@ -43,7 +43,7 @@ const ServiceOutingsContainer = () => {
             gap: '16px',
           }}
         >
-          <WeekSelector value={value} onChange={handleValueChange} />
+          <WeekChipStrip value={value} onChange={handleValueChange} />
 
           <WeekScheduleHeader
             currentVisible={currentWeekVisible}
