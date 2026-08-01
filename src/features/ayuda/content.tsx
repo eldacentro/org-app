@@ -70,11 +70,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Al entrar verás tu panel personal. Arriba, la tarjeta "MIS ASIGNACIONES" te avisa si tienes asignaciones pendientes de confirmar o próximas. Debajo, "ESTA SEMANA" muestra las reuniones con su día y hora; si tienes una parte, te la indica ahí mismo.',
+            text: 'Al entrar verás tu panel personal. Arriba, "Mis asignaciones" te avisa si tienes asignaciones pendientes de confirmar o próximas. Debajo, "Esta semana" muestra las reuniones con su día y hora; si tienes una parte, te la indica ahí mismo.',
           },
           {
             type: 'p',
-            text: 'En "EXPLORAR" están las puertas a cada área: Reuniones, Predicación, Congregación, Discursos, Informes y Configuración. Según tus responsabilidades verás más o menos opciones: cada uno ve solo lo que necesita.',
+            text: 'En "Explorar" están las puertas a cada área: Reuniones, Predicación, Congregación, Discursos, Informes y Configuración. Según tus responsabilidades verás más o menos opciones: cada uno ve solo lo que necesita.',
           },
         ],
       },
@@ -130,11 +130,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Entra en "Predicación" desde el panel.',
-              'Abre "Informe de predicación" y comprueba que está seleccionado el mes correcto.',
-              'Si eres publicador: marca la casilla de que participaste en la predicación durante el mes. Añade estudios bíblicos si diriges alguno.',
-              'Si eres precursor: indica también tus horas (puedes apuntarlas día a día durante el mes con "Añadir tiempo de predicación", y la app las suma sola).',
-              'Toca el botón de enviar. ¡Listo! Le llega directamente al secretario.',
+              'Entra en "Predicación" desde el panel y abre "Informe de predicación".',
+              'Arriba puedes mirarlo por "Día", por "Mes" o por "Año". Comprueba que estás en el mes correcto.',
+              'Si eres publicador: marca la casilla "Marque la casilla si participó en alguna faceta de la predicación durante el mes". Añade tus cursos bíblicos si diriges alguno.',
+              'Si eres precursor: apunta también las horas. Puedes ir metiéndolas día a día en la vista "Día" y la aplicación las suma sola.',
+              'Toca "Enviar". ¡Listo! Le llega directamente al secretario.',
             ],
           },
           {
@@ -144,17 +144,12 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Puedes apuntar tu tiempo durante todo el mes (incluso con el cronómetro integrado) y al final solo revisar y enviar.',
-          },
-          {
-            type: 'faq',
-            q: '¿Cómo sé que mi informe llegó?',
-            a: 'Tras enviarlo, el mes queda marcado como "Informe enviado". Si lo abres, verás lo que enviaste.',
+            text: 'No hace falta esperar a fin de mes para sentarse a hacer cuentas: apunta lo del día en la vista "Día" según vas, y el último día solo revisas y envías.',
           },
           {
             type: 'faq',
             q: 'Me equivoqué, ¿puedo corregirlo?',
-            a: 'Sí: abre el mes, corrige y vuelve a enviar. Si el secretario ya lo verificó, coméntaselo para que lo ajuste él.',
+            a: 'Sí. Una vez enviado, el botón pasa a poner "Deshacer envío": tócalo, corrige y vuelve a enviar. Si el secretario ya lo verificó, coméntaselo para que lo ajuste él.',
           },
         ],
       },
@@ -164,7 +159,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En "Predicación" también está tu historial: todos tus informes, mes a mes, y el resumen del "Año de servicio" (que va de septiembre a agosto).',
+            text: 'Tu historial está en la misma pantalla del informe: cambia arriba a la vista "Año" y verás todos tus informes del año de servicio (que va de septiembre a agosto) con sus totales.',
           },
           {
             type: 'p',
@@ -179,7 +174,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Entra en "Predicación".',
+              'Entra en "Predicación" desde el panel.',
               'Toca "Solicitud de precursor auxiliar".',
               'Elige el mes (o de continuo), revisa y envía.',
             ],
@@ -220,23 +215,31 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'PRÓXIMOS EVENTOS. El calendario de lo que viene: asambleas (de circuito, regionales e internacionales), la visita del superintendente de circuito, la Conmemoración, campañas especiales, semanas de precursores, cursos, programas especiales y cualquier otro evento. Cada evento muestra sus fechas y horarios, y según el tipo puede traer botones útiles: "JW Library" para abrir el programa del evento y "Google Maps" para llegar al lugar.',
+            text: '"Próximos eventos". El calendario de lo que viene: asambleas, la visita del superintendente de circuito, la Conmemoración, campañas especiales y cualquier otro evento. Cada uno muestra sus fechas y horarios, y según el tipo puede traer botones útiles: "JW Library" para abrir el programa del evento y "Google Maps" para llegar al lugar.',
           },
           {
             type: 'p',
-            text: 'GRUPOS DE PREDICACIÓN. Los grupos con su superintendente, auxiliar y miembros. Un detalle útil: los precursores aparecen con su nombre en negrita.',
+            text: '"Grupos de predicación". Los grupos con sus miembros. Los precursores aparecen con su nombre en negrita, y debajo del nombre del responsable pone "Superintendente de grupo" (o "Siervo de grupo") y "Auxiliar del superintendente".',
           },
           {
             type: 'p',
-            text: 'RESPONSABILIDADES. Quién es quién: el cuerpo de ancianos, las responsabilidades de cada uno y los departamentos con sus encargados. Para saber a quién acudir para cada cosa.',
+            text: '"Responsabilidades". Quién es quién: los departamentos con su responsable, su auxiliar y su equipo. Para saber a quién acudir para cada cosa.',
           },
           {
             type: 'p',
-            text: 'LIMPIEZA DEL SALÓN. El programa de limpieza por grupos. Todos pueden consultarlo, y cuando le toca a tu grupo también te aparece en "MIS ASIGNACIONES" del panel.',
+            text: '"Limpieza del Salón". El programa de limpieza por grupos. Todos pueden consultarlo, y cuando le toca a tu grupo también te aparece en "Mis asignaciones" del panel.',
           },
           {
             type: 'p',
-            text: 'PLAN DE EVACUACIÓN. El plan de emergencia del Salón del Reino: la estructura de mando, los equipos y lo que hay que saber por si alguna vez hay que desalojar. Merece una lectura tranquila una vez, para que el día que haga falta no sea la primera.',
+            text: '"Plan de evacuación". El plan de emergencia del Salón del Reino: el plano, la estructura de mando, los equipos y los procedimientos por si alguna vez hay que desalojar. Merece una lectura tranquila una vez, para que el día que haga falta no sea la primera.',
+          },
+          {
+            type: 'p',
+            text: '"Documentos". Los PDF de la congregación, por categorías. Cuando hay alguno nuevo que no has abierto, la tarjeta lleva un puntito.',
+          },
+          {
+            type: 'p',
+            text: 'Los ancianos ven ahí además "Personas", "Ausencias", "Solicitudes de precursor" y "Visita del superintendente", que son cosas suyas.',
           },
         ],
       },
@@ -289,16 +292,16 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'steps',
-            title: 'Ver el territorio (mapa, imagen y direcciones):',
+            title: 'Ver el territorio (mapa, imagen e información):',
             items: [
               'Toca "Ver territorio" en cualquier tarjeta.',
-              'En la pestaña del mapa puedes alternar entre vista "Mapa" y vista "Satélite" con el botón flotante.',
-              'La pestaña "Direcciones" lista las viviendas marcadas como "NO VISITAR" dentro de ese territorio, con un chip rojo bien visible.',
+              'Se abre con tres pestañas: "Mapa", "Imagen" e "Info".',
+              'En "Info" están las viviendas, las notas y las direcciones de "No visitar" de ese territorio, cada una con su etiqueta.',
             ],
           },
           {
             type: 'tip',
-            text: 'Si tu congregación lo permite, puedes añadir tú mismo una dirección nueva a "No visitar" desde esa misma pestaña. Según cómo esté configurado, puede quedar pendiente de aprobación por un responsable antes de aparecer como definitiva.',
+            text: 'Si tu congregación lo permite, puedes añadir tú mismo una dirección nueva en "Nueva dirección (No visitar)", en esa misma pestaña. Según cómo esté configurado, puede quedar pendiente de que un responsable la apruebe antes de valer para todos.',
           },
           {
             type: 'faq',
@@ -437,15 +440,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'PERIODOS DE AUSENCIA. Si vas a estar fuera unas fechas (viaje, salud...), apúntalas aquí. Así los hermanos que preparan los programas lo ven y no te asignan partes esos días. Es la forma más fácil de evitar cambios de última hora.',
+            text: 'Periodos de ausencia. Si vas a estar fuera unas fechas (viaje, salud…), apúntalas aquí. A quien prepare un programa le saldrá un aviso al asignarte algo esos días. Ojo: es un aviso, no un candado — la aplicación deja asignar igual, así que apuntar la ausencia ayuda pero no garantiza nada.',
           },
           {
             type: 'p',
-            text: 'AÑADIR AL CALENDARIO. Si lo activas, en "MIS ASIGNACIONES" te aparecerán botones para guardar cada asignación (o todas de golpe) en el calendario de tu teléfono, con su fecha y hora.',
+            text: 'Añadir al calendario. Si lo activas, en "Mis asignaciones" te aparecerán botones para guardar cada asignación (o todas de golpe) en el calendario de tu teléfono, con su fecha y hora.',
           },
           {
             type: 'p',
-            text: 'Y en Configuración puedes cambiar entre tema claro y oscuro y ajustar otras preferencias personales. Un apunte para responsables: si necesitas imprimir programas o informes, en Configuración → "Ajustes de congregación" → "Materiales de reunión, formularios y programas" está la opción "Habilitar la exportación de programas e informes a PDF"; al activarla te aparecen los botones de exportar en las pantallas correspondientes.',
+            text: 'En "Mi cuenta" también eliges el tema claro u oscuro y otras preferencias personales. Un apunte para responsables: ahí mismo está "Habilitar exportación a PDF para mi cuenta", que te enciende los botones de exportar solo a ti, sin cambiárselo a nadie más. Para toda la congregación de golpe, eso se hace en Configuración → "Ajustes de congregación".',
           },
         ],
       },

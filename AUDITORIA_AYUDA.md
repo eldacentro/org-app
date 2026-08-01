@@ -88,7 +88,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 
 | id | visible para | estado |
 |---|---|---|
-| `general` | todos | ampliada, sin auditar |
+| `general` | todos | auditada |
 | `informes` | secretario | auditada |
 | `asistencia` | registro de asistencia | **nueva** (salió de `informes`) |
 | `entre-semana` | editor de entre semana | auditada |

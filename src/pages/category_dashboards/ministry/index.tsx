@@ -7,10 +7,12 @@ import {
   IconInTerritory,
   IconCart,
   IconMapOverview,
+  IconAuxiliaryPioneer,
 } from '@icons/index';
 
 import { useAtomValue } from 'jotai';
 import { territoriesEnabledPublishersState } from '@states/settings';
+import { congAccountConnectedState } from '@states/app';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
 
 const MinistryDashboard = () => {
@@ -19,6 +21,7 @@ const MinistryDashboard = () => {
 
   const { isPublisher, isServiceCommittee } = useCurrentUser();
   const territoriesEnabled = useAtomValue(territoriesEnabledPublishersState);
+  const isConnected = useAtomValue(congAccountConnectedState);
 
   // Quien gestiona Territorios tiene que poder entrar SIEMPRE. El interruptor
   // `territories_enabled_publishers` viene apagado de fábrica y decide otra
@@ -133,6 +136,43 @@ const MinistryDashboard = () => {
             <div className="tile-body">
               <div className="tile-name">
                 {t('tr_report', 'Informe de predicación')}
+              </div>
+            </div>
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        )}
+
+        {/* Solicitud de precursor auxiliar.
+            La página existe y está enrutada desde siempre, pero no había forma
+            de llegar a ella: ni tarjeta, ni botón, ni un `navigate` en toda la
+            aplicación. Solo se abría escribiendo la dirección a mano. La ruta
+            pide publicador Y congregación conectada, así que la tarjeta
+            también. */}
+        {isPublisher && isConnected && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/auxiliary-pioneer-application')}
+          >
+            <div className="ti">
+              <IconAuxiliaryPioneer
+                color="var(--brand)"
+                width={22}
+                height={22}
+              />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">
+                {t('tr_applicationAuxiliaryPioneer')}
               </div>
             </div>
             <svg
