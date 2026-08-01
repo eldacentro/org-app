@@ -2085,7 +2085,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'En Configuración → "Cuentas de usuario" gestionas quién tiene acceso a la aplicación y con qué rol. Desde la ficha de cada persona puedes invitarla, y cada rol abre exactamente lo que le corresponde (los programas al que hace programas, los informes al secretario, y así con todo).',
+            text: 'En Configuración → "Cuentas de usuario" (la pantalla se titula "Gestión de cuentas de usuario") está quién tiene acceso a la aplicación y con qué rol. Cada rol abre exactamente lo que le corresponde: los programas al que hace programas, los informes al secretario, y así con todo.',
           },
           {
             type: 'link',
@@ -2109,19 +2109,24 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Si el hermano no tiene ficha todavía, créala primero ("Añadir persona") con su condición correcta (publicador bautizado, no bautizado, anciano, etc.), porque de ahí sale automáticamente lo que va a poder ver.',
-              'Abre su ficha y rellena el campo "Correo electrónico" con el correo que usa en su cuenta de Google.',
-              'Guarda. Con eso queda todo listo: no hace falta ningún paso más ni pasarle un código de acceso a mano.',
+              'Si el hermano no tiene ficha todavía, créala primero (Personas → "Añadir") con su condición correcta (publicador bautizado, no bautizado, anciano, etc.), porque de ahí sale automáticamente lo que va a poder ver.',
+              'Abre su ficha y rellena el campo "Dirección de correo electrónico" con el correo que usa en su cuenta de Google.',
+              'Guarda. Con eso su petición de entrada queda aprobada de antemano: no tendrás que aceptarla a mano cuando la mande.',
+              'Pásale el CÓDIGO DE ACCESO de la congregación. Sin él no puede entrar.',
             ],
           },
           {
+            type: 'warn',
+            text: 'El correo ahorra la aprobación, no el código. Los datos de la congregación van cifrados de punta a punta: el servidor no tiene la llave y no puede dársela a nadie, así que el hermano tiene que escribir el código de acceso la primera vez en cada dispositivo. Es lo normal, no un fallo.',
+          },
+          {
             type: 'tip',
-            text: 'Al guardar el correo, la aplicación prepara automáticamente su entrada: cuando ese hermano entre por primera vez e inicie sesión con Google usando ese mismo correo, entrará directo a la congregación, sin tener que pedirte ni escribir el código de acceso. Si algún día quieres retirarle el acceso, basta con borrar el correo de su ficha y guardar.',
+            text: 'A partir de la segunda vez ya no se lo pide: la aplicación guarda las llaves en ese dispositivo y entra sola. Solo se le vuelven a pedir si cierra sesión a propósito o si se cambian las llaves de la congregación. Y si algún día quieres retirarle el acceso, basta con borrar el correo de su ficha y guardar.',
           },
           {
             type: 'faq',
-            q: '¿Y si el hermano ya tiene ficha pero no le funciona la entrada automática?',
-            a: 'Revisa que el correo de su ficha esté escrito exactamente igual que el de su cuenta de Google (mayúsculas/minúsculas no importan, pero sí erratas) y que haya guardado los cambios.',
+            q: '¿Y si el hermano ya tiene ficha pero su petición no se aprueba sola?',
+            a: 'Revisa que el correo de su ficha esté escrito exactamente igual que el de su cuenta de Google (mayúsculas/minúsculas no importan, pero sí erratas) y que hayas guardado los cambios.',
           },
         ],
       },
@@ -2135,7 +2140,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Además, en Configuración → "Ajustes de congregación" → "Importar o exportar datos de congregación" puedes exportar a mano una copia completa en un archivo cuando quieras (por ejemplo, antes de un cambio grande), y volver a importarla si hiciera falta.',
+            text: 'Todo eso se ve en Configuración → "Ajustes de congregación" → "Importar o exportar datos de congregación", que para el administrador tiene cuatro pestañas: "Manual (JSON)" para sacar o meter una copia completa a mano (por ejemplo, antes de un cambio grande), "Copias locales", "Google Drive" y "Servidor".',
           },
         ],
       },
@@ -2150,9 +2155,9 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Las copias diarias del servidor, con "Restaurar esta copia" para recuperar una tabla concreta (por ejemplo, solo los programas) sin tocar lo demás.',
-              'El candado de programas: congela las subidas de programas de otros dispositivos mientras restauras una versión buena, para que nadie la pise.',
-              'Forzar la re-descarga en todos los dispositivos: obliga a que todos vuelvan a bajar los programas del servidor. Solo para emergencias.',
+              'Las copias diarias del servidor (últimos 30 días): elige en "Datos a recuperar" qué tabla quieres (por ejemplo, solo los programas), la "Fecha de la copia", y toca "Restaurar esta copia". Antes de sobrescribir se respalda lo que hay ahora.',
+              '"Congelar sincronización de programas": mientras esté congelada, ningún dispositivo salvo el tuyo puede subir cambios de programas, así que puedes restaurar la versión buena sin que nadie la pise. No afecta a informes ni a asistencia.',
+              '"Forzar re-descarga de programas": el botón "Forzar re-descarga en todos" hace que TODOS los dispositivos tiren su copia local de programas y se queden con la del servidor. Primero se restaura la versión correcta y luego se pulsa esto para imponerla.',
             ],
           },
           {
@@ -2167,7 +2172,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Tres hábitos que evitan sustos: revisa de vez en cuando que la versión de todos va al día (el aviso de actualizar llega solo, pero un vistazo no cuesta), exporta una copia manual antes de cualquier cambio grande (importaciones, reorganizar grupos…), y si algo se ve raro en un dispositivo concreto, primero "Sincronizar datos" y después "Volver a descargar los datos" desde Acerca de la aplicación.',
+            text: 'Tres hábitos que evitan sustos: revisa de vez en cuando que la versión de todos va al día (el aviso de actualizar llega solo, pero un vistazo no cuesta), exporta una copia manual antes de cualquier cambio grande (importaciones, reorganizar grupos…), y si algo se ve raro en un dispositivo concreto, prueba primero con "Sincronizar datos" (Configuración) y, si sigue igual, con "Volver a descargar los datos" (Configuración → "Acerca de la aplicación").',
           },
         ],
       },

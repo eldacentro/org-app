@@ -102,10 +102,9 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `limpieza` | anciano, comité | ampliada, sin auditar |
 | `visita-co` | anciano, admin | nueva |
 | `responsabilidades` | anciano, admin | nueva |
-| `administracion` | admin, editor de ajustes | **sin tocar** |
+| `administracion` | admin, editor de ajustes | auditada |
 
-Las marcadas «sin tocar» llevan el contenido original y son las de mayor
-riesgo: son las que más tiempo llevan sin mirarse.
+Ya no queda ninguna «sin tocar»: las ocho de más riesgo están auditadas.
 
 ## Rutas de la aplicación
 
