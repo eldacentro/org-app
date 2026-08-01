@@ -30,6 +30,13 @@ export type AyudaRoles = {
    * sección se le escondía justo a ese hermano, que es quien más la necesita.
    */
   isTerritoryManager: boolean;
+  /**
+   * Superintendente de grupo de idioma. Su trabajo del día a día ya está
+   * cubierto por las secciones de reuniones (las banderas de editor le salen
+   * true dentro de su grupo), pero "Ajustes de grupo" (/group-settings) es
+   * SUYA y de nadie más: sin esta bandera, esa pantalla no la explicaba nadie.
+   */
+  isLanguageGroupOverseer: boolean;
 };
 
 export type AyudaBlock =

@@ -32,6 +32,7 @@ const useAyuda = () => {
       isPersonViewer: user.isPersonViewer,
       isSettingsEditor: user.isSettingsEditor,
       isTerritoryManager,
+      isLanguageGroupOverseer: user.isLanguageGroupOverseer,
     }),
     [user, isTerritoryManager]
   );

@@ -2195,6 +2195,36 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         ],
       },
       {
+        id: 'admin-ajustes-congregacion',
+        title: 'Los ajustes de la congregación',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Configuración → "Ajustes de congregación" es el sitio donde se decide cómo funciona la aplicación para toda la congregación. Va en bloques:',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Los datos de la congregación: nombre, número, número de circuito y dirección del Salón del Reino.',
+              '"Materiales de reunión, formularios y programas": las plantillas, cómo se escriben los nombres y el interruptor de la exportación a PDF para todos.',
+              '"Predicación": los ajustes del módulo de predicación, entre ellos si los publicadores ven Territorios.',
+              '"Superintendente de circuito": su nombre y el de su esposa, que es de donde los toma la visita.',
+              '"Grupos de idiomas": los grupos de idioma de la congregación.',
+              '"Privacidad de la congregación": el código de acceso, la llave maestra y quién ve qué.',
+            ],
+          },
+          {
+            type: 'link',
+            to: '/congregation-settings',
+            label: 'Abrir Ajustes de congregación',
+          },
+          {
+            type: 'warn',
+            text: 'Lo de "Privacidad de la congregación" no es un ajuste más: ahí está el código de acceso que necesita cada hermano para entrar por primera vez en un dispositivo. Cambiarlo obliga a todos a volver a escribirlo.',
+          },
+        ],
+      },
+      {
         id: 'admin-copias',
         title: 'Copias de seguridad',
         blocks: [
@@ -2237,6 +2267,56 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'p',
             text: 'Tres hábitos que evitan sustos: revisa de vez en cuando que la versión de todos va al día (el aviso de actualizar llega solo, pero un vistazo no cuesta), exporta una copia manual antes de cualquier cambio grande (importaciones, reorganizar grupos…), y si algo se ve raro en un dispositivo concreto, prueba primero con "Sincronizar datos" (Configuración) y, si sigue igual, con "Volver a descargar los datos" (Configuración → "Acerca de la aplicación").',
+          },
+        ],
+      },
+    ],
+  },
+  // ════════════════════════════════════════════════════════════════════
+  // GRUPO DE IDIOMA (superintendente del grupo)
+  // ════════════════════════════════════════════════════════════════════
+  // Su trabajo del día a día ya lo cubren las secciones de reuniones: dentro
+  // de su grupo le salen true las banderas de editor de entre semana, de fin
+  // de semana y de discursos. Lo único que no cubría nadie es "Ajustes de
+  // grupo", que es SUYA y de nadie más — de ahí esta sección, corta a
+  // propósito.
+  {
+    id: 'grupo-idioma',
+    title: 'Grupo de idioma',
+    description: 'Lo que solo puedes hacer tú como responsable del grupo.',
+    icon: <IconGroups color="var(--accent-main)" />,
+    visible: (r) => r.isLanguageGroupOverseer,
+    articles: [
+      {
+        id: 'gi-ajustes',
+        title: 'Los ajustes de tu grupo',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Dentro del grupo, en Configuración tienes "Ajustes de grupo". Es la misma pantalla que los ajustes de la congregación, pero recortada a lo que es del grupo: los datos del grupo, los "Grupos de idiomas" y "Materiales de reunión, formularios y programas".',
+          },
+          {
+            type: 'link',
+            to: '/group-settings',
+            label: 'Abrir Ajustes de grupo',
+          },
+          {
+            type: 'warn',
+            text: 'Lo que NO sale ahí es a propósito: la privacidad de la congregación, los ajustes de predicación y el superintendente de circuito son de toda la congregación, no de un grupo, y se llevan desde "Ajustes de congregación".',
+          },
+        ],
+      },
+      {
+        id: 'gi-resto',
+        title: 'Todo lo demás lo tienes en su sección',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Dentro de tu grupo eres a la vez editor de la reunión de entre semana, de la de fin de semana y coordinador de los discursos, así que las secciones de esas tres reuniones son también para ti: lo que cuentan vale igual, solo que aplicado a tu grupo.',
+          },
+          {
+            type: 'tip',
+            text: 'Los informes de predicación de los hermanos de tu grupo también los ves tú, en Informes → "Informes de predicación", acotando con el filtro a tu grupo de idioma.',
           },
         ],
       },

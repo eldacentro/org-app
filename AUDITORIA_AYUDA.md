@@ -2,7 +2,7 @@
 
 ## El objetivo
 
-`src/features/ayuda/content.tsx` tiene 16 secciones y 84 artículos. El
+`src/features/ayuda/content.tsx` tiene 17 secciones y 88 artículos. El
 contenido se ha ido escribiendo por tandas y **nunca se ha comprobado contra el
 código artículo por artículo**. Hay que auditarlo entero hasta que cada frase
 sea cierta hoy.
@@ -80,11 +80,19 @@ service_overseer, midweek_schedule, weekend_schedule, public_talk_schedule,
 attendance_tracking, departments_schedule, publisher, view_schedules, elder,
 ms, group_overseers, language_group_overseers.
 
-`AyudaRoles` (en `src/definition/ayuda.ts`) expone doce banderas. **Falta
-`isLanguageGroupOverseer`**, que sí existe en `useCurrentUser` y no tiene
-sección. Decidir si merece una o si su trabajo ya está cubierto.
+`AyudaRoles` (en `src/definition/ayuda.ts`) expone ahora catorce banderas. Se
+añadieron dos, y las dos por el mismo motivo: la sección se abría por una suma
+de roles parecida a la puerta real, no por la puerta.
 
-## Las 16 secciones
+- **`isTerritoryManager`** — la misma que `useIsTerritoryManager`. Con los roles
+  sueltos, Territorios se le escondía al hermano del departamento «Territorios»
+  que no es anciano, que es justo quien más la necesita.
+- **`isLanguageGroupOverseer`** — su trabajo del día a día SÍ estaba cubierto
+  (dentro de su grupo le salen true las banderas de editor), pero «Ajustes de
+  grupo» es suya y de nadie más, así que sin la bandera esa pantalla no la
+  explicaba nadie.
+
+## Las 17 secciones
 
 | id | visible para | estado |
 |---|---|---|
@@ -104,8 +112,13 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `visita-co` | anciano, admin | auditada |
 | `responsabilidades` | anciano, admin | auditada |
 | `administracion` | admin, editor de ajustes | auditada |
+| `grupo-idioma` | superintendente de grupo de idioma | **nueva** (cubre `/group-settings`) |
 
-Ya no queda ninguna «sin tocar»: las ocho de más riesgo están auditadas.
+**Auditoría terminada (2026-08-01).** Las 15 secciones originales están
+comprobadas artículo por artículo contra el código, y hay dos nuevas:
+`asistencia` (salió de `informes`, porque quien solo lleva el registro de
+asistencia no puede entrar a casi nada de lo que allí se explicaba) y
+`grupo-idioma` (la única que cubre `/group-settings`).
 
 ## Rutas de la aplicación
 
@@ -128,8 +141,11 @@ Sacadas de `src/App.tsx`. Toda ruta debe estar cubierta por algún artículo:
 /departments-schedule   /group-settings   /manage-access   /manage-access/:id
 ```
 
-`/group-settings` no aparece en ningún artículo. Comprobar qué es y si necesita
-uno.
+**Cubiertas todas.** `/group-settings` era la única que no estaba: es la misma
+pantalla de ajustes en modo grupo, titulada «Ajustes de grupo», y solo entra el
+superintendente de grupo de idioma. Tiene sección propia (`grupo-idioma`).
+`/congregation-settings` tampoco tenía artículo propio y ahora lo tiene, en
+`administracion`. `/service-year` es una redirección a `/ministry-report`.
 
 ## Cambios recientes que el contenido puede no reflejar
 
@@ -173,23 +189,50 @@ artículos a la vez (`forceExpand`), que es la forma rápida de revisarlos.
 
 ## Cómo repartir el trabajo
 
-Son 82 artículos: **no cabe en una sola sesión de contexto**. Trabaja por
-tandas y no intentes abarcarlo todo de una vez.
+Se hizo por tandas, una sección (o dos pequeñas) por commit, empezando por las
+ocho que llevaban el contenido original sin mirar. Los commits de la auditoría,
+en orden: `d7f3df037` (fin de semana + discursos), `483e26e9e` (exhibidores),
+`f9ab9dfeb` (salidas), `97770c7de` (grupos + personas), `f91ac3e99`
+(territorios), `e14ab16f5` (administración), `ed824499d` (departamentos +
+responsabilidades), `101308cbd` (limpieza), `228daae36` (visita del
+superintendente), `1972a48b7` (entre semana), `4867472fb` (informes +
+asistencia), `c9f0ea864` (guía general).
 
-1. Una **sección entera por tanda**, empezando por las de más riesgo (las
-   marcadas «sin tocar» arriba).
-2. **Un commit por sección**, diciendo en el mensaje qué se corrigió y por qué.
-   Así el trabajo sobrevive aunque se acabe el contexto, y se ve el avance.
-3. Al empezar una tanda nueva, `git log --oneline` sobre este fichero dice por
-   dónde ibas. Marca en la tabla de arriba la sección como auditada al
-   terminarla, en el mismo commit.
+## Fallos de la aplicación que destapó
 
-Si algo no se puede verificar con el código delante, dilo en el informe en vez
-de darlo por bueno. Un artículo que «parece razonable» es exactamente lo que
-metió el fallo que originó esta auditoría.
+Nueve, todos arreglados en el commit de su sección:
 
-## Cuándo está terminado
+1. Quien coordina los discursos no tenía tarjeta para llegar a la reunión de
+   fin de semana, y el bloque del discurso público SOLO lo puede rellenar él.
+2. El buscador de la lista de discursos públicos no encontraba por número.
+3. «Mostrar programa de oradores salientes a todos los usuarios» mandaba el
+   dato a todos los dispositivos y luego escondía la pestaña a todo el que no
+   fuera anciano.
+4. `/persons` y `/persons/:id` estaban en las rutas de ancianos, pero
+   `/persons/new` no: un editor de reuniones podía crear una persona y luego no
+   encontrarla, y la tarjeta de Congregación le rebotaba al inicio.
+5. La tarjeta de Territorios en Predicación se abría con un interruptor que
+   viene apagado de fábrica y decide otra cosa, así que un anciano fuera del
+   comité de servicio se quedaba sin puerta a un módulo que sí gestiona.
+6. `/auxiliary-pioneer-application` no tenía NINGUNA puerta en toda la
+   aplicación: ni tarjeta, ni botón, ni un `navigate`.
+7. «Orador sustituto» está a medias: hay interruptor en Ajustes y hay lectura,
+   pero `WM_SubstituteSpeaker` no se escribe en ninguna pantalla, así que no se
+   puede apuntar un sustituto. **Sigue así**: se dice en la Ayuda en vez de
+   inventar un campo.
+8. `publicTalksFilteredState` (en `states/public_talks.ts`) es código muerto:
+   no lo consume nadie. **Sigue ahí**, sin tocar.
+9. `tr_addServiceTime` («Añadir tiempo de predicación») y `tr_substituteSpeaker`
+   («Orador sustituto») son cadenas huérfanas del diccionario, como el
+   `tr_timeInServiceDesc` del cronómetro. **Siguen ahí**, sin tocar.
 
-Los 82 artículos revisados uno a uno, con las 40 rutas cubiertas, y un informe
-de qué se corrigió y por qué —con fichero y línea— en cada caso. `tsc` en 129
-(la línea base), lint sin errores y las 456 pruebas pasando.
+## Terminado
+
+Los artículos revisados uno a uno contra el código, las rutas cubiertas todas,
+`tsc` en 129 (la línea base), lint sin errores, las 456 pruebas pasando y
+`npm run build` limpio.
+
+Lo que queda, si alguien lo quiere seguir: los tres restos del punto 7 al 9 de
+arriba —el sustituto a medias, el átomo muerto y las cadenas huérfanas— se han
+dejado como están a propósito. Ninguno rompe nada; limpiarlos es otro encargo,
+no este.
