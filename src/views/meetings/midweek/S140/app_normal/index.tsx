@@ -1,14 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Document } from '@views/components';
-import {
-  PdfCategory,
-  Sheet,
-  category,
-  fechaPie,
-  periodo,
-  space,
-} from '@views/design';
+import { Sheet, category, fechaPie, periodo } from '@views/design';
 import { Week } from '@definition/week_type';
 import { S140Type } from '../shared/index.types';
 import { useAppTranslation } from '@hooks/index';
@@ -82,18 +75,13 @@ const TemplateS140AppNormal = ({
     return mes ? t('tr_weekOfDay', { lng: lang, day: dia, month: mes }) : dia;
   };
 
-  /** A la derecha de la banda: la lectura de la semana y quién preside. */
-  const metaSemana = (meetingData: S140Type['data'][number]) => {
-    const { lectura } = partirTitulo(meetingData.schedule_title);
-    const presidente = meetingData.chairman_A_name;
-
-    return [
-      lectura,
-      presidente ? `${t('tr_chairman', { lng: lang })}: ${presidente}` : '',
-    ]
-      .filter(Boolean)
-      .join(' · ');
-  };
+  /**
+   * A la derecha de la banda, solo la lectura de la semana: «Jeremías 22, 23».
+   * Quién preside es de las primeras cosas que se buscan, así que va donde se
+   * busca —en la primera línea del programa—, no de apunte en la cabecera.
+   */
+  const metaSemana = (meetingData: S140Type['data'][number]) =>
+    partirTitulo(meetingData.schedule_title).lectura;
 
   return (
     <Document title={t('tr_midweekMeetingPrint')} lang={lang}>
@@ -135,6 +123,22 @@ const TemplateS140AppNormal = ({
 
               {!meetingData.no_meeting && (
                 <>
+                  {/* Quién preside: la primera línea del programa, sin hora
+                      porque no es una parte, es quien lleva la reunión. */}
+                  <View style={stylesSmart.rowContainer}>
+                    <S140PartTime time="" lang={lang} />
+
+                    <S140Source
+                      source={t('tr_chairman', { lng: lang })}
+                      lang={lang}
+                    />
+
+                    <S140Person
+                      primary={meetingData.chairman_A_name}
+                      lang={lang}
+                    />
+                  </View>
+
                   {/* Opening Song & Opening Prayer */}
                   {meetingData.full && (
                     <View style={stylesSmart.rowContainer}>
@@ -177,7 +181,6 @@ const TemplateS140AppNormal = ({
                           ? t('tr_openingComments', { lng: lang })
                           : ' '
                       }
-                      secondary={`${t('tr_chairman', { lng: lang })}:`}
                       lang={lang}
                     />
 
@@ -453,27 +456,6 @@ const TemplateS140AppNormal = ({
             </View>
           );
         })}
-
-        {/* La leyenda de los tres colores: el lector aprende de una vez qué
-            significa cada cuadradito y ya no vuelve a preguntárselo. */}
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: space.xl,
-            marginTop: space.xs,
-          }}
-        >
-          <PdfCategory color={category.treasures}>
-            {t('tr_treasuresPart', { lng: lang })}
-          </PdfCategory>
-          <PdfCategory color={category.teachers}>
-            {t('tr_applyFieldMinistryPart', { lng: lang })}
-          </PdfCategory>
-          <PdfCategory color={category.living}>
-            {t('tr_livingPart', { lng: lang })}
-          </PdfCategory>
-        </View>
       </Sheet>
     </Document>
   );

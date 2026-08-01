@@ -114,6 +114,13 @@ const styles: Record<string, Style> = {
     color: color.faint,
     textAlign: 'left',
   },
+  sourceSecondaryContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    // El mismo hueco que separa los dos nombres de al lado, para que las dos
+    // columnas caigan línea con línea.
+    gap: 2,
+  },
   sourceSecondary: {
     fontSize: size.meta,
     color: color.secondary,
