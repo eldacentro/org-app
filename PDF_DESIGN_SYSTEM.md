@@ -148,6 +148,13 @@ El nombre de la congregación **siempre** por parámetro. El wordmark pone la
   se escriben: Figtree no trae U+25C6 y react-pdf no tiene fuente de reserva,
   así que lo que salía en el papel era un cuadrado vacío. Lo mismo vale para
   cualquier símbolo fuera del latín básico.
+- **R16 bis · Un nombre no se parte.** En una lista de nombres separados por
+  puntos, el renglón corta por cualquier espacio, y el de dentro de «José
+  Joaquín Ossa» vale tanto como el de al lado del punto: el «Ossa» acababa solo
+  al principio de la línea siguiente. Los nombres pasan por `nombreEntero`, que
+  convierte sus espacios en espacios duros — se ven igual, pero el corte solo
+  puede caer entre un nombre y el siguiente.
+  → [`texto.ts`](./src/views/design/texto.ts)
 - **R17 · Un `<Text>` no mezcla cadenas sueltas con `<Text>` anidados.** O todos
   los hijos son elementos o ninguno lo es. Mezclarlos es donde react-pdf se deja
   piezas por el camino: así desaparecieron el orador del fin de semana y, en

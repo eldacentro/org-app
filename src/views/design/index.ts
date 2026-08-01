@@ -52,5 +52,6 @@ export {
   fechaCortaTabla,
   nombreMes,
 } from './fecha';
+export { nombreEntero, listaDeNombres } from './texto';
 export type { PdfTableColumn, PdfTableRow } from './Table';
 export type { PdfGridCell } from './Grid';

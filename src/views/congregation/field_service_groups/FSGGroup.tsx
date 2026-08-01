@@ -5,10 +5,36 @@ import {
   PdfKeyValue,
   PdfHairline,
   category,
+  nombreEntero,
   size,
   space,
+  text,
 } from '@views/design';
 import { FSGGroupProps } from './index.types';
+
+/**
+ * El superintendente o su auxiliar. Llevan el rombo si son precursores igual
+ * que cualquier otro del grupo: el rombo dice «precursor», no «no tiene cargo».
+ */
+const Responsable = ({
+  persona,
+}: {
+  persona: { name: string; isPioneer: boolean };
+}) => (
+  <View
+    style={{
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+    }}
+  >
+    <Text style={{ ...text.body, fontWeight: 600 }}>
+      {nombreEntero(persona.name)}
+    </Text>
+    {persona.isPioneer ? <PdfDiamond /> : null}
+  </View>
+);
 
 /**
  * Un grupo de predicación. Documento 9, tarjeta de la rejilla de 2 columnas.
@@ -41,13 +67,13 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
     >
       <View style={{ display: 'flex', flexDirection: 'row', gap: space.md }}>
         {group.overseer ? (
-          <PdfKeyValue label="Superintendente" strong style={{ flex: 1 }}>
-            {group.overseer.name}
+          <PdfKeyValue label="Superintendente" style={{ flex: 1 }}>
+            <Responsable persona={group.overseer} />
           </PdfKeyValue>
         ) : null}
         {group.overseerAssistant ? (
-          <PdfKeyValue label="Auxiliar" strong style={{ flex: 1 }}>
-            {group.overseerAssistant.name}
+          <PdfKeyValue label="Auxiliar" style={{ flex: 1 }}>
+            <Responsable persona={group.overseerAssistant} />
           </PdfKeyValue>
         ) : null}
       </View>
@@ -72,7 +98,9 @@ const FSGGroup = ({ group }: FSGGroupProps) => {
               paddingVertical: 1.2,
             }}
           >
-            <Text style={{ fontSize: size.meta }}>{publisher.name}</Text>
+            <Text style={{ fontSize: size.meta }}>
+              {nombreEntero(publisher.name)}
+            </Text>
             {publisher.isPioneer ? <PdfDiamond /> : null}
           </View>
         ))}

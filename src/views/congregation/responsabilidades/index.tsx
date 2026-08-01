@@ -7,6 +7,8 @@ import {
   Sheet,
   color,
   fechaPie,
+  listaDeNombres,
+  nombreEntero,
   periodo,
   radius,
   space,
@@ -153,12 +155,18 @@ const TemplateResponsabilidades = ({
                       <Text style={{ fontSize: 8.5, fontWeight: 600 }}>
                         {dep.name}
                       </Text>
+                      {/*
+                       * Los nombres van por `nombreEntero`: sus espacios pasan
+                       * a ser duros, así que «José Joaquín Ossa» baja entero a
+                       * la línea siguiente en vez de dejarse el «Ossa» solo. El
+                       * renglón solo puede cortar entre un nombre y el
+                       * siguiente, que es donde tiene sentido.
+                       */}
                       <Text style={{ fontSize: 8.5, color: color.ink }}>
-                        {resolve(dep.responsable)}
+                        <Text>{nombreEntero(resolve(dep.responsable))}</Text>
                         {dep.auxiliar ? (
                           <Text style={{ fontSize: 8, color: color.secondary }}>
-                            {'  ·  '}
-                            {resolve(dep.auxiliar)}
+                            {`  ·  ${nombreEntero(resolve(dep.auxiliar))}`}
                           </Text>
                         ) : null}
                       </Text>
@@ -171,9 +179,9 @@ const TemplateResponsabilidades = ({
                             marginTop: 1,
                           }}
                         >
-                          {(dep as DepartamentoExtended).members
-                            .map(resolve)
-                            .join(' · ')}
+                          {listaDeNombres(
+                            (dep as DepartamentoExtended).members.map(resolve)
+                          )}
                         </Text>
                       ) : null}
                     </View>
