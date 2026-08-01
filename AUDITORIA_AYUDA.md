@@ -14,13 +14,18 @@ verdad, y añadir solo lo que falte.
 
 En «Guía general» → «Todo lo que hay en Congregación» había un párrafo que
 decía que cualquier publicador ve el resumen de la visita del superintendente
-en esa sección. Es falso: la tarjeta está tras `isElder` en
-`src/pages/category_dashboards/congregation/index.tsx:178`. Lo que un
-publicador ve es una pestaña en Programas semanales.
+en esa sección. Era falso: esa tarjeta está tras `isElder`. Lo que ve un
+publicador es una pestaña en Programas semanales.
 
 Ya está corregido, pero **es el patrón del problema**: texto escrito cuando la
 aplicación funcionaba de otra manera, que sigue ahí porque nadie lo ha vuelto a
 mirar. Hay que suponer que casos así los hay a puñados.
+
+Y una advertencia sacada de ese mismo caso: al ir a comprobarlo salió que la
+pestaña no tenía ninguna ventana de tiempo —aparecía en cuanto se programaba
+la visita, aunque faltara un año—. **Auditar la Ayuda destapa fallos de la
+aplicación, no solo del texto.** Cuando pase, arréglalo o dilo; no ajustes el
+texto para que describa el fallo.
 
 ## El método, artículo por artículo
 
@@ -33,8 +38,10 @@ contra el código. No de memoria, no por lo que parezca razonable:
 2. **¿Lo ve quien dice?** Cruzar el `visible:` de la sección y lo que el
    artículo da por hecho con el gating real: `useCurrentUser`, los `&&` de los
    paneles de categoría (`src/pages/category_dashboards/*/index.tsx`), y los
-   hooks de acceso propios de cada módulo (por ejemplo
-   `useCircuitVisitAccess`, que tiene cuatro niveles).
+   hooks de acceso propios de cada módulo (`useIsCircuitVisitManager`,
+   `useCircuitVisitForBrothers`, `useTerritoryAccess`…). Ojo: un módulo puede
+   tener DOS puertas distintas —una para la página y otra para lo que se
+   enseña en Programas semanales— y no tienen por qué coincidir.
 3. **¿Se llama así?** Los rótulos que cita el artículo tienen que ser
    literalmente los de pantalla. Buscarlos en el `.tsx` o en `src/locales/es-ES/`.
 4. **¿Falta algo de esa pantalla?** Lo que la pantalla hace y el artículo no
