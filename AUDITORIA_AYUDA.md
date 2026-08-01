@@ -100,7 +100,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 | `personas` | quien ve personas | auditada |
 | `territorios` | quien gestiona Territorios (`useIsTerritoryManager`) | auditada |
 | `limpieza` | anciano | auditada |
-| `visita-co` | anciano, admin | nueva |
+| `visita-co` | anciano, admin | auditada |
 | `responsabilidades` | anciano, admin | auditada |
 | `administracion` | admin, editor de ajustes | auditada |
 

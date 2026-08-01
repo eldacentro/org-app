@@ -1938,16 +1938,19 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             title: 'Para activarla:',
             items: [
-              'Entra en «Visita del superintendente» desde Congregación.',
-              'Pulsa «Nueva visita».',
-              'Elige el martes en que empieza la visita. Ese día manda: todo lo demás se calcula a partir de él.',
-              'Escribe el nombre del superintendente y el de su esposa (déjalo vacío si es soltero).',
+              'Entra en "Visita del superintendente" desde Congregación.',
+              'Pulsa "Nueva visita".',
+              'En "Semana de la visita", elige el martes en que empieza. Ese día manda: todo lo demás se calcula a partir de él.',
               'Guarda.',
             ],
           },
           {
+            type: 'p',
+            text: 'El nombre del superintendente no se escribe aquí: sale del que tengas puesto en los ajustes de la congregación, y el mismo vale para todas las visitas.',
+          },
+          {
             type: 'tip',
-            text: 'Si viene un sustituto, activa el interruptor «Viene un superintendente sustituto» y pon su nombre. El programa sale igual, pero con quien de verdad viene.',
+            text: 'Si viene un sustituto, marca la casilla "Viene un superintendente sustituto" y rellena "Nombre del sustituto" y "Nombre de su esposa (vacío si soltero)". El programa sale igual, pero con quien de verdad viene.',
           },
           {
             type: 'faq',
@@ -1985,11 +1988,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Dentro de la visita tienes el programa completo de la semana: el programa de comidas, quién acompaña al superintendente cada salida y el programa de predicación de esos días.',
+            text: 'Dentro de la visita tienes el programa completo de la semana, en tarjetas: "Programa de comidas" (los anfitriones de cada día), "Programa de predicación" —de miércoles a domingo, con las mismas salidas que ya tienes en "Salidas de predicación"—, "Visitas de pastoreo" (los hermanos a los que va a visitar), "Reuniones especiales" y "Contabilidad", que es solo un recordatorio porque eso se lleva aparte.',
+          },
+          {
+            type: 'warn',
+            text: 'Las "Reuniones especiales" no se anuncian hasta que tengan fecha, hora Y lugar. Mientras le falte alguno de los tres, solo la ves tú aquí.',
           },
           {
             type: 'tip',
-            text: 'Todo esto sale en el PDF de la visita, que cabe en una sola hoja. Es el que se reparte a los ancianos y el que se cuelga en el tablón.',
+            text: 'El botón "Exportar" de arriba saca el PDF de la visita, que cabe en una sola hoja. Es el que se reparte a los ancianos y el que se cuelga en el tablón.',
           },
         ],
       },
@@ -2012,7 +2019,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Cada uno de los tres primeros se exporta desde su propia pantalla, y desde aquí tienes el acceso directo.',
+            text: 'Los tres primeros llevan su propio botón "Exportar" ahí mismo: no hace falta ir a la pantalla de cada uno para sacar el PDF.',
           },
         ],
       },
