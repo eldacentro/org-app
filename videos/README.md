@@ -1,5 +1,8 @@
 # Los vídeos de presentación — cómo se hacen
 
+**Estado: en pausa (2026-08-01).** El proceso funciona de principio a fin y hay
+un plano de referencia aprobado. Lo que falta está al final del documento.
+
 Vídeos cortos que enseñan qué puede hacer cada hermano en la aplicación. Van
 por WhatsApp (vertical) y se proyectan alguna vez en el Salón (horizontal).
 
@@ -7,65 +10,61 @@ por WhatsApp (vertical) y se proyectan alguna vez en el Salón (horizontal).
 de verdad**, funcionando, con datos ficticios. Como los vídeos de producto de
 Apple, que son su producto real con diseño de movimiento alrededor.
 
-## Las tres piezas
+## Cómo se hace un vídeo, hoy
 
-1. **Sembrar** — el modo de prueba, con la congregación ficticia. Ya existe.
-   Ni un nombre real sale en un vídeo que va a circular por WhatsApp.
-2. **Capturar** — un guión por vídeo que recorre la aplicación sola y saca los
-   fotogramas. Determinista: mismo guión, mismo resultado.
-3. **Componer** — Remotion monta el marco del dispositivo, el metraje dentro,
-   los rótulos, los subtítulos y las transiciones.
+```bash
+cd videos
+node grabar.mjs              # recorre la app y graba el gesto
+node suavizar.mjs informe    # 60 fps limpios
+cp tomas/informe/suave.mp4 public/
+npx remotion render src/index.ts Prueba out/prueba-crudo.mp4 --frames-per-second=60 --crf=14
+ffmpeg -y -i out/prueba-crudo.mp4 -vf "tmix=frames=3,fps=30" -crf 15 out/prueba.mp4
+```
 
-Al final: `npm run video -- --guion=maestro`.
+Necesita el preview de la app levantado en el **4137** (`npm run preview`).
 
-## Por qué Remotion
+## Las piezas
 
-React → MP4. El vídeo **es** código.
+| Fichero | Qué hace |
+|---|---|
+| `grabar.mjs` | Recorre la app y graba la interfaz **funcionando**. Saca los fotogramas y un `marcas.json` con qué se tocó, cuándo y **en qué coordenada**. |
+| `suavizar.mjs` | De fotogramas irregulares a 60 fps limpios, interpolando el movimiento. |
+| `src/marca.ts` | Colores y curvas, copiados de la aplicación. |
+| `src/camara.tsx` | La cámara en espacio 3D: acercarse cambia la perspectiva, no el tamaño. |
+| `src/Prueba.tsx` | El montaje del informe: planos, dedo, cerco, plano a sangre. |
+| `src/Maestro.tsx` | El primer intento, con rótulos. **Superado** — se conserva solo como referencia de lo que NO queremos. |
 
-- Mismo lenguaje que la aplicación, así que se reutilizan sus tokens de color y
-  su tipografía. La marca cuadra sola, sin ajustar nada a ojo.
-- Va en Git, con su historial.
-- **Cuando cambie la interfaz, se vuelve a renderizar y los vídeos se
-  actualizan.** Vídeos que no caducan, que es lo que mata a los tutoriales
-  grabados a mano.
+## Tres trampas que costaron encontrar, y que no hay que volver a pisar
 
-After Effects daría lo mismo de bonito pero a mano, y cada rediseño obligaría a
-rehacerlos uno a uno.
+1. **El screencast ignora `deviceScaleFactor`.** Entrega los fotogramas al
+   tamaño del viewport EN PUNTOS: salían a 402×874 y los planos cerrados
+   ampliaban una imagen diminuta. `maxWidth` tampoco lo sube. La vuelta es dar
+   un viewport tres veces mayor y devolver la maquetación a tamaño de móvil con
+   `zoom` — la app sigue viendo 402 px y sus mismas medias queries, pero se
+   pinta sobre 1206 píxeles reales.
+2. **El screencast solo emite al repintar**, o sea unos 8 fps y a ráfagas.
+   Reproducir esos fotogramas a ritmo fijo deforma el movimiento. Por eso se
+   guarda el sello temporal de cada uno y `suavizar.mjs` remuestrea.
+3. **Recargar la página rehace los datos de prueba** y vuelve a pedir
+   confirmación. Nunca se navega por la dirección: se pulsa, o se va atrás.
 
-## La voz
+## Lo que quedó pendiente
 
-Carlos graba, **plano a plano**: un archivo por plano, numerado
-(`audio/maestro/01.m4a`…). Nunca los 75 segundos de una vez.
+- **El envío del informe.** «Enviar» está deshabilitado hasta que la aplicación
+  lo permite, y no se consiguió con los datos de prueba ni esperando, ni
+  desplazando, ni forzando la pulsación. El vídeo termina en «guardado». Sin
+  eso falta el final natural: el visto de confirmación.
+- **Más capa de gráficos.** Solo existe el cerco. Faltaría un contador que se
+  dibuje junto a las horas, y la animación de sincronización entre dispositivos
+  (planos 7 y 8 del guión, que son compuestos y no capturas).
+- **Decidir el recorte del plano a sangre.** Está a `z = 1.75`, que corta por
+  los lados. Se ve intencionado, pero conviene decidirlo a propósito.
+- **La voz.** El guión está escrito ([GUION_MAESTRO.md](./GUION_MAESTRO.md))
+  pero sin grabar. Va **plano a plano**, un archivo por plano: así un cambio en
+  la interfaz cuesta ocho segundos de audio y no setenta y cinco.
+- **Los siete cortos de rol.** Solo cuando el maestro esté cerrado.
 
-Es lo que salva la automatización: si cambia una pantalla, se vuelve a grabar
-ese plano —ocho segundos— y no el vídeo entero. La duración de cada plano la
-manda su audio; Remotion lo lee y coloca lo demás alrededor.
-
-Los subtítulos se generan del mismo guión, sin transcribir nada.
-
-## Formatos
-
-Vertical **9:16** es el principal (WhatsApp, en el móvil). Del mismo código
-sale la versión **16:9** para proyectar.
-
-No es un reencuadre automático: los rótulos y el marco del dispositivo se
-colocan distinto en cada uno. Se compone pensando en vertical y se adapta el
-horizontal, no al revés.
-
-## Estado
-
-- [x] Guión del vídeo maestro — [GUION_MAESTRO.md](./GUION_MAESTRO.md)
-- [ ] Grabar la voz del maestro (Carlos)
-- [ ] Plantilla de Remotion: marco, tipografía, transiciones, punto del dedo,
-      subtítulos
-- [ ] Guiones de captura con automatización del navegador
-- [ ] Renderizar el maestro y criticarlo
-- [ ] Los siete cortos de rol
-
-## Los siete cortos (después del piloto)
-
-Solo cuando la plantilla del maestro esté aprobada. Cada uno hereda de ella, así
-que lo único nuevo es su guión de capturas y sus rótulos.
+## Los siete cortos (cuando se retome)
 
 | Vídeo | Para quién | Duración |
 |---|---|---|
@@ -77,9 +76,10 @@ que lo único nuevo es su guión de capturas y sus rótulos.
 | Territorios | Comité de servicio y ancianos | ~45 s |
 | Tu grupo | Superintendentes de grupo | ~35 s |
 
-**Nadie ve más de dos:** el maestro y el suyo. Dos minutos en total. El reparto
-sigue la misma lógica que la Ayuda — a cada uno lo que le toca.
+**Nadie ve más de dos:** el maestro y el suyo. El reparto sigue la misma lógica
+que la Ayuda — a cada uno lo que le toca.
 
-## Herramientas ya disponibles
+## Herramientas
 
-Node 22 y ffmpeg 8.1 instalados. Falta añadir Remotion y Playwright.
+Node 22, ffmpeg 8.1, Remotion y Playwright, todo instalado. `videos/node_modules`,
+`out/`, `tomas/` y `public/` no van a Git: se regeneran.
