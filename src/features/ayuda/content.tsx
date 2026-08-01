@@ -2031,6 +2031,37 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         ],
       },
       {
+        id: 'co-publicar',
+        title: 'Publicar la visita (hasta entonces es un borrador)',
+        blocks: [
+          {
+            type: 'warn',
+            text: 'Mientras la visita esté en BORRADOR, nada de lo que repartas le llega a nadie: ni al anfitrión su comida, ni al acompañante su salida, ni al anciano su visita de pastoreo. Podéis ir poniendo nombres a lápiz, cambiarlos veinte veces y dejar huecos, sin que a ningún hermano le aparezca una asignación que aún está por confirmar.',
+          },
+          {
+            type: 'steps',
+            items: [
+              'Prepara el programa con calma: comidas, acompañantes y pastoreo.',
+              'Cuando esté decidido, toca "Publicar" (arriba a la derecha) y confirma.',
+              'Desde ese momento, cada hermano ve lo suyo en "Mis asignaciones".',
+            ],
+          },
+          {
+            type: 'p',
+            text: 'Mientras no esté publicada, la cabecera de la visita lleva una etiqueta naranja que pone "Borrador", y el botón azul dice "Publicar". Una vez publicada, el botón pasa a decir "Publicado" y desde ahí puedes retirarla: vuelve a ser un borrador y esas asignaciones dejan de verse.',
+          },
+          {
+            type: 'tip',
+            text: 'Publicada una vez, ya no hay que volver a publicar: lo que cambies después se les actualiza al momento. Publicar es abrir la puerta, no enviar una copia.',
+          },
+          {
+            type: 'faq',
+            q: 'Entonces, ¿hasta que publique no se entera nadie de que hay visita?',
+            a: 'Eso no: lo del borrador es solo lo que se reparte a personas. Que esa semana es semana de visita se sabe desde que la activas — la reunión de entre semana ya se mueve a su día, y la pestaña "Visita del superintendente" les sale en Programas semanales desde dos meses antes. Lo que espera a que publiques son las comidas, los acompañantes y el pastoreo.',
+          },
+        ],
+      },
+      {
         id: 'co-documentacion',
         title: 'La documentación que hay que tener lista',
         blocks: [

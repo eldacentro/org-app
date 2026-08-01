@@ -106,7 +106,7 @@ const DeptPublishDialog = ({
         {hasSchedule && (
           <AppButton
             variant="main"
-            color={isPublished ? 'red' : 'primary'}
+            color={isPublished ? 'red' : undefined}
             disableAutoStretch
             onClick={onConfirm}
           >

@@ -149,5 +149,19 @@ export const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
     meeting_pioneers: null,
     meeting_elders: null,
     accounting_note: '',
+    // Nace en borrador: los ancianos reparten comidas y acompañantes a lápiz,
+    // y hasta que publican no le sale a nadie en "Mis asignaciones".
+    published: false,
   };
 };
+
+/**
+ * ¿Está publicada esta visita?
+ *
+ * `undefined` cuenta como publicada: es el histórico, de cuando esto no
+ * existía. Si no, al desplegar el cambio las visitas ya en marcha se caerían
+ * de las asignaciones de todo el mundo sin que nadie hubiera tocado nada.
+ */
+export const isCircuitVisitPublished = (
+  visit: Pick<CircuitVisitType, 'published'> | null | undefined
+) => visit?.published !== false;

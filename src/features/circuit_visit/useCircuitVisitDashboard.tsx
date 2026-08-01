@@ -34,7 +34,10 @@ import {
   dbCircuitVisitSave,
   dbCircuitVisitDelete,
 } from '@services/dexie/circuit_visit';
-import { buildVisitForWeek } from '@services/app/circuit_visit';
+import {
+  buildVisitForWeek,
+  isCircuitVisitPublished,
+} from '@services/app/circuit_visit';
 import { addDays, formatDate } from '@utils/date';
 import { getEffectiveCoName } from './shared/getEffectiveCoName';
 import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
@@ -87,6 +90,37 @@ const useCircuitVisitDashboard = () => {
     const fromStore = sortedVisits.find((v) => v.id === selectedId) ?? null;
     setWorking((prev) => (prev && prev.id === selectedId ? prev : fromStore));
   }, [selectedId, sortedVisits]);
+
+  const isPublished = isCircuitVisitPublished(working);
+
+  /**
+   * Cuántas personas se van a enterar al publicar: anfitriones de comida,
+   * acompañantes (y las hermanas que van con la esposa) y los ancianos del
+   * pastoreo. Se cuenta gente, no huecos: al mismo hermano en dos sitios se le
+   * cuenta una vez.
+   */
+  const assignedPeopleCount = useMemo(() => {
+    if (!working) return 0;
+
+    const uids = new Set<string>();
+
+    (working.meals ?? []).filter(Boolean).forEach((meal) => {
+      if (meal.host) uids.add(meal.host);
+    });
+
+    (working.co_companions ?? []).filter(Boolean).forEach((companion) => {
+      if (companion.brother) uids.add(companion.brother);
+      (companion.spouse_companions ?? []).forEach((uid) => {
+        if (uid) uids.add(uid);
+      });
+    });
+
+    (working.shepherding_visits ?? []).filter(Boolean).forEach((sv) => {
+      if (sv.elder) uids.add(sv.elder);
+    });
+
+    return uids.size;
+  }, [working]);
 
   const flushSave = useCallback((record: CircuitVisitType) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -151,6 +185,46 @@ const useCircuitVisitDashboard = () => {
     },
     [sortedVisits]
   );
+
+  /**
+   * Publica la visita o la retira a borrador.
+   *
+   * Guarda al INSTANTE, sin pasar por el temporizador de `flushSave`: publicar
+   * es una decisión, no un tecleo. Dejarlo al autoguardado significaría que
+   * cerrar la pestaña justo después se lleva la publicación por delante.
+   */
+  const handleTogglePublish = useCallback(async () => {
+    if (!working) return;
+
+    const next: CircuitVisitType = { ...working, published: !isPublished };
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+
+    setWorking(next);
+    setSaveStatus('saving');
+
+    try {
+      await dbCircuitVisitSave(next);
+      setSaveStatus('saved');
+      savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+
+      displaySnackNotification({
+        header: 'Hecho',
+        message: isPublished
+          ? 'Visita retirada: vuelve a ser un borrador y sus asignaciones dejan de verse.'
+          : 'Visita publicada. Cada hermano ya ve lo suyo en "Mis asignaciones".',
+        severity: 'success',
+      });
+    } catch (error) {
+      setSaveStatus('error');
+      console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+      });
+    }
+  }, [working, isPublished]);
 
   // dbCircuitVisitDelete ya limpia también la entrada ligera de Ajustes
   // (settings.circuit_overseer.visits) además de revertir los marcadores.
@@ -532,6 +606,9 @@ const useCircuitVisitDashboard = () => {
     hasVisits: sortedVisits.length > 0,
     handleCreateVisit,
     handleDeleteVisit,
+    handleTogglePublish,
+    isPublished,
+    assignedPeopleCount,
     patch,
     addMeal,
     updateMeal,

@@ -3824,7 +3824,7 @@ const PredicacionSalidas = () => {
           </AppButton>
           <AppButton
             variant="main"
-            color={monthIsPublished ? 'red' : 'primary'}
+            color={monthIsPublished ? 'red' : undefined}
             disableAutoStretch
             onClick={handleTogglePublishMonth}
           >

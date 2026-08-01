@@ -75,4 +75,22 @@ export type CircuitVisitType = {
   // Contabilidad: org-app no tiene módulo de finanzas; esto es solo una nota de
   // "gestionado aparte" para la checklist de la visita.
   accounting_note: string;
+
+  /**
+   * ¿Está PUBLICADA? Mientras no lo esté, lo que se reparte a personas
+   * —comidas, acompañantes y pastoreo— no le sale a nadie en "Mis
+   * asignaciones": los ancianos pueden ir poniendo nombres a lápiz sin que al
+   * hermano le llegue una asignación que aún está por confirmar.
+   *
+   * OPCIONAL a propósito. `undefined` = publicada, que es como se comportaban
+   * las visitas antes de que esto existiera: si no, al desplegar el cambio las
+   * visitas ya en marcha desaparecerían de golpe de las asignaciones de todos.
+   * Las visitas nuevas nacen con `false` (ver `buildVisitForWeek`).
+   *
+   * Lo que NO depende de esto: que la semana sea semana de visita. El día al
+   * que se mueve la reunión, la pestaña de Programas semanales y la entrada de
+   * Próximos eventos siguen saliendo desde que se activa la visita — eso no es
+   * una asignación de nadie, y ya tiene su propia ventana de dos meses.
+   */
+  published?: boolean;
 };

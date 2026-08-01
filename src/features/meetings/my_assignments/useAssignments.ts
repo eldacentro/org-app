@@ -22,6 +22,7 @@ import {
   serviceOutingsSettingsState,
 } from '@states/service_outings';
 import { circuitVisitsState } from '@states/circuit_visit';
+import { isCircuitVisitPublished } from '@services/app/circuit_visit';
 import { ACTIVITY_LABELS } from '@features/circuit_visit/shared/activityLabels';
 import { personsStateFind } from '@services/states/persons';
 import {
@@ -531,6 +532,12 @@ const useMyAssignments = () => {
 
       for (const visit of circuitVisits) {
         if (visit._deleted) continue;
+
+        // Una visita en BORRADOR no reparte nada: los ancianos pueden ir
+        // poniendo anfitriones y acompañantes a lápiz sin que al hermano le
+        // aparezca una asignación que todavía está por confirmar. Al publicar,
+        // salen todas de golpe.
+        if (!isCircuitVisitPublished(visit)) continue;
 
         // Comidas: aparece al anfitrión (host = person_uid)
         for (const meal of (visit.meals ?? []).filter(Boolean)) {

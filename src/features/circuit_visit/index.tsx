@@ -26,8 +26,10 @@ import {
   IconWallet,
   IconChevronRight,
   IconHistory,
+  IconGroups,
 } from '@components/icons';
 import { addDays, formatDate, horaATexto, textoAHora } from '@utils/date';
+import CircuitVisitPublishDialog from './publish_dialog';
 import { fmtDayEs, fmtDateShortEs, fmtRangeEs } from './shared/fmtDayEs';
 import useExportS21 from '@features/reports/publisher_records/export_S21/useExportS21';
 import useExportS88 from '@features/reports/meeting_attendance/export_S88/useExportS88';
@@ -669,7 +671,12 @@ const CircuitVisitDashboard = () => {
     removeShepherding,
     updateSpecialMeeting,
     handleExportPdf,
+    handleTogglePublish,
+    isPublished,
+    assignedPeopleCount,
   } = useCircuitVisitDashboard();
+
+  const [publishDialog, setPublishDialog] = useState(false);
 
   const navigate = useNavigate();
   const [newWeek, setNewWeek] = useState<Date | null>(null);
@@ -908,6 +915,18 @@ const CircuitVisitDashboard = () => {
         paddingBottom: '16px',
       }}
     >
+      <CircuitVisitPublishDialog
+        open={publishDialog}
+        onClose={() => setPublishDialog(false)}
+        onConfirm={async () => {
+          await handleTogglePublish();
+          setPublishDialog(false);
+        }}
+        isPublished={isPublished}
+        rangeLabel={working ? formatRange(working) : ''}
+        assignedPeopleCount={assignedPeopleCount}
+      />
+
       <PageTitle
         title="Visita del superintendente de circuito"
         buttons={
@@ -928,11 +947,25 @@ const CircuitVisitDashboard = () => {
             )}
             {working && (
               <Button
-                variant="main"
-                startIcon={<IconPrint color="var(--always-white)" />}
+                variant="small"
+                startIcon={<IconPrint color="var(--accent-main)" />}
                 onClick={handleExportPdf}
+                sx={{ whiteSpace: 'nowrap' }}
               >
                 Exportar
+              </Button>
+            )}
+            {/* El botón azul de esta pantalla es publicar: es a lo que vienes
+                (DESIGN_SYSTEM §6.4c, uno por pantalla). Exportar baja a
+                secundario, como en las demás páginas que publican. */}
+            {working && (
+              <Button
+                variant="main"
+                startIcon={<IconGroups color="var(--always-white)" />}
+                onClick={() => setPublishDialog(true)}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                {isPublished ? 'Publicado' : 'Publicar'}
               </Button>
             )}
           </Stack>
@@ -1033,6 +1066,25 @@ const CircuitVisitDashboard = () => {
                           color={visitStatus.fg}
                         >
                           {visitStatus.label}
+                        </Typography>
+                      </Box>
+                    )}
+                    {/* Que se vea de un vistazo, sin abrir nada: mientras
+                        ponga "Borrador", lo que hay repartido no le ha
+                        llegado a nadie. */}
+                    {!isPublished && (
+                      <Box
+                        sx={{
+                          backgroundColor: 'var(--orange-secondary)',
+                          borderRadius: 'var(--shape-full)',
+                          padding: '2px 10px',
+                        }}
+                      >
+                        <Typography
+                          className="label-small-medium"
+                          color="var(--orange-dark)"
+                        >
+                          Borrador
                         </Typography>
                       </Box>
                     )}
