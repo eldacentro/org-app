@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
-import { Box } from '@mui/material';
+import {
+  CardSection,
+  CardSectionContent,
+  CardSectionHeader,
+} from '../shared_styles';
 import { congNameState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { TemplateAccesos } from '@views/index';
 import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
 import Button from '@components/button';
-import Typography from '@components/typography';
 import { IconPrint } from '@components/icons';
 
 /**
@@ -54,26 +57,27 @@ const AccesosExport = () => {
     }
   };
 
+  // Va en `CardSection` como sus hermanas de esta página. Suelto sobre el
+  // fondo era la única pieza sin tarjeta y se notaba a la legua.
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <Box>
-        <Typography className="h4">Quién ve qué en la aplicación</Typography>
-        <Typography className="body-small-regular" color="var(--grey-400)">
-          Un cuadro con lo que puede abrir cada hermano según sus encargos, para
-          repasarlo con el cuerpo de ancianos.
-        </Typography>
-      </Box>
+    <CardSection>
+      <CardSectionHeader
+        title="Quién ve qué en la aplicación"
+        description="Un cuadro con lo que puede abrir cada hermano según sus encargos, para repasarlo con el cuerpo de ancianos."
+      />
 
-      <Button
-        variant="secondary"
-        startIcon={<IconPrint />}
-        onClick={handleExportPDF}
-        disabled={isProcessing}
-        sx={{ alignSelf: 'flex-start' }}
-      >
-        Exportar
-      </Button>
-    </Box>
+      <CardSectionContent>
+        <Button
+          variant="secondary"
+          startIcon={<IconPrint />}
+          onClick={handleExportPDF}
+          disabled={isProcessing}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Exportar
+        </Button>
+      </CardSectionContent>
+    </CardSection>
   );
 };
 

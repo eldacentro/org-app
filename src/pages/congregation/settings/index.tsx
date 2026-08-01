@@ -111,6 +111,7 @@ const CongregationSettings = () => {
               <CircuitOverseer />
               <LanguageGroups />
               <CongregationPrivacy />
+              <AccesosExport />
             </>
           )}
         </Stack>
