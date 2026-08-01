@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import {
   IconArrowLink,
-  IconCollapse,
+  IconExpand,
   IconLightbulb,
   IconError,
 } from '@icons/index';
@@ -365,8 +365,13 @@ const SectionView = ({
                   borderTop: '1px solid var(--line)',
                 }}
               >
+                {/* `expandIcon` es el icono del estado CERRADO: MUI lo gira
+                    180° al abrir. Aquí estaba puesta la flecha de cerrar (la
+                    que apunta arriba), así que salía al revés en los dos
+                    estados. Es la misma que usa el acordeón compartido de la
+                    app (components/accordion). */}
                 <AccordionSummary
-                  expandIcon={<IconCollapse color="var(--accent-350)" />}
+                  expandIcon={<IconExpand color="var(--accent-350)" />}
                 >
                   <Typography className="body-regular-semibold">
                     {article.title}
