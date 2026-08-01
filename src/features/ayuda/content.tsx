@@ -738,8 +738,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             title: 'Si una semana aún no aparece o quieres forzar la descarga:',
             items: [
-              'Entra en "Configuración" desde el panel.',
-              'Toca "Importar desde jw.org" (o "Importar desde archivo" si tienes el .jwpub descargado).',
+              'Entra en Configuración → "Materiales de reunión". Ahí se ve qué hay importado, de dónde vino y qué semanas faltan.',
+              'Toca "Importar desde jw.org" (o "Importar desde archivo .jwpub" si tienes el archivo descargado).',
               'Espera a que termine y las semanas nuevas aparecerán en el programa.',
             ],
           },
@@ -765,6 +765,10 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'tip',
             text: '¿Prisa? El botón "Autocompletar" rellena las asignaciones de un rango de semanas repartiendo según el historial. Después solo repasa y ajusta lo que quieras a mano.',
+          },
+          {
+            type: 'p',
+            text: 'El engranaje junto al título abre los ajustes de esta reunión sin salir de ella: el día y la hora, si hay clase auxiliar, cómo se escriben los nombres y las "Partes vinculadas" —"Vincular oración de inicio" y "Vincular oración de conclusión"—, para que las oraciones caigan solas en quien lleva la parte de al lado.',
           },
           {
             type: 'faq',
@@ -816,9 +820,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             items: [
               'Cuando el programa esté listo, toca "Publicar".',
-              'Elige las semanas que quieres publicar y confirma.',
-              'A cada hermano con asignación le aparece en "MIS ASIGNACIONES" (y recibe su notificación).',
+              'La ventana lista los MESES por año, con una casilla cada uno; los ya publicados llevan un icono al lado. Marca los que quieras y dale a "Publicar".',
+              'A cada hermano con asignación le aparece en "Mis asignaciones" (y recibe su notificación).',
             ],
+          },
+          {
+            type: 'p',
+            text: 'El botón "Publicar" solo aparece si la congregación está conectada.',
           },
           {
             type: 'link',
@@ -835,7 +843,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             items: [
               'En la pantalla del programa, toca "Exportar".',
-              'Elige el rango de semanas y el formato: el programa en PDF (plantilla S-140) para el tablón, o las tarjetas S-89 para las asignaciones estudiantiles.',
+              'Marca lo que quieras sacar: "Plantilla para el programa de la reunión Vida y Ministerio Cristianos (S-140)" para el tablón, y "Asignación para la reunión Vida y Ministerio Cristianos (S-89)" para las tarjetas de las asignaciones estudiantiles. Puedes marcar los dos.',
+              'Elige la plantilla de cada uno y el rango de semanas, y dale a "Exportar". La plantilla elegida se guarda para la próxima vez.',
             ],
           },
           {

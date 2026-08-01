@@ -90,7 +90,7 @@ sección. Decidir si merece una o si su trabajo ya está cubierto.
 |---|---|---|
 | `general` | todos | ampliada, sin auditar |
 | `informes` | secretario, registro de asistencia | ampliada, sin auditar |
-| `entre-semana` | editor de entre semana | ampliada, sin auditar |
+| `entre-semana` | editor de entre semana | auditada |
 | `fin-semana` | editor de fin de semana **y coordinador de discursos** | auditada |
 | `discursos` | coordinador de discursos | auditada |
 | `departamentos` | editor de departamentos | auditada |
