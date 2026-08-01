@@ -146,7 +146,7 @@ const TemplateAccesos = ({ congregation }: TemplateAccesosProps) => (
       {/* El texto va dentro de un <Text>: una cadena suelta dentro de un
           <View> de react-pdf no se dibuja, y el aviso salía como una banda
           azul vacía. */}
-      <PdfNote>
+      <PdfNote style={{ marginBottom: space.lg }}>
         <Text style={text.body}>
           Un hermano solo ve aquello para lo que tiene encargo. No es que las
           pantallas estén escondidas: la aplicación no le deja entrar, y si lo
@@ -154,7 +154,7 @@ const TemplateAccesos = ({ congregation }: TemplateAccesosProps) => (
         </Text>
       </PdfNote>
 
-      <PdfCard title="Lo que ve cualquier hermano">
+      <PdfCard title="Lo que ve cualquier hermano" style={{ marginBottom: space.lg }}>
         <Text style={{ ...text.body, marginBottom: space.sm }}>
           Sin ningún encargo, con solo tener la aplicación:
         </Text>
@@ -191,19 +191,31 @@ const TemplateAccesos = ({ congregation }: TemplateAccesosProps) => (
           diecinueve filas de golpe saltaban enteras a la hoja siguiente y
           dejaban media hoja en blanco. Agrupadas por tema caben, y además se
           leen mejor que un muro de filas. */}
-      <PdfCard title="Predicación y territorios" flush>
+      <PdfCard
+        title="Predicación y territorios"
+        flush
+        style={{ marginBottom: space.lg }}
+      >
         <PdfTable columns={COLUMNAS} rows={PREDICACION} />
       </PdfCard>
 
-      <PdfCard title="Reuniones y discursos" flush>
+      <PdfCard
+        title="Reuniones y discursos"
+        flush
+        style={{ marginBottom: space.lg }}
+      >
         <PdfTable columns={COLUMNAS} rows={REUNIONES} />
       </PdfCard>
 
-      <PdfCard title="Personas, registros y administración" flush>
+      <PdfCard
+        title="Personas, registros y administración"
+        flush
+        style={{ marginBottom: space.lg }}
+      >
         <PdfTable columns={COLUMNAS} rows={REGISTROS} />
       </PdfCard>
 
-      <PdfCard title="Lo que no ve nadie">
+      <PdfCard title="Lo que no ve nadie" style={{ marginBottom: space.lg }}>
         <Text style={{ ...text.body, marginBottom: space.xs }}>
           Los informes de predicación, las fichas de las personas y los datos de
           la congregación viajan cifrados de un dispositivo a otro. Ni el
