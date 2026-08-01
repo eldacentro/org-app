@@ -10,6 +10,8 @@ import TextField from '@components/textfield';
 import DatePicker from '@components/date_picker';
 import { useAtomValue } from 'jotai';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
+import { schedulesState } from '@states/schedules';
+import { SchedWeekType } from '@definition/schedules';
 import {
   dbLimpiezaGetConfig,
   dbLimpiezaSaveConfig,
@@ -20,12 +22,26 @@ import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 
 /**
- * Congela todas las semanas pasadas (desde fechaInicio hasta el lunes de esta semana)
- * como overrides explícitos, para que un cambio de config no retroafecte el histórico.
+ * Congela lo ya asignado como overrides explícitos, para que cambiar la
+ * configuración no reescriba hacia atrás lo que la congregación ya dio por
+ * bueno.
+ *
+ * Congela desde la fecha de inicio ANTIGUA hasta el más tardío de estos dos:
+ * el lunes de esta semana, o el lunes de la fecha de inicio NUEVA. Ese segundo
+ * límite es el que faltaba: al poner una fecha de inicio en el futuro —para
+ * recolocar la rotación desde ahí— todo lo que quedaba entre hoy y esa fecha
+ * se recalculaba con la configuración nueva y cambiaba solo. Ahora ese tramo
+ * se queda escrito tal cual estaba.
+ *
+ * Se le pasan los `schedules` reales: el cálculo salta las semanas sin reunión
+ * (asamblea, visita del CO), y sin ellos congelaba valores distintos de los que
+ * la gente tenía delante — que es justo cambiar el pasado, no conservarlo.
  */
 const freezePastWeeks = (
   oldConfig: LimpiezaConfig,
-  groups: FieldServiceGroupType[]
+  groups: FieldServiceGroupType[],
+  schedules: SchedWeekType[],
+  nuevaFechaInicio: Date | null
 ): Record<string, string> => {
   const overrides: Record<string, string> = { ...(oldConfig.overrides ?? {}) };
 
@@ -44,7 +60,20 @@ const freezePastWeeks = (
   const thisMonday = new Date(today.getFullYear(), today.getMonth(), todayDiff);
   thisMonday.setHours(0, 0, 0, 0);
 
-  while (current < thisMonday) {
+  // Si la fecha de inicio nueva es posterior, se congela hasta ella.
+  let limite = thisMonday;
+
+  if (nuevaFechaInicio) {
+    const dNueva = new Date(nuevaFechaInicio);
+    const dayN = dNueva.getDay();
+    const diffN = dNueva.getDate() - dayN + (dayN === 0 ? -6 : 1);
+    const lunesNueva = new Date(dNueva.getFullYear(), dNueva.getMonth(), diffN);
+    lunesNueva.setHours(0, 0, 0, 0);
+
+    if (lunesNueva > limite) limite = lunesNueva;
+  }
+
+  while (current < limite) {
     const weekOf = `${current.getFullYear()}/${String(current.getMonth() + 1).padStart(2, '0')}/${String(current.getDate()).padStart(2, '0')}`;
 
     for (const reunionDia of ['midweek', 'weekend'] as const) {
@@ -54,7 +83,8 @@ const freezePastWeeks = (
           oldConfig,
           weekOf,
           reunionDia,
-          groups
+          groups,
+          schedules
         );
         if (groupId) overrides[key] = groupId;
       }
@@ -74,6 +104,7 @@ interface Props {
 const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   const { t } = useAppTranslation();
   const groups = useAtomValue(fieldServiceGroupsState);
+  const schedules = useAtomValue(schedulesState);
   const activeGroups = React.useMemo(() => {
     return [...groups]
       .filter((g) => g.group_data._deleted !== true)
@@ -135,7 +166,7 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
       // Congelar semanas pasadas: convertirlas a overrides explícitos para que
       // el cambio de fechaInicio/grupoInicio no retroafecte el historial.
       const frozenOverrides = existingConfig
-        ? freezePastWeeks(existingConfig, groups)
+        ? freezePastWeeks(existingConfig, groups, schedules, fechaInicio)
         : {};
 
       const newConfig: LimpiezaConfig = {
