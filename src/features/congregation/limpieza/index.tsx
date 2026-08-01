@@ -554,12 +554,15 @@ const Limpieza = () => {
                               >
                                 {cellDate.getDate()}
                               </Typography>
-                              {/* Puesto a mano. Sin esta marca, una asignación
+                              {/* Puesto a mano, y SOLO para quien puede
+                                  cambiarlo. Sin esta marca, una asignación
                                   manual y una calculada se ven idénticas: se
                                   pinta a mano un mes para salir del paso, se
                                   olvida, y meses después la rotación «falla»
-                                  sin que nada explique por qué. */}
-                              {m.esManual && (
+                                  sin que nada explique por qué. A un publicador
+                                  no le sirve de nada: él solo necesita saber a
+                                  qué grupo le toca. */}
+                              {isManager && m.esManual && (
                                 <Box
                                   title="Asignación puesta a mano"
                                   sx={{
@@ -681,9 +684,11 @@ const Limpieza = () => {
                                 {m.reunionDia === 'midweek'
                                   ? 'Reunión de entre semana'
                                   : 'Reunión de fin de semana'}
-                                {/* Igual que el puntito del calendario: aquí
-                                    hay sitio para decirlo con palabras. */}
-                                {m.esManual && ' · Puesta a mano'}
+                                {/* Igual que el puntito del calendario —y con
+                                    la misma condición: solo para quien
+                                    edita—, pero aquí hay sitio para decirlo
+                                    con palabras. */}
+                                {isManager && m.esManual && ' · Puesta a mano'}
                               </Typography>
                             </Box>
                             <Box
