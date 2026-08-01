@@ -454,7 +454,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'En "Mi cuenta" también eliges el tema claro u oscuro y otras preferencias personales. Un apunte para responsables: ahí mismo está "Habilitar exportación a PDF para mi cuenta", que te enciende los botones de exportar solo a ti, sin cambiárselo a nadie más. Para toda la congregación de golpe, eso se hace en Configuración → "Ajustes de congregación".',
+            text: 'En "Mi cuenta" también eliges el tema claro u oscuro y otras preferencias personales. Un apunte para responsables: ahí mismo está "Habilitar exportación a PDF para mi cuenta", que te enciende los botones de exportar solo a ti, sin cambiárselo a nadie más.',
           },
         ],
       },
@@ -1206,7 +1206,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Si no lo ves, enciéndelo para ti solo en tu cuenta ("Mi cuenta" → "Habilitar exportación a PDF para mi cuenta"): con eso te sale el botón de Departamentos sin abrirle el de las demás pantallas a nadie. Un anciano o el administrador pueden encenderlo para toda la congregación desde "Ajustes de congregación".',
+            text: 'Si no lo ves, enciéndelo para ti solo en tu cuenta ("Mi cuenta" → "Habilitar exportación a PDF para mi cuenta"): con eso te sale el botón de Departamentos sin abrirle el de las demás pantallas a nadie.',
           },
         ],
       },
