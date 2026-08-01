@@ -70,11 +70,16 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Al entrar verás tu panel personal. Arriba, "Mis asignaciones" te avisa si tienes asignaciones pendientes de confirmar o próximas. Debajo, "Esta semana" muestra las reuniones con su día y hora; si tienes una parte, te la indica ahí mismo.',
+            // En el panel de inicio estos tres rótulos SÍ salen en mayúsculas
+            // (`.assign-card .txt .lab` y `.section-label .t` los ponen con
+            // text-transform), así que aquí van como se leen en pantalla. En
+            // el resto de la Ayuda "Mis asignaciones" va en minúsculas, que es
+            // como sale en la tarjeta de Reuniones.
+            text: 'Al entrar verás tu panel personal. Arriba, "MIS ASIGNACIONES" te avisa si tienes asignaciones pendientes de confirmar o próximas. Debajo, "ESTA SEMANA" muestra las reuniones con su día y hora; si tienes una parte, te la indica ahí mismo.',
           },
           {
             type: 'p',
-            text: 'En "Explorar" están las puertas a cada área: Reuniones, Predicación, Congregación, Discursos, Informes y Configuración. Según tus responsabilidades verás más o menos opciones: cada uno ve solo lo que necesita.',
+            text: 'En "EXPLORAR" están las puertas a cada área: Reuniones, Predicación, Congregación, Discursos, Informes y Configuración. Según tus responsabilidades verás más o menos opciones: cada uno ve solo lo que necesita.',
           },
         ],
       },
@@ -2283,8 +2288,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
   {
     id: 'grupo-idioma',
     title: 'Grupo de idioma',
-    description: 'Lo que solo puedes hacer tú como responsable del grupo.',
+    description: 'Los ajustes propios de un grupo de idioma.',
     icon: <IconGroups color="var(--accent-main)" />,
+    // La misma puerta que `/group-settings` (`isLanguageGroupOverseer`), que
+    // también deja pasar al administrador. Si tu congregación no tiene grupos
+    // de idioma, esta sección no te dice nada: es la de quien lleva uno.
     visible: (r) => r.isLanguageGroupOverseer,
     articles: [
       {

@@ -1,15 +1,15 @@
 /**
- * GRABA LA INTERFAZ EN MOVIMIENTO, NO FOTOS DE ELLA.
+ * GRABA LA INTERFAZ EN MOVIMIENTO, Y APUNTA DÓNDE PASA CADA COSA.
  *
- * Un PNG nunca va a ser demostrativo: no se ve el número subir, ni el visto
- * al enviar, ni el desplazamiento. Esto abre la aplicación de verdad, hace los
- * gestos y va sacando un fotograma tras otro con el screencast de Chrome
- * —el mismo canal que usan las herramientas de desarrollo—, así que se captura
- * la animación REAL de la aplicación, no una reconstrucción.
+ * Dos salidas por toma:
  *
- * Sale una carpeta de fotogramas numerados por toma. Remotion los monta como
- * una secuencia de imágenes, que da más nitidez que un vídeo comprimido y
- * permite ir fotograma a fotograma al ajustar el montaje.
+ *   tomas/<id>/0000.jpg…   los fotogramas de la aplicación funcionando
+ *   tomas/<id>/marcas.json qué ocurrió, en qué fotograma y en qué coordenada
+ *
+ * El segundo archivo es el que permite lo que faltaba: que la cámara se acerque
+ * A UN BOTÓN concreto y no al centro de la pantalla, y que el dedo caiga en el
+ * sitio exacto. Las coordenadas se leen de la página en el momento de tocar,
+ * así que si mañana ese botón se mueve, el vídeo se recoloca solo.
  *
  *   node grabar.mjs
  */
@@ -21,68 +21,40 @@ const RAIZ = new URL('./tomas/', import.meta.url).pathname;
 
 const ANCHO = 402;
 const ALTO = 874;
-const ESCALA = 2;
 
-/** Grabar por encima de los 30 finales deja margen para el desenfoque. */
-const FPS = 60;
+/** A 3x hay resolución de sobra para un plano muy cerrado sin que se ablande. */
+const ESCALA = 3;
 
-/**
- * Las tomas. Cada una es un gesto real, no una pantalla quieta.
- *
- * `hacer` recibe utilidades: `tocar` pulsa con una pausa humana, `esperar`
- * deja correr la animación de la aplicación, y `ir` navega.
- */
 const TOMAS = [
   {
     id: 'informe',
-    descripcion: 'Subir las horas y enviar el informe',
+    descripcion: 'Sumar horas y enviar el informe',
     async preparar({ ir }) {
       await ir('Predicación');
       await ir('Informe de predicación');
     },
-    async hacer({ page, esperar }) {
-      // Las horas, de una en una: es el gesto que hace todo el mundo.
-      const mas = page.locator('button').filter({ hasText: /^\+$/ }).first();
-      const hayMas = await mas.isVisible().catch(() => false);
+    async hacer({ tocar, esperar, marcarElemento }) {
+      await esperar(0.5);
 
-      if (hayMas) {
-        for (let i = 0; i < 4; i++) {
-          await mas.click();
-          await esperar(0.35);
-        }
+      // Las horas, de una en una. Es EL gesto de la aplicación.
+      await marcarElemento('Sumar', 'horas');
+      for (let i = 0; i < 4; i++) {
+        await tocar('Sumar');
+        await esperar(0.42);
       }
 
-      await esperar(0.9);
-      await page.mouse.wheel(0, 320);
-      await esperar(1.4);
-    },
-  },
-  {
-    id: 'inicio',
-    descripcion: 'El inicio, desplazándose despacio',
-    async preparar() {},
-    async hacer({ page, esperar }) {
       await esperar(0.6);
-      for (let i = 0; i < 12; i++) {
-        await page.mouse.wheel(0, 46);
-        await esperar(0.05);
-      }
-      await esperar(1.2);
-    },
-  },
-  {
-    id: 'programas',
-    descripcion: 'Programas semanales',
-    async preparar({ ir }) {
-      await ir('Programas semanales');
-    },
-    async hacer({ page, esperar }) {
-      await esperar(0.7);
-      for (let i = 0; i < 16; i++) {
-        await page.mouse.wheel(0, 40);
-        await esperar(0.05);
-      }
+
+      // Guardar el día. «Enviar» está deshabilitado hasta que se guarda: es
+      // el flujo real de la aplicación, así que el vídeo lo enseña entero.
+      await marcarElemento('Guardar', 'guardar');
+      await tocar('Guardar');
       await esperar(1.1);
+
+      // Y enviar el mes.
+      await marcarElemento('Enviar', 'enviar');
+      await tocar('Enviar');
+      await esperar(1.8);
     },
   },
 ];
@@ -117,43 +89,106 @@ const main = async () => {
     await toma.preparar({ ir, page });
     await page.waitForTimeout(700);
 
-    // El screencast de Chrome: fotogramas tal y como los pinta el navegador.
     const cdp = await context.newCDPSession(page);
     let n = 0;
     const pendientes = [];
+    const marcas = [];
 
-    cdp.on('Page.screencastFrame', async ({ data, sessionId }) => {
-      const nombre = `${dir}${String(n++).padStart(4, '0')}.jpg`;
-      pendientes.push(writeFile(nombre, Buffer.from(data, 'base64')));
+    // El screencast solo emite cuando la página REPINTA, así que los
+    // fotogramas no están repartidos en el tiempo: hay ráfagas durante una
+    // animación y huecos largos mientras nada se mueve. Sin guardar el sello
+    // temporal de cada uno, reproducirlos a ritmo fijo deforma el movimiento
+    // —justo lo que se nota—. Con él, el montaje puede remuestrear al ritmo
+    // real.
+    const tiempos = [];
+
+    cdp.on('Page.screencastFrame', async ({ data, sessionId, metadata }) => {
+      tiempos.push(metadata?.timestamp ?? null);
+      pendientes.push(
+        writeFile(`${dir}${String(n++).padStart(4, '0')}.jpg`, Buffer.from(data, 'base64'))
+      );
       await cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     });
 
-    await cdp.send('Page.startScreencast', {
-      format: 'jpeg',
-      quality: 92,
-      everyNthFrame: 1,
-    });
+    await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 100, everyNthFrame: 1 });
+
+    /** Dónde está un botón AHORA, en tanto por uno del viewport. */
+    const donde = async (etiqueta) => {
+      const caja = await page
+        .locator(`button[aria-label="${etiqueta}"], button:has-text("${etiqueta}")`)
+        .first()
+        .boundingBox();
+
+      if (!caja) return null;
+
+      return {
+        x: (caja.x + caja.width / 2) / ANCHO,
+        y: (caja.y + caja.height / 2) / ALTO,
+        ancho: caja.width / ANCHO,
+        alto: caja.height / ALTO,
+      };
+    };
+
+    /** Apunta un elemento para que la cámara sepa a dónde encuadrar. */
+    const marcarElemento = async (etiqueta, nombre) => {
+      const pos = await donde(etiqueta);
+      if (pos) marcas.push({ tipo: 'elemento', nombre, fotograma: n, ...pos });
+    };
+
+    /**
+     * Toca, y deja constancia de dónde y cuándo para dibujar el dedo.
+     *
+     * Si el botón no se puede pulsar —«Enviar» está deshabilitado hasta que la
+     * aplicación lo permite— se avisa y se sigue. Un paso que no sale no puede
+     * tirar la toma entera: se pierden los cien fotogramas ya grabados.
+     */
+    const tocar = async (etiqueta) => {
+      const pos = await donde(etiqueta);
+      if (!pos) return false;
+
+      try {
+        await page
+          .locator(`button[aria-label="${etiqueta}"], button:has-text("${etiqueta}")`)
+          .first()
+          .click({ timeout: 4000 });
+      } catch {
+        console.log(`    · «${etiqueta}» no se pudo pulsar; se sigue`);
+        return false;
+      }
+
+      marcas.push({ tipo: 'toque', fotograma: n, x: pos.x, y: pos.y });
+      return true;
+    };
 
     const esperar = (s) => page.waitForTimeout(s * 1000);
-    await toma.hacer({ page, esperar });
+
+    await toma.hacer({ page, tocar, esperar, marcarElemento });
 
     await cdp.send('Page.stopScreencast');
     await Promise.all(pendientes);
     await cdp.detach().catch(() => {});
 
-    console.log(`  ✓ ${toma.id}  —  ${n} fotogramas  —  ${toma.descripcion}`);
+    await writeFile(
+      `${dir}marcas.json`,
+      JSON.stringify(
+        {
+          fotogramas: n,
+          ancho: ANCHO,
+          alto: ALTO,
+          // Segundos desde el primer fotograma. Es lo que permite remuestrear.
+          tiempos: tiempos.map((t) => (t && tiempos[0] ? +(t - tiempos[0]).toFixed(3) : 0)),
+          marcas,
+        },
+        null,
+        2
+      )
+    );
 
-    // Volver al inicio sin recargar: una recarga rehace los datos de prueba.
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' }).catch(() => {});
-    const otra = page.getByText('Comenzar prueba', { exact: false }).first();
-    if (await otra.isVisible({ timeout: 60000 }).catch(() => false)) {
-      await otra.click();
-      await page.waitForTimeout(2500);
-    }
+    console.log(`  ✓ ${toma.id}  —  ${n} fotogramas, ${marcas.length} marcas`);
   }
 
   await browser.close();
-  console.log(`\nTomas en ${RAIZ}  ·  grabado a ~${FPS} fps`);
+  console.log(`\nTomas en ${RAIZ}`);
 };
 
 main();
