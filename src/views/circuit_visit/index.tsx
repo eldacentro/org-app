@@ -146,7 +146,29 @@ const CircuitVisitProgramDoc = ({
         congregation={congregation}
         period={periodo(visit.date_start, visit.date_end)}
         title="Visita del superintendente de circuito"
-        subtitle={`${visitante} · ${semanaDel(visit.date_start, visit.date_end)}`}
+        subtitle={
+          <>
+            <Text style={text.sheetSubtitle}>
+              {`${visitante} · ${semanaDel(visit.date_start, visit.date_end)}`}
+            </Text>
+            {/* Una hoja sacada de una visita sin publicar tiene que decirlo.
+                El PDF enseña lo que hay en pantalla —para eso está: se imprime
+                para repasarlo en la reunión de ancianos ANTES de publicar—,
+                pero sin esta marca esa misma hoja acaba en el tablón y los
+                hermanos leen nombres que aún no se les han comunicado. */}
+            {visit.published === false && (
+              <Text
+                style={{
+                  ...text.sheetSubtitle,
+                  color: color.warn,
+                  fontWeight: 700,
+                }}
+              >
+                {' · BORRADOR (sin publicar)'}
+              </Text>
+            )}
+          </>
+        }
         documentName="Visita del superintendente"
         dense={dense}
       >

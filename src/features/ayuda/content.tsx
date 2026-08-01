@@ -2056,6 +2056,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'faq',
+            q: '¿Y el PDF? ¿Saca lo publicado o lo que tengo a medias?',
+            a: 'Lo que tienes en pantalla, esté publicado o no — que es lo que hace falta para llevarlo a la reunión de ancianos y repasarlo antes de publicar. Para que no se confunda con la hoja definitiva, un PDF sacado de una visita sin publicar sale marcado en la cabecera con "BORRADOR (sin publicar)". Si va a ir al tablón, publica primero y vuelve a exportar.',
+          },
+          {
+            type: 'faq',
             q: 'Entonces, ¿hasta que publique no se entera nadie de que hay visita?',
             a: 'Eso no: lo del borrador es solo lo que se reparte a personas. Que esa semana es semana de visita se sabe desde que la activas — la reunión de entre semana ya se mueve a su día, y la pestaña "Visita del superintendente" les sale en Programas semanales desde dos meses antes. Lo que espera a que publiques son las comidas, los acompañantes y el pastoreo.',
           },
