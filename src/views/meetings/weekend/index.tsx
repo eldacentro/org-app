@@ -40,6 +40,9 @@ registerFonts();
 /** El ancho de la cuadrícula de papeles. Fijo: es lo que la alinea entre filas. */
 const PAPELES = 176;
 
+/** La cifra del bosquejo, sin el rótulo con el que viene del programa. */
+const numeroBosquejo = (valor?: string) => (valor ?? '').replace(/[^\d]/g, '');
+
 const Papel = ({ label, name }: { label: string; name: string }) => (
   <View style={{ width: (PAPELES - space.md) / 2 }}>
     <Text style={text.label}>{label}</Text>
@@ -61,6 +64,18 @@ const Domingo = ({
   const dia = new Date(data.date_raw);
   const orador =
     data.substitute_speaker_name || data.speaker_1_name || data.co_name || '';
+
+  const apoyo = [
+    // El programa trae el número ya rotulado —«Nro. 96»—, y encima le poníamos
+    // otro rótulo delante: salía «Bosquejo n.º Nro. 96». Aquí solo interesa la
+    // cifra.
+    numeroBosquejo(data.public_talk_number)
+      ? `Bosquejo ${numeroBosquejo(data.public_talk_number)}`
+      : '',
+    data.opening_song ? `Canción ${data.opening_song}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <View
@@ -105,26 +120,24 @@ const Domingo = ({
         ) : (
           <>
             <Text style={text.heading}>
-              {data.public_talk_title
-                ? `«${data.public_talk_title}»`
-                : 'Discurso sin publicar'}
+              {data.public_talk_title || 'Discurso sin publicar'}
             </Text>
+            {/*
+             * Todo hijo de este <Text> es a su vez un <Text>, ninguno una
+             * cadena suelta: mezclar los dos es donde react-pdf se deja piezas
+             * por el camino, y era el orador el que se perdía.
+             */}
             <Text style={{ ...text.meta, marginTop: 2 }}>
-              {[
-                data.public_talk_number
-                  ? `Bosquejo n.º ${data.public_talk_number}`
-                  : '',
-                data.opening_song ? `Canción ${data.opening_song}` : '',
-              ]
-                .filter(Boolean)
-                .join(' · ')}
+              <Text>{apoyo}</Text>
               {orador ? (
                 <Text style={{ fontWeight: 600, color: color.ink }}>
-                  {' · '}
+                  {apoyo ? ' · ' : ''}
                   {orador}
                 </Text>
               ) : null}
-              {data.speaker_cong_name ? ` · ${data.speaker_cong_name}` : ''}
+              {data.speaker_cong_name ? (
+                <Text>{` · ${data.speaker_cong_name}`}</Text>
+              ) : null}
             </Text>
           </>
         )}
@@ -142,10 +155,7 @@ const Domingo = ({
           }}
         >
           <Papel label="Presidente" name={data.chairman_name} />
-          <Papel
-            label="Oración final"
-            name={data.concluding_prayer_name || data.opening_prayer_name}
-          />
+          <Papel label="Oración final" name={data.concluding_prayer_name} />
           <Papel label="La Atalaya" name={data.wtstudy_conductor_name} />
           <Papel label="Lector" name={data.wtstudy_reader_name} />
         </View>
