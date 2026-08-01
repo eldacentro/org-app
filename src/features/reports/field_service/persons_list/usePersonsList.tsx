@@ -22,6 +22,7 @@ import {
 } from '@states/field_service_groups';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import { userDataViewState } from '@states/settings';
+import { useCurrentUser } from '@hooks/index';
 import usePerson from '@features/persons/hooks/usePerson';
 import usePersons from '@features/persons/hooks/usePersons';
 
@@ -29,6 +30,28 @@ let scrollPosition = 0;
 
 const usePersonsList = () => {
   const { desktopUp } = useBreakpoints();
+
+  const { isElder, isSecretary, isGroupOverseer, my_group } = useCurrentUser();
+
+  /**
+   * El auxiliar de grupo (superintendente de grupo que NO es anciano) solo ve
+   * a los de su grupo.
+   *
+   * El desplegable de filtros ya le ofrece únicamente su grupo, y un efecto se
+   * lo preselecciona al entrar — pero el filtro arranca en 'active', que son
+   * TODOS los publicadores, y el efecto corre después del primer pintado. Ese
+   * hueco de un fotograma le enseñaba la congregación entera. Aquí se cierra
+   * por lo bajo: sea cual sea el filtro, la lista se cruza con su grupo.
+   */
+  const restrictToMyGroup = !isElder && !isSecretary && isGroupOverseer;
+
+  const myGroupUids = useMemo(() => {
+    if (!restrictToMyGroup) return null;
+
+    return new Set(
+      (my_group?.group_data.members ?? []).map((member) => member.person_uid)
+    );
+  }, [restrictToMyGroup, my_group]);
 
   const {
     getPublishersActive,
@@ -244,7 +267,11 @@ const usePersonsList = () => {
       result.push(...language_group_members);
     }
 
-    return filterByReportStatus(result).filter(
+    const scoped = myGroupUids
+      ? result.filter((record) => myGroupUids.has(record.person_uid))
+      : result;
+
+    return filterByReportStatus(scoped).filter(
       (record) =>
         record.person_data.person_lastname.value
           .toLowerCase()
@@ -255,6 +282,7 @@ const usePersonsList = () => {
     );
   }, [
     search,
+    myGroupUids,
     currentFilter,
     active_publishers,
     inactive_publishers,

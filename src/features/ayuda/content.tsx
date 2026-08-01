@@ -56,7 +56,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Toda la información viaja cifrada de extremo a extremo: solo la congregación puede leerla. Y lo que hagas se guarda primero en tu dispositivo, así que la aplicación funciona incluso sin conexión; en cuanto vuelvas a tener internet, se pone al día sola.',
+            text: 'La información viaja cifrada: solo la congregación puede leerla. Y lo que hagas se guarda primero en tu dispositivo, así que la aplicación funciona incluso sin conexión; en cuanto vuelvas a tener internet, se pone al día sola.',
           },
           {
             type: 'tip',
@@ -1454,11 +1454,15 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'La pantalla no se recorta por grupos: entras y ves a toda la congregación. Para quedarte con los tuyos, usa el filtro y elige tu grupo. Hay otro filtro al lado por estado del informe: "Informes no enviados", "Informes pendientes de verificación" e "Informes verificados".',
+            text: 'Lo que ves depende de tu nombramiento. Si eres ANCIANO, la pantalla te abre la congregación entera y puedes filtrar por el grupo que quieras. Si eres el AUXILIAR del grupo —siervo ministerial con acceso a los informes—, la pantalla se abre ya recortada a tu grupo y es lo único que te deja mirar: en el filtro no hay más grupos que el tuyo.',
+          },
+          {
+            type: 'p',
+            text: 'Al lado hay otro filtro por estado del informe: "Informes no enviados", "Informes pendientes de verificación" e "Informes verificados". Los contadores de arriba cuentan lo mismo que estés viendo, no la congregación entera.',
           },
           {
             type: 'warn',
-            text: 'Que lo veas todo no quiere decir que sea tuyo para tocarlo: de los informes del resto de grupos se encarga su responsable, y de cerrar el mes, el secretario.',
+            text: 'Al anciano, que lo vea todo no lo hace suyo para tocarlo: de los informes de cada grupo se encarga su responsable, y de cerrar el mes, el secretario.',
           },
         ],
       },
@@ -2181,16 +2185,23 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
               'Si el hermano no tiene ficha todavía, créala primero (Personas → "Añadir") con su condición correcta (publicador bautizado, no bautizado, anciano, etc.), porque de ahí sale automáticamente lo que va a poder ver.',
               'Abre su ficha y rellena el campo "Dirección de correo electrónico" con el correo que usa en su cuenta de Google.',
               'Guarda. Con eso su petición de entrada queda aprobada de antemano: no tendrás que aceptarla a mano cuando la mande.',
-              'Pásale el CÓDIGO DE ACCESO de la congregación. Sin él no puede entrar.',
             ],
           },
           {
+            type: 'p',
+            text: 'Con eso basta si tenéis encendido "Acceso sin código de acceso" (en "Privacidad de la congregación"): el hermano entra con Google y la aplicación le entrega el código sola. No hay que pasarle nada.',
+          },
+          {
             type: 'warn',
-            text: 'El correo ahorra la aprobación, no el código. Los datos de la congregación van cifrados de punta a punta: el servidor no tiene la llave y no puede dársela a nadie, así que el hermano tiene que escribir el código de acceso la primera vez en cada dispositivo. Es lo normal, no un fallo.',
+            text: 'Si ese interruptor está APAGADO, el correo ahorra la aprobación pero no el código: tendrás que pasarle además el código de acceso de la congregación, que escribirá la primera vez en cada dispositivo.',
+          },
+          {
+            type: 'p',
+            text: 'La llave maestra es otra cosa y no se entrega nunca. La escribe solo quien tiene un encargo de los que manejan datos sensibles —ancianos, secretario, coordinador, superintendente de servicio, superintendentes de grupo y quien prepara programas—; un publicador no la ve.',
           },
           {
             type: 'tip',
-            text: 'A partir de la segunda vez ya no se lo pide: la aplicación guarda las llaves en ese dispositivo y entra sola. Solo se le vuelven a pedir si cierra sesión a propósito o si se cambian las llaves de la congregación. Y si algún día quieres retirarle el acceso, basta con borrar el correo de su ficha y guardar.',
+            text: 'Escriba lo que escriba, es una vez por dispositivo: la aplicación guarda las llaves ahí y a partir de la segunda vez entra sola. Solo se le vuelven a pedir si cierra sesión a propósito o si se cambian las llaves de la congregación. Y si algún día quieres retirarle el acceso, basta con borrar el correo de su ficha y guardar.',
           },
           {
             type: 'faq',
@@ -2215,7 +2226,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
               '"Predicación": los ajustes del módulo de predicación, entre ellos si los publicadores ven Territorios.',
               '"Superintendente de circuito": su nombre y el de su esposa, que es de donde los toma la visita.',
               '"Grupos de idiomas": los grupos de idioma de la congregación.',
-              '"Privacidad de la congregación": el código de acceso, la llave maestra y quién ve qué.',
+              '"Privacidad de la congregación": el código de acceso, la llave maestra, quién ve qué y el "Acceso sin código de acceso".',
             ],
           },
           {
@@ -2225,7 +2236,29 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'warn',
-            text: 'Lo de "Privacidad de la congregación" no es un ajuste más: ahí está el código de acceso que necesita cada hermano para entrar por primera vez en un dispositivo. Cambiarlo obliga a todos a volver a escribirlo.',
+            text: 'Lo de "Privacidad de la congregación" no es un ajuste más: ahí están el código de acceso y la llave maestra. Cambiar el código obliga a todos a volver a escribirlo.',
+          },
+        ],
+      },
+      {
+        id: 'admin-acceso-sin-codigo',
+        title: 'Acceso sin código de acceso',
+        blocks: [
+          {
+            type: 'p',
+            text: 'Es un interruptor de "Privacidad de la congregación", y solo lo toca el administrador. Con él ENCENDIDO, nadie tiene que teclear el código de acceso: al entrar con Google, la aplicación se lo entrega sola a cualquier hermano ya aprobado en la congregación.',
+          },
+          {
+            type: 'p',
+            text: 'La llave maestra no entra en el trato: quien maneja datos sensibles la sigue escribiendo, y esa no se entrega nunca.',
+          },
+          {
+            type: 'warn',
+            text: 'A cambio de esa comodidad, el código de acceso queda guardado en el servidor (cifrado). Eso significa que los datos compartidos —programas, nombres y asignaciones— dejan de tener cifrado de extremo a extremo. Es una decisión del cuerpo de ancianos, no un ajuste que se enciende por probar.',
+          },
+          {
+            type: 'p',
+            text: 'Para encenderlo tienes que tener el código de acceso metido en ESE dispositivo; si no, te lo dice y no deja. Al apagarlo, el código guardado en el servidor se borra.',
           },
         ],
       },

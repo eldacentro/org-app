@@ -33,7 +33,7 @@ const TOMAS = [
       await ir('Predicación');
       await ir('Informe de predicación');
     },
-    async hacer({ tocar, esperar, marcarElemento }) {
+    async hacer({ tocar, esperar, marcarElemento, desplazarHasta }) {
       await esperar(0.5);
 
       // Las horas, de una en una. Es EL gesto de la aplicación.
@@ -51,10 +51,14 @@ const TOMAS = [
       await tocar('Guardar');
       await esperar(1.1);
 
-      // Y enviar el mes.
+      // Y enviar el mes. «Enviar» tarda en habilitarse tras guardar, así que
+      // se le da tiempo y se busca en su sitio: está más abajo de lo que cabe.
+      await esperar(0.9);
+      await desplazarHasta('Enviar');
+      await esperar(0.6);
       await marcarElemento('Enviar', 'enviar');
       await tocar('Enviar');
-      await esperar(1.8);
+      await esperar(2.2);
     },
   },
 ];
@@ -110,7 +114,44 @@ const main = async () => {
       await cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     });
 
-    await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 100, everyNthFrame: 1 });
+    /**
+     * FORZAR REPINTADOS PARA GRABAR A 60, NO A 8.
+     *
+     * El screencast solo emite cuando la página repinta. Una aplicación
+     * quieta no repinta, así que salían 67 fotogramas en 8 segundos y los
+     * planos cerrados se veían a tirones.
+     *
+     * Esto mete un punto de 1px fuera de la vista que cambia de color en cada
+     * fotograma de animación. Obliga a Chrome a repintar 60 veces por segundo
+     * —y por tanto a emitir 60 fotogramas— sin que se vea nada en pantalla.
+     */
+    await page.evaluate(() => {
+      const marcapasos = document.createElement('div');
+      marcapasos.id = '__marcapasos__';
+      marcapasos.style.cssText =
+        'position:fixed;left:-4px;top:-4px;width:1px;height:1px;z-index:2147483647;pointer-events:none';
+      document.body.appendChild(marcapasos);
+
+      let i = 0;
+      const latir = () => {
+        marcapasos.style.background = `rgb(${i % 2}, 0, 0)`;
+        i++;
+        requestAnimationFrame(latir);
+      };
+      requestAnimationFrame(latir);
+    });
+
+    // `maxWidth`/`maxHeight` NO son un recorte: son la resolución a la que
+    // Chrome entrega los fotogramas. Sin ellos ignora el factor de escala del
+    // contexto y devuelve 402x874 —tamaño en puntos—, así que un plano cerrado
+    // ampliaba una imagen diminuta. Con ellos llegan a 3x de verdad.
+    await cdp.send('Page.startScreencast', {
+      format: 'jpeg',
+      quality: 92,
+      everyNthFrame: 1,
+      maxWidth: ANCHO * ESCALA,
+      maxHeight: ALTO * ESCALA,
+    });
 
     /** Dónde está un botón AHORA, en tanto por uno del viewport. */
     const donde = async (etiqueta) => {
@@ -162,7 +203,17 @@ const main = async () => {
 
     const esperar = (s) => page.waitForTimeout(s * 1000);
 
-    await toma.hacer({ page, tocar, esperar, marcarElemento });
+    /** Lleva un botón al centro de la pantalla, deslizando como una persona. */
+    const desplazarHasta = async (etiqueta) => {
+      await page
+        .locator(`button[aria-label="${etiqueta}"], button:has-text("${etiqueta}")`)
+        .first()
+        .scrollIntoViewIfNeeded()
+        .catch(() => {});
+      await page.waitForTimeout(400);
+    };
+
+    await toma.hacer({ page, tocar, esperar, marcarElemento, desplazarHasta });
 
     await cdp.send('Page.stopScreencast');
     await Promise.all(pendientes);
