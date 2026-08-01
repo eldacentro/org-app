@@ -414,7 +414,7 @@ const useCircuitVisitDashboard = () => {
     // El PDF mostraba el uid en bruto del anfitrión (ej. "e992044-676c-...")
     // en vez de su nombre — meal.host nunca se resolvía contra persons,
     // a diferencia de preachingRows arriba. Mismo criterio que ya usa
-    // CircuitVisitSummary.tsx en pantalla (findPersonName).
+    // la pestaña de Programas semanales en pantalla (findPersonName).
     const findPersonName = (uid: string) => {
       if (!uid) return '';
       const person = personsStateFind(uid);

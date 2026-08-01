@@ -1,21 +1,19 @@
 import { Navigate } from 'react-router';
-import useCircuitVisitAccess from '@features/circuit_visit/useCircuitVisitAccess';
+import useIsCircuitVisitManager from '@features/circuit_visit/useIsCircuitVisitManager';
 import CircuitVisitDashboard from '@features/circuit_visit';
-import CircuitVisitSummary from '@features/circuit_visit/CircuitVisitSummary';
 
-// Ancianos: el panel completo, editable, en cualquier momento.
-// Publicadores: resumen de solo lectura, desde dos meses antes de que empiece
-// la visita y mientras dura. Fuera de eso, al inicio.
+// Esta página es la HERRAMIENTA de quien organiza la visita: comidas,
+// acompañantes, visitas de pastoreo, documentación. Solo ancianos, y en
+// cualquier momento del año — la visita se prepara con mucha antelación.
+//
+// Lo que el resto de hermanos necesita saber está en la pestaña «Visita del
+// superintendente» de Programas semanales, que les sale sola dos meses antes.
 const CircuitVisitPage = () => {
-  const { tier, visit } = useCircuitVisitAccess();
+  const canManage = useIsCircuitVisitManager();
 
-  if (tier === 'full') return <CircuitVisitDashboard />;
+  if (!canManage) return <Navigate to="/" replace />;
 
-  if (tier === 'public' && visit) {
-    return <CircuitVisitSummary visit={visit} />;
-  }
-
-  return <Navigate to="/" replace />;
+  return <CircuitVisitDashboard />;
 };
 
 export default CircuitVisitPage;

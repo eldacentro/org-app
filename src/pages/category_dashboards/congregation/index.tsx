@@ -17,14 +17,12 @@ import {
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
-import useCircuitVisitAccess from '@features/circuit_visit/useCircuitVisitAccess';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
 
   const { isElder, isPersonViewer } = useCurrentUser();
-  const { tier: circuitVisitTier } = useCircuitVisitAccess();
 
   useDocumentos(); // Para cargar los documentos en el estado
   const unseenCount = useAtomValue(unseenDocumentosCountState);
@@ -171,12 +169,11 @@ const CongregationDashboard = () => {
           </svg>
         </button>
 
-        {/* Visita del Superintendente de Circuito. Manda el nivel de acceso y
-            nada más: los ancianos la preparan y la ven siempre; un publicador
-            la ve desde dos meses antes de que empiece. Estaba además tras
-            `isElder`, así que un publicador con acceso a la página no tenía
-            por dónde llegar a ella. */}
-        {circuitVisitTier !== 'none' && (
+        {/* Visita del Superintendente de Circuito — SOLO ancianos, y siempre:
+            es la herramienta de quien la organiza, y se organiza con mucha
+            antelación. Lo que los demás hermanos necesitan está en su pestaña
+            de Programas semanales, que les sale sola dos meses antes. */}
+        {isElder && (
           <button
             type="button"
             className="tile-item c-blue active-press full-width"

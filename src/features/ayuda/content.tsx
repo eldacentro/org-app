@@ -400,15 +400,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola cuando la visita ha pasado. No hay que hacer nada para que salga ni para que desaparezca.',
-          },
-          {
-            type: 'p',
-            text: 'Durante esos dos meses también te aparece «Visita del superintendente» en Congregación, con el resumen: las fechas, los horarios y la reunión con precursores.',
+            text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola el día después de terminar. No hay que hacer nada para que salga ni para que desaparezca.',
           },
           {
             type: 'tip',
-            text: 'El programa de comidas y la reunión con ancianos y siervos ministeriales no salen ahí: eso lo llevan los ancianos. Si te toca algo —una comida en tu casa o acompañar en la predicación— te lo dirán ellos.',
+            text: 'Ahí tienes lo que te toca saber: los días, los horarios y el programa de esa semana. Lo que organiza el cuerpo de ancianos —las comidas, los acompañantes, las visitas de pastoreo— se lleva aparte, y si te toca algo te lo dirán ellos.',
           },
         ],
       },
@@ -1702,11 +1698,11 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Los demás publicadores la ven desde dos meses antes de que empiece, y en solo lectura: las fechas, los horarios y la reunión con precursores. El programa de comidas y la reunión con ancianos y siervos ministeriales se quedan entre los ancianos.',
+            text: 'Esta pantalla es solo de los ancianos, siempre. Los demás hermanos no entran aquí: lo que ellos necesitan les sale en la pestaña «Visita del superintendente» de Programas semanales, dos meses antes de que empiece.',
           },
           {
             type: 'tip',
-            text: 'Antes de esos dos meses, para los publicadores es como si no existiera: ni la tarjeta en Congregación ni la pestaña en Programas semanales.',
+            text: 'Por eso puedes preparar la visita con toda la antelación que quieras sin que nadie vea nada a medias: hasta que faltan dos meses, para el resto de la congregación es como si no existiera.',
           },
         ],
       },
@@ -1806,7 +1802,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Desde dos meses antes, a los publicadores les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y la tarjeta en Congregación. Las dos desaparecen solas cuando la visita ha pasado.',
+            text: 'Desde dos meses antes, a todos les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y desaparece sola el día después de terminar. En Congregación no les sale nada: esa pantalla es solo tuya.',
           },
           {
             type: 'tip',

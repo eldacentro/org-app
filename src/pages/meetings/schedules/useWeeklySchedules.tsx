@@ -9,7 +9,7 @@ import DepartmentsContainer from '@features/meetings/weekly_schedules/department
 import ServiceOutingsContainer from '@features/meetings/weekly_schedules/service_outings';
 import ExhibitorsWeeklyContainer from '@features/meetings/weekly_schedules/exhibitors';
 import CircuitVisitWeek from '@features/meetings/weekly_schedules/circuit_visit';
-import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
+import useCircuitVisitForBrothers from '@features/circuit_visit/shared/useCircuitVisitForBrothers';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -25,9 +25,13 @@ const useWeeklySchedules = () => {
 
   const { isElder, isAdmin } = useCurrentUser();
 
-  // La visita solo tiene pestaña mientras haya una programada o en curso; el
-  // día después de terminar desaparece sola.
-  const upcomingVisit = useUpcomingCircuitVisit();
+  // La pestaña de la visita: desde dos meses antes de que empiece y hasta el
+  // día después de terminar, cuando desaparece sola. Antes salía en cuanto
+  // alguien programaba la visita, así que podía estar ahí un año entero.
+  //
+  // Los ancianos la preparan desde su propia página, que no tiene ventana;
+  // aquí no se les hace excepción, porque esta pestaña es la de los hermanos.
+  const upcomingVisit = useCircuitVisitForBrothers();
 
   const outgoingVisible = useMemo(() => {
     return isElder || isAdmin;
