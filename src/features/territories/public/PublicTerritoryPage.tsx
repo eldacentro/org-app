@@ -7,12 +7,11 @@ import {
   useState,
 } from 'react';
 import { Box, Stack } from '@mui/material';
-import { MultiPolygon, Polygon } from 'geojson';
+import { Provider } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { TagChip, ViviendasTag } from '@features/territories/ui';
-import TerritoryMap from '@features/territories/map/TerritoryMap';
-import SegmentedControl from '@components/segmented_control';
+import DialogVerTerritorio from '@features/territories/DialogVerTerritorio';
+import { construirStorePublico } from './publicTerritoryStore';
 import { TerritorySharePayload } from '@definition/territory_shares';
 import { fetchPublicShare } from '@services/firebase/territory_shares';
 import { SHARE_KEY_LENGTH } from '@services/encryption/share';
@@ -171,36 +170,8 @@ const PublicTerritoryPage = () => {
     );
   }
 
-  return <PublicTerritoryView payload={state.payload} />;
+  return <VistaCompartida payload={state.payload} />;
 };
-
-const Centered = ({ children }: { children: ReactNode }) => (
-  <Box
-    sx={{
-      minHeight: '100dvh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      backgroundColor: 'var(--accent-100)',
-    }}
-  >
-    {children}
-  </Box>
-);
-
-const Card = ({ children }: { children: ReactNode }) => (
-  <Box
-    sx={{
-      backgroundColor: 'var(--white)',
-      border: '1px solid var(--line)',
-      borderRadius: 'var(--shape-sm)',
-      padding: '16px',
-    }}
-  >
-    {children}
-  </Box>
-);
 
 /**
  * Idioma con el que se escribe la fecha para el invitado.
@@ -208,11 +179,11 @@ const Card = ({ children }: { children: ReactNode }) => (
  * Aquí no hay sesión ni ajustes de congregación, así que antes se dejaba al
  * navegador (`undefined`). Pero la app está BLOQUEADA a un idioma con
  * `FORCED_UI_LANG` precisamente porque la detección por navegador dejaba a
- * algunos dispositivos en inglés; esta ruta se saltaba ese bloqueo y el
- * enlace salía con «22 July 2026» en medio de una página en español.
+ * algunos dispositivos en inglés; esta ruta se saltaba ese bloqueo y el enlace
+ * salía con «22 July 2026» en medio de una página en español.
  *
- * Si algún día se quita el bloqueo (`FORCED_UI_LANG = null`), esto vuelve a
- * ser `undefined` y manda el navegador, como antes.
+ * Si algún día se quita el bloqueo (`FORCED_UI_LANG = null`), esto vuelve a ser
+ * `undefined` y manda el navegador, como antes.
  */
 const LOCALE_FECHA = LANGUAGE_LIST.find(
   (idioma) => idioma.threeLettersCode === FORCED_UI_LANG
@@ -231,275 +202,73 @@ const formatDate = (iso: string): string => {
   }
 };
 
-const PublicTerritoryView = ({
-  payload,
-}: {
-  payload: TerritorySharePayload;
-}) => {
-  const geometry = (payload.geometry ?? null) as Polygon | MultiPolygon | null;
-  const [tab, setTab] = useState(0);
-
-  /** Solo se ofrecen las secciones que este enlace trae de verdad. Quien
-   *  comparte elige qué incluir, así que un enlace puede ser solo el mapa,
-   *  solo la tarjeta, o cualquier combinación. */
-  const secciones = useMemo(() => {
-    const out: { key: 'mapa' | 'imagen' | 'info'; label: string }[] = [];
-    if (geometry) out.push({ key: 'mapa', label: 'Mapa' });
-    if (payload.imageURL) out.push({ key: 'imagen', label: 'Imagen' });
-    if (
-      payload.numeroViviendas !== undefined ||
-      payload.notas ||
-      payload.tags.length > 0 ||
-      payload.locations.length > 0
-    ) {
-      out.push({ key: 'info', label: 'Info' });
-    }
-    return out;
-  }, [geometry, payload]);
-
-  const activa = secciones[tab]?.key ?? secciones[0]?.key;
+/**
+ * LA MISMA VISTA QUE DENTRO DE LA APP.
+ *
+ * No hay una pantalla «de enlace» y otra «de la app»: el contenido del enlace
+ * se traduce a las piezas que la app ya maneja (ver `publicTerritoryStore`) y
+ * se monta `DialogVerTerritorio`, el mismo componente que ve un publicador con
+ * su cuenta. En modo solo lectura: sin `canManage`, sin editar, sin asignar ni
+ * entregar, y sin encender la ubicación por su cuenta —pedirla nada más abrir
+ * un enlace que llega por mensajería es justo lo que hace desconfiar; la
+ * enciende el invitado desde el botón del propio mapa si quiere.
+ *
+ * El invitado no tiene a dónde volver, así que cerrar no cierra nada: el
+ * diálogo ES la página.
+ */
+const VistaCompartida = ({ payload }: { payload: TerritorySharePayload }) => {
+  const { store, territorio } = useMemo(
+    () => construirStorePublico(payload),
+    [payload]
+  );
 
   return (
-    <Box
-      sx={{
-        minHeight: '100dvh',
-        backgroundColor: 'var(--accent-100)',
-        padding: { mobile: '16px', tablet: '24px' },
-      }}
-    >
-      <Stack
-        spacing="16px"
-        sx={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}
-      >
-        {/* La misma cabecera que la vista de dentro: el número grande, y
-            debajo la zona con su punto de color y la chapa de viviendas. Aquí
-            la zona iba como texto corriente y las viviendas estaban perdidas
-            dentro de la pestaña "Info", que es justo lo que la vista de dentro
-            evita a propósito. */}
-        <Stack spacing="6px">
-          <Typography className="body-small-semibold" color="var(--ink-2)">
-            {payload.congName}
-          </Typography>
-          <Typography className="h1">{payload.label}</Typography>
-
-          <Stack
-            direction="row"
-            spacing="10px"
-            alignItems="center"
-            flexWrap="wrap"
-            useFlexGap
-          >
-            <Stack direction="row" spacing="6px" alignItems="center">
-              <Box
-                sx={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: 'var(--shape-full)',
-                  backgroundColor: payload.zoneColor,
-                  boxShadow: `0 0 0 2.5px color-mix(in srgb, ${payload.zoneColor} 15%, transparent)`,
-                  flexShrink: 0,
-                }}
-              />
-              <Typography className="label-small-medium" color="var(--ink-2)">
-                {payload.zoneName}
-              </Typography>
-            </Stack>
-
-            {payload.numeroViviendas !== undefined && (
-              <ViviendasTag count={payload.numeroViviendas} />
-            )}
-          </Stack>
-        </Stack>
-
-        {/* Un enlace puede quedarse sin nada que enseñar: territorio sin
-            plano ni imagen, o creado por alguien que no podía compartir las
-            notas. Antes la página se quedaba con el título y el pie, y el
-            invitado no sabía si el enlace estaba roto. */}
-        {secciones.length === 0 && (
-          <Card>
-            <Typography className="body-regular" color="var(--ink-2)">
-              Este territorio todavía no tiene mapa ni imagen que mostrar.
-              Pídele a quien te lo envió que lo revise.
-            </Typography>
-          </Card>
-        )}
-
-        {/* Pestañas solo cuando hay más de una cosa que enseñar. Con una
-            sola, un selector de una pestaña es ruido. Mismo patrón que la
-            vista de territorio dentro de la app. */}
-        {secciones.length > 1 && (
-          <SegmentedControl
-            ariaLabel="Vistas del territorio"
-            tabs={secciones.map((s) => s.label)}
-            active={tab}
-            onChange={setTab}
-          />
-        )}
-
-        {activa === 'mapa' && geometry && (
-          <>
-            <Box
-              sx={{
-                borderRadius: 'var(--shape-sm)',
-                overflow: 'hidden',
-                border: '1px solid var(--line)',
-              }}
-            >
-              {/* Sin `showLiveLocation`: aquí la ubicación NO se enciende
-                  sola. Pedirla nada más abrir un enlace que llega por
-                  mensajería es justo lo que hace desconfiar.
-                  La enciende quien quiera, con el botón de «Mi ubicación» del
-                  propio mapa — que antes no servía de nada en esta página,
-                  porque la ubicación solo se activaba desde fuera y el botón
-                  se quedaba atenuado esperando una posición que no iba a
-                  llegar nunca. */}
-              <TerritoryMap
-                geometry={geometry}
-                color={payload.zoneColor}
-                height={420}
-              />
-            </Box>
-          </>
-        )}
-
-        {activa === 'imagen' && payload.imageURL && (
-          <Box
-            component="img"
-            src={payload.imageURL}
-            alt={`Tarjeta del territorio ${payload.label}`}
-            sx={{
-              width: '100%',
-              height: 'auto',
-              borderRadius: 'var(--shape-sm)',
-              border: '1px solid var(--line)',
-              backgroundColor: 'var(--card)',
-              display: 'block',
-            }}
-          />
-        )}
-
-        {activa === 'info' && (
-          <Card>
-            <Stack spacing="10px">
-              <Typography className="h4">Información</Typography>
-
-              {/* El MISMO chip que dentro de la app, con el color de cada
-                  etiqueta. Aquí estaban dibujadas a mano, todas del mismo gris
-                  azulado, así que el enlace perdía justo lo que distingue a una
-                  etiqueta de otra. */}
-              {payload.tags.length > 0 && (
-                <Box>
-                  <Typography
-                    className="label-small-semibold"
-                    color="var(--ink-3)"
-                    sx={{ display: 'block', mb: '8px' }}
-                  >
-                    Etiquetas
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing="6px"
-                    flexWrap="wrap"
-                    useFlexGap
-                  >
-                    {payload.tags.map((tag) => (
-                      <TagChip
-                        key={tag.nombre}
-                        label={tag.nombre}
-                        color={tag.color ?? 'var(--accent-main)'}
-                        selected
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-              )}
-
-              {/* El mismo bloque ámbar que dentro de la app: una nota de
-                  territorio es un aviso, y aquí se leía como texto corrido. */}
-              {payload.notas && (
-                <Box
-                  sx={{
-                    padding: '12px 16px',
-                    backgroundColor: 'rgba(var(--orange-main-base), 0.1)',
-                    borderRadius: 'var(--shape-md)',
-                    border: '1px solid rgba(var(--orange-main-base), 0.3)',
-                  }}
-                >
-                  <Typography
-                    className="label-small-semibold"
-                    color="var(--orange-dark)"
-                    sx={{ display: 'block', mb: '4px' }}
-                  >
-                    Notas
-                  </Typography>
-                  <Typography
-                    className="body-small-regular"
-                    sx={{
-                      color: 'var(--orange-dark)',
-                      lineHeight: 1.5,
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
-                    {payload.notas}
-                  </Typography>
-                </Box>
-              )}
-            </Stack>
-          </Card>
-        )}
-
-        {activa === 'info' && payload.locations.length > 0 && (
-          <Card>
-            <Stack spacing="10px">
-              <Typography className="h4">No visitar</Typography>
-              <Typography className="body-small-regular" color="var(--ink-2)">
-                No llames en estas direcciones.
-              </Typography>
-              <Stack spacing="8px">
-                {payload.locations.map((location, index) => (
-                  <Box
-                    key={`${location.direccion}-${index}`}
-                    sx={{
-                      padding: '10px 12px',
-                      borderRadius: 'var(--shape-sm)',
-                      backgroundColor: 'var(--red-secondary)',
-                      border: '1px solid var(--red-main)',
-                    }}
-                  >
-                    <Typography className="body-regular-semibold">
-                      {location.direccion}
-                    </Typography>
-                    {location.nota && (
-                      <Typography
-                        className="body-small-regular"
-                        color="var(--ink-2)"
-                      >
-                        {location.nota}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Stack>
-            </Stack>
-          </Card>
-        )}
-
-        <Typography
-          className="label-small-regular"
-          color="var(--ink-2)"
-          sx={{ textAlign: 'center', paddingBottom: '8px' }}
-        >
-          Enlace compartido por {payload.congName}.
-          {payload.expiresAt
-            ? ` Válido hasta el ${formatDate(payload.expiresAt)}.`
-            : ''}
-          {payload.tiedToAssignment
-            ? ' Si el territorio se entrega antes, dejará de funcionar en ese momento.'
-            : ''}
-        </Typography>
-      </Stack>
-    </Box>
+    <Provider store={store}>
+      <Box sx={{ minHeight: '100dvh', backgroundColor: 'var(--accent-100)' }}>
+        <DialogVerTerritorio
+          territory={territorio}
+          canManage={false}
+          footer={<PieDelEnlace payload={payload} />}
+        />
+      </Box>
+    </Provider>
   );
 };
+
+/** Quién comparte, hasta cuándo vale y por qué puede dejar de valer antes. */
+const PieDelEnlace = ({ payload }: { payload: TerritorySharePayload }) => (
+  <Typography
+    className="label-small-regular"
+    color="var(--ink-2)"
+    sx={{
+      textAlign: 'center',
+      display: 'block',
+      padding: '12px 24px calc(12px + env(safe-area-inset-bottom))',
+    }}
+  >
+    Enlace compartido por {payload.congName}.
+    {payload.expiresAt
+      ? ` Válido hasta el ${formatDate(payload.expiresAt)}.`
+      : ''}
+    {payload.tiedToAssignment
+      ? ' Si el territorio se entrega antes, dejará de funcionar en ese momento.'
+      : ''}
+  </Typography>
+);
+
+const Centered = ({ children }: { children: ReactNode }) => (
+  <Box
+    sx={{
+      minHeight: '100dvh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      backgroundColor: 'var(--accent-100)',
+    }}
+  >
+    {children}
+  </Box>
+);
 
 export default PublicTerritoryPage;

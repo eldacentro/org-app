@@ -6,6 +6,7 @@ import {
   useState,
   forwardRef,
   type ReactElement,
+  type ReactNode,
   type Ref,
 } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
@@ -63,12 +64,19 @@ import { useBreakpoints } from '@hooks/index';
 
 type Props = {
   territory: Territory | null;
-  onClose: () => void;
+  /** Ausente cuando la vista ES la página y no hay nada que cerrar. */
+  onClose?: () => void;
   canManage?: boolean;
   showLiveLocation?: boolean;
   onEntregar?: (assignment: TerritoryAssignment) => void;
   onAsignar?: (territory: Territory) => void;
   onEdit?: () => void;
+  /**
+   * Un pie al final de la hoja. Lo usa el enlace compartido para decir quién
+   * lo mandó y hasta cuándo vale: esa vista ES el diálogo a pantalla completa,
+   * así que cualquier cosa que se pinte por debajo queda tapada.
+   */
+  footer?: ReactNode;
 };
 
 const Transition = forwardRef(function Transition(
@@ -442,6 +450,7 @@ const DialogVerTerritorio = ({
   onEntregar,
   onAsignar,
   onEdit,
+  footer,
 }: Props) => {
   // Vista de mapa a pantalla completa, o diálogo de escritorio.
   //
@@ -543,6 +552,12 @@ const DialogVerTerritorio = ({
   }, [liveTerritory, openAssignments]);
 
   if (!liveTerritory) return null;
+
+  // Con qué se puede actuar sobre este territorio desde aquí. Sin nada de
+  // esto la barra inferior se quedaba pintada igualmente: una franja vacía con
+  // su línea y su relleno, comiéndose el sitio del contenido.
+  const hayAcciones =
+    canManage || Boolean(relevantAssignment && onEntregar) || Boolean(onEdit);
 
   const color = getZoneColor(liveTerritory.zoneId, zones);
   const zoneName = getZoneName(liveTerritory.zoneId, zones);
@@ -707,44 +722,49 @@ const DialogVerTerritorio = ({
       </Box>
 
       {/* BOTÓN CERRAR flotante — izquierda para no chocar con los
-          controles del mapa (satélite / zoom) que están en la derecha */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 'max(16px, env(safe-area-inset-top))',
-          left: 16,
-          zIndex: 1200, // Encima de controles del mapa (z:1000) y del sheet (z:100)
-        }}
-      >
+          controles del mapa (satélite / zoom) que están en la derecha.
+          Solo si hay a dónde volver: quien llega por un enlace compartido no
+          tiene detrás ninguna pantalla, y una X que no cierra nada es peor que
+          ninguna X. */}
+      {onClose && (
         <Box
-          component="button"
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar"
           sx={{
-            ...buttonReset,
-            width: 44,
-            height: 44,
-            borderRadius: 'var(--shape-full)',
-            // Negro literal a propósito: va SOBRE las teselas del mapa,
-            // que siempre son claras, no sobre el fondo del tema.
-            backgroundColor: 'rgba(0,0,0,0.45)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: '0.5px solid rgba(255,255,255,0.18)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition:
-              'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
-            '&:active': { transform: 'scale(0.88)' },
-            '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+            position: 'absolute',
+            top: 'max(16px, env(safe-area-inset-top))',
+            left: 16,
+            zIndex: 1200, // Encima de controles del mapa (z:1000) y del sheet (z:100)
           }}
         >
-          <IconClose color="var(--always-white)" width={16} height={16} />
+          <Box
+            component="button"
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            sx={{
+              ...buttonReset,
+              width: 44,
+              height: 44,
+              borderRadius: 'var(--shape-full)',
+              // Negro literal a propósito: va SOBRE las teselas del mapa,
+              // que siempre son claras, no sobre el fondo del tema.
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '0.5px solid rgba(255,255,255,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition:
+                'transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard)',
+              '&:active': { transform: 'scale(0.88)' },
+              '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+            }}
+          >
+            <IconClose color="var(--always-white)" width={16} height={16} />
+          </Box>
         </Box>
-      </Box>
+      )}
 
       {/* BOTTOM SHEET flotante */}
       <Box
@@ -1067,27 +1087,28 @@ const DialogVerTerritorio = ({
         </Box>
 
         {/* BARRA DE ACCIONES */}
-        <Box
-          sx={{
-            flexShrink: 0,
-            px: 3,
-            pt: '12px',
-            pb: 'max(20px, env(safe-area-inset-bottom))',
-            borderTop: '0.5px solid var(--line)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          {relevantAssignment && onEntregar && canReturnThis && (
-            <ActionButton
-              label="Entregar territorio"
-              onClick={() => onEntregar(relevantAssignment)}
-              color={color}
-              variant="primary"
-            />
-          )}
-          {/* Las dos secundarias comparten fila.
+        {(hayAcciones || footer) && (
+          <Box
+            sx={{
+              flexShrink: 0,
+              px: 3,
+              pt: '12px',
+              pb: 'max(20px, env(safe-area-inset-bottom))',
+              borderTop: '0.5px solid var(--line)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            {relevantAssignment && onEntregar && canReturnThis && (
+              <ActionButton
+                label="Entregar territorio"
+                onClick={() => onEntregar(relevantAssignment)}
+                color={color}
+                variant="primary"
+              />
+            )}
+            {/* Las dos secundarias comparten fila.
               Apiladas eran TRES botones a lo ancho, y en la pestaña Mapa —donde
               el sheet se queda corto a propósito, para que se vea el mapa— el
               tercero, "Editar", caía por debajo del pliegue: no existía a menos
@@ -1097,55 +1118,57 @@ const DialogVerTerritorio = ({
               asignado o no (p. ej. para dárselo por WhatsApp a alguien sin
               cuenta); un publicador, solo el suyo. Cuando va atado a una
               asignación, el enlace muere al entregar el territorio. */}
-          {(canManage ||
-            (relevantAssignment && isMine) ||
-            (canManage && onEdit)) && (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: '8px',
-                '& > *': { flex: 1, minWidth: 0 },
-              }}
-            >
-              {(canManage || (relevantAssignment && isMine)) && (
-                <ActionButton
-                  label="Compartir enlace"
-                  onClick={() => setShareOpen(true)}
-                  variant="secondary"
-                />
-              )}
-              {canManage && onEdit && (
-                <ActionButton
-                  label="Editar"
-                  onClick={onEdit}
-                  variant="secondary"
-                />
-              )}
-            </Box>
-          )}
-          {/* Antes este botón solo desaparecía sin explicar nada cuando un
+            {(canManage ||
+              (relevantAssignment && isMine) ||
+              (canManage && onEdit)) && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '8px',
+                  '& > *': { flex: 1, minWidth: 0 },
+                }}
+              >
+                {(canManage || (relevantAssignment && isMine)) && (
+                  <ActionButton
+                    label="Compartir enlace"
+                    onClick={() => setShareOpen(true)}
+                    variant="secondary"
+                  />
+                )}
+                {canManage && onEdit && (
+                  <ActionButton
+                    label="Editar"
+                    onClick={onEdit}
+                    variant="secondary"
+                  />
+                )}
+              </Box>
+            )}
+            {/* Antes este botón solo desaparecía sin explicar nada cuando un
               publicador no podía entregar por sí mismo. */}
-          {relevantAssignment && onEntregar && !canReturnThis && (
-            <ActionButton
-              label="Entregar territorio"
-              onClick={() => {}}
-              disabled
-              disabledReason={
-                isMine
-                  ? 'Solo un responsable puede marcar este territorio como entregado'
-                  : 'Este territorio lo tiene asignado otro publicador'
-              }
-            />
-          )}
-          {canManage && !relevantAssignment && onAsignar && (
-            <ActionButton
-              label="Asignar territorio"
-              onClick={() => onAsignar(liveTerritory)}
-              color={color}
-              variant="primary"
-            />
-          )}
-        </Box>
+            {relevantAssignment && onEntregar && !canReturnThis && (
+              <ActionButton
+                label="Entregar territorio"
+                onClick={() => {}}
+                disabled
+                disabledReason={
+                  isMine
+                    ? 'Solo un responsable puede marcar este territorio como entregado'
+                    : 'Este territorio lo tiene asignado otro publicador'
+                }
+              />
+            )}
+            {canManage && !relevantAssignment && onAsignar && (
+              <ActionButton
+                label="Asignar territorio"
+                onClick={() => onAsignar(liveTerritory)}
+                color={color}
+                variant="primary"
+              />
+            )}
+            {footer}
+          </Box>
+        )}
       </Box>
     </Box>
   );
@@ -1293,19 +1316,21 @@ const DialogVerTerritorio = ({
                   <IconEdit width={15} height={15} />
                 </IconButton>
               )}
-              <IconButton
-                size="small"
-                onClick={onClose}
-                aria-label="Cerrar"
-                sx={{
-                  width: 32,
-                  height: 32,
-                  color: 'var(--ink-2)',
-                  '&:hover': { backgroundColor: 'var(--accent-100)' },
-                }}
-              >
-                <IconClose width={15} height={15} />
-              </IconButton>
+              {onClose && (
+                <IconButton
+                  size="small"
+                  onClick={onClose}
+                  aria-label="Cerrar"
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    color: 'var(--ink-2)',
+                    '&:hover': { backgroundColor: 'var(--accent-100)' },
+                  }}
+                >
+                  <IconClose width={15} height={15} />
+                </IconButton>
+              )}
             </Stack>
           </Stack>
 
