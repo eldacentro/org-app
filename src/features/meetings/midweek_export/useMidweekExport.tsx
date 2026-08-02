@@ -7,14 +7,9 @@ import { MidweekExportType, PDFBlobType } from './index.types';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { useAtom, useAtomValue } from 'jotai';
-import {
-  S140TemplateState,
-  S89TemplateState,
-  schedulesState,
-} from '@states/schedules';
+import { S89TemplateState, schedulesState } from '@states/schedules';
 import {
   MidweekMeetingDataType,
-  S140TemplateType,
   S89DataType,
   S89TemplateType,
   SchedWeekType,
@@ -34,7 +29,6 @@ import {
   pdfExportEnabledState,
 } from '@states/settings';
 import {
-  TemplateS140,
   TemplateS140AppNormal,
   TemplateS89,
   TemplateS89Doc4in1,
@@ -48,7 +42,6 @@ import { diaArchivo, nombreArchivo, rangoArchivo } from '@utils/nombre_pdf';
 
 const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const [S89Template, setS89Template] = useAtom(S89TemplateState);
-  const [S140Template, setS140Template] = useAtom(S140TemplateState);
 
   const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const schedules = useAtomValue(schedulesState);
@@ -82,14 +75,6 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
 
     if (cookiesConsent) {
       localStorage.setItem('organized_template_S89', template);
-    }
-  };
-
-  const handleSelectS140Template = (template: S140TemplateType) => {
-    setS140Template(template);
-
-    if (cookiesConsent) {
-      localStorage.setItem('organized_template_S140', template);
     }
   };
 
@@ -168,22 +153,13 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
 
     if (S140.length > 0) {
       const blob = await pdf(
-        S140Template === 'S140_default' ? (
-          <TemplateS140
-            class_count={class_count}
-            cong_name={cong_name}
-            data={S140}
-            lang={sourceLocale}
-          />
-        ) : (
-          <TemplateS140AppNormal
-            class_count={class_count}
-            cong_name={cong_name}
-            data={S140}
-            fullname={!displayNameEnabled}
-            lang={sourceLocale}
-          />
-        )
+        <TemplateS140AppNormal
+          class_count={class_count}
+          cong_name={cong_name}
+          data={S140}
+          fullname={!displayNameEnabled}
+          lang={sourceLocale}
+        />
       ).toBlob();
 
       // Si la congregación imprime con la fecha exacta de la reunión, el
@@ -275,8 +251,6 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
     handleToggleS89,
     S89Template,
     handleSelectS89Template,
-    S140Template,
-    handleSelectS140Template,
   };
 };
 

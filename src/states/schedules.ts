@@ -7,7 +7,6 @@ import { atomWithReset } from 'jotai/utils';
 import {
   AssignmentHistoryType,
   MidweekMeetingDataType,
-  S140TemplateType,
   S89DataType,
   S89TemplateType,
   SchedWeekType,
@@ -51,11 +50,6 @@ export const assignmentsHistoryState = atom<AssignmentHistoryType[]>([]);
 export const weekendSongSelectorOpenState = atom(false);
 
 export const outgoingSongSelectorOpenState = atom(false);
-
-export const S140TemplateState = atom<S140TemplateType>(
-  (localStorage.getItem('organized_template_S140') as S140TemplateType) ||
-    'S140_default'
-);
 
 export const S89TemplateState = atom<S89TemplateType>(
   (localStorage.getItem('organized_template_S89') as S89TemplateType) ||
