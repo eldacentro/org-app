@@ -1,16 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { MESES_ES } from '@utils/nombres_fecha';
-import {
-  Box,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  List,
-  MenuItem,
-} from '@mui/material';
+import { Box, Card, Grid, List, MenuItem } from '@mui/material';
+import Dialog from '@components/dialog';
 import { useAtomValue } from 'jotai';
 import AppSelect from '@components/select';
 import MonthSelector from '@components/month_selector';
@@ -744,29 +735,14 @@ const Limpieza = () => {
       )}
 
       {/* Modal para Ver/Modificar Excepciones */}
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
       <Dialog
         open={editModal.open}
         onClose={() => setEditModal({ ...editModal, open: false })}
-        PaperProps={{
-          sx: {
-            maxWidth: '444px',
-            width: '100%',
-            mx: 2,
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-            borderRadius: 'var(--shape-xl)',
-          },
-        }}
       >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            p: '24px',
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Typography className="h2">
             Asignación del {editModal.date?.getDate()}
           </Typography>
@@ -776,8 +752,9 @@ const Limpieza = () => {
               en particular.
             </Typography>
           )}
-        </DialogTitle>
-        <DialogContent sx={{ p: '24px', pt: 0 }}>
+        </Box>
+
+        <Box>
           <Typography
             className="h4"
             sx={{ mb: 1, color: 'var(--accent-dark)' }}
@@ -851,20 +828,21 @@ const Limpieza = () => {
               </Box>
             </>
           )}
-        </DialogContent>
-        <DialogActions sx={{ p: '24px', gap: '8px' }}>
+        </Box>
+
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           {isManager ? (
             <>
               <AppButton
                 variant="tertiary"
-                disableAutoStretch
                 onClick={() => setEditModal({ ...editModal, open: false })}
               >
                 Cancelar
               </AppButton>
               <AppButton
                 variant="main"
-                disableAutoStretch
                 disabled={isSavingOverride}
                 onClick={handleSaveOverride}
               >
@@ -874,13 +852,12 @@ const Limpieza = () => {
           ) : (
             <AppButton
               variant="main"
-              disableAutoStretch
               onClick={() => setEditModal({ ...editModal, open: false })}
             >
               Cerrar
             </AppButton>
           )}
-        </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );
