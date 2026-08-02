@@ -632,17 +632,47 @@ const NavBar = ({ isSupported }: NavBarType) => {
                 </>
               ) : (
                 <>
+                  {/* En móvil, TRES COLUMNAS y no `space-between`.
+                      Con `space-between` el título se quedaba donde lo dejaban
+                      los bloques de los lados —dos iconos a la izquierda, uno o
+                      ninguno a la derecha—, así que salía «casi centrado» y se
+                      movía de una página a otra según los botones que llevara.
+                      Las dos columnas laterales son `1fr` (idénticas, midan lo
+                      que midan sus iconos) y el título va en la de en medio:
+                      así queda centrado respecto a la PÁGINA, no respecto al
+                      hueco que sobra. De 688 para arriba se sigue usando la
+                      fila de siempre, donde el título va pegado a los iconos y
+                      los botones de acción se van a la derecha. */}
                   <Box
                     sx={{
-                      display: 'flex',
+                      display: !tablet688Up ? 'grid' : 'flex',
+                      // Los 62px son lo que miden los dos iconos de la
+                      // izquierda (atrás + inicio), y son un SUELO, no un
+                      // ancho. Con `1fr` a secas, un subtítulo largo —el de
+                      // Ayuda mide 243— se comía todo el espacio libre y las
+                      // columnas de los lados se quedaban en lo que miden sus
+                      // iconos: 62 a un lado, 22 al otro, y el título otra vez
+                      // descentrado. Con el suelo, las dos valen siempre lo
+                      // mismo: 62 cuando no sobra nada y a partes iguales
+                      // cuando sobra. Lo que cede es el subtítulo, que ya se
+                      // recorta con puntos suspensivos.
+                      gridTemplateColumns: !tablet688Up
+                        ? 'minmax(62px, 1fr) auto minmax(62px, 1fr)'
+                        : undefined,
                       flexDirection: 'row',
                       gap: { mobile: '8px', tablet: '16px' },
                       alignItems: 'center',
                       width: !tablet688Up ? '100%' : 'auto',
-                      justifyContent: !tablet688Up ? 'space-between' : 'start',
+                      justifyContent: !tablet688Up ? undefined : 'start',
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifySelf: 'start',
+                      }}
+                    >
                       <IconButton
                         aria-label={t('tr_back')}
                         onClick={handleBack}
@@ -680,7 +710,12 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginLeft: '-8px',
+                        // `minWidth: 0` para que un título largo se recorte con
+                        // sus puntos suspensivos dentro de su columna en vez de
+                        // ensanchar la fila y empujar los iconos.
+                        minWidth: 0,
+                        marginLeft: !tablet688Up ? 0 : '-8px',
+                        textAlign: !tablet688Up ? 'center' : 'left',
                       }}
                     >
                       <Typography
@@ -714,6 +749,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           t('tr_quickSettings')
                         }
                         sx={{
+                          justifySelf: 'end',
                           marginRight: '-8px',
                           transition:
                             'background-color var(--motion-fast) var(--ease-standard)',
@@ -733,7 +769,13 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       </IconButton>
                     ) : (
                       !tablet688Up && (
-                        <Box sx={{ width: '22px', height: '22px' }} />
+                        <Box
+                          sx={{
+                            width: '22px',
+                            height: '22px',
+                            justifySelf: 'end',
+                          }}
+                        />
                       )
                     )}
                   </Box>

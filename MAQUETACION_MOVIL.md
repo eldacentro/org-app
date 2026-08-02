@@ -1,92 +1,114 @@
 # En el móvil, la maquetación no responde a su punto de corte
 
-## El síntoma
+> **Estado (2 de agosto de 2026): cerrado.** La hipótesis del documento
+> original —«el tema no llega a los componentes y los puntos de corte no
+> significan nada»— se midió en pantalla y es **falsa**. Lo que sí estaba
+> torcido era otra cosa, y está arreglado. Abajo queda todo, con lo medido,
+> para que nadie vuelva a tirar del hilo equivocado.
 
-En un iPhone, varias pantallas se ven como si fueran anchas:
+## Lo que se buscaba
 
-- **Exhibidores y Salidas de predicación**: el sitio sale A LA DERECHA del
-  nombre y cortado, cuando en móvil tiene que ir DEBAJO.
-- **Los botones** de «Ajustes del mes» y «Lista / Cuadrícula» aparecen
+- **Exhibidores y Salidas de predicación**: el sitio salía a la derecha del
+  nombre y cortado, cuando en móvil tiene que ir debajo.
+- **Los botones** de «Ajustes del mes» y «Lista / Cuadrícula» aparecían
   desplazados a un lado en vez de donde deben.
-- Carlos lo describió así: «obviamente creo que es algo que está afectando
-  varias partes». Y tiene razón: no es de una pantalla.
+- El título de la cabecera no estaba centrado respecto a la página.
 
-Hay capturas de la MISMA pantalla en dos momentos distintos —una correcta y
-otra no—, así que es algo que cambió, no algo que siempre estuvo mal.
+## Lo que se midió (y descarta la hipótesis)
 
-## Lo que ya está comprobado (no repetir)
+Con la app corriendo a 375 y a 402 px de ancho, mirando el DOM de verdad:
 
-**La regla está bien escrita.** En `src/pages/exhibitors/index.tsx`, la fila
-del nombre y el sitio dice:
+| Qué | Esperado | Medido |
+|---|---|---|
+| Fila del nombre y el sitio (Salidas) | `column` | **`column`** ✔ |
+| `matchMedia('(min-width:600px)')` | `false` | `false` ✔ |
+| CSS que emite un `sx` con puntos de corte | `@media (min-width: 480px)` | **exactamente eso** ✔ |
 
-```js
-flexDirection: { mobile: 'column', tablet600: 'row' }
-```
+Es decir: **el tema SÍ llega a los componentes**, `mobile` y `tablet600`
+significan lo que tienen que significar, y el `ThemeProvider` de `App.tsx`
+envuelve toda la aplicación sin ningún otro tema tapándolo. El síntoma del
+sitio a la derecha **no se reproduce** en el código actual.
 
-**Y los puntos de corte están bien definidos.** En `src/states/app.ts`, dentro
-de `appThemeState`:
+La explicación más probable de las dos capturas —una correcta y otra no— es
+que el móvil estuviera enseñando una versión vieja guardada por el service
+worker de la PWA. Si vuelve a pasar: antes de tocar nada, mirar en Ajustes ▸
+Acerca de qué build tiene el teléfono y compararlo con el desplegado.
 
-```js
-keys:   ['mobile','mobile400','tablet','tablet500','tablet600',
-         'tablet688','laptop','desktop','desktopLarge']
-values: { mobile: 0, mobile400: 400, tablet: 480, tablet500: 500,
-          tablet600: 600, tablet688: 688, laptop: 768,
-          desktop: 1200, desktopLarge: 1400 }
-```
+## Lo que sí estaba mal, y ya está arreglado
 
-Con eso, en una pantalla de ~400 px `flexDirection` TIENE que resolver a
-`column`. Que salga `row` significa que **el tema no está llegando a los
-componentes**, y entonces `mobile` y `tablet600` no significan nada: MUI cae a
-sus puntos por defecto (`xs`, `sm`, `md`…), no reconoce esas claves y el objeto
-se resuelve de cualquier manera — normalmente quedándose con el último valor,
-que aquí es `row`.
+**1. El título de la cabecera, ahora centrado de verdad.**
+`src/layouts/navbar/index.tsx`. En móvil la fila usaba
+`justifyContent: 'space-between'`, así que el título se colocaba donde lo
+dejaban los bloques de los lados —dos iconos a la izquierda, uno o ninguno a
+la derecha— y se movía de una página a otra.
 
-**Esa es la hipótesis a confirmar o descartar antes de tocar nada.**
+Ahora son tres columnas: `minmax(62px, 1fr) auto minmax(62px, 1fr)`. Los 62
+px son lo que miden los dos iconos de la izquierda, y son un SUELO: así las
+dos columnas laterales valen siempre lo mismo, sobre espacio o no sobre, y el
+título queda centrado respecto a la PÁGINA. Sin ese suelo, un subtítulo largo
+—el de Ayuda mide 243 px— se comía el espacio libre y los lados volvían a
+quedar desiguales.
 
-## Por dónde empezar
+Comprobado en **24 páginas**: el centro del título coincide con el centro de
+la ventana con 0 px de desvío en todas, incluidas las de título largo
+(«Programa de departamentos») y las que llevan subtítulo (Ayuda). De 688 px
+para arriba se mantiene la fila de siempre, con el título pegado a los iconos
+y los botones de acción a la derecha.
 
-1. **Reproducirlo.** `npm run build` y el preview en el 4137, a 402 px de
-   ancho. Abrir Exhibidores y mirar en las herramientas de desarrollo el
-   `flex-direction` calculado de la fila del nombre. Si sale `row`, está
-   reproducido sin necesidad de un móvil.
+**2. Los botones de Exhibidores y Salidas.**
+`src/pages/exhibitors/index.tsx` y `src/pages/predicacion_salidas/index.tsx`.
+La columna de la cabecera llevaba `alignItems: 'center'`, y en dirección
+columna eso centra en horizontal: **el título de sección salía centrado
+mientras la fila de controles de debajo iba de borde a borde**, con el botón
+pegado al margen izquierdo y el selector al derecho. Esa mezcla es lo que se
+leía como «los botones están echados a un lado». Con un mes de nombre corto
+cantaba muchísimo; con «agosto» casi no se notaba porque el título llenaba la
+línea entera.
 
-2. **Seguir el tema hasta el componente.** `appThemeState` (en
-   `src/states/app.ts`) construye el tema con `createTheme`. Comprobar:
-   - Que el `ThemeProvider` que lo usa envuelve de verdad a toda la
-     aplicación, y que no hay un segundo `ThemeProvider` o un `createTheme`
-     por defecto tapándolo más adentro.
-   - Que `useBreakpoints` (en `src/hooks`) lee ESE tema y no otro.
-   - Que el átomo no se está recreando en cada render: `appThemeState` es
-     derivado y depende de `appFontState` y `appLangField`; si devuelve un
-     objeto nuevo cada vez, MUI puede quedarse a medias.
+Ahora el título va al margen izquierdo como en el resto de la app (Programas
+semanales, Territorios…), y la fila de controles queda a ras de los dos
+márgenes, en línea con el título y con las tarjetas de abajo.
 
-3. **Si el tema sí llega**, entonces la hipótesis es falsa y hay que medir de
-   verdad: qué ancho cree tener el contenedor. Puede ser que algún padre esté
-   dando un ancho mayor que el de la ventana —un `min-width`, un `overflow` o
-   una tabla— y que el punto de corte, que va por VENTANA y no por contenedor,
-   sea el correcto pero la caja no.
+**3. Salidas se salía por el margen derecho.** Su grupo de controles se
+dimensionaba por su contenido —160 del botón + 12 + 200 del selector = 372—
+dentro de un hueco de 343, así que «Cuadrícula» asomaba por fuera. Antes se
+repartía a los dos lados y disimulaba; al alinear a la izquierda quedó a la
+vista. Se le ha puesto el mismo remedio que ya tenía Exhibidores: el grupo
+toma el ancho entero en móvil y el selector cede lo justo. De paso, `flexWrap:
+'wrap'`, que le faltaba: en una tablet de 520 el título se estrujaba en cuatro
+renglones de dos palabras para dejar sitio a los controles.
 
-## Lo otro, que es distinto y sí está confirmado
+Medido después: ambas páginas a 375 px van de 16 a 359 —los márgenes exactos
+de la página— y `scrollWidth` es igual al ancho de la ventana, o sea que no
+hay desbordamiento horizontal.
 
-**El título de la cabecera no está centrado respecto a la página.** En
-`src/layouts/navbar/index.tsx`, en móvil la fila usa
-`justifyContent: 'space-between'`, así que el título se coloca donde lo dejan
-los bloques de los lados: dos iconos a la izquierda, uno o dos a la derecha. Se
-ve «casi centrado» y se desplaza según la página.
+## El cabo suelto de color, resuelto
 
-Para centrarlo de verdad hay que sacarlo del reparto: posición absoluta al 50 %
-de la barra, o tres columnas con los laterales del mismo ancho reservado.
+`--group-5` y `--group-9` no estaban «mal» en `global.css`: estaban en
+desacuerdo con las fuentes de Figma, y por eso `generate:css` los giraba cada
+vez que se ejecutaba.
 
-**Toca la cabecera de TODAS las páginas**, así que hay que comprobarlo página
-por página, incluidas las que llevan dos botones a la derecha y las de título
-largo, que es donde se rompe.
+De dónde venía. En septiembre de 2024, un commit de arriba (#2524, «export
+multiple S-21 cards») regeneró el CSS y los intercambió respecto a lo que
+había hasta entonces. Las fuentes se quedaron como estaban. Desde ese día la
+app lleva **dos años** enseñando:
 
-## Un cabo suelto de color
+- `--group-5` → `#a8b93e` (oliva)
+- `--group-9` → `#946951` (marrón)
 
-Los colores `--group-5` y `--group-9` están intercambiados entre la versión de
-`global.css` del 2 de julio y la del 2 de agosto. Se dejó la de julio. Nadie ha
-confirmado cuál es la buena — preguntarle a Carlos o mirar qué color tiene cada
-grupo en la aplicación.
+Se ha arreglado por el lado de la FUENTE, no por el del CSS: se han
+intercambiado los dos valores en `converter/css/sources/20240713-design-tokens.json`
+(y en el `tokens.json` que sale de él) para que coincidan con lo que se ve.
+Cuatro líneas.
+
+Por qué así y no al revés: los hermanos llevan dos años asociando un color a
+su grupo, y girarlos les cambiaría el color a los grupos 5 y 9 sin que nadie
+gane nada. Al tocar la fuente, `generate:css` deja de pelearse con el archivo
+y `global.css` no cambia ni un píxel.
+
+Ojo para el futuro: si alguien vuelve a exportar las variables desde Figma, el
+export traerá otra vez el orden de Figma y los girará. Habrá que arreglarlo en
+Figma, o volver a hacer este mismo cambio.
 
 ## Cómo NO hacerlo
 
@@ -95,11 +117,14 @@ pantalla: una regla global de diálogos que descuadró el visor de territorios, 
 una restauración de `global.css` que se llevó dos tamaños de letra. Las dos se
 detectaron porque Carlos las vio, no porque fallara nada.
 
-Así que aquí: **un cambio, una comprobación en pantalla, un commit.** Y a 402 px
-de ancho, que es donde vive el problema.
+Así que aquí: **un cambio, una comprobación en pantalla, un commit.** Y a 375 o
+402 px de ancho, que es donde vive el problema.
 
 ## Contexto útil
 
+- Para reproducir: `vite --mode test --port 4137` (ver la memoria «org-app modo
+  de prueba local»). El enrutador es de **hash**, así que las páginas se abren
+  con `#/exhibitors`, no con `/exhibitors`.
 - `converter/css/guardia.mjs` impide que `npm run generate:css` borre colores.
   Hoy ese comando FALLA a propósito: faltan trece variables en las fuentes de
   Figma (los diez colores de grupo y tres grises). Es correcto que falle hasta

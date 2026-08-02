@@ -1496,9 +1496,20 @@ const PredicacionSalidas = () => {
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center',
+                  // En móvil, al margen IZQUIERDO como el resto de títulos de
+                  // sección de la app. Ver la nota gemela en
+                  // `pages/exhibitors/index.tsx`: en columna, `center` centra
+                  // en horizontal, y el título centrado sobre una fila de
+                  // controles que va de borde a borde hacía que los botones
+                  // parecieran echados a un lado.
+                  alignItems: { mobile: 'flex-start', tablet: 'center' },
                   marginBottom: '24px',
                   flexDirection: { mobile: 'column', tablet: 'row' },
+                  // Si el grupo de controles no cabe al lado del título, baja
+                  // ENTERO a la línea de abajo. Sin esto, en una tablet de 520
+                  // el título se estrujaba en cuatro renglones de dos palabras
+                  // para dejarles sitio. Es lo que ya hacía Exhibidores.
+                  flexWrap: 'wrap',
                   gap: '16px',
                   width: '100%',
                 }}
@@ -1525,6 +1536,14 @@ const PredicacionSalidas = () => {
                     // dos líneas.
                     flexWrap: 'nowrap',
                     flexShrink: 0,
+                    // En móvil el título ya baja a su propia línea, así que
+                    // este grupo se queda solo y toma el ancho entero. Sin
+                    // esto se dimensionaba por su contenido —160 del botón +
+                    // 12 + 200 del selector = 372— dentro de un hueco de 343,
+                    // y "Cuadrícula" se salía por el margen derecho. Es la
+                    // misma cuenta que ya estaba resuelta en la página gemela
+                    // de Exhibidores.
+                    width: { mobile: '100%', tablet: 'auto' },
                   }}
                 >
                   {/* El `Button` compartido de la app. Era un Button de MUI en
@@ -1558,7 +1577,16 @@ const PredicacionSalidas = () => {
                       segmento activo se pintaba de azul macizo con texto
                       blanco, mientras en todas las demás pantallas "elegido"
                       es un tinte suave con la tinta oscura. */}
-                  <Box sx={{ flexShrink: 0, minWidth: '200px' }}>
+                  {/* Los 200 son el ancho cómodo, no un mínimo intocable: en
+                      un móvil estrecho el botón de al lado no cabría. Ahí el
+                      selector cede lo justo y sigue leyéndose. */}
+                  <Box
+                    sx={{
+                      flexShrink: { mobile: 1, tablet: 0 },
+                      minWidth: { mobile: 0, tablet: '200px' },
+                      flexBasis: '200px',
+                    }}
+                  >
                     <SegmentedControl
                       ariaLabel="Vista del programa"
                       tabs={['Lista', 'Cuadrícula']}

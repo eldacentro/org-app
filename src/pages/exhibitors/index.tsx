@@ -1337,7 +1337,15 @@ const Exhibitors = () => {
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center',
+                  // En móvil, al margen IZQUIERDO como el resto de títulos de
+                  // sección de la app (Programas semanales, Territorios…).
+                  // Estaba en `center` para las dos direcciones, y en columna
+                  // eso centra en horizontal: el título salía centrado y la
+                  // fila de controles de debajo iba de borde a borde, así que
+                  // los botones parecían echados a un lado. De 480 para arriba
+                  // la fila vuelve a ser horizontal y ahí `center` sí es lo que
+                  // se quiere: alinear verticalmente título y controles.
+                  alignItems: { mobile: 'flex-start', tablet: 'center' },
                   marginBottom: '8px',
                   flexDirection: { mobile: 'column', tablet: 'row' },
                   // Si el grupo de controles no cabe al lado del título, baja
