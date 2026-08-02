@@ -217,3 +217,72 @@ describe('calcularGrupoReunion', () => {
     expect(calcularGrupoReunion(cfg, weeks[2], 'weekend', grupos(6))).toBe('g5');
   });
 });
+
+describe('la fecha de inicio manda', () => {
+  const seis = grupos(6);
+
+  /**
+   * La tira de reuniones reales desde una fecha, en orden.
+   *
+   * La fecha se construye a mano y NO con `new Date('2026-08-16')`: esa forma
+   * se interpreta en UTC, y a este lado del meridiano cae dos horas dentro del
+   * día, así que la propia reunión del 16 quedaba fuera del filtro.
+   */
+  const desde = (
+    [ay, am, ad]: [number, number, number],
+    alternarParejas: boolean
+  ) => {
+    const dInicio = new Date(ay, am - 1, ad);
+    const cfg = config(6, {
+      fechaInicio: dInicio.toISOString(),
+      grupoInicio: 'g1',
+      alternarParejas,
+    });
+    const salida: string[] = [];
+
+    for (const weekOf of semanas('2026/08/10', 10)) {
+      for (const dia of ['midweek', 'weekend'] as const) {
+        const [y, m, d] = weekOf.split('/').map(Number);
+        const fecha = new Date(y, m - 1, d);
+        fecha.setDate(fecha.getDate() + (dia === 'midweek' ? 2 : 6));
+        if (fecha < dInicio) continue;
+
+        const id = calcularGrupoReunion(cfg, weekOf, dia, seis);
+        salida.push(`G${Number(id!.slice(1))}`);
+      }
+    }
+
+    return salida;
+  };
+
+  it('la primera reunión desde la fecha le toca al grupo elegido', () => {
+    // Domingo 16 de agosto de 2026, empezando por el Grupo 1.
+    expect(desde([2026, 8, 16], false)[0]).toBe('G1');
+  });
+
+  it('la primera vuelta lleva los SEIS grupos, no cinco', () => {
+    expect(desde([2026, 8, 16], true).slice(0, 6)).toEqual([
+      'G1',
+      'G2',
+      'G3',
+      'G4',
+      'G5',
+      'G6',
+    ]);
+  });
+
+  it('y la segunda vuelta intercambia por parejas', () => {
+    expect(desde([2026, 8, 16], true).slice(6, 12)).toEqual([
+      'G2',
+      'G1',
+      'G4',
+      'G3',
+      'G6',
+      'G5',
+    ]);
+  });
+
+  it('empezando en miércoles también le toca al grupo elegido', () => {
+    expect(desde([2026, 8, 12], false)[0]).toBe('G1');
+  });
+});

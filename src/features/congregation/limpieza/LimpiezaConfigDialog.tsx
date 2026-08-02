@@ -20,6 +20,10 @@ import { useAppTranslation } from '@hooks/index';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+import {
+  midweekMeetingWeekdayState,
+  weekendMeetingWeekdayState,
+} from '@states/settings';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 /**
@@ -50,7 +54,8 @@ const ajustarOverrides = (
   oldConfig: LimpiezaConfig,
   groups: FieldServiceGroupType[],
   schedules: SchedWeekType[],
-  nuevaFechaInicio: Date | null
+  nuevaFechaInicio: Date | null,
+  diasReunion: { midweek: number; weekend: number }
 ): Record<string, string> => {
   const overrides: Record<string, string> = { ...(oldConfig.overrides ?? {}) };
 
@@ -116,7 +121,8 @@ const ajustarOverrides = (
         weekOf,
         reunionDia,
         groups,
-        schedules
+        schedules,
+        diasReunion
       );
       if (groupId) overrides[key] = groupId;
     }
@@ -180,6 +186,14 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
   const { t } = useAppTranslation();
   const groups = useAtomValue(fieldServiceGroupsState);
   const schedules = useAtomValue(schedulesState);
+  const rawMidweek = useAtomValue(midweekMeetingWeekdayState);
+  const rawWeekend = useAtomValue(weekendMeetingWeekdayState);
+  // Los ajustes guardan el día como desplazamiento desde el lunes (0 = lunes);
+  // aquí se usa 1 = lunes … 7 = domingo.
+  const diasReunion = {
+    midweek: (rawMidweek ?? 2) + 1,
+    weekend: (rawWeekend ?? 6) + 1,
+  };
   const activeGroups = React.useMemo(() => {
     return [...groups]
       .filter((g) => g.group_data._deleted !== true)
@@ -251,7 +265,13 @@ const LimpiezaConfigDialog = ({ open, onClose }: Props) => {
       // Congelar semanas pasadas: convertirlas a overrides explícitos para que
       // el cambio de fechaInicio/grupoInicio no retroafecte el historial.
       const frozenOverrides = existingConfig
-        ? ajustarOverrides(existingConfig, groups, schedules, fechaInicio)
+        ? ajustarOverrides(
+            existingConfig,
+            groups,
+            schedules,
+            fechaInicio,
+            diasReunion
+          )
         : {};
 
       const newConfig: LimpiezaConfig = {

@@ -177,7 +177,8 @@ const Limpieza = () => {
           weekOfStr,
           reunionDia,
           groups,
-          schedules
+          schedules,
+          { midweek: midweekWeekdayNum, weekend: weekendWeekdayNum }
         );
         const group = groups.find((g) => g.group_id === assignedGroupId);
 
@@ -196,7 +197,15 @@ const Limpieza = () => {
 
     meetings.sort((a, b) => a.date.getTime() - b.date.getTime());
     return meetings;
-  }, [config, selectedYear, selectedMonth, groups, schedules]);
+  }, [
+    config,
+    selectedYear,
+    selectedMonth,
+    groups,
+    schedules,
+    midweekWeekdayNum,
+    weekendWeekdayNum,
+  ]);
 
   const handleOpenEdit = (m: {
     date: Date;

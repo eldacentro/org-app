@@ -33,6 +33,10 @@ import { resolveAssignmentDate } from '@utils/assignments';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+import {
+  midweekMeetingWeekdayState,
+  weekendMeetingWeekdayState,
+} from '@states/settings';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { personsState } from '@states/persons';
 import { useEffect } from 'react';
@@ -96,6 +100,15 @@ const useMyAssignments = () => {
    * rato después o nunca. Con `useLiveQuery` la fila aparece en cuanto la
    * escribe la sincronización.
    */
+  const rawMidweekDia = useAtomValue(midweekMeetingWeekdayState);
+  const rawWeekendDia = useAtomValue(weekendMeetingWeekdayState);
+  // Los ajustes guardan el día como desplazamiento desde el lunes (0 = lunes);
+  // el cálculo de la limpieza lo usa como 1 = lunes … 7 = domingo.
+  const diasReunion = {
+    midweek: (rawMidweekDia ?? 2) + 1,
+    weekend: (rawWeekendDia ?? 6) + 1,
+  };
+
   const limpiezaConfig =
     useLiveQuery(() => dbLimpiezaGetConfig(), [], undefined) ?? null;
 
@@ -443,7 +456,8 @@ const useMyAssignments = () => {
               weekOfStr,
               'midweek',
               groups,
-              schedules
+              schedules,
+              diasReunion
             );
             if (midGroupId === userGroupId) {
               results.push({
@@ -489,7 +503,8 @@ const useMyAssignments = () => {
               weekOfStr,
               'weekend',
               groups,
-              schedules
+              schedules,
+              diasReunion
             );
             if (weekendGroupId === userGroupId) {
               results.push({

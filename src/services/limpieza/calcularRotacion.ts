@@ -15,7 +15,12 @@ export const calcularGrupoReunion = (
   weekOf: string, // lunes de la semana (YYYY/MM/DD)
   reunionDia: 'midweek' | 'weekend',
   groups: FieldServiceGroupType[],
-  schedules: SchedWeekType[] = []
+  schedules: SchedWeekType[] = [],
+  /**
+   * Días de reunión, 1 = lunes … 7 = domingo. Salen de los ajustes de la
+   * congregación. Con los de fábrica: miércoles y domingo.
+   */
+  diasReunion: { midweek: number; weekend: number } = { midweek: 3, weekend: 7 }
 ): string | null => {
   // Override manual → siempre tiene prioridad
   const overrideKey = `${weekOf}-${reunionDia}`;
@@ -99,7 +104,32 @@ export const calcularGrupoReunion = (
     meetingOffsetThisWeek = weekTypeHasNoMeeting(midweekTypeActual) ? 0 : 1;
   }
 
-  const totalMeetingsOffset = meetingCount + meetingOffsetThisWeek;
+  // ── Dónde empieza de verdad la rotación ───────────────────────────────────
+  //
+  // AQUÍ estaba el fallo de raíz. Todo se contaba desde el LUNES de la semana
+  // de inicio, no desde la primera reunión a partir de la fecha elegida. Dos
+  // consecuencias, y las dos se veían:
+  //
+  //   Eligiendo el domingo 16, esa reunión se llevaba el +1 del fin de semana
+  //   y le tocaba al grupo SIGUIENTE al elegido. Había que poner el 6 para que
+  //   saliera el 1.
+  //
+  //   Y peor: la primera vuelta se quedaba en cinco grupos en vez de seis,
+  //   porque el ciclo empezaba a contar un puesto antes. Con la alternancia
+  //   por parejas eso desplaza todos los cambios de vuelta, y de ahí que un
+  //   mes empezara por donde no tocaba.
+  //
+  // Restando la posición de la primera reunión, la fecha elegida es SIEMPRE la
+  // reunión número cero: le toca el grupo inicial, y las vueltas cuadran con
+  // ella.
+  const dInicioDia = dInicio.getDay() === 0 ? 7 : dInicio.getDay();
+
+  let offsetInicio = 0;
+  if (dInicioDia > diasReunion.midweek) offsetInicio = 1;
+  if (dInicioDia > diasReunion.weekend) offsetInicio = 2;
+
+  const totalMeetingsOffset =
+    meetingCount + meetingOffsetThisWeek - offsetInicio;
 
   // ── Grupo inicial ─────────────────────────────────────────────────────────
   const idxInicio = gruposActivos.findIndex(
