@@ -62,6 +62,19 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const [exportS140, setExportS140] = useState(false);
   const [exportS89, setExportS89] = useState(false);
 
+  // Qué se va a generar de verdad al pulsar «Exportar». Con la exportación de
+  // programas apagada no hay casillas que marcar y lo único que sale es la
+  // S-89, así que ahí se da por marcada.
+  const shouldExportS140 = pdfExportEnabled && exportS140;
+  const shouldExportS89 = pdfExportEnabled ? exportS89 : true;
+
+  // Se pulsa cuando hay semanas elegidas y algo que generar; si no, el botón
+  // va apagado en vez de no hacer nada sin decir por qué.
+  const canExport =
+    startWeek.length > 0 &&
+    endWeek.length > 0 &&
+    (shouldExportS140 || shouldExportS89);
+
   const handleSetStartWeek = (value: string) => setStartWeek(value);
 
   const handleSetEndWeek = (value: string) => setEndWeek(value);
@@ -180,8 +193,7 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
 
   const handleExportSchedule = async () => {
     if (isProcessing) return;
-    if (startWeek.length === 0 || endWeek.length === 0) return;
-    if (!exportS140 && !exportS89) return;
+    if (!canExport) return;
 
     try {
       setIsProcessing(true);
@@ -213,9 +225,6 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
         return isValid;
       });
 
-      const shouldExportS89 = pdfExportEnabled ? exportS89 : true;
-      const shouldExportS140 = pdfExportEnabled ? exportS140 : false;
-
       if (shouldExportS89) {
         await handleExportS89(weeksList);
       }
@@ -244,6 +253,7 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
     handleSetStartWeek,
     handleSetEndWeek,
     isProcessing,
+    canExport,
     handleExportSchedule,
     exportS140,
     exportS89,

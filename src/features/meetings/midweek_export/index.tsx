@@ -18,6 +18,7 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
 
   const {
     isProcessing,
+    canExport,
     handleExportSchedule,
     exportS140,
     exportS89,
@@ -101,6 +102,7 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
       >
         <Button
           variant="main"
+          disabled={!canExport}
           endIcon={isProcessing && <IconLoading />}
           onClick={handleExportSchedule}
         >
