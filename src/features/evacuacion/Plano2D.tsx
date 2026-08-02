@@ -140,9 +140,17 @@ const PlanoBase = memo(function PlanoBase() {
           inodoros de la izquierda), el adaptado —el del cuartito de la
           limpieza dentro— y hombres. La franja estrecha que los une es el
           pasillo de acceso a los tres, no un aseo: por eso no lleva nada. */}
-      <Pictograma tipo="mujeres" x={7} y={9} />
+      {/* Mujeres y hombres bajan a la parte abierta de su aseo, y a la misma
+          altura los dos. Arriba se montaban sobre los propios inodoros y
+          costaba ver qué era pictograma y qué era el dibujo del aseo. El
+          adaptado se queda donde está: su cuartito es más corto y ahí abajo no
+          hay hueco libre.
+
+          Y centrados en el suelo libre de cada aseo, no pegados a los lavabos:
+          ahí se confundían con el propio dibujo de los sanitarios. */}
+      <Pictograma tipo="mujeres" x={10.5} y={20} />
       <Pictograma tipo="adaptado" x={18.5} y={9} />
-      <Pictograma tipo="hombres" x={40} y={9} />
+      <Pictograma tipo="hombres" x={37} y={20} />
 
       <text
         x="62.5"
