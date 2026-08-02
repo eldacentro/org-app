@@ -12,12 +12,6 @@ import {
   Card,
   Grid,
   MenuItem,
-  // Los que quedan por migrar al Dialog de la app. Según van pasando, este
-  // alias se queda sin usos y desaparece con el último.
-  Dialog as MUIDialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControlLabel,
   Tabs,
   Tab,
@@ -4317,37 +4311,26 @@ const PredicacionSalidas = () => {
       </Dialog>
 
       {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio y el relleno, así
+          que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={weekSettingsDialog.open}
         onClose={() =>
           setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
         }
-        fullWidth
-        maxWidth={false}
-        sx={{ '& .MuiDialog-paper': { maxWidth: '440px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            padding: '12px',
-          },
-        }}
       >
-        <DialogTitle
-          style={{
-            fontWeight: '700',
-            color: 'var(--accent-dark)',
-            fontSize: '18px',
-          }}
-        >
+        {/* El título llevaba el peso, el color y un tamaño de 18px escritos a
+            mano. Es el título de un diálogo: le toca la "h2" de la escala. */}
+        <Typography className="h2" sx={{ color: 'var(--accent-dark)' }}>
           Ajustes de la semana
-        </DialogTitle>
+        </Typography>
 
-        <DialogContent
+        <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
-            mt: '8px',
           }}
         >
           <Typography
@@ -4544,9 +4527,9 @@ const PredicacionSalidas = () => {
               })}
             </Box>
           )}
-        </DialogContent>
+        </Box>
 
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+        <Box sx={{ display: 'flex', gap: '8px' }}>
           {/* Dos arreglos aquí:
               · El icono. Los cinco "Autocompletar" de la app usan
                 `IconGenerate`; este era el único con otro, y encima el de la
@@ -4584,8 +4567,8 @@ const PredicacionSalidas = () => {
           >
             Guardar
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
     </Box>
   );
 };
