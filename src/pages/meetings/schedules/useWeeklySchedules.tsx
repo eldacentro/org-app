@@ -12,6 +12,7 @@ import ServiceOutingsContainer from '@features/meetings/weekly_schedules/service
 import ExhibitorsWeeklyContainer from '@features/meetings/weekly_schedules/exhibitors';
 import CircuitVisitWeek from '@features/meetings/weekly_schedules/circuit_visit';
 import useCircuitVisitForBrothers from '@features/circuit_visit/shared/useCircuitVisitForBrothers';
+import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 
 const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 
@@ -31,9 +32,14 @@ const useWeeklySchedules = () => {
   // día después de terminar, cuando desaparece sola. Antes salía en cuanto
   // alguien programaba la visita, así que podía estar ahí un año entero.
   //
-  // Los ancianos la preparan desde su propia página, que no tiene ventana;
-  // aquí no se les hace excepción, porque esta pestaña es la de los hermanos.
-  const upcomingVisit = useCircuitVisitForBrothers();
+  // Los ancianos SÍ la ven desde el momento en que se programa: son quienes la
+  // preparan, y les hace falta poder comprobar cómo va a quedar la semana
+  // —cómo se mueve la reunión de entre semana, qué partes cambian— mucho antes
+  // de que llegue. La ventana de dos meses es para el resto.
+  const visitaCompleta = useUpcomingCircuitVisit();
+  const visitaParaHermanos = useCircuitVisitForBrothers();
+
+  const upcomingVisit = isElder || isAdmin ? visitaCompleta : visitaParaHermanos;
 
   const outgoingTalksPublic = useAtomValue(
     weekendMeetingOutgoingTalksPublicState

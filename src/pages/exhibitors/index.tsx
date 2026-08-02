@@ -1,11 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import EmptyState from '@components/empty_state';
+import Dialog from '@components/dialog';
 import { MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
-  Dialog,
+  // Los que quedan por migrar al Dialog de la app. Según van pasando, este
+  // alias se queda sin usos y desaparece con el último.
+  Dialog as MUIDialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -3787,39 +3790,25 @@ const Exhibitors = () => {
       </Box>
 
       {/* --- DIÁLOGO 1: EDICIÓN DE TURNO SEMANAL (ASIGNAR 3 HERMANOS) --- */}
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
       <Dialog
         open={editDialog.open}
         onClose={() => setEditDialog({ ...editDialog, open: false })}
-        maxWidth={false}
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
       >
-        <DialogTitle sx={{ borderBottom: '1px solid var(--line)', pb: '12px' }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            Asignar turno de exhibidor
-          </Typography>
-        </DialogTitle>
-        <DialogContent
+        <Typography
+          className="h2"
           sx={{
-            mt: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
+            color: 'var(--ink)',
+            borderBottom: '1px solid var(--line)',
+            paddingBottom: '12px',
           }}
         >
+          Asignar turno de exhibidor
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {dialogWarnings.map((warning, wIdx) => (
             <InfoTip key={wIdx} isBig={false} color="warning" text={warning} />
           ))}
@@ -3965,10 +3954,21 @@ const Exhibitors = () => {
               </AppSelect>
             </>
           )}
-        </DialogContent>
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          {/* Botón para desvincular el override manual (destructivo/reset,
-              separado a la izquierda — ver DESIGN_SYSTEM.md §6.1) */}
+        </Box>
+
+        {/* Cancelar y la acción principal a la derecha; el de restaurar, que
+            es destructivo, separado a la izquierda —ver DESIGN_SYSTEM §6.1—.
+            Aquí SÍ se deja `disableAutoStretch`: son tres botones, y sin él
+            cada uno pide el ancho entero y los tres juntos no caben en un
+            móvil sin partir su texto. */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}
+        >
           {exhibitorsList.some(
             (w) =>
               w.weekOf === editDialog.weekOf &&
@@ -4002,13 +4002,13 @@ const Exhibitors = () => {
           >
             Guardar
           </AppButton>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       {/* DIÁLOGO: Ajustes Mensuales (excepciones de horario/turnos). Mismo
           tratamiento que "Ajustes del mes" en predicacion_salidas — ver
           DESIGN_SYSTEM.md §6/§9. */}
-      <Dialog
+      <MUIDialog
         open={publishDialog}
         onClose={() => setPublishDialog(false)}
         maxWidth="mobile"
@@ -4079,9 +4079,9 @@ const Exhibitors = () => {
             {monthIsPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
 
-      <Dialog
+      <MUIDialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}
         maxWidth="mobile"
@@ -4304,10 +4304,10 @@ const Exhibitors = () => {
             Cerrar
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
 
       {/* --- DIÁLOGO 2: DIÁLOGO DE CONFIGURACIÓN GLOBAL O MENSUAL DE TURNO --- */}
-      <Dialog
+      <MUIDialog
         open={turnConfigDialog.open}
         onClose={() =>
           setTurnConfigDialog({ ...turnConfigDialog, open: false })
@@ -4592,7 +4592,7 @@ const Exhibitors = () => {
             Guardar turno
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
     </Box>
   );
 };

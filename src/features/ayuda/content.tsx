@@ -415,7 +415,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola el día después de terminar. No hay que hacer nada para que salga ni para que desaparezca.',
+            text: 'La pestaña se abre dos meses antes de que empiece la visita y se va sola el día después de terminar. No hay que hacer nada para que salga ni para que desaparezca. Los ancianos la ven desde que se programa, porque son quienes la preparan.',
           },
         ],
       },
@@ -1982,7 +1982,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Esta pantalla es solo de los ancianos, siempre. Los demás hermanos no entran aquí: lo que ellos necesitan les sale en la pestaña «Visita del superintendente» de Programas semanales, dos meses antes de que empiece.',
+            text: 'Esta pantalla es solo de los ancianos, siempre. Los demás hermanos no entran aquí: lo que ellos necesitan les sale en la pestaña «Visita del superintendente» de Programas semanales, dos meses antes de que empiece. A vosotros esa pestaña os sale desde que la programáis, para que podáis comprobar cómo queda la semana con tiempo.',
           },
           {
             type: 'tip',
@@ -2129,7 +2129,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Desde dos meses antes, a todos les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y desaparece sola el día después de terminar. En Congregación no les sale nada: esa pantalla es solo tuya.',
+            text: 'Desde dos meses antes, a todos les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y desaparece sola el día después de terminar. A ti te sale desde que la programas, así que puedes ver cómo va quedando la semana mucho antes que ellos. En Congregación no les sale nada: esa pantalla es solo tuya.'
           },
           {
             type: 'tip',
