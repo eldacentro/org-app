@@ -448,7 +448,7 @@
   "tr_showAwayToAllDesc": "Allow all users to view the time away of other publishers. Otherwise, only appointed brothers can see it.",
   "tr_showAwayToAll": "Show time away to all users",
   "tr_codelessAccess": "Access without the access code",
-  "tr_codelessAccessDesc": "With this on, nobody has to type the access code: when signing in with Google, the app provides it automatically to any approved member of the congregation. Those who handle sensitive data still type their master key, which is never provided. WARNING: turning this on stores the access code on the server (encrypted), so shared data — schedules, names and assignments — is no longer end-to-end encrypted.",
+  "tr_codelessAccessDesc": "With this on, nobody has to type the access code: when signing in with Google, the app provides it automatically to any approved member of the congregation. Those who handle sensitive data still type their master key, which is never provided.",
   "tr_codelessAccessNoCode": "You must enter the access code on this device first.",
   "tr_codelessAccessEnabledDesc": "Access without the code is on. Nobody will need to type the access code when signing in.",
   "tr_codelessAccessDisabledDesc": "Codeless access disabled. The code stored on the server has been removed.",

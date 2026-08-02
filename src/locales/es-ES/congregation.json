@@ -448,7 +448,7 @@
   "tr_showAwayToAllDesc": "Permitir que todos los usuarios vean los periodos de ausencia de otros publicadores. De lo contrario, solo los hermanos nombrados pueden verlos.",
   "tr_showAwayToAll": "Mostrar periodos de ausencia a todos los usuarios",
   "tr_codelessAccess": "Acceso sin código de acceso",
-  "tr_codelessAccessDesc": "Con esto activado, nadie tiene que teclear el código de acceso: al entrar con Google, la app se lo entrega sola a cualquier hermano ya aprobado en la congregación. Quien maneja datos sensibles sigue escribiendo su llave maestra, que nunca se entrega. ATENCIÓN: al activarlo, el código de acceso queda guardado en el servidor (cifrado), de modo que los datos compartidos —programas, nombres y asignaciones— dejan de tener cifrado de extremo a extremo.",
+  "tr_codelessAccessDesc": "Con esto activado, nadie tiene que teclear el código de acceso: al entrar con Google, la app se lo entrega sola a cualquier hermano ya aprobado en la congregación. Quien maneja datos sensibles sigue escribiendo su llave maestra, que nunca se entrega.",
   "tr_codelessAccessNoCode": "Primero debes introducir el código de acceso en este dispositivo.",
   "tr_codelessAccessEnabledDesc": "Acceso sin código activado. Ya nadie tendrá que teclear el código de acceso al entrar.",
   "tr_codelessAccessDisabledDesc": "Acceso sin código desactivado. El código guardado en el servidor se ha eliminado.",
