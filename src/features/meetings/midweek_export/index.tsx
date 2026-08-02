@@ -18,12 +18,9 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
 
   const {
     isProcessing,
-    canExport,
     handleExportSchedule,
     exportS140,
-    exportS89,
     handleToggleS140,
-    handleToggleS89,
     S89Template,
     handleSelectS89Template,
     handleSetEndWeek,
@@ -59,17 +56,15 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
           onEndChange={handleSetEndWeek}
         />
 
+        {/* Las hojitas de asignación no son una opción: salen siempre. Lo que
+            el interruptor de PDF decide es si además se puede sacar el
+            PROGRAMA, y por eso esa sí es una casilla y solo aparece ahí. */}
         {pdfExportEnabled && (
           <Stack spacing="8px">
             <Checkbox
               label={t('tr_MMScheduleS140')}
               checked={exportS140}
               onChange={handleToggleS140}
-            />
-            <Checkbox
-              label={t('tr_assignmentFormS89')}
-              checked={exportS89}
-              onChange={handleToggleS89}
             />
           </Stack>
         )}
@@ -102,7 +97,6 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
       >
         <Button
           variant="main"
-          disabled={!canExport}
           endIcon={isProcessing && <IconLoading />}
           onClick={handleExportSchedule}
         >
