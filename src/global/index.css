@@ -2162,3 +2162,47 @@ body {
 .body-small-semibold {
   font-weight: 600;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   LOS MÁRGENES SEGUROS DE iOS, PARA TODOS LOS DIÁLOGOS
+
+   El componente `components/dialog` ya los pone, pero catorce pantallas usan
+   el `Dialog` de MUI en crudo —Territorios, Documentos, Departamentos,
+   Exhibidores, Salidas, la visita del superintendente y alguna más— y se
+   saltaban todo: en un iPhone su borde se metía debajo de la muesca o de la
+   barra de inicio.
+
+   Va aquí y no en el componente porque esto SÍ los alcanza a todos, incluidos
+   los que se escriban mañana. Y en `index.css`, que no lo regenera nadie:
+   `global.css` lo reescribe `npm run generate:css`.
+
+   `max(...)` en vez de una suma: donde no hay muesca —escritorio, Android—
+   `env(...)` vale 0 y queda el margen de siempre. Fuera de un iPhone esto no
+   cambia absolutamente nada.
+   ───────────────────────────────────────────────────────────────────────── */
+.MuiDialog-container > .MuiPaper-root {
+  margin-top: max(16px, env(safe-area-inset-top));
+  margin-bottom: max(16px, env(safe-area-inset-bottom));
+  margin-left: max(16px, env(safe-area-inset-left));
+  margin-right: max(16px, env(safe-area-inset-right));
+
+  /* Y el alto máximo baja lo mismo: si no, un diálogo largo crece por debajo
+     de la barra de inicio aunque su margen esté bien. */
+  max-height: calc(
+    100% - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom))
+  );
+
+  /* Lo que faltaba, y es lo que se veía en la configuración de Limpieza: sin
+     esto, un diálogo más alto que su máximo no se puede recorrer y su
+     contenido se desborda por abajo en vez de deslizarse. */
+  overflow-y: auto;
+}
+
+/* Con el diálogo a pantalla completa no hay margen que valga: el relleno del
+   contenido es quien tiene que respetar la muesca. */
+.MuiDialog-paperFullScreen {
+  margin: 0;
+  max-height: 100%;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
