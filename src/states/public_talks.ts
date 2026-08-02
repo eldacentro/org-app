@@ -18,14 +18,8 @@ export const publicTalksLocaleState = atom((get) => {
   });
 });
 
-export const publicTalksFilteredState = atom((get) => {
-  const talks = get(publicTalksLocaleState);
-  const search = get(publicTalksSearchKeyState);
-
-  const filteredList = talks.filter((talk) => {
-    const value = talk.talk_title;
-    return value.toLowerCase().includes(search.toLowerCase());
-  });
-
-  return filteredList;
-});
+// Aquí vivía `publicTalksFilteredState`, que no consumía nadie: el filtrado de
+// verdad lo hace `usePublicTalks` (por título, por orador y por número). Dos
+// filtros para lo mismo, y el muerto solo miraba el título — el día que
+// alguien lo hubiera enchufado, habría perdido la búsqueda por número sin
+// enterarse.

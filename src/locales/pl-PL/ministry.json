@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Dodaj czas służby",
   "tr_hours": "Godziny",
   "tr_btnAdd": "Dodaj",
   "tr_creditHours": "Godziny zaliczone",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Dzień osobisty",
   "tr_saveChanges": "Zapisz zmiany",
   "tr_deleteStudy": "Usuń studium",
-  "tr_timeInService": "Czas spędzony w służbie",
-  "tr_timeInServiceDesc": "Czas zostanie dodany do licznika służby",
   "tr_monthlyReport": "Miesięczne sprawozdanie",
   "tr_sharedMinistry": "Brałem udział w jakiejś formie służby w tym miesiącu",
   "tr_dailyHistory": "Historia dzienna",

@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Voeg velddiensturen toe",
   "tr_hours": "Uren",
   "tr_btnAdd": "Toevoegen",
   "tr_creditHours": "Compensatie-uren",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Persoonlijke dag",
   "tr_saveChanges": "Wijzigingen opslaan",
   "tr_deleteStudy": "Bijbelstudie verwijderen",
-  "tr_timeInService": "Tijd al in dienst",
-  "tr_timeInServiceDesc": "De tijd wordt toegevoegd aan je velddiensturen",
   "tr_monthlyReport": "Maandelijks rapport",
   "tr_sharedMinistry": "Gedeeld in elke vorm van dienst tijdens deze maand",
   "tr_dailyHistory": "Dagelijkse geschiedenis",

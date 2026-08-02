@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Add service time",
   "tr_hours": "Hours",
   "tr_btnAdd": "Add",
   "tr_creditHours": "Credit hours",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Personal day",
   "tr_saveChanges": "Save changes",
   "tr_deleteStudy": "Delete the study",
-  "tr_timeInService": "Time already in service",
-  "tr_timeInServiceDesc": "The time will be added to the ministry timer",
   "tr_monthlyReport": "Monthly report",
   "tr_sharedMinistry": "Shared in any form of ministry during this month",
   "tr_dailyHistory": "Daily history",

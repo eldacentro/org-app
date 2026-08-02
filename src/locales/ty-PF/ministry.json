@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Tuu i te taime taviniraa",
   "tr_hours": "Mau hora",
   "tr_btnAdd": "Tuu",
   "tr_creditHours": "Hora tiaraa",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Mahana no oe iho",
   "tr_saveChanges": "Haaputu i te mau tauiraa",
   "tr_deleteStudy": "Tumâ i te haapiiraa",
-  "tr_timeInService": "Taime i roto i te taviniraa",
-  "tr_timeInServiceDesc": "E tuuhia te taime i roto i te faito hora no te taviniraa",
   "tr_monthlyReport": "Parauraa taviniraa ava'e",
   "tr_sharedMinistry": "Ua apiti i roto i te taviniraa i teie ava'e",
   "tr_dailyHistory": "Aamu o te mau mahana",

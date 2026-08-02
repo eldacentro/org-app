@@ -937,7 +937,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'faq',
             q: 'El hermano que esperaba no puede venir. ¿Hay "orador sustituto"?',
-            a: 'No. En Ajustes hay un interruptor llamado "Designar un sustituto para oradores visitantes", pero hoy no abre ningún campo en ninguna pantalla: no hay dónde apuntar al sustituto. Cambia el orador en "Orador" y publica otra vez.',
+            a: 'No hay un campo aparte para el sustituto. Cambia el nombre en "Orador" por el del hermano que venga de verdad y publica otra vez: el programa sale con quien va a dar el discurso, que es lo que importa.',
           },
         ],
       },

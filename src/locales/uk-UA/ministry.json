@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Додати час служіння",
   "tr_hours": "Години",
   "tr_btnAdd": "Додати",
   "tr_creditHours": "Кредитні години",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Особистий день",
   "tr_saveChanges": "Зберегти зміни",
   "tr_deleteStudy": "Видалити вивчення",
-  "tr_timeInService": "Час в служінні",
-  "tr_timeInServiceDesc": "Цей час буде додано до таймеру служіння",
   "tr_monthlyReport": "Місячний звіт",
   "tr_sharedMinistry": "Брав(-ла) участь у будь-якій формі служіння протягом цього місяця",
   "tr_dailyHistory": "Щоденна історія",

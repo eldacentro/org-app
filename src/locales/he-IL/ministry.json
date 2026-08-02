@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "הוסף זמן שירות",
   "tr_hours": "שעות",
   "tr_btnAdd": "הוסף",
   "tr_creditHours": "שעות קרדיט",
@@ -12,8 +11,6 @@
   "tr_personalDay": "יום אישי",
   "tr_saveChanges": "שמור שינויים",
   "tr_deleteStudy": "מחק את השיעור",
-  "tr_timeInService": "זמן שכבר בשירות",
-  "tr_timeInServiceDesc": "הזמן יתווסף לטיימר השירות",
   "tr_monthlyReport": "דוח חודשי",
   "tr_sharedMinistry": "השתתף בכל צורה של שירות במהלך החודש",
   "tr_dailyHistory": "היסטוריה יומית",

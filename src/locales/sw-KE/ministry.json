@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Ongeza saa za huduma",
   "tr_hours": "Masaa",
   "tr_btnAdd": "Ongeza",
   "tr_creditHours": "Masaa ya ziada (credit)",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Siku binafsi",
   "tr_saveChanges": "Hifadhi mabadiliko",
   "tr_deleteStudy": "Futa funzo la Biblia",
-  "tr_timeInService": "Muda tayari katika huduma",
-  "tr_timeInServiceDesc": "Muda utongezwa kwenye masaa jumla ya huduma",
   "tr_monthlyReport": "Ripoti ya kila mwezi",
   "tr_sharedMinistry": "Imeshiriki katika aina yoyote ya huduma mwezi huu",
   "tr_dailyHistory": "Historia ya kila siku",

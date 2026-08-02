@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Lägg till tjänstetid",
   "tr_hours": "Timmar",
   "tr_btnAdd": "Lägg till",
   "tr_creditHours": "Timmar tillgodo",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Egentid",
   "tr_saveChanges": "Spara ändringar",
   "tr_deleteStudy": "Ta bort studiet",
-  "tr_timeInService": "Tid redan i tjänst",
-  "tr_timeInServiceDesc": "Tiden kommer att läggas till i tjänstetimern",
   "tr_monthlyReport": "Månadsrapport",
   "tr_sharedMinistry": "Har deltagit i någon form av tjänst under denna månad",
   "tr_dailyHistory": "Daglig historia",

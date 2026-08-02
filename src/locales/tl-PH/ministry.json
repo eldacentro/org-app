@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Magdagdag ng oras",
   "tr_hours": "Hours",
   "tr_btnAdd": "Add",
   "tr_creditHours": "Credit hours",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Personal day",
   "tr_saveChanges": "I-save ang mga pagbabago",
   "tr_deleteStudy": "I-delete ang study",
-  "tr_timeInService": "Oras na nasa paglilingkod",
-  "tr_timeInServiceDesc": "Maidadagdag ang oras sa ministry timer",
   "tr_monthlyReport": "Buwanang ulat",
   "tr_sharedMinistry": "Nakilahok sa anumang anyo ng ministeryo sa buwang ito",
   "tr_dailyHistory": "Daily history",

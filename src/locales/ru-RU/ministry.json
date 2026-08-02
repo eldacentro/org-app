@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Добавить время служения",
   "tr_hours": "Часы",
   "tr_btnAdd": "Добавить",
   "tr_creditHours": "Кредитные часы",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Личный день",
   "tr_saveChanges": "Сохранить изменения",
   "tr_deleteStudy": "Удалить изучение",
-  "tr_timeInService": "Сколько времени уже в служении",
-  "tr_timeInServiceDesc": "Время будет добавлено в таймер служения",
   "tr_monthlyReport": "Ежемесячный отчет",
   "tr_sharedMinistry": "Принимал участие в любой форме служения в течение этого месяца",
   "tr_dailyHistory": "История по дням",

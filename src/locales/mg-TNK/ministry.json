@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Hampiditra ora",
   "tr_hours": "Ora",
   "tr_btnAdd": "Hanampy",
   "tr_creditHours": "Ora omena",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Fialan-tsasatra",
   "tr_saveChanges": "Hitahiry",
   "tr_deleteStudy": "Hamafa mpianatra",
-  "tr_timeInService": "Ora efa ananana",
-  "tr_timeInServiceDesc": "Ampidirina ao amin’ilay famantaranora ity",
   "tr_monthlyReport": "Tatitra isam-bolana",
   "tr_sharedMinistry": "Nandray anjara tamin’ny fanompoana nandritra ny volana",
   "tr_dailyHistory": "Tatitra isan’andro",

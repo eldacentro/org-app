@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Aggiungi tempo di servizio",
   "tr_hours": "Ore",
   "tr_btnAdd": "Aggiungi",
   "tr_creditHours": "Ore di credito",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Giorno personale",
   "tr_saveChanges": "Salva modifiche",
   "tr_deleteStudy": "Elimina lo studio",
-  "tr_timeInService": "Tempo già in servizio",
-  "tr_timeInServiceDesc": "Il tempo sarà aggiunto al timer del ministero",
   "tr_monthlyReport": "Rapporto mensile",
   "tr_sharedMinistry": "Partecipato a qualsiasi forma di ministero questo mese",
   "tr_dailyHistory": "Cronologia giornaliera",

@@ -218,15 +218,20 @@ Nueve, todos arreglados en el commit de su sección:
    comité de servicio se quedaba sin puerta a un módulo que sí gestiona.
 6. `/auxiliary-pioneer-application` no tenía NINGUNA puerta en toda la
    aplicación: ni tarjeta, ni botón, ni un `navigate`.
-7. «Orador sustituto» está a medias: hay interruptor en Ajustes y hay lectura,
-   pero `WM_SubstituteSpeaker` no se escribe en ninguna pantalla, así que no se
-   puede apuntar un sustituto. **Sigue así**: se dice en la Ayuda en vez de
-   inventar un campo.
-8. `publicTalksFilteredState` (en `states/public_talks.ts`) es código muerto:
-   no lo consume nadie. **Sigue ahí**, sin tocar.
-9. `tr_addServiceTime` («Añadir tiempo de predicación») y `tr_substituteSpeaker`
-   («Orador sustituto») son cadenas huérfanas del diccionario, como el
-   `tr_timeInServiceDesc` del cronómetro. **Siguen ahí**, sin tocar.
+7. «Orador sustituto» estaba a medias: había interruptor en Ajustes, pero
+   `WM_SubstituteSpeaker` no se escribe en ninguna pantalla, así que no había
+   dónde apuntar al sustituto. **Quitado el interruptor** (y su átomo), que era
+   la única parte que mentía. Lo que se queda es el campo `substitute_speaker_enabled`
+   de los ajustes y el camino de lectura: es un campo SINCRONIZADO, y quitarlo
+   del esquema para no ganar nada visible es justo el tipo de cambio que en
+   este repo ha costado datos antes.
+8. `publicTalksFilteredState` (en `states/public_talks.ts`) era código muerto:
+   no lo consumía nadie. **Borrado.**
+9. Cadenas huérfanas del diccionario, quitadas de los 54 idiomas:
+   `tr_addServiceTime`, `tr_timeInService`, `tr_timeInServiceDesc` (las tres del
+   cronómetro que no existe), `tr_substituteSpeaker` y
+   `tr_appointSubstituteSpeaker`. **Borradas**, por líneas y no reescribiendo el
+   JSON, para no cambiar de paso el escapado ni el final de fichero.
 
 ## Terminado
 

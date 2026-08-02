@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "添加传道时间",
   "tr_hours": "小时",
   "tr_btnAdd": "添加",
   "tr_creditHours": "减免时间",
@@ -12,8 +11,6 @@
   "tr_personalDay": "个人日",
   "tr_saveChanges": "保存更改",
   "tr_deleteStudy": "删除学习",
-  "tr_timeInService": "已传道过的时间",
-  "tr_timeInServiceDesc": "该时间将添加到传道计时器中",
   "tr_monthlyReport": "每月报告",
   "tr_sharedMinistry": "本月参与过任何形式的传道",
   "tr_dailyHistory": "每日历史",

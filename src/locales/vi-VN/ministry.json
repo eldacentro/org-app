@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Thêm thời gian rao giảng",
   "tr_hours": "Giờ",
   "tr_btnAdd": "Thêm",
   "tr_creditHours": "Số giờ tích lũy",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Ngày nghỉ riêng",
   "tr_saveChanges": "Lưu thay đổi",
   "tr_deleteStudy": "Xóa buổi học",
-  "tr_timeInService": "Thời gian đã rao giảng",
-  "tr_timeInServiceDesc": "Thời gian này sẽ được thêm vào báo giờ rao giảng",
   "tr_monthlyReport": "Báo cáo hàng tháng",
   "tr_sharedMinistry": "Chia sẻ trong bất kỳ hình thức rao giảng nào trong tháng này",
   "tr_dailyHistory": "Lịch sử hàng ngày",

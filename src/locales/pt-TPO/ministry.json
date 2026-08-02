@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Adicionar tempo de pregação",
   "tr_hours": "Horas",
   "tr_btnAdd": "Adicionar",
   "tr_creditHours": "Crédito de horas",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Dia pessoal",
   "tr_saveChanges": "Gravar alterações",
   "tr_deleteStudy": "Eliminar o estudo",
-  "tr_timeInService": "Tempo já em serviço",
-  "tr_timeInServiceDesc": "O tempo será adicionado ao cronómetro do ministério",
   "tr_monthlyReport": "Relatório mensal",
   "tr_sharedMinistry": "Compartilhado em qualquer forma de ministério durante este mês",
   "tr_dailyHistory": "Histórico diário",

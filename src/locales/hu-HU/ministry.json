@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Szolgálatban töltött idő hozzáadása",
   "tr_hours": "Órák",
   "tr_btnAdd": "Hozzáadás",
   "tr_creditHours": "Órajóváírás",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Szabadnap",
   "tr_saveChanges": "Módosítások mentése",
   "tr_deleteStudy": "Tanulmányozás törlése",
-  "tr_timeInService": "Már a szolgálatban töltött idő",
-  "tr_timeInServiceDesc": "Az időt az időmérőhöz fogjuk hozzáadni",
   "tr_monthlyReport": "Havi jelentés",
   "tr_sharedMinistry": "Részt vett a szolgálat valamelyik ágában ebben a hónapban",
   "tr_dailyHistory": "Napi előzmények",

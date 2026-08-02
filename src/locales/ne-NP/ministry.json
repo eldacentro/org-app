@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "सेवाको समय थप्ने",
   "tr_hours": "घण्टा",
   "tr_btnAdd": "थप्ने",
   "tr_creditHours": "क्रेडिट घण्टा",
@@ -12,8 +11,6 @@
   "tr_personalDay": "व्यक्तिगत बिदा",
   "tr_saveChanges": "परिवर्तनहरू बचत गर्ने",
   "tr_deleteStudy": "अध्ययन हटाउने",
-  "tr_timeInService": "सेवामा बिताएको घण्टा",
-  "tr_timeInServiceDesc": "सेवा टाइमरमा समय थपिनेछ",
   "tr_monthlyReport": "मासिक रिपोर्ट",
   "tr_sharedMinistry": "Shared in any form of ministry during this month",
   "tr_dailyHistory": "दैनिक इतिहास",

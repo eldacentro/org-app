@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Ajouter une activité de prédication",
   "tr_hours": "Heures",
   "tr_btnAdd": "Ajouter",
   "tr_creditHours": "Crédit d'heures",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Journée personnelle",
   "tr_saveChanges": "Enregistrer les modifications",
   "tr_deleteStudy": "Supprimer ce cours",
-  "tr_timeInService": "Temps déjà passé en prédication",
-  "tr_timeInServiceDesc": "Ce temps sera rajouté au compteur de temps de prédication",
   "tr_monthlyReport": "Rapport mensuel",
   "tr_sharedMinistry": "A participé à une forme ou une autre de prédication durant ce mois",
   "tr_dailyHistory": "Historique journalier",

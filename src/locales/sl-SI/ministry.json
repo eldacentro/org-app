@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Dodaj čas oznanjevanja",
   "tr_hours": "Ure",
   "tr_btnAdd": "Dodaj",
   "tr_creditHours": "Priznane ure",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Prost dan",
   "tr_saveChanges": "Shrani spremembe",
   "tr_deleteStudy": "Izbriši tečaj",
-  "tr_timeInService": "Čas, že preživet na oznanjevanju",
-  "tr_timeInServiceDesc": "Čas bo dodan k oznanjevalski štoparici",
   "tr_monthlyReport": "Mesečno poročilo",
   "tr_sharedMinistry": "V tem mesecu sem sodeloval(a) v eni od oblik oznanjevanja",
   "tr_dailyHistory": "Dnevna zgodovina",

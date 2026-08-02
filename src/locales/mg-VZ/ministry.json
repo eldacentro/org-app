@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Hampilitsy lera",
   "tr_hours": "Lera",
   "tr_btnAdd": "Hanampy",
   "tr_creditHours": "Lera amea",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Andro hanaova vakansy",
   "tr_saveChanges": "Hanajary",
   "tr_deleteStudy": "Hamafa mpianatsy",
-  "tr_timeInService": "Lera fa anàna",
-  "tr_timeInServiceDesc": "Ampiliry amy fanisaha lera ao",
   "tr_monthlyReport": "Tatitsy sam-bola",
   "tr_sharedMinistry": "Nandramby anjara tamy fanompoa tanatiny vola",
   "tr_dailyHistory": "Tatitsy sanandro",

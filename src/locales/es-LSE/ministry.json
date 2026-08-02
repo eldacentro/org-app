@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Añadir tiempo de predicación",
   "tr_hours": "Horas",
   "tr_btnAdd": "Añadir",
   "tr_creditHours": "Crédito de horas",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Día personal",
   "tr_saveChanges": "Guardar cambios",
   "tr_deleteStudy": "Eliminar el curso",
-  "tr_timeInService": "Tiempo ya en la predicación",
-  "tr_timeInServiceDesc": "El tiempo se añadirá al cronómetro de predicación",
   "tr_monthlyReport": "Informe mensual",
   "tr_sharedMinistry": "Marque la casilla si participó en alguna faceta de la predicación durante el mes",
   "tr_dailyHistory": "Historial diario",

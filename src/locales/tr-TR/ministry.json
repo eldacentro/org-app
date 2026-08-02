@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Hizmet süresi ekle",
   "tr_hours": "Saat",
   "tr_btnAdd": "Ekle",
   "tr_creditHours": "Kredi saatleri",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Kişisel gün",
   "tr_saveChanges": "Değişiklikleri kaydet",
   "tr_deleteStudy": "Tetkiki sil",
-  "tr_timeInService": "Hizmette geçen süre",
-  "tr_timeInServiceDesc": "Süre, hizmet süresine eklenecektir",
   "tr_monthlyReport": "Aylık rapor",
   "tr_sharedMinistry": "Bu ay herhangi bir şekilde hizmette bulundunuz mu",
   "tr_dailyHistory": "Gün gün hizmet",

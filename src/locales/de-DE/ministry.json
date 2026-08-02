@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Dienstzeit hinzufügen",
   "tr_hours": "Stunden",
   "tr_btnAdd": "Hinzufügen",
   "tr_creditHours": "Stundengutschrift",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Persönlicher Tag",
   "tr_saveChanges": "Änderungen speichern",
   "tr_deleteStudy": "Bibelstudium löschen",
-  "tr_timeInService": "Zeit bereits im Dienst",
-  "tr_timeInServiceDesc": "Die Zeit wird dem Predigtdienst-Timer hinzugefügt",
   "tr_monthlyReport": "Monatlicher Bericht",
   "tr_sharedMinistry": "Hat sich am Predigtdienst in diesem Monat beteiligt",
   "tr_dailyHistory": "Tagesverlauf",

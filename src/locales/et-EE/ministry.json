@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Lisa kuulutustöö aeg",
   "tr_hours": "Tunnid",
   "tr_btnAdd": "Lisa",
   "tr_creditHours": "Asendustunnid",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Isiklik päev",
   "tr_saveChanges": "Salvesta muudatused",
   "tr_deleteStudy": "Kustuta uurimine",
-  "tr_timeInService": "Varem teenistuses oldud aeg",
-  "tr_timeInServiceDesc": "Aeg lisatakse kuulutustöö taimerile",
   "tr_monthlyReport": "Igakuine aruanne",
   "tr_sharedMinistry": "Igas vormis kuulutustöö, mida on tehtud selle kuu jooksul",
   "tr_dailyHistory": "Ajalugu päevade kaupa",

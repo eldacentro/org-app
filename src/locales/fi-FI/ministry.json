@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Lisää kenttäaikaa",
   "tr_hours": "Tunnit",
   "tr_btnAdd": "Lisää",
   "tr_creditHours": "Hyvitystunnit",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Henkilökohtainen päivä",
   "tr_saveChanges": "Tallenna muutokset",
   "tr_deleteStudy": "Poista tutkistelu",
-  "tr_timeInService": "Aikaa jo palveluksessa",
-  "tr_timeInServiceDesc": "Aika lisätään palvelusaikaan",
   "tr_monthlyReport": "Kuukausiraportti",
   "tr_sharedMinistry": "Osallistunut kenttäpalvelukseen tämän kuukauden aikana",
   "tr_dailyHistory": "Päivittäinen historia",

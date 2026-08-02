@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "봉사 시간 추가",
   "tr_hours": "시간",
   "tr_btnAdd": "추가",
   "tr_creditHours": "고려 시간",
@@ -12,8 +11,6 @@
   "tr_personalDay": "개인 휴가",
   "tr_saveChanges": "변경 사항 저장",
   "tr_deleteStudy": "연구 삭제",
-  "tr_timeInService": "이미 봉사한 시간",
-  "tr_timeInServiceDesc": "이 시간은 봉사 타이머에 추가됩니다.",
   "tr_monthlyReport": "월간 보고",
   "tr_sharedMinistry": "이번 달에 어떤 형태로든 봉사에 참여함",
   "tr_dailyHistory": "일일 기록",

@@ -1,5 +1,4 @@
 {
-  "tr_addServiceTime": "Relatório de campo",
   "tr_hours": "Horas",
   "tr_btnAdd": "Adicionar",
   "tr_creditHours": "Crédito de horas",
@@ -12,8 +11,6 @@
   "tr_personalDay": "Dia pessoal",
   "tr_saveChanges": "Salvar alterações",
   "tr_deleteStudy": "Excluir o estudo",
-  "tr_timeInService": "Tempo já no serviço",
-  "tr_timeInServiceDesc": "O tempo será adicionado ao Cronômetro de atividades",
   "tr_monthlyReport": "Relatório mensal",
   "tr_sharedMinistry": "Participou em alguma modalidade do ministério durante o mês",
   "tr_dailyHistory": "Histórico diário",
