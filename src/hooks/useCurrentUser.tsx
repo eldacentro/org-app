@@ -18,6 +18,7 @@ import {
   currentActivityMonth,
   personWasPublisherBy,
 } from '@services/app/publisher_status';
+import { personIsPioneerNow } from '@services/app/persons';
 
 const useCurrentUser = () => {
   const { personIsEnrollmentActive, personIsBaptizedPublisher } = usePerson();
@@ -88,6 +89,16 @@ const useCurrentUser = () => {
     // entregar un informe y volver a estar activo. Se quedaba fuera para
     // siempre sin que nadie se enterara.
     return personWasPublisherBy(person, currentActivityMonth());
+  }, [person]);
+
+  // ¿Es precursor este mes, del tipo que sea? No es un rol de la cuenta sino
+  // un nombramiento de la persona, así que no sale de `cong_role` sino de sus
+  // inscripciones. Lo usa lo que se dirige a los precursores como grupo — hoy,
+  // qué eventos le tocan en la agenda.
+  const isPioneer = useMemo(() => {
+    if (!person) return false;
+
+    return personIsPioneerNow(person);
   }, [person]);
 
   const enable_AP_application = useMemo(() => {
@@ -315,6 +326,7 @@ const useCurrentUser = () => {
     enable_AP_application,
     isAdmin,
     isPublisher,
+    isPioneer,
     isServiceCommittee,
     isElder,
     isPersonEditor,

@@ -4,6 +4,7 @@ import { IconError } from '@components/icons';
 import { useCurrentUser } from '@hooks/index';
 import { UpcomingEventType } from '@definition/upcoming_events';
 import { dbUpcomingEventsSave } from '@services/dexie/upcoming_events';
+import { isEventForUser } from '@services/app/upcoming_events';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
 import { addHours } from '@utils/date';
 import { displaySnackNotification } from '@services/states/app';
@@ -11,7 +12,7 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { userDataViewState } from '@states/settings';
 
 const useUpcomingEvents = () => {
-  const { isAdmin, isElder } = useCurrentUser();
+  const { isAdmin, isElder, isPioneer } = useCurrentUser();
   // Cualquier anciano puede añadir/exportar Próximos eventos, no solo
   // coordinador/secretario/admin.
   const canManageEvents = isAdmin || isElder;
@@ -33,6 +34,10 @@ const useUpcomingEvents = () => {
     return upcomingEvents.filter((record) => {
       if (isStandaloneCircuitVisitMeeting(record.event_uid)) return false;
 
+      // La reunión de precursores y ancianos solo sale en la lista de quien
+      // va. La misma llamada está en la tarjeta de Programa del inicio.
+      if (!isEventForUser(record, { isElder, isPioneer })) return false;
+
       if (dataView === 'main') {
         return record.event_data.type === 'main';
       }
@@ -42,7 +47,7 @@ const useUpcomingEvents = () => {
         record.event_data.type === 'main' || record.event_data.type === dataView
       );
     });
-  }, [upcomingEvents, dataView]);
+  }, [upcomingEvents, dataView, isElder, isPioneer]);
 
   const emptyEvent: UpcomingEventType = {
     event_uid: crypto.randomUUID(),

@@ -357,6 +357,29 @@ export const personWasEverPioneer = (person: PersonType) => {
   );
 };
 
+/**
+ * ¿Es precursor ESTE mes? Cualquiera de los cuatro nombramientos vale:
+ * auxiliar, regular, especial o misión de campo.
+ *
+ * Aquí se pregunta por el mes en curso, y no "¿lo ha sido alguna vez?"
+ * (`personWasEverPioneer`) ni "¿tiene una inscripción sin fecha de fin?"
+ * (`personIsAP`/`personIsFR`/…). Ninguna de las dos sirve para saber quién va
+ * a la reunión de precursores de este mes:
+ *
+ * - "alguna vez" mete a quien lo dejó hace cinco años;
+ * - "sin fecha de fin" deja fuera al precursor auxiliar, que es justo el que
+ *   se apunta un mes concreto y por tanto SÍ lleva fecha de fin.
+ */
+export const personIsPioneerNow = (person: PersonType) => {
+  const PIONEER_ENROLLMENTS: EnrollmentType[] = ['AP', 'FR', 'FS', 'FMF'];
+
+  const month = formatDate(new Date(), 'yyyy/MM');
+
+  return PIONEER_ENROLLMENTS.some((enrollment) =>
+    personIsEnrollmentActive(person, enrollment, month)
+  );
+};
+
 export const personHasNoAssignment = (person: PersonType) => {
   const dataView = store.get(userDataViewState);
 

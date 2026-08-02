@@ -1,4 +1,5 @@
 import {
+  UpcomingEventCategory,
   UpcomingEventDataType,
   UpcomingEventType,
 } from '@definition/upcoming_events';
@@ -63,6 +64,41 @@ export const formatDateRangeNoYear = (start: Date, end: Date) => {
       }),
     },
   });
+};
+
+/**
+ * ¿Le toca a este usuario ver este evento en su agenda?
+ *
+ * Casi todos los eventos son de toda la congregación. La excepción es la
+ * reunión de precursores y ancianos (`PioneerWeek`), que solo va dirigida a
+ * quien asiste: ancianos, precursores del mes —del tipo que sean— y quien
+ * administra la aplicación. Al resto le ocupaba un renglón de la semana con
+ * algo a lo que no tiene que ir.
+ *
+ * Esto es ORDEN en la agenda, no un candado: el evento se sincroniza al
+ * dispositivo de todo el mundo igual que cualquier otro, así que quien mire
+ * los datos por debajo lo encuentra. Es lo mismo que hace el resto de la app
+ * con lo que se enseña por rol.
+ *
+ * NO afecta a la reunión con los precursores de la visita del superintendente
+ * de circuito: esa se proyecta desde la página de la Visita como evento
+ * `Custom` con identificador `covisit_*_pioneers`, y la ve toda la
+ * congregación.
+ *
+ * La regla vive aquí, y no escrita en cada pantalla, porque el evento sale en
+ * DOS —Próximos eventos y la tarjeta de Programa del inicio— y esconderlo solo
+ * en una es peor que no esconderlo: parece guardado mientras sigue a la vista
+ * en la otra.
+ */
+export const isEventForUser = (
+  event: UpcomingEventType,
+  user: { isElder: boolean; isPioneer: boolean }
+) => {
+  if (event.event_data.category !== UpcomingEventCategory.PioneerWeek) {
+    return true;
+  }
+
+  return user.isElder || user.isPioneer;
 };
 
 export const upcomingEventData = (event: UpcomingEventType) => {
