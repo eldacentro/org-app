@@ -3916,8 +3916,15 @@ const Exhibitors = () => {
                 size="small"
                 fullWidth
               >
-                {settings?.turns
-                  ?.find((t) => t.id === editDialog.turnId)
+                {/* Los turnos DEL MES, no los globales.
+                    Buscaba en `settings.turns`, y un turno que solo existe
+                    como excepción del mes no está ahí: el `find` no lo
+                    encontraba, la cadena entera daba `undefined` y la página
+                    se caía entera al abrir este diálogo. Es la misma lista con
+                    la que se pinta la cuadrícula —`effectiveTurns`—, así que
+                    el turno que se acaba de pulsar SIEMPRE está en ella. */}
+                {effectiveTurns
+                  .find((t) => t.id === editDialog.turnId)
                   ?.locations?.map((loc) => (
                     <MenuItem key={loc} value={loc}>
                       {loc}
