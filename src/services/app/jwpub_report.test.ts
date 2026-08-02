@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildJwpubOverrideEntries,
-  computeJwpubReport,
-} from './jwpub_report';
+import { buildJwpubOverrideEntries, computeJwpubReport } from './jwpub_report';
 
 /**
  * El informe de una importación desde `.jwpub`.

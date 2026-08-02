@@ -18,11 +18,7 @@ export type JwpubEntryType = {
   title: string;
 };
 
-export type JwpubChangeKind =
-  | 'added'
-  | 'renamed'
-  | 'reactivated'
-  | 'retired';
+export type JwpubChangeKind = 'added' | 'renamed' | 'reactivated' | 'retired';
 
 export type JwpubChangeType = {
   number: number;

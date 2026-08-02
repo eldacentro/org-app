@@ -38,13 +38,7 @@ const COLOR = {
 const contar = (n: number, singular: string, plural: string) =>
   `${n} ${n === 1 ? singular : plural}`;
 
-const Resumen = ({
-  etiqueta,
-  valor,
-}: {
-  etiqueta: string;
-  valor: string;
-}) => (
+const Resumen = ({ etiqueta, valor }: { etiqueta: string; valor: string }) => (
   <Box
     sx={{
       display: 'flex',
