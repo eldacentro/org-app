@@ -87,3 +87,38 @@ export const fmtDiaConNumero = (date: Date): string => {
   const dia = DIAS_ES_DESDE_DOMINGO[date.getDay()];
   return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${date.getDate()}`;
 };
+
+/**
+ * "Semana del 27 de julio al 2 de agosto" a partir de un `weekOf`
+ * ("2026/07/27", que siempre es el lunes).
+ *
+ * Cuando la semana no cambia de mes, el mes se dice una sola vez: "Semana del
+ * 3 al 9 de agosto".
+ *
+ * Había dos copias exactas de esta cuenta —Exhibidores y Salidas— y una
+ * tercera forma distinta en Discursos salientes, que decía "Semana del 29 de
+ * julio de 2026": solo el lunes, y con el año, que en una lista de semanas del
+ * mismo año no distingue nada.
+ *
+ * Es la etiqueta LARGA, la de un encabezado que va solo. Para la barra plegada
+ * de un selector, donde ya pone "Semana:" delante, va la corta
+ * (`schedulesGetMeetingDate(...).locale` → "27 julio"): si no, la palabra sale
+ * dos veces.
+ */
+export const fmtRangoSemana = (weekOf: string): string => {
+  const [year, month, day] = weekOf.split('/').map(Number);
+  const lunes = new Date(year, month - 1, day);
+  if (Number.isNaN(lunes.getTime())) return weekOf;
+
+  const domingo = new Date(lunes);
+  domingo.setDate(domingo.getDate() + 6);
+
+  const mesLunes = MESES_ES[lunes.getMonth()];
+  const mesDomingo = MESES_ES[domingo.getMonth()];
+
+  if (lunes.getMonth() === domingo.getMonth()) {
+    return `Semana del ${lunes.getDate()} al ${domingo.getDate()} de ${mesLunes}`;
+  }
+
+  return `Semana del ${lunes.getDate()} de ${mesLunes} al ${domingo.getDate()} de ${mesDomingo}`;
+};

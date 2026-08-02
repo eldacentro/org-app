@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import EmptyState from '@components/empty_state';
-import { MESES_ES } from '@utils/nombres_fecha';
+import { fmtRangoSemana, MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   CardContent,
@@ -34,6 +34,7 @@ import Select from '@components/select';
 import MenuItem from '@components/menuitem';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
 import { publicTalksState } from '@states/public_talks';
 import {
   JWLangState,
@@ -355,14 +356,34 @@ const OutgoingSpeakersPage = () => {
     setExpandedMonth((prev) => (prev === month ? '' : month));
   };
 
-  // Human-readable label for the selected week
+  /**
+   * Lo que se enseña en la BARRA plegada: "29 julio", el lunes de la semana.
+   *
+   * Decía "Semana: Semana del 29 de julio de 2026" — la barra ya pone
+   * "Semana:" delante, así que la etiqueta larga repetía la palabra y no
+   * cabía. Es el mismo `schedulesGetMeetingDate(...).locale` que usan el
+   * selector de Reuniones y el de Departamentos, para que las tres barras se
+   * lean igual.
+   */
+  const selectedWeekShortLabel = useMemo(() => {
+    if (!selectedWeek) return '';
+
+    return schedulesGetMeetingDate({ week: selectedWeek, meeting: 'weekOf' })
+      .locale;
+  }, [selectedWeek]);
+
+  /**
+   * La etiqueta LARGA, para la cabecera del panel de la derecha: ahí no hay
+   * ningún "Semana:" delante, así que la frase entera sí es lo que toca.
+   *
+   * Decía "Semana del 29 de julio de 2026" —solo el lunes, y con el año— y el
+   * resto de la app dice el rango: "Semana del 27 de julio al 2 de agosto". El
+   * año no distingue nada en una lista de semanas del mismo año.
+   */
   const selectedWeekLabel = useMemo(() => {
     if (!selectedWeek) return '';
-    const normalised = selectedWeek.replace(/\//g, '-');
-    const date = new Date(normalised + 'T12:00:00');
-    if (isNaN(date.getTime())) return selectedWeek;
-    const mesesEs = [...MESES_ES];
-    return `Semana del ${date.getDate()} de ${mesesEs[date.getMonth()]} de ${date.getFullYear()}`;
+
+    return fmtRangoSemana(selectedWeek.replace(/-/g, '/'));
   }, [selectedWeek]);
 
   // PWA Sync handler
@@ -1083,7 +1104,9 @@ const OutgoingSpeakersPage = () => {
                 }}
               >
                 {t('tr_week')}:{' '}
-                <span style={{ fontWeight: '700' }}>{selectedWeekLabel}</span>
+                <span style={{ fontWeight: '700' }}>
+                  {selectedWeekShortLabel}
+                </span>
               </Typography>
               <Box
                 sx={{

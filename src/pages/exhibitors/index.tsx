@@ -2,7 +2,11 @@ import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import EmptyState from '@components/empty_state';
 import Dialog from '@components/dialog';
-import { fmtDiaConNumero, MESES_ES } from '@utils/nombres_fecha';
+import {
+  fmtDiaConNumero,
+  fmtRangoSemana,
+  MESES_ES,
+} from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -1502,29 +1506,6 @@ const Exhibitors = () => {
                         (a, b) => a[0].localeCompare(b[0])
                       );
 
-                      const getWeekLabel = (weekOfStr: string): string => {
-                        const [year, month, day] = weekOfStr
-                          .split('/')
-                          .map(Number);
-                        const monday = new Date(year, month - 1, day);
-                        const sunday = new Date(monday);
-                        sunday.setDate(sunday.getDate() + 6);
-
-                        const months = [...MESES_ES];
-
-                        const monDayNum = monday.getDate();
-                        const monMonth = months[monday.getMonth()];
-
-                        const sunDayNum = sunday.getDate();
-                        const sunMonth = months[sunday.getMonth()];
-
-                        if (monday.getMonth() === sunday.getMonth()) {
-                          return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
-                        } else {
-                          return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
-                        }
-                      };
-
                       const formatLegibleDate = (dateStr: string): string => {
                         const [year, month, day] = dateStr
                           .split('/')
@@ -1533,7 +1514,7 @@ const Exhibitors = () => {
                       };
 
                       return sortedWeeks.map(([weekOf, days]) => {
-                        const weekLabel = getWeekLabel(weekOf);
+                        const weekLabel = fmtRangoSemana(weekOf);
                         return (
                           <Box key={weekOf} sx={{ mb: '32px' }}>
                             <Box

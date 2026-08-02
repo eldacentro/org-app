@@ -1,7 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import AutoComplete from '@components/autocomplete';
-import { fmtDiaConNumero, MESES_ES } from '@utils/nombres_fecha';
+import {
+  fmtDiaConNumero,
+  fmtRangoSemana,
+  MESES_ES,
+} from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -101,24 +105,11 @@ const MONTH_NAMES = [...MESES_ES];
  *
  * Estaba escrita DENTRO del render de la lista, así que el diálogo de "Ajustes
  * de la semana" no la alcanzaba y enseñaba la fecha en crudo: "la semana del
- * 2026/06/29". Un identificador interno colado en una frase.
+ * 2026/06/29". Un identificador interno colado en una frase. Ahora la cuenta
+ * vive en `@utils/nombres_fecha`, que es donde la comparten las tres pantallas
+ * que la usaban por su cuenta.
  */
-export const getWeekLabel = (weekOfStr: string): string => {
-  const [year, month, day] = weekOfStr.split('/').map(Number);
-  const monday = new Date(year, month - 1, day);
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
-
-  const monDayNum = monday.getDate();
-  const monMonth = MESES_ES[monday.getMonth()];
-  const sunDayNum = sunday.getDate();
-  const sunMonth = MESES_ES[sunday.getMonth()];
-
-  if (monday.getMonth() === sunday.getMonth()) {
-    return `Semana del ${monDayNum} al ${sunDayNum} de ${monMonth}`;
-  }
-  return `Semana del ${monDayNum} de ${monMonth} al ${sunDayNum} de ${sunMonth}`;
-};
+export const getWeekLabel = fmtRangoSemana;
 
 /** Lo mismo sin el "Semana del", para meterlo dentro de una frase. */
 export const getWeekRange = (weekOfStr: string): string =>
