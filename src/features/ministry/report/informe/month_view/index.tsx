@@ -50,7 +50,7 @@ const MonthView = () => {
     const date = new Date(selectedDayStr);
     const weekday = dayNames[date.getDay()];
     const capitalWeekday = capitalizarPrimera(weekday);
-    return `${capitalWeekday} ${date.getDate()} de ${monthNames[date.getMonth()].toLowerCase()}`;
+    return `${capitalWeekday} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
   }, [selectedDayStr, dayNames, monthNames]);
 
   return (
@@ -85,9 +85,7 @@ const MonthView = () => {
           <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
-          <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
-            {monthLabel}
-          </Typography>
+          <Typography className="h3">{monthLabel}</Typography>
           <IconButton aria-label="Mes siguiente" onClick={goToNextMonth}>
             <IconChevronRight color="var(--ink)" />
           </IconButton>

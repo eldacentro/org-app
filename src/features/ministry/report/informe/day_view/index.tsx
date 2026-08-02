@@ -96,9 +96,7 @@ const DayView = () => {
           <IconButton aria-label="Mes anterior" onClick={goToPreviousMonth}>
             <IconChevronLeft color="var(--ink)" />
           </IconButton>
-          <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
-            {monthLabel}
-          </Typography>
+          <Typography className="h3">{monthLabel}</Typography>
           <IconButton aria-label="Mes siguiente" onClick={goToNextMonth}>
             <IconChevronRight color="var(--ink)" />
           </IconButton>

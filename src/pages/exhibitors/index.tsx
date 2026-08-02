@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import EmptyState from '@components/empty_state';
 import Dialog from '@components/dialog';
-import { MESES_ES } from '@utils/nombres_fecha';
+import { fmtDiaConNumero, MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -1377,7 +1377,7 @@ const Exhibitors = () => {
                   sx={{ minWidth: 0 }}
                   style={{ margin: 0 }}
                 >
-                  {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
+                  {`Programa de exhibidores — ${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
 
                 <Box
@@ -1525,21 +1525,11 @@ const Exhibitors = () => {
                         }
                       };
 
-                      const weekdays = [
-                        'domingo',
-                        'lunes',
-                        'martes',
-                        'miércoles',
-                        'jueves',
-                        'viernes',
-                        'sábado',
-                      ];
                       const formatLegibleDate = (dateStr: string): string => {
                         const [year, month, day] = dateStr
                           .split('/')
                           .map(Number);
-                        const date = new Date(year, month - 1, day);
-                        return `${weekdays[date.getDay()]} ${date.getDate()}`;
+                        return fmtDiaConNumero(new Date(year, month - 1, day));
                       };
 
                       return sortedWeeks.map(([weekOf, days]) => {
@@ -1605,10 +1595,7 @@ const Exhibitors = () => {
                                     >
                                       <Typography
                                         className="label-small-semibold"
-                                        style={{
-                                          color: 'var(--accent-dark)',
-                                          textTransform: 'capitalize',
-                                        }}
+                                        color="var(--accent-dark)"
                                       >
                                         {dayLabel}
                                       </Typography>
@@ -1948,19 +1935,6 @@ const Exhibitors = () => {
                               a.startTime.localeCompare(b.startTime)
                             );
                         }
-
-                        const formatLegibleDate = (date: Date): string => {
-                          const weekdays = [
-                            'domingo',
-                            'lunes',
-                            'martes',
-                            'miércoles',
-                            'jueves',
-                            'viernes',
-                            'sábado',
-                          ];
-                          return `${weekdays[date.getDay()]} ${date.getDate()}`;
-                        };
 
                         return (
                           <Box
@@ -2376,12 +2350,8 @@ const Exhibitors = () => {
                                     }}
                                   >
                                     <Typography
-                                      className="h3"
-                                      style={{
-                                        fontWeight: '700',
-                                        color: 'var(--accent-dark)',
-                                        textTransform: 'none',
-                                      }}
+                                      className="label-small-semibold"
+                                      color="var(--accent-dark)"
                                     >
                                       {(() => {
                                         const date = new Date(
@@ -2389,7 +2359,7 @@ const Exhibitors = () => {
                                           selectedMonth,
                                           selectedDayNum
                                         );
-                                        return formatLegibleDate(date);
+                                        return fmtDiaConNumero(date);
                                       })()}
                                     </Typography>
                                   </Box>

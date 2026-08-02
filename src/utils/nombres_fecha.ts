@@ -68,3 +68,22 @@ export const DIAS_ES_DESDE_DOMINGO = [
   'viernes',
   'sábado',
 ];
+
+/**
+ * "Miércoles 1" — la cabecera de un día dentro de un mes que ya está dicho
+ * más arriba, así que no repite ni el mes ni el año.
+ *
+ * El día ABRE la etiqueta, así que lleva mayúscula, y la pone esta función.
+ * Antes la ponía el CSS con `textTransform: 'capitalize'` en unas pantallas y
+ * en otras no la ponía nadie, así que la misma fecha salía "Miércoles 1" en la
+ * vista de lista y "miércoles 1" en la de cuadrícula. Y `capitalize` no es un
+ * sustituto: pone en mayúscula CADA palabra, así que en cuanto la etiqueta
+ * lleva mes —"Miércoles 1 de agosto"— la deja en "Miércoles 1 De Agosto".
+ *
+ * Había cuatro copias de esta cuenta escritas a mano, dos con los nombres en
+ * minúscula y dos con ellos ya en mayúscula.
+ */
+export const fmtDiaConNumero = (date: Date): string => {
+  const dia = DIAS_ES_DESDE_DOMINGO[date.getDay()];
+  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${date.getDate()}`;
+};

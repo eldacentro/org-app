@@ -30,9 +30,7 @@ const DayPanel = ({
         justifyContent="space-between"
         sx={{ marginBottom: '12px' }}
       >
-        <Typography className="h3" sx={{ textTransform: 'capitalize' }}>
-          {label}
-        </Typography>
+        <Typography className="h3">{label}</Typography>
         <IconButton aria-label="Cerrar" onClick={onClose}>
           <IconClose color="var(--grey-350)" />
         </IconButton>

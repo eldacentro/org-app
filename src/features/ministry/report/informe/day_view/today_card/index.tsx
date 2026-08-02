@@ -66,11 +66,7 @@ const TodayCard = ({
           <Typography className="h2" sx={{ fontSize: '36px', lineHeight: 1.1 }}>
             {dayNum}
           </Typography>
-          <Typography
-            className="body-small-regular"
-            color="var(--grey-400)"
-            sx={{ textTransform: 'capitalize' }}
-          >
+          <Typography className="body-small-regular" color="var(--grey-400)">
             {monthLabel}
           </Typography>
         </Stack>

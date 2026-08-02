@@ -274,7 +274,7 @@ lado. A 2026-07-30 quedan ~150 sitios así, casi todos en Exhibidores y Salidas.
 | `label-small-regular` | 12px | Metadatos, timestamps, captions |
 | `label-small-medium` | 12px, medium | Metadatos con algo de énfasis |
 | `label-small-semibold` | 12px, semibold | Etiqueta de campo pequeña con énfasis |
-| `button-caps` | 12px → 14px, uppercase | Texto de botón — lo aplica `@components/button` solo, no usar suelto |
+| `button-caps` | 14px, sin versalitas | Texto de botón — lo aplica `@components/button` solo, no usar suelto. Dejó de ir en mayúsculas y de tener dos tamaños; el porqué está escrito encima de la regla, en `index.css` |
 | `big-numbers` / `huge-numbers` | 48px / 64px | Cifras destacadas de dashboard |
 
 > **Nota de mantenimiento (2026-07-14):** `body-regular-semibold`,
@@ -295,6 +295,31 @@ lado. A 2026-07-30 quedan ~150 sitios así, casi todos en Exhibidores y Salidas.
 > `className="..."` de una sola palabra en minúsculas usadas en
 > `src/features`/`src/pages`/`src/components`, y comprobar cuáles NO tienen
 > una regla `.clase { ... }` en `global.css` ni en `index.css`. Ojo: esto da
+> **Volvió a pasar, y la comprobación de arriba NO lo detecta (2026-08-02).**
+> `npm run generate:css` regeneró `global.css` desde las fuentes de Figma —que
+> no tienen estas tres clases, porque se añadieron a mano— y se llevó las
+> definiciones de `label-small-semibold` (56 usos), `body-regular-semibold`
+> (39) y `body-small-medium` (2). Noventa y siete textos volvieron a salir a
+> 16px peso 400 mientras el código pedía otra cosa. Se vio porque la cabecera
+> de cada día de Exhibidores y Salidas ("Miércoles 1") salía más grande que el
+> nombre del hermano que lleva debajo.
+>
+> La comprobación de grep no lo pilla porque la clase SÍ aparecía en
+> `index.css`… pero solo dentro del escalón de tablet. Existía para un iPad y
+> no existía para un móvil ni para un escritorio.
+>
+> **La comprobación buena es medir, no buscar.** En la consola del navegador,
+> crear un elemento con cada clase de la tabla y comparar
+> `getComputedStyle().fontSize`/`fontWeight` con lo que dice esta tabla. Una
+> clase huérfana canta enseguida: sale 16px/400, el defecto de MUI. Hay que
+> hacerlo al menos a un ancho de móvil y a uno de escritorio.
+>
+> Y las tres han vuelto a `index.css`, no a `global.css`, que es el fichero
+> que se regenera. Van **antes** del escalón de tablet a propósito: una media
+> query no suma especificidad, así que entre dos reglas de la misma clase
+> decide el orden del fichero, y si fueran después le ganarían al escalón.
+>
+> Ojo también: la comprobación de grep da
 > falsos positivos con clases que son "ganchos" estructurales/de
 > comportamiento (ej. `schedules-view-week-selector`, usada solo como
 > selector CSS desde un `sx` padre o como ancla de `querySelector`, nunca
@@ -400,6 +425,26 @@ cincuenta idiomas y en alemán los meses van en mayúscula por ser sustantivos:
 la regla es del idioma y vive en su diccionario. Ya hubo un intento así —un
 `monthCase` en `upcoming_events.ts` que preguntaba "¿estamos en español?"—, y
 solo arreglaba una pantalla de las trece que tenían el fallo.
+
+**Y nunca `textTransform: 'capitalize'` en el CSS tampoco.** Es la otra puerta
+falsa, y es peor que la anterior porque a primera vista funciona: pone en
+mayúscula CADA palabra, así que "Miércoles 1" sale bien pero "miércoles 1 de
+agosto" sale "Miércoles 1 De Agosto". Estaba pasando en el panel de un día de
+Informe de predicación. Además vive en la hoja de estilos, así que quien lee
+el código no ve la mayúscula por ningún lado y la da por perdida —que es justo
+lo que hacía la vista de cuadrícula de Exhibidores, donde la misma fecha salía
+"miércoles 1" en minúscula mientras la de lista decía "Miércoles 1"—.
+
+La mayúscula la pone **quien construye la etiqueta**, siempre, con
+`capitalizarPrimera()`. Para la cabecera de un día hay un formateador hecho:
+`fmtDiaConNumero(date)` en `@utils/nombres_fecha` → `"Miércoles 1"`. Había
+cuatro copias de esa cuenta escritas a mano, dos con los nombres de día en
+minúscula y dos ya en mayúscula.
+
+Las dos excepciones legítimas de `capitalize`, y no hay más: el calendario de
+MUI (`components/date_picker`), cuyo texto lo pone la librería y no pasa por
+nuestro código, y `upcoming_event_date`, que usa `&::first-letter` —que sí es
+solo la primera letra, no cada palabra—.
 
 ### Un verbo por acción, y el más corto que se entienda
 

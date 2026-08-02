@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import AutoComplete from '@components/autocomplete';
-import { MESES_ES } from '@utils/nombres_fecha';
+import { fmtDiaConNumero, MESES_ES } from '@utils/nombres_fecha';
 import {
   Box,
   Card,
@@ -179,20 +179,6 @@ const getWeekOfDate = (date: Date): string => {
 // Helper para formatear fecha a DB (YYYY/MM/DD)
 const formatToDbDate = (date: Date): string => {
   return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
-};
-
-// Helper para formatear fecha legible
-const formatLegibleDate = (date: Date): string => {
-  const weekdays = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-  ];
-  return `${weekdays[date.getDay()]} ${date.getDate()}`;
 };
 
 const PredicacionSalidas = () => {
@@ -1528,7 +1514,7 @@ const PredicacionSalidas = () => {
                   sx={{ minWidth: 0 }}
                   style={{ margin: 0 }}
                 >
-                  {`Programa de salidas — ${MONTH_NAMES[selectedMonth].toLowerCase()} ${selectedYear}`}
+                  {`Programa de salidas — ${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
                 </Typography>
 
                 <Box
@@ -1707,7 +1693,7 @@ const PredicacionSalidas = () => {
                         >
                           {days.map(({ dateKey, daySlots }) => {
                             const dayDate = daySlots[0].date;
-                            const dayLabel = formatLegibleDate(dayDate);
+                            const dayLabel = fmtDiaConNumero(dayDate);
 
                             return (
                               <Card
@@ -1741,10 +1727,7 @@ const PredicacionSalidas = () => {
                                 >
                                   <Typography
                                     className="label-small-semibold"
-                                    style={{
-                                      color: 'var(--accent-dark)',
-                                      textTransform: 'capitalize',
-                                    }}
+                                    color="var(--accent-dark)"
                                   >
                                     {dayLabel}
                                   </Typography>
@@ -2502,12 +2485,8 @@ const PredicacionSalidas = () => {
                                 }}
                               >
                                 <Typography
-                                  className="h3"
-                                  style={{
-                                    fontWeight: '700',
-                                    color: 'var(--accent-dark)',
-                                    textTransform: 'none',
-                                  }}
+                                  className="label-small-semibold"
+                                  color="var(--accent-dark)"
                                 >
                                   {(() => {
                                     const date = new Date(
@@ -2515,7 +2494,7 @@ const PredicacionSalidas = () => {
                                       selectedMonth,
                                       selectedDayNum
                                     );
-                                    return formatLegibleDate(date);
+                                    return fmtDiaConNumero(date);
                                   })()}
                                 </Typography>
                               </Box>
@@ -3886,7 +3865,7 @@ const PredicacionSalidas = () => {
       >
         <DialogTitle style={{ fontWeight: '600', color: 'var(--accent-dark)' }}>
           {editDialog.date &&
-            `${formatLegibleDate(editDialog.date)} — ${editDialog.time}`}
+            `${fmtDiaConNumero(editDialog.date)} — ${editDialog.time}`}
         </DialogTitle>
 
         <DialogContent

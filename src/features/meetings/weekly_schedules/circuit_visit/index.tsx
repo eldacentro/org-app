@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { MESES_ES } from '@utils/nombres_fecha';
+import { DIAS_ES_DESDE_DOMINGO, MESES_ES } from '@utils/nombres_fecha';
 import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
 import Typography from '@components/typography';
@@ -43,15 +43,7 @@ import ActionPill from '@components/action_pill';
  * otra pantalla.
  */
 
-const DIAS = [
-  'domingo',
-  'lunes',
-  'martes',
-  'miércoles',
-  'jueves',
-  'viernes',
-  'sábado',
-];
+const DIAS = [...DIAS_ES_DESDE_DOMINGO];
 
 const MESES = [...MESES_ES];
 

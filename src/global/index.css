@@ -1622,6 +1622,98 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   TRES CLASES DE TEXTO QUE SE QUEDARON SIN DEFINICIÓN
+   ══════════════════════════════════════════════════════════════════════════
+
+   `label-small-semibold` (56 usos), `body-regular-semibold` (39) y
+   `body-small-medium` (2) no tenían NINGUNA regla que las alcanzara en un
+   móvil ni en un escritorio: solo existían dentro del escalón de tablet, aquí
+   mismo debajo. Es decir que 97 textos de la app salían con el tamaño por
+   defecto de MUI —16px, peso 400— mientras el código decía otra cosa. Sin
+   error y sin aviso, que es lo que hace tan difícil de ver esto.
+
+   Se veía, por ejemplo, en la cabecera de cada día de Exhibidores y Salidas
+   ("Miércoles 1"): pedía 12px semibold y salía a 16px normal, más grande que
+   el nombre del hermano que lleva debajo.
+
+   Las definió el commit del sistema de diseño el 14 de julio, dentro de
+   `global.css`. El 2 de agosto `npm run generate:css` regeneró ese fichero
+   desde las fuentes de Figma —que no las tienen, porque se añadieron a mano— y
+   se las llevó por delante. Es el mismo accidente que ya se había comido los
+   colores de grupo y el tamaño del texto de los botones.
+
+   Por eso vuelven AQUÍ y no allí: este fichero no lo regenera nadie. Los
+   valores son los de julio, tal cual.
+
+   Y van ANTES del escalón de tablet a propósito. Una media query no suma
+   especificidad, así que entre dos reglas de una clase decide el orden: si
+   esto fuera después, le ganaría al escalón y en una tablet el texto dejaría
+   de crecer. Puestas aquí, el escalón sigue mandando donde le toca. */
+.label-small-semibold {
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-style: normal;
+  font-stretch: normal;
+  letter-spacing: -0.12px;
+  line-height: 14px;
+  text-indent: 0px;
+  text-transform: none;
+}
+
+@media (max-width: 768px) {
+  .body-regular-semibold {
+    font-size: 15px;
+    text-decoration: none;
+    font-weight: 600;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: -0.15px;
+    line-height: 20px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
+  .body-small-medium {
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0.065px;
+    line-height: 16px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .body-regular-semibold {
+    font-size: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0px;
+    line-height: 20px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+
+  .body-small-medium {
+    font-size: 14px;
+    text-decoration: none;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: 0px;
+    line-height: 18px;
+    text-indent: 0px;
+    text-transform: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    ESCALÓN DE TABLET  ·  táctil grande (iPad, plegable abierto)
    ══════════════════════════════════════════════════════════════════════════
 

@@ -1,11 +1,10 @@
 import { store } from '@states/index';
+import { capitalizarPrimera } from '@utils/common';
 import {
   dayNamesShortState,
   dayNamesState,
   monthShortNamesState,
 } from '@states/app';
-
-const mayus = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /**
  * "Mar 15" — el día dentro de las tablas de la hoja de la visita.
@@ -21,7 +20,7 @@ export const fmtDayNumEs = (date: string) => {
     const d = new Date(date);
     const dayNames = store.get(dayNamesShortState);
 
-    return `${mayus(dayNames[d.getDay()])} ${d.getDate()}`;
+    return `${capitalizarPrimera(dayNames[d.getDay()])} ${d.getDate()}`;
   } catch {
     return date;
   }
@@ -35,7 +34,7 @@ export const fmtDayLongEs = (date: string) => {
     const d = new Date(date);
     const dayNames = store.get(dayNamesState);
 
-    return `${mayus(dayNames[d.getDay()])} ${d.getDate()}`;
+    return `${capitalizarPrimera(dayNames[d.getDay()])} ${d.getDate()}`;
   } catch {
     return date;
   }
