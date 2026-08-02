@@ -1342,12 +1342,24 @@ const Exhibitors = () => {
                   // Estaba en `center` para las dos direcciones, y en columna
                   // eso centra en horizontal: el título salía centrado y la
                   // fila de controles de debajo iba de borde a borde, así que
-                  // los botones parecían echados a un lado. De 480 para arriba
+                  // los botones parecían echados a un lado. De 1200 para arriba
                   // la fila vuelve a ser horizontal y ahí `center` sí es lo que
                   // se quiere: alinear verticalmente título y controles.
-                  alignItems: { mobile: 'flex-start', tablet: 'center' },
+                  alignItems: { mobile: 'flex-start', desktop: 'center' },
                   marginBottom: '8px',
-                  flexDirection: { mobile: 'column', tablet: 'row' },
+                  // El corte está en 1200, no en 480. Estaba en 480 y el título
+                  // y los controles no caben en una línea hasta ~820 (385 del
+                  // título más largo + 16 + 372 del grupo + 48 de márgenes), así
+                  // que en toda esa franja la fila ENVOLVÍA y el grupo bajaba
+                  // conservando su ancho natural: los botones a la izquierda y
+                  // hasta 180px de hueco muerto a la derecha, sin llegar al
+                  // borde de las tarjetas. Un `flexWrap` no puede arreglarlo
+                  // —CSS no sabe si una línea ha envuelto— así que el remedio
+                  // es no envolver: por debajo de 1200 se apila y el grupo toma
+                  // el ancho entero. 1200 es el mismo corte con el que esta
+                  // página pasa a dos columnas (`desktopUp`, más arriba), así
+                  // que las dos cosas cambian a la vez.
+                  flexDirection: { mobile: 'column', desktop: 'row' },
                   // Si el grupo de controles no cabe al lado del título, baja
                   // ENTERO a la linea de abajo. Sin esto se estrujaba hasta
                   // dejar "Lista" y "Cuadricula" pegados el uno al otro.
@@ -1373,6 +1385,13 @@ const Exhibitors = () => {
                     display: 'flex',
                     gap: '12px',
                     alignItems: 'center',
+                    // Cuando el grupo tiene el ancho entero (por debajo de
+                    // 688), el botón se va al margen izquierdo y el selector
+                    // al derecho, a ras de las tarjetas. Sin esto se quedaban
+                    // los dos pegados a la izquierda con el hueco a la
+                    // derecha. De 688 para arriba el grupo mide lo que mide su
+                    // contenido y esto no hace nada.
+                    justifyContent: 'space-between',
                     // Los dos controles NO se separan uno del otro: lo que
                     // cede cuando falta sitio es el título, que puede pasar a
                     // dos líneas. Antes envolvían ellos y quedaban apilados en
@@ -1385,7 +1404,7 @@ const Exhibitors = () => {
                     // 12 + 200 del selector = 372— dentro de un hueco de 361,
                     // y "Cuadrícula" asomaba 11px por fuera del margen de la
                     // página. Medido en un móvil de 393.
-                    width: { mobile: '100%', tablet: 'auto' },
+                    width: { mobile: '100%', desktop: 'auto' },
                   }}
                 >
                   {/* El `Button` compartido de la app. Era un Button de MUI en crudo:
@@ -1415,8 +1434,8 @@ const Exhibitors = () => {
                       selector cede lo justo y sigue leyéndose. */}
                   <Box
                     sx={{
-                      flexShrink: { mobile: 1, tablet: 0 },
-                      minWidth: { mobile: 0, tablet: '200px' },
+                      flexShrink: { mobile: 1, desktop: 0 },
+                      minWidth: { mobile: 0, desktop: '200px' },
                       flexBasis: '200px',
                     }}
                   >

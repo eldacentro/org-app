@@ -69,6 +69,23 @@ Ahora el título va al margen izquierdo como en el resto de la app (Programas
 semanales, Territorios…), y la fila de controles queda a ras de los dos
 márgenes, en línea con el título y con las tarjetas de abajo.
 
+**2 bis. Y el hueco muerto de la franja ancha.** Alinear el título a la
+izquierda destapó lo que de verdad veía Carlos: **de 480 px para arriba** la
+cabecera ya estaba en modo fila, y como el título y los controles no caben en
+una sola línea hasta unos 820 px (385 del título más largo + 16 + 372 del
+grupo + 48 de márgenes), la fila ENVOLVÍA: el grupo bajaba a su propia línea
+pero conservando su ancho natural. Resultado, a 600 px: la tarjeta llegaba a
+576 y los controles se quedaban en 394. Los botones a la izquierda y 180 px de
+hueco a la derecha.
+
+Un `flexWrap` no puede arreglarlo, porque CSS no sabe si una línea ha
+envuelto. El remedio es no envolver: **el corte pasa de 480 a 1200**, que es el
+mismo con el que esta página ya se parte en dos columnas (`desktopUp`). Por
+debajo de 1200 se apila y el grupo toma el ancho entero, con
+`justifyContent: 'space-between'` para que el botón se vaya al margen
+izquierdo y el selector al derecho. Comprobado a 375, 430, 480, 600, 700,
+900, 1000 y 1280: el grupo empieza y acaba exactamente donde las tarjetas.
+
 **3. Salidas se salía por el margen derecho.** Su grupo de controles se
 dimensionaba por su contenido —160 del botón + 12 + 200 del selector = 372—
 dentro de un hueco de 343, así que «Cuadrícula» asomaba por fuera. Antes se

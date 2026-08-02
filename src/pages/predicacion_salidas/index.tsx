@@ -1502,9 +1502,14 @@ const PredicacionSalidas = () => {
                   // en horizontal, y el título centrado sobre una fila de
                   // controles que va de borde a borde hacía que los botones
                   // parecieran echados a un lado.
-                  alignItems: { mobile: 'flex-start', tablet: 'center' },
+                  alignItems: { mobile: 'flex-start', desktop: 'center' },
                   marginBottom: '24px',
-                  flexDirection: { mobile: 'column', tablet: 'row' },
+                  // El corte está en 1200, no en 480: ver la nota gemela en
+                  // `pages/exhibitors/index.tsx`. Hasta ~820 el título y los
+                  // controles no caben en la misma línea, así que la fila
+                  // envolvía y el grupo bajaba con su ancho natural, dejando un
+                  // hueco muerto a la derecha.
+                  flexDirection: { mobile: 'column', desktop: 'row' },
                   // Si el grupo de controles no cabe al lado del título, baja
                   // ENTERO a la línea de abajo. Sin esto, en una tablet de 520
                   // el título se estrujaba en cuatro renglones de dos palabras
@@ -1531,6 +1536,11 @@ const PredicacionSalidas = () => {
                     display: 'flex',
                     gap: '12px',
                     alignItems: 'center',
+                    // Con el ancho entero (por debajo de 688), el botón al
+                    // margen izquierdo y el selector al derecho, a ras de las
+                    // tarjetas. Sin esto se quedaban los dos a la izquierda
+                    // con el hueco a la derecha.
+                    justifyContent: 'space-between',
                     // Los dos controles NO se separan uno del otro: lo que
                     // cede cuando falta sitio es el título, que puede pasar a
                     // dos líneas.
@@ -1543,7 +1553,7 @@ const PredicacionSalidas = () => {
                     // y "Cuadrícula" se salía por el margen derecho. Es la
                     // misma cuenta que ya estaba resuelta en la página gemela
                     // de Exhibidores.
-                    width: { mobile: '100%', tablet: 'auto' },
+                    width: { mobile: '100%', desktop: 'auto' },
                   }}
                 >
                   {/* El `Button` compartido de la app. Era un Button de MUI en
@@ -1582,8 +1592,8 @@ const PredicacionSalidas = () => {
                       selector cede lo justo y sigue leyéndose. */}
                   <Box
                     sx={{
-                      flexShrink: { mobile: 1, tablet: 0 },
-                      minWidth: { mobile: 0, tablet: '200px' },
+                      flexShrink: { mobile: 1, desktop: 0 },
+                      minWidth: { mobile: 0, desktop: '200px' },
                       flexBasis: '200px',
                     }}
                   >
