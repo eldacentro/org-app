@@ -4031,39 +4031,18 @@ const Exhibitors = () => {
         </Box>
       </Dialog>
 
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}
-        maxWidth="mobile"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
-          </Typography>
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            mt: '8px',
-          }}
-        >
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <InfoTip
             isBig={false}
             color={isCurrentlyOverridden ? 'warning' : 'info'}
@@ -4226,14 +4205,13 @@ const Exhibitors = () => {
               )}
             </Box>
           )}
-        </DialogContent>
+        </Box>
+
         {/* "Restaurar a global" es la acción de reset (destructiva), separada
             a la izquierda; "Cerrar" es la única acción de confirmación — no
             hay un borrador pendiente que requiera un "Guardar" aparte aquí
             (los cambios de este diálogo se aplican al instante). */}
-        <DialogActions
-          sx={{ padding: '16px', justifyContent: 'space-between' }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           {isCurrentlyOverridden ? (
             <AppButton
               variant="secondary"
@@ -4253,8 +4231,8 @@ const Exhibitors = () => {
           >
             Cerrar
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
 
       {/* --- DIÁLOGO 2: DIÁLOGO DE CONFIGURACIÓN GLOBAL O MENSUAL DE TURNO --- */}
       <MUIDialog
