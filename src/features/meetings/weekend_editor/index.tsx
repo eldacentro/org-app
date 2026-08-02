@@ -229,8 +229,15 @@ const WeekendEditor = () => {
                   onToggle={handleTogglePulicTalk}
                   actionButton={
                     speakerName ? (
+                      // `semi-white` es la variante que la app tiene para un
+                      // botón sobre una superficie de color: blanco traslúcido
+                      // con sus tres estados ya resueltos. Este se los pintaba
+                      // a mano con rgba congelados —que ignoran los cinco
+                      // temas—, un radio propio, su propio tamaño de letra y
+                      // un desplazamiento al pasar por encima que no hace
+                      // ningún otro botón de la app.
                       <Button
-                        variant="small"
+                        variant="semi-white"
                         disableAutoStretch={true}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -238,29 +245,9 @@ const WeekendEditor = () => {
                         }}
                         startIcon={<IconMail />}
                         sx={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                          border: '1px solid rgba(255, 255, 255, 0.30)',
-                          borderRadius: 'var(--shape-sm)',
-                          color: 'var(--always-white)',
-                          padding: { mobile: '4px 10px', tablet: '6px 14px' },
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          fontSize: { mobile: '11px', tablet: '13px' },
-                          transition:
-                            'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard)',
-                          backdropFilter: 'blur(8px)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.28)',
-                            borderColor: 'rgba(255, 255, 255, 0.50)',
-                            transform: 'translateY(-1px)',
-                          },
-                          '&:active': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.40)',
-                            transform: 'translateY(0)',
-                          },
-                          '& svg, & svg g, & svg g path': {
-                            fill: 'var(--always-white) !important',
-                          },
+                          // En un móvil la franja ya lleva el título y la
+                          // flecha de plegar: el icono cede el sitio para que
+                          // la etiqueta quepa entera y sin partirse.
                           '& .MuiButton-startIcon': {
                             display: { mobile: 'none', tablet: 'inline-flex' },
                           },
