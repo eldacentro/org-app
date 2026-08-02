@@ -1,15 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import { displaySnackNotification } from '@services/states/app';
-import {
-  Box,
-  Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-} from '@mui/material';
+import { Box, Collapse, Stack } from '@mui/material';
+import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -538,53 +531,41 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
       ))}
 
       {/* ── Diálogo de edición de nota ─────────────────────────────────── */}
-      <Dialog
-        open={!!editTarget}
-        onClose={closeNoteDialog}
-        PaperProps={{
-          sx: {
-            borderRadius: 'var(--shape-xl)',
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--line)',
-            boxShadow: 'var(--pop-up-shadow)',
-            maxWidth: '444px',
-            width: '100%',
-            mx: 2,
-          },
-        }}
-      >
-        <DialogTitle sx={{ p: 2, pb: 0 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            Editar nota
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            inputRef={noteRef}
-            autoFocus
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={6}
-            label="Nota de la asignación"
-            value={noteValue}
-            onChange={(e) => setNoteValue(e.target.value)}
-            // Sin atajo de Enter: el campo es multilínea (minRows=2), así
-            // que Enter tiene que hacer salto de línea. Antes guardaba y
-            // cerraba, y era imposible escribir una nota de dos líneas.
-            disabled={noteLocked}
-            helperText={
-              noteLocked
-                ? 'La nota existente está cifrada y este dispositivo no puede leerla, así que no se puede editar desde aquí.'
-                : undefined
-            }
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el ancho, el radio, el
+          fondo y la sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM
+          §6.1. */}
+      <Dialog open={!!editTarget} onClose={closeNoteDialog}>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Editar nota
+        </Typography>
+
+        <TextField
+          inputRef={noteRef}
+          autoFocus
+          fullWidth
+          multiline
+          minRows={2}
+          maxRows={6}
+          label="Nota de la asignación"
+          value={noteValue}
+          onChange={(e) => setNoteValue(e.target.value)}
+          // Sin atajo de Enter: el campo es multilínea (minRows=2), así
+          // que Enter tiene que hacer salto de línea. Antes guardaba y
+          // cerraba, y era imposible escribir una nota de dos líneas.
+          disabled={noteLocked}
+          helperText={
+            noteLocked
+              ? 'La nota existente está cifrada y este dispositivo no puede leerla, así que no se puede editar desde aquí.'
+              : undefined
+          }
+        />
+
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <Button
             variant="tertiary"
-            disableAutoStretch
             onClick={closeNoteDialog}
             disabled={savingNote}
           >
@@ -592,13 +573,12 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
           </Button>
           <Button
             variant="main"
-            disableAutoStretch
             onClick={saveNote}
             disabled={savingNote || noteLocked}
           >
             {savingNote ? 'Guardando…' : 'Guardar'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );
