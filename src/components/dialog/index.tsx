@@ -55,6 +55,15 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
           },
           // Y el alto máximo baja lo mismo, porque si no un diálogo largo
           // crece por debajo de la barra de inicio aunque su margen esté bien.
+          // Y que se pueda RECORRER. Con el alto máximo puesto pero sin esto,
+          // un diálogo más largo que su máximo —la configuración de Limpieza,
+          // con seis grupos y las notas— no se desliza: se desborda por abajo.
+          //
+          // Va aquí y no en una regla global: se intentó, y alcanzaba también
+          // a los diálogos que van a pantalla completa —el de ver un
+          // territorio, con su mapa— y les metía márgenes donde no debe
+          // haberlos.
+          overflowY: 'auto',
           maxHeight: {
             mobile:
               'calc(100% - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
