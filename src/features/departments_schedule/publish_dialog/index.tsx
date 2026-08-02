@@ -1,9 +1,5 @@
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from '@mui/material';
+import { Box } from '@mui/material';
+import Dialog from '@components/dialog';
 import { MESES_ES } from '@utils/nombres_fecha';
 import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
@@ -40,38 +36,15 @@ const DeptPublishDialog = ({
   })();
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="mobile"
-      fullWidth
-      sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-      PaperProps={{
-        style: {
-          borderRadius: 'var(--shape-xl)',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
-          boxShadow: 'var(--pop-up-shadow)',
-        },
-      }}
-      slotProps={{
-        backdrop: { style: { backgroundColor: 'var(--accent-dark-overlay)' } },
-      }}
-    >
-      <DialogTitle sx={{ pb: 1 }}>
-        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          {isPublished ? 'Retirar' : 'Publicar'}: {monthLabel}
-        </Typography>
-      </DialogTitle>
+    // El Dialog del sistema, no el de MUI en crudo: es el que pone los
+    // márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+    // sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1.
+    <Dialog open={open} onClose={onClose}>
+      <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+        {isPublished ? 'Retirar' : 'Publicar'}: {monthLabel}
+      </Typography>
 
-      <DialogContent
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          mt: '8px',
-        }}
-      >
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {!hasSchedule ? (
           <InfoTip
             isBig={false}
@@ -97,23 +70,24 @@ const DeptPublishDialog = ({
             text={`Hay ${emptyRoles} ${emptyRoles === 1 ? 'puesto sin nadie asignado' : 'puestos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
           />
         )}
-      </DialogContent>
+      </Box>
 
-      <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-        <AppButton variant="secondary" disableAutoStretch onClick={onClose}>
+      {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+          como en todos los diálogos de la app. */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+        <AppButton variant="tertiary" onClick={onClose}>
           Cancelar
         </AppButton>
         {hasSchedule && (
           <AppButton
             variant="main"
             color={isPublished ? 'red' : undefined}
-            disableAutoStretch
             onClick={onConfirm}
           >
             {isPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
         )}
-      </DialogActions>
+      </Box>
     </Dialog>
   );
 };
