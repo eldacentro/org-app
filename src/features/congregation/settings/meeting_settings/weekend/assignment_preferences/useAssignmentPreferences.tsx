@@ -4,7 +4,6 @@ import {
   settingsState,
   userDataViewState,
   weekendMeetingOpeningPrayerAutoAssignState,
-  weekendMeetingSubstituteSpeakerState,
 } from '@states/settings';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 
@@ -14,11 +13,8 @@ const useAssignmentPreferences = () => {
   const prayerInitial = useAtomValue(
     weekendMeetingOpeningPrayerAutoAssignState
   );
-  const substituteInitial = useAtomValue(weekendMeetingSubstituteSpeakerState);
 
   const [autoAssignOpeningPrayer, setAutoAssignOpeningPrayer] = useState(false);
-  const [substituteSpeakerEnabled, setSubstituteSpeakerEnabled] =
-    useState(false);
 
   const handleAutoOpeningPrayerToggle = async () => {
     const weekendSettings = structuredClone(
@@ -35,31 +31,13 @@ const useAssignmentPreferences = () => {
     });
   };
 
-  const handleSubstituteSpeakerToggle = async () => {
-    const weekendSettings = structuredClone(
-      settings.cong_settings.weekend_meeting
-    );
-
-    const current = weekendSettings.find((record) => record.type === dataView);
-
-    current.substitute_speaker_enabled.value = !substituteSpeakerEnabled;
-    current.substitute_speaker_enabled.updatedAt = new Date().toISOString();
-
-    await dbAppSettingsUpdate({
-      'cong_settings.weekend_meeting': weekendSettings,
-    });
-  };
-
   useEffect(() => {
     setAutoAssignOpeningPrayer(prayerInitial);
-    setSubstituteSpeakerEnabled(substituteInitial);
-  }, [substituteInitial, prayerInitial]);
+  }, [prayerInitial]);
 
   return {
     autoAssignOpeningPrayer,
     handleAutoOpeningPrayerToggle,
-    handleSubstituteSpeakerToggle,
-    substituteSpeakerEnabled,
   };
 };
 

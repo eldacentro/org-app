@@ -171,7 +171,10 @@ const PlanoBase = memo(function PlanoBase() {
 });
 
 /** Encuadre completo del plano. */
-const VISTA_COMPLETA = { x: -7, y: -6, w: 194, h: 92 };
+// El lienzo es MÁS ANCHO que el plano (0..180) a los dos lados: A3 y B3 se
+// plantan en la calle, fuera del edificio. El plano se ve algo más pequeño a
+// cambio, y está bien: la calle también es parte del plan.
+const VISTA_COMPLETA = { x: -21, y: -6, w: 222, h: 92 };
 const ZOOM_MAX = 6;
 
 const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {

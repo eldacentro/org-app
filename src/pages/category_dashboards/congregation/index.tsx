@@ -9,7 +9,7 @@ import {
   IconPioneerForm,
   IconNextEvents,
   IconAssignment,
-  IconMapOverview,
+  IconE911Emergency,
   IconInformationBoard,
   IconClean,
   IconCalendarWeek,
@@ -152,7 +152,9 @@ const CongregationDashboard = () => {
           onClick={() => handleTileClick('/congregation/evacuacion')}
         >
           <div className="ti">
-            <IconMapOverview color="var(--brand)" width={22} height={22} />
+            {/* No el icono de mapa: ese es el de Territorios, y con los dos
+                iguales la tarjeta de evacuación se leía como "otro mapa". */}
+            <IconE911Emergency color="var(--brand)" width={22} height={22} />
           </div>
           <div className="tile-body">
             <div className="tile-name">Plan de evacuación</div>

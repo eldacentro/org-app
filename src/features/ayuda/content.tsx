@@ -6,6 +6,7 @@ import {
   IconClean,
   IconCloudDownload,
   IconDuties,
+  IconE911Emergency,
   IconGroups,
   IconCart,
   IconHelp,
@@ -2185,10 +2186,8 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
     id: 'evacuacion',
     title: 'Plan de evacuación',
     description: 'Qué hacer, y quién hace qué, si hay que desalojar el salón.',
-    // El mismo icono que su tarjeta en Congregación. Coincide con el de
-    // Territorios porque la aplicación usa el mismo en las dos tarjetas; los
-    // títulos los distinguen de sobra.
-    icon: <IconMapOverview color="var(--accent-main)" />,
+    // El mismo icono que su tarjeta en Congregación.
+    icon: <IconE911Emergency color="var(--accent-main)" />,
     visible: (r) => r.isElder,
     articles: [
       {

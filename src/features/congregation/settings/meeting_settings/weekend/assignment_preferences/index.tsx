@@ -3,19 +3,25 @@ import { AssignmentPreferencesProps } from './index.types';
 import useAssignmentPreferences from './useAssignmentPreferences';
 import SwitchWithLabel from '@components/switch_with_label';
 
+/**
+ * Aquí había un segundo interruptor, "Designar un sustituto para oradores
+ * visitantes", que no hacía NADA: ninguna pantalla leía su valor y
+ * `WM_SubstituteSpeaker` no se escribe en ningún sitio, así que no había dónde
+ * apuntar al sustituto. Un interruptor que se enciende y no cambia nada es
+ * peor que no tenerlo. Fuera.
+ *
+ * Lo que sí sigue existiendo, y es otra cosa, son los sustitutos del conductor
+ * del Estudio de La Atalaya (ver `study_conductor`).
+ */
 const AssignmentPreferences = ({
   quickSettings,
 }: AssignmentPreferencesProps) => {
   const { t } = useAppTranslation();
 
-  const { isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
+  const { isWeekendEditor } = useCurrentUser();
 
-  const {
-    autoAssignOpeningPrayer,
-    handleAutoOpeningPrayerToggle,
-    handleSubstituteSpeakerToggle,
-    substituteSpeakerEnabled,
-  } = useAssignmentPreferences();
+  const { autoAssignOpeningPrayer, handleAutoOpeningPrayerToggle } =
+    useAssignmentPreferences();
 
   return (
     <>
@@ -25,15 +31,6 @@ const AssignmentPreferences = ({
           checked={autoAssignOpeningPrayer}
           onChange={handleAutoOpeningPrayerToggle}
           readOnly={!isWeekendEditor}
-        />
-      )}
-
-      {(!quickSettings || (quickSettings && isPublicTalkCoordinator)) && (
-        <SwitchWithLabel
-          label={t('tr_appointSubstituteSpeaker')}
-          checked={substituteSpeakerEnabled}
-          onChange={handleSubstituteSpeakerToggle}
-          readOnly={!isPublicTalkCoordinator}
         />
       )}
     </>

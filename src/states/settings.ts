@@ -500,15 +500,6 @@ export const weekendMeetingWeekdayState = atom((get) => {
   );
 });
 
-export const weekendMeetingSubstituteSpeakerState = atom((get) => {
-  const settings = get(settingsState);
-  const dataView = get(userDataViewState);
-
-  return settings.cong_settings.weekend_meeting.find(
-    (record) => record.type === dataView
-  ).substitute_speaker_enabled.value;
-});
-
 /**
  * "Mostrar programa de oradores salientes a todos los usuarios".
  *

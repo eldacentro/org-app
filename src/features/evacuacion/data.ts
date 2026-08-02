@@ -426,10 +426,17 @@ export type PuestoGeo = {
  * - B1 entre la 1ª y la 2ª fila de la sección de la izquierda.
  */
 export const PUESTOS: PuestoGeo[] = [
-  { posicion: 'A1', equipoId: 'evacuacion-a', x: 64, y: 40 },
+  // A1 y B2 comparten altura a propósito: los dos se plantan justo donde
+  // acaban los asientos, uno a cada lado del pasillo central.
+  { posicion: 'A1', equipoId: 'evacuacion-a', x: 72, y: 45 },
   { posicion: 'A2', equipoId: 'evacuacion-a', x: 24, y: 26 },
-  { posicion: 'A3', equipoId: 'evacuacion-a', x: 4, y: 47 },
   { posicion: 'B1', equipoId: 'evacuacion-b', x: 135, y: 65 },
-  { posicion: 'B2', equipoId: 'evacuacion-b', x: 118, y: 23 },
-  { posicion: 'B3', equipoId: 'evacuacion-b', x: 175, y: 49 },
+  { posicion: 'B2', equipoId: 'evacuacion-b', x: 118, y: 45 },
+
+  // A3 y B3 van FUERA del edificio, en la calle: ellos dos no evacuan por
+  // dentro, reciben en el exterior y encaminan a la gente lejos de la puerta.
+  // Por eso el lienzo es más ancho que el plano (VISTA_COMPLETA en Plano2D):
+  // la calle es parte del plan de evacuación, aunque no esté dibujada.
+  { posicion: 'A3', equipoId: 'evacuacion-a', x: -10, y: 47 },
+  { posicion: 'B3', equipoId: 'evacuacion-b', x: 191, y: 49 },
 ];
