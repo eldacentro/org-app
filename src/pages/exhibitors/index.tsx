@@ -3986,41 +3986,16 @@ const Exhibitors = () => {
       {/* DIÁLOGO: Ajustes Mensuales (excepciones de horario/turnos). Mismo
           tratamiento que "Ajustes del mes" en predicacion_salidas — ver
           DESIGN_SYSTEM.md §6/§9. */}
-      <MUIDialog
-        open={publishDialog}
-        onClose={() => setPublishDialog(false)}
-        maxWidth="mobile"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
-      >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            {monthIsPublished ? 'Retirar' : 'Publicar'}:{' '}
-            {MONTH_NAMES[selectedMonth]} {selectedYear}
-          </Typography>
-        </DialogTitle>
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog open={publishDialog} onClose={() => setPublishDialog(false)}>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          {monthIsPublished ? 'Retirar' : 'Publicar'}:{' '}
+          {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </Typography>
 
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            mt: '8px',
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <InfoTip
             isBig={false}
             color={monthIsPublished ? 'warning' : 'info'}
@@ -4038,26 +4013,23 @@ const Exhibitors = () => {
               text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'turno sin nadie asignado' : 'turnos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
             />
           )}
-        </DialogContent>
+        </Box>
 
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          <AppButton
-            variant="secondary"
-            disableAutoStretch
-            onClick={() => setPublishDialog(false)}
-          >
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <AppButton variant="tertiary" onClick={() => setPublishDialog(false)}>
             Cancelar
           </AppButton>
           <AppButton
             variant="main"
             color={monthIsPublished ? 'red' : undefined}
-            disableAutoStretch
             onClick={handleTogglePublishMonth}
           >
             {monthIsPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
 
       <MUIDialog
         open={monthlySettingsDialog}
