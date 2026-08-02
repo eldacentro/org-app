@@ -1,3 +1,4 @@
+import { Children } from 'react';
 import { FormControl, FormHelperText, InputLabel, Theme } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { SelectStyled } from './index.styles';
@@ -14,6 +15,22 @@ import Typography from '@components/typography';
  */
 const Select = ({ helperText, ...props }: SelectPropsType) => {
   const { t } = useAppTranslation();
+
+  // Cuántas opciones hay de verdad.
+  //
+  // Antes se preguntaba `(props.children as []).length`, y ese casting a `[]`
+  // era mentira dos veces:
+  //
+  // · Con `undefined` —lo que devuelve una cadena de `?.` que se rompe por en
+  //   medio, como el desplegable de ubicación de Exhibidores— leer `.length`
+  //   revienta y se lleva por delante la PANTALLA ENTERA, no solo el campo.
+  // · Con UNA sola opción, que no llega como array, `.length` vale `undefined`:
+  //   ni `=== 0` ni `> 0`, así que no se pintaba ni el "Sin opciones" ni la
+  //   opción. El desplegable salía vacío sin que fallara nada.
+  //
+  // `Children.count` cuenta bien los tres casos —ninguno, uno y varios— y deja
+  // el "Sin opciones" que ya estaba escrito haciendo su trabajo.
+  const optionsCount = Children.count(props.children);
 
   return (
     <FormControl
@@ -109,7 +126,7 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
           },
         }}
       >
-        {(props.children as []).length === 0 && (
+        {optionsCount === 0 && (
           <MenuItem value="">
             <Typography className="body-small-regular" color="var(--grey-350)">
               {t('tr_noOptions')}
@@ -117,7 +134,7 @@ const Select = ({ helperText, ...props }: SelectPropsType) => {
           </MenuItem>
         )}
 
-        {(props.children as []).length > 0 && props.children}
+        {optionsCount > 0 && props.children}
       </SelectStyled>
       {helperText && (
         <FormHelperText
