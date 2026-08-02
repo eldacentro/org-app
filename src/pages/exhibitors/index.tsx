@@ -10,12 +10,6 @@ import {
 import {
   Box,
   Card,
-  // Los que quedan por migrar al Dialog de la app. Según van pasando, este
-  // alias se queda sin usos y desaparece con el último.
-  Dialog as MUIDialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   Tabs,
   Tab,
@@ -4235,29 +4229,16 @@ const Exhibitors = () => {
       </Dialog>
 
       {/* --- DIÁLOGO 2: DIÁLOGO DE CONFIGURACIÓN GLOBAL O MENSUAL DE TURNO --- */}
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={turnConfigDialog.open}
         onClose={() =>
           setTurnConfigDialog({ ...turnConfigDialog, open: false })
         }
-        maxWidth={false}
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
+        <Box>
           <Typography className="h2" sx={{ color: 'var(--ink)' }}>
             {turnConfigDialog.id ? 'Editar turno' : 'Crear turno'}
           </Typography>
@@ -4269,15 +4250,9 @@ const Exhibitors = () => {
               (excepción para este mes)
             </Typography>
           )}
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            mt: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Días de la semana */}
           <Typography
             className="body-small-semibold"
@@ -4500,11 +4475,13 @@ const Exhibitors = () => {
               </AppSelect>
             </Box>
           )}
-        </DialogContent>
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+        </Box>
+
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <AppButton
             variant="tertiary"
-            disableAutoStretch
             onClick={() =>
               setTurnConfigDialog({ ...turnConfigDialog, open: false })
             }
@@ -4513,14 +4490,13 @@ const Exhibitors = () => {
           </AppButton>
           <AppButton
             variant="main"
-            disableAutoStretch
             disabled={isSavingTurn}
             onClick={handleSaveGlobalTurn}
           >
             Guardar turno
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
     </Box>
   );
 };
