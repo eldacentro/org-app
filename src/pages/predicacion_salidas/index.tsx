@@ -3816,32 +3816,22 @@ const PredicacionSalidas = () => {
         </Box>
       </Dialog>
 
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio y el relleno, así
+          que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={editDialog.open}
         onClose={() => setEditDialog({ ...editDialog, open: false })}
-        fullWidth
-        maxWidth={false}
-        sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            padding: '8px',
-          },
-        }}
       >
-        <DialogTitle style={{ fontWeight: '600', color: 'var(--accent-dark)' }}>
+        {/* El título iba en un DialogTitle con su peso y su color escritos a
+            mano. Es el título de un diálogo: le toca la "h2" de la escala,
+            como a los demás. */}
+        <Typography className="h2" sx={{ color: 'var(--accent-dark)' }}>
           {editDialog.date &&
             `${fmtDiaConNumero(editDialog.date)} — ${editDialog.time}`}
-        </DialogTitle>
+        </Typography>
 
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            mt: '8px',
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Botón de cancelación de bajo perfil */}
           <Box
             sx={{ display: 'flex', justifyContent: 'flex-start', mt: '4px' }}
@@ -3929,26 +3919,26 @@ const PredicacionSalidas = () => {
               </Box>
             </>
           )}
-        </DialogContent>
+        </Box>
 
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <AppButton
             variant="tertiary"
-            disableAutoStretch
             onClick={() => setEditDialog({ ...editDialog, open: false })}
           >
             Cancelar
           </AppButton>
           <AppButton
             variant="main"
-            disableAutoStretch
             disabled={isSavingOuting}
             onClick={handleSaveOuting}
           >
             Guardar
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
 
       {/* DIÁLOGO: Ajustes del mes (excepciones de horario, ej. verano).
           Rediseñado por completo — antes usaba MUI Alert/Switch/Checkbox en
