@@ -21,9 +21,13 @@ import {
   UpcomingEventDuration,
 } from '@definition/upcoming_events';
 
-// Las 3 categorías que en español se llaman "Asamblea ___" — solo para
-// ellas aplica el enlace de JW Library (no hay programa de JW Library para
-// el resto de eventos).
+// Las 3 categorías que en español se llaman "Asamblea ___". Dos cosas del
+// formulario son solo suyas:
+//
+// - el enlace de JW Library (no hay programa de JW Library para el resto de
+//   eventos);
+// - el horario por jornada, porque una asamblea es lo único donde cada día
+//   empieza y acaba a una hora distinta.
 export const ASSEMBLY_CATEGORIES = [
   UpcomingEventCategory.AssemblyWeek,
   UpcomingEventCategory.ConventionWeek,

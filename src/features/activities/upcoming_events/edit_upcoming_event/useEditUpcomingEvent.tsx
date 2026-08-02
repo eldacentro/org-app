@@ -13,7 +13,10 @@ import {
   deleteUpcomingEventCoverPhoto,
 } from '@services/firebase/upcoming_events';
 import { displaySnackNotification } from '@services/states/app';
-import { decorationsForEvent } from '../decorations_for_event';
+import {
+  ASSEMBLY_CATEGORIES,
+  decorationsForEvent,
+} from '../decorations_for_event';
 import { EditUpcomingEventProps } from './index.types';
 
 // Ancho máximo real al que se muestra la portada en la tarjeta de
@@ -378,13 +381,26 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
     });
   }, []);
 
-  // Un evento de varios días puede tener horas distintas cada jornada (p.
-  // ej. una asamblea regional). Esta lista se arma a partir del rango de
-  // fechas actual — si un día concreto no tiene su propio horario guardado
-  // en dailyTimes, cae al horario general (start/end) como valor por
-  // defecto, así que extender el rango de fechas nunca deja un día "vacío".
+  // Un horario por jornada solo tiene sentido en una asamblea: es donde cada
+  // día empieza y acaba a una hora distinta. Una campaña, un curso de idioma
+  // o una semana de mantenimiento no funcionan así, y ofrecerlo ahí era pedir
+  // que se rellenaran diez pares de horas que luego nadie mira.
+  //
+  // Esta lista es la que decide si el bloque se dibuja, así que la regla vive
+  // aquí y no repetida en el formulario. Lo YA guardado no se toca: un evento
+  // antiguo con dailyTimes sigue enseñándolos en su tarjeta (los lee
+  // upcomingEventData), solo desaparece la forma de ponerlos.
+  //
+  // Se arma a partir del rango de fechas actual — si un día concreto no tiene
+  // su propio horario guardado en dailyTimes, cae al horario general
+  // (start/end) como valor por defecto, así que extender el rango de fechas
+  // nunca deja un día "vacío".
   const dailyTimesList = useMemo(() => {
     if (localEvent.event_data.duration !== UpcomingEventDuration.MultipleDays) {
+      return [];
+    }
+
+    if (!ASSEMBLY_CATEGORIES.includes(localEvent.event_data.category)) {
       return [];
     }
 
@@ -411,6 +427,7 @@ const useEditUpcomingEvent = ({ data, onSave }: EditUpcomingEventProps) => {
       return { date: dateStr, start, end };
     });
   }, [
+    localEvent.event_data.category,
     localEvent.event_data.duration,
     localEvent.event_data.start,
     localEvent.event_data.end,

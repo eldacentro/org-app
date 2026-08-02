@@ -349,64 +349,63 @@ const EditUpcomingEvent = (props: EditUpcomingEventProps) => {
           />
         )}
 
-        {localEvent.event_data.duration ===
-          UpcomingEventDuration.MultipleDays &&
-          dailyTimesList.length > 0 && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
-              <Typography
-                className="body-small-semibold"
-                color="var(--grey-400)"
+        {/* Quién puede tener horario por jornada lo decide `dailyTimesList`
+            (ver useEditUpcomingEvent): solo las asambleas, y solo de varios
+            días. Aquí no se vuelve a preguntar — la regla en dos sitios se
+            desincroniza en cuanto se toca uno. */}
+        {dailyTimesList.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <Typography className="body-small-semibold" color="var(--grey-400)">
+              {t('tr_dailyTimesTitle', 'Horario de cada día')}
+            </Typography>
+
+            {dailyTimesList.map((day, index) => (
+              <Box
+                key={day.date}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '16px',
+                  alignItems: 'center',
+                  flexWrap: !desktopUp ? 'wrap' : 'nowrap',
+                }}
               >
-                {t('tr_dailyTimesTitle', 'Horario de cada día')}
-              </Typography>
-
-              {dailyTimesList.map((day, index) => (
-                <Box
-                  key={day.date}
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '16px',
-                    alignItems: 'center',
-                    flexWrap: !desktopUp ? 'wrap' : 'nowrap',
-                  }}
+                <Typography
+                  className="body-small-semibold"
+                  color="var(--black)"
+                  sx={{ minWidth: '96px' }}
                 >
-                  <Typography
-                    className="body-small-semibold"
-                    color="var(--black)"
-                    sx={{ minWidth: '96px' }}
-                  >
-                    {`${t('tr_day')} ${index + 1} · ${formatDate(day.start, 'dd/MM')}`}
-                  </Typography>
+                  {`${t('tr_day')} ${index + 1} · ${formatDate(day.start, 'dd/MM')}`}
+                </Typography>
 
-                  <TimePicker
-                    onChange={(value: Date) =>
-                      handleChangeDailyTime(day.date, 'start', value)
-                    }
-                    label={t('tr_startTime')}
-                    ampm={!hour24}
-                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                    value={day.start}
-                  />
-                  <TimePicker
-                    onChange={(value: Date) =>
-                      handleChangeDailyTime(day.date, 'end', value)
-                    }
-                    label={t('tr_endTime')}
-                    ampm={!hour24}
-                    sx={{ minWidth: hour24 ? '140px' : '150px' }}
-                    value={day.end}
-                  />
-                </Box>
-              ))}
-            </Box>
-          )}
+                <TimePicker
+                  onChange={(value: Date) =>
+                    handleChangeDailyTime(day.date, 'start', value)
+                  }
+                  label={t('tr_startTime')}
+                  ampm={!hour24}
+                  sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                  value={day.start}
+                />
+                <TimePicker
+                  onChange={(value: Date) =>
+                    handleChangeDailyTime(day.date, 'end', value)
+                  }
+                  label={t('tr_endTime')}
+                  ampm={!hour24}
+                  sx={{ minWidth: hour24 ? '140px' : '150px' }}
+                  value={day.end}
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
 
         <Divider color="var(--line)" />
 
