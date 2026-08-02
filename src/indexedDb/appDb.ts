@@ -60,7 +60,12 @@ import {
   publicTalkOverrideSchema,
   PublicTalkOverrideTable,
 } from './tables/public_talk';
-import { songSchema, SongTable } from './tables/songs';
+import {
+  songSchema,
+  SongTable,
+  songOverrideSchema,
+  SongOverrideTable,
+} from './tables/songs';
 import {
   DeptScheduleTable,
   departmentsScheduleSchema,
@@ -121,6 +126,7 @@ type DexieTables = PersonsTable &
   PublicTalkTable &
   PublicTalkOverrideTable &
   SongTable &
+  SongOverrideTable &
   DeptScheduleTable &
   ServiceOutingTable &
   ExhibitorTable &
@@ -408,6 +414,32 @@ appDb.version(23).stores({
   ...evacuacionConfigSchema,
   ...publicTalkOverrideSchema,
   ...circuitVisitSchema,
+});
+
+// La tabla de sustituciones del cancionero. Va aparte de `songs` porque
+// `songs` es DERIVADA —se rehace entera desde las traducciones al terminar
+// cada sincronización— y lo que se escribe ahí no sobrevive al ciclo
+// siguiente. Ver `services/dexie/songs.ts`.
+appDb.version(24).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+  ...evacuacionConfigSchema,
+  ...publicTalkOverrideSchema,
+  ...circuitVisitSchema,
+  ...songOverrideSchema,
 });
 
 appDb.on('populate', function () {
