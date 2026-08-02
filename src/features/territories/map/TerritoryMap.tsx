@@ -20,6 +20,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 // Side-effect: parchea L.Map con soporte de rotación (bearing) y el gesto
 // táctil de dos dedos para rotar, igual que un mapa nativo.
 import 'leaflet-rotate';
+import { displaySnackNotification } from '@services/states/app';
 
 /**
  * Opciones que añade `leaflet-rotate` y que sus tipos no declaran. Al
@@ -444,15 +445,46 @@ const VectorGestureSync = () => {
 // ─── Geolocalización en vivo ──────────────────────────────────────────────────
 const useLiveLocation = (enabled: boolean) => {
   const [pos, setPos] = useState<[number, number] | null>(null);
+
   useEffect(() => {
-    if (!enabled || !('geolocation' in navigator)) return;
+    if (!enabled) return;
+
+    if (!('geolocation' in navigator)) {
+      displaySnackNotification({
+        header: 'Sin ubicación',
+        message: 'Este navegador no puede dar tu ubicación.',
+        severity: 'error',
+      });
+      return;
+    }
+
     const id = navigator.geolocation.watchPosition(
       (p) => setPos([p.coords.latitude, p.coords.longitude]),
-      (err) => console.warn('Geolocalización no disponible:', err.message),
-      { enableHighAccuracy: true, maximumAge: 5000 }
+      (err) => {
+        // Antes esto solo iba a la consola. Desde el móvil, pulsar el botón y
+        // que no pasara NADA —ni punto ni aviso— parecía que estuviera roto,
+        // cuando casi siempre es el permiso denegado o el navegador tardando.
+        const porQue =
+          err.code === err.PERMISSION_DENIED
+            ? 'No has dado permiso de ubicación. Actívalo para este sitio en los ajustes del navegador.'
+            : err.code === err.TIMEOUT
+              ? 'Tu dispositivo está tardando demasiado en dar la ubicación. Inténtalo otra vez.'
+              : 'Tu dispositivo no ha podido dar la ubicación ahora mismo.';
+
+        displaySnackNotification({
+          header: 'Sin ubicación',
+          message: porQue,
+          severity: 'error',
+        });
+      },
+      // `timeout` es lo que faltaba: sin él, en iOS la petición puede quedarse
+      // esperando indefinidamente y no llega ni el error.
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
+
     return () => navigator.geolocation.clearWatch(id);
   }, [enabled]);
+
   return pos;
 };
 

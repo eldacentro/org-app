@@ -228,22 +228,29 @@ const VistaCompartida = ({ payload }: { payload: TerritorySharePayload }) => {
         <DialogVerTerritorio
           territory={territorio}
           canManage={false}
-          footer={<PieDelEnlace payload={payload} />}
+          notaInfo={<PieDelEnlace payload={payload} />}
         />
       </Box>
     </Provider>
   );
 };
 
-/** Quién comparte, hasta cuándo vale y por qué puede dejar de valer antes. */
+/**
+ * Quién comparte, hasta cuándo vale y por qué puede dejar de valer antes.
+ *
+ * Va al final de la pestaña «Info» y no debajo del mapa: es letra pequeña que
+ * se consulta si hace falta. Como pie ocupaba tres líneas grandes debajo del
+ * territorio, que es el sitio donde uno quiere ver el mapa.
+ */
 const PieDelEnlace = ({ payload }: { payload: TerritorySharePayload }) => (
   <Typography
     className="label-small-regular"
-    color="var(--ink-2)"
+    color="var(--ink-3)"
     sx={{
-      textAlign: 'center',
       display: 'block',
-      padding: '12px 24px calc(12px + env(safe-area-inset-bottom))',
+      fontSize: '12px',
+      lineHeight: 1.45,
+      paddingTop: '4px',
     }}
   >
     Enlace compartido por {payload.congName}.

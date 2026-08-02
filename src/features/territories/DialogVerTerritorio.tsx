@@ -78,6 +78,12 @@ type Props = {
    * así que cualquier cosa que se pinte por debajo queda tapada.
    */
   footer?: ReactNode;
+  /**
+   * Nota al final de la pestaña «Info». Para lo que hay que poder consultar
+   * pero no merece sitio permanente: de dónde viene un enlace compartido y
+   * hasta cuándo vale. Debajo del mapa ocupaba media pantalla.
+   */
+  notaInfo?: ReactNode;
 };
 
 const Transition = forwardRef(function Transition(
@@ -452,6 +458,7 @@ const DialogVerTerritorio = ({
   onAsignar,
   onEdit,
   footer,
+  notaInfo,
 }: Props) => {
   // Vista de mapa a pantalla completa, o diálogo de escritorio.
   //
@@ -1109,6 +1116,11 @@ const DialogVerTerritorio = ({
               allTags={allTags}
               onToggleTag={canManage ? handleToggleTag : undefined}
             />
+          )}
+
+          {/* Al final del todo: se consulta si hace falta y no estorba. */}
+          {tab === 2 && notaInfo && (
+            <Box sx={{ paddingTop: '16px' }}>{notaInfo}</Box>
           )}
         </Box>
 
