@@ -280,7 +280,10 @@ const CircuitVisitWeek = ({
             valor={midweekDate.date ? fechaLarga(midweekDate.date) : ''}
           />
           <Fila etiqueta="Discurso del superintendente" valor={midweekTalk} />
-          <Boton texto="Ver reunión completa" onClick={() => irA('midweek')} />
+          <Boton
+            texto="Ver esta reunión completa"
+            onClick={() => irA('midweek')}
+          />
         </Contenido>
       </MeetingSection>
 
@@ -303,7 +306,10 @@ const CircuitVisitWeek = ({
           <Fila etiqueta="Discurso público" valor={publicTalk} />
           <Fila etiqueta="Discurso de servicio" valor={serviceTalk} />
 
-          <Boton texto="Ver reunión completa" onClick={() => irA('weekend')} />
+          <Boton
+            texto="Ver esta reunión completa"
+            onClick={() => irA('weekend')}
+          />
         </Contenido>
       </MeetingSection>
 
