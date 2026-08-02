@@ -1,27 +1,29 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { publicTalksLocaleState } from '@states/public_talks';
-import { computeJwpubDiff, parseJwpubFile } from '@services/app/jwpub_import';
+import { parseJwpubFile } from '@services/app/jwpub_import';
+import {
+  buildJwpubOverrideEntries,
+  computeJwpubReport,
+  JwpubReportType,
+} from '@services/app/jwpub_report';
 import {
   dbPublicTalkOverrideGet,
   dbPublicTalkOverrideSave,
 } from '@services/dexie/public_talk';
-import { PublicTalkImportDiffType } from '@definition/public_talks';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
-import { useAppTranslation } from '@hooks/index';
 import { IconError } from '@components/icons';
 import { PendingJwpubImportType } from './index.types';
 
 const useImportTalks = () => {
-  const { t } = useAppTranslation();
   const talksList = useAtomValue(publicTalksLocaleState);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [diffs, setDiffs] = useState<PublicTalkImportDiffType[] | null>(null);
+  const [report, setReport] = useState<JwpubReportType | null>(null);
   const [pendingImport, setPendingImport] =
     useState<PendingJwpubImportType | null>(null);
 
@@ -40,20 +42,27 @@ const useImportTalks = () => {
       setIsParsing(true);
 
       const parsed = await parseJwpubFile(file);
-      const diff = computeJwpubDiff(parsed.entries, talksList);
 
-      if (diff.length === 0) {
-        displaySnackNotification({
-          header: t('tr_jwpubImportNoChanges'),
-          message: t('tr_jwpubImportNoChangesDesc'),
-          severity: 'message-with-button',
-        });
+      const informe = computeJwpubReport(
+        parsed.entries,
+        talksList.map((talk) => ({
+          number: talk.talk_number,
+          title: talk.talk_title,
+        }))
+      );
 
-        return;
-      }
-
-      setPendingImport({ langCode: parsed.langCode });
-      setDiffs(diff);
+      // El diálogo se abre SIEMPRE, también cuando no ha cambiado nada.
+      //
+      // Antes, un archivo sin diferencias solo levantaba un aviso al pie que
+      // ni siquiera se cerraba solo, y quien reimporta el mismo archivo —que
+      // es el caso más frecuente— se quedaba sin saber si había pasado algo.
+      // Reimportar no es un accidente: es cómo uno comprueba que está al día,
+      // y merece la misma respuesta que una importación con cambios.
+      setPendingImport({
+        langCode: parsed.langCode,
+        publicationTitle: parsed.publicationTitle,
+      });
+      setReport(informe);
     } catch (error) {
       console.error(error);
 
@@ -69,12 +78,18 @@ const useImportTalks = () => {
   };
 
   const handleCancel = () => {
-    setDiffs(null);
+    setReport(null);
     setPendingImport(null);
   };
 
   const handleConfirm = async () => {
-    if (!pendingImport || !diffs) return;
+    if (!pendingImport || !report) return;
+
+    // Sin cambios no hay nada que guardar: el botón solo cierra.
+    if (!report.hasChanges) {
+      handleCancel();
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -86,16 +101,20 @@ const useImportTalks = () => {
         overrides[pendingImport.langCode] = {};
       }
 
-      for (const diff of diffs) {
-        overrides[pendingImport.langCode][String(diff.talk_number)] =
-          diff.new_title;
-      }
+      // Se FUSIONA sobre lo que ya había, no se sustituye: lo que el archivo
+      // no menciona sigue donde estaba.
+      Object.assign(
+        overrides[pendingImport.langCode],
+        buildJwpubOverrideEntries(report)
+      );
 
       await dbPublicTalkOverrideSave(overrides);
 
       displaySnackNotification({
-        header: t('tr_jwpubImportSuccess'),
-        message: t('tr_jwpubImportSuccessDesc', { count: diffs.length }),
+        header: 'Importación completada',
+        message: `Se actualizaron ${report.changes.length} ${
+          report.changes.length === 1 ? 'bosquejo' : 'bosquejos'
+        }.`,
         severity: 'success',
       });
     } catch (error) {
@@ -109,7 +128,7 @@ const useImportTalks = () => {
       });
     } finally {
       setIsSaving(false);
-      setDiffs(null);
+      setReport(null);
       setPendingImport(null);
     }
   };
@@ -120,7 +139,8 @@ const useImportTalks = () => {
     handleFileSelected,
     isParsing,
     isSaving,
-    diffs,
+    report,
+    pendingImport,
     handleCancel,
     handleConfirm,
   };
