@@ -92,15 +92,120 @@ lado del campo es el historial de ESA asignación.
   propósito porque enseñar «todo lo que ha llevado» no decía nada; con el
   historial del puesto delante sí informa.
 
-### 3. La tabla de la rueda
+### 3. «La rueda» — comprobar que el reparto va equilibrado
 
-Una tabla por asignación con quién la llevó y cuándo, para confirmar de un
-vistazo que el reparto va equilibrado. Sitio discreto: **una pestaña dentro de
-«Historial de asignaciones»**, no una página nueva.
+**No copies la hoja de cálculo.** Carlos la enseñó como referencia de lo que
+quiere SABER, y ha dicho expresamente que no la quiere tal cual: leerla es
+difícil. Aquí está por qué, y qué hacer en su lugar.
 
-> ⚠️ **Carlos iba a adjuntar una captura de su Excel y no llegó al mensaje.**
-> **Pídesela antes de diseñar esta parte.** Los puntos 1 y 2 se pueden hacer
-> enteros sin ella.
+#### Qué era la hoja, y por qué cuesta leerla
+
+Una rejilla: una fila por hermano, una columna por «vuelta» —un paso completo
+por la lista—, y en la celda la fecha en que le tocó. En «Oraciones» son dos por
+reunión, así que la lista tarda unos tres meses en darse la vuelta y cada
+columna abarca un trimestre.
+
+El fallo de raíz: **las columnas no son tiempo, son vueltas**, y cada vuelta dura
+lo que dura. Dos celdas de la misma columna pueden estar a dos meses la una de la
+otra. Así que la rejilla **hay que interpretarla**: contar huecos, comparar
+fechas a mano, acordarse de cuántas semanas tiene una vuelta. Con 25 filas y 6
+columnas ya no se lee de un vistazo, y en un móvil no se lee en absoluto.
+
+#### Qué preguntas contesta de verdad
+
+Debajo de la hoja hay cuatro preguntas, y ninguna necesita una rejilla:
+
+1. ¿Va equilibrado, o hay a quien le toca el doble que a otro?
+2. ¿A quién le toca ahora?
+3. ¿A quién se están saltando?
+4. ¿Cuándo le tocó a este hermano la última vez?
+
+#### La solución
+
+**Dos niveles. Ninguno es una rejilla.**
+
+**Nivel 1 — el resumen.** Lo primero que se ve al abrir la pestaña: una línea por
+asignación, y en cada una el dato que contesta la pregunta 1 de golpe:
+
+```
+Oración inicial (entre semana)   24 hermanos · entre 2 y 4 veces este año   ✓
+Oración final (entre semana)     24 hermanos · entre 2 y 4 veces            ✓
+Lectura de La Atalaya             6 hermanos · entre 1 y 9 veces            ⚠
+Presidencia (fin de semana)       8 hermanos · entre 3 y 5 veces            ✓
+```
+
+**El margen entre el que menos y el que más lo dice todo.** Estrecho, va
+equilibrado; ancho, no. Eso es lo que la hoja obligaba a deducir contando
+huecos, y aquí es un número. Y de paso contesta algo que la hoja nunca contestó:
+**cuál de todas las asignaciones es la que está desequilibrada**, sin abrirlas
+una a una.
+
+**Nivel 2 — la rueda de una asignación.** Al pulsar una línea, la lista de
+hermanos **ordenada por a quién le toca antes** — el que hace más tiempo que no
+la lleva, arriba:
+
+```
+1  Francisco Rosas      hace 34 semanas · 17 dic        1 vez
+2  Plauxides Máñez      hace 21 semanas · 4 feb         2 veces
+3  Ginés Ortega         hace 20 semanas · 11 feb        2 veces
+   ...
+24 Henry Atta           hace 4 semanas · 1 jul          4 veces
+```
+
+Tres cosas que esto hace y la rejilla no:
+
+- **Contesta las preguntas 2 y 3 sin leer nada**: quien está arriba es a quien le
+  toca, y a quien se han saltado **flota solo** hasta arriba. En la rejilla eso
+  era un hueco que había que cazar.
+- **Es el mismo orden que usa el autocompletado.** No es una vista aparte que hay
+  que creerse: es el motor, enseñado. Si el reparto va torcido, aquí se ve por
+  qué.
+- **Cabe en un móvil**, porque es una lista y no una tabla de seis columnas.
+
+**La línea de tiempo, para el que quiera mirar.** Al lado de cada hermano, una
+tira fina con un punto por cada vez que le tocó, **con el tiempo real de eje** y
+el mismo eje para todos:
+
+```
+Francisco Rosas    ·  ·                                          hace 34 sem
+Henry Atta                    ·    ·   ·      ·                  hace 4 sem
+                   └─────────────────────────────────────┘
+                   ago 2025                          ago 2026
+```
+
+Esto es lo que sustituye a la rejilla y la mejora: **un hueco en la línea es un
+hueco de verdad**, medido en semanas, no una celda vacía que hay que interpretar.
+Y como el eje es común, mirando la columna se ve de un golpe quién se amontona y
+quién no aparece. En móvil, la tira se cae y quedan el nombre, el «hace X» y el
+conteo.
+
+#### Detalles a conservar de la hoja
+
+- Los que ya no están salen **en gris al final**, no desaparecen. La rueda tiene
+  memoria, y saber que a alguien dejó de tocarle es información.
+- En la hoja los nombres llevan un prefijo (`--`, `-`, ninguno) que marca algo
+  del hermano. **Pregúntale a Carlos qué significan.** Probablemente la app ya lo
+  sabe y no hace falta el prefijo, pero puede que quiera ver la rueda separada
+  por ese criterio.
+
+#### Dónde va
+
+Una pestaña dentro de **«Historial de asignaciones»**. Carlos pidió que fuera
+discreto —«nada prominente, por si alguna vez se quiere revisar»— y eso se
+respeta: no es una página del menú.
+
+#### Lo que NO hay que hacer
+
+- **Una rejilla de vueltas.** Ni «mejorada», ni con colores, ni con la rejilla
+  como opción secundaria. Se descartó por un motivo concreto: sus columnas no son
+  tiempo.
+- **Un historial ordenado por fecha.** Ya existe y no contesta ninguna de las
+  cuatro preguntas.
+- **Inventar una nota de «justicia» de 0 a 10.** El margen «entre 2 y 4 veces» es
+  un dato comprobable; una puntuación es una opinión de la aplicación.
+
+**Enséñale a Carlos los dos niveles montados con datos de prueba antes de darlo
+por bueno.** Esto es de lo que hay que ver, no describir.
 
 ### 4. Enseñar por qué (recomendado, propón antes de hacerlo)
 
