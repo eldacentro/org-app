@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Badge from '@components/badge';
 import AutoComplete from '@components/autocomplete';
+import Dialog from '@components/dialog';
 import {
   fmtDiaConNumero,
   fmtRangoSemana,
@@ -11,7 +12,9 @@ import {
   Card,
   Grid,
   MenuItem,
-  Dialog,
+  // Los que quedan por migrar al Dialog de la app. Según van pasando, este
+  // alias se queda sin usos y desaparece con el último.
+  Dialog as MUIDialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -3768,41 +3771,16 @@ const PredicacionSalidas = () => {
       </Box>
 
       {/* DIÁLOGO DE EDICIÓN DE SALIDA */}
-      <Dialog
-        open={publishDialog}
-        onClose={() => setPublishDialog(false)}
-        maxWidth="mobile"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '520px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
-      >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            {monthIsPublished ? 'Retirar' : 'Publicar'}:{' '}
-            {MONTH_NAMES[selectedMonth]} {selectedYear}
-          </Typography>
-        </DialogTitle>
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog open={publishDialog} onClose={() => setPublishDialog(false)}>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          {monthIsPublished ? 'Retirar' : 'Publicar'}:{' '}
+          {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </Typography>
 
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            mt: '8px',
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <InfoTip
             isBig={false}
             color={monthIsPublished ? 'warning' : 'info'}
@@ -3820,28 +3798,25 @@ const PredicacionSalidas = () => {
               text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'salida sin nadie asignado' : 'salidas sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
             />
           )}
-        </DialogContent>
+        </Box>
 
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
-          <AppButton
-            variant="secondary"
-            disableAutoStretch
-            onClick={() => setPublishDialog(false)}
-          >
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <AppButton variant="tertiary" onClick={() => setPublishDialog(false)}>
             Cancelar
           </AppButton>
           <AppButton
             variant="main"
             color={monthIsPublished ? 'red' : undefined}
-            disableAutoStretch
             onClick={handleTogglePublishMonth}
           >
             {monthIsPublished ? 'Retirar' : 'Publicar'}
           </AppButton>
-        </DialogActions>
+        </Box>
       </Dialog>
 
-      <Dialog
+      <MUIDialog
         open={editDialog.open}
         onClose={() => setEditDialog({ ...editDialog, open: false })}
         fullWidth
@@ -3973,14 +3948,14 @@ const PredicacionSalidas = () => {
             Guardar
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
 
       {/* DIÁLOGO: Ajustes del mes (excepciones de horario, ej. verano).
           Rediseñado por completo — antes usaba MUI Alert/Switch/Checkbox en
           crudo, tamaños de fuente sueltos (11.5/12.5/13.5px), dos regiones
           con scroll propio anidadas dentro del scroll del propio diálogo, y
           14 filas sin ninguna agrupación visual. Ver DESIGN_SYSTEM.md §6/§9. */}
-      <Dialog
+      <MUIDialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}
         maxWidth="mobile"
@@ -4258,10 +4233,10 @@ const PredicacionSalidas = () => {
             )}
           </Box>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
 
       {/* DIÁLOGO DE EXPORTACIÓN DE PDF */}
-      <Dialog
+      <MUIDialog
         open={pdfExportDialogOpen}
         onClose={() => setPdfExportDialogOpen(false)}
         fullWidth
@@ -4382,10 +4357,10 @@ const PredicacionSalidas = () => {
             Exportar
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
 
       {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
-      <Dialog
+      <MUIDialog
         open={weekSettingsDialog.open}
         onClose={() =>
           setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
@@ -4653,7 +4628,7 @@ const PredicacionSalidas = () => {
             Guardar
           </AppButton>
         </DialogActions>
-      </Dialog>
+      </MUIDialog>
     </Box>
   );
 };
