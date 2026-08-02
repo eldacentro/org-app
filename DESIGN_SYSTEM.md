@@ -446,6 +446,16 @@ MUI (`components/date_picker`), cuyo texto lo pone la librería y no pasa por
 nuestro código, y `upcoming_event_date`, que usa `&::first-letter` —que sí es
 solo la primera letra, no cada palabra—.
 
+**La cabecera de día de Programas semanales NO se unifica: se queda como
+está.** `ExhibitorsMeeting` y `ServiceOutingsMeeting` pintan el mismo
+"Miércoles 1" con `h2-caps` sobre la banda de color de marca, en blanco, y eso
+es a propósito. Ahí la cabecera no está dentro de una tarjeta de contenido
+—como en Exhibidores o en Salidas— sino abriendo una sección de la página, que
+es otro trabajo y por eso otra pinta; es el mismo lenguaje que `MeetingSection`
+usa en el resto de esa pantalla. Decisión de Carlos, 2026-08-02, después de
+unificar las otras cuatro. Que la fecha se escriba igual en todas partes no
+significa que se PINTE igual en todas partes.
+
 ### Un verbo por acción, y el más corto que se entienda
 
 "Guardar", nunca "Guardar cambios" — si el botón está en un formulario, ya se
