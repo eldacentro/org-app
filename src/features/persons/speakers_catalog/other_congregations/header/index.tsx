@@ -47,17 +47,24 @@ const IncomingCongregationHeader = ({
           <Typography className="h4" color="var(--grey-400)">
             {cong_name}
           </Typography>
-          <Typography
-            className="body-small-semibold"
-            color="var(--grey-400)"
-            sx={{
-              borderRadius: 'var(--shape-xs)',
-              padding: '2px 8px',
-              backgroundColor: 'var(--grey-150)',
-            }}
-          >
-            {cong_number}
-          </Typography>
+          {/* Sin número no se pinta la etiqueta. Se pintaba siempre, y una
+              congregación sin número dejaba un rectángulo gris de 16px con
+              nada dentro, que se leía como una raya al lado del nombre: chrome
+              sin contenido, que no informa de nada y solo desordena la fila.
+              Es lo que ya hace la cabecera gemela de «Mi congregación». */}
+          {cong_number && (
+            <Typography
+              className="body-small-semibold"
+              color="var(--grey-400)"
+              sx={{
+                borderRadius: 'var(--shape-xs)',
+                padding: '2px 8px',
+                backgroundColor: 'var(--grey-150)',
+              }}
+            >
+              {cong_number}
+            </Typography>
+          )}
         </Box>
         {tablet600Down && (
           <IconButton
