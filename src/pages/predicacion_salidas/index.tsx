@@ -3945,34 +3945,18 @@ const PredicacionSalidas = () => {
           crudo, tamaños de fuente sueltos (11.5/12.5/13.5px), dos regiones
           con scroll propio anidadas dentro del scroll del propio diálogo, y
           14 filas sin ninguna agrupación visual. Ver DESIGN_SYSTEM.md §6/§9. */}
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio, el fondo y la
+          sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={monthlySettingsDialog}
         onClose={() => setMonthlySettingsDialog(false)}
-        maxWidth="mobile"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { maxWidth: '480px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            style: { backgroundColor: 'var(--accent-dark-overlay)' },
-          },
-        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-            Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
-          </Typography>
-        </DialogTitle>
-        <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-        >
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Ajustes: {MONTH_NAMES[selectedMonth]} {selectedYear}
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <InfoTip
             isBig={false}
             color={isCurrentlyOverridden ? 'warning' : 'info'}
@@ -4166,16 +4150,17 @@ const PredicacionSalidas = () => {
               </Box>
             </>
           )}
-        </DialogContent>
+        </Box>
+
         {/* Los horarios personalizados son un borrador que se confirma con
             "Guardar"; el interruptor de suspender y las casillas de excepción
             se aplican al instante. Por eso solo hay Cancelar/Guardar cuando hay
             un borrador de horarios pendiente; en el resto de casos basta un
             único "Cerrar" (antes había un Cancelar y un Cerrar que hacían
             exactamente lo mismo). "Restaurar a global" es la acción de reset. */}
-        <DialogActions
+        <Box
           sx={{
-            padding: '16px',
+            display: 'flex',
             justifyContent: isCurrentlyOverridden
               ? 'space-between'
               : 'flex-end',
@@ -4222,8 +4207,8 @@ const PredicacionSalidas = () => {
               </AppButton>
             )}
           </Box>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
 
       {/* DIÁLOGO DE EXPORTACIÓN DE PDF */}
       <MUIDialog
