@@ -168,10 +168,28 @@ const DevicesStatus = () => {
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'center',
+          // En dirección columna `alignItems` manda en HORIZONTAL: `center`
+          // aquí centraría el texto y dejaría los botones de debajo yendo de
+          // borde a borde, que es exactamente el fallo que ya se corrigió en
+          // Exhibidores (ver MAQUETACION_MOVIL.md §2).
+          alignItems: { mobile: 'flex-start', desktop: 'center' },
           justifyContent: 'space-between',
           gap: '8px',
-          flexWrap: 'wrap',
+          // Esto era `flexWrap: 'wrap'`, y ahí estaba el fallo. El texto de la
+          // versión y los tres botones no caben en una línea hasta unos 640px
+          // de ancho útil, así que en toda la franja de en medio —una tablet,
+          // un portátil pequeño— la fila ENVOLVÍA: el grupo de botones bajaba
+          // a su propia línea conservando su ancho natural y, siendo el único
+          // elemento de esa línea, `space-between` no tenía nada que repartir
+          // y lo dejaba pegado al margen izquierdo. Los botones a un lado y
+          // hasta 350px de hueco muerto al otro, sin llegar al borde de la
+          // tarjeta.
+          //
+          // Un `flexWrap` no puede arreglarlo, porque CSS no sabe si una línea
+          // ha envuelto. El remedio es el mismo que en Exhibidores: no
+          // envolver. Por debajo de 1200 se apila y el grupo toma el ancho
+          // entero; de 1200 para arriba caben en la misma línea.
+          flexDirection: { mobile: 'column', desktop: 'row' },
         }}
       >
         <Typography className="body-small-regular" color="var(--grey-400)">
@@ -180,7 +198,21 @@ const DevicesStatus = () => {
             : 'Versión actual desconocida'}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            // Con el ancho entero (por debajo de 1200), los botones se quedan
+            // pegados al margen DERECHO, que es donde ya están de 1200 para
+            // arriba y donde los pone el resto de la app cuando una tarjeta
+            // acaba en acciones. Así no se mueven de sitio al cambiar el
+            // ancho, y si les toca partirse en dos líneas las dos acaban a ras
+            // del borde de la tarjeta.
+            justifyContent: 'flex-end',
+            width: { mobile: '100%', desktop: 'auto' },
+          }}
+        >
           <Button variant="small" onClick={() => setOpen(false)}>
             Cerrar
           </Button>
