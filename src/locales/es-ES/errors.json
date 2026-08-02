@@ -8,7 +8,6 @@
   "error_app_security_invalid-invitation-code-title": "Código de invitación incorrecto",
   "error_app_security_invalid-invitation-code": "Por favor, verifica el código que proporcionaste",
   "error_app_jwpub_invalid-file": "Este archivo no parece ser un .jwpub válido",
-  "error_app_jwpub_not-songbook": "Este archivo no parece ser el cancionero: no trae cánticos numerados suficientes. Comprueba que es el .jwpub del cancionero y no el de otra publicación",
   "error_app_generic-title": "Ocurrió un error",
   "error_app_generic-desc": "Ocurrió un error. Intenta actualizar la página. Si esto no ayuda, intenta reiniciar Elda Centro por completo. Ten en cuenta que esto borrará todos tus datos no sincronizados.",
   "error_app_unsupported-browser-title": "Navegador no compatible",

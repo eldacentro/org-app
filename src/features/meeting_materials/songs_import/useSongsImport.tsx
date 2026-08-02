@@ -15,14 +15,23 @@ import { IconError } from '@components/icons';
 import { PendingSongsImportType } from './index.types';
 
 /**
- * Cuántos cánticos hacen falta para creerse que un archivo es un cancionero.
+ * Las dos guardas que impiden importar OTRA publicación como si fuera el
+ * cancionero, y por qué las dos son necesarias.
  *
- * El lector saca números de cualquier publicación numerada por capítulos, así
- * que sin esto un libro de estudio cualquiera entraría como cancionero. No es
- * la única defensa —el diálogo enseña el nombre de la publicación antes de
- * confirmar, que es la de verdad— pero corta lo evidente.
+ * El lector saca un número de cualquier publicación numerada por capítulos.
+ * Probado con el Libro de los precursores (`pt14`): salen 35 «cánticos»
+ * perfectamente formados, con los títulos de sus capítulos. Confirmarlo
+ * dejaría los cánticos 1 al 35 con títulos que no son, y no hay deshacer.
+ *
+ * Por eso la cuenta mínima es alta: un cancionero pasa de 150 cánticos y
+ * ninguna publicación de estudio tiene cien capítulos numerados. Y por eso el
+ * símbolo se comprueba aparte: los cancioneros lo tienen empezando por «sj»
+ * desde hace décadas (sjj, sjjm, sjjls), y fallar cerrado es lo que
+ * corresponde aquí — si algún día cambiara la convención, el mensaje dice qué
+ * símbolo ha encontrado y es una línea de arreglo.
  */
-const MINIMO_CANTICOS = 20;
+const MINIMO_CANTICOS = 100;
+const SIMBOLO_CANCIONERO = /^sj/i;
 
 const useSongsImport = () => {
   const songsList = useAtomValue(songsLocaleState);
@@ -52,8 +61,29 @@ const useSongsImport = () => {
 
       const parsed = await parseJwpubFile(file);
 
-      if (parsed.entries.length < MINIMO_CANTICOS) {
-        throw new Error('error_app_jwpub_not-songbook');
+      // Se rechaza aquí y no en el diálogo: enseñar una vista previa de 35
+      // capítulos del Libro de los precursores como si fueran cánticos ya es
+      // media importación hecha.
+      if (
+        parsed.entries.length < MINIMO_CANTICOS ||
+        !SIMBOLO_CANCIONERO.test(parsed.symbol)
+      ) {
+        displaySnackNotification({
+          header: 'Este archivo no es el cancionero',
+          message: `El archivo elegido es «${
+            parsed.publicationTitle || 'sin título'
+          }» (símbolo «${parsed.symbol || 'sin símbolo'}»), con ${
+            parsed.entries.length
+          } ${
+            parsed.entries.length === 1
+              ? 'documento numerado'
+              : 'documentos numerados'
+          }. Elige el .jwpub del cancionero.`,
+          severity: 'error',
+          icon: <IconError color="var(--card)" />,
+        });
+
+        return;
       }
 
       const informe = computeJwpubReport(
@@ -72,16 +102,12 @@ const useSongsImport = () => {
           ? `Este archivo está en el idioma «${parsed.langCode}» y ahora mismo se está usando «${jwLang}». Lo que se importe se guardará en el idioma del archivo, y la comparación de aquí abajo está hecha contra el idioma en uso.`
           : undefined;
 
-      const avisoPublicacion = /^sjj/i.test(parsed.symbol)
-        ? undefined
-        : `Este archivo no parece un cancionero (su símbolo es «${parsed.symbol || 'sin símbolo'}»). Comprueba el nombre de la publicación antes de continuar.`;
-
       setPendingImport({
         langCode: parsed.langCode,
         publicationTitle: parsed.publicationTitle,
         symbol: parsed.symbol,
         total: parsed.entries.length,
-        aviso: avisoIdioma ?? avisoPublicacion,
+        aviso: avisoIdioma,
       });
       setReport(informe);
     } catch (error) {
