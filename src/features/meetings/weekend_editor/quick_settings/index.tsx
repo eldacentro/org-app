@@ -6,7 +6,6 @@ import AssignmentPreferences from '@features/congregation/settings/meeting_setti
 import DisplayName from '@features/congregation/settings/meeting_forms/display_name';
 import Divider from '@components/divider';
 import MonthlyWarning from '@features/congregation/settings/meeting_settings/weekend/monthly_warning';
-import OutgoingTalkAccess from '@features/congregation/settings/congregation_privacy/outgoing_talk_access';
 import QuickSettings from '@features/quick_settings';
 import SongsWeekend from '@features/congregation/settings/meeting_forms/songs_weekend';
 import StudyConductor from '@features/congregation/settings/meeting_settings/weekend/study_conductor';
@@ -18,7 +17,7 @@ const QuickSettingsWeekendMeeting = ({
 }: QuickSettingsWeekendMeetingProps) => {
   const { t } = useAppTranslation();
 
-  const { isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
+  const { isWeekendEditor } = useCurrentUser();
 
   return (
     <QuickSettings title={t('tr_weekendMeeting')} open={open} onClose={onClose}>
@@ -39,8 +38,6 @@ const QuickSettingsWeekendMeeting = ({
 
         <Stack spacing="16px">
           <MonthlyWarning />
-
-          {isPublicTalkCoordinator && <OutgoingTalkAccess />}
         </Stack>
 
         <Stack spacing="16px">
