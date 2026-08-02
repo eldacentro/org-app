@@ -54,16 +54,36 @@ pages/predicacion_salidas/index.tsx
 
 ## Cómo migrar uno
 
-1. Cambiar `import { Dialog } from '@mui/material'` por
-   `import Dialog from '@components/dialog'`.
-2. El componente ya da `fullWidth`, el radio, el fondo y la sombra: quitar de
-   `PaperProps` todo lo que solo repita eso. **El `PaperProps` de quien llama
-   SE SUMA al del componente**, no lo reemplaza, así que lo que se deje se
-   aplica encima.
-3. Comprobar que el pie de botones sigue el patrón de la app: Cancelar a la
-   izquierda, la acción principal a la derecha.
-4. **Abrirlo en el navegador a 402 px de ancho** y comprobar que no se ha
-   descolocado nada.
+**NO es cambiar el import.** Esto se comprobó el 2 de agosto y conviene saberlo
+antes de estimar: `components/dialog` solo acepta `open`, `onClose`, `children`,
+`sx` y `PaperProps`, y **envuelve a sus hijos en un `DialogContent` propio**.
+
+Los diálogos crudos están escritos con la estructura de MUI —`DialogTitle`,
+`DialogContent`, `DialogActions`—. Metidos tal cual dentro del componente
+quedan con un `DialogContent` dentro de otro: doble relleno, y el pie de
+botones fuera de su sitio. Cuántas de esas etiquetas tiene cada uno:
+
+    exhibitors/index.tsx              27
+    circuit_visit/publish_dialog       9
+    congregation/limpieza/index.tsx    9
+    my_profile/security/index.tsx      0   ← este sí es casi directo
+
+Así que cada migración es **rehacer el interior del diálogo**, no cambiar una
+línea:
+
+1. Cambiar el import a `@components/dialog`.
+2. Quitar `DialogTitle` / `DialogContent` / `DialogActions` y escribir el
+   contenido con las piezas de la app: el título con `Typography className="h2"`
+   y el pie con la fila de botones estándar —Cancelar a la izquierda, la acción
+   principal a la derecha—.
+3. De `PaperProps` quitar lo que solo repita lo que ya da el componente (ancho,
+   radio, fondo, sombra). **Se SUMA al del componente**, no lo reemplaza, así
+   que lo que se deje se aplica encima.
+4. **Abrirlo en el navegador a 402 px** y comprobar que no se ha descolocado
+   nada. Uno por uno; no vale con mirar dos y suponer el resto.
+
+Empezar por `my_profile/security`, que no usa la estructura de MUI y sirve para
+dejar el patrón claro con poco riesgo.
 
 ## Cómo comprobar la muesca
 
