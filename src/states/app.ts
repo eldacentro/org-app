@@ -475,9 +475,43 @@ export const appLocaleState = atom(es);
 
 export const navBarOptionsState = atom<NavBarOptionsType>({});
 
-export const colorSchemeState = atomWithStorage<ColorSchemeType>(
+/** Los colores que la hoja de estilos define de verdad. */
+const COLORES_REALES: ColorSchemeType[] = [
+  'blue',
+  'green',
+  'purple',
+  'orange',
+  'red',
+];
+
+/**
+ * El color de la aplicación.
+ *
+ * El átomo de base lee lo guardado tal cual, y hace falta un filtro encima
+ * porque el 2 de agosto se descubrió que un tema podía DESAPARECER de
+ * `global.css` sin que nadie lo notara —lo hizo `npm run generate:css`, que
+ * regenera ese archivo desde unos tokens que no llevan todos los temas—.
+ * Quien tuviera el tema borrado se
+ * quedaba con `data-theme="red-light"`, que no casa con ninguna regla, así que
+ * TODAS las variables de color se quedaban sin valor y la aplicación se
+ * desarmaba entera —incluida la propia pantalla desde la que cambiarlo—.
+ *
+ * Esto es la red: si lo guardado no es un color conocido, se devuelve el azul
+ * en vez de dejar la aplicación sin variables de color.
+ */
+const colorSchemeGuardadoState = atomWithStorage<ColorSchemeType>(
   'color',
   'blue'
+);
+
+export const colorSchemeState = atom(
+  (get) => {
+    const guardado = get(colorSchemeGuardadoState);
+    return COLORES_REALES.includes(guardado) ? guardado : 'blue';
+  },
+  (_get, set, valor: ColorSchemeType) => {
+    set(colorSchemeGuardadoState, valor);
+  }
 );
 
 export const devAuthLinkState = atom('');
