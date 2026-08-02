@@ -5,6 +5,7 @@ import { displaySnackNotification } from '@services/states/app';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import CountBadge from '@components/count_badge';
 import Tooltip from '@components/tooltip';
 import accentSurface from '@components/accent_surface';
 import { EstadoBadge } from '@features/territories/ui';
@@ -559,9 +560,13 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
       {/* Territorios atrasados */}
       <Box>
-        <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
-          Territorios atrasados ({stats.atrasados.length})
-        </Typography>
+        {/* El contador en su chapa, no entre paréntesis dentro del título. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 2 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Territorios atrasados
+          </Typography>
+          <CountBadge value={stats.atrasados.length} />
+        </Box>
         {stats.atrasados.length === 0 ? (
           <Box
             sx={{
@@ -660,9 +665,13 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
       {/* No asignados durante más tiempo */}
       <Box>
-        <Typography className="h2" sx={{ color: 'var(--ink)', mb: 2 }}>
-          No asignados durante más tiempo ({stats.noAsignadosLista.length})
-        </Typography>
+        {/* El contador en su chapa, no entre paréntesis dentro del título. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 2 }}>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            No asignados durante más tiempo
+          </Typography>
+          <CountBadge value={stats.noAsignadosLista.length} />
+        </Box>
 
         {stats.noAsignadosLista.length === 0 ? (
           <Box

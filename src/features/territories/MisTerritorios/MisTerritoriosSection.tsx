@@ -3,6 +3,7 @@ import { Box, Stack, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
+import CountBadge from '@components/count_badge';
 import Badge from '@components/badge';
 import InfoTip from '@components/info_tip';
 import { IconClose } from '@components/icons';
@@ -201,9 +202,13 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   // return temprano de abajo se lo comía por completo.
   const groupSection = groupRows.length > 0 && (
     <Box sx={{ mt: 3 }}>
-      <Typography className="h2" sx={{ color: 'var(--ink)', mb: 1 }}>
-        Territorios del grupo ({groupRows.length})
-      </Typography>
+      {/* El contador en su chapa, no entre paréntesis dentro del título. */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Territorios del grupo
+        </Typography>
+        <CountBadge value={groupRows.length} />
+      </Box>
       <Stack spacing={1.5}>
         {groupRows.map(({ assignment, territory }) => {
           const color = getZoneColor(territory.zoneId, zones);
@@ -279,9 +284,18 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
 
   return (
     <Box>
-      <Typography className="h2" sx={{ color: 'var(--ink)', mb: 1 }}>
-        Mis territorios ({rows.length})
-      </Typography>
+      {/* El número en su chapa, no dentro del título entre paréntesis. Metido
+          en la frase deja de ser un dato y pasa a ser parte del rótulo, así
+          que no se puede mirar de un vistazo. Es la misma chapa que llevan
+          Personas y las pestañas. */}
+      <Box
+        sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}
+      >
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Mis territorios
+        </Typography>
+        <CountBadge value={rows.length} />
+      </Box>
       {noticesBanner}
       <Stack spacing={1.5}>
         {rows.map(({ assignment, territory }) => {
