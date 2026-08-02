@@ -4211,38 +4211,23 @@ const PredicacionSalidas = () => {
       </Dialog>
 
       {/* DIÁLOGO DE EXPORTACIÓN DE PDF */}
-      <MUIDialog
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS. Su Paper ya trae el radio y el relleno, así
+          que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
+      <Dialog
         open={pdfExportDialogOpen}
         onClose={() => setPdfExportDialogOpen(false)}
-        fullWidth
-        maxWidth={false}
-        sx={{ '& .MuiDialog-paper': { maxWidth: '400px', width: '100%' } }}
-        PaperProps={{
-          style: {
-            borderRadius: 'var(--shape-xl)',
-            padding: '12px',
-          },
-        }}
       >
-        <DialogTitle
-          style={{
-            fontWeight: '700',
-            color: 'var(--accent-dark)',
-            fontSize: '18px',
-          }}
-        >
+        {/* El título llevaba el peso, el color y un tamaño de 18px escritos a
+            mano; la explicación, otro de 13px. Son el título y el cuerpo de un
+            diálogo: les tocan la "h2" y la "body-small-regular" de la escala,
+            como a los demás. */}
+        <Typography className="h2" sx={{ color: 'var(--accent-dark)' }}>
           Exportar programa a PDF
-        </DialogTitle>
+        </Typography>
 
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            mt: '8px',
-          }}
-        >
-          <Typography style={{ color: 'var(--grey-600)', fontSize: '13px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <Typography className="body-small-regular" color="var(--grey-600)">
             Selecciona el mes y año que deseas exportar en formato A4
             horizontal.
           </Typography>
@@ -4314,25 +4299,22 @@ const PredicacionSalidas = () => {
               </AppSelect>
             </Box>
           </Box>
-        </DialogContent>
+        </Box>
 
-        <DialogActions sx={{ padding: '16px', gap: '8px' }}>
+        {/* Cancelar a la izquierda y la acción principal la más a la derecha,
+            como en todos los diálogos de la app. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <AppButton
             variant="tertiary"
-            disableAutoStretch
             onClick={() => setPdfExportDialogOpen(false)}
           >
             Cancelar
           </AppButton>
-          <AppButton
-            variant="main"
-            disableAutoStretch
-            onClick={handleExportPDF}
-          >
+          <AppButton variant="main" onClick={handleExportPDF}>
             Exportar
           </AppButton>
-        </DialogActions>
-      </MUIDialog>
+        </Box>
+      </Dialog>
 
       {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
       <MUIDialog
