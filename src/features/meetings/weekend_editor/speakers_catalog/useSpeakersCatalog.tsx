@@ -10,8 +10,13 @@ import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  userDataViewState,
 } from '@states/settings';
-import { normalizeForSearch, speakerGetDisplayName } from '@utils/common';
+import {
+  normalizeForSearch,
+  personGetDisplayName,
+  speakerGetDisplayName,
+} from '@utils/common';
 import { personsState } from '@states/persons';
 import { schedulesSaveAssignment } from '@services/app/schedules';
 import {
@@ -21,6 +26,8 @@ import {
 } from '@states/schedules';
 import { PublicTalkOptionType } from '../public_talk_selector/index.types';
 import usePublicTalkSelector from '../public_talk_selector/usePublicTalkSelector';
+import { useAppTranslation } from '@hooks/index';
+import { useConfirm } from '@components/confirm_dialog';
 
 const useSpeakersCatalog = ({
   type,
@@ -28,6 +35,10 @@ const useSpeakersCatalog = ({
   onClose,
   schedule_id,
 }: SpeakersCatalogType) => {
+  const { t } = useAppTranslation();
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
+
   const { handleTalkChange } = usePublicTalkSelector(week, schedule_id);
 
   const setLocalSongSelectorOpen = useSetAtom(weekendSongSelectorOpenState);
@@ -40,6 +51,7 @@ const useSpeakersCatalog = ({
   const fullnameOption = useAtomValue(fullnameOptionState);
   const persons = useAtomValue(personsState);
   const schedules = useAtomValue(schedulesState);
+  const dataView = useAtomValue(userDataViewState);
 
   const [search, setSearch] = useState('');
 
@@ -143,11 +155,78 @@ const useSpeakersCatalog = ({
 
   const handleSearchChange = (value: string) => setSearch(value);
 
+  /**
+   * Quién está asignado AHORA en el campo que este catálogo va a rellenar.
+   *
+   * Son dos campos distintos según de dónde se abra el catálogo: el orador de
+   * la reunión de fin de semana (`speaker.part_1`, por vista de datos) o el
+   * discursante de una salida de predicación (`outgoing_talks`, por id).
+   */
+  const assignedSpeakerUid = useMemo(() => {
+    const schedule = schedules.find((record) => record.weekOf === week);
+
+    if (!schedule) return '';
+
+    if (schedule_id) {
+      const outgoing = schedule.weekend_meeting.outgoing_talks.find(
+        (record) => record.id === schedule_id
+      );
+
+      return outgoing?.value ?? '';
+    }
+
+    return (
+      schedule.weekend_meeting.speaker.part_1.find(
+        (record) => record.type === dataView
+      )?.value ?? ''
+    );
+  }, [schedules, week, schedule_id, dataView]);
+
+  /**
+   * El nombre de un orador a partir de su identificador. Los locales salen de
+   * Personas —que es donde el nombre está al día— y los visitantes, de su
+   * propio registro, que es el único sitio donde existen.
+   */
+  const getSpeakerName = (person_uid: string) => {
+    const person = persons.find((record) => record.person_uid === person_uid);
+
+    if (person) {
+      return personGetDisplayName(person, useDisplayName, fullnameOption);
+    }
+
+    const speaker = [...localSpeakers, ...incomingSpeakers].find(
+      (record) => record.person_uid === person_uid
+    );
+
+    if (speaker) {
+      return speakerGetDisplayName(speaker, useDisplayName, fullnameOption);
+    }
+
+    return '';
+  };
+
   const handleSelectSpeaker = async (
     talk: TalkOptionType,
     speaker: VisitingSpeakerType
   ) => {
     const schedule = schedules.find((record) => record.weekOf === week);
+
+    // Pulsar un nombre del catálogo ASIGNA, y el catálogo es una lista larga
+    // en la que es fácil dar a quien no era. Si el campo ya tiene orador, se
+    // pregunta antes de quitarlo diciendo a quién se quita y a quién se pone.
+    // Con el campo vacío no hay nada que perder, así que no se molesta.
+    if (assignedSpeakerUid && assignedSpeakerUid !== speaker.person_uid) {
+      const confirmed = await confirm({
+        title: t('tr_replaceSpeakerTitle'),
+        message: t('tr_replaceSpeakerDesc', {
+          current: getSpeakerName(assignedSpeakerUid),
+          next: speakerGetDisplayName(speaker, useDisplayName, fullnameOption),
+        }),
+        confirmLabel: t('tr_replaceSpeakerConfirm'),
+      });
+
+      if (!confirmed) return;
+    }
 
     await handleTalkChange(talk as unknown as PublicTalkOptionType);
 
@@ -179,6 +258,7 @@ const useSpeakersCatalog = ({
     handleSelectSpeaker,
     handleSearchChange,
     search,
+    ConfirmDialogNode,
   };
 };
 
