@@ -1,16 +1,8 @@
 import { displaySnackNotification } from '@services/states/app';
 import { useState, useMemo, useEffect } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Box,
-  Stack,
-  MenuItem,
-  Grid,
-} from '@mui/material';
+import { IconButton, Box, Stack, MenuItem, Grid } from '@mui/material';
+import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import { useAtomValue } from 'jotai';
 import {
@@ -273,50 +265,32 @@ const DialogEditarTerritorio = ({
   return (
     <>
       {ConfirmDialogNode}
+      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
+          márgenes seguros de iOS —antes se hacían aquí a mano— y el alto
+          máximo que los acompaña. Del PaperProps solo queda el ancho, que es
+          lo único que este diálogo NO comparte con los demás: es de dos
+          columnas y necesita mucho más de los 560 de la escala normal. El
+          resto —radio, fondo, sombra— ya lo pone el componente, y lo que se
+          deja aquí se SUMA al suyo. Ver DESIGN_SYSTEM §6.1. */}
       <Dialog
         open={open}
         onClose={handleRequestClose}
-        maxWidth={false}
-        fullWidth
-        scroll="paper"
-        PaperProps={{
-          sx: {
-            maxWidth: '1100px',
-            // Los márgenes seguros de iOS. Este diálogo es casi de pantalla
-            // completa en un móvil, así que su borde de abajo caía DEBAJO de
-            // la barra de inicio del iPhone y el de arriba se metía en la
-            // muesca. Los 16 de siempre siguen valiendo en todo lo demás
-            // —`env(...)` vale 0 donde no hay muesca—, así que el `max` deja
-            // el mismo diálogo de antes en escritorio y en Android.
-            width: 'calc(100% - 32px)',
-            marginTop: 'max(32px, env(safe-area-inset-top))',
-            marginBottom: 'max(32px, env(safe-area-inset-bottom))',
-            maxHeight:
-              'calc(100% - max(64px, env(safe-area-inset-top) + env(safe-area-inset-bottom)))',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            boxShadow: 'var(--pop-up-shadow)',
-            borderRadius: 'var(--shape-xl)',
-          },
-        }}
+        PaperProps={{ sx: { maxWidth: '1100px' } }}
       >
-        <DialogTitle sx={{ p: 0 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ p: 2, pb: 0 }}
-          >
-            <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-              {esCrear ? 'Añadir territorio' : 'Editar territorio'}
-            </Typography>
-            <IconButton aria-label="Cerrar" onClick={handleRequestClose}>
-              <IconClose color="var(--black)" />
-            </IconButton>
-          </Stack>
-        </DialogTitle>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            {esCrear ? 'Añadir territorio' : 'Editar territorio'}
+          </Typography>
+          <IconButton aria-label="Cerrar" onClick={handleRequestClose}>
+            <IconClose color="var(--black)" />
+          </IconButton>
+        </Stack>
 
-        <DialogContent sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+        <Box>
           <Grid container spacing={3}>
             <Grid size={{ mobile: 12, tablet600: 4, desktop: 3 }}>
               <Stack spacing={2.5}>
@@ -525,7 +499,7 @@ const DialogEditarTerritorio = ({
                   : 'Guardar'}
             </Button>
           </Stack>
-        </DialogContent>
+        </Box>
       </Dialog>
     </>
   );
