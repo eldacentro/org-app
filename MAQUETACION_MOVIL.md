@@ -142,9 +142,11 @@ Así que aquí: **un cambio, una comprobación en pantalla, un commit.** Y a 375
 - Para reproducir: `vite --mode test --port 4137` (ver la memoria «org-app modo
   de prueba local»). El enrutador es de **hash**, así que las páginas se abren
   con `#/exhibitors`, no con `/exhibitors`.
-- `converter/css/guardia.mjs` impide que `npm run generate:css` borre colores.
-  Hoy ese comando FALLA a propósito: faltan trece variables en las fuentes de
-  Figma (los diez colores de grupo y tres grises). Es correcto que falle hasta
-  que alguien las lleve a `converter/css/sources/`.
+- `converter/css/guardia.mjs` impide que `npm run generate:css` borre colores
+  **y clases de texto** (`npm run check:css` corre esa segunda comprobación
+  suelta). Hoy `generate:css` FALLA a propósito: faltan trece variables en las
+  fuentes de Figma (los diez colores de grupo y tres grises). Es correcto que
+  falle hasta que alguien las lleve a `converter/css/sources/` — y mientras
+  siga fallando ahí, el candado de clases solo se ejecuta con `check:css`.
 - `src/global/global.css` se genera. Lo escrito a mano ahí se pierde en la
   siguiente regeneración si no está también en las fuentes.

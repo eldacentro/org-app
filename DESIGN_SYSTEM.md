@@ -308,11 +308,25 @@ lado. A 2026-07-30 quedan ~150 sitios así, casi todos en Exhibidores y Salidas.
 > `index.css`… pero solo dentro del escalón de tablet. Existía para un iPad y
 > no existía para un móvil ni para un escritorio.
 >
-> **La comprobación buena es medir, no buscar.** En la consola del navegador,
-> crear un elemento con cada clase de la tabla y comparar
-> `getComputedStyle().fontSize`/`fontWeight` con lo que dice esta tabla. Una
-> clase huérfana canta enseguida: sale 16px/400, el defecto de MUI. Hay que
-> hacerlo al menos a un ancho de móvil y a uno de escritorio.
+> **La comprobación ya no se hace a mano — hay un comando:**
+>
+> ```bash
+> npm run check:css
+> ```
+>
+> Lee la lista de clases de `src/definition/app.ts` (no tiene una copia
+> propia que se quede vieja), recorre `global.css` e `index.css` contando
+> llaves para saber DÓNDE está cada regla, y comprueba que cada clase tenga
+> alguna que la alcance tanto en un móvil (390px, puntero grueso) como en un
+> escritorio (1280px, puntero fino). Lo que no sabe leer cuenta como "no
+> llega", a propósito: mejor un aviso de más que otra clase muda tres semanas.
+>
+> Lo mismo corre solo dentro de `npm run generate:css`, después del candado de
+> colores, así que una regeneración ya no puede llevárselas en silencio.
+>
+> Un `grep` NO sirve para esto y por eso hubo que cambiar de método: la clase
+> sí estaba escrita en el fichero. La pregunta no es si el texto existe, es si
+> la regla LLEGA.
 >
 > Y las tres han vuelto a `index.css`, no a `global.css`, que es el fichero
 > que se regenera. Van **antes** del escalón de tablet a propósito: una media

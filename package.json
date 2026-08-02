@@ -16,6 +16,7 @@
     "cypress:open": "cypress open",
     "cypress:test": "cypress run --browser chrome",
     "generate:css": "node converter/css/guardia.mjs antes && node converter/css/convert.js && prettier converter/css/tokens.json src/global/global.css src/global/global.ts --write && node converter/css/guardia.mjs despues",
+    "check:css": "node converter/css/guardia.mjs clases",
     "generate:icons": "node converter/svg/convert.js && prettier src/components/icons --write",
     "locales:unused": "tsx unused-i18n-keys.ts",
     "lint": "eslint src",
