@@ -4,6 +4,8 @@ import { JwpubReportType } from '@services/app/jwpub_report';
 export type PendingJwpubImportType = {
   langCode: string;
   publicationTitle: string;
+  /** Un aviso que enseñar arriba del informe, si el archivo da que pensar. */
+  aviso?: string;
 };
 
 /**

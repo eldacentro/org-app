@@ -73,6 +73,7 @@ const ImportTalks = ({
           entidadSingular="bosquejo"
           entidadPlural="bosquejos"
           publicationTitle={pendingImport.publicationTitle}
+          aviso={pendingImport.aviso}
           isSaving={isSaving}
           onCancel={handleCancel}
           onConfirm={handleConfirm}

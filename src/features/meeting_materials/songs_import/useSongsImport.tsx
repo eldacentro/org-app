@@ -1,6 +1,6 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { publicTalksLocaleState } from '@states/public_talks';
+import { songsLocaleState } from '@states/songs';
 import { JWLangState } from '@states/settings';
 import { parseJwpubFile } from '@services/app/jwpub_import';
 import {
@@ -8,17 +8,24 @@ import {
   computeJwpubReport,
   JwpubReportType,
 } from '@services/app/jwpub_report';
-import {
-  dbPublicTalkOverrideGet,
-  dbPublicTalkOverrideSave,
-} from '@services/dexie/public_talk';
+import { dbSongOverrideGet, dbSongOverrideSave } from '@services/dexie/songs';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { IconError } from '@components/icons';
-import { PendingJwpubImportType } from './index.types';
+import { PendingSongsImportType } from './index.types';
 
-const useImportTalks = () => {
-  const talksList = useAtomValue(publicTalksLocaleState);
+/**
+ * Cuántos cánticos hacen falta para creerse que un archivo es un cancionero.
+ *
+ * El lector saca números de cualquier publicación numerada por capítulos, así
+ * que sin esto un libro de estudio cualquiera entraría como cancionero. No es
+ * la única defensa —el diálogo enseña el nombre de la publicación antes de
+ * confirmar, que es la de verdad— pero corta lo evidente.
+ */
+const MINIMO_CANTICOS = 20;
+
+const useSongsImport = () => {
+  const songsList = useAtomValue(songsLocaleState);
   const jwLang = useAtomValue(JWLangState);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +34,7 @@ const useImportTalks = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [report, setReport] = useState<JwpubReportType | null>(null);
   const [pendingImport, setPendingImport] =
-    useState<PendingJwpubImportType | null>(null);
+    useState<PendingSongsImportType | null>(null);
 
   const handleOpenFilePicker = () => {
     fileInputRef.current?.click();
@@ -45,31 +52,36 @@ const useImportTalks = () => {
 
       const parsed = await parseJwpubFile(file);
 
+      if (parsed.entries.length < MINIMO_CANTICOS) {
+        throw new Error('error_app_jwpub_not-songbook');
+      }
+
       const informe = computeJwpubReport(
         parsed.entries,
-        talksList.map((talk) => ({
-          number: talk.talk_number,
-          title: talk.talk_title,
+        songsList.map((song) => ({
+          number: song.song_number,
+          title: song.song_title,
         }))
       );
 
-      // El diálogo se abre SIEMPRE, también cuando no ha cambiado nada.
-      //
-      // Antes, un archivo sin diferencias solo levantaba un aviso al pie que
-      // ni siquiera se cerraba solo, y quien reimporta el mismo archivo —que
-      // es el caso más frecuente— se quedaba sin saber si había pasado algo.
-      // Reimportar no es un accidente: es cómo uno comprueba que está al día,
-      // y merece la misma respuesta que una importación con cambios.
+      // Un archivo en otro idioma compara contra la lista equivocada: todo
+      // saldría «cambiado» y se guardaría bajo el idioma del archivo, no bajo
+      // el que se está mirando. Se avisa antes de confirmar, no después.
+      const avisoIdioma =
+        parsed.langCode !== jwLang
+          ? `Este archivo está en el idioma «${parsed.langCode}» y ahora mismo se está usando «${jwLang}». Lo que se importe se guardará en el idioma del archivo, y la comparación de aquí abajo está hecha contra el idioma en uso.`
+          : undefined;
+
+      const avisoPublicacion = /^sjj/i.test(parsed.symbol)
+        ? undefined
+        : `Este archivo no parece un cancionero (su símbolo es «${parsed.symbol || 'sin símbolo'}»). Comprueba el nombre de la publicación antes de continuar.`;
+
       setPendingImport({
         langCode: parsed.langCode,
         publicationTitle: parsed.publicationTitle,
-        // Un archivo en otro idioma compara contra la lista equivocada: todo
-        // saldría «cambiado» y se guardaría bajo el idioma del archivo, no
-        // bajo el que se está mirando. Se avisa antes de confirmar.
-        aviso:
-          parsed.langCode !== jwLang
-            ? `Este archivo está en el idioma «${parsed.langCode}» y ahora mismo se está usando «${jwLang}». Lo que se importe se guardará en el idioma del archivo, y la comparación de aquí abajo está hecha contra el idioma en uso.`
-            : undefined,
+        symbol: parsed.symbol,
+        total: parsed.entries.length,
+        aviso: avisoIdioma ?? avisoPublicacion,
       });
       setReport(informe);
     } catch (error) {
@@ -94,7 +106,6 @@ const useImportTalks = () => {
   const handleConfirm = async () => {
     if (!pendingImport || !report) return;
 
-    // Sin cambios no hay nada que guardar: el botón solo cierra.
     if (!report.hasChanges) {
       handleCancel();
       return;
@@ -103,26 +114,33 @@ const useImportTalks = () => {
     try {
       setIsSaving(true);
 
-      const existing = await dbPublicTalkOverrideGet();
+      const existing = await dbSongOverrideGet();
       const overrides = structuredClone(existing?.overrides ?? {});
 
       if (!overrides[pendingImport.langCode]) {
         overrides[pendingImport.langCode] = {};
       }
 
-      // Se FUSIONA sobre lo que ya había, no se sustituye: lo que el archivo
-      // no menciona sigue donde estaba.
+      // Se FUSIONA sobre lo que ya había, no se sustituye: un archivo que no
+      // menciona un número no tiene por qué opinar sobre él. Es la misma
+      // regla de siempre — importar sustituye lo que viene, no vacía lo que
+      // falta.
       Object.assign(
         overrides[pendingImport.langCode],
         buildJwpubOverrideEntries(report)
       );
 
-      await dbPublicTalkOverrideSave(overrides);
+      await dbSongOverrideSave({
+        overrides,
+        publicationTitle: pendingImport.publicationTitle,
+        symbol: pendingImport.symbol,
+        total: pendingImport.total,
+      });
 
       displaySnackNotification({
-        header: 'Importación completada',
+        header: 'Cancionero importado',
         message: `Se actualizaron ${report.changes.length} ${
-          report.changes.length === 1 ? 'bosquejo' : 'bosquejos'
+          report.changes.length === 1 ? 'cántico' : 'cánticos'
         }.`,
         severity: 'success',
       });
@@ -155,4 +173,4 @@ const useImportTalks = () => {
   };
 };
 
-export default useImportTalks;
+export default useSongsImport;
