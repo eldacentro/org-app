@@ -79,8 +79,18 @@ describe('cifrado de una ficha de persona entera', () => {
     const original = buildPerson();
     const data = buildPerson();
 
-    encryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
-    decryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
+    encryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
+    decryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
 
     expect(data).toEqual(original);
   });
@@ -88,7 +98,12 @@ describe('cifrado de una ficha de persona entera', () => {
   it('el nombre viaja cifrado (no en claro)', () => {
     const data = buildPerson();
 
-    encryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
+    encryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
 
     expect(JSON.stringify(data)).not.toContain('Carlos');
     expect(JSON.stringify(data)).not.toContain('Saca');
@@ -99,7 +114,12 @@ describe('cifrado de una ficha de persona entera', () => {
     // código de acceso NO puede leer los datos sensibles.
     const data = buildPerson();
 
-    encryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
+    encryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
 
     const birth = data.person_data.birth_date as unknown as string;
 
@@ -115,7 +135,12 @@ describe('cifrado de una ficha de persona entera', () => {
     // fusionar — nunca se comparan marcas cifradas.
     const data = buildPerson();
 
-    encryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
+    encryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
 
     expect(typeof data.person_data.person_firstname).toBe('string');
     expect(JSON.stringify(data)).not.toContain('2026-01-01T00:00:00Z');
@@ -124,7 +149,12 @@ describe('cifrado de una ficha de persona entera', () => {
   it('el identificador de la persona viaja en claro (es la clave para casarlas)', () => {
     const data = buildPerson();
 
-    encryptObject({ data, table: 'persons', accessCode: ACCESS_CODE, masterKey: MASTER_KEY });
+    encryptObject({
+      data,
+      table: 'persons',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
 
     expect(data.person_uid).toBe('uid-1');
   });
@@ -178,5 +208,57 @@ describe('informe de predicación', () => {
     });
 
     expect(JSON.stringify(data)).not.toContain('25 Hrs. LDC');
+  });
+});
+
+/**
+ * El cancionero importado a mano viaja como una tabla más desde que se
+ * sincroniza. Si el mapa de cifrado se dejara un campo fuera, ese campo saldría
+ * EN CLARO al servidor sin que nada fallara; y si nombrara uno que no existe,
+ * la vuelta traería el título cifrado y los cánticos saldrían ilegibles en el
+ * resto de dispositivos. Las dos cosas se ven aquí y en ningún otro sitio.
+ */
+describe('songs_override — el cancionero importado', () => {
+  const buildOverride = () => ({
+    id: '1',
+    updatedAt: '2026-08-03T00:00:00Z',
+    overrides: { S: { '163': '163. Ya puedo ver' } },
+    publicationTitle: 'Cantemos con gozo',
+    symbol: 'sjj',
+    total: 163,
+  });
+
+  it('ida y vuelta: vuelve exactamente igual', () => {
+    const original = buildOverride();
+    const data = buildOverride();
+
+    encryptObject({
+      data,
+      table: 'songs_override',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
+    decryptObject({
+      data,
+      table: 'songs_override',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
+
+    expect(data).toEqual(original);
+  });
+
+  it('los títulos no viajan en claro', () => {
+    const data = buildOverride();
+
+    encryptObject({
+      data,
+      table: 'songs_override',
+      accessCode: ACCESS_CODE,
+      masterKey: MASTER_KEY,
+    });
+
+    expect(JSON.stringify(data)).not.toContain('Ya puedo ver');
+    expect(JSON.stringify(data)).not.toContain('Cantemos con gozo');
   });
 });

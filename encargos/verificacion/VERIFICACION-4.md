@@ -36,7 +36,9 @@ el mismo trato:
 reconstrucción sigue siendo exactamente la de antes; lo único que ha cambiado
 es que lo que reconstruye ya incluye lo importado.
 
-Un cabo suelto que hay que saber: **el cancionero importado no se sincroniza.**
+**Ya no es cierto** que el cancionero se quede en un dispositivo: desde el
+3 de agosto viaja en la sincronización, con su tabla propia en los dos
+repositorios. Lo que sigue debajo es de cuando no lo hacía.
 Meter una tabla nueva en la subida exige tocar el worker y que el backend
 —otro repositorio— la acepte, y nada de eso entra en este encargo. Es de ESE
 dispositivo, y la pantalla lo dice con todas las letras. Los bosquejos sí se
@@ -201,7 +203,7 @@ Volver a `#/meeting-materials`, sección **CANCIONERO Y DISCURSOS PÚBLICOS**.
 La tarjeta «Cancionero» tiene que haber cambiado:
 - Debajo del rótulo, **el nombre del cancionero importado**.
 - «N cánticos · importado el 3 ago 2026 · N títulos sustituidos».
-- La nota: «Importado en este dispositivo. No viaja por la sincronización: en
+- La nota (CAMBIADA, ahora dice que sí viaja): «Importado en este dispositivo. No viaja por la sincronización: en
   otro teléfono habría que importarlo también.»
 - La etiqueta de la derecha, en verde: **«Desde .jwpub»** — la misma palabra
   que usan las tarjetas de material de arriba.

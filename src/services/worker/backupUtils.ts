@@ -31,6 +31,8 @@ import { LimpiezaConfig } from '@definition/limpieza';
 import { PlanEvacuacion } from '@definition/evacuacion';
 import { PublicTalkOverrideType } from '@definition/public_talks';
 import { applyPublicTalksOverride } from '@utils/public_talks';
+import { SongOverrideType } from '@definition/songs';
+import { applySongsOverride } from '@utils/songs';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 import { SettingsType } from '@definition/settings';
@@ -254,6 +256,7 @@ const dbGetTableData = async () => {
     const limpieza_config = await appDb.limpieza_config.get('1');
     const evacuacion_config = await appDb.evacuacion_config.get('1');
     const public_talks_override = await appDb.public_talks_override.get('1');
+    const songs_override = await appDb.songs_override.get('1');
     const metadata = await appDb.metadata.get(1);
 
     const territories = await appDb.territories.toArray();
@@ -322,6 +325,7 @@ const dbGetTableData = async () => {
       limpieza_config,
       evacuacion_config,
       public_talks_override,
+      songs_override,
       territories,
       territory_zones,
       territory_tags,
@@ -2331,6 +2335,56 @@ const dbRestorePublicTalksOverride = async (
   }
 };
 
+/**
+ * El cancionero importado a mano, que baja a todos los dispositivos.
+ *
+ * Mismo trato que los bosquejos de discursos públicos, y por el mismo motivo:
+ * `songs` es una tabla DERIVADA que se rehace entera desde las traducciones al
+ * terminar cada sincronización. Lo importado vive aparte y se vuelve a aplicar
+ * por encima en cada reconstrucción.
+ */
+const dbRestoreSongsOverride = async (
+  backupData: BackupDataType,
+  accessCode: string
+) => {
+  try {
+    if (!backupData.songs_override) return;
+
+    const remoteRecord = structuredClone(backupData.songs_override) as Record<
+      string,
+      unknown
+    >;
+
+    decryptObject({
+      data: remoteRecord,
+      table: 'songs_override',
+      accessCode,
+    });
+
+    const localRecord = await appDb.songs_override.get('1');
+    const remoteUpdated = (remoteRecord.updatedAt as string) || '';
+    const localUpdated = localRecord?.updatedAt || '';
+
+    if (!localRecord || remoteUpdated > localUpdated) {
+      const newOverride = {
+        ...remoteRecord,
+        id: '1',
+      } as unknown as SongOverrideType;
+
+      await appDb.songs_override.put(newOverride);
+
+      // No se llama a dbSongUpdate() aquí: ese reconstruye desde getI18n(),
+      // que no existe dentro de este Web Worker. Se aplica lo importado
+      // directamente sobre lo que ya hay en `songs`, sin tocar i18n.
+      const songs = await appDb.songs.toArray();
+      applySongsOverride(songs, newOverride);
+      await appDb.songs.bulkPut(songs);
+    }
+  } catch (error) {
+    throw new Error(`songs_override: ${error.message}`);
+  }
+};
+
 // Un registro legado/malformado en CUALQUIER categoría (ya nos pasó con
 // sources, sched y exhibitors) reventaba toda la transacción — incluyendo
 // dbInsertMetadata al final. Como ese insert nunca llegaba a correr, la
@@ -2519,6 +2573,9 @@ const dbRestoreFromBackup = async (
       );
       await safe('public_talks_override', () =>
         dbRestorePublicTalksOverride(backupData, accessCode)
+      );
+      await safe('songs_override', () =>
+        dbRestoreSongsOverride(backupData, accessCode)
       );
 
       await safe('circuit_overseer_visits', () =>
@@ -2711,6 +2768,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       limpieza_config,
       evacuacion_config,
       public_talks_override,
+      songs_override,
       sources,
       meeting_attendance,
       metadata,
@@ -3252,6 +3310,21 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
             });
 
             obj.public_talks_override = toBackup;
+          }
+        }
+
+        // include songs_override data
+        if (metadata.metadata.songs_override?.send_local) {
+          if (songs_override) {
+            const toBackup = structuredClone(songs_override);
+
+            encryptObject({
+              data: toBackup,
+              table: 'songs_override',
+              accessCode,
+            });
+
+            obj.songs_override = toBackup;
           }
         }
 

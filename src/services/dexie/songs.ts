@@ -60,13 +60,37 @@ export const dbSongOverrideGet = async (): Promise<
 };
 
 /**
- * Guarda los títulos importados y vuelve a reconstruir `songs` para que se
- * vean de inmediato, sin esperar al próximo cambio de idioma.
+ * Que lo importado VIAJE.
  *
- * No se sincroniza, y es una decisión, no un olvido: meter una tabla nueva en
- * la subida exige tocar el worker y que el backend (otro repositorio) la
- * acepte. Mientras tanto el cancionero importado es de ESTE dispositivo, y la
- * pantalla de Materiales de reunión lo dice.
+ * Sin esta marca se quedaría en el dispositivo que lo importó: la subida solo
+ * mete una tabla cuando hay algo pendiente que subir, y esa es justo la regla
+ * que impide que la congregación entera se sincronice cada pocos segundos sin
+ * que nada haya cambiado (ver CLAUDE.md).
+ */
+const dbUpdateSongsOverrideMetadata = async () => {
+  const metadata = await appDb.metadata.get(1);
+  if (!metadata) return;
+
+  metadata.metadata.songs_override = {
+    ...metadata.metadata.songs_override,
+    send_local: true,
+  };
+
+  await appDb.metadata.put(metadata);
+};
+
+const triggerSync = () => {
+  import('@services/worker/backupWorker').then(({ default: worker }) =>
+    worker.postMessage('startWorker')
+  );
+};
+
+/**
+ * Guarda los títulos importados, reconstruye `songs` para que se vean de
+ * inmediato —sin esperar al próximo cambio de idioma— y lo manda al resto de
+ * la congregación.
+ *
+ * Lo mismo que hacen los bosquejos de discursos públicos, pieza por pieza.
  */
 export const dbSongOverrideSave = async (
   override: Omit<SongOverrideType, 'id' | 'updatedAt'>
@@ -78,4 +102,7 @@ export const dbSongOverrideSave = async (
   });
 
   await dbSongUpdate();
+
+  await dbUpdateSongsOverrideMetadata();
+  triggerSync();
 };

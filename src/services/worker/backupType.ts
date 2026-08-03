@@ -42,6 +42,7 @@ export type BackupDataType = {
   limpieza_config?: object;
   evacuacion_config?: object;
   public_talks_override?: object;
+  songs_override?: object;
   territories?: object;
   territory_zones?: object;
   territory_tags?: object;

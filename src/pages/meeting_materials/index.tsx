@@ -553,7 +553,7 @@ const MeetingMaterials = () => {
             cancionero.importado ? cancionero.publicationTitle : undefined
           }
           notaSinImportar="Vienen dentro de la aplicación: solo cambian al publicarse una versión nueva."
-          notaImportado="Importado en este dispositivo. No viaja por la sincronización: en otro teléfono habría que importarlo también."
+          notaImportado="Se sincroniza con el resto de la congregación: al importarlo aquí, les llega a todos."
         />
 
         <TarjetaLista

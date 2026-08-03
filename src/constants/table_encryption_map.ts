@@ -300,6 +300,14 @@ export const TABLE_ENCRYPTION_MAP = {
     updatedAt: 'shared',
     overrides: 'shared',
   },
+  songs_override: {
+    id: 'shared',
+    updatedAt: 'shared',
+    overrides: 'shared',
+    publicationTitle: 'shared',
+    symbol: 'shared',
+    total: 'shared',
+  },
   territories: {
     id: 'shared',
     zoneId: 'shared',
