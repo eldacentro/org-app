@@ -233,15 +233,21 @@ salientes) a **375**, **768** y **1280**:
 
 ## 8. Lo que se ha dejado fuera a propósito (no hay que buscarlo)
 
-- **El aviso de «has cambiado N cosas desde que se publicó» en Exhibidores,
-  Salidas y Visita del superintendente.** Esos tres guardan el "publicado" sin
-  fecha (una lista de meses, o un booleano), así que no hay contra qué comparar.
-  Ponerle fecha es cambiar el esquema sincronizado de tres módulos que ya
-  funcionan, y eso merece su propio paso. En los tres nuevos sale gratis, porque
-  la marca lleva su propia fecha.
-- **El aviso de ausencias en el diálogo de Exhibidores y Salidas.** Mismo motivo
-  de prudencia: sus asignaciones tienen forma propia y sus páginas son enormes.
-  Departamentos sí lo lleva ya.
+> **Los dos primeros puntos ya NO están fuera: se hicieron el mismo 3 de agosto.**
+> Exhibidores y Salidas avisan de las semanas tocadas desde que se publicó el mes
+> y de las ausencias en su diálogo; la Visita del superintendente avisa de que se
+> ha cambiado, sin número (todo su registro comparte un solo sello de tiempo, así
+> que un recuento sería inventado). Lo que lo desbloqueó está en
+> `month_publish.ts`: un sello por mes en un campo nuevo y aparte, seguro porque
+> esos registros de ajustes se fusionan enteros por `updatedAt` y no campo a
+> campo. Se quedan escritos aquí para que se entienda de dónde venían.
+
+- ~~**El aviso de «has cambiado N cosas desde que se publicó» en Exhibidores,
+  Salidas y Visita del superintendente.**~~ Esos tres guardaban el "publicado" sin
+  fecha (una lista de meses, o un booleano), así que no había contra qué comparar.
+- ~~**El aviso de ausencias en el diálogo de Exhibidores y Salidas.**~~ Mismo
+  motivo de prudencia: sus asignaciones tienen forma propia y sus páginas son
+  enormes. Departamentos ya lo llevaba.
 - **Marcar el campo concreto** que choca con una ausencia dentro del editor. Se
   avisa en la tira de la página, con los nombres; señalar además la casilla es
   trabajo del editor de cada reunión y no entraba aquí.
