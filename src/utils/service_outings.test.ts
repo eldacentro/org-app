@@ -3,6 +3,9 @@ import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { countWeeksChangedSincePublish } from '@services/app/month_publish';
 import {
   deriveWeekOutingSlots,
+  isOutingSlotSuppressedByMonth,
+  isOutingsMonthCancelled,
+  isOutingsMonthFullyCancelled,
   normalizeServiceOutingSettings,
   normalizeServiceOutingWeek,
 } from './service_outings';
@@ -122,12 +125,13 @@ describe('publicar no se cuenta a sí mismo como cambio', () => {
 });
 
 /**
- * Forma de los campos que han pasado a cifrarse.
+ * Forma de los campos pendientes de cifrarse.
  *
- * `monthlyOverrides`, `disabledSlots` y `sharedSlots` viajaban en claro y ahora
- * van cifrados. Mientras la congregación se actualiza, quien tenga la versión
- * anterior no sabe descifrarlos y se queda con la cadena cifrada tal cual:
- * `sharedSlots.map(...)` sobre un texto rompe la página de Salidas entera.
+ * `monthlyOverrides`, `disabledSlots` y `sharedSlots` viajan todavía en claro
+ * (ver PENDIENTES_DE_CIFRAR en el mapa de cifrado). Sobre los datos de hoy esta
+ * normalización no llega a actuar nunca; está puesta para el día que se active
+ * la fase 2, cuando una cadena sin descifrar sí podría llegar aquí y
+ * `sharedSlots.map(...)` sobre un texto rompería la página de Salidas entera.
  *
  * AUSENTE no es lo mismo que MAL: aquí ausente significa "no hay ninguna
  * excepción / ningún turno inhabilitado", y todo el módulo ya lo lee con `|| []`
@@ -192,7 +196,7 @@ describe('normalizar la forma de los ajustes de salidas', () => {
 /**
  * El filo del booleano.
  *
- * `isCircuitOverseerWeek` también ha pasado a cifrarse, y una cadena cifrada es
+ * `isCircuitOverseerWeek` está pendiente de cifrarse, y una cadena cifrada es
  * un valor VERDADERO. Sin normalizar, un registro sin descifrar marcaría la
  * semana como la del superintendente de circuito y `deriveWeekOutingSlots`
  * pondría al superintendente en todos los turnos libres de miércoles a domingo,
@@ -276,5 +280,116 @@ describe('normalizar la forma de una semana de salidas', () => {
 
     expect(normalizeServiceOutingWeek(week)).toEqual(week);
     expect(normalizeServiceOutingWeek(null)).toBeNull();
+  });
+});
+
+/**
+ * UN MES SUSPENDIDO CON EXCEPCIÓN — el caso real de agosto de 2026.
+ *
+ * En la congregación, agosto está suspendido pero con el sábado por la mañana
+ * mantenido activo: `{ isCancelledMonth: true, keepActiveSlots: ['saturday_morning'] }`.
+ * Es el dato más frágil de todo el módulo, porque vive dentro de
+ * `monthlyOverrides` —el campo que el normalizador puede vaciar— y porque un
+ * `{}` de más no da error: simplemente el mes deja de estar suspendido y
+ * aparecen turnos que nadie ha convocado.
+ *
+ * Y al revés: si el normalizador se pasara de celoso, se llevaría por delante
+ * la suspensión al guardar CUALQUIER otro ajuste, porque la página guarda el
+ * registro entero de una vez. Esto fija las dos direcciones.
+ */
+describe('un mes suspendido con excepción se conserva y se puede editar', () => {
+  const AGOSTO = { isCancelledMonth: true, keepActiveSlots: ['saturday_morning'] };
+
+  const conAgosto = () =>
+    build({
+      monthlyOverrides: {
+        '2026/07': { saturday_morning: '09:45' },
+        '2026/08': AGOSTO,
+      },
+      disabledSlots: ['monday_morning', 'friday_morning'],
+      sharedSlots: [
+        { id: 'a1', slotKey: 'saturday_morning', congregation: 'Elda Norte' },
+      ],
+    });
+
+  it('normalizar no lo toca: sigue suspendido y con su excepción', () => {
+    const s = normalizeServiceOutingSettings(conAgosto());
+
+    expect(s.monthlyOverrides['2026/08']).toEqual(AGOSTO);
+    expect(isOutingsMonthCancelled(s, '2026/08')).toBe(true);
+    expect(isOutingsMonthFullyCancelled(s, '2026/08')).toBe(false);
+  });
+
+  it('el sábado por la mañana queda activo; el resto del mes, suprimido', () => {
+    const s = normalizeServiceOutingSettings(conAgosto());
+
+    expect(isOutingSlotSuppressedByMonth(s, '2026/08', 'saturday_morning')).toBe(
+      false
+    );
+    expect(isOutingSlotSuppressedByMonth(s, '2026/08', 'wednesday_morning')).toBe(
+      true
+    );
+  });
+
+  it('guardar OTRO ajuste no se lleva por delante la suspensión', () => {
+    // La página guarda el registro entero: `{...settings, disabledSlots: [...]}`.
+    // Si normalizar vaciara monthlyOverrides, ese guardado propagaría el vacío
+    // a toda la congregación y agosto dejaría de estar suspendido para todos.
+    const s = normalizeServiceOutingSettings(conAgosto());
+
+    const guardado = normalizeServiceOutingSettings({
+      ...s,
+      disabledSlots: [...(s.disabledSlots ?? []), 'tuesday_afternoon'],
+    } as ServiceOutingSettingsType);
+
+    expect(guardado.monthlyOverrides['2026/08']).toEqual(AGOSTO);
+    expect(guardado.monthlyOverrides['2026/07']).toBeDefined();
+    expect(guardado.sharedSlots).toHaveLength(1);
+  });
+
+  it('se puede quitar la suspensión de agosto sin tocar julio', () => {
+    const s = normalizeServiceOutingSettings(conAgosto());
+    const sinAgosto = { ...s.monthlyOverrides };
+    delete sinAgosto['2026/08'];
+
+    const guardado = normalizeServiceOutingSettings({
+      ...s,
+      monthlyOverrides: sinAgosto,
+    } as ServiceOutingSettingsType);
+
+    expect(isOutingsMonthCancelled(guardado, '2026/08')).toBe(false);
+    expect(guardado.monthlyOverrides['2026/07']).toEqual({
+      saturday_morning: '09:45',
+    });
+  });
+
+  it('se puede ampliar la excepción a otro turno', () => {
+    const s = normalizeServiceOutingSettings(conAgosto());
+
+    const guardado = normalizeServiceOutingSettings({
+      ...s,
+      monthlyOverrides: {
+        ...s.monthlyOverrides,
+        '2026/08': {
+          isCancelledMonth: true,
+          keepActiveSlots: ['saturday_morning', 'wednesday_morning'],
+        },
+      },
+    } as ServiceOutingSettingsType);
+
+    expect(
+      isOutingSlotSuppressedByMonth(guardado, '2026/08', 'wednesday_morning')
+    ).toBe(false);
+  });
+
+  it('normalizar diez veces seguidas no degrada nada', () => {
+    let s = conAgosto();
+    const original = structuredClone(s);
+
+    for (let i = 0; i < 10; i++) s = normalizeServiceOutingSettings(s);
+
+    expect(s.monthlyOverrides).toEqual(original.monthlyOverrides);
+    expect(s.disabledSlots).toEqual(original.disabledSlots);
+    expect(s.sharedSlots).toEqual(original.sharedSlots);
   });
 });

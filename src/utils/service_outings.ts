@@ -231,12 +231,14 @@ export const deriveWeekOutingSlots = (
  * mes perdería su sello sin que nadie lo haya retirado.
  *
  * Lo mismo vale ahora para `monthlyOverrides`, `disabledSlots` y
- * `sharedSlots`, que hasta ahora viajaban en claro y han pasado a cifrarse:
- * durante la ventana en que la congregación se actualiza, quien tenga la
- * versión anterior no sabe descifrarlos y se queda con la cadena cifrada.
- * `sharedSlots.map(...)` sobre un texto rompe la página entera; `disabledSlots`
- * no rompe pero contesta que sí a cualquier trozo de texto que case por
- * casualidad, y ahí se cuelan turnos inhabilitados que nadie inhabilitó.
+ * `sharedSlots`, que viajan en claro y están a la espera de empezar a cifrarse
+ * (PENDIENTES_DE_CIFRAR, en el mapa de cifrado). Hoy no llegan nunca con una
+ * forma rara — se ha comprobado sobre los datos reales—, así que esto es una
+ * red, no un apaño. La red hace falta porque el día que se active la fase 2 una
+ * cadena sin descifrar sería catastrófica: `sharedSlots.map(...)` sobre un
+ * texto rompe la página entera, y `disabledSlots` no rompe pero contesta que sí
+ * a cualquier trozo de texto que case por casualidad, colando turnos
+ * inhabilitados que nadie inhabilitó.
  *
  * No es solo para la transición: cualquier dato que llegue con una forma que no
  * toca —de una importación antigua, de un fallo de fusión— se queda en el valor
@@ -292,8 +294,8 @@ export const normalizeServiceOutingSettings = <
 
 /**
  * Lo mismo para un registro SEMANAL. `isCircuitOverseerWeek` y
- * `weekOverrideHours` también han pasado a cifrarse, y aquí el booleano tiene
- * un filo propio: la cadena cifrada es un valor VERDADERO, así que un registro
+ * `weekOverrideHours` también están pendientes de cifrarse, y aquí el booleano
+ * tiene un filo propio: la cadena cifrada es un valor VERDADERO, así que un registro
  * sin descifrar marcaría la semana como la del superintendente de circuito —y
  * `deriveWeekOutingSlots` pondría al superintendente en todos los turnos
  * libres de miércoles a domingo— sin que nadie lo haya marcado.

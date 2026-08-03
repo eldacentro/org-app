@@ -302,11 +302,12 @@ const useIndexedDb = () => {
         (item) => item.weekOf !== 'settings'
       );
 
-      // Las semanas también: `isCircuitOverseerWeek` y `weekOverrideHours` han
-      // pasado a cifrarse, y una cadena sin descifrar marcaría como semana del
-      // superintendente cualquier semana que la traiga (un texto no vacío es
-      // verdadero). Esta es la copia que leen el programa semanal y "Mis
-      // asignaciones", igual que en los ajustes de aquí debajo.
+      // Las semanas también: `isCircuitOverseerWeek` y `weekOverrideHours`
+      // están pendientes de cifrarse, y el día que se active una cadena sin
+      // descifrar marcaría como semana del superintendente cualquier semana
+      // que la traiga (un texto no vacío es verdadero). Esta es la copia que
+      // leen el programa semanal y "Mis asignaciones", igual que en los
+      // ajustes de aquí debajo.
       setServiceOutingsList(
         list.map((week) => normalizeServiceOutingWeek(week))
       );

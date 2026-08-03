@@ -286,6 +286,47 @@ describe('songs_override — el cancionero importado', () => {
  * Si alguien adelanta la fase 2 sin querer, el primer test de aquí abajo se
  * pone rojo y lo cuenta.
  */
+/**
+ * El mapa de BAJADA tiene que contener entero al de SUBIDA.
+ *
+ * Si una tabla o un campo se cayera del de bajada, se seguiría subiendo cifrado
+ * pero ya no se sabría descifrar: la congregación entera vería cadenas ilegibles
+ * en esa tabla, y encima sin que fallara nada a gritos. Como el de bajada se
+ * construye a partir del de subida, basta un descuido en esa construcción.
+ */
+describe('el mapa de bajada no puede perder nada del de subida', () => {
+  it('cada tabla y cada campo está, y con el mismo nivel', () => {
+    for (const [tabla, campos] of Object.entries(TABLE_ENCRYPTION_MAP)) {
+      expect(TABLE_DECRYPTION_MAP, `falta la tabla ${tabla}`).toHaveProperty(
+        tabla
+      );
+
+      for (const [campo, nivel] of Object.entries(campos)) {
+        expect(
+          TABLE_DECRYPTION_MAP[tabla][campo],
+          `${tabla}.${campo} cambió de nivel o desapareció al bajar`
+        ).toBe(nivel);
+      }
+    }
+  });
+
+  it('no inventa tablas, y los campos de más son solo los pendientes', () => {
+    expect(Object.keys(TABLE_DECRYPTION_MAP).sort()).toEqual(
+      Object.keys(TABLE_ENCRYPTION_MAP).sort()
+    );
+
+    for (const tabla of Object.keys(TABLE_ENCRYPTION_MAP)) {
+      const extra = Object.keys(TABLE_DECRYPTION_MAP[tabla]).filter(
+        (k) => !(k in TABLE_ENCRYPTION_MAP[tabla])
+      );
+
+      if (tabla !== 'service_outings') {
+        expect(extra, `${tabla} tiene campos de más sin querer`).toEqual([]);
+      }
+    }
+  });
+});
+
 describe('service_outings — despliegue por fases de los campos en claro', () => {
   const PENDIENTES = [
     'monthlyOverrides',
