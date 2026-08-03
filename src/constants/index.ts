@@ -107,15 +107,6 @@ export const APP_ROLES: AppRoleType[] = [
   ...APP_READ_ONLY_ROLES,
 ];
 
-/**
- * Roles que, sin ser anciano, son dueños de un documento imprimible.
- *
- * A quien tiene uno de estos le sale el interruptor de «exportar a PDF» en Mi
- * cuenta, y al encenderlo solo se le abre SU documento: el permiso general
- * (`pdfExportEnabledState`) sigue siendo cosa de ancianos y administradores.
- */
-export const PDF_EXPORT_SCOPED_ROLES: AppRoleType[] = ['departments_schedule'];
-
 export const VIP_ROLES: AppRoleType[] = [
   'admin',
   'coordinator',

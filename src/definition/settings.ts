@@ -231,6 +231,13 @@ export type SettingsType = {
       value: PublishersSortOption;
     };
     aux_class_fsg: { value: boolean; updatedAt: string };
+    /**
+     * Ya no se puede cambiar: el interruptor de congregación se retiró y ver
+     * los botones de exportar es cosa de cada cuenta
+     * (`pdf_export_enabled_personal`). El campo se queda porque viaja en la
+     * sincronización y porque es el valor de partida de quien nunca haya
+     * tocado el suyo.
+     */
     pdf_export_enabled: { value: boolean; updatedAt: string };
     first_day_week: {
       type: string;
@@ -265,9 +272,9 @@ export type SettingsType = {
     theme_follow_os_enabled: { value: boolean; updatedAt: string };
     hour_credits_enabled: { value: boolean; updatedAt: string };
     data_view: { value: string; updatedAt: string };
-    // Habilita la exportación a PDF solo para esta cuenta (ancianos/admin),
-    // sin afectar al ajuste de congregación que ven los demás. Ver
-    // pdfExportEnabledState en @states/settings.
+    // Muestra los botones de exportar a PDF solo en esta cuenta. Es el único
+    // interruptor que queda: lo tiene todo el mundo y no afecta a nadie más.
+    // Ver pdfExportEnabledState en @states/settings.
     pdf_export_enabled_personal?: { value: boolean; updatedAt: string };
   };
 };

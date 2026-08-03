@@ -21,7 +21,6 @@ const AppSettings = () => {
     laptopUp,
     handleUpdateSyncTheme,
     syncTheme,
-    showPdfExportPersonal,
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
   } = useAppSettings();
@@ -80,20 +79,18 @@ const AppSettings = () => {
           onChange={handleUpdateSyncTheme}
         />
 
-        {showPdfExportPersonal && (
-          <SwitchWithLabel
-            label={t(
-              'tr_pdfExportPersonalEnabled',
-              'Habilitar exportación a PDF para mi cuenta'
-            )}
-            helper={t(
-              'tr_pdfExportPersonalEnabledDesc',
-              'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
-            )}
-            checked={pdfExportPersonalEnabled}
-            onChange={handleSwitchPdfExportPersonal}
-          />
-        )}
+        <SwitchWithLabel
+          label={t(
+            'tr_pdfExportPersonalEnabled',
+            'Habilitar exportación a PDF para mi cuenta'
+          )}
+          helper={t(
+            'tr_pdfExportPersonalEnabledDesc',
+            'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
+          )}
+          checked={pdfExportPersonalEnabled}
+          onChange={handleSwitchPdfExportPersonal}
+        />
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Typography className="h4">{t('tr_colorScheme')}</Typography>

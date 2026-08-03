@@ -9,7 +9,6 @@ import {
 import { SourceFrequency } from '@definition/settings';
 import useMeetingForms from './useMeetingForms';
 import DateFormat from './date_format';
-import DisplayName from './display_name';
 import MenuItem from '@components/menuitem';
 import MidweekExactDate from './midweek_exact_date';
 import NameFormat from './name_format';
@@ -18,7 +17,6 @@ import Select from '@components/select';
 import SourceLanguage from './source_language';
 import SwitchWithLabel from '@components/switch_with_label';
 import SongsWeekend from './songs_weekend';
-import PdfExport from './pdf_export';
 import Typography from '@components/typography';
 import FirstDayOfTheWeek from '../first_day_week';
 
@@ -85,10 +83,6 @@ const MeetingForms = () => {
           <MidweekExactDate />
 
           <SongsWeekend />
-
-          <DisplayName />
-
-          <PdfExport />
         </Stack>
 
         <Stack spacing="16px" marginTop="24px !important">

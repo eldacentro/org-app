@@ -16,7 +16,6 @@ import {
 } from '@definition/settings';
 import { LANGUAGE_LIST } from '@constants/index';
 import { AssignmentFieldType } from '@definition/assignment';
-import { AppRoleType } from '@definition/app';
 
 export const settingsState = atom(settingSchema);
 
@@ -232,20 +231,23 @@ export const congDiscoverableState = atom((get) => {
   return settings.cong_settings.cong_discoverable.value;
 });
 
-export const displayNameMeetingsEnableState = atom((get) => {
-  const settings = get(settingsState);
-  const dataView = get(userDataViewState);
-
-  if (!Array.isArray(settings.cong_settings.display_name_enabled)) {
-    return settings.cong_settings.display_name_enabled['meetings']['value'];
-  }
-
-  return (
-    settings.cong_settings.display_name_enabled.find(
-      (record) => record.type === dataView
-    )?.meetings ?? false
-  );
-});
+/**
+ * En los programas van los nombres completos. Siempre.
+ *
+ * Había un interruptor para cambiarlos por el «nombre para mostrar» de cada
+ * persona. Se ha quitado: en Elda Centro estaba apagado, nadie sabía qué
+ * hacía, y encenderlo tenía un efecto que no anunciaba —ESCRIBÍA un nombre
+ * generado en todas las personas activas, y apagarlo no lo deshacía—.
+ *
+ * Esto devuelve `false` en vez de arrancar la consulta de los TREINTA Y CINCO
+ * sitios que la leen. Es el mismo resultado y una línea para volver atrás; ir
+ * uno por uno por `schedules.ts`, `persons.ts` y treinta componentes sería un
+ * barrido enorme para no cambiar ni un píxel.
+ *
+ * El ajuste guardado se queda quieto en la base de datos: viaja en la
+ * sincronización y borrarlo no le haría bien a nadie.
+ */
+export const displayNameMeetingsEnableState = atom(() => false);
 
 export const JWLangState = atom((get) => {
   const settings = get(settingsState);
@@ -575,61 +577,30 @@ export const weekendSchedulesSongsWeekend = atom((get) => {
   );
 });
 
-// Toggle personal (solo esta cuenta) que ancianos/admin pueden activar en
-// "Mi cuenta" → "Ajustes de la aplicación", sin tocar el ajuste de
-// congregación que ven todos los demás.
+/**
+ * Ver o no los botones de exportar a PDF: preferencia de cada cuenta.
+ *
+ * Antes esto lo decidía un interruptor de congregación —uno solo para todos— y
+ * el personal solo servía para que un anciano se lo encendiera aparte. Ya no:
+ * ver un botón de imprimir no es un permiso, es gusto de cada uno, y quién
+ * puede exportar qué ya lo deciden las rutas (a la página de Departamentos
+ * solo llega quien la edita, a la de Exhibidores solo el comité de servicio).
+ *
+ * El valor de congregación sigue leyéndose como valor de partida para quien
+ * nunca haya tocado el suyo: estaba encendido para toda la congregación y
+ * quitarlo de golpe le habría hecho desaparecer los botones a todo el mundo
+ * sin avisar. En cuanto alguien toca su interruptor, manda el suyo.
+ */
 export const pdfExportEnabledPersonalState = atom((get) => {
   const settings = get(settingsState);
 
-  return settings.user_settings.pdf_export_enabled_personal?.value ?? false;
+  const personal = settings.user_settings.pdf_export_enabled_personal?.value;
+  if (typeof personal === 'boolean') return personal;
+
+  return settings.cong_settings.pdf_export_enabled?.value ?? false;
 });
 
-export const pdfExportEnabledState = atom((get) => {
-  const settings = get(settingsState);
-
-  const congEnabled = settings.cong_settings.pdf_export_enabled?.value ?? false;
-  if (congEnabled) return true;
-
-  const personalEnabled = get(pdfExportEnabledPersonalState);
-  if (!personalEnabled) return false;
-
-  const role = settings.user_settings.cong_role;
-  const accountType = settings.user_settings.account_type;
-  const isAdmin = role.some(
-    (r) => r === 'admin' || r === 'coordinator' || r === 'secretary'
-  );
-  const isElder =
-    isAdmin || (accountType !== 'pocket' && role.includes('elder'));
-
-  return isElder;
-});
-
-/**
- * El interruptor personal, ACOTADO al documento del rol que lo posee.
- *
- * `pdfExportEnabledState` es un sí o un no para toda la app, y eso está bien
- * para un anciano: puede ver todos los programas, así que puede imprimirlos
- * todos. Pero a un hermano que solo edita Departamentos encenderle ese
- * interruptor le abriría también el botón de exportar de Próximos eventos y de
- * cualquier otra página a la que sí llega. Este de aquí solo abre el documento
- * del rol que se le pase.
- */
-const pdfExportPorRol = (roles: AppRoleType[]) =>
-  atom((get) => {
-    // Quien ya puede exportar todo, puede exportar esto también.
-    if (get(pdfExportEnabledState)) return true;
-
-    if (!get(pdfExportEnabledPersonalState)) return false;
-
-    const userRole = get(settingsState).user_settings.cong_role ?? [];
-
-    return roles.some((role) => userRole.includes(role));
-  });
-
-/** El programa de departamentos: lo exporta quien lo edita. */
-export const pdfExportDepartmentsEnabledState = pdfExportPorRol([
-  'departments_schedule',
-]);
+export const pdfExportEnabledState = pdfExportEnabledPersonalState;
 
 // USER SETTINGS
 

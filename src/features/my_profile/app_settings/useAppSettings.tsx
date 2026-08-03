@@ -3,17 +3,13 @@ import { useAtomValue } from 'jotai';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import {
   backupIntervalState,
-  congRoleState,
   themeFollowOSEnabledState,
   pdfExportEnabledPersonalState,
 } from '@states/settings';
-import { useBreakpoints, useCurrentUser } from '@hooks/index';
-import { PDF_EXPORT_SCOPED_ROLES } from '@constants/index';
+import { useBreakpoints } from '@hooks/index';
 
 const useAppSettings = () => {
   const { laptopUp } = useBreakpoints();
-  const { isElder, isAdmin } = useCurrentUser();
-  const userRole = useAtomValue(congRoleState);
 
   const autoBackupInterval = useAtomValue(backupIntervalState);
   const followOSTheme = useAtomValue(themeFollowOSEnabledState);
@@ -23,15 +19,6 @@ const useAppSettings = () => {
   const [syncTheme, setSyncTheme] = useState(followOSTheme);
   const [pdfExportPersonalEnabled, setPdfExportPersonalEnabled] =
     useState(pdfExportPersonal);
-
-  // El interruptor lo ve quien puede exportar algo: los ancianos —que ven
-  // todos los programas— y también quien tiene un rol dueño de UN documento,
-  // como el que lleva Departamentos. A este último el interruptor solo le abre
-  // el suyo, no el resto (ver `pdfExportPorRol` en `states/settings`).
-  const showPdfExportPersonal =
-    isElder ||
-    isAdmin ||
-    PDF_EXPORT_SCOPED_ROLES.some((role) => userRole.includes(role));
 
   const handleUpdateSyncInterval = async (value: number) => {
     setAutoSyncInterval(value);
@@ -56,7 +43,9 @@ const useAppSettings = () => {
   };
 
   // Solo escribe en user_settings (por-cuenta): no toca cong_settings, así
-  // que no afecta a nadie más de la congregación.
+  // que no afecta a nadie más de la congregación. Lo ve todo el mundo: cada
+  // uno decide si quiere los botones de exportar en las páginas a las que ya
+  // llega, sin pedirle permiso a nadie.
   const handleSwitchPdfExportPersonal = async (value: boolean) => {
     setPdfExportPersonalEnabled(value);
 
@@ -87,7 +76,6 @@ const useAppSettings = () => {
     laptopUp,
     syncTheme,
     handleUpdateSyncTheme,
-    showPdfExportPersonal,
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
   };
