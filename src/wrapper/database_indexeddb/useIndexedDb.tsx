@@ -49,7 +49,10 @@ import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { reconcileAllVisits } from '@services/app/circuit_visit_projection';
 import { normalizeExhibitorSettings } from '@utils/exhibitors';
-import { normalizeServiceOutingSettings } from '@utils/service_outings';
+import {
+  normalizeServiceOutingSettings,
+  normalizeServiceOutingWeek,
+} from '@utils/service_outings';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -299,7 +302,14 @@ const useIndexedDb = () => {
         (item) => item.weekOf !== 'settings'
       );
 
-      setServiceOutingsList(list);
+      // Las semanas también: `isCircuitOverseerWeek` y `weekOverrideHours` han
+      // pasado a cifrarse, y una cadena sin descifrar marcaría como semana del
+      // superintendente cualquier semana que la traiga (un texto no vacío es
+      // verdadero). Esta es la copia que leen el programa semanal y "Mis
+      // asignaciones", igual que en los ajustes de aquí debajo.
+      setServiceOutingsList(
+        list.map((week) => normalizeServiceOutingWeek(week))
+      );
       if (settings) {
         // Los ajustes entran también por aquí, sin pasar por
         // dbServiceOutingsGetSettings: es esta copia la que lee la página de

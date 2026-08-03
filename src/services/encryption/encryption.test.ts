@@ -262,3 +262,113 @@ describe('songs_override — el cancionero importado', () => {
     expect(JSON.stringify(data)).not.toContain('Cantemos con gozo');
   });
 });
+
+/**
+ * Salidas de predicación — los campos que hasta ahora viajaban en claro.
+ *
+ * `monthlyOverrides`, `disabledSlots` y `sharedSlots` (ajustes) y
+ * `isCircuitOverseerWeek` y `weekOverrideHours` (semanas) no estaban en el mapa
+ * de cifrado, así que se guardaban en claro en el servidor — comprobado en el
+ * bucket real antes de tocar nada. Lo que se fija aquí:
+ *
+ *  - que ahora sí viajan cifrados,
+ *  - y que añadirlos NO obliga a migrar: el descifrado solo actúa sobre
+ *    cadenas, así que un valor que ya esté guardado en claro (un objeto, un
+ *    array, un booleano) se deja intacto. Esa es toda la razón por la que se
+ *    puede desplegar sin tocar lo que ya está en el servidor.
+ */
+describe('service_outings — lo que dejaba de viajar cifrado', () => {
+  const buildAjustes = () => ({
+    weekOf: 'settings',
+    updatedAt: '2026-08-03T00:00:00Z',
+    defaultHours: { saturday_morning: '09:45' },
+    locations: ['Salón del Reino'],
+    availability: {},
+    monthlyOverrides: {
+      '2026/07': { saturday_morning: '09:00' },
+      '2026/08': { isCancelledMonth: true, keepActiveSlots: ['saturday'] },
+    },
+    disabledSlots: ['monday_morning', 'friday_morning'],
+    sharedSlots: [
+      { id: 'a1', slotKey: 'sunday_morning', congregation: 'Elda Oeste' },
+    ],
+  });
+
+  const buildSemana = () => ({
+    weekOf: '2026/10/12',
+    updatedAt: '2026-08-03T00:00:00Z',
+    outings: [],
+    isCircuitOverseerWeek: true,
+    weekOverrideHours: { wednesday_morning: '10:30' },
+  });
+
+  it('los ajustes van y vuelven exactamente igual', () => {
+    const original = buildAjustes();
+    const data = buildAjustes();
+
+    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+    decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+    expect(data).toEqual(original);
+  });
+
+  it('la congregación con la que se comparte turno ya no viaja en claro', () => {
+    const data = buildAjustes();
+
+    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+    const enviado = JSON.stringify(data);
+    expect(enviado).not.toContain('Elda Oeste');
+    expect(enviado).not.toContain('monday_morning');
+    expect(enviado).not.toContain('isCancelledMonth');
+  });
+
+  it('la semana va y vuelve igual, y el booleano vuelve booleano', () => {
+    const original = buildSemana();
+    const data = buildSemana();
+
+    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+    decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+    expect(data).toEqual(original);
+    expect(data.isCircuitOverseerWeek).toBe(true);
+  });
+
+  it('la semana del superintendente ya no se anuncia al servidor', () => {
+    const data = buildSemana();
+
+    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+    expect(typeof data.isCircuitOverseerWeek).toBe('string');
+    expect(JSON.stringify(data)).not.toContain('wednesday_morning');
+    // La fecha de la semana sí sigue en claro: es la clave con la que se
+    // casan los registros, como el person_uid de una persona.
+    expect(data.weekOf).toBe('2026/10/12');
+  });
+
+  it('un `false` guardado sobrevive al viaje (no se pierde por ser falso)', () => {
+    const data = { weekOf: '2026/10/19', isCircuitOverseerWeek: false };
+
+    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+    decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+    expect(data.isCircuitOverseerWeek).toBe(false);
+  });
+
+  it('lo que ya está guardado EN CLARO se deja intacto al descifrar', () => {
+    // Esta es la razón por la que no hace falta migrar nada: lo que hay hoy en
+    // el servidor son objetos, arrays y booleanos, y el descifrado solo toca
+    // cadenas. Si esto se rompiera, desplegar el cambio se comería los ajustes
+    // de toda la congregación.
+    const enClaro = { ...buildAjustes(), ...buildSemana(), weekOf: 'settings' };
+    const original = structuredClone(enClaro);
+
+    decryptObject({
+      data: enClaro,
+      table: 'service_outings',
+      accessCode: ACCESS_CODE,
+    });
+
+    expect(enClaro).toEqual(original);
+  });
+});

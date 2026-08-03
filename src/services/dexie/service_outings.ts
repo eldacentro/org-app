@@ -1,6 +1,9 @@
 import appDb from '@db/appDb';
 import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
-import { normalizeServiceOutingSettings } from '@utils/service_outings';
+import {
+  normalizeServiceOutingSettings,
+  normalizeServiceOutingWeek,
+} from '@utils/service_outings';
 
 const triggerSync = () => {
   import('@services/worker/backupWorker').then(
@@ -101,7 +104,8 @@ export const dbServiceOutingsSaveSettings = async (
 };
 
 export const dbServiceOutingsGetWeek = async (weekOf: string): Promise<ServiceOutingWeekType | undefined> => {
-  return await appDb.service_outings.get(weekOf);
+  const week = await appDb.service_outings.get(weekOf);
+  return week ? normalizeServiceOutingWeek(week) : week;
 };
 
 export const dbServiceOutingsSaveWeek = async (data: ServiceOutingWeekType) => {
@@ -115,5 +119,7 @@ export const dbServiceOutingsSaveWeek = async (data: ServiceOutingWeekType) => {
 
 export const dbServiceOutingsGetAll = async (): Promise<ServiceOutingWeekType[]> => {
   const all = await appDb.service_outings.toArray();
-  return all.filter(item => item.weekOf !== 'settings');
+  return all
+    .filter(item => item.weekOf !== 'settings')
+    .map(item => normalizeServiceOutingWeek(item));
 };

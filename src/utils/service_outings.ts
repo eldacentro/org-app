@@ -1,4 +1,7 @@
-import { ServiceOutingSettingsType } from '../definition/service_outings';
+import {
+  ServiceOutingSettingsType,
+  ServiceOutingWeekType,
+} from '../definition/service_outings';
 
 export const DEFAULT_OUTINGS_HOURS: Record<string, string> = {
   monday_morning: '10:00',
@@ -227,9 +230,21 @@ export const deriveWeekOutingSlots = (
  * Nunca a `null`: al descifrar, un campo a `null` se BORRA del registro, y el
  * mes perdería su sello sin que nadie lo haya retirado.
  *
- * Solo toca este campo. Los demás ya tienen su propio arreglo al leer en
- * `dbServiceOutingsGetSettings`, y ampliar esto a todo cambiaría el
- * comportamiento de campos que hoy funcionan.
+ * Lo mismo vale ahora para `monthlyOverrides`, `disabledSlots` y
+ * `sharedSlots`, que hasta ahora viajaban en claro y han pasado a cifrarse:
+ * durante la ventana en que la congregación se actualiza, quien tenga la
+ * versión anterior no sabe descifrarlos y se queda con la cadena cifrada.
+ * `sharedSlots.map(...)` sobre un texto rompe la página entera; `disabledSlots`
+ * no rompe pero contesta que sí a cualquier trozo de texto que case por
+ * casualidad, y ahí se cuelan turnos inhabilitados que nadie inhabilitó.
+ *
+ * No es solo para la transición: cualquier dato que llegue con una forma que no
+ * toca —de una importación antigua, de un fallo de fusión— se queda en el valor
+ * vacío en vez de reventar la pantalla.
+ *
+ * `defaultHours`, `locations` y `availability` siguen con su propio arreglo en
+ * `dbServiceOutingsGetSettings`: ya iban cifrados de antes, así que no tienen
+ * esta transición por delante.
  */
 export const normalizeServiceOutingSettings = <
   T extends ServiceOutingSettingsType,
@@ -238,11 +253,78 @@ export const normalizeServiceOutingSettings = <
 ): T => {
   if (!settings) return settings;
 
+  const esObjetoLlano = (valor: unknown) =>
+    typeof valor === 'object' && valor !== null && !Array.isArray(valor);
+
   const sello = settings.publishedMonthsAt;
 
   if (typeof sello !== 'object' || sello === null || Array.isArray(sello)) {
     settings.publishedMonthsAt = {};
   }
 
+  // A diferencia del sello, aquí AUSENTE es un estado con significado propio
+  // ("no hay ninguna excepción de mes", "no hay ningún turno inhabilitado"), y
+  // todo el módulo ya lo lee con `|| []` / `?.`. Solo se corrige lo que está
+  // presente con la forma equivocada; lo que no está se deja sin estar.
+  if (
+    settings.monthlyOverrides !== undefined &&
+    !esObjetoLlano(settings.monthlyOverrides)
+  ) {
+    settings.monthlyOverrides = {};
+  }
+
+  if (
+    settings.disabledSlots !== undefined &&
+    !Array.isArray(settings.disabledSlots)
+  ) {
+    settings.disabledSlots = [];
+  }
+
+  if (
+    settings.sharedSlots !== undefined &&
+    !Array.isArray(settings.sharedSlots)
+  ) {
+    settings.sharedSlots = [];
+  }
+
   return settings;
+};
+
+/**
+ * Lo mismo para un registro SEMANAL. `isCircuitOverseerWeek` y
+ * `weekOverrideHours` también han pasado a cifrarse, y aquí el booleano tiene
+ * un filo propio: la cadena cifrada es un valor VERDADERO, así que un registro
+ * sin descifrar marcaría la semana como la del superintendente de circuito —y
+ * `deriveWeekOutingSlots` pondría al superintendente en todos los turnos
+ * libres de miércoles a domingo— sin que nadie lo haya marcado.
+ *
+ * Se BORRA en vez de ponerse a `false`: ausente es exactamente lo que el módulo
+ * entero entiende por "esta semana no es la del superintendente" (`!!undefined`),
+ * y el registro no se queda con un campo que nadie ha puesto. Igual con las
+ * horas: `setShowAdjustHours(!!weekRecord?.weekOverrideHours)` abre el bloque de
+ * horas a medida con solo que el campo exista, así que un `{}` de relleno
+ * abriría un ajuste que nadie pidió.
+ */
+export const normalizeServiceOutingWeek = <T extends ServiceOutingWeekType>(
+  week: T
+): T => {
+  if (!week) return week;
+
+  if (
+    week.isCircuitOverseerWeek !== undefined &&
+    typeof week.isCircuitOverseerWeek !== 'boolean'
+  ) {
+    delete week.isCircuitOverseerWeek;
+  }
+
+  const horas = week.weekOverrideHours;
+
+  if (
+    horas !== undefined &&
+    (typeof horas !== 'object' || horas === null || Array.isArray(horas))
+  ) {
+    delete week.weekOverrideHours;
+  }
+
+  return week;
 };

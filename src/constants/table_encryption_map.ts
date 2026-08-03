@@ -255,6 +255,37 @@ export const TABLE_ENCRYPTION_MAP = {
     // publicación son fechas, pero va aquí por la misma razón que el resto —
     // lo que sale de esta congregación va cifrado, sin excepciones sueltas.
     publishedMonthsAt: 'shared',
+    // Mismo agujero que se tapó en `exhibitors`, ahora en Salidas. Estos tres
+    // faltaban en el registro de ajustes y se guardaban EN CLARO en el
+    // servidor (comprobado leyendo el bucket, no supuesto): los horarios y
+    // las suspensiones de cada mes, qué turnos están inhabilitados, y —lo más
+    // delicado— los NOMBRES DE LAS OTRAS CONGREGACIONES con las que se
+    // comparte un turno.
+    //
+    // Se puede añadir sin migrar nada porque el descifrado SOLO actúa sobre
+    // cadenas: un valor ya guardado en claro es un objeto o un array, no una
+    // cadena, así que `decryptObject` lo deja intacto. Y al revés: si un
+    // dispositivo sin actualizar devuelve la cadena cifrada tal cual, este
+    // vuelve a descifrarla bien. Lo que hace falta a cambio es normalizar la
+    // FORMA al leer (`normalizeServiceOutingSettings`), porque en la ventana
+    // en que la congregación se actualiza un dispositivo con la versión
+    // anterior se queda con la cadena cifrada, y `sharedSlots.map(...)` sobre
+    // un texto rompe la página de Salidas.
+    monthlyOverrides: 'shared',
+    disabledSlots: 'shared',
+    sharedSlots: 'shared',
+    // Y estos dos, en los registros SEMANALES. `isCircuitOverseerWeek` delata
+    // al servidor la semana en que viene el superintendente de circuito, y
+    // `weekOverrideHours` las horas a las que sale la congregación esa semana.
+    //
+    // Ojo con el booleano: para quien aún no se haya actualizado, la cadena
+    // cifrada es un valor VERDADERO (`!!'U2Fsd…'`), así que vería semana del
+    // superintendente donde no la hay hasta que recargue. Por eso
+    // `normalizeServiceOutingWeek` lo quita cuando no es un booleano de
+    // verdad, y por eso conviene lanzar la oleada de actualización forzada al
+    // desplegar esto.
+    isCircuitOverseerWeek: 'shared',
+    weekOverrideHours: 'shared',
   },
   exhibitors: {
     turns: 'shared',
