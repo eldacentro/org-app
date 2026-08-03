@@ -162,7 +162,10 @@ export const eventPeriodProgress = (event: UpcomingEventType, today: Date) => {
   const end = atMidnight(new Date(event.event_data.end));
 
   if (now < start) {
-    return { state: 'upcoming' as const, days: Math.round((start - now) / DAY) };
+    return {
+      state: 'upcoming' as const,
+      days: Math.round((start - now) / DAY),
+    };
   }
 
   if (now > end) {
