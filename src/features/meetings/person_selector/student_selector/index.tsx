@@ -66,6 +66,7 @@ const StudentSelector = (props: PersonSelectorType) => {
           onClose={handleCloseHistory}
           person={value.person_name}
           history={personHistory}
+          assignmentType={props.type}
         />
       )}
 

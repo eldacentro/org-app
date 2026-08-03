@@ -1,18 +1,63 @@
+import { useMemo, useState } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { IconClose } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
 import { AssignmentsHistoryDialogType } from './index.types';
 import AssignmentsHistory from '../assignments_history';
 import Dialog from '@components/dialog';
+import Tabs from '@components/tabs';
 import Typography from '@components/typography';
 
+/**
+ * El historial de un hermano, con la asignación que se está repartiendo
+ * DELANTE.
+ *
+ * Antes salía todo mezclado, y para decidir quién preside el domingo da igual
+ * que llevara una oración el miércoles: lo que hace falta saber es cuándo
+ * presidió por última vez. Es además lo que mira el autocompletado desde que
+ * reparte por asignación, así que la primera pestaña enseña exactamente lo que
+ * él ve.
+ *
+ * El historial completo no se va: se queda en la otra pestaña, porque para
+ * saber si alguien está muy cargado en general sí hace falta verlo todo.
+ */
 const AssignmentsHistoryDialog = ({
   open,
   onClose,
   person,
   history,
+  assignmentType,
+  assignmentLabel,
 }: AssignmentsHistoryDialogType) => {
   const { t } = useAppTranslation();
+
+  const [value, setValue] = useState(0);
+
+  const historyForAssignment = useMemo(() => {
+    if (assignmentType === undefined) return [];
+
+    return history.filter(
+      (record) => record.assignment.code === assignmentType
+    );
+  }, [history, assignmentType]);
+
+  // Sin saber de qué asignación se trata no hay nada que separar: se enseña el
+  // historial de siempre, sin pestañas.
+  const conPestanas = assignmentType !== undefined;
+
+  const tabs = useMemo(
+    () => [
+      {
+        label: assignmentLabel || 'Esta asignación',
+        Component: <AssignmentsHistory history={historyForAssignment} />,
+      },
+      {
+        label: 'Todas',
+        Component: <AssignmentsHistory history={history} />,
+      },
+    ],
+    [assignmentLabel, historyForAssignment, history]
+  );
 
   return (
     <Dialog onClose={onClose} open={open} sx={{ padding: '24px' }}>
@@ -35,7 +80,11 @@ const AssignmentsHistoryDialog = ({
         </IconButton>
       </Box>
 
-      <AssignmentsHistory history={history} />
+      {conPestanas && (
+        <Tabs tabs={tabs} value={value} onChange={(tab) => setValue(tab)} />
+      )}
+
+      {!conPestanas && <AssignmentsHistory history={history} />}
     </Dialog>
   );
 };
