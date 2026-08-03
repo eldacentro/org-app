@@ -21,10 +21,15 @@ const SpeakersCatalog = (props: SpeakersCatalogType) => {
     handleSelectSpeaker,
     handleSearchChange,
     search,
+    ConfirmDialogNode,
   } = useSpeakersCatalog(props);
 
   return (
     <Dialog onClose={props.onClose} open={props.open} sx={{ padding: '24px' }}>
+      {/* La pregunta de "¿seguro que cambias de orador?". Va aquí dentro pero
+          MUI la saca a un portal, así que se pinta ENCIMA del catálogo. */}
+      {ConfirmDialogNode}
+
       <Box
         sx={{
           display: 'flex',

@@ -6,8 +6,8 @@ import ActionPill from '@components/action_pill';
  *
  * Sale en "Mis asignaciones" y en las dos pestañas de reunión, y es el mismo
  * gesto, así que tiene que verse igual. Es la misma píldora que "Consejos",
- * "Documentos" o "Ver reunión completa": todo eso vive en `ActionPill`, y aquí
- * solo queda qué variante le toca a este enlace en cada sitio.
+ * "Documentos" o "Ver esta reunión completa": todo eso vive en `ActionPill`, y
+ * aquí solo queda qué variante le toca a este enlace en cada sitio.
  */
 const JwLibraryLink = ({
   href,

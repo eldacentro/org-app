@@ -124,17 +124,22 @@ const OutgoingSpeakersHeader = ({
             </>
           )}
 
-          <Typography
-            className="body-small-semibold"
-            color="var(--grey-400)"
-            sx={{
-              borderRadius: 'var(--shape-xs)',
-              padding: '2px 8px',
-              backgroundColor: 'var(--grey-150)',
-            }}
-          >
-            {t('tr_circuit', { circuitNumber: circuitNumber })}
-          </Typography>
+          {/* Lo mismo que con el número de congregación de aquí al lado: sin
+              circuito, la etiqueta salía igual y decía «Circuito:» y nada
+              más. */}
+          {circuitNumber && (
+            <Typography
+              className="body-small-semibold"
+              color="var(--grey-400)"
+              sx={{
+                borderRadius: 'var(--shape-xs)',
+                padding: '2px 8px',
+                backgroundColor: 'var(--grey-150)',
+              }}
+            >
+              {t('tr_circuit', { circuitNumber: circuitNumber })}
+            </Typography>
+          )}
         </Box>
       </Box>
 
