@@ -1,9 +1,15 @@
-import { ExhibitorSettingsType } from '@definition/exhibitors';
 import {
+  ExhibitorSettingsType,
+  ExhibitorWeekType,
+} from '@definition/exhibitors';
+import {
+  countWeeksChangedSincePublish,
   isMonthPublished,
   monthNeedsPublishing as needsPublishing,
   monthOfDate,
+  monthPublishedAt,
   setMonthPublished,
+  setMonthPublishedAt,
 } from './month_publish';
 
 /**
@@ -58,6 +64,45 @@ export const monthNeedsPublishing = (month: string) =>
  * No muta lo que recibe: quien llama decide cuándo guardar.
  */
 export const setExhibitorMonthPublished = setMonthPublished;
+
+/**
+ * Sella (o borra el sello de) un mes. No muta lo que recibe.
+ *
+ * Se guarda aparte de `publishedMonths` a propósito; el porqué está en
+ * `month_publish`, junto a `PublishedMonthsAt`.
+ */
+export const setExhibitorMonthPublishedAt = setMonthPublishedAt;
+
+/** Cuándo se publicó ese mes, si consta. */
+export const exhibitorMonthPublishedAt = (
+  settings: Pick<ExhibitorSettingsType, 'publishedMonthsAt'> | null | undefined,
+  month: string
+) => monthPublishedAt(settings?.publishedMonthsAt, month);
+
+/**
+ * Cuántas semanas de ese mes se han tocado desde que se publicó.
+ *
+ * Solo mira los registros SEMANALES. El sello vive en el registro de ajustes
+ * (`weekOf: 'settings'`), que no es de ningún mes, así que publicar no se
+ * cuenta a sí mismo como un cambio.
+ *
+ * Sin sello devuelve 0: un mes publicado antes de que esto existiera no tiene
+ * contra qué comparar, y decir un número inventado manda al responsable a
+ * buscar un cambio que no existe.
+ */
+export const countExhibitorWeeksChangedSincePublish = (
+  settings: Pick<ExhibitorSettingsType, 'publishedMonthsAt'> | null | undefined,
+  exhibitors:
+    | Pick<ExhibitorWeekType, 'weekOf' | 'updatedAt'>[]
+    | null
+    | undefined,
+  month: string
+) =>
+  countWeeksChangedSincePublish(
+    exhibitors,
+    month,
+    exhibitorMonthPublishedAt(settings, month)
+  );
 
 export type ExhibitorMonthStatus = {
   month: string;

@@ -43,11 +43,21 @@ export const dbExhibitorsGetSettings = async (): Promise<ExhibitorSettingsType> 
   return defaultSettings;
 };
 
-export const dbExhibitorsSaveSettings = async (settings: Omit<ExhibitorSettingsType, 'weekOf'>) => {
+/**
+ * `updatedAt` se puede pasar de fuera para los guardados que además APUNTAN esa
+ * misma marca dentro de los ajustes —el sello de publicación de un mes—. Si
+ * cada uno cogiera su propia hora, el sello quedaría unos milisegundos antes
+ * que el registro que lo contiene, y eso es una inconsistencia que no hace
+ * falta tener. Sin pasarlo se comporta como siempre.
+ */
+export const dbExhibitorsSaveSettings = async (
+  settings: Omit<ExhibitorSettingsType, 'weekOf'>,
+  updatedAt?: string
+) => {
   const data: ExhibitorSettingsType = {
     ...settings,
     weekOf: 'settings',
-    updatedAt: new Date().toISOString(),
+    updatedAt: updatedAt ?? new Date().toISOString(),
   };
   await appDb.exhibitors.put(data);
   await dbUpdateExhibitorsMetadata();

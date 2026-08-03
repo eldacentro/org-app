@@ -88,6 +88,34 @@ describe('normalizar la forma de los ajustes', () => {
     expect(normalizeExhibitorSettings(settings).availability).toEqual({});
   });
 
+  it('los sellos de publicación quedan en objeto, nunca en null', () => {
+    // Un `null` aquí desaparece al descifrar y se lleva la clave por delante;
+    // y un texto cifrado sin descifrar rompería la lectura de los sellos.
+    expect(normalizeExhibitorSettings(build()).publishedMonthsAt).toEqual({});
+
+    expect(
+      normalizeExhibitorSettings(
+        build({ publishedMonthsAt: null as never })
+      ).publishedMonthsAt
+    ).toEqual({});
+
+    expect(
+      normalizeExhibitorSettings(
+        build({ publishedMonthsAt: 'U2FsdGVkX1+abc==' as never })
+      ).publishedMonthsAt
+    ).toEqual({});
+  });
+
+  it('respeta los sellos que ya venían bien', () => {
+    const settings = build({
+      publishedMonthsAt: { '2026/09': '2026-09-02T00:00:00.000Z' },
+    });
+
+    expect(normalizeExhibitorSettings(settings).publishedMonthsAt).toEqual({
+      '2026/09': '2026-09-02T00:00:00.000Z',
+    });
+  });
+
   it('deja monthlyOverrides sin definir si no venía', () => {
     // Distinto de "venía con mala forma": si no está, no se inventa.
     expect(normalizeExhibitorSettings(build()).monthlyOverrides).toBeUndefined();
