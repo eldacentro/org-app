@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { IconCheckCircle, IconError } from '@components/icons';
-import { personCurrentDetailsState } from '@states/persons';
+import {
+  personCurrentDetailsState,
+  personPendingGroupState,
+} from '@states/persons';
 import { useAppTranslation } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
 import { dbPersonsSave } from '@services/dexie/persons';
@@ -31,7 +34,15 @@ const useButtonActions = () => {
 
   const person = useAtomValue(personCurrentDetailsState);
   const groups = useAtomValue(fieldWithLanguageGroupsState);
+  const [personGroup, setPersonGroup] = useAtom(personPendingGroupState);
   const congLocalAccessCode = useAtomValue(congAccessCodeState);
+
+  // La elección pendiente es de ESTA ficha. Sin limpiarla, pasar de una
+  // persona a otra sin recargar arrastraría el grupo elegido en la anterior y
+  // al guardar la segunda se la llevaría a ese grupo.
+  useEffect(() => {
+    setPersonGroup(null);
+  }, [id, setPersonGroup]);
 
   const isPersonDisqualified = person.person_data.disqualified.value;
   const isPersonArchived = person.person_data.archived.value;
@@ -70,15 +81,17 @@ const useButtonActions = () => {
   };
 
   const handleSaveGroup = async () => {
-    const groupSelector = document
-      .querySelector('.service-group-selector')
-      ?.querySelector('input');
+    // El grupo elegido sale del estado, NO del DOM.
+    //
+    // Antes se leía con `document.querySelector('.service-group-selector')`, y
+    // ese selector se pinta TRES veces en la ficha —bautizado, no bautizado y
+    // el de idioma en Estudiante—, así que siempre se leía el primero: el de
+    // bautizado. A un publicador NO bautizado se le leía un campo que no había
+    // tocado, se salía de aquí sin guardar y el aviso decía «guardado» igual,
+    // porque la persona sí se había guardado.
+    if (personGroup === null) return;
 
-    if (!groupSelector) return;
-
-    const personGroup = groupSelector.value;
-
-    if (!personGroup || personGroup?.length === 0) return;
+    if (personGroup.length === 0) return;
 
     const group = groups.find((record) => record.group_id === personGroup);
 
@@ -120,9 +133,18 @@ const useButtonActions = () => {
       // handleSaveGroup la convierte justo después en miembro real del
       // grupo (nunca escribir undefined: se limpia con '' y updatedAt
       // fresco para que el borrado se propague por el sync).
-      const groupSelectorValue = document
-        .querySelector('.service-group-selector')
-        ?.querySelector('input')?.value;
+      // Si no se ha tocado el selector, vale el grupo en el que ya está: la
+      // limpieza del campo heredado depende de que TENGA grupo, no de que se
+      // acabe de elegir. Leyendo el DOM esto salía por accidente, porque el
+      // selector venía relleno; ahora se dice.
+      const grupoActual =
+        groups.find((record) =>
+          record.group_data.members.some(
+            (m) => m.person_uid === person.person_uid
+          )
+        )?.group_id ?? '';
+
+      const groupSelectorValue = personGroup ?? grupoActual;
 
       const personToSave = structuredClone(person);
 

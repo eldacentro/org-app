@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { PersonType } from '@definition/person';
 import { setPersonCurrentDetails } from '@services/states/persons';
 import { computeYearsDiff, dateFirstDayMonth, formatDate } from '@utils/date';
-import { personCurrentDetailsState, personsActiveState } from '@states/persons';
+import {
+  personCurrentDetailsState,
+  personsActiveState,
+  personPendingGroupState,
+} from '@states/persons';
 import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { fullnameOptionState, userDataViewState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
@@ -29,6 +33,7 @@ const useBaptizedPublisher = () => {
 
   const [age, setAge] = useState('0');
   const [isExpanded, setIsExpanded] = useState(false);
+  const setPendingGroup = useSetAtom(personPendingGroupState);
   const [group, setGroup] = useState('');
 
   const current_group = useMemo(() => {
@@ -89,7 +94,13 @@ const useBaptizedPublisher = () => {
 
   const handleToggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const handleGroupChange = (group: string) => setGroup(group);
+  // Se apunta también fuera del componente: este selector se pinta tres
+  // veces en la misma ficha y quien guarda tiene que saber cuál se tocó.
+  // Ver `personPendingGroupState`.
+  const handleGroupChange = (group: string) => {
+    setGroup(group);
+    setPendingGroup(group);
+  };
 
   const handleToggleActive = async () => {
     const newPerson: PersonType = structuredClone(person);

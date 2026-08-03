@@ -34,6 +34,28 @@ export const personsActiveState = atom((get) => {
   });
 });
 
+/**
+ * El grupo de predicación que se acaba de elegir en la ficha de una persona.
+ *
+ * `null` significa «no se ha tocado el selector», que no es lo mismo que
+ * «ninguno»: al guardar, sin haberlo tocado, la pertenencia al grupo se queda
+ * como estaba.
+ *
+ * Existe porque el selector de grupo se pinta TRES veces en la misma ficha
+ * —dentro de Publicador bautizado, dentro de Publicador no bautizado y, como
+ * grupo de idioma, dentro de Estudiante—, cada una con su propio estado local.
+ * Al guardar se leía el del DOM con `querySelector`, que devuelve siempre el
+ * PRIMERO: el de bautizado. Así que a un publicador no bautizado se le leía un
+ * selector que él no había tocado, se salía sin guardar el grupo —en silencio,
+ * porque la persona sí se guardaba— y el aviso decía «guardado» igualmente.
+ *
+ * Las tres escriben aquí, y aquí es donde mira quien guarda.
+ */
+// Escrito así —y no `atom<string | null>(null)`— porque con esa forma los
+// tipos de jotai 2.18 lo dan por atom de SOLO LECTURA y `useSetAtom` no
+// compila.
+export const personPendingGroupState = atom(null as string | null);
+
 export const isPersonDeleteState = atom(false);
 
 export const selectedPersonState = atom<PersonType>({} as PersonType);

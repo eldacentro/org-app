@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import { personCurrentDetailsState, personsActiveState } from '@states/persons';
+import {
+  personCurrentDetailsState,
+  personsActiveState,
+  personPendingGroupState,
+} from '@states/persons';
 import { setPersonCurrentDetails } from '@services/states/persons';
 import { buildPersonFullname } from '@utils/common';
 import { fullnameOptionState, userDataViewState } from '@states/settings';
@@ -38,6 +42,7 @@ const useMidweekMeetingStudent = () => {
     return value;
   }, [groups, person, dataView, isAddPerson]);
 
+  const setPendingGroup = useSetAtom(personPendingGroupState);
   const [group, setGroup] = useState(current_group);
 
   const showLanguageGroupSelector = useMemo(() => {
@@ -76,7 +81,13 @@ const useMidweekMeetingStudent = () => {
     );
   }, [person]);
 
-  const handleGroupChange = (group: string) => setGroup(group);
+  // Se apunta también fuera del componente: este selector se pinta tres
+  // veces en la misma ficha y quien guarda tiene que saber cuál se tocó.
+  // Ver `personPendingGroupState`.
+  const handleGroupChange = (group: string) => {
+    setGroup(group);
+    setPendingGroup(group);
+  };
 
   const handleAddHistory = async () => {
     const newPerson = structuredClone(person);
