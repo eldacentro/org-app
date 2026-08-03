@@ -18,6 +18,7 @@ import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
 import Typography from '@components/typography';
 import MiniChip from '@components/mini_chip';
+import CountBadge from '@components/count_badge';
 import Dialog from '@components/dialog';
 import Button from '@components/button';
 import WeekRangeSelector from '@features/meetings/week_range_selector';
@@ -40,6 +41,8 @@ import {
   JWLangState,
   fullnameOptionState,
   JWLangLocaleState,
+  displayNameMeetingsEnableState,
+  userDataViewState,
 } from '@states/settings';
 import { headerForScheduleState } from '@states/field_service_groups';
 import { buildPersonFullname } from '@utils/common';
@@ -47,11 +50,24 @@ import {
   scheduleOutgoingSpeakers,
   groupOutgoingSpeakersByDate,
 } from '@services/app/schedules';
-import { dbSchedCheck } from '@services/dexie/schedules';
+import { dbSchedBulkUpdate, dbSchedCheck } from '@services/dexie/schedules';
+import {
+  buildOutgoingMonthGaps,
+  collectMeetingMonthAssignees,
+  isMeetingMonthPublished,
+  meetingMonthNeedsPublishing,
+  setMeetingMonthPublished,
+} from '@services/app/meetings_publish';
+import { monthOfDate } from '@services/app/month_publish';
+import { personIsAwayOn } from '@services/app/persons';
+import { personGetDisplayName } from '@utils/common';
+import { personsByViewState } from '@states/persons';
+import OutgoingPublishDialog from '@features/meetings/outgoing_talks/publish_dialog';
+import MeetingPublishNotice from '@features/meetings/publish_notice';
+import OutgoingTalkAccess from '@features/congregation/settings/congregation_privacy/outgoing_talk_access';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import TemplateOutgoingSpeakersSchedule from '@views/meetings/weekend/outgoing_speakers_schedule';
-import worker from '@services/worker/backupWorker';
 import { displaySnackNotification } from '@services/states/app';
 import { useNavigate } from 'react-router';
 import OutgoingTalksEditor from '@features/meetings/outgoing_talks';
@@ -73,6 +89,9 @@ const OutgoingSpeakersPage = () => {
   const sourceLang = useAtomValue(JWLangLocaleState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const congName = useAtomValue(headerForScheduleState);
+  const dataView = useAtomValue(userDataViewState);
+  const persons = useAtomValue(personsByViewState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const [selectedWeek, setSelectedWeek] = useAtom(selectedWeekState);
 
   // States
@@ -97,6 +116,8 @@ const OutgoingSpeakersPage = () => {
 
   // States for PDF Export Dialog
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [publishDialog, setPublishDialog] = useState(false);
+  const [accessDialog, setAccessDialog] = useState(false);
   const [startWeek, setStartWeek] = useState('');
   const [endWeek, setEndWeek] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -386,12 +407,94 @@ const OutgoingSpeakersPage = () => {
     return fmtRangoSemana(selectedWeek.replace(/-/g, '/'));
   }, [selectedWeek]);
 
-  // PWA Sync handler
-  const handleForceSync = () => {
-    worker.postMessage('startWorker');
+  /**
+   * Publicar, de verdad.
+   *
+   * Aquí había un botón rotulado "Publicar" que solo forzaba una
+   * sincronización — el mismo que ya se cambió en Exhibidores, Salidas y
+   * Departamentos. Ahora publica el MES: hasta que se pulsa, las salidas son
+   * un borrador que solo ve el coordinador. Guardar dispara el sincronizado,
+   * así que lo de antes va incluido.
+   */
+  const selectedMonth = monthOfDate(selectedWeek ?? '');
+
+  const monthIsPublished = isMeetingMonthPublished(
+    schedules,
+    selectedMonth,
+    'outgoing',
+    dataView
+  );
+
+  const monthIsHistoric = !meetingMonthNeedsPublishing(
+    selectedMonth,
+    'outgoing'
+  );
+
+  const monthGaps = useMemo(
+    () => buildOutgoingMonthGaps(schedules, selectedMonth, dataView),
+    [schedules, selectedMonth, dataView]
+  );
+
+  /** Oradores del mes con una ausencia apuntada en su fecha. */
+  const monthAwayNames = useMemo(() => {
+    const found: string[] = [];
+
+    for (const assignee of collectMeetingMonthAssignees(
+      schedules,
+      selectedMonth,
+      'outgoing',
+      dataView
+    )) {
+      const person = persons.find(
+        (record) => record.person_uid === assignee.uid
+      );
+
+      if (!person) continue;
+
+      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) continue;
+
+      const name =
+        personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
+        assignee.name;
+
+      if (name && !found.includes(name)) found.push(name);
+    }
+
+    return found;
+  }, [
+    schedules,
+    selectedMonth,
+    dataView,
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
+
+  const handleTogglePublishMonth = async () => {
+    if (monthIsHistoric) return;
+
+    const toSave = setMeetingMonthPublished(
+      schedules,
+      selectedMonth,
+      'outgoing',
+      !monthIsPublished,
+      dataView
+    );
+
+    // Sin semanas guardadas no hay nada que publicar.
+    if (toSave.length === 0) {
+      setPublishDialog(false);
+      return;
+    }
+
+    await dbSchedBulkUpdate(toSave);
+    setPublishDialog(false);
+
     displaySnackNotification({
       header: t('tr_done', 'Hecho'),
-      message: t('tr_syncInProgress', 'Sincronización en curso…'),
+      message: monthIsPublished
+        ? 'Mes retirado: vuelve a ser un borrador.'
+        : 'Mes publicado.',
       severity: 'success',
     });
   };
@@ -629,8 +732,45 @@ const OutgoingSpeakersPage = () => {
         </Box>
       </Dialog>
 
+      <OutgoingPublishDialog
+        open={publishDialog}
+        onClose={() => setPublishDialog(false)}
+        onConfirm={handleTogglePublishMonth}
+        isPublished={monthIsPublished}
+        month={selectedMonth}
+        gaps={monthGaps}
+        awayNames={monthAwayNames}
+      />
+
+      {/* Quién puede ver los discursos salientes.
+          Este interruptor vivía en los ajustes rápidos de la reunión de fin de
+          semana, que es de otro responsable: quien decide si las salidas se
+          enseñan a toda la congregación es el coordinador de discursos
+          públicos, y su sitio de trabajo es esta página. Sigue existiendo
+          también en Ajustes ▸ Privacidad de la congregación; es el mismo dato,
+          así que da igual por dónde se toque. */}
+      <Dialog
+        open={accessDialog}
+        onClose={() => setAccessDialog(false)}
+        sx={{ padding: '24px' }}
+      >
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Configuración de los discursos salientes
+        </Typography>
+
+        <OutgoingTalkAccess />
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button variant="main" onClick={() => setAccessDialog(false)}>
+            {t('tr_done', 'Hecho')}
+          </Button>
+        </Box>
+      </Dialog>
+
       <PageTitle
         title="Oradores salientes"
+        quickSettings={() => setAccessDialog(true)}
+        quickSettingsLabel="Configuración de los discursos salientes"
         buttons={
           <>
             <NavBarButton
@@ -638,15 +778,19 @@ const OutgoingSpeakersPage = () => {
               onClick={() => setIsExportOpen(true)}
               icon={<IconPrint />}
             />
-            <NavBarButton
-              text={t('tr_publish', 'Publicar')}
-              main
-              onClick={handleForceSync}
-              icon={<IconPublish />}
-            />
+            {!monthIsHistoric && (
+              <NavBarButton
+                text={monthIsPublished ? 'Publicado' : t('tr_publish', 'Publicar')}
+                main={!monthIsPublished}
+                onClick={() => setPublishDialog(true)}
+                icon={<IconPublish />}
+              />
+            )}
           </>
         }
       />
+
+      <MeetingPublishNotice type="outgoing" month={selectedMonth} />
 
       <ScrollableTabs
         tabs={[{ label: 'Oradores' }, { label: 'Programa' }]}
@@ -815,9 +959,26 @@ const OutgoingSpeakersPage = () => {
                             },
                           }}
                         >
-                          <Typography className="h3" sx={{ fontWeight: '600' }}>
-                            Discursos preparados ({preparedTalks.length})
-                          </Typography>
+                          {/* La chapa del sistema, no el número metido en la
+                              frase entre paréntesis: es justo el antipatrón
+                              que CountBadge existe para quitar. Y no es
+                              @components/badge, que es la píldora de un
+                              estado. */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <Typography
+                              className="h3"
+                              sx={{ fontWeight: '600' }}
+                            >
+                              Discursos preparados
+                            </Typography>
+                            <CountBadge value={preparedTalks.length} />
+                          </Box>
                           <IconExpand
                             color="var(--ink-2)"
                             sx={{
@@ -903,9 +1064,21 @@ const OutgoingSpeakersPage = () => {
                             },
                           }}
                         >
-                          <Typography className="h3" sx={{ fontWeight: '600' }}>
-                            Historial de salidas ({history.length})
-                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <Typography
+                              className="h3"
+                              sx={{ fontWeight: '600' }}
+                            >
+                              Historial de salidas
+                            </Typography>
+                            <CountBadge value={history.length} />
+                          </Box>
                           <IconExpand
                             color="var(--ink-2)"
                             sx={{
