@@ -5,6 +5,7 @@ import { IconHistory } from '@components/icons';
 import Button from '@components/button';
 import Dialog from '@components/dialog';
 import Typography from '@components/typography';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { FieldChange } from '@services/app/last_modified';
 
 type LastModifiedInfoProps = {
@@ -25,9 +26,15 @@ const enumerar = (items: string[]) => {
   return `${items.slice(0, -1).join(', ')} y ${items.at(-1)}`;
 };
 
-/** «3 de agosto» */
+/**
+ * «3 de agosto».
+ *
+ * Con los meses de la casa y no con `toLocaleDateString`, que se va al idioma
+ * del NAVEGADOR: en un Chrome en inglés salía «el August 3» dentro de una
+ * frase en español.
+ */
 const diaLargo = (value: Date) =>
-  value.toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+  `${value.getDate()} de ${MESES_ES[value.getMonth()].toLowerCase()}`;
 
 /**
  * «Última actualización» — y quién ve cuánto.
@@ -182,7 +189,13 @@ const LastModifiedInfo = ({
                   className="body-regular-semibold"
                   sx={{ color: 'var(--ink)' }}
                 >
-                  {enumerar(grupo.labels)}
+                  {/* Sin campos que nombrar —un registro que solo guarda su
+                      propia fecha, como el de Grupos— la línea se quedaba en
+                      blanco y debajo un «el 3 de agosto» suelto que no se
+                      entiende. */}
+                  {grupo.labels.length > 0
+                    ? enumerar(grupo.labels)
+                    : 'Se guardó la página'}
                 </Typography>
                 <Typography
                   className="label-small-regular"
