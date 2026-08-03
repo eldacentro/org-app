@@ -23,6 +23,7 @@ const AppSettings = () => {
     syncTheme,
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
+    canExportAnySchedule,
   } = useAppSettings();
 
   return (
@@ -79,18 +80,23 @@ const AppSettings = () => {
           onChange={handleUpdateSyncTheme}
         />
 
-        <SwitchWithLabel
-          label={t(
-            'tr_pdfExportPersonalEnabled',
-            'Habilitar exportación a PDF para mi cuenta'
-          )}
-          helper={t(
-            'tr_pdfExportPersonalEnabledDesc',
-            'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
-          )}
-          checked={pdfExportPersonalEnabled}
-          onChange={handleSwitchPdfExportPersonal}
-        />
+        {/* Solo a quien tenga algo que exportar. A un publicador este
+            interruptor no le haría aparecer ni un botón: no llega a ninguna
+            página que exporte. Ver `canExportAnySchedule`. */}
+        {canExportAnySchedule && (
+          <SwitchWithLabel
+            label={t(
+              'tr_pdfExportPersonalEnabled',
+              'Habilitar exportación a PDF para mi cuenta'
+            )}
+            helper={t(
+              'tr_pdfExportPersonalEnabledDesc',
+              'Muestra los botones de exportar/imprimir a PDF solo para tu cuenta, sin afectar a los demás.'
+            )}
+            checked={pdfExportPersonalEnabled}
+            onChange={handleSwitchPdfExportPersonal}
+          />
+        )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Typography className="h4">{t('tr_colorScheme')}</Typography>

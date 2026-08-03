@@ -6,10 +6,14 @@ import {
   themeFollowOSEnabledState,
   pdfExportEnabledPersonalState,
 } from '@states/settings';
-import { useBreakpoints } from '@hooks/index';
+import { useBreakpoints, useCurrentUser } from '@hooks/index';
 
 const useAppSettings = () => {
   const { laptopUp } = useBreakpoints();
+
+  // Quién ve el interruptor de exportación a PDF: solo quien tenga algún
+  // documento que exportar. Ver `canExportAnySchedule` en useCurrentUser.
+  const { canExportAnySchedule } = useCurrentUser();
 
   const autoBackupInterval = useAtomValue(backupIntervalState);
   const followOSTheme = useAtomValue(themeFollowOSEnabledState);
@@ -78,6 +82,7 @@ const useAppSettings = () => {
     handleUpdateSyncTheme,
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
+    canExportAnySchedule,
   };
 };
 
