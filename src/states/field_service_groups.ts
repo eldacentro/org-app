@@ -15,7 +15,10 @@ import {
 } from './settings';
 import { personIsMidweekStudent } from '@services/app/persons';
 import { personIsActivePublisher } from '@services/app/publisher_status';
-import { ministryMonthsState } from './field_service_reports';
+import {
+  congregationReportsAvailableState,
+  ministryMonthsState,
+} from './field_service_reports';
 import { PublishersSortOption } from '@definition/settings';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 
@@ -27,6 +30,7 @@ export const fieldWithLanguageGroupsState = atom((get) => {
   const isElder = get(isElderState);
   const sortMethod = get(publishersSortState);
   const ministryMonths = get(ministryMonthsState);
+  const hasCongregationReports = get(congregationReportsAvailableState);
 
   const validGroups = groups
     .filter((record) => !record.group_data._deleted)
@@ -46,6 +50,13 @@ export const fieldWithLanguageGroupsState = atom((get) => {
         );
 
         if (!person) return false;
+
+        // Sin los informes de la congregación no se puede saber quién está
+        // activo, y contestar que NO escondía a todo el mundo: a una
+        // publicadora le quedaban a la vista dos o tres personas —las de cuyos
+        // informes dispone, que son los suyos—. Cuando no se sabe, se enseña.
+        // Ver `congregationReportsAvailableState`.
+        if (!hasCongregationReports) return true;
 
         // Concesión para inactivos: seguir visible en el grupo para toda la
         // congregación aunque ya no cuente como publicador activo.

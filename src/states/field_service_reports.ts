@@ -11,6 +11,7 @@ import {
 import { congFieldServiceReportSchema } from '@services/dexie/schema';
 import { buildMinistryMonthsIndex } from '@services/app/publisher_status';
 import { retentionServiceYears, serviceYearOfMonth } from '@utils/date';
+import { congRoleState, isElderState } from './settings';
 
 export const fieldServiceReportsState = atom<CongFieldServiceReportType[]>([]);
 
@@ -33,6 +34,39 @@ export const congFieldServiceReportsState = atom((get) => {
 export const ministryMonthsState = atom((get) =>
   buildMinistryMonthsIndex(get(congFieldServiceReportsState))
 );
+
+/**
+ * ¿Tiene ESTE dispositivo los informes de la congregación?
+ *
+ * Hace falta para no contestar a una pregunta que no se puede contestar. La
+ * regla de publicador activo mira si alguien ha informado en los últimos seis
+ * meses, y el servidor solo manda los informes de TODA la congregación a quien
+ * los lleva: anciano, superintendente de grupo o de grupo de idioma. A un
+ * publicador le manda los suyos y los de su familia, y nada más.
+ *
+ * En su móvil, entonces, «¿ha informado Fulano?» no es «no»: es «no lo sé». Y
+ * responder que no escondía a la congregación entera de la página de Grupos de
+ * predicación, dejándole a la vista solo las dos o tres personas de cuyos
+ * informes sí dispone —justo lo que pasó—.
+ *
+ * La regla ya traía una salvaguarda para «no hay ni un informe», pensando en un
+ * dispositivo recién instalado. No alcanzaba a este caso, que no es quedarse
+ * sin datos sino tener un puñado que son los propios.
+ *
+ * Se calca de `reportEditorRole` del backend (`services/api/users.ts`), que es
+ * quien decide de verdad a quién se los manda. Si un día cambia allí, cambia
+ * aquí.
+ */
+export const congregationReportsAvailableState = atom((get) => {
+  const isElder = get(isElderState);
+  const userRole = get(congRoleState);
+
+  return (
+    isElder ||
+    userRole.includes('group_overseers') ||
+    userRole.includes('language_group_overseers')
+  );
+});
 
 /**
  * Los años de servicio que hay que ofrecer para mirar informes.
