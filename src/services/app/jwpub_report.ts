@@ -54,6 +54,29 @@ export type JwpubReportType = {
 const NO_USAR_PATTERN = /^\(?no usar\)?$/i;
 
 /**
+ * El mismo título, escrito de dos maneras, es el mismo título.
+ *
+ * Los textos que trae la aplicación vienen de las traducciones y llevan
+ * ESPACIO DURO donde no conviene que se parta la línea: «1. Las
+ * cualidades principales de Jehová». El archivo oficial usa espacios
+ * normales en los mismos sitios.
+ *
+ * Comparando a pelo, importar el cancionero de siempre daba **160 de 163
+ * "cambia el título"** con las dos líneas idénticas en pantalla. Y no era un
+ * informe mentiroso de adorno: al confirmar habría reescrito los 160 sin
+ * cambiar ni una palabra, cambiando los espacios duros por normales y
+ * dejando que «de Jehová» se pueda partir a final de renglón.
+ *
+ * Así que para COMPARAR se igualan los espacios. Para GUARDAR no se toca
+ * nada: cuando un título cambia de verdad, se escribe tal como viene.
+ */
+const mismoTitulo = (a: string, b: string) => {
+  const igualar = (t: string) => t.replace(/\s+/g, ' ').trim();
+
+  return igualar(a) === igualar(b);
+};
+
+/**
  * Compara lo que trae el archivo contra lo que la aplicación ya muestra (que
  * ya incluye cualquier importación anterior) y devuelve las CUATRO cuentas.
  *
@@ -82,7 +105,7 @@ export const computeJwpubReport = (
     const actual = current.find((record) => record.number === entry.number);
     const previousTitle = actual?.title ?? '';
 
-    if (previousTitle === entry.title) {
+    if (mismoTitulo(previousTitle, entry.title)) {
       unchanged++;
       continue;
     }

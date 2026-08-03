@@ -176,4 +176,42 @@ describe('computeJwpubReport', () => {
     // la tabla para nada.
     expect(buildJwpubOverrideEntries(informe)).toEqual({ '2': 'Nuevo' });
   });
+
+  /**
+   * Con el cancionero real (sjj_S) esto daba 160 de 163 «cambia el título»
+   * con las dos líneas idénticas en pantalla: los textos de la aplicación
+   * llevan espacio duro donde no debe partirse la línea y el archivo oficial
+   * usa espacios normales.
+   */
+  it('un espacio duro y uno normal son el mismo título', () => {
+    // Escritos con escapes a propósito: un espacio duro pegado tal cual es
+    // invisible al leer el código, y el lint lo rechaza.
+    const actual = canciones([
+      [1, `1.\u00a0Las cualidades principales de\u00a0Jehová`],
+      [2, `2.\u00a0Tu nombre es\u00a0Jehová`],
+    ]);
+
+    const archivo = canciones([
+      [1, '1. Las cualidades principales de Jehová'],
+      [2, '2.  Tu nombre  es Jehová '],
+    ]);
+
+    const informe = computeJwpubReport(archivo, actual);
+
+    expect(informe.unchanged).toBe(2);
+    expect(informe.changes).toEqual([]);
+    expect(informe.hasChanges).toBe(false);
+  });
+
+  it('pero un cambio de verdad se sigue viendo, y se guarda tal cual viene', () => {
+    const actual = canciones([[1, '1. Título viejo']]);
+    const archivo = canciones([[1, '1. Título nuevo']]);
+
+    const informe = computeJwpubReport(archivo, actual);
+
+    expect(informe.changes).toHaveLength(1);
+    expect(buildJwpubOverrideEntries(informe)).toEqual({
+      '1': '1. Título nuevo',
+    });
+  });
 });

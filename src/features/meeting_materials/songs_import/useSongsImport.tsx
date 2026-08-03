@@ -33,6 +33,24 @@ import { PendingSongsImportType } from './index.types';
 const MINIMO_CANTICOS = 100;
 const SIMBOLO_CANCIONERO = /^sj/i;
 
+/**
+ * El cancionero guarda el número DENTRO del título.
+ *
+ * En `songs.json` un cántico es «1. Las cualidades principales de Jehová», y
+ * así se pinta tal cual en el selector de canciones y en los programas: el
+ * número no se compone aparte, como sí pasa con los discursos públicos.
+ *
+ * Pero el `.jwpub` del cancionero trae el número en su propia columna y el
+ * título limpio («Las cualidades principales de Jehová»). Guardarlo así
+ * dejaría los 163 cánticos SIN número por toda la aplicación, y la vista
+ * previa marcaría los 163 como «cambia el título» aunque no cambie ninguno.
+ *
+ * Se devuelve al formato de la casa antes de comparar, para que la vista
+ * previa diga la verdad y lo guardado encaje con lo que ya había.
+ */
+const conNumeroDelante = (number: number, title: string) =>
+  new RegExp(`^${number}\\s*\\.`).test(title) ? title : `${number}. ${title}`;
+
 const useSongsImport = () => {
   const songsList = useAtomValue(songsLocaleState);
   const jwLang = useAtomValue(JWLangState);
@@ -87,7 +105,10 @@ const useSongsImport = () => {
       }
 
       const informe = computeJwpubReport(
-        parsed.entries,
+        parsed.entries.map((entry) => ({
+          ...entry,
+          title: conNumeroDelante(entry.number, entry.title),
+        })),
         songsList.map((song) => ({
           number: song.song_number,
           title: song.song_title,
@@ -165,9 +186,10 @@ const useSongsImport = () => {
 
       displaySnackNotification({
         header: 'Cancionero importado',
-        message: `Se actualizaron ${report.changes.length} ${
-          report.changes.length === 1 ? 'cántico' : 'cánticos'
-        }.`,
+        message:
+          report.changes.length === 1
+            ? 'Se actualizó 1 cántico.'
+            : `Se actualizaron ${report.changes.length} cánticos.`,
         severity: 'success',
       });
     } catch (error) {
