@@ -32,11 +32,22 @@ Así que ahora:
   «Publicar». Son tres botones distintos: entre semana, fin de semana y
   discursos salientes.
 
-Y un detalle del calendario que conviene saber, porque se ve raro y no lo es: la
-semana del **31 de agosto al 6 de septiembre** es de AGOSTO, aunque su reunión de
-entre semana caiga en jueves 3 de septiembre. El mes de una semana lo decide su
-lunes, en todas partes y también en el diálogo de publicar, así que esa semana se
-sigue viendo sin publicar nada. Ninguna semana se queda sin dueño ni con dos.
+Y un detalle del calendario que hay que tener claro, porque tiene DOS respuestas
+distintas y las dos son correctas. La semana del **31 de agosto al 6 de
+septiembre** tiene su reunión de entre semana el jueves 3 de septiembre:
+
+- **Para publicar**, es de SEPTIEMBRE. El diálogo y el selector del editor
+  agrupan por el día de la reunión, así que sale bajo septiembre y el botón de
+  publicar aparece. Si fuera por el lunes, la reunión del 1 de octubre —que es de
+  la semana del 28 de septiembre— se quedaría fuera de «Publicar octubre» sin que
+  nada lo dijera. Ver `services/app/meeting_month.ts`.
+- **Para verse**, es de AGOSTO. Eso lo decide el lunes, y no se ha tocado a
+  propósito: cambiarlo también habría escondido esa semana el día del despliegue,
+  y la regla de la casa es que lo que se ve se sigue viendo.
+
+Por eso en el diálogo esa semana sale bajo septiembre pero **no se puede marcar**:
+ya está a la vista y no hay nada que decidir. Ninguna semana se queda sin dueño
+ni cae en dos.
 
 ---
 
@@ -127,12 +138,14 @@ administrador). Ancho: **1280** primero, luego **375**.
 
 - Al marcar meses aparece abajo, en azul: *«Al publicarlo, cada hermano verá su
   parte de la reunión de... en "Mis asignaciones" y en el programa semanal...»*.
-- Si al mes le faltan partes principales, en naranja: *«Hay N partes principales
-  sin nadie asignado...»*. Cuenta presidencia, oración inicial y final, tesoros,
-  perlas, lectura de la Biblia y el conductor y lector del estudio bíblico (en el
-  fin de semana: presidencia, oración, orador, conductor y lector de La Atalaya).
-  **Las semanas canceladas y las de asamblea/congreso no cuentan**: comprueba que
-  una semana de asamblea no dispara el aviso.
+- Si a alguna semana marcada le falta alguien, en naranja y **semana a semana,
+  por su nombre**: *«2 Sep: Falta Presidente, Lectura de la Biblia»*. Cuenta
+  presidencia, oración inicial y final, tesoros, perlas, lectura de la Biblia y el
+  conductor y lector del estudio bíblico (en el fin de semana: presidencia,
+  oración, orador, conductor y lector de La Atalaya). Una semana sin empezar se
+  resume en **«Sin empezar»** en vez de enumerar las ocho.
+  **Las semanas canceladas y las de asamblea/congreso no reclaman nada**:
+  comprueba que una semana de asamblea no dispara el aviso.
 - Si alguien de ese mes tiene una **ausencia apuntada** en sus fechas, en
   naranja y **por su nombre**: *«Ana Pérez tiene una ausencia apuntada en las
   fechas que se van a publicar.»* (Para probarlo: ficha de una persona →
