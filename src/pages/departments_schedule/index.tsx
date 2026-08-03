@@ -29,6 +29,13 @@ import {
 import { dbDeptScheduleBulkSave } from '@services/dexie/departments_schedule';
 import DeptPublishDialog from '@features/departments_schedule/publish_dialog';
 import DeptConfigDialog from '@features/departments_schedule/config_dialog';
+import { personsByViewState } from '@states/persons';
+import { personIsAwayOn } from '@services/app/persons';
+import { personGetDisplayName } from '@utils/common';
+import {
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+} from '@states/settings';
 
 const DepartmentsSchedule = () => {
   // A esta página solo llega quien edita Departamentos, así que basta con
@@ -37,6 +44,9 @@ const DepartmentsSchedule = () => {
   const selectedWeek = useAtomValue(selectedDeptWeekState);
   const departmentsConfig = useAtomValue(departmentsConfigState);
   const schedules = useAtomValue(deptScheduleState);
+  const persons = useAtomValue(personsByViewState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
   const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
   const { t } = useAppTranslation();
   const { desktopUp } = useBreakpoints();
@@ -82,6 +92,48 @@ const DepartmentsSchedule = () => {
     return count;
   }, [weeksInMonth, departmentsConfig]);
 
+  /**
+   * Quién lleva un puesto este mes teniendo una ausencia apuntada esos días.
+   *
+   * La aplicación ya lo avisa al elegir a la persona; avisar otra vez aquí es a
+   * propósito, porque aquel aviso pasa mientras se trabaja y se escapa, y este
+   * sale justo antes de que lo vea la congregación entera. Mismo aviso que en
+   * los programas de reunión.
+   */
+  const awayNamesInMonth = useMemo(() => {
+    const found: string[] = [];
+
+    for (const week of weeksInMonth) {
+      for (const slot of buildAllDeptSlots(departmentsConfig)) {
+        const uid = week[slot.dept]?.[slot.key]?.value;
+
+        if (!uid) continue;
+
+        const person = persons.find((record) => record.person_uid === uid);
+
+        if (!person) continue;
+
+        if (!personIsAwayOn(person, week.weekOf.replace(/\//g, '-'))) continue;
+
+        const name = personGetDisplayName(
+          person,
+          displayNameEnabled,
+          fullnameOption
+        );
+
+        if (name && !found.includes(name)) found.push(name);
+      }
+    }
+
+    return found;
+  }, [
+    weeksInMonth,
+    departmentsConfig,
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
+
   const handleTogglePublishMonth = async () => {
     if (monthIsHistoric) return;
 
@@ -124,6 +176,7 @@ const DepartmentsSchedule = () => {
         isPublished={monthIsPublished}
         month={selectedMonth}
         emptyRoles={emptyRolesInMonth}
+        awayNames={awayNamesInMonth}
         hasSchedule={weeksInMonth.length > 0}
       />
 

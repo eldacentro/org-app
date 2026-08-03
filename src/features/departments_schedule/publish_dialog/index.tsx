@@ -18,6 +18,7 @@ const DeptPublishDialog = ({
   isPublished,
   month,
   emptyRoles,
+  awayNames,
   hasSchedule,
 }: {
   open: boolean;
@@ -26,6 +27,8 @@ const DeptPublishDialog = ({
   isPublished: boolean;
   month: string;
   emptyRoles: number;
+  /** Quién tiene una ausencia apuntada en las fechas que se van a publicar. */
+  awayNames: string[];
   hasSchedule: boolean;
 }) => {
   const monthLabel = (() => {
@@ -68,6 +71,17 @@ const DeptPublishDialog = ({
             isBig={false}
             color="warning"
             text={`Hay ${emptyRoles} ${emptyRoles === 1 ? 'puesto sin nadie asignado' : 'puestos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
+          />
+        )}
+
+        {/* Avisar dos veces de una ausencia es a propósito: el aviso de al
+            elegir a la persona pasa mientras se trabaja y se escapa, y este
+            sale justo antes de que lo vea la congregación entera. */}
+        {hasSchedule && awayNames.length > 0 && (
+          <InfoTip
+            isBig={false}
+            color="warning"
+            text={`${awayNames.join(', ')} ${awayNames.length === 1 ? 'tiene una ausencia apuntada' : 'tienen una ausencia apuntada'} en las fechas que se van a publicar.`}
           />
         )}
       </Box>
