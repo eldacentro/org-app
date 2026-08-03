@@ -1524,6 +1524,39 @@ const ultimaVezQueLlevo = (
   )?.weekOf ?? '';
 
 /**
+ * Cuántas semanas de descanso se le piden a alguien que acaba de llevar algo.
+ *
+ * Una a cada lado. Es lo justo para que la carga se reparta sin que el descarte
+ * se relaje en cuanto la congregación es pequeña: con dos o tres se quedaría sin
+ * candidatos casi siempre y dejaría de decidir nada.
+ */
+const SEMANAS_DE_DESCANSO = 1;
+
+/** ¿Lleva algo esta persona en la semana pedida o en las de al lado? */
+const tieneAlgoCerca = (
+  history: AssignmentHistoryType[],
+  person_uid: string,
+  week: string
+) => {
+  const desde = formatDate(
+    addWeeks(week.replace(/\//g, '-'), -SEMANAS_DE_DESCANSO),
+    'yyyy/MM/dd'
+  );
+
+  const hasta = formatDate(
+    addWeeks(week.replace(/\//g, '-'), SEMANAS_DE_DESCANSO),
+    'yyyy/MM/dd'
+  );
+
+  return history.some(
+    (record) =>
+      record.assignment.person === person_uid &&
+      record.weekOf >= desde &&
+      record.weekOf <= hasta
+  );
+};
+
+/**
  * Quita de la lista a quien cumpla el descarte — salvo que se los lleve a
  * todos, en cuyo caso el descarte no se aplica.
  */
@@ -1539,9 +1572,36 @@ const descartar = (
 /**
  * La rueda: ordena a los candidatos por a quién le toca antes.
  *
- * Quien nunca la ha llevado va primero; después, por antigüedad de la última
- * vez. A igualdad, por identificador, para que dos dispositivos con los mismos
- * datos elijan lo mismo en vez de depender del orden en que llegó la lista.
+ * Tres criterios, en este orden:
+ *
+ * 1. **La última vez que llevó ESTA asignación.** Quien no la ha llevado nunca
+ *    va primero. Es la rueda de toda la vida y manda sobre lo demás.
+ *
+ * 2. **La última vez que llevó CUALQUIER COSA.** Empatan muchos más de los que
+ *    parece —al estrenar una asignación no la ha llevado nadie, y ahí empatan
+ *    TODOS—, así que este criterio no es un detalle: en la práctica es el que
+ *    decide los primeros meses enteros.
+ *
+ *    Sin él pasaban dos cosas feas, las dos medidas en la aplicación con tres
+ *    meses autocompletados de golpe:
+ *
+ *    - El programa salía en FILA INDIA. Las columnas de presidencia, tesoros,
+ *      perlas y estudio bíblico llevaban a los mismos hermanos en el mismo
+ *      orden, semana tras semana, porque todas las ruedas arrancaban empatadas
+ *      y el desempate era siempre el mismo. Parecía un turno por orden de lista,
+ *      que es justo lo que un reparto no puede parecer.
+ *    - Y la carga se amontonaba: al que presidía el miércoles no le contaba esa
+ *      semana para nada más, así que salía el primero para la siguiente parte
+ *      que no hubiera llevado nunca. Entre 13 semanas había quien acumulaba 7
+ *      asignaciones y quien se quedaba en 1.
+ *
+ *    Mirando lo último que llevó —sea lo que sea— quien acaba de tener algo se
+ *    va al final de todas las demás ruedas, y las columnas se separan solas.
+ *
+ * 3. **El identificador**, y solo para que dos dispositivos con los mismos datos
+ *    elijan lo mismo. Es un desempate técnico, no un criterio: si llega a
+ *    decidir algo visible, es que los dos de arriba no han tenido nada que
+ *    decir.
  */
 export const schedulesOrderByTurn = ({
   persons,
@@ -1559,6 +1619,13 @@ export const schedulesOrderByTurn = ({
     if (ultimaA !== ultimaB) {
       // Cadena vacía = nunca la ha llevado, y ordena primero por ser la menor.
       return ultimaA.localeCompare(ultimaB);
+    }
+
+    const cualquieraA = ultimaAsignacion(history, a.person_uid)?.weekOf ?? '';
+    const cualquieraB = ultimaAsignacion(history, b.person_uid)?.weekOf ?? '';
+
+    if (cualquieraA !== cualquieraB) {
+      return cualquieraA.localeCompare(cualquieraB);
     }
 
     return a.person_uid.localeCompare(b.person_uid);
@@ -1639,14 +1706,28 @@ export const schedulesSelectRandomPerson = (data: {
     personIsAwayOn(person, data.week.replace(/\//g, '-'))
   );
 
-  // 2. Quien ya lleva algo esa misma semana. Aquí sí vale mirar CUALQUIER
-  //    asignación: es la misma semana, y nadie quiere dos cosas el mismo día.
+  // 2. Quien ya lleva algo cerca de esa semana — la misma, la anterior o la
+  //    siguiente. Se mira CUALQUIER asignación, no solo esta.
+  //
+  //    POR QUÉ NO BASTA CON "la misma semana", que es lo que había. Cada
+  //    asignación tiene su propia rueda, y una persona puede ir la primera en
+  //    varias a la vez: presidir no le resta para llevar tesoros, ni tesoros
+  //    para el estudio bíblico. Medido en la aplicación con tres meses
+  //    autocompletados de golpe: entre QUINCE hermanos con exactamente la misma
+  //    elegibilidad, a uno le tocaban 7 veces y a otro 2. Ninguna rueda estaba
+  //    mal; es que nadie miraba la suma.
+  //
+  //    Un descanso alrededor la mira sin tener que inventar un cupo: si acabas
+  //    de llevar algo, esta semana te toca descansar aunque seas el más atrasado
+  //    en esta rueda concreta.
+  //
+  //    Mira a los dos lados a propósito. Las asignaciones no se reparten en
+  //    orden de calendario sino por tandas —primero la presidencia de todas las
+  //    semanas, luego los tesoros de todas—, así que cuando le toca a esta parte
+  //    puede haber ya algo puesto en una semana POSTERIOR. Mirando solo hacia
+  //    atrás, ese ya-programado no contaría.
   candidatos = descartar(candidatos, (person) =>
-    data.history.some(
-      (record) =>
-        record.weekOf === data.week &&
-        record.assignment.person === person.person_uid
-    )
+    tieneAlgoCerca(data.history, person.person_uid, data.week)
   );
 
   // 3. Quien llevó ESTA misma asignación la semana pasada.

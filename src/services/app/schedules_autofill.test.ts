@@ -323,3 +323,88 @@ describe('a quién elige el autocompletado', () => {
     expect(elegido).toBeUndefined();
   });
 });
+
+describe('la carga no se amontona en los mismos', () => {
+  /**
+   * El caso real que destapó esto, medido en la aplicación con tres meses
+   * autocompletados de golpe: entre quince hermanos con EXACTAMENTE la misma
+   * elegibilidad, a uno le tocaban siete veces y a otro dos. Ninguna rueda
+   * estaba mal: es que cada asignación lleva la suya y nadie miraba la suma.
+   *
+   * Llevar algo una semana tiene que restar para TODO lo de alrededor, no solo
+   * para esa misma asignación.
+   */
+  it('quien acaba de llevar algo no repite a la semana siguiente', () => {
+    const uids = ['ana', 'bea', 'ceci', 'dani'];
+    sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
+
+    // Ana presidió esta semana. La que viene le toca descansar, aunque para la
+    // oración sea la más atrasada de todas (no la ha llevado nunca).
+    const historial = ordenar([llevo('ana', '2026/08/03', PRESIDENCIA)]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido.person_uid).not.toBe('ana');
+  });
+
+  it('tampoco se le pone algo la semana ANTERIOR a lo que ya tiene', () => {
+    // Las asignaciones no se reparten en orden de calendario, sino por tandas:
+    // primero la presidencia de todas las semanas, luego las oraciones. Así que
+    // al llegar aquí puede haber ya algo puesto MÁS ADELANTE.
+    const uids = ['ana', 'bea', 'ceci', 'dani'];
+    sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
+
+    const historial = ordenar([llevo('ana', '2026/08/17', PRESIDENCIA)]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido.person_uid).not.toBe('ana');
+  });
+
+  it('pero un hueco es peor que una repetición: si no queda nadie, se relaja', () => {
+    // Con una sola persona posible, el descanso no puede dejar la parte vacía.
+    sembrar([persona('ana', [PRESIDENCIA, ORACION])]);
+
+    const historial = ordenar([llevo('ana', '2026/08/03', PRESIDENCIA)]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido?.person_uid).toBe('ana');
+  });
+
+  it('a igualdad en su rueda, va primero quien lleva más tiempo sin nada', () => {
+    // Ninguna de las dos ha llevado nunca la oración, así que su rueda empata.
+    // Lo que las separa es lo último que llevaron, sea lo que sea — y sin eso
+    // el desempate era el identificador interno, que hacía salir el programa en
+    // fila india: los mismos hermanos en el mismo orden en todas las columnas.
+    sembrar([
+      persona('ana', [PRESIDENCIA, ORACION]),
+      persona('bea', [PRESIDENCIA, ORACION]),
+    ]);
+
+    const historial = ordenar([
+      llevo('ana', '2026/07/06', PRESIDENCIA),
+      llevo('bea', '2026/05/04', PRESIDENCIA),
+    ]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido.person_uid).toBe('bea');
+  });
+});
