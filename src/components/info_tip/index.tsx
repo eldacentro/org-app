@@ -106,7 +106,22 @@ const InfoTip: React.FC<InfoTipProps> = ({
       >
         {resolvedIcon}
 
-        <Typography className="body-regular" sx={{ color: style.text }}>
+        {/*
+          Con `text` esto es un párrafo, que es lo que es. Con `children` NO
+          puede serlo: quien pasa hijos mete dentro una fila con un botón —un
+          `div`—, y un `div` dentro de un `<p>` hace que el navegador CIERRE el
+          párrafo por su cuenta y saque el contenido fuera. Se veía en la
+          consola («cannot be a descendant of <p>») y rompía la fila del aviso
+          de publicación.
+
+          Un `span` aguanta cualquier hijo sin reordenar nada, y los estilos de
+          `body-regular` y el color se conservan igual.
+        */}
+        <Typography
+          className="body-regular"
+          component={text ? 'p' : 'span'}
+          sx={{ color: style.text, ...(text ? {} : { width: '100%' }) }}
+        >
           {text || children}
         </Typography>
       </Box>
