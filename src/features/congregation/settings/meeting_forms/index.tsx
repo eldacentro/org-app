@@ -9,7 +9,6 @@ import {
 import { SourceFrequency } from '@definition/settings';
 import useMeetingForms from './useMeetingForms';
 import DateFormat from './date_format';
-import DisplayName from './display_name';
 import MenuItem from '@components/menuitem';
 import MidweekExactDate from './midweek_exact_date';
 import NameFormat from './name_format';
@@ -84,8 +83,6 @@ const MeetingForms = () => {
           <MidweekExactDate />
 
           <SongsWeekend />
-
-          <DisplayName />
         </Stack>
 
         <Stack spacing="16px" marginTop="24px !important">

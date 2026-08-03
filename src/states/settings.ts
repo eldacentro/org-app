@@ -231,20 +231,23 @@ export const congDiscoverableState = atom((get) => {
   return settings.cong_settings.cong_discoverable.value;
 });
 
-export const displayNameMeetingsEnableState = atom((get) => {
-  const settings = get(settingsState);
-  const dataView = get(userDataViewState);
-
-  if (!Array.isArray(settings.cong_settings.display_name_enabled)) {
-    return settings.cong_settings.display_name_enabled['meetings']['value'];
-  }
-
-  return (
-    settings.cong_settings.display_name_enabled.find(
-      (record) => record.type === dataView
-    )?.meetings ?? false
-  );
-});
+/**
+ * En los programas van los nombres completos. Siempre.
+ *
+ * Había un interruptor para cambiarlos por el «nombre para mostrar» de cada
+ * persona. Se ha quitado: en Elda Centro estaba apagado, nadie sabía qué
+ * hacía, y encenderlo tenía un efecto que no anunciaba —ESCRIBÍA un nombre
+ * generado en todas las personas activas, y apagarlo no lo deshacía—.
+ *
+ * Esto devuelve `false` en vez de arrancar la consulta de los TREINTA Y CINCO
+ * sitios que la leen. Es el mismo resultado y una línea para volver atrás; ir
+ * uno por uno por `schedules.ts`, `persons.ts` y treinta componentes sería un
+ * barrido enorme para no cambiar ni un píxel.
+ *
+ * El ajuste guardado se queda quieto en la base de datos: viaja en la
+ * sincronización y borrarlo no le haría bien a nadie.
+ */
+export const displayNameMeetingsEnableState = atom(() => false);
 
 export const JWLangState = atom((get) => {
   const settings = get(settingsState);

@@ -3,7 +3,6 @@ import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { QuickSettingsWeekendMeetingProps } from './index.types';
 import DayTime from '@features/congregation/settings/meeting_settings/weekend/day_time';
 import AssignmentPreferences from '@features/congregation/settings/meeting_settings/weekend/assignment_preferences';
-import DisplayName from '@features/congregation/settings/meeting_forms/display_name';
 import Divider from '@components/divider';
 import MonthlyWarning from '@features/congregation/settings/meeting_settings/weekend/monthly_warning';
 import QuickSettings from '@features/quick_settings';
@@ -32,8 +31,6 @@ const QuickSettingsWeekendMeeting = ({
           {isWeekendEditor && <StudyConductor />}
 
           <SongsWeekend />
-
-          <DisplayName />
         </Stack>
 
         <Stack spacing="16px">

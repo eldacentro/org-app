@@ -3,7 +3,6 @@ import { useAppTranslation } from '@hooks/index';
 import { QuickSettingsMidweekMeetingProps } from './index.types';
 import AuxiliaryClassroom from '@features/congregation/settings/meeting_settings/midweek/auxiliary_classroom';
 import DayTime from '@features/congregation/settings/meeting_settings/midweek/day_time';
-import DisplayName from '@features/congregation/settings/meeting_forms/display_name';
 import Divider from '@components/divider';
 import LinkedParts from '@features/congregation/settings/meeting_settings/midweek/linked_parts';
 import MidweekExactDate from '@features/congregation/settings/meeting_forms/midweek_exact_date';
@@ -27,8 +26,6 @@ const QuickSettingsMidweekMeeting = ({
           <DayTime />
 
           <MidweekExactDate />
-
-          <DisplayName />
         </Stack>
 
         <Stack spacing="16px">
