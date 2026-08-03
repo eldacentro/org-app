@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { sourcesState } from '@states/sources';
+import { songsLocaleState } from '@states/songs';
+import { publicTalksLocaleState } from '@states/public_talks';
 import { PeriodoMateriales } from '@services/app/meeting_materials';
 import {
   sourcesJWAutoImportFrequencyState,
@@ -13,6 +16,7 @@ import {
   semanasSinMaterial,
 } from '@services/app/meeting_materials';
 import useMeetingMaterials from '@pages/dashboard/meeting_materials/useMeetingMaterials';
+import appDb from '@db/appDb';
 
 /** Cuántas semanas por delante se vigila que haya material. */
 const SEMANAS_VIGILADAS = 10;
@@ -26,6 +30,68 @@ const useMeetingMaterialsPage = () => {
   const sources = useAtomValue(sourcesState);
   const autoImport = useAtomValue(sourcesJWAutoImportState);
   const autoImportFrequency = useAtomValue(sourcesJWAutoImportFrequencyState);
+
+  const songs = useAtomValue(songsLocaleState);
+  const talks = useAtomValue(publicTalksLocaleState);
+
+  // Las dos tablas de sustituciones se leen aquí y no por el envoltorio de
+  // siempre: solo hacen falta en esta página, y solo para decir de dónde salió
+  // lo que se está viendo.
+  const songsOverride = useLiveQuery(() => appDb.songs_override.get('1'));
+  const talksOverride = useLiveQuery(() =>
+    appDb.public_talks_override.get('1')
+  );
+
+  /**
+   * De dónde salió el cancionero que hay ahora mismo.
+   *
+   * Sin importar, viene del paquete de la aplicación — y eso no es un detalle
+   * técnico: quiere decir que solo cambia publicando una versión nueva. Con
+   * importación, se dice QUÉ cancionero es, que es la pregunta de verdad:
+   * saber que se importó algo el martes no es saber qué tiene la
+   * congregación.
+   */
+  const cancionero = useMemo(() => {
+    const total = songs.filter((song) => song.song_title.length > 0).length;
+
+    if (!songsOverride) {
+      return { total, importado: false as const };
+    }
+
+    const cambiados = Object.values(songsOverride.overrides ?? {}).reduce(
+      (suma, porIdioma) => suma + Object.keys(porIdioma).length,
+      0
+    );
+
+    return {
+      total,
+      importado: true as const,
+      publicationTitle: songsOverride.publicationTitle,
+      importadoEl: songsOverride.updatedAt,
+      cambiados,
+    };
+  }, [songs, songsOverride]);
+
+  /** Lo mismo para los bosquejos de discursos públicos. */
+  const discursos = useMemo(() => {
+    const total = talks.filter((talk) => talk.talk_title.length > 0).length;
+
+    if (!talksOverride) {
+      return { total, importado: false as const };
+    }
+
+    const cambiados = Object.values(talksOverride.overrides ?? {}).reduce(
+      (suma, porIdioma) => suma + Object.keys(porIdioma).length,
+      0
+    );
+
+    return {
+      total,
+      importado: true as const,
+      importadoEl: talksOverride.updatedAt,
+      cambiados,
+    };
+  }, [talks, talksOverride]);
 
   // Cada publicación en SU cadencia: la Guía es bimestral y La Atalaya
   // mensual (ver la cabecera de `services/app/meeting_materials`).
@@ -114,6 +180,8 @@ const useMeetingMaterialsPage = () => {
     autoImportFrequency,
     proximaAutomatica,
     semanasVigiladas: SEMANAS_VIGILADAS,
+    cancionero,
+    discursos,
   };
 };
 

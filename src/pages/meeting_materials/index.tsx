@@ -1,13 +1,16 @@
 import { ReactNode, useState } from 'react';
 import { MESES_ES } from '@utils/nombres_fecha';
 import { Box, Stack } from '@mui/material';
-import { IconImportFile, IconJwOrg } from '@components/icons';
-import { useAppTranslation } from '@hooks/index';
+import { IconJwOrg } from '@components/icons';
+import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import PageTitle from '@components/page_title';
 import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
 import Badge from '@components/badge';
 import useMeetingMaterialsPage from './useMeetingMaterialsPage';
+import ImportRow from '@features/meeting_materials/import_row';
+import SongsImport from '@features/meeting_materials/songs_import';
+import ImportTalks from '@features/meeting_materials/public_talks/import_talks';
 import {
   EstadoReunion,
   PeriodoMateriales,
@@ -70,6 +73,10 @@ const ORIGEN = {
   jwpub: { texto: 'Desde .jwpub', color: 'green' as const },
   jw: { texto: 'Desde jw.org', color: 'accent' as const },
   desconocido: { texto: 'Origen desconocido', color: 'grey' as const },
+  // El cancionero y los bosquejos vienen dentro de la aplicación mientras
+  // nadie importe nada. Se dice con el mismo vocabulario que el resto, porque
+  // es la misma pregunta: de dónde ha salido esto que estoy viendo.
+  app: { texto: 'Desde la aplicación', color: 'grey' as const },
 };
 
 const Tarjeta = ({ children }: { children: ReactNode }) => (
@@ -195,6 +202,90 @@ const TarjetaPeriodo = ({ periodo }: { periodo: PeriodoMateriales }) => (
 );
 
 /**
+ * El cancionero y los bosquejos de discursos públicos.
+ *
+ * No son material de una semana, sino una lista entera que la aplicación
+ * lleva dentro, así que no encajan en el patrón de periodos de arriba. Lo que
+ * sí comparten es la pregunta —de dónde ha salido esto que estoy viendo— y
+ * por eso llevan el MISMO vocabulario y las mismas etiquetas: «Desde .jwpub»
+ * cuando alguien lo importó, «Desde la aplicación» mientras nadie lo haya
+ * hecho.
+ *
+ * Y para el cancionero, además, CUÁL: la fecha de importación no dice nada si
+ * no se sabe qué se importó.
+ */
+const TarjetaLista = ({
+  rotulo,
+  total,
+  singular,
+  plural,
+  importado,
+  importadoEl,
+  cambiados,
+  publicacion,
+  notaSinImportar,
+  notaImportado,
+}: {
+  rotulo: string;
+  total: number;
+  singular: string;
+  plural: string;
+  importado: boolean;
+  importadoEl?: string;
+  cambiados?: number;
+  publicacion?: string;
+  notaSinImportar: string;
+  notaImportado: string;
+}) => (
+  <Tarjeta>
+    <Box>
+      <Typography className="h4" color="var(--ink)">
+        {rotulo}
+      </Typography>
+      {importado && publicacion && publicacion.length > 0 && (
+        <Typography className="body-small-regular" color="var(--ink-2)">
+          {publicacion}
+        </Typography>
+      )}
+    </Box>
+
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        flexWrap: 'wrap',
+      }}
+    >
+      <Box>
+        <Typography className="label-small-regular" color="var(--ink-2)">
+          {`${total} ${total === 1 ? singular : plural}`}
+          {importado && importadoEl
+            ? ` · importado el ${fechaCorta(importadoEl)}`
+            : ''}
+          {importado && cambiados
+            ? ` · ${cambiados} ${
+                cambiados === 1 ? 'título sustituido' : 'títulos sustituidos'
+              }`
+            : ''}
+        </Typography>
+        <Typography className="label-small-regular" color="var(--grey-400)">
+          {importado ? notaImportado : notaSinImportar}
+        </Typography>
+      </Box>
+
+      <Badge
+        text={importado ? ORIGEN.jwpub.texto : ORIGEN.app.texto}
+        color={importado ? ORIGEN.jwpub.color : ORIGEN.app.color}
+        size="small"
+        filled={false}
+      />
+    </Box>
+  </Tarjeta>
+);
+
+/**
  * Una publicación: lo que viene primero, y lo pasado plegado.
  *
  * Lo pasado ya no se consulta; se guarda detrás de un enlace para no enterrar
@@ -293,37 +384,16 @@ const MeetingMaterials = () => {
     semanasQueFaltan,
     autoImport,
     autoImportFrequency,
-    proximaAutomatica,
     semanasVigiladas,
+    proximaAutomatica,
+    cancionero,
+    discursos,
   } = useMeetingMaterialsPage();
+
+  const { isPublicTalkCoordinator } = useCurrentUser();
 
   const [verGuia, setVerGuia] = useState(false);
   const [verAtalaya, setVerAtalaya] = useState(false);
-
-  // Reset de <button> incluido: la primera de estas dos tarjetas es un botón
-  // de verdad (la segunda lleva un <input type="file"> transparente encima,
-  // que ya se alcanza con el teclado por su cuenta).
-  const botonSx = {
-    appearance: 'none',
-    font: 'inherit',
-    color: 'inherit',
-    textAlign: 'left',
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '14px 16px',
-    border: '1px solid var(--accent-200)',
-    borderRadius: 'var(--shape-sm)',
-    backgroundColor: 'var(--accent-100)',
-    cursor: 'pointer',
-    transition: 'background-color var(--motion-fast) var(--ease-standard)',
-    '&:hover': { backgroundColor: 'var(--accent-200)' },
-    '&:focus-visible': {
-      outline: '2px solid var(--accent-main)',
-      outlineOffset: '2px',
-    },
-  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -332,35 +402,20 @@ const MeetingMaterials = () => {
       {/* ── Importar ────────────────────────────────────────────────────── */}
       <Stack spacing="12px">
         {isNavigatorOnline && (
-          <Box
-            component="button"
-            type="button"
-            sx={botonSx}
+          <ImportRow
+            icon={
+              <IconJwOrg color="var(--accent-main)" width={22} height={22} />
+            }
+            titulo={t('tr_sourceImportJw', 'Importar desde jw.org')}
+            descripcion="Trae el material publicado. El enlace de JW Library llevará a la publicación, no a la semana."
             onClick={handleOpenJWImport}
-          >
-            <IconJwOrg color="var(--accent-main)" width={22} height={22} />
-            <Box>
-              <Typography className="h4" color="var(--ink)">
-                {t('tr_sourceImportJw', 'Importar desde jw.org')}
-              </Typography>
-              <Typography className="label-small-regular" color="var(--ink-2)">
-                Trae el material publicado. El enlace de JW Library llevará a la
-                publicación, no a la semana.
-              </Typography>
-            </Box>
-          </Box>
+          />
         )}
 
-        <Box sx={{ ...botonSx, position: 'relative' }}>
-          <IconImportFile color="var(--accent-main)" width={22} height={22} />
-          <Box>
-            <Typography className="h4" color="var(--ink)">
-              {t('tr_sourceImportEPUB', 'Importar desde archivo .jwpub')}
-            </Typography>
-            <Typography className="label-small-regular" color="var(--ink-2)">
-              Además, el enlace de JW Library llevará a la semana exacta.
-            </Typography>
-          </Box>
+        <ImportRow
+          titulo={t('tr_sourceImportEPUB', 'Importar desde archivo .jwpub')}
+          descripcion="Además, el enlace de JW Library llevará a la semana exacta."
+        >
           {/* Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
               (no es un UTI reconocido). Se valida en handleFileSelected. */}
           <input
@@ -376,7 +431,14 @@ const MeetingMaterials = () => {
             }}
             onChange={handleFileSelected}
           />
-        </Box>
+        </ImportRow>
+
+        {/* El cancionero y los bosquejos son material de reunión igual que la
+            Guía y La Atalaya, y hasta hoy se importaban —cuando se podía— en
+            otra parte o en ninguna. */}
+        <SongsImport />
+
+        {isPublicTalkCoordinator && <ImportTalks variant="row" />}
       </Stack>
 
       {/* ── Lo que falta ────────────────────────────────────────────────── */}
@@ -466,6 +528,46 @@ const MeetingMaterials = () => {
         verAnteriores={verAtalaya}
         onVerAnteriores={() => setVerAtalaya((v) => !v)}
       />
+
+      {/* ── Las dos listas ──────────────────────────────────────────────── */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <Typography
+          className="label-small-semibold"
+          color="var(--ink-2)"
+          sx={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}
+        >
+          Cancionero y discursos públicos
+        </Typography>
+
+        <TarjetaLista
+          rotulo="Cancionero"
+          total={cancionero.total}
+          singular="cántico"
+          plural="cánticos"
+          importado={cancionero.importado}
+          importadoEl={
+            cancionero.importado ? cancionero.importadoEl : undefined
+          }
+          cambiados={cancionero.importado ? cancionero.cambiados : undefined}
+          publicacion={
+            cancionero.importado ? cancionero.publicationTitle : undefined
+          }
+          notaSinImportar="Vienen dentro de la aplicación: solo cambian al publicarse una versión nueva."
+          notaImportado="Importado en este dispositivo. No viaja por la sincronización: en otro teléfono habría que importarlo también."
+        />
+
+        <TarjetaLista
+          rotulo="Bosquejos de discursos públicos"
+          total={discursos.total}
+          singular="bosquejo"
+          plural="bosquejos"
+          importado={discursos.importado}
+          importadoEl={discursos.importado ? discursos.importadoEl : undefined}
+          cambiados={discursos.importado ? discursos.cambiados : undefined}
+          notaSinImportar="Vienen dentro de la aplicación: solo cambian al publicarse una versión nueva."
+          notaImportado="Los títulos importados se sincronizan con el resto de la congregación."
+        />
+      </Box>
     </Box>
   );
 };

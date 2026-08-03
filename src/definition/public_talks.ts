@@ -11,21 +11,11 @@ export type PublicTalkLocaleType = {
 };
 
 /**
- * Datos extraídos de un archivo .jwpub (S-34) al importarlo: número y título
- * de cada bosquejo, tal como están en la fuente oficial de los Testigos de
- * Jehová, antes de comparar contra lo que ya tenemos.
+ * Lo que se extrae de un archivo `.jwpub` y cómo se compara contra lo que ya
+ * hay vive en `@services/app/jwpub_report`: es lo MISMO para los bosquejos de
+ * discursos y para el cancionero —una lista de «número + título»— y tenerlo
+ * dos veces era tenerlo dos veces mal.
  */
-export type PublicTalkImportEntryType = {
-  talk_number: number;
-  talk_title: string;
-};
-
-export type PublicTalkImportDiffType = {
-  talk_number: number;
-  type: 'added' | 'renamed' | 'reactivated' | 'retired' | 'unchanged';
-  previous_title: string;
-  new_title: string;
-};
 
 /**
  * Lo que de verdad se guarda y se sincroniza: por idioma, solo los números

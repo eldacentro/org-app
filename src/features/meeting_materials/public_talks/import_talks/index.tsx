@@ -1,28 +1,24 @@
-import { Box, Stack } from '@mui/material';
-import { IconImportFile } from '@components/icons';
 import { useAppTranslation } from '@hooks/index';
+import { IconImportFile } from '@components/icons';
 import useImportTalks from './useImportTalks';
 import NavBarButton from '@components/nav_bar_button';
-import Dialog from '@components/dialog';
-import Typography from '@components/typography';
-import Button from '@components/button';
 import IconLoading from '@components/icon_loading';
+import JwpubReportDialog from '@features/meeting_materials/jwpub_report';
+import ImportRow from '@features/meeting_materials/import_row';
+import { ImportTalksVariantType } from './index.types';
 
-const TYPE_COLOR: Record<string, string> = {
-  added: 'var(--accent-main)',
-  renamed: 'var(--grey-400)',
-  reactivated: 'var(--accent-main)',
-  retired: 'var(--red-main)',
-};
-
-const TYPE_LABEL_KEY: Record<string, string> = {
-  added: 'tr_jwpubImportAdded',
-  renamed: 'tr_jwpubImportRenamed',
-  reactivated: 'tr_jwpubImportReactivated',
-  retired: 'tr_jwpubImportRetired',
-};
-
-const ImportTalks = () => {
+/**
+ * Importar los bosquejos de discursos públicos desde un `.jwpub`.
+ *
+ * Se llama desde dos sitios —la barra de Discursos públicos y la tarjeta de
+ * Materiales de reunión— y la lógica es UNA: lo único que cambia es el
+ * disparador que se pinta.
+ */
+const ImportTalks = ({
+  variant = 'navbar',
+}: {
+  variant?: ImportTalksVariantType;
+}) => {
   const { t } = useAppTranslation();
 
   const {
@@ -31,7 +27,8 @@ const ImportTalks = () => {
     handleFileSelected,
     isParsing,
     isSaving,
-    diffs,
+    report,
+    pendingImport,
     handleCancel,
     handleConfirm,
   } = useImportTalks();
@@ -41,116 +38,46 @@ const ImportTalks = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".jwpub"
+        // Sin `accept`: iOS agrisa los .jwpub si se restringe por extensión
+        // (no es un UTI reconocido). Se valida al leerlo.
         style={{ display: 'none' }}
         onChange={handleFileSelected}
       />
 
-      <NavBarButton
-        text={t('tr_jwpubImport')}
-        icon={
-          isParsing ? (
-            <IconLoading color="accent" />
-          ) : (
-            <IconImportFile height={22} width={22} />
-          )
-        }
-        onClick={handleOpenFilePicker}
-        disabled={isParsing}
-      />
+      {variant === 'navbar' ? (
+        <NavBarButton
+          text={t('tr_jwpubImport')}
+          icon={
+            isParsing ? (
+              <IconLoading color="accent" />
+            ) : (
+              <IconImportFile height={22} width={22} />
+            )
+          }
+          onClick={handleOpenFilePicker}
+          disabled={isParsing}
+        />
+      ) : (
+        <ImportRow
+          titulo="Importar bosquejos desde archivo .jwpub"
+          descripcion="El archivo S-34 de los bosquejos de discursos públicos. Sustituye los títulos que traiga; los que no traiga se quedan como están."
+          isBusy={isParsing}
+          onClick={handleOpenFilePicker}
+        />
+      )}
 
-      {diffs && (
-        <Dialog
-          onClose={handleCancel}
-          open={Boolean(diffs)}
-          sx={{ maxWidth: '100%' }}
-        >
-          <Typography className="h2">{t('tr_jwpubImportTitle')}</Typography>
-          <Typography className="body-regular" color="var(--grey-400)">
-            {t('tr_jwpubImportDesc')}
-          </Typography>
-
-          <Stack
-            spacing="8px"
-            sx={{
-              width: '100%',
-              maxHeight: '360px',
-              overflowY: 'auto',
-              padding: '4px 0',
-            }}
-          >
-            {diffs.map((diff) => (
-              <Box
-                key={diff.talk_number}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  padding: '8px 12px',
-                  borderRadius: 'var(--shape-sm)',
-                  border: '1px solid var(--accent-200)',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Typography className="body-small-semibold">
-                    {diff.talk_number}
-                  </Typography>
-                  <Typography
-                    className="label-small-semibold"
-                    sx={{ color: TYPE_COLOR[diff.type] }}
-                  >
-                    {t(TYPE_LABEL_KEY[diff.type])}
-                  </Typography>
-                </Box>
-
-                {diff.previous_title.length > 0 && (
-                  <Typography
-                    className="body-small-regular"
-                    color="var(--grey-350)"
-                    sx={{ textDecoration: 'line-through' }}
-                  >
-                    {diff.previous_title}
-                  </Typography>
-                )}
-
-                <Typography className="body-small-regular">
-                  {diff.new_title}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              width: '100%',
-            }}
-          >
-            <Button
-              variant="main"
-              onClick={handleConfirm}
-              disabled={isSaving}
-              startIcon={isSaving ? <IconLoading color="card" /> : null}
-            >
-              {t('tr_continue')}
-            </Button>
-            <Button
-              variant="tertiary"
-              onClick={handleCancel}
-              disabled={isSaving}
-            >
-              {t('tr_cancel')}
-            </Button>
-          </Box>
-        </Dialog>
+      {report && pendingImport && (
+        <JwpubReportDialog
+          open={Boolean(report)}
+          report={report}
+          entidadSingular="bosquejo"
+          entidadPlural="bosquejos"
+          publicationTitle={pendingImport.publicationTitle}
+          aviso={pendingImport.aviso}
+          isSaving={isSaving}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+        />
       )}
     </>
   );

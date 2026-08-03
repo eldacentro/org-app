@@ -1,25 +1,40 @@
 import JSZip from 'jszip';
-import initSqlJs from 'sql.js';
+// El build ESTÁNDAR, explícito — la misma trampa que ya documenta
+// `jwpub_docid_extractor.ts`. Con `from 'sql.js'` a secas, Vite resuelve la
+// condición `browser` del package.json y carga `sql-wasm-browser.js`, que
+// espera el binario `sql-wasm-browser.wasm`; al pasarle nuestro
+// `sql-wasm.wasm` el pegamento y el wasm no casan e `initSqlJs` revienta en el
+// navegador. En Node cargaba el build por defecto, así que fuera del navegador
+// no se notaba nada.
+import initSqlJs from 'sql.js/dist/sql-wasm.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
-import {
-  PublicTalkImportDiffType,
-  PublicTalkImportEntryType,
-  PublicTalkLocaleType,
-} from '@definition/public_talks';
-
-const NO_USAR_PATTERN = /^\(?no usar\)?$/i;
+import { JwpubEntryType } from './jwpub_report';
 
 export type JwpubParseResultType = {
+  /** Código corto de idioma de JW Library ('S', 'E'…), en mayúsculas. */
   langCode: string;
+  /** Cómo se llama la publicación, tal como la nombra ella misma. */
   publicationTitle: string;
-  entries: PublicTalkImportEntryType[];
+  /** El símbolo del catálogo: 'S-34', 'sjj', 'pt14'… */
+  symbol: string;
+  entries: JwpubEntryType[];
 };
 
 /**
- * Un .jwpub es un zip (manifest.json + un archivo "contents" que es OTRO
+ * Un `.jwpub` es un zip (manifest.json + un archivo "contents" que es OTRO
  * zip) cuyo contenido real es una base de datos SQLite estándar — el mismo
  * formato que usa JW Library. Cada fila de la tabla `Document` es un
- * bosquejo, con el título como "N. Título del discurso".
+ * documento de la publicación.
+ *
+ * De dónde sale el NÚMERO de cada fila, y en este orden:
+ *
+ *   1. Del propio título, cuando viene como "N. Título" — es lo que hacen los
+ *      bosquejos de discursos públicos (S-34).
+ *   2. De `ChapterNumber`, cuando el título va suelto — es lo que hace el
+ *      cancionero, donde el número es el del cántico.
+ *
+ * Las filas sin número —portada, índice, prólogo— se quedan fuera solas: no
+ * casan con ninguno de los dos caminos.
  */
 export const parseJwpubFile = async (
   file: File
@@ -47,7 +62,9 @@ export const parseJwpubFile = async (
     throw new Error('error_app_jwpub_invalid-file');
   }
 
-  const innerZip = await JSZip.loadAsync(await contentsFile.async('arraybuffer'));
+  const innerZip = await JSZip.loadAsync(
+    await contentsFile.async('arraybuffer')
+  );
   const dbFile = innerZip.file(dbFileName);
 
   if (!dbFile) {
@@ -61,72 +78,40 @@ export const parseJwpubFile = async (
 
   try {
     const result = db.exec(
-      'SELECT DocumentId, Title FROM Document ORDER BY DocumentId'
+      'SELECT DocumentId, ChapterNumber, Title FROM Document ORDER BY DocumentId'
     );
 
-    const entries: PublicTalkImportEntryType[] = [];
+    const entries: JwpubEntryType[] = [];
 
     if (result.length > 0) {
       for (const row of result[0].values) {
-        const title = String(row[1] ?? '');
+        const chapter = row[1];
+        const title = String(row[2] ?? '');
+
         const match = title.match(/^(\d+)\.\s*(.*)$/);
 
-        if (!match) continue;
+        if (match) {
+          entries.push({ number: +match[1], title: match[2].trim() });
+          continue;
+        }
 
-        entries.push({
-          talk_number: +match[1],
-          talk_title: match[2].trim(),
-        });
+        // El cancionero: el número va en su columna y el título va limpio.
+        if (typeof chapter === 'number' && chapter > 0 && title.length > 0) {
+          entries.push({ number: chapter, title: title.trim() });
+        }
       }
     }
 
     return {
       langCode: langCode.toUpperCase(),
-      publicationTitle: manifest?.publication?.title ?? '',
+      publicationTitle:
+        manifest?.publication?.referenceTitle ??
+        manifest?.publication?.title ??
+        '',
+      symbol: manifest?.publication?.symbol ?? '',
       entries,
     };
   } finally {
     db.close();
   }
-};
-
-/**
- * Compara lo que trae el .jwpub contra lo que la app ya muestra (que ya
- * incluye cualquier importación anterior) — solo se reportan los números de
- * bosquejo donde el título realmente difiere, para no abrumar con 194 filas
- * idénticas en la vista previa.
- */
-export const computeJwpubDiff = (
-  entries: PublicTalkImportEntryType[],
-  currentTalks: PublicTalkLocaleType[]
-): PublicTalkImportDiffType[] => {
-  const diffs: PublicTalkImportDiffType[] = [];
-
-  for (const entry of entries) {
-    const current = currentTalks.find(
-      (record) => record.talk_number === entry.talk_number
-    );
-
-    const previousTitle = current?.talk_title ?? '';
-
-    if (previousTitle === entry.talk_title) continue;
-
-    const wasRetired = NO_USAR_PATTERN.test(previousTitle.trim());
-    const isNowRetired = NO_USAR_PATTERN.test(entry.talk_title.trim());
-
-    let type: PublicTalkImportDiffType['type'] = 'renamed';
-
-    if (!current) type = 'added';
-    else if (wasRetired && !isNowRetired) type = 'reactivated';
-    else if (!wasRetired && isNowRetired) type = 'retired';
-
-    diffs.push({
-      talk_number: entry.talk_number,
-      type,
-      previous_title: previousTitle,
-      new_title: entry.talk_title,
-    });
-  }
-
-  return diffs.sort((a, b) => a.talk_number - b.talk_number);
 };
