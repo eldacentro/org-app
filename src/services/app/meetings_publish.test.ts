@@ -25,7 +25,7 @@ import {
  * ve como un fallo, se ve como un programa que desaparece.
  */
 
-const HISTORICO = '2026/09';
+const HISTORICO = '2026/08';
 const FUTURO = '2026/10';
 
 /** Una semana con lo justo para las pruebas. */
@@ -40,7 +40,12 @@ const week = (
     weekOf,
     midweek_meeting: {
       opening_prayer: [
-        { type: 'main', value: '', name: '', updatedAt: '2026-09-01T00:00:00Z' },
+        {
+          type: 'main',
+          value: '',
+          name: '',
+          updatedAt: '2026-09-01T00:00:00Z',
+        },
       ],
       week_type: [
         { type: 'main', value: 1, updatedAt: '2026-09-01T00:00:00Z' },
@@ -49,7 +54,12 @@ const week = (
     },
     weekend_meeting: {
       chairman: [
-        { type: 'main', value: '', name: '', updatedAt: '2026-09-01T00:00:00Z' },
+        {
+          type: 'main',
+          value: '',
+          name: '',
+          updatedAt: '2026-09-01T00:00:00Z',
+        },
       ],
       public_talk_type: [
         {
@@ -74,26 +84,46 @@ describe('el corte: lo que hoy se ve se sigue viendo', () => {
     expect(MEETING_DRAFT_FROM.midweek).toBe(MEETING_DRAFT_FROM.outgoing);
   });
 
-  it('el corte no puede quedar por detrás del mes en que se escribió esto', () => {
-    // Agosto de 2026 está en marcha y septiembre ya está repartido: ninguno de
-    // los dos puede volverse borrador de golpe al desplegar.
-    expect(MEETING_DRAFT_FROM.midweek >= '2026/10').toBe(true);
+  it('agosto de 2026 nunca puede volverse borrador', () => {
+    // La regla de oro del encargo: lo que la congregación ya está usando no
+    // desaparece al desplegar. Agosto está en marcha —las reuniones son estas
+    // semanas—, así que el corte no puede bajar de septiembre por mucho que se
+    // quiera apretar la tuerca.
+    expect(MEETING_DRAFT_FROM.midweek >= '2026/09').toBe(true);
   });
 
   it('todo lo anterior al corte se da por publicado, sin marca ninguna', () => {
     expect(meetingMonthNeedsPublishing(HISTORICO, 'midweek')).toBe(false);
-    expect(isMeetingWeekPublished(week('2026/09/07'), 'midweek', 'main')).toBe(
+    expect(isMeetingWeekPublished(week('2026/08/03'), 'midweek', 'main')).toBe(
       true
     );
-    expect(isMeetingWeekPublished(week('2026/09/07'), 'weekend', 'main')).toBe(
+    expect(isMeetingWeekPublished(week('2026/08/03'), 'weekend', 'main')).toBe(
       true
     );
-    expect(isMeetingWeekPublished(week('2026/09/07'), 'outgoing', 'main')).toBe(
+    expect(isMeetingWeekPublished(week('2026/08/03'), 'outgoing', 'main')).toBe(
       true
     );
     expect(
-      isMeetingMonthPublished([week('2026/09/07')], HISTORICO, 'midweek', 'main')
+      isMeetingMonthPublished(
+        [week('2026/08/03')],
+        HISTORICO,
+        'midweek',
+        'main'
+      )
     ).toBe(true);
+  });
+
+  it('septiembre de 2026 SÍ hay que publicarlo: es lo que se vino a arreglar', () => {
+    // El caso real que destapó esto: el responsable hizo septiembre entero y no
+    // le dio a publicar, y el programa le salía igual a toda la congregación.
+    expect(meetingMonthNeedsPublishing('2026/09', 'midweek')).toBe(true);
+    expect(meetingMonthNeedsPublishing('2026/09', 'weekend')).toBe(true);
+    expect(meetingMonthNeedsPublishing('2026/09', 'outgoing')).toBe(true);
+
+    // Y sin marca de publicación, no se ve.
+    expect(isMeetingWeekPublished(week('2026/09/07'), 'midweek', 'main')).toBe(
+      false
+    );
   });
 
   it('desde el corte hay que publicar a mano', () => {
@@ -107,7 +137,7 @@ describe('el corte: lo que hoy se ve se sigue viendo', () => {
     expect(isMeetingDatePublished([], '2026/10/05', 'midweek', 'main')).toBe(
       false
     );
-    expect(isMeetingDatePublished([], '2026/09/07', 'midweek', 'main')).toBe(
+    expect(isMeetingDatePublished([], '2026/08/03', 'midweek', 'main')).toBe(
       true
     );
   });
@@ -209,11 +239,13 @@ describe('publicar un mes', () => {
     );
 
     // Borrarla dejaría que la copia vieja del servidor la resucitara.
-    expect(getMeetingPublishedEntry(retirada, 'midweek', 'main')).toStrictEqual({
-      type: 'main',
-      value: false,
-      updatedAt: '2026-10-02T10:00:00Z',
-    });
+    expect(getMeetingPublishedEntry(retirada, 'midweek', 'main')).toStrictEqual(
+      {
+        type: 'main',
+        value: false,
+        updatedAt: '2026-10-02T10:00:00Z',
+      }
+    );
     expect(isMeetingWeekPublished(retirada, 'midweek', 'main')).toBe(false);
   });
 
@@ -510,9 +542,9 @@ describe('qué le falta al mes', () => {
     semana.midweek_meeting.tgw_talk[0].value = '';
     semana.midweek_meeting.lc_cbs.reader[0].value = '';
 
-    expect(
-      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
-    ).toBe(2);
+    expect(countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')).toBe(
+      2
+    );
   });
 
   it('una semana cancelada no reclama a nadie', () => {
@@ -522,9 +554,9 @@ describe('qué le falta al mes', () => {
       },
     });
 
-    expect(
-      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
-    ).toBe(0);
+    expect(countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')).toBe(
+      0
+    );
   });
 
   it('una semana de asamblea tampoco', () => {
@@ -534,19 +566,14 @@ describe('qué le falta al mes', () => {
       },
     });
 
-    expect(
-      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
-    ).toBe(0);
+    expect(countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')).toBe(
+      0
+    );
   });
 
   it('los discursos salientes no cuentan puestos vacíos: no aplica', () => {
     expect(
-      countMeetingMissingParts(
-        [week('2026/10/05')],
-        FUTURO,
-        'outgoing',
-        'main'
-      )
+      countMeetingMissingParts([week('2026/10/05')], FUTURO, 'outgoing', 'main')
     ).toBe(0);
   });
 });
@@ -697,9 +724,7 @@ describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
 
     expect(
       collectMeetingMonthAssignees(semanas, FUTURO, 'outgoing', 'main')
-    ).toStrictEqual([
-      { weekOf: '2026/10/05', uid: 'uid-9', name: 'Pedro' },
-    ]);
+    ).toStrictEqual([{ weekOf: '2026/10/05', uid: 'uid-9', name: 'Pedro' }]);
 
     // Y no salen al mirar el fin de semana, que es otro programa.
     expect(

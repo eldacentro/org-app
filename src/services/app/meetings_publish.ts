@@ -39,20 +39,29 @@ import { monthNeedsPublishing, monthOfDate } from './month_publish';
  * Constantes en el código y no datos guardados, como en los otros módulos: así
  * todos los dispositivos deciden lo mismo sin migrar nada.
  *
- * POR QUÉ OCTUBRE (decidido el 2026-08-03, con el encargo en la mano). La regla
- * de oro es que lo que hoy se ve se siga viendo. Hoy estamos en agosto: agosto
- * está en marcha y septiembre es el mes que se está repartiendo ahora mismo y
- * que la congregación ya tiene delante, así que ninguno de los dos puede
- * volverse borrador de golpe. Octubre es el primer mes en el que el responsable
- * llega a tiempo de decidir.
+ * POR QUÉ SEPTIEMBRE (bajado el 2026-08-03, el mismo día, mirando la aplicación
+ * de verdad). El corte nació en octubre por prudencia: se dio por hecho que
+ * septiembre ya estaba repartido y a la vista, y la regla de oro es que lo que
+ * hoy se ve se siga viendo. Al mirarlo resultó lo contrario: el responsable de
+ * la reunión de entre semana había hecho septiembre entero y NO le había dado a
+ * publicar — y aun así el programa le salía a la congregación, porque el mes
+ * caía por debajo del corte. Justo lo que este encargo venía a evitar.
  *
- * ANTES DE DESPLEGAR: si al mirar la aplicación resulta que octubre ya está
- * repartido y a la vista, sube estas constantes a '2026/11' — es un cambio de
- * una línea y no hay nada que migrar. Está en VERIFICACION-2.md.
+ * Así que el corte baja al mes que de verdad está sin confirmar. Agosto se
+ * queda fuera y no se toca: está en marcha, las reuniones son estas semanas y
+ * esconderlo sí sería quitar de en medio algo que la congregación ya usa.
+ *
+ * Septiembre es además el corte que ya tenían Exhibidores y Salidas
+ * (`EXHIBITORS_DRAFT_FROM`, `OUTINGS_DRAFT_FROM`), así que los cinco módulos
+ * empiezan a pedir publicación el mismo mes.
+ *
+ * LO QUE ESTO PIDE A CAMBIO: septiembre pasa a ser un borrador hasta que cada
+ * responsable le dé a «Publicar». Mientras no lo haga, la congregación no lo ve
+ * — que es el comportamiento pedido, pero hay que darle al botón.
  */
-export const MIDWEEK_DRAFT_FROM = '2026/10';
-export const WEEKEND_DRAFT_FROM = '2026/10';
-export const OUTGOING_TALKS_DRAFT_FROM = '2026/10';
+export const MIDWEEK_DRAFT_FROM = '2026/09';
+export const WEEKEND_DRAFT_FROM = '2026/09';
+export const OUTGOING_TALKS_DRAFT_FROM = '2026/09';
 
 /** Los tres programas que se publican por separado. */
 export type MeetingPublishKey = 'midweek' | 'weekend' | 'outgoing';
@@ -148,7 +157,8 @@ export const getMeetingPublishedEntry = (
  * que enseñar, así que da igual por dónde se mire.
  */
 export const isMeetingWeekPublished = (
-  schedule: Pick<SchedWeekType, 'weekOf' | 'midweek_meeting' | 'weekend_meeting'>
+  schedule:
+    | Pick<SchedWeekType, 'weekOf' | 'midweek_meeting' | 'weekend_meeting'>
     | null
     | undefined,
   key: MeetingPublishKey,
@@ -159,8 +169,8 @@ export const isMeetingWeekPublished = (
   if (!meetingMonthNeedsPublishing(schedule.weekOf, key)) return true;
 
   return (
-    getMeetingPublishedEntry(schedule as SchedWeekType, key, dataView)?.value ===
-    true
+    getMeetingPublishedEntry(schedule as SchedWeekType, key, dataView)
+      ?.value === true
   );
 };
 
@@ -224,8 +234,7 @@ export const isMeetingMonthPublished = (
   if (weeks.length === 0) return false;
 
   return weeks.every(
-    (week) =>
-      getMeetingPublishedEntry(week, key, dataView)?.value === true
+    (week) => getMeetingPublishedEntry(week, key, dataView)?.value === true
   );
 };
 
@@ -638,7 +647,8 @@ const collectAssignees = (
 
   if ('value' in record && 'updatedAt' in record) {
     // Una asignación vacía, borrada o de otra vista no cuenta.
-    if (typeof record.value !== 'string' || record.value.length === 0) return [];
+    if (typeof record.value !== 'string' || record.value.length === 0)
+      return [];
     if (typeof record.type === 'string' && record.type !== dataView) return [];
     if (record._deleted === true) return [];
 
