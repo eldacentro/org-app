@@ -8,7 +8,7 @@ import {
 import { fieldServiceReportsState } from './field_service_reports';
 import {
   fieldServiceGroupsState,
-  fieldWithLanguageGroupsState,
+  fieldWithLanguageGroupsNoStudentsState,
 } from './field_service_groups';
 import { isElderState, settingsState } from './settings';
 import { settingSchema } from '@services/dexie/schema';
@@ -105,21 +105,32 @@ const DAVID = person('david', 'David', {
 });
 const ANA = person('ana', 'Ana', { tramos: [{ start: '2015-03-01' }] }); // informa
 
-const buildStore = (rol: string[] = []) => {
+const buildStore = (
+  opts: { rol?: string[]; soloMisInformes?: boolean } = {}
+) => {
   const store = createStore();
 
-  // El rol decide si este dispositivo tiene los informes de la congregación,
-  // y de ahí si la regla de activo/inactivo se puede evaluar siquiera.
+  // Dos cosas deciden si este dispositivo puede evaluar la regla de
+  // activo/inactivo: el ROL (a quien lleva los informes se le mandan enteros)
+  // y, si no, el DATO (desde agosto el servidor manda a cualquier publicador
+  // en qué meses participaron los demás, y nada más).
   const settings = structuredClone(settingSchema);
-  settings.user_settings.cong_role = rol as never;
+  settings.user_settings.cong_role = (opts.rol ?? []) as never;
+  settings.user_settings.user_local_uid = 'ana';
   store.set(settingsState, settings);
 
   store.set(personsState, [ANTONIO, VICTOR, DAVID, ANA]);
-  store.set(fieldServiceReportsState, [
-    report('ana', '2026/07'),
-    report('antonio', '2025/11'),
-    report('david', '2025/09'),
-  ]);
+  store.set(
+    fieldServiceReportsState,
+    opts.soloMisInformes
+      ? // Lo que tenía un móvil de publicador ANTES: solo los suyos.
+        [report('ana', '2026/07')]
+      : [
+          report('ana', '2026/07'),
+          report('antonio', '2025/11'),
+          report('david', '2025/09'),
+        ]
+  );
   store.set(fieldServiceGroupsState, [
     {
       group_id: 'g1',
@@ -177,20 +188,38 @@ describe('los atoms de verdad, con el grafo de imports real', () => {
     expect(names(store.get(personsFilteredState))).toEqual(['ana']);
   });
 
+  // El atom que pinta la PÁGINA de Grupos de predicación. Es el que hay que
+  // mirar: el de arriba deja pasar a todo al anciano y le aplica el filtro más
+  // abajo, así que comparándolo saldría que ven cosas distintas cuando no.
   const miembros = (store: ReturnType<typeof buildStore>) =>
     store
-      .get(fieldWithLanguageGroupsState)[0]
+      .get(fieldWithLanguageGroupsNoStudentsState)[0]
       .group_data.members.map((m) => m.person_uid)
       .sort();
 
-  it('Grupos: a quien TIENE los informes, el inactivo le desaparece salvo con la concesión', () => {
-    // Un superintendente de grupo: no es anciano, pero el servidor sí le manda
-    // los informes de la congregación, así que la regla se puede evaluar.
-    const store = buildStore(['group_overseers']);
+  it('Grupos: a un superintendente de grupo el inactivo le desaparece salvo con la concesión', () => {
+    // No es anciano, pero el servidor sí le manda los informes enteros.
+    const store = buildStore({ rol: ['group_overseers'] });
     expect(store.get(isElderState)).toBe(false);
 
     // david tiene la casilla marcada; antonio no
     expect(miembros(store)).toEqual(['ana', 'david']);
+  });
+
+  /**
+   * Lo que tiene que ver una publicadora: exactamente lo mismo que un anciano.
+   *
+   * Su móvil no recibe los informes de la congregación, pero sí en qué meses
+   * participó cada uno —sin horas, ni cursos, ni comentarios—, que es lo único
+   * que la regla necesita. Con eso el inactivo se le esconde igual, y la
+   * concesión se le respeta igual.
+   */
+  it('Grupos: una publicadora ve lo MISMO que un anciano', () => {
+    const publicadora = buildStore({ rol: ['publisher'] });
+    const anciano = buildStore({ rol: ['admin', 'elder'] });
+
+    expect(miembros(publicadora)).toEqual(['ana', 'david']);
+    expect(miembros(publicadora)).toEqual(miembros(anciano));
   });
 
   /**
@@ -205,8 +234,12 @@ describe('los atoms de verdad, con el grafo de imports real', () => {
    * Aquí la publicadora tiene los informes de ana, antonio y david, y aun así
    * los cuatro miembros del grupo se ven: cuando no se puede saber, se enseña.
    */
-  it('Grupos: a quien NO tiene los informes se le enseñan todos, no se le esconde nadie', () => {
-    const store = buildStore(['publisher']);
+  it('Grupos: sin el dato nuevo todavía, se enseñan todos en vez de esconder a la congregación', () => {
+    // La red de seguridad, y el fallo que arregla: mientras el servidor nuevo
+    // no haya llegado, el móvil solo tiene los informes propios. Ahí «¿ha
+    // participado Fulano?» no es «no», es «no lo sé» — y contestando que no se
+    // escondía a todo el mundo menos a dos o tres.
+    const store = buildStore({ rol: ['publisher'], soloMisInformes: true });
 
     expect(store.get(isElderState)).toBe(false);
     expect(miembros(store)).toEqual(['ana', 'antonio', 'david']);

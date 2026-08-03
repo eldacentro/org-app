@@ -11,7 +11,8 @@ import {
 import { congFieldServiceReportSchema } from '@services/dexie/schema';
 import { buildMinistryMonthsIndex } from '@services/app/publisher_status';
 import { retentionServiceYears, serviceYearOfMonth } from '@utils/date';
-import { congRoleState, isElderState } from './settings';
+import { congRoleState, isElderState, userLocalUIDState } from './settings';
+import { delegatedFieldServiceReportsState } from './delegated_field_service_reports';
 
 export const fieldServiceReportsState = atom<CongFieldServiceReportType[]>([]);
 
@@ -36,36 +37,63 @@ export const ministryMonthsState = atom((get) =>
 );
 
 /**
- * ¿Tiene ESTE dispositivo los informes de la congregación?
+ * ¿Puede ESTE dispositivo saber quién está activo y quién no?
  *
- * Hace falta para no contestar a una pregunta que no se puede contestar. La
- * regla de publicador activo mira si alguien ha informado en los últimos seis
- * meses, y el servidor solo manda los informes de TODA la congregación a quien
- * los lleva: anciano, superintendente de grupo o de grupo de idioma. A un
- * publicador le manda los suyos y los de su familia, y nada más.
+ * La regla de publicador activo mira si alguien ha participado en la
+ * predicación en los últimos seis meses. Para contestarla hacen falta los
+ * meses de participación de TODA la congregación, y no todo el mundo los tiene.
  *
- * En su móvil, entonces, «¿ha informado Fulano?» no es «no»: es «no lo sé». Y
- * responder que no escondía a la congregación entera de la página de Grupos de
- * predicación, dejándole a la vista solo las dos o tres personas de cuyos
- * informes sí dispone —justo lo que pasó—.
+ * Dos maneras de tenerlos, y las dos valen:
  *
- * La regla ya traía una salvaguarda para «no hay ni un informe», pensando en un
- * dispositivo recién instalado. No alcanzaba a este caso, que no es quedarse
- * sin datos sino tener un puñado que son los propios.
+ * 1. **Por el rol.** A quien lleva los informes —anciano, superintendente de
+ *    grupo o de grupo de idioma— el servidor le manda los informes completos.
+ *    Se calca de `reportEditorRole` del backend (`services/api/users.ts`), que
+ *    es quien lo decide de verdad.
  *
- * Se calca de `reportEditorRole` del backend (`services/api/users.ts`), que es
- * quien decide de verdad a quién se los manda. Si un día cambia allí, cambia
- * aquí.
+ * 2. **Por el dato.** Desde el 3 de agosto el servidor le manda además a
+ *    cualquier publicador, de los demás hermanos, SOLO en qué meses
+ *    participaron: ni horas, ni cursos, ni comentarios. Con eso la misma regla
+ *    se aplica igual en su móvil.
+ *
+ * El segundo camino se comprueba mirando el dato y no el rol, y eso es a
+ * propósito: mientras el servidor nuevo no esté desplegado —o mientras no
+ * llegue el primer ciclo de sincronización— el móvil sigue teniendo solo los
+ * informes propios, y ahí «¿ha participado Fulano?» no es «no», es «no lo sé».
+ * Contestando que no se escondía a la congregación entera de Grupos de
+ * predicación y quedaban a la vista dos o tres personas: justo el fallo del 3
+ * de agosto. Cuando no se sabe, se enseña.
+ *
+ * Se mira si el índice conoce a ALGUIEN de fuera del círculo propio —uno mismo
+ * y aquellos por los que informa—, que es la diferencia exacta entre el envío
+ * viejo y el nuevo. No es un umbral a ojo.
  */
 export const congregationReportsAvailableState = atom((get) => {
   const isElder = get(isElderState);
   const userRole = get(congRoleState);
 
-  return (
+  const porRol =
     isElder ||
     userRole.includes('group_overseers') ||
-    userRole.includes('language_group_overseers')
-  );
+    userRole.includes('language_group_overseers');
+
+  if (porRol) return true;
+
+  const propio = get(userLocalUIDState);
+  const delegados = get(delegatedFieldServiceReportsState);
+
+  const circulo = new Set<string>([propio]);
+  for (const record of delegados ?? []) {
+    const uid = record?.report_data?.person_uid;
+    if (uid) circulo.add(String(uid));
+  }
+
+  const index = get(ministryMonthsState);
+
+  for (const uid of index.keys()) {
+    if (!circulo.has(uid)) return true;
+  }
+
+  return false;
 });
 
 /**
