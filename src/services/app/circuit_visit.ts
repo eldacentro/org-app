@@ -165,3 +165,38 @@ export const buildVisitForWeek = (anyDateInWeek: Date): CircuitVisitType => {
 export const isCircuitVisitPublished = (
   visit: Pick<CircuitVisitType, 'published'> | null | undefined
 ) => visit?.published !== false;
+
+/**
+ * ¿Se ha tocado la visita DESPUÉS de publicarla?
+ *
+ * Es lo único que se puede afirmar con verdad: la visita se guarda entera, con
+ * un solo `updatedAt` para todo el registro, así que no hay forma de contar
+ * cuántas cosas cambiaron ni cuáles (a diferencia de las reuniones, donde cada
+ * asignación lleva su propia marca).
+ *
+ * Estrictamente mayor a propósito. Publicar es en sí mismo un guardado, y
+ * `dbCircuitVisitSave` sella las dos marcas con el MISMO valor: con `>=` el
+ * aviso saltaría en el instante de publicar, antes de que nadie hubiera tocado
+ * nada.
+ *
+ * Sin sello (`publishedAt` vacío) se responde que no: son las visitas que se
+ * publicaron antes de que esto existiera, y no se sabe desde cuándo. Callar es
+ * más honesto que avisar de un cambio que a lo mejor no ha habido.
+ */
+export const circuitVisitChangedSincePublish = (
+  visit:
+    | Pick<CircuitVisitType, 'published' | 'publishedAt' | 'updatedAt'>
+    | null
+    | undefined
+) => {
+  if (!visit) return false;
+
+  // En borrador ya lo dice la etiqueta naranja de la cabecera; este aviso es
+  // solo para lo que la congregación ya ha visto.
+  if (!isCircuitVisitPublished(visit)) return false;
+
+  const publishedAt = visit.publishedAt ?? '';
+  if (!publishedAt) return false;
+
+  return (visit.updatedAt ?? '') > publishedAt;
+};

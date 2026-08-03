@@ -122,27 +122,52 @@ const useCircuitVisitDashboard = () => {
     return uids.size;
   }, [working]);
 
-  const flushSave = useCallback((record: CircuitVisitType) => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (savedResetTimer.current) clearTimeout(savedResetTimer.current);
-
-    saveTimer.current = setTimeout(async () => {
-      setSaveStatus('saving');
-      try {
-        await dbCircuitVisitSave(record);
-        setSaveStatus('saved');
-        savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
-      } catch (error) {
-        setSaveStatus('error');
-        console.error(error);
-        displaySnackNotification({
-          header: 'Error',
-          message: 'No se pudo guardar el cambio. Revisa tu conexión.',
-          severity: 'error',
-        });
-      }
-    }, AUTOSAVE_MS);
+  // Trae al borrador de pantalla las marcas que estampa el guardado
+  // (`updatedAt` y, si tocaba, `publishedAt`). Nunca copia contenido.
+  const applySavedMarks = useCallback((saved: CircuitVisitType) => {
+    setWorking((prev) =>
+      prev && prev.id === saved.id
+        ? {
+            ...prev,
+            updatedAt: saved.updatedAt,
+            publishedAt: saved.publishedAt,
+          }
+        : prev
+    );
   }, []);
+
+  const flushSave = useCallback(
+    (record: CircuitVisitType) => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (savedResetTimer.current) clearTimeout(savedResetTimer.current);
+
+      saveTimer.current = setTimeout(async () => {
+        setSaveStatus('saving');
+        try {
+          const saved = await dbCircuitVisitSave(record);
+          setSaveStatus('saved');
+
+          // Sin esto, `updatedAt` del borrador se quedaría con el valor que tenía
+          // al cargar la visita y la tira de "se ha cambiado desde que se
+          // publicó" no saldría hasta recargar la página.
+          applySavedMarks(saved);
+          savedResetTimer.current = setTimeout(
+            () => setSaveStatus('idle'),
+            2000
+          );
+        } catch (error) {
+          setSaveStatus('error');
+          console.error(error);
+          displaySnackNotification({
+            header: 'Error',
+            message: 'No se pudo guardar el cambio. Revisa tu conexión.',
+            severity: 'error',
+          });
+        }
+      }, AUTOSAVE_MS);
+    },
+    [applySavedMarks]
+  );
 
   // Aplica un cambio al borrador y agenda el guardado.
   const patch = useCallback(
@@ -204,7 +229,10 @@ const useCircuitVisitDashboard = () => {
     setSaveStatus('saving');
 
     try {
-      await dbCircuitVisitSave(next);
+      // `stampPublishedAt`: publicar (o retirar) sella también la fecha de
+      // publicación, con la misma marca de tiempo del guardado.
+      const saved = await dbCircuitVisitSave(next, { stampPublishedAt: true });
+      applySavedMarks(saved);
       setSaveStatus('saved');
       savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
 
@@ -224,7 +252,49 @@ const useCircuitVisitDashboard = () => {
         severity: 'error',
       });
     }
-  }, [working, isPublished]);
+  }, [working, isPublished, applySavedMarks]);
+
+  /**
+   * Vuelve a sellar la fecha de publicación de una visita que ya está
+   * publicada, sin cambiar si lo está o no.
+   *
+   * Es lo que hace el botón de la tira de aviso: pone al día la referencia
+   * contra la que se mira si la visita se ha tocado desde que la congregación
+   * la vio. Sin esto, ese aviso no se podría cerrar nunca.
+   */
+  const handleRepublish = useCallback(async () => {
+    if (!working) return;
+    if (!isPublished) return;
+
+    // El autoguardado pendiente escribiría el mismo borrador SIN sellar, y el
+    // aviso volvería a salir un segundo después de haberlo cerrado.
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+
+    setSaveStatus('saving');
+
+    try {
+      const saved = await dbCircuitVisitSave(working, {
+        stampPublishedAt: true,
+      });
+      applySavedMarks(saved);
+      setSaveStatus('saved');
+      savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+
+      displaySnackNotification({
+        header: 'Hecho',
+        message: 'Los cambios de esta visita quedan publicados.',
+        severity: 'success',
+      });
+    } catch (error) {
+      setSaveStatus('error');
+      console.error(error);
+      displaySnackNotification({
+        header: 'Error',
+        message: 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+      });
+    }
+  }, [working, isPublished, applySavedMarks]);
 
   // dbCircuitVisitDelete ya limpia también la entrada ligera de Ajustes
   // (settings.circuit_overseer.visits) además de revertir los marcadores.
@@ -607,6 +677,7 @@ const useCircuitVisitDashboard = () => {
     handleCreateVisit,
     handleDeleteVisit,
     handleTogglePublish,
+    handleRepublish,
     isPublished,
     assignedPeopleCount,
     patch,

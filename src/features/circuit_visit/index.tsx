@@ -30,6 +30,7 @@ import {
 } from '@components/icons';
 import { addDays, formatDate, horaATexto, textoAHora } from '@utils/date';
 import CircuitVisitPublishDialog from './publish_dialog';
+import CircuitVisitPublishNotice from './publish_notice';
 import { fmtDayEs, fmtDateShortEs, fmtRangeEs } from './shared/fmtDayEs';
 import useExportS21 from '@features/reports/publisher_records/export_S21/useExportS21';
 import useExportS88 from '@features/reports/meeting_attendance/export_S88/useExportS88';
@@ -672,6 +673,7 @@ const CircuitVisitDashboard = () => {
     updateSpecialMeeting,
     handleExportPdf,
     handleTogglePublish,
+    handleRepublish,
     isPublished,
     assignedPeopleCount,
   } = useCircuitVisitDashboard();
@@ -1021,6 +1023,14 @@ const CircuitVisitDashboard = () => {
 
       {working && (
         <Stack spacing="20px" sx={{ mt: '12px' }}>
+          {/* Lo primero de la página, antes que la propia visita: si la
+              congregación ya vio otra versión, eso se dice antes de seguir
+              editando. */}
+          <CircuitVisitPublishNotice
+            visit={working}
+            onRepublish={handleRepublish}
+          />
+
           {/* Cabecera de la visita: fechas + estado + superintendente (con
               sustituto integrado). Mismo estilo de tarjeta que el resto de
               la página; el borrado es un icono discreto (casi nunca se usa)
