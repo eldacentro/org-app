@@ -394,5 +394,8 @@ export const TABLE_ENCRYPTION_MAP = {
     meeting_pioneers: 'shared',
     meeting_elders: 'shared',
     accounting_note: 'shared',
+    // Va cifrada como su hermana `updatedAt`, que es contra la que se compara:
+    // el servidor no tiene por qué saber cuándo se publicó una visita.
+    publishedAt: 'shared',
   },
 };

@@ -5,6 +5,7 @@ import {
   runExclusiveVisitOp,
   unprojectVisit,
 } from '@services/app/circuit_visit_projection';
+import { isCircuitVisitPublished } from '@services/app/circuit_visit';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { addDays, formatDate, getWeekDate } from '@utils/date';
 
@@ -90,11 +91,27 @@ export const dbCircuitVisitGetAll = async (): Promise<CircuitVisitType[]> => {
 
 // Todas las mutaciones corren bajo runExclusiveVisitOp: nunca se solapan
 // entre sí ni con reconcileAllVisits (ver nota del candado en la proyección).
-export const dbCircuitVisitSave = async (visit: CircuitVisitType) =>
+//
+// `stampPublishedAt`: este guardado ES la decisión de publicar (o de retirar la
+// publicación, o de volver a publicar), así que además de `updatedAt` sella
+// `publishedAt` con LA MISMA marca de tiempo — el mismo `now`, no dos llamadas
+// a Date. Que sean idénticas al milisegundo es lo que hace que el aviso de "se
+// ha cambiado desde que se publicó" no aparezca justo después de publicar
+// (`circuitVisitChangedSincePublish` compara con estrictamente mayor). Al
+// retirarla se queda en '', nunca null.
+export const dbCircuitVisitSave = async (
+  visit: CircuitVisitType,
+  options?: { stampPublishedAt?: boolean }
+) =>
   runExclusiveVisitOp(async () => {
+    const now = new Date().toISOString();
+
     const record: CircuitVisitType = {
       ...visit,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
+      ...(options?.stampPublishedAt
+        ? { publishedAt: isCircuitVisitPublished(visit) ? now : '' }
+        : {}),
     };
 
     await appDb.circuit_overseer_visits.put(record);

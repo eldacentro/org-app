@@ -44,6 +44,9 @@ export const normalizeCircuitVisit = (
   shepherding_visits: v.shepherding_visits ?? [],
   meeting_pioneers: v.meeting_pioneers ?? null,
   meeting_elders: v.meeting_elders ?? null,
+  // '' y nunca null: si viajara como null, decryptObject borraría la clave y
+  // la visita llegaría sin la forma completa (ver el comentario de arriba).
+  publishedAt: v.publishedAt ?? '',
 });
 
 /**

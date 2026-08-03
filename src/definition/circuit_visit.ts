@@ -93,4 +93,23 @@ export type CircuitVisitType = {
    * una asignación de nadie, y ya tiene su propia ventana de dos meses.
    */
   published?: boolean;
+
+  /**
+   * CUÁNDO se publicó por última vez (ISO-8601 UTC), para poder avisar de que
+   * la visita se ha tocado DESPUÉS de publicarla: la congregación ya vio la
+   * versión anterior. Con `published` a secas —un booleano suelto— no había
+   * contra qué comparar.
+   *
+   * Lo que se puede decir con esto es SI se ha tocado, y nada más: la visita es
+   * una entidad plana que se guarda entera, con un solo `updatedAt` para todo
+   * el registro (ver services/worker/circuitVisitMerge.ts). No hay marca por
+   * comida ni por acompañante, así que aquí NUNCA se puede decir "N cambios"
+   * como en las reuniones — sería un número inventado.
+   *
+   * Vacío ('') = sin sello: o está en borrador, o se publicó antes de que esto
+   * existiera. En ese segundo caso no se avisa de nada, que es lo honesto: no
+   * se sabe desde cuándo. Vacío y nunca `null`: `decryptObject` ELIMINA las
+   * claves que viajan como null.
+   */
+  publishedAt?: string;
 };
