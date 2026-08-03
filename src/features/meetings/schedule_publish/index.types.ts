@@ -16,6 +16,9 @@ export type ScheduleListType = {
   months: {
     month: string;
     checked: boolean;
+    /** La congregación ya lo ve. */
     published: boolean;
+    /** Es anterior al corte: nunca se publicó a mano y no se puede retirar. */
+    isHistoric: boolean;
   }[];
 };

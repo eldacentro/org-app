@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useQuery } from '@tanstack/react-query';
 import { addMonths, formatDate, getWeekDate, isMondayDate } from '@utils/date';
@@ -33,13 +33,27 @@ import {
 } from '@services/api/schedule';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 import { getUserDataView } from '@services/app';
+import { personsByViewState } from '@states/persons';
+import { congAccountConnectedState } from '@states/app';
+import { personIsAwayOn } from '@services/app/persons';
+import { personGetDisplayName } from '@utils/common';
+import { dbSchedBulkUpdate } from '@services/dexie/schedules';
+import {
+  collectMeetingMonthAssignees,
+  countMeetingMissingParts,
+  isMeetingMonthPublished,
+  meetingMonthNeedsPublishing,
+  setMeetingMonthPublished,
+} from '@services/app/meetings_publish';
 
 const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const { t } = useAppTranslation();
 
   const { isPublicTalkCoordinator } = useCurrentUser();
 
-  const { data, refetch } = useQuery({
+  // Solo hace falta `refetch`: la lista de meses ya publicados sale ahora de la
+  // marca de cada semana, no de lo que haya en la web pública.
+  const { refetch } = useQuery({
     queryKey: ['public_schedules'],
     queryFn: apiPublicScheduleGet,
     refetchOnMount: 'always',
@@ -56,9 +70,11 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const congID = useAtomValue(congIDState);
   const lang = useAtomValue(JWLangState);
 
+  const persons = useAtomValue(personsByViewState);
+  const isConnected = useAtomValue(congAccountConnectedState);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
-  const [publishedItems, setPublishedItems] = useState<string[]>([]);
 
   const sourcesList = useMemo(() => {
     const weekDate = getWeekDate();
@@ -102,6 +118,15 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     return groupedData;
   }, [sourcesList]);
 
+  /**
+   * "Publicado" quiere decir que la congregación lo ve.
+   *
+   * Antes esta marca salía de lo que hubiera en el servidor público, que es
+   * otra cosa (la página web para quien no tiene cuenta) y que además no
+   * distingue un mes entero de un mes a medias. Ahora sale de la marca de la
+   * propia semana, que es la que decide si al hermano le aparece su parte en
+   * "Mis asignaciones" y en el programa semanal.
+   */
   const schedulesList = useMemo(() => {
     const result: ScheduleListType[] = baseList.map((record) => {
       return {
@@ -110,14 +135,97 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
           return {
             month,
             checked: checkedItems.includes(month),
-            published: publishedItems.includes(month),
+            published: isMeetingMonthPublished(schedules, month, type, dataView),
+            isHistoric: !meetingMonthNeedsPublishing(month, type),
           };
         }),
       };
     });
 
     return result;
-  }, [baseList, checkedItems, publishedItems]);
+  }, [baseList, checkedItems, schedules, type, dataView]);
+
+  /** Los meses marcados que de verdad hay que publicar (el histórico ya lo está). */
+  const checkedMonths = useMemo(
+    () =>
+      checkedItems
+        .filter((item) => item.includes('/'))
+        .filter((month) => meetingMonthNeedsPublishing(month, type))
+        .toSorted(),
+    [checkedItems, type]
+  );
+
+  /** ¿Está ya publicado TODO lo marcado? Entonces lo que toca es retirar. */
+  const allCheckedPublished = useMemo(() => {
+    if (checkedMonths.length === 0) return false;
+
+    return checkedMonths.every((month) =>
+      isMeetingMonthPublished(schedules, month, type, dataView)
+    );
+  }, [checkedMonths, schedules, type, dataView]);
+
+  /** Partes principales sin nadie en lo marcado. No impide publicar; se dice. */
+  const missingParts = useMemo(
+    () =>
+      checkedMonths.reduce(
+        (total, month) =>
+          total + countMeetingMissingParts(schedules, month, type, dataView),
+        0
+      ),
+    [checkedMonths, schedules, type, dataView]
+  );
+
+  /**
+   * Quién está asignado en lo marcado teniendo una ausencia apuntada esos días.
+   *
+   * La aplicación ya lo avisa al elegir a la persona, y avisar otra vez aquí es
+   * a propósito: aquel aviso pasa cuando se está trabajando y se escapa; este
+   * sale justo antes de que lo vea la congregación entera.
+   *
+   * Se pregunta por el LUNES de la semana, que es como lo pregunta el
+   * autocompletado: una ausencia de un solo día que caiga justo el día de la
+   * reunión y no el lunes se escapa, pero lo normal es que cubra varios días.
+   */
+  const awayAssignees = useMemo(() => {
+    const found: string[] = [];
+
+    for (const month of checkedMonths) {
+      const assignees = collectMeetingMonthAssignees(
+        schedules,
+        month,
+        type,
+        dataView
+      );
+
+      for (const assignee of assignees) {
+        const person = persons.find(
+          (record) => record.person_uid === assignee.uid
+        );
+
+        if (!person) continue;
+
+        if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) {
+          continue;
+        }
+
+        const name =
+          personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
+          assignee.name;
+
+        if (name && !found.includes(name)) found.push(name);
+      }
+    }
+
+    return found;
+  }, [
+    checkedMonths,
+    schedules,
+    type,
+    dataView,
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
 
   const handleCheckedChange = (checked: boolean, value: string) => {
     if (isProcessing) return;
@@ -362,6 +470,73 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     return result;
   };
 
+  /**
+   * Marca (o retira) los meses en la propia aplicación.
+   *
+   * Esto es lo que decide si la congregación ve el mes. Va antes que la subida
+   * a la web pública y no depende de ella a propósito: si la red falla, lo peor
+   * que puede pasar es que la web pública se quede atrás, no que un mes ya
+   * decidido siga escondido para todo el mundo.
+   *
+   * Solo se guardan las semanas que CAMBIAN: guardar un registro idéntico
+   * despierta la sincronización de toda la congregación para nada.
+   */
+  const applyLocalPublish = async (months: string[], published: boolean) => {
+    const toSave: SchedWeekType[] = [];
+
+    for (const month of months) {
+      if (!meetingMonthNeedsPublishing(month, type)) continue;
+
+      toSave.push(
+        ...setMeetingMonthPublished(
+          schedules,
+          month,
+          type,
+          published,
+          dataView
+        )
+      );
+    }
+
+    if (toSave.length > 0) {
+      await dbSchedBulkUpdate(toSave);
+    }
+
+    return toSave.length;
+  };
+
+  const handleRetireSchedule = async () => {
+    if (checkedMonths.length === 0 || isProcessing) return;
+
+    try {
+      setIsProcessing(true);
+
+      await applyLocalPublish(checkedMonths, false);
+
+      setIsProcessing(false);
+      onClose?.();
+
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message:
+          checkedMonths.length === 1
+            ? 'Mes retirado: vuelve a ser un borrador.'
+            : 'Meses retirados: vuelven a ser un borrador.',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+
+      setIsProcessing(false);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(error.message),
+        severity: 'error',
+      });
+    }
+  };
+
   const handlePublishSchedule = async () => {
     if (checkedItems.length === 0 || isProcessing) return;
 
@@ -369,6 +544,23 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
       setIsProcessing(true);
 
       const months = checkedItems.toSorted();
+
+      await applyLocalPublish(months, true);
+
+      // Sin cuenta conectada no hay web pública a la que subir nada, pero el
+      // mes ya está publicado donde importa: dentro de la aplicación.
+      if (!isConnected) {
+        setIsProcessing(false);
+        onClose?.();
+
+        displaySnackNotification({
+          header: t('tr_successfullyPublished'),
+          message: t('tr_successfullyPublishedDesc'),
+          severity: 'success',
+        });
+
+        return;
+      }
 
       const sourcesLocalPublish = handleGetMaterials(sources, months);
       const schedulesLocalPublish = handleGetMaterials(schedules, months);
@@ -432,25 +624,16 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     }
   };
 
-  useEffect(() => {
-    if (Array.isArray(data?.schedules) && Array.isArray(data?.sources)) {
-      const published = data.schedules.reduce((acc: string[], { weekOf }) => {
-        const month = weekOf.slice(0, 7);
-        if (!acc.includes(month)) {
-          acc.push(month);
-        }
-        return acc;
-      }, []);
-
-      setPublishedItems(published);
-    }
-  }, [data]);
-
   return {
     schedulesList,
     handleCheckedChange,
     handlePublishSchedule,
+    handleRetireSchedule,
     isProcessing,
+    checkedMonths,
+    allCheckedPublished,
+    missingParts,
+    awayAssignees,
   };
 };
 

@@ -1,5 +1,10 @@
 import { Box, Stack } from '@mui/material';
-import { useAppTranslation } from '@hooks/index';
+import { useAtomValue } from 'jotai';
+import { useAppTranslation, useCurrentUser } from '@hooks/index';
+import { schedulesState } from '@states/schedules';
+import { userDataViewState } from '@states/settings';
+import { isMeetingWeekPublished } from '@services/app/meetings_publish';
+import { DraftBanner, DraftEmptyState } from '../draft_notice';
 import { IconInfo, IconVisitingSpeaker } from '@components/icons';
 import useOutgoingTalks from './useOutgoingTalks';
 import WeekChipStrip from '../week_chip_strip';
@@ -11,6 +16,9 @@ import EmptyState from '@components/empty_state';
 
 const OutgoingTalks = () => {
   const { t } = useAppTranslation();
+  const { isPublicTalkCoordinator } = useCurrentUser();
+  const schedules = useAtomValue(schedulesState);
+  const dataView = useAtomValue(userDataViewState);
   const {
     value,
     handleValueChange,
@@ -21,6 +29,14 @@ const OutgoingTalks = () => {
     noSchedule,
     talkSchedules,
   } = useOutgoingTalks();
+
+  const isDraft =
+    !!week &&
+    !isMeetingWeekPublished(
+      schedules.find((record) => record.weekOf === week),
+      'outgoing',
+      dataView
+    );
 
   return noSchedule ? (
     <NoSchedule />
@@ -47,8 +63,18 @@ const OutgoingTalks = () => {
         lastUpdated={scheduleLastUpdated}
       />
 
-      {week && (
+      {/* Mes en BORRADOR: las salidas que el coordinador todavía no ha
+          confirmado no se le enseñan a la congregación. */}
+      {week && isDraft && !isPublicTalkCoordinator && (
+        <DraftEmptyState text="Todavía no hay discursos salientes publicados para esta semana." />
+      )}
+
+      {week && (!isDraft || isPublicTalkCoordinator) && (
         <Stack spacing="16px">
+          {isDraft && (
+            <DraftBanner text="Mes sin publicar. Esto es un borrador: solo lo ves tú, y no le aparece a nadie hasta que lo publiques." />
+          )}
+
           {talkSchedules.length > 0 && (
             <Box
               sx={{

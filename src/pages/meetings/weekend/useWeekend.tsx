@@ -6,6 +6,10 @@ import { congAccountConnectedState } from '@states/app';
 import { userDataViewState } from '@states/settings';
 import { buildFieldChanges } from '@services/app/last_modified';
 import { useAppTranslation } from '@hooks/index';
+import {
+  isMeetingMonthPublished,
+  meetingMonthNeedsPublishing,
+} from '@services/app/meetings_publish';
 
 const useWeekend = () => {
   const { t } = useAppTranslation();
@@ -64,6 +68,21 @@ const useWeekend = () => {
       dataView
     );
   }, [currentSched, dataView, t]);
+  // Se publica por MES, como en el resto de módulos: es la unidad con la que se
+  // piensa el programa, aunque los datos vayan por semana.
+  const selectedMonth = selectedWeek?.substring(0, 7) ?? '';
+
+  const monthIsPublished = isMeetingMonthPublished(
+    schedules,
+    selectedMonth,
+    'weekend',
+    dataView
+  );
+
+  const monthIsHistoric = !meetingMonthNeedsPublishing(
+    selectedMonth,
+    'weekend'
+  );
 
   const [openAutofill, setOpenAutofill] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -100,6 +119,9 @@ const useWeekend = () => {
     handleOpenPublish,
     handleClosePublish,
     isConnected,
+    selectedMonth,
+    monthIsPublished,
+    monthIsHistoric,
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,

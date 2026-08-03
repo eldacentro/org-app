@@ -11,6 +11,11 @@ import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
 import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 import useMeetingHeadline from '../useMeetingHeadline';
 import WeekendMeeting from '../weekend_meeting';
+import { useAtomValue } from 'jotai';
+import { schedulesState } from '@states/schedules';
+import { useCurrentUser } from '@hooks/index';
+import { isMeetingWeekPublished } from '@services/app/meetings_publish';
+import { DraftBanner, DraftEmptyState } from '../draft_notice';
 
 const WeekendContainer = ({
   onGoToVisit,
@@ -31,6 +36,21 @@ const WeekendContainer = ({
     noSchedule,
     dataView,
   } = useWeekendContainer();
+
+  // El coordinador de discursos públicos edita el orador sin ser el
+  // responsable de la reunión: también tiene que ver su borrador.
+  const { isWeekendEditor, isPublicTalkCoordinator } = useCurrentUser();
+  const canSeeDraft = isWeekendEditor || isPublicTalkCoordinator;
+
+  const schedules = useAtomValue(schedulesState);
+
+  const isDraft =
+    !!week &&
+    !isMeetingWeekPublished(
+      schedules.find((record) => record.weekOf === week),
+      'weekend',
+      dataView ?? 'main'
+    );
 
   const visit = useUpcomingCircuitVisit();
   const esSemanaDeVisita = !!visit && !!week && visit.weekOf === week;
@@ -108,8 +128,17 @@ const WeekendContainer = ({
             </Box>
           )}
 
-          {week && (
+          {/* Mes en BORRADOR: ver la nota de la reunión de entre semana. */}
+          {week && isDraft && !canSeeDraft && (
+            <DraftEmptyState text="Todavía no hay programa publicado para esta semana." />
+          )}
+
+          {week && (!isDraft || canSeeDraft) && (
             <Stack spacing="24px">
+              {isDraft && (
+                <DraftBanner text="Mes sin publicar. Esto es un borrador: solo lo ves tú, y no le aparece a nadie en sus asignaciones hasta que lo publiques." />
+              )}
+
               <WeekendMeeting week={week} dataView={dataView} />
 
               {views.map((view) => (

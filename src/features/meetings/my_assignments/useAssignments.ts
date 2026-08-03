@@ -49,6 +49,10 @@ import { Week } from '@definition/week_type';
 import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import {
+  isMeetingDatePublished,
+  meetingPublishKeyOfAssignment,
+} from '@services/app/meetings_publish';
+import {
   DEPT_LABEL,
   deptSlotsForMeeting,
 } from '@services/app/departments_slots';
@@ -157,7 +161,23 @@ const useMyAssignments = () => {
 
     const maxDate = addWeeks(now, displayRange);
 
-    const remapAssignmentsDate = assignmentsHistory.map((record) =>
+    // Mes en BORRADOR: lo que se está repartiendo no es una decisión hasta que
+    // el responsable lo publica, así que no sale en "Mis asignaciones" — igual
+    // que ya pasaba con Departamentos, Salidas y Exhibidores.
+    //
+    // Se filtra ANTES de resolver la fecha: `resolveAssignmentDate` cambia
+    // `weekOf` por el día real de la reunión, y la marca de publicación vive en
+    // la semana (su lunes).
+    const publishedHistory = assignmentsHistory.filter((record) =>
+      isMeetingDatePublished(
+        schedules,
+        record.weekOf,
+        meetingPublishKeyOfAssignment(record.assignment.key),
+        record.assignment.dataView
+      )
+    );
+
+    const remapAssignmentsDate = publishedHistory.map((record) =>
       resolveAssignmentDate(record, shortDateFormat)
     );
 

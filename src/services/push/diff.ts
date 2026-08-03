@@ -7,7 +7,11 @@ import {
   DEPT_LABEL,
 } from '@services/app/departments_slots';
 import { ALL_DEPARTMENT_TYPES } from '@definition/person';
-import { assignmentsHistoryState } from '@states/schedules';
+import { assignmentsHistoryState, schedulesState } from '@states/schedules';
+import {
+  isMeetingDatePublished,
+  meetingPublishKeyOfAssignment,
+} from '@services/app/meetings_publish';
 import { userLocalUIDState } from '@states/settings';
 import { exhibitorsListState, exhibitorsSettingsState } from '@states/exhibitors';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
@@ -210,9 +214,26 @@ const computeNewAssignments = async (): Promise<NewAssignment[]> => {
 
   // ── 1. Meeting assignments (midweek + weekend) ─────────────────────────────
   const history = store.get(assignmentsHistoryState);
+  const schedules = store.get(schedulesState);
+
   for (const record of history) {
     if (record.assignment.person !== userUID) continue;
     if (record.weekOf < today) continue;
+
+    // Mes en BORRADOR: no se avisa de una propuesta. Al publicarse, la huella
+    // aparece por primera vez y el aviso sale entonces, que es cuando toca —
+    // el mismo razonamiento que en Departamentos, aquí abajo.
+    if (
+      !isMeetingDatePublished(
+        schedules,
+        record.weekOf,
+        meetingPublishKeyOfAssignment(record.assignment.key),
+        record.assignment.dataView
+      )
+    ) {
+      continue;
+    }
+
     mark(
       `${record.weekOf}|${record.assignment.key ?? record.assignment.code}|${userUID}`,
       record.assignment.title
@@ -353,9 +374,25 @@ const computeCalendarUpdates = async (): Promise<{
 
   // ── Meeting assignments ─────────────────────────────────────────────────
   const history = store.get(assignmentsHistoryState);
+  const schedules = store.get(schedulesState);
+
   for (const record of history) {
     if (record.assignment.person !== userUID) continue;
     if (record.weekOf < today) continue;
+
+    // Mes en BORRADOR: tampoco se toca el calendario que ya se exportó por un
+    // cambio que la congregación todavía no ha visto.
+    if (
+      !isMeetingDatePublished(
+        schedules,
+        record.weekOf,
+        meetingPublishKeyOfAssignment(record.assignment.key),
+        record.assignment.dataView
+      )
+    ) {
+      continue;
+    }
+
     currentById.set(record.id, {
       title: record.assignment.title,
       hash: computeContentHashFromFields({

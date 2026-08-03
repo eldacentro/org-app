@@ -38,6 +38,23 @@ export type CanceledCongregation = {
   updatedAt: string;
 };
 
+/**
+ * Borrador / publicado, por vista de datos.
+ *
+ * Misma forma que `canceled` a propósito: un booleano suelto dentro de la
+ * semana lo gana siempre el servidor en la fusión (`syncFromRemote` no mira
+ * fechas en los primitivos), y un "publicado" que se revierte solo deja a la
+ * congregación sin ver un mes que ya estaba fuera. Con `{type, value,
+ * updatedAt}` la fusión casa por `type` y gana la marca más reciente.
+ *
+ * Ver `services/app/meetings_publish.ts`.
+ */
+export type PublishedCongregation = {
+  type: string;
+  value: boolean;
+  updatedAt: string;
+};
+
 export type AssignmentAYFType = {
   main_hall: {
     student: AssignmentCongregation[];
@@ -133,6 +150,8 @@ export type SchedWeekType = {
     aux_fsg?: { value: string; updatedAt: string };
     week_type: WeekTypeCongregation[];
     canceled: CanceledCongregation[];
+    /** ¿Publicado este mes de la reunión de entre semana? Ver meetings_publish. */
+    published?: PublishedCongregation[];
   };
   weekend_meeting: {
     chairman: AssignmentCongregation[];
@@ -152,6 +171,15 @@ export type SchedWeekType = {
     week_type: WeekTypeCongregation[];
     outgoing_talks: OutgoingTalkScheduleType[];
     canceled: CanceledCongregation[];
+    /** ¿Publicado este mes de la reunión de fin de semana? */
+    published?: PublishedCongregation[];
+    /**
+     * ¿Publicado este mes de los discursos salientes?
+     *
+     * Aparte del anterior porque son otro programa y otro responsable (el
+     * coordinador de discursos públicos), aunque vivan en la misma semana.
+     */
+    outgoing_talks_published?: PublishedCongregation[];
   };
 };
 

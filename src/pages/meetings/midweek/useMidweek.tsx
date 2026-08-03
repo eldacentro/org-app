@@ -6,6 +6,10 @@ import { schedulesState, selectedWeekState } from '@states/schedules';
 import { userDataViewState } from '@states/settings';
 import { buildFieldChanges } from '@services/app/last_modified';
 import { useAppTranslation } from '@hooks/index';
+import {
+  isMeetingMonthPublished,
+  meetingMonthNeedsPublishing,
+} from '@services/app/meetings_publish';
 
 const useMidweek = () => {
   const { t } = useAppTranslation();
@@ -86,6 +90,21 @@ const useMidweek = () => {
       dataView
     );
   }, [currentSched, dataView, t]);
+  // Se publica por MES, como en el resto de módulos: es la unidad con la que se
+  // piensa el programa, aunque los datos vayan por semana.
+  const selectedMonth = selectedWeek?.substring(0, 7) ?? '';
+
+  const monthIsPublished = isMeetingMonthPublished(
+    schedules,
+    selectedMonth,
+    'midweek',
+    dataView
+  );
+
+  const monthIsHistoric = !meetingMonthNeedsPublishing(
+    selectedMonth,
+    'midweek'
+  );
 
   const [openAutofill, setOpenAutofill] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -122,6 +141,9 @@ const useMidweek = () => {
     handleOpenPublish,
     handleClosePublish,
     isConnected,
+    selectedMonth,
+    monthIsPublished,
+    monthIsHistoric,
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,
