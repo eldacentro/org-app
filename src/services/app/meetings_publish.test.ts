@@ -13,6 +13,7 @@ import {
   MEETING_DRAFT_FROM,
   meetingMonthNeedsPublishing,
   buildMeetingWeekMissingParts,
+  isMeetingWeekUntouched,
   meetingWeeksOfMonth,
   restampMeetingMonthPublished,
   restampMeetingWeeksPublished,
@@ -981,5 +982,74 @@ describe('qué le falta a una semana, con nombre', () => {
     expect(buildMeetingWeekMissingParts(undefined, 'midweek', 'main')).toEqual(
       []
     );
+  });
+});
+
+describe('lo que la congregación resuelve sin apuntarlo no «falta»', () => {
+  const finDeSemanaVacio = week('2026/10/05', {
+    weekend: {
+      chairman: [{ type: 'main', value: '' }],
+      opening_prayer: [{ type: 'main', value: '' }],
+      speaker: { part_1: [{ type: 'main', value: '' }] },
+      wt_study: {
+        conductor: [{ type: 'main', value: '' }],
+        reader: [{ type: 'main', value: '' }],
+      },
+      week_type: [{ type: 'main', value: 1 }],
+    },
+  });
+
+  it('con un conductor de La Atalaya fijo en Ajustes, esa parte no se reclama', () => {
+    // El autocompletado NO pone conductor a propósito: casi siempre es el mismo
+    // hermano y sale de Ajustes. Sin saberlo, el aviso decía «Falta Conductor de
+    // La Atalaya» en TODAS las semanas — y un aviso que sale siempre deja de
+    // leerse, llevándose por delante los que sí importan.
+    expect(
+      buildMeetingWeekMissingParts(finDeSemanaVacio, 'weekend', 'main')
+    ).toContain('Conductor de La Atalaya');
+
+    expect(
+      buildMeetingWeekMissingParts(finDeSemanaVacio, 'weekend', 'main', {
+        wtConductorPorDefecto: true,
+      })
+    ).not.toContain('Conductor de La Atalaya');
+  });
+
+  it('con la oración del fin de semana automática, tampoco', () => {
+    // Con ese ajuste puesto, la casilla ni se enseña en pantalla: la lleva quien
+    // preside y no se apunta.
+    expect(
+      buildMeetingWeekMissingParts(finDeSemanaVacio, 'weekend', 'main', {
+        oracionFinDeSemanaAutomatica: true,
+      })
+    ).not.toContain('Oración');
+  });
+
+  it('«sin empezar» se mide contra lo que de verdad se pide', () => {
+    // Si no, una semana con las tres partes exigibles vacías no contaría como
+    // sin empezar solo porque hay dos que no se piden.
+    expect(
+      isMeetingWeekUntouched(finDeSemanaVacio, 'weekend', 'main', {
+        wtConductorPorDefecto: true,
+        oracionFinDeSemanaAutomatica: true,
+      })
+    ).toBe(true);
+  });
+
+  it('lo de entre semana no cambia: ahí no hay nada que salga de Ajustes', () => {
+    const antes = buildMeetingWeekMissingParts(
+      week('2026/10/05'),
+      'midweek',
+      'main'
+    );
+
+    const despues = buildMeetingWeekMissingParts(
+      week('2026/10/05'),
+      'midweek',
+      'main',
+      { wtConductorPorDefecto: true, oracionFinDeSemanaAutomatica: true }
+    );
+
+    expect(despues).toEqual(antes);
   });
 });

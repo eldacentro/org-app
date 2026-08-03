@@ -27,6 +27,8 @@ import {
   JWLangState,
   settingsState,
   userDataViewState,
+  weekendMeetingOpeningPrayerAutoAssignState,
+  weekendMeetingWTStudyConductorDefaultState,
 } from '@states/settings';
 import {
   apiPublicScheduleGet,
@@ -75,6 +77,10 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const lang = useAtomValue(JWLangState);
 
   const persons = useAtomValue(personsByViewState);
+  const wtConductorDefault = useAtomValue(
+    weekendMeetingWTStudyConductorDefaultState
+  );
+  const oracionAuto = useAtomValue(weekendMeetingOpeningPrayerAutoAssignState);
   const isConnected = useAtomValue(congAccountConnectedState);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -88,6 +94,16 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
    * semana en borrador y nadie vería la primera reunión del mes.
    */
   const monthOf = meetingMonthResolver(type);
+
+  /**
+   * Lo que esta congregación resuelve sin apuntarlo en la semana. Sin esto, el
+   * aviso de «le falta alguien» sale en TODAS las semanas del fin de semana
+   * —hay un conductor de La Atalaya fijo en Ajustes— y deja de leerse.
+   */
+  const contextoPartes = {
+    wtConductorPorDefecto: wtConductorDefault.length > 0,
+    oracionFinDeSemanaAutomatica: oracionAuto,
+  };
 
   const sourcesList = useMemo(() => {
     const weekDate = getWeekDate();
@@ -201,8 +217,18 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
             checked: checkedItems.includes(weekOf),
             published: isMeetingWeekPublished(schedule, type, dataView),
             isHistoric: !meetingMonthNeedsPublishing(weekOf, type),
-            missing: buildMeetingWeekMissingParts(schedule, type, dataView),
-            missingAll: isMeetingWeekUntouched(schedule, type, dataView),
+            missing: buildMeetingWeekMissingParts(
+              schedule,
+              type,
+              dataView,
+              contextoPartes
+            ),
+            missingAll: isMeetingWeekUntouched(
+              schedule,
+              type,
+              dataView,
+              contextoPartes
+            ),
           };
         });
 
@@ -225,7 +251,16 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     }));
 
     return result;
-  }, [baseList, checkedItems, schedules, type, dataView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    baseList,
+    checkedItems,
+    schedules,
+    type,
+    dataView,
+    wtConductorDefault,
+    oracionAuto,
+  ]);
 
   /** Las semanas marcadas que de verdad hay que publicar (el histórico ya lo está). */
   const checkedWeeks = useMemo(

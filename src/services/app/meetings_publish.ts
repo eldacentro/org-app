@@ -471,25 +471,94 @@ const countUpdatedAfter = (
  * aviso que dijera "faltan 47 puestos" en un mes terminado no lo leería nadie
  * dos veces. Estas son las que se notan si faltan.
  */
-type EssentialPart = { path: string[]; label: string };
+type EssentialPart = { id: string; path: string[]; label: string };
+
+/**
+ * Lo que en esta congregación se resuelve SIN apuntarlo en la semana.
+ *
+ * Dos partes del fin de semana pueden estar legítimamente en blanco, y sin
+ * saberlo el aviso de «le falta alguien» miente en todas las semanas — que es
+ * peor que no avisar: un aviso que siempre sale deja de leerse, y con él se van
+ * los que sí importan.
+ */
+export type MeetingPartsContext = {
+  /**
+   * Hay un conductor de La Atalaya fijo en Ajustes. Cuando nadie pone otro a
+   * mano, la reunión lo tiene igual: el hueco vacío no es un hueco.
+   */
+  wtConductorPorDefecto?: boolean;
+  /**
+   * «La oración del fin de semana se asigna sola»: la lleva quien preside y no
+   * se apunta. Con eso puesto, la casilla ni siquiera se enseña en pantalla.
+   */
+  oracionFinDeSemanaAutomatica?: boolean;
+};
+
+/** Las partes que de verdad hay que mirar, quitando las que se resuelven solas. */
+const partesExigibles = (
+  key: MeetingPublishKey,
+  contexto: MeetingPartsContext = {}
+) => {
+  if (key === 'midweek') return MIDWEEK_ESSENTIAL_PARTS;
+
+  return WEEKEND_ESSENTIAL_PARTS.filter((part) => {
+    if (part.id === 'wt_conductor' && contexto.wtConductorPorDefecto) {
+      return false;
+    }
+
+    if (part.id === 'opening_prayer' && contexto.oracionFinDeSemanaAutomatica) {
+      return false;
+    }
+
+    return true;
+  });
+};
 
 const MIDWEEK_ESSENTIAL_PARTS: EssentialPart[] = [
-  { path: ['chairman', 'main_hall'], label: 'Presidente' },
-  { path: ['opening_prayer'], label: 'Oración de apertura' },
-  { path: ['tgw_talk'], label: 'Tesoros de la Biblia' },
-  { path: ['tgw_gems'], label: 'Busquemos perlas escondidas' },
-  { path: ['tgw_bible_reading', 'main_hall'], label: 'Lectura de la Biblia' },
-  { path: ['lc_cbs', 'conductor'], label: 'Conductor del estudio bíblico' },
-  { path: ['lc_cbs', 'reader'], label: 'Lector del estudio bíblico' },
-  { path: ['closing_prayer'], label: 'Oración de conclusión' },
+  { id: 'chairman', path: ['chairman', 'main_hall'], label: 'Presidente' },
+  {
+    id: 'opening_prayer',
+    path: ['opening_prayer'],
+    label: 'Oración de apertura',
+  },
+  { id: 'tgw_talk', path: ['tgw_talk'], label: 'Tesoros de la Biblia' },
+  { id: 'tgw_gems', path: ['tgw_gems'], label: 'Busquemos perlas escondidas' },
+  {
+    id: 'bible_reading',
+    path: ['tgw_bible_reading', 'main_hall'],
+    label: 'Lectura de la Biblia',
+  },
+  {
+    id: 'cbs_conductor',
+    path: ['lc_cbs', 'conductor'],
+    label: 'Conductor del estudio bíblico',
+  },
+  {
+    id: 'cbs_reader',
+    path: ['lc_cbs', 'reader'],
+    label: 'Lector del estudio bíblico',
+  },
+  {
+    id: 'closing_prayer',
+    path: ['closing_prayer'],
+    label: 'Oración de conclusión',
+  },
 ];
 
 const WEEKEND_ESSENTIAL_PARTS: EssentialPart[] = [
-  { path: ['chairman'], label: 'Presidente' },
-  { path: ['opening_prayer'], label: 'Oración' },
-  { path: ['speaker', 'part_1'], label: 'Orador' },
-  { path: ['wt_study', 'conductor'], label: 'Conductor de La Atalaya' },
-  { path: ['wt_study', 'reader'], label: 'Lector de La Atalaya' },
+  { id: 'chairman', path: ['chairman'], label: 'Presidente' },
+  { id: 'opening_prayer', path: ['opening_prayer'], label: 'Oración' },
+  { id: 'speaker', path: ['speaker', 'part_1'], label: 'Orador' },
+  {
+    id: 'wt_conductor',
+    path: ['wt_study', 'conductor'],
+    label: 'Conductor de La Atalaya',
+  },
+  {
+    id: 'wt_reader',
+    path: ['wt_study', 'reader'],
+    label: 'Lector de La Atalaya',
+  },
 ];
 
 const valueAt = (node: unknown, path: string[], dataView: string) => {
@@ -526,14 +595,14 @@ export const countMeetingMissingParts = (
   month: string,
   key: MeetingPublishKey,
   dataView: string,
-  monthOf: MeetingWeekMonth = monthOfDate
+  monthOf: MeetingWeekMonth = monthOfDate,
+  contexto: MeetingPartsContext = {}
 ) => {
   if (key === 'outgoing') return 0;
 
   const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
-  const parts =
-    key === 'midweek' ? MIDWEEK_ESSENTIAL_PARTS : WEEKEND_ESSENTIAL_PARTS;
+  const parts = partesExigibles(key, contexto);
 
   let count = 0;
 
@@ -578,7 +647,8 @@ export const buildMeetingWeekMissingParts = (
     | null
     | undefined,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  contexto: MeetingPartsContext = {}
 ): string[] => {
   if (!schedule || key === 'outgoing') return [];
 
@@ -594,8 +664,7 @@ export const buildMeetingWeekMissingParts = (
   // Sin tipo de semana guardado se da por normal, que es lo que es.
   if (weekType !== undefined && weekType !== Week.NORMAL) return [];
 
-  const parts =
-    key === 'midweek' ? MIDWEEK_ESSENTIAL_PARTS : WEEKEND_ESSENTIAL_PARTS;
+  const parts = partesExigibles(key, contexto);
 
   return parts
     .filter((part) => {
@@ -622,18 +691,19 @@ export const isMeetingWeekUntouched = (
     | null
     | undefined,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  contexto: MeetingPartsContext = {}
 ) => {
-  const missing = buildMeetingWeekMissingParts(schedule, key, dataView);
+  const missing = buildMeetingWeekMissingParts(
+    schedule,
+    key,
+    dataView,
+    contexto
+  );
 
   if (missing.length === 0) return false;
 
-  const total =
-    key === 'midweek'
-      ? MIDWEEK_ESSENTIAL_PARTS.length
-      : WEEKEND_ESSENTIAL_PARTS.length;
-
-  return missing.length === total;
+  return missing.length === partesExigibles(key, contexto).length;
 };
 
 /**
