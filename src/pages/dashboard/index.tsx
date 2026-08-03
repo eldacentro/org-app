@@ -52,7 +52,10 @@ import { deptScheduleState } from '@states/departments_schedule';
 import { resolveAssignmentDate } from '@utils/assignments';
 import { Week } from '@definition/week_type';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
-import { upcomingEventData } from '@services/app/upcoming_events';
+import {
+  isEventForUser,
+  upcomingEventData,
+} from '@services/app/upcoming_events';
 import { decorationsForEvent } from '@features/activities/upcoming_events/decorations_for_event';
 import {
   UpcomingEventCategory,
@@ -144,6 +147,7 @@ const Dashboard = () => {
   const {
     isPublisher,
     isElder,
+    isPioneer,
     isAttendanceEditor,
     isGroupOverseer,
     isWeekendEditor,
@@ -485,6 +489,11 @@ const Dashboard = () => {
           return false;
         }
 
+        // La reunión de precursores y ancianos solo sale en el programa de
+        // quien va. La misma llamada está en la página de Próximos eventos:
+        // taparla en una sola de las dos pantallas es peor que no taparla.
+        if (!isEventForUser(record, { isElder, isPioneer })) return false;
+
         // filter by type / dataView
         if (dataView === 'main') {
           if (record.event_data.type !== 'main') return false;
@@ -560,7 +569,16 @@ const Dashboard = () => {
           decoration: eventDecoration,
         };
       });
-  }, [upcomingEvents, dataView, startOfWeek, endOfWeek, locale, t]);
+  }, [
+    upcomingEvents,
+    dataView,
+    startOfWeek,
+    endOfWeek,
+    locale,
+    t,
+    isElder,
+    isPioneer,
+  ]);
 
   // Combina una fecha (solo día) con una hora "HH:MM" para saber si ese
   // momento ya pasó — así la fila se puede atenuar en vez de desaparecer.

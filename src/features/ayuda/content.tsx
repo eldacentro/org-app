@@ -1931,7 +1931,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             items: [
               'Toca "Añadir" y elige el "Tipo de evento".',
-              'En "Fecha y hora", di si es de un día o de varios. Si es de varios y cada jornada tiene su horario, rellénalo en "Horario de cada día".',
+              'En "Fecha y hora", di si es de un día o de varios. En las asambleas de varios días sale además "Horario de cada día", porque cada jornada empieza y acaba a su hora; en los demás eventos vale el horario general.',
               'En "Ubicación" puedes poner la dirección y el enlace de Google Maps; en los eventos que lo admiten, también el enlace de JW Library. Con eso, a los hermanos les salen esos botones.',
               'Puedes ponerle una foto de portada.',
               'Toca "Hecho": aparece para todos en Próximos eventos.',
@@ -1940,6 +1940,10 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'tip',
             text: 'La pantalla tiene también su botón de exportar, para llevarse la lista de eventos en PDF.',
+          },
+          {
+            type: 'p',
+            text: 'Hay una excepción a lo de "aparece para todos": la "Reunión de precursores y ancianos" sale solo en la lista y en el Inicio de quien va —ancianos, precursores de este mes y quien administra la aplicación—. Al resto no le ocupa un renglón de su semana algo a lo que no tiene que ir. En el PDF sale siempre, así que mira quién lo va a leer antes de imprimirlo.',
           },
           {
             type: 'link',
