@@ -101,6 +101,87 @@ export const isEventForUser = (
   return user.isElder || user.isPioneer;
 };
 
+/**
+ * Cuántos días abarca un evento, contando el primero y el último.
+ *
+ * `getDatesBetweenDates` incluye los dos extremos, así que un evento que
+ * empieza y termina el mismo día vale 1, y del 1 al 30 de septiembre vale 30.
+ */
+export const eventDayCount = (event: UpcomingEventType) =>
+  getDatesBetweenDates(event.event_data.start, event.event_data.end).length;
+
+/**
+ * A partir de cuántos días un evento deja de ser una cita.
+ *
+ * Ocho, y no un número redondo cualquiera: la unidad de la aplicación es la
+ * semana —la tarjeta del inicio se llama «Esta semana» y el filtro va de lunes
+ * a domingo—, así que cualquier evento de siete días o menos CABE en una
+ * semana natural. A partir de ocho cruza sí o sí un límite de semana.
+ */
+export const EVENT_PERIOD_MIN_DAYS = 8;
+
+/**
+ * ¿Este evento es un PERIODO en vez de una cita?
+ *
+ * Una campaña especial de un mes no es una cita a la que se va: es el telón de
+ * fondo de cinco semanas seguidas. Puesta como una cita más se ordenaba la
+ * primera —por su fecha de inicio— y se colocaba por delante de las dos
+ * reuniones las cinco semanas, repitiendo el mismo renglón con el mismo «1
+ * sep» aunque estuvieras en la semana del 22.
+ *
+ * La regla es la DURACIÓN, no la categoría, y eso es a propósito: un evento
+ * «Personalizado» de treinta días tiene exactamente el mismo problema que una
+ * campaña, y atarlo a `SpecialCampaignWeek` dejaba fuera justo el caso que
+ * nadie ha previsto. Al revés también importa: las asambleas (2-4 días) y la
+ * visita del superintendente (6) siguen siendo citas y nada de lo que hacen
+ * hoy cambia.
+ *
+ * Vive aquí, junto a `isEventForUser`, por el mismo motivo que aquella: el
+ * evento sale en Próximos eventos Y en la tarjeta de Programa del inicio, y
+ * tratarlo como periodo en una sola de las dos pantallas es peor que no
+ * tratarlo.
+ */
+export const isEventPeriod = (event: UpcomingEventType) =>
+  eventDayCount(event) >= EVENT_PERIOD_MIN_DAYS;
+
+/**
+ * En qué momento de su vida está un periodo respecto a un día concreto.
+ *
+ * Lo que aporta un periodo no es CUÁNDO es —eso ya lo dice el rango— sino
+ * cuánto le queda. Por eso se cuenta en días enteros de calendario y no en
+ * horas: a nadie le sirve «quedan 11,6 días».
+ */
+export const eventPeriodProgress = (event: UpcomingEventType, today: Date) => {
+  const atMidnight = (value: Date) =>
+    new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+
+  const DAY = 24 * 60 * 60 * 1000;
+
+  const now = atMidnight(today);
+  const start = atMidnight(new Date(event.event_data.start));
+  const end = atMidnight(new Date(event.event_data.end));
+
+  if (now < start) {
+    return {
+      state: 'upcoming' as const,
+      days: Math.round((start - now) / DAY),
+    };
+  }
+
+  if (now > end) {
+    return { state: 'finished' as const, days: 0 };
+  }
+
+  // El último día incluido: hoy es el final. «Quedan 0 días» no se dice.
+  const remaining = Math.round((end - now) / DAY);
+
+  if (remaining === 0) {
+    return { state: 'lastDay' as const, days: 0 };
+  }
+
+  return { state: 'running' as const, days: remaining };
+};
+
 export const upcomingEventData = (event: UpcomingEventType) => {
   const hour24 = store.get(hour24FormatState);
 
