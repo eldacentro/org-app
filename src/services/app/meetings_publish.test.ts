@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { SchedWeekType } from '@definition/schedules';
 import { syncFromRemote } from '@services/worker/merge';
 import {
+  buildOutgoingMonthGaps,
   collectMeetingMonthAssignees,
   countMeetingChangesSincePublish,
+  countMeetingMissingParts,
   getMeetingPublishedEntry,
   isMeetingDatePublished,
   isMeetingMonthPublished,
   isMeetingWeekPublished,
   MEETING_DRAFT_FROM,
   meetingMonthNeedsPublishing,
+  restampMeetingMonthPublished,
   setMeetingMonthPublished,
 } from './meetings_publish';
 
@@ -40,13 +43,20 @@ const week = (
         { type: 'main', value: '', name: '', updatedAt: '2026-09-01T00:00:00Z' },
       ],
       week_type: [
-        { type: 'main', value: 'normal', updatedAt: '2026-09-01T00:00:00Z' },
+        { type: 'main', value: 1, updatedAt: '2026-09-01T00:00:00Z' },
       ],
       ...(extra.midweek ?? {}),
     },
     weekend_meeting: {
       chairman: [
         { type: 'main', value: '', name: '', updatedAt: '2026-09-01T00:00:00Z' },
+      ],
+      public_talk_type: [
+        {
+          type: 'main',
+          value: 'visitingSpeaker',
+          updatedAt: '2026-09-01T00:00:00Z',
+        },
       ],
       outgoing_talks: [],
       ...(extra.weekend ?? {}),
@@ -418,6 +428,186 @@ describe('avisar de lo que se ha cambiado desde que se publicó', () => {
   });
 });
 
+describe('volver a publicar un mes que ya lo estaba', () => {
+  it('pone la fecha al día y así el aviso de cambios se puede cerrar', () => {
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, '2026-10-01T10:00:00Z'),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              updatedAt: '2026-10-03T10:00:00Z',
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(1);
+
+    const reselladas = restampMeetingMonthPublished(
+      semanas,
+      FUTURO,
+      'midweek',
+      'main',
+      '2026-10-04T10:00:00Z'
+    );
+
+    expect(
+      countMeetingChangesSincePublish(reselladas, FUTURO, 'midweek', 'main')
+    ).toBe(0);
+    expect(isMeetingWeekPublished(reselladas[0], 'midweek', 'main')).toBe(true);
+  });
+
+  it('una semana sin publicar no se toca', () => {
+    expect(
+      restampMeetingMonthPublished(
+        [week('2026/10/05')],
+        FUTURO,
+        'midweek',
+        'main'
+      )
+    ).toEqual([]);
+  });
+});
+
+describe('qué le falta al mes', () => {
+  const persona = (value: string) => [
+    { type: 'main', value, name: '', updatedAt: '2026-10-01T00:00:00Z' },
+  ];
+
+  const semanaCompleta = (weekOf: string) =>
+    week(weekOf, {
+      midweek: {
+        chairman: { main_hall: persona('uid-1') },
+        opening_prayer: persona('uid-2'),
+        tgw_talk: persona('uid-3'),
+        tgw_gems: persona('uid-4'),
+        tgw_bible_reading: { main_hall: persona('uid-5') },
+        lc_cbs: { conductor: persona('uid-6'), reader: persona('uid-7') },
+        closing_prayer: persona('uid-8'),
+      },
+    });
+
+  it('un mes terminado no tiene nada que avisar', () => {
+    expect(
+      countMeetingMissingParts(
+        [semanaCompleta('2026/10/05')],
+        FUTURO,
+        'midweek',
+        'main'
+      )
+    ).toBe(0);
+  });
+
+  it('cuenta las partes principales sin nadie', () => {
+    const semana = semanaCompleta('2026/10/05');
+    semana.midweek_meeting.tgw_talk[0].value = '';
+    semana.midweek_meeting.lc_cbs.reader[0].value = '';
+
+    expect(
+      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
+    ).toBe(2);
+  });
+
+  it('una semana cancelada no reclama a nadie', () => {
+    const semana = week('2026/10/05', {
+      midweek: {
+        canceled: [{ type: 'main', value: true, updatedAt: '' }],
+      },
+    });
+
+    expect(
+      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
+    ).toBe(0);
+  });
+
+  it('una semana de asamblea tampoco', () => {
+    const semana = week('2026/10/05', {
+      midweek: {
+        week_type: [{ type: 'main', value: 3, updatedAt: '' }],
+      },
+    });
+
+    expect(
+      countMeetingMissingParts([semana], FUTURO, 'midweek', 'main')
+    ).toBe(0);
+  });
+
+  it('los discursos salientes no cuentan puestos vacíos: no aplica', () => {
+    expect(
+      countMeetingMissingParts(
+        [week('2026/10/05')],
+        FUTURO,
+        'outgoing',
+        'main'
+      )
+    ).toBe(0);
+  });
+});
+
+describe('qué le falta a un mes de discursos salientes', () => {
+  const salida = (extra: Record<string, unknown> = {}) => ({
+    id: 'talk-1',
+    type: 'main',
+    _deleted: false,
+    updatedAt: '2026-10-01T00:00:00Z',
+    value: 'uid-9',
+    public_talk: 42,
+    congregation: { name: 'Elda Norte' },
+    ...extra,
+  });
+
+  it('una salida completa no falta nada', () => {
+    const semanas = [
+      week('2026/10/05', { weekend: { outgoing_talks: [salida()] } }),
+    ];
+
+    expect(buildOutgoingMonthGaps(semanas, FUTURO, 'main')).toStrictEqual({
+      total: 1,
+      withoutSpeaker: 0,
+      withoutTalk: 0,
+      withoutCongregation: 0,
+    });
+  });
+
+  it('cuenta sin orador, sin discurso y sin congregación (que es sin fecha)', () => {
+    const semanas = [
+      week('2026/10/05', {
+        weekend: {
+          outgoing_talks: [
+            salida({ id: 'a', value: '' }),
+            salida({ id: 'b', public_talk: null }),
+            salida({ id: 'c', congregation: { name: '' } }),
+          ],
+        },
+      }),
+    ];
+
+    expect(buildOutgoingMonthGaps(semanas, FUTURO, 'main')).toStrictEqual({
+      total: 3,
+      withoutSpeaker: 1,
+      withoutTalk: 1,
+      withoutCongregation: 1,
+    });
+  });
+
+  it('una salida borrada no cuenta', () => {
+    const semanas = [
+      week('2026/10/05', {
+        weekend: { outgoing_talks: [salida({ _deleted: true })] },
+      }),
+    ];
+
+    expect(buildOutgoingMonthGaps(semanas, FUTURO, 'main').total).toBe(0);
+  });
+});
+
 describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
   it('recoge a los asignados, sin repetir persona y semana', () => {
     const semanas = [
@@ -464,17 +654,27 @@ describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
     ]);
   });
 
-  it('no confunde el tipo de semana con una persona', () => {
-    // `week_type` también lleva {type, value, updatedAt}: sin cuidado, el aviso
-    // iría a buscar la ficha de alguien llamado "normal".
-    const asignados = collectMeetingMonthAssignees(
-      [week('2026/10/05')],
-      FUTURO,
-      'midweek',
-      'main'
-    );
+  it('no confunde un ajuste de la semana con una persona', () => {
+    // `week_type`, `canceled` y `public_talk_type` llevan la misma forma
+    // {type, value, updatedAt} que una asignación. Sin cuidado, el aviso de
+    // ausencias iría a buscar la ficha de alguien llamado "visitingSpeaker".
+    expect(
+      collectMeetingMonthAssignees(
+        [week('2026/10/05')],
+        FUTURO,
+        'midweek',
+        'main'
+      )
+    ).toEqual([]);
 
-    expect(asignados).toEqual([]);
+    expect(
+      collectMeetingMonthAssignees(
+        [week('2026/10/05')],
+        FUTURO,
+        'weekend',
+        'main'
+      )
+    ).toEqual([]);
   });
 
   it('los salientes traen su orador y su nombre guardado', () => {

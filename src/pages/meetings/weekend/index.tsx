@@ -7,6 +7,7 @@ import WeekendExport from '@features/meetings/weekend_export';
 import PageTitle from '@components/page_title';
 import QuickSettingsWeekendMeeting from '@features/meetings/weekend_editor/quick_settings';
 import SchedulePublish from '@features/meetings/schedule_publish';
+import MeetingPublishNotice from '@features/meetings/publish_notice';
 import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekPickerPanel from '@features/meetings/week_picker_panel';
 import NavBarButton from '@components/nav_bar_button';
@@ -30,7 +31,9 @@ const WeekendMeeting = () => {
     handleOpenExport,
     handleClosePublish,
     handleOpenPublish,
-    isConnected,
+    selectedMonth,
+    monthIsPublished,
+    monthIsHistoric,
     openPublish,
     handleCloseQuickSettings,
     handleOpenQuickSettings,
@@ -59,7 +62,9 @@ const WeekendMeeting = () => {
         <WeekendExport open={openExport} onClose={handleCloseExport} />
       )}
 
-      {isConnected && openPublish && (
+      {/* Ver la nota de la página de entre semana: publicar ya no depende de
+          tener cuenta conectada. */}
+      {openPublish && (
         <SchedulePublish
           type="weekend"
           open={openPublish}
@@ -93,10 +98,10 @@ const WeekendMeeting = () => {
                 onClick={handleOpenAutofill}
                 icon={<IconGenerate />}
               ></NavBarButton>
-              {isConnected && (
+              {!monthIsHistoric && (
                 <NavBarButton
-                  text={t('tr_publish')}
-                  main
+                  text={monthIsPublished ? 'Publicado' : t('tr_publish')}
+                  main={!monthIsPublished}
                   icon={<IconPublish />}
                   onClick={handleOpenPublish}
                 ></NavBarButton>
@@ -105,6 +110,8 @@ const WeekendMeeting = () => {
           )
         }
       />
+
+      <MeetingPublishNotice type="weekend" month={selectedMonth} />
 
       <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
 

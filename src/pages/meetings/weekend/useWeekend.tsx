@@ -3,6 +3,11 @@ import { useAtomValue } from 'jotai';
 import { sourcesFormattedState } from '@states/sources';
 import { schedulesState, selectedWeekState } from '@states/schedules';
 import { congAccountConnectedState } from '@states/app';
+import { userDataViewState } from '@states/settings';
+import {
+  isMeetingMonthPublished,
+  meetingMonthNeedsPublishing,
+} from '@services/app/meetings_publish';
 
 const useWeekend = () => {
   const selectedWeek = useAtomValue(selectedWeekState);
@@ -10,6 +15,20 @@ const useWeekend = () => {
   const currentSched = schedules.find((s) => s.weekOf === selectedWeek);
   const sources = useAtomValue(sourcesFormattedState);
   const isConnected = useAtomValue(congAccountConnectedState);
+  const dataView = useAtomValue(userDataViewState);
+
+  // Se publica por MES, como en el resto de módulos: es la unidad con la que se
+  // piensa el programa, aunque los datos vayan por semana.
+  const selectedMonth = selectedWeek?.substring(0, 7) ?? '';
+
+  const monthIsPublished = isMeetingMonthPublished(
+    schedules,
+    selectedMonth,
+    'weekend',
+    dataView
+  );
+
+  const monthIsHistoric = !meetingMonthNeedsPublishing(selectedMonth, 'weekend');
 
   const [openAutofill, setOpenAutofill] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -46,6 +65,9 @@ const useWeekend = () => {
     handleOpenPublish,
     handleClosePublish,
     isConnected,
+    selectedMonth,
+    monthIsPublished,
+    monthIsHistoric,
     quickSettingsOpen,
     handleOpenQuickSettings,
     handleCloseQuickSettings,

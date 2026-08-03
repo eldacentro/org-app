@@ -7,6 +7,7 @@ import MidweekExport from '@features/meetings/midweek_export';
 import PageTitle from '@components/page_title';
 import QuickSettingsMidweekMeeting from '@features/meetings/midweek_editor/quick_settings';
 import SchedulePublish from '@features/meetings/schedule_publish';
+import MeetingPublishNotice from '@features/meetings/publish_notice';
 import ScheduleAutofillDialog from '@features/meetings/schedule_autofill';
 import WeekPickerPanel from '@features/meetings/week_picker_panel';
 import NavBarButton from '@components/nav_bar_button';
@@ -25,10 +26,12 @@ const MidweekMeeting = () => {
     openExport,
     handleCloseExport,
     handleOpenExport,
-    isConnected,
     openPublish,
     handleClosePublish,
     handleOpenPublish,
+    selectedMonth,
+    monthIsPublished,
+    monthIsHistoric,
     hasWeeks,
     openAutofill,
     handleCloseAutofill,
@@ -57,7 +60,11 @@ const MidweekMeeting = () => {
         <MidweekExport open={openExport} onClose={handleCloseExport} />
       )}
 
-      {isConnected && openPublish && (
+      {/* Ya no depende de tener cuenta conectada: publicar decide ANTES que
+          nada si la congregación ve el mes dentro de la aplicación, y eso no
+          puede quedarse esperando a la red. La subida a la web pública, que sí
+          la necesita, se salta sola cuando no la hay. */}
+      {openPublish && (
         <SchedulePublish
           type="midweek"
           open={openPublish}
@@ -89,10 +96,10 @@ const MidweekMeeting = () => {
                 onClick={handleOpenAutofill}
                 icon={<IconGenerate />}
               ></NavBarButton>
-              {isConnected && (
+              {!monthIsHistoric && (
                 <NavBarButton
-                  text={t('tr_publish')}
-                  main
+                  text={monthIsPublished ? 'Publicado' : t('tr_publish')}
+                  main={!monthIsPublished}
                   icon={<IconPublish />}
                   onClick={handleOpenPublish}
                 ></NavBarButton>
@@ -101,6 +108,8 @@ const MidweekMeeting = () => {
           )
         }
       />
+
+      <MeetingPublishNotice type="midweek" month={selectedMonth} />
 
       <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
 

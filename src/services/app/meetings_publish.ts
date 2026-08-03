@@ -1,4 +1,5 @@
 import { PublishedCongregation, SchedWeekType } from '@definition/schedules';
+import { Week } from '@definition/week_type';
 import { monthNeedsPublishing, monthOfDate } from './month_publish';
 
 /**
@@ -251,6 +252,49 @@ export const setMeetingMonthPublished = (
 };
 
 /**
+ * Vuelve a sellar la fecha de publicación de un mes ya publicado.
+ *
+ * Es lo que hace "Volver a publicar" cuando se ha cambiado algo de un mes que
+ * la congregación ya vio: no cambia si está publicado o no —ya lo está—, pero
+ * pone la fecha al día, que es la referencia contra la que se cuentan los
+ * cambios. Sin esto, el aviso de "has cambiado N cosas desde entonces" no se
+ * podría cerrar nunca.
+ *
+ * Solo devuelve las semanas que están publicadas: una que no lo esté no tiene
+ * nada que volver a publicar, y escribirla sería despertar la sincronización de
+ * toda la congregación para nada.
+ */
+export const restampMeetingMonthPublished = (
+  schedules: SchedWeekType[],
+  month: string,
+  key: MeetingPublishKey,
+  dataView: string,
+  updatedAt = new Date().toISOString()
+): SchedWeekType[] => {
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+
+  const result: SchedWeekType[] = [];
+
+  for (const week of weeks) {
+    const current = getMeetingPublishedEntry(week, key, dataView);
+
+    if (current?.value !== true) continue;
+
+    const updated = structuredClone(week);
+
+    const list = (getPublishedList(updated, key) ?? []).map((record) =>
+      record?.type === dataView ? { ...record, updatedAt } : record
+    );
+
+    setPublishedList(updated, key, list);
+
+    result.push(updated);
+  }
+
+  return result;
+};
+
+/**
  * Cuántos cambios lleva el mes desde que se publicó.
  *
  * La congregación ya vio la versión anterior, así que hay que poder decirlo. No
@@ -367,6 +411,159 @@ const countUpdatedAfter = (
   }
 
   return total;
+};
+
+/**
+ * Las partes que en una semana normal SIEMPRE tienen que llevar a alguien.
+ *
+ * A propósito no es "todo lo que hay en el registro": el esquema crea de
+ * antemano todos los huecos posibles —las dos aulas auxiliares, las cuatro
+ * partes de "Seamos mejores maestros"— y la mayoría no existen esa semana. Un
+ * aviso que dijera "faltan 47 puestos" en un mes terminado no lo leería nadie
+ * dos veces. Estas son las que se notan si faltan.
+ */
+const MIDWEEK_ESSENTIAL_PARTS = [
+  ['chairman', 'main_hall'],
+  ['opening_prayer'],
+  ['tgw_talk'],
+  ['tgw_gems'],
+  ['tgw_bible_reading', 'main_hall'],
+  ['lc_cbs', 'conductor'],
+  ['lc_cbs', 'reader'],
+  ['closing_prayer'],
+];
+
+const WEEKEND_ESSENTIAL_PARTS = [
+  ['chairman'],
+  ['opening_prayer'],
+  ['speaker', 'part_1'],
+  ['wt_study', 'conductor'],
+  ['wt_study', 'reader'],
+];
+
+const valueAt = (node: unknown, path: string[], dataView: string) => {
+  let current: unknown = node;
+
+  for (const step of path) {
+    if (!current || typeof current !== 'object') return undefined;
+
+    current = (current as Record<string, unknown>)[step];
+  }
+
+  if (Array.isArray(current)) {
+    current = current.find(
+      (item) => (item as { type?: string })?.type === dataView
+    );
+  }
+
+  if (!current || typeof current !== 'object') return undefined;
+
+  return (current as { value?: unknown }).value;
+};
+
+/**
+ * ¿Cuántas partes principales del mes están sin nadie?
+ *
+ * No impide publicar —el resto del mes puede estar decidido—, pero se dice.
+ *
+ * Solo cuenta las semanas NORMALES y no canceladas: en una semana de asamblea o
+ * de visita del superintendente esas partes no existen, y contarlas como
+ * "faltan" sería ruido.
+ */
+export const countMeetingMissingParts = (
+  schedules: SchedWeekType[],
+  month: string,
+  key: MeetingPublishKey,
+  dataView: string
+) => {
+  if (key === 'outgoing') return 0;
+
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+
+  const parts =
+    key === 'midweek' ? MIDWEEK_ESSENTIAL_PARTS : WEEKEND_ESSENTIAL_PARTS;
+
+  let count = 0;
+
+  for (const week of weeks) {
+    const meeting =
+      key === 'midweek' ? week.midweek_meeting : week.weekend_meeting;
+
+    if (!meeting) continue;
+
+    if (valueAt(meeting, ['canceled'], dataView) === true) continue;
+
+    const weekType = valueAt(meeting, ['week_type'], dataView);
+
+    // Sin tipo de semana guardado se da por normal, que es lo que es.
+    if (weekType !== undefined && weekType !== Week.NORMAL) continue;
+
+    for (const path of parts) {
+      const value = valueAt(meeting, path, dataView);
+
+      if (typeof value !== 'string' || value.length === 0) count++;
+    }
+  }
+
+  return count;
+};
+
+/**
+ * Lo que le falta a un mes de discursos salientes.
+ *
+ * Aquí no vale el aviso de "puestos sin nadie" de los otros módulos: una salida
+ * existe porque alguien la ha creado, no porque el calendario la reclame. Lo
+ * que sí se puede decir, y es justo lo que se escapa:
+ *
+ * - `withoutSpeaker`: la salida no tiene orador.
+ * - `withoutTalk`: no tiene discurso asignado.
+ * - `withoutCongregation`: no se sabe a qué congregación va — y como la FECHA
+ *   de la salida sale del día de reunión de esa congregación, sin ella tampoco
+ *   hay fecha. Es lo más parecido a "sin fecha confirmada" que existe en los
+ *   datos: no hay ningún campo de confirmación (`synced` significa otra cosa,
+ *   que la salida la mandó la otra congregación).
+ */
+export type OutgoingMonthGaps = {
+  total: number;
+  withoutSpeaker: number;
+  withoutTalk: number;
+  withoutCongregation: number;
+};
+
+export const buildOutgoingMonthGaps = (
+  schedules: SchedWeekType[],
+  month: string,
+  dataView: string
+): OutgoingMonthGaps => {
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+
+  const gaps: OutgoingMonthGaps = {
+    total: 0,
+    withoutSpeaker: 0,
+    withoutTalk: 0,
+    withoutCongregation: 0,
+  };
+
+  for (const week of weeks) {
+    const talks = week.weekend_meeting?.outgoing_talks ?? [];
+
+    for (const talk of talks) {
+      if (!talk || talk._deleted) continue;
+      if (talk.type && talk.type !== dataView) continue;
+
+      gaps.total++;
+
+      if (!talk.value) gaps.withoutSpeaker++;
+
+      if (talk.public_talk === null || talk.public_talk === undefined) {
+        gaps.withoutTalk++;
+      }
+
+      if (!talk.congregation?.name) gaps.withoutCongregation++;
+    }
+  }
+
+  return gaps;
 };
 
 /** Una persona asignada en el mes, con la fecha de la semana en que le toca. */
