@@ -10,28 +10,33 @@ termina. Lo que queda es lo que solo se ve mirando.
 
 ---
 
-## 0. ANTES DE DESPLEGAR — la única decisión que hay que confirmar
+## 0. EL CORTE — bajado a septiembre el mismo 3 de agosto
 
-El corte está en **`2026/10`**, en
+El corte está en **`2026/09`**, en
 `src/services/app/meetings_publish.ts` (`MIDWEEK_DRAFT_FROM`,
 `WEEKEND_DRAFT_FROM`, `OUTGOING_TALKS_DRAFT_FROM`).
 
-Significa: **todo lo anterior a octubre de 2026 se da por publicado y no cambia
-nada**. Septiembre, agosto y lo de antes se siguen viendo exactamente igual que
-hoy, sin tocar nada y sin que nadie tenga que publicar.
+Nació en octubre por prudencia, dando por hecho que septiembre ya estaba
+repartido y a la vista. **Al mirar la aplicación resultó lo contrario**: el
+responsable de la reunión de entre semana había hecho septiembre entero y NO le
+había dado a publicar, y el programa le salía igual a toda la congregación —
+justo lo que este encargo venía a evitar. No era cosa de ser administrador: le
+pasaba a todo el mundo, porque el mes caía por debajo del corte.
 
-Se eligió octubre porque hoy es 3 de agosto: agosto está en marcha y septiembre
-es el mes que se está repartiendo y que la congregación ya tiene delante, así que
-ninguno de los dos puede volverse borrador de golpe.
+Así que ahora:
 
-**Comprueba una cosa antes de desplegar**: abre Reunión de entre semana, Reunión
-de fin de semana y Discursos salientes, y mira si **octubre ya está repartido**.
+- **Agosto y lo anterior** se dan por publicado y no cambian nada. Agosto está en
+  marcha, las reuniones son estas semanas, y esconderlo sí sería quitar de en
+  medio algo que la congregación ya usa.
+- **Septiembre en adelante** es un borrador hasta que cada responsable le dé a
+  «Publicar». Son tres botones distintos: entre semana, fin de semana y
+  discursos salientes.
 
-- Si octubre está vacío o a medias → el corte está bien, despliega.
-- Si octubre ya está repartido y la congregación ya lo ve → **sube las tres
-  constantes a `2026/11`** antes de desplegar. Es un cambio de una línea cada
-  una, no hay nada que migrar, y evita que a alguien se le vacíe octubre el día
-  del despliegue.
+Y un detalle del calendario que conviene saber, porque se ve raro y no lo es: la
+semana del **31 de agosto al 6 de septiembre** es de AGOSTO, aunque su reunión de
+entre semana caiga en jueves 3 de septiembre. El mes de una semana lo decide su
+lunes, en todas partes y también en el diálogo de publicar, así que esa semana se
+sigue viendo sin publicar nada. Ninguna semana se queda sin dueño ni con dos.
 
 ---
 
@@ -74,16 +79,24 @@ todo lo marcado ya está publicado) tiene que dejarlo como al principio.
 
 Con **cualquier** cuenta, incluida la de un publicador normal:
 
-1. Programas semanales → una semana de **septiembre de 2026** (o de agosto, o de
-   julio) → **todo tiene que verse exactamente igual que antes**: los nombres,
+1. Programas semanales → una semana de **agosto de 2026** (o de julio, o de
+   antes) → **todo tiene que verse exactamente igual que antes**: los nombres,
    las partes, los discursos salientes. Sin tarjeta de «no hay programa», sin
    tira naranja.
-2. Mis asignaciones → lo de septiembre sigue ahí.
-3. En la página de Reunión de entre semana, con una semana de septiembre
-   elegida: **el botón de publicar no aparece** (ese mes no se publica a mano) y
-   **no sale ninguna tira** de aviso.
+2. Mis asignaciones → lo de agosto sigue ahí.
+3. En la página de Reunión de entre semana, con una semana de agosto elegida:
+   **el botón de publicar no aparece** (ese mes no se publica a mano) y **no sale
+   ninguna tira** de aviso.
 
 Si algo de esto falla, el corte está mal puesto: vuelve al punto 0.
+
+**Ya comprobado en pantalla el 2026-08-03**, en modo de prueba y cambiando de
+papel en vivo:
+
+| Semana | Responsable | Publicador |
+|---|---|---|
+| 7 de septiembre | El programa entero, con la tira naranja de borrador | «Todavía no hay programa publicado para esta semana.» — ni un nombre |
+| 31 de agosto (reunión el 3 de septiembre) | El programa entero, sin tira | El programa entero: esa semana es de agosto |
 
 ---
 
