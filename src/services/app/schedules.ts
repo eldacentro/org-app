@@ -90,7 +90,11 @@ import {
   generateDateFromTime,
   timeAddMinutes,
 } from '@utils/date';
-import { applyAssignmentFilters, personIsElder } from './persons';
+import {
+  applyAssignmentFilters,
+  personIsAwayOn,
+  personIsElder,
+} from './persons';
 import { personsByViewState } from '@states/persons';
 import { personsStateFind } from '@services/states/persons';
 import {
@@ -1476,266 +1480,70 @@ export const schedulesSaveAssignment = async (
   schedulesUpdateHistory(schedule.weekOf, assignment, schedule_id);
 };
 
-export const schedulesPersonNoPart = ({
-  persons,
-  history,
-}: {
-  persons: PersonType[];
-  history: AssignmentHistoryType[];
-}) => {
-  let selected: PersonType;
+/**
+ * A quién le toca ESTA asignación.
+ *
+ * Una sola idea: de los que pueden llevarla, **el que hace más tiempo que no le
+ * toca** — y antes que todos, quien no la ha llevado nunca. Eso es la rueda que
+ * se llevaba a mano en un Excel, y es lo único que hace que el autocompletado
+ * sirva para algo.
+ *
+ * Antes había SEIS reglas en cascada y se cogía al primero que encontrara
+ * alguna. Cinco de las seis preguntaban «¿ha tenido este hermano ALGO
+ * últimamente?», sin mirar de qué asignación se trataba. De ahí salían las dos
+ * quejas reales:
+ *
+ * - Presidir el miércoles descalificaba para leer La Atalaya el domingo.
+ * - En una congregación donde todos llevan algo cada mes, esas reglas no
+ *   encontraban a nadie y decidía la penúltima, que se quedaba con el PRIMERO
+ *   de la lista. No repartía: seguía el orden de la lista. Medido con ocho
+ *   hermanos y dieciséis semanas, a uno le tocaba las dieciséis.
+ *
+ * Ahora hay un ORDEN (la rueda) y unos DESCARTES encima. Cada descarte que
+ * dejaría la lista vacía se relaja: un hueco sin rellenar es peor que una
+ * repetición, porque quien lee el programa no sabe si falta por decidir o es
+ * que nadie podía.
+ */
 
-  for (const person of persons) {
-    const assignments = history.filter(
-      (record) => record.assignment.person === person.person_uid
-    );
+/** Lo más reciente que llevó esta persona, sea lo que sea. `history` viene de
+ *  más nuevo a más antiguo. */
+const ultimaAsignacion = (
+  history: AssignmentHistoryType[],
+  person_uid: string
+) => history.find((record) => record.assignment.person === person_uid);
 
-    if (assignments.length === 0) {
-      selected = person;
-      break;
-    }
-  }
+/** La última vez que llevó ESTA asignación. Vacío = nunca. */
+const ultimaVezQueLlevo = (
+  history: AssignmentHistoryType[],
+  person_uid: string,
+  type: AssignmentCode
+) =>
+  history.find(
+    (record) =>
+      record.assignment.person === person_uid && record.assignment.code === type
+  )?.weekOf ?? '';
 
-  return selected;
+/**
+ * Quita de la lista a quien cumpla el descarte — salvo que se los lleve a
+ * todos, en cuyo caso el descarte no se aplica.
+ */
+const descartar = (
+  persons: PersonType[],
+  fuera: (person: PersonType) => boolean
+) => {
+  const quedan = persons.filter((person) => !fuera(person));
+
+  return quedan.length > 0 ? quedan : persons;
 };
 
-export const schedulesPersonNoPartWithinMonth = ({
-  persons,
-  type,
-  week,
-  classroom,
-  history,
-}: {
-  persons: PersonType[];
-  type: AssignmentCode;
-  week: string;
-  classroom?: string;
-  history: AssignmentHistoryType[];
-}) => {
-  const classCount = store.get(midweekMeetingClassCountState);
-
-  let selected: PersonType;
-
-  const currentDate = new Date(week);
-  const lastMonth = addMonths(currentDate, -1);
-  const nextMonth = addMonths(currentDate, 1);
-
-  for (const person of persons) {
-    const assignments = history.filter((record) => {
-      const tmpDate = new Date(record.weekOf);
-
-      return (
-        tmpDate > lastMonth &&
-        tmpDate < nextMonth &&
-        record.assignment.person === person.person_uid
-      );
-    });
-
-    if (assignments.length === 0) {
-      const lastAssignment = history.find((record) => {
-        const tmpDate = new Date(record.weekOf);
-
-        return (
-          tmpDate < currentDate &&
-          record.assignment.person === person.person_uid
-        );
-      });
-
-      if (!classroom) {
-        const lastAssignmentType = lastAssignment?.assignment.code;
-
-        if (lastAssignmentType !== type) {
-          selected = person;
-          break;
-        }
-      }
-
-      if (classroom) {
-        const lastAssignmentClassroom = lastAssignment?.assignment.classroom;
-        const hasAux = classCount === 2;
-
-        if (!hasAux || (hasAux && lastAssignmentClassroom !== classroom)) {
-          selected = person;
-          break;
-        }
-      }
-    }
-  }
-
-  return selected;
-};
-
-export const schedulesPersonNoPartWithin2Weeks = ({
-  persons,
-  type,
-  week,
-  classroom,
-  history,
-}: {
-  persons: PersonType[];
-  type: AssignmentCode;
-  week: string;
-  classroom?: string;
-  history: AssignmentHistoryType[];
-}) => {
-  const classCount = store.get(midweekMeetingClassCountState);
-
-  let selected: PersonType;
-
-  const currentDate = new Date(week);
-
-  const last2Weeks = addWeeks(currentDate, -2);
-  const next2Weeks = addWeeks(currentDate, 2);
-
-  for (const person of persons) {
-    const assignments = history.filter((record) => {
-      const tmpDate = new Date(record.weekOf);
-
-      return (
-        tmpDate > last2Weeks &&
-        tmpDate < next2Weeks &&
-        record.assignment.person === person.person_uid
-      );
-    });
-
-    if (assignments.length === 0) {
-      const lastAssignment = history.find((record) => {
-        const tmpDate = new Date(record.weekOf);
-
-        return (
-          tmpDate < currentDate &&
-          record.assignment.person === person.person_uid
-        );
-      });
-
-      if (!classroom) {
-        const lastAssignmentType = lastAssignment?.assignment.code;
-
-        if (lastAssignmentType !== type) {
-          selected = person;
-          break;
-        }
-      }
-
-      if (classroom) {
-        const lastAssignmentClassroom = lastAssignment?.assignment.classroom;
-        const hasAux = classCount === 2;
-
-        if (!hasAux || (hasAux && lastAssignmentClassroom !== classroom)) {
-          selected = person;
-          break;
-        }
-      }
-    }
-  }
-
-  return selected;
-};
-
-export const schedulesPersonNoPartSameWeek = ({
-  persons,
-  type,
-  week,
-  classroom,
-  history,
-}: {
-  persons: PersonType[];
-  type: AssignmentCode;
-  week: string;
-  classroom?: string;
-  history: AssignmentHistoryType[];
-}) => {
-  const classCount = store.get(midweekMeetingClassCountState);
-
-  let selected: PersonType;
-
-  const currentDate = new Date(week);
-
-  for (const person of persons) {
-    const assignments = history.filter((record) => {
-      return (
-        week === record.weekOf && record.assignment.person === person.person_uid
-      );
-    });
-
-    if (assignments.length === 0) {
-      const lastAssignment = history.find((record) => {
-        const tmpDate = new Date(record.weekOf);
-
-        return (
-          tmpDate < currentDate &&
-          record.assignment.person === person.person_uid
-        );
-      });
-
-      if (!classroom) {
-        const lastAssignmentType = lastAssignment?.assignment.code;
-
-        if (lastAssignmentType !== type) {
-          selected = person;
-          break;
-        }
-      }
-
-      if (classroom) {
-        const lastAssignmentClassroom = lastAssignment?.assignment.classroom;
-        const hasAux = classCount === 2;
-
-        if (!hasAux || (hasAux && lastAssignmentClassroom !== classroom)) {
-          selected = person;
-          break;
-        }
-      }
-    }
-  }
-
-  return selected;
-};
-
-export const schedulesPersonNoConsecutivePart = ({
-  persons,
-  type,
-  classroom,
-  history,
-}: {
-  persons: PersonType[];
-  type: AssignmentCode;
-  history: AssignmentHistoryType[];
-  classroom?: string;
-}) => {
-  let selected: PersonType;
-
-  const classCount = store.get(midweekMeetingClassCountState);
-
-  for (const person of persons) {
-    const lastAssignment = history.find(
-      (record) => record.assignment.person === person.person_uid
-    );
-
-    if (lastAssignment?.assignment.code !== type) {
-      if (classroom) {
-        const hasAux = classCount === 2;
-
-        if (
-          !hasAux ||
-          (hasAux && lastAssignment.assignment.classroom !== classroom)
-        ) {
-          selected = person;
-          break;
-        }
-      }
-
-      if (!classroom) {
-        selected = person;
-        break;
-      }
-    }
-  }
-
-  return selected;
-};
-
-export const schedulesPersonLatest = ({
+/**
+ * La rueda: ordena a los candidatos por a quién le toca antes.
+ *
+ * Quien nunca la ha llevado va primero; después, por antigüedad de la última
+ * vez. A igualdad, por identificador, para que dos dispositivos con los mismos
+ * datos elijan lo mismo en vez de depender del orden en que llegó la lista.
+ */
+export const schedulesOrderByTurn = ({
   persons,
   type,
   history,
@@ -1743,44 +1551,18 @@ export const schedulesPersonLatest = ({
   persons: PersonType[];
   type: AssignmentCode;
   history: AssignmentHistoryType[];
-  classroom?: string;
-}) => {
-  // sort persons by last assignment type
-  const personsWithDate = persons.map((person) => {
-    const lastAssignment = history.find(
-      (record) =>
-        record.assignment.code === type &&
-        record.assignment.person === person.person_uid
-    );
+}) =>
+  [...persons].sort((a, b) => {
+    const ultimaA = ultimaVezQueLlevo(history, a.person_uid, type);
+    const ultimaB = ultimaVezQueLlevo(history, b.person_uid, type);
 
-    return {
-      person,
-      last_assignment: lastAssignment?.weekOf || '',
-    };
+    if (ultimaA !== ultimaB) {
+      // Cadena vacía = nunca la ha llevado, y ordena primero por ser la menor.
+      return ultimaA.localeCompare(ultimaB);
+    }
+
+    return a.person_uid.localeCompare(b.person_uid);
   });
-
-  personsWithDate.sort((a, b) => {
-    // If 'weekOf' of 'a' is empty, 'a' should come first
-    if (a.last_assignment.length === 0) {
-      return -1;
-    }
-
-    // If 'weekOf' of 'b' is empty, 'b' should come first
-    if (b.last_assignment.length === 0) {
-      return 1;
-    }
-
-    // If both 'weekOf' fields are not empty, sort by date
-
-    return new Date(a.last_assignment)
-      .toISOString()
-      .localeCompare(new Date(b.last_assignment).toISOString());
-  });
-
-  const last = personsWithDate.at(0);
-
-  return last.person;
-};
 
 export const schedulesSelectRandomPerson = (data: {
   type: AssignmentCode;
@@ -1792,9 +1574,8 @@ export const schedulesSelectRandomPerson = (data: {
   mainStudent?: string;
   history: AssignmentHistoryType[];
 }) => {
-  let selected: PersonType;
-
   const persons = store.get(personsByViewState);
+  const classCount = store.get(midweekMeetingClassCountState);
 
   let personsElligible = applyAssignmentFilters(persons, [data.type]);
 
@@ -1843,66 +1624,55 @@ export const schedulesSelectRandomPerson = (data: {
     ]);
   }
 
-  if (personsElligible.length > 0) {
-    // 1st rule: no part
-    selected = schedulesPersonNoPart({
-      persons: personsElligible,
-      history: data.history,
-    });
+  if (personsElligible.length === 0) return undefined;
 
-    // 2nd rule: no part within month
-    if (!selected) {
-      selected = schedulesPersonNoPartWithinMonth({
-        persons: personsElligible,
-        type: data.type,
-        week: data.week,
-        classroom: data.classroom,
-        history: data.history,
-      });
-    }
+  const semanaAnterior = formatDate(
+    addWeeks(data.week.replace(/\//g, '-'), -1),
+    'yyyy/MM/dd'
+  );
 
-    // 3rd rule: no part within 2 weeks
-    if (!selected) {
-      selected = schedulesPersonNoPartWithin2Weeks({
-        persons: personsElligible,
-        type: data.type,
-        week: data.week,
-        classroom: data.classroom,
-        history: data.history,
-      });
-    }
+  let candidatos = personsElligible;
 
-    // 4th rule: no part same week
-    if (!selected) {
-      selected = schedulesPersonNoPartSameWeek({
-        persons: personsElligible,
-        type: data.type,
-        week: data.week,
-        classroom: data.classroom,
-        history: data.history,
-      });
-    }
-    // 5th rule: no same part
-    if (!selected) {
-      selected = schedulesPersonNoConsecutivePart({
-        persons: personsElligible,
-        type: data.type,
-        classroom: data.classroom,
-        history: data.history,
-      });
-    }
+  // 1. Quien esté de ausencia esa semana. Va el primero porque es el único
+  //    descarte que no es una preferencia: esa persona NO va a estar.
+  candidatos = descartar(candidatos, (person) =>
+    personIsAwayOn(person, data.week.replace(/\//g, '-'))
+  );
 
-    //  6th rule: pick the latest
-    if (!selected) {
-      selected = schedulesPersonLatest({
-        persons: personsElligible,
-        type: data.type,
-        history: data.history,
-      });
-    }
+  // 2. Quien ya lleva algo esa misma semana. Aquí sí vale mirar CUALQUIER
+  //    asignación: es la misma semana, y nadie quiere dos cosas el mismo día.
+  candidatos = descartar(candidatos, (person) =>
+    data.history.some(
+      (record) =>
+        record.weekOf === data.week &&
+        record.assignment.person === person.person_uid
+    )
+  );
+
+  // 3. Quien llevó ESTA misma asignación la semana pasada.
+  candidatos = descartar(
+    candidatos,
+    (person) =>
+      ultimaVezQueLlevo(data.history, person.person_uid, data.type) ===
+      semanaAnterior
+  );
+
+  // 4. Con dos aulas, quien estuvo en ESTA aula la última vez: así se van
+  //    alternando en vez de quedarse siempre en la misma.
+  if (data.classroom && classCount === 2) {
+    candidatos = descartar(
+      candidatos,
+      (person) =>
+        ultimaAsignacion(data.history, person.person_uid)?.assignment
+          .classroom === data.classroom
+    );
   }
 
-  return selected;
+  return schedulesOrderByTurn({
+    persons: candidatos,
+    type: data.type,
+    history: data.history,
+  }).at(0);
 };
 
 export const schedulesRemoveAssignment = (
@@ -2218,7 +1988,8 @@ export const schedulesAutofillSaveAssignment = ({
   });
 };
 
-export const schedulesWeekNoMeeting = (week: Week) => weekTypeHasNoMeeting(week);
+export const schedulesWeekNoMeeting = (week: Week) =>
+  weekTypeHasNoMeeting(week);
 
 /**
  * Whether weekOf has no regular meeting at the hall at all (assembly,

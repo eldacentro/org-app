@@ -34,19 +34,28 @@ import { openPeriod } from '@utils/spiritual_status';
 
 const personUnarchiveMidweekMeeting = (person: PersonType) => {
   if (person.person_data.midweek_meeting_student.active.value) {
-    openPeriod(person.person_data.midweek_meeting_student.history, new Date().toISOString());
+    openPeriod(
+      person.person_data.midweek_meeting_student.history,
+      new Date().toISOString()
+    );
   }
 };
 
 const personUnarchiveUnbaptizedPublisher = (person: PersonType) => {
   if (person.person_data.publisher_unbaptized.active.value) {
-    openPeriod(person.person_data.publisher_unbaptized.history, dateFirstDayMonth().toISOString());
+    openPeriod(
+      person.person_data.publisher_unbaptized.history,
+      dateFirstDayMonth().toISOString()
+    );
   }
 };
 
 const personUnarchiveBaptizedPublisher = (person: PersonType) => {
   if (person.person_data.publisher_baptized.active.value) {
-    openPeriod(person.person_data.publisher_baptized.history, dateFirstDayMonth().toISOString());
+    openPeriod(
+      person.person_data.publisher_baptized.history,
+      dateFirstDayMonth().toISOString()
+    );
   }
 };
 
@@ -475,7 +484,6 @@ export const applyGroupFilters = (
   // que llama a esto se entere cuando cambian y vuelva a filtrar.
   ministryMonths: MinistryMonthsIndex = new Map()
 ) => {
-
   const groups = filtersKey.filter((item) => typeof item === 'string');
 
   const finalResult: PersonType[] = [];
@@ -865,23 +873,27 @@ export const refreshReadOnlyRoles = (
 export const personsFilterActiveTimeAway = (records: TimeAwayType[]) => {
   const cutoffDays = 3;
 
-  return records
-    .filter((record) => {
-      if (record._deleted === true) return false;
-      if (!record.end_date) return true;
+  return (
+    records
+      .filter((record) => {
+        if (record._deleted === true) return false;
+        if (!record.end_date) return true;
 
-      const limitDate = formatDate(new Date(), 'yyyy/MM/dd');
+        const limitDate = formatDate(new Date(), 'yyyy/MM/dd');
 
-      const endDatePlusCutoff = addDays(record.end_date, cutoffDays);
-      const date = formatDate(endDatePlusCutoff, 'yyyy/MM/dd');
+        const endDatePlusCutoff = addDays(record.end_date, cutoffDays);
+        const date = formatDate(endDatePlusCutoff, 'yyyy/MM/dd');
 
-      // Show if today is before or equal to endDatePlusCutoff
-      return date >= limitDate;
-    })
-    // Orden cronológico por inicio (el array subyacente guarda en orden de
-    // creación). "yyyy/MM/dd" ordena bien como string; mismo patrón que
-    // enrollments/privileges.
-    .toSorted((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
+        // Show if today is before or equal to endDatePlusCutoff
+        return date >= limitDate;
+      })
+      // Orden cronológico por inicio (el array subyacente guarda en orden de
+      // creación). "yyyy/MM/dd" ordena bien como string; mismo patrón que
+      // enrollments/privileges.
+      .toSorted((a, b) =>
+        (a.start_date || '').localeCompare(b.start_date || '')
+      )
+  );
 };
 
 export const personGetScheduleName = (person: PersonType) => {
@@ -904,12 +916,20 @@ export const personGetScheduleName = (person: PersonType) => {
   return result;
 };
 
-export const personIsAway = (person: PersonType, date: string | Date) => {
+/**
+ * El periodo de ausencia que cubre esa fecha, si lo hay.
+ *
+ * Separado de `personIsAway` porque aquel devuelve el TEXTO del aviso, y para
+ * eso necesita las traducciones: fuera del navegador contesta cadena vacía, y
+ * quien lo use como un sí/no se cree que la persona está disponible. El
+ * reparto de asignaciones preguntaba justo así.
+ */
+export const personAwayPeriod = (person: PersonType, date: string | Date) => {
   const target = toComparableDate(date);
 
-  if (!target) return;
+  if (!target) return undefined;
 
-  const timeAway = (person?.person_data?.timeAway ?? [])
+  return (person?.person_data?.timeAway ?? [])
     .filter((record) => !record._deleted && record.start_date)
     .sort((a, b) => a.start_date.localeCompare(b.start_date))
     .find((record) => {
@@ -925,6 +945,15 @@ export const personIsAway = (person: PersonType, date: string | Date) => {
 
       return !endDate || endDate >= target;
     });
+};
+
+/** Sí o no, sin traducciones de por medio. */
+export const personIsAwayOn = (person: PersonType, date: string | Date) =>
+  Boolean(personAwayPeriod(person, date));
+
+/** El aviso que se le enseña a quien esté programando. Vacío = no está de ausencia. */
+export const personIsAway = (person: PersonType, date: string | Date) => {
+  const timeAway = personAwayPeriod(person, date);
 
   if (!timeAway) return;
 

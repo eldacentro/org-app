@@ -20,7 +20,7 @@ import {
   weekendMeetingWTStudyConductorDefaultState,
 } from './settings';
 import { personsState } from './persons';
-import { buildPersonFullname } from '@utils/common';
+import { buildPersonFullname, localStorageGetItem } from '@utils/common';
 import { userInLanguageGroupState } from './field_service_groups';
 
 export const schedulesState = atom<SchedWeekType[]>([]);
@@ -51,8 +51,12 @@ export const weekendSongSelectorOpenState = atom(false);
 
 export const outgoingSongSelectorOpenState = atom(false);
 
+// Con `localStorage` a pelo, este módulo no se puede ni CARGAR fuera de un
+// navegador: la lectura ocurre al importarlo, no al usarlo. Rompía las pruebas
+// automáticas del reparto, que corren en Node, y rompería igual en un Web
+// Worker, que tampoco tiene localStorage. El ayudante ya se protege.
 export const S89TemplateState = atom<S89TemplateType>(
-  (localStorage.getItem('organized_template_S89') as S89TemplateType) ||
+  (localStorageGetItem('organized_template_S89') as S89TemplateType) ||
     'S89_1x1'
 );
 
