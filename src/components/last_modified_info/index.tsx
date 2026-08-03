@@ -108,8 +108,23 @@ const LastModifiedInfo = ({
 
   return (
     <>
+      {/* Se abre con el teclado igual que con el dedo: es un control, aunque
+          parezca una línea de texto. Sin `tabIndex` ni tecla, quien navega con
+          el tabulador no llega nunca al panel. */}
       <Box
         onClick={sePuedeAbrir ? () => setOpen(true) : undefined}
+        onKeyDown={
+          sePuedeAbrir
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setOpen(true);
+                }
+              }
+            : undefined
+        }
+        role={sePuedeAbrir ? 'button' : undefined}
+        tabIndex={sePuedeAbrir ? 0 : undefined}
         sx={{
           marginTop: '24px',
           display: 'flex',
@@ -120,6 +135,12 @@ const LastModifiedInfo = ({
           cursor: sePuedeAbrir ? 'pointer' : 'default',
           transition: 'opacity var(--motion-fast) var(--ease-standard)',
           '&:hover': { opacity: sePuedeAbrir ? 1 : 0.7 },
+          '&:focus-visible': {
+            opacity: 1,
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '4px',
+            borderRadius: 'var(--shape-sm)',
+          },
         }}
       >
         {sePuedeAbrir && (

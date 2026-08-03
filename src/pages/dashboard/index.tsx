@@ -611,6 +611,17 @@ const Dashboard = () => {
     const periodos = upcomingEvents
       .filter((record) => {
         if (!isEventPeriod(record)) return false;
+
+        // La semana del superintendente ya tiene su propia tira, justo
+        // encima. Hoy dura seis días y no llega a periodo, pero si alguien
+        // creara una más larga saldrían DOS tiras de lo mismo.
+        if (
+          record.event_data.category ===
+          UpcomingEventCategory.CircuitOverseerWeek
+        ) {
+          return false;
+        }
+
         if (!isEventForUser(record, { isElder, isPioneer })) return false;
         if (!matchesDataView(record, dataView)) return false;
 
@@ -675,7 +686,6 @@ const Dashboard = () => {
     );
 
     return {
-      id: periodo.event_uid,
       title: titulo,
       // «1-30 de septiembre · quedan 12 días»
       subtitle: [rango, restante].filter(Boolean).join(' · '),
