@@ -1,3 +1,13 @@
+/**
+ * QUÉ SE CIFRA AL SUBIR.
+ *
+ * Un campo que no esté aquí viaja SIN cifrar: no se cifra al subir ni se
+ * descifra al bajar, simplemente pasa de largo.
+ *
+ * Ojo: este mapa NO es el mismo que el de bajada. Para saber qué se sabe
+ * DESCIFRAR, mira `TABLE_DECRYPTION_MAP`, aquí abajo, y lee por qué están
+ * separados antes de mover nada de sitio.
+ */
 export const TABLE_ENCRYPTION_MAP = {
   persons: {
     _deleted: 'shared',
@@ -255,37 +265,9 @@ export const TABLE_ENCRYPTION_MAP = {
     // publicación son fechas, pero va aquí por la misma razón que el resto —
     // lo que sale de esta congregación va cifrado, sin excepciones sueltas.
     publishedMonthsAt: 'shared',
-    // Mismo agujero que se tapó en `exhibitors`, ahora en Salidas. Estos tres
-    // faltaban en el registro de ajustes y se guardaban EN CLARO en el
-    // servidor (comprobado leyendo el bucket, no supuesto): los horarios y
-    // las suspensiones de cada mes, qué turnos están inhabilitados, y —lo más
-    // delicado— los NOMBRES DE LAS OTRAS CONGREGACIONES con las que se
-    // comparte un turno.
-    //
-    // Se puede añadir sin migrar nada porque el descifrado SOLO actúa sobre
-    // cadenas: un valor ya guardado en claro es un objeto o un array, no una
-    // cadena, así que `decryptObject` lo deja intacto. Y al revés: si un
-    // dispositivo sin actualizar devuelve la cadena cifrada tal cual, este
-    // vuelve a descifrarla bien. Lo que hace falta a cambio es normalizar la
-    // FORMA al leer (`normalizeServiceOutingSettings`), porque en la ventana
-    // en que la congregación se actualiza un dispositivo con la versión
-    // anterior se queda con la cadena cifrada, y `sharedSlots.map(...)` sobre
-    // un texto rompe la página de Salidas.
-    monthlyOverrides: 'shared',
-    disabledSlots: 'shared',
-    sharedSlots: 'shared',
-    // Y estos dos, en los registros SEMANALES. `isCircuitOverseerWeek` delata
-    // al servidor la semana en que viene el superintendente de circuito, y
-    // `weekOverrideHours` las horas a las que sale la congregación esa semana.
-    //
-    // Ojo con el booleano: para quien aún no se haya actualizado, la cadena
-    // cifrada es un valor VERDADERO (`!!'U2Fsd…'`), así que vería semana del
-    // superintendente donde no la hay hasta que recargue. Por eso
-    // `normalizeServiceOutingWeek` lo quita cuando no es un booleano de
-    // verdad, y por eso conviene lanzar la oleada de actualización forzada al
-    // desplegar esto.
-    isCircuitOverseerWeek: 'shared',
-    weekOverrideHours: 'shared',
+    // Faltan aquí cinco campos de Salidas que hoy viajan en claro. NO se
+    // añaden todavía a mano: están en PENDIENTES_DE_CIFRAR, más abajo, y el
+    // comentario de allí explica por qué el orden importa.
   },
   exhibitors: {
     turns: 'shared',
@@ -436,3 +418,87 @@ export const TABLE_ENCRYPTION_MAP = {
     publishedAt: 'shared',
   },
 };
+
+/**
+ * CAMPOS QUE YA SE SABEN DESCIFRAR PERO TODAVÍA NO SE CIFRAN.
+ *
+ * ─── Por qué existe esta lista ───────────────────────────────────────────
+ *
+ * Empezar a cifrar un campo que antes viajaba en claro NO es un cambio
+ * inocente, aunque no haya que migrar nada. El día que un dispositivo
+ * actualizado sube el campo cifrado, cualquier dispositivo que todavía no se
+ * haya actualizado se baja una CADENA donde esperaba una lista, un objeto o un
+ * booleano — y no sabe descifrarla, porque su mapa no la conoce. Lo que pasa
+ * entonces no es un dibujo raro:
+ *
+ *   - `sharedSlots.map(...)` sobre una cadena revienta: la página de Salidas
+ *     deja de abrirse en ese dispositivo.
+ *   - `[...(settings?.disabledSlots ?? [])]` desparrama la cadena en LETRAS
+ *     SUELTAS, y en cuanto esa persona toca un interruptor, esas letras se
+ *     guardan y se suben a TODA la congregación. Eso es pérdida de datos, y no
+ *     la causa quien despliega sino quien no se ha enterado de nada.
+ *   - una cadena cifrada es un valor VERDADERO, así que una semana con
+ *     `isCircuitOverseerWeek: false` le sale como semana del superintendente.
+ *
+ * Ningún arreglo en ESTE código puede evitarlo, porque el daño ocurre en un
+ * build anterior que ya está instalado. Lo único que lo evita es el ORDEN:
+ *
+ *   Fase 1 (lo que hay ahora)  el campo se sabe DESCIFRAR pero se sigue
+ *                              subiendo en claro. En el cable no cambia
+ *                              absolutamente nada, así que no hay dispositivo
+ *                              —actualizado o no— que pueda ver una cadena.
+ *                              Desplegar esto no puede romper ni perder nada.
+ *
+ *   Fase 2 (cuando toque)      el campo se mueve a TABLE_ENCRYPTION_MAP y
+ *                              empieza a subir cifrado. Para entonces todos los
+ *                              dispositivos ya saben leerlo.
+ *
+ * ─── Cómo se pasa a la fase 2 ────────────────────────────────────────────
+ *
+ * NO por calendario ni a ojo. Se comprueba que no queda ningún dispositivo por
+ * debajo del build que introdujo la fase 1, que el servidor conoce porque cada
+ * sesión guarda su `app_build`:
+ *
+ *     node scripts/pending_encryption_check.mjs        (en sws2apps-api)
+ *
+ * Mientras ese script diga que falta alguien, se acelera con la oleada de
+ * actualización forzada (`force_update_wave.mjs`) y se vuelve a mirar. Cuando
+ * diga que están todos, la fase 2 es mover el bloque de aquí a
+ * TABLE_ENCRYPTION_MAP y desplegar. Nada más.
+ *
+ * Que un campo se quede aquí una temporada no cuesta nada: sigue viajando en
+ * claro exactamente igual que lleva haciéndolo desde siempre. Adelantar la
+ * fase 2 sin comprobar sí cuesta, y lo paga la congregación entera.
+ */
+const PENDIENTES_DE_CIFRAR = {
+  service_outings: {
+    // Los horarios y las suspensiones de cada mes, qué turnos están
+    // inhabilitados y —lo más delicado— los NOMBRES DE LAS OTRAS
+    // CONGREGACIONES con las que se comparte un turno. Comprobado leyendo el
+    // bucket real: hoy los tres están guardados en claro.
+    monthlyOverrides: 'shared',
+    disabledSlots: 'shared',
+    sharedSlots: 'shared',
+    // En los registros SEMANALES: cuándo viene el superintendente de circuito
+    // y a qué hora sale la congregación esa semana.
+    isCircuitOverseerWeek: 'shared',
+    weekOverrideHours: 'shared',
+  },
+};
+
+/**
+ * QUÉ SE SABE DESCIFRAR AL BAJAR: todo lo que se cifra, MÁS lo que está a la
+ * espera de empezar a cifrarse.
+ *
+ * Saber descifrar de más no tiene ningún coste ni riesgo: el descifrado SOLO
+ * actúa sobre cadenas, y ninguno de estos campos es legítimamente una cadena
+ * —son objetos, listas y booleanos—, así que sobre los datos que hay hoy no
+ * llega a hacer nada. Solo entra en acción el día que empiece a llegar cifrado,
+ * que es justamente para lo que está.
+ */
+export const TABLE_DECRYPTION_MAP = Object.fromEntries(
+  Object.entries(TABLE_ENCRYPTION_MAP).map(([table, fields]) => [
+    table,
+    { ...fields, ...(PENDIENTES_DE_CIFRAR[table] ?? {}) },
+  ])
+);

@@ -6,6 +6,10 @@ import {
   encryptObject,
   generateKey,
 } from './index';
+import {
+  TABLE_DECRYPTION_MAP,
+  TABLE_ENCRYPTION_MAP,
+} from '@constants/table_encryption_map';
 
 /**
  * El cifrado de extremo a extremo.
@@ -264,20 +268,33 @@ describe('songs_override — el cancionero importado', () => {
 });
 
 /**
- * Salidas de predicación — los campos que hasta ahora viajaban en claro.
+ * Salidas de predicación — el despliegue por fases.
  *
- * `monthlyOverrides`, `disabledSlots` y `sharedSlots` (ajustes) y
- * `isCircuitOverseerWeek` y `weekOverrideHours` (semanas) no estaban en el mapa
- * de cifrado, así que se guardaban en claro en el servidor — comprobado en el
- * bucket real antes de tocar nada. Lo que se fija aquí:
+ * Cinco campos de Salidas viajaban en claro: `monthlyOverrides`,
+ * `disabledSlots` y `sharedSlots` en los ajustes (este último con los NOMBRES
+ * de las congregaciones vecinas), y `isCircuitOverseerWeek` y
+ * `weekOverrideHours` en las semanas. Comprobado en el bucket real.
  *
- *  - que ahora sí viajan cifrados,
- *  - y que añadirlos NO obliga a migrar: el descifrado solo actúa sobre
- *    cadenas, así que un valor que ya esté guardado en claro (un objeto, un
- *    array, un booleano) se deja intacto. Esa es toda la razón por la que se
- *    puede desplegar sin tocar lo que ya está en el servidor.
+ * Empezar a cifrarlos de golpe rompe a quien no se haya actualizado: se baja
+ * una cadena donde espera una lista, `[...disabledSlots]` la desparrama en
+ * letras sueltas y ESO se sube a toda la congregación. Así que va en dos
+ * fases, y esto fija que la fase 1 es la inofensiva:
+ *
+ *   fase 1 (ahora)  se saben DESCIFRAR, se siguen subiendo en claro
+ *   fase 2 (luego)  se mueven a TABLE_ENCRYPTION_MAP y empiezan a subir cifrados
+ *
+ * Si alguien adelanta la fase 2 sin querer, el primer test de aquí abajo se
+ * pone rojo y lo cuenta.
  */
-describe('service_outings — lo que dejaba de viajar cifrado', () => {
+describe('service_outings — despliegue por fases de los campos en claro', () => {
+  const PENDIENTES = [
+    'monthlyOverrides',
+    'disabledSlots',
+    'sharedSlots',
+    'isCircuitOverseerWeek',
+    'weekOverrideHours',
+  ];
+
   const buildAjustes = () => ({
     weekOf: 'settings',
     updatedAt: '2026-08-03T00:00:00Z',
@@ -302,73 +319,85 @@ describe('service_outings — lo que dejaba de viajar cifrado', () => {
     weekOverrideHours: { wednesday_morning: '10:30' },
   });
 
-  it('los ajustes van y vuelven exactamente igual', () => {
-    const original = buildAjustes();
+  it('FASE 1: los cinco se saben descifrar pero NO se cifran todavía', () => {
+    for (const campo of PENDIENTES) {
+      expect(
+        TABLE_ENCRYPTION_MAP.service_outings,
+        `${campo} ya se está cifrando: eso es la fase 2, y antes hay que ` +
+          'comprobar que no queda ningún dispositivo sin actualizar ' +
+          '(scripts/pending_encryption_check.mjs)'
+      ).not.toHaveProperty(campo);
+
+      expect(TABLE_DECRYPTION_MAP.service_outings).toHaveProperty(campo);
+    }
+  });
+
+  it('FASE 1: subir no cambia nada en el cable, así no rompe a nadie', () => {
+    for (const original of [buildAjustes(), buildSemana()]) {
+      const data = structuredClone(original);
+      encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+
+      for (const campo of PENDIENTES) {
+        if (campo in original) expect(data[campo]).toEqual(original[campo]);
+      }
+    }
+  });
+
+  it('FASE 1: lo demás de la tabla se sigue cifrando como siempre', () => {
     const data = buildAjustes();
-
     encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
-    decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
 
-    expect(data).toEqual(original);
+    expect(typeof data.defaultHours).toBe('string');
+    expect(typeof data.locations).toBe('string');
+    expect(JSON.stringify(data)).not.toContain('Salón del Reino');
   });
 
-  it('la congregación con la que se comparte turno ya no viaja en claro', () => {
-    const data = buildAjustes();
-
-    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
-
-    const enviado = JSON.stringify(data);
-    expect(enviado).not.toContain('Elda Oeste');
-    expect(enviado).not.toContain('monday_morning');
-    expect(enviado).not.toContain('isCancelledMonth');
+  it('lo que YA está en claro se deja intacto al bajar (no hay migración)', () => {
+    for (const original of [buildAjustes(), buildSemana()]) {
+      const data = structuredClone(original);
+      decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+      expect(data).toEqual(original);
+    }
   });
 
-  it('la semana va y vuelve igual, y el booleano vuelve booleano', () => {
-    const original = buildSemana();
-    const data = buildSemana();
+  it('LISTO PARA LA FASE 2: si llegan cifrados, este build ya sabe leerlos', () => {
+    // Esto es exactamente lo que bajará el día que se active la fase 2, y es
+    // la mitad arriesgada: si fallara, la fase 2 dejaría ilegibles los ajustes
+    // de Salidas de toda la congregación.
+    for (const original of [buildAjustes(), buildSemana()]) {
+      const comoLoSubiraLaFase2 = structuredClone(original);
 
-    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
-    decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
+      for (const campo of PENDIENTES) {
+        if (!(campo in comoLoSubiraLaFase2)) continue;
+        comoLoSubiraLaFase2[campo] = encryptData(
+          JSON.stringify(comoLoSubiraLaFase2[campo]),
+          ACCESS_CODE
+        );
+      }
 
-    expect(data).toEqual(original);
-    expect(data.isCircuitOverseerWeek).toBe(true);
+      // que de verdad haya quedado irreconocible antes de comprobar la vuelta
+      expect(JSON.stringify(comoLoSubiraLaFase2)).not.toContain('Elda Oeste');
+
+      decryptObject({
+        data: comoLoSubiraLaFase2,
+        table: 'service_outings',
+        accessCode: ACCESS_CODE,
+      });
+
+      expect(comoLoSubiraLaFase2).toEqual(original);
+    }
   });
 
-  it('la semana del superintendente ya no se anuncia al servidor', () => {
-    const data = buildSemana();
+  it('LISTO PARA LA FASE 2: un `false` cifrado vuelve booleano, no cadena', () => {
+    // El filo del booleano: si volviera como cadena sería VERDADERO, y la
+    // semana saldría como la del superintendente sin serlo.
+    const data = {
+      weekOf: '2026/10/19',
+      isCircuitOverseerWeek: encryptData(JSON.stringify(false), ACCESS_CODE),
+    };
 
-    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
-
-    expect(typeof data.isCircuitOverseerWeek).toBe('string');
-    expect(JSON.stringify(data)).not.toContain('wednesday_morning');
-    // La fecha de la semana sí sigue en claro: es la clave con la que se
-    // casan los registros, como el person_uid de una persona.
-    expect(data.weekOf).toBe('2026/10/12');
-  });
-
-  it('un `false` guardado sobrevive al viaje (no se pierde por ser falso)', () => {
-    const data = { weekOf: '2026/10/19', isCircuitOverseerWeek: false };
-
-    encryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
     decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
 
     expect(data.isCircuitOverseerWeek).toBe(false);
-  });
-
-  it('lo que ya está guardado EN CLARO se deja intacto al descifrar', () => {
-    // Esta es la razón por la que no hace falta migrar nada: lo que hay hoy en
-    // el servidor son objetos, arrays y booleanos, y el descifrado solo toca
-    // cadenas. Si esto se rompiera, desplegar el cambio se comería los ajustes
-    // de toda la congregación.
-    const enClaro = { ...buildAjustes(), ...buildSemana(), weekOf: 'settings' };
-    const original = structuredClone(enClaro);
-
-    decryptObject({
-      data: enClaro,
-      table: 'service_outings',
-      accessCode: ACCESS_CODE,
-    });
-
-    expect(enClaro).toEqual(original);
   });
 });

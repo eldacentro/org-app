@@ -1,5 +1,8 @@
 import { AES, Utf8 } from 'crypto-es';
-import { TABLE_ENCRYPTION_MAP } from '@constants/table_encryption_map';
+import {
+  TABLE_DECRYPTION_MAP,
+  TABLE_ENCRYPTION_MAP,
+} from '@constants/table_encryption_map';
 
 export const generateKey = () => {
   const array = new Uint8Array(32);
@@ -98,7 +101,10 @@ export const decryptObject = <T extends object>({
   masterKey?: string;
 }) => {
   const keys = Object.keys(data);
-  const encryptionMap = TABLE_ENCRYPTION_MAP[table] as Record<string, string>;
+  // Se descifra con el mapa de BAJADA, que es un superconjunto del de subida:
+  // incluye los campos que este build ya sabe leer cifrados aunque todavía los
+  // suba en claro. Ver PENDIENTES_DE_CIFRAR en el mapa.
+  const encryptionMap = TABLE_DECRYPTION_MAP[table] as Record<string, string>;
 
   for (const key of keys) {
     const secretKey = encryptionMap[key];
