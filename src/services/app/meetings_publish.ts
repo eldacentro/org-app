@@ -250,9 +250,12 @@ export const isMeetingMonthPublished = (
 
   if (weeks.length === 0) return false;
 
-  return weeks.every(
-    (week) => getMeetingPublishedEntry(week, key, dataView)?.value === true
-  );
+  // Se pregunta semana a semana con la MISMA función que decide si el hermano
+  // la ve, y no mirando la marca a pelo. Importa desde que un mes agrupa por el
+  // día de la reunión: septiembre contiene la semana del 31 de agosto, que cae
+  // en el histórico y se ve sin marca ninguna. Mirando solo la marca, ese mes
+  // no podría decir «Publicado» jamás, por mucho que se publicara todo.
+  return weeks.every((week) => isMeetingWeekPublished(week, key, dataView));
 };
 
 /**
@@ -468,23 +471,25 @@ const countUpdatedAfter = (
  * aviso que dijera "faltan 47 puestos" en un mes terminado no lo leería nadie
  * dos veces. Estas son las que se notan si faltan.
  */
-const MIDWEEK_ESSENTIAL_PARTS = [
-  ['chairman', 'main_hall'],
-  ['opening_prayer'],
-  ['tgw_talk'],
-  ['tgw_gems'],
-  ['tgw_bible_reading', 'main_hall'],
-  ['lc_cbs', 'conductor'],
-  ['lc_cbs', 'reader'],
-  ['closing_prayer'],
+type EssentialPart = { path: string[]; label: string };
+
+const MIDWEEK_ESSENTIAL_PARTS: EssentialPart[] = [
+  { path: ['chairman', 'main_hall'], label: 'Presidente' },
+  { path: ['opening_prayer'], label: 'Oración de apertura' },
+  { path: ['tgw_talk'], label: 'Tesoros de la Biblia' },
+  { path: ['tgw_gems'], label: 'Busquemos perlas escondidas' },
+  { path: ['tgw_bible_reading', 'main_hall'], label: 'Lectura de la Biblia' },
+  { path: ['lc_cbs', 'conductor'], label: 'Conductor del estudio bíblico' },
+  { path: ['lc_cbs', 'reader'], label: 'Lector del estudio bíblico' },
+  { path: ['closing_prayer'], label: 'Oración de conclusión' },
 ];
 
-const WEEKEND_ESSENTIAL_PARTS = [
-  ['chairman'],
-  ['opening_prayer'],
-  ['speaker', 'part_1'],
-  ['wt_study', 'conductor'],
-  ['wt_study', 'reader'],
+const WEEKEND_ESSENTIAL_PARTS: EssentialPart[] = [
+  { path: ['chairman'], label: 'Presidente' },
+  { path: ['opening_prayer'], label: 'Oración' },
+  { path: ['speaker', 'part_1'], label: 'Orador' },
+  { path: ['wt_study', 'conductor'], label: 'Conductor de La Atalaya' },
+  { path: ['wt_study', 'reader'], label: 'Lector de La Atalaya' },
 ];
 
 const valueAt = (node: unknown, path: string[], dataView: string) => {
@@ -545,14 +550,183 @@ export const countMeetingMissingParts = (
     // Sin tipo de semana guardado se da por normal, que es lo que es.
     if (weekType !== undefined && weekType !== Week.NORMAL) continue;
 
-    for (const path of parts) {
-      const value = valueAt(meeting, path, dataView);
+    for (const part of parts) {
+      const value = valueAt(meeting, part.path, dataView);
 
       if (typeof value !== 'string' || value.length === 0) count++;
     }
   }
 
   return count;
+};
+
+/**
+ * Qué le falta a UNA semana, con nombre y apellidos.
+ *
+ * El diálogo de publicar ya decía cuántas partes faltaban en todo lo marcado,
+ * y ese número no sirve para actuar: «faltan 3 partes» no dice en qué semana ni
+ * cuál. Aquí se contesta lo que el responsable se pregunta de verdad antes de
+ * darle al botón — «¿esta semana está entera?, y si no, qué le falta».
+ *
+ * Una semana cancelada, de asamblea o de visita del superintendente devuelve la
+ * lista vacía: esas partes no existen esa semana, y decir que «faltan» sería
+ * mentir. Lo mismo una semana que todavía no está guardada.
+ */
+export const buildMeetingWeekMissingParts = (
+  schedule:
+    | Pick<SchedWeekType, 'weekOf' | 'midweek_meeting' | 'weekend_meeting'>
+    | null
+    | undefined,
+  key: MeetingPublishKey,
+  dataView: string
+): string[] => {
+  if (!schedule || key === 'outgoing') return [];
+
+  const meeting =
+    key === 'midweek' ? schedule.midweek_meeting : schedule.weekend_meeting;
+
+  if (!meeting) return [];
+
+  if (valueAt(meeting, ['canceled'], dataView) === true) return [];
+
+  const weekType = valueAt(meeting, ['week_type'], dataView);
+
+  // Sin tipo de semana guardado se da por normal, que es lo que es.
+  if (weekType !== undefined && weekType !== Week.NORMAL) return [];
+
+  const parts =
+    key === 'midweek' ? MIDWEEK_ESSENTIAL_PARTS : WEEKEND_ESSENTIAL_PARTS;
+
+  return parts
+    .filter((part) => {
+      const value = valueAt(meeting, part.path, dataView);
+
+      return typeof value !== 'string' || value.length === 0;
+    })
+    .map((part) => part.label);
+};
+
+/**
+ * ¿Está la semana sin empezar — todas sus partes principales vacías?
+ *
+ * Se pregunta aparte de la lista de lo que falta porque la respuesta se dice
+ * distinta: enumerar las ocho partes de una semana en blanco es una pared de
+ * texto que no ayuda; «sin empezar» sí.
+ *
+ * Una semana que no reclama nada (cancelada, asamblea, visita) NO está sin
+ * empezar: es que no hay nada que poner.
+ */
+export const isMeetingWeekUntouched = (
+  schedule:
+    | Pick<SchedWeekType, 'weekOf' | 'midweek_meeting' | 'weekend_meeting'>
+    | null
+    | undefined,
+  key: MeetingPublishKey,
+  dataView: string
+) => {
+  const missing = buildMeetingWeekMissingParts(schedule, key, dataView);
+
+  if (missing.length === 0) return false;
+
+  const total =
+    key === 'midweek'
+      ? MIDWEEK_ESSENTIAL_PARTS.length
+      : WEEKEND_ESSENTIAL_PARTS.length;
+
+  return missing.length === total;
+};
+
+/**
+ * Publica o retira SEMANAS sueltas. Devuelve solo las que hay que guardar.
+ *
+ * El mes dejó de ser la unidad de la decisión: el responsable termina el
+ * programa semana a semana y a veces quiere soltar las dos primeras mientras
+ * sigue con el resto. Los datos ya eran así —la marca vive dentro de cada
+ * semana—, así que esto no añade una capa, quita una.
+ *
+ * Y de paso desaparece la pregunta de a qué mes pertenece una semana a caballo:
+ * aquí no hay meses, hay semanas.
+ *
+ * Una semana anterior al corte se salta: cae en el histórico, ya se da por
+ * publicada y escribirle una marca sería tocar un registro para nada — y en
+ * este repositorio guardar un registro idéntico despierta la sincronización de
+ * toda la congregación.
+ */
+export const setMeetingWeeksPublished = (
+  schedules: SchedWeekType[],
+  weekOfs: string[],
+  key: MeetingPublishKey,
+  published: boolean,
+  dataView: string,
+  updatedAt = new Date().toISOString()
+): SchedWeekType[] => {
+  const wanted = new Set(weekOfs ?? []);
+
+  const result: SchedWeekType[] = [];
+
+  for (const week of schedules ?? []) {
+    if (!week?.weekOf || !wanted.has(week.weekOf)) continue;
+
+    if (!meetingMonthNeedsPublishing(week.weekOf, key)) continue;
+
+    const current = getMeetingPublishedEntry(week, key, dataView);
+
+    // Ya está como debe: no se vuelve a guardar.
+    if ((current?.value === true) === published) continue;
+
+    const updated = structuredClone(week);
+
+    const list = (getPublishedList(updated, key) ?? []).filter(
+      (record) => record?.type !== dataView
+    );
+
+    list.push({ type: dataView, value: published, updatedAt });
+
+    setPublishedList(updated, key, list);
+
+    result.push(updated);
+  }
+
+  return result;
+};
+
+/**
+ * Vuelve a sellar la fecha de semanas ya publicadas.
+ *
+ * El equivalente por semanas de `restampMeetingMonthPublished`: no cambia si
+ * están publicadas —ya lo están—, solo pone la fecha al día para poder cerrar
+ * el aviso de «has cambiado N cosas desde entonces».
+ */
+export const restampMeetingWeeksPublished = (
+  schedules: SchedWeekType[],
+  weekOfs: string[],
+  key: MeetingPublishKey,
+  dataView: string,
+  updatedAt = new Date().toISOString()
+): SchedWeekType[] => {
+  const wanted = new Set(weekOfs ?? []);
+
+  const result: SchedWeekType[] = [];
+
+  for (const week of schedules ?? []) {
+    if (!week?.weekOf || !wanted.has(week.weekOf)) continue;
+
+    const current = getMeetingPublishedEntry(week, key, dataView);
+
+    if (current?.value !== true) continue;
+
+    const updated = structuredClone(week);
+
+    const list = (getPublishedList(updated, key) ?? []).map((record) =>
+      record?.type === dataView ? { ...record, updatedAt } : record
+    );
+
+    setPublishedList(updated, key, list);
+
+    result.push(updated);
+  }
+
+  return result;
 };
 
 /**
@@ -636,9 +810,34 @@ export const collectMeetingMonthAssignees = (
   key: MeetingPublishKey,
   dataView: string,
   monthOf: MeetingWeekMonth = monthOfDate
-): MeetingMonthAssignee[] => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
+): MeetingMonthAssignee[] =>
+  collectAssigneesOfWeeks(
+    meetingWeeksOfMonth(schedules ?? [], month, monthOf),
+    key,
+    dataView
+  );
 
+/** Lo mismo, pero para una lista de semanas sueltas. */
+export const collectMeetingWeeksAssignees = (
+  schedules: SchedWeekType[],
+  weekOfs: string[],
+  key: MeetingPublishKey,
+  dataView: string
+): MeetingMonthAssignee[] => {
+  const wanted = new Set(weekOfs ?? []);
+
+  return collectAssigneesOfWeeks(
+    (schedules ?? []).filter((week) => week?.weekOf && wanted.has(week.weekOf)),
+    key,
+    dataView
+  );
+};
+
+const collectAssigneesOfWeeks = (
+  weeks: SchedWeekType[],
+  key: MeetingPublishKey,
+  dataView: string
+): MeetingMonthAssignee[] => {
   const result: MeetingMonthAssignee[] = [];
   const seen = new Set<string>();
 

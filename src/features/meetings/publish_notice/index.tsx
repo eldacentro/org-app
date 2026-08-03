@@ -22,8 +22,11 @@ import {
   MeetingPublishKey,
   meetingMonthNeedsPublishing,
   restampMeetingMonthPublished,
+  isMeetingWeekPublished,
+  meetingWeeksOfMonth,
 } from '@services/app/meetings_publish';
 import { meetingMonthResolver } from '@services/app/meeting_month';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 /**
  * La tira de aviso de publicación, arriba de la página del programa.
@@ -135,7 +138,41 @@ const MeetingPublishNotice = ({
     });
   };
 
-  const showDraft = needsPublishing && !isPublished;
+  /**
+   * Cuántas semanas de este mes siguen sin publicar.
+   *
+   * Desde que se publica por semanas, «este mes está en borrador» dejó de ser
+   * verdad o mentira: un mes puede estar a medias. Y a medias es justo el estado
+   * peligroso —sueltas las dos primeras semanas y te olvidas del resto—, así que
+   * la tira tiene que decir cuántas quedan y cuáles.
+   */
+  const { pendientes, aMedias } = useMemo(() => {
+    if (!needsPublishing) return { pendientes: [], aMedias: false };
+
+    const semanas = meetingWeeksOfMonth(schedules, month, monthOf);
+
+    const sinPublicar = semanas.filter(
+      (week) => !isMeetingWeekPublished(week, type, dataView)
+    );
+
+    return {
+      pendientes: sinPublicar.map(
+        (week) =>
+          schedulesGetMeetingDate({
+            week: week.weekOf,
+            // Los discursos salientes viven en el registro del fin de semana y
+            // se celebran ese día: su fecha es la de esa reunión.
+            meeting: type === 'midweek' ? 'midweek' : 'weekend',
+            short: true,
+          }).locale || week.weekOf
+      ),
+      // A medias es el estado peligroso: sueltas las dos primeras semanas y te
+      // olvidas del resto. Que se note.
+      aMedias: sinPublicar.length > 0 && sinPublicar.length < semanas.length,
+    };
+  }, [needsPublishing, schedules, month, monthOf, type, dataView]);
+
+  const showDraft = needsPublishing && pendientes.length > 0;
   const showChanged = needsPublishing && isPublished && changes > 0;
   const showAway = awayNames.length > 0;
 
@@ -147,7 +184,11 @@ const MeetingPublishNotice = ({
         <InfoTip
           isBig={false}
           color="warning"
-          text="Este mes está en borrador: solo lo ves tú. Los hermanos no verán sus asignaciones hasta que lo publiques."
+          text={
+            aMedias
+              ? `Este mes está a medias: ${pendientes.length === 1 ? 'queda 1 semana' : `quedan ${pendientes.length} semanas`} sin publicar (${pendientes.join(', ')}). Esas asignaciones no las ve nadie todavía.`
+              : 'Este mes está en borrador: solo lo ves tú. Los hermanos no verán sus asignaciones hasta que lo publiques.'
+          }
         />
       )}
 

@@ -1,8 +1,6 @@
+import { ScheduleListType } from '../index.types';
+
 export type MonthItemProps = {
-  data: {
-    month: string;
-    checked: boolean;
-    published?: boolean;
-  };
+  data: ScheduleListType['months'][number];
   onChange: (checked: boolean, value: string) => void;
 };

@@ -12,8 +12,11 @@ import {
   isMeetingWeekPublished,
   MEETING_DRAFT_FROM,
   meetingMonthNeedsPublishing,
+  buildMeetingWeekMissingParts,
   meetingWeeksOfMonth,
   restampMeetingMonthPublished,
+  restampMeetingWeeksPublished,
+  setMeetingWeeksPublished,
   setMeetingMonthPublished,
 } from './meetings_publish';
 
@@ -826,5 +829,157 @@ describe('el mes de una semana lo decide quien llama, no siempre el lunes', () =
     );
 
     expect(veces).toEqual([1, 1, 1, 1]);
+  });
+});
+
+describe('publicar por semanas, que es como está el dato', () => {
+  const octubre = [
+    week('2026/10/05'),
+    week('2026/10/12'),
+    week('2026/08/03'), // histórico: no se toca
+  ];
+
+  it('marca solo las semanas pedidas', () => {
+    const toSave = setMeetingWeeksPublished(
+      octubre,
+      ['2026/10/12'],
+      'midweek',
+      true,
+      'main',
+      '2026-10-01T10:00:00Z'
+    );
+
+    expect(toSave.map((w) => w.weekOf)).toEqual(['2026/10/12']);
+    expect(
+      getMeetingPublishedEntry(toSave[0], 'midweek', 'main')
+    ).toStrictEqual({
+      type: 'main',
+      value: true,
+      updatedAt: '2026-10-01T10:00:00Z',
+    });
+  });
+
+  it('una semana del histórico se salta: ya se da por publicada', () => {
+    // Escribirle una marca sería tocar un registro para nada, y aquí eso
+    // despierta la sincronización de toda la congregación.
+    expect(
+      setMeetingWeeksPublished(octubre, ['2026/08/03'], 'midweek', true, 'main')
+    ).toEqual([]);
+  });
+
+  it('no vuelve a guardar lo que ya está como debe', () => {
+    const yaPublicada = [
+      week('2026/10/05', {
+        midweek: { published: publishedMark(true, '2026-10-01T10:00:00Z') },
+      }),
+    ];
+
+    expect(
+      setMeetingWeeksPublished(
+        yaPublicada,
+        ['2026/10/05'],
+        'midweek',
+        true,
+        'main'
+      )
+    ).toEqual([]);
+
+    expect(
+      setMeetingWeeksPublished(
+        yaPublicada,
+        ['2026/10/05'],
+        'midweek',
+        false,
+        'main'
+      )
+    ).toHaveLength(1);
+  });
+
+  it('no muta lo que recibe', () => {
+    setMeetingWeeksPublished(octubre, ['2026/10/05'], 'midweek', true, 'main');
+
+    expect(octubre[0].midweek_meeting.published).toBeUndefined();
+  });
+
+  it('volver a sellar solo toca las que ya están publicadas', () => {
+    const mezcla = [
+      week('2026/10/05', {
+        midweek: { published: publishedMark(true, '2026-10-01T10:00:00Z') },
+      }),
+      week('2026/10/12'),
+    ];
+
+    const toSave = restampMeetingWeeksPublished(
+      mezcla,
+      ['2026/10/05', '2026/10/12'],
+      'midweek',
+      'main',
+      '2026-10-09T10:00:00Z'
+    );
+
+    expect(toSave.map((w) => w.weekOf)).toEqual(['2026/10/05']);
+    expect(
+      getMeetingPublishedEntry(toSave[0], 'midweek', 'main')?.updatedAt
+    ).toBe('2026-10-09T10:00:00Z');
+  });
+});
+
+describe('qué le falta a una semana, con nombre', () => {
+  it('dice las partes vacías, no un número', () => {
+    // «Faltan 3 partes» no dice ni en qué semana ni cuál. Esto sí.
+    const faltan = buildMeetingWeekMissingParts(
+      week('2026/10/05'),
+      'midweek',
+      'main'
+    );
+
+    expect(faltan).toContain('Presidente');
+    expect(faltan).toContain('Oración de apertura');
+    expect(faltan).toContain('Lectura de la Biblia');
+  });
+
+  it('una semana entera no tiene nada que decir', () => {
+    const completa = week('2026/10/05', {
+      midweek: {
+        chairman: { main_hall: [{ type: 'main', value: 'uid-1' }] },
+        opening_prayer: [{ type: 'main', value: 'uid-2' }],
+        tgw_talk: [{ type: 'main', value: 'uid-3' }],
+        tgw_gems: [{ type: 'main', value: 'uid-4' }],
+        tgw_bible_reading: { main_hall: [{ type: 'main', value: 'uid-5' }] },
+        lc_cbs: {
+          conductor: [{ type: 'main', value: 'uid-6' }],
+          reader: [{ type: 'main', value: 'uid-7' }],
+        },
+        closing_prayer: [{ type: 'main', value: 'uid-8' }],
+        week_type: [{ type: 'main', value: 1 }],
+      },
+    });
+
+    expect(buildMeetingWeekMissingParts(completa, 'midweek', 'main')).toEqual(
+      []
+    );
+  });
+
+  it('una semana cancelada o de asamblea no reclama nada', () => {
+    const cancelada = week('2026/10/05', {
+      midweek: { canceled: [{ type: 'main', value: true }] },
+    });
+
+    const asamblea = week('2026/10/05', {
+      midweek: { week_type: [{ type: 'main', value: 5 }] },
+    });
+
+    expect(buildMeetingWeekMissingParts(cancelada, 'midweek', 'main')).toEqual(
+      []
+    );
+    expect(buildMeetingWeekMissingParts(asamblea, 'midweek', 'main')).toEqual(
+      []
+    );
+  });
+
+  it('sin semana guardada no se inventa nada', () => {
+    expect(buildMeetingWeekMissingParts(undefined, 'midweek', 'main')).toEqual(
+      []
+    );
   });
 });

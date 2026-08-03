@@ -6,6 +6,7 @@ import { sourcesState } from '@states/sources';
 import {
   ScheduleListType,
   SchedulePublishProps,
+  ScheduleWeekType,
   YearGroupType,
 } from './index.types';
 import { displaySnackNotification } from '@services/states/app';
@@ -39,13 +40,15 @@ import { personIsAwayOn } from '@services/app/persons';
 import { personGetDisplayName } from '@utils/common';
 import { dbSchedBulkUpdate } from '@services/dexie/schedules';
 import {
-  collectMeetingMonthAssignees,
-  countMeetingMissingParts,
-  isMeetingMonthPublished,
+  buildMeetingWeekMissingParts,
+  isMeetingWeekUntouched,
+  collectMeetingWeeksAssignees,
+  isMeetingWeekPublished,
   meetingMonthNeedsPublishing,
-  setMeetingMonthPublished,
+  setMeetingWeeksPublished,
 } from '@services/app/meetings_publish';
 import { meetingMonthResolver } from '@services/app/meeting_month';
+import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const { t } = useAppTranslation();
@@ -105,92 +108,162 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     return base.map((record) => record.weekOf);
   }, [sources, type, lang]);
 
+  /**
+   * El árbol año → mes → SEMANAS.
+   *
+   * El mes deja de ser la unidad de la decisión y pasa a ser lo que siempre
+   * debió ser: cómo se agrupan las semanas en la pantalla. La marca de
+   * «publicado» ya vivía dentro de cada semana, así que esto no añade una capa,
+   * quita una — y de paso desaparece la pregunta de a qué mes pertenece una
+   * semana a caballo entre dos.
+   */
   const baseList = useMemo(() => {
-    const groupedData = sourcesList.reduce((acc: YearGroupType[], week) => {
+    return sourcesList.reduce((acc: YearGroupType[], week) => {
       const [year, month] = monthOf(week).split('/');
+
       let yearGroup = acc.find((y) => y.year === year);
 
       if (!yearGroup) {
-        yearGroup = { year: year, months: [] };
+        yearGroup = { year, months: [] };
         acc.push(yearGroup);
       }
 
-      let monthGroup = yearGroup.months.find((m) => m === `${year}/${month}`);
+      let monthGroup = yearGroup.months.find(
+        (m) => m.month === `${year}/${month}`
+      );
 
       if (!monthGroup) {
-        monthGroup = `${year}/${month}`;
+        monthGroup = { month: `${year}/${month}`, weeks: [] };
         yearGroup.months.push(monthGroup);
       }
 
+      monthGroup.weeks.push(week);
+
       return acc;
     }, []);
+  }, [sourcesList, monthOf]);
 
-    return groupedData;
-  }, [sourcesList]);
+  /** Todas las semanas del árbol, para resolver una casilla de año o de mes. */
+  const weeksOfValue = (value: string) => {
+    const all = baseList.flatMap((year) =>
+      year.months.flatMap((month) => month.weeks)
+    );
+
+    // Un año ('2026'), un mes ('2026/09') o una semana ('2026/09/07'): en los
+    // tres casos vale el mismo prefijo, porque el árbol se agrupa por el mes de
+    // la REUNIÓN y no siempre coincide con el del lunes.
+    // El histórico se queda fuera de todo: ya está a la vista y no hay nada que
+    // decidir. Sin esto, marcar un mes metería semanas que `setMeetingWeeks-
+    // Published` va a ignorar, y el botón diría «Retirar» sin poder retirar.
+    const publicables = (weeks: string[]) =>
+      weeks.filter((week) => meetingMonthNeedsPublishing(week, type));
+
+    if (value.split('/').length === 3) {
+      return publicables(all.filter((w) => w === value));
+    }
+
+    return publicables(
+      baseList
+        .filter(
+          (year) => value === year.year || value.startsWith(`${year.year}/`)
+        )
+        .flatMap((year) =>
+          year.months
+            .filter((month) => value === year.year || month.month === value)
+            .flatMap((month) => month.weeks)
+        )
+    );
+  };
 
   /**
    * "Publicado" quiere decir que la congregación lo ve.
    *
-   * Antes esta marca salía de lo que hubiera en el servidor público, que es
-   * otra cosa (la página web para quien no tiene cuenta) y que además no
-   * distingue un mes entero de un mes a medias. Ahora sale de la marca de la
-   * propia semana, que es la que decide si al hermano le aparece su parte en
-   * "Mis asignaciones" y en el programa semanal.
+   * Sale de la marca de la propia SEMANA, que es la que decide si al hermano le
+   * aparece su parte en "Mis asignaciones" y en el programa semanal. Un mes solo
+   * cuenta como publicado cuando lo están todas las suyas: a medias sigue
+   * ofreciendo publicar, para que se pueda terminar.
    */
   const schedulesList = useMemo(() => {
-    const result: ScheduleListType[] = baseList.map((record) => {
-      return {
-        year: record.year,
-        months: record.months.map((month) => {
+    const result: ScheduleListType[] = baseList.map((record) => ({
+      year: record.year,
+      months: record.months.map(({ month, weeks }) => {
+        const weekRows: ScheduleWeekType[] = weeks.map((weekOf) => {
+          const schedule = schedules.find((item) => item.weekOf === weekOf);
+
           return {
-            month,
-            checked: checkedItems.includes(month),
-            published: isMeetingMonthPublished(
-              schedules,
-              month,
-              type,
-              dataView,
-              monthOf
-            ),
-            isHistoric: !meetingMonthNeedsPublishing(month, type),
+            weekOf,
+            label:
+              schedulesGetMeetingDate({
+                week: weekOf,
+                meeting: type,
+                short: true,
+              }).locale || weekOf,
+            checked: checkedItems.includes(weekOf),
+            published: isMeetingWeekPublished(schedule, type, dataView),
+            isHistoric: !meetingMonthNeedsPublishing(weekOf, type),
+            missing: buildMeetingWeekMissingParts(schedule, type, dataView),
+            missingAll: isMeetingWeekUntouched(schedule, type, dataView),
           };
-        }),
-      };
-    });
+        });
+
+        // El histórico no cuenta para el estado de la casilla del mes: si
+        // contara, un mes con una semana del histórico no podría salir marcado
+        // del todo por mucho que se marcaran las demás.
+        const decidibles = weekRows.filter((week) => !week.isHistoric);
+        const marcadas = decidibles.filter((week) => week.checked).length;
+
+        return {
+          month,
+          checked: decidibles.length > 0 && marcadas === decidibles.length,
+          indeterminate: marcadas > 0 && marcadas < decidibles.length,
+          published:
+            weekRows.length > 0 && weekRows.every((week) => week.published),
+          isHistoric: weekRows.every((week) => week.isHistoric),
+          weeks: weekRows,
+        };
+      }),
+    }));
 
     return result;
   }, [baseList, checkedItems, schedules, type, dataView]);
 
-  /** Los meses marcados que de verdad hay que publicar (el histórico ya lo está). */
-  const checkedMonths = useMemo(
+  /** Las semanas marcadas que de verdad hay que publicar (el histórico ya lo está). */
+  const checkedWeeks = useMemo(
     () =>
       checkedItems
-        .filter((item) => item.includes('/'))
-        .filter((month) => meetingMonthNeedsPublishing(month, type))
+        .filter((weekOf) => meetingMonthNeedsPublishing(weekOf, type))
         .toSorted(),
     [checkedItems, type]
   );
 
   /** ¿Está ya publicado TODO lo marcado? Entonces lo que toca es retirar. */
   const allCheckedPublished = useMemo(() => {
-    if (checkedMonths.length === 0) return false;
+    if (checkedWeeks.length === 0) return false;
 
-    return checkedMonths.every((month) =>
-      isMeetingMonthPublished(schedules, month, type, dataView, monthOf)
+    return checkedWeeks.every((weekOf) =>
+      isMeetingWeekPublished(
+        schedules.find((item) => item.weekOf === weekOf),
+        type,
+        dataView
+      )
     );
-  }, [checkedMonths, schedules, type, dataView]);
+  }, [checkedWeeks, schedules, type, dataView]);
 
-  /** Partes principales sin nadie en lo marcado. No impide publicar; se dice. */
-  const missingParts = useMemo(
-    () =>
-      checkedMonths.reduce(
-        (total, month) =>
-          total +
-          countMeetingMissingParts(schedules, month, type, dataView, monthOf),
-        0
-      ),
-    [checkedMonths, schedules, type, dataView, monthOf]
-  );
+  /**
+   * Semana a semana: si está entera o qué le falta.
+   *
+   * Antes esto era un número —«faltan 3 partes principales»— y con un número no
+   * se puede hacer nada: no dice ni en qué semana ni cuál. Aquí va lo que el
+   * responsable se pregunta antes de darle al botón.
+   */
+  const weeksInfo = useMemo(() => {
+    const filas = schedulesList
+      .flatMap((year) => year.months)
+      .flatMap((month) => month.weeks)
+      .filter((week) => week.checked);
+
+    return filas.toSorted((a, b) => a.weekOf.localeCompare(b.weekOf));
+  }, [schedulesList]);
 
   /**
    * Quién está asignado en lo marcado teniendo una ausencia apuntada esos días.
@@ -206,37 +279,32 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const awayAssignees = useMemo(() => {
     const found: string[] = [];
 
-    for (const month of checkedMonths) {
-      const assignees = collectMeetingMonthAssignees(
-        schedules,
-        month,
-        type,
-        dataView,
-        monthOf
+    for (const assignee of collectMeetingWeeksAssignees(
+      schedules,
+      checkedWeeks,
+      type,
+      dataView
+    )) {
+      const person = persons.find(
+        (record) => record.person_uid === assignee.uid
       );
 
-      for (const assignee of assignees) {
-        const person = persons.find(
-          (record) => record.person_uid === assignee.uid
-        );
+      if (!person) continue;
 
-        if (!person) continue;
-
-        if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) {
-          continue;
-        }
-
-        const name =
-          personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
-          assignee.name;
-
-        if (name && !found.includes(name)) found.push(name);
+      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) {
+        continue;
       }
+
+      const name =
+        personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
+        assignee.name;
+
+      if (name && !found.includes(name)) found.push(name);
     }
 
     return found;
   }, [
-    checkedMonths,
+    checkedWeeks,
     schedules,
     type,
     dataView,
@@ -245,39 +313,24 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     fullnameOption,
   ]);
 
+  /**
+   * Marcar o desmarcar un año, un mes o una semana.
+   *
+   * Lo que se guarda son SIEMPRE semanas: las casillas de año y de mes son un
+   * atajo para marcar las suyas, y su estado (marcada, a medias) se deduce de
+   * ellas. Antes se guardaban meses y el estado del año se adivinaba con
+   * `includes` sobre la cadena, que funcionaba de milagro.
+   */
   const handleCheckedChange = (checked: boolean, value: string) => {
     if (isProcessing) return;
 
-    if (checked) {
-      setCheckedItems((prev) => {
-        const items = structuredClone(prev);
+    const weeks = weeksOfValue(value);
 
-        if (!value.includes('/')) {
-          const data = items.filter((record) => !record.includes(value));
+    setCheckedItems((prev) => {
+      if (!checked) return prev.filter((week) => !weeks.includes(week));
 
-          const months = baseList.find(
-            (record) => record.year === value
-          ).months;
-
-          data.push(...months);
-
-          return data;
-        }
-
-        items.push(value);
-
-        return items;
-      });
-    }
-
-    if (!checked) {
-      setCheckedItems((prev) => {
-        const items = structuredClone(prev);
-
-        const data = items.filter((record) => !record.includes(value));
-        return data;
-      });
-    }
+      return [...new Set([...prev, ...weeks])];
+    });
   };
 
   const filterArraysByDataView = <T extends object>(
@@ -310,17 +363,14 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
 
   const handleGetMaterials = <T extends SchedWeekType | SourceWeekType>(
     data: T[],
-    months: string[]
+    weeks: string[]
   ): T[] => {
-    const result: T[] = [];
+    // Por semanas y no por meses: ahora se publica lo que se ha marcado, que
+    // puede ser medio mes. Subir el mes entero enseñaría en la web pública
+    // semanas que aquí siguen en borrador.
+    const wanted = new Set(weeks);
 
-    for (const month of months) {
-      const monthSources = data.filter((record) =>
-        record.weekOf.includes(month)
-      );
-
-      result.push(...monthSources);
-    }
+    const result: T[] = data.filter((record) => wanted.has(record.weekOf));
 
     const sectionToDelete =
       type === 'midweek' ? 'weekend_meeting' : 'midweek_meeting';
@@ -499,24 +549,14 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
    * Solo se guardan las semanas que CAMBIAN: guardar un registro idéntico
    * despierta la sincronización de toda la congregación para nada.
    */
-  const applyLocalPublish = async (months: string[], published: boolean) => {
-    const toSave: SchedWeekType[] = [];
-
-    for (const month of months) {
-      if (!meetingMonthNeedsPublishing(month, type)) continue;
-
-      toSave.push(
-        ...setMeetingMonthPublished(
-          schedules,
-          month,
-          type,
-          published,
-          dataView,
-          undefined,
-          monthOf
-        )
-      );
-    }
+  const applyLocalPublish = async (weeks: string[], published: boolean) => {
+    const toSave = setMeetingWeeksPublished(
+      schedules,
+      weeks,
+      type,
+      published,
+      dataView
+    );
 
     if (toSave.length > 0) {
       await dbSchedBulkUpdate(toSave);
@@ -526,12 +566,12 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   };
 
   const handleRetireSchedule = async () => {
-    if (checkedMonths.length === 0 || isProcessing) return;
+    if (checkedWeeks.length === 0 || isProcessing) return;
 
     try {
       setIsProcessing(true);
 
-      await applyLocalPublish(checkedMonths, false);
+      await applyLocalPublish(checkedWeeks, false);
 
       setIsProcessing(false);
       onClose?.();
@@ -539,9 +579,9 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
       displaySnackNotification({
         header: t('tr_done', 'Hecho'),
         message:
-          checkedMonths.length === 1
-            ? 'Mes retirado: vuelve a ser un borrador.'
-            : 'Meses retirados: vuelven a ser un borrador.',
+          checkedWeeks.length === 1
+            ? 'Semana retirada: vuelve a ser un borrador.'
+            : `${checkedWeeks.length} semanas retiradas: vuelven a ser un borrador.`,
         severity: 'success',
       });
     } catch (error) {
@@ -563,9 +603,9 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     try {
       setIsProcessing(true);
 
-      const months = checkedItems.toSorted();
+      const weeks = checkedWeeks;
 
-      await applyLocalPublish(months, true);
+      await applyLocalPublish(weeks, true);
 
       // Sin cuenta conectada no hay web pública a la que subir nada, pero el
       // mes ya está publicado donde importa: dentro de la aplicación.
@@ -582,8 +622,8 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
         return;
       }
 
-      const sourcesLocalPublish = handleGetMaterials(sources, months);
-      const schedulesLocalPublish = handleGetMaterials(schedules, months);
+      const sourcesLocalPublish = handleGetMaterials(sources, weeks);
+      const schedulesLocalPublish = handleGetMaterials(schedules, weeks);
 
       const { data } = await refetch();
 
@@ -650,9 +690,9 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     handlePublishSchedule,
     handleRetireSchedule,
     isProcessing,
-    checkedMonths,
+    checkedWeeks,
     allCheckedPublished,
-    missingParts,
+    weeksInfo,
     awayAssignees,
   };
 };

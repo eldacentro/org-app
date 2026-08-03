@@ -1,20 +1,27 @@
 import { useMemo } from 'react';
 import { ScheduleListType } from '../index.types';
 
+/**
+ * El estado de la casilla del año, deducido de sus SEMANAS.
+ *
+ * Se cuentan semanas y no meses porque el mes ya no es la unidad: con un mes a
+ * medias, el año tiene que salir a medias también. Contando meses, un mes con
+ * tres semanas de cuatro marcadas contaba como "sin marcar" y el año mentía.
+ */
 const useYearContainer = (months: ScheduleListType['months']) => {
-  const checked = useMemo(() => {
-    const cnChecked = months.filter((record) => record.checked);
+  const { total, marcadas } = useMemo(() => {
+    const weeks = months.flatMap((record) => record.weeks);
 
-    return cnChecked.length === months.length;
+    return {
+      total: weeks.length,
+      marcadas: weeks.filter((week) => week.checked).length,
+    };
   }, [months]);
 
-  const indeterminate = useMemo(() => {
-    const cnChecked = months.filter((record) => record.checked);
-
-    return cnChecked.length > 0 && cnChecked.length < months.length;
-  }, [months]);
-
-  return { checked, indeterminate };
+  return {
+    checked: total > 0 && marcadas === total,
+    indeterminate: marcadas > 0 && marcadas < total,
+  };
 };
 
 export default useYearContainer;

@@ -29,11 +29,14 @@ const SchedulePublish = (props: SchedulePublishProps) => {
     handlePublishSchedule,
     handleRetireSchedule,
     isProcessing,
-    checkedMonths,
+    checkedWeeks,
     allCheckedPublished,
-    missingParts,
+    weeksInfo,
     awayAssignees,
   } = useSchedulePublish(props);
+
+  /** Solo las marcadas a las que les falta algo: el resto no hay que decirlo. */
+  const incompletas = weeksInfo.filter((week) => week.missing.length > 0);
 
   const meetingLabel =
     props.type === 'midweek'
@@ -74,7 +77,7 @@ const SchedulePublish = (props: SchedulePublishProps) => {
           width: '100%',
         }}
       >
-        {checkedMonths.length > 0 && (
+        {checkedWeeks.length > 0 && (
           <InfoTip
             isBig={false}
             color={allCheckedPublished ? 'warning' : 'info'}
@@ -86,15 +89,40 @@ const SchedulePublish = (props: SchedulePublishProps) => {
           />
         )}
 
-        {checkedMonths.length > 0 && !allCheckedPublished && missingParts > 0 && (
-          <InfoTip
-            isBig={false}
-            color="warning"
-            text={`Hay ${missingParts} ${missingParts === 1 ? 'parte principal sin nadie asignado' : 'partes principales sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
-          />
+        {/* Semana a semana, y solo las que tienen algo que decir. Antes esto
+            era un número —«faltan 3 partes principales»— y con un número no se
+            puede hacer nada: no dice ni en qué semana ni cuál. */}
+        {!allCheckedPublished && incompletas.length > 0 && (
+          <InfoTip isBig={false} color="warning">
+            <Box
+              component="span"
+              sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+            >
+              <Typography
+                component="span"
+                className="body-regular"
+                color="var(--orange-dark)"
+              >
+                {incompletas.length === 1
+                  ? 'A una de las semanas marcadas le falta algo. Puedes publicarla igualmente si el resto ya está decidido.'
+                  : `A ${incompletas.length} de las semanas marcadas les falta algo. Puedes publicarlas igualmente si el resto ya está decidido.`}
+              </Typography>
+
+              {incompletas.map((week) => (
+                <Typography
+                  key={week.weekOf}
+                  component="span"
+                  className="label-small-regular"
+                  color="var(--orange-dark)"
+                >
+                  {`${week.label}: ${week.missing.join(', ')}`}
+                </Typography>
+              ))}
+            </Box>
+          </InfoTip>
         )}
 
-        {checkedMonths.length > 0 && awayAssignees.length > 0 && (
+        {checkedWeeks.length > 0 && awayAssignees.length > 0 && (
           <InfoTip
             isBig={false}
             color="warning"
