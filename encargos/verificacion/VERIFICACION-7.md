@@ -3,7 +3,8 @@
 Dos commits en la rama `worktree-agent-adb63ff6b611e0df6`:
 
 - `9d94160ed` — se va la plantilla oficial del S-140 y con ella el selector.
-- `e87e98b55` — «Exportar» va apagado cuando no hay nada que exportar.
+- `e87e98b55` — «Exportar» avisa cuando no hay nada que exportar (corregido
+  después: el botón no se apaga, ver el apartado 3).
 
 Números: `npm run test:unit` **460 en verde**, `npx tsc --noEmit` **129 errores**
 (los mismos de siempre). Ninguno se ha movido.
@@ -112,20 +113,34 @@ Con el interruptor **encendido**:
 
 ---
 
-## 3. El botón «Exportar» apagado
+## 3. El botón «Exportar» nunca se apaga, pero dice lo que falta
 
-Con el interruptor **encendido**:
+**Ojo, esto cambió después de escribir la lista.** El primer arreglo apagaba
+el botón cuando no había nada marcado. Carlos lo corrigió: el botón tiene que
+estar siempre activo, y las dos casillas vuelven a estar para elegir qué sale
+— marcar el programa no arrastra las hojitas, ni al revés.
 
-- [ ] Al abrir el diálogo, «Exportar» sale **apagado** (fondo azul muy claro,
-      texto gris azulado; no responde al clic).
-- [ ] Elegir semana de inicio y de fin, sin marcar ninguna casilla → **sigue
-      apagado**. Esto es el fallo que se venía a arreglar: antes se pulsaba, no
-      pasaba nada y nadie decía por qué.
-- [ ] Marcar el S-140 (o el S-89) → **se enciende**.
-- [ ] Desmarcar las dos → **se vuelve a apagar**.
-- [ ] Marcar una casilla pero **sin** semanas → **apagado**. (La semana de fin
-      ya tiene su propio aviso: sale el globo «Selecciona la semana de inicio».)
+Con el interruptor de PDF **encendido** (ahora está en Mi cuenta, no en los
+ajustes de congregación):
+
+- [ ] El diálogo enseña **las dos casillas**: S-140 y S-89. Empiezan sin marcar.
+- [ ] «Exportar» sale **activo**, y sigue activo pase lo que pase.
+- [ ] Pulsarlo **sin semanas** → aviso «Faltan las semanas», y **el diálogo NO
+      se cierra**.
+- [ ] Elegir semanas y pulsarlo **sin marcar ninguna casilla** → aviso «No has
+      elegido qué exportar», y **el diálogo NO se cierra**. Esto es el fallo
+      que se venía a arreglar: antes se pulsaba, no pasaba nada y nadie decía
+      por qué.
+- [ ] Marcar **solo el S-140** → sale el programa y **ninguna hojita**.
+- [ ] Marcar **solo el S-89** → salen las hojitas y **ninguna hoja de programa**.
+- [ ] Marcar las dos → salen las dos cosas.
+- [ ] Con semanas y casilla marcadas pero un rango **sin nada dentro** → aviso
+      «No hay nada que exportar», nombrando lo que falta.
 - [ ] «Cancelar» sigue funcionando siempre.
+
+> Comprobado en pantalla el 3 de agosto: solo S-140 → un archivo de 41.025
+> bytes; solo S-89 → un archivo de 19.226 bytes. Cada casilla saca lo suyo y
+> nada más.
 
 ## 3 bis. Con el interruptor APAGADO — esto antes NO funcionaba
 

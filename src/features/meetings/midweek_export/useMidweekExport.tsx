@@ -60,21 +60,23 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const [endWeek, setEndWeek] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [exportS140, setExportS140] = useState(false);
+  const [exportS89, setExportS89] = useState(false);
 
-  // Las hojitas de asignación SIEMPRE salen. No son una opción: son el motivo
-  // por el que existe este diálogo, y quien reparte las partes tiene que poder
-  // imprimirlas siempre. Lo que decide el interruptor de PDF es otra cosa: si
-  // además se puede sacar el PROGRAMA (el S-140) en PDF.
+  // Las dos casillas: cada una se marca o no, y se sacan las que se marquen.
+  // Sacar el programa no arrastra las hojitas, ni al revés.
   //
-  // Por eso el S-89 ya no es una casilla —era la que dejaba el botón muerto al
-  // desmarcarla— y el botón no se apaga nunca.
+  // Con la exportación a PDF apagada no hay casillas que marcar y lo único que
+  // sale son las hojitas, así que ahí se da por marcada.
   const shouldExportS140 = pdfExportEnabled && exportS140;
+  const shouldExportS89 = pdfExportEnabled ? exportS89 : true;
 
   const handleSetStartWeek = (value: string) => setStartWeek(value);
 
   const handleSetEndWeek = (value: string) => setEndWeek(value);
 
   const handleToggleS140 = () => setExportS140((prev) => !prev);
+
+  const handleToggleS89 = () => setExportS89((prev) => !prev);
 
   const handleSelectS89Template = (template: S89TemplateType) => {
     setS89Template(template);
@@ -194,13 +196,25 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   const handleExportSchedule = async () => {
     if (isProcessing) return;
 
-    // El botón no se apaga nunca (las hojitas siempre se tienen que poder
-    // sacar), así que lo que falte se dice aquí en vez de no hacer nada.
+    // El botón no se apaga nunca, así que lo que falte se dice aquí en vez de
+    // no hacer nada — que era el fallo original: pulsar «Exportar» sin haber
+    // elegido cerraba el diálogo sin decir palabra.
     if (startWeek.length === 0 || endWeek.length === 0) {
       displaySnackNotification({
         header: 'Faltan las semanas',
         message: 'Elige la semana de inicio y la de fin para poder exportar.',
         // Solo hay 'success' | 'error' | 'message-with-button'; no hay aviso.
+        severity: 'error',
+      });
+
+      return;
+    }
+
+    if (!shouldExportS140 && !shouldExportS89) {
+      displaySnackNotification({
+        header: 'No has elegido qué exportar',
+        message:
+          'Marca el programa, las hojitas de asignación, o las dos cosas.',
         severity: 'error',
       });
 
@@ -237,23 +251,26 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
         return isValid;
       });
 
-      // Las hojitas, siempre. El programa, solo si además se ha marcado.
-      const hojitas = await handleExportS89(weeksList);
+      // Solo lo que se haya marcado.
+      const hojitas = shouldExportS89 ? await handleExportS89(weeksList) : 0;
       const programas = shouldExportS140
         ? await handleExportS140(weeksList)
         : 0;
 
       setIsProcessing(false);
 
-      // Si no ha salido ni un archivo, el rango elegido no tiene nada dentro.
-      // Antes el diálogo se cerraba en silencio y parecía que había fallado la
-      // descarga.
+      // Marcado sí, pero el rango no tiene nada dentro: ni una semana con
+      // programa, ni un estudiante asignado. Antes el diálogo se cerraba en
+      // silencio y parecía que había fallado la descarga.
       if (hojitas === 0 && programas === 0) {
+        const falta = [
+          shouldExportS140 ? 'programa' : '',
+          shouldExportS89 ? 'estudiantes asignados' : '',
+        ].filter(Boolean);
+
         displaySnackNotification({
           header: 'No hay nada que exportar',
-          message: shouldExportS140
-            ? 'Ninguna semana de ese rango tiene programa ni estudiantes asignados.'
-            : 'Ninguna semana de ese rango tiene estudiantes asignados. Marca también el programa si es lo que querías sacar.',
+          message: `Ninguna semana de ese rango tiene ${falta.join(' ni ')}.`,
           severity: 'error',
         });
 
@@ -281,7 +298,9 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
     isProcessing,
     handleExportSchedule,
     exportS140,
+    exportS89,
     handleToggleS140,
+    handleToggleS89,
     S89Template,
     handleSelectS89Template,
   };
