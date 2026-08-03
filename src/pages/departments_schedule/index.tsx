@@ -18,8 +18,10 @@ import {
   departmentsConfigState,
   pdfExportEnabledState,
 } from '@states/settings';
-import { buildAllDeptSlots } from '@services/app/departments_slots';
+import { DEPT_LABEL, buildAllDeptSlots } from '@services/app/departments_slots';
+import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 import LastModifiedInfo from '@components/last_modified_info';
+import { buildFieldChanges } from '@services/app/last_modified';
 import {
   deptMonthNeedsPublishing,
   deptWeeksOfMonth,
@@ -43,6 +45,20 @@ const DepartmentsSchedule = () => {
   const { handleExportPDF } = useDeptExport();
 
   const [isAutofillOpen, setIsAutofillOpen] = useState(false);
+
+  // Aquí el «campo» es cada departamento, no cada puesto suelto: las claves de
+  // puesto son compuestas ('exterior__midweek', 'exterior__t2') y no se leen.
+  // «Acomodadores, el 3 de agosto» sí.
+  const changes = useMemo(
+    () =>
+      buildFieldChanges(
+        ALL_DEPARTMENT_TYPES.map((dept) => ({
+          label: DEPT_LABEL[dept],
+          node: currentSched?.[dept],
+        }))
+      ),
+    [currentSched]
+  );
 
   // Aquí había un botón rotulado "Publicar" que en realidad solo forzaba una
   // sincronización — igual que en Exhibidores y Salidas. Ahora publica de
@@ -170,11 +186,6 @@ const DepartmentsSchedule = () => {
         }
       />
 
-      <LastModifiedInfo
-        updatedAt={currentSched?.updatedAt}
-        lastModifiedBy={currentSched?.lastModifiedBy}
-      />
-
       <Box
         sx={{
           display: 'flex',
@@ -186,6 +197,14 @@ const DepartmentsSchedule = () => {
         <DeptWeekPickerPanel />
         <DepartmentEditor />
       </Box>
+
+      {/* Al pie: es contexto, no titular. Debajo del título era lo segundo
+          que se leía al abrir la página, por delante del programa. */}
+      <LastModifiedInfo
+        updatedAt={currentSched?.updatedAt}
+        lastModifiedBy={currentSched?.lastModifiedBy}
+        changes={changes}
+      />
     </Box>
   );
 };

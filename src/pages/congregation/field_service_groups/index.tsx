@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
@@ -9,9 +10,23 @@ import PageTitle from '@components/page_title';
 import QuickSettingsFieldServiceGroups from '@features/congregation/field_service_groups/quick_settings';
 import { fieldGroupsState } from '@states/field_service_groups';
 import LastModifiedInfo from '@components/last_modified_info';
+import { buildFieldChanges } from '@services/app/last_modified';
 
 const FieldServiceGroups = () => {
   const groups = useAtomValue(fieldGroupsState);
+
+  // Aquí el «campo» es cada grupo: «Grupo 3, el 3 de agosto» es exactamente
+  // lo que quiere saber quien abre esta página.
+  const changes = useMemo(
+    () =>
+      buildFieldChanges(
+        groups.map((group) => ({
+          label: group.group_data.name,
+          node: group.group_data,
+        }))
+      ),
+    [groups]
+  );
 
   const lastUpdate = groups.reduce(
     (acc, curr) => {
@@ -70,12 +85,15 @@ const FieldServiceGroups = () => {
         quickSettings={isServiceCommittee ? handleOpenQuickSettings : undefined}
       />
 
+      <FieldServiceGroupsContainer />
+
+      {/* Al pie: es contexto, no titular. Debajo del título era lo segundo
+          que se leía al abrir la página, por delante de los grupos. */}
       <LastModifiedInfo
         updatedAt={lastUpdate?.updatedAt}
         lastModifiedBy={lastUpdate?.lastModifiedBy}
+        changes={changes}
       />
-
-      <FieldServiceGroupsContainer />
     </Box>
   );
 };

@@ -37,6 +37,7 @@ const WeekendMeeting = () => {
     quickSettingsOpen,
     updatedAt,
     lastModifiedBy,
+    changes,
   } = useWeekend();
 
   return (
@@ -106,8 +107,6 @@ const WeekendMeeting = () => {
         }
       />
 
-      <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
-
       <Box
         sx={{
           display: 'flex',
@@ -119,6 +118,14 @@ const WeekendMeeting = () => {
         <WeekPickerPanel />
         <WeekendEditor />
       </Box>
+
+      {/* Al pie: es contexto, no titular. Debajo del título era lo segundo
+          que se leía al abrir la página, por delante del programa. */}
+      <LastModifiedInfo
+        updatedAt={updatedAt}
+        lastModifiedBy={lastModifiedBy}
+        changes={changes}
+      />
     </Box>
   );
 };

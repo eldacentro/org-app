@@ -13,9 +13,25 @@ import { ResponsabilidadesType } from '@definition/responsabilidades';
 import { useCurrentUser } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
 import backupWorker from '@services/worker/backupWorker';
+import { buildFieldChanges } from '@services/app/last_modified';
 
 const ResponsabilidadesPage = () => {
   const data = useAtomValue(responsabilidadesState);
+
+  // Cada departamento lleva su propia marca de tiempo. El cuerpo de ancianos y
+  // los cargos no la llevan —solo existe la del registro entero—, así que del
+  // panel salen los departamentos y nada más: es lo que hay, y decir «Cuerpo
+  // de ancianos, hoy» sin dato detrás sería inventarlo.
+  const changes = useMemo(
+    () =>
+      buildFieldChanges(
+        (data?.departamentos ?? []).map((departamento) => ({
+          label: departamento.name,
+          node: departamento,
+        }))
+      ),
+    [data]
+  );
 
   const { isElder, isAdmin } = useCurrentUser();
   const canEdit = isElder || isAdmin;
@@ -117,18 +133,22 @@ const ResponsabilidadesPage = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <PageTitle title="Responsabilidades" buttons={buttons} />
 
-      {data && (
-        <LastModifiedInfo
-          updatedAt={data.updatedAt}
-          lastModifiedBy={data.lastModifiedBy ?? ''}
-        />
-      )}
-
       <ResponsabilidadesFeature
         isEditing={isEditing}
         draft={draft}
         setDraft={setDraft}
       />
+
+      {/* Al pie: es contexto, no titular. Debajo del título era lo segundo
+          que se leía al abrir la página, por delante de las
+          responsabilidades. */}
+      {data && (
+        <LastModifiedInfo
+          updatedAt={data.updatedAt}
+          lastModifiedBy={data.lastModifiedBy ?? ''}
+          changes={changes}
+        />
+      )}
     </Box>
   );
 };

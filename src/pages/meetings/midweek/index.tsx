@@ -35,6 +35,7 @@ const MidweekMeeting = () => {
     handleOpenAutofill,
     updatedAt,
     lastModifiedBy,
+    changes,
   } = useMidweek();
 
   return (
@@ -102,8 +103,6 @@ const MidweekMeeting = () => {
         }
       />
 
-      <LastModifiedInfo updatedAt={updatedAt} lastModifiedBy={lastModifiedBy} />
-
       {/* Las hojitas pendientes van AQUÍ y no en Programas semanales: eso es
           la vista de consulta, y esto es trabajo de quien las reparte. */}
       {hasWeeks && <PendingSlips />}
@@ -119,6 +118,14 @@ const MidweekMeeting = () => {
         <WeekPickerPanel />
         <MidweekEditor />
       </Box>
+
+      {/* Al pie: es contexto, no titular. Debajo del título era lo segundo
+          que se leía al abrir la página, por delante del programa. */}
+      <LastModifiedInfo
+        updatedAt={updatedAt}
+        lastModifiedBy={lastModifiedBy}
+        changes={changes}
+      />
     </Box>
   );
 };
