@@ -250,6 +250,11 @@ export const TABLE_ENCRYPTION_MAP = {
     locations: 'shared',
     availability: 'shared',
     publishedMonths: 'shared',
+    // Un campo que no esté en este mapa viaja SIN cifrar: no se cifra al subir
+    // ni se descifra al bajar, simplemente pasa de largo. El sello de
+    // publicación son fechas, pero va aquí por la misma razón que el resto —
+    // lo que sale de esta congregación va cifrado, sin excepciones sueltas.
+    publishedMonthsAt: 'shared',
   },
   exhibitors: {
     turns: 'shared',

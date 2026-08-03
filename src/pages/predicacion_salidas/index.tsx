@@ -38,6 +38,13 @@ import {
   outingsMonthNeedsPublishing,
   setOutingsMonthPublished,
 } from '@services/app/service_outings_publish';
+// El sello de publicación y la cuenta de semanas tocadas son comunes a los
+// módulos que publican por meses; aquí se usan tal cual, sin envolver.
+import {
+  countWeeksChangedSincePublish,
+  monthPublishedAt,
+  setMonthPublishedAt,
+} from '@services/app/month_publish';
 import Checkbox from '@components/checkbox';
 import SwitchWithLabel from '@components/switch_with_label';
 import AppSwitch from '@components/switch';
@@ -73,6 +80,8 @@ import {
   hour24FormatState,
   congNameState,
   pdfExportEnabledState,
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
 } from '@states/settings';
 import {
   serviceOutingsListState,
@@ -90,7 +99,11 @@ import {
   isOutingsMonthFullyCancelled,
   isOutingSlotSuppressedByMonth,
 } from '@utils/service_outings';
-import { personIsAway } from '@services/app/persons';
+// `personIsAway` devuelve el MENSAJE que se le enseña a quien programa (vacío
+// si no hay ausencia); `personIsAwayOn` contesta sí o no. Para decidir hay que
+// usar el segundo: el primero siempre es "algo" en un `if`.
+import { personIsAway, personIsAwayOn } from '@services/app/persons';
+import { personGetDisplayName } from '@utils/common';
 import MonthSelector from '@components/month_selector';
 import { mesArchivo, nombreArchivo } from '@utils/nombre_pdf';
 
@@ -179,6 +192,8 @@ const PredicacionSalidas = () => {
   const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const hour24 = useAtomValue(hour24FormatState);
   const congName = useAtomValue(congNameState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
   const [outingsWeeks, setOutingsWeeks] = useAtom(serviceOutingsListState);
   // useAtom with nullable atom — destructure read and write separately
   const [settings, setSettings] = useAtom(serviceOutingsSettingsState) as [
@@ -542,20 +557,152 @@ const PredicacionSalidas = () => {
     return count;
   }, [outingsSlotsInMonth, outingsWeeks]);
 
+  /** Cuándo se publicó este mes. Sin sello (publicado antes de que existiera
+   *  esta marca) no hay contra qué comparar y no se avisa de nada. */
+  const monthPublishedStamp = useMemo(
+    () => monthPublishedAt(settings?.publishedMonthsAt, currentMonthStr),
+    [settings, currentMonthStr]
+  );
+
+  /**
+   * Semanas de este mes tocadas desde que se publicó.
+   *
+   * La unidad es la SEMANA porque el registro guardado es la semana entera y
+   * lleva un solo `updatedAt`: decir «3 cambios» sería inventarse una precisión
+   * que el dato no tiene. Publicar no se cuenta a sí mismo — el sello va en el
+   * registro de ajustes, y `outingsWeeks` no lo incluye.
+   *
+   * Una semana a caballo entre dos meses cuenta para el mes de su LUNES, que es
+   * la unidad que hay. En el peor caso el número se queda corto o sobra en uno
+   * los días del cambio de mes; el aviso sigue diciendo lo que importa: que hay
+   * que volver a publicar.
+   */
+  const weeksChangedSincePublish = useMemo(
+    () =>
+      countWeeksChangedSincePublish(
+        outingsWeeks,
+        currentMonthStr,
+        monthPublishedStamp
+      ),
+    [outingsWeeks, currentMonthStr, monthPublishedStamp]
+  );
+
+  /**
+   * Quién está asignado este mes teniendo una ausencia apuntada esos días.
+   *
+   * Se pregunta por la fecha de CADA SALIDA, no por el lunes de su semana: una
+   * salida tiene día propio, así que preguntar por el lunes se saltaría una
+   * ausencia de fin de semana. Se recorren los turnos activos del mes, que ya
+   * descuentan los días suspendidos y los turnos apagados.
+   *
+   * No impide publicar: la aplicación no desasigna a nadie sola.
+   */
+  const awayAssigneesInMonth = useMemo(() => {
+    const found: string[] = [];
+
+    for (const slot of outingsSlotsInMonth) {
+      const weekOf = getWeekOfDate(slot.date);
+      const dbDate = formatToDbDate(slot.date);
+      const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
+      const outing = weekRecord?.outings?.find(
+        (o) => o.date === dbDate && o.time === slot.time
+      );
+
+      if (!outing?.person || outing.cancelled) continue;
+
+      const person = persons.find(
+        (record) => record.person_uid === outing.person
+      );
+
+      // El superintendente de circuito y las congregaciones invitadas se
+      // guardan en el mismo campo que un hermano, pero no son personas de la
+      // lista: no tienen ausencias que consultar.
+      if (!person) continue;
+
+      if (!personIsAwayOn(person, dbDate)) continue;
+
+      const name = personGetDisplayName(
+        person,
+        displayNameEnabled,
+        fullnameOption
+      );
+
+      if (name && !found.includes(name)) found.push(name);
+    }
+
+    return found;
+  }, [
+    outingsSlotsInMonth,
+    outingsWeeks,
+    persons,
+    displayNameEnabled,
+    fullnameOption,
+  ]);
+
+  /**
+   * Publica o retira el mes que se está viendo.
+   *
+   * Se sella también la HORA (`publishedMonthsAt`), que es la referencia contra
+   * la que luego se cuenta si se ha tocado algo desde entonces. La marca es la
+   * misma que la del registro de ajustes: sellar y guardar son el mismo acto.
+   * Al retirar, `setMonthPublishedAt` borra el sello — dejarlo puesto haría que
+   * una publicación posterior arrastrase todos los cambios de antes.
+   */
   const handleTogglePublishMonth = async () => {
     if (!settings || monthIsHistoric) return;
 
+    const publishedAt = new Date().toISOString();
     const localSettings = structuredClone(settings);
+
     localSettings.publishedMonths = setOutingsMonthPublished(
       localSettings.publishedMonths,
       currentMonthStr,
       !monthIsPublished
     );
 
-    await dbServiceOutingsSaveSettings(localSettings);
+    localSettings.publishedMonthsAt = setMonthPublishedAt(
+      localSettings.publishedMonthsAt,
+      currentMonthStr,
+      !monthIsPublished,
+      publishedAt
+    );
+
+    await dbServiceOutingsSaveSettings(localSettings, publishedAt);
     setSettings(localSettings);
     triggerSync();
     setPublishDialog(false);
+  };
+
+  /**
+   * Vuelve a sellar un mes que YA está publicado, para cerrar el aviso de «has
+   * cambiado N semanas desde que lo publicaste».
+   *
+   * No toca `publishedMonths`: el mes ya se ve, aquí solo se pone la fecha al
+   * día. Se separa de `handleTogglePublishMonth` porque aquel alterna, y
+   * llamarlo con un mes publicado lo retiraría.
+   */
+  const handleRepublishMonth = async () => {
+    if (!settings || monthIsHistoric || !monthIsPublished) return;
+
+    const publishedAt = new Date().toISOString();
+    const localSettings = structuredClone(settings);
+
+    localSettings.publishedMonthsAt = setMonthPublishedAt(
+      localSettings.publishedMonthsAt,
+      currentMonthStr,
+      true,
+      publishedAt
+    );
+
+    await dbServiceOutingsSaveSettings(localSettings, publishedAt);
+    setSettings(localSettings);
+    triggerSync();
+
+    displaySnackNotification({
+      header: 'Hecho',
+      message: 'Los cambios de este mes quedan publicados.',
+      severity: 'success',
+    });
   };
 
   const handleOpenEdit = (slot: (typeof outingsSlotsInMonth)[0]) => {
@@ -1417,6 +1564,57 @@ const PredicacionSalidas = () => {
           </>
         }
       />
+
+      {/* La tira de aviso de publicación, debajo del título y encima de todo lo
+          demás — la misma forma y el mismo sitio que en las reuniones
+          (features/meetings/publish_notice). Nunca un diálogo: aquí se está
+          escribiendo el programa y no se interrumpe a nadie.
+
+          Solo en el planificador y solo para el comité de servicio: es un aviso
+          para quien decide, no para quien consulta. */}
+      {isServiceCommittee &&
+        activeTab === 'planner' &&
+        !monthIsHistoric &&
+        (!monthIsPublished || weeksChangedSincePublish > 0) && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {!monthIsPublished && (
+              <InfoTip
+                isBig={false}
+                color="warning"
+                text="Este mes está en borrador: solo lo ves tú. Los hermanos no verán sus salidas hasta que lo publiques."
+              />
+            )}
+
+            {/* Publicado y tocado desde entonces. Si no hay sello —el mes se
+                publicó antes de que esta marca existiera— la cuenta es 0 y no
+                sale nada: no se sabe desde cuándo, así que no se inventa. */}
+            {monthIsPublished && weeksChangedSincePublish > 0 && (
+              <InfoTip isBig={false} color="warning">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    width: '100%',
+                  }}
+                >
+                  <Typography
+                    className="body-regular"
+                    sx={{ color: 'var(--orange-dark)' }}
+                  >
+                    {`Este mes está publicado. Has cambiado ${weeksChangedSincePublish} ${weeksChangedSincePublish === 1 ? 'semana' : 'semanas'} desde entonces.`}
+                  </Typography>
+
+                  <AppButton variant="small" onClick={handleRepublishMonth}>
+                    Volver a publicar
+                  </AppButton>
+                </Box>
+              </InfoTip>
+            )}
+          </Box>
+        )}
 
       <Box
         sx={{
@@ -3790,6 +3988,18 @@ const PredicacionSalidas = () => {
               isBig={false}
               color="warning"
               text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'salida sin nadie asignado' : 'salidas sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
+            />
+          )}
+
+          {/* Ausencias de quien está asignado este mes. La aplicación ya avisa
+              al elegir a la persona, y avisar otra vez aquí es a propósito:
+              aquel aviso pasa mientras se trabaja y se escapa; este sale justo
+              antes de que lo vea la congregación entera. */}
+          {!monthIsPublished && awayAssigneesInMonth.length > 0 && (
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text={`${awayAssigneesInMonth.join(', ')} ${awayAssigneesInMonth.length === 1 ? 'tiene una ausencia apuntada' : 'tienen una ausencia apuntada'} en las fechas de las salidas que ${awayAssigneesInMonth.length === 1 ? 'tiene' : 'tienen'} asignadas este mes. Nadie se desasigna solo: mira si hay que cambiarlo.`}
             />
           )}
         </Box>

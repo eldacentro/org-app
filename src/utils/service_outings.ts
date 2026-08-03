@@ -214,3 +214,35 @@ export const deriveWeekOutingSlots = (
 
   return slots;
 };
+
+/**
+ * Deja los ajustes de salidas con la FORMA correcta al leerlos.
+ *
+ * `publishedMonthsAt` viaja cifrado, y un dispositivo que todavía no se haya
+ * actualizado no sabe descifrarlo: se queda con la cadena cifrada tal cual. Si
+ * esa cadena llegara a `setMonthPublishedAt`, el `{...cadena}` la desharía en
+ * un objeto de letras sueltas y eso es lo que se guardaría. Aquí se normaliza
+ * una sola vez, al leer.
+ *
+ * Nunca a `null`: al descifrar, un campo a `null` se BORRA del registro, y el
+ * mes perdería su sello sin que nadie lo haya retirado.
+ *
+ * Solo toca este campo. Los demás ya tienen su propio arreglo al leer en
+ * `dbServiceOutingsGetSettings`, y ampliar esto a todo cambiaría el
+ * comportamiento de campos que hoy funcionan.
+ */
+export const normalizeServiceOutingSettings = <
+  T extends ServiceOutingSettingsType,
+>(
+  settings: T
+): T => {
+  if (!settings) return settings;
+
+  const sello = settings.publishedMonthsAt;
+
+  if (typeof sello !== 'object' || sello === null || Array.isArray(sello)) {
+    settings.publishedMonthsAt = {};
+  }
+
+  return settings;
+};

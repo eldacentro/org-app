@@ -1,3 +1,5 @@
+import { PublishedMonthsAt } from '@services/app/month_publish';
+
 export type ServiceOutingType = {
   id: string;        // Ej: "2026-05-26_tue_1000"
   date: string;      // "2026/05/26"
@@ -45,6 +47,15 @@ export type ServiceOutingSettingsType = {
    * lo publica. Ver `services/app/service_outings_publish`.
    */
   publishedMonths?: string[];
+  /**
+   * CUÁNDO se publicó cada mes ('YYYY/MM' → fecha ISO). Es la referencia contra
+   * la que se cuenta si se ha tocado algo desde entonces: `publishedMonths`
+   * dice si el mes se ve, pero no desde cuándo, y sin eso no se puede avisar de
+   * «lo has cambiado después de publicarlo». Un mes publicado antes de que esto
+   * existiera no tiene sello y entonces no se avisa de nada. Ver
+   * `services/app/month_publish`.
+   */
+  publishedMonthsAt?: PublishedMonthsAt;
   disabledSlots?: string[];
   sharedSlots?: {
     id: string;
