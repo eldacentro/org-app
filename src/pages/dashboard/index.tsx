@@ -53,7 +53,10 @@ import { resolveAssignmentDate } from '@utils/assignments';
 import { Week } from '@definition/week_type';
 import { upcomingEventsActiveState } from '@states/upcoming_events';
 import {
+  eventPeriodProgress,
+  formatDateRangeNoYear,
   isEventForUser,
+  isEventPeriod,
   upcomingEventData,
 } from '@services/app/upcoming_events';
 import { decorationsForEvent } from '@features/activities/upcoming_events/decorations_for_event';
@@ -494,6 +497,13 @@ const Dashboard = () => {
         // taparla en una sola de las dos pantallas es peor que no taparla.
         if (!isEventForUser(record, { isElder, isPioneer })) return false;
 
+        // Un periodo —una campaña de un mes— no es una cita, así que no baja
+        // a los renglones: se pinta como tira encima de ellos. Aquí es donde
+        // dejaba de ser un renglón que se ordenaba el primero, por su fecha
+        // de inicio, y empujaba a las dos reuniones hacia abajo cinco semanas
+        // seguidas repitiendo siempre el mismo «1 sep».
+        if (isEventPeriod(record)) return false;
+
         // filter by type / dataView
         if (dataView === 'main') {
           if (record.event_data.type !== 'main') return false;
@@ -579,6 +589,100 @@ const Dashboard = () => {
     isElder,
     isPioneer,
   ]);
+
+  /**
+   * El periodo que cruza esta semana — una campaña de un mes, por ejemplo.
+   *
+   * Se pinta como una TIRA fina encima de los renglones, con la misma forma
+   * que la de la visita del superintendente, que es este mismo problema ya
+   * resuelto una vez: algo que dura toda la semana y no es una cita a la que
+   * se va a una hora. Por eso no lleva bloque de día ni píldora de hora — un
+   * periodo no tiene una hora — y sí lleva lo único que aporta: cuánto le
+   * queda.
+   *
+   * PENDIENTE DE DECISIÓN (ver PROPUESTA-8.md): si coinciden dos periodos,
+   * aquí solo se enseña UNO, el que termine antes. Apilar dos era una
+   * propuesta, no algo acordado, así que no se inventa: el segundo sigue
+   * entero en Próximos eventos.
+   */
+  const periodoDeLaSemana = useMemo(() => {
+    const hoy = new Date();
+
+    const periodos = upcomingEvents
+      .filter((record) => {
+        if (!isEventPeriod(record)) return false;
+        if (!isEventForUser(record, { isElder, isPioneer })) return false;
+        if (!matchesDataView(record, dataView)) return false;
+
+        const inicio = new Date(record.event_data.start);
+        const fin = new Date(record.event_data.end);
+
+        return inicio <= endOfWeek && fin >= startOfWeek;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.event_data.end).getTime() -
+          new Date(b.event_data.end).getTime()
+      );
+
+    const periodo = periodos.at(0);
+
+    if (!periodo) return null;
+
+    const decoracion =
+      periodo.event_data.category !== undefined &&
+      periodo.event_data.category !== null &&
+      periodo.event_data.category < decorationsForEvent.length
+        ? decorationsForEvent[periodo.event_data.category]
+        : decorationsForEvent[decorationsForEvent.length - 1];
+
+    const titulo =
+      periodo.event_data.category !== UpcomingEventCategory.Custom
+        ? t(decoracion.translationKey)
+        : periodo.event_data.custom;
+
+    const progreso = eventPeriodProgress(periodo, hoy);
+
+    // Los plurales se escriben enteros, no se concatenan: «quedan 1 días» era
+    // el fallo que este proyecto ya ha tenido en cuatro sitios a la vez.
+    let restante: string;
+
+    if (progreso.state === 'upcoming') {
+      restante =
+        progreso.days === 1
+          ? t('tr_periodStartsTomorrow', 'empieza mañana')
+          : t('tr_periodStartsIn', {
+              defaultValue: 'empieza en {{daysCount}} días',
+              daysCount: progreso.days,
+            });
+    } else if (progreso.state === 'lastDay') {
+      restante = t('tr_periodLastDay', 'último día');
+    } else if (progreso.state === 'finished') {
+      restante = t('tr_periodFinished', 'terminado');
+    } else {
+      restante =
+        progreso.days === 1
+          ? t('tr_periodOneDayLeft', 'queda 1 día')
+          : t('tr_periodDaysLeft', {
+              defaultValue: 'quedan {{daysCount}} días',
+              daysCount: progreso.days,
+            });
+    }
+
+    const rango = formatDateRangeNoYear(
+      new Date(periodo.event_data.start),
+      new Date(periodo.event_data.end)
+    );
+
+    return {
+      id: periodo.event_uid,
+      title: titulo,
+      // «1-30 de septiembre · quedan 12 días»
+      subtitle: [rango, restante].filter(Boolean).join(' · '),
+      decoration: decoracion,
+      isPast: progreso.state === 'finished',
+    };
+  }, [upcomingEvents, dataView, startOfWeek, endOfWeek, t, isElder, isPioneer]);
 
   // Combina una fecha (solo día) con una hora "HH:MM" para saber si ese
   // momento ya pasó — así la fila se puede atenuar en vez de desaparecer.
@@ -1006,6 +1110,60 @@ const Dashboard = () => {
                 >
                   Ver programa →
                 </Typography>
+              </Box>
+            )}
+
+            {/* Un PERIODO —una campaña de un mes— con la misma forma que la
+                tira de la visita: es el mismo caso, algo que dura más que un
+                día y no es una cita. Sin bloque de día y sin píldora de hora,
+                porque un periodo no tiene una hora; lo que aporta es cuánto
+                le queda. */}
+            {periodoDeLaSemana && (
+              <Box
+                onClick={() => navigate('/activities/upcoming-events')}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  margin: '12px',
+                  padding: '12px 14px',
+                  borderRadius: 'var(--shape-lg)',
+                  background:
+                    'color-mix(in srgb, var(--accent-main) 6%, transparent)',
+                  border: '1px solid var(--accent-200)',
+                  cursor: 'pointer',
+                  // Terminado pero todavía dentro de esta semana: se atenúa,
+                  // igual que un renglón de reunión que ya pasó, en vez de
+                  // desaparecer a media semana.
+                  opacity: periodoDeLaSemana.isPast ? 0.55 : 1,
+                  transition:
+                    'background var(--motion-fast) var(--ease-standard)',
+                  '&:hover': {
+                    background:
+                      'color-mix(in srgb, var(--accent-main) 12%, transparent)',
+                  },
+                }}
+              >
+                {periodoDeLaSemana.decoration &&
+                  cloneElement(periodoDeLaSemana.decoration.icon, {
+                    color: 'var(--accent-main)',
+                    style: { width: '20px', height: '20px', flexShrink: 0 },
+                  })}
+
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    className="body-regular-semibold"
+                    sx={{ color: 'var(--ink)' }}
+                  >
+                    {periodoDeLaSemana.title}
+                  </Typography>
+                  <Typography
+                    className="label-small-regular"
+                    sx={{ color: 'var(--ink-2)' }}
+                  >
+                    {periodoDeLaSemana.subtitle}
+                  </Typography>
+                </Box>
               </Box>
             )}
 

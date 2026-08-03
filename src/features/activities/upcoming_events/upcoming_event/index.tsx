@@ -30,6 +30,7 @@ import {
   COVER_PHOTO_CATEGORIES,
 } from '../decorations_for_event';
 import ActionPill from '@components/action_pill';
+import { isEventPeriod } from '@services/app/upcoming_events';
 
 const UpcomingEvent = (props: UpcomingEventProps) => {
   const { t } = useAppTranslation();
@@ -104,6 +105,24 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
       />
     );
   }
+
+  /**
+   * ¿Esta tarjeta se resume con su rango en vez de desglosarse día a día?
+   *
+   * Lo decide la DURACIÓN: ocho días o más y deja de ser una cita. Antes lo
+   * decidía solo la categoría «Semana de campaña especial», así que un evento
+   * «Personalizado» de treinta días —el mismo caso exacto— pintaba treinta
+   * filas con su hora cada una.
+   *
+   * La categoría se queda como segunda vía, no como la única: una campaña
+   * especial es un telón de fondo semanal aunque dure justo siete días, y
+   * quitarle el resumen que ya tiene hoy sería empeorar lo que funciona. El
+   * umbral SUMA casos, no los quita.
+   */
+  const esPeriodo =
+    isEventPeriod(props.data) ||
+    props.data.event_data.category ===
+      UpcomingEventCategory.SpecialCampaignWeek;
 
   const isAssemblyCategory = ASSEMBLY_CATEGORIES.includes(
     props.data.event_data.category
@@ -261,8 +280,12 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
         />
       )}
 
-      {props.data.event_data.category ===
-        UpcomingEventCategory.SpecialCampaignWeek && (
+      {/* Un PERIODO se resume en una línea con su rango, no en una fila por
+          día. Estaba atado a la categoría «Semana de campaña especial», así
+          que un evento «Personalizado» de treinta días —el mismo caso
+          exacto— pintaba treinta filas. Ahora lo decide la duración, que es
+          lo que de verdad causa el problema. */}
+      {esPeriodo && (
         <UpcomingEventDate
           title={t('tr_everyDay')}
           range={eventFormatted.datesRange}
@@ -280,8 +303,7 @@ const UpcomingEvent = (props: UpcomingEventProps) => {
         )}
 
       {props.data.event_data.duration === UpcomingEventDuration.MultipleDays &&
-        props.data.event_data.category !==
-          UpcomingEventCategory.SpecialCampaignWeek &&
+        !esPeriodo &&
         !hasVisitAgenda &&
         eventFormatted.dates.map((eventDate, eventDateIndex) => (
           <Fragment key={eventDate.date}>
