@@ -49,6 +49,7 @@ import { dbResponsabilidadesInit } from '@services/dexie/responsabilidades';
 import { circuitVisitsState } from '@states/circuit_visit';
 import { reconcileAllVisits } from '@services/app/circuit_visit_projection';
 import { normalizeExhibitorSettings } from '@utils/exhibitors';
+import { normalizeServiceOutingSettings } from '@utils/service_outings';
 
 const useIndexedDb = () => {
   const dbSettings = useLiveQuery(() => appDb.app_settings.toArray());
@@ -300,7 +301,14 @@ const useIndexedDb = () => {
 
       setServiceOutingsList(list);
       if (settings) {
-        setServiceOutingsSettings(settings as ServiceOutingSettingsType);
+        // Los ajustes entran también por aquí, sin pasar por
+        // dbServiceOutingsGetSettings: es esta copia la que lee la página de
+        // Salidas. Sin normalizar, un campo con la forma equivocada —cifrado
+        // por una versión más nueva, por ejemplo— llegaría intacto hasta la
+        // pantalla. Misma razón que en Exhibidores, justo debajo.
+        setServiceOutingsSettings(
+          normalizeServiceOutingSettings(settings as ServiceOutingSettingsType)
+        );
       }
     }
   }, [dbServiceOutings, setServiceOutingsList, setServiceOutingsSettings]);

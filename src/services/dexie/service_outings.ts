@@ -1,5 +1,6 @@
 import appDb from '@db/appDb';
 import { ServiceOutingWeekType, ServiceOutingSettingsType } from '@definition/service_outings';
+import { normalizeServiceOutingSettings } from '@utils/service_outings';
 
 const triggerSync = () => {
   import('@services/worker/backupWorker').then(
@@ -48,7 +49,7 @@ export const dbServiceOutingsGetSettings = async (): Promise<ServiceOutingSettin
     if (!settings.availability) {
       settings.availability = {};
     }
-    return settings;
+    return normalizeServiceOutingSettings(settings);
   }
 
   // Crear configuración por defecto
@@ -79,11 +80,21 @@ export const dbServiceOutingsGetSettings = async (): Promise<ServiceOutingSettin
   return defaultSettings;
 };
 
-export const dbServiceOutingsSaveSettings = async (settings: Omit<ServiceOutingSettingsType, 'weekOf'>) => {
+/**
+ * `updatedAt` se puede pasar de fuera para que el sello de publicación
+ * (`publishedMonthsAt`) lleve EXACTAMENTE la misma marca que el registro que lo
+ * transporta: quien publica necesita sellar y guardar en el mismo acto, y si la
+ * hora la pusiera solo esta función, el sello iría por su cuenta unos
+ * milisegundos antes. Sin pasar nada se comporta como siempre.
+ */
+export const dbServiceOutingsSaveSettings = async (
+  settings: Omit<ServiceOutingSettingsType, 'weekOf'>,
+  updatedAt = new Date().toISOString()
+) => {
   const data: ServiceOutingSettingsType = {
     ...settings,
     weekOf: 'settings',
-    updatedAt: new Date().toISOString(),
+    updatedAt,
   };
   await appDb.service_outings.put(data);
   await dbUpdateServiceOutingsMetadata();
