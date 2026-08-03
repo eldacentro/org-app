@@ -65,6 +65,7 @@ const FieldServiceReportsPage = lazy(
   () => import('@pages/reports/field_service')
 );
 const MidweekMeeting = lazy(() => import('@pages/meetings/midweek'));
+const RepartoPage = lazy(() => import('@pages/meetings/reparto'));
 const MinistryReport = lazy(() => import('@pages/ministry/ministry_report'));
 const AuxiliaryPioneerApplication = lazy(
   () => import('@pages/ministry/auxiliary_pioneer')
@@ -180,6 +181,21 @@ const MidweekEditorRoute = () => {
 const MeetingMaterialsRoute = () => {
   const { isMeetingEditor } = useCurrentUser();
   return <RouteProtected allowed={isMeetingEditor} />;
+};
+
+/**
+ * «Reparto de asignaciones»: quien reparte algo puede mirar cómo va el reparto.
+ * No es una pantalla de trabajo, así que no hace falta acotarla más.
+ */
+const RepartoRoute = () => {
+  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator } =
+    useCurrentUser();
+
+  return (
+    <RouteProtected
+      allowed={isMidweekEditor || isWeekendEditor || isPublicTalkCoordinator}
+    />
+  );
 };
 
 const MidweekDepartmentsRoute = () => {
@@ -392,6 +408,13 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                     path: '/reports/meeting-attendance',
                     element: <MeetingAttendance />,
                   },
+                ],
+              },
+
+              {
+                element: <RepartoRoute />,
+                children: [
+                  { path: '/assignments-balance', element: <RepartoPage /> },
                 ],
               },
 

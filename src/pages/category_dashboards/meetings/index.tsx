@@ -160,6 +160,35 @@ const MeetingsDashboard = () => {
             </svg>
           </button>
         )}
+
+        {/* Reparto de asignaciones.
+            La última y sin destacar, a propósito: no se mira mientras se
+            programa, se mira de vez en cuando para confirmar que va
+            equitativo. */}
+        {(isMidweekEditor || isWeekendEditor || isPublicTalkCoordinator) && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/assignments-balance')}
+          >
+            <div className="ti">
+              <IconAssigned color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Reparto de asignaciones</div>
+            </div>
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        )}
       </div>
     </Box>
   );
