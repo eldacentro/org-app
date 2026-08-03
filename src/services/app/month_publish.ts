@@ -149,12 +149,53 @@ export const setMonthPublishedAt = (
 };
 
 /**
+ * Los meses que TOCA una semana: el de su lunes y el de su domingo.
+ *
+ * Casi siempre es uno solo. Pero una semana cabalga entre dos meses cuatro o
+ * cinco veces al año, y ahí «el mes de la semana» no es una respuesta: la
+ * semana del 31 de agosto contiene el 2 de septiembre.
+ *
+ * Devuelve los dos porque el turno o la salida que hay dentro se enseña o se
+ * esconde por SU PROPIA fecha, no por el lunes de su semana. Si al contar los
+ * cambios se mirara solo el lunes, tocar la salida del 2 de septiembre contaría
+ * para agosto —que es histórico y no avisa de nada— y el responsable no se
+ * enteraría de que la congregación tiene delante una versión vieja.
+ *
+ * El precio de esto es contar de más: tocar la salida del 31 de agosto también
+ * hace saltar el aviso de septiembre. Es el lado bueno por el que equivocarse:
+ * de más, sobra un «vuelve a publicar»; de menos, nadie se entera.
+ */
+const monthsTouchedByWeek = (weekOf: string): string[] => {
+  const lunes = monthOfDate(weekOf);
+  if (!lunes) return [];
+
+  const [year, month, day] = weekOf
+    .trim()
+    .slice(0, 10)
+    .replace(/-/g, '/')
+    .split('/')
+    .map(Number);
+
+  // Sin día no hay semana que estirar (llegó un mes ya recortado, por ejemplo).
+  if (!year || !month || !day) return [lunes];
+
+  const domingo = new Date(year, month - 1, day + 6);
+
+  const fin = `${domingo.getFullYear()}/${String(domingo.getMonth() + 1).padStart(2, '0')}`;
+
+  return lunes === fin ? [lunes] : [lunes, fin];
+};
+
+/**
  * Cuántas semanas de ese mes se han tocado desde que se publicó.
  *
  * La unidad es la SEMANA y no el campo, a diferencia de las reuniones: en
  * Exhibidores y en Salidas el registro guardado es la semana entera y lleva un
  * solo `updatedAt`, así que decir «3 cambios» sería inventarse una precisión
  * que los datos no tienen. Quien lo pinte que diga «semanas».
+ *
+ * Una semana a caballo entre dos meses cuenta para los DOS: ver
+ * `monthsTouchedByWeek`.
  *
  * Sin sello de publicación devuelve 0: no hay contra qué comparar, y un número
  * inventado aquí manda al responsable a buscar un cambio que no existe.
@@ -172,7 +213,7 @@ export const countWeeksChangedSincePublish = (
   return (weeks ?? []).filter(
     (week) =>
       week?.weekOf &&
-      monthOfDate(week.weekOf) === normalized &&
+      monthsTouchedByWeek(week.weekOf).includes(normalized) &&
       typeof week.updatedAt === 'string' &&
       week.updatedAt > publishedAt
   ).length;

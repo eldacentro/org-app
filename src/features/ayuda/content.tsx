@@ -2090,7 +2090,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'tip',
-            text: 'Publicada una vez, ya no hay que volver a publicar: lo que cambies después se les actualiza al momento. Publicar es abrir la puerta, no enviar una copia.',
+            text: 'Publicar es abrir la puerta, no enviar una copia: lo que cambies después les llega solo. Si cambias algo verás un aviso con el botón "Volver a publicar", que no reenvía nada — solo apaga el aviso cuando ya has repasado el cambio.',
           },
           {
             type: 'faq',
@@ -2133,7 +2133,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
         blocks: [
           {
             type: 'p',
-            text: 'Desde dos meses antes, a todos les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y desaparece sola el día después de terminar. A ti te sale desde que la programas, así que puedes ver cómo va quedando la semana mucho antes que ellos. En Congregación no les sale nada: esa pantalla es solo tuya.'
+            text: 'Desde dos meses antes, a todos les sale sola una pestaña «Visita del superintendente» en «Programas semanales», y desaparece sola el día después de terminar. A ti te sale desde que la programas, así que puedes ver cómo va quedando la semana mucho antes que ellos. En Congregación no les sale nada: esa pantalla es solo tuya.',
           },
           {
             type: 'tip',

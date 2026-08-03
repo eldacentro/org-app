@@ -71,11 +71,16 @@ const CircuitVisitPublishDialog = ({
           />
         )}
 
+        {/* Decía «No hace falta volver a publicar», y era verdad a medias: lo
+            que cambias sí les llega solo, pero desde que la visita avisa de los
+            cambios hay un botón que se llama justo así, y las dos cosas juntas
+            no se entienden. Se explica lo que hace ese botón, que no es
+            reenviar nada. */}
         {isPublished && (
           <InfoTip
             isBig={false}
             color="info"
-            text="Mientras siga publicada, lo que cambies se les actualiza al momento. No hace falta volver a publicar."
+            text="Mientras siga publicada, lo que cambies les llega solo: no hay que reenviar nada. Si cambias algo aparecerá un aviso con el botón «Volver a publicar», que únicamente apaga ese aviso cuando ya lo has repasado."
           />
         )}
       </Box>

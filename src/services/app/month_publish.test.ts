@@ -231,4 +231,33 @@ describe('cuándo se publicó, y qué se ha tocado desde entonces', () => {
       0
     );
   });
+
+  it('una semana a caballo cuenta para los DOS meses', () => {
+    // La del 31 de agosto llega hasta el domingo 6 de septiembre, así que
+    // dentro hay salidas y turnos de septiembre. Si solo contara para agosto
+    // —que además es histórico y no avisa de nada—, tocar la salida del 2 de
+    // septiembre no le saltaría a nadie y la congregación se quedaría con una
+    // versión vieja delante sin que nadie lo supiera.
+    const semanas = [{ weekOf: '2026/08/31', updatedAt: HOY }];
+
+    expect(countWeeksChangedSincePublish(semanas, '2026/09', AYER)).toBe(1);
+    expect(countWeeksChangedSincePublish(semanas, '2026/08', AYER)).toBe(1);
+  });
+
+  it('una semana que no se sale de su mes cuenta para uno solo', () => {
+    const semanas = [{ weekOf: '2026/09/07', updatedAt: HOY }];
+
+    expect(countWeeksChangedSincePublish(semanas, '2026/09', AYER)).toBe(1);
+    expect(countWeeksChangedSincePublish(semanas, '2026/08', AYER)).toBe(0);
+    expect(countWeeksChangedSincePublish(semanas, '2026/10', AYER)).toBe(0);
+  });
+
+  it('el salto de año no despista', () => {
+    // Lunes 28 de diciembre de 2026: la semana termina el 3 de enero de 2027.
+    const semanas = [{ weekOf: '2026/12/28', updatedAt: HOY }];
+
+    expect(countWeeksChangedSincePublish(semanas, '2027/01', AYER)).toBe(1);
+    expect(countWeeksChangedSincePublish(semanas, '2026/12', AYER)).toBe(1);
+    expect(countWeeksChangedSincePublish(semanas, '2026/11', AYER)).toBe(0);
+  });
 });
