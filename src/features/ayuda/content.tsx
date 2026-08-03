@@ -835,13 +835,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
             type: 'steps',
             items: [
               'Cuando el programa esté listo, toca "Publicar".',
-              'La ventana lista los MESES por año, con una casilla cada uno; los ya publicados llevan un icono al lado. Marca los que quieras y dale a "Publicar".',
+              'La ventana lista los meses del año y, dentro de cada uno, SUS SEMANAS, con el día de la reunión. Marca el mes entero de un tirón, o solo las semanas que ya tengas listas. Lo ya publicado lleva un icono al lado, y si a una semana marcada le falta alguien, te dice qué le falta antes de publicarla.',
               'A cada hermano con asignación le aparece en "Mis asignaciones" (y recibe su notificación).',
             ],
           },
           {
             type: 'p',
-            text: 'El botón "Publicar" solo aparece si la congregación está conectada.',
+            text: 'El botón "Publicar" sale siempre, con cuenta conectada o sin ella: publicar es una decisión de la congregación, no una subida a internet. Sin conexión el mes queda publicado igual dentro de la aplicación.',
           },
           {
             type: 'link',
@@ -970,13 +970,13 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           {
             type: 'steps',
             items: [
-              'Toca "Publicar": la ventana lista los MESES por año, con una casilla cada uno. Marca los que quieras y dale a "Publicar". Los meses ya publicados llevan un icono al lado.',
+              'Toca "Publicar": la ventana lista los meses y, dentro de cada uno, SUS SEMANAS, con el día de la reunión. Marca el mes entero de un tirón, o solo las semanas que ya tengas listas. Lo ya publicado lleva un icono al lado, y si a una semana marcada le falta alguien, te dice qué le falta.',
               'Para el tablón o el archivo: "Exportar" abre "Exportar reunión del fin de semana"; elige "Semana de inicio" y "Semana de finalización" y dale a "Exportar" para sacar el PDF.',
             ],
           },
           {
             type: 'p',
-            text: 'El botón "Publicar" solo aparece si la congregación está conectada, y "Exportar" solo si tienes activada la exportación a PDF.',
+            text: 'El botón "Publicar" sale siempre, con cuenta conectada o sin ella. "Exportar" solo si tienes activada la exportación a PDF.',
           },
           {
             type: 'link',
@@ -1050,7 +1050,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: '"Exportar" saca el PDF de un rango de semanas. "Publicar" no abre ninguna ventana: fuerza la sincronización para que los cambios lleguen ya a los demás.',
+            text: '"Exportar" saca el PDF de un rango de semanas. "Publicar" abre una ventana con los meses: hasta que no publicas un mes, las salidas son un borrador que solo ves tú.',
           },
           {
             type: 'warn',

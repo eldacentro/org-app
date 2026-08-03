@@ -113,7 +113,17 @@ administrador). Ancho: **1280** primero, luego **375**.
 - Se ve **sin cuenta conectada** (antes solo salía estando conectado). En modo
   de prueba tiene que salir igual.
 
-**El diálogo** (las casillas por año y mes, que ya existían):
+**El diálogo** (año → mes → SEMANAS, desde el 2026-08-03):
+
+- Cada mes se abre en sus semanas, con el rótulo del día de la reunión («2 Sep»).
+  La casilla del mes marca todas las suyas de un tirón y se queda a medias
+  cuando solo hay algunas.
+- Una semana del histórico no se puede marcar —ya se ve— y lo dice, pero solo en
+  el mes partido, donde hace falta explicarlo.
+- A cada semana marcada que le falte alguien se le dice **qué** le falta, por su
+  nombre. Una semana sin empezar se resume en «Sin empezar».
+- El botón del mes solo dice «Publicado» cuando lo están TODAS sus semanas.
+
 
 - Al marcar meses aparece abajo, en azul: *«Al publicarlo, cada hermano verá su
   parte de la reunión de... en "Mis asignaciones" y en el programa semanal...»*.
