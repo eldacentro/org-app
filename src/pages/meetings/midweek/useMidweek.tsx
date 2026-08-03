@@ -10,6 +10,7 @@ import {
   isMeetingMonthPublished,
   meetingMonthNeedsPublishing,
 } from '@services/app/meetings_publish';
+import { meetingMonthResolver } from '@services/app/meeting_month';
 
 const useMidweek = () => {
   const { t } = useAppTranslation();
@@ -92,13 +93,21 @@ const useMidweek = () => {
   }, [currentSched, dataView, t]);
   // Se publica por MES, como en el resto de módulos: es la unidad con la que se
   // piensa el programa, aunque los datos vayan por semana.
-  const selectedMonth = selectedWeek?.substring(0, 7) ?? '';
+  //
+  // Y el mes es el MISMO que enseña el selector de semanas, que no siempre es
+  // el del lunes: la semana del 31 de agosto sale bajo «septiembre» porque su
+  // reunión es el 2. Cogiendo el lunes a pelo, esa semana se abría sin botón de
+  // publicar — decía ser de agosto, que es histórico. Ver `meeting_month.ts`.
+  const monthOf = meetingMonthResolver('midweek');
+
+  const selectedMonth = monthOf(selectedWeek ?? '');
 
   const monthIsPublished = isMeetingMonthPublished(
     schedules,
     selectedMonth,
     'midweek',
-    dataView
+    dataView,
+    monthOf
   );
 
   const monthIsHistoric = !meetingMonthNeedsPublishing(

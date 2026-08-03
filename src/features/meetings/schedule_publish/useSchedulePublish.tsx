@@ -45,6 +45,7 @@ import {
   meetingMonthNeedsPublishing,
   setMeetingMonthPublished,
 } from '@services/app/meetings_publish';
+import { meetingMonthResolver } from '@services/app/meeting_month';
 
 const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const { t } = useAppTranslation();
@@ -76,6 +77,15 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
+  /**
+   * A qué mes pertenece cada semana, con la MISMA regla que el selector de
+   * semanas del editor. No siempre es el mes de su lunes: la reunión del 1 de
+   * octubre es de la semana del 28 de septiembre, y el responsable la ve bajo
+   * octubre. Si publicar fuera por el lunes, «Publicar octubre» dejaría esa
+   * semana en borrador y nadie vería la primera reunión del mes.
+   */
+  const monthOf = meetingMonthResolver(type);
+
   const sourcesList = useMemo(() => {
     const weekDate = getWeekDate();
     const pastDate = addMonths(weekDate, -3);
@@ -97,7 +107,7 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
 
   const baseList = useMemo(() => {
     const groupedData = sourcesList.reduce((acc: YearGroupType[], week) => {
-      const [year, month] = week.split('/').slice(0, 2);
+      const [year, month] = monthOf(week).split('/');
       let yearGroup = acc.find((y) => y.year === year);
 
       if (!yearGroup) {
@@ -135,7 +145,13 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
           return {
             month,
             checked: checkedItems.includes(month),
-            published: isMeetingMonthPublished(schedules, month, type, dataView),
+            published: isMeetingMonthPublished(
+              schedules,
+              month,
+              type,
+              dataView,
+              monthOf
+            ),
             isHistoric: !meetingMonthNeedsPublishing(month, type),
           };
         }),
@@ -160,7 +176,7 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     if (checkedMonths.length === 0) return false;
 
     return checkedMonths.every((month) =>
-      isMeetingMonthPublished(schedules, month, type, dataView)
+      isMeetingMonthPublished(schedules, month, type, dataView, monthOf)
     );
   }, [checkedMonths, schedules, type, dataView]);
 
@@ -169,10 +185,11 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
     () =>
       checkedMonths.reduce(
         (total, month) =>
-          total + countMeetingMissingParts(schedules, month, type, dataView),
+          total +
+          countMeetingMissingParts(schedules, month, type, dataView, monthOf),
         0
       ),
-    [checkedMonths, schedules, type, dataView]
+    [checkedMonths, schedules, type, dataView, monthOf]
   );
 
   /**
@@ -194,7 +211,8 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
         schedules,
         month,
         type,
-        dataView
+        dataView,
+        monthOf
       );
 
       for (const assignee of assignees) {
@@ -493,7 +511,9 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
           month,
           type,
           published,
-          dataView
+          dataView,
+          undefined,
+          monthOf
         )
       );
     }

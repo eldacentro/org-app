@@ -23,6 +23,7 @@ import {
   meetingMonthNeedsPublishing,
   restampMeetingMonthPublished,
 } from '@services/app/meetings_publish';
+import { meetingMonthResolver } from '@services/app/meeting_month';
 
 /**
  * La tira de aviso de publicación, arriba de la página del programa.
@@ -54,14 +55,25 @@ const MeetingPublishNotice = ({
 
   const needsPublishing = meetingMonthNeedsPublishing(month, type);
 
+  // Con la misma regla que el selector de semanas del editor: no siempre es el
+  // mes del lunes. Ver `meeting_month.ts`.
+  const monthOf = meetingMonthResolver(type);
+
   const isPublished = useMemo(
-    () => isMeetingMonthPublished(schedules, month, type, dataView),
-    [schedules, month, type, dataView]
+    () => isMeetingMonthPublished(schedules, month, type, dataView, monthOf),
+    [schedules, month, type, dataView, monthOf]
   );
 
   const changes = useMemo(
-    () => countMeetingChangesSincePublish(schedules, month, type, dataView),
-    [schedules, month, type, dataView]
+    () =>
+      countMeetingChangesSincePublish(
+        schedules,
+        month,
+        type,
+        dataView,
+        monthOf
+      ),
+    [schedules, month, type, dataView, monthOf]
   );
 
   const awayNames = useMemo(() => {
@@ -71,7 +83,8 @@ const MeetingPublishNotice = ({
       schedules,
       month,
       type,
-      dataView
+      dataView,
+      monthOf
     )) {
       const person = persons.find(
         (record) => record.person_uid === assignee.uid
@@ -79,7 +92,8 @@ const MeetingPublishNotice = ({
 
       if (!person) continue;
 
-      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) continue;
+      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-')))
+        continue;
 
       const name =
         personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
@@ -94,6 +108,7 @@ const MeetingPublishNotice = ({
     month,
     type,
     dataView,
+    monthOf,
     persons,
     displayNameEnabled,
     fullnameOption,
@@ -104,7 +119,9 @@ const MeetingPublishNotice = ({
       schedules,
       month,
       type,
-      dataView
+      dataView,
+      undefined,
+      monthOf
     );
 
     if (toSave.length === 0) return;

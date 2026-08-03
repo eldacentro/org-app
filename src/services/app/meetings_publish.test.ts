@@ -12,6 +12,7 @@ import {
   isMeetingWeekPublished,
   MEETING_DRAFT_FROM,
   meetingMonthNeedsPublishing,
+  meetingWeeksOfMonth,
   restampMeetingMonthPublished,
   setMeetingMonthPublished,
 } from './meetings_publish';
@@ -752,5 +753,78 @@ describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
     expect(
       collectMeetingMonthAssignees(semanas, FUTURO, 'outgoing', 'main')
     ).toEqual([]);
+  });
+});
+
+describe('el mes de una semana lo decide quien llama, no siempre el lunes', () => {
+  /**
+   * El caso real: la semana del 31 de agosto de 2026 tiene su reunión de entre
+   * semana el 2 de septiembre, y el selector del editor la archiva bajo
+   * SEPTIEMBRE. Publicar iba por el lunes, así que esa semana no entraba en
+   * «Publicar septiembre» — y peor: la reunión del 1 de octubre es de la semana
+   * del 28 de septiembre, así que «Publicar octubre» la dejaba en borrador y la
+   * congregación no veía la primera reunión del mes.
+   */
+  const porFechaDeReunion = (weekOf: string) =>
+    ({
+      '2026/08/31': '2026/09',
+      '2026/09/28': '2026/10',
+    })[weekOf] ?? weekOf.slice(0, 7);
+
+  const semanas = [
+    week('2026/08/31'), // reunión el 2 de septiembre
+    week('2026/09/07'),
+    week('2026/09/28'), // reunión el 1 de octubre
+    week('2026/10/05'),
+  ];
+
+  it('sin decir nada, sigue mandando el lunes (nada cambia)', () => {
+    expect(
+      meetingWeeksOfMonth(semanas, '2026/09').map((w) => w.weekOf)
+    ).toEqual(['2026/09/07', '2026/09/28']);
+  });
+
+  it('con la regla del editor, cada semana cae donde se la ve', () => {
+    expect(
+      meetingWeeksOfMonth(semanas, '2026/09', porFechaDeReunion).map(
+        (w) => w.weekOf
+      )
+    ).toEqual(['2026/08/31', '2026/09/07']);
+
+    expect(
+      meetingWeeksOfMonth(semanas, '2026/10', porFechaDeReunion).map(
+        (w) => w.weekOf
+      )
+    ).toEqual(['2026/09/28', '2026/10/05']);
+  });
+
+  it('publicar octubre marca la semana que el responsable ve bajo octubre', () => {
+    // Es el fallo mudo que esto viene a cerrar: sin la regla, esa semana se
+    // quedaba en borrador y nadie veía la primera reunión del mes.
+    const toSave = setMeetingMonthPublished(
+      semanas,
+      '2026/10',
+      'midweek',
+      true,
+      'main',
+      '2026-10-01T10:00:00Z',
+      porFechaDeReunion
+    );
+
+    expect(toSave.map((w) => w.weekOf)).toEqual(['2026/09/28', '2026/10/05']);
+  });
+
+  it('ninguna semana se queda sin mes ni cae en dos', () => {
+    const meses = ['2026/08', '2026/09', '2026/10'];
+
+    const veces = semanas.map(
+      (semana) =>
+        meses.filter(
+          (mes) =>
+            meetingWeeksOfMonth([semana], mes, porFechaDeReunion).length > 0
+        ).length
+    );
+
+    expect(veces).toEqual([1, 1, 1, 1]);
   });
 });

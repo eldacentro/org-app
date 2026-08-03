@@ -196,16 +196,32 @@ export const isMeetingDatePublished = (
   return isMeetingWeekPublished(schedule, key, dataView);
 };
 
-/** Las semanas guardadas que caen en ese mes (por su lunes, como el selector). */
+/**
+ * A qué mes pertenece una semana. Por su LUNES, salvo que quien llama diga otra
+ * cosa.
+ *
+ * Se puede cambiar desde fuera porque el editor no siempre agrupa por el lunes:
+ * cuando la congregación tiene puesta «fecha exacta», y siempre en el fin de
+ * semana, el selector archiva cada semana por el DÍA DE LA REUNIÓN. Publicar
+ * tiene que cubrir exactamente las semanas que el responsable ve bajo ese mes,
+ * o se queda una fuera sin que nada lo diga. Ver `meeting_month.ts`.
+ *
+ * Aquí se queda el lunes como valor por defecto para que este módulo siga
+ * siendo puro y se pueda probar sin navegador ni ajustes.
+ */
+export type MeetingWeekMonth = (weekOf: string) => string;
+
+/** Las semanas guardadas que caen en ese mes. */
 export const meetingWeeksOfMonth = <T extends Pick<SchedWeekType, 'weekOf'>>(
   schedules: T[],
-  month: string
+  month: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ) => {
   const normalized = monthOfDate(month);
   if (!normalized) return [];
 
   return (schedules ?? []).filter(
-    (week) => week?.weekOf && monthOfDate(week.weekOf) === normalized
+    (week) => week?.weekOf && monthOf(week.weekOf) === normalized
   );
 };
 
@@ -220,7 +236,8 @@ export const isMeetingMonthPublished = (
   schedules: SchedWeekType[],
   month: string,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ) => {
   // Un mes que no se entiende (todavía no hay semana elegida, por ejemplo) no
   // está publicado: así el botón sigue diciendo "Publicar" y no promete algo
@@ -229,7 +246,7 @@ export const isMeetingMonthPublished = (
 
   if (!meetingMonthNeedsPublishing(month, key)) return true;
 
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   if (weeks.length === 0) return false;
 
@@ -250,9 +267,10 @@ export const setMeetingMonthPublished = (
   key: MeetingPublishKey,
   published: boolean,
   dataView: string,
-  updatedAt = new Date().toISOString()
+  updatedAt = new Date().toISOString(),
+  monthOf: MeetingWeekMonth = monthOfDate
 ): SchedWeekType[] => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   const result: SchedWeekType[] = [];
 
@@ -295,9 +313,10 @@ export const restampMeetingMonthPublished = (
   month: string,
   key: MeetingPublishKey,
   dataView: string,
-  updatedAt = new Date().toISOString()
+  updatedAt = new Date().toISOString(),
+  monthOf: MeetingWeekMonth = monthOfDate
 ): SchedWeekType[] => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   const result: SchedWeekType[] = [];
 
@@ -335,9 +354,10 @@ export const countMeetingChangesSincePublish = (
   schedules: SchedWeekType[],
   month: string,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ) => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   let count = 0;
 
@@ -500,11 +520,12 @@ export const countMeetingMissingParts = (
   schedules: SchedWeekType[],
   month: string,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ) => {
   if (key === 'outgoing') return 0;
 
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   const parts =
     key === 'midweek' ? MIDWEEK_ESSENTIAL_PARTS : WEEKEND_ESSENTIAL_PARTS;
@@ -559,9 +580,10 @@ export type OutgoingMonthGaps = {
 export const buildOutgoingMonthGaps = (
   schedules: SchedWeekType[],
   month: string,
-  dataView: string
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ): OutgoingMonthGaps => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   const gaps: OutgoingMonthGaps = {
     total: 0,
@@ -612,9 +634,10 @@ export const collectMeetingMonthAssignees = (
   schedules: SchedWeekType[],
   month: string,
   key: MeetingPublishKey,
-  dataView: string
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
 ): MeetingMonthAssignee[] => {
-  const weeks = meetingWeeksOfMonth(schedules ?? [], month);
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
 
   const result: MeetingMonthAssignee[] = [];
   const seen = new Set<string>();
