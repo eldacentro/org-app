@@ -41,6 +41,14 @@ export const normalizeExhibitorSettings = <T extends ExhibitorSettingsType>(
 
   if (!isPlainObject(settings.availability)) settings.availability = {};
 
+  // Nunca `null`, siempre `{}`: al descifrar se recorren las CLAVES del
+  // registro, y una clave puesta a `null` desaparece por el camino. Con `{}` el
+  // campo sigue ahí y `monthPublishedAt` contesta que no consta, que es lo que
+  // toca cuando no hay sello.
+  if (!isPlainObject(settings.publishedMonthsAt)) {
+    settings.publishedMonthsAt = {};
+  }
+
   if (
     settings.monthlyOverrides !== undefined &&
     !isPlainObject(settings.monthlyOverrides)

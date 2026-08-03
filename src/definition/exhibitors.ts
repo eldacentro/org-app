@@ -1,3 +1,5 @@
+import type { PublishedMonthsAt } from '@services/app/month_publish';
+
 export type ExhibitorTurnType = {
   id: string; // ID único auto-generado (UUID)
   days: string[]; // ['tuesday', 'saturday'] etc.
@@ -30,6 +32,14 @@ export type ExhibitorSettingsType = {
    * solo lo ve quien puede editarlo. Ver `services/app/exhibitors_publish`.
    */
   publishedMonths?: string[];
+  /**
+   * Cuándo se publicó cada mes ('YYYY/MM' → fecha ISO). `publishedMonths` dice
+   * SI está publicado; esto dice DESDE CUÁNDO, que es lo único que permite
+   * contestar «lo he tocado después de publicarlo». Un mes publicado antes de
+   * que esto existiera no tiene sello, y entonces no se dice nada: no se sabe.
+   * Ver `services/app/month_publish`.
+   */
+  publishedMonthsAt?: PublishedMonthsAt;
 };
 
 export type ExhibitorWeekAssignmentType = {

@@ -271,6 +271,7 @@ export const TABLE_ENCRYPTION_MAP = {
     fixedAssignments: 'shared',
     availability: 'shared',
     publishedMonths: 'shared',
+    publishedMonthsAt: 'shared',
   },
   responsabilidades: {
     cuerpoAncianos: 'shared',

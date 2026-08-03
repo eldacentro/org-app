@@ -27,9 +27,11 @@ import {
   useCurrentUser,
 } from '@hooks/index';
 import {
+  countExhibitorWeeksChangedSincePublish,
   isExhibitorMonthPublished,
   monthNeedsPublishing,
   setExhibitorMonthPublished,
+  setExhibitorMonthPublishedAt,
 } from '@services/app/exhibitors_publish';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
@@ -95,7 +97,7 @@ import {
 } from '@states/settings';
 import { personsStateFind } from '@services/states/persons';
 import { personGetDisplayName } from '@utils/common';
-import { personIsAway } from '@services/app/persons';
+import { personIsAway, personIsAwayOn } from '@services/app/persons';
 import {
   getEffectiveTurnsForMonth,
   getMonthCancelledMessage,
@@ -442,20 +444,121 @@ const Exhibitors = () => {
     ).length;
   }, [generatedSlotsInMonth]);
 
+  // Semanas de este mes tocadas DESPUÉS de publicarlo. La unidad es la semana y
+  // no el cambio suelto porque lo que se guarda es la semana entera, con un
+  // solo `updatedAt`: decir "3 cambios" sería inventarse una precisión que los
+  // datos no tienen.
+  const weeksChangedSincePublish = useMemo(
+    () =>
+      countExhibitorWeeksChangedSincePublish(
+        settings,
+        exhibitorsList,
+        currentMonthStr
+      ),
+    [settings, exhibitorsList, currentMonthStr]
+  );
+
+  /**
+   * Quién está asignado este mes teniendo una ausencia apuntada esos días.
+   *
+   * La aplicación ya lo avisa al elegir a la persona, y avisar otra vez antes
+   * de publicar es a propósito: aquel aviso pasa mientras se está trabajando y
+   * se escapa, y sobre todo no cubre el caso de "la ausencia se apuntó DESPUÉS
+   * de asignarle". No impide publicar: nadie se desasigna solo, lo decide una
+   * persona.
+   *
+   * Se pregunta por la fecha DEL TURNO, que aquí sí se conoce — en las
+   * reuniones hay que conformarse con el lunes de la semana.
+   */
+  const awayAssignees = useMemo(() => {
+    const found: string[] = [];
+
+    for (const slot of generatedSlotsInMonth) {
+      if (slot.cancelled) continue;
+
+      for (const assignment of slot.assignments) {
+        if (!assignment.person) continue;
+
+        const person = persons.find(
+          (record) => record.person_uid === assignment.person
+        );
+
+        if (!person) continue;
+        if (!personIsAwayOn(person, slot.date)) continue;
+
+        const name = personGetDisplayName(
+          person,
+          displayNameEnabled,
+          fullnameOption
+        );
+
+        if (name && !found.includes(name)) found.push(name);
+      }
+    }
+
+    return found;
+  }, [generatedSlotsInMonth, persons, displayNameEnabled, fullnameOption]);
+
   const handleTogglePublishMonth = async () => {
     if (!settings || monthIsHistoric) return;
 
+    // La MISMA marca para el sello y para el registro de ajustes: son el mismo
+    // acto, y con dos horas distintas el sello quedaría antes que el guardado
+    // que lo contiene.
+    const updatedAt = new Date().toISOString();
     const localSettings = structuredClone(settings);
+
     localSettings.publishedMonths = setExhibitorMonthPublished(
       localSettings.publishedMonths,
       currentMonthStr,
       !monthIsPublished
     );
 
-    await dbExhibitorsSaveSettings(localSettings);
+    // Retirar BORRA el sello: si el mes se volviera a publicar más tarde, un
+    // sello viejo haría que la cuenta arrastrara todo lo de antes.
+    localSettings.publishedMonthsAt = setExhibitorMonthPublishedAt(
+      localSettings.publishedMonthsAt,
+      currentMonthStr,
+      !monthIsPublished,
+      updatedAt
+    );
+
+    await dbExhibitorsSaveSettings(localSettings, updatedAt);
     setSettings(localSettings);
     triggerSync();
     setPublishDialog(false);
+  };
+
+  /**
+   * Volver a publicar: solo pone el sello al día.
+   *
+   * `publishedMonths` no se toca porque el mes YA está publicado — la
+   * congregación lo ve, y retirarlo y volverlo a poner sería esconderlo un
+   * instante por nada. Lo único que cambia es desde cuándo se cuentan los
+   * cambios, y con eso el aviso desaparece.
+   */
+  const handleRepublishMonth = async () => {
+    if (!settings || monthIsHistoric || !monthIsPublished) return;
+
+    const updatedAt = new Date().toISOString();
+    const localSettings = structuredClone(settings);
+
+    localSettings.publishedMonthsAt = setExhibitorMonthPublishedAt(
+      localSettings.publishedMonthsAt,
+      currentMonthStr,
+      true,
+      updatedAt
+    );
+
+    await dbExhibitorsSaveSettings(localSettings, updatedAt);
+    setSettings(localSettings);
+    triggerSync();
+
+    displaySnackNotification({
+      header: 'Hecho',
+      message: 'Los cambios de este mes quedan publicados.',
+      severity: 'success',
+    });
   };
 
   // Determinar qué días de la semana tienen al menos un turno para la cuadrícula horizontal
@@ -1279,6 +1382,50 @@ const Exhibitors = () => {
           </>
         }
       />
+
+      {/* La tira de aviso, debajo del título y encima del programa. Nada de
+          diálogos: aquí se está trabajando, y un diálogo interrumpe. Es el
+          mismo sitio y la misma forma que en las reuniones — ver
+          features/meetings/publish_notice.
+          Solo para quien puede publicar: al resto no le dice nada saber que un
+          mes está en borrador, porque sencillamente no lo ve. */}
+      {isServiceCommittee && activeTab === 'planner' && !monthIsHistoric && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {!monthIsPublished && (
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text="Este mes está en borrador: solo lo ves tú. Los hermanos no verán sus turnos hasta que lo publiques."
+            />
+          )}
+
+          {monthIsPublished && weeksChangedSincePublish > 0 && (
+            <InfoTip isBig={false} color="warning">
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  width: '100%',
+                }}
+              >
+                <Typography
+                  className="body-regular"
+                  sx={{ color: 'var(--orange-dark)' }}
+                >
+                  {`Este mes está publicado. Has cambiado ${weeksChangedSincePublish} ${weeksChangedSincePublish === 1 ? 'semana' : 'semanas'} desde entonces.`}
+                </Typography>
+
+                <AppButton variant="small" onClick={handleRepublishMonth}>
+                  Volver a publicar
+                </AppButton>
+              </Box>
+            </InfoTip>
+          )}
+        </Box>
+      )}
 
       <Box
         sx={{
@@ -4012,6 +4159,17 @@ const Exhibitors = () => {
               isBig={false}
               color="warning"
               text={`Hay ${emptySlotsInMonth} ${emptySlotsInMonth === 1 ? 'turno sin nadie asignado' : 'turnos sin nadie asignado'}. Puedes publicarlo igualmente si el resto ya está decidido.`}
+            />
+          )}
+
+          {/* Ausencias apuntadas en las fechas que se van a publicar. Se dicen
+              POR SU NOMBRE: "hay alguien de ausencia" obliga a repasar el mes
+              entero. No impide publicar, avisa. */}
+          {!monthIsPublished && awayAssignees.length > 0 && (
+            <InfoTip
+              isBig={false}
+              color="warning"
+              text={`${awayAssignees.join(', ')} ${awayAssignees.length === 1 ? 'tiene una ausencia apuntada' : 'tienen una ausencia apuntada'} en las fechas que se van a publicar.`}
             />
           )}
         </Box>

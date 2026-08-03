@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildExhibitorMonthsStatus,
+  countExhibitorWeeksChangedSincePublish,
   EXHIBITORS_DRAFT_FROM,
+  exhibitorMonthPublishedAt,
   isExhibitorMonthPublished,
   monthNeedsPublishing,
   monthOfDate,
   setExhibitorMonthPublished,
+  setExhibitorMonthPublishedAt,
 } from './exhibitors_publish';
 
 /**
@@ -121,6 +124,158 @@ describe('sin ajustes cargados', () => {
 
   it('pero el histórico se sigue viendo', () => {
     expect(isExhibitorMonthPublished(null, '2026/07')).toBe(true);
+  });
+});
+
+/**
+ * "Has cambiado N semanas desde que lo publicaste".
+ *
+ * Este aviso solo sirve si el número es verdad. Uno de más manda al responsable
+ * a buscar un cambio que no hizo; uno de menos deja a la congregación con una
+ * versión vieja creyendo que está al día.
+ */
+describe('cuántas semanas se han tocado desde que se publicó', () => {
+  const stamped = (publishedMonthsAt: Record<string, string>) => ({
+    publishedMonthsAt,
+  });
+
+  it('cuenta solo las semanas guardadas DESPUÉS del sello', () => {
+    const weeks = [
+      { weekOf: '2026/09/07', updatedAt: '2026-09-01T10:00:00.000Z' },
+      { weekOf: '2026/09/14', updatedAt: '2026-09-03T10:00:00.000Z' },
+      { weekOf: '2026/09/21', updatedAt: '2026-09-04T10:00:00.000Z' },
+    ];
+
+    const settings = stamped({ '2026/09': '2026-09-02T00:00:00.000Z' });
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(settings, weeks, '2026/09')
+    ).toBe(2);
+  });
+
+  it('publicar no se cuenta a sí mismo como un cambio', () => {
+    // El sello va en el registro de AJUSTES (`weekOf: 'settings'`), que no es
+    // de ningún mes. Si se colara en la cuenta, el aviso saldría solo por
+    // haber publicado, que es justo lo contrario de lo que quiere decir.
+    const settings = stamped({ '2026/09': '2026-09-02T00:00:00.000Z' });
+
+    const weeks = [
+      { weekOf: '2026/09/07', updatedAt: '2026-09-01T10:00:00.000Z' },
+      // Los ajustes se guardan con el sello, así que su `updatedAt` es
+      // POSTERIOR a todas las semanas por definición.
+      { weekOf: 'settings', updatedAt: '2026-09-02T00:00:00.000Z' },
+    ];
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(settings, weeks, '2026/09')
+    ).toBe(0);
+  });
+
+  it('no cuenta las semanas de otro mes', () => {
+    const settings = stamped({ '2026/09': '2026-09-02T00:00:00.000Z' });
+
+    const weeks = [
+      { weekOf: '2026/10/05', updatedAt: '2026-09-30T10:00:00.000Z' },
+      { weekOf: '2026/09/28', updatedAt: '2026-09-30T10:00:00.000Z' },
+    ];
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(settings, weeks, '2026/09')
+    ).toBe(1);
+  });
+
+  it('un mes publicado antes de que existiera el sello no dice nada', () => {
+    // Sin sello no hay contra qué comparar. Es preferible callar que inventar
+    // un número: ver `month_publish`.
+    const weeks = [
+      { weekOf: '2026/09/07', updatedAt: '2026-09-05T10:00:00.000Z' },
+    ];
+
+    expect(countExhibitorWeeksChangedSincePublish(null, weeks, '2026/09')).toBe(
+      0
+    );
+    expect(
+      countExhibitorWeeksChangedSincePublish(stamped({}), weeks, '2026/09')
+    ).toBe(0);
+  });
+
+  it('una semana sin fecha de guardado no cuenta', () => {
+    const settings = stamped({ '2026/09': '2026-09-02T00:00:00.000Z' });
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(
+        settings,
+        [{ weekOf: '2026/09/07' }],
+        '2026/09'
+      )
+    ).toBe(0);
+  });
+});
+
+describe('el sello de publicación', () => {
+  it('publicar lo pone y retirar lo borra', () => {
+    // Al retirar hay que BORRARLO: si el mes se volviera a publicar más tarde,
+    // un sello viejo haría que la cuenta arrastrara todo lo de antes.
+    const publicado = setExhibitorMonthPublishedAt(
+      {},
+      '2026/09',
+      true,
+      '2026-09-02T00:00:00.000Z'
+    );
+
+    expect(
+      exhibitorMonthPublishedAt({ publishedMonthsAt: publicado }, '2026/09')
+    ).toBe('2026-09-02T00:00:00.000Z');
+
+    const retirado = setExhibitorMonthPublishedAt(publicado, '2026/09', false);
+
+    expect(
+      exhibitorMonthPublishedAt({ publishedMonthsAt: retirado }, '2026/09')
+    ).toBeUndefined();
+  });
+
+  it('volver a publicar pone el sello al día y calla el aviso', () => {
+    const weeks = [
+      { weekOf: '2026/09/07', updatedAt: '2026-09-05T10:00:00.000Z' },
+    ];
+
+    const antes = {
+      publishedMonthsAt: { '2026/09': '2026-09-02T00:00:00.000Z' },
+    };
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(antes, weeks, '2026/09')
+    ).toBe(1);
+
+    const despues = {
+      publishedMonthsAt: setExhibitorMonthPublishedAt(
+        antes.publishedMonthsAt,
+        '2026/09',
+        true,
+        '2026-09-06T00:00:00.000Z'
+      ),
+    };
+
+    expect(
+      countExhibitorWeeksChangedSincePublish(despues, weeks, '2026/09')
+    ).toBe(0);
+  });
+
+  it('sellar un mes no toca los demás ni muta lo que recibe', () => {
+    const original = { '2026/09': '2026-09-02T00:00:00.000Z' };
+
+    const after = setExhibitorMonthPublishedAt(
+      original,
+      '2026/10',
+      true,
+      '2026-09-20T00:00:00.000Z'
+    );
+
+    expect(original).toEqual({ '2026/09': '2026-09-02T00:00:00.000Z' });
+    expect(after).toEqual({
+      '2026/09': '2026-09-02T00:00:00.000Z',
+      '2026/10': '2026-09-20T00:00:00.000Z',
+    });
   });
 });
 
