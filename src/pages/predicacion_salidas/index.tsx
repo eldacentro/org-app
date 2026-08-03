@@ -1590,7 +1590,12 @@ const PredicacionSalidas = () => {
                 sale nada: no se sabe desde cuándo, así que no se inventa. */}
             {monthIsPublished && weeksChangedSincePublish > 0 && (
               <InfoTip isBig={false} color="warning">
+                {/* `span` en los dos, y no `div`/`p`: InfoTip ya mete lo que le
+                    pasas DENTRO de su propio párrafo, y un <div> o un <p> ahí
+                    es HTML inválido — React lo canta en consola. Un <span> con
+                    display:flex maqueta igual. */}
                 <Box
+                  component="span"
                   sx={{
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -1601,6 +1606,7 @@ const PredicacionSalidas = () => {
                   }}
                 >
                   <Typography
+                    component="span"
                     className="body-regular"
                     sx={{ color: 'var(--orange-dark)' }}
                   >
