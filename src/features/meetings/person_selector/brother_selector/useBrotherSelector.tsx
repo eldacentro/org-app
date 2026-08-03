@@ -5,6 +5,12 @@ import { IconError } from '@components/icons';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
 import { personsActiveState, personsByViewState } from '@states/persons';
 import { AssignmentCode, AssignmentFieldType } from '@definition/assignment';
+import {
+  deptBuildHistoryList,
+  deptHistoryForSlot,
+} from '@services/app/departments_history';
+import { deptScheduleState } from '@states/departments_schedule';
+import { departmentsConfigState } from '@states/settings';
 import { sourcesState } from '@states/sources';
 import {
   sourcesCheckLCElderAssignment,
@@ -47,6 +53,9 @@ import { languageGroupsState } from '@states/field_service_groups';
 
 const useBrotherSelector = (props: PersonSelectorType) => {
   const { type, week, assignment } = props;
+
+  const deptSchedules = useAtomValue(deptScheduleState);
+  const departmentsConfig = useAtomValue(departmentsConfigState);
   const location = useLocation();
 
   const { t } = useAppTranslation();
@@ -438,13 +447,36 @@ const useBrotherSelector = (props: PersonSelectorType) => {
 
   const value = pendingValue ?? derivedValue;
 
+  /**
+   * En Departamentos el historial es OTRO.
+   *
+   * Ahí se reparten puestos —micrófonos, acomodadores, plataforma— que no
+   * viven en el historial de las reuniones. Enseñar aquel no ayudaba a decidir
+   * nada, y por eso el botón estaba apagado. Se construye el de Departamentos y
+   * se separa igual: este puesto, y todos los departamentos.
+   */
+  const deptHistory = useMemo(() => {
+    if (!props.dept) return [];
+
+    return deptBuildHistoryList(deptSchedules, departmentsConfig);
+  }, [props.dept, deptSchedules, departmentsConfig]);
+
   const personHistory = useMemo(() => {
     if (!value) return [];
 
-    return assignmentsHistory.filter(
+    const fuente = props.dept ? deptHistory : assignmentsHistory;
+
+    return fuente.filter(
       (record) => record.assignment.person === value.person_uid
     );
-  }, [value, assignmentsHistory]);
+  }, [value, assignmentsHistory, deptHistory, props.dept]);
+
+  /** La pestaña de la izquierda en Departamentos: solo este puesto. */
+  const personHistoryForSlot = useMemo(() => {
+    if (!props.dept || !props.deptSlotKey) return undefined;
+
+    return deptHistoryForSlot(personHistory, props.dept, props.deptSlotKey);
+  }, [personHistory, props.dept, props.deptSlotKey]);
 
   const meetingDate = useMemo(() => {
     const meeting = location.pathname.includes('midweek')
@@ -657,6 +689,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     value,
     helperText,
     personHistory,
+    personHistoryForSlot,
     isHistoryOpen,
     handleOpenHistory,
     handleCloseHistory,

@@ -13,4 +13,12 @@ export type AssignmentsHistoryDialogType = {
   assignmentType?: AssignmentCode;
   /** El rótulo de esa pestaña. Por defecto, «Esta asignación». */
   assignmentLabel?: string;
+  /**
+   * La pestaña de la izquierda, ya calculada. La usa Departamentos, donde «lo
+   * mismo» no es un código de asignación sino un PUESTO (Micro 1, Exterior…) y
+   * el filtro no se puede hacer aquí.
+   */
+  historyCurrent?: AssignmentHistoryType[];
+  /** El rótulo de la pestaña de la derecha. Por defecto, «Todas». */
+  allLabel?: string;
 };

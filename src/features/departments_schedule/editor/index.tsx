@@ -195,10 +195,11 @@ const DepartmentEditor = () => {
                         week={selectedWeek}
                         dept={dept}
                         assignment="MM_Other"
-                        // En Departamentos el historial de asignaciones no
-                        // aporta: aquí se reparten puestos fijos de la semana,
-                        // no se elige a quien lleva más tiempo sin participar.
-                        showAssignmentsHistory={false}
+                        // El historial vuelve, pero con el de DEPARTAMENTOS:
+                        // este puesto, y todos los departamentos. El de las
+                        // reuniones no decía nada aquí, que es por lo que
+                        // estaba apagado.
+                        deptSlotKey={slot.key}
                         personValue={personsStateFind(
                           schedule?.[dept]?.[slot.key]?.value
                         )}

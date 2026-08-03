@@ -25,6 +25,7 @@ const BrotherSelector = (props: PersonSelectorType) => {
     handleOpenHistory,
     isHistoryOpen,
     personHistory,
+    personHistoryForSlot,
     isFreeSolo,
     inputValue,
     handleValueChange,
@@ -39,7 +40,10 @@ const BrotherSelector = (props: PersonSelectorType) => {
           onClose={handleCloseHistory}
           person={value.person_name}
           history={personHistory}
-          assignmentType={props.type}
+          assignmentType={props.dept ? undefined : props.type}
+          historyCurrent={personHistoryForSlot}
+          allLabel={props.dept ? 'Todos los departamentos' : undefined}
+          assignmentLabel={props.dept ? 'Este puesto' : undefined}
         />
       )}
 

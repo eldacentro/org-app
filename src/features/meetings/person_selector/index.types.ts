@@ -24,6 +24,11 @@ export type PersonSelectorType = {
   onSelect?: (person: PersonType) => void;
   personValue?: PersonType;
   dept?: DepartmentType;
+  /**
+   * El puesto dentro del departamento ('micro1', 'exterior__midweek'…). Solo lo
+   * usa el historial, para separar «este puesto» de «todos los departamentos».
+   */
+  deptSlotKey?: string;
 };
 
 export type PersonOptionsType = PersonType & {

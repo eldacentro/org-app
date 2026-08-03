@@ -28,22 +28,29 @@ const AssignmentsHistoryDialog = ({
   history,
   assignmentType,
   assignmentLabel,
+  historyCurrent,
+  allLabel,
 }: AssignmentsHistoryDialogType) => {
   const { t } = useAppTranslation();
 
   const [value, setValue] = useState(0);
 
   const historyForAssignment = useMemo(() => {
+    // Departamentos la trae ya hecha: allí «lo mismo» no es un código de
+    // asignación, es un PUESTO (Micro 1, Exterior…), y eso no se puede filtrar
+    // desde aquí.
+    if (historyCurrent) return historyCurrent;
+
     if (assignmentType === undefined) return [];
 
     return history.filter(
       (record) => record.assignment.code === assignmentType
     );
-  }, [history, assignmentType]);
+  }, [history, assignmentType, historyCurrent]);
 
-  // Sin saber de qué asignación se trata no hay nada que separar: se enseña el
-  // historial de siempre, sin pestañas.
-  const conPestanas = assignmentType !== undefined;
+  // Sin saber qué es «lo mismo» no hay nada que separar: se enseña el historial
+  // de siempre, sin pestañas.
+  const conPestanas = assignmentType !== undefined || Boolean(historyCurrent);
 
   const tabs = useMemo(
     () => [
@@ -52,11 +59,11 @@ const AssignmentsHistoryDialog = ({
         Component: <AssignmentsHistory history={historyForAssignment} />,
       },
       {
-        label: 'Todas',
+        label: allLabel || 'Todas',
         Component: <AssignmentsHistory history={history} />,
       },
     ],
-    [assignmentLabel, historyForAssignment, history]
+    [assignmentLabel, allLabel, historyForAssignment, history]
   );
 
   return (
