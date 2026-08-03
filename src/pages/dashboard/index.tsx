@@ -27,6 +27,10 @@ import {
 } from '@states/settings';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import {
+  isMeetingDatePublished,
+  meetingPublishKeyOfAssignment,
+} from '@services/app/meetings_publish';
+import {
   DEPT_LABEL,
   deptSlotsForMeeting,
 } from '@services/app/departments_slots';
@@ -375,6 +379,20 @@ const Dashboard = () => {
     if (userUID) {
       for (const record of assignmentsHistory) {
         if (record.assignment.person !== userUID) continue;
+
+        // Mes en BORRADOR: mismo criterio que en "Mis asignaciones" y en el
+        // programa semanal. Lo que se está repartiendo no es una decisión.
+        if (
+          !isMeetingDatePublished(
+            schedules,
+            record.weekOf,
+            meetingPublishKeyOfAssignment(record.assignment.key),
+            record.assignment.dataView
+          )
+        ) {
+          continue;
+        }
+
         const resolved = resolveAssignmentDate(record, shortDateFormat);
         if (resolved.weekOf === midweekMeetingDateStr) {
           midweekTitles.push(record.assignment.title);
@@ -440,6 +458,7 @@ const Dashboard = () => {
     weekendMeetingDateStr,
     deptSchedules,
     departmentsConfig,
+    schedules,
     weekOf,
     showMidweekRow,
     showWeekendRow,

@@ -70,6 +70,23 @@ export const MEETING_PUBLISH_LABEL: Record<MeetingPublishKey, string> = {
   outgoing: 'Discursos salientes',
 };
 
+/**
+ * A qué programa pertenece una asignación, por su clave.
+ *
+ * Las claves de las partes empiezan por `MM_` (entre semana) o `WM_` (fin de
+ * semana), menos una: `WM_Speaker_Outgoing` vive en el registro del fin de
+ * semana pero es un discurso SALIENTE, que se publica por su cuenta. Sin esta
+ * excepción, publicar la reunión de fin de semana enseñaría también las salidas
+ * que el coordinador todavía no ha confirmado.
+ */
+export const meetingPublishKeyOfAssignment = (
+  key: string | undefined
+): MeetingPublishKey => {
+  if (key === 'WM_Speaker_Outgoing') return 'outgoing';
+
+  return key?.startsWith('MM_') ? 'midweek' : 'weekend';
+};
+
 /** ¿Hace falta publicar ese mes a mano, o cae en el histórico? */
 export const meetingMonthNeedsPublishing = (
   month: string,
