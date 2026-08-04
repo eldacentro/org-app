@@ -1505,14 +1505,14 @@ export const schedulesSaveAssignment = async (
  * que nadie podía.
  */
 
-/** Lo más reciente que llevó esta persona, sea lo que sea. `history` viene de
- *  más nuevo a más antiguo. */
-const ultimaAsignacion = (
-  history: AssignmentHistoryType[],
-  person_uid: string
-) => history.find((record) => record.assignment.person === person_uid);
-
-/** La última vez que llevó ESTA asignación. Vacío = nunca. */
+/**
+ * La última vez que llevó ESTA asignación. Vacío = nunca.
+ *
+ * Es lo ÚNICO que se mira del historial para decidir a quién le toca. Hubo aquí
+ * una hermana de esta función que devolvía «lo último que llevó, fuera lo que
+ * fuera»; se ha ido a propósito, y que no vuelva: cada asignación lleva su
+ * rueda. `history` viene de más nuevo a más antiguo.
+ */
 const ultimaVezQueLlevo = (
   history: AssignmentHistoryType[],
   person_uid: string,
@@ -1524,37 +1524,18 @@ const ultimaVezQueLlevo = (
   )?.weekOf ?? '';
 
 /**
- * Cuántas semanas de descanso se le piden a alguien que acaba de llevar algo.
+ * El aula donde estuvo la última vez que le tocó un aula.
  *
- * Una a cada lado. Es lo justo para que la carga se reparta sin que el descarte
- * se relaje en cuanto la congregación es pequeña: con dos o tres se quedaría sin
- * candidatos casi siempre y dejaría de decidir nada.
+ * No vale «su última asignación, sea cual sea»: si lo último que llevó fue una
+ * oración, eso no tiene aula, la pregunta se queda sin respuesta y la
+ * alternancia no se aplica. Hay que saltarse todo lo que no sea de aula hasta
+ * encontrar la última vez que de verdad estuvo en una.
  */
-const SEMANAS_DE_DESCANSO = 1;
-
-/** ¿Lleva algo esta persona en la semana pedida o en las de al lado? */
-const tieneAlgoCerca = (
-  history: AssignmentHistoryType[],
-  person_uid: string,
-  week: string
-) => {
-  const desde = formatDate(
-    addWeeks(week.replace(/\//g, '-'), -SEMANAS_DE_DESCANSO),
-    'yyyy/MM/dd'
-  );
-
-  const hasta = formatDate(
-    addWeeks(week.replace(/\//g, '-'), SEMANAS_DE_DESCANSO),
-    'yyyy/MM/dd'
-  );
-
-  return history.some(
+const ultimaAula = (history: AssignmentHistoryType[], person_uid: string) =>
+  history.find(
     (record) =>
-      record.assignment.person === person_uid &&
-      record.weekOf >= desde &&
-      record.weekOf <= hasta
-  );
-};
+      record.assignment.person === person_uid && record.assignment.classroom
+  )?.assignment.classroom;
 
 /**
  * Quita de la lista a quien cumpla el descarte — salvo que se los lleve a
@@ -1570,38 +1551,56 @@ const descartar = (
 };
 
 /**
+ * Un número estable a partir de un texto (FNV-1a).
+ *
+ * Ni aleatorio ni secreto: solo hace falta que salga SIEMPRE el mismo y que dos
+ * textos que se parecen den números que NO se parecen. Eso segundo importa aquí
+ * más de lo que parece — con una suma sencilla, cambiar la asignación al final
+ * del texto desplazaba a todo el mundo por igual y el orden entre ellos se
+ * quedaba idéntico, que es justo lo que esto viene a evitar. Por eso la
+ * asignación va delante: siembra la mezcla en vez de retocar el final.
+ */
+const revuelto = (texto: string) => {
+  let valor = 2166136261;
+
+  for (let i = 0; i < texto.length; i++) {
+    valor ^= texto.charCodeAt(i);
+    valor = Math.imul(valor, 16777619);
+  }
+
+  return valor >>> 0;
+};
+
+/**
  * La rueda: ordena a los candidatos por a quién le toca antes.
  *
- * Tres criterios, en este orden:
+ * DOS criterios, y el segundo casi nunca habla:
  *
  * 1. **La última vez que llevó ESTA asignación.** Quien no la ha llevado nunca
- *    va primero. Es la rueda de toda la vida y manda sobre lo demás.
+ *    va primero. Es la rueda de toda la vida, y es lo ÚNICO que se mira del
+ *    historial.
  *
- * 2. **La última vez que llevó CUALQUIER COSA.** Empatan muchos más de los que
- *    parece —al estrenar una asignación no la ha llevado nadie, y ahí empatan
- *    TODOS—, así que este criterio no es un detalle: en la práctica es el que
- *    decide los primeros meses enteros.
+ *    Cada asignación va por su cuenta, a propósito: haber presidido el domingo
+ *    no le quita a nadie el turno de la oración del miércoles siguiente. Son
+ *    cosas distintas y cada una lleva su rueda. Mirar «¿ha tenido algo
+ *    últimamente?» es justo lo que hacía la versión vieja, y por eso se quitó.
  *
- *    Sin él pasaban dos cosas feas, las dos medidas en la aplicación con tres
- *    meses autocompletados de golpe:
+ * 2. **Un orden propio de ESTA asignación**, para cuando el primero empata.
  *
- *    - El programa salía en FILA INDIA. Las columnas de presidencia, tesoros,
- *      perlas y estudio bíblico llevaban a los mismos hermanos en el mismo
- *      orden, semana tras semana, porque todas las ruedas arrancaban empatadas
- *      y el desempate era siempre el mismo. Parecía un turno por orden de lista,
- *      que es justo lo que un reparto no puede parecer.
- *    - Y la carga se amontonaba: al que presidía el miércoles no le contaba esa
- *      semana para nada más, así que salía el primero para la siguiente parte
- *      que no hubiera llevado nunca. Entre 13 semanas había quien acumulaba 7
- *      asignaciones y quien se quedaba en 1.
+ *    Y empata más de lo que parece: los que no la han llevado NUNCA empatan
+ *    todos entre sí, y como «nunca» es lo más antiguo que hay, están justo en la
+ *    CABEZA de la cola. O sea que este desempate no decide entre los últimos:
+ *    decide entre los que van a salir elegidos ya.
  *
- *    Mirando lo último que llevó —sea lo que sea— quien acaba de tener algo se
- *    va al final de todas las demás ruedas, y las columnas se separan solas.
+ *    Antes desempataba el identificador de la persona, que es el mismo para
+ *    todas las asignaciones — y de ahí salía que el programa se leyera en fila
+ *    india: los mismos hermanos en el mismo orden en la columna de presidencia,
+ *    en la de tesoros y en la de perlas. Medido: con el historial vacío, la
+ *    rueda era literalmente el orden del identificador.
  *
- * 3. **El identificador**, y solo para que dos dispositivos con los mismos datos
- *    elijan lo mismo. Es un desempate técnico, no un criterio: si llega a
- *    decidir algo visible, es que los dos de arriba no han tenido nada que
- *    decir.
+ *    Revolviendo el identificador JUNTO CON la asignación, cada rueda arranca en
+ *    un orden distinto — pero siempre el mismo: dos dispositivos con los mismos
+ *    datos eligen igual, y añadir a una persona no le mueve el turno a nadie.
  */
 export const schedulesOrderByTurn = ({
   persons,
@@ -1621,14 +1620,9 @@ export const schedulesOrderByTurn = ({
       return ultimaA.localeCompare(ultimaB);
     }
 
-    const cualquieraA = ultimaAsignacion(history, a.person_uid)?.weekOf ?? '';
-    const cualquieraB = ultimaAsignacion(history, b.person_uid)?.weekOf ?? '';
-
-    if (cualquieraA !== cualquieraB) {
-      return cualquieraA.localeCompare(cualquieraB);
-    }
-
-    return a.person_uid.localeCompare(b.person_uid);
+    return (
+      revuelto(`${type}|${a.person_uid}`) - revuelto(`${type}|${b.person_uid}`)
+    );
   });
 
 export const schedulesSelectRandomPerson = (data: {
@@ -1706,28 +1700,21 @@ export const schedulesSelectRandomPerson = (data: {
     personIsAwayOn(person, data.week.replace(/\//g, '-'))
   );
 
-  // 2. Quien ya lleva algo cerca de esa semana — la misma, la anterior o la
-  //    siguiente. Se mira CUALQUIER asignación, no solo esta.
+  // 2. Quien ya lleva algo esa MISMA semana. Aquí sí vale mirar cualquier
+  //    asignación, y es la única regla que lo hace: es la misma semana, y nadie
+  //    quiere dos cosas el mismo día.
   //
-  //    POR QUÉ NO BASTA CON "la misma semana", que es lo que había. Cada
-  //    asignación tiene su propia rueda, y una persona puede ir la primera en
-  //    varias a la vez: presidir no le resta para llevar tesoros, ni tesoros
-  //    para el estudio bíblico. Medido en la aplicación con tres meses
-  //    autocompletados de golpe: entre QUINCE hermanos con exactamente la misma
-  //    elegibilidad, a uno le tocaban 7 veces y a otro 2. Ninguna rueda estaba
-  //    mal; es que nadie miraba la suma.
-  //
-  //    Un descanso alrededor la mira sin tener que inventar un cupo: si acabas
-  //    de llevar algo, esta semana te toca descansar aunque seas el más atrasado
-  //    en esta rueda concreta.
-  //
-  //    Mira a los dos lados a propósito. Las asignaciones no se reparten en
-  //    orden de calendario sino por tandas —primero la presidencia de todas las
-  //    semanas, luego los tesoros de todas—, así que cuando le toca a esta parte
-  //    puede haber ya algo puesto en una semana POSTERIOR. Mirando solo hacia
-  //    atrás, ese ya-programado no contaría.
+  //    Ojo con el alcance, que es justo el que tiene que ser: la semana va de
+  //    lunes a domingo, así que cubre la reunión de entre semana y la del fin de
+  //    semana. No se estira a las semanas de al lado a propósito — presidir el
+  //    domingo NO puede quitarle a nadie la oración del miércoles siguiente, que
+  //    ya son semanas distintas. Cada asignación lleva su rueda.
   candidatos = descartar(candidatos, (person) =>
-    tieneAlgoCerca(data.history, person.person_uid, data.week)
+    data.history.some(
+      (record) =>
+        record.weekOf === data.week &&
+        record.assignment.person === person.person_uid
+    )
   );
 
   // 3. Quien llevó ESTA misma asignación la semana pasada.
@@ -1738,14 +1725,18 @@ export const schedulesSelectRandomPerson = (data: {
       semanaAnterior
   );
 
-  // 4. Con dos aulas, quien estuvo en ESTA aula la última vez: así se van
-  //    alternando en vez de quedarse siempre en la misma.
+  // 4. Con dos aulas, quien estuvo en ESTA aula la última vez QUE LE TOCÓ UN
+  //    AULA: así se van alternando en vez de quedarse siempre en la misma.
+  //
+  //    Antes se miraba su última asignación fuera cual fuera, y se le preguntaba
+  //    el aula. Si lo último que llevó fue una oración —que no tiene aula—, la
+  //    respuesta era «ninguna», no coincidía con nada y la alternancia no se
+  //    aplicaba. Solo funcionaba de casualidad, cuando su última asignación
+  //    resultaba ser de aula.
   if (data.classroom && classCount === 2) {
     candidatos = descartar(
       candidatos,
-      (person) =>
-        ultimaAsignacion(data.history, person.person_uid)?.assignment
-          .classroom === data.classroom
+      (person) => ultimaAula(data.history, person.person_uid) === data.classroom
     );
   }
 

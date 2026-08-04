@@ -6,7 +6,7 @@ import { settingSchema } from '@services/dexie/schema';
 import { AssignmentCode } from '@definition/assignment';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { PersonType } from '@definition/person';
-import { schedulesSelectRandomPerson } from './schedules';
+import { schedulesOrderByTurn, schedulesSelectRandomPerson } from './schedules';
 
 /**
  * A quién elige el autocompletado, y por qué.
@@ -324,80 +324,45 @@ describe('a quién elige el autocompletado', () => {
   });
 });
 
-describe('la carga no se amontona en los mismos', () => {
+describe('cada asignación lleva SU rueda', () => {
   /**
-   * El caso real que destapó esto, medido en la aplicación con tres meses
-   * autocompletados de golpe: entre quince hermanos con EXACTAMENTE la misma
-   * elegibilidad, a uno le tocaban siete veces y a otro dos. Ninguna rueda
-   * estaba mal: es que cada asignación lleva la suya y nadie miraba la suma.
+   * La regla de la casa, y la que había que devolver: el autocompletado solo
+   * mira el historial de ESA asignación. Haber presidido no te quita el turno de
+   * la oración.
    *
-   * Llevar algo una semana tiene que restar para TODO lo de alrededor, no solo
-   * para esa misma asignación.
+   * Esto ya se había arreglado una vez y volvió a colarse por otra puerta —un
+   * "descanso" de una semana alrededor que miraba cualquier asignación—, así que
+   * estas pruebas están para que no vuelva una tercera.
    */
-  it('quien acaba de llevar algo no repite a la semana siguiente', () => {
+  it('presidir el domingo no quita la oración del miércoles siguiente', () => {
+    // Semanas distintas: la del 3 y la del 10. Es el caso exacto que se pidió.
     const uids = ['ana', 'bea', 'ceci', 'dani'];
     sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
 
-    // Ana presidió esta semana. La que viene le toca descansar, aunque para la
-    // oración sea la más atrasada de todas (no la ha llevado nunca).
-    const historial = ordenar([llevo('ana', '2026/08/03', PRESIDENCIA)]);
-
-    const elegido = schedulesSelectRandomPerson({
-      type: ORACION,
-      week: '2026/08/10',
-      history: historial,
-    });
-
-    expect(elegido.person_uid).not.toBe('ana');
-  });
-
-  it('tampoco se le pone algo la semana ANTERIOR a lo que ya tiene', () => {
-    // Las asignaciones no se reparten en orden de calendario, sino por tandas:
-    // primero la presidencia de todas las semanas, luego las oraciones. Así que
-    // al llegar aquí puede haber ya algo puesto MÁS ADELANTE.
-    const uids = ['ana', 'bea', 'ceci', 'dani'];
-    sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
-
-    const historial = ordenar([llevo('ana', '2026/08/17', PRESIDENCIA)]);
-
-    const elegido = schedulesSelectRandomPerson({
-      type: ORACION,
-      week: '2026/08/10',
-      history: historial,
-    });
-
-    expect(elegido.person_uid).not.toBe('ana');
-  });
-
-  it('pero un hueco es peor que una repetición: si no queda nadie, se relaja', () => {
-    // Con una sola persona posible, el descanso no puede dejar la parte vacía.
-    sembrar([persona('ana', [PRESIDENCIA, ORACION])]);
-
-    const historial = ordenar([llevo('ana', '2026/08/03', PRESIDENCIA)]);
-
-    const elegido = schedulesSelectRandomPerson({
-      type: ORACION,
-      week: '2026/08/10',
-      history: historial,
-    });
-
-    expect(elegido?.person_uid).toBe('ana');
-  });
-
-  it('a igualdad en su rueda, va primero quien lleva más tiempo sin nada', () => {
-    // Ninguna de las dos ha llevado nunca la oración, así que su rueda empata.
-    // Lo que las separa es lo último que llevaron, sea lo que sea — y sin eso
-    // el desempate era el identificador interno, que hacía salir el programa en
-    // fila india: los mismos hermanos en el mismo orden en todas las columnas.
-    sembrar([
-      persona('ana', [PRESIDENCIA, ORACION]),
-      persona('bea', [PRESIDENCIA, ORACION]),
-    ]);
-
+    // Ana presidió la semana pasada y es la única que no ha orado nunca...
     const historial = ordenar([
-      llevo('ana', '2026/07/06', PRESIDENCIA),
-      llevo('bea', '2026/05/04', PRESIDENCIA),
+      llevo('ana', '2026/08/03', PRESIDENCIA),
+      llevo('bea', '2026/07/27', ORACION),
+      llevo('ceci', '2026/07/20', ORACION),
+      llevo('dani', '2026/07/13', ORACION),
     ]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    // ...así que le toca a ella, por mucho que presidiera hace nada.
+    expect(elegido.person_uid).toBe('ana');
+  });
+
+  it('pero dos cosas la MISMA semana, no', () => {
+    // La semana va de lunes a domingo, así que esto cubre las dos reuniones.
+    const uids = ['ana', 'bea'];
+    sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
+
+    const historial = ordenar([llevo('ana', '2026/08/10', PRESIDENCIA)]);
 
     const elegido = schedulesSelectRandomPerson({
       type: ORACION,
@@ -406,5 +371,61 @@ describe('la carga no se amontona en los mismos', () => {
     });
 
     expect(elegido.person_uid).toBe('bea');
+  });
+
+  it('el programa no sale en fila india: cada rueda arranca a su manera', () => {
+    // Nadie ha llevado nunca ninguna de las dos, así que las dos ruedas empatan
+    // enteras y decide el desempate. Con el identificador —que es el mismo para
+    // todas— las dos columnas salían en el MISMO orden, y el programa se leía
+    // como un turno por orden de lista.
+    const uids = ['ana', 'bea', 'ceci', 'dani', 'elena', 'fani'];
+    sembrar(uids.map((u) => persona(u, [PRESIDENCIA, ORACION])));
+
+    const orden = (type: AssignmentCode) =>
+      schedulesOrderByTurn({
+        persons: store.get(personsState),
+        type,
+        history: [],
+      }).map((p) => p.person_uid);
+
+    expect(orden(PRESIDENCIA)).not.toEqual(orden(ORACION));
+  });
+
+  it('y aun así es estable: los mismos datos dan siempre el mismo orden', () => {
+    // Si no, dos dispositivos de la misma congregación repartirían distinto.
+    const uids = ['ana', 'bea', 'ceci', 'dani'];
+    sembrar(uids.map((u) => persona(u, [PRESIDENCIA])));
+
+    const orden = () =>
+      schedulesOrderByTurn({
+        persons: store.get(personsState),
+        type: PRESIDENCIA,
+        history: [],
+      }).map((p) => p.person_uid);
+
+    expect(orden()).toEqual(orden());
+  });
+
+  it('añadir a alguien no le cambia el turno a los demás', () => {
+    const base = ['ana', 'bea', 'ceci'];
+    sembrar(base.map((u) => persona(u, [PRESIDENCIA])));
+
+    const antes = schedulesOrderByTurn({
+      persons: store.get(personsState),
+      type: PRESIDENCIA,
+      history: [],
+    }).map((p) => p.person_uid);
+
+    sembrar([...base, 'zoe'].map((u) => persona(u, [PRESIDENCIA])));
+
+    const despues = schedulesOrderByTurn({
+      persons: store.get(personsState),
+      type: PRESIDENCIA,
+      history: [],
+    })
+      .map((p) => p.person_uid)
+      .filter((uid) => uid !== 'zoe');
+
+    expect(despues).toEqual(antes);
   });
 });
