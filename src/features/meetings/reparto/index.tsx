@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { IconCheckCircle, IconInfo } from '@components/icons';
 import Accordion from '@components/accordion';
+import Card from '@components/card';
 import Typography from '@components/typography';
 import useReparto from './useReparto';
 import { REPARTO_MESES } from '@services/app/reparto';
@@ -89,57 +90,68 @@ const Reparto = () => {
   }
 
   return (
-    <Stack spacing="8px">
+    <Stack spacing="16px">
       <Typography className="body-small-regular" color="var(--grey-400)">
         {`Las veces se cuentan en los últimos ${REPARTO_MESES} meses, más lo que ya esté programado. La última vez que le tocó a cada uno se dice entera, aunque sea de mucho antes.`}
       </Typography>
 
-      {asignaciones.map((reparto) => (
-        <Accordion
-          key={reparto.code}
-          id={String(reparto.code)}
-          expanded={abierta === String(reparto.code)}
-          onChange={(value) => setAbierta(value)}
-          label={
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <Typography className="body-regular" color="var(--ink)">
-                {reparto.titulo}
-              </Typography>
-              <Resumen reparto={reparto} />
-            </Box>
-          }
-        >
-          <Stack spacing="4px" sx={{ padding: '8px 0' }}>
-            {reparto.personas.map((persona, i) => (
-              <Box
-                key={persona.person_uid}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  padding: '6px 0',
-                  borderBottom:
-                    i < reparto.personas.length - 1
-                      ? '1px solid var(--line)'
-                      : 'none',
-                }}
-              >
-                <Typography className="body-small-regular" color="var(--ink)">
-                  {`${i + 1}. ${nombreDe(persona.person_uid)}`}
-                </Typography>
+      {/* Cada asignación, en su tarjeta — la misma superficie blanca que el
+          resto de la aplicación. Antes eran plegables sueltos sobre el fondo de
+          la página: la única pantalla que no se parecía a las demás.
 
-                <Typography
-                  className="label-small-regular"
-                  color="var(--grey-400)"
-                  sx={{ textAlign: 'right', flexShrink: 0 }}
-                >
-                  {`${haceCuanto(persona.ultima)} · ${vecesTexto(persona.veces)}`}
+          La tarjeta va FUERA del plegable y no dentro, para no anidar dos
+          superficies con el mismo fondo y el mismo borde (ver DESIGN_SYSTEM,
+          §8). El plegable pone el comportamiento; la tarjeta, el papel. */}
+      {asignaciones.map((reparto) => (
+        <Card key={reparto.code} sx={{ padding: '8px 16px', gap: '0px' }}>
+          <Accordion
+            key={reparto.code}
+            id={String(reparto.code)}
+            expanded={abierta === String(reparto.code)}
+            onChange={(value) => setAbierta(value)}
+            label={
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
+              >
+                <Typography className="body-regular" color="var(--ink)">
+                  {reparto.titulo}
                 </Typography>
+                <Resumen reparto={reparto} />
               </Box>
-            ))}
-          </Stack>
-        </Accordion>
+            }
+          >
+            <Stack spacing="4px" sx={{ padding: '8px 0' }}>
+              {reparto.personas.map((persona, i) => (
+                <Box
+                  key={persona.person_uid}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    padding: '6px 0',
+                    borderBottom:
+                      i < reparto.personas.length - 1
+                        ? '1px solid var(--line)'
+                        : 'none',
+                  }}
+                >
+                  <Typography className="body-small-regular" color="var(--ink)">
+                    {`${i + 1}. ${nombreDe(persona.person_uid)}`}
+                  </Typography>
+
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--grey-400)"
+                    sx={{ textAlign: 'right', flexShrink: 0 }}
+                  >
+                    {`${haceCuanto(persona.ultima)} · ${vecesTexto(persona.veces)}`}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Accordion>
+        </Card>
       ))}
     </Stack>
   );

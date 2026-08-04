@@ -22,6 +22,8 @@ const MeetingsDashboard = () => {
     isWeekendEditor,
     isDepartmentsEditor,
     isPublicTalkCoordinator,
+    isElder,
+    isAdmin,
   } = useCurrentUser();
 
   const handleTileClick = (path: string) => {
@@ -164,8 +166,13 @@ const MeetingsDashboard = () => {
         {/* Reparto de asignaciones.
             La última y sin destacar, a propósito: no se mira mientras se
             programa, se mira de vez en cuando para confirmar que va
-            equitativo. */}
-        {(isMidweekEditor || isWeekendEditor || isPublicTalkCoordinator) && (
+            equitativo.
+
+            Solo el cuerpo de ancianos: la página enseña, hermano por hermano,
+            cuántas veces le ha tocado cada cosa. La misma condición que la
+            puerta de la ruta, y las dos tienen que decir lo mismo — una baldosa
+            que lleva a una pantalla prohibida es peor que no tenerla. */}
+        {(isElder || isAdmin) && (
           <button
             type="button"
             className="tile-item c-blue active-press full-width"

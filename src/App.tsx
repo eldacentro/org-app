@@ -184,18 +184,18 @@ const MeetingMaterialsRoute = () => {
 };
 
 /**
- * «Reparto de asignaciones»: quien reparte algo puede mirar cómo va el reparto.
- * No es una pantalla de trabajo, así que no hace falta acotarla más.
+ * «Reparto de asignaciones»: solo el cuerpo de ancianos.
+ *
+ * Enseña, hermano por hermano, cuántas veces le ha tocado cada cosa y cuánto
+ * hace de la última. Eso es una radiografía de la congregación entera, y no es
+ * asunto de quien no está en el cuerpo — ni siquiera de un siervo ministerial
+ * que sí edita un programa. Por eso NO basta con ser responsable de una reunión,
+ * que es como estaba.
  */
 const RepartoRoute = () => {
-  const { isMidweekEditor, isWeekendEditor, isPublicTalkCoordinator } =
-    useCurrentUser();
+  const { isElder, isAdmin } = useCurrentUser();
 
-  return (
-    <RouteProtected
-      allowed={isMidweekEditor || isWeekendEditor || isPublicTalkCoordinator}
-    />
-  );
+  return <RouteProtected allowed={isElder || isAdmin} />;
 };
 
 const MidweekDepartmentsRoute = () => {
