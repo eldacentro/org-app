@@ -37,6 +37,7 @@ import {
   midweekMeetingOpeningPrayerLinkedState,
   userDataViewState,
   weekendMeetingOpeningPrayerAutoAssignState,
+  midweekMeetingLCSpecialPartsAssignedState,
 } from '@states/settings';
 import {
   schedulesAutofillSaveAssignment,
@@ -45,7 +46,7 @@ import {
 } from './schedules';
 import {
   sourcesCheckAYFExplainBeliefsAssignment,
-  sourcesCheckLCAssignments,
+  sourcesLCPartNeedsAssignee,
   sourcesCheckLCElderAssignment,
 } from './sources';
 import { sourcesState } from '@states/sources';
@@ -287,8 +288,19 @@ const handleMMAssignLCStandard = (
   let noAssignLC = true;
   let isElderPart = false;
 
+  // El mismo ajuste que decide si la casilla se enseña en el editor. Si aquí no
+  // se mirara, la aplicación pediría un hermano en pantalla y el autocompletado
+  // se saltaría esa parte para siempre.
+  const lcSpecialPartsAssigned = store.get(
+    midweekMeetingLCSpecialPartsAssignedState
+  );
+
   if (title.length > 0) {
-    noAssignLC = sourcesCheckLCAssignments(title, sourceLocale);
+    noAssignLC = !sourcesLCPartNeedsAssignee(
+      title,
+      sourceLocale,
+      lcSpecialPartsAssigned
+    );
 
     if (!noAssignLC) {
       const lcAssign = schedule.midweek_meeting[
@@ -340,7 +352,13 @@ const handleMMAssignLCCustom = (
     lcPart3.desc.find((record) => record.type === dataView)?.value ?? '';
 
   if (title.length > 0) {
-    const noAssignLC = sourcesCheckLCAssignments(title, sourceLocale);
+    // La parte personalizada sigue la misma regla y el mismo ajuste que las
+    // otras dos: una sola respuesta para el editor y para el autocompletado.
+    const noAssignLC = !sourcesLCPartNeedsAssignee(
+      title,
+      sourceLocale,
+      store.get(midweekMeetingLCSpecialPartsAssignedState)
+    );
 
     if (!noAssignLC) {
       main =

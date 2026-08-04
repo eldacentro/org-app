@@ -3,6 +3,7 @@ import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import AuxiliaryClassroom from './auxiliary_classroom';
 import DayTime from './day_time';
 import LinkedParts from './linked_parts';
+import SpecialParts from './special_parts';
 import Typography from '@components/typography';
 
 const MidweekSettings = () => {
@@ -15,6 +16,8 @@ const MidweekSettings = () => {
 
       <Stack spacing="16px">
         {!isGroup && <AuxiliaryClassroom />}
+
+        <SpecialParts />
 
         <Stack spacing="16px">
           <Typography className="body-small-semibold" color="var(--grey-400)">

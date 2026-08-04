@@ -7,9 +7,10 @@ import {
   JWLangLocaleState,
   JWLangState,
   userDataViewState,
+  midweekMeetingLCSpecialPartsAssignedState,
 } from '@states/settings';
 import { BrotherAssignmentProps } from './index.types';
-import { sourcesCheckLCAssignments } from '@services/app/sources';
+import { sourcesLCPartNeedsAssignee } from '@services/app/sources';
 
 const useBrotherAssignment = ({
   type,
@@ -19,6 +20,9 @@ const useBrotherAssignment = ({
   const dataView = useAtomValue(userDataViewState);
   const lang = useAtomValue(JWLangState);
   const sourceLocale = useAtomValue(JWLangLocaleState);
+  const lcSpecialPartsAssigned = useAtomValue(
+    midweekMeetingLCSpecialPartsAssignedState
+  );
 
   const source = useMemo(() => {
     return sources.find((record) => record.weekOf === selectedWeek);
@@ -102,7 +106,11 @@ const useBrotherAssignment = ({
       const lcSrc = lcSrcOverride?.length > 0 ? lcSrcOverride : lcSrcDefault;
 
       if (lcSrc?.length > 0) {
-        return !sourcesCheckLCAssignments(lcSrc, sourceLocale);
+        return sourcesLCPartNeedsAssignee(
+          lcSrc,
+          sourceLocale,
+          lcSpecialPartsAssigned
+        );
       }
     }
 
@@ -113,10 +121,14 @@ const useBrotherAssignment = ({
         lcPart.title.find((record) => record.type === dataView)?.value || '';
 
       if (lcSrc.length > 0) {
-        return !sourcesCheckLCAssignments(lcSrc, sourceLocale);
+        return sourcesLCPartNeedsAssignee(
+          lcSrc,
+          sourceLocale,
+          lcSpecialPartsAssigned
+        );
       }
     }
-  }, [type, source, dataView, lang, sourceLocale]);
+  }, [type, source, dataView, lang, sourceLocale, lcSpecialPartsAssigned]);
 
   return {
     meetingPartColor,

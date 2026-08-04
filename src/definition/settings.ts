@@ -140,6 +140,17 @@ export type SettingsType = {
         enabled: { value: boolean; updatedAt: string };
         person: { value: string; updatedAt: string };
       };
+      /**
+       * ¿Se asigna a alguien en «Logros de la organización» y en «Informe del
+       * Cuerpo Gobernante»?
+       *
+       * La aplicación reconoce esas dos partes por su título y NO pide hermano,
+       * porque en muchas congregaciones son un vídeo o un informe que presenta
+       * quien preside. Pero no en todas: donde se llevan como análisis con el
+       * auditorio hace falta poner a alguien. Apagado por defecto, que es como
+       * se ha comportado siempre.
+       */
+      lc_special_parts_assigned: { value: boolean; updatedAt: string };
     }[];
     weekend_meeting: {
       type: string;

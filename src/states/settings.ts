@@ -388,6 +388,29 @@ export const midweekMeetingClassCountState = atom((get) => {
   ).class_count.value;
 });
 
+/**
+ * ¿Se asigna a alguien en «Logros de la organización» y en «Informe del Cuerpo
+ * Gobernante»?
+ *
+ * La aplicación reconoce esas dos partes por el título y no pide hermano,
+ * porque en muchas congregaciones son un vídeo o un informe que presenta quien
+ * preside. Donde se llevan como análisis con el auditorio sí hace falta poner a
+ * alguien, y eso es lo que enciende este ajuste.
+ *
+ * Con `?? false` a propósito: un dispositivo que se sincronice antes de que
+ * llegue el ajuste se comporta como se ha comportado siempre.
+ */
+export const midweekMeetingLCSpecialPartsAssignedState = atom((get) => {
+  const settings = get(settingsState);
+  const dataView = get(userDataViewState);
+
+  return (
+    settings.cong_settings.midweek_meeting.find(
+      (record) => record.type === dataView
+    )?.lc_special_parts_assigned?.value ?? false
+  );
+});
+
 export const midweekMeetingWeekdayState = atom((get) => {
   const settings = get(settingsState);
   const dataView = get(userDataViewState);

@@ -404,6 +404,30 @@ export const sourcesCheckLCAssignments = (source: string, language: string) => {
   return false;
 };
 
+/**
+ * ¿Hay que poner a alguien en esta parte de «Nuestra vida cristiana»?
+ *
+ * Dos partes se reconocen por su título —«Logros de la organización» y el
+ * «Informe del Cuerpo Gobernante»— y normalmente NO llevan a nadie: son un
+ * vídeo o un informe que presenta quien preside. Pero eso no vale para todas
+ * las congregaciones: donde se llevan como análisis con el auditorio hay que
+ * asignar a alguien, y hasta ahora no había forma — la casilla ni salía.
+ *
+ * De ahí el ajuste. Vive aquí, en una sola función, porque la misma respuesta
+ * la necesitan dos sitios que TIENEN que decir lo mismo: la casilla del editor y
+ * el autocompletado. Si se separaran, la aplicación pediría un hermano en
+ * pantalla y el autocompletado se saltaría esa parte para siempre.
+ */
+export const sourcesLCPartNeedsAssignee = (
+  title: string,
+  language: string,
+  specialPartsAssigned: boolean
+) => {
+  if (specialPartsAssigned) return true;
+
+  return !sourcesCheckLCAssignments(title, language);
+};
+
 export const sourcesPartTiming = (
   source: SourceWeekType,
   type: SourceAssignmentType,
