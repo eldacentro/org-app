@@ -1508,11 +1508,34 @@ export const schedulesSaveAssignment = async (
 /**
  * La última vez que llevó ESTA asignación. Vacío = nunca.
  *
- * Es lo ÚNICO que se mira del historial para decidir a quién le toca. Hubo aquí
- * una hermana de esta función que devolvía «lo último que llevó, fuera lo que
- * fuera»; se ha ido a propósito, y que no vuelva: cada asignación lleva su
- * rueda. `history` viene de más nuevo a más antiguo.
+ * Es lo que MANDA para decidir a quién le toca, y nunca se le quita el turno a
+ * nadie por lo que haya llevado de otra cosa. `history` viene de más nuevo a más
+ * antiguo.
  */
+/**
+ * La última vez que llevó CUALQUIER COSA. Vacío = nunca ha llevado nada.
+ *
+ * Solo se usa para deshacer empates, y la diferencia con un descarte importa:
+ * esto NUNCA le quita el turno a nadie. Si eres el más atrasado en la oración,
+ * te toca la oración aunque presidieras ayer.
+ *
+ * Hace falta porque los empates no son raros: quien no ha llevado NUNCA una
+ * parte está en «nunca», que es lo más atrasado que hay, así que todos los que
+ * la estrenan empatan y empatan EN CABEZA. Sin nada que los ordene, alguien que
+ * no ha llevado ninguna parte de estudiante sale el primero en las cinco ruedas
+ * a la vez —lectura, revisitas, discípulos...— y como lo único que lo frena es
+ * «no dos cosas la misma semana», se lleva una por semana, todas las semanas,
+ * recorriendo las ruedas una tras otra. Medido con datos reales: al que más le
+ * tocaba pasaba de 5 veces a 3 en 17 semanas, y el trabajo se repartía entre 43
+ * personas en vez de 38.
+ */
+const ultimaVezQueLlevoAlgo = (
+  history: AssignmentHistoryType[],
+  person_uid: string
+) =>
+  history.find((record) => record.assignment.person === person_uid)?.weekOf ??
+  '';
+
 const ultimaVezQueLlevo = (
   history: AssignmentHistoryType[],
   person_uid: string,
@@ -1585,7 +1608,11 @@ const revuelto = (texto: string) => {
  *    cosas distintas y cada una lleva su rueda. Mirar «¿ha tenido algo
  *    últimamente?» es justo lo que hacía la versión vieja, y por eso se quitó.
  *
- * 2. **Un orden propio de ESTA asignación**, para cuando el primero empata.
+ * 2. **La última vez que llevó cualquier cosa**, para cuando el primero empata.
+ *    Ver `ultimaVezQueLlevoAlgo`: no le quita el turno a nadie, solo pone orden
+ *    entre los que están exactamente igual de atrasados en esta parte.
+ *
+ * 3. **Un orden propio de ESTA asignación**, si aun así siguen empatados.
  *
  *    Y empata más de lo que parece: los que no la han llevado NUNCA empatan
  *    todos entre sí, y como «nunca» es lo más antiguo que hay, están justo en la
@@ -1619,6 +1646,11 @@ export const schedulesOrderByTurn = ({
       // Cadena vacía = nunca la ha llevado, y ordena primero por ser la menor.
       return ultimaA.localeCompare(ultimaB);
     }
+
+    const algoA = ultimaVezQueLlevoAlgo(history, a.person_uid);
+    const algoB = ultimaVezQueLlevoAlgo(history, b.person_uid);
+
+    if (algoA !== algoB) return algoA.localeCompare(algoB);
 
     return (
       revuelto(`${type}|${a.person_uid}`) - revuelto(`${type}|${b.person_uid}`)

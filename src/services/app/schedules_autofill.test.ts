@@ -429,3 +429,60 @@ describe('cada asignación lleva SU rueda', () => {
     expect(despues).toEqual(antes);
   });
 });
+
+describe('el empate se deshace por quién lleva más tiempo sin nada', () => {
+  /**
+   * El caso real, medido con los datos de una congregación: un hermano que no
+   * había llevado NUNCA ninguna parte de estudiante estaba el primero en las
+   * cinco ruedas a la vez. Como lo único que lo frenaba era «no dos cosas la
+   * misma semana», se llevaba una por semana —lectura, luego revisitas, luego
+   * curso bíblico— sin parar.
+   *
+   * Ojo con lo que esto NO es: no es un descarte. A nadie se le quita el turno
+   * por lo que haya llevado de otra cosa.
+   */
+  it('entre dos que estrenan la parte, va el que lleva más sin nada', () => {
+    sembrar([
+      persona('ana', [PRESIDENCIA, ORACION]),
+      persona('bea', [PRESIDENCIA, ORACION]),
+    ]);
+
+    // Ninguna ha orado nunca: empatan en su rueda. Ana presidió la semana
+    // pasada; Bea no lleva nada desde mayo.
+    const historial = ordenar([
+      llevo('ana', '2026/08/03', PRESIDENCIA),
+      llevo('bea', '2026/05/04', PRESIDENCIA),
+    ]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido.person_uid).toBe('bea');
+  });
+
+  it('pero si uno está más atrasado en ESA parte, gana él aunque lleve mucho', () => {
+    // Lo que se rechazó y no vuelve: presidir el domingo NO puede quitarte la
+    // oración del miércoles. Ana acaba de presidir y aun así le toca orar,
+    // porque Bea oró hace nada y Ana no ha orado nunca.
+    sembrar([
+      persona('ana', [PRESIDENCIA, ORACION]),
+      persona('bea', [PRESIDENCIA, ORACION]),
+    ]);
+
+    const historial = ordenar([
+      llevo('ana', '2026/08/03', PRESIDENCIA),
+      llevo('bea', '2026/07/27', ORACION),
+    ]);
+
+    const elegido = schedulesSelectRandomPerson({
+      type: ORACION,
+      week: '2026/08/10',
+      history: historial,
+    });
+
+    expect(elegido.person_uid).toBe('ana');
+  });
+});
