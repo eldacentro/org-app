@@ -22,6 +22,8 @@ import {
   userDataViewState,
 } from '@states/settings';
 import { schedulesState } from '@states/schedules';
+import { store } from '@states/index';
+import { fullnameState } from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
 import { useAppTranslation } from '@hooks/index';
 import { monthNamesState } from '@states/app';
@@ -97,6 +99,8 @@ const useDepartmentEditor = () => {
         ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
         : '',
       updatedAt: new Date().toISOString(),
+      // Quién lo puso, pegado al puesto. Ver `DepartmentAssignment.by`.
+      by: store.get(fullnameState),
     };
 
     setSchedules(newSchedules);
@@ -119,7 +123,11 @@ const useDepartmentEditor = () => {
       // semana", las claves antiguas siguen ahí y hay que limpiarlas también.
       for (const dept of ALL_DEPARTMENT_TYPES) {
         for (const key of Object.keys(currentSched[dept] ?? {})) {
-          currentSched[dept][key] = { value: '', updatedAt };
+          currentSched[dept][key] = {
+            value: '',
+            updatedAt,
+            by: store.get(fullnameState),
+          };
         }
       }
 

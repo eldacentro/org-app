@@ -14,6 +14,8 @@ export type DepartamentoSimple = {
   /** person_uid del auxiliar (opcional) */
   auxiliar?: string;
   updatedAt: string;
+  /** Quién lo dejó así. Ver `dbResponsabilidadesSave`. */
+  by?: string;
 };
 
 export type DepartamentoExtended = {
@@ -27,6 +29,8 @@ export type DepartamentoExtended = {
   /** array de person_uid de los miembros */
   members: string[];
   updatedAt: string;
+  /** Quién lo dejó así. Ver `dbResponsabilidadesSave`. */
+  by?: string;
 };
 
 export type Departamento = DepartamentoSimple | DepartamentoExtended;

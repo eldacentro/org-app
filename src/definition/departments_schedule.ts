@@ -6,6 +6,16 @@ export type DepartmentAssignment = {
   // vistas de solo lectura y el PDF pueden seguir mostrando quién estaba
   // asignado en vez de quedarse en blanco sin ningún rastro.
   name?: string;
+  /**
+   * Quién puso este nombre.
+   *
+   * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del
+   * último que tocó CUALQUIER puesto de esa semana. Con él, el panel de
+   * «Última actualización» solo podía decir qué departamento cambió y cuándo,
+   * nunca quién. Opcional: lo repartido antes de esto no lo lleva, y el panel
+   * lo dice en vez de atribuírselo a nadie.
+   */
+  by?: string;
 };
 
 export type DeptWeekType = {

@@ -151,3 +151,36 @@ describe('quién hizo cada cambio', () => {
     ]);
   });
 });
+
+describe('el autor también vale cuando el módulo lo llama de otra manera', () => {
+  /**
+   * Los grupos de predicación ya guardaban el autor de cada grupo, pero con
+   * otro nombre (`lastModifiedBy` dentro de cada grupo, no `by`). Significan lo
+   * mismo, así que se leen los dos — mover el dato de sitio habría sido tocar
+   * la sincronización para nada.
+   */
+  it('lee lastModifiedBy cuando no hay by', () => {
+    expect(
+      latestChange({
+        updatedAt: '2026-08-05T20:41:00Z',
+        lastModifiedBy: 'Ana Pérez',
+      })
+    ).toEqual({ updatedAt: '2026-08-05T20:41:00Z', by: 'Ana Pérez' });
+  });
+
+  it('si están los dos, manda el del campo', () => {
+    expect(
+      latestChange({
+        updatedAt: '2026-08-05T20:41:00Z',
+        by: 'Carlos',
+        lastModifiedBy: 'Ana Pérez',
+      })
+    ).toEqual({ updatedAt: '2026-08-05T20:41:00Z', by: 'Carlos' });
+  });
+
+  it('un autor vacío no cuenta como autor', () => {
+    expect(
+      latestChange({ updatedAt: '2026-08-05T20:41:00Z', lastModifiedBy: '' })
+    ).toEqual({ updatedAt: '2026-08-05T20:41:00Z', by: undefined });
+  });
+});

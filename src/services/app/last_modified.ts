@@ -68,12 +68,17 @@ export const latestChange = (
       return vacio;
     }
 
+    // El autor puede venir de dos sitios y significan lo mismo: `by` en las
+    // asignaciones de reunión y de Departamentos, y `lastModifiedBy` en los
+    // módulos que ya lo guardaban por pieza — cada grupo de predicación lleva
+    // el suyo. Se leen los dos para no tener que mover un dato de sitio en el
+    // esquema sincronizado solo por el nombre.
+    const texto = (valor: unknown) =>
+      typeof valor === 'string' && valor.length > 0 ? valor : undefined;
+
     return {
       updatedAt: record.updatedAt,
-      by:
-        typeof record.by === 'string' && record.by.length > 0
-          ? record.by
-          : undefined,
+      by: texto(record.by) ?? texto(record.lastModifiedBy),
     };
   }
 
