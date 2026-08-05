@@ -20,6 +20,7 @@ import {
   JWLangState,
   JWLangLocaleState,
   midweekMeetingAssigFSGState,
+  midweekMeetingLCSpecialPartsAssignedState,
   sourceLanguagesState,
   settingsState,
   meetingExactDateState,
@@ -47,6 +48,7 @@ import {
   sourcesCountLC,
   sourcesLCGet,
   sourcesLCGetTitle,
+  sourcesLCPartNeedsAssignee,
   sourcesPartTiming,
   sourcesSongConclude,
 } from './sources';
@@ -2778,6 +2780,25 @@ export const schedulesMidweekData = (
         dataView,
         assignment: fieldAssignment,
       });
+
+      // «Logros de la organización» y el «Informe del Cuerpo Gobernante»: si no
+      // se asigna a nadie, las dirige quien preside, y así sale también en la
+      // hoja impresa.
+      //
+      // Va aquí y no solo en pantalla porque lo contrario sería peor que el
+      // hueco: en la aplicación un nombre y en el tablón un blanco, para la
+      // misma semana. Un blanco en la hoja no dice «lo lleva el presidente»,
+      // dice «falta por decidir».
+      if (
+        !result[fieldName] &&
+        !sourcesLCPartNeedsAssignee(
+          lcSrc,
+          store.get(JWLangLocaleState),
+          store.get(midweekMeetingLCSpecialPartsAssignedState)
+        )
+      ) {
+        result[fieldName] = result.chairman_A_name;
+      }
     }
   }
 

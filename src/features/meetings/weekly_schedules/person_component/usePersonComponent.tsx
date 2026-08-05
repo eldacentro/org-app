@@ -11,9 +11,15 @@ import {
   COFullnameState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
+  JWLangLocaleState,
+  JWLangState,
+  midweekMeetingLCSpecialPartsAssignedState,
   settingsState,
   userLocalUIDState,
 } from '@states/settings';
+import { sourcesState } from '@states/sources';
+import { LivingAsChristiansType } from '@definition/sources';
+import { sourcesLCPartNeedsAssignee } from '@services/app/sources';
 import { AssignmentCongregation } from '@definition/schedules';
 import { Week } from '@definition/week_type';
 import { personsState } from '@states/persons';
@@ -46,6 +52,12 @@ const usePersonComponent = ({
   const settings = useAtomValue(settingsState);
   const congName = useAtomValue(congNameState);
   const congregations = useAtomValue(speakersCongregationsActiveState);
+  const sources = useAtomValue(sourcesState);
+  const lang = useAtomValue(JWLangState);
+  const sourceLocale = useAtomValue(JWLangLocaleState);
+  const lcSpecialPartsAssigned = useAtomValue(
+    midweekMeetingLCSpecialPartsAssignedState
+  );
 
   const mmAuxCounselorDefaultEnabled = useMemo(() => {
     return (
@@ -207,6 +219,72 @@ const usePersonComponent = ({
           // comparar contra el uid que de verdad se está mostrando aquí:
           // mmAuxCounselorDefault.
           result.active = mmAuxCounselorDefault === userUID;
+        }
+      }
+
+      /**
+       * «Logros de la organización» y el «Informe del Cuerpo Gobernante»: si no
+       * se asigna a nadie, las dirige quien PRESIDE.
+       *
+       * Antes ese renglón salía en blanco, y un renglón en blanco en el programa
+       * no dice «lo lleva el presidente»: dice «falta por decidir». Quien lo lee
+       * no puede distinguir las dos cosas.
+       *
+       * No se guarda nada: se enseña el nombre de quien preside esa semana. Si
+       * mañana cambia el presidente, cambia solo. Y en cuanto se enciende el
+       * ajuste, esta rama deja de correr — porque entonces sí hay a quién
+       * asignar y el hueco vacío vuelve a significar lo que parece.
+       */
+      if (
+        (assignment === 'MM_LCPart1' ||
+          assignment === 'MM_LCPart2' ||
+          assignment === 'MM_LCPart3') &&
+        !result?.name
+      ) {
+        const source = sources.find((record) => record.weekOf === week);
+
+        const lcPart = source?.midweek_meeting[
+          assignment.replace('MM_LCPart', 'lc_part')
+        ] as LivingAsChristiansType | undefined;
+
+        const titulo =
+          assignment === 'MM_LCPart3'
+            ? ((lcPart?.title as unknown as AssignmentCongregation[])?.find(
+                (record) => record.type === dataView
+              )?.value ?? '')
+            : ((lcPart?.title?.override?.find(
+                (record) => record.type === dataView
+              )?.value ||
+                lcPart?.title?.default?.[lang]) ??
+              '');
+
+        const necesita = sourcesLCPartNeedsAssignee(
+          titulo,
+          sourceLocale,
+          lcSpecialPartsAssigned
+        );
+
+        if (titulo.length > 0 && !necesita) {
+          const chairmanAssigned = schedulesGetData(
+            schedule,
+            ASSIGNMENT_PATH['MM_Chairman_A'],
+            dataView
+          ) as AssignmentCongregation;
+
+          const person = persons.find(
+            (record) => record.person_uid === chairmanAssigned?.value
+          );
+
+          if (person) {
+            result.name = personGetDisplayName(
+              person,
+              displayNameEnabled,
+              fullnameOption
+            );
+
+            result.female = false;
+            result.active = chairmanAssigned?.value === userUID;
+          }
         }
       }
 
@@ -404,6 +482,10 @@ const usePersonComponent = ({
     mmAuxCounselorDefaultEnabled,
     mmAuxCounselorDefault,
     schedule_id,
+    sources,
+    lang,
+    sourceLocale,
+    lcSpecialPartsAssigned,
     t,
   ]);
 
