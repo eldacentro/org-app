@@ -5,6 +5,7 @@ import {
   OAuthProvider,
   getAuth,
   browserLocalPersistence,
+  indexedDBLocalPersistence,
   setPersistence,
   signInWithCustomToken,
   signInWithPopup,
@@ -25,10 +26,30 @@ export const currentAuthUser = () => {
   return user;
 };
 
+/**
+ * Dónde guarda Firebase la sesión de este dispositivo.
+ *
+ * Esto pedía `browserLocalPersistence`, que es `localStorage`. Y `localStorage`
+ * es el almacén MÁS frágil que hay: es lo primero que los navegadores tiran
+ * cuando les aprieta el espacio, y en Safari entra de lleno en el borrado
+ * automático a los pocos días sin usar el sitio. Perder ese hueco es perder la
+ * sesión entera, y entonces no hay token que refrescar ni botón que valga.
+ *
+ * IndexedDB es bastante más duradero, sobrevive a las limpiezas que se llevan
+ * `localStorage` por delante, y además es lo que el propio Firebase elige por
+ * su cuenta cuando nadie le dice nada. Con respaldo al de antes por si el
+ * navegador no lo permite (modo privado en algunos casos), porque una sesión en
+ * un sitio frágil sigue siendo mejor que ninguna.
+ */
 export const setAuthPersistence = async () => {
   const auth = getAuth();
 
-  await setPersistence(auth, browserLocalPersistence);
+  try {
+    await setPersistence(auth, indexedDBLocalPersistence);
+  } catch (error) {
+    console.error('IndexedDB persistence unavailable, using localStorage', error);
+    await setPersistence(auth, browserLocalPersistence);
+  }
 };
 
 export const userSignInCustomToken = async (code: string) => {

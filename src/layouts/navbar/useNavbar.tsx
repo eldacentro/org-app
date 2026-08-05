@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   displaySnackNotification,
   setCongAccountConnected,
@@ -14,6 +14,7 @@ import { useBreakpoints, useManualSync } from '@hooks/index';
 import {
   congAccountConnectedState,
   isAppLoadState,
+  isSetupState,
   navBarAnchorElState,
   navBarOptionsState,
 } from '@states/app';
@@ -23,6 +24,7 @@ import {
   fullnameState,
 } from '@states/settings';
 import { currentAuthUser } from '@services/firebase/auth';
+import { recoverVipSession } from '@services/app/session_recovery';
 
 const useNavbar = () => {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ const useNavbar = () => {
   const congName = useAtomValue(congNameState);
   const isCongAccountConnected = useAtomValue(congAccountConnectedState);
   const isAppLoad = useAtomValue(isAppLoadState);
+  const setIsAppLoad = useSetAtom(isAppLoadState);
+  const setIsSetup = useSetAtom(isSetupState);
   const accountType = useAtomValue(accountTypeState);
 
   const navBarOptions = useAtomValue(navBarOptionsState);
@@ -124,8 +128,24 @@ const useNavbar = () => {
 
     const user = currentAuthUser();
 
+    // SIN SESIÓN DE FIREBASE. Aquí es donde este botón no servía para nada:
+    // recargaba, el arranque volvía a dejar la cuenta desconectada (marcarla
+    // conectada exige sesión viva) y se volvía a ver el mismo botón. Pulsar,
+    // recargar, seguir igual — que es justo lo que se contaba de él.
+    //
+    // Recargar no repone una sesión que ya no existe. Lo único que la repone es
+    // volver a entrar, así que se lleva a la pantalla de acceso y se dice por
+    // qué. No se borra nada: las claves y los datos siguen en el dispositivo.
     if (!user) {
-      globalThis.location.reload();
+      displaySnackNotification({
+        header: 'Hay que volver a entrar',
+        message:
+          'La sesión de este dispositivo ya no vale. No se ha borrado nada: al entrar lo encontrarás todo igual.',
+        severity: 'error',
+      });
+
+      setIsAppLoad(true);
+      setIsSetup(true);
       return;
     }
 
@@ -149,7 +169,7 @@ const useNavbar = () => {
     }
 
     try {
-      const { status } = await apiValidateMe();
+      const { status, result } = await apiValidateMe();
 
       if (status === 200) {
         setCongAccountConnected(true);
@@ -161,11 +181,42 @@ const useNavbar = () => {
         await triggerManualSync();
         return;
       }
+
+      // El servidor rechaza la sesión, pero la de Firebase está viva. Casi
+      // siempre es la cookie del dispositivo, que Safari purga por su cuenta
+      // cada pocos días: se repone sola pidiendo sesión otra vez, sin que
+      // nadie teclee nada. Ver `session_recovery`.
+      if (status === 403) {
+        const verdict = await recoverVipSession(result?.message ?? '403', {
+          force: true,
+        });
+
+        if (verdict === 'recovered') {
+          setCongAccountConnected(true);
+          displaySnackNotification({
+            header: 'Cuenta reconectada',
+            message: 'Sincronizando los últimos cambios…',
+            severity: 'success',
+          });
+          await triggerManualSync();
+          return;
+        }
+
+        if (verdict === 'retry') {
+          displaySnackNotification({
+            header: 'El servidor no responde bien ahora mismo',
+            message:
+              'No es tu cuenta. Se seguirá intentando solo; no hace falta que hagas nada.',
+            severity: 'error',
+          });
+          return;
+        }
+      }
     } catch (error) {
       console.error('Error validating on reconnect:', error);
     }
 
-    // Validación fallida (sesión caducada de verdad, etc.): el arranque
+    // Validación fallida (sesión revocada de verdad, etc.): el arranque
     // completo sabe gestionarlo.
     globalThis.location.reload();
   };

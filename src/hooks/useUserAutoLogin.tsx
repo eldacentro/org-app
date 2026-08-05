@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   apiHostState,
   congAccountConnectedState,
@@ -16,6 +16,7 @@ import { apiValidateMe } from '@services/api/user';
 import { userSignOut } from '@services/firebase/auth';
 import { handleDeleteDatabase } from '@services/app';
 import { shouldResetLocalData } from '@services/app/account_guard';
+import { recoverVipSession } from '@services/app/session_recovery';
 import { APP_ROLES, isTest, VIP_ROLES } from '@constants/index';
 import { accountTypeState, congIDState } from '@states/settings';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
@@ -46,6 +47,8 @@ const startWorkerWithJitter = () => {
 
 const useUserAutoLogin = () => {
   const { isAuthenticated, user } = useFirebaseAuth();
+
+  const queryClient = useQueryClient();
 
   const { t } = useAppTranslation();
 
@@ -118,17 +121,36 @@ const useUserAutoLogin = () => {
         if (!dataVip) return;
 
         if (dataVip.status === 403) {
-          // Llegados aquí la sesión no se puede recuperar sola: el token
-          // caducado (LOGIN_FIRST) ya se reintentó con uno nuevo en apiFetch, y
-          // un DEVICE_REVOKED (cookie de sesión perdida — Safari la purga por
-          // su cuenta) solo se arregla volviendo a entrar. Antes esto pasaba en
-          // silencio: aparecía la pantalla de acceso sin ninguna explicación.
-          // No se borra nada: las claves siguen guardadas y los datos locales
-          // también, así que volver a entrar lo deja todo como estaba.
-          logger.error(
-            'app',
-            `vip session rejected: ${dataVip?.result?.message ?? '403'}`
-          );
+          // ANTES, AQUÍ, SE CERRABA LA SESIÓN. Y cerrar sesión no es un gesto
+          // menor: destruye la sesión de Firebase, y sin ella el botón de
+          // «Reconectar» ya no tiene nada que refrescar. El 2026-08-05 el
+          // servidor se reinició por falta de memoria y, mientras no tuvo las
+          // claves de Google, contestó 403 a todo el mundo: a media
+          // congregación le apareció «Sesión caducada» a la vez sin que
+          // hubiera nada roto, y tuvieron que volver a entrar a mano.
+          //
+          // De los cuatro motivos de un 403, dos se arreglan solos. Se
+          // intenta, en silencio, y solo se manda a nadie a la pantalla de
+          // acceso cuando de verdad hace falta. Ver `session_recovery`.
+          const motivo = dataVip?.result?.message ?? '403';
+
+          logger.error('app', `vip session rejected: ${motivo}`);
+
+          const verdict = await recoverVipSession(motivo);
+
+          if (verdict === 'recovered') {
+            // La cuenta sigue siendo la misma: basta con volver a preguntar,
+            // y esta vez con la sesión ya repuesta.
+            await queryClient.invalidateQueries({ queryKey: ['whoami-vip'] });
+            return;
+          }
+
+          if (verdict === 'retry') {
+            // No se ha podido AHORA. No se toca nada: ni la sesión, ni los
+            // datos, ni el aviso. `useAutoReconnect` lo seguirá intentando.
+            setOfflineOverride(true);
+            return;
+          }
 
           displaySnackNotification({
             header: t('tr_eldaSessionExpiredTitle'),

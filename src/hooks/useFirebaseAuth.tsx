@@ -3,6 +3,7 @@ import {
   User,
   getAuth,
   onAuthStateChanged,
+  onIdTokenChanged,
   getRedirectResult,
 } from 'firebase/auth';
 import {
@@ -58,6 +59,31 @@ const initAuthOnce = () => {
     } catch (error) {
       console.error('Firebase redirect error:', error);
     }
+
+    // Token fresco al sincronizador, SIEMPRE que Firebase lo renueve.
+    //
+    // `onAuthStateChanged` solo avisa cuando cambia el USUARIO (entrar, salir),
+    // no cuando se renueva el token — y el token dura una hora. El worker de
+    // sincronización no sabe pedirse uno por su cuenta: usa el que le manden.
+    // Así que hasta ahora lo recibía al arrancar y luego solo si el temporizador
+    // de cinco minutos corría (que exige la cuenta ya conectada) o DESPUÉS de
+    // fallar. O sea: se enteraba de que su token estaba caducado fallando.
+    //
+    // `onIdTokenChanged` sí salta en cada renovación, unos cinco minutos antes
+    // de que caduque. Con esto el worker nunca llega a usar uno vencido.
+    onIdTokenChanged(auth, async (currentUser: User | null) => {
+      if (!currentUser) return;
+
+      try {
+        worker.postMessage({
+          field: 'idToken',
+          value: await currentUser.getIdToken(),
+        });
+      } catch (error) {
+        // Sin red no se puede refrescar; el ciclo de sync ya sabe recuperarse.
+        console.error('Firebase token refresh error:', error);
+      }
+    });
 
     onAuthStateChanged(auth, async (currentUser: User | null) => {
       try {
