@@ -24,6 +24,26 @@ export type AssignmentCongregation = {
    * Solo se usa en las asignaciones que llevan hojita: ver `S89_ASSIGNMENTS`.
    */
   confirmed?: boolean;
+  /**
+   * Quién puso este valor, por su nombre.
+   *
+   * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del
+   * ÚLTIMO que guardó cualquier cosa: con él, el panel de «Última
+   * actualización» solo podía decir «se tocó todo esto y el último fue Fulano»,
+   * que en la práctica no es saber nada.
+   *
+   * Aquí el autor viaja pegado al campo que cambió, así que se puede contestar
+   * la pregunta de verdad: quién cambió el presidente, y a qué hora.
+   *
+   * Opcional a propósito: todo lo repartido antes de esto no lo lleva, y el
+   * panel lo dice —«no consta quién»— en vez de atribuirle el cambio al último
+   * que guardó, que sería inventárselo.
+   *
+   * En la fusión viaja gratis: estos objetos se reemplazan enteros por el más
+   * reciente (casan por `type` y deciden por `updatedAt`), así que un campo
+   * nuevo dentro no tiene ningún filo.
+   */
+  by?: string;
 };
 
 export type WeekTypeCongregation = {

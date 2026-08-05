@@ -19,6 +19,7 @@ import {
   hour24FormatState,
   JWLangState,
   JWLangLocaleState,
+  fullnameState,
   midweekMeetingAssigFSGState,
   midweekMeetingLCSpecialPartsAssignedState,
   sourceLanguagesState,
@@ -1411,12 +1412,17 @@ export const schedulesSaveAssignment = async (
         assigned.value = toSave;
         assigned.name = nameToSave;
         assigned.updatedAt = new Date().toISOString();
+        // Quién lo puso, pegado al campo. El `lastModifiedBy` del registro es
+        // el del último que guardó CUALQUIER cosa de esa semana, y con él el
+        // panel solo podía decir «cambió todo esto, y el último fue Fulano».
+        assigned.by = store.get(fullnameState);
         assigned.solo = typeof value === 'string';
       } else {
         fieldUpdate.push({
           name: nameToSave,
           type: dataView,
           updatedAt: new Date().toISOString(),
+          by: store.get(fullnameState),
           value: toSave,
           solo: typeof value === 'string',
         });
@@ -1428,6 +1434,7 @@ export const schedulesSaveAssignment = async (
       fieldUpdate.value = toSave;
       fieldUpdate.name = nameToSave;
       fieldUpdate.updatedAt = new Date().toISOString();
+      fieldUpdate.by = store.get(fullnameState);
       fieldUpdate.solo = typeof value === 'string';
     }
 
@@ -2069,10 +2076,12 @@ export const schedulesAutofillSaveAssignment = ({
     if (assigned) {
       assigned.value = toSave;
       assigned.updatedAt = new Date().toISOString();
+      assigned.by = store.get(fullnameState);
     } else {
       assigned = {
         type: dataView,
         updatedAt: new Date().toISOString(),
+        by: store.get(fullnameState),
         value: toSave,
         name: '',
       };
@@ -2083,6 +2092,7 @@ export const schedulesAutofillSaveAssignment = ({
     assigned = fieldUpdate;
     fieldUpdate.value = toSave;
     fieldUpdate.updatedAt = new Date().toISOString();
+    fieldUpdate.by = store.get(fullnameState);
   }
 
   // update history

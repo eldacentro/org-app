@@ -36,6 +36,12 @@ const enumerar = (items: string[]) => {
 const diaLargo = (value: Date) =>
   `${value.getDate()} de ${MESES_ES[value.getMonth()].toLowerCase()}`;
 
+/** «20:41». Con dos cifras siempre, para que la columna no baile. */
+const hora = (value: Date) =>
+  `${String(value.getHours()).padStart(2, '0')}:${String(
+    value.getMinutes()
+  ).padStart(2, '0')}`;
+
 /**
  * «Última actualización» — y quién ve cuánto.
  *
@@ -66,28 +72,48 @@ const LastModifiedInfo = ({
 }: LastModifiedInfoProps) => {
   const { t } = useAppTranslation();
 
-  const { isElder } = useCurrentUser();
+  const { isElder, isAdmin } = useCurrentUser();
+
+  // El detalle es solo del cuerpo de ancianos. A los demás les basta —y les
+  // corresponde— la fecha: quién tocó qué y a qué hora señala a un hermano por
+  // su nombre cada vez que alguien abre la página.
+  const puedeVerDetalle = isElder || isAdmin;
 
   const [open, setOpen] = useState(false);
 
   // Los campos cambiados el mismo día se cuentan juntos: a nadie le importa
   // que el presidente y la oración se tocaran con doce minutos de diferencia.
-  const porDia = useMemo(() => {
-    const grupos = new Map<string, { fecha: Date; labels: string[] }>();
+  /**
+   * Los cambios, agrupados por MOMENTO y por autor — no por día.
+   *
+   * Por día no servía: autocompletar sella las quince partes a la vez, así que
+   * el panel decía «hoy cambió todo» y con eso no se sabe nada. Agrupando por
+   * minuto, un autocompletado sale como UN apunte («14 partes, a las 20:41») y
+   * el cambio que alguien hizo a las nueve de la noche sale aparte, que es el
+   * que se estaba buscando.
+   *
+   * Se agrupa también por quién: dos personas tocando cosas en el mismo minuto
+   * son dos apuntes, no uno.
+   */
+  const porMomento = useMemo(() => {
+    const grupos = new Map<
+      string,
+      { fecha: Date; by?: string; labels: string[] }
+    >();
 
     for (const change of changes ?? []) {
       const fecha = new Date(change.updatedAt);
 
       if (Number.isNaN(fecha.getTime())) continue;
 
-      const clave = `${fecha.getFullYear()}-${fecha.getMonth()}-${fecha.getDate()}`;
+      const clave = `${change.updatedAt.slice(0, 16)}|${change.by ?? ''}`;
       const grupo = grupos.get(clave);
 
       if (grupo) {
         if (!grupo.labels.includes(change.label))
           grupo.labels.push(change.label);
       } else {
-        grupos.set(clave, { fecha, labels: [change.label] });
+        grupos.set(clave, { fecha, by: change.by, labels: [change.label] });
       }
     }
 
@@ -103,7 +129,9 @@ const LastModifiedInfo = ({
 
   const date = new Date(updatedAt);
 
-  const conDetalle = isElder && lastModifiedBy;
+  const conDetalle = puedeVerDetalle && lastModifiedBy;
+
+  const algunoConAutor = porMomento.some((grupo) => grupo.by);
 
   const texto = conDetalle
     ? `${date.toLocaleString()} (${lastModifiedBy})`
@@ -111,7 +139,9 @@ const LastModifiedInfo = ({
 
   const linea = `${t('tr_lastUpdate', 'Última actualización')}: ${texto}`;
 
-  const sePuedeAbrir = porDia.length > 0;
+  // Sin ser del cuerpo, la línea es solo texto: ni se abre, ni se subraya, ni
+  // se llega a ella con el tabulador.
+  const sePuedeAbrir = puedeVerDetalle && porMomento.length > 0;
 
   return (
     <>
@@ -183,48 +213,48 @@ const LastModifiedInfo = ({
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {porDia.map((grupo) => (
-              <Box key={grupo.fecha.toISOString()}>
+            {porMomento.map((grupo) => (
+              <Box key={`${grupo.fecha.toISOString()}|${grupo.by ?? ''}`}>
+                {/* Arriba, CUÁNDO y QUIÉN — que es lo que se viene a buscar.
+                    Debajo, qué se tocó en ese momento. Al revés se leía como
+                    una lista de partes con una fecha de propina. */}
                 <Typography
                   className="body-regular-semibold"
                   sx={{ color: 'var(--ink)' }}
                 >
-                  {/* Sin campos que nombrar —un registro que solo guarda su
-                      propia fecha, como el de Grupos— la línea se quedaba en
-                      blanco y debajo un «el 3 de agosto» suelto que no se
-                      entiende. */}
-                  {grupo.labels.length > 0
-                    ? enumerar(grupo.labels)
-                    : 'Se guardó la página'}
+                  {`${diaLargo(grupo.fecha)}, ${hora(grupo.fecha)}`}
+                  {grupo.by ? ` · ${grupo.by}` : ''}
                 </Typography>
+
                 <Typography
                   className="label-small-regular"
                   sx={{ color: 'var(--ink-2)' }}
                 >
-                  {t('tr_lastUpdateOnDate', {
-                    defaultValue: 'el {{date}}',
-                    date: diaLargo(grupo.fecha),
-                  })}
+                  {/* Sin campos que nombrar —un registro que solo guarda su
+                      propia fecha, como el de Grupos— la línea se quedaba en
+                      blanco. */}
+                  {grupo.labels.length > 0
+                    ? enumerar(grupo.labels)
+                    : 'Se guardó la página'}
                 </Typography>
+
+                {/* La coletilla solo cuando el módulo SÍ guarda el autor y a
+                    este apunte le falta: entonces sí significa «esto es
+                    antiguo». Donde no se guarda por campo —Departamentos,
+                    Grupos— no falta nada que explicar, y el nombre del último
+                    que guardó ya está en la línea de arriba. */}
+                {!grupo.by && algunoConAutor && (
+                  <Typography
+                    className="label-small-regular"
+                    sx={{ color: 'var(--grey-400)' }}
+                  >
+                    No consta quién: es de antes de que se guardara el autor de
+                    cada cambio.
+                  </Typography>
+                )}
               </Box>
             ))}
           </Box>
-
-          {/* El límite, dicho en voz alta. La aplicación guarda cuándo se tocó
-              cada campo, pero el autor solo existe a nivel de registro entero:
-              decir un nombre por campo sería inventarlo. */}
-          {conDetalle && (
-            <Typography
-              className="label-small-regular"
-              sx={{ color: 'var(--grey-400)', mt: 3 }}
-            >
-              {t('tr_lastUpdateAuthorNote', {
-                defaultValue:
-                  'El último cambio de la página lo hizo {{name}}. La aplicación guarda cuándo se tocó cada campo, pero no quién tocó cada uno.',
-                name: lastModifiedBy,
-              })}
-            </Typography>
-          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button variant="main" onClick={() => setOpen(false)}>

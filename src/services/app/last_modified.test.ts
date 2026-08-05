@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildFieldChanges, latestUpdatedAt } from './last_modified';
+import {
+  buildFieldChanges,
+  latestChange,
+  latestUpdatedAt,
+} from './last_modified';
 
 /**
  * Lo que hace útil a «Última actualización»: decir QUÉ cambió.
@@ -89,5 +93,61 @@ describe('la lista que ve un hermano', () => {
 
   it('si no se tocó nada, la lista está vacía', () => {
     expect(buildFieldChanges([{ label: 'Presidente', node: {} }])).toEqual([]);
+  });
+});
+
+describe('quién hizo cada cambio', () => {
+  /**
+   * El autor vive pegado al campo desde el 2026-08-05. Antes solo existía el
+   * del registro entero —el último que guardó cualquier cosa de esa semana—, y
+   * con eso el panel decía «cambió todo esto, y el último fue Fulano», que es
+   * como no decir nada.
+   *
+   * Un fallo aquí no pierde datos: señala a un hermano por algo que no hizo,
+   * que en una congregación es peor.
+   */
+  const campo = (updatedAt: string, by?: string, type = 'main') => [
+    { type, value: 'uid-1', name: '', updatedAt, ...(by ? { by } : {}) },
+  ];
+
+  it('la marca más nueva se lleva SU autor, no el de otra', () => {
+    // El filo: coger la fecha de una y el nombre de otra le atribuiría a
+    // alguien un cambio que no hizo.
+    const nodo = {
+      main_hall: campo('2026-08-01T10:00:00Z', 'Ana'),
+      aux_class_1: campo('2026-08-05T20:41:00Z', 'Carlos')[0],
+    };
+
+    expect(latestChange(nodo)).toEqual({
+      updatedAt: '2026-08-05T20:41:00Z',
+      by: 'Carlos',
+    });
+  });
+
+  it('sin autor guardado no se inventa ninguno', () => {
+    // Todo lo repartido antes de que esto existiera cae aquí, y el panel lo
+    // dice en voz alta en vez de atribuírselo al último que guardó.
+    expect(latestChange(campo('2026-07-01T10:00:00Z'))).toEqual({
+      updatedAt: '2026-07-01T10:00:00Z',
+      by: undefined,
+    });
+  });
+
+  it('el autor de otra vista de datos tampoco se cuela', () => {
+    expect(
+      latestChange(campo('2026-08-05T20:41:00Z', 'Carlos', 'grupo'), 'main')
+    ).toEqual({ updatedAt: '', by: undefined });
+  });
+
+  it('cada línea del panel lleva el suyo', () => {
+    const cambios = buildFieldChanges([
+      { label: 'Presidente', node: campo('2026-08-01T10:00:00Z', 'Ana') },
+      { label: 'Oración', node: campo('2026-08-05T20:41:00Z', 'Carlos') },
+    ]);
+
+    expect(cambios).toEqual([
+      { label: 'Oración', updatedAt: '2026-08-05T20:41:00Z', by: 'Carlos' },
+      { label: 'Presidente', updatedAt: '2026-08-01T10:00:00Z', by: 'Ana' },
+    ]);
   });
 });

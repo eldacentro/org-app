@@ -5,11 +5,15 @@
  * registro. Esa marca por campo es lo que permite contestar algo más útil que
  * «se tocó el 3 de agosto»: contestar QUÉ se tocó.
  *
- * **El límite, y es real.** Se guarda cuándo se tocó cada campo, pero NO
- * quién: el autor solo existe a nivel de registro entero (`lastModifiedBy`).
- * Así que este módulo contesta qué y cuándo, y el quién sigue siendo el del
- * registro. No se añade aquí ningún campo nuevo al esquema sincronizado: en
- * este repositorio eso se hace despacio y es un trabajo aparte.
+ * Y desde el 2026-08-05 guarda también QUIÉN: cada asignación lleva su propio
+ * `by`. Antes el autor solo existía a nivel de registro (`lastModifiedBy`, el
+ * último que guardó cualquier cosa de esa semana), y con eso el panel solo
+ * podía decir «cambió todo esto, y el último fue Fulano» — que es como no decir
+ * nada.
+ *
+ * Lo repartido ANTES de ese día no lo lleva, y entonces se dice «no consta
+ * quién» en vez de atribuírselo al último que guardó. Inventar un culpable es
+ * peor que admitir que no se sabe.
  */
 
 export type FieldChange = {
@@ -17,6 +21,8 @@ export type FieldChange = {
   label: string;
   /** ISO. La marca más reciente encontrada dentro de ese campo. */
   updatedAt: string;
+  /** Quién lo puso. Vacío = de antes de que esto se guardara. */
+  by?: string;
 };
 
 /**
@@ -32,17 +38,22 @@ export type FieldChange = {
  * asignaciones llevan la vista en `type`): sin ese filtro, un cambio hecho en
  * el grupo de otro idioma aparecería como cambio en el tuyo.
  */
-export const latestUpdatedAt = (node: unknown, dataView?: string): string => {
-  if (node === null || node === undefined) return '';
+export const latestChange = (
+  node: unknown,
+  dataView?: string
+): { updatedAt: string; by?: string } => {
+  const vacio = { updatedAt: '', by: undefined as string | undefined };
+
+  if (node === null || node === undefined) return vacio;
 
   if (Array.isArray(node)) {
-    return node.reduce<string>((mayor, child) => {
-      const valor = latestUpdatedAt(child, dataView);
-      return valor > mayor ? valor : mayor;
-    }, '');
+    return node.reduce<{ updatedAt: string; by?: string }>((mayor, child) => {
+      const valor = latestChange(child, dataView);
+      return valor.updatedAt > mayor.updatedAt ? valor : mayor;
+    }, vacio);
   }
 
-  if (typeof node !== 'object') return '';
+  if (typeof node !== 'object') return vacio;
 
   const record = node as Record<string, unknown>;
 
@@ -54,17 +65,30 @@ export const latestUpdatedAt = (node: unknown, dataView?: string): string => {
       typeof record.type === 'string' &&
       record.type !== dataView
     ) {
-      return '';
+      return vacio;
     }
 
-    return record.updatedAt;
+    return {
+      updatedAt: record.updatedAt,
+      by:
+        typeof record.by === 'string' && record.by.length > 0
+          ? record.by
+          : undefined,
+    };
   }
 
-  return Object.values(record).reduce<string>((mayor, child) => {
-    const valor = latestUpdatedAt(child, dataView);
-    return valor > mayor ? valor : mayor;
-  }, '');
+  return Object.values(record).reduce<{ updatedAt: string; by?: string }>(
+    (mayor, child) => {
+      const valor = latestChange(child, dataView);
+      return valor.updatedAt > mayor.updatedAt ? valor : mayor;
+    },
+    vacio
+  );
 };
+
+/** Solo la fecha, para quien no necesita el autor. */
+export const latestUpdatedAt = (node: unknown, dataView?: string): string =>
+  latestChange(node, dataView).updatedAt;
 
 /**
  * Convierte una lista de secciones con nombre en la lista de cambios que se
@@ -75,10 +99,7 @@ export const buildFieldChanges = (
   dataView?: string
 ): FieldChange[] => {
   return sections
-    .map(({ label, node }) => ({
-      label,
-      updatedAt: latestUpdatedAt(node, dataView),
-    }))
+    .map(({ label, node }) => ({ label, ...latestChange(node, dataView) }))
     .filter((change) => change.updatedAt !== '')
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 };
